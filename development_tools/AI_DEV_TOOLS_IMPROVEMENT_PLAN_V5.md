@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Single forward-looking backlog after V4; collapsed history; actionable next steps  
 > **Style**: Direct and concise  
-> **Last Updated**: 2026-03-27  
+> **Last Updated**: 2026-03-28  
 > **Supersedes**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (keep V4 for detailed checkbox history)
 
 **Authoritative metrics**: [development_tools/AI_STATUS.md](AI_STATUS.md) and [development_tools/AI_PRIORITIES.md](AI_PRIORITIES.md) after `python development_tools/run_development_tools.py audit` or `audit --full`.
@@ -18,7 +18,7 @@ This section answers: *Were V4 completed items actually done? Was work thorough 
 ### 1.1 Substantively complete and verifiable
 
 - **Tiered audit, caching, lock handling**: `development_tools/shared/lock_state.py`, stale-lock recovery in orchestration and CLI, tests referenced in V4 — present and consistent with reliability goals.
-- **60%+ development-tools coverage**: Live snapshot shows **Development Tools Coverage ~61.6%** (see AI_STATUS **Last Generated** 2026-03-27). V4’s floor target is met; optional ~80% module nudges remain in AI_PRIORITIES.
+- **60%+ development-tools coverage**: Recent Tier 3 snapshot shows **Development Tools Coverage ~61.9%** (see AI_STATUS **Last Generated** after your latest `audit --full`). V4’s floor target is met; optional ~80% module nudges remain in AI_PRIORITIES.
 - **Duplicate-function body similarity**: `--consider-body-similarity` and related config/CLI exist in `development_tools/functions/analyze_duplicate_functions.py` (V4 §3.5 / §5.0).
 - **Tier 3 outcome contract, strict mode, cache invalidation, exclusion/tooling policy tests**: Implemented with regression tests per V4 notes; legacy Tier3 bridge removals were done with DEPRECATION_INVENTORY updates (see V4 §2.9 follow-ups).
 - **Pyright/Ruff in audit, reporting, config-owned paths**: Integrated as described in V4 §7.2.
@@ -36,7 +36,7 @@ This section answers: *Were V4 completed items actually done? Was work thorough 
 ### 1.3 Not complete (V4 correctly left open)
 
 - **`tests/development_tools/test_config.json` migration** for all analyzer-using tests — still deferred (V4 §1.1).
-- **Scope-aware report content** for `--dev-tools-only` (project-wide generators) — deferred (V4 §2.8).
+- **Scope-aware report content** for `--dev-tools-only` — **partial (2026-03-28)**: `DEV_TOOLS_*` titles, metadata, source command (`--dev-tools-only`), scope blurbs; domain-coverage priority omitted in `DEV_TOOLS_PRIORITIES.md`. **Remaining**: drive **Tier 3 coverage execution from audit scope** so a single run does not refresh both full-repo and dev-tools coverage when only one scope is intended (see **§5.1 — 1.9** and **§7.15**).
 - **Flaky detector**: `scripts/flaky_detector.py` is **not** in the current tree; migration and CLI wiring **not done** (V4 §3.12).
 - **Scripts migration inventory**, **3.14 review candidates**, **3.15 gap tasks** — open.
 - **§3.16** `report_generation.py` / `run_test_coverage.py` split — **plan only**, no implementation backlog beyond AI_PRIORITIES refactor candidates.
@@ -44,7 +44,7 @@ This section answers: *Were V4 completed items actually done? Was work thorough 
 
 ### 1.4 Compliance: legacy guide and workflow
 
-- **AI_LEGACY_COMPATIBILITY_GUIDE**: V4’s completed **code** work that touched bridges (e.g. Tier3 cache normalization, inventory updates) matches expectations: inventory updates, tests, and phased removal rather than time-based deletes. **Section 6 backlog** (retire `sync_ruff_toml`-related inventory terms, reduce markers) should use **`fix_legacy_references.py --find` / `--verify`**, update `DEPRECATION_INVENTORY.json` in the **same change** as removals, and follow search-and-close — **ongoing**; live report: [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md) (refresh counts after `audit --full`; inventory term count reduced 2026-03-27 when CLI print in `sync_ruff_toml` moved to logger).
+- **AI_LEGACY_COMPATIBILITY_GUIDE**: V4’s completed **code** work that touched bridges (e.g. Tier3 cache normalization, inventory updates) matches expectations: inventory updates, tests, and phased removal rather than time-based deletes. **Section 6 backlog** (retire `sync_ruff_toml`-related bridge when exit criteria met) should use **`fix_legacy_references.py --find` / `--verify`**, update `DEPRECATION_INVENTORY.json` in the **same change** as removals, and follow search-and-close — **ongoing**; live report: [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md). **2026-03-28**: `root_ruff_compat_mirror` keeps **`search_terms`: `[]`** while the bridge remains `active_bridge` — inventory row still appears in the report’s **Deprecation Inventory** block (active entries: 1, active search terms: 0); **per-file inventory hits** stay at 0 because no grep patterns are injected (avoids false “issues” from `sync_ruff_toml` docstrings/CLI help). Executable `LEGACY COMPATIBILITY` code paths are tracked separately from this inventory wording.
 - **AI_DEVELOPMENT_WORKFLOW**: Dev-tools changes described in V4 follow **small slices**, tests under `tests/development_tools/`, and documented entry points. Future large refactors should stay **incremental** per §3 and §5 “Refactor”.
 
 ### 1.5 Nuance index (same topics as §1.2, cross-linked to §5)
@@ -62,14 +62,15 @@ Use this block when a V4 **Status** line says “IN PROGRESS” or “COMPLETE�
 | **§3.17 Portability “IN PROGRESS”** | Many checklist items are `[x]` in V4, but **hardcoded-path hotspots** and **strict full-audit** validation in slow environments remain **ongoing** — not contradictory. | **§5.3 — 3.17** |
 | **Dual Pyright / dual Ruff configs** | Root configs = IDE/whole-repo workflows; dev-tools configs = audit wrappers. **Diagnostic parity** between root and `development_tools/config/pyrightconfig.json` is **not** guaranteed yet — see next row. | **§5.7 — 7.6** |
 | **Live metric snapshots** | Legacy file/marker counts, coverage %, duplicate groups, and coupling counts **change** after each `audit --full`. Prefer **AI_STATUS** / **LEGACY_REFERENCE_REPORT** over any numeric example embedded in V4/V5 prose. | §2 snapshot; **§5.6** |
-| **Legacy report vs runtime legacy** | [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md) can flag **phrase** matches (e.g. inventory-related text in docstrings) that are not the same as executable `LEGACY COMPATIBILITY` branches — interpret with [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md). | §1.4; **§5.6** |
+| **Legacy report vs runtime legacy** | [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md) flags **legacy markers** and **injected inventory terms**. **2026-03-28**: active-bridge **inventory** may list **0 search terms** on purpose (`root_ruff_compat_mirror`); the report still shows **Deprecation Inventory** counts — not a broken generator. Executable `LEGACY COMPATIBILITY` branches — [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md). | §1.4; **§5.6** |
+| **Tier 3 coverage vs audit scope** | Full audit may still run **both** main-track and dev-tools coverage today; `--dev-tools-only` should eventually run **only** dev-tools coverage so `DEV_TOOLS_*` metrics are not mixed with stale full-repo refreshes — **§5.1 — 1.9**. | **§5.1 — 1.9**; **§7.15** |
 | **Tier 3 test outcome “cache” / unknown rows** | After a cache-only or precheck path, **AI_STATUS** Tier 3 lines may show `unknown` or `cache_only_precheck` — meaning “no fresh pytest run in this pass,” not necessarily a broken pipeline. Force a full Tier 3 run when you need live pytest counts. | Operational; not §5 backlog |
 
 ---
 
 ## 2. Current state snapshot (rolling)
 
-Use **AI_STATUS.md** after each audit. Example **2026-03-27** (Tier 3 full): development-tools coverage **~61.6%**; legacy references **1 file**; duplicate-function groups **12**; module refactor candidates **60**; circular chains **18**; high-coupling **54**. Refresh counts before prioritizing §6-style work.
+Use **AI_STATUS.md** after each audit. Example **2026-03-28** (Tier 3 full, after `audit --full`): overall test coverage **~76.1%**; development-tools coverage **~61.9%**; doc sync **PASS**; static analysis **CLEAN**; legacy references **CLEAN (0 files)**; duplicate-function groups **12**; refresh **AI_PRIORITIES** / **CONSOLIDATED_REPORT** for module-refactor, coupling, and complexity counts before §6-style work.
 
 ---
 
@@ -86,6 +87,7 @@ No per-task history here — see V4 for checkboxes.
 - Config portability baseline (owned `ruff.toml` / `pyrightconfig.json` paths), import-boundary check, `tests/data` exclusions for legacy analyzers.
 - Slow-test optimizations, worker fallback **4→6**, `@pytest.mark.slow` on heavy tests.
 - Retired unapproved standalone docs (content folded into code/guides).
+- **2026-03-28 (V5 continuation slice)**: `DEV_TOOLS_*` report scope (headers, `--dev-tools-only` source line, scope/role blurbs; omit domain-coverage priority in dev-tools priorities); legacy report noise fix (`root_ruff_compat_mirror` empty `search_terms`, inventory summary unchanged); portability bootstrap (`run_dev_tools.py`, `fix_legacy_references.py` `Path.resolve()`; `generate_function_registry` output paths use module `project_root`); owned [`pyrightconfig.json`](config/pyrightconfig.json) `venvPath` / `venv` for repo interpreter; paired changelogs — see [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) / [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md).
 
 ---
 
@@ -95,14 +97,14 @@ Rough ordering for triage (see **§5** for full V4-sourced detail):
 
 | Tier | Themes |
 |------|--------|
-| **High** | Legacy markers + [DEPRECATION_INVENTORY.json](config/jsons/DEPRECATION_INVENTORY.json) (§6); portability / dual Pyright+Ruff baselines (§3.17, §7.6); directory taxonomy Phase 2–3 (§7.7); optional Tier 3 vs coverage split (V4 intro / §7.15). |
-| **Medium** | `--dev-tools-only` scope-aware generators (§2.8); coverage cache numeric benchmarks (§1.5); validation triggers (§3.2); external security/complexity tools (§4.1); doc overlap analyzer (§5.2); AI work validation thin profile (§5.3); TODO sync automation (§5.4); gap-analysis tool rollout (§5.5). |
+| **High** | **Tier 3 coverage driven by audit scope** (§5.1 — 1.9; orchestration in `audit_orchestration` / `run_test_coverage`, aligns §7.15); legacy executable paths + [DEPRECATION_INVENTORY.json](config/jsons/DEPRECATION_INVENTORY.json) (§6); portability / dual Pyright+Ruff baselines (§3.17, §7.6); directory taxonomy Phase 2–3 (§7.7). |
+| **Medium** | Finish `--dev-tools-only` story after 1.9 (remaining §2.8 report/tool sections if any); coverage cache numeric benchmarks (§1.5); validation triggers (§3.2); external security/complexity tools (§4.1); doc overlap analyzer (§5.2); AI work validation thin profile (§5.3); TODO sync automation (§5.4); gap-analysis tool rollout (§5.5). |
 | **Lower / backlog** | `test_config.json` migration (§1.1); example-marking checker (§3.0); flaky detector + scripts migration (§3.12–3.15); unused-imports fixer (§5.1); memory profiler (§5.6); large-file refactors (§3.16); human backlog §7.8–7.13, §7.15. |
 | **Monitoring** | Intermittent low coverage warning (§1.3) — reopen if recurrence. |
 
 ### 4.1 Phase 2 scheduling (after §4 High / Phase 1 portability-legacy work)
 
-Suggested order when returning from Phase 1: **(1)** §2.8 `--dev-tools-only` scope-aware report generators (largest UX win for dev-tools-only audits). **(2)** §1.5 coverage-cache benchmark session (methodology in §5.1 — 1.5; optional numeric capture). **(3)** §4.1 external tools evaluation (bandit, pip-audit, radon, pre-commit) per paired guides §10. **(4)** §5.2 documentation overlap analyzer improvements. **(5)** §5.3 AI work validation (keep thin). **(6)** §5.4 TODO sync dry-run automation. **(7)** §5.5 gap-analysis tool rollout (incremental).
+Suggested order when returning from Phase 1: **(1)** **§5.1 — 1.9** — Tier 3 **test/coverage execution** follows audit scope (full audit → main/project coverage only; `--dev-tools-only` → dev-tools coverage only; clarify stale-vs-fresh rules for `AI_STATUS` / caches). **(2)** §2.8 any remaining scope-aware **sections** once 1.9 makes metrics honest without report-only filtering. **(3)** §1.5 coverage-cache benchmark session (methodology in §5.1 — 1.5; optional numeric capture). **(4)** §4.1 external tools evaluation (bandit, pip-audit, radon, pre-commit) per paired guides §10. **(5)** §5.2 documentation overlap analyzer improvements. **(6)** §5.3 AI work validation (keep thin). **(7)** §5.4 TODO sync dry-run automation. **(8)** §5.5 gap-analysis tool rollout (incremental).
 
 ---
 
@@ -139,6 +141,17 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 - **Deferred (no batch change)**: Consider `scope="module"` for `temp_project_copy` where tests do not mutate shared state — **2026-03-24 V4**: shared-state risk; prefer **per-test review** when touching slow tests.
 - **Note**: Concurrent worker fallback 4→6 and `@pytest.mark.slow` on heavy tests were completed; full-suite timing remains environment-dependent.
 
+#### 1.9 Tier 3 coverage and test execution by audit scope (orchestration)
+
+- **Status**: **PRIORITY — not implemented (2026-03-28)**. Today, a full Tier 3 audit may still refresh **both** main/project coverage and **development_tools** coverage tracks; `--dev-tools-only` restricts **analyzers** via `get_scan_directories()` but coverage subprocess design should align so effort and artifacts match intent.
+- **Goal**:
+  - **`audit --full` (default, full-repo scope)** — run **project / main-track** pytest+coverage (existing domain summary, `TEST_COVERAGE_REPORT`, etc.) as today; do **not** require a separate dev-tools coverage run in the same pass unless policy explicitly keeps both (if both stay, document why).
+  - **`audit --full --dev-tools-only`** — run **only** `tests/development_tools/` (or equivalent dev-tools coverage entrypoint); refresh **only** dev-tools coverage JSON/HTML consumed by `DEV_TOOLS_*` reports; avoid refreshing or implying fresh **full-repo** coverage in that pass.
+- **Why**: Reduces duplicate wall-clock, avoids **stale full-repo metrics** appearing next to **fresh dev-tools** metrics (or the reverse), and can **remove reliance** on report-layer omissions (e.g. hiding domain priorities) because the **data** simply is not produced out of scope.
+- **Touchpoints**: [`shared/service/audit_orchestration.py`](shared/service/audit_orchestration.py) (Tier 3 sequencing), [`tests/run_test_coverage.py`](tests/run_test_coverage.py) (`CoverageMetricsRegenerator`, CLI), Tier 3 outcome/cache contracts, paired guides §10 / Standard Audit Recipe.
+- **Acceptance**: After `--dev-tools-only` full audit, project-wide coverage files and `AI_STATUS` coverage lines either **omit** “last full-repo run” or **mark stale** per documented rules; after normal `--full`, dev-tools-only artifacts behave symmetrically. Tests under `tests/development_tools/` cover branching; `audit --quick` still passes.
+- **Related**: **§7.15** (separate coverage from full audit — product direction); **§5.2 — 2.8** (report scope; metadata/priorities partial **2026-03-28**, orchestration here).
+
 ---
 
 ### 5.2 Section 2 — Reporting, recommendations, and output quality
@@ -154,10 +167,10 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 #### 2.8 Run all tools in development_tools-only mode
 
-- **Status**: **DEFERRED (2026-03-25)**. Implemented: `audit --dev-tools-only`, DEV_TOOLS_* status paths, dev-tools tree targeting.
+- **Status**: **PARTIAL (2026-03-28)**. Implemented: `audit --dev-tools-only`, `DEV_TOOLS_*` output paths, `get_scan_directories() -> ['development_tools']`, and **report-layer** scope (`ReportGenerationMixin`: titles, file blurbs, `--dev-tools-only` on source command, scope/role lines; domain-coverage priority omitted in dev-tools priorities).
 - **Open**:
-  - Report generators still produce **project-wide** content; DEV_TOOLS_* output can mirror AI_* until generators are **scope-aware** (pass `dev_tools_only_mode` and restrict metrics/sections to `development_tools/`).
-  - Reuse coverage/test flow where it already targets the dev-tools tree; ensure **report outputs** reflect dev-tools-scoped data when mode is on.
+  - **Orchestration**: Tier 3 **coverage/test runs** should follow audit scope (**§5.1 — 1.9**) so metrics are not mixed or stale across scopes; reduces need for report-only filtering.
+  - Any remaining **sections** in `DEV_TOOLS_STATUS` / `DEV_TOOLS_CONSOLIDATED_REPORT` that still read as full-repo after 1.9 — trim or label explicitly once data pipeline is scoped.
 
 #### 2.9 Console output polish (optional)
 
@@ -239,7 +252,7 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 - **Status**: **IN PROGRESS**. **User priority**: High.
 - **Remaining focus (V4 narrative + inventory)**:
-  - Hardcoded-path hotspots still called out for refactor: `development_tools/run_dev_tools.py` (bootstrap), `run_development_tools.py` (`tests/data` cleanup, lock defaults), `config/analyze_config.py` (parent chain + dev-tools assumptions), `functions/generate_function_registry.py` (project-root inference).
+  - Hardcoded-path hotspots: **2026-03-28** slices landed for `run_dev_tools.py` / `legacy/fix_legacy_references.py` (`Path.resolve()` bootstrap), `generate_function_registry.py` output paths (module `project_root`); continue review for `run_development_tools.py`, `config/analyze_config.py`, and any new call sites.
   - Some environments: `audit --full --strict` may hit **runtime limits** — full portability validation still a goal.
   - Import-boundary check exists; keep enforcing isolation of `development_tools/**` from business domains.
 
@@ -316,7 +329,7 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 **Open tasks**:
 
 - Retire remaining legacy reference markers (`fix_legacy_references.py --find` / `--verify`; `run_development_tools.py legacy` or `audit --full`).
-- Work down [DEPRECATION_INVENTORY.json](config/jsons/DEPRECATION_INVENTORY.json) entries: `legacy_timestamp_parsing`, `backup_zip_compat_bridge`, `tier3_coverage_outcome_compat_bridge`, `root_ruff_compat_mirror` (confirm current IDs in file).
+- Work down [DEPRECATION_INVENTORY.json](config/jsons/DEPRECATION_INVENTORY.json) **active** entries (confirm IDs in file): **`root_ruff_compat_mirror`** remains until portability exit criteria; removed entries (`legacy_timestamp_parsing`, `backup_zip_compat_bridge`, `tier3_coverage_outcome_compat_bridge`, etc.) stay in `removed_inventory` for history.
 - Validate and **document exit criteria** per item before removal; update inventory status **in the same change**.
 - Reduce unused imports (see AI_PRIORITIES); verify via unused-imports report.
 - Raise domain coverage for communication, ui, core (below target).
@@ -337,7 +350,7 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
   - Root `.ruff.toml` = compatibility mirror; `development_tools/config/ruff.toml` = owned path for wrappers.
 - **Next steps before single baseline**:
   - Align dev-tools Pyright so `analyze_pyright` matches root diagnostic baseline (no artificial drops from scope drift).
-  - Regression tests: both Pyright paths; fail if error/warning deltas exceed agreed tolerance without explicit exclusions. **Partial (2026-03-27)**: optional enforcement in `tests/development_tools/test_pyright_config_paths.py` e2e — set env `PYRIGHT_ERROR_COUNT_MAX_DELTA` to a non-negative integer when running the e2e Pyright test; unset by default (scopes differ).
+  - Regression tests: both Pyright paths; fail if error/warning deltas exceed agreed tolerance without explicit exclusions. **Partial (2026-03-27)**: optional enforcement in `tests/development_tools/test_pyright_config_paths.py` e2e — set env `PYRIGHT_ERROR_COUNT_MAX_DELTA` to a non-negative integer when running the e2e Pyright test; unset by default (scopes differ). **2026-03-28**: owned [`pyrightconfig.json`](config/pyrightconfig.json) adds `venvPath` / `venv` so `pyright --project` resolves the repo `.venv` from the owned config path.
   - Decide: keep root `.ruff.toml` permanently as mirror vs deprecate after portability criteria met.
   - If deprecating root configs: migration + fallback documented in both guides before removal.
 
@@ -382,6 +395,7 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 #### 7.15 Separate test coverage from full audit
 
 - Product direction: full audit could run **tests only**; coverage via separate schedule or extra flag/tier — aligns with V4 intro (Tier 3 without embedded coverage).
+- **2026-03-28**: Practical next step is **§5.1 — 1.9** (single coverage dimension per audit scope in one pass) as a subset of this direction; larger “coverage wholly outside audit” remains optional.
 
 ---
 
@@ -390,7 +404,7 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 - **§1.3** — Intermittent low coverage: **MONITORING**; reopen on recurrence.
 - **§1.2** — `test_audit_tier_comprehensive.py`: **deferred** unless cost/benefit justifies re-enable.
 
-**Lower backlog (opportunistic, 2026-03-27)** — pick up when touching related code: §1.1 adopt `test_config.json` in analyzer tests you edit; §3.0 example-marking in doc-sync; §3.12 restore `flaky_detector` from history if needed then migrate; §3.13–3.14 scripts inventory; §3.15 gap heuristics; §3.16 extract helpers from `report_generation.py` / `run_test_coverage.py`; §7.8–7.13, §7.15 as separately prioritized.
+**Lower backlog (opportunistic, 2026-03-28)** — pick up when touching related code: §1.1 adopt `test_config.json` in analyzer tests you edit; §1.9 orchestration when refactoring Tier 3; §3.0 example-marking in doc-sync; §3.12 restore `flaky_detector` from history if needed then migrate; §3.13–3.14 scripts inventory; §3.15 gap heuristics; §3.16 extract helpers from `report_generation.py` / `run_test_coverage.py`; §7.8–7.13, §7.15 as separately prioritized.
 
 ---
 

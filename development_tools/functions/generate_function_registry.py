@@ -1247,31 +1247,23 @@ def update_function_registry():
     # Write DETAIL file with rotation
     from development_tools.shared.file_rotation import create_output_file
 
-    detail_path = (
-        Path(__file__).parent.parent.parent
-        / "development_docs"
-        / "FUNCTION_REGISTRY_DETAIL.md"
-    )
+    detail_path = project_root / "development_docs" / "FUNCTION_REGISTRY_DETAIL.md"
     create_output_file(
         str(detail_path),
         detail_content,
         rotate=True,
         max_versions=7,
-        project_root=Path(__file__).parent.parent.parent,
+        project_root=project_root,
     )
 
     # Write AI file with rotation
-    ai_path = (
-        Path(__file__).parent.parent.parent
-        / "ai_development_docs"
-        / "AI_FUNCTION_REGISTRY.md"
-    )
+    ai_path = project_root / "ai_development_docs" / "AI_FUNCTION_REGISTRY.md"
     create_output_file(
         str(ai_path),
         ai_content,
         rotate=True,
         max_versions=7,
-        project_root=Path(__file__).parent.parent.parent,
+        project_root=project_root,
     )
 
     # Calculate statistics

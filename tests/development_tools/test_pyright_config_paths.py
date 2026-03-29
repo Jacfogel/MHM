@@ -36,6 +36,8 @@ def test_dev_tools_pyrightconfig_has_typing_and_exclude_roots() -> None:
     data = json.loads(path.read_text(encoding="utf-8"))
     assert "typeCheckingMode" in data
     assert isinstance(data.get("exclude"), list) and len(data["exclude"]) > 0
+    assert data.get("venv") == ".venv"
+    assert data.get("venvPath") == "../.."
 
 
 @pytest.mark.unit

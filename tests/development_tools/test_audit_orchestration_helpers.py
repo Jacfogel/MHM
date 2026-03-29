@@ -135,6 +135,15 @@ def test_effective_tier3_state_all_tracks_skipped_is_clean(temp_project_copy: Pa
 
 
 @pytest.mark.unit
+def test_service_dev_tools_only_mode_defaults_false(temp_project_copy: Path):
+    """Audit entry sets dev_tools_only_mode; default is full-repo scope."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    assert service.dev_tools_only_mode is False
+    service.dev_tools_only_mode = True
+    assert service.dev_tools_only_mode is True
+
+
+@pytest.mark.unit
 def test_get_audit_and_coverage_lock_paths_config_attribute_error_fallback(
     temp_project_copy: Path,
 ):

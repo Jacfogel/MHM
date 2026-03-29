@@ -11,6 +11,7 @@ from tests.development_tools.conftest import load_development_tools_module
 class _StubService:
     def __init__(self, *, audit_success=True):
         self.audit_success = audit_success
+        self.dev_tools_only_mode = False
         self.exclusion_calls = []
         self.audit_calls = []
         self.module_refactor_calls = []
@@ -174,6 +175,18 @@ def test_audit_command_parses_include_all_and_strict(cli_module):
     assert code == 0
     assert service.exclusion_calls == [(True, True)]
     assert service.audit_calls == [(True, False, True, True)]
+    assert service.dev_tools_only_mode is False
+
+
+@pytest.mark.unit
+def test_audit_command_sets_dev_tools_only_mode(cli_module):
+    """--dev-tools-only should flag service for scoped scan and DEV_TOOLS_* report paths."""
+    service = _StubService(audit_success=True)
+
+    code = cli_module._audit_command(service, ["--quick", "--dev-tools-only"])
+
+    assert code == 0
+    assert service.dev_tools_only_mode is True
 
 
 @pytest.mark.unit

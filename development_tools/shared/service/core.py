@@ -86,7 +86,6 @@ class AIToolsService(
         self.status_summary = None
         self.current_audit_tier = None  # Track current audit tier (1=quick, 2=standard, 3=full)
         self._tools_run_in_current_tier = set()  # Track which tools were actually run in current tier
-        self._tools_run_in_current_tier = set()  # Track which tools were actually run in current tier
     
     def set_exclusion_config(self, include_tests: bool = False, include_dev_tools: bool = False):
         """Set exclusion configuration for audit tools."""

@@ -1,5 +1,7 @@
 {
   "typeCheckingMode": "basic",
+  "venvPath": "../..",
+  "venv": ".venv",
   "reportReturnType": "none",
   "reportArgumentType": "warning",
   "reportOptionalMemberAccess": "warning",

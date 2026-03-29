@@ -415,3 +415,24 @@ def test_detect_expected_parallel_workers_invalid_integers_returns_none(tmp_path
         return_value=[("notint", "1")],
     ):
         assert regenerator._detect_expected_parallel_workers("created: notint / 1 workers") is None
+
+
+@pytest.mark.unit
+def test_run_dev_tools_only_delegates_to_run_dev_tools_coverage(tmp_path: Path):
+    """dev_tools_only=True should use run_dev_tools_coverage + summary, not full-domain analysis."""
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+    payload: dict = {
+        "coverage_collected": True,
+        "modules": {"a": {}},
+        "overall": {"overall_coverage": 55.0},
+    }
+    with patch.object(regenerator, "run_dev_tools_coverage", return_value=payload):
+        with patch.object(regenerator, "report_generator", None):
+            with patch.object(
+                regenerator,
+                "_generate_coverage_summary_fallback",
+                return_value="Dev tools summary",
+            ) as fallback:
+                out = regenerator.run(dev_tools_only=True)
+    assert out is payload
+    fallback.assert_called_once()

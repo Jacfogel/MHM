@@ -29,6 +29,12 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+### 2026-03-28 - V5 plan: legacy report clean, DEV_TOOLS report scope, Pyright venv **COMPLETED**
+- **Inventory / legacy**: `root_ruff_compat_mirror` no longer injects grep `search_terms` (bridge still listed); `LEGACY_REFERENCE_REPORT` can show **0** hits while the entry documents exit criteria.
+- **Reports**: Dev-tools-only audits label `DEV_TOOLS_*.md` outputs, scope blurbs, source line with `--dev-tools-only`, and drop full-repo domain-coverage priority from dev-tools priorities; `core.py` duplicate `_tools_run_in_current_tier` line removed.
+- **Portability / Pyright**: `run_dev_tools.py`, `fix_legacy_references.py` resolve bootstrap paths; `generate_function_registry` rotation uses shared `project_root`; owned `pyrightconfig.json` declares repo venv via `venvPath`/`venv`.
+- **Follow-up**: Section 1.5 cache benchmark numbers remain local - see CHANGELOG_DETAIL for the PowerShell `Measure-Command` pairing recipe.
+
 ### 2026-03-27 - V4 plan + V5 roadmap continuation (docs, casing, portability slice) **COMPLETED**
 - **V5 backlog**: [TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md), [LIST_OF_LISTS.md](development_docs/LIST_OF_LISTS.md), paired dev-tools guides now point at [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) for current work; V4 remains historical checkboxes.
 - **Reports**: Git tracks `development_tools/CONSOLIDATED_REPORT.md` (case-normalized) to match config; `.cursor/rules/dev_tools.mdc` updated.

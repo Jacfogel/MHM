@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-03-28 16:59:34",
+  "last_generated": "2026-03-28 20:10:50",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-03-28T16:59:34.661368",
+  "timestamp": "2026-03-28T20:10:50.716839",
   "successful": [
     "analyze_ai_work",
     "analyze_config",
@@ -55,7 +55,7 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-03-28T16:49:41"
+      "timestamp": "2026-03-28T20:10:20"
     },
     "analyze_config": {
       "success": true,
@@ -123,7 +123,7 @@
           }
         }
       },
-      "timestamp": "2026-03-28T16:49:41"
+      "timestamp": "2026-03-28T20:10:20"
     },
     "analyze_tooling_consistency": {
       "success": true,
@@ -578,7 +578,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-03-28T16:50:03"
+      "timestamp": "2026-03-28T20:10:30"
     },
     "analyze_documentation": {
       "success": true,
@@ -617,7 +617,7 @@
                 "ui/UI_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.19780180703823216,
+              "similarity_score": 0.19771851376355035,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -849,16 +849,16 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 21090,
+              "content_length": 20745,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
-              "section_count": 22,
+              "section_count": 21,
               "sections": [
                 "Introduction",
                 "Overview",
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
-                "2026-03-28 - User management parallel test stabilization **COMPLETED**",
+                "2026-03-28 - V5 plan: legacy report clean, DEV_TOOLS report scope, Pyright venv **COMPLETED**",
                 "2026-03-27 - V4 plan + V5 roadmap continuation (docs, casing, portability slice) **COMPLETED**",
                 "2026-03-26 - V4 continuation: inventory, analyze_config tests, roadmap **COMPLETED**",
                 "2026-03-25 - V4 continuation: coverage tests, reports, guides, portability **COMPLETED**",
@@ -1051,7 +1051,7 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 363596,
+              "content_length": 366594,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
               "section_count": 128,
               "sections": [
@@ -1061,7 +1061,7 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
-                "2026-03-28 - Stabilize `test_create_user_files_success` under parallel pytest",
+                "2026-03-28 - V5 continuation: legacy noise fix, DEV_TOOLS report scope, Pyright venv, coverage benchmark notes",
                 "2026-03-27 - V4 dev tools continuation + V5 roadmap (plan implementation)",
                 "2026-03-26 - AI dev tools V4 continuation (inventory, tests, roadmap)",
                 "2026-03-25 - AI dev tools V4 continuation (coverage, reporting, guides)"
@@ -1342,7 +1342,7 @@
           "total_issues": 12
         }
       },
-      "timestamp": "2026-03-28T16:49:42"
+      "timestamp": "2026-03-28T20:10:20"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -1419,7 +1419,7 @@
           }
         }
       },
-      "timestamp": "2026-03-28T16:50:14"
+      "timestamp": "2026-03-28T20:10:37"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -1434,7 +1434,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-03-28T16:50:04"
+      "timestamp": "2026-03-28T20:10:32"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -1449,7 +1449,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-03-28T16:50:11"
+      "timestamp": "2026-03-28T20:10:35"
     },
     "analyze_path_drift": {
       "success": true,
@@ -1462,7 +1462,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-03-28T16:50:02"
+      "timestamp": "2026-03-28T20:10:29"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -1477,7 +1477,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-03-28T16:50:14"
+      "timestamp": "2026-03-28T20:10:37"
     },
     "analyze_error_handling": {
       "success": true,
@@ -1505,12 +1505,12 @@
             "handle_configuration_error": 4,
             "error_handler_usage": 8,
             "handle_validation_error": 2,
-            "handle_file_error": 3,
+            "MHMError": 2,
             "FileOperationError": 8,
-            "CommunicationError": 2,
             "AIError": 2,
+            "handle_file_error": 3,
             "safe_file_operation": 1,
-            "MHMError": 2
+            "CommunicationError": 2
           },
           "missing_error_handling": [],
           "error_handling_quality": {
@@ -1558,7 +1558,7 @@
           ]
         }
       },
-      "timestamp": "2026-03-28T16:49:56"
+      "timestamp": "2026-03-28T20:10:25"
     },
     "analyze_duplicate_functions": {
       "success": true,
@@ -1574,8 +1574,8 @@
           "groups_filtered_single_function": 10,
           "cache": {
             "total_files": 120,
-            "cached_files": 0,
-            "scanned_files": 120
+            "cached_files": 120,
+            "scanned_files": 0
           },
           "pairs_considered": 20000,
           "pairs_reported": 34,
@@ -3837,7 +3837,7 @@
           "body_similarity_min_name_threshold": 0.35
         }
       },
-      "timestamp": "2026-03-28T16:49:55"
+      "timestamp": "2026-03-28T20:10:26"
     },
     "analyze_functions": {
       "success": true,
@@ -4042,7 +4042,7 @@
           "utilities": 0
         }
       },
-      "timestamp": "2026-03-28T16:49:54"
+      "timestamp": "2026-03-28T20:10:25"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -6055,7 +6055,7 @@
           ]
         }
       },
-      "timestamp": "2026-03-28T16:49:46"
+      "timestamp": "2026-03-28T20:10:22"
     },
     "analyze_function_registry": {
       "success": true,
@@ -8312,7 +8312,7 @@
           "total_issues": 49
         }
       },
-      "timestamp": "2026-03-28T16:50:00"
+      "timestamp": "2026-03-28T20:10:30"
     },
     "analyze_module_refactor_candidates": {
       "success": true,
@@ -9054,7 +9054,7 @@
           }
         }
       },
-      "timestamp": "2026-03-28T16:49:58"
+      "timestamp": "2026-03-28T20:10:28"
     },
     "analyze_package_exports": {
       "success": true,
@@ -9068,6 +9068,692 @@
           "total_unnecessary_exports": 1,
           "packages_with_missing": 4,
           "packages": {
+            "ui": {
+              "package": "ui",
+              "current_exports_count": 34,
+              "should_export_count": 35,
+              "already_exported": [
+                "AccountCreatorDialog",
+                "AdminPanelDialog",
+                "CategoryManagementDialog",
+                "CategorySelectionWidget",
+                "ChannelManagementDialog",
+                "ChannelSelectionWidget",
+                "CheckinManagementDialog",
+                "CheckinSettingsWidget",
+                "DynamicListContainer",
+                "DynamicListField",
+                "MHMManagerUI",
+                "MessageEditDialog",
+                "MessageEditorDialog",
+                "PeriodRowWidget",
+                "ProcessWatcherDialog",
+                "ScheduleEditorDialog",
+                "ServiceManager",
+                "TagWidget",
+                "TaskCompletionDialog",
+                "TaskCrudDialog",
+                "TaskEditDialog",
+                "TaskManagementDialog",
+                "TaskSettingsWidget",
+                "UserAnalyticsDialog",
+                "UserProfileDialog",
+                "UserProfileSettingsWidget",
+                "create_account_dialog",
+                "generate_all_ui_files",
+                "generate_ui_file",
+                "main",
+                "open_message_editor_dialog",
+                "open_personalization_dialog",
+                "open_schedule_editor",
+                "open_user_analytics_dialog"
+              ],
+              "missing_exports": [
+                "handle_dialog_escape_enter_keys"
+              ],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "PeriodRowWidget": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "core/ui_management.py",
+                    "core/ui_management.py",
+                    "core/ui_management.py",
+                    "ui/dialogs/schedule_editor_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.period_row_widget"
+                },
+                "handle_dialog_escape_enter_keys": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/user_profile_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.dialog_helpers"
+                },
+                "CategorySelectionWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/category_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.category_selection_widget"
+                },
+                "ChannelSelectionWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/channel_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.channel_selection_widget"
+                },
+                "TaskSettingsWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/task_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.task_settings_widget"
+                },
+                "CheckinSettingsWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/checkin_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.checkin_settings_widget"
+                },
+                "TaskEditDialog": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_crud_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.task_edit_dialog"
+                },
+                "TagWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/task_edit_dialog.py",
+                    "ui/widgets/task_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.tag_widget"
+                },
+                "DynamicListContainer": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "ui/dialogs/user_profile_dialog.py",
+                    "ui/widgets/dynamic_list_field.py",
+                    "ui/widgets/dynamic_list_field.py",
+                    "ui/widgets/dynamic_list_field.py",
+                    "ui/widgets/user_profile_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.dynamic_list_container"
+                }
+              },
+              "import_usage_details": {
+                "PeriodRowWidget": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "core/ui_management.py",
+                    "core/ui_management.py",
+                    "core/ui_management.py",
+                    "ui/dialogs/schedule_editor_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.period_row_widget"
+                },
+                "Ui_ui_app_mainwindow": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.admin_panel_pyqt"
+                },
+                "AccountCreatorDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.account_creator_dialog"
+                },
+                "ChannelManagementDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.channel_management_dialog"
+                },
+                "CategoryManagementDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.category_management_dialog"
+                },
+                "CheckinManagementDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.checkin_management_dialog"
+                },
+                "TaskManagementDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.task_management_dialog"
+                },
+                "TaskCrudDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.task_crud_dialog"
+                },
+                "UserProfileDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.user_profile_dialog"
+                },
+                "open_user_analytics_dialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.user_analytics_dialog"
+                },
+                "open_message_editor_dialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.message_editor_dialog"
+                },
+                "open_schedule_editor": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.schedule_editor_dialog"
+                },
+                "ProcessWatcherDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.process_watcher_dialog"
+                },
+                "handle_dialog_escape_enter_keys": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/user_profile_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.dialog_helpers"
+                },
+                "CategorySelectionWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/category_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.category_selection_widget"
+                },
+                "ChannelSelectionWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/channel_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.channel_selection_widget"
+                },
+                "TaskSettingsWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/task_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.task_settings_widget"
+                },
+                "CheckinSettingsWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py",
+                    "ui/dialogs/checkin_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.checkin_settings_widget"
+                },
+                "Ui_Dialog_create_account": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.account_creator_dialog_pyqt"
+                },
+                "open_personalization_dialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/account_creator_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.user_profile_dialog"
+                },
+                "Ui_Dialog_category_management": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/category_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.category_management_dialog_pyqt"
+                },
+                "Ui_Dialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/channel_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.channel_management_dialog_pyqt"
+                },
+                "Ui_Dialog_checkin_management": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/checkin_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.checkin_management_dialog_pyqt"
+                },
+                "Ui_Dialog_message_editor": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/message_editor_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.message_editor_dialog_pyqt"
+                },
+                "Ui_Dialog_edit_schedule": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/schedule_editor_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.schedule_editor_dialog_pyqt"
+                },
+                "Ui_Dialog_task_completion": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/task_completion_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.task_completion_dialog_pyqt"
+                },
+                "Ui_Dialog_task_crud": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/task_crud_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.task_crud_dialog_pyqt"
+                },
+                "TaskEditDialog": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_crud_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.task_edit_dialog"
+                },
+                "TaskCompletionDialog": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/task_crud_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.dialogs.task_completion_dialog"
+                },
+                "Ui_Dialog_task_edit": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/task_edit_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.task_edit_dialog_pyqt"
+                },
+                "TagWidget": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ui/dialogs/task_edit_dialog.py",
+                    "ui/widgets/task_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.tag_widget"
+                },
+                "Ui_Dialog_task_management": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/task_management_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.task_management_dialog_pyqt"
+                },
+                "Ui_Dialog_user_analytics": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/user_analytics_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.user_analytics_dialog_pyqt"
+                },
+                "Ui_Dialog_user_profile": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/user_profile_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.user_profile_management_dialog_pyqt"
+                },
+                "UserProfileSettingsWidget": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/user_profile_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.user_profile_settings_widget"
+                },
+                "DynamicListContainer": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "ui/dialogs/user_profile_dialog.py",
+                    "ui/widgets/dynamic_list_field.py",
+                    "ui/widgets/dynamic_list_field.py",
+                    "ui/widgets/dynamic_list_field.py",
+                    "ui/widgets/user_profile_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.dynamic_list_container"
+                },
+                "Ui_Form_category_selection_widget": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/category_selection_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.category_selection_widget_pyqt"
+                },
+                "Ui_Form_channel_selection": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/channel_selection_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.channel_selection_widget_pyqt"
+                },
+                "Ui_Form_checkin_settings": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/checkin_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.checkin_settings_widget_pyqt"
+                },
+                "DynamicListField": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/dynamic_list_container.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.widgets.dynamic_list_field"
+                },
+                "Ui_Form_dynamic_list_field_template": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/dynamic_list_field.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.dynamic_list_field_template_pyqt"
+                },
+                "Ui_Form_period_row_template": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/period_row_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.period_row_template_pyqt"
+                },
+                "Ui_Widget_tag": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/tag_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.tag_widget_pyqt"
+                },
+                "Ui_Form_task_settings": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/task_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.task_settings_widget_pyqt"
+                },
+                "Ui_Form_user_profile_settings": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/widgets/user_profile_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ui.generated.user_profile_settings_widget_pyqt"
+                }
+              },
+              "package_api_items": [
+                "AccountCreatorDialog",
+                "AdminPanelDialog",
+                "CategoryManagementDialog",
+                "CategorySelectionWidget",
+                "ChannelManagementDialog",
+                "ChannelSelectionWidget",
+                "CheckinManagementDialog",
+                "CheckinSettingsWidget",
+                "DynamicListContainer",
+                "DynamicListField",
+                "MHMManagerUI",
+                "MessageEditDialog",
+                "MessageEditorDialog",
+                "PeriodRowWidget",
+                "ProcessWatcherDialog",
+                "ScheduleEditorDialog",
+                "ServiceManager",
+                "TagWidget",
+                "TaskCompletionDialog",
+                "TaskCrudDialog",
+                "TaskEditDialog",
+                "TaskManagementDialog",
+                "TaskSettingsWidget",
+                "UserAnalyticsDialog",
+                "UserProfileDialog",
+                "UserProfileSettingsWidget",
+                "create_account_dialog",
+                "generate_all_ui_files",
+                "generate_ui_file",
+                "handle_dialog_escape_enter_keys",
+                "main",
+                "open_message_editor_dialog",
+                "open_personalization_dialog",
+                "open_schedule_editor",
+                "open_user_analytics_dialog"
+              ],
+              "registry_items": [
+                "__init__",
+                "__post_init__",
+                "_add_blank_row",
+                "_after_add_period",
+                "_build_custom_question_key",
+                "_build_enabled_features",
+                "_build_features_dict",
+                "_get_day_checkboxes",
+                "_get_personalization_data__ensure_required_fields",
+                "_on_delete",
+                "_on_save_clicked",
+                "add_custom_field",
+                "add_new_period",
+                "add_new_task",
+                "add_reminder_period",
+                "closeEvent",
+                "complete_selected_task",
+                "configure_tab_visibility",
+                "generate_all_ui_files",
+                "generate_ui_file",
+                "get_admin_data",
+                "get_checkin_settings",
+                "get_completion_data",
+                "get_selected_categories",
+                "get_statistics",
+                "get_text",
+                "handle_dialog_escape_enter_keys",
+                "load_user_category_data",
+                "on_enable_task_management_toggled",
+                "set_selected_categories"
+              ]
+            },
             "core": {
               "package": "core",
               "current_exports_count": 160,
@@ -15376,692 +16062,6 @@
                 "is_valid_intent"
               ]
             },
-            "ui": {
-              "package": "ui",
-              "current_exports_count": 34,
-              "should_export_count": 35,
-              "already_exported": [
-                "AccountCreatorDialog",
-                "AdminPanelDialog",
-                "CategoryManagementDialog",
-                "CategorySelectionWidget",
-                "ChannelManagementDialog",
-                "ChannelSelectionWidget",
-                "CheckinManagementDialog",
-                "CheckinSettingsWidget",
-                "DynamicListContainer",
-                "DynamicListField",
-                "MHMManagerUI",
-                "MessageEditDialog",
-                "MessageEditorDialog",
-                "PeriodRowWidget",
-                "ProcessWatcherDialog",
-                "ScheduleEditorDialog",
-                "ServiceManager",
-                "TagWidget",
-                "TaskCompletionDialog",
-                "TaskCrudDialog",
-                "TaskEditDialog",
-                "TaskManagementDialog",
-                "TaskSettingsWidget",
-                "UserAnalyticsDialog",
-                "UserProfileDialog",
-                "UserProfileSettingsWidget",
-                "create_account_dialog",
-                "generate_all_ui_files",
-                "generate_ui_file",
-                "main",
-                "open_message_editor_dialog",
-                "open_personalization_dialog",
-                "open_schedule_editor",
-                "open_user_analytics_dialog"
-              ],
-              "missing_exports": [
-                "handle_dialog_escape_enter_keys"
-              ],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "PeriodRowWidget": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/ui_management.py",
-                    "core/ui_management.py",
-                    "core/ui_management.py",
-                    "ui/dialogs/schedule_editor_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.period_row_widget"
-                },
-                "handle_dialog_escape_enter_keys": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/user_profile_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.dialog_helpers"
-                },
-                "CategorySelectionWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/category_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.category_selection_widget"
-                },
-                "ChannelSelectionWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/channel_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.channel_selection_widget"
-                },
-                "TaskSettingsWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/task_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.task_settings_widget"
-                },
-                "CheckinSettingsWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/checkin_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.checkin_settings_widget"
-                },
-                "TaskEditDialog": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.task_edit_dialog"
-                },
-                "TagWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/task_edit_dialog.py",
-                    "ui/widgets/task_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.tag_widget"
-                },
-                "DynamicListContainer": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "ui/dialogs/user_profile_dialog.py",
-                    "ui/widgets/dynamic_list_field.py",
-                    "ui/widgets/dynamic_list_field.py",
-                    "ui/widgets/dynamic_list_field.py",
-                    "ui/widgets/user_profile_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.dynamic_list_container"
-                }
-              },
-              "import_usage_details": {
-                "PeriodRowWidget": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/ui_management.py",
-                    "core/ui_management.py",
-                    "core/ui_management.py",
-                    "ui/dialogs/schedule_editor_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.period_row_widget"
-                },
-                "Ui_ui_app_mainwindow": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.admin_panel_pyqt"
-                },
-                "AccountCreatorDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.account_creator_dialog"
-                },
-                "ChannelManagementDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.channel_management_dialog"
-                },
-                "CategoryManagementDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.category_management_dialog"
-                },
-                "CheckinManagementDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.checkin_management_dialog"
-                },
-                "TaskManagementDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.task_management_dialog"
-                },
-                "TaskCrudDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.task_crud_dialog"
-                },
-                "UserProfileDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.user_profile_dialog"
-                },
-                "open_user_analytics_dialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.user_analytics_dialog"
-                },
-                "open_message_editor_dialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.message_editor_dialog"
-                },
-                "open_schedule_editor": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.schedule_editor_dialog"
-                },
-                "ProcessWatcherDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.process_watcher_dialog"
-                },
-                "handle_dialog_escape_enter_keys": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/user_profile_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.dialog_helpers"
-                },
-                "CategorySelectionWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/category_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.category_selection_widget"
-                },
-                "ChannelSelectionWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/channel_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.channel_selection_widget"
-                },
-                "TaskSettingsWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/task_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.task_settings_widget"
-                },
-                "CheckinSettingsWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py",
-                    "ui/dialogs/checkin_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.checkin_settings_widget"
-                },
-                "Ui_Dialog_create_account": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.account_creator_dialog_pyqt"
-                },
-                "open_personalization_dialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/account_creator_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.user_profile_dialog"
-                },
-                "Ui_Dialog_category_management": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/category_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.category_management_dialog_pyqt"
-                },
-                "Ui_Dialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/channel_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.channel_management_dialog_pyqt"
-                },
-                "Ui_Dialog_checkin_management": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/checkin_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.checkin_management_dialog_pyqt"
-                },
-                "Ui_Dialog_message_editor": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/message_editor_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.message_editor_dialog_pyqt"
-                },
-                "Ui_Dialog_edit_schedule": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/schedule_editor_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.schedule_editor_dialog_pyqt"
-                },
-                "Ui_Dialog_task_completion": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/task_completion_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.task_completion_dialog_pyqt"
-                },
-                "Ui_Dialog_task_crud": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.task_crud_dialog_pyqt"
-                },
-                "TaskEditDialog": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.task_edit_dialog"
-                },
-                "TaskCompletionDialog": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/task_crud_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.dialogs.task_completion_dialog"
-                },
-                "Ui_Dialog_task_edit": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/task_edit_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.task_edit_dialog_pyqt"
-                },
-                "TagWidget": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ui/dialogs/task_edit_dialog.py",
-                    "ui/widgets/task_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.tag_widget"
-                },
-                "Ui_Dialog_task_management": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/task_management_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.task_management_dialog_pyqt"
-                },
-                "Ui_Dialog_user_analytics": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/user_analytics_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.user_analytics_dialog_pyqt"
-                },
-                "Ui_Dialog_user_profile": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/user_profile_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.user_profile_management_dialog_pyqt"
-                },
-                "UserProfileSettingsWidget": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/dialogs/user_profile_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.user_profile_settings_widget"
-                },
-                "DynamicListContainer": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "ui/dialogs/user_profile_dialog.py",
-                    "ui/widgets/dynamic_list_field.py",
-                    "ui/widgets/dynamic_list_field.py",
-                    "ui/widgets/dynamic_list_field.py",
-                    "ui/widgets/user_profile_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.dynamic_list_container"
-                },
-                "Ui_Form_category_selection_widget": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/category_selection_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.category_selection_widget_pyqt"
-                },
-                "Ui_Form_channel_selection": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/channel_selection_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.channel_selection_widget_pyqt"
-                },
-                "Ui_Form_checkin_settings": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/checkin_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.checkin_settings_widget_pyqt"
-                },
-                "DynamicListField": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/dynamic_list_container.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.widgets.dynamic_list_field"
-                },
-                "Ui_Form_dynamic_list_field_template": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/dynamic_list_field.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.dynamic_list_field_template_pyqt"
-                },
-                "Ui_Form_period_row_template": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/period_row_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.period_row_template_pyqt"
-                },
-                "Ui_Widget_tag": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/tag_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.tag_widget_pyqt"
-                },
-                "Ui_Form_task_settings": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/task_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.task_settings_widget_pyqt"
-                },
-                "Ui_Form_user_profile_settings": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/widgets/user_profile_settings_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ui.generated.user_profile_settings_widget_pyqt"
-                }
-              },
-              "package_api_items": [
-                "AccountCreatorDialog",
-                "AdminPanelDialog",
-                "CategoryManagementDialog",
-                "CategorySelectionWidget",
-                "ChannelManagementDialog",
-                "ChannelSelectionWidget",
-                "CheckinManagementDialog",
-                "CheckinSettingsWidget",
-                "DynamicListContainer",
-                "DynamicListField",
-                "MHMManagerUI",
-                "MessageEditDialog",
-                "MessageEditorDialog",
-                "PeriodRowWidget",
-                "ProcessWatcherDialog",
-                "ScheduleEditorDialog",
-                "ServiceManager",
-                "TagWidget",
-                "TaskCompletionDialog",
-                "TaskCrudDialog",
-                "TaskEditDialog",
-                "TaskManagementDialog",
-                "TaskSettingsWidget",
-                "UserAnalyticsDialog",
-                "UserProfileDialog",
-                "UserProfileSettingsWidget",
-                "create_account_dialog",
-                "generate_all_ui_files",
-                "generate_ui_file",
-                "handle_dialog_escape_enter_keys",
-                "main",
-                "open_message_editor_dialog",
-                "open_personalization_dialog",
-                "open_schedule_editor",
-                "open_user_analytics_dialog"
-              ],
-              "registry_items": [
-                "__init__",
-                "__post_init__",
-                "_add_blank_row",
-                "_after_add_period",
-                "_build_custom_question_key",
-                "_build_enabled_features",
-                "_build_features_dict",
-                "_get_day_checkboxes",
-                "_get_personalization_data__ensure_required_fields",
-                "_on_delete",
-                "_on_save_clicked",
-                "add_custom_field",
-                "add_new_period",
-                "add_new_task",
-                "add_reminder_period",
-                "closeEvent",
-                "complete_selected_task",
-                "configure_tab_visibility",
-                "generate_all_ui_files",
-                "generate_ui_file",
-                "get_admin_data",
-                "get_checkin_settings",
-                "get_completion_data",
-                "get_selected_categories",
-                "get_statistics",
-                "get_text",
-                "handle_dialog_escape_enter_keys",
-                "load_user_category_data",
-                "on_enable_task_management_toggled",
-                "set_selected_categories"
-              ]
-            },
             "tasks": {
               "package": "tasks",
               "current_exports_count": 20,
@@ -16279,84 +16279,6 @@
                 "is_valid_priority"
               ]
             },
-            "user": {
-              "package": "user",
-              "current_exports_count": 4,
-              "should_export_count": 4,
-              "already_exported": [
-                "UserContext",
-                "UserContextManager",
-                "UserPreferences",
-                "user_context_manager"
-              ],
-              "missing_exports": [],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "user_context_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "ai/context_builder.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.context_manager"
-                },
-                "UserContext": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/scheduler.py",
-                    "core/schedule_management.py",
-                    "ui/ui_app_qt.py",
-                    "user/context_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.user_context"
-                }
-              },
-              "import_usage_details": {
-                "user_context_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "ai/context_builder.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.context_manager"
-                },
-                "UserContext": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/scheduler.py",
-                    "core/schedule_management.py",
-                    "ui/ui_app_qt.py",
-                    "user/context_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.user_context"
-                }
-              },
-              "package_api_items": [
-                "UserContext",
-                "UserContextManager",
-                "UserPreferences"
-              ],
-              "registry_items": [
-                "__getattr__",
-                "__init__",
-                "__new__",
-                "_get_conversation_history",
-                "get_all_preferences",
-                "get_instance_context"
-              ]
-            },
             "ai": {
               "package": "ai",
               "current_exports_count": 22,
@@ -16481,11 +16403,89 @@
                 "add_prompt_template",
                 "ensure_lm_studio_ready"
               ]
+            },
+            "user": {
+              "package": "user",
+              "current_exports_count": 4,
+              "should_export_count": 4,
+              "already_exported": [
+                "UserContext",
+                "UserContextManager",
+                "UserPreferences",
+                "user_context_manager"
+              ],
+              "missing_exports": [],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "user_context_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/chatbot.py",
+                    "ai/context_builder.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.context_manager"
+                },
+                "UserContext": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "core/scheduler.py",
+                    "core/schedule_management.py",
+                    "ui/ui_app_qt.py",
+                    "user/context_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.user_context"
+                }
+              },
+              "import_usage_details": {
+                "user_context_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/chatbot.py",
+                    "ai/context_builder.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.context_manager"
+                },
+                "UserContext": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "core/scheduler.py",
+                    "core/schedule_management.py",
+                    "ui/ui_app_qt.py",
+                    "user/context_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.user_context"
+                }
+              },
+              "package_api_items": [
+                "UserContext",
+                "UserContextManager",
+                "UserPreferences"
+              ],
+              "registry_items": [
+                "__getattr__",
+                "__init__",
+                "__new__",
+                "_get_conversation_history",
+                "get_all_preferences",
+                "get_instance_context"
+              ]
             }
           }
         }
       },
-      "timestamp": "2026-03-28T16:49:55"
+      "timestamp": "2026-03-28T20:10:26"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -19744,7 +19744,7 @@
           ]
         }
       },
-      "timestamp": "2026-03-28T16:50:00"
+      "timestamp": "2026-03-28T20:10:27"
     },
     "analyze_dev_tools_import_boundaries": {
       "success": true,
@@ -19761,7 +19761,7 @@
           }
         }
       },
-      "timestamp": "2026-03-28T16:49:41"
+      "timestamp": "2026-03-28T20:10:19"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -19772,7 +19772,7 @@
         },
         "details": {}
       },
-      "timestamp": "2026-03-28T16:50:03"
+      "timestamp": "2026-03-28T20:10:30"
     },
     "analyze_module_imports": {
       "success": true,
@@ -32392,7 +32392,7 @@
           }
         }
       },
-      "timestamp": "2026-03-28T16:50:00"
+      "timestamp": "2026-03-28T20:10:27"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -32417,28 +32417,28 @@
             "ui_imports": []
           },
           "stats": {
-            "files_scanned": 550,
+            "files_scanned": 551,
             "files_with_issues": 0,
             "total_unused": 0,
-            "cache_hits": 0,
-            "cache_misses": 550,
-            "changed_files": 550,
-            "cache_mode": "cold_scan",
+            "cache_hits": 551,
+            "cache_misses": 0,
+            "changed_files": 0,
+            "cache_mode": "cache_only",
             "backend": "ruff"
           },
           "performance": {
             "backend": "ruff",
-            "scan_mode": "cold_scan",
+            "scan_mode": "cache_only",
             "timings": {
-              "discovery_seconds": 2.9421,
-              "detection_seconds": 0.9216,
-              "categorization_seconds": 0.0155,
-              "total_seconds": 4.0135
+              "discovery_seconds": 1.8887,
+              "detection_seconds": 0.1159,
+              "categorization_seconds": 0.0138,
+              "total_seconds": 2.3206
             },
-            "files_per_second": 137.04,
-            "cache_hits": 0,
-            "cache_misses": 550,
-            "changed_files": 550,
+            "files_per_second": 237.43,
+            "cache_hits": 551,
+            "cache_misses": 0,
+            "changed_files": 0,
             "batch_size": 200,
             "fallback_used": false,
             "fallback_reason": ""
@@ -32455,69 +32455,36 @@
             "production_test_mocking": 0,
             "ui_imports": 0
           },
-          "files_scanned": 550,
+          "files_scanned": 551,
           "_cache_metadata": {
-            "cache_mode": "cold_scan",
-            "hits": 0,
-            "misses": 550,
-            "total_cache_checks": 550,
-            "hit_rate": 0.0
+            "cache_mode": "cache_only",
+            "hits": 551,
+            "misses": 0,
+            "total_cache_checks": 551,
+            "hit_rate": 100.0
           }
         },
         "_cache_metadata": {
-          "cache_mode": "cold_scan",
-          "hits": 0,
-          "misses": 550,
-          "total_cache_checks": 550,
-          "hit_rate": 0.0
+          "cache_mode": "cache_only",
+          "hits": 551,
+          "misses": 0,
+          "total_cache_checks": 551,
+          "hit_rate": 100.0
         }
       },
-      "timestamp": "2026-03-28T16:50:03"
+      "timestamp": "2026-03-28T20:10:32"
     },
     "analyze_legacy_references": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 3,
-          "files_affected": 1
+          "total_issues": 0,
+          "files_affected": 0
         },
         "details": {
-          "findings": {
-            "deprecation_inventory_terms": [
-              [
-                "development_tools\\config\\sync_ruff_toml.py",
-                "#!/usr/bin/env python3\n# TOOL_TIER: supporting\n\n\"\"\"Generate root .ruff.toml from shared development-tools exclusions.\n\nruff.toml is fully generated: when development_tools_config.json is absent,\nexclusions come only from standard_exclusions.py (non-project-specific).\nWhen config exists, get_exclusions() may add project-specific patterns.\nRun: python -m development_tools.config.sync_ruff_toml [--project-root .]\n\"\"\"\n\nfrom __future__ import annotations\n\nimport argparse\nfrom pathlib import Path\nfrom collections.abc import Iterable\n\nfrom core.logger import get_component_logger\nfrom development_tools.shared.standard_exclusions import (\n    BASE_EXCLUSION_SHORTLIST,\n    GENERATED_FILE_PATTERNS,\n    get_exclusions,\n)\n\nlogger = get_component_logger(\"development_tools\")\n\n\n_HEADER = (\n    \"# Auto-generated by development_tools/config/sync_ruff_toml.py\\n\"\n    \"# Source of truth: development_tools/shared/standard_exclusions.py +\\n\"\n    \"# development_tools/config/development_tools_config.json\\n\"\n)\n\n\ndef _normalize_pattern(pattern: str) -> str:\n    text = str(pattern or \"\").strip().replace(\"\\\\\", \"/\")\n    if not text:\n        return \"\"\n    # Placeholder pattern used by internal tools; not valid for Ruff.\n    if \"{domain}\" in text:\n        return \"\"\n    return text.rstrip(\"/\")\n\n\ndef _dedupe_preserve_order(values: Iterable[str]) -> list[str]:\n    seen = set()\n    result: list[str] = []\n    for value in values:\n        if not value or value in seen:\n            continue\n        seen.add(value)\n        result.append(value)\n    return result\n\n\ndef collect_ruff_exclusions() -> list[str]:\n    raw_patterns: list[str] = []\n    raw_patterns.extend(get_exclusions(\"analysis\", \"development\"))\n    raw_patterns.extend(BASE_EXCLUSION_SHORTLIST)\n    raw_patterns.extend(GENERATED_FILE_PATTERNS)\n    raw_patterns.append(\"ui/generated\")\n    normalized = [_normalize_pattern(pattern) for pattern in raw_patterns]\n    exclusions = _dedupe_preserve_order(normalized)\n    return sorted(exclusions)\n\n\ndef render_ruff_toml(exclusions: list[str]) -> str:\n    quoted = \",\\n\".join(f'  \"{value}\"' for value in exclusions)\n    return (\n        f\"{_HEADER}\\n\"\n        \"line-length = 88\\n\"\n        'target-version = \"py310\"\\n\\n'\n        \"exclude = [\\n\"\n        f\"{quoted}\\n\"\n        \"]\\n\\n\"\n        \"[lint]\\n\"\n        'select = [\"E\", \"F\", \"B\", \"UP\", \"SIM\"]\\n'\n        'ignore = [\"E501\", \"E402\", \"SIM117\", \"SIM102\"]\\n'\n    )\n\n\ndef _resolve_config_path(project_root: Path, config_path: Path | str | None) -> Path:\n    if config_path is None:\n        return project_root / \"development_tools\" / \"config\" / \"ruff.toml\"\n    path = Path(config_path)\n    if path.is_absolute():\n        return path\n    return project_root / path\n\n\ndef _write_if_changed(path: Path, content: str) -> None:\n    path.parent.mkdir(parents=True, exist_ok=True)\n    existing = \"\"\n    if path.exists():\n        existing = path.read_text(encoding=\"utf-8\")\n    if content != existing:\n        path.write_text(content, encoding=\"utf-8\")\n\n\ndef sync_ruff_toml(\n    project_root: Path,\n    *,\n    config_path: Path | str | None = None,\n    sync_root_compat: bool = True,\n) -> Path:\n    owned_path = _resolve_config_path(project_root, config_path)\n    content = render_ruff_toml(collect_ruff_exclusions())\n    _write_if_changed(owned_path, content)\n    if sync_root_compat:\n        _write_if_changed(project_root / \".ruff.toml\", content)\n    return owned_path\n\n\ndef main() -> int:\n    parser = argparse.ArgumentParser(description=\"Generate root ruff.toml.\")\n    parser.add_argument(\n        \"--project-root\",\n        default=\".\",\n        help=\"Project root where ruff.toml is written.\",\n    )\n    parser.add_argument(\n        \"--config-path\",\n        default=\"development_tools/config/ruff.toml\",\n        help=\"Owned Ruff config path relative to project root (or absolute).\",\n    )\n    parser.add_argument(\n        \"--no-root-compat\",\n        action=\"store_true\",\n        help=\"Do not generate compatibility .ruff.toml at repository root.\",\n    )\n    args = parser.parse_args()\n    project_root = Path(args.project_root).resolve()\n    output_path = sync_ruff_toml(\n        project_root,\n        config_path=args.config_path,\n        sync_root_compat=not args.no_root_compat,\n    )\n    if args.no_root_compat:\n        logger.info(\"Wrote owned Ruff config: %s\", output_path)\n    else:\n        logger.info(\n            \"Wrote owned Ruff config %s and root compatibility mirror %s\",\n            output_path,\n            project_root / \".ruff.toml\",\n        )\n    return 0\n\n\nif __name__ == \"__main__\":\n    raise SystemExit(main())\n",
-                [
-                  {
-                    "pattern": "Generate\\ root\\ \\.ruff\\.toml\\ from\\ shared\\ development\\-tools\\ exclusions\\.",
-                    "match": "Generate root .ruff.toml from shared development-tools exclusions.",
-                    "line": 4,
-                    "line_content": "\"\"\"Generate root .ruff.toml from shared development-tools exclusions.",
-                    "start": 51,
-                    "end": 117
-                  },
-                  {
-                    "pattern": "Run:\\ python\\ \\-m\\ development_tools\\.config\\.sync_ruff_toml\\ \\[\\-\\-project\\-root\\ \\.\\]",
-                    "match": "Run: python -m development_tools.config.sync_ruff_toml [--project-root .]",
-                    "line": 9,
-                    "line_content": "Run: python -m development_tools.config.sync_ruff_toml [--project-root .]",
-                    "start": 340,
-                    "end": 413
-                  },
-                  {
-                    "pattern": "Do\\ not\\ generate\\ compatibility\\ \\.ruff\\.toml\\ at\\ repository\\ root",
-                    "match": "Do not generate compatibility .ruff.toml at repository root",
-                    "line": 129,
-                    "line_content": "help=\"Do not generate compatibility .ruff.toml at repository root.\",",
-                    "start": 3923,
-                    "end": 3982
-                  }
-                ]
-              ]
-            ]
-          },
-          "files_with_issues": 1,
-          "legacy_markers": 3,
+          "findings": {},
+          "files_with_issues": 0,
+          "legacy_markers": 0,
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md",
           "deprecation_inventory": {
             "inventory_path": "development_tools/config/jsons/DEPRECATION_INVENTORY.json",
@@ -32526,28 +32493,28 @@
             "error": null,
             "active_or_candidate_entries": 1,
             "removed_entries": 3,
-            "active_search_terms": 3,
-            "injected_pattern_count": 3
+            "active_search_terms": 0,
+            "injected_pattern_count": 0
           },
           "deprecation_inventory_sync": {
             "status": "disabled",
             "check_passed": true
           },
           "cache": {
-            "cache_mode": "cold_scan",
-            "hits": 0,
-            "misses": 549,
-            "total_cache_checks": 549,
-            "hit_rate": 0.0
+            "cache_mode": "partial_cache",
+            "hits": 549,
+            "misses": 1,
+            "total_cache_checks": 550,
+            "hit_rate": 99.8
           }
         }
       },
-      "timestamp": "2026-03-28T16:50:27"
+      "timestamp": "2026-03-28T20:10:44"
     },
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-03-28T16:59:34",
+        "generated_at": "2026-03-28T20:10:50",
         "project_root": "C:\\Users\\Julie\\projects\\MHM\\MHM",
         "summary": {
           "status": "PASS",
@@ -32592,7 +32559,7 @@
               "name": "weekly_backup_recent_enough",
               "success": true,
               "details": {
-                "recent_cutoff": "2026-03-14T16:59:34",
+                "recent_cutoff": "2026-03-14T20:10:50",
                 "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-03-23_01-00-03",
                 "latest_weekly_created_at": "2026-03-23 01:00:03"
               }
@@ -32603,7 +32570,7 @@
               "details": {
                 "latest_backup_path": "data\\backups\\weekly_backup_2026-03-23_01-00-03",
                 "latest_created_at": "2026-03-23 01:00:03",
-                "recent_cutoff": "2026-03-14T16:59:34"
+                "recent_cutoff": "2026-03-14T20:10:50"
               }
             },
             {
@@ -32658,7 +32625,7 @@
             "name": "weekly_backup_recent_enough",
             "success": true,
             "details": {
-              "recent_cutoff": "2026-03-14T16:59:34",
+              "recent_cutoff": "2026-03-14T20:10:50",
               "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-03-23_01-00-03",
               "latest_weekly_created_at": "2026-03-23 01:00:03"
             }
@@ -32669,7 +32636,7 @@
             "details": {
               "latest_backup_path": "data\\backups\\weekly_backup_2026-03-23_01-00-03",
               "latest_created_at": "2026-03-23 01:00:03",
-              "recent_cutoff": "2026-03-14T16:59:34"
+              "recent_cutoff": "2026-03-14T20:10:50"
             }
           },
           {
@@ -32692,18 +32659,18 @@
           }
         ]
       },
-      "timestamp": "2026-03-28T16:59:34"
+      "timestamp": "2026-03-28T20:10:50"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 1,
+          "total_issues": 2,
           "files_affected": 0,
           "status": "ISSUES"
         },
         "details": {
-          "timestamp": "2026-03-28T16:49:40.115975",
+          "timestamp": "2026-03-28T20:10:18.571932",
           "system_health": {
             "overall_status": "ISSUES",
             "core_files": {
@@ -32723,15 +32690,15 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-03-28T11:12:50.036505",
-            "audit_freshness": "<24 hours",
+            "last_audit": "2026-03-28T19:41:28.939842",
+            "audit_freshness": "<1 hour",
             "test_coverage_status": "Unknown",
-            "documentation_sync_status": "Synchronized",
+            "documentation_sync_status": "Issues",
             "health_indicators": [
-              "Audit data is recent (5 hours ago)",
-              "Documentation is synchronized"
+              "Audit data is very recent (<1 hour)"
             ],
             "recommendations": [
+              "Run `python development_tools/run_development_tools.py doc-fix` to address documentation issues",
               "Check logs/errors.log for recent errors"
             ],
             "warnings": [],
@@ -32739,6 +32706,7 @@
             "severity_levels": {
               "INFO": [],
               "WARNING": [
+                "Documentation has 6 sync issue(s)",
                 "Errors detected in logs/errors.log (last 24 hours)"
               ],
               "CRITICAL": []
@@ -32746,16 +32714,16 @@
           },
           "recent_activity": {
             "recent_changes": [
-              "development_tools/config/sync_ruff_toml.py",
-              "tests/development_tools/test_pyright_config_paths.py",
               "tests/unit/test_user_management.py",
-              "development_tools/config/analyze_config.py",
+              "development_tools/shared/service/report_generation.py",
+              "development_tools/legacy/fix_legacy_references.py",
+              "tests/development_tools/test_audit_orchestration_helpers.py",
+              "development_tools/shared/service/core.py",
+              "tests/development_tools/test_cli_interface.py",
+              "development_tools/run_dev_tools.py",
               "development_tools/functions/generate_function_registry.py",
-              "development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md",
-              "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
-              "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
-              "development_docs/CHANGELOG_DETAIL.md",
-              "TODO.md"
+              "tests/development_tools/test_report_generation_dev_tools_scope.py",
+              "tests/development_tools/test_run_test_coverage_helpers.py"
             ],
             "git_status": "Modified",
             "last_commit": null,
@@ -32782,7 +32750,7 @@
           }
         }
       },
-      "timestamp": "2026-03-28T16:49:40"
+      "timestamp": "2026-03-28T20:10:18"
     },
     "decision_support": {
       "success": true,
@@ -32923,7 +32891,7 @@
           ]
         }
       },
-      "timestamp": "2026-03-28T16:49:46"
+      "timestamp": "2026-03-28T20:10:22"
     },
     "quick_status": {
       "success": true,
@@ -32983,21 +32951,21 @@
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 7146,
+          "total_issues": 7152,
           "files_affected": 0
         },
         "details": {
           "overall": {
             "coverage": 76.1,
             "statements": 29956,
-            "covered": 22810,
-            "missed": 7146,
-            "generated": "2026-03-28T16:55:09.791835"
+            "covered": 22804,
+            "missed": 7152,
+            "generated": "2026-03-28T19:37:07.614768"
           },
           "primary_overall": {
-            "coverage": 77.3,
+            "coverage": 77.4,
             "statements": 22212,
-            "covered": 17180,
+            "covered": 17183,
             "domains": [
               "ai",
               "communication",
@@ -33008,23 +32976,23 @@
           "modules": [
             {
               "module": "ui",
-              "coverage": 69.5,
-              "missed": 2037
+              "coverage": 69.4,
+              "missed": 2046
             },
             {
               "module": "communication",
               "coverage": 76.3,
-              "missed": 2251
+              "missed": 2245
             },
             {
               "module": "core",
               "coverage": 77.6,
-              "missed": 2390
+              "missed": 2392
             },
             {
               "module": "ai",
               "coverage": 78.4,
-              "missed": 379
+              "missed": 380
             },
             {
               "module": "tasks",
@@ -33060,58 +33028,23 @@
             },
             {
               "path": "communication/communication_channels/discord/bot.py",
-              "coverage": 50.6,
-              "missing": 630
+              "coverage": 51.1,
+              "missing": 624
             },
             {
               "path": "ui/ui_app_qt.py",
-              "coverage": 53.1,
-              "missing": 661
+              "coverage": 52.4,
+              "missing": 670
             }
-          ],
-          "tier3_test_outcome": {
-            "state": "clean",
-            "parallel": {
-              "state": "passed",
-              "classification": "passed",
-              "classification_reason": "pytest_passed",
-              "actionable_context": "Track completed successfully.",
-              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-03-28_16-50-17.log",
-              "return_code_hex": "0x00000000",
-              "return_code": 0,
-              "passed_count": 4068,
-              "failed_count": 0,
-              "error_count": 0,
-              "skipped_count": 1,
-              "failed_node_ids": []
-            },
-            "no_parallel": {
-              "state": "passed",
-              "classification": "passed",
-              "classification_reason": "pytest_passed",
-              "actionable_context": "Track completed successfully.",
-              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_no_parallel_stdout_2026-03-28_16-52-44.log",
-              "return_code_hex": "0x00000000",
-              "return_code": 0,
-              "passed_count": 125,
-              "failed_count": 0,
-              "error_count": 0,
-              "skipped_count": 20,
-              "failed_node_ids": []
-            },
-            "failed_node_ids": [],
-            "development_tools": {
-              "state": "unknown"
-            }
-          }
+          ]
         },
         "_cache_metadata": {
-          "cache_mode": "cold_scan",
-          "invalidation_reason": "Coverage command executed (stdout mode markers unavailable)",
-          "source": "run_test_coverage"
+          "cache_mode": "cache_only",
+          "invalidation_reason": "Precheck: core/test sources unchanged since coverage.json",
+          "source": "orchestration_precheck"
         }
       },
-      "timestamp": "2026-03-28T16:55:13"
+      "timestamp": "2026-03-28T20:10:40"
     },
     "analyze_test_markers": {
       "success": true,
@@ -33125,20 +33058,20 @@
           "missing": []
         }
       },
-      "timestamp": "2026-03-28T16:59:31"
+      "timestamp": "2026-03-28T20:10:47"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 10544,
+          "total_issues": 10458,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "overall_coverage": 61.5,
-            "total_statements": 27397,
-            "total_missed": 10544
+            "overall_coverage": 61.9,
+            "total_statements": 27423,
+            "total_missed": 10458
           },
           "modules": {
             "development_tools\\__init__.py": {
@@ -33346,8 +33279,8 @@
             },
             "development_tools\\config\\config.py": {
               "statements": 460,
-              "missed": 96,
-              "coverage": 79,
+              "missed": 94,
+              "coverage": 80,
               "missing_lines": [
                 "58",
                 "60",
@@ -33375,9 +33308,7 @@
                 "429",
                 "461",
                 "471",
-                "478",
-                "479",
-                "480",
+                "481",
                 "501",
                 "511",
                 "542",
@@ -33446,7 +33377,7 @@
                 "1271",
                 "1354"
               ],
-              "covered": 364
+              "covered": 366
             },
             "development_tools\\config\\sync_ruff_toml.py": {
               "statements": 69,
@@ -35856,51 +35787,51 @@
                 "1245",
                 "1248",
                 "1250",
-                "1255",
-                "1264",
-                "1269",
-                "1278",
+                "1251",
+                "1260",
+                "1261",
+                "1270",
+                "1271",
+                "1272",
                 "1279",
-                "1280",
-                "1287",
+                "1285",
                 "1293",
-                "1301",
-                "1308",
+                "1300",
+                "1309",
+                "1310",
+                "1311",
+                "1312",
+                "1316",
                 "1317",
                 "1318",
-                "1319",
-                "1320",
+                "1321",
                 "1324",
                 "1325",
                 "1326",
+                "1327",
+                "1328",
                 "1329",
+                "1330",
+                "1331",
                 "1332",
                 "1333",
                 "1334",
                 "1335",
-                "1336",
-                "1337",
                 "1338",
                 "1339",
                 "1340",
                 "1341",
                 "1342",
                 "1343",
+                "1344",
+                "1345",
                 "1346",
                 "1347",
                 "1348",
                 "1349",
                 "1350",
-                "1351",
-                "1352",
-                "1353",
                 "1354",
-                "1355",
-                "1356",
-                "1357",
-                "1358",
-                "1362",
-                "1363"
+                "1355"
               ],
               "covered": 348
             },
@@ -36010,8 +35941,8 @@
             },
             "development_tools\\imports\\analyze_module_imports.py": {
               "statements": 310,
-              "missed": 123,
-              "coverage": 60,
+              "missed": 52,
+              "coverage": 83,
               "missing_lines": [
                 "17",
                 "26",
@@ -36041,103 +35972,32 @@
                 "273",
                 "274",
                 "275",
-                "289",
-                "290",
-                "291",
                 "315",
                 "325",
                 "326",
-                "355",
                 "356",
-                "357",
-                "358",
-                "359",
                 "360",
-                "361",
                 "362",
-                "363",
                 "364",
-                "365",
                 "366",
-                "367",
                 "368",
-                "369",
                 "370",
-                "371",
                 "372",
-                "374",
-                "379",
-                "380",
-                "381",
-                "382",
-                "383",
-                "384",
-                "385",
-                "386",
-                "387",
-                "388",
-                "389",
-                "390",
-                "391",
-                "392",
-                "393",
-                "394",
-                "395",
-                "396",
-                "397",
                 "398",
-                "399",
-                "400",
-                "401",
-                "402",
                 "403",
-                "404",
-                "405",
-                "406",
-                "407",
-                "408",
-                "409",
-                "410",
                 "411",
-                "412",
-                "413",
-                "414",
-                "415",
-                "416",
-                "417",
-                "419",
-                "424",
-                "425",
-                "428",
-                "429",
-                "432",
                 "433",
-                "436",
-                "437",
-                "439",
-                "444",
                 "445",
-                "448",
                 "449",
-                "452",
                 "453",
-                "456",
                 "457",
-                "461",
-                "466",
-                "467",
-                "468",
-                "469",
-                "471",
-                "476",
-                "481",
-                "485",
+                "479",
                 "487",
                 "489",
                 "491",
                 "557"
               ],
-              "covered": 187
+              "covered": 258
             },
             "development_tools\\imports\\analyze_unused_imports.py": {
               "statements": 597,
@@ -36372,8 +36232,8 @@
             },
             "development_tools\\imports\\generate_module_dependencies.py": {
               "statements": 358,
-              "missed": 173,
-              "coverage": 52,
+              "missed": 157,
+              "coverage": 56,
               "missing_lines": [
                 "16",
                 "33",
@@ -36385,24 +36245,8 @@
                 "218",
                 "223",
                 "272",
-                "331",
-                "332",
-                "333",
-                "334",
-                "335",
-                "336",
-                "337",
                 "338",
                 "339",
-                "340",
-                "362",
-                "363",
-                "364",
-                "370",
-                "371",
-                "372",
-                "373",
-                "374",
                 "375",
                 "402",
                 "409",
@@ -36549,7 +36393,7 @@
                 "892",
                 "897"
               ],
-              "covered": 185
+              "covered": 201
             },
             "development_tools\\imports\\generate_unused_imports_report.py": {
               "statements": 160,
@@ -36598,7 +36442,7 @@
             },
             "development_tools\\legacy\\analyze_legacy_references.py": {
               "statements": 411,
-              "missed": 153,
+              "missed": 154,
               "coverage": 63,
               "missing_lines": [
                 "28",
@@ -36649,6 +36493,7 @@
                 "405",
                 "430",
                 "432",
+                "443",
                 "455",
                 "456",
                 "457",
@@ -36755,7 +36600,7 @@
                 "862",
                 "863"
               ],
-              "covered": 258
+              "covered": 257
             },
             "development_tools\\legacy\\fix_legacy_references.py": {
               "statements": 165,
@@ -37182,10 +37027,12 @@
             },
             "development_tools\\run_dev_tools.py": {
               "statements": 6,
-              "missed": 0,
-              "coverage": 100,
-              "missing_lines": [],
-              "covered": 6
+              "missed": 1,
+              "coverage": 83,
+              "missing_lines": [
+                "17"
+              ],
+              "covered": 5
             },
             "development_tools\\run_development_tools.py": {
               "statements": 234,
@@ -37973,8 +37820,8 @@
             },
             "development_tools\\shared\\mtime_cache.py": {
               "statements": 254,
-              "missed": 58,
-              "coverage": 77,
+              "missed": 55,
+              "coverage": 78,
               "missing_lines": [
                 "41",
                 "42",
@@ -37983,11 +37830,9 @@
                 "112",
                 "131",
                 "132",
-                "143",
+                "145",
                 "146",
                 "147",
-                "149",
-                "157",
                 "173",
                 "174",
                 "178",
@@ -37995,7 +37840,6 @@
                 "184",
                 "185",
                 "186",
-                "195",
                 "200",
                 "201",
                 "202",
@@ -38035,7 +37879,7 @@
                 "482",
                 "484"
               ],
-              "covered": 196
+              "covered": 199
             },
             "development_tools\\shared\\output_storage.py": {
               "statements": 233,
@@ -39574,14 +39418,14 @@
               "covered": 507
             },
             "development_tools\\shared\\service\\core.py": {
-              "statements": 45,
+              "statements": 44,
               "missed": 2,
-              "coverage": 96,
+              "coverage": 95,
               "missing_lines": [
                 "41",
-                "93"
+                "92"
               ],
-              "covered": 43
+              "covered": 42
             },
             "development_tools\\shared\\service\\data_freshness_audit.py": {
               "statements": 112,
@@ -39997,666 +39841,660 @@
               "covered": 396
             },
             "development_tools\\shared\\service\\report_generation.py": {
-              "statements": 3782,
-              "missed": 1621,
+              "statements": 3809,
+              "missed": 1632,
               "coverage": 57,
               "missing_lines": [
-                "33",
-                "35",
-                "52",
-                "53",
-                "57",
-                "58",
-                "61",
+                "43",
+                "45",
                 "62",
-                "65",
-                "77",
-                "78",
-                "81",
-                "83",
-                "84",
+                "63",
+                "67",
+                "68",
+                "71",
+                "72",
+                "75",
                 "87",
                 "88",
-                "99",
-                "105",
-                "106",
-                "112",
-                "113",
+                "91",
+                "93",
+                "94",
+                "97",
+                "98",
+                "109",
                 "115",
                 "116",
-                "117",
-                "118",
-                "119",
-                "124",
+                "122",
+                "123",
+                "125",
+                "126",
+                "127",
+                "128",
                 "129",
-                "130",
-                "142",
-                "147",
-                "151",
-                "153",
-                "169",
-                "176",
-                "177",
-                "188",
-                "189",
+                "134",
+                "139",
+                "140",
+                "152",
+                "157",
+                "161",
+                "163",
+                "179",
+                "186",
+                "187",
                 "198",
                 "199",
-                "205",
+                "208",
                 "209",
                 "215",
-                "247",
-                "263",
-                "266",
-                "274",
+                "219",
+                "225",
+                "257",
+                "273",
                 "276",
-                "278",
-                "297",
-                "313",
-                "320",
-                "322",
-                "344",
-                "353",
-                "375",
-                "380",
-                "381",
-                "382",
-                "383",
-                "384",
+                "284",
+                "286",
+                "288",
+                "307",
+                "323",
+                "330",
+                "332",
+                "354",
+                "363",
                 "385",
-                "386",
-                "387",
+                "390",
+                "391",
+                "392",
+                "393",
+                "394",
+                "395",
+                "396",
                 "397",
-                "406",
-                "462",
-                "483",
-                "506",
-                "511",
-                "514",
-                "516",
-                "519",
+                "407",
+                "416",
+                "472",
+                "493",
+                "502",
+                "503",
+                "504",
                 "521",
-                "522",
-                "528",
-                "538",
-                "539",
-                "540",
-                "541",
-                "542",
-                "544",
-                "545",
-                "546",
-                "547",
+                "526",
+                "529",
+                "531",
+                "534",
+                "536",
+                "537",
+                "543",
                 "548",
-                "549",
-                "550",
                 "551",
-                "552",
-                "553",
-                "554",
-                "555",
+                "561",
+                "562",
+                "563",
+                "564",
+                "565",
+                "567",
                 "568",
+                "569",
                 "570",
                 "571",
                 "572",
                 "573",
                 "574",
+                "575",
                 "576",
                 "577",
-                "581",
-                "582",
-                "583",
-                "584",
-                "585",
-                "586",
-                "587",
-                "588",
-                "589",
+                "578",
+                "591",
                 "593",
-                "645",
-                "647",
-                "677",
-                "691",
-                "697",
-                "712",
-                "728",
-                "729",
-                "730",
-                "731",
+                "594",
+                "595",
+                "596",
+                "597",
+                "599",
+                "600",
+                "604",
+                "605",
+                "606",
+                "607",
+                "608",
+                "609",
+                "610",
+                "611",
+                "612",
+                "616",
+                "668",
+                "670",
+                "700",
+                "714",
+                "720",
                 "735",
-                "736",
-                "737",
-                "738",
-                "741",
-                "743",
-                "744",
-                "745",
-                "748",
-                "749",
+                "751",
                 "752",
                 "753",
                 "754",
-                "755",
                 "758",
+                "759",
+                "760",
                 "761",
-                "762",
-                "763",
+                "764",
+                "766",
+                "767",
                 "768",
-                "769",
-                "770",
-                "773",
-                "774",
+                "771",
+                "772",
+                "775",
+                "776",
                 "777",
                 "778",
-                "779",
-                "780",
-                "783",
+                "781",
                 "784",
                 "785",
-                "788",
+                "786",
+                "791",
+                "792",
+                "793",
+                "796",
+                "797",
+                "800",
+                "801",
+                "802",
+                "803",
+                "806",
+                "807",
+                "808",
                 "811",
-                "819",
-                "820",
-                "821",
-                "825",
-                "826",
-                "827",
-                "828",
-                "831",
-                "833",
                 "834",
-                "835",
-                "836",
-                "837",
-                "838",
-                "839",
-                "840",
+                "842",
                 "843",
                 "844",
-                "845",
-                "853",
+                "848",
+                "849",
+                "850",
+                "851",
                 "854",
-                "855",
+                "856",
+                "857",
                 "858",
+                "859",
                 "860",
                 "861",
                 "862",
+                "863",
+                "866",
                 "867",
                 "868",
-                "869",
-                "870",
+                "876",
                 "877",
-                "889",
+                "878",
+                "881",
+                "883",
+                "884",
+                "885",
                 "890",
+                "891",
+                "892",
+                "893",
                 "900",
-                "903",
-                "904",
-                "905",
-                "910",
-                "911",
                 "912",
                 "913",
-                "915",
-                "918",
-                "919",
-                "920",
-                "921",
-                "922",
-                "929",
-                "939",
+                "923",
+                "926",
+                "927",
+                "928",
+                "933",
+                "934",
+                "935",
+                "936",
+                "938",
+                "941",
                 "942",
-                "949",
+                "943",
+                "944",
+                "945",
+                "952",
+                "962",
                 "965",
-                "966",
-                "967",
-                "968",
-                "971",
-                "975",
-                "978",
-                "979",
-                "982",
-                "983",
-                "984",
-                "985",
-                "1003",
-                "1004",
+                "972",
+                "988",
+                "989",
+                "990",
+                "991",
+                "994",
+                "998",
+                "1001",
+                "1002",
                 "1005",
-                "1021",
-                "1048",
-                "1123",
-                "1138",
-                "1144",
-                "1155",
-                "1221",
-                "1227",
-                "1233",
-                "1242",
-                "1243",
+                "1006",
+                "1007",
+                "1008",
+                "1026",
+                "1027",
+                "1028",
+                "1044",
+                "1051",
+                "1056",
+                "1059",
+                "1062",
+                "1063",
+                "1146",
+                "1161",
+                "1167",
+                "1178",
                 "1244",
-                "1246",
-                "1248",
-                "1249",
-                "1251",
-                "1255",
+                "1250",
                 "1256",
-                "1257",
-                "1258",
-                "1268",
+                "1265",
+                "1266",
+                "1267",
+                "1269",
+                "1271",
+                "1272",
+                "1274",
+                "1278",
+                "1279",
                 "1280",
-                "1282",
-                "1283",
-                "1289",
-                "1290",
-                "1295",
-                "1296",
-                "1297",
-                "1299",
-                "1304",
-                "1311",
-                "1314",
-                "1315",
-                "1316",
+                "1281",
+                "1291",
+                "1303",
+                "1305",
+                "1306",
+                "1312",
+                "1313",
                 "1318",
                 "1319",
                 "1320",
-                "1321",
-                "1328",
+                "1322",
+                "1327",
+                "1334",
                 "1337",
-                "1352",
-                "1367",
-                "1382",
-                "1406",
-                "1432",
-                "1433",
-                "1437",
-                "1445",
-                "1448",
-                "1449",
-                "1450",
-                "1452",
-                "1453",
-                "1454",
-                "1458",
-                "1484",
-                "1485",
-                "1488",
-                "1492",
-                "1495",
-                "1513",
-                "1514",
+                "1338",
+                "1339",
+                "1341",
+                "1342",
+                "1343",
+                "1344",
+                "1351",
+                "1364",
+                "1375",
+                "1390",
+                "1405",
+                "1429",
+                "1455",
+                "1456",
+                "1460",
+                "1468",
+                "1471",
+                "1472",
+                "1473",
+                "1475",
+                "1476",
+                "1477",
+                "1481",
+                "1507",
+                "1508",
+                "1511",
                 "1515",
-                "1516",
-                "1517",
-                "1520",
-                "1521",
-                "1545",
-                "1557",
-                "1564",
-                "1565",
-                "1567",
+                "1518",
+                "1536",
+                "1537",
+                "1538",
+                "1539",
+                "1540",
+                "1543",
+                "1544",
                 "1568",
-                "1569",
-                "1570",
-                "1571",
-                "1572",
-                "1573",
-                "1575",
-                "1576",
+                "1580",
+                "1587",
                 "1588",
+                "1590",
+                "1591",
+                "1592",
+                "1593",
                 "1594",
                 "1595",
-                "1597",
-                "1603",
-                "1604",
-                "1605",
-                "1606",
+                "1596",
+                "1598",
+                "1599",
+                "1611",
+                "1617",
                 "1618",
-                "1619",
                 "1620",
-                "1623",
-                "1625",
-                "1630",
-                "1632",
-                "1633",
-                "1635",
-                "1636",
-                "1638",
+                "1626",
+                "1627",
+                "1628",
+                "1629",
                 "1641",
                 "1642",
-                "1645",
+                "1643",
+                "1646",
                 "1648",
                 "1653",
-                "1654",
                 "1655",
+                "1656",
                 "1658",
                 "1659",
-                "1660",
                 "1661",
-                "1662",
+                "1664",
                 "1665",
-                "1666",
-                "1669",
-                "1670",
-                "1673",
+                "1668",
+                "1671",
+                "1676",
+                "1677",
                 "1678",
+                "1681",
                 "1682",
                 "1683",
                 "1684",
-                "1687",
+                "1685",
                 "1688",
                 "1689",
-                "1697",
-                "1700",
+                "1692",
+                "1693",
+                "1696",
                 "1701",
-                "1704",
-                "1708",
+                "1705",
+                "1706",
+                "1707",
+                "1710",
                 "1711",
                 "1712",
-                "1729",
-                "1730",
+                "1720",
+                "1723",
+                "1724",
+                "1727",
                 "1731",
-                "1732",
-                "1733",
-                "1737",
+                "1734",
+                "1735",
+                "1752",
+                "1753",
+                "1754",
+                "1755",
                 "1756",
-                "1757",
-                "1758",
-                "1759",
-                "1762",
-                "1763",
-                "1764",
-                "1770",
-                "1771",
-                "1772",
-                "1773",
-                "1776",
-                "1777",
-                "1778",
-                "1783",
-                "1784",
+                "1760",
+                "1779",
+                "1780",
+                "1781",
+                "1782",
                 "1785",
                 "1786",
                 "1787",
-                "1789",
-                "1790",
-                "1792",
                 "1793",
                 "1794",
+                "1795",
+                "1796",
                 "1799",
-                "1803",
-                "1804",
+                "1800",
+                "1801",
+                "1806",
+                "1807",
+                "1808",
+                "1809",
+                "1810",
+                "1812",
+                "1813",
+                "1815",
+                "1816",
                 "1817",
-                "1818",
-                "1821",
                 "1822",
-                "1823",
-                "1824",
-                "1825",
                 "1826",
                 "1827",
-                "1828",
-                "1829",
-                "1830",
-                "1831",
-                "1832",
-                "1835",
-                "1836",
-                "1837",
-                "1838",
-                "1839",
+                "1840",
+                "1841",
                 "1844",
                 "1845",
                 "1846",
                 "1847",
                 "1848",
                 "1849",
+                "1850",
+                "1851",
                 "1852",
                 "1853",
-                "1908",
-                "1909",
-                "1910",
-                "1912",
-                "1913",
-                "1914",
-                "1916",
-                "1967",
-                "1981",
-                "1984",
-                "1985",
-                "1986",
-                "1987",
-                "1988",
-                "1989",
+                "1854",
+                "1855",
+                "1858",
+                "1859",
+                "1860",
+                "1861",
+                "1862",
+                "1867",
+                "1868",
+                "1869",
+                "1870",
+                "1871",
+                "1872",
+                "1875",
+                "1876",
+                "1931",
+                "1932",
+                "1933",
+                "1935",
+                "1936",
+                "1937",
+                "1939",
                 "1990",
-                "1991",
-                "2016",
-                "2085",
-                "2095",
-                "2096",
-                "2101",
-                "2102",
-                "2103",
-                "2104",
-                "2109",
-                "2123",
+                "2004",
+                "2007",
+                "2008",
+                "2009",
+                "2010",
+                "2011",
+                "2012",
+                "2013",
+                "2014",
+                "2041",
+                "2108",
+                "2118",
+                "2119",
                 "2124",
-                "2128",
-                "2129",
+                "2125",
+                "2126",
+                "2127",
                 "2132",
-                "2136",
-                "2141",
-                "2153",
-                "2183",
-                "2205",
+                "2146",
+                "2147",
+                "2151",
+                "2152",
+                "2155",
+                "2159",
+                "2164",
+                "2176",
                 "2206",
-                "2221",
-                "2222",
-                "2223",
-                "2224",
-                "2227",
                 "2228",
                 "2229",
-                "2232",
-                "2233",
-                "2234",
-                "2237",
-                "2238",
-                "2239",
-                "2240",
-                "2241",
-                "2242",
-                "2243",
                 "2244",
                 "2245",
                 "2246",
-                "2248",
-                "2253",
-                "2254",
-                "2258",
-                "2259",
+                "2247",
+                "2250",
+                "2251",
+                "2252",
+                "2255",
+                "2256",
+                "2257",
                 "2260",
                 "2261",
+                "2262",
+                "2263",
+                "2264",
                 "2265",
                 "2266",
                 "2267",
-                "2270",
+                "2268",
+                "2269",
                 "2271",
                 "2276",
-                "2296",
+                "2277",
+                "2281",
+                "2282",
+                "2283",
+                "2284",
+                "2288",
+                "2289",
+                "2290",
+                "2293",
+                "2294",
+                "2299",
                 "2319",
-                "2329",
-                "2332",
-                "2334",
-                "2337",
-                "2347",
+                "2342",
+                "2357",
                 "2360",
-                "2363",
-                "2364",
-                "2392",
-                "2413",
-                "2432",
-                "2435",
-                "2437",
-                "2440",
-                "2442",
-                "2443",
-                "2449",
+                "2370",
+                "2386",
+                "2387",
+                "2415",
+                "2436",
+                "2445",
+                "2446",
+                "2447",
                 "2460",
-                "2462",
                 "2463",
+                "2465",
+                "2468",
                 "2470",
-                "2472",
-                "2473",
-                "2474",
-                "2475",
-                "2476",
-                "2478",
-                "2479",
-                "2486",
-                "2487",
-                "2488",
-                "2489",
-                "2490",
-                "2551",
-                "2553",
-                "2599",
-                "2618",
-                "2624",
-                "2626",
-                "2632",
-                "2633",
-                "2634",
-                "2637",
-                "2638",
-                "2639",
-                "2644",
-                "2645",
-                "2646",
-                "2652",
+                "2471",
+                "2477",
+                "2482",
+                "2485",
+                "2496",
+                "2498",
+                "2499",
+                "2506",
+                "2508",
+                "2509",
+                "2510",
+                "2511",
+                "2512",
+                "2514",
+                "2515",
+                "2522",
+                "2523",
+                "2524",
+                "2525",
+                "2526",
+                "2587",
+                "2589",
+                "2635",
                 "2654",
-                "2676",
+                "2660",
+                "2662",
+                "2668",
+                "2669",
+                "2670",
+                "2673",
+                "2674",
+                "2675",
+                "2680",
+                "2681",
                 "2682",
-                "2686",
                 "2688",
                 "2690",
-                "2692",
-                "2706",
-                "2744",
-                "2745",
-                "2746",
-                "2811",
-                "2814",
-                "2815",
-                "2819",
-                "2822",
-                "2823",
-                "2828",
-                "2829",
-                "2830",
-                "2832",
-                "2833",
-                "2834",
-                "2840",
-                "2843",
-                "2846",
+                "2712",
+                "2718",
+                "2722",
+                "2724",
+                "2726",
+                "2728",
+                "2742",
+                "2780",
+                "2781",
+                "2782",
                 "2847",
-                "2848",
+                "2850",
                 "2851",
-                "2852",
-                "2853",
-                "2863",
+                "2855",
+                "2858",
+                "2859",
+                "2864",
+                "2865",
                 "2866",
-                "2867",
                 "2868",
                 "2869",
-                "2873",
+                "2870",
                 "2876",
-                "2877",
-                "2880",
+                "2879",
+                "2882",
                 "2883",
-                "2886",
+                "2884",
                 "2887",
-                "2894",
-                "2897",
-                "2898",
+                "2888",
+                "2889",
                 "2899",
                 "2902",
                 "2903",
                 "2904",
                 "2905",
+                "2909",
+                "2912",
+                "2913",
+                "2916",
+                "2919",
+                "2922",
+                "2923",
+                "2930",
+                "2933",
+                "2934",
+                "2935",
                 "2938",
                 "2939",
-                "2943",
-                "2944",
-                "2956",
-                "2959",
-                "2960",
-                "2962",
-                "2978",
-                "2983",
-                "2989",
-                "3046",
-                "3100",
-                "3101",
-                "3102",
-                "3106",
-                "3107",
-                "3110",
-                "3113",
-                "3116",
-                "3125",
-                "3127",
-                "3128",
-                "3135",
+                "2940",
+                "2941",
+                "2974",
+                "2975",
+                "2979",
+                "2980",
+                "2992",
+                "2995",
+                "2996",
+                "2998",
+                "3014",
+                "3019",
+                "3025",
+                "3082",
                 "3136",
-                "3139",
-                "3140",
+                "3137",
+                "3138",
+                "3142",
                 "3143",
+                "3146",
                 "3149",
-                "3155",
+                "3152",
+                "3161",
+                "3163",
                 "3164",
-                "3165",
-                "3166",
-                "3167",
-                "3168",
-                "3169",
-                "3170",
                 "3171",
-                "3173",
+                "3172",
                 "3175",
                 "3176",
-                "3178",
-                "3183",
-                "3184",
+                "3179",
                 "3185",
-                "3186",
-                "3187",
-                "3192",
-                "3198",
-                "3199",
+                "3191",
                 "3200",
+                "3201",
                 "3202",
                 "3203",
+                "3204",
+                "3205",
+                "3206",
+                "3207",
+                "3209",
+                "3211",
+                "3212",
+                "3214",
                 "3219",
+                "3220",
+                "3221",
                 "3222",
                 "3223",
-                "3229",
-                "3230",
-                "3231",
-                "3232",
-                "3233",
+                "3228",
                 "3234",
                 "3235",
                 "3236",
                 "3238",
-                "3240",
-                "3241",
-                "3242",
-                "3244",
-                "3245",
-                "3247",
-                "3250",
-                "3254",
-                "3263",
+                "3239",
+                "3255",
+                "3258",
+                "3259",
+                "3265",
                 "3266",
                 "3267",
                 "3268",
@@ -40665,965 +40503,982 @@
                 "3271",
                 "3272",
                 "3274",
-                "3275",
+                "3276",
+                "3277",
                 "3278",
                 "3280",
-                "3284",
-                "3285",
+                "3281",
+                "3283",
                 "3286",
-                "3287",
-                "3288",
-                "3289",
                 "3290",
-                "3291",
-                "3292",
-                "3293",
-                "3294",
-                "3298",
                 "3299",
-                "3300",
+                "3302",
                 "3303",
+                "3304",
+                "3305",
+                "3306",
                 "3307",
-                "3331",
-                "3366",
+                "3308",
+                "3310",
+                "3311",
+                "3314",
+                "3316",
+                "3320",
+                "3321",
+                "3322",
+                "3323",
+                "3324",
+                "3325",
+                "3326",
+                "3327",
+                "3328",
+                "3329",
+                "3330",
+                "3334",
+                "3335",
+                "3336",
+                "3339",
+                "3343",
                 "3367",
-                "3368",
-                "3371",
-                "3372",
-                "3377",
-                "3381",
-                "3382",
-                "3414",
-                "3552",
-                "3553",
-                "3554",
-                "3555",
-                "3556",
-                "3559",
-                "3560",
-                "3563",
-                "3566",
-                "3569",
-                "3623",
-                "3722",
-                "3727",
-                "3766",
-                "3769",
-                "3770",
+                "3402",
+                "3403",
+                "3404",
+                "3407",
+                "3408",
+                "3413",
+                "3417",
+                "3418",
+                "3450",
+                "3588",
+                "3589",
+                "3590",
+                "3591",
+                "3592",
+                "3595",
+                "3596",
+                "3599",
+                "3602",
+                "3605",
+                "3659",
+                "3758",
+                "3763",
                 "3772",
                 "3773",
+                "3776",
+                "3777",
+                "3780",
                 "3781",
-                "3782",
-                "3785",
-                "3794",
-                "3795",
-                "3796",
-                "3797",
-                "3798",
-                "3799",
+                "3784",
+                "3787",
                 "3802",
-                "3803",
+                "3805",
                 "3806",
-                "3807",
-                "3810",
-                "3811",
-                "3812",
-                "3815",
-                "3816",
-                "3819",
-                "3820",
-                "3823",
-                "3824",
-                "3829",
+                "3808",
+                "3809",
+                "3817",
+                "3818",
+                "3821",
                 "3830",
+                "3831",
+                "3832",
                 "3833",
-                "3836",
+                "3834",
+                "3835",
+                "3838",
+                "3839",
+                "3842",
+                "3843",
+                "3846",
+                "3847",
+                "3848",
                 "3851",
+                "3852",
+                "3855",
                 "3856",
-                "3857",
-                "3858",
                 "3859",
                 "3860",
-                "3861",
-                "3862",
-                "3863",
-                "3867",
-                "3868",
-                "3874",
-                "3875",
-                "3880",
-                "3884",
-                "3885",
-                "3886",
-                "3889",
+                "3865",
+                "3866",
+                "3869",
+                "3872",
+                "3887",
                 "3892",
+                "3893",
+                "3894",
                 "3895",
+                "3896",
+                "3897",
+                "3898",
+                "3899",
+                "3903",
                 "3904",
-                "3905",
-                "3906",
-                "3907",
                 "3910",
+                "3911",
                 "3916",
-                "3917",
                 "3920",
                 "3921",
-                "3923",
-                "3924",
+                "3922",
                 "3925",
-                "3926",
-                "3927",
                 "3928",
-                "3929",
                 "3931",
-                "3932",
-                "3937",
-                "3938",
-                "3939",
                 "3940",
                 "3941",
                 "3942",
                 "3943",
                 "3946",
-                "3950",
+                "3952",
                 "3953",
                 "3956",
+                "3957",
+                "3959",
                 "3960",
-                "3993",
-                "4011",
-                "4028",
-                "4044",
-                "4116",
-                "4118",
-                "4195",
-                "4198",
-                "4199",
-                "4200",
-                "4201",
-                "4204",
-                "4205",
-                "4208",
-                "4212",
-                "4213",
-                "4217",
-                "4220",
-                "4221",
-                "4224",
-                "4228",
+                "3961",
+                "3962",
+                "3963",
+                "3964",
+                "3965",
+                "3967",
+                "3968",
+                "3973",
+                "3974",
+                "3975",
+                "3976",
+                "3977",
+                "3978",
+                "3979",
+                "3982",
+                "3986",
+                "3989",
+                "3992",
+                "3996",
+                "4029",
+                "4047",
+                "4064",
+                "4080",
+                "4152",
+                "4154",
                 "4231",
-                "4232",
+                "4234",
                 "4235",
                 "4236",
-                "4239",
+                "4237",
+                "4240",
+                "4241",
                 "4244",
-                "4247",
-                "4252",
-                "4276",
-                "4278",
-                "4296",
-                "4309",
-                "4310",
-                "4311",
-                "4316",
-                "4317",
-                "4318",
-                "4319",
-                "4320",
-                "4321",
-                "4322",
-                "4324",
-                "4326",
-                "4327",
-                "4328",
+                "4248",
+                "4249",
+                "4253",
+                "4256",
+                "4257",
+                "4260",
+                "4264",
+                "4267",
+                "4268",
+                "4271",
+                "4272",
+                "4275",
+                "4280",
+                "4283",
+                "4288",
+                "4312",
+                "4314",
                 "4332",
-                "4336",
-                "4337",
-                "4338",
-                "4339",
-                "4340",
-                "4341",
-                "4344",
-                "4411",
-                "4414",
-                "4415",
-                "4421",
-                "4448",
+                "4345",
+                "4346",
+                "4347",
+                "4352",
+                "4353",
+                "4354",
+                "4355",
+                "4356",
+                "4357",
+                "4358",
+                "4360",
+                "4362",
+                "4363",
+                "4364",
+                "4368",
+                "4372",
+                "4373",
+                "4374",
+                "4375",
+                "4376",
+                "4377",
+                "4380",
+                "4447",
                 "4450",
-                "4452",
-                "4461",
-                "4462",
-                "4468",
-                "4471",
-                "4474",
-                "4477",
-                "4478",
-                "4479",
-                "4485",
-                "4491",
-                "4492",
+                "4451",
+                "4457",
+                "4484",
+                "4486",
+                "4488",
+                "4497",
+                "4498",
                 "4504",
-                "4536",
-                "4537",
-                "4541",
-                "4542",
-                "4543",
-                "4544",
-                "4545",
-                "4546",
-                "4547",
-                "4548",
-                "4549",
-                "4550",
-                "4551",
-                "4555",
-                "4557",
-                "4558",
-                "4561",
-                "4564",
-                "4567",
-                "4571",
-                "4605",
-                "4606",
+                "4507",
+                "4510",
+                "4513",
+                "4514",
+                "4515",
+                "4521",
+                "4527",
+                "4528",
+                "4540",
+                "4572",
+                "4573",
+                "4577",
+                "4578",
+                "4579",
+                "4580",
+                "4581",
+                "4582",
+                "4583",
+                "4584",
+                "4585",
+                "4586",
+                "4587",
+                "4591",
+                "4593",
+                "4594",
+                "4597",
+                "4600",
+                "4603",
                 "4607",
-                "4608",
-                "4609",
-                "4614",
-                "4627",
-                "4628",
-                "4633",
-                "4634",
-                "4639",
+                "4641",
+                "4642",
+                "4643",
+                "4644",
                 "4645",
-                "4646",
-                "4647",
-                "4648",
-                "4649",
-                "4652",
-                "4658",
-                "4659",
-                "4660",
-                "4661",
-                "4662",
+                "4650",
                 "4663",
                 "4664",
-                "4665",
                 "4669",
-                "4673",
-                "4678",
-                "4679",
-                "4680",
+                "4670",
+                "4675",
                 "4681",
                 "4682",
                 "4683",
-                "4686",
-                "4687",
-                "4691",
+                "4684",
+                "4685",
+                "4688",
+                "4694",
                 "4695",
+                "4696",
+                "4697",
+                "4698",
                 "4699",
-                "4704",
+                "4700",
+                "4701",
                 "4705",
-                "4706",
-                "4707",
-                "4708",
                 "4709",
-                "4710",
-                "4712",
+                "4714",
+                "4715",
                 "4716",
-                "4724",
-                "4757",
-                "4829",
-                "4832",
-                "4853",
-                "4874",
-                "4892",
-                "4895",
-                "4897",
-                "4900",
-                "4902",
-                "4903",
-                "4909",
+                "4717",
+                "4718",
+                "4719",
+                "4722",
+                "4723",
+                "4727",
+                "4731",
+                "4735",
+                "4740",
+                "4741",
+                "4742",
+                "4743",
+                "4744",
+                "4745",
+                "4746",
+                "4748",
+                "4752",
+                "4760",
+                "4793",
+                "4865",
+                "4868",
+                "4889",
+                "4910",
+                "4919",
                 "4920",
-                "4926",
-                "4927",
-                "4928",
-                "4929",
-                "4930",
-                "4931",
-                "4932",
+                "4921",
                 "4933",
-                "4934",
-                "4940",
-                "4942",
+                "4936",
+                "4938",
+                "4941",
                 "4943",
                 "4944",
-                "4945",
-                "4946",
-                "4948",
-                "4949",
+                "4950",
+                "4955",
+                "4958",
                 "4969",
-                "4970",
-                "5049",
-                "5051",
-                "5067",
-                "5073",
-                "5115",
+                "4975",
+                "4976",
+                "4977",
+                "4978",
+                "4979",
+                "4980",
+                "4981",
+                "4982",
+                "4983",
+                "4989",
+                "4991",
+                "4992",
+                "4993",
+                "4994",
+                "4995",
+                "4997",
+                "4998",
+                "5018",
+                "5019",
+                "5098",
+                "5100",
                 "5116",
-                "5118",
-                "5130",
-                "5131",
-                "5132",
-                "5137",
-                "5138",
-                "5139",
-                "5140",
-                "5143",
-                "5145",
-                "5146",
-                "5147",
-                "5150",
-                "5151",
-                "5152",
-                "5153",
-                "5156",
-                "5157",
-                "5160",
-                "5166",
+                "5122",
+                "5164",
+                "5165",
                 "5167",
-                "5170",
-                "5171",
-                "5172",
-                "5173",
-                "5174",
-                "5175",
-                "5176",
-                "5177",
-                "5178",
                 "5179",
                 "5180",
-                "5183",
+                "5181",
                 "5186",
-                "5197",
-                "5198",
+                "5187",
+                "5188",
+                "5189",
+                "5192",
+                "5194",
+                "5195",
+                "5196",
+                "5199",
                 "5200",
                 "5201",
                 "5202",
+                "5205",
+                "5206",
+                "5209",
+                "5215",
+                "5216",
+                "5219",
+                "5220",
                 "5221",
-                "5238",
-                "5239",
-                "5242",
+                "5222",
+                "5223",
+                "5224",
+                "5225",
+                "5226",
+                "5227",
+                "5228",
+                "5229",
+                "5232",
+                "5235",
                 "5246",
                 "5247",
                 "5249",
-                "5252",
-                "5253",
-                "5254",
-                "5257",
-                "5261",
-                "5262",
-                "5265",
-                "5266",
-                "5269",
-                "5273",
-                "5274",
-                "5344",
-                "5345",
-                "5350",
-                "5355",
-                "5408",
-                "5410",
-                "5412",
-                "5414",
-                "5419",
-                "5420",
-                "5422",
-                "5424",
-                "5425",
-                "5426",
-                "5427",
-                "5428",
-                "5430",
-                "5431",
-                "5432",
-                "5434",
-                "5435",
-                "5437",
-                "5439",
-                "5440",
-                "5441",
-                "5442",
-                "5443",
-                "5444",
-                "5446",
-                "5448",
-                "5449",
-                "5454",
-                "5455",
-                "5456",
-                "5458",
+                "5250",
+                "5251",
+                "5270",
+                "5287",
+                "5288",
+                "5291",
+                "5295",
+                "5296",
+                "5298",
+                "5301",
+                "5302",
+                "5303",
+                "5306",
+                "5310",
+                "5311",
+                "5314",
+                "5315",
+                "5318",
+                "5322",
+                "5323",
+                "5393",
+                "5394",
+                "5399",
+                "5404",
+                "5457",
                 "5459",
-                "5460",
-                "5462",
+                "5461",
                 "5463",
-                "5465",
-                "5467",
-                "5468",
                 "5469",
-                "5471",
-                "5478",
-                "5489",
+                "5483",
+                "5484",
+                "5486",
                 "5490",
                 "5491",
                 "5492",
-                "5497",
-                "5502",
+                "5493",
+                "5495",
+                "5498",
                 "5503",
                 "5504",
                 "5505",
-                "5506",
                 "5507",
                 "5508",
                 "5509",
-                "5510",
+                "5511",
+                "5512",
+                "5514",
+                "5516",
                 "5517",
-                "5519",
-                "5522",
-                "5523",
-                "5524",
-                "5525",
-                "5526",
+                "5518",
                 "5527",
-                "5529",
-                "5530",
-                "5531",
-                "5532",
-                "5543",
-                "5544",
-                "5549",
-                "5550",
+                "5538",
+                "5539",
+                "5540",
+                "5541",
+                "5546",
                 "5551",
                 "5552",
+                "5553",
                 "5554",
+                "5555",
                 "5556",
                 "5557",
                 "5558",
                 "5559",
-                "5560",
-                "5561",
-                "5562",
-                "5565",
+                "5566",
                 "5568",
-                "5569",
-                "5570",
+                "5571",
+                "5572",
+                "5573",
+                "5574",
+                "5575",
+                "5576",
                 "5578",
                 "5579",
                 "5580",
                 "5581",
-                "5583",
-                "5585",
-                "5586",
-                "5587",
-                "5588",
-                "5589",
                 "5592",
                 "5593",
-                "5596",
-                "5599",
-                "5600",
-                "5601",
-                "5611",
-                "5614",
-                "5615",
-                "5616",
-                "5620",
+                "5603",
+                "5605",
+                "5607",
+                "5618",
+                "5621",
                 "5622",
-                "5624",
-                "5625",
+                "5627",
+                "5628",
+                "5629",
                 "5630",
-                "5631",
+                "5632",
                 "5634",
                 "5635",
+                "5636",
+                "5637",
                 "5638",
                 "5641",
                 "5642",
-                "5643",
-                "5653",
-                "5656",
-                "5657",
-                "5658",
-                "5662",
+                "5645",
+                "5648",
+                "5649",
+                "5650",
+                "5660",
+                "5663",
                 "5664",
                 "5665",
-                "5666",
-                "5667",
-                "5668",
+                "5669",
                 "5671",
-                "5672",
-                "5677",
+                "5673",
+                "5674",
+                "5679",
                 "5680",
-                "5681",
-                "5682",
+                "5683",
+                "5684",
+                "5687",
+                "5690",
+                "5691",
+                "5692",
+                "5702",
                 "5705",
                 "5706",
+                "5707",
                 "5711",
-                "5712",
+                "5713",
+                "5714",
                 "5715",
                 "5716",
                 "5717",
-                "5718",
-                "5719",
                 "5720",
                 "5721",
+                "5726",
                 "5729",
                 "5730",
-                "5732",
-                "5735",
-                "5736",
-                "5737",
-                "5739",
-                "5740",
-                "5759",
+                "5731",
+                "5754",
+                "5755",
                 "5760",
+                "5761",
+                "5764",
+                "5765",
+                "5766",
+                "5767",
+                "5768",
                 "5769",
                 "5770",
-                "5813",
-                "5816",
-                "5839",
-                "5853",
-                "5854",
-                "5855",
-                "5856",
-                "5857",
-                "5858",
-                "5859",
-                "5860",
-                "5861",
-                "5864",
-                "5878",
-                "5879",
-                "5880",
-                "5882",
-                "5883",
-                "5884",
-                "5885",
-                "5886",
-                "5887",
+                "5778",
+                "5779",
+                "5781",
+                "5784",
+                "5785",
+                "5786",
+                "5788",
+                "5789",
+                "5808",
+                "5809",
+                "5818",
+                "5819",
+                "5862",
+                "5865",
                 "5888",
-                "5890",
-                "5893",
-                "5897",
-                "5898",
-                "5899",
-                "5900",
-                "5901",
+                "5902",
                 "5903",
+                "5904",
                 "5905",
                 "5906",
                 "5907",
                 "5908",
                 "5909",
                 "5910",
-                "5912",
                 "5913",
-                "5916",
-                "5919",
-                "5920",
-                "5921",
+                "5927",
+                "5928",
                 "5929",
-                "5930",
                 "5931",
+                "5932",
                 "5933",
+                "5934",
+                "5935",
+                "5936",
+                "5937",
                 "5939",
-                "5941",
                 "5942",
-                "5944",
+                "5946",
+                "5947",
                 "5948",
                 "5949",
                 "5950",
-                "5951",
                 "5952",
                 "5954",
+                "5955",
                 "5956",
                 "5957",
                 "5958",
                 "5959",
-                "5960",
                 "5961",
                 "5962",
-                "5964",
                 "5965",
-                "5966",
-                "5971",
-                "5977",
+                "5968",
+                "5969",
+                "5970",
+                "5978",
                 "5979",
                 "5980",
-                "5981",
+                "5982",
+                "5988",
+                "5990",
+                "5991",
+                "5993",
+                "5997",
+                "5998",
+                "5999",
+                "6000",
+                "6001",
+                "6003",
                 "6005",
+                "6006",
                 "6007",
-                "6036",
-                "6037",
-                "6038",
-                "6039",
-                "6042",
-                "6043",
-                "6044",
-                "6045",
-                "6046",
-                "6047",
-                "6051",
-                "6058",
-                "6059",
-                "6060",
-                "6061",
-                "6062",
-                "6064",
-                "6065",
-                "6067",
-                "6068",
-                "6069",
-                "6074",
-                "6077",
-                "6079",
-                "6080",
-                "6081",
-                "6082",
-                "6083",
-                "6084",
+                "6008",
+                "6009",
+                "6010",
+                "6011",
+                "6013",
+                "6014",
+                "6015",
+                "6020",
+                "6026",
+                "6028",
+                "6029",
+                "6030",
+                "6054",
+                "6056",
                 "6085",
+                "6086",
                 "6087",
                 "6088",
+                "6091",
+                "6092",
                 "6093",
-                "6097",
-                "6098",
-                "6101",
-                "6103",
-                "6104",
+                "6094",
+                "6095",
+                "6096",
+                "6100",
+                "6107",
+                "6108",
                 "6109",
+                "6110",
+                "6111",
+                "6113",
+                "6114",
+                "6116",
+                "6117",
+                "6118",
+                "6123",
                 "6126",
+                "6128",
                 "6129",
                 "6130",
                 "6131",
                 "6132",
                 "6133",
                 "6134",
-                "6135",
                 "6136",
                 "6137",
-                "6138",
-                "6139",
-                "6140",
-                "6141",
+                "6142",
                 "6146",
                 "6147",
-                "6148",
-                "6149",
                 "6150",
-                "6151",
-                "6154",
-                "6155",
-                "6160",
-                "6162",
-                "6165",
-                "6166",
-                "6167",
-                "6168",
-                "6169",
-                "6173",
-                "6174",
+                "6152",
+                "6153",
+                "6158",
                 "6175",
-                "6176",
                 "6178",
+                "6179",
                 "6180",
+                "6181",
+                "6182",
                 "6183",
                 "6184",
                 "6185",
+                "6186",
                 "6187",
-                "6192",
-                "6194",
+                "6188",
+                "6189",
+                "6190",
                 "6195",
+                "6196",
                 "6197",
                 "6198",
                 "6199",
-                "6201",
-                "6202",
+                "6200",
                 "6203",
-                "6206",
-                "6207",
-                "6210",
+                "6204",
+                "6209",
+                "6211",
                 "6214",
-                "6219",
-                "6220",
+                "6215",
+                "6216",
+                "6217",
+                "6218",
+                "6222",
+                "6223",
                 "6224",
-                "6228",
-                "6230",
-                "6231",
+                "6225",
+                "6227",
+                "6229",
                 "6232",
+                "6233",
                 "6234",
-                "6235",
-                "6238",
+                "6236",
                 "6241",
-                "6242",
                 "6243",
-                "6245",
+                "6244",
                 "6246",
                 "6247",
                 "6248",
                 "6250",
-                "6253",
-                "6254",
+                "6251",
+                "6252",
                 "6255",
+                "6256",
+                "6259",
+                "6263",
+                "6268",
+                "6269",
+                "6273",
+                "6277",
+                "6279",
+                "6280",
+                "6281",
+                "6283",
+                "6284",
+                "6287",
+                "6290",
+                "6291",
+                "6292",
+                "6294",
+                "6295",
+                "6296",
                 "6297",
-                "6298",
                 "6299",
+                "6302",
                 "6303",
                 "6304",
-                "6305",
-                "6306",
-                "6307",
-                "6308",
-                "6309",
-                "6310",
-                "6311",
-                "6313",
-                "6315",
-                "6322",
-                "6323",
-                "6324",
-                "6349",
-                "6350",
-                "6351",
+                "6346",
+                "6347",
+                "6348",
+                "6352",
+                "6353",
+                "6354",
+                "6355",
                 "6356",
                 "6357",
+                "6358",
                 "6359",
-                "6383",
-                "6388",
-                "6402",
-                "6412",
+                "6360",
+                "6362",
+                "6364",
+                "6371",
+                "6372",
+                "6373",
+                "6398",
+                "6399",
+                "6400",
+                "6405",
+                "6406",
+                "6408",
+                "6432",
+                "6437",
+                "6440",
+                "6442",
+                "6443",
+                "6444",
+                "6445",
+                "6446",
+                "6447",
+                "6448",
+                "6449",
+                "6451",
+                "6453",
+                "6454",
+                "6457",
                 "6460",
-                "6464",
-                "6465",
-                "6466",
-                "6469",
-                "6472",
-                "6473",
-                "6474",
-                "6478",
-                "6479",
-                "6480",
-                "6485",
-                "6486",
-                "6487",
-                "6488",
-                "6491",
-                "6494",
-                "6497",
-                "6498",
-                "6501",
-                "6502",
-                "6505",
-                "6511",
-                "6512",
+                "6461",
+                "6462",
+                "6509",
+                "6513",
+                "6514",
                 "6515",
-                "6516",
-                "6519",
+                "6518",
+                "6521",
                 "6522",
-                "6525",
-                "6526",
+                "6523",
+                "6527",
+                "6528",
                 "6529",
-                "6530",
-                "6533",
                 "6534",
-                "6552",
-                "6556",
-                "6559",
+                "6535",
+                "6536",
+                "6537",
+                "6540",
+                "6543",
+                "6546",
+                "6547",
+                "6550",
+                "6551",
+                "6554",
                 "6560",
+                "6561",
+                "6564",
+                "6565",
                 "6568",
                 "6571",
-                "6572",
-                "6573",
-                "6577",
-                "6580",
-                "6584",
-                "6595",
-                "6599",
-                "6603",
+                "6574",
+                "6575",
+                "6578",
+                "6579",
+                "6582",
+                "6583",
+                "6601",
                 "6605",
-                "6612",
-                "6615",
-                "6616",
+                "6608",
+                "6609",
+                "6617",
+                "6620",
                 "6621",
-                "6624",
-                "6628",
+                "6622",
+                "6626",
+                "6629",
+                "6633",
+                "6644",
+                "6648",
+                "6652",
+                "6654",
+                "6661",
+                "6664",
+                "6665",
                 "6670",
-                "6685",
-                "6686",
-                "6688",
-                "6689",
-                "6690",
-                "6691",
-                "6694",
-                "6697",
-                "6704",
-                "6705",
-                "6708",
-                "6709",
-                "6710",
-                "6711",
-                "6712",
-                "6713",
-                "6714",
-                "6717",
-                "6718",
-                "6729",
-                "6732",
-                "6733",
+                "6673",
+                "6677",
+                "6719",
+                "6734",
+                "6735",
+                "6737",
                 "6738",
                 "6739",
                 "6740",
-                "6741",
-                "6742",
                 "6743",
-                "6744",
-                "6745",
-                "6747",
-                "6748",
-                "6749",
-                "6750",
-                "6751",
-                "6752",
-                "6764",
-                "6770",
-                "6773",
-                "6774",
-                "6775",
+                "6746",
+                "6753",
+                "6754",
+                "6757",
+                "6758",
+                "6759",
+                "6760",
+                "6761",
+                "6762",
+                "6763",
+                "6766",
+                "6767",
                 "6778",
-                "6779",
+                "6781",
                 "6782",
+                "6787",
                 "6788",
+                "6789",
+                "6790",
+                "6791",
+                "6792",
                 "6793",
+                "6794",
+                "6796",
+                "6797",
                 "6798",
                 "6799",
                 "6800",
                 "6801",
-                "6802",
-                "6803",
-                "6804",
-                "6805",
-                "6807",
-                "6809",
-                "6810",
-                "6815",
-                "6816",
-                "6817",
-                "6818",
-                "6833",
+                "6813",
+                "6819",
+                "6822",
+                "6823",
+                "6824",
+                "6827",
+                "6828",
+                "6831",
+                "6837",
+                "6842",
+                "6847",
+                "6848",
+                "6849",
                 "6850",
+                "6851",
+                "6852",
                 "6853",
+                "6854",
+                "6856",
                 "6858",
-                "6862",
-                "6863",
+                "6859",
                 "6864",
-                "6944",
-                "6946",
-                "6965",
-                "6971",
-                "7029",
-                "7038",
-                "7039",
-                "7063",
-                "7071",
-                "7072",
-                "7132",
-                "7133",
-                "7134",
-                "7149",
-                "7152",
-                "7153",
-                "7154",
-                "7155",
-                "7156",
-                "7157",
-                "7158",
-                "7159",
-                "7165",
-                "7172",
-                "7184",
-                "7185",
-                "7188",
-                "7189",
-                "7190",
-                "7194",
+                "6865",
+                "6866",
+                "6867",
+                "6882",
+                "6899",
+                "6902",
+                "6907",
+                "6911",
+                "6912",
+                "6913",
+                "6993",
+                "6995",
+                "7014",
+                "7020",
+                "7078",
+                "7087",
+                "7088",
+                "7112",
+                "7120",
+                "7121",
+                "7181",
+                "7182",
+                "7183",
                 "7198",
-                "7212",
-                "7213",
-                "7216",
-                "7217",
-                "7220",
-                "7224",
-                "7228",
-                "7240",
-                "7267",
-                "7272",
-                "7276",
+                "7201",
+                "7202",
+                "7203",
+                "7204",
+                "7205",
+                "7206",
+                "7207",
+                "7208",
+                "7214",
+                "7221",
+                "7233",
+                "7234",
+                "7237",
+                "7238",
+                "7239",
+                "7243",
+                "7247",
+                "7261",
+                "7262",
+                "7265",
+                "7266",
+                "7269",
+                "7273",
                 "7277",
-                "7278",
-                "7281",
-                "7312",
-                "7333",
-                "7334",
-                "7340",
-                "7349",
-                "7366",
-                "7368",
-                "7385",
-                "7413",
-                "7429",
-                "7430",
-                "7449",
-                "7459",
-                "7460",
-                "7461",
-                "7463",
-                "7464",
-                "7465",
-                "7509",
-                "7510",
-                "7511",
+                "7289",
+                "7316",
+                "7321",
+                "7325",
+                "7326",
+                "7327",
+                "7330",
+                "7361",
+                "7382",
+                "7383",
+                "7389",
+                "7398",
+                "7415",
+                "7417",
+                "7434",
+                "7462",
+                "7478",
+                "7479",
+                "7498",
                 "7512",
+                "7513",
+                "7514",
+                "7558",
+                "7559",
+                "7560",
                 "7561",
-                "7562",
-                "7563",
-                "7564",
-                "7565",
-                "7566",
-                "7567",
-                "7568",
-                "7569",
-                "7570",
-                "7571",
-                "7572",
-                "7573",
-                "7574",
-                "7578",
-                "7579",
-                "7580",
-                "7581",
-                "7582",
-                "7583",
-                "7584",
-                "7585",
-                "7588",
-                "7589",
-                "7590",
-                "7591",
-                "7592",
-                "7593",
-                "7596",
-                "7597",
-                "7600",
-                "7601",
-                "7602",
-                "7605"
+                "7610",
+                "7611",
+                "7612",
+                "7613",
+                "7614",
+                "7615",
+                "7616",
+                "7617",
+                "7618",
+                "7619",
+                "7620",
+                "7621",
+                "7622",
+                "7623",
+                "7627",
+                "7628",
+                "7629",
+                "7630",
+                "7631",
+                "7632",
+                "7633",
+                "7634",
+                "7637",
+                "7638",
+                "7639",
+                "7640",
+                "7641",
+                "7642",
+                "7645",
+                "7646",
+                "7649",
+                "7650",
+                "7651",
+                "7654"
               ],
-              "covered": 2161
+              "covered": 2177
             },
             "development_tools\\shared\\service\\report_generation_linkify.py": {
               "statements": 25,
@@ -43009,8 +42864,8 @@
             },
             "development_tools\\tests\\run_test_coverage.py": {
               "statements": 2170,
-              "missed": 1251,
-              "coverage": 42,
+              "missed": 1244,
+              "coverage": 43,
               "missing_lines": [
                 "46",
                 "61",
@@ -43026,11 +42881,9 @@
                 "81",
                 "137",
                 "143",
-                "154",
                 "172",
                 "179",
                 "188",
-                "195",
                 "251",
                 "254",
                 "256",
@@ -44199,6 +44052,9 @@
                 "4713",
                 "4714",
                 "4715",
+                "4809",
+                "4810",
+                "4811",
                 "4814",
                 "4815",
                 "4816",
@@ -44228,23 +44084,15 @@
                 "4894",
                 "4899",
                 "4900",
-                "4923",
-                "4925",
-                "4927",
                 "4928",
                 "4929",
                 "4930",
                 "4931",
-                "4934",
                 "4935",
                 "4936",
                 "4938",
                 "4941",
-                "4944",
                 "4945",
-                "4951",
-                "4957",
-                "4959",
                 "4961",
                 "4964",
                 "4966",
@@ -44264,7 +44112,7 @@
                 "5051",
                 "5052"
               ],
-              "covered": 919
+              "covered": 926
             },
             "development_tools\\tests\\test_file_coverage_cache.py": {
               "statements": 619,
@@ -44488,7 +44336,7 @@
             "log_file": null,
             "return_code_hex": "0x00000000",
             "return_code": 0,
-            "passed_count": 1122,
+            "passed_count": 1128,
             "failed_count": 0,
             "error_count": 0,
             "skipped_count": 1,
@@ -44501,7 +44349,7 @@
           "source": "run_test_coverage --dev-tools-only"
         }
       },
-      "timestamp": "2026-03-28T16:59:28"
+      "timestamp": "2026-03-28T19:41:23"
     },
     "_debug_dev_tools_cov": {
       "success": true,
@@ -65409,7 +65257,7 @@
           "failed_node_ids": []
         }
       },
-      "timestamp": "2026-03-28T16:59:34.661368"
+      "timestamp": "2026-03-28T20:10:50.716839"
     },
     "analyze_ruff": {
       "success": true,
@@ -65428,7 +65276,7 @@
           "top_rules": []
         }
       },
-      "timestamp": "2026-03-28T16:59:34.661368"
+      "timestamp": "2026-03-28T20:10:50.716839"
     },
     "analyze_pyright": {
       "success": true,
@@ -65444,14 +65292,14 @@
           "errors": 0,
           "warnings": 0,
           "information": 0,
-          "files_analyzed": 578,
+          "files_analyzed": 579,
           "returncode": 0,
           "top_files": [],
           "top_error_files": [],
           "top_warning_files": []
         }
       },
-      "timestamp": "2026-03-28T16:59:34.661368"
+      "timestamp": "2026-03-28T20:10:50.716839"
     }
   }
 }
