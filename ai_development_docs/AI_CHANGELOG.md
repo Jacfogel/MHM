@@ -31,6 +31,9 @@ Guidelines:
 ## Recent Changes (Most Recent First)
 
 ### 2026-03-29 - Config consolidation + inventory legacy patterns **COMPLETED**
+- **Doc-sync PASS**: LIST_OF_LISTS path-qualified refs; paired changelogs ASCII cleanup (`doc-sync`).
+- **Function registry defaults**: `AUDIT_FUNCTION_REGISTRY` in `development_tools/config/config.py` holds portable directory/entry-point/common-ops text; JSON only for `decision_trees` + overrides; `development_tools/functions/generate_function_registry.py` no longer duplicates fallbacks; LIST_OF_LISTS Section 12b resolutions.
+- **Example config parity**: `development_tools_config.json.example` matches live top-level keys; `get_file_patterns_config()` + dropped redundant JSON `file_patterns`; exclusions overlap note in live JSON; `test_config` parity test.
 - **DEPRECATION_INVENTORY** holds `legacy_scan_patterns`; dev-tools JSON trimmed; analyzers derive `default_docs`, core-system files, coverage test dir, registry priority dirs, validation/analyze_ai_work thresholds.
 - **LIST_OF_LISTS** section 12b flags config blocks for future ROI review; sections 3 and 13 updated for canonical locations.
 - **Dev-tools tests**: `patch.object` on `load_development_tools_module` targets for `generate_directory_tree`, `fix_project_cleanup`, and `fix_documentation_headings` (`config` / `DEFAULT_DOCS` / `DocumentationHeadingFixer`) - avoids patches missing the importlib-loaded module under parallel/coverage (`audit --full` Tier 3).

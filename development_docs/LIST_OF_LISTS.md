@@ -5,7 +5,7 @@
 **Purpose**: Single reference for list-like data (arrays, mappings, enumerated sets) in code and config. Align code/config first, then align docs to canonical lists.
 
 **Audience**: Maintainers, AI collaborators.  
-**Last updated**: 2026-03-22 (consolidation scan: standard_exclusions, constants, audit_tiers, config; project-specific reorganization)
+**Last updated**: 2026-03-29 (config example parity; `file_patterns` + function-registry narrative defaults in `development_tools/config/config.py`; §12b resolutions; §13 rows)
 
 **Principles**: (1) Every list has a single canonical source. (2) **Project-specific** lists → `development_tools_config.json`. **Non–project-specific** lists that are used in more than one place → `development_tools/shared/common.py`, `development_tools/shared/constants.py`, or `development_tools/shared/standard_exclusions.py` as appropriate. Single-use, non–project-specific lists can stay in the single file that uses them. (3) **Consolidate when overlap is complete or appropriate**: Where lists overlap fully (e.g. subset A is entirely contained in list B), derive the subset from the canonical list instead of maintaining both. Where lists serve the same purpose with different scopes, derive from one canonical source or document when consolidation is appropriate.
 
@@ -107,6 +107,7 @@
 | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **default_docs, paired_docs, local_module_prefixes, test_markers, …** | `development_tools_config.json` — `constants`, `paths`, `fix_version_sync`, etc. | `development_tools/shared/constants.py`; `development_tools/config/config.py` getters | **Consolidated**: `local_module_prefixes` is canonical. `scan_directories`, `core_modules`, `project_directories` are derived in `development_tools/shared/constants.py`; config override optional. See §9a. `file_patterns.exclude_patterns` removed; use `exclusions.base_exclusions`. |
 | **Test markers (categories, directory map, etc.)**                                                       | `development_tools_config.json` — `test_markers.categories`, `test_markers.transient_data_path_markers`, etc.                                                                                     | Dev-tools test marker analysis                                                                                                   | `pytest.ini` — `markers` (pytest's own list). Overlap in purpose; config = dev-tools analysis, pytest.ini = pytest behavior. Keep both; document that they serve different tools. |
+| **analyze_function_registry** (directory/entry-point blurbs, common-ops order) | **Portable defaults**: `development_tools/config/config.py` — `AUDIT_FUNCTION_REGISTRY`. **Overrides / paths**: JSON `analyze_function_registry` (deep-merge dicts); **`decision_trees`** (project paths) stays in JSON when not portable. | `get_analyze_function_registry_config()`; `development_tools/functions/generate_function_registry.py` | Previously duplicated in `development_tools/functions/generate_function_registry.py` fallbacks; consolidated 2026-03. |
 
 
 ---
@@ -347,6 +348,13 @@ Audit these paths in `development_tools_config.json` for ROI: keep as-is, simpli
 
 **Changelog / path-drift overlap**: `path_drift.legacy_documentation_files` (concrete paths for path-drift tooling), `exclusions.historical_preserve_files` (cleanup preservation patterns), and `exclusions.tool_exclusions.documentation` (doc-tool scan skips) can all mention `development_docs/changelog_history/` or changelogs—purposes differ (see §13 rows); avoid expanding a fourth redundant list; prefer documenting which tool reads which key in this section.
 
+**Resolutions (2026-03-29 follow-up)**:
+
+- **`analyze_function_registry` narrative fields** (`directory_descriptions`, `entry_point_descriptions`, `common_operations_priority_order`): portable defaults live in `development_tools/config/config.py` — `AUDIT_FUNCTION_REGISTRY`; JSON may omit them or supply partial dicts/lists (merged over defaults). **MHM path-specific** `decision_trees` stays in JSON; `get_analyze_function_registry_config()` deep-merges dict keys.
+- **`exclusions.tool_exclusions.documentation`**: Keep separate from `historical_preserve_files` / `path_drift` (see `exclusions._comment_overlap` in live JSON).
+- **`backup_policy.ownership_map`**: Keep in JSON as short human context for backup/retention reporting unless a dedicated doc section replaces it.
+- **`tool_commands.ruff_command`**: Optional; resolution order remains in `development_tools/config/config.py` (`_get_ruff_command()` and per-section overrides).
+
 ---
 
 ## 13. Config list inventory (consolidation scan)
@@ -372,6 +380,8 @@ Config keys that are list-like or array-valued. Use for consolidation audits.
 | `unused_imports.ruff_command` | Override (optional) | Per-section override |
 | `static_analysis.ruff_command` | Override (optional) | Per-section override |
 | `coverage.pytest_command` | Pytest command | Distinct (different tool) |
+| `development_tools_config.json.example` | Template for forks; **same top-level keys as** `development_tools_config.json` | File `_comment` lists optional JSON-only sections that fall back to `development_tools/config/config.py`; regenerate template from live when adding top-level keys |
+| `file_patterns` (optional in JSON) | Python/Markdown/UI/config globs | Canonical defaults in `development_tools/config/config.py` — `FILE_PATTERNS`; merge via `get_file_patterns_config()` when JSON supplies `file_patterns` |
 
 ---
 
@@ -389,6 +399,8 @@ Config keys that are list-like or array-valued. Use for consolidation audits.
 | Add a path-drift exclusion | `development_tools_config.json` — `path_drift.legacy_documentation_files` |
 | Change tier display labels | `development_tools/shared/tool_metadata.py` — `TIER_TITLES` |
 | Change generated function patterns (PyQt, etc.) | `development_tools/shared/constants.py` — `AUTO_GENERATED_FILE_PATTERNS`, `EXACT_GENERATED_NAMES`, `GENERATED_NAME_PATTERNS` |
+| Tune function-registry directory blurbs / entry-point labels (portable) | `development_tools/config/config.py` — `AUDIT_FUNCTION_REGISTRY`; optional JSON partial merge |
+| Tune function-registry **decision trees** (concrete file paths) | `development_tools_config.json` — `analyze_function_registry.decision_trees` |
 
 ---
 

@@ -833,15 +833,8 @@ def generate_entry_points_section(
 
         # Get description from config (analyze_function_registry.entry_point_descriptions)
         registry_config = config.get_analyze_function_registry_config()
-        ep_descriptions = registry_config.get(
-            "entry_point_descriptions",
-            {
-                "handle_message": "Main message entry point",
-                "generate_response": "AI response generation",
-                "main": "Application entry point",
-                "__init__": "Initialization",
-            },
-        )
+        raw_ep = registry_config.get("entry_point_descriptions")
+        ep_descriptions = raw_ep if isinstance(raw_ep, dict) else {}
         description = (
             ep_descriptions.get(func_name, "Entry point")
             if isinstance(ep_descriptions, dict)
@@ -989,24 +982,8 @@ def generate_common_operations_section(
 
     # Build numbered list with priority order from config (analyze_function_registry.common_operations_priority_order)
     registry_config = config.get_analyze_function_registry_config()
-    priority_order = registry_config.get(
-        "common_operations_priority_order",
-        [
-            "User Message",
-            "AI Response",
-            "Main Entry",
-            "User Data Access",
-            "User Data Save",
-            "User Data Load",
-            "Send Message",
-            "Receive Message",
-            "Command Parsing",
-            "Validation",
-            "Error Handling",
-            "Scheduling",
-            "Configuration",
-        ],
-    )
+    raw_po = registry_config.get("common_operations_priority_order")
+    priority_order = raw_po if isinstance(raw_po, list) else []
 
     numbered_ops = []
     counter = 1
@@ -1097,27 +1074,22 @@ def generate_file_organization_section(actual_functions: dict[str, dict]) -> str
 
     # Descriptions from config (analyze_function_registry.directory_descriptions)
     registry_config = config.get_analyze_function_registry_config()
-    descriptions = registry_config.get(
-        "directory_descriptions",
-        {
-            "core": "System utilities and data management",
-            "communication": "Communication channels and message processing",
-            "ai": "AI chatbot functionality",
-            "ui": "User interface components",
-            "user": "User context and preferences",
-            "tasks": "Task management system",
-            "tests": "Test suite",
-            "scripts": "Utility scripts",
-        },
-    )
+    raw_desc = registry_config.get("directory_descriptions")
+    descriptions = raw_desc if isinstance(raw_desc, dict) else {}
     descriptions = dict(descriptions) if isinstance(descriptions, dict) else {}
 
     # Build organization list; priority order from config or derive from descriptions
     org_lines = []
-    priority_dirs = registry_config.get(
-        "priority_directories",
-        ["core", "communication", "ai", "ui", "user", "tasks"],
-    )
+    priority_dirs = registry_config.get("priority_directories")
+    if not priority_dirs:
+        priority_dirs = [
+            "core",
+            "communication",
+            "ai",
+            "ui",
+            "user",
+            "tasks",
+        ]
 
     for dir_name in priority_dirs:
         if dir_name in directories:

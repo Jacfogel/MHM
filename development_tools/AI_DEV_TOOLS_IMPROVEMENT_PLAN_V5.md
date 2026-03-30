@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Single forward-looking backlog after V4; collapsed history; actionable next steps  
 > **Style**: Direct and concise  
-> **Last Updated**: 2026-03-28  
+> **Last Updated**: 2026-03-29  
 > **Supersedes**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (keep V4 for detailed checkbox history)
 
 **Authoritative metrics**: [development_tools/AI_STATUS.md](AI_STATUS.md) and [development_tools/AI_PRIORITIES.md](AI_PRIORITIES.md) after `python development_tools/run_development_tools.py audit` or `audit --full`.
@@ -280,7 +280,9 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 #### 5.1 Unused imports cleanup module
 
 - **Status**: **PENDING**. **User priority**: Low.
-- **Open**: Categorization logic; category-based reporting; implement `imports/fix_unused_imports.py`; cleanup recommendations; optional `--categorize` flag.
+- **Open**:
+  - **Investigate all-zero report output**: [UNUSED_IMPORTS_REPORT.md](../development_docs/UNUSED_IMPORTS_REPORT.md) often shows **0** files with unused imports and **0** in every breakdown category while **Total Files Scanned** is large (hundreds). That is **unlikely to be correct** for a repo this size. Trace the pipeline (`development_tools/imports/analyze_unused_imports.py`, report generator, Ruff/pylint backend, JSON aggregation) to confirm findings are passed through, categorization buckets are filled, and nothing discards real hits; add a **regression test or small fixture** with a known unused import if the tool is behaving as designed.
+  - Categorization logic; category-based reporting; implement `imports/fix_unused_imports.py`; cleanup recommendations; optional `--categorize` flag.
 
 #### 5.2 Documentation overlap analysis enhancements
 

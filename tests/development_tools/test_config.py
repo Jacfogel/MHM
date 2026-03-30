@@ -250,6 +250,53 @@ class TestConfigHelperFunctions:
         assert "ruff_sync_root_compat" in result
 
     @pytest.mark.unit
+    def test_get_analyze_function_registry_config_deep_merges_directory_descriptions(self):
+        """Partial directory_descriptions in JSON overlays AUDIT_FUNCTION_REGISTRY defaults."""
+        fn = config.get_analyze_function_registry_config
+        config_impl = sys.modules[fn.__module__]
+        previous = config_impl._get_external_value
+        try:
+            config_impl._get_external_value = (  # type: ignore[attr-defined]
+                lambda key, default: (
+                    {
+                        "directory_descriptions": {"core": "Custom core blurb"},
+                        "priority_directories": ["core"],
+                    }
+                    if key == "analyze_function_registry"
+                    else default
+                )
+            )
+            result = config.get_analyze_function_registry_config()
+            assert result["directory_descriptions"]["core"] == "Custom core blurb"
+            assert "communication" in result["directory_descriptions"]
+            assert result["priority_directories"] == ["core"]
+        finally:
+            config_impl._get_external_value = previous  # type: ignore[attr-defined]
+
+    @pytest.mark.unit
+    def test_get_file_patterns_config_matches_module_defaults_without_json(self):
+        """file_patterns JSON is optional; defaults match FILE_PATTERNS."""
+        assert config.get_file_patterns_config() == dict(config.FILE_PATTERNS)
+
+    @pytest.mark.unit
+    def test_dev_tools_config_example_matches_live_top_level_keys(self):
+        """development_tools_config.json.example documents the same categories as live."""
+        import json
+
+        root = Path(__file__).resolve().parent.parent.parent
+        live = json.loads(
+            (root / "development_tools" / "config" / "development_tools_config.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        ex = json.loads(
+            (root / "development_tools" / "config" / "development_tools_config.json.example").read_text(
+                encoding="utf-8"
+            )
+        )
+        assert set(live) == set(ex) - {"_comment"}
+
+    @pytest.mark.unit
     def test_get_static_analysis_config_honors_external_overrides(self):
         """External static-analysis overrides should merge over defaults."""
         fn = config.get_static_analysis_config
