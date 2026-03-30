@@ -14,6 +14,7 @@ from pathlib import Path
 import copy
 import json
 import os
+import warnings
 from typing import Any
 
 # External config cache (loaded from file if provided)
@@ -744,6 +745,53 @@ TEST_MARKERS_BASE: dict[str, Any] = {
     "ai_path_tokens": ["ai/test_ai", "test_ai"],
 }
 
+# Excludes when deriving scan_directories / core_modules / project_directories from
+# local_module_prefixes. Merged with constants.derived_prefix_excludes in JSON.
+_DEFAULT_DERIVED_PREFIX_EXCLUDES: dict[str, list[str]] = {
+    "scan": ["data", "development_tools", "notebook", "scripts"],
+    "core": ["data", "development_tools", "scripts", "tests"],
+    "project": ["data", "development_tools", "scripts"],
+}
+
+_DEPRECATED_CONSTANTS_TEST_MARKER_KEYS: frozenset[str] = frozenset(
+    {
+        "test_category_markers",
+        "test_marker_directory_map",
+        "test_marker_transient_path_markers",
+        "test_marker_ai_path_tokens",
+    },
+)
+
+_warned_deprecated_test_marker_keys = False
+
+
+def _merge_derived_prefix_excludes(raw_constants: dict[str, Any]) -> dict[str, list[str]]:
+    merged = {k: list(v) for k, v in _DEFAULT_DERIVED_PREFIX_EXCLUDES.items()}
+    dpe = raw_constants.get("derived_prefix_excludes")
+    if not isinstance(dpe, dict):
+        return merged
+    for key in ("scan", "core", "project"):
+        if key in dpe and isinstance(dpe[key], (list, tuple)):
+            merged[key] = [str(x).strip() for x in dpe[key] if str(x).strip()]
+    return merged
+
+
+def _warn_deprecated_constants_test_marker_keys(raw_constants: dict[str, Any]) -> None:
+    """Warn once if legacy constants.test_* test-marker keys are present."""
+    global _warned_deprecated_test_marker_keys
+    if _warned_deprecated_test_marker_keys:
+        return
+    found = sorted(k for k in _DEPRECATED_CONSTANTS_TEST_MARKER_KEYS if k in raw_constants)
+    if not found:
+        return
+    _warned_deprecated_test_marker_keys = True
+    warnings.warn(
+        "Use top-level 'test_markers' in development_tools_config.json instead of "
+        f"constants.{', constants.'.join(found)} (deprecated).",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
 
 def get_constants_config():
     """
@@ -756,7 +804,9 @@ def get_constants_config():
     prefix missing a directory entry (preserves explicit extra roots like resources/).
     """
     raw = _get_external_value("constants", {})
-    constants: dict[str, Any] = dict(raw) if isinstance(raw, dict) else {}
+    raw_dict: dict[str, Any] = dict(raw) if isinstance(raw, dict) else {}
+    _warn_deprecated_constants_test_marker_keys(raw_dict)
+    constants: dict[str, Any] = dict(raw_dict)
     explicit_dd = constants.get("default_docs")
     if isinstance(explicit_dd, list) and len(explicit_dd) > 0:
         constants["default_docs"] = [str(x) for x in explicit_dd]
@@ -776,7 +826,30 @@ def get_constants_config():
                 fvsd[k] = f"{k}/"
     if fvsd:
         constants["fix_version_sync_directories"] = fvsd
+
+    constants["derived_prefix_excludes"] = _merge_derived_prefix_excludes(raw_dict)
     return constants
+
+
+def get_path_drift_config() -> dict[str, Any]:
+    """Path-drift tooling: legacy doc paths, optional ignored heading/path fragments."""
+    raw = _get_external_value("path_drift", None)
+    if not isinstance(raw, dict):
+        return {"legacy_documentation_files": [], "ignored_path_patterns": []}
+    out: dict[str, Any] = dict(raw)
+    legacy = out.get("legacy_documentation_files")
+    out["legacy_documentation_files"] = (
+        [str(x) for x in legacy if isinstance(x, str) and x.strip()]
+        if isinstance(legacy, list)
+        else []
+    )
+    ignored = out.get("ignored_path_patterns")
+    out["ignored_path_patterns"] = (
+        [str(x) for x in ignored if isinstance(x, str) and x.strip()]
+        if isinstance(ignored, list)
+        else []
+    )
+    return out
 
 
 def get_test_markers_config():

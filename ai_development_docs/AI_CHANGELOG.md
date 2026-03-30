@@ -31,7 +31,8 @@ Guidelines:
 ## Recent Changes (Most Recent First)
 
 ### 2026-03-29 - Config consolidation + inventory legacy patterns **COMPLETED**
-- **Doc-sync PASS**: LIST_OF_LISTS path-qualified refs; paired changelogs ASCII cleanup (`doc-sync`).
+- **Constants / exclusions alignment**: `constants.derived_prefix_excludes` (scan/core/project derivation); top-level `test_markers` with `TEST_*` re-exported from `get_test_markers_config()`; legacy `constants.test_category_markers` etc. deprecated (warning); `path_drift.ignored_path_patterns` + `get_path_drift_config()`; slimmer portable `standard_exclusions` defaults (`tests/ai/results`, `mhm.egg-info` -> config); `tests/development_tools/test_constants_config_alignment.py`; LIST_OF_LISTS Section 6/Section 9b/Section 10/Section 13/Section 14.
+- **Doc-sync PASS**: LIST_OF_LISTS path-qualified refs (Section 13 table: `config.py` -> `development_tools/config/config.py`); paired changelogs ASCII clean; `analyze_documentation_sync_results.json` status PASS.
 - **Function registry defaults**: `AUDIT_FUNCTION_REGISTRY` in `development_tools/config/config.py` holds portable directory/entry-point/common-ops text; JSON only for `decision_trees` + overrides; `development_tools/functions/generate_function_registry.py` no longer duplicates fallbacks; LIST_OF_LISTS Section 12b resolutions.
 - **Example config parity**: `development_tools_config.json.example` matches live top-level keys; `get_file_patterns_config()` + dropped redundant JSON `file_patterns`; exclusions overlap note in live JSON; `test_config` parity test.
 - **DEPRECATION_INVENTORY** holds `legacy_scan_patterns`; dev-tools JSON trimmed; analyzers derive `default_docs`, core-system files, coverage test dir, registry priority dirs, validation/analyze_ai_work thresholds.

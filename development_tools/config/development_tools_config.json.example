@@ -215,6 +215,7 @@
     "action_items": true
   },
   "path_drift": {
+    "ignored_path_patterns": [],
     "legacy_documentation_files": []
   },
   "data_freshness": {
@@ -491,6 +492,8 @@
   },
   "exclusions": {
     "_comment_overlap": "tool_exclusions.documentation = doc-tool scan skips; historical_preserve_files = cleanup retention; path_drift.legacy_documentation_files = path-drift analyzer. Do not merge—see development_docs/LIST_OF_LISTS.md §12b–§13.",
+    "_comment_base_exclusions_additions": "If base_exclusions is omitted, standard_exclusions merges code defaults + base_exclusions_additions. Use for project paths removed from portable defaults (e.g. tests/ai/results, yourpackage.egg-info).",
+    "base_exclusions_additions": [],
     "base_exclusions": [
       "*.pyc",
       "*.pyi",
@@ -745,7 +748,28 @@
       "tasks": "tasks/",
       "user": "user/",
       "ai": "ai/"
+    },
+    "derived_prefix_excludes": {
+      "scan": ["data", "development_tools", "notebook", "scripts"],
+      "core": ["data", "development_tools", "scripts", "tests"],
+      "project": ["data", "development_tools", "scripts"]
     }
+  },
+  "test_markers": {
+    "categories": ["unit", "integration", "behavior", "ui"],
+    "directory_to_marker": {
+      "unit": "unit",
+      "integration": "integration",
+      "behavior": "behavior",
+      "ui": "ui"
+    },
+    "transient_data_path_markers": [
+      "/tmp/",
+      "/tmp_pytest_runtime/",
+      "pytest-tmp-",
+      "pytest-of-"
+    ],
+    "ai_path_tokens": ["ai/test_ai", "test_ai"]
   },
   "static_checks": {
     "channel_loggers": {

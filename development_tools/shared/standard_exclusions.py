@@ -45,8 +45,9 @@ except (AttributeError, ImportError):
     # Config may not be fully loaded yet, will be loaded when needed
     pass
 
-# Default universal exclusions (generic patterns - should work for most projects)
-# These are fallbacks if external config doesn't provide exclusions
+# Default universal exclusions (generic patterns — portable fallbacks when JSON omits base_exclusions).
+# Project-specific paths (e.g. tests/ai/results, *.egg-info): use exclusions.base_exclusions or
+# base_exclusions_additions in development_tools_config.json.
 _DEFAULT_BASE_EXCLUSIONS = [
     # Python cache and compiled files
     "__pycache__",
@@ -97,9 +98,7 @@ _DEFAULT_BASE_EXCLUSIONS = [
     "tests/data/",
     "tests/temp/",
     "tests/fixtures/",
-    "tests/ai/results",
     "tests/coverage_html",
-    "mhm.egg-info",
     # Pytest temporary directories (created during parallel test runs)
     "pytest-tmp-*",
     "pytest-of-*",

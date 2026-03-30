@@ -158,11 +158,37 @@ DEFAULT_DOCS: tuple[str, ...] = _load_default_docs()
 PAIRED_DOCS: dict[str, str] = _load_paired_docs()
 LOCAL_MODULE_PREFIXES: tuple[str, ...] = _load_local_module_prefixes()
 
+
+def _load_derived_prefix_excludes() -> tuple[frozenset[str], frozenset[str], frozenset[str]]:
+    """Frozensets for deriving scan/core/project lists from LOCAL_MODULE_PREFIXES (see config derived_prefix_excludes)."""
+    _fallback_scan = ("data", "development_tools", "notebook", "scripts")
+    _fallback_core = ("data", "development_tools", "scripts", "tests")
+    _fallback_project = ("data", "development_tools", "scripts")
+    cc = _get_constants_config_safe()
+    dpe = (cc or {}).get("derived_prefix_excludes")
+    if not isinstance(dpe, dict):
+
+        def _fb(seq: tuple[str, ...]) -> frozenset[str]:
+            return frozenset(seq)
+
+        return _fb(_fallback_scan), _fb(_fallback_core), _fb(_fallback_project)
+
+    def _fz(key: str, fallback: tuple[str, ...]) -> frozenset[str]:
+        v = dpe.get(key)
+        if isinstance(v, (list, tuple)) and v:
+            return frozenset(str(x).strip() for x in v if str(x).strip())
+        return frozenset(fallback)
+
+    return (
+        _fz("scan", _fallback_scan),
+        _fz("core", _fallback_core),
+        _fz("project", _fallback_project),
+    )
+
+
 # Exclusion sets for deriving scan_directories, core_modules, project_directories from LOCAL_MODULE_PREFIXES.
-# Canonical source: LOCAL_MODULE_PREFIXES. Other lists are derived; config can override.
-_SCAN_EXCLUDE = frozenset({"data", "development_tools", "notebook", "scripts"})
-_CORE_EXCLUDE = frozenset({"data", "development_tools", "scripts", "tests"})
-_PROJECT_EXCLUDE = frozenset({"data", "development_tools", "scripts"})
+# Canonical: LOCAL_MODULE_PREFIXES + get_constants_config()["derived_prefix_excludes"].
+_SCAN_EXCLUDE, _CORE_EXCLUDE, _PROJECT_EXCLUDE = _load_derived_prefix_excludes()
 
 STANDARD_LIBRARY_PREFIXES: tuple[str, ...] = (
     "asyncio",
@@ -262,24 +288,38 @@ COMMON_CODE_PATTERNS: tuple[str, ...] = _load_project_specific_list(
     "common_code_patterns", _DEFAULT_COMMON_CODE_PATTERNS
 )
 
-# Common patterns that should be ignored in path drift detection
-# "paths" = config section (paths.scan_directories, etc.), not a Python module
-IGNORED_PATH_PATTERNS: tuple[str, ...] = (
+# Common patterns ignored in path drift detection (language-agnostic / structural).
+# Project doc TOC strings: path_drift.ignored_path_patterns in development_tools_config.json.
+_IGNORED_PATH_PATTERNS_BASE: tuple[str, ...] = (
     "paths",
     "paths.",
     "Python Official Tutorial",
     "Real Python",
     "Troubleshooting",
     "README.md#troubleshooting",
-    "Navigation",
-    "Project Vision",
-    "Quick Start",
-    "Development Workflow",
-    "Documentation Guide",
-    "Development Plans",
-    "Recent Changes",
-    "Recent Changes (Most Recent First)",
 )
+
+
+def _load_ignored_path_patterns() -> tuple[str, ...]:
+    extras: list[str] = []
+    try:
+        if hasattr(config, "get_path_drift_config"):
+            pd = config.get_path_drift_config()
+            raw = pd.get("ignored_path_patterns")
+            if isinstance(raw, (list, tuple)):
+                extras.extend(str(x) for x in raw if isinstance(x, str) and x.strip())
+    except (AttributeError, ImportError, TypeError):
+        pass
+    seen: set[str] = set()
+    out: list[str] = []
+    for item in list(_IGNORED_PATH_PATTERNS_BASE) + extras:
+        if item not in seen:
+            seen.add(item)
+            out.append(item)
+    return tuple(out)
+
+
+IGNORED_PATH_PATTERNS: tuple[str, ...] = _load_ignored_path_patterns()
 
 # Common command patterns that should be ignored
 COMMAND_PATTERNS: tuple[str, ...] = (
@@ -307,19 +347,19 @@ TEMPLATE_PATTERNS: tuple[str, ...] = ("test_<", ">.py", "{", "}", "*", "?")
 
 
 def get_scan_directories_derived() -> tuple[str, ...]:
-    """Derive scan_directories from LOCAL_MODULE_PREFIXES (exclude data, development_tools, notebook, scripts).
+    """Derive scan_directories from LOCAL_MODULE_PREFIXES using derived_prefix_excludes.scan.
     Used when paths.scan_directories is not in config.
     """
     return tuple(d for d in LOCAL_MODULE_PREFIXES if d not in _SCAN_EXCLUDE)
 
 
 def _derived_core_modules() -> tuple[str, ...]:
-    """Derive core_modules from LOCAL_MODULE_PREFIXES (exclude data, development_tools, scripts, tests)."""
+    """Derive core_modules from LOCAL_MODULE_PREFIXES using derived_prefix_excludes.core."""
     return tuple(d for d in LOCAL_MODULE_PREFIXES if d not in _CORE_EXCLUDE)
 
 
 def _derived_project_directories() -> tuple[str, ...]:
-    """Derive project_directories from LOCAL_MODULE_PREFIXES (exclude data, development_tools, scripts; prepend .)."""
+    """Derive project_directories from LOCAL_MODULE_PREFIXES (derived_prefix_excludes.project; prepend .)."""
     filtered = tuple(d for d in LOCAL_MODULE_PREFIXES if d not in _PROJECT_EXCLUDE)
     return (".",) + filtered if filtered else (".",)
 
@@ -355,56 +395,90 @@ CORE_MODULES: tuple[str, ...] = _load_core_modules()
 # =============================================================================
 
 
-def _load_test_category_markers() -> tuple[str, ...]:
-    """Load test category markers from config or return defaults."""
-    constants_config = _get_constants_config_safe()
-    if constants_config and "test_category_markers" in constants_config:
-        return tuple(constants_config["test_category_markers"])
-    return ("unit", "integration", "behavior", "ui")
-
-
-def _load_test_marker_directory_map() -> dict[str, str]:
-    """Load test directory-to-marker map from config or return defaults."""
-    constants_config = _get_constants_config_safe()
-    if constants_config and "test_marker_directory_map" in constants_config:
-        configured = constants_config["test_marker_directory_map"]
-        if isinstance(configured, dict):
-            return {str(key): str(value) for key, value in configured.items()}
-    return {
-        "unit": "unit",
-        "integration": "integration",
-        "behavior": "behavior",
-        "ui": "ui",
-    }
-
-
-def _load_test_marker_transient_path_markers() -> tuple[str, ...]:
-    """Load transient path markers used by test marker scans."""
-    constants_config = _get_constants_config_safe()
-    if constants_config and "test_marker_transient_path_markers" in constants_config:
-        return tuple(constants_config["test_marker_transient_path_markers"])
+def _default_test_marker_fallbacks() -> tuple[
+    tuple[str, ...],
+    dict[str, str],
+    tuple[str, ...],
+    tuple[str, ...],
+]:
+    """Fallbacks when get_test_markers_config is unavailable (mirrors config.TEST_MARKERS_BASE)."""
+    cats = ("unit", "integration", "behavior", "ui")
     return (
-        "/tmp/",
-        "/tmp_pytest_runtime/",
-        "pytest-tmp-",
-        "pytest-of-",
+        cats,
+        {c: c for c in cats},
+        ("/tmp/", "/tmp_pytest_runtime/", "pytest-tmp-", "pytest-of-"),
+        ("ai/test_ai", "test_ai"),
     )
 
 
-def _load_test_marker_ai_path_tokens() -> tuple[str, ...]:
-    """Load path tokens used to exclude AI tests from marker analysis."""
-    constants_config = _get_constants_config_safe()
-    if constants_config and "test_marker_ai_path_tokens" in constants_config:
-        return tuple(constants_config["test_marker_ai_path_tokens"])
-    return ("ai/test_ai", "test_ai")
+def _load_test_marker_bundle() -> tuple[
+    tuple[str, ...],
+    dict[str, str],
+    tuple[str, ...],
+    tuple[str, ...],
+]:
+    """Single source: get_test_markers_config() (top-level test_markers in JSON)."""
+    try:
+        if hasattr(config, "get_test_markers_config"):
+            tm = config.get_test_markers_config()
+            cats = tm.get("categories")
+            if isinstance(cats, (list, tuple)) and cats:
+                t_cats = tuple(
+                    str(x).strip() for x in cats if isinstance(x, str) and str(x).strip()
+                )
+            else:
+                t_cats = ()
+            dm = tm.get("directory_to_marker")
+            t_dm: dict[str, str] = {}
+            if isinstance(dm, dict) and dm:
+                t_dm = {
+                    str(k).strip("/\\"): str(v).strip()
+                    for k, v in dm.items()
+                    if str(k).strip("/\\") and str(v).strip()
+                }
+            trans = tm.get("transient_data_path_markers")
+            if isinstance(trans, (list, tuple)) and trans:
+                t_trans = tuple(
+                    str(x).replace("\\", "/")
+                    for x in trans
+                    if isinstance(x, str) and str(x).strip()
+                )
+            else:
+                t_trans = ()
+            ai_tok = tm.get("ai_path_tokens")
+            if isinstance(ai_tok, (list, tuple)) and ai_tok:
+                t_ai = tuple(
+                    str(x).replace("\\", "/")
+                    for x in ai_tok
+                    if isinstance(x, str) and str(x).strip()
+                )
+            else:
+                t_ai = ()
+            fb_cats, fb_dm, fb_trans, fb_ai = _default_test_marker_fallbacks()
+            if not t_cats:
+                t_cats = fb_cats
+            if not t_dm:
+                t_dm = {c: c for c in t_cats} if t_cats else dict(fb_dm)
+            if not t_trans:
+                t_trans = fb_trans
+            if not t_ai:
+                t_ai = fb_ai
+            return t_cats, t_dm, t_trans, t_ai
+    except (AttributeError, ImportError, TypeError, ValueError):
+        pass
+    return _default_test_marker_fallbacks()
 
 
-TEST_CATEGORY_MARKERS: tuple[str, ...] = _load_test_category_markers()
-TEST_MARKER_DIRECTORY_MAP: dict[str, str] = _load_test_marker_directory_map()
-TEST_MARKER_TRANSIENT_PATH_MARKERS: tuple[str, ...] = (
-    _load_test_marker_transient_path_markers()
-)
-TEST_MARKER_AI_PATH_TOKENS: tuple[str, ...] = _load_test_marker_ai_path_tokens()
+TEST_CATEGORY_MARKERS: tuple[str, ...]
+TEST_MARKER_DIRECTORY_MAP: dict[str, str]
+TEST_MARKER_TRANSIENT_PATH_MARKERS: tuple[str, ...]
+TEST_MARKER_AI_PATH_TOKENS: tuple[str, ...]
+(
+    TEST_CATEGORY_MARKERS,
+    TEST_MARKER_DIRECTORY_MAP,
+    TEST_MARKER_TRANSIENT_PATH_MARKERS,
+    TEST_MARKER_AI_PATH_TOKENS,
+) = _load_test_marker_bundle()
 
 # =============================================================================
 # Documentation analysis and path-drift constants (shared across docs scripts)
