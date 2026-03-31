@@ -290,8 +290,10 @@ class TestScanCodebase:
             return_value=(
                 "ruff",
                 {
-                    file1: [{'message': 'Unused import os', 'message-id': 'W0611', 'line': 1}],
-                    file2: [],
+                    file1.resolve(): [
+                        {"message": "Unused import os", "message-id": "W0611", "line": 1}
+                    ],
+                    file2.resolve(): [],
                 },
                 False,
                 "",
@@ -317,7 +319,7 @@ class TestScanCodebase:
         
         checker = UnusedImportsChecker(project_root=str(tmp_path), use_cache=False)
         checker._run_detection_backend = MagicMock(
-            return_value=("ruff", {regular_file: []}, False, "")
+            return_value=("ruff", {regular_file.resolve(): []}, False, "")
         )
         result = checker.scan_codebase()
         
@@ -344,12 +346,12 @@ class TestBackendSelection:
         checker.ruff_command = ["ruff"]
 
         mock_ruff.side_effect = RuntimeError("ruff unavailable")
-        mock_pylint.return_value = {file1: []}
+        mock_pylint.return_value = {file1.resolve(): []}
 
         backend, issues, fallback_used, fallback_reason = checker._run_detection_backend([file1])
 
         assert backend == "pylint"
-        assert issues == {file1: []}
+        assert issues == {file1.resolve(): []}
         assert fallback_used is True
         assert "ruff failed" in fallback_reason
 
@@ -573,3 +575,29 @@ class TestCache:
         
         # Subprocess should be called twice
         assert mock_subprocess.call_count == 2
+
+
+@pytest.mark.integration
+def test_scan_minimal_project_finds_ruff_f401(tmp_path):
+    """
+    End-to-end: Ruff should report an unused import; pipeline must count it.
+
+    Guards against regressions where JSON/path handling drops real F401 hits.
+    """
+    minimal = tmp_path / "minimal_pkg"
+    minimal.mkdir()
+    (minimal / "with_unused.py").write_text(
+        "import os\n\n" "_unused_import_check = 42\n",
+        encoding="utf-8",
+    )
+    checker = UnusedImportsChecker(
+        project_root=str(tmp_path), use_cache=False, verbose=False
+    )
+
+    result = checker.scan_codebase()
+
+    assert result["stats"]["files_scanned"] >= 1
+    assert result["stats"]["total_unused"] >= 1
+    assert result["stats"]["files_with_issues"] >= 1
+    assert len(result["findings"]["obvious_unused"]) >= 1
+    assert result["performance"].get("backend") == "ruff"

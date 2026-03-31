@@ -177,6 +177,47 @@ class TestUnusedImportsReportGenerator:
         assert '## Obvious Unused' not in report
         assert '## Type Hints Only' not in report
 
+    @pytest.mark.unit
+    def test_generate_report_includes_detection_and_cache_context(self):
+        """Summary should explain backend, cache mode, and how to force a rescan."""
+        analysis_data = {
+            "details": {
+                "findings": {
+                    "obvious_unused": [],
+                    "type_hints_only": [],
+                    "re_exports": [],
+                    "conditional_imports": [],
+                    "star_imports": [],
+                    "test_mocking": [],
+                    "qt_testing": [],
+                    "test_infrastructure": [],
+                    "production_test_mocking": [],
+                    "ui_imports": [],
+                },
+                "stats": {
+                    "files_scanned": 500,
+                    "files_with_issues": 0,
+                    "total_unused": 0,
+                    "backend": "ruff",
+                    "cache_mode": "cache_only",
+                    "changed_files": 0,
+                    "cache_hits": 500,
+                },
+                "performance": {
+                    "backend": "ruff",
+                    "scan_mode": "cache_only",
+                    "changed_files": 0,
+                    "cache_hits": 500,
+                },
+            }
+        }
+        generator = UnusedImportsReportGenerator(analysis_data)
+        report = generator.generate_report()
+        assert "**Detection backend**" in report
+        assert "ruff" in report
+        assert "cache_only" in report
+        assert "--clear-cache" in report
+
 
 class TestReportFileCreation:
     """Test report file creation and rotation."""

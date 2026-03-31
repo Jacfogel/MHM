@@ -68,8 +68,10 @@ class UnusedImportsReportGenerator:
             raise ValueError("Unused imports analysis data must include 'details'.")
 
         # Standard format - extract from details
+        self.details = details
         self.findings = details.get("findings", {})
         self.stats = details.get("stats", {})
+        self.performance = details.get("performance") or {}
 
         # Check if we have actual findings data (list of items) or just empty dicts
         has_full_findings = (
@@ -145,6 +147,29 @@ class UnusedImportsReportGenerator:
         lines.append(f"- **Total Files Scanned**: {files_scanned}")
         lines.append(f"- **Files with Unused Imports**: {files_with_issues}")
         lines.append(f"- **Total Unused Imports**: {total_unused}")
+
+        backend = self.stats.get("backend") or self.performance.get("backend", "unknown")
+        cache_mode = self.stats.get("cache_mode") or self.performance.get(
+            "scan_mode", "unknown"
+        )
+        relinted = self.stats.get("changed_files")
+        if relinted is None:
+            relinted = self.performance.get("changed_files", 0)
+        cache_hits = self.stats.get("cache_hits")
+        if cache_hits is None:
+            cache_hits = self.performance.get("cache_hits", 0)
+        lines.append(
+            f"- **Detection backend**: {backend} (cache mode: **{cache_mode}**; "
+            f"files re-linted this run: **{relinted}**; cache hits: **{cache_hits}**)"
+        )
+        lines.append("")
+        lines.append(
+            "> **Note**: A large file count with **0** unused imports usually means "
+            "Ruff found no `F401` violations project-wide, or all issues were served "
+            "from cache without re-invoking the linter. Use "
+            "`python development_tools/run_development_tools.py --clear-cache unused-imports` "
+            "to force a full refresh."
+        )
         lines.append("")
 
         # Category breakdown

@@ -332,6 +332,8 @@ class UnusedImportsChecker:
         issue_path = Path(filename)
         if not issue_path.is_absolute():
             issue_path = (self.project_root / issue_path).resolve()
+        else:
+            issue_path = issue_path.resolve()
         location = issue.get("location", {}) if isinstance(issue.get("location"), dict) else {}
         normalized = {
             "message-id": "W0611",
@@ -343,8 +345,10 @@ class UnusedImportsChecker:
         return (issue_path, normalized)
 
     def _run_batched_ruff(self, files: list[Path]) -> dict[Path, list[dict[str, Any]]]:
-        """Run ruff in file batches and return issues keyed by file path."""
-        issues_by_file: dict[Path, list[dict[str, Any]]] = {fp: [] for fp in files}
+        """Run ruff in file batches and return issues keyed by resolved file path."""
+        issues_by_file: dict[Path, list[dict[str, Any]]] = {
+            fp.resolve(): [] for fp in files
+        }
         chunks = self._chunk_files(files, chunk_size=self.batch_size)
         for batch_idx, batch in enumerate(chunks):
             self._check_scan_deadline()
@@ -391,8 +395,10 @@ class UnusedImportsChecker:
         return issues_by_file
 
     def _run_batched_pylint(self, files: list[Path]) -> dict[Path, list[dict[str, Any]]]:
-        """Run pylint in file batches and return issues keyed by file path."""
-        issues_by_file: dict[Path, list[dict[str, Any]]] = {fp: [] for fp in files}
+        """Run pylint in file batches and return issues keyed by resolved file path."""
+        issues_by_file: dict[Path, list[dict[str, Any]]] = {
+            fp.resolve(): [] for fp in files
+        }
         chunks = self._chunk_files(files, chunk_size=self.pylint_batch_size)
         for batch_idx, batch in enumerate(chunks):
             self._check_scan_deadline()
@@ -437,6 +443,8 @@ class UnusedImportsChecker:
                 issue_path = Path(issue_file)
                 if not issue_path.is_absolute():
                     issue_path = (self.project_root / issue_path).resolve()
+                else:
+                    issue_path = issue_path.resolve()
                 if issue_path not in issues_by_file:
                     continue
                 normalized = self._normalize_pylint_issue(raw_issue)
@@ -1216,7 +1224,7 @@ class UnusedImportsChecker:
                 self.cache.save_cache()
                 raise
             for file_path in files_to_scan:
-                file_issues = detected.get(file_path, [])
+                file_issues = detected.get(file_path.resolve(), [])
                 issues_by_file[file_path] = file_issues
                 self.cache.cache_results(file_path, file_issues)
         detection_seconds = time.perf_counter() - start_detection

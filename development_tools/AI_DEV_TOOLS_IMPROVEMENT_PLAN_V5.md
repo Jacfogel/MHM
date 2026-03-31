@@ -279,9 +279,9 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 #### 5.1 Unused imports cleanup module
 
-- **Status**: **PENDING**. **User priority**: Low.
+- **Status**: **PARTIAL** (investigation + regression + report clarity **done**; fix script / `--categorize` still open). **User priority**: Low.
+- **All-zero report (2026-03-29)**: Not a pipeline bug. `ruff check --select F401` on this repo returns **no** violations (clean under current `.ruff.toml`). Stored runs often use **`cache_only`** (see `details.stats.cache_mode`): **Total Files Scanned** counts discovery; the linter is not re-run on every file. The markdown report now includes **backend**, **cache mode**, **files re-linted this run**, and a short note on interpreting zeros + `--clear-cache`. Ruff/pylint batch paths are keyed by **`Path.resolve()`** so JSON paths cannot silently miss the per-file issue map. Regression: `test_scan_minimal_project_finds_ruff_f401` (minimal tmp tree with an unused `import os`).
 - **Open**:
-  - **Investigate all-zero report output**: [UNUSED_IMPORTS_REPORT.md](../development_docs/UNUSED_IMPORTS_REPORT.md) often shows **0** files with unused imports and **0** in every breakdown category while **Total Files Scanned** is large (hundreds). That is **unlikely to be correct** for a repo this size. Trace the pipeline (`development_tools/imports/analyze_unused_imports.py`, report generator, Ruff/pylint backend, JSON aggregation) to confirm findings are passed through, categorization buckets are filled, and nothing discards real hits; add a **regression test or small fixture** with a known unused import if the tool is behaving as designed.
   - Categorization logic; category-based reporting; implement `imports/fix_unused_imports.py`; cleanup recommendations; optional `--categorize` flag.
 
 #### 5.2 Documentation overlap analysis enhancements

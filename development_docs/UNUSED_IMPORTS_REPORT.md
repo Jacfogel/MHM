@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-29 23:39:56
+> **Last Generated**: 2026-03-30 18:01:36
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
@@ -10,6 +10,9 @@
 - **Total Files Scanned**: 552
 - **Files with Unused Imports**: 0
 - **Total Unused Imports**: 0
+- **Detection backend**: ruff (cache mode: **cold_scan**; files re-linted this run: **552**; cache hits: **0**)
+
+> **Note**: A large file count with **0** unused imports usually means Ruff found no `F401` violations project-wide, or all issues were served from cache without re-invoking the linter. Use `python development_tools/run_development_tools.py --clear-cache unused-imports` to force a full refresh.
 
 ## Breakdown by Category
 
