@@ -160,6 +160,10 @@ def run_ruff(project_root: Path) -> dict[str, Any]:
         return _build_unavailable_result("ruff command not found")
     except subprocess.TimeoutExpired:
         return _build_unavailable_result("ruff execution timed out")
+    except KeyboardInterrupt:
+        return _build_unavailable_result(
+            "ruff interrupted (console control event while waiting for ruff)"
+        )
     except Exception as exc:
         return _build_unavailable_result(f"ruff execution failed: {exc}")
 

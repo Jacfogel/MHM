@@ -69,6 +69,8 @@ def test_mtime_cache_persists_tool_metadata_and_run_status() -> None:
             / "development_tools"
             / "docs"
             / "jsons"
+            / "scopes"
+            / "full"
             / ".demo_tool_cache.json"
         )
         assert cache_path.exists()

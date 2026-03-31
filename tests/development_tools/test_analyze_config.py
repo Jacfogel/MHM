@@ -10,6 +10,16 @@ from development_tools.config import analyze_config
 
 
 @pytest.mark.unit
+def test_config_validator_relative_project_root_uses_package_anchor(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Fallback project root matches `_PACKAGE_ROOT` when config returns a relative path (V5 §3.17)."""
+    monkeypatch.setattr(analyze_config.config, "get_project_root", lambda: ".")
+    v = analyze_config.ConfigValidator()
+    assert v.project_root == analyze_config._PACKAGE_ROOT
+
+
+@pytest.mark.unit
 def test_analyze_tool_config_usage_detects_entry_point(tmp_path: Path) -> None:
     """AIToolsService() marks entry-point scripts exempt from config-import rules."""
     p = tmp_path / "entry.py"

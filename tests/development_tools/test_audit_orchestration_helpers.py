@@ -53,6 +53,22 @@ def test_get_status_file_mtimes_uses_default_paths(tmp_path: Path):
 
 
 @pytest.mark.unit
+def test_get_status_file_mtimes_dev_tools_only_targets_dev_tools_outputs(
+    tmp_path: Path,
+):
+    """Dev-tools-only audits write DEV_TOOLS_* files; mtime probe must match."""
+    status_dir = tmp_path / "development_tools"
+    status_dir.mkdir(parents=True, exist_ok=True)
+    (status_dir / "DEV_TOOLS_STATUS.md").write_text("s", encoding="utf-8")
+    (status_dir / "AI_STATUS.md").write_text("legacy", encoding="utf-8")
+
+    mtimes = audit_module._get_status_file_mtimes(tmp_path, dev_tools_only=True)
+    assert mtimes["DEV_TOOLS_STATUS.md"] > 0
+    assert mtimes["DEV_TOOLS_PRIORITIES.md"] == 0.0
+    assert "AI_STATUS.md" not in mtimes
+
+
+@pytest.mark.unit
 def test_is_audit_in_progress_detects_global_and_lock_files(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
@@ -203,6 +219,29 @@ def test_run_analyze_duplicate_functions_for_audit_tier_and_config(
 
 
 @pytest.mark.unit
+def test_get_tier3_groups_respects_full_vs_dev_tools_only_scope():
+    """Tier 3 coverage arms are mutually exclusive by audit scope (V5 §1.9)."""
+    from development_tools.shared.audit_tiers import get_tier3_groups
+
+    svc = MagicMock()
+    svc.dev_tools_only_mode = False
+    main, dev, dep, _, _ = get_tier3_groups(svc)
+    assert [n for n, _ in main] == ["run_test_coverage"]
+    assert dev == []
+    dep_names = [n for n, _ in dep]
+    assert "generate_test_coverage_report" in dep_names
+    assert "analyze_test_markers" in dep_names
+
+    svc.dev_tools_only_mode = True
+    main, dev, dep, _, _ = get_tier3_groups(svc)
+    assert main == []
+    assert [n for n, _ in dev] == ["generate_dev_tools_coverage"]
+    dep_names_dt = [n for n, _ in dep]
+    assert "generate_test_coverage_report" not in dep_names_dt
+    assert "analyze_backup_health" in dep_names_dt
+
+
+@pytest.mark.unit
 def test_get_expected_tools_for_tier_matrix(temp_project_copy: Path):
     """Expected tool list should match tier intent and quick_status rules."""
     service = AIToolsService(project_root=str(temp_project_copy))
@@ -215,7 +254,14 @@ def test_get_expected_tools_for_tier_matrix(temp_project_copy: Path):
     assert "quick_status" not in tier2
     assert "analyze_functions" in tier2
     assert "run_test_coverage" in tier3
+    assert "generate_dev_tools_coverage" not in tier3
     assert "analyze_pyright" in tier3
+
+    service.dev_tools_only_mode = True
+    tier3_dt = service._get_expected_tools_for_tier(3)
+    assert "generate_dev_tools_coverage" in tier3_dt
+    assert "run_test_coverage" not in tier3_dt
+    assert "generate_test_coverage_report" not in tier3_dt
 
 
 @pytest.mark.unit
@@ -235,6 +281,8 @@ def test_save_timing_data_writes_expected_metadata(temp_project_copy: Path):
         temp_project_copy
         / "development_tools"
         / "reports"
+        / "scopes"
+        / "full"
         / "jsons"
         / "tool_timings.json"
     )
@@ -243,7 +291,9 @@ def test_save_timing_data_writes_expected_metadata(temp_project_copy: Path):
     payload = json.loads(timing_file.read_text(encoding="utf-8"))
     assert "runs" in payload and payload["runs"]
 
-    run = payload["runs"][-1]
+    tier2_runs = [r for r in payload["runs"] if r.get("tier_number") == 2]
+    assert tier2_runs, "expected a tier-2 timing run from this test"
+    run = tier2_runs[-1]
     assert run["tier"] == "standard"
     assert run["tier_number"] == 2
     assert run["audit_success"] is True
@@ -310,7 +360,7 @@ def test_run_full_audit_tools_traps_keyboardinterrupt_from_worker_group(
     service._internal_interrupt_detected = False
 
     def _fake_run_tool_with_timing(tool_name, _tool_func):
-        if tool_name == "generate_dev_tools_coverage":
+        if tool_name == "run_test_coverage":
             raise KeyboardInterrupt()
         return {"success": True}, 0.01
 
@@ -504,7 +554,71 @@ def test_run_full_audit_tools_drains_done_futures_after_as_completed_interrupt(
 
     assert result is True
     assert "run_test_coverage" in service._tool_timings
+    assert "generate_dev_tools_coverage" not in service._tool_timings
+
+
+@pytest.mark.unit
+def test_run_full_audit_tools_dev_tools_only_runs_dev_coverage_not_main(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """--dev-tools-only Tier 3 should schedule dev-tools coverage, not main run_test_coverage."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.dev_tools_only_mode = True
+    service._tool_timings = {}
+    service._tool_execution_status = {}
+    service._tools_run_in_current_tier = set()
+    service._tool_cache_metadata = {}
+    service.tier3_test_outcome = {}
+    service._internal_interrupt_detected = False
+
+    monkeypatch.setattr(
+        service, "_run_tool_with_timing", lambda *_a, **_k: ({"success": True}, 0.01)
+    )
+    monkeypatch.setattr(service, "_extract_key_info", lambda *_a, **_k: None)
+    monkeypatch.setattr(service, "_record_tool_cache_metadata", lambda *_a, **_k: None)
+
+    class _FakeFuture:
+        def __init__(self, result_payload):
+            self._result = result_payload
+
+        def done(self):
+            return True
+
+        def result(self):
+            return self._result
+
+    class _FakeExecutor:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def submit(self, fn, group):
+            return _FakeFuture(fn(group))
+
+        def shutdown(self, wait=True):
+            pass
+
+    monkeypatch.setattr(
+        concurrent.futures, "ThreadPoolExecutor", _FakeExecutor, raising=True
+    )
+    monkeypatch.setattr(
+        concurrent.futures,
+        "as_completed",
+        lambda futures: iter(list(futures)),
+        raising=True,
+    )
+
+    assert service._run_full_audit_tools() is True
     assert "generate_dev_tools_coverage" in service._tool_timings
+    assert "run_test_coverage" not in service._tool_timings
+    assert service._tier3_skipped_main_tracks is True
+    assert service._tier3_skipped_dev_track is False
+    assert service.tier3_test_outcome.get("parallel", {}).get("classification") == "skipped"
 
 
 @pytest.mark.unit

@@ -14,9 +14,9 @@ from pathlib import Path
 
 # Add project root to path for core module imports
 # Script is at: development_tools/config/analyze_config.py -> project root is three parents up
-_project_root_for_path = Path(__file__).resolve().parent.parent.parent
-if str(_project_root_for_path) not in sys.path:
-    sys.path.insert(0, str(_project_root_for_path))
+_PACKAGE_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(_PACKAGE_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PACKAGE_ROOT))
 
 try:
     from . import config
@@ -42,9 +42,7 @@ class ConfigValidator:
         # Prefer config-driven project root; fall back to package location if unset/relative
         cfg_root = Path(config.get_project_root()).expanduser()
         self.project_root = (
-            cfg_root.resolve()
-            if cfg_root.is_absolute()
-            else Path(__file__).resolve().parent.parent.parent
+            cfg_root.resolve() if cfg_root.is_absolute() else _PACKAGE_ROOT
         )
         self.ai_tools_dir = self.project_root / "development_tools"
         self.validation_results = {

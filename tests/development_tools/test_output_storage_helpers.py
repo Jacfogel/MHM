@@ -9,6 +9,7 @@ from tests.development_tools.conftest import load_development_tools_module
 
 
 output_storage = load_development_tools_module("shared.output_storage")
+scope_storage = load_development_tools_module("shared.audit_storage_scope")
 
 
 @pytest.mark.unit
@@ -64,8 +65,8 @@ def test_load_tool_cache_removes_corrupted_cache(tmp_path):
 @pytest.mark.unit
 def test_get_all_tool_results_prefers_newer_timestamp(tmp_path):
     """Aggregation should keep the newest result when a tool appears in multiple domains."""
-    docs_dir = tmp_path / "development_tools" / "docs" / "jsons"
-    reports_dir = tmp_path / "development_tools" / "reports" / "jsons"
+    docs_dir = tmp_path / "development_tools" / "docs" / "jsons" / "scopes" / "full"
+    reports_dir = tmp_path / "development_tools" / "reports" / "jsons" / "scopes" / "full"
     docs_dir.mkdir(parents=True, exist_ok=True)
     reports_dir.mkdir(parents=True, exist_ok=True)
 
@@ -78,7 +79,9 @@ def test_get_all_tool_results_prefers_newer_timestamp(tmp_path):
         encoding="utf-8",
     )
 
-    results = output_storage.get_all_tool_results(project_root=tmp_path)
+    results = output_storage.get_all_tool_results(
+        project_root=tmp_path, audit_scope=scope_storage.STORAGE_SCOPE_FULL
+    )
     assert "same_tool" in results
     assert results["same_tool"]["data"]["source"] == "reports"
 

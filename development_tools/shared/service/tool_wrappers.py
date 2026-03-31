@@ -26,6 +26,13 @@ from ..tool_metadata import get_script_registry
 
 SCRIPT_REGISTRY = get_script_registry()
 
+# Windows: child inherits console control events unless isolated in a new process group.
+# Tier 3 runs these alongside heavy pytest workers; SIGINT to stop coverage must not
+# tear down nested pyright/ruff mid-communicate without emitting JSON.
+_WIN_PROCESS_GROUP_SCRIPTS = frozenset(
+    {"run_test_coverage", "analyze_pyright", "analyze_ruff"}
+)
+
 
 class ToolWrappersMixin:
     """Mixin class providing tool execution methods to AIToolsService."""
@@ -59,12 +66,12 @@ class ToolWrappersMixin:
             "timeout": timeout,
             "env": env,
         }
-        if os.name == "nt" and script_name == "run_test_coverage":
+        if os.name == "nt" and script_name in _WIN_PROCESS_GROUP_SCRIPTS:
             create_new_group = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
             if create_new_group:
                 run_kwargs["creationflags"] = create_new_group
                 logger.debug(
-                    "Launching run_test_coverage in isolated Windows process group "
+                    f"Launching {script_name} in isolated Windows process group "
                     "to reduce console control-event propagation."
                 )
         try:
@@ -1836,13 +1843,13 @@ class ToolWrappersMixin:
 
     def _try_static_check_cache(self, tool_name: str, domain: str) -> dict | None:
         """Return cached result if source unchanged; None to run tool."""
+        from ..audit_storage_scope import jsons_dir_for_scope
+
         sig = self._compute_source_signature()
         if not sig:
             return None
-        cache_file = (
-            self.project_root / "development_tools" / domain / "jsons"
-            / f".{tool_name}_mtime_cache.json"
-        )
+        jsons_dir = jsons_dir_for_scope(self.project_root, domain)
+        cache_file = jsons_dir / f".{tool_name}_mtime_cache.json"
         if not cache_file.exists():
             return None
         try:
@@ -1863,13 +1870,13 @@ class ToolWrappersMixin:
         self, tool_name: str, domain: str, data: dict
     ) -> None:
         """Save source signature after successful tool run."""
+        from ..audit_storage_scope import jsons_dir_for_scope
+
         sig = self._compute_source_signature()
         if not sig:
             return
-        cache_file = (
-            self.project_root / "development_tools" / domain / "jsons"
-            / f".{tool_name}_mtime_cache.json"
-        )
+        jsons_dir = jsons_dir_for_scope(self.project_root, domain)
+        cache_file = jsons_dir / f".{tool_name}_mtime_cache.json"
         cache_file.parent.mkdir(parents=True, exist_ok=True)
         try:
             with open(cache_file, "w", encoding="utf-8") as f:

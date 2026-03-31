@@ -209,6 +209,16 @@ class ProjectCleanup:
             if cache_file.is_file():
                 artifacts.append(cache_file)
 
+        # Dev-tools-only audit scope (per-tool results/caches under .../jsons/scopes/dev_tools/).
+        for cache_file in dev_tools_dir.glob("**/jsons/scopes/dev_tools/**/*"):
+            if cache_file.is_file():
+                artifacts.append(cache_file)
+        reports_scoped = dev_tools_dir / "reports" / "scopes" / "dev_tools"
+        if reports_scoped.is_dir():
+            for scoped_report in reports_scoped.rglob("*"):
+                if scoped_report.is_file():
+                    artifacts.append(scoped_report)
+
         # Coverage JSON artifacts used as warm-run inputs.
         tests_jsons = dev_tools_dir / "tests" / "jsons"
         if tests_jsons.exists():

@@ -70,6 +70,24 @@ class SystemSignalsAnalyzer:
 
         self.system_signals_config = config.get_system_signals_config()
 
+    def _analysis_detailed_results_candidates(self) -> list[Path]:
+        """Paths where Tier 3 aggregation may exist (scoped layout + legacy)."""
+        base = self.project_root / "development_tools" / "reports"
+        paths = [
+            base / "scopes" / "full" / "analysis_detailed_results.json",
+            base / "scopes" / "dev_tools" / "analysis_detailed_results.json",
+        ]
+        # LEGACY COMPATIBILITY: pre-scopes aggregate path (V5 Section 7.16).
+        paths.append(base / "analysis_detailed_results.json")
+        return paths
+
+    def _resolve_analysis_detailed_results_path(self) -> Path | None:
+        """Prefer the newest existing aggregation file (full vs dev_tools vs legacy)."""
+        existing = [p for p in self._analysis_detailed_results_candidates() if p.is_file()]
+        if not existing:
+            return None
+        return max(existing, key=lambda p: p.stat().st_mtime)
+
     def analyze_system_signals(self) -> dict[str, Any]:
         """Analyze comprehensive system signals"""
         signals = {
@@ -129,14 +147,9 @@ class SystemSignalsAnalyzer:
                     f"Missing key directory: {dir_name}"
                 )
 
-        # Check for recent audit and calculate freshness
-        audit_file = (
-            self.project_root
-            / "development_tools"
-            / "reports"
-            / "analysis_detailed_results.json"
-        )
-        if audit_file.exists():
+        # Check for recent audit and calculate freshness (scoped + legacy paths)
+        audit_file = self._resolve_analysis_detailed_results_path()
+        if audit_file is not None:
             try:
                 stat = audit_file.stat()
                 last_audit_time = datetime.fromtimestamp(stat.st_mtime)

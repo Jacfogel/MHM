@@ -57,6 +57,20 @@ TIER3_TOOL_NAMES = [
 ]
 
 
+def get_tier3_tool_names_full_repo() -> list[str]:
+    """Tier 3 tools for a normal full audit (main/project coverage only; no dev-tools coverage subprocess)."""
+    return [name for name in TIER3_TOOL_NAMES if name != "generate_dev_tools_coverage"]
+
+
+def get_tier3_tool_names_dev_tools_only() -> list[str]:
+    """Tier 3 tools for `audit --full --dev-tools-only` (dev-tools coverage only; no main TEST_COVERAGE_REPORT refresh)."""
+    return [
+        name
+        for name in TIER3_TOOL_NAMES
+        if name not in ("run_test_coverage", "generate_test_coverage_report")
+    ]
+
+
 def get_expected_tools_for_tier(tier: int) -> list[str]:
     """Return expected tool names for a given audit tier (1, 2, or 3)."""
     if tier <= 1:
@@ -64,7 +78,7 @@ def get_expected_tools_for_tier(tier: int) -> list[str]:
     tier1_no_quick = [t for t in TIER1_TOOL_NAMES if t != "quick_status"]
     if tier == 2:
         return tier1_no_quick + list(TIER2_TOOL_NAMES)
-    return tier1_no_quick + list(TIER2_TOOL_NAMES) + list(TIER3_TOOL_NAMES)
+    return tier1_no_quick + list(TIER2_TOOL_NAMES) + get_tier3_tool_names_full_repo()
 
 
 # -----------------------------------------------------------------------------
@@ -164,14 +178,31 @@ def get_tier2_groups(service: Any) -> tuple[list[tuple[str, Any]], list[list[tup
 def get_tier3_groups(
     service: Any,
 ) -> tuple[list[tuple[str, Any]], list[tuple[str, Any]], list[tuple[str, Any]], list[tuple[str, Any]], list[tuple[str, Any]]]:
-    """Return (coverage_main, coverage_dev_tools, coverage_dependent, legacy_group, static_analysis_group) for Tier 3."""
-    coverage_main = [("run_test_coverage", _get_runnable(service, "run_test_coverage"))]
-    coverage_dev_tools = [("generate_dev_tools_coverage", _get_runnable(service, "generate_dev_tools_coverage"))]
-    coverage_dependent = [
-        ("analyze_test_markers", _get_runnable(service, "analyze_test_markers")),
-        ("generate_test_coverage_report", _get_runnable(service, "generate_test_coverage_report")),
-        ("analyze_backup_health", _get_runnable(service, "analyze_backup_health")),
-    ]
+    """Return (coverage_main, coverage_dev_tools, coverage_dependent, legacy_group, static_analysis_group) for Tier 3.
+
+    Coverage subprocesses are split by audit scope (V5 §1.9):
+    - Full audit: main ``run_test_coverage`` only (no ``generate_dev_tools_coverage`` in the same pass).
+    - ``--dev-tools-only``: ``generate_dev_tools_coverage`` only; ``generate_test_coverage_report`` is omitted
+      because it consumes main-repo ``coverage.json``.
+    """
+    dev_tools_only = bool(getattr(service, "dev_tools_only_mode", False))
+    if dev_tools_only:
+        coverage_main = []
+        coverage_dev_tools = [
+            ("generate_dev_tools_coverage", _get_runnable(service, "generate_dev_tools_coverage")),
+        ]
+        coverage_dependent = [
+            ("analyze_test_markers", _get_runnable(service, "analyze_test_markers")),
+            ("analyze_backup_health", _get_runnable(service, "analyze_backup_health")),
+        ]
+    else:
+        coverage_main = [("run_test_coverage", _get_runnable(service, "run_test_coverage"))]
+        coverage_dev_tools = []
+        coverage_dependent = [
+            ("analyze_test_markers", _get_runnable(service, "analyze_test_markers")),
+            ("generate_test_coverage_report", _get_runnable(service, "generate_test_coverage_report")),
+            ("analyze_backup_health", _get_runnable(service, "analyze_backup_health")),
+        ]
     legacy_group = [
         ("analyze_legacy_references", _get_runnable(service, "analyze_legacy_references")),
         ("generate_legacy_reference_report", _get_runnable(service, "generate_legacy_reference_report")),

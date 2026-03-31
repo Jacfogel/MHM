@@ -526,9 +526,18 @@ class TestDiscordBotBehavior:
         from tasks import create_task, load_active_tasks
 
         ok = TestUserFactory.create_basic_user("fuzzy_user", enable_tasks=True, test_data_dir=test_data_dir)
-        assert ok
+        assert ok, "User creation should succeed"
+
+        from core.user_data_manager import rebuild_user_index
+
+        rebuild_user_index()
+
         internal_uid = get_user_id_by_identifier("fuzzy_user")
-        assert internal_uid
+        if not internal_uid:
+            internal_uid = TestUserFactory.get_test_user_id_by_internal_username(
+                "fuzzy_user", test_data_dir
+            )
+        assert internal_uid, f"Should resolve user 'fuzzy_user' after creation (ok={ok})"
 
         t_id = create_task(internal_uid, "Pet Davey", due_date="2025-07-07")
         assert t_id

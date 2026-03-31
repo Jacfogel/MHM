@@ -59,6 +59,8 @@ def test_try_static_check_cache_returns_cached_result_on_signature_match(
         / "development_tools"
         / "static_checks"
         / "jsons"
+        / "scopes"
+        / "full"
         / ".analyze_pyright_mtime_cache.json"
     )
     cache_file.parent.mkdir(parents=True, exist_ok=True)
@@ -89,6 +91,8 @@ def test_try_static_check_cache_returns_none_on_signature_mismatch(
         / "development_tools"
         / "static_checks"
         / "jsons"
+        / "scopes"
+        / "full"
         / ".analyze_ruff_mtime_cache.json"
     )
     cache_file.parent.mkdir(parents=True, exist_ok=True)
@@ -116,6 +120,8 @@ def test_save_static_check_cache_writes_signature(
         / "development_tools"
         / "static_checks"
         / "jsons"
+        / "scopes"
+        / "full"
         / ".analyze_ruff_mtime_cache.json"
     )
     assert cache_file.exists()

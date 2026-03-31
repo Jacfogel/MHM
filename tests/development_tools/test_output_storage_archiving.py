@@ -21,6 +21,18 @@ file_rotation_module = load_development_tools_module("shared.file_rotation")
 FileRotator = file_rotation_module.FileRotator
 
 
+def _docs_jsons_scoped_full(project_root):
+    """Default audit scope writes under ``jsons/scopes/full/``."""
+    return (
+        project_root
+        / "development_tools"
+        / "docs"
+        / "jsons"
+        / "scopes"
+        / "full"
+    )
+
+
 class TestOutputStorageArchiving:
     """Test output storage archiving functionality."""
     
@@ -54,7 +66,7 @@ class TestOutputStorageArchiving:
         assert file_path1 == file_path2, "File path should be the same"
         
         # Verify archive directory exists
-        archive_dir = temp_project_copy / "development_tools" / "docs" / "jsons" / "archive"
+        archive_dir = _docs_jsons_scoped_full(temp_project_copy) / "archive"
         assert archive_dir.exists(), "Archive directory should exist"
         
         # Verify archived file exists
@@ -86,7 +98,7 @@ class TestOutputStorageArchiving:
             time.sleep(0.1)  # Ensure different timestamps
         
         # Verify archive directory
-        archive_dir = temp_project_copy / "development_tools" / "docs" / "jsons" / "archive"
+        archive_dir = _docs_jsons_scoped_full(temp_project_copy) / "archive"
         
         # Count archived files
         archived_files = list(archive_dir.glob("test_rotation_results_*.json"))
@@ -98,7 +110,7 @@ class TestOutputStorageArchiving:
     
     @pytest.mark.unit
     def test_cache_files_in_correct_location(self, temp_project_copy):
-        """Verify cache files (`.{tool}_cache.json`) are in `jsons/` subdirectories."""
+        """Verify cache files (`.{tool}_cache.json`) are under scoped ``jsons/scopes/full/``."""
         # Save a cache file
         cache_data = {'cached': 'data', 'key': 'value'}
         cache_path = save_tool_cache(
@@ -108,8 +120,7 @@ class TestOutputStorageArchiving:
             project_root=temp_project_copy
         )
         
-        # Verify cache file is in jsons/ directory
-        expected_dir = temp_project_copy / "development_tools" / "docs" / "jsons"
+        expected_dir = _docs_jsons_scoped_full(temp_project_copy)
         assert cache_path.parent == expected_dir, f"Cache file should be in {expected_dir}, got {cache_path.parent}"
         
         # Verify cache file name starts with dot
@@ -213,8 +224,7 @@ class TestOutputStorageArchiving:
             )
             time.sleep(0.1)  # Ensure different timestamps
         
-        # Verify archive directory
-        archive_dir = temp_project_copy / "development_tools" / "docs" / "jsons" / "archive"
+        archive_dir = _docs_jsons_scoped_full(temp_project_copy) / "archive"
         
         # Count archived files
         archived_files = list(archive_dir.glob("test_cleanup_results_*.json"))
@@ -234,7 +244,7 @@ class TestOutputStorageArchiving:
     def test_archive_directory_creation(self, temp_project_copy):
         """Verify archive directory is created automatically when needed."""
         # Ensure archive directory doesn't exist initially
-        archive_dir = temp_project_copy / "development_tools" / "docs" / "jsons" / "archive"
+        archive_dir = _docs_jsons_scoped_full(temp_project_copy) / "archive"
         if archive_dir.exists():
             import shutil
             shutil.rmtree(archive_dir)
@@ -300,25 +310,23 @@ class TestOutputStorageArchiving:
             # Try to save second version - archiving will fail
             result2 = {'test': 'data2'}
             try:
-                file_path2 = save_tool_result(
-                    'test_error',
-                    domain='docs',
+                save_tool_result(
+                    "test_error",
+                    domain="docs",
                     data=result2,
-                    project_root=temp_project_copy
+                    project_root=temp_project_copy,
                 )
-                # If we get here, the function handled the error gracefully
-                # The new file should still be written (archiving failure shouldn't block saving)
-                assert file_path2.exists(), "New file should exist even if archiving fails"
+                pytest.fail("save_tool_result should raise when archiving (move) fails")
             except OSError as e:
                 # If archiving failure propagates, verify it's our simulated error
                 if "Simulated archiving failure" not in str(e):
                     # Re-raise if it's not our simulated error
                     raise
-                # On error, verify the new file was still written (archiving happens before writing)
-                final_file = temp_project_copy / "development_tools" / "docs" / "jsons" / "test_error_results.json"
-                # The file should exist because archiving happens before writing the new file
-                # If archiving fails, the old file might still be there, but new file should be written
-                assert final_file.exists(), "Result file should exist even if archiving fails"
+                # Move runs before the new write; on failure the previous result file remains
+                result_path = _docs_jsons_scoped_full(temp_project_copy) / "test_error_results.json"
+                assert result_path.exists(), (
+                    "Prior result file should remain when archiving step fails"
+                )
         finally:
             # Restore original function
             shutil.move = original_move
@@ -373,7 +381,7 @@ class TestOutputStorageArchiving:
         assert len(results) > 0, f"At least one save should succeed. Results: {len(results)}, Errors: {len(errors)}"
         
         # Verify final file exists and is valid
-        final_file = temp_project_copy / "development_tools" / "docs" / "jsons" / "test_concurrent_results.json"
+        final_file = _docs_jsons_scoped_full(temp_project_copy) / "test_concurrent_results.json"
         assert final_file.exists(), "Final result file should exist after concurrent saves"
         
         # Verify file is valid JSON and contains expected structure
@@ -384,7 +392,7 @@ class TestOutputStorageArchiving:
             assert isinstance(data['data'], dict), "Data should be a dictionary"
         
         # Verify archive directory exists and has some archived files (if multiple saves succeeded)
-        archive_dir = temp_project_copy / "development_tools" / "docs" / "jsons" / "archive"
+        archive_dir = _docs_jsons_scoped_full(temp_project_copy) / "archive"
         if archive_dir.exists() and len(results) > 1:
             list(archive_dir.glob("test_concurrent_results_*.json"))
             # If multiple saves succeeded, we should have archived files

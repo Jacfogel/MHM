@@ -400,6 +400,87 @@ def test_tier3_outcome_includes_development_tools_line(temp_project_copy):
 
 
 @pytest.mark.unit
+def test_tier3_outcome_omits_scope_skipped_tracks_from_status_lines(
+    temp_project_copy,
+):
+    """Tracks with classification_reason=not_run_this_audit_scope should not appear in status text."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.tier3_test_outcome = {
+        "state": "clean",
+        "parallel": {
+            "classification": "passed",
+            "passed_count": 1,
+            "failed_count": 0,
+            "error_count": 0,
+            "skipped_count": 0,
+            "return_code": 0,
+        },
+        "no_parallel": {
+            "classification": "passed",
+            "passed_count": 1,
+            "failed_count": 0,
+            "error_count": 0,
+            "skipped_count": 0,
+            "return_code": 0,
+        },
+        "development_tools": {
+            "state": "skipped",
+            "classification": "skipped",
+            "classification_reason": "not_run_this_audit_scope",
+            "passed_count": 0,
+            "failed_count": 0,
+            "error_count": 0,
+            "skipped_count": 0,
+            "return_code": None,
+        },
+        "failed_node_ids": [],
+    }
+    lines: list[str] = []
+    service._append_tier3_test_outcome_lines(lines)
+    rendered = "\n".join(lines)
+    assert "Development Tools Track" not in rendered
+    assert "Development Tools Classification" not in rendered
+
+    service.tier3_test_outcome = {
+        "state": "clean",
+        "parallel": {
+            "state": "skipped",
+            "classification": "skipped",
+            "classification_reason": "not_run_this_audit_scope",
+            "passed_count": 0,
+            "failed_count": 0,
+            "error_count": 0,
+            "skipped_count": 0,
+            "return_code": None,
+        },
+        "no_parallel": {
+            "state": "skipped",
+            "classification": "skipped",
+            "classification_reason": "not_run_this_audit_scope",
+            "passed_count": 0,
+            "failed_count": 0,
+            "error_count": 0,
+            "skipped_count": 0,
+            "return_code": None,
+        },
+        "development_tools": {
+            "classification": "passed",
+            "passed_count": 5,
+            "failed_count": 0,
+            "error_count": 0,
+            "skipped_count": 0,
+            "return_code": 0,
+        },
+        "failed_node_ids": [],
+    }
+    lines2: list[str] = []
+    service._append_tier3_test_outcome_lines(lines2)
+    rendered2 = "\n".join(lines2)
+    assert "Parallel Track" not in rendered2
+    assert "Development Tools Track" in rendered2
+
+
+@pytest.mark.unit
 def test_run_coverage_regeneration_preserves_development_tools_outcome(
     temp_project_copy, monkeypatch
 ):

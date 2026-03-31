@@ -226,10 +226,13 @@ class TestUtilitiesDemo:
         else:
             assert actual_user_id is not None, "User should be found by internal username"
             
-            # Verify user directory exists
+            # Verify user directory exists (parallel workers: resolve under test_data_dir fallback)
             from core.config import get_user_data_dir
             user_dir = get_user_data_dir(actual_user_id)
-            assert os.path.exists(user_dir), "User directory should exist"
+            fallback_user_dir = os.path.join(test_data_dir, "users", actual_user_id)
+            assert (
+                os.path.exists(user_dir) or os.path.exists(fallback_user_dir)
+            ), "User directory should exist"
             
             # Verify context data contains custom fields
             from core import get_user_data

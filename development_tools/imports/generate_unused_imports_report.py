@@ -358,6 +358,18 @@ def main():
             project_root=project_root_path,
             normalize=False,
         )
+        if analysis_data is None:
+            from development_tools.shared.audit_storage_scope import (
+                STORAGE_SCOPE_DEV_TOOLS,
+            )
+
+            analysis_data = load_tool_result(
+                "analyze_unused_imports",
+                "imports",
+                project_root=project_root_path,
+                normalize=False,
+                audit_scope=STORAGE_SCOPE_DEV_TOOLS,
+            )
 
         if analysis_data is None:
             logger.error(

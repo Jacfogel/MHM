@@ -7,9 +7,10 @@ This module handles all task-related interactions including creating,
 listing, completing, deleting, updating, and getting statistics for tasks.
 """
 
-from typing import Any
-from datetime import timedelta
+import calendar
 import re
+from datetime import datetime, timedelta
+from typing import Any
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
@@ -32,6 +33,18 @@ def _get_tasks():
 
 logger = get_component_logger("communication_manager")
 handlers_logger = logger
+
+
+@handle_errors("advancing date by one calendar month", re_raise=True)
+def _add_one_calendar_month(dt: datetime) -> datetime:
+    """Advance *dt* by one calendar month, clamping the day to the target month's last day."""
+    if dt.month == 12:
+        year, month = dt.year + 1, 1
+    else:
+        year, month = dt.year, dt.month + 1
+    last_day = calendar.monthrange(year, month)[1]
+    safe_day = min(dt.day, last_day)
+    return dt.replace(year=year, month=month, day=safe_day)
 
 # Pending confirmations (simple in-memory store)
 PENDING_DELETIONS: dict[str, str] = {}
@@ -372,11 +385,7 @@ class TaskManagementHandler(InteractionHandler):
         elif date_str_lower == "next week":
             return format_timestamp(now_dt + timedelta(days=7), DATE_ONLY)
         elif date_str_lower == "next month":
-            # Simple next month calculation
-            if now_dt.month == 12:
-                next_month = now_dt.replace(year=now_dt.year + 1, month=1)
-            else:
-                next_month = now_dt.replace(month=now_dt.month + 1)
+            next_month = _add_one_calendar_month(now_dt)
             return format_timestamp(next_month, DATE_ONLY)
         elif date_str_lower.startswith("in "):
             # Parse "in X hours", "in X days", or "in X weeks"
@@ -423,10 +432,7 @@ class TaskManagementHandler(InteractionHandler):
             elif "next week" in date_str_lower:
                 return format_timestamp(now_dt + timedelta(days=7), DATE_ONLY)
             elif "next month" in date_str_lower:
-                if now_dt.month == 12:
-                    next_month = now_dt.replace(year=now_dt.year + 1, month=1)
-                else:
-                    next_month = now_dt.replace(month=now_dt.month + 1)
+                next_month = _add_one_calendar_month(now_dt)
                 return format_timestamp(next_month, DATE_ONLY)
         elif re.match(
             r"(monday|tuesday|wednesday|thursday|friday|saturday|sunday)",

@@ -252,6 +252,10 @@ class UtilitiesMixin:
         metrics: dict[str, Any] = {}
         data = result.get('data')
         if isinstance(data, dict):
+            _raw_details = data.get("details")
+            details_blob: dict[str, Any] = (
+                _raw_details if isinstance(_raw_details, dict) else {}
+            )
             fd_metrics_raw = self.results_cache.get('analyze_functions', {}) or {}
             if 'details' in fd_metrics_raw and isinstance(fd_metrics_raw.get('details'), dict):
                 fd_metrics = fd_metrics_raw['details']
@@ -269,7 +273,7 @@ class UtilitiesMixin:
                     metrics['doc_coverage'] = 'Unknown'
             else:
                 metrics['doc_coverage'] = 'Unknown'
-            totals = data.get('totals')
+            totals = data.get('totals') or details_blob.get('totals')
             if isinstance(totals, dict):
                 metrics['totals'] = totals
                 registry_functions_found = totals.get('functions_found')
@@ -285,14 +289,14 @@ class UtilitiesMixin:
                 files_scanned = totals.get('files_scanned')
                 if files_scanned is not None:
                     metrics['files_scanned'] = files_scanned
-            missing = data.get('missing')
+            missing = data.get('missing') or details_blob.get('missing')
             if isinstance(missing, dict):
                 metrics['missing_docs'] = missing.get('count')
                 metrics['missing_items'] = missing.get('count')
                 missing_files = missing.get('missing_files')
                 if missing_files:
                     metrics['missing_files'] = missing_files
-            extra = data.get('extra')
+            extra = data.get('extra') or details_blob.get('extra')
             if isinstance(extra, dict):
                 metrics['extra_items'] = extra.get('count')
         else:
@@ -318,6 +322,19 @@ class UtilitiesMixin:
                     match = re.search(r'missing items:\s*(\d+)', line, re.IGNORECASE)
                     if match:
                         metrics['missing_items'] = match.group(1)
+        if (
+            isinstance(data, dict)
+            and isinstance(data.get("summary"), dict)
+            and isinstance(data.get("details"), dict)
+        ):
+            merged_details = dict(data["details"])
+            if metrics:
+                merged_details["_extracted_doc_metrics"] = metrics
+            self.results_cache["analyze_function_registry"] = {
+                "summary": data["summary"],
+                "details": merged_details,
+            }
+            return
         self.results_cache['analyze_function_registry'] = metrics
     
     def _extract_decision_insights(self, result: dict[str, Any]):
@@ -455,23 +472,34 @@ class UtilitiesMixin:
     def _extract_error_handling_metrics(self, result: dict[str, Any]):
         """Extract error handling coverage metrics"""
         data = result.get('data')
+        if isinstance(data, dict) and isinstance(data.get("summary"), dict) and isinstance(
+            data.get("details"), dict
+        ):
+            self.results_cache['analyze_error_handling'] = data
+            return
+        metrics: dict[str, Any] = {}
         if isinstance(data, dict):
+            _raw_details_eh = data.get("details")
+            src: dict[str, Any] = (
+                _raw_details_eh if isinstance(_raw_details_eh, dict) else data
+            )
             metrics = {
-                'total_functions': data.get('total_functions', 0),
-                'functions_with_error_handling': data.get('functions_with_error_handling', 0),
-                'functions_missing_error_handling': data.get('functions_missing_error_handling', 0),
-                'analyze_error_handling': data.get('analyze_error_handling') or data.get('error_handling_coverage', 0),
-                'functions_with_decorators': data.get('functions_with_decorators', 0),
-                'error_handling_quality': data.get('error_handling_quality', {}),
-                'error_patterns': data.get('error_patterns', {}),
-                'recommendations': data.get('recommendations', []),
-                'worst_modules': data.get('worst_modules', []),
-                'phase1_candidates': data.get('phase1_candidates', []),
-                'phase1_total': data.get('phase1_total', 0),
-                'phase1_by_priority': data.get('phase1_by_priority', {}),
-                'phase2_exceptions': data.get('phase2_exceptions', []),
-                'phase2_total': data.get('phase2_total', 0),
-                'phase2_by_type': data.get('phase2_by_type', {})
+                'total_functions': src.get('total_functions', 0),
+                'functions_with_error_handling': src.get('functions_with_error_handling', 0),
+                'functions_missing_error_handling': src.get('functions_missing_error_handling', 0),
+                'analyze_error_handling': src.get('analyze_error_handling')
+                or src.get('error_handling_coverage', 0),
+                'functions_with_decorators': src.get('functions_with_decorators', 0),
+                'error_handling_quality': src.get('error_handling_quality', {}),
+                'error_patterns': src.get('error_patterns', {}),
+                'recommendations': src.get('recommendations', []),
+                'worst_modules': src.get('worst_modules', []),
+                'phase1_candidates': src.get('phase1_candidates', []),
+                'phase1_total': src.get('phase1_total', 0),
+                'phase1_by_priority': src.get('phase1_by_priority', {}),
+                'phase2_exceptions': src.get('phase2_exceptions', []),
+                'phase2_total': src.get('phase2_total', 0),
+                'phase2_by_type': src.get('phase2_by_type', {}),
             }
         else:
             output = result.get('output', '')

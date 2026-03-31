@@ -5,6 +5,12 @@ Standardized output storage utility for development tools.
 
 Provides consistent storage patterns for tool results and cache files,
 with automatic archiving and rotation support.
+
+LEGACY COMPATIBILITY: when ``audit_scope`` is full-repo default, ``load_tool_result`` /
+``load_tool_cache`` / ``get_all_tool_results`` may also read flat
+``development_tools/<domain>/jsons/`` (no ``scopes/``). See
+``audit_storage_scope.legacy_flat_jsons_dir`` and V5 Section 7.16 in
+``development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md``.
 """
 
 import json
@@ -18,6 +24,13 @@ from development_tools.shared.time_helpers import (
     now_timestamp_filename,
 )
 from .file_rotation import FileRotator
+from .audit_storage_scope import (
+    AUDIT_SCOPE_USE_CONTEXT,
+    STORAGE_SCOPE_FULL,
+    effective_storage_scope,
+    jsons_dir_for_scope,
+    legacy_flat_jsons_dir,
+)
 import contextlib
 
 logger = get_component_logger("development_tools")
@@ -88,6 +101,7 @@ def save_tool_result(
     data: dict[str, Any] | None = None,
     archive_count: int = 7,
     project_root: Path | None = None,
+    audit_scope: str | None | object = AUDIT_SCOPE_USE_CONTEXT,
 ) -> Path:
     """
     Save tool result to domain-specific JSON file with automatic archiving.
@@ -98,6 +112,8 @@ def save_tool_result(
         data: Data to save (dict)
         archive_count: Number of archive versions to keep (default: 7, standardized retention)
         project_root: Project root directory. If None, auto-detected
+        audit_scope: ``STORAGE_SCOPE_DEV_TOOLS`` / ``\"dev_tools\"`` or ``STORAGE_SCOPE_FULL`` / ``\"full\"``;
+            default follows audit context (full-repo vs dev-tools-only). Writes always use ``jsons/scopes/<scope>/``.
 
     Returns:
         Path to the saved file
@@ -110,9 +126,9 @@ def save_tool_result(
     if domain is None:
         domain = _get_domain_from_tool_name(tool_name, project_root)
 
-    # Build file path: development_tools/{domain}/jsons/{tool}_results.json
-    dev_tools_dir = project_root / "development_tools"
-    jsons_dir = dev_tools_dir / domain / "jsons"
+    jsons_dir = jsons_dir_for_scope(
+        project_root, domain, audit_scope=audit_scope  # type: ignore[arg-type]
+    )
     jsons_dir.mkdir(parents=True, exist_ok=True)
 
     result_file = jsons_dir / f"{tool_name}_results.json"
@@ -131,6 +147,7 @@ def save_tool_result(
         "domain": domain,
         "source": f"python development_tools/{domain}/{tool_name}.py",
         "note": "This file is auto-generated. Do not edit manually.",
+        "audit_storage_scope": effective_storage_scope(audit_scope),  # type: ignore[arg-type]
         "data": data or {},
     }
 
@@ -253,6 +270,7 @@ def load_tool_result(
     domain: str | None = None,
     project_root: Path | None = None,
     normalize: bool = True,
+    audit_scope: str | None | object = AUDIT_SCOPE_USE_CONTEXT,
 ) -> dict[str, Any] | None:
     """
     Load tool result from domain-specific JSON file.
@@ -267,6 +285,7 @@ def load_tool_result(
         domain: Domain directory (e.g., 'functions'). If None, inferred from tool_name
         project_root: Project root directory. If None, auto-detected
         normalize: If True, normalize data to standard format (default: True)
+        audit_scope: Storage layout for results path (default: audit context).
 
     Returns:
         Data dict if file exists, None otherwise (with deleted file references removed,
@@ -280,11 +299,22 @@ def load_tool_result(
     if domain is None:
         domain = _get_domain_from_tool_name(tool_name, project_root)
 
-    # Build file path
-    dev_tools_dir = project_root / "development_tools"
-    result_file = dev_tools_dir / domain / "jsons" / f"{tool_name}_results.json"
+    scope_eff = effective_storage_scope(audit_scope)  # type: ignore[arg-type]
+    scoped_file = jsons_dir_for_scope(
+        project_root, domain, audit_scope=audit_scope  # type: ignore[arg-type]
+    ) / f"{tool_name}_results.json"
+    candidate_files: list[Path] = [scoped_file]
+    if scope_eff == STORAGE_SCOPE_FULL:
+        legacy_file = legacy_flat_jsons_dir(project_root, domain) / f"{tool_name}_results.json"
+        if legacy_file.resolve() != scoped_file.resolve():
+            candidate_files.append(legacy_file)
 
-    if not result_file.exists():
+    result_file: Path | None = None
+    for candidate in candidate_files:
+        if candidate.exists():
+            result_file = candidate
+            break
+    if result_file is None:
         return None
 
     try:
@@ -318,6 +348,7 @@ def save_tool_cache(
     domain: str | None = None,
     data: dict[str, Any] | None = None,
     project_root: Path | None = None,
+    audit_scope: str | None | object = AUDIT_SCOPE_USE_CONTEXT,
 ) -> Path:
     """
     Save tool cache file to domain-specific jsons/ directory.
@@ -339,9 +370,9 @@ def save_tool_cache(
     if domain is None:
         domain = _get_domain_from_tool_name(tool_name, project_root)
 
-    # Build file path: development_tools/{domain}/jsons/.{tool}_cache.json
-    dev_tools_dir = project_root / "development_tools"
-    jsons_dir = dev_tools_dir / domain / "jsons"
+    jsons_dir = jsons_dir_for_scope(
+        project_root, domain, audit_scope=audit_scope  # type: ignore[arg-type]
+    )
     jsons_dir.mkdir(parents=True, exist_ok=True)
 
     cache_file = jsons_dir / f".{tool_name}_cache.json"
@@ -374,7 +405,10 @@ def save_tool_cache(
 
 
 def load_tool_cache(
-    tool_name: str, domain: str | None = None, project_root: Path | None = None
+    tool_name: str,
+    domain: str | None = None,
+    project_root: Path | None = None,
+    audit_scope: str | None | object = AUDIT_SCOPE_USE_CONTEXT,
 ) -> dict[str, Any] | None:
     """
     Load tool cache file from domain-specific jsons/ directory.
@@ -395,9 +429,14 @@ def load_tool_cache(
     if domain is None:
         domain = _get_domain_from_tool_name(tool_name, project_root)
 
-    # Build file path
-    dev_tools_dir = project_root / "development_tools"
-    cache_file = dev_tools_dir / domain / "jsons" / f".{tool_name}_cache.json"
+    scope_eff = effective_storage_scope(audit_scope)  # type: ignore[arg-type]
+    cache_file = jsons_dir_for_scope(
+        project_root, domain, audit_scope=audit_scope  # type: ignore[arg-type]
+    ) / f".{tool_name}_cache.json"
+    if not cache_file.exists() and scope_eff == STORAGE_SCOPE_FULL:
+        legacy_cache = legacy_flat_jsons_dir(project_root, domain) / f".{tool_name}_cache.json"
+        if legacy_cache.exists():
+            cache_file = legacy_cache
 
     if not cache_file.exists():
         return None
@@ -416,12 +455,14 @@ def load_tool_cache(
 
 def get_all_tool_results(
     project_root: Path | None = None,
+    audit_scope: str | None | object = AUDIT_SCOPE_USE_CONTEXT,
 ) -> dict[str, dict[str, Any]]:
     """
     Aggregate all tool results from all domain jsons/ directories.
 
     Args:
         project_root: Project root directory. If None, auto-detected
+        audit_scope: Which layout to load (default: audit context).
 
     Returns:
         Dict mapping tool_name -> result_data
@@ -431,7 +472,6 @@ def get_all_tool_results(
     else:
         project_root = Path(project_root).resolve()
 
-    dev_tools_dir = project_root / "development_tools"
     all_results = {}
 
     # Derive from EXPECTED_TOOLS (single canonical source for storage domains)
@@ -456,42 +496,56 @@ def get_all_tool_results(
         except OSError:
             return datetime.min
 
+    scope_eff = effective_storage_scope(audit_scope)  # type: ignore[arg-type]
+
     for domain in domains:
-        jsons_dir = dev_tools_dir / domain / "jsons"
-        if not jsons_dir.exists():
-            continue
+        dirs_to_scan: list[Path] = []
+        primary = jsons_dir_for_scope(
+            project_root, domain, audit_scope=audit_scope  # type: ignore[arg-type]
+        )
+        if primary.exists():
+            dirs_to_scan.append(primary)
+        if scope_eff == STORAGE_SCOPE_FULL:
+            leg = legacy_flat_jsons_dir(project_root, domain)
+            if leg.exists() and leg.resolve() not in {d.resolve() for d in dirs_to_scan}:
+                dirs_to_scan.append(leg)
 
-        # Find all _results.json files
-        for result_file in jsons_dir.glob("*_results.json"):
-            tool_name = result_file.stem.replace("_results", "")
+        seen_paths: set[Path] = set()
+        for jsons_dir in dirs_to_scan:
+            for result_file in jsons_dir.glob("*_results.json"):
+                try:
+                    rp = result_file.resolve()
+                except OSError:
+                    continue
+                if rp in seen_paths:
+                    continue
+                seen_paths.add(rp)
+                tool_name = result_file.stem.replace("_results", "")
 
-            # Verify file exists and has non-zero size before attempting to read
-            if not result_file.exists():
-                logger.debug(f"Skipping missing result file: {result_file}")
-                continue
-
-            try:
-                # Check file size to avoid reading empty files
-                if result_file.stat().st_size == 0:
-                    logger.debug(f"Skipping empty result file: {result_file}")
+                if not result_file.exists():
+                    logger.debug(f"Skipping missing result file: {result_file}")
                     continue
 
-                with open(result_file, encoding="utf-8") as f:
-                    result_data = json.load(f)
-                if tool_name in all_results:
-                    existing = all_results[tool_name]
-                    existing_ts = _parse_result_timestamp(existing, result_file)
-                    candidate_ts = _parse_result_timestamp(result_data, result_file)
-                    if candidate_ts > existing_ts:
+                try:
+                    if result_file.stat().st_size == 0:
+                        logger.debug(f"Skipping empty result file: {result_file}")
+                        continue
+
+                    with open(result_file, encoding="utf-8") as f:
+                        result_data = json.load(f)
+                    if tool_name in all_results:
+                        existing = all_results[tool_name]
+                        existing_ts = _parse_result_timestamp(existing, result_file)
+                        candidate_ts = _parse_result_timestamp(result_data, result_file)
+                        if candidate_ts > existing_ts:
+                            all_results[tool_name] = result_data
+                    else:
                         all_results[tool_name] = result_data
-                else:
-                    all_results[tool_name] = result_data
-            except FileNotFoundError:
-                # File was deleted between existence check and open - skip gracefully
-                logger.debug(f"Result file disappeared: {result_file}")
-                continue
-            except (OSError, json.JSONDecodeError) as e:
-                logger.warning(f"Failed to load result from {result_file}: {e}")
-                continue
+                except FileNotFoundError:
+                    logger.debug(f"Result file disappeared: {result_file}")
+                    continue
+                except (OSError, json.JSONDecodeError) as e:
+                    logger.warning(f"Failed to load result from {result_file}: {e}")
+                    continue
 
     return all_results

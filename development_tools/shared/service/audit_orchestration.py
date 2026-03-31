@@ -27,6 +27,8 @@ from ..audit_tiers import (
     get_tier2_groups,
     get_tier3_groups,
     get_expected_tools_for_tier as audit_tiers_get_expected_tools_for_tier,
+    get_tier3_tool_names_dev_tools_only,
+    get_tier3_tool_names_full_repo,
 )
 from ..tool_metadata import CACHE_AWARE_TOOLS
 
@@ -47,24 +49,50 @@ class ToolExecutionError(RuntimeError):
         self.original_exception = original_exception
 
 
-def _get_status_file_mtimes(project_root: Path) -> dict[str, float]:
-    """Get modification times for all status files."""
-    # Get status file paths from config
-    try:
-        from ... import config
-        status_config = config.get_status_config()
-        status_files_config = status_config.get('status_files', {})
+def _get_status_file_mtimes(
+    project_root: Path, *, dev_tools_only: bool = False
+) -> dict[str, float]:
+    """Get modification times for status outputs (full-repo AI_* or dev-tools-only DEV_TOOLS_*)."""
+    if dev_tools_only:
         status_files = {
-            'AI_STATUS.md': project_root / status_files_config.get('ai_status', 'development_tools/AI_STATUS.md'),
-            'AI_PRIORITIES.md': project_root / status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md'),
-            'CONSOLIDATED_REPORT.md': project_root / status_files_config.get('consolidated_report', 'development_tools/CONSOLIDATED_REPORT.md')
+            "DEV_TOOLS_STATUS.md": project_root / "development_tools" / "DEV_TOOLS_STATUS.md",
+            "DEV_TOOLS_PRIORITIES.md": project_root
+            / "development_tools"
+            / "DEV_TOOLS_PRIORITIES.md",
+            "DEV_TOOLS_CONSOLIDATED_REPORT.md": project_root
+            / "development_tools"
+            / "DEV_TOOLS_CONSOLIDATED_REPORT.md",
         }
-    except (ImportError, AttributeError, KeyError):
-        status_files = {
-            'AI_STATUS.md': project_root / 'development_tools' / 'AI_STATUS.md',
-            'AI_PRIORITIES.md': project_root / 'development_tools' / 'AI_PRIORITIES.md',
-            'CONSOLIDATED_REPORT.md': project_root / 'development_tools' / 'CONSOLIDATED_REPORT.md'
-        }
+    else:
+        try:
+            from ... import config
+
+            status_config = config.get_status_config()
+            status_files_config = status_config.get("status_files", {})
+            status_files = {
+                "AI_STATUS.md": project_root
+                / status_files_config.get(
+                    "ai_status", "development_tools/AI_STATUS.md"
+                ),
+                "AI_PRIORITIES.md": project_root
+                / status_files_config.get(
+                    "ai_priorities", "development_tools/AI_PRIORITIES.md"
+                ),
+                "CONSOLIDATED_REPORT.md": project_root
+                / status_files_config.get(
+                    "consolidated_report", "development_tools/CONSOLIDATED_REPORT.md"
+                ),
+            }
+        except (ImportError, AttributeError, KeyError):
+            status_files = {
+                "AI_STATUS.md": project_root / "development_tools" / "AI_STATUS.md",
+                "AI_PRIORITIES.md": project_root
+                / "development_tools"
+                / "AI_PRIORITIES.md",
+                "CONSOLIDATED_REPORT.md": project_root
+                / "development_tools"
+                / "CONSOLIDATED_REPORT.md",
+            }
     mtimes = {}
     for name, path in status_files.items():
         if path.exists():
@@ -174,7 +202,72 @@ class AuditOrchestrationMixin:
         if any(label == "unknown" for label in track_labels):
             return "coverage_failed"
         return "unknown"
-    
+
+    def _finalize_tier3_audit_scope(self) -> None:
+        """Align tier3_test_outcome and coverage scope flags with full vs dev-tools-only Tier 3 runs (V5 §1.9)."""
+        dev_only = bool(getattr(self, "dev_tools_only_mode", False))
+        outcome: dict[str, Any] = (
+            dict(self.tier3_test_outcome)
+            if isinstance(getattr(self, "tier3_test_outcome", None), dict)
+            else {}
+        )
+
+        skipped_scope_parallel = {
+            "state": "skipped",
+            "classification": "skipped",
+            "classification_reason": "not_run_this_audit_scope",
+            "actionable_context": (
+                "Main parallel/no-parallel pytest tracks were not run; this pass used "
+                "`audit --full --dev-tools-only`. "
+                "Run `python development_tools/run_development_tools.py audit --full` "
+                "(without `--dev-tools-only`) to refresh full-repo coverage and Tier 3 main tracks."
+            ),
+            "log_file": None,
+            "return_code_hex": None,
+            "return_code": None,
+            "passed_count": 0,
+            "failed_count": 0,
+            "error_count": 0,
+            "skipped_count": 0,
+            "failed_node_ids": [],
+        }
+        skipped_scope_dev = {
+            "state": "skipped",
+            "classification": "skipped",
+            "classification_reason": "not_run_this_audit_scope",
+            "actionable_context": (
+                "Development-tools coverage was not run; this pass used full-repo Tier 3 scope "
+                "(main `run_test_coverage` only). "
+                "Run `python development_tools/run_development_tools.py audit --full --dev-tools-only` "
+                "to refresh dev-tools coverage and the development-tools Tier 3 track."
+            ),
+            "log_file": None,
+            "return_code_hex": None,
+            "return_code": None,
+            "passed_count": 0,
+            "failed_count": 0,
+            "error_count": 0,
+            "skipped_count": 0,
+            "failed_node_ids": [],
+        }
+
+        if dev_only:
+            self._tier3_skipped_main_tracks = True
+            self._tier3_skipped_dev_track = False
+            outcome["parallel"] = skipped_scope_parallel
+            outcome["no_parallel"] = skipped_scope_parallel
+            dev_track = outcome.get("development_tools")
+            if isinstance(dev_track, dict) and dev_track.get("state"):
+                outcome["state"] = dev_track.get("state")
+            elif not outcome.get("state"):
+                outcome["state"] = "clean"
+        else:
+            self._tier3_skipped_main_tracks = False
+            self._tier3_skipped_dev_track = True
+            outcome["development_tools"] = skipped_scope_dev
+
+        self.tier3_test_outcome = outcome
+
     def _get_audit_lock_file_path(self) -> Path:
         """Get audit lock file path (configurable via config, defaults to .audit_in_progress.lock relative to project root)."""
         try:
@@ -254,7 +347,14 @@ class AuditOrchestrationMixin:
         _AUDIT_IN_PROGRESS_GLOBAL = True
         # Dev-tools-only mode: restrict scan to development_tools
         dev_tools_only = getattr(self, 'dev_tools_only_mode', False)
+        _audit_storage_token = None
         if dev_tools_only:
+            from ..audit_storage_scope import (
+                STORAGE_SCOPE_DEV_TOOLS,
+                set_audit_storage_scope,
+            )
+
+            _audit_storage_token = set_audit_storage_scope(STORAGE_SCOPE_DEV_TOOLS)
             operation_name = f"{operation_name} (dev-tools-only)"
             try:
                 from ... import config as dt_config
@@ -271,6 +371,8 @@ class AuditOrchestrationMixin:
         # Track cache metadata per tool for timing diagnostics
         self._tool_cache_metadata = {}
         self.tier3_test_outcome = {}
+        self._tier3_skipped_main_tracks = False
+        self._tier3_skipped_dev_track = False
         self._internal_interrupt_detected = False
         # Track wall-clock runtime (accurate total audit duration with parallel execution)
         self._audit_wall_clock_start = time.perf_counter()
@@ -284,7 +386,9 @@ class AuditOrchestrationMixin:
         except Exception as e:
             logger.warning(f"Failed to create audit lock file: {e}")
         
-        initial_mtimes = _get_status_file_mtimes(self.project_root)
+        initial_mtimes = _get_status_file_mtimes(
+            self.project_root, dev_tools_only=dev_tools_only
+        )
         self._audit_start_mtimes = initial_mtimes
         
         self._include_overlap = include_overlap
@@ -394,7 +498,9 @@ class AuditOrchestrationMixin:
             logger.warning(f"current_audit_tier is None at end of audit! Setting to tier {tier}")
         
         try:
-            pre_final_mtimes = _get_status_file_mtimes(self.project_root)
+            pre_final_mtimes = _get_status_file_mtimes(
+                self.project_root, dev_tools_only=dev_tools_only
+            )
             if hasattr(self, '_audit_start_mtimes'):
                 for file_name, mtime in pre_final_mtimes.items():
                     if mtime > self._audit_start_mtimes.get(file_name, 0):
@@ -457,7 +563,9 @@ class AuditOrchestrationMixin:
                     consolidated_report = "Error generating consolidated report."
                 consolidated_file = create_output_file(consolidated_report_path, consolidated_report, project_root=self.project_root)
                 
-                post_final_mtimes = _get_status_file_mtimes(self.project_root)
+                post_final_mtimes = _get_status_file_mtimes(
+                    self.project_root, dev_tools_only=dev_tools_only
+                )
                 for file_name, mtime in post_final_mtimes.items():
                     if mtime <= pre_final_mtimes.get(file_name, 0):
                         logger.warning(f"Status file {file_name} mtime did not change during final write!")
@@ -559,6 +667,10 @@ class AuditOrchestrationMixin:
             # Save timing data for analysis
             if hasattr(self, '_tool_timings') and self._tool_timings:
                 self._save_timing_data(tier=tier, audit_success=success)
+            if _audit_storage_token is not None:
+                from ..audit_storage_scope import reset_audit_storage_scope
+
+                reset_audit_storage_scope(_audit_storage_token)
             _AUDIT_IN_PROGRESS_GLOBAL = False
             if _AUDIT_LOCK_FILE and _AUDIT_LOCK_FILE.exists():
                 try:
@@ -1079,10 +1191,12 @@ class AuditOrchestrationMixin:
     
     def _run_full_audit_tools(self) -> bool:
         """Run Tier 3 tools: Full audit (comprehensive analysis, >10s per tool or groups with >10s tools).
-        
+
         Note: Tools moved here based on execution time (>10s) while respecting dependencies:
-        - Coverage tools: run_test_coverage and generate_dev_tools_coverage run in parallel (independent test suites)
-        - Coverage-dependent tools: analyze_test_markers and generate_test_coverage_report run sequentially after coverage completes
+        - Coverage: exactly one scope per audit — main ``run_test_coverage`` *or* ``generate_dev_tools_coverage``
+          (see V5 §1.9); they are never both scheduled in the same pass.
+        - Coverage-dependent tools run after that coverage step; ``generate_test_coverage_report`` runs only
+          after main coverage (it reads repo ``coverage.json``).
         - Legacy group: analyze_legacy_references (62.11s) is >10s, so entire group stays in Tier 3
         - Static analysis group: ruff and pyright run in parallel with coverage/legacy groups
         """
@@ -1099,25 +1213,33 @@ class AuditOrchestrationMixin:
             tier3_legacy_group,
             tier3_static_analysis_group,
         ) = get_tier3_groups(self)
-        
+
+        coverage_run_groups: list[list[tuple[str, Any]]] = []
+        if tier3_coverage_main_group:
+            coverage_run_groups.append(tier3_coverage_main_group)
+        if tier3_coverage_dev_tools_group:
+            coverage_run_groups.append(tier3_coverage_dev_tools_group)
+        if not coverage_run_groups:
+            logger.error("Tier 3 has no coverage group for this audit scope; aborting Tier 3.")
+            return False
+
         # Independent groups that can run in parallel with each other.
         if os.name == "nt":
-            # Windows guardrail: avoid running two nested coverage subprocess trees concurrently.
-            # This mitigates intermittent control-event propagation (STATUS_CONTROL_C_EXIT / KeyboardInterrupt)
-            # observed when both coverage commands launch pytest subprocesses at the same time.
+            # Windows guardrail: when both coverage arms existed historically, they ran in one sequential batch.
+            # With scope split (V5 §1.9) there is at most one coverage arm; still merge for a single worker slot.
+            merged_coverage: list[tuple[str, Any]] = []
+            for grp in coverage_run_groups:
+                merged_coverage.extend(grp)
             logger.info(
-                "Windows Tier 3 coverage concurrency guard enabled: "
-                "running main + dev-tools coverage groups sequentially."
+                "Windows Tier 3 coverage: running coverage tool group sequentially within one worker slot."
             )
             tier3_parallel_groups = [
-                tier3_coverage_main_group + tier3_coverage_dev_tools_group,
+                merged_coverage,
                 tier3_legacy_group,
                 tier3_static_analysis_group,
             ]
         else:
-            tier3_parallel_groups = [
-                tier3_coverage_main_group,
-                tier3_coverage_dev_tools_group,
+            tier3_parallel_groups = coverage_run_groups + [
                 tier3_legacy_group,
                 tier3_static_analysis_group,
             ]
@@ -1314,7 +1436,7 @@ class AuditOrchestrationMixin:
                 if time_saved > 1.0:  # Only log if significant time saved
                     logger.info(f"Parallel execution saved ~{time_saved:.1f}s (wall-clock: {max_parallel_time:.1f}s vs sequential: {sum_individual_times:.1f}s)")
         
-        # Run coverage-dependent tools sequentially (they depend on coverage data from both test suites)
+        # Run coverage-dependent tools sequentially (after the coverage step for this audit scope).
         logger.debug("Running coverage-dependent tools (sequential, after coverage completion)...")
         for tool_name, tool_func in tier3_coverage_dependent_group:
             if audit_signal_state.audit_sigint_requested():
@@ -1335,13 +1457,13 @@ class AuditOrchestrationMixin:
                     successful.append(tool_name)
                     self._tools_run_in_current_tier.add(tool_name)
                 else:
-                        self._tool_execution_status[tool_name] = 'failed'
-                        failed.append(tool_name)
-                        logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
-                        if isinstance(result, dict) and result.get("error"):
-                            _err = (result.get("error") or "").strip()[:800]
-                            if _err:
-                                logger.warning(f"  {tool_name} error detail: {_err}")
+                    self._tool_execution_status[tool_name] = 'failed'
+                    failed.append(tool_name)
+                    logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
+                    if isinstance(result, dict) and result.get("error"):
+                        _err = (result.get("error") or "").strip()[:800]
+                        if _err:
+                            logger.warning(f"  {tool_name} error detail: {_err}")
             except KeyboardInterrupt:
                 self._internal_interrupt_detected = True
                 elapsed_time = 0.0
@@ -1362,7 +1484,10 @@ class AuditOrchestrationMixin:
                 failed.append(tool_name)
                 logger.error(f"  - {tool_name} failed: {exc}", exc_info=True)
                 logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
-        
+
+        if not failed:
+            self._finalize_tier3_audit_scope()
+
         if failed:
             logger.warning(f"Tier 3 completed with {len(failed)} failure(s): {', '.join(failed)}")
         else:
@@ -1377,13 +1502,34 @@ class AuditOrchestrationMixin:
                 )
             else:
                 logger.info(f"Tier 3 completed successfully ({len(successful)} tools)")
-        
+
         return len(failed) == 0
     
     def _save_additional_tool_results(self):
         """Save results from additional tools to the cached file."""
         try:
-            results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+            from ..audit_storage_scope import scoped_analysis_detailed_path
+
+            audit_cfg = getattr(self, "audit_config", None) or {}
+            configured = audit_cfg.get(
+                "results_file", "development_tools/reports/analysis_detailed_results.json"
+            )
+            results_file = scoped_analysis_detailed_path(
+                self.project_root, configured_relative=configured
+            )
+            if (
+                not results_file.exists()
+                and not getattr(self, "dev_tools_only_mode", False)
+            ):
+                # LEGACY COMPATIBILITY: unscoped aggregate (V5 Section 7.16).
+                legacy_agg = (
+                    self.project_root
+                    / "development_tools"
+                    / "reports"
+                    / "analysis_detailed_results.json"
+                )
+                if legacy_agg.exists():
+                    results_file = legacy_agg
             if results_file.exists():
                 with open(results_file, encoding='utf-8') as f:
                     cached_data = json.load(f)
@@ -1483,7 +1629,28 @@ class AuditOrchestrationMixin:
             
             # CRITICAL: Also skip loading analysis_detailed_results.json in test directories
             # This file can be very large and causes memory leaks in parallel test execution
-            results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+            from ..audit_storage_scope import scoped_analysis_detailed_path
+
+            audit_cfg = getattr(self, "audit_config", None) or {}
+            configured = audit_cfg.get(
+                "results_file", "development_tools/reports/analysis_detailed_results.json"
+            )
+            results_file = scoped_analysis_detailed_path(
+                self.project_root, configured_relative=configured
+            )
+            if (
+                not results_file.exists()
+                and not getattr(self, "dev_tools_only_mode", False)
+            ):
+                # LEGACY COMPATIBILITY: unscoped aggregate (V5 Section 7.16).
+                legacy_agg = (
+                    self.project_root
+                    / "development_tools"
+                    / "reports"
+                    / "analysis_detailed_results.json"
+                )
+                if legacy_agg.exists():
+                    results_file = legacy_agg
             is_test_dir_check = self._is_test_directory(self.project_root)
             if results_file.exists() and not is_test_dir_check:
                 file_size_mb = results_file.stat().st_size / (1024 * 1024)
@@ -1668,7 +1835,21 @@ class AuditOrchestrationMixin:
             'results': enhanced_results
         }
         
-        results_file_path = self.audit_config.get('results_file', 'development_tools/reports/analysis_detailed_results.json')
+        audit_cfg = getattr(self, "audit_config", None) or {}
+        from ..audit_storage_scope import scoped_analysis_detailed_path
+
+        configured = audit_cfg.get(
+            "results_file", "development_tools/reports/analysis_detailed_results.json"
+        )
+        scoped_results = scoped_analysis_detailed_path(
+            self.project_root, configured_relative=configured
+        )
+        try:
+            results_file_path = str(
+                scoped_results.relative_to(self.project_root.resolve())
+            )
+        except ValueError:
+            results_file_path = str(scoped_results)
         # Use relative path for create_output_file to ensure proper path resolution
         # create_output_file handles project_root resolution internally
         try:
@@ -1871,28 +2052,44 @@ class AuditOrchestrationMixin:
     
     def _get_expected_tools_for_tier(self, tier: int) -> list[str]:
         """Return expected tool names for a given audit tier (from canonical audit_tiers)."""
-        return audit_tiers_get_expected_tools_for_tier(tier)
+        if tier != 3:
+            return audit_tiers_get_expected_tools_for_tier(tier)
+        dev_only = bool(getattr(self, "dev_tools_only_mode", False))
+        base = audit_tiers_get_expected_tools_for_tier(2)
+        if dev_only:
+            return base + get_tier3_tool_names_dev_tools_only()
+        return base + get_tier3_tool_names_full_repo()
 
     def _save_timing_data(self, tier: int, audit_success: bool) -> None:
         """Save timing data to a JSON file for analysis."""
         try:
-            timing_file = (
-                self.project_root
-                / 'development_tools'
-                / 'reports'
-                / 'jsons'
-                / 'tool_timings.json'
-            )
+            from ..audit_storage_scope import scoped_tool_timings_path
+
+            timing_file = scoped_tool_timings_path(self.project_root)
             timing_file.parent.mkdir(parents=True, exist_ok=True)
             
-            # Load existing timing data
-            existing_data = {}
-            if timing_file.exists():
-                try:
-                    with open(timing_file, encoding='utf-8') as f:
-                        existing_data = json.load(f)
-                except (json.JSONDecodeError, OSError):
-                    existing_data = {}
+            # Load existing timing data (prefer scoped path; migrate legacy file once)
+            existing_data: dict[str, Any] = {}
+            timing_load_candidates = [timing_file]
+            if not getattr(self, "dev_tools_only_mode", False):
+                # LEGACY COMPATIBILITY: pre-scopes reports/jsons/tool_timings.json (see V5 Section 7.16).
+                legacy_timings = (
+                    self.project_root
+                    / "development_tools"
+                    / "reports"
+                    / "jsons"
+                    / "tool_timings.json"
+                )
+                if legacy_timings.resolve() != timing_file.resolve():
+                    timing_load_candidates.append(legacy_timings)
+            for cand in timing_load_candidates:
+                if cand.exists():
+                    try:
+                        with open(cand, encoding='utf-8') as f:
+                            existing_data = json.load(f)
+                        break
+                    except (json.JSONDecodeError, OSError):
+                        existing_data = {}
             
             def _to_human_timestamp(raw_value: object) -> str:
                 """Normalize timestamps to human-readable format."""

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-30 17:15:44
+> **Last Generated**: 2026-03-31 01:55:52
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -212,6 +212,9 @@ C:.
 |   |   AI_STATUS.md
 |   |   CONSOLIDATED_REPORT.md
 |   |   DEVELOPMENT_TOOLS_GUIDE.md
+|   |   DEV_TOOLS_CONSOLIDATED_REPORT.md
+|   |   DEV_TOOLS_PRIORITIES.md
+|   |   DEV_TOOLS_STATUS.md
 |   |   run_development_tools.py
 |   |   run_dev_tools.py
 |   |   __init__.py
@@ -311,6 +314,7 @@ C:.
     (log files)
 |   +---shared
 |   |   |   audit_signal_state.py
+|   |   |   audit_storage_scope.py
 |   |   |   audit_tiers.py
 |   |   |   backup_inventory.py
 |   |   |   backup_policy_models.py
@@ -565,6 +569,7 @@ C:.
 |   |   |   test_audit_orchestration_helpers.py
 |   |   |   test_audit_signal_state.py
 |   |   |   test_audit_status_updates.py
+|   |   |   test_audit_storage_scope.py
 |   |   |   test_audit_strict_mode.py
 |   |   |   test_audit_tier_comprehensive.py
 |   |   |   test_audit_tier_e2e_verification.py

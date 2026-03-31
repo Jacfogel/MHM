@@ -30,6 +30,27 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-03-31 - Doc-sync, DEV_TOOLS placeholders, test/parse fixes **COMPLETED**
+- Audit artifact read-fallback backlog: detailed table lives under V5 Section 7.16 (not AI_LEGACY); comments/docs retargeted; Pyright warnings cleared in `utilities.py` optional `details` handling.
+- Workflow section 10: repo-relative paths; ASCII cleanup; Section-sign cleanup in changelogs.
+- Placeholder `development_tools/DEV_TOOLS_*.md` so path drift passes; overwritten by dev-tools-only audit.
+- **Status markdown links**: `report_generation._markdown_href_from_dev_tools_report` so `AI_STATUS` / `DEV_TOOLS_STATUS` / consolidated reference links resolve from `development_tools/` (e.g. `../development_docs/...`, sibling `reports/scopes/...`).
+- Task handler: `_add_one_calendar_month` uses `@handle_errors` plus safe month advance; Discord behavior test `test_discord_complete_task_by_name_variation` rebuilds user index + factory UUID fallback for xdist.
+- Output storage tests: expect `jsons/scopes/full/` for saves/archives; archiving-failure test matches move-then-write semantics.
+- **Report / cache**: `_extract_documentation_metrics` and `_extract_error_handling_metrics` keep standard `{summary, details}` in `results_cache` instead of replacing with flat metrics (fixes `[DATA SOURCE] ... missing 'summary' dict` during status generation after audit).
+- **System signals**: `analyze_system_signals` resolves `analysis_detailed_results.json` from `reports/scopes/{full|dev_tools}/` or legacy `reports/` so "No recent audit data found" matches scoped audit output.
+- **Tier 3 status text**: Scope-skipped tracks (`not_run_this_audit_scope`) are omitted from `AI_STATUS` / consolidated Tier 3 sections instead of showing redundant "skipped" lines.
+- **Legacy audit paths**: V5 Section 7.16 table (backlog) + `LEGACY COMPATIBILITY` comments on aggregate/timing fallbacks and `legacy_flat_jsons_dir`; artifact-storage detail removed from `AI_LEGACY_COMPATIBILITY_GUIDE` (pointer to V5 only).
+- Tier 3 Windows: `run_script` isolates `analyze_pyright` / `analyze_ruff` process groups; static-check scripts catch `KeyboardInterrupt` during tool subprocess so audits get JSON instead of uncaught tracebacks when SIGINT propagates.
+- Dev-tools-only audit: `_get_status_file_mtimes` uses `DEV_TOOLS_*.md` paths so report finalization does not false-warn about `AI_*.md` mtimes when those files were not written.
+- **Audit artifact scope**: `jsons/scopes/<full|dev_tools>/` and `reports/scopes/<full|dev_tools>/` for writes; legacy flat `jsons/` remains read-fallback for full scope; `--clear-cache` clears scoped trees; unused-imports CLI loads scoped results if flat file missing.
+
+### 2026-03-30 - Tier 3 scope split + portability/docs **COMPLETED**
+- **V5 Section 1.9**: Full `audit --full` runs main `run_test_coverage` only; `audit --full --dev-tools-only` runs `generate_dev_tools_coverage` only (no `generate_test_coverage_report` in that pass). Tier 3 outcome + status sections mark skipped tracks; `DEV_TOOLS_*.md` vs full-repo outputs documented in paired workflow Section 10.
+- **`analyze_config`**: Single `_PACKAGE_ROOT` fallback anchor; unit test for relative `get_project_root()`.
+- **Guides**: `PYRIGHT_ERROR_COUNT_MAX_DELTA` noted for optional Pyright parity (AI + human dev-tools guides).
+- **Benchmark note**: Section 1.5 `Measure-Command` recipe recorded in CHANGELOG_DETAIL for future domain-cache timing.
+
 ### 2026-03-29 - Config consolidation + inventory legacy patterns **COMPLETED**
 - **Unused imports tooling (plan 5.1)**: Confirmed all-zero `UNUSED_IMPORTS_REPORT` matches Ruff (no project `F401`) plus `cache_only` runs; report summary now shows backend/cache/re-lint counts and `--clear-cache` hint; batch backends key issues by `Path.resolve()`; integration test `test_scan_minimal_project_finds_ruff_f401`. See [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 5.1.
 - **Constants / exclusions alignment**: `constants.derived_prefix_excludes` (scan/core/project derivation); top-level `test_markers` with `TEST_*` re-exported from `get_test_markers_config()`; legacy `constants.test_category_markers` etc. deprecated (warning); `path_drift.ignored_path_patterns` + `get_path_drift_config()`; slimmer portable `standard_exclusions` defaults (`tests/ai/results`, `mhm.egg-info` -> config); `tests/development_tools/test_constants_config_alignment.py`; LIST_OF_LISTS Section 6/Section 9b/Section 10/Section 13/Section 14.
@@ -117,18 +138,6 @@ Guidelines:
 - **Continue Lists Single-Source Analysis plan**: All todos done. Placeholder patterns from config only; path_drift.legacy_documentation_files in config example; emoji/non-ASCII in constants + fix_documentation_headings; PATH_STARTSWITH_NON_FILE derived from COMMAND_PATTERNS; EXPECTED_OVERLAPS/DOC_SECTION_WORDS; SPECIAL_METHODS/CONTEXT_METHODS in constants (exclusion_utilities + analyze_error_handling); CACHE_AWARE_TOOLS in tool_metadata; deprecation_inventory path and trigger_keywords canonical; LIST_OF_LISTS updated (principles, sections 7b/12, status table).
 - **Error handling (run_tests.py)**: @handle_errors on normalize_test_id (Phase 1 medium); error_handling_exclude on nested canonicalize_nodeid/add_nodeid; try/except in those helpers; @handle_errors on _approximate_test_from_captured_output and _merge_run_results; typing and contextlib.suppress cleanups.
 - **Tier 3 coverage**: run_test_coverage enters combine block when only .coverage exists so coverage_collected is set; .coverage fallback and no_parallel file-not-found messages downgraded to INFO when outcome is success.
-
-### 2026-03-16 - Possible Duplicate Lists (Section 7.8) executed; path drift to zero, analyzer and audit fix **Progressed**
-- **Plan 7.8 executed**: All five todos done-LIST_OF_LISTS.md as central inventory; audit tiers from one canonical source (measure_tool_timings, audit_orchestration); code/config lists aligned (commands, tools, deprecation path, paired_docs, SCRIPT_REGISTRY vs _TOOLS); paired-docs list drift check integrated into doc-sync; docs aligned to canonical lists.
-- **Documentation drift**: Path references fixed in LIST_OF_LISTS, COMMUNICATION_GUIDE, DEVELOPMENT_TOOLS_GUIDE, TESTING_GUIDE so doc-sync reports 0 path-drift issues.
-- **Path drift analyzer**: Whole-word keyword check by path segment in `analyze_path_drift.py`; constants and legacy-doc list in shared/constants and config. **Audit**: `utilities.py` sets `docs_sync_summary` and cache when `analyze_documentation_sync` runs so AI_PRIORITIES and saved results show correct doc-sync count after full audit.
-- **Tests**: Path-drift tests use `development_docs/` layout and pass; Ruff clean.
-
-### 2026-03-16 - Static analysis (Ruff/Pyright) clean, priorities split, workflow rule, test fixes **COMPLETED**
-- **Static analysis**: Cleared all Ruff and Pyright findings. Ruff: fixed `analyze_dev_tools_import_boundaries.py` (typing.Dict/List -> dict/list), conftest and dev_tools conftest setattr + noqa B010 where needed for Pyright, `test_analyze_test_markers` Callable from collections.abc. Pyright: resolved 59->0 warnings (bot application_id, lock_state None guards, test type annotations/cast/setattr, FakeAnalyzer class, no_parallel reason comments).
-- **AI_PRIORITIES and report generation**: Split static analysis into separate "Address Ruff findings" and "Address Pyright findings" items so each appears only when that tool has issues; removed "Deferred Ruff style rules" watch list. Updated test_report_generation_static_analysis to expect the new titles.
-- **Workflow**: Added subsection 5.4 (DEVELOPMENT_WORKFLOW) and **Ruff and Pyright** (AI_DEVELOPMENT_WORKFLOW): when Ruff and Pyright conflict, prefer Pyright on type/attribute issues and use targeted Ruff noqa.
-- **Tests**: Marked `test_scheduled_user_creation` and `test_create_account_persists_checkin_settings` with `@pytest.mark.no_parallel` and reason comments to fix parallel flakiness; added reason comments so test_no_parallel_marker_requires_reason passes.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

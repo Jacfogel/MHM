@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-29 23:35:17
+> **Last Generated**: 2026-03-31 01:55:36
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 120
-- **Total Imports Found**: 1535
+- **Total Imports Found**: 1536
 - **Dependencies Documented**: 120 (100% coverage)
-- **Standard Library Imports**: 410 (26.7%)
+- **Standard Library Imports**: 411 (26.8%)
 - **Third-Party Imports**: 231 (15.0%)
 - **Local Imports**: 894 (58.2%)
-- **Last Updated**: 2026-03-29
+- **Last Updated**: 2026-03-31
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,7 +29,7 @@
 
 ## Import Statistics
 
-- **Standard Library**: 410 imports (26.7%)
+- **Standard Library**: 411 imports (26.8%)
 - **Third-Party**: 231 imports (15.0%)
 - **Local**: 894 imports (58.2%)
 
@@ -516,7 +516,8 @@
     - `core.time_utilities (DATE_ONLY, format_timestamp, now_datetime_full, parse_date_only)` (NEW)
     - `tasks` (NEW)
   - **Standard Library**:
-    - `datetime (timedelta)`
+    - `calendar`
+    - `datetime (datetime, timedelta)`
     - `re`
     - `typing (Any)`
   - **Third-party**:

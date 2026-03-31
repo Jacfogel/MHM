@@ -7,6 +7,7 @@ These methods are large (~4,300 lines total) and generate comprehensive status r
 
 # pyright: reportAttributeAccessIssue=false, reportGeneralTypeIssues=false
 
+import os
 import re
 from datetime import datetime
 from pathlib import Path
@@ -46,13 +47,34 @@ class ReportGenerationMixin:
                 Path(report_path) if not isinstance(report_path, Path) else report_path
             )
 
+    def _markdown_href_from_dev_tools_report(self, target: Path) -> str:
+        """Relative URL for links in ``development_tools/*.md`` (repo root is one level up)."""
+        base = (self.project_root / "development_tools").resolve()
+        dest = Path(target).resolve()
+        return Path(os.path.relpath(dest, base)).as_posix()
+
     def _get_results_file_path(self) -> Path:
         """Get the results file path from config."""
         # Default matches development_tools_config.json
         results_file_path = (self.audit_config or {}).get(
             "results_file", "development_tools/reports/analysis_detailed_results.json"
         )
-        return self._resolve_report_path(results_file_path)
+        from ..audit_storage_scope import (
+            STORAGE_SCOPE_DEV_TOOLS,
+            STORAGE_SCOPE_FULL,
+            scoped_analysis_detailed_path,
+        )
+
+        scope = (
+            STORAGE_SCOPE_DEV_TOOLS
+            if self._is_dev_tools_scoped_report()
+            else STORAGE_SCOPE_FULL
+        )
+        return scoped_analysis_detailed_path(
+            self.project_root,
+            configured_relative=results_file_path,
+            audit_scope=scope,
+        )
 
     def _is_test_directory(self, path: Path) -> bool:
         """Check if path is within a test directory to avoid loading large result files.
@@ -260,6 +282,12 @@ class ReportGenerationMixin:
             return classification.strip()
         return "unknown"
 
+    def _tier3_track_skipped_for_audit_scope(self, track: dict[str, Any]) -> bool:
+        """True when Tier 3 split (full-repo vs --dev-tools-only) intentionally did not run this track."""
+        if not isinstance(track, dict):
+            return False
+        return track.get("classification_reason") == "not_run_this_audit_scope"
+
     def _get_code_docstring_metrics(
         self, function_data: dict[str, Any] | None = None
     ) -> dict[str, Any]:
@@ -433,31 +461,40 @@ class ReportGenerationMixin:
 
         lines.append("## Tier 3 Test Outcome")
         lines.append(f"- **State**: {state}")
-        lines.append(
-            f"- **Parallel Track**: {self._track_classification_label(parallel)} "
-            f"(passed={parallel.get('passed_count', 0)}, failed={parallel.get('failed_count', 0)}, "
-            f"errors={parallel.get('error_count', 0)}, skipped={parallel.get('skipped_count', 0)}, "
-            f"return={parallel.get('return_code')})"
-        )
-        lines.append(
-            f"- **No-Parallel Track**: {self._track_classification_label(no_parallel)} "
-            f"(passed={no_parallel.get('passed_count', 0)}, failed={no_parallel.get('failed_count', 0)}, "
-            f"errors={no_parallel.get('error_count', 0)}, skipped={no_parallel.get('skipped_count', 0)}, "
-            f"return={no_parallel.get('return_code')})"
-        )
-        lines.append(
-            f"- **Development Tools Track**: {self._track_classification_label(dev_tools)} "
-            f"(passed={dev_tools.get('passed_count', 0)}, failed={dev_tools.get('failed_count', 0)}, "
-            f"errors={dev_tools.get('error_count', 0)}, skipped={dev_tools.get('skipped_count', 0)}, "
-            f"return={dev_tools.get('return_code')})"
-        )
-        lines.append(self._format_track_classification_summary("Parallel", parallel))
-        lines.append(
-            self._format_track_classification_summary("No-Parallel", no_parallel)
-        )
-        lines.append(
-            self._format_track_classification_summary("Development Tools", dev_tools)
-        )
+        skip_p = self._tier3_track_skipped_for_audit_scope(parallel)
+        skip_np = self._tier3_track_skipped_for_audit_scope(no_parallel)
+        skip_dt = self._tier3_track_skipped_for_audit_scope(dev_tools)
+        if not skip_p:
+            lines.append(
+                f"- **Parallel Track**: {self._track_classification_label(parallel)} "
+                f"(passed={parallel.get('passed_count', 0)}, failed={parallel.get('failed_count', 0)}, "
+                f"errors={parallel.get('error_count', 0)}, skipped={parallel.get('skipped_count', 0)}, "
+                f"return={parallel.get('return_code')})"
+            )
+        if not skip_np:
+            lines.append(
+                f"- **No-Parallel Track**: {self._track_classification_label(no_parallel)} "
+                f"(passed={no_parallel.get('passed_count', 0)}, failed={no_parallel.get('failed_count', 0)}, "
+                f"errors={no_parallel.get('error_count', 0)}, skipped={no_parallel.get('skipped_count', 0)}, "
+                f"return={no_parallel.get('return_code')})"
+            )
+        if not skip_dt:
+            lines.append(
+                f"- **Development Tools Track**: {self._track_classification_label(dev_tools)} "
+                f"(passed={dev_tools.get('passed_count', 0)}, failed={dev_tools.get('failed_count', 0)}, "
+                f"errors={dev_tools.get('error_count', 0)}, skipped={dev_tools.get('skipped_count', 0)}, "
+                f"return={dev_tools.get('return_code')})"
+            )
+        if not skip_p:
+            lines.append(self._format_track_classification_summary("Parallel", parallel))
+        if not skip_np:
+            lines.append(
+                self._format_track_classification_summary("No-Parallel", no_parallel)
+            )
+        if not skip_dt:
+            lines.append(
+                self._format_track_classification_summary("Development Tools", dev_tools)
+            )
         if isinstance(failed_nodes, list) and failed_nodes:
             lines.append(
                 f"- **Failed/Error Node IDs**: {self._format_list_for_display(failed_nodes, limit=10)}"
@@ -1738,8 +1775,19 @@ class ReportGenerationMixin:
         lines.append("## Test Coverage")
 
         dev_tools_insights = self._get_dev_tools_coverage_insights()
+        skip_main_tracks = bool(
+            getattr(self, "_tier3_skipped_main_tracks", False)
+        )
+        skip_dev_track = bool(getattr(self, "_tier3_skipped_dev_track", False))
 
-        if coverage_summary and isinstance(coverage_summary, dict):
+        if skip_main_tracks:
+            lines.append(
+                "- **Overall Coverage**: Not refreshed this pass (`audit --full --dev-tools-only`). "
+                "Run `python development_tools/run_development_tools.py audit --full` without "
+                "`--dev-tools-only` for full-repo coverage and "
+                "`development_docs/TEST_COVERAGE_REPORT.md`."
+            )
+        elif coverage_summary and isinstance(coverage_summary, dict):
             overall = coverage_summary.get("overall") or {}
             primary = coverage_summary.get("primary_overall") or {}
             use_primary = (
@@ -1771,11 +1819,18 @@ class ReportGenerationMixin:
                 self.project_root / "development_docs" / "TEST_COVERAGE_REPORT.md"
             )
             if coverage_report_path.exists():
+                href = self._markdown_href_from_dev_tools_report(coverage_report_path)
                 lines.append(
-                    "    - **Detailed Report**: [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)"
+                    f"    - **Detailed Report**: [TEST_COVERAGE_REPORT.md]({href})"
                 )
 
-            if dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
+            if skip_dev_track:
+                lines.append(
+                    "- **Development Tools Coverage**: Not refreshed this pass (full-repo Tier 3 scope). "
+                    "Run `python development_tools/run_development_tools.py audit --full --dev-tools-only` "
+                    "to update dev-tools coverage metrics."
+                )
+            elif dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
                 dev_pct = dev_tools_insights["overall_pct"]
                 dev_statements = dev_tools_insights.get("statements")
                 dev_covered = dev_tools_insights.get("covered")
@@ -1786,10 +1841,17 @@ class ReportGenerationMixin:
                     summary_line += f" ({dev_covered} of {dev_statements} statements)"
                 lines.append(summary_line)
         else:
-            lines.append(
-                "- Coverage data unavailable; run `audit --full` to regenerate metrics"
-            )
-            if dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
+            if not skip_main_tracks:
+                lines.append(
+                    "- Coverage data unavailable; run `audit --full` to regenerate metrics"
+                )
+            if skip_dev_track:
+                lines.append(
+                    "- **Development Tools Coverage**: Not refreshed this pass (full-repo Tier 3 scope). "
+                    "Run `python development_tools/run_development_tools.py audit --full --dev-tools-only` "
+                    "to update dev-tools coverage metrics."
+                )
+            elif dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
                 dev_pct = dev_tools_insights["overall_pct"]
                 dev_statements = dev_tools_insights.get("statements")
                 dev_covered = dev_tools_insights.get("covered")
@@ -1884,8 +1946,11 @@ class ReportGenerationMixin:
                 self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
             )
             if unused_imports_report_path.exists():
+                href = self._markdown_href_from_dev_tools_report(
+                    unused_imports_report_path
+                )
                 lines.append(
-                    "- **Detailed Report**: [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)"
+                    f"- **Detailed Report**: [UNUSED_IMPORTS_REPORT.md]({href})"
                 )
         else:
             lines.append("## Unused Imports")
@@ -2045,9 +2110,9 @@ class ReportGenerationMixin:
             if report_path:
                 report_path_obj = self._resolve_report_path(report_path)
                 if report_path_obj.exists():
-                    rel_path = report_path_obj.relative_to(self.project_root)
+                    href = self._markdown_href_from_dev_tools_report(report_path_obj)
                     lines.append(
-                        f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})"
+                        f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({href})"
                     )
         else:
             lines.append(
@@ -4077,8 +4142,11 @@ class ReportGenerationMixin:
                     self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
                 )
                 if unused_imports_report_path.exists():
+                    href = self._markdown_href_from_dev_tools_report(
+                        unused_imports_report_path
+                    )
                     unused_bullets.append(
-                        "Detailed Report: [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)"
+                        f"Detailed Report: [UNUSED_IMPORTS_REPORT.md]({href})"
                     )
 
                 # Determine tier based on obvious unused count (not total)
@@ -4418,11 +4486,21 @@ class ReportGenerationMixin:
                 tier3_reason = (
                     "Tier 3 coverage orchestration reported a coverage failure outcome."
                 )
-                tier3_bullets.append(
-                    f"Parallel: {self._track_classification_label(parallel_outcome)}, "
-                    f"no-parallel: {self._track_classification_label(no_parallel_outcome)}, "
-                    f"dev-tools: {self._track_classification_label(dev_tools_outcome)}."
-                )
+                cov_parts: list[str] = []
+                if not self._tier3_track_skipped_for_audit_scope(parallel_outcome):
+                    cov_parts.append(
+                        f"Parallel: {self._track_classification_label(parallel_outcome)}"
+                    )
+                if not self._tier3_track_skipped_for_audit_scope(no_parallel_outcome):
+                    cov_parts.append(
+                        f"no-parallel: {self._track_classification_label(no_parallel_outcome)}"
+                    )
+                if not self._tier3_track_skipped_for_audit_scope(dev_tools_outcome):
+                    cov_parts.append(
+                        f"dev-tools: {self._track_classification_label(dev_tools_outcome)}"
+                    )
+                if cov_parts:
+                    tier3_bullets.append(", ".join(cov_parts) + ".")
             elif tier3_state in {"crashed", "infra_cleanup_error"}:
                 tier3_title = "Investigate and correct test failures/errors"
                 tier3_reason = f"Tier 3 test pipeline reported `{tier3_state}`."
@@ -4431,6 +4509,8 @@ class ReportGenerationMixin:
                     ("No-parallel", no_parallel_outcome, "no_parallel"),
                     ("Development tools", dev_tools_outcome, "development_tools"),
                 ):
+                    if self._tier3_track_skipped_for_audit_scope(track_outcome):
+                        continue
                     track_state = self._track_classification_label(track_outcome)
                     track_reason = str(
                         track_outcome.get("classification_reason", "unknown")
@@ -4454,9 +4534,18 @@ class ReportGenerationMixin:
                         if isinstance(track_hint, str) and track_hint.strip():
                             tier3_bullets.append(f"{label} hint: {track_hint.strip()}")
                 if not tier3_bullets:
-                    tier3_bullets.append(
-                        f"Parallel return={parallel_outcome.get('return_code')}, no-parallel return={no_parallel_outcome.get('return_code')}, dev-tools return={dev_tools_outcome.get('return_code')}."
-                    )
+                    rp = parallel_outcome.get("return_code")
+                    rnp = no_parallel_outcome.get("return_code")
+                    rdt = dev_tools_outcome.get("return_code")
+                    parts_ret: list[str] = []
+                    if not self._tier3_track_skipped_for_audit_scope(parallel_outcome):
+                        parts_ret.append(f"Parallel return={rp}")
+                    if not self._tier3_track_skipped_for_audit_scope(no_parallel_outcome):
+                        parts_ret.append(f"no-parallel return={rnp}")
+                    if not self._tier3_track_skipped_for_audit_scope(dev_tools_outcome):
+                        parts_ret.append(f"dev-tools return={rdt}")
+                    if parts_ret:
+                        tier3_bullets.append(", ".join(parts_ret) + ".")
             else:
                 tier3_title = "Investigate and correct test failures/errors"
                 tier3_reason = (
@@ -4468,6 +4557,8 @@ class ReportGenerationMixin:
                     ("Development tools", dev_tools_outcome, "development_tools"),
                 ]
                 for label, track_outcome, track_key in track_specs:
+                    if self._tier3_track_skipped_for_audit_scope(track_outcome):
+                        continue
                     track_failed_nodes = self._get_track_failed_nodes(track_outcome)
                     failed = (
                         len(track_failed_nodes)
@@ -4501,18 +4592,21 @@ class ReportGenerationMixin:
                     or include_no_parallel_logs
                     or include_dev_tools_logs
                 ):
-                    tier3_bullets.append(
-                        f"Parallel failed={parallel_outcome.get('failed_count', 0)}, errors={parallel_outcome.get('error_count', 0)}."
-                    )
-                    tier3_bullets.append(
-                        f"No-parallel failed={no_parallel_outcome.get('failed_count', 0)}, errors={no_parallel_outcome.get('error_count', 0)}."
-                    )
-                    tier3_bullets.append(
-                        f"Development tools failed={dev_tools_outcome.get('failed_count', 0)}, errors={dev_tools_outcome.get('error_count', 0)}."
-                    )
-                    include_parallel_logs = True
-                    include_no_parallel_logs = True
-                    include_dev_tools_logs = True
+                    if not self._tier3_track_skipped_for_audit_scope(parallel_outcome):
+                        tier3_bullets.append(
+                            f"Parallel failed={parallel_outcome.get('failed_count', 0)}, errors={parallel_outcome.get('error_count', 0)}."
+                        )
+                        include_parallel_logs = True
+                    if not self._tier3_track_skipped_for_audit_scope(no_parallel_outcome):
+                        tier3_bullets.append(
+                            f"No-parallel failed={no_parallel_outcome.get('failed_count', 0)}, errors={no_parallel_outcome.get('error_count', 0)}."
+                        )
+                        include_no_parallel_logs = True
+                    if not self._tier3_track_skipped_for_audit_scope(dev_tools_outcome):
+                        tier3_bullets.append(
+                            f"Development tools failed={dev_tools_outcome.get('failed_count', 0)}, errors={dev_tools_outcome.get('error_count', 0)}."
+                        )
+                        include_dev_tools_logs = True
             if (
                 isinstance(failed_nodes, list)
                 and failed_nodes
@@ -6040,7 +6134,17 @@ class ReportGenerationMixin:
         # Test Coverage
         lines.append("## Test Coverage")
 
-        if coverage_summary and isinstance(coverage_summary, dict):
+        skip_main_tracks_cr = bool(
+            getattr(self, "_tier3_skipped_main_tracks", False)
+        )
+        skip_dev_track_cr = bool(getattr(self, "_tier3_skipped_dev_track", False))
+
+        if skip_main_tracks_cr:
+            lines.append(
+                "- **Overall Coverage**: Not refreshed this pass (`audit --full --dev-tools-only`). "
+                "Run a full audit without `--dev-tools-only` for product coverage."
+            )
+        elif coverage_summary and isinstance(coverage_summary, dict):
             overall = coverage_summary.get("overall") or {}
             lines.append(
                 f"- **Overall Coverage**: {percent_text(overall.get('coverage'), 1)} ({overall.get('covered')} of {overall.get('statements')} statements)"
@@ -6075,13 +6179,25 @@ class ReportGenerationMixin:
                 lines.append(
                     f"    - **Modules with Lowest Coverage**: {', '.join(file_descriptions)}"
                 )
-                lines.append(
-                    "    - **Detailed Report**: [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)"
+                cov_path = (
+                    self.project_root / "development_docs" / "TEST_COVERAGE_REPORT.md"
                 )
+                if cov_path.exists():
+                    href = self._markdown_href_from_dev_tools_report(cov_path)
+                    lines.append(
+                        f"    - **Detailed Report**: [TEST_COVERAGE_REPORT.md]({href})"
+                    )
 
-            # Development tools coverage
+        if skip_main_tracks_cr or (
+            coverage_summary and isinstance(coverage_summary, dict)
+        ):
             dev_tools_insights = self._get_dev_tools_coverage_insights()
-            if dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
+            if skip_dev_track_cr:
+                lines.append(
+                    "- **Development Tools Coverage**: Not refreshed this pass (full-repo Tier 3 scope). "
+                    "Use `audit --full --dev-tools-only` to refresh."
+                )
+            elif dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
                 dev_pct = dev_tools_insights["overall_pct"]
                 dev_statements = dev_tools_insights.get("statements")
                 dev_covered = dev_tools_insights.get("covered")
@@ -6101,7 +6217,6 @@ class ReportGenerationMixin:
                         f"    - **Modules with Lowest Coverage**: {', '.join(dev_descriptions)}"
                     )
 
-            # Test markers
             test_markers_data = self._load_tool_data("analyze_test_markers", "tests")
             if test_markers_data and isinstance(test_markers_data, dict):
                 if "summary" in test_markers_data:
@@ -6300,9 +6415,9 @@ class ReportGenerationMixin:
                     self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
                 )
                 if isinstance(report_path, Path) and report_path.exists():
-                    rel_path = report_path.relative_to(self.project_root)
+                    href = self._markdown_href_from_dev_tools_report(report_path)
                     lines.append(
-                        f"- **Detailed Report**: [UNUSED_IMPORTS_REPORT.md]({rel_path.as_posix()})"
+                        f"- **Detailed Report**: [UNUSED_IMPORTS_REPORT.md]({href})"
                     )
             else:
                 lines.append("- **Unused Imports**: CLEAN (no unused imports detected)")
@@ -6464,9 +6579,9 @@ class ReportGenerationMixin:
             if report_path:
                 report_path_obj = self._resolve_report_path(report_path)
                 if report_path_obj.exists():
-                    rel_path = report_path_obj.relative_to(self.project_root)
+                    href = self._markdown_href_from_dev_tools_report(report_path_obj)
                     lines.append(
-                        f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})"
+                        f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({href})"
                     )
         else:
             lines.append(
@@ -6477,9 +6592,9 @@ class ReportGenerationMixin:
                 self.project_root / "development_docs" / "LEGACY_REFERENCE_REPORT.md"
             )
             if legacy_report.exists():
-                rel_path = legacy_report.relative_to(self.project_root)
+                href = self._markdown_href_from_dev_tools_report(legacy_report)
                 lines.append(
-                    f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})"
+                    f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({href})"
                 )
 
         lines.append("")
@@ -7551,50 +7666,45 @@ class ReportGenerationMixin:
             ai_priorities_path = status_files_config.get(
                 "ai_priorities", "development_tools/AI_PRIORITIES.md"
             )
-            results_file_path = (self.audit_config or {}).get(
-                "results_file",
-                "development_tools/reports/analysis_detailed_results.json",
-            )
         except (ImportError, AttributeError, KeyError):
             ai_status_path = "development_tools/AI_STATUS.md"
             ai_priorities_path = "development_tools/AI_PRIORITIES.md"
-            results_file_path = (
-                "development_tools/reports/analysis_detailed_results.json"
-            )
 
-        lines.append(f"- Latest AI status: [AI_STATUS.md]({ai_status_path})")
         lines.append(
-            f"- Current AI priorities: [AI_PRIORITIES.md]({ai_priorities_path})"
+            f"- Latest AI status: [AI_STATUS.md]({self._markdown_href_from_dev_tools_report(self.project_root / ai_status_path)})"
         )
         lines.append(
-            f"- Detailed JSON results: [analysis_detailed_results.json]({results_file_path})"
+            f"- Current AI priorities: [AI_PRIORITIES.md]({self._markdown_href_from_dev_tools_report(self.project_root / ai_priorities_path)})"
+        )
+        lines.append(
+            f"- Detailed JSON results: [analysis_detailed_results.json]({self._markdown_href_from_dev_tools_report(self._get_results_file_path())})"
         )
 
         legacy_report = (
             self.project_root / "development_docs" / "LEGACY_REFERENCE_REPORT.md"
         )
         if legacy_report.exists():
-            rel_path = legacy_report.relative_to(self.project_root)
+            href = self._markdown_href_from_dev_tools_report(legacy_report)
             lines.append(
-                f"- Legacy reference report: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})"
+                f"- Legacy reference report: [LEGACY_REFERENCE_REPORT.md]({href})"
             )
 
         coverage_report = (
             self.project_root / "development_docs" / "TEST_COVERAGE_REPORT.md"
         )
         if coverage_report.exists():
-            rel_path = coverage_report.relative_to(self.project_root)
+            href = self._markdown_href_from_dev_tools_report(coverage_report)
             lines.append(
-                f"- Test coverage report: [TEST_COVERAGE_REPORT.md]({rel_path.as_posix()})"
+                f"- Test coverage report: [TEST_COVERAGE_REPORT.md]({href})"
             )
 
         unused_imports_report = (
             self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
         )
         if unused_imports_report.exists():
-            rel_path = unused_imports_report.relative_to(self.project_root)
+            href = self._markdown_href_from_dev_tools_report(unused_imports_report)
             lines.append(
-                f"- Unused imports detail: [UNUSED_IMPORTS_REPORT.md]({rel_path.as_posix()})"
+                f"- Unused imports detail: [UNUSED_IMPORTS_REPORT.md]({href})"
             )
 
         archive_dir = self.project_root / "development_tools" / "reports" / "archive"

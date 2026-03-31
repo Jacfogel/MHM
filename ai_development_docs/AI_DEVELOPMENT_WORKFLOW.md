@@ -242,7 +242,9 @@ When to run AI development tools for codebase analysis and health checks:
 
 - **Day-to-day checks**: Run `python development_tools/run_development_tools.py audit` (Tier 2, default, ~2-5min) for standard quality checks. Includes everything in Tier 1 plus: documentation analysis, error handling coverage, decision support insights, config validation, and AI work validation.
 
-- **Pre-merge / pre-release checks**: Run `python development_tools/run_development_tools.py audit --full` (Tier 3, ~10-30min) for comprehensive analysis. Includes everything in Tier 1 & 2 plus: full test coverage regeneration, unused import detection, legacy reference scanning, module dependency analysis, and improvement opportunity reports (LEGACY_REFERENCE_REPORT.md, TEST_COVERAGE_REPORT.md, UNUSED_IMPORTS_REPORT.md).
+- **Pre-merge / pre-release checks**: Run `python development_tools/run_development_tools.py audit --full` (Tier 3, ~10-30min) for comprehensive analysis. Includes everything in Tier 1 & 2 plus: main-project coverage regeneration and `development_docs/TEST_COVERAGE_REPORT.md`, unused import detection, legacy reference scanning, module dependency analysis, and improvement opportunity reports (for example `development_docs/LEGACY_REFERENCE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`). Tier 3 runs **either** main-repo coverage **or** dev-tools coverage in one pass, not both; see dev-tools-only bullet.
+
+- **Dev-tools-only full audit**: Run `python development_tools/run_development_tools.py audit --full --dev-tools-only` to refresh `development_tools/DEV_TOOLS_STATUS.md`, `development_tools/DEV_TOOLS_PRIORITIES.md`, and `development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md` and dev-tools coverage only; full-repo coverage is **not** refreshed. Use `audit --full` without the flag for product-wide coverage.
 
 - **Documentation work**: 
   - Run `python development_tools/run_development_tools.py doc-sync` to check documentation pairing and path drift.
@@ -250,6 +252,6 @@ When to run AI development tools for codebase analysis and health checks:
 
 - **Quick status snapshot**: Run `python development_tools/run_development_tools.py status` to view cached summaries from the most recent audit (rerun `audit` if cache is stale).
 
-**Note**: All three audit tiers update the same output files (AI_STATUS.md, AI_PRIORITIES.md, CONSOLIDATED_REPORT.md, analysis_detailed_results.json). Each tier encompasses all functionality of lighter tiers, so Tier 2 includes all Tier 1 tools, and Tier 3 includes all Tier 1 & 2 tools.
+**Note**: Standard audits write `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, and `development_tools/CONSOLIDATED_REPORT.md`. With `--dev-tools-only`, Tier 3 writes `development_tools/DEV_TOOLS_STATUS.md`, `development_tools/DEV_TOOLS_PRIORITIES.md`, and `development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md` instead so scoped runs do not overwrite full-repo status files. See paired [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) section 10 for the human-facing recipe.
 
 For detailed tool usage and output locations, see [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md).

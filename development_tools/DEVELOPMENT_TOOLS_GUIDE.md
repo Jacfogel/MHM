@@ -608,7 +608,7 @@ Development-tools modules may import `core.logger` for structured logging. All o
 
 - **Structural**: Owned Pyright JSON loads; root JSONC exists; both exclude `tests/data` (and related temp/fixture paths). Policy tests enforce this.
 - **Runtime**: `python -m pyright --outputjson --project <config>` succeeds for both configs when Pyright is installed (optional `pytest -m e2e` smoke in [`tests/development_tools/test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py), excluded from default runs).
-- **Diagnostic counts**: Root vs owned `errorCount`/`warningCount` may differ because include/exclude scopes differ; add regression tests once a numeric tolerance policy is defined.
+- **Diagnostic counts**: Root vs owned `errorCount`/`warningCount` may differ because include/exclude scopes differ. Optional: set `PYRIGHT_ERROR_COUNT_MAX_DELTA` when running the e2e Pyright test in `tests/development_tools/test_pyright_config_paths.py` to enforce a maximum `errorCount` delta between runs (unset keeps comparison advisory only).
 
 ---
 

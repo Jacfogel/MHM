@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Single forward-looking backlog after V4; collapsed history; actionable next steps  
 > **Style**: Direct and concise  
-> **Last Updated**: 2026-03-29  
+> **Last Updated**: 2026-03-31  
 > **Supersedes**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (keep V4 for detailed checkbox history)
 
 **Authoritative metrics**: [development_tools/AI_STATUS.md](AI_STATUS.md) and [development_tools/AI_PRIORITIES.md](AI_PRIORITIES.md) after `python development_tools/run_development_tools.py audit` or `audit --full`.
@@ -399,6 +399,21 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 - Product direction: full audit could run **tests only**; coverage via separate schedule or extra flag/tier — aligns with V4 intro (Tier 3 without embedded coverage).
 - **2026-03-28**: Practical next step is **§5.1 — 1.9** (single coverage dimension per audit scope in one pass) as a subset of this direction; larger “coverage wholly outside audit” remains optional.
 
+#### 7.16 Retire audit artifact read fallbacks (flat JSON / unscoped aggregates)
+
+**Status**: **OPEN** (bridge code in loaders; not a user-visible bug). **Goal**: after workspaces and CI are consistently on scoped trees (`development_tools/<domain>/jsons/scopes/<full|dev_tools>/`, `development_tools/reports/scopes/<full|dev_tools>/`), remove read-only compatibility branches so only canonical paths are used.
+
+Canonical writes already use scoped directories only. **LEGACY COMPATIBILITY** code may still **read** pre-migration paths until this backlog item is completed:
+
+| Location | Role |
+| -------- | ---- |
+| `development_tools/<domain>/jsons/*_results.json` and dot caches | Fall back in `output_storage.load_*` / `get_all_tool_results` when `audit_scope` is full-repo |
+| `development_tools/reports/analysis_detailed_results.json` | Fall back in `audit_orchestration._reload_all_cache_data` (non-dev-tools-only paths) |
+| `development_tools/reports/jsons/tool_timings.json` | Fall back in `_save_timing_data` when merging timings |
+| Same basename under `reports/` (third candidate) | `analyze_system_signals._resolve_analysis_detailed_results_path` |
+
+**Removal**: Drop each fallback only after search-and-close proves no remaining consumers need it; update loaders and this table in the same change. Primary helper: `development_tools/shared/audit_storage_scope.py` (`legacy_flat_jsons_dir`).
+
 ---
 
 ### 5.8 Monitoring and deferred test work (no active V4 tasks)
@@ -406,7 +421,7 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 - **§1.3** — Intermittent low coverage: **MONITORING**; reopen on recurrence.
 - **§1.2** — `test_audit_tier_comprehensive.py`: **deferred** unless cost/benefit justifies re-enable.
 
-**Lower backlog (opportunistic, 2026-03-28)** — pick up when touching related code: §1.1 adopt `test_config.json` in analyzer tests you edit; §1.9 orchestration when refactoring Tier 3; §3.0 example-marking in doc-sync; §3.12 restore `flaky_detector` from history if needed then migrate; §3.13–3.14 scripts inventory; §3.15 gap heuristics; §3.16 extract helpers from `report_generation.py` / `run_test_coverage.py`; §7.8–7.13, §7.15 as separately prioritized.
+**Lower backlog (opportunistic, 2026-03-28)** — pick up when touching related code: §1.1 adopt `test_config.json` in analyzer tests you edit; §1.9 orchestration when refactoring Tier 3; §3.0 example-marking in doc-sync; §3.12 restore `flaky_detector` from history if needed then migrate; §3.13–3.14 scripts inventory; §3.15 gap heuristics; §3.16 extract helpers from `report_generation.py` / `run_test_coverage.py`; §7.8–7.13, §7.15, §7.16 as separately prioritized.
 
 ---
 

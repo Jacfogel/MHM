@@ -75,10 +75,14 @@ def test_run_script_handles_keyboard_interrupt(temp_project_copy, monkeypatch):
 
 
 @pytest.mark.unit
-def test_run_script_uses_windows_process_group_for_coverage(
-    temp_project_copy, monkeypatch
+@pytest.mark.parametrize(
+    "script_name",
+    ("run_test_coverage", "analyze_pyright", "analyze_ruff"),
+)
+def test_run_script_uses_windows_process_group_for_isolated_tools(
+    temp_project_copy, monkeypatch, script_name
 ):
-    """run_script should isolate run_test_coverage subprocess group on Windows."""
+    """run_script should isolate heavy T3 tools' subprocess groups on Windows."""
     service = AIToolsService(project_root=str(temp_project_copy))
     captured = {}
 
@@ -98,10 +102,40 @@ def test_run_script_uses_windows_process_group_for_coverage(
     )
     monkeypatch.setattr(tool_wrappers_module.subprocess, "run", _fake_run, raising=True)
 
-    result = service.run_script("run_test_coverage")
+    result = service.run_script(script_name)
 
     assert result["success"] is True
     assert captured["kwargs"].get("creationflags") == 512
+
+
+@pytest.mark.unit
+def test_run_script_no_windows_process_group_for_quick_tools(
+    temp_project_copy, monkeypatch
+):
+    """Light scripts should not set CREATE_NEW_PROCESS_GROUP on Windows."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    captured = {}
+
+    class _FakeResult:
+        returncode = 0
+        stdout = "ok"
+        stderr = ""
+
+    def _fake_run(cmd, **kwargs):
+        captured["cmd"] = cmd
+        captured["kwargs"] = kwargs
+        return _FakeResult()
+
+    monkeypatch.setattr(tool_wrappers_module.os, "name", "nt", raising=True)
+    monkeypatch.setattr(
+        tool_wrappers_module.subprocess, "CREATE_NEW_PROCESS_GROUP", 512, raising=False
+    )
+    monkeypatch.setattr(tool_wrappers_module.subprocess, "run", _fake_run, raising=True)
+
+    result = service.run_script("quick_status")
+
+    assert result["success"] is True
+    assert captured["kwargs"].get("creationflags", 0) == 0
 
 
 @pytest.mark.unit

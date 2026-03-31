@@ -161,6 +161,9 @@ development_tools/tests/coverage_html/
 development_tools/tests/.coverage*
 *.lock
 *.backup_*
+development_tools\DEV_TOOLS_CONSOLIDATED_REPORT.md
+development_tools\DEV_TOOLS_PRIORITIES.md
+development_tools\DEV_TOOLS_STATUS.md
 
 # ============================
 # IDE files

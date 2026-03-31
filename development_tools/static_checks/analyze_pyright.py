@@ -160,6 +160,10 @@ def run_pyright(project_root: Path) -> dict[str, Any]:
         return _build_unavailable_result("pyright execution timed out")
     except TimeoutError:
         return _build_unavailable_result("pyright execution timed out")
+    except KeyboardInterrupt:
+        return _build_unavailable_result(
+            "pyright interrupted (console control event while waiting for pyright)"
+        )
     except Exception as exc:
         return _build_unavailable_result(f"pyright execution failed: {exc}")
 

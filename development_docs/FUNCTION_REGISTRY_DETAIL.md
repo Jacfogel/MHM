@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-29 23:35:15
+> **Last Generated**: 2026-03-31 01:55:33
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 95.1% [OK] COMPLETED**
 - **Files Scanned**: 122
-- **Functions Found**: 1694
+- **Functions Found**: 1695
 - **Methods Found**: 1228
 - **Classes Found**: 154
-- **Total Items**: 2922
-- **Functions Documented**: 1591
+- **Total Items**: 2923
+- **Functions Documented**: 1592
 - **Methods Documented**: 1188
 - **Classes Documented**: 120
-- **Total Documented**: 2779
+- **Total Documented**: 2780
 - **Template-Generated**: 4
-- **Last Updated**: 2026-03-29
+- **Last Updated**: 2026-03-31
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (599)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (449)
+### **Communication Functions** (450)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (424)
@@ -1079,6 +1079,7 @@ Output examples:
 
 #### `communication/command_handlers/task_handler.py`
 **Functions:**
+- [OK] `_add_one_calendar_month(dt)` - Advance *dt* by one calendar month, clamping the day to the target month's last day.
 - [OK] `_find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id.
 
 Shared method to eliminate code duplication. Used by complete, delete, and update handlers.
