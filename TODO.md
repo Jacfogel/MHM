@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-03-27 (dev-tools V5 backlog pointer)
+> **Last Updated**: 2026-04-02 (headless reliability shipped)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -50,23 +50,9 @@ Detail: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMP
 - **Section 1.1 `test_config.json` fixture migration**: adopt when touching analyzer tests; full pass is low priority.  
 Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) (Section 5.1 / Section 5.2); [tests/development_tools/test_config.json](tests/development_tools/test_config.json).
 
-**Use / fit** (2026-02-28 user-priority Q&A): Operational reliability (headless, email) fix soon. AI items deferred until system overhaul. Script ownership, sent_messages high priority. Ruff outside tests > inside. Duplicate lists and backup audit moved to dev tools. Performance monitoring includes RAM/caching.
+**Use / fit** (2026-02-28 user-priority Q&A): Headless + email admin status fixes shipped 2026-04-02. AI items deferred until system overhaul. Script ownership, sent_messages high priority. Ruff outside tests > inside. Duplicate lists and backup audit moved to dev tools. Performance monitoring includes RAM/caching.
 
 ## High Priority
-
-### Operational Reliability (fix soon)
-
-**headless service not working**
-- *What it means*: Investigate and fix headless service failure.
-- *Why it helps*: Restores normal operation when running in headless mode.
-- *Estimated effort*: Small/Medium
-- *User priority*: Fix soon. *Created*: 2026-02-28
-
-**Email service not showing as active**
-- *What it means*: After running for some time, UI shows Discord and ngrok active but email inactive; logs don't indicate failure. Investigate and resolve.
-- *Why it helps*: Restores email channel operation.
-- *Estimated effort*: Small/Medium
-- *User priority*: Fix soon. *Created*: 2026-02-28
 
 ### Quality & Operations (high priority within medium)
 

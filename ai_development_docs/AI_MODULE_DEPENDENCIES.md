@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-31 01:55:47
+> **Last Generated**: 2026-04-02 01:25:10
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 120
-- **Total Imports**: 1536
-- **Standard Library**: 411 (26.8%)
-- **Third-Party**: 231 (15.0%)
-- **Local Imports**: 894 (58.2%)
+- **Total Imports**: 1537
+- **Standard Library**: 411 (26.7%)
+- **Third-Party**: 230 (15.0%)
+- **Local Imports**: 896 (58.3%)
 
 ## Dependency Decision Trees
 
@@ -61,7 +61,7 @@ Communication Dependencies:
 ### Need UI Dependencies?
 UI Dependencies:
 - Main Application
-  - ui/ui_app_qt.py <- standard library (contextlib, json, os, pathlib), third-party (PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets), time_utilities, logger, config, error_handling, service_utilities (+20 more)
+  - ui/ui_app_qt.py <- standard library (contextlib, json, os, pathlib), third-party (PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets), launch_env, time_utilities, logger, config, error_handling (+21 more)
 - Dialogs
   - ui/dialogs/account_creator_dialog.py <- standard library (contextlib, pathlib, time, typing), third-party (PySide6.QtCore, PySide6.QtWidgets), logger, user_data_validation, core, error_handling, dialog_helpers (+11 more)
   - ui/dialogs/admin_panel.py <- third-party (PySide6.QtCore, PySide6.QtWidgets), logger, error_handling
@@ -83,7 +83,7 @@ Communication and AI modules depend on core system modules.
 ### UI -> Core
 UI modules rely on core configuration and data access.
 - `ui/generate_ui_files.py` -> core.error_handling, core.time_utilities
-- `ui/ui_app_qt.py` -> core.time_utilities, core.logger, core.config
+- `ui/ui_app_qt.py` -> core.launch_env, core.time_utilities, core.logger
 
 ### Communication -> Communication
 Communication modules compose other communication utilities for complete flows.
@@ -117,7 +117,7 @@ External libraries provide channel and UI support.
 ## Dependency Risk Areas
 
 ### High Coupling
-- `ui/ui_app_qt.py` -> 44 local dependencies (heavy coupling)
+- `ui/ui_app_qt.py` -> 45 local dependencies (heavy coupling)
 - `communication/message_processing/conversation_flow_manager.py` -> 37 local dependencies (heavy coupling)
 - `communication/command_handlers/analytics_handler.py` -> 33 local dependencies (heavy coupling)
 - `communication/core/channel_orchestrator.py` -> 32 local dependencies (heavy coupling)

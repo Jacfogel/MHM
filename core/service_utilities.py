@@ -233,28 +233,38 @@ def get_service_processes():
                     continue
                 seen_processes.add(process_key)
 
-                # Determine if this is a UI-managed or headless service
-                # UI-managed: has 'ui' in the path (launched by UI)
-                # Headless: runs core/service.py directly without 'ui' in path
-                full_cmdline = " ".join(cmdline)
-                is_ui_managed = (
-                    "ui" in full_cmdline and "service.py" in full_cmdline
-                )
-                is_headless = (
-                    "core/service.py" in full_cmdline
-                    or "core\\service.py" in full_cmdline
-                    or full_cmdline.endswith("core/service.py")
-                    or full_cmdline.endswith("core\\service.py")
-                ) and not is_ui_managed
+                # Classify UI-managed vs headless. Prefer explicit env markers (reliable);
+                # cmdline-only rules are fallbacks when environ is unavailable.
+                full_cmdline = " ".join(cmdline) if cmdline else ""
+                is_ui_managed = False
+                is_headless = False
 
-                # Check for environment markers to better identify service type
+                environ: dict | None = None
                 try:
-                    environ = proc.info.get("environ", {})
-                    if environ and "MHM_HEADLESS_SERVICE" in environ:
-                        is_headless = True
-                        is_ui_managed = False
+                    environ = proc.info.get("environ")
                 except (psutil.AccessDenied, KeyError):
-                    pass  # Can't access environment, use cmdline detection
+                    environ = None
+                if not isinstance(environ, dict):
+                    environ = {}
+
+                if environ.get("MHM_HEADLESS_SERVICE") == "1":
+                    is_headless = True
+                elif environ.get("MHM_UI_MANAGED_SERVICE") == "1":
+                    is_ui_managed = True
+                else:
+                    # Legacy / no env access: avoid treating arbitrary path segments as "UI"
+                    # (substring "ui" matches folder names like "rapidui"). Prefer marker from UI launcher.
+                    is_ui_managed = (
+                        "ui/service.py" in full_cmdline
+                        or "ui\\service.py" in full_cmdline
+                    )
+                    norm = full_cmdline.replace("/", "\\")
+                    looks_like_core_service = (
+                        "core/service.py" in full_cmdline
+                        or "core\\service.py" in full_cmdline
+                        or norm.rstrip().endswith("core\\service.py")
+                    )
+                    is_headless = looks_like_core_service and not is_ui_managed
 
                 service_processes.append(
                     {

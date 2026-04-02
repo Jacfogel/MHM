@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-04-02 - Headless service startup and process classification **COMPLETED**
+- Headless launcher uses [core/launch_env.py](core/launch_env.py) for `resolve_python_interpreter` / `prepare_launch_environment` and always sets `MHM_HEADLESS_SERVICE` / `MHM_SERVICE_TYPE` (previously only when `.venv/Scripts` existed, so Linux/macOS and some Windows layouts never got markers).
+- UI-started backend sets `MHM_UI_MANAGED_SERVICE` / `MHM_SERVICE_TYPE`; `get_service_processes` prefers env markers and drops the brittle `"ui" in path` heuristic that misclassified paths like `rapidui`.
+- Behavior tests: UI+headless classification uses `core/service.py` + env; new case for `rapidui` folder path.
+- **Admin panel channel status**: Email/Discord running/stopped labels use `LOG_EMAIL_FILE` / `LOG_DISCORD_FILE` + merged tails from `LOG_BACKUP_DIR` (TimedRotating backups), plus email IMAP/send activity heuristics; fixes false "Email: Stopped" after log rotation or custom log paths.
+- **Tier 3 / dev tools import fix**: [core/headless_service.py](core/headless_service.py) no longer imports top-level `run_mhm` (not on `sys.path` when running `development_tools/tests/run_test_coverage.py`), which was causing immediate `ModuleNotFoundError` and `run_test_coverage` -> `coverage_failed`.
+- **Audit queue**: `@handle_errors` on UI channel log merge helpers; xdist-safe Discord + user-management tests; Ruff; ASCII doc-fix and function registry regen (`docs`, doc-sync).
+
 ### 2026-03-31 - Doc-sync, DEV_TOOLS placeholders, test/parse fixes **COMPLETED**
 - Audit artifact read-fallback backlog: detailed table lives under V5 Section 7.16 (not AI_LEGACY); comments/docs retargeted; Pyright warnings cleared in `utilities.py` optional `details` handling.
 - Workflow section 10: repo-relative paths; ASCII cleanup; Section-sign cleanup in changelogs.
@@ -133,11 +141,6 @@ Guidelines:
 - `coverage.ini` `[report] ignore_errors = true` - stale paths in `.coverage` no longer make `coverage json`/`html` exit 1 and fail full audit.
 - Coverage data written under `development_tools/tests/`: `data_file = ${COVERAGE_DATA_DIR}/.coverage`; runner sets `COVERAGE_DATA_DIR` and absolute `--cov-config` so pytest/xdist workers write there by default (no project-root fallback needed).
 - `get_all_user_ids()` (`core/user_management.py`): `_users_dir_for_listing()` honors patched `USER_INFO_DIR_PATH` for behavior tests; when the configured path still matches import-time `BASE_DATA_DIR/users`, uses runtime `TEST_DATA_DIR/users` under `MHM_TESTING=1` so xdist/stale-import listings stay correct. `_users_dir_for_listing` wrapped with `@handle_errors(..., default_return=None)`; `get_all_user_ids` returns `[]` if resolution fails.
-
-### 2026-03-17 - Lists single-source plan, error handling Phase 1 (run_tests), Tier 3 coverage fix **Progressed**
-- **Continue Lists Single-Source Analysis plan**: All todos done. Placeholder patterns from config only; path_drift.legacy_documentation_files in config example; emoji/non-ASCII in constants + fix_documentation_headings; PATH_STARTSWITH_NON_FILE derived from COMMAND_PATTERNS; EXPECTED_OVERLAPS/DOC_SECTION_WORDS; SPECIAL_METHODS/CONTEXT_METHODS in constants (exclusion_utilities + analyze_error_handling); CACHE_AWARE_TOOLS in tool_metadata; deprecation_inventory path and trigger_keywords canonical; LIST_OF_LISTS updated (principles, sections 7b/12, status table).
-- **Error handling (run_tests.py)**: @handle_errors on normalize_test_id (Phase 1 medium); error_handling_exclude on nested canonicalize_nodeid/add_nodeid; try/except in those helpers; @handle_errors on _approximate_test_from_captured_output and _merge_run_results; typing and contextlib.suppress cleanups.
-- **Tier 3 coverage**: run_test_coverage enters combine block when only .coverage exists so coverage_collected is set; .coverage fallback and no_parallel file-not-found messages downgraded to INFO when outcome is success.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

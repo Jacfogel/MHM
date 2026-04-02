@@ -236,9 +236,9 @@ class TestServiceUtilitiesBehavior:
         mock_ui.info = {
             "pid": 222,
             "name": "python.exe",
-            "cmdline": ["python", "ui/service.py"],
+            "cmdline": ["python", "core/service.py"],
             "create_time": 2.0,
-            "environ": {},
+            "environ": {"MHM_UI_MANAGED_SERVICE": "1"},
         }
         mock_ui.is_running.return_value = True
 
@@ -253,6 +253,30 @@ class TestServiceUtilitiesBehavior:
         assert len(processes) == 2
         assert any(p["is_headless"] for p in processes)
         assert any(p["is_ui_managed"] for p in processes)
+
+    def test_get_service_processes_core_service_under_rapidui_path_is_headless(
+        self, test_data_dir
+    ):
+        """Paths containing substring 'ui' (e.g. folder 'rapidui') must not imply UI-managed."""
+        mock_proc = MagicMock()
+        mock_proc.info = {
+            "pid": 444,
+            "name": "python.exe",
+            "cmdline": ["python", r"D:\build\rapidui\MHM\core\service.py"],
+            "create_time": 1.0,
+            "environ": {},
+        }
+        mock_proc.is_running.return_value = True
+
+        with patch(
+            "core.service_utilities.psutil.process_iter",
+            return_value=[mock_proc],
+        ):
+            processes = get_service_processes()
+
+        assert len(processes) == 1
+        assert processes[0]["is_headless"] is True
+        assert processes[0]["is_ui_managed"] is False
 
     def test_get_service_processes_deduplicates_same_pid_and_create_time(
         self, test_data_dir

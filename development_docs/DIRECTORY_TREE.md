@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-31 01:55:52
+> **Last Generated**: 2026-04-02 01:25:12
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -237,8 +237,6 @@ C:.
 |   |   |   
 |   |   +---jsons
     (JSON files created by development tools)
-|   +---data
-    (data files)
 |   +---docs
 |   |   |   analyze_ascii_compliance.py
 |   |   |   analyze_documentation.py
@@ -298,10 +296,7 @@ C:.
 |   |   |   
 |   |   +---jsons
     (JSON files created by development tools)
-|   +---logs
-    (log files)
 |   +---reports
-|   |   |   analysis_detailed_results.json
 |   |   |   analyze_system_signals.py
 |   |   |   decision_support.py
 |   |   |   generate_consolidated_report.py
@@ -312,6 +307,15 @@ C:.
     (JSON files created by development tools)
 |   |   +---logs
     (log files)
+|   |   +---scopes
+|   |   |   +---dev_tools
+|   |   |   |   \---jsons
+    (JSON files created by development tools)
+|   |   |   \---full
+|   |   |       |   analysis_detailed_results.json
+|   |   |       |   
+|   |   |       \---jsons
+    (JSON files created by development tools)
 |   +---shared
 |   |   |   audit_signal_state.py
 |   |   |   audit_storage_scope.py
@@ -703,6 +707,7 @@ C:.
 |   |   |   test_account_creator_dialog_validation.py
 |   |   |   test_category_management_dialog.py
 |   |   |   test_channel_management_dialog_coverage_expansion.py
+|   |   |   test_channel_status_log_merge.py
 |   |   |   test_checkin_settings_widget_question_counts.py
 |   |   |   test_dialogs.py
 |   |   |   test_dialog_behavior.py

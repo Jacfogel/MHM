@@ -3,7 +3,7 @@ import sys
 
 import pytest
 
-from run_mhm import resolve_python_interpreter, prepare_launch_environment
+from core.launch_env import prepare_launch_environment, resolve_python_interpreter
 
 
 @pytest.mark.unit

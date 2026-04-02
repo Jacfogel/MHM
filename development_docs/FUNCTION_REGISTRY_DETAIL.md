@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-31 01:55:33
+> **Last Generated**: 2026-04-02 01:25:03
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -25,7 +25,7 @@
 - **Classes Documented**: 120
 - **Total Documented**: 2780
 - **Template-Generated**: 4
-- **Last Updated**: 2026-03-31
+- **Last Updated**: 2026-04-02
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -45,7 +45,7 @@ Core system utilities, configuration, error handling, and data management functi
 ### **Communication Functions** (450)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (424)
+### **User Interface Functions** (426)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (33)
@@ -5057,25 +5057,6 @@ interpreter, sets up the environment, and launches the UI application.
 
 Returns:
     int: Exit code (0 for success, 1 for failure)
-- [OK] `prepare_launch_environment(script_dir)` - Create an environment dict that prefers the project's virtualenv.
-
-Sets up PATH and PYTHONPATH to ensure the virtual environment is used
-and project imports work correctly.
-
-Args:
-    script_dir (str): The project directory path
-
-Returns:
-    dict: Environment dictionary with PATH and PYTHONPATH configured
-- [OK] `resolve_python_interpreter(script_dir)` - Return the preferred Python executable for the given project directory.
-
-Checks for virtual environment Python first, then falls back to system Python.
-
-Args:
-    script_dir (str): The project directory path
-
-Returns:
-    str: Path to Python executable
 
 #### `run_tests.py`
 **Functions:**
@@ -5880,6 +5861,11 @@ IMPORTANT: This will NEVER return True if the service is stopped.
 Channels cannot run without the service, so we check service status first.
 - [OK] `_check_ngrok_status(self)` - Check if ngrok tunnel is running and return PID
 - [OK] `_collect_active_users_for_combo(self)` - Load active users and normalized display metadata.
+- [OK] `_merge_rotated_channel_log_lines(primary, backup_dir)` - Merge recent lines from the primary channel log and TimedRotating backups.
+
+Rotated files use ``{primary.name}.{date_suffix}`` under ``backup_dir`` (see
+``BackupDirectoryRotatingFileHandler``). Order is oldest backup → newest →
+primary so the combined sequence is roughly chronological.
 - [OK] `_populate_active_users_in_combo_box(self)` - Populate user combo box from active user metadata.
 - [OK] `_refresh_user_list_fallback(self, original_error)` - Fallback user list refresh using minimal account/context reads.
 - [OK] `_reselect_user_if_present(self, current_user_id)` - Reselect prior active user if still present in combo list.
@@ -5887,6 +5873,7 @@ Channels cannot run without the service, so we check service status first.
 - [OK] `_send_test_message__get_selected_category(self)` - Get and validate the selected category from the dropdown.
 - [OK] `_send_test_message__validate_service_running(self)` - Validate that the service is running.
 - [OK] `_send_test_message__validate_user_selection(self)` - Validate that a user is selected.
+- [OK] `_tail_file_lines(path, max_lines)` - Return up to the last max_lines lines from a text file (for status heuristics).
 - [MISSING] `cleanup_old_requests()` - No description
 - [OK] `closeEvent(self, event)` - Handle window close event
 - [OK] `connect_signals(self)` - Connect UI signals to slots

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-31 01:55:36
+> **Last Generated**: 2026-04-02 01:25:05
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 120
-- **Total Imports Found**: 1536
+- **Total Imports Found**: 1537
 - **Dependencies Documented**: 120 (100% coverage)
-- **Standard Library Imports**: 411 (26.8%)
-- **Third-Party Imports**: 231 (15.0%)
-- **Local Imports**: 894 (58.2%)
-- **Last Updated**: 2026-03-31
+- **Standard Library Imports**: 411 (26.7%)
+- **Third-Party Imports**: 230 (15.0%)
+- **Local Imports**: 896 (58.3%)
+- **Last Updated**: 2026-04-02
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 411 imports (26.8%)
-- **Third-Party**: 231 imports (15.0%)
-- **Local**: 894 imports (58.2%)
+- **Standard Library**: 411 imports (26.7%)
+- **Third-Party**: 230 imports (15.0%)
+- **Local**: 896 imports (58.3%)
 
 ## Module Dependencies by Directory
 
@@ -1666,6 +1666,7 @@
 - **Dependencies**: 
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.launch_env (prepare_launch_environment, resolve_python_interpreter)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.service_utilities (get_flags_dir, get_service_processes, is_headless_service_running, is_ui_service_running)` (NEW)
   - **Standard Library**:
@@ -1682,7 +1683,7 @@
   - `run_headless_service.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.service_utilities
+- Added: core.error_handling, core.launch_env, core.logger, core.service_utilities
 - Removed: run_headless_service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3147,6 +3148,7 @@
     - `core.auto_cleanup (calculate_cache_size, find_pyc_files, find_pycache_dirs, get_cleanup_status, perform_cleanup, update_cleanup_timestamp)` (NEW)
     - `core.config (AI_TIMEOUT_SECONDS, BASE_DATA_DIR, DISCORD_BOT_TOKEN, EMAIL_IMAP_SERVER, EMAIL_SMTP_PASSWORD, EMAIL_SMTP_SERVER, EMAIL_SMTP_USERNAME, LM_STUDIO_BASE_URL, LOG_LEVEL, LOG_MAIN_FILE, SCHEDULER_INTERVAL, core.config, validate_all_configuration)` (NEW)
     - `core.error_handling (DataError, handle_errors)` (NEW)
+    - `core.launch_env (prepare_launch_environment, resolve_python_interpreter)` (NEW)
     - `core.logger (get_component_logger, setup_logging, toggle_verbose_logging)` (NEW)
     - `core.scheduler (SchedulerManager, run_category_scheduler_standalone, run_full_scheduler_standalone, run_user_scheduler_standalone)` (NEW)
     - `core.service_utilities (get_flags_dir)` (NEW)
@@ -3183,11 +3185,10 @@
     - `PySide6.QtGui (QFont)`
     - `PySide6.QtWidgets (QApplication, QDialog, QHBoxLayout, QLabel, QMainWindow, QMessageBox, QPushButton, QTabWidget, QTextEdit, QVBoxLayout, QWidget)`
     - `psutil`
-    - `run_mhm (prepare_launch_environment, resolve_python_interpreter)`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core, core.auto_cleanup, core.config, core.error_handling, core.logger, core.scheduler, core.service_utilities, core.time_utilities, core.user_data_manager, core.user_data_validation, tasks
+- Added: core, core.auto_cleanup, core.config, core.error_handling, core.launch_env, core.logger, core.scheduler, core.service_utilities, core.time_utilities, core.user_data_manager, core.user_data_validation, tasks
 - Removed: PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets
 
 <!-- MANUAL_ENHANCEMENT_START -->

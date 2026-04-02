@@ -10,7 +10,7 @@ from pathlib import Path
 # Add parent directory to path so we can import from core
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from run_mhm import resolve_python_interpreter, prepare_launch_environment
+from core.launch_env import prepare_launch_environment, resolve_python_interpreter
 
 # PySide6 imports
 from PySide6.QtWidgets import (
@@ -57,6 +57,52 @@ import core.config
 # Import generated UI for main window
 from ui.generated.admin_panel_pyqt import Ui_ui_app_mainwindow
 import contextlib
+
+
+@handle_errors(
+    "reading tail of channel log file for status",
+    default_return=[],
+)
+def _tail_file_lines(path: Path, max_lines: int) -> list[str]:
+    """Return up to the last max_lines lines from a text file (for status heuristics)."""
+    if not path.is_file():
+        return []
+    with open(path, encoding="utf-8", errors="ignore") as f:
+        lines = f.readlines()
+    if len(lines) <= max_lines:
+        return lines
+    return lines[-max_lines:]
+
+
+@handle_errors(
+    "merging rotated channel log files for status",
+    default_return=[],
+)
+def _merge_rotated_channel_log_lines(
+    primary: Path,
+    backup_dir: Path,
+    *,
+    max_lines_per_file: int = 2500,
+) -> list[str]:
+    """
+    Merge recent lines from the primary channel log and TimedRotating backups.
+
+    Rotated files use ``{primary.name}.{date_suffix}`` under ``backup_dir`` (see
+    ``BackupDirectoryRotatingFileHandler``). Order is oldest backup → newest →
+    primary so the combined sequence is roughly chronological.
+    """
+    merged: list[str] = []
+    name = primary.name
+    bdir = Path(backup_dir)
+    if bdir.is_dir():
+        rotated = sorted(
+            bdir.glob(f"{name}.*"),
+            key=lambda p: (p.stat().st_mtime, p.name),
+        )
+        for rot_path in rotated:
+            merged.extend(_tail_file_lines(rot_path, max_lines_per_file))
+    merged.extend(_tail_file_lines(primary, max_lines_per_file))
+    return merged
 
 
 class ServiceManager:
@@ -188,6 +234,8 @@ class ServiceManager:
 
         # Set up environment to ensure venv is used
         env = prepare_launch_environment(script_dir)
+        env["MHM_UI_MANAGED_SERVICE"] = "1"
+        env["MHM_SERVICE_TYPE"] = "ui"
 
         # Run the service in the background without showing a console window
         if os.name == "nt":  # Windows
@@ -604,13 +652,12 @@ class MHMManagerUI(QMainWindow):
             # and check if there's a shutdown message after it
             # Also check for recent activity as evidence Discord is running
             try:
-                discord_log_file = Path(__file__).parent.parent / "logs" / "discord.log"
-                if discord_log_file.exists():
-                    with open(
-                        discord_log_file, encoding="utf-8", errors="ignore"
-                    ) as f:
-                        lines = f.readlines()
-
+                discord_log_file = Path(core.config.LOG_DISCORD_FILE)
+                lines = _merge_rotated_channel_log_lines(
+                    discord_log_file,
+                    Path(core.config.LOG_BACKUP_DIR),
+                )
+                if lines:
                     # Find the most recent initialization message
                     last_init_time = None
                     last_shutdown_time = None
@@ -793,23 +840,28 @@ class MHMManagerUI(QMainWindow):
             ):
                 return False
 
-            # Check logs: if service is running, look for initialization message
-            # and check if there's a shutdown message after it
-            # Also verify the service PID matches to detect restarts
+            # Check logs: primary file plus rotated backups (init line often lands in backups
+            # after midnight rotation). Also use IMAP/send activity like Discord uses traffic.
             try:
-                email_log_file = Path(__file__).parent.parent / "logs" / "email.log"
-                if email_log_file.exists():
-                    with open(
-                        email_log_file, encoding="utf-8", errors="ignore"
-                    ) as f:
-                        lines = f.readlines()
-
-                    # Find the most recent initialization and shutdown messages
+                email_log_file = Path(core.config.LOG_EMAIL_FILE)
+                lines = _merge_rotated_channel_log_lines(
+                    email_log_file,
+                    Path(core.config.LOG_BACKUP_DIR),
+                )
+                if lines:
                     last_init_time = None
                     last_shutdown_time = None
+                    last_activity_time = None
+
+                    activity_indicators = [
+                        "Email sent to",
+                        "Received ",
+                        "new email(s)",
+                        "Processing ",
+                        " new emails",
+                    ]
 
                     for line in reversed(lines):
-                        # Look for initialization messages
                         if "EmailBot initialized successfully" in line:
                             timestamp_match = re.search(
                                 r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})", line
@@ -826,7 +878,6 @@ class MHMManagerUI(QMainWindow):
                                 except DataError:
                                     pass
 
-                        # Look for shutdown messages
                         if "EmailBot stopped" in line:
                             timestamp_match = re.search(
                                 r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})", line
@@ -843,27 +894,40 @@ class MHMManagerUI(QMainWindow):
                                 except DataError:
                                     pass
 
-                    # If we found an initialization, check if shutdown happened after it
+                        if any(indicator in line for indicator in activity_indicators):
+                            timestamp_match = re.search(
+                                r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})", line
+                            )
+                            if timestamp_match and last_activity_time is None:
+                                try:
+                                    last_activity_time = parse_timestamp_full(
+                                        timestamp_match.group(1)
+                                    )
+                                    if last_activity_time is None:
+                                        raise DataError(
+                                            "Invalid Email activity timestamp"
+                                        )
+                                except DataError:
+                                    pass
+
+                    if last_activity_time:
+                        time_since_activity = (
+                            now_datetime_full() - last_activity_time
+                        ).total_seconds()
+                        if time_since_activity < 300:
+                            return True
+
                     if last_init_time:
-                        # Check if initialization is recent (within last hour) to handle improper shutdowns
                         time_since_init = (
                             now_datetime_full() - last_init_time
                         ).total_seconds()
-
                         if (
                             last_shutdown_time is None
                             or last_shutdown_time < last_init_time
                         ):
-                            # Initialized and not shut down (or shutdown was before initialization)
-                            if time_since_init < 3600:  # Within last hour
+                            if time_since_init < 3600:
                                 return True
-                            # Old initialization - check if service PID suggests a restart
-                            # If service PID changed, this is a new service instance
-                            # We can't easily check this, so assume running if service is running
-                            # (Better to show running than stopped if uncertain)
                             return True
-                        # Shutdown happened after initialization - check if it's been restarted since
-                        # Look for any initialization after the shutdown
                         for line in lines:
                             if "EmailBot initialized successfully" in line:
                                 timestamp_match = re.search(
@@ -879,27 +943,26 @@ class MHMManagerUI(QMainWindow):
                                                 "Invalid Email restart timestamp"
                                             )
                                         if init_time > last_shutdown_time:
-                                            # Check if this restart is recent
                                             time_since_restart = (
                                                 now_datetime_full() - init_time
                                             ).total_seconds()
-                                            if (
-                                                time_since_restart < 3600
-                                            ):  # Within last hour
+                                            if time_since_restart < 3600:
                                                 return True
                                     except DataError:
                                         pass
                     else:
-                        # No initialization found - channel never started or logs are empty
-                        # If service is running but no init message, channel likely failed to start
-                        return False
+                        if last_activity_time:
+                            time_since_activity = (
+                                now_datetime_full() - last_activity_time
+                            ).total_seconds()
+                            if time_since_activity < 3600:
+                                return True
             except Exception as e:
                 logger.debug(f"Error checking Email logs: {e}")
-                # Fallback: if service is running and Email is configured, assume it's running
-                # This handles cases where logs are unavailable
                 return True
 
-            return False
+            # Match Discord: service up + email configured but no parseable log lines → assume running
+            return True
         except Exception as e:
             logger.debug(f"Error checking Email status: {e}")
             return False

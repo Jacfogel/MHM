@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-03-31 01:55:33
+> **Last Generated**: 2026-04-02 01:25:03
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -47,7 +47,7 @@ Communication Decision Tree:
 ### **[UI] Need UI/User Interface?**
 ```
 UI Operations Decision Tree:
-+-- `ui/ui_app_qt.py` - Main admin interface (132/134 functions)
++-- `ui/ui_app_qt.py` - Main admin interface (134/136 functions)
 +-- `ui/dialogs/task_crud_dialog.py` - Task CRUD (28 functions)
 `-- `ui/widgets/task_settings_widget.py` - Task settings (34/37 functions)```
 
@@ -202,7 +202,7 @@ Most complex functions (may need refactoring):
 - `core/` - System utilities and data management (35 files, 885 functions)
 - `communication/` - Communication channels and message processing (39 files, 854 functions)
 - `ai/` - AI chatbot functionality (7 files, 219 functions)
-- `ui/` - User interface components (29 files, 825 functions)
+- `ui/` - User interface components (29 files, 827 functions)
 - `user/` - User context and preferences (4 files, 65 functions)
 - `tasks/` - Task management system (5 files, 25 functions)
 

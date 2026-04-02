@@ -10,6 +10,7 @@ import sys
 import time
 import subprocess
 from pathlib import Path
+from core.launch_env import prepare_launch_environment, resolve_python_interpreter
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.service_utilities import (
@@ -109,42 +110,31 @@ class HeadlessServiceManager:
         try:
             # Get the path to the service script
             script_dir = Path(__file__).parent.parent
+            script_dir_str = str(script_dir)
             service_path = script_dir / "core" / "service.py"
 
-            # Ensure we use the venv Python explicitly
-            venv_python = script_dir / ".venv" / "Scripts" / "python.exe"
-            if venv_python.exists():
-                python_executable = str(venv_python)
-            else:
-                python_executable = sys.executable
+            python_executable = resolve_python_interpreter(script_dir_str)
 
             logger.info(f"Starting headless service with Python: {python_executable}")
             logger.info(f"Service path: {service_path}")
 
-            # Set up environment to ensure venv is used and prevent duplicate processes
-            env = os.environ.copy()
-            venv_scripts_dir = script_dir / ".venv" / "Scripts"
-            if venv_scripts_dir.exists():
-                # Put venv first in PATH to ensure it's used
-                env["PATH"] = str(venv_scripts_dir) + os.pathsep + env.get("PATH", "")
-                # Add explicit marker to prevent duplicate service detection
-                env["MHM_HEADLESS_SERVICE"] = "1"
-                env["MHM_SERVICE_TYPE"] = "headless"
-
-            # Set PYTHONPATH to include the project root so imports work
-            env["PYTHONPATH"] = str(script_dir)
+            # Same PATH/PYTHONPATH/venv layout as UI launcher; always set role markers
+            # so process classification works on all platforms (not only when .venv/Scripts exists).
+            env = prepare_launch_environment(script_dir_str)
+            env["MHM_HEADLESS_SERVICE"] = "1"
+            env["MHM_SERVICE_TYPE"] = "headless"
 
             # Start the service process
             if os.name == "nt":  # Windows
                 self.service_process = subprocess.Popen(
-                    [python_executable, service_path],
+                    [python_executable, str(service_path)],
                     env=env,
                     cwd=script_dir,
                     creationflags=subprocess.CREATE_NO_WINDOW,
                 )
             else:  # Unix/Linux/Mac
                 self.service_process = subprocess.Popen(
-                    [python_executable, service_path],
+                    [python_executable, str(service_path)],
                     env=env,
                     cwd=script_dir,
                     stdout=subprocess.DEVNULL,

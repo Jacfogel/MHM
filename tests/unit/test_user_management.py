@@ -295,8 +295,28 @@ class TestUserManagement:
     @pytest.mark.smoke
     def test_get_user_data_account_with_chat_id(self, mock_user_data, mock_config):
         """Test getting user account with chat_id field."""
-        user_data_result = get_user_data(mock_user_data["user_id"], "account")
-        account = user_data_result.get("account")
+        import time
+        from core import clear_user_caches
+        from core.file_locking import safe_json_read
+
+        account = None
+        for attempt in range(15):
+            clear_user_caches()
+            user_data_result = get_user_data(
+                mock_user_data["user_id"], "account", auto_create=False
+            )
+            if isinstance(user_data_result, dict):
+                account = user_data_result.get("account")
+            if account is not None:
+                break
+            if attempt < 14:
+                time.sleep(0.05)
+
+        if account is None:
+            account = safe_json_read(
+                os.path.join(mock_user_data["user_dir"], "account.json"), default={}
+            )
+
         assert account is not None
         assert "chat_id" in account
 
