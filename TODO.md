@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-04-02 (headless reliability shipped)
+> **Last Updated**: 2026-04-03 (doc hygiene and ops checks verified)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -77,22 +77,6 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
   - [ ] Implement archiving/trimming if needed; document in USER_DATA_MODEL or config
 
 ## Medium Priority
-
-### Quality & Operations
-
-**Confirm wake timer fix in production**
-- [ ] After a 01:00 run, confirm errors.log no longer fills with wake timer (Register-ScheduledTask) errors.
-- *User priority*: One-time check.
-
-**Monitor weekly backup health after retention split restoration**
-- *Created* 2026-02-25
-- *What it means*: After the next scheduled run, confirm weekly backup checks remain healthy with separate weekly/non-weekly retention buckets. Now in development tools; one-time verification plus recurring via `backup verify`.
-- *Why it helps*: Verifies that `weekly_backup_*` artifacts are preserved and weekly cadence remains reliable under frequent auto backups.
-- *Estimated effort*: Small
-- *Subtasks*:
-  - [ ] Run `python development_tools/run_development_tools.py backup verify` after the next 01:00 scheduler cycle
-  - [ ] Confirm `weekly_backup_present` and `weekly_backup_recent_enough` are both PASS
-  - [ ] Review `logs/scheduler.log` for weekly backup decision logging and unexpected fallback behavior
 
 ### Documentation
 

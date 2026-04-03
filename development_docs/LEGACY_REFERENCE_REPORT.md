@@ -2,15 +2,15 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-02 01:30:01
+> **Last Generated**: 2026-04-03 11:37:43
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 2
-**Legacy Compatibility Markers Detected**: 5
+**Total Files with Issues**: 3
+**Legacy Compatibility Markers Detected**: 6
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
 - Changelogs, archive folders, and planning documents are intentionally historical and excluded from this report.
-- Legacy compatibility markers remain in 2 file(s) (4 total markers).
+- Legacy compatibility markers remain in 3 file(s) (5 total markers).
 
 ## Recommended Follow-Up
 - Additional guidance: [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md)
@@ -26,7 +26,7 @@
 - Current inventory-term hits in scan: 0 file(s), 0 marker(s)
 
 ## Legacy Compatibility Markers
-**Files Affected**: 2
+**Files Affected**: 3
 
 ### development_tools\reports\analyze_system_signals.py
 **Issues Found**: 1
@@ -34,6 +34,14 @@
 - **Line 80**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: pre-scopes aggregate path (V5 Section 7.16).
+  ```
+
+### development_tools\shared\fix_project_cleanup.py
+**Issues Found**: 1
+
+- **Line 245**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: flat paths before scopes migration (still read by some fallbacks).
   ```
 
 ### development_tools\shared\service\audit_orchestration.py

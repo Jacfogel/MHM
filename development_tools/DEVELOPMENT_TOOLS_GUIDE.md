@@ -44,6 +44,8 @@ python development_tools/run_development_tools.py --clear-cache audit
 # Alias:
 python development_tools/run_development_tools.py --cache-clear audit
 
+**`--clear-cache` scope:** Removes audit tool JSON under `development_tools/**/jsons/scopes/full/` and `.../scopes/dev_tools/`, aggregated files under `development_tools/reports/scopes/{full,dev_tools}/`, rotated markdown under `development_tools/reports/archive/`, legacy flat `development_tools/reports/analysis_detailed_results.json` / `development_tools/reports/jsons/tool_timings.json` when present, per-tool dot-caches and selected `development_tools/tests/jsons/*.json` warm-run inputs. Does **not** delete `__pycache__`, `.pytest_cache`, or `development_tools/reports/logs/`.
+
 # Combine both
 python development_tools/run_development_tools.py --project-root . --config-path development_tools/config/development_tools_config.json status
 ```

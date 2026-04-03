@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-04-03 - Doc ASCII, doc-sync, ops checks, user_data_read scenario tests **COMPLETED**
+- `doc-fix --fix-ascii` on [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) (hyphens for list punctuation); `doc-sync` PASS; `audit --quick` refreshed status so Doc Sync and ASCII show clean.
+- Ops: no wake-timer `Register-ScheduledTask` noise in errors.log; scheduler.log 2026-04-03 01:00 cycle shows healthy wake timer maintenance; `backup verify` exit 0 and weekly checks PASS.
+- TODO.md: removed completed wake-timer confirmation and weekly-backup monitoring checklist blocks after verification.
+- Core coverage: [tests/core/test_user_data_read_scenarios.py](tests/core/test_user_data_read_scenarios.py) exercises [core/user_data_read.py](core/user_data_read.py) (`ensure_unique_ids`, `get_user_data` validation and `fields`, metadata, `normalize_on_read`, `load_and_ensure_ids`).
+- `--clear-cache`: [fix_project_cleanup.py](development_tools/shared/fix_project_cleanup.py) clears scoped **full** audit JSON, `reports/scopes/full/`, `reports/archive/`, and legacy aggregate paths (not just **dev_tools** scope); test `test_cleanup_tool_cache_includes_full_scope_and_reports_archive`; guides + dev_tools rule updated.
+- Tier 3 xdist: `test_reminder_followup_handles_task_without_due_date` unique user + canonical id + flow state cleanup (avoid shared `test_no_due_date` collision).
+
 ### 2026-04-02 - Headless service startup and process classification **COMPLETED**
 - Headless launcher uses [core/launch_env.py](core/launch_env.py) for `resolve_python_interpreter` / `prepare_launch_environment` and always sets `MHM_HEADLESS_SERVICE` / `MHM_SERVICE_TYPE` (previously only when `.venv/Scripts` existed, so Linux/macOS and some Windows layouts never got markers).
 - UI-started backend sets `MHM_UI_MANAGED_SERVICE` / `MHM_SERVICE_TYPE`; `get_service_processes` prefers env markers and drops the brittle `"ui" in path` heuristic that misclassified paths like `rapidui`.
@@ -136,11 +144,6 @@ Guidelines:
 - Pyright warnings are cleared (`0 errors, 0 warnings`), and the dev-tools guidance tests were updated accordingly.
 - [LIST_OF_LISTS.md](development_docs/LIST_OF_LISTS.md) now reflects that `TOOL_GUIDE` is derived (not a second catalog).
 - Added `tests/__init__.py` to fix full-suite pytest collection (`development_tools.conftest` conflict). `_resolve_coverage_workers()` uses `sys.modules` lookup and instance-only concurrency flags so dev-tools audit completes successfully.
-
-### 2026-03-18 - Tier 3 coverage: ignore_errors and data dir **COMPLETED**
-- `coverage.ini` `[report] ignore_errors = true` - stale paths in `.coverage` no longer make `coverage json`/`html` exit 1 and fail full audit.
-- Coverage data written under `development_tools/tests/`: `data_file = ${COVERAGE_DATA_DIR}/.coverage`; runner sets `COVERAGE_DATA_DIR` and absolute `--cov-config` so pytest/xdist workers write there by default (no project-root fallback needed).
-- `get_all_user_ids()` (`core/user_management.py`): `_users_dir_for_listing()` honors patched `USER_INFO_DIR_PATH` for behavior tests; when the configured path still matches import-time `BASE_DATA_DIR/users`, uses runtime `TEST_DATA_DIR/users` under `MHM_TESTING=1` so xdist/stale-import listings stay correct. `_users_dir_for_listing` wrapped with `@handle_errors(..., default_return=None)`; `get_all_user_ids` returns `[]` if resolution fails.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

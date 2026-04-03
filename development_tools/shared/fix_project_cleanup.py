@@ -158,7 +158,12 @@ class ProjectCleanup:
         return removed, failed
 
     def cleanup_tool_cache_artifacts(self, dry_run: bool = False) -> tuple[int, int]:
-        """Remove development-tools cache/result artifacts used for cache reuse."""
+        """Remove development-tools cache/result artifacts used for audit cache reuse.
+
+        Includes flat and scoped layouts: ``**/jsons/scopes/{full,dev_tools}/**``,
+        ``reports/scopes/{full,dev_tools}/**``, ``reports/archive/**`` (rotated markdown),
+        and legacy ``reports/analysis_detailed_results.json`` / ``reports/jsons/tool_timings.json``.
+        """
         removed = 0
         failed = 0
         for cache_file in self._iter_tool_cache_artifacts():
@@ -213,11 +218,37 @@ class ProjectCleanup:
         for cache_file in dev_tools_dir.glob("**/jsons/scopes/dev_tools/**/*"):
             if cache_file.is_file():
                 artifacts.append(cache_file)
-        reports_scoped = dev_tools_dir / "reports" / "scopes" / "dev_tools"
-        if reports_scoped.is_dir():
-            for scoped_report in reports_scoped.rglob("*"):
+        reports_scoped_dev = dev_tools_dir / "reports" / "scopes" / "dev_tools"
+        if reports_scoped_dev.is_dir():
+            for scoped_report in reports_scoped_dev.rglob("*"):
                 if scoped_report.is_file():
                     artifacts.append(scoped_report)
+
+        # Full-repo audit scope (default Tier 2/3 layout): per-domain .../jsons/scopes/full/** and
+        # aggregated JSON under development_tools/reports/scopes/full/** (see audit_storage_scope).
+        for cache_file in dev_tools_dir.glob("**/jsons/scopes/full/**/*"):
+            if cache_file.is_file():
+                artifacts.append(cache_file)
+        reports_scoped_full = dev_tools_dir / "reports" / "scopes" / "full"
+        if reports_scoped_full.is_dir():
+            for scoped_report in reports_scoped_full.rglob("*"):
+                if scoped_report.is_file():
+                    artifacts.append(scoped_report)
+
+        # Rotated markdown snapshots (AI_STATUS / AI_PRIORITIES / CONSOLIDATED) from prior runs.
+        reports_archive = dev_tools_dir / "reports" / "archive"
+        if reports_archive.is_dir():
+            for archived in reports_archive.rglob("*"):
+                if archived.is_file():
+                    artifacts.append(archived)
+
+        # LEGACY COMPATIBILITY: flat paths before scopes migration (still read by some fallbacks).
+        legacy_analysis = dev_tools_dir / "reports" / "analysis_detailed_results.json"
+        if legacy_analysis.is_file():
+            artifacts.append(legacy_analysis)
+        legacy_timings = dev_tools_dir / "reports" / "jsons" / "tool_timings.json"
+        if legacy_timings.is_file():
+            artifacts.append(legacy_timings)
 
         # Coverage JSON artifacts used as warm-run inputs.
         tests_jsons = dev_tools_dir / "tests" / "jsons"

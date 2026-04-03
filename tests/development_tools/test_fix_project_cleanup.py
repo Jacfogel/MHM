@@ -218,6 +218,43 @@ class TestProjectCleanup:
             "Directory should still exist in dry run"
 
     @pytest.mark.unit
+    def test_cleanup_tool_cache_includes_full_scope_and_reports_archive(
+        self, temp_project_copy
+    ):
+        """--clear-cache must remove scoped full-repo JSON and rotated report archives."""
+        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        dt = temp_project_copy / "development_tools"
+        scoped_tool = (
+            dt / "functions" / "jsons" / "scopes" / "full" / "sample_tool_results.json"
+        )
+        scoped_tool.parent.mkdir(parents=True, exist_ok=True)
+        scoped_tool.write_text("{}")
+
+        scoped_agg = dt / "reports" / "scopes" / "full" / "analysis_detailed_results.json"
+        scoped_agg.parent.mkdir(parents=True, exist_ok=True)
+        scoped_agg.write_text("{}")
+        (dt / "reports" / "scopes" / "full" / "jsons").mkdir(parents=True, exist_ok=True)
+        timings = dt / "reports" / "scopes" / "full" / "jsons" / "tool_timings.json"
+        timings.write_text("{}")
+
+        archived = dt / "reports" / "archive" / "AI_STATUS_2026-04-03_000000_0001.md"
+        archived.parent.mkdir(parents=True, exist_ok=True)
+        archived.write_text("# archived")
+
+        # Pre-scopes legacy filenames (still cleared when present).
+        legacy = dt / "reports" / "analysis_detailed_results.json"
+        legacy.write_text("{}")
+
+        removed, failed = cleanup.cleanup_tool_cache_artifacts(dry_run=False)
+        assert failed == 0, "Tool cache cleanup should not fail on temp paths"
+        assert removed >= 5, "Should clear scoped full, archive, and legacy aggregate paths"
+        assert not scoped_tool.exists()
+        assert not scoped_agg.exists()
+        assert not timings.exists()
+        assert not archived.exists()
+        assert not legacy.exists()
+
+    @pytest.mark.unit
     def test_cleanup_cache_directories_include_tool_caches(self, temp_project_copy):
         """Tool cache cleanup should remove both standardized cache forms and derived cache artifacts."""
         cleanup = ProjectCleanup(project_root=temp_project_copy)

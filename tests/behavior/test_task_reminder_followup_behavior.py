@@ -292,11 +292,15 @@ class TestTaskReminderFollowupBehavior:
         self, mock_get_scheduler, test_data_dir
     ):
         """Test that reminder follow-up handles tasks without due dates gracefully."""
-        # Arrange
-        user_id = "test_no_due_date"
-        TestUserFactory.create_basic_user(
-            user_id, enable_tasks=True, test_data_dir=test_data_dir
-        )
+        from core import get_user_id_by_identifier
+
+        # Arrange: unique id per test run so xdist workers do not share the same user dir
+        login_id = f"test_no_due_date_{uuid.uuid4().hex[:8]}"
+        assert TestUserFactory.create_basic_user(
+            login_id, enable_tasks=True, test_data_dir=test_data_dir
+        ), "create_basic_user should succeed"
+        user_id = get_user_id_by_identifier(login_id) or login_id
+        conversation_manager.user_states.pop(user_id, None)
 
         # Create a task without due date
         task_id = create_task(user_id=user_id, title="Test task without due date")
@@ -308,7 +312,10 @@ class TestTaskReminderFollowupBehavior:
         )
 
         # Assert
-        assert completed, "Flow should be completed"
+        assert completed, (
+            f"Flow should be completed (reply={reply!r}); if False, get_task_by_id "
+            "may have failed under parallel test isolation"
+        )
         assert "due date" in reply.lower(), "Should mention due date requirement"
 
         # Task should still exist but without reminders

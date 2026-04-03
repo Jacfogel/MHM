@@ -243,7 +243,7 @@ Consult [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for the detaile
     - Stores last run success/exit code and invalidates after failed previous runs.
     - Cache file: `development_tools/tests/jsons/dev_tools_coverage_cache.json` (enabled by default; disable with `--no-domain-cache`).
   - **Cache management**:
-    - `python development_tools/run_development_tools.py audit --clear-cache` (alias: `--cache-clear`) clears development-tools cache artifacts only (tool cache/result artifacts used by development-tools freshness logic).
+    - `python development_tools/run_development_tools.py audit --clear-cache` (alias: `--cache-clear`) clears development-tools audit caches: `**/jsons/scopes/{full,dev_tools}/**`, `reports/scopes/{full,dev_tools}/**`, `reports/archive/**`, legacy flat `reports/analysis_detailed_results.json` and `reports/jsons/tool_timings.json`, plus existing per-tool dot-caches and coverage JSON under `tests/jsons/` (not `__pycache__` / `.pytest_cache` / `reports/logs/`).
     - `python development_tools/run_development_tools.py cleanup --cache` clears all cache categories (tool caches/results + `__pycache__` + `.pytest_cache` + coverage cache artifacts).
   - **Backup policy workflows**:
     - `python development_tools/run_development_tools.py backup inventory` builds ownership and producer inventory from `backup_policy`.
