@@ -5,7 +5,12 @@ from unittest.mock import patch
 
 import pytest
 
-from communication.command_handlers.notebook_handler import NotebookHandler
+from communication.command_handlers.notebook_handler import (
+    NotebookHandler,
+    _format_no_group_hits_message,
+    _format_no_search_hits_message,
+    _format_no_tag_hits_message,
+)
 from notebook.notebook_schemas import Entry, ListItem
 
 
@@ -17,6 +22,23 @@ def _note_entry(title: str) -> Entry:
 @pytest.mark.communication
 @pytest.mark.notebook
 class TestNotebookHandlerPaginationAndFormatting:
+    def test_search_entries_empty_includes_usage_tips(self):
+        handler = NotebookHandler()
+
+        with patch(
+            "communication.command_handlers.notebook_handler.search_entries",
+            return_value=[],
+        ):
+            response = handler._handle_search_entries(
+                "user-1",
+                {"query": "missingterm", "offset": 0, "limit": 5},
+            )
+
+        assert response.completed is True
+        assert "No entries found matching 'missingterm'" in response.message
+        assert "!archived" in response.message
+        assert "!recent" in response.message
+
     def test_search_entries_adds_show_more_suggestion(self):
         handler = NotebookHandler()
         entries = [_note_entry(f"Note {i}") for i in range(6)]
@@ -97,4 +119,16 @@ class TestNotebookHandlerPaginationAndFormatting:
         assert "Archived" in response_text
         assert "Clean kitchen" in response_text
         assert "Laundry" in response_text
+
+
+@pytest.mark.unit
+@pytest.mark.communication
+def test_empty_result_hint_messages_are_self_contained():
+    """Sanity-check helper text for group/tag/search (used by Discord responses)."""
+    s = _format_no_search_hits_message("foo")
+    assert "foo" in s and "!inbox" in s
+    g = _format_no_group_hits_message("work")
+    assert "work" in g and "!recent" in g
+    t = _format_no_tag_hits_message("#urgent")
+    assert "#urgent" in t and "!t" in t
 

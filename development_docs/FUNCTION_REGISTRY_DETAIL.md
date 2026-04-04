@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-02 01:25:03
+> **Last Generated**: 2026-04-04 02:56:08
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 95.1% [OK] COMPLETED**
 - **Files Scanned**: 122
-- **Functions Found**: 1695
+- **Functions Found**: 1698
 - **Methods Found**: 1228
 - **Classes Found**: 154
-- **Total Items**: 2923
-- **Functions Documented**: 1592
+- **Total Items**: 2926
+- **Functions Documented**: 1595
 - **Methods Documented**: 1188
 - **Classes Documented**: 120
-- **Total Documented**: 2780
+- **Total Documented**: 2783
 - **Template-Generated**: 4
-- **Last Updated**: 2026-04-02
+- **Last Updated**: 2026-04-04
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (599)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (450)
+### **Communication Functions** (453)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (426)
@@ -935,6 +935,11 @@ Returns:
 - [OK] `_build_paginated_list_response(self, entries, header, offset, limit)` - Build a paginated list response for group/tag-style list handlers.
 - [OK] `_format_entry_id(self, entry)` - Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing).
 - [OK] `_format_entry_response(self, entry)` - Formats a single entry for display.
+- [OK] `_format_no_group_hits_message(group)` - Build the user message when listing by group returns no entries.
+- [OK] `_format_no_search_hits_message(query)` - Build the Discord/user message when search has no matches.
+
+Explains substring search, archived exclusion, and next-step commands.
+- [OK] `_format_no_tag_hits_message(tag)` - Build the user message when listing by tag returns no entries.
 - [OK] `_handle_add_list_item(self, user_id, entities)` - Handle adding item to list.
 - [OK] `_handle_add_tags(self, user_id, entities)` - Handle adding tags to entry.
 - [OK] `_handle_append_to_entry(self, user_id, entities)` - Handle appending to entry body.

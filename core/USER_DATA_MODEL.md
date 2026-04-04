@@ -75,7 +75,8 @@ Example (typical user directory):
   Example of a category-specific message file.
 
 - `messages/sent_messages.json`  
-  Tracking for messages sent (used to prevent spam/repeats and to support analytics).
+  Tracking for messages sent (used to prevent spam/repeats and to support analytics).  
+  **Retention**: Entries older than **365 days** (UTC cutoff; see `core.message_management.archive_old_messages`) are moved into `messages/archives/sent_messages_archive_<timestamp>.json` when scheduled cleanup runs. Archiving is invoked from `core.auto_cleanup.auto_cleanup_if_needed` after a successful full cleanup cycle (`DEFAULT_CLEANUP_INTERVAL_DAYS` is 30, so archiving is attempted at roughly that cadence, not daily). There is no separate max row-count cap: size is bounded by time window plus send volume (large single files within the window are expected for heavy use).
 
 ### 2.3. Notebook subtree
 

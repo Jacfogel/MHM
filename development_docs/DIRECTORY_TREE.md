@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-02 01:25:12
+> **Last Generated**: 2026-04-04 02:56:17
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -540,6 +540,7 @@ C:.
 |   |   |   test_schedule_utilities.py
 |   |   |   test_service_message_content_helpers.py
 |   |   |   test_service_request_helpers.py
+|   |   |   test_user_data_read_scenarios.py
 |   |   |   
 |   +---data
     (data files)
@@ -758,6 +759,7 @@ C:.
 |   |   |   test_config.py
 |   |   |   test_config_branch_coverage.py
 |   |   |   test_conversation_flow_reminder_helpers.py
+|   |   |   test_dialog_helpers.py
 |   |   |   test_discord_api_client.py
 |   |   |   test_discord_event_handler.py
 |   |   |   test_email_bot_body_extraction.py

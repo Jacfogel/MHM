@@ -49,6 +49,61 @@ logger = get_component_logger("communication_manager")
 handlers_logger = logger
 
 
+@handle_errors(
+    "formatting empty notebook search message",
+    default_return=(
+        "No entries found. Try !recent, !inbox, or !archived for archived notes."
+    ),
+    user_friendly=False,
+)
+def _format_no_search_hits_message(query: str) -> str:
+    """Build the Discord/user message when search has no matches.
+
+    Explains substring search, archived exclusion, and next-step commands.
+    """
+    lines = [
+        f"No entries found matching '{query}'.",
+        "",
+        "Search is case-insensitive and matches text inside titles, note bodies, and list items.",
+        "Archived entries are not included - try !archived if something might be archived.",
+        "",
+        "Try a shorter or different keyword, or browse with !recent / !inbox.",
+    ]
+    return "\n".join(lines)
+
+
+@handle_errors(
+    "formatting empty notebook group message",
+    default_return="No entries in that group. Try !recent or check spelling.",
+    user_friendly=False,
+)
+def _format_no_group_hits_message(group: str) -> str:
+    """Build the user message when listing by group returns no entries."""
+    lines = [
+        f"No entries found in group '{group}'.",
+        "",
+        "Check the spelling. Assign a group with !group <entry_id> <groupname>.",
+        "Browse recent entries with !recent to see what you have.",
+    ]
+    return "\n".join(lines)
+
+
+@handle_errors(
+    "formatting empty notebook tag message",
+    default_return="No entries with that tag. Try !recent or !t with another tag.",
+    user_friendly=False,
+)
+def _format_no_tag_hits_message(tag: str) -> str:
+    """Build the user message when listing by tag returns no entries."""
+    lines = [
+        f"No entries found with tag '{tag}'.",
+        "",
+        "Tags are normalized to lowercase. Add tags with !tag <entry_id> <tags...>.",
+        "Try !recent or another !t <tag> to explore.",
+    ]
+    return "\n".join(lines)
+
+
 class NotebookHandler(InteractionHandler):
     """Handler for notebook management interactions."""
 
@@ -537,7 +592,7 @@ class NotebookHandler(InteractionHandler):
         )  # Get all matches, paginate in handler
 
         if not entries:
-            return InteractionResponse(f"No entries found matching '{query}'.", True)
+            return InteractionResponse(_format_no_search_hits_message(query), True)
 
         total = len(entries)
         paginated = entries[offset : offset + limit]
@@ -787,7 +842,7 @@ class NotebookHandler(InteractionHandler):
         )  # Get all matches, paginate in handler
 
         if not entries:
-            return InteractionResponse(f"No entries found in group '{group}'.", True)
+            return InteractionResponse(_format_no_group_hits_message(group), True)
 
         return self._build_paginated_list_response(
             entries, f"📁 Group '{group}' ({len(entries)} entries):", offset, limit
@@ -889,7 +944,7 @@ class NotebookHandler(InteractionHandler):
         )  # Get all matches, paginate in handler
 
         if not entries:
-            return InteractionResponse(f"No entries found with tag '{tag}'.", True)
+            return InteractionResponse(_format_no_tag_hits_message(tag), True)
 
         return self._build_paginated_list_response(
             entries, f"🏷️ Tag '{tag}' ({len(entries)} entries):", offset, limit

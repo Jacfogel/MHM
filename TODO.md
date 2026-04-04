@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-04-03 (doc hygiene and ops checks verified)
+> **Last Updated**: 2026-04-04 (sent_messages TODO closed; see CHANGELOG)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -65,16 +65,6 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
   - [ ] Decide destination for the user_data_cli script (planned location scripts/utilities/; migrate to tracked runtime ownership such as core/ or user/ or app-tools, or retire if superseded).
   - [ ] Decide destination for project-maintenance scripts create_project_snapshot and cleanup_windows_tasks (planned location scripts/; tracked runtime ownership, not development_tools/).
   - [ ] Evaluate renaming/refactoring the create_project_snapshot script to match behavior (full restorable backup semantics) and define whether a separate generalized development-tools variant is needed.
-
-**Investigate sent_messages.json size and archiving**
-- *What it means*: Review `data/users/{user_id}/messages/sent_messages.json` growth (e.g. ~512KB observed). Confirm whether archiving or trimming of sent message history is needed and implement or document policy.
-- *Why it helps*: Prevents unbounded growth, keeps file_ops audit trail manageable, and may improve I/O and backup size.
-- *Estimated effort*: Small/Medium
-- *User priority*: Investigate soon.
-- *Subtasks*:
-  - [ ] Check existing archiving/trimming in message_management or message.log for sent_messages
-  - [ ] Define retention or max-size policy for sent_messages.json
-  - [ ] Implement archiving/trimming if needed; document in USER_DATA_MODEL or config
 
 ## Medium Priority
 

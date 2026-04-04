@@ -368,6 +368,7 @@ class MessageEditorDialog(QDialog):
         row = item.row()
         self.edit_message_by_row(row)
 
+    # not_duplicate: message_editor_row_edit_delete
     @handle_errors("editing message by row")
     def edit_message_by_row(self, row):
         """Edit message at the specified row."""
@@ -377,6 +378,7 @@ class MessageEditorDialog(QDialog):
             if dialog.exec() == QDialog.DialogCode.Accepted:
                 self.load_messages()
 
+    # not_duplicate: message_editor_row_edit_delete
     @handle_errors("deleting message by row")
     def delete_message_by_row(self, row):
         """Delete message at the specified row."""

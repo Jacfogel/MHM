@@ -116,6 +116,7 @@ class UserProfileDialog(QDialog):
         # Override key events for large dialog
         self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
 
+    # not_duplicate: keyPressEvent_dialog_escape
     @handle_errors("handling key press events")
     def keyPressEvent(self, event):
         """Handle key press events for the dialog."""

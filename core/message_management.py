@@ -639,7 +639,7 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
             "messages": archived_messages,
         }
 
-        save_json_data(archive_data, archive_path)
+        save_json_data(archive_data, str(archive_path))
 
         # Update active file
         data["messages"] = active_messages

@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-04-04 - Docs ASCII, duplicate markers, notebook empty-result UX, sent_messages archiving **COMPLETED**
+- **Changelog / audits**: `doc-fix --fix-ascii` + `doc-sync` on [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md). `# not_duplicate` markers in [file_operations.py](../core/file_operations.py) (`create_user_files_top_level_json`), [account_creator_dialog.py](../ui/dialogs/account_creator_dialog.py) + [user_profile_dialog.py](../ui/dialogs/user_profile_dialog.py) (`keyPressEvent_dialog_escape`), [message_editor_dialog.py](../ui/dialogs/message_editor_dialog.py) (`message_editor_row_edit_delete`). [test_dialog_helpers.py](../tests/unit/test_dialog_helpers.py) for `handle_dialog_escape_enter_keys`.
+- **Notebook**: [notebook_handler.py](../communication/command_handlers/notebook_handler.py) richer empty search/group/tag replies; `@handle_errors` + docstrings on `_format_no_*` helpers; ASCII hyphen in search line; `docs` registry refresh. [test_notebook_handler_pagination_formatting.py](../tests/unit/test_notebook_handler_pagination_formatting.py).
+- **Sent messages**: [message_management.py](../core/message_management.py) passes `str(archive_path)` to `save_json_data` (archive writes were skipped). [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md) retention; [TODO.md](../TODO.md) item removed. [test_message_management.py](../tests/core/test_message_management.py) (`TestArchiveOldMessages`).
+
 ### 2026-04-03 - Doc ASCII, doc-sync, ops checks, user_data_read scenario tests **COMPLETED**
 - `doc-fix --fix-ascii` on [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) (hyphens for list punctuation); `doc-sync` PASS; `audit --quick` refreshed status so Doc Sync and ASCII show clean.
 - Ops: no wake-timer `Register-ScheduledTask` noise in errors.log; scheduler.log 2026-04-03 01:00 cycle shows healthy wake timer maintenance; `backup verify` exit 0 and weekly checks PASS.
@@ -123,27 +128,6 @@ Guidelines:
 - **analyze_function_patterns**: entry_point_names, data_access_keywords, communication_keywords, decorator_names -> config `analyze_function_patterns`; projects override as needed.
 - Path drift: LIST_OF_LISTS bare paths -> full `development_tools/shared/...`. AI_FUNCTION_REGISTRY regenerated; doc-sync path drift now 0.
 - Ruff: SIM108, F401 fixes. Tests and Ruff pass. Re-run audit to refresh AI_PRIORITIES.
-
-### 2026-03-21 - Coverage: --cov-append, all domains, and combine logic fix **COMPLETED**
-- `run_test_coverage.py`: Added `--cov-append` to parallel pytest coverage run so pytest-cov enables data_suffix and each xdist worker writes its own `.coverage_parallel.<suffix>` file. Also expanded shard discovery to find all `.coverage_parallel.*`.
-- **Critical fix**: Corrected inverted if/else in combine block-previously, when coverage files existed we only logged "Combining..." and skipped the actual combine; when no files existed we tried to combine (always failed). Now combine runs when files exist; warning only when none found.
-- `generate_test_coverage_report.py`: Domains now derived from actual coverage data so TEST_COVERAGE_REPORT shows all measured domains (ai, communication, core, notebook, tasks, ui, user) instead of only CORE_MODULES.
-- Re-run `python development_tools/run_development_tools.py audit --full --clear-cache` to regenerate coverage and validate.
-
-### 2026-03-20 - Fix domain_mapper regression; resolve test and backup_health failures **COMPLETED**
-- domain_mapper: Added SOURCE_TO_TEST_MAPPING instance attribute for backward-compat (tests use it).
-- test_file_coverage_cache: Included development_tools_config.json in tool hash (domain_mapper reads from it).
-- All 5 previously failing tests pass.
-- analyze_backup_health: Extended "recent enough" threshold 8->14 days (config `backup_health.recent_days`). Weekly backups now pass; full Tier 3 audit completes.
-
-### 2026-03-19 - Consolidate tool guide lists; implement list consolidation; LIST_OF_LISTS continuation **Progressed**
-- Tool guidance data derived from canonical `tool_metadata._TOOLS`; fix_version_sync category lists now derived from `docs` by path prefix; exclusions from `get_exclusions()`.
-- LIST_OF_LISTS continuation: Stale rows removed (Section 6, Section 11); Section 10 Status column; Section 9a consolidation candidates resolved/deferred; Pyright documented as two canonical sources; quick index; Section 12 sorted; Section 14 quick reference table. TIER_TITLES -> tool_metadata; generated function patterns -> constants.
-- List consolidation: fix_version_sync derived lists; removed file_patterns.exclude_patterns; BASE_EXCLUDE_GLOBS -> standard_exclusions; DOCUMENTATION_GUIDE Section 4.1 config-canonical. Directory lists: `local_module_prefixes` canonical; scan_directories, core_modules, project_directories derived in constants.py. Config: `tool_commands.ruff_command` canonical; unused_imports/static_analysis derive; `test_markers.directory_to_marker` derived from categories when absent.
-- Scan scope fix: Restored explicit `paths.scan_directories` in config so AI_PRIORITIES and analysis tools use full scope (ai, communication, core, tasks, tests, ui, user) when derivation falls back to defaults.
-- Pyright warnings are cleared (`0 errors, 0 warnings`), and the dev-tools guidance tests were updated accordingly.
-- [LIST_OF_LISTS.md](development_docs/LIST_OF_LISTS.md) now reflects that `TOOL_GUIDE` is derived (not a second catalog).
-- Added `tests/__init__.py` to fix full-suite pytest collection (`development_tools.conftest` conflict). `_resolve_coverage_workers()` uses `sys.modules` lookup and instance-only concurrency flags so dev-tools audit completes successfully.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
