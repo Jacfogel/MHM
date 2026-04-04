@@ -7,7 +7,6 @@ end-of-audit batch (one write per logical report), without running real tools.
 
 from __future__ import annotations
 
-import os
 import sys
 from contextlib import ExitStack
 from pathlib import Path
@@ -32,6 +31,7 @@ def test_quick_audit_writes_each_core_status_file_once(tmp_path, monkeypatch):
         "evaluate_lock_set",
         lambda _paths: {"stale": [], "malformed": [], "active": []},
     )
+    monkeypatch.setenv("DISABLE_LOG_ROTATION", "1")
 
     proj = tmp_path / "audit_status_proj"
     proj.mkdir()
@@ -61,15 +61,7 @@ def test_quick_audit_writes_each_core_status_file_once(tmp_path, monkeypatch):
     with ExitStack() as stack:
         for p in patches:
             stack.enter_context(p)
-        prev = os.environ.get("DISABLE_LOG_ROTATION")
-        os.environ["DISABLE_LOG_ROTATION"] = "1"
-        try:
-            assert service.run_audit(quick=True) is True
-        finally:
-            if prev is None:
-                os.environ.pop("DISABLE_LOG_ROTATION", None)
-            else:
-                os.environ["DISABLE_LOG_ROTATION"] = prev
+        assert service.run_audit(quick=True) is True
 
     # Black-box check: end-of-audit writes each report under project_root/development_tools/.
     # (Do not wrap create_output_file — coverage/subprocess runs can bind a different module copy.)

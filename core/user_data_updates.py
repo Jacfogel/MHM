@@ -11,6 +11,7 @@ from core.error_handling import handle_errors
 
 from core.user_data_read import get_user_data
 from core.user_data_write import save_user_data
+from core.user_data_validation import is_valid_user_id
 from core.user_data_schedule_defaults import (
     ensure_category_has_default_schedule,
     ensure_all_categories_have_schedules,
@@ -19,24 +20,12 @@ from core.user_data_schedule_defaults import (
 logger = get_component_logger("main")
 
 
-@handle_errors("validating user_id", default_return=False)
-def _validate_user_id(user_id: str) -> bool:
-    """Validate user_id is a non-empty string. Log and return False if invalid."""
-    if not user_id or not isinstance(user_id, str):
-        logger.error(f"Invalid user_id: {user_id}")
-        return False
-    if not user_id.strip():
-        logger.error("Empty user_id provided")
-        return False
-    return True
-
-
 @handle_errors("validating user_id and dict", default_return=False)
 def _validate_user_id_and_dict(
     user_id: str, data: Any, dict_name: str
 ) -> bool:
     """Validate user_id and that data is a dict. Log and return False if invalid."""
-    if not _validate_user_id(user_id):
+    if not is_valid_user_id(user_id):
         return False
     if not isinstance(data, dict):
         logger.error(f"Invalid {dict_name}: {type(data)}")
@@ -62,7 +51,7 @@ def _update_user_section(
 # not_duplicate: user_data_updates_section
 @handle_errors("updating user schedules (centralised)", default_return=False)
 def update_user_schedules(user_id: str, schedules_data: dict[str, Any]) -> bool:
-    if not _validate_user_id(user_id):
+    if not is_valid_user_id(user_id):
         return False
     if not isinstance(schedules_data, dict):
         logger.error(f"Invalid schedules_data: {type(schedules_data)}")

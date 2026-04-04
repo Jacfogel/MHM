@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-04 02:56:10
+> **Last Generated**: 2026-04-04 14:34:29
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 120
-- **Total Imports Found**: 1537
+- **Total Imports Found**: 1540
 - **Dependencies Documented**: 120 (100% coverage)
-- **Standard Library Imports**: 411 (26.7%)
-- **Third-Party Imports**: 230 (15.0%)
-- **Local Imports**: 896 (58.3%)
+- **Standard Library Imports**: 412 (26.8%)
+- **Third-Party Imports**: 230 (14.9%)
+- **Local Imports**: 898 (58.3%)
 - **Last Updated**: 2026-04-04
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 411 imports (26.7%)
-- **Third-Party**: 230 imports (15.0%)
-- **Local**: 896 imports (58.3%)
+- **Standard Library**: 412 imports (26.8%)
+- **Third-Party**: 230 imports (14.9%)
+- **Local**: 898 imports (58.3%)
 
 ## Module Dependencies by Directory
 
@@ -324,6 +324,7 @@
     - `communication.command_handlers.shared_types (InteractionResponse, ParsedCommand)`
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
+    - `core.user_data_validation (is_valid_user_id)` (NEW)
   - **Standard Library**:
     - `abc (ABC, abstractmethod)`
 - **Used by**: 
@@ -336,7 +337,7 @@
   - `communication/command_handlers/schedule_handler.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger
+- Added: core.error_handling, core.logger, core.user_data_validation
 - Removed: communication/command_handlers/account_handler.py, communication/command_handlers/analytics_handler.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/interaction_handlers.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/profile_handler.py, communication/command_handlers/schedule_handler.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -416,13 +417,14 @@
     - `notebook.notebook_schemas (Entry)`
     - `notebook.notebook_validation (format_short_id)`
   - **Standard Library**:
+    - `collections.abc (Callable)`
     - `typing (Any)`
 - **Used by**: 
   - `communication/command_handlers/interaction_handlers.py`
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger, core.tags, core.time_utilities
-- Removed: communication/command_handlers/interaction_handlers.py
+- Removed: collections.abc, communication/command_handlers/interaction_handlers.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2402,6 +2404,7 @@
     - `core.message_management (ensure_user_message_files)` (NEW)
     - `core.user_data_read (get_user_data)` (NEW)
     - `core.user_data_schedule_defaults (ensure_all_categories_have_schedules, ensure_category_has_default_schedule)` (NEW)
+    - `core.user_data_validation (is_valid_user_id)` (NEW)
     - `core.user_data_write (save_user_data)` (NEW)
   - **Standard Library**:
     - `os`
@@ -2409,7 +2412,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.logger, core.message_management, core.user_data_read, core.user_data_schedule_defaults, core.user_data_write
+- Added: core.config, core.error_handling, core.logger, core.message_management, core.user_data_read, core.user_data_schedule_defaults, core.user_data_validation, core.user_data_write
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2432,7 +2435,9 @@
     - `time`
     - `typing (Any)`
 - **Used by**: 
+  - `communication/command_handlers/base_handler.py`
   - `core/schemas.py`
+  - `core/user_data_updates.py`
   - `core/user_data_write.py`
   - `tasks/task_data_handlers.py`
   - `ui/dialogs/account_creator_dialog.py`
@@ -2446,7 +2451,7 @@
 
 **Dependency Changes**:
 - Added: core, core.config, core.error_handling, core.logger, core.message_management, core.schemas, core.time_utilities
-- Removed: core/schemas.py, core/user_data_write.py, tasks/task_data_handlers.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_profile_dialog.py, ui/ui_app_qt.py, ui/widgets/category_selection_widget.py
+- Removed: communication/command_handlers/base_handler.py, core/schemas.py, core/user_data_updates.py, core/user_data_write.py, tasks/task_data_handlers.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_profile_dialog.py, ui/ui_app_qt.py, ui/widgets/category_selection_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: User data validation - validates user input and data integrity

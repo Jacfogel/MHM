@@ -118,11 +118,12 @@ def validate_schedule_periods__validate_time_format(time_str: str) -> bool:
 
 
 @handle_errors("validating user id", default_return=False)
-def is_valid_user_id(user_id: str) -> bool:
+def is_valid_user_id(user_id: str | None) -> bool:
     """
-    Validate that user_id is a non-empty string (stripped).
+    Validate user_id for filesystem paths, task handlers, updates, and command handlers.
 
-    Used by notebook, tasks, and other user-scoped item handlers.
+    Rules: non-empty string after strip, length at most 100, characters limited to
+    ASCII alphanumeric plus underscore and hyphen (UUIDs and simple internal IDs).
     """
     if user_id is None:
         logger.warning("user_id must not be None")
@@ -132,6 +133,12 @@ def is_valid_user_id(user_id: str) -> bool:
         return False
     if not user_id.strip():
         logger.warning("user_id must not be empty")
+        return False
+    if len(user_id) > 100:
+        logger.warning(f"user_id exceeds maximum length 100 (len={len(user_id)})")
+        return False
+    if not user_id.replace("_", "").replace("-", "").isalnum():
+        logger.warning(f"user_id contains invalid characters: {user_id!r}")
         return False
     return True
 

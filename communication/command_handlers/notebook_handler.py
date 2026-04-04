@@ -7,6 +7,7 @@ This module handles all notebook-related interactions including creating,
 viewing, updating, and searching notebook entries (notes, lists, journal).
 """
 
+from collections.abc import Callable
 from typing import Any
 
 from core.logger import get_component_logger
@@ -619,57 +620,81 @@ class NotebookHandler(InteractionHandler):
             suggestions=suggestions if suggestions else None,
         )
 
-    @handle_errors("handling pin entry")
+    def _apply_entry_ref_mutation(
+        self,
+        user_id: str,
+        entities: dict[str, Any],
+        flag: bool,
+        *,
+        missing_ref_message: str,
+        mutator: Callable[[str, Any, bool], Entry | None],
+        active_label: str,
+        inactive_label: str,
+        failure_message: str,
+    ) -> InteractionResponse:
+        """Pin/unpin or archive/unarchive by entry_ref; shared helper for pin/archive handlers.
+
+        Exceptions are handled by `@handle_errors` on `_handle_pin_entry` / `_handle_archive_entry`.
+        """
+        entry_ref = entities.get("entry_ref")
+        if not entry_ref:
+            return InteractionResponse(missing_ref_message, False)
+
+        entry = mutator(user_id, entry_ref, flag)
+        if entry:
+            action = active_label if flag else inactive_label
+            short_id = self._format_entry_id(entry)
+            return InteractionResponse(
+                f"✅ {action.capitalize()} '{entry.title or 'Untitled'}' ({short_id})",
+                True,
+            )
+        return InteractionResponse(failure_message, True)
+
+    @handle_errors(
+        "handling pin entry",
+        default_return=InteractionResponse(
+            "Something went wrong pinning that notebook entry. Please try again.",
+            True,
+        ),
+    )
     def _handle_pin_entry(
         self, user_id: str, entities: dict[str, Any], pinned: bool
     ) -> InteractionResponse:
         """Handle pinning/unpinning entry."""
-        entry_ref = entities.get("entry_ref")
+        return self._apply_entry_ref_mutation(
+            user_id,
+            entities,
+            pinned,
+            missing_ref_message="Which entry would you like to pin/unpin?",
+            mutator=pin_entry,
+            active_label="pinned",
+            inactive_label="unpinned",
+            failure_message="❌ Failed to pin/unpin. Entry not found.",
+        )
 
-        if not entry_ref:
-            return InteractionResponse(
-                "Which entry would you like to pin/unpin?", False
-            )
-
-        entry = pin_entry(user_id, entry_ref, pinned)
-
-        if entry:
-            action = "pinned" if pinned else "unpinned"
-            short_id = self._format_entry_id(entry)
-            return InteractionResponse(
-                f"✅ {action.capitalize()} '{entry.title or 'Untitled'}' ({short_id})",
-                True,
-            )
-        else:
-            return InteractionResponse(
-                "❌ Failed to pin/unpin. Entry not found.", True
-            )
-
-    @handle_errors("handling archive entry")
+    @handle_errors(
+        "handling archive entry",
+        default_return=InteractionResponse(
+            "Something went wrong archiving that notebook entry. Please try again.",
+            True,
+        ),
+    )
     def _handle_archive_entry(
         self, user_id: str, entities: dict[str, Any], archived: bool
     ) -> InteractionResponse:
         """Handle archiving/unarchiving entry."""
-        entry_ref = entities.get("entry_ref")
-
-        if not entry_ref:
-            return InteractionResponse(
-                "Which entry would you like to archive/unarchive?", False
-            )
-
-        entry = archive_entry(user_id, entry_ref, archived)
-
-        if entry:
-            action = "archived" if archived else "unarchived"
-            short_id = self._format_entry_id(entry)
-            return InteractionResponse(
-                f"✅ {action.capitalize()} '{entry.title or 'Untitled'}' ({short_id})",
-                True,
-            )
-        else:
-            return InteractionResponse(
-                "❌ Failed to archive/unarchive. Entry not found.", True
-            )
+        return self._apply_entry_ref_mutation(
+            user_id,
+            entities,
+            archived,
+            missing_ref_message=(
+                "Which entry would you like to archive/unarchive?"
+            ),
+            mutator=archive_entry,
+            active_label="archived",
+            inactive_label="unarchived",
+            failure_message="❌ Failed to archive/unarchive. Entry not found.",
+        )
 
     # List item handlers
     @handle_errors("handling add list item")

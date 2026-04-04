@@ -14,6 +14,7 @@ from communication.command_handlers.shared_types import (
 )
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
+from core.user_data_validation import is_valid_user_id
 
 # Route handler logs to communication component
 handler_logger = get_component_logger("command_handlers")
@@ -90,32 +91,8 @@ class InteractionHandler(ABC):
     # Helper methods with error handling for common operations
     @handle_errors("validating user ID", default_return=False)
     def _validate_user_id(self, user_id: str) -> bool:
-        """
-        Validate that user ID is properly formatted with enhanced validation.
-
-        Returns:
-            bool: True if valid, False otherwise
-        """
-        # Validate user_id type
-        if not user_id or not isinstance(user_id, str):
-            logger.error(f"Invalid user_id type: {type(user_id)}")
-            return False
-
-        if not user_id.strip():
-            logger.error("Empty user_id provided")
-            return False
-
-        # Additional validation for user_id format
-        if len(user_id) < 1 or len(user_id) > 100:
-            logger.error(f"Invalid user_id length: {len(user_id)}")
-            return False
-
-        # Check for valid characters (alphanumeric, underscore, hyphen)
-        if not user_id.replace("_", "").replace("-", "").isalnum():
-            logger.error(f"Invalid user_id format: {user_id}")
-            return False
-
-        return True
+        """Validate user ID using the same rules as core data paths (`is_valid_user_id`)."""
+        return is_valid_user_id(user_id)
 
     @handle_errors("validating parsed command", default_return=False)
     def _validate_parsed_command(self, parsed_command: ParsedCommand) -> bool:

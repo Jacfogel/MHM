@@ -89,7 +89,7 @@ Example (typical user directory):
 - `tasks/completed_tasks.json`
 - `tasks/task_schedules.json`
 
-These files represent the tasks framework state (open tasks, completed tasks, and scheduling metadata). Access via `tasks.task_data_handlers` (which uses `core.user_item_storage`). To add a new item type (e.g. events), use the same pattern: `ensure_user_subdir`, `load_user_json_file`, `save_user_json_file` from `core.user_item_storage`, and `is_valid_user_id` from `core.user_data_validation`.
+These files represent the tasks framework state (open tasks, completed tasks, and scheduling metadata). Access via `tasks.task_data_handlers` (which uses `core.user_item_storage`). To add a new item type (e.g. events), use the same pattern: `ensure_user_subdir`, `load_user_json_file`, `save_user_json_file` from `core.user_item_storage`, and `is_valid_user_id` from `core.user_data_validation` (non-empty string, max length 100, alphanumeric plus `_` and `-` only, aligned with command-handler validation).
 
 ---
 

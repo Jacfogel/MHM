@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-04 02:56:17
+> **Last Generated**: 2026-04-04 14:34:36
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -804,6 +804,7 @@ C:.
 |   |   |   test_user_data_loader_idempotency.py
 |   |   |   test_user_data_loader_order_insensitivity.py
 |   |   |   test_user_data_manager.py
+|   |   |   test_user_data_validation_user_id.py
 |   |   |   test_user_item_storage.py
 |   |   |   test_user_management.py
 |   |   |   test_user_package_exports.py

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-04 02:56:08
+> **Last Generated**: 2026-04-04 14:34:28
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -17,13 +17,13 @@
 ### **Function Documentation Coverage: 95.1% [OK] COMPLETED**
 - **Files Scanned**: 122
 - **Functions Found**: 1698
-- **Methods Found**: 1228
+- **Methods Found**: 1229
 - **Classes Found**: 154
-- **Total Items**: 2926
+- **Total Items**: 2927
 - **Functions Documented**: 1595
-- **Methods Documented**: 1188
+- **Methods Documented**: 1189
 - **Classes Documented**: 120
-- **Total Documented**: 2783
+- **Total Documented**: 2784
 - **Template-Generated**: 4
 - **Last Updated**: 2026-04-04
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (599)
+### **Core System Functions** (598)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (453)
+### **Communication Functions** (454)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (426)
@@ -825,10 +825,7 @@ Returns:
 
 Returns:
     bool: True if valid, False otherwise
-- [OK] `_validate_user_id(self, user_id)` - Validate that user ID is properly formatted with enhanced validation.
-
-Returns:
-    bool: True if valid, False otherwise
+- [OK] `_validate_user_id(self, user_id)` - Validate user ID using the same rules as core data paths (`is_valid_user_id`).
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
 
 Args:
@@ -862,10 +859,7 @@ Returns:
 
 Returns:
     bool: True if valid, False otherwise
-  - [OK] `InteractionHandler._validate_user_id(self, user_id)` - Validate that user ID is properly formatted with enhanced validation.
-
-Returns:
-    bool: True if valid, False otherwise
+  - [OK] `InteractionHandler._validate_user_id(self, user_id)` - Validate user ID using the same rules as core data paths (`is_valid_user_id`).
   - [OK] `InteractionHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
 
 Args:
@@ -932,6 +926,9 @@ Returns:
 
 #### `communication/command_handlers/notebook_handler.py`
 **Functions:**
+- [OK] `_apply_entry_ref_mutation(self, user_id, entities, flag)` - Pin/unpin or archive/unarchive by entry_ref; shared helper for pin/archive handlers.
+
+Exceptions are handled by `@handle_errors` on `_handle_pin_entry` / `_handle_archive_entry`.
 - [OK] `_build_paginated_list_response(self, entries, header, offset, limit)` - Build a paginated list response for group/tag-style list handlers.
 - [OK] `_format_entry_id(self, entry)` - Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing).
 - [OK] `_format_entry_response(self, entry)` - Formats a single entry for display.
@@ -968,6 +965,9 @@ Explains substring search, archived exclusion, and next-step commands.
 - [OK] `handle(self, user_id, parsed_command)` - Handle notebook interactions.
 **Classes:**
 - [OK] `NotebookHandler` - Handler for notebook management interactions.
+  - [OK] `NotebookHandler._apply_entry_ref_mutation(self, user_id, entities, flag)` - Pin/unpin or archive/unarchive by entry_ref; shared helper for pin/archive handlers.
+
+Exceptions are handled by `@handle_errors` on `_handle_pin_entry` / `_handle_archive_entry`.
   - [OK] `NotebookHandler._build_paginated_list_response(self, entries, header, offset, limit)` - Build a paginated list response for group/tag-style list handlers.
   - [OK] `NotebookHandler._format_entry_id(self, entry)` - Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing).
   - [OK] `NotebookHandler._format_entry_response(self, entry)` - Formats a single entry for display.
@@ -4900,7 +4900,6 @@ Returns:
 #### `core/user_data_updates.py`
 **Functions:**
 - [OK] `_update_user_section(user_id, section_key, data)` - Save a single user-data section and return whether that section was saved.
-- [OK] `_validate_user_id(user_id)` - Validate user_id is a non-empty string. Log and return False if invalid.
 - [OK] `_validate_user_id_and_dict(user_id, data, dict_name)` - Validate user_id and that data is a dict. Log and return False if invalid.
 - [MISSING] `update_channel_preferences(user_id, updates)` - No description
 - [MISSING] `update_user_account(user_id, updates)` - No description
@@ -4946,9 +4945,10 @@ Args:
 
 Returns:
     True if string length is valid, False otherwise
-- [OK] `is_valid_user_id(user_id)` - Validate that user_id is a non-empty string (stripped).
+- [OK] `is_valid_user_id(user_id)` - Validate user_id for filesystem paths, task handlers, updates, and command handlers.
 
-Used by notebook, tasks, and other user-scoped item handlers.
+Rules: non-empty string after strip, length at most 100, characters limited to
+ASCII alphanumeric plus underscore and hyphen (UUIDs and simple internal IDs).
 - [OK] `validate_new_user_data(user_id, data_updates)` - Validate complete dataset required for a brand-new user.
 - [OK] `validate_personalization_data(data)` - Validate *context/personalization* structure.
 

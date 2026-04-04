@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-04 02:56:15
+> **Last Generated**: 2026-04-04 14:34:34
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 120
-- **Total Imports**: 1537
-- **Standard Library**: 411 (26.7%)
-- **Third-Party**: 230 (15.0%)
-- **Local Imports**: 896 (58.3%)
+- **Total Imports**: 1540
+- **Standard Library**: 412 (26.8%)
+- **Third-Party**: 230 (14.9%)
+- **Local Imports**: 898 (58.3%)
 
 ## Dependency Decision Trees
 
@@ -40,7 +40,7 @@ AI System Dependencies:
 - Command Processing
   - communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_data_manager, base_handler (+3 more)
   - communication/command_handlers/analytics_handler.py <- standard library (collections, typing), logger, error_handling, base_handler, shared_types, checkin_analytics (+5 more)
-  - communication/command_handlers/base_handler.py <- standard library (abc), shared_types, logger, error_handling
+  - communication/command_handlers/base_handler.py <- standard library (abc), shared_types, logger, error_handling, user_data_validation
 - Communication Integration
   - communication/communication_channels/__init__.py <- none
   - communication/core/channel_monitor.py <- standard library (threading, time, typing), time_utilities, logger, error_handling, base_channel
@@ -48,7 +48,7 @@ AI System Dependencies:
 ### Need Communication Channel Coverage?
 Communication Dependencies:
 - Channel Infrastructure
-  - communication/command_handlers/base_handler.py <- standard library (abc), shared_types, logger, error_handling
+  - communication/command_handlers/base_handler.py <- standard library (abc), shared_types, logger, error_handling, user_data_validation
   - communication/core/factory.py <- standard library (importlib), base_channel, logger, error_handling, config
   - communication/communication_channels/base/base_channel.py <- standard library (abc, dataclasses, enum, typing), logger, error_handling
 - Specific Channels
