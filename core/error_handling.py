@@ -5,6 +5,7 @@ This module provides centralized error handling, custom exceptions, and recovery
 to make the application more robust and user-friendly.
 """
 
+import contextlib
 import os
 import sys
 import traceback
@@ -13,8 +14,12 @@ import threading
 import functools
 from typing import Any
 from collections.abc import Callable
-from datetime import datetime
-
+from core.network_probe import wait_for_network
+from core.time_utilities import (
+    now_datetime_full,
+    now_timestamp_filename,
+    now_timestamp_full,
+)
 
 # Create a safe fallback logger that doesn't depend on get_component_logger
 # This prevents circular errors when logging fails
@@ -60,7 +65,7 @@ class MHMError(Exception):
         self.details = details or {}
         self.recoverable = recoverable
         # Internal in-memory state: use canonical now + strict parse to get a local-naive datetime.
-        self.timestamp = _now_datetime_full()
+        self.timestamp = now_datetime_full()
         self.traceback = traceback.format_exc()
 
 
@@ -193,10 +198,7 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
             directory = os.path.dirname(file_path)
             if directory and not os.path.exists(directory):
                 os.makedirs(directory, exist_ok=True)
-                from core.logger import get_component_logger
-
-                logger = get_component_logger("main")
-                logger.info(f"Created missing directory: {directory}")
+                _safe_logger.info(f"Created missing directory: {directory}")
 
             # Create default data based on file type
             default_data = self._get_default_data(file_path, context)
@@ -205,18 +207,14 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
                     import json
 
                     json.dump(default_data, f, indent=4, ensure_ascii=False)
-                from core.logger import get_component_logger
-
-                logger = get_component_logger("main")
-                logger.info(f"Created missing file with default data: {file_path}")
+                _safe_logger.info(
+                    f"Created missing file with default data: {file_path}"
+                )
                 return True
 
             return False
         except Exception as e:
-            from core.logger import get_component_logger
-
-            logger = get_component_logger("main")
-            logger.error(f"File recovery failed: {e}")
+            _safe_logger.error(f"File recovery failed: {e}")
             return False
 
     # ERROR_HANDLING_EXCLUDE: Part of error handling infrastructure
@@ -228,19 +226,19 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
             return {
                 "user_id": context.get("user_id", "unknown"),
                 "preferences": {},
-                "created": _now_timestamp_full(),
+                "created": now_timestamp_full(),
             }
         elif "messages" in file_path:
             return {
                 "messages": [],
                 "category": context.get("category", "unknown"),
-                "created": _now_timestamp_full(),
+                "created": now_timestamp_full(),
             }
         elif "schedule" in file_path:
             return {
                 "periods": [],
                 "category": context.get("category", "unknown"),
-                "created": _now_timestamp_full(),
+                "created": now_timestamp_full(),
             }
         elif "checkins" in file_path or "chat_interactions" in file_path:
             # Log files should be simple arrays
@@ -249,7 +247,7 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
             # Generic JSON file - create basic structure
             return {
                 "data": {},
-                "created": _now_timestamp_full(),
+                "created": now_timestamp_full(),
                 "file_type": "generic_json",
             }
         return None
@@ -298,18 +296,15 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
 
             # Try to create backup of corrupted file
             # Use filename-safe readable timestamp (project-wide convention)
-            from core.time_utilities import now_timestamp_filename
-
             backup_path = f"{file_path}.corrupted_{now_timestamp_filename()}"
 
             if os.path.exists(file_path):
                 import shutil
 
                 shutil.copy2(file_path, backup_path)
-                from core.logger import get_component_logger
-
-                logger = get_component_logger("main")
-                logger.warning(f"Created backup of corrupted file: {backup_path}")
+                _safe_logger.warning(
+                    f"Created backup of corrupted file: {backup_path}"
+                )
 
             # Create new file with default data
             default_data = self._get_default_data(file_path, context)
@@ -318,18 +313,14 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
                     import json
 
                     json.dump(default_data, f, indent=4, ensure_ascii=False)
-                from core.logger import get_component_logger
-
-                logger = get_component_logger("main")
-                logger.info(f"Recreated corrupted file with default data: {file_path}")
+                _safe_logger.info(
+                    f"Recreated corrupted file with default data: {file_path}"
+                )
                 return True
 
             return False
         except Exception as e:
-            from core.logger import get_component_logger
-
-            logger = get_component_logger("main")
-            logger.error(f"JSON recovery failed: {e}")
+            _safe_logger.error(f"JSON recovery failed: {e}")
             return False
 
     # ERROR_HANDLING_EXCLUDE: Part of error handling infrastructure
@@ -341,19 +332,19 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
             return {
                 "user_id": context.get("user_id", "unknown"),
                 "preferences": {},
-                "created": _now_timestamp_full(),
+                "created": now_timestamp_full(),
             }
         elif "messages" in file_path:
             return {
                 "messages": [],
                 "category": context.get("category", "unknown"),
-                "created": _now_timestamp_full(),
+                "created": now_timestamp_full(),
             }
         elif "schedule" in file_path:
             return {
                 "periods": [],
                 "category": context.get("category", "unknown"),
-                "created": _now_timestamp_full(),
+                "created": now_timestamp_full(),
             }
         elif "checkins" in file_path or "chat_interactions" in file_path:
             # Log files should be simple arrays
@@ -362,7 +353,7 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
             # Generic JSON file - create basic structure
             return {
                 "data": {},
-                "created": _now_timestamp_full(),
+                "created": now_timestamp_full(),
                 "file_type": "generic_json",
             }
         return None
@@ -406,26 +397,13 @@ class NetworkRecovery(ErrorRecoveryStrategy):
             True if recovery was successful, False otherwise
         """
         try:
-            from core.service_utilities import wait_for_network
-
-            # Wait for network to be available
             if wait_for_network(timeout=30):
-                from core.logger import get_component_logger
-
-                logger = get_component_logger("main")
-                logger.info("Network recovery successful - connection restored")
+                _safe_logger.info("Network recovery successful - connection restored")
                 return True
-            else:
-                from core.logger import get_component_logger
-
-                logger = get_component_logger("main")
-                logger.warning("Network recovery failed - connection not restored")
-                return False
+            _safe_logger.warning("Network recovery failed - connection not restored")
+            return False
         except Exception as e:
-            from core.logger import get_component_logger
-
-            logger = get_component_logger("main")
-            logger.error(f"Network recovery failed: {e}")
+            _safe_logger.error(f"Network recovery failed: {e}")
             return False
 
 
@@ -468,18 +446,12 @@ class ConfigurationRecovery(ErrorRecoveryStrategy):
         try:
             # For now, configuration recovery is not implemented
             # Return False to indicate no recovery was possible
-            from core.logger import get_component_logger
-
-            logger = get_component_logger("main")
-            logger.warning(
+            _safe_logger.warning(
                 "Configuration recovery not implemented - using default behavior"
             )
             return False
         except Exception as e:
-            from core.logger import get_component_logger
-
-            logger = get_component_logger("main")
-            logger.error(f"Configuration recovery failed: {e}")
+            _safe_logger.error(f"Configuration recovery failed: {e}")
             return False
 
 
@@ -535,31 +507,14 @@ class ErrorHandler:
         # Check if we've exceeded retry limits
         error_key = f"{type(error).__name__}:{operation}"
         if self.error_count.get(error_key, 0) >= self.max_retries:
-            # Use safe logger to avoid circular dependency when logging fails
-            try:
-                from core.logger import get_component_logger
-                import os
+            import os
 
-                logger = get_component_logger("main")
-                # In test mode, these are expected errors (mocks, test scenarios), so use DEBUG
-                if os.getenv("MHM_TESTING") == "1":
-                    logger.debug(
-                        f"Maximum retries exceeded for {error_key} (expected in tests)"
-                    )
-                else:
-                    logger.error(f"Maximum retries exceeded for {error_key}")
-            except Exception as log_err:
-                # Fall back to safe logger if component logger fails
-                import os
-
-                if os.getenv("MHM_TESTING") == "1":
-                    _safe_logger.debug(
-                        f"Maximum retries exceeded for {error_key} (expected in tests, component logger failed: {log_err})"
-                    )
-                else:
-                    _safe_logger.error(
-                        f"Maximum retries exceeded for {error_key} (component logger failed: {log_err})"
-                    )
+            if os.getenv("MHM_TESTING") == "1":
+                _safe_logger.debug(
+                    f"Maximum retries exceeded for {error_key} (expected in tests)"
+                )
+            else:
+                _safe_logger.error(f"Maximum retries exceeded for {error_key}")
             if user_friendly:
                 self._show_user_error(error, context, "Maximum retries exceeded")
             return False
@@ -567,41 +522,15 @@ class ErrorHandler:
         # Try recovery strategies
         for strategy in self.recovery_strategies:
             if strategy.can_handle(error):
-                try:
-                    from core.logger import get_component_logger
-
-                    logger = get_component_logger("main")
-                    logger.info(f"Attempting recovery with strategy: {strategy.name}")
-                except Exception as log_err:
-                    # Fall back to safe logger if component logger fails
-                    _safe_logger.info(
-                        f"Attempting recovery with strategy: {strategy.name} (component logger failed: {log_err})"
-                    )
+                _safe_logger.info(
+                    f"Attempting recovery with strategy: {strategy.name}"
+                )
                 if strategy.recover(error, context):
-                    try:
-                        from core.logger import get_component_logger
-
-                        logger = get_component_logger("main")
-                        logger.info(
-                            f"Successfully recovered from error using {strategy.name}"
-                        )
-                    except Exception as log_err:
-                        # Fall back to safe logger if component logger fails
-                        _safe_logger.info(
-                            f"Successfully recovered from error using {strategy.name} (component logger failed: {log_err})"
-                        )
+                    _safe_logger.info(
+                        f"Successfully recovered from error using {strategy.name}"
+                    )
                     return True
-                else:
-                    try:
-                        from core.logger import get_component_logger
-
-                        logger = get_component_logger("main")
-                        logger.warning(f"Recovery strategy {strategy.name} failed")
-                    except Exception as log_err:
-                        # Fall back to safe logger if component logger fails
-                        _safe_logger.warning(
-                            f"Recovery strategy {strategy.name} failed (component logger failed: {log_err})"
-                        )
+                _safe_logger.warning(f"Recovery strategy {strategy.name} failed")
 
         # Increment error count
         self.error_count[error_key] = self.error_count.get(error_key, 0) + 1
@@ -640,30 +569,20 @@ class ErrorHandler:
             if context.get("user_id"):
                 error_msg += f" (User: {context['user_id']})"
 
+            operation = context.get("operation", "unknown")
             try:
-                from core.logger import get_component_logger
-
-                logger = get_component_logger("main")
-                error_logger = get_component_logger("errors")
-
-                # Log errors at ERROR level (tests expect this behavior)
-                # Component loggers are set to WARNING in test mode, so these won't appear
-                # unless TEST_VERBOSE_LOGS=2 (DEBUG level)
-                operation = context.get("operation", "unknown")
-                logger.error(error_msg, exc_info=True)
-                error_logger.error(
-                    "Error occurred",
-                    operation=operation,
-                    error_type=type(error).__name__,
-                    error_message=str(error),
-                    file_path=context.get("file_path"),
-                    user_id=context.get("user_id"),
-                )
-            except Exception as log_error:
-                # If component logger fails, use safe logger to avoid circular dependency
+                fp = context.get("file_path")
+                uid = context.get("user_id")
                 _safe_logger.error(
-                    f"{error_msg} (component logger failed: {log_error})", exc_info=True
+                    f"{error_msg} | type={type(error).__name__} file_path={fp} user_id={uid}",
+                    exc_info=True,
                 )
+                _safe_logger.error(
+                    f"Error occurred (operation={operation} error_type={type(error).__name__} "
+                    f"error_message={error!s} file_path={fp} user_id={uid})"
+                )
+            except Exception:
+                pass
         finally:
             # Always clear the flag
             if hasattr(_logging_lock, "logging_error"):
@@ -680,16 +599,8 @@ class ErrorHandler:
         # For now, just log the user-friendly message
         user_msg = custom_message or self._get_user_friendly_message(error, context)
 
-        try:
-            from core.logger import get_component_logger
-
-            logger = get_component_logger("main")
-            logger.error(f"User Error: {user_msg}")
-        except Exception as log_error:
-            # If component logger fails, use safe logger to avoid circular dependency
-            _safe_logger.error(
-                f"User Error: {user_msg} (component logger failed: {log_error})"
-            )
+        with contextlib.suppress(Exception):
+            _safe_logger.error(f"User Error: {user_msg}")
 
     # ERROR_HANDLING_EXCLUDE: Part of error handling infrastructure
     def _get_user_friendly_message(
@@ -774,15 +685,9 @@ def handle_errors(
                         try:
                             return await func(*args, **kwargs)
                         except Exception as e2:
-                            try:
-                                from core.logger import get_component_logger
-
-                                logger = get_component_logger("main")
-                                logger.error(
-                                    f"Operation failed again after recovery: {e2}"
-                                )
-                            except Exception:
-                                pass  # Don't let logger failures break error handling
+                            _safe_logger.error(
+                                f"Operation failed again after recovery: {e2}"
+                            )
                             if re_raise:
                                 raise
                             return default_return
@@ -816,15 +721,9 @@ def handle_errors(
                         try:
                             return func(*args, **kwargs)
                         except Exception as e2:
-                            try:
-                                from core.logger import get_component_logger
-
-                                logger = get_component_logger("main")
-                                logger.error(
-                                    f"Operation failed again after recovery: {e2}"
-                                )
-                            except Exception:
-                                pass  # Don't let logger failures break error handling
+                            _safe_logger.error(
+                                f"Operation failed again after recovery: {e2}"
+                            )
                             if re_raise:
                                 raise
                             return default_return
@@ -835,28 +734,6 @@ def handle_errors(
             return wrapper
 
     return decorator
-
-
-@handle_errors(
-    "getting canonical timestamp for error handling",
-    default_return="",
-    user_friendly=False,
-)
-def _now_timestamp_full() -> str:
-    from core.time_utilities import now_timestamp_full
-
-    return now_timestamp_full()
-
-
-@handle_errors(
-    "getting canonical datetime for error handling",
-    default_return=datetime.min,
-    user_friendly=False,
-)
-def _now_datetime_full() -> datetime:
-    from core.time_utilities import now_datetime_full
-
-    return now_datetime_full()
 
 
 @handle_errors("safe file operation", default_return=None)

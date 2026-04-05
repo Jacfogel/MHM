@@ -19,6 +19,9 @@ from pathlib import Path
 from collections.abc import Iterable
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+# Ensure repo root is importable when this script is run as a file (sys.path[0] is static_checks/).
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 LOG_METHODS = {"debug", "info", "warning", "error", "exception", "critical"}
 
 # Non-project-specific: dir names to skip during walk (should_exclude_file covers most)
@@ -41,24 +44,19 @@ IGNORED_DIR_NAMES = {
 
 
 def _get_channel_loggers_config():
-    """Load excluded_dirs and allowed_logging_import_paths from config."""
-    try:
-        from development_tools import config
+    """Load excluded_dirs and allowed_logging_import_paths from canonical dev-tools config.
 
-        config.load_external_config()
-        if hasattr(config, "get_static_check_channel_loggers_config"):
-            return config.get_static_check_channel_loggers_config()
-    except Exception:
-        pass
-    return {
-        "excluded_dirs": ["tests", "scripts", "ai_tools", "development_tools"],
-        "allowed_logging_import_paths": [
-            "core/logger.py",
-            "core/error_handling.py",
-            "core/service.py",
-            "run_tests.py",
-        ],
-    }
+    Project-specific lists must not be duplicated here; they live in
+    ``development_tools_config.json`` (``static_checks.channel_loggers``) with defaults
+    and merge behavior in ``development_tools.config.config`` — see
+    ``development_docs/LIST_OF_LISTS.md`` §6–7.
+    """
+    cfg_json = REPO_ROOT / "development_tools" / "config" / "development_tools_config.json"
+    from development_tools import config as dt_config
+
+    # Resolve JSON from repo root (not cwd) so this script works when invoked from any cwd.
+    dt_config.load_external_config(str(cfg_json))
+    return dt_config.get_static_check_channel_loggers_config()
 
 
 _channel_loggers_config = None

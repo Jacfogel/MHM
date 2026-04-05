@@ -191,6 +191,8 @@ VALIDATION = {
 # NOTE: Defaults are generic. Projects should provide error_handling section in config file.
 ERROR_HANDLING = {
     "decorator_names": ["@handle_errors", "handle_errors", "error_handler"],
+    # Treat like @handle_errors for coverage analysis (stdlib logging decorator in time_utilities).
+    "equivalent_error_decorators": ["_guard"],
     "exception_base_classes": [
         "BaseError",
         "DataError",
@@ -1325,6 +1327,9 @@ STATIC_CHECK_CHANNEL_LOGGERS_DEFAULT = {
         "core/logger.py",
         "core/error_handling.py",
         "core/service.py",
+        "core/config.py",
+        "core/network_probe.py",
+        "core/time_utilities.py",
         "run_tests.py",
     ],
 }

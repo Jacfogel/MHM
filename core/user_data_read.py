@@ -4,6 +4,7 @@ Read path for user data: get_user_data, get_user_data_with_metadata, caches, ID 
 Uses core.user_data_registry for loaders and cache clearing.
 """
 
+import importlib
 import os
 import uuid
 from typing import Any
@@ -128,8 +129,8 @@ def get_user_data(
                 )
                 return {}
             try:
-                from core.user_management import get_all_user_ids
-                known_ids = set(get_all_user_ids())
+                _gaui = importlib.import_module("core.user_management").get_all_user_ids
+                known_ids = set(_gaui())
                 if user_id not in known_ids:
                     logger.debug(
                         f"get_user_data: user {user_id} not in index with auto_create=False; returning empty"
@@ -142,8 +143,10 @@ def get_user_data(
             user_dir = _get_user_data_dir(user_id)
             if not os.path.exists(user_dir):
                 try:
-                    from core.user_management import get_all_user_ids
-                    known_ids = set(get_all_user_ids())
+                    _gaui = importlib.import_module(
+                        "core.user_management"
+                    ).get_all_user_ids
+                    known_ids = set(_gaui())
                     if user_id not in known_ids:
                         logger.debug(
                             f"get_user_data: user {user_id} not in index and directory missing with auto_create=True; returning empty"
@@ -209,8 +212,10 @@ def get_user_data(
             except Exception:
                 user_dir_exists = False
             try:
-                from core.user_management import get_all_user_ids
-                known_ids = set(get_all_user_ids())
+                _gaui = importlib.import_module(
+                    "core.user_management"
+                ).get_all_user_ids
+                known_ids = set(_gaui())
                 if user_id not in known_ids:
                     data = None
             except Exception:
@@ -286,7 +291,9 @@ def get_user_data(
                     if normalized:
                         data = normalized
                         try:
-                            from core.user_data_schedule_defaults import ensure_all_categories_have_schedules
+                            _ensure_sched = importlib.import_module(
+                                "core.user_data_schedule_defaults"
+                            ).ensure_all_categories_have_schedules
                             prefs = get_user_data(user_id, "preferences").get(
                                 "preferences", {}
                             )
@@ -296,9 +303,7 @@ def get_user_data(
                                 else []
                             )
                             if categories:
-                                ensure_all_categories_have_schedules(
-                                    user_id, suppress_logging=True
-                                )
+                                _ensure_sched(user_id, suppress_logging=True)
                                 normalized_after, _e2 = validate_schedules_dict(
                                     get_user_data(user_id, "schedules").get(
                                         "schedules", {}
@@ -415,8 +420,10 @@ def get_user_data(
     try:
         if auto_create is False and isinstance(result, dict):
             try:
-                from core.user_management import get_all_user_ids
-                known_ids = set(get_all_user_ids())
+                _gaui = importlib.import_module(
+                    "core.user_management"
+                ).get_all_user_ids
+                known_ids = set(_gaui())
                 if user_id not in known_ids:
                     logger.debug(
                         f"get_user_data final-guard: {user_id} not in index; returning empty under auto_create=False"

@@ -16,6 +16,7 @@ Usage:
   4) If completed == True, the flow is done, so we remove them from user_states.
 """
 
+import importlib
 import json
 from pathlib import Path
 from contextlib import suppress
@@ -545,11 +546,10 @@ class ConversationManager:
     def start_tasks_flow(self, user_id: str) -> tuple[str, bool]:
         """Starter for a future tasks multi-step flow (placeholder)."""
         # For now, delegate to single-turn handler semantics until flow is implemented
-        from communication.message_processing.interaction_manager import (
-            handle_user_message,
+        _im = importlib.import_module(
+            "communication.message_processing.interaction_manager"
         )
-
-        resp = handle_user_message(user_id, "show my tasks", "discord")
+        resp = _im.handle_user_message(user_id, "show my tasks", "discord")
         return (resp.message, True)
 
     @handle_errors(
@@ -557,11 +557,10 @@ class ConversationManager:
         default_return=("I'm having trouble starting the profile flow.", True),
     )
     def start_profile_flow(self, user_id: str) -> tuple[str, bool]:
-        from communication.message_processing.interaction_manager import (
-            handle_user_message,
+        _im = importlib.import_module(
+            "communication.message_processing.interaction_manager"
         )
-
-        resp = handle_user_message(user_id, "show profile", "discord")
+        resp = _im.handle_user_message(user_id, "show profile", "discord")
         return (resp.message, True)
 
     @handle_errors(
@@ -569,11 +568,10 @@ class ConversationManager:
         default_return=("I'm having trouble starting the schedule flow.", True),
     )
     def start_schedule_flow(self, user_id: str) -> tuple[str, bool]:
-        from communication.message_processing.interaction_manager import (
-            handle_user_message,
+        _im = importlib.import_module(
+            "communication.message_processing.interaction_manager"
         )
-
-        resp = handle_user_message(user_id, "show schedule", "discord")
+        resp = _im.handle_user_message(user_id, "show schedule", "discord")
         return (resp.message, True)
 
     @handle_errors(
@@ -593,11 +591,10 @@ class ConversationManager:
         Returns:
             tuple[str, bool]: Response message and completion status (always True for this flow)
         """
-        from communication.message_processing.interaction_manager import (
-            handle_user_message,
+        _im = importlib.import_module(
+            "communication.message_processing.interaction_manager"
         )
-
-        resp = handle_user_message(user_id, "show messages", "discord")
+        resp = _im.handle_user_message(user_id, "show messages", "discord")
         return (resp.message, True)
 
     @handle_errors(
@@ -617,11 +614,10 @@ class ConversationManager:
         Returns:
             tuple[str, bool]: Response message and completion status (always True for this flow)
         """
-        from communication.message_processing.interaction_manager import (
-            handle_user_message,
+        _im = importlib.import_module(
+            "communication.message_processing.interaction_manager"
         )
-
-        resp = handle_user_message(user_id, "show analytics", "discord")
+        resp = _im.handle_user_message(user_id, "show analytics", "discord")
         return (resp.message, True)
 
     @handle_errors(
@@ -863,11 +859,12 @@ class ConversationManager:
                         f"Error handling /tasks command during checkin for user {user_id}: {e}"
                     )
                     try:
-                        from communication.message_processing.interaction_manager import (
-                            handle_user_message,
+                        _im = importlib.import_module(
+                            "communication.message_processing.interaction_manager"
                         )
-
-                        response = handle_user_message(user_id, message_text, "discord")
+                        response = _im.handle_user_message(
+                            user_id, message_text, "discord"
+                        )
                         return (response.message, response.completed)
                     except Exception:
                         return (
@@ -880,11 +877,10 @@ class ConversationManager:
                 self._clear_flow_state(user_id, mark_completion=True)
 
             try:
-                from communication.message_processing.interaction_manager import (
-                    handle_user_message,
+                _im = importlib.import_module(
+                    "communication.message_processing.interaction_manager"
                 )
-
-                response = handle_user_message(user_id, message_text, "discord")
+                response = _im.handle_user_message(user_id, message_text, "discord")
                 return (response.message, response.completed)
             except Exception:
                 return (

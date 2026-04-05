@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-04-06 - Reduce dependency pattern risk (plan complete) **COMPLETED**
+- **Scope**: [reduce_dependency_risk_70688c22.plan.md](../.cursor/plans/reduce_dependency_risk_70688c22.plan.md) - triaged mutual-import cycles (core infra, data/message cluster, communication flow triangle, UI dynamic list pair); verification and full-audit passes completed per plan.
+- **Outcomes**: Cycles addressed with thin modules, deferred/`TYPE_CHECKING` imports, and narrower surfaces (no long-lived legacy bridges required for this slice). [MODULE_DEPENDENCIES_DETAIL.md](../development_docs/MODULE_DEPENDENCIES_DETAIL.md) and [analyze_dependency_patterns.py](../development_tools/imports/analyze_dependency_patterns.py) remain the evidence path; post-change **`circular_dependencies`** in [analysis_detailed_results.json](../development_tools/reports/scopes/full/analysis_detailed_results.json) is empty under typical full audits.
+- **Deferred**: Optional Phase 2 "trim fan-in/out" on `ui_app_qt.py`, `conversation_flow_manager.py`, and `analytics_handler.py` was **cancelled** in the plan (follow up only if coupling stays noisy).
+
 ### 2026-04-04 - Docs ASCII, duplicate markers, notebook empty-result UX, sent_messages archiving **COMPLETED**
 - **Changelog / audits**: `doc-fix --fix-ascii` + `doc-sync` on [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md). `# not_duplicate` markers in [file_operations.py](../core/file_operations.py) (`create_user_files_top_level_json`), [account_creator_dialog.py](../ui/dialogs/account_creator_dialog.py) + [user_profile_dialog.py](../ui/dialogs/user_profile_dialog.py) (`keyPressEvent_dialog_escape`), [message_editor_dialog.py](../ui/dialogs/message_editor_dialog.py) (`message_editor_row_edit_delete`). [test_dialog_helpers.py](../tests/unit/test_dialog_helpers.py) for `handle_dialog_escape_enter_keys`.
 - **Notebook**: [notebook_handler.py](../communication/command_handlers/notebook_handler.py) richer empty search/group/tag replies; `@handle_errors` + docstrings on `_format_no_*` helpers; ASCII hyphen in search line; `docs` registry refresh. [test_notebook_handler_pagination_formatting.py](../tests/unit/test_notebook_handler_pagination_formatting.py).

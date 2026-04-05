@@ -2,6 +2,7 @@
 User lifecycle and listing: get_all_user_ids, create_new_user, get_user_categories.
 """
 
+import importlib
 import os
 import uuid
 from pathlib import Path
@@ -171,8 +172,7 @@ def create_new_user(user_data: dict[str, Any]) -> str | None:
         ensure_category_has_default_schedule(user_id, category)
 
     try:
-        from core.user_data_manager import update_user_index
-        update_user_index(user_id)
+        importlib.import_module("core.user_data_manager").update_user_index(user_id)
     except Exception as e:
         logger.warning(f"Failed to update user index for new user {user_id}: {e}")
 

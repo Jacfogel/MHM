@@ -27,7 +27,7 @@ from core.file_operations import (
     load_json_data,
 )  # determine_file_path needed for test mocking
 from core.config import EMAIL_SMTP_SERVER, DISCORD_BOT_TOKEN
-from core.service_utilities import wait_for_network
+from core.network_probe import wait_for_network
 import contextlib
 
 # Route orchestration logs to channels component; keep module logger for local debug if needed

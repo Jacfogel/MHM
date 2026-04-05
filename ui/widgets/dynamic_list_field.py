@@ -3,6 +3,8 @@
 
 """Dynamic List Field"""
 
+import importlib
+
 from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Signal
 from ui.generated.dynamic_list_field_template_pyqt import (
@@ -112,19 +114,23 @@ class DynamicListField(QWidget):
                 self.ui.pushButton_delete_DynamicListField.setVisible(not is_blank)
 
                 # Auto-check when user types non-blank text (but not during programmatic changes)
-                from ui.widgets.dynamic_list_container import DynamicListContainer
+                _DLC = importlib.import_module(
+                    "ui.widgets.dynamic_list_container"
+                ).DynamicListContainer
 
                 if (
                     not is_blank
                     and not self.is_checked()
-                    and not DynamicListContainer._programmatic_change
+                    and not _DLC._programmatic_change
                 ):
                     self.set_checked(True)
 
             # Emit value changed signal
-            from ui.widgets.dynamic_list_container import DynamicListContainer
+            _DLC = importlib.import_module(
+                "ui.widgets.dynamic_list_container"
+            ).DynamicListContainer
 
-            if not DynamicListContainer._handling_duplicate:
+            if not _DLC._handling_duplicate:
                 self.value_changed.emit()
         except Exception as e:
             logger.error(f"Error handling text change in dynamic list field: {e}")
@@ -139,9 +145,11 @@ class DynamicListField(QWidget):
         """
         try:
             # Only emit if we're not in the middle of duplicate handling
-            from ui.widgets.dynamic_list_container import DynamicListContainer
+            _DLC = importlib.import_module(
+                "ui.widgets.dynamic_list_container"
+            ).DynamicListContainer
 
-            if not DynamicListContainer._handling_duplicate:
+            if not _DLC._handling_duplicate:
                 self.value_changed.emit()
         except Exception as e:
             logger.error(f"Error handling checkbox toggle in dynamic list field: {e}")

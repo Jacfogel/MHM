@@ -178,6 +178,7 @@ from .service import (
 )
 
 # Service utilities exports (public API)
+from .network_probe import wait_for_network
 from .service_utilities import (
     Throttler,
     InvalidTimeFormatError,
@@ -186,7 +187,6 @@ from .service_utilities import (
     get_service_processes,
     is_headless_service_running,
     is_ui_service_running,
-    wait_for_network,
     load_and_localize_datetime,
 )
 

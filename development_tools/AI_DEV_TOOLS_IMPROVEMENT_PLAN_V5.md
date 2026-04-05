@@ -414,6 +414,7 @@ Canonical writes already use scoped directories only. **LEGACY COMPATIBILITY** c
 
 **Removal**: Drop each fallback only after search-and-close proves no remaining consumers need it; update loaders and this table in the same change. Primary helper: `development_tools/shared/audit_storage_scope.py` (`legacy_flat_jsons_dir`).
 
+#### 7.17 audit full should include development tools test run/coverage, as part of full test run/coverage, it should just be it's own domain or whatever
 ---
 
 ### 5.8 Monitoring and deferred test work (no active V4 tasks)

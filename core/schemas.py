@@ -18,6 +18,7 @@ from pydantic import (
     model_validator,
     RootModel,
 )
+import importlib
 import re
 
 try:
@@ -154,9 +155,11 @@ class AccountModel(BaseModel):
                     )
 
                 # Validate format using centralized validation function
-                from core.user_data_validation import is_valid_discord_id
+                _is_valid_discord_id = importlib.import_module(
+                    "core.user_data_validation"
+                ).is_valid_discord_id
 
-                if normalized and not is_valid_discord_id(normalized):
+                if normalized and not _is_valid_discord_id(normalized):
                     logger.warning(
                         f"Invalid Discord ID format: '{normalized}' - normalized to empty string"
                     )
@@ -273,9 +276,9 @@ class PreferencesModel(BaseModel):
             return v
 
         try:
-            from core.message_management import get_message_categories
-
-            allowed_categories = get_message_categories()
+            allowed_categories = importlib.import_module(
+                "core.message_management"
+            ).get_message_categories()
             invalid_categories = [c for c in v if c not in allowed_categories]
 
             if invalid_categories:

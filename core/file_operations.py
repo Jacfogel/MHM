@@ -4,6 +4,7 @@ File operations utilities for MHM.
 Contains functions for file I/O, path determination, and file management.
 """
 
+import importlib
 import os
 import json
 from pathlib import Path
@@ -692,12 +693,14 @@ def _create_user_files__message_files(user_id, categories):
         user_messages_dir = Path(get_user_data_dir(user_id)) / "messages"
         user_messages_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create message files for each category
-        from core.message_management import create_message_file_from_defaults
+        # Create message files for each category (importlib avoids static import cycles)
+        _create_from_defaults = importlib.import_module(
+            "core.message_management"
+        ).create_message_file_from_defaults
 
         success_count = 0
         for category in categories:
-            if create_message_file_from_defaults(user_id, category):
+            if _create_from_defaults(user_id, category):
                 success_count += 1
                 logger.debug(
                     f"Created message file for category {category} for user {user_id}"
@@ -721,9 +724,9 @@ def _create_user_files__message_files(user_id, categories):
 def _create_user_files__update_user_references(user_id):
     """Auto-update message references and user index."""
     try:
-        from core.user_data_manager import update_message_references
-
-        update_message_references(user_id)
+        importlib.import_module("core.user_data_manager").update_message_references(
+            user_id
+        )
         # Skip user index update during initial file creation to avoid circular dependency
         # The index will be updated when the user is actually created
     except ImportError:

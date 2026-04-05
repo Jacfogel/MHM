@@ -7,6 +7,7 @@ import json
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock, mock_open
+from core.network_probe import wait_for_network
 from core.service_utilities import (
     Throttler,
     create_reschedule_request,
@@ -15,7 +16,6 @@ from core.service_utilities import (
     is_headless_service_running,
     is_service_running,
     is_ui_service_running,
-    wait_for_network,
     load_and_localize_datetime,
 )
 from core.time_utilities import TIMESTAMP_MINUTE, format_timestamp
@@ -313,7 +313,7 @@ class TestServiceUtilitiesBehavior:
     def test_wait_for_network_returns_true_when_network_available(self, test_data_dir):
         """Test that wait_for_network returns True when network is available."""
         # Arrange - Mock socket to simulate successful connection
-        with patch("core.service_utilities.socket.create_connection") as mock_socket:
+        with patch("core.network_probe.socket.create_connection") as mock_socket:
             mock_socket.return_value = MagicMock()
 
             # Act
@@ -331,7 +331,7 @@ class TestServiceUtilitiesBehavior:
     ):
         """Test that wait_for_network returns False when network is unavailable."""
         # Arrange - Mock socket to simulate connection failure
-        with patch("core.service_utilities.socket.create_connection") as mock_socket:
+        with patch("core.network_probe.socket.create_connection") as mock_socket:
             mock_socket.side_effect = OSError("Network unavailable")
 
             # Act
@@ -467,7 +467,7 @@ class TestServiceUtilitiesBehavior:
         # Arrange - Test various error conditions
 
         # Test 1: Network timeout
-        with patch("core.service_utilities.socket.create_connection") as mock_socket:
+        with patch("core.network_probe.socket.create_connection") as mock_socket:
             mock_socket.side_effect = OSError("Connection timeout")
             # Should not raise exception
             result = wait_for_network(timeout=0.1)  # Reduced timeout for faster testing
@@ -578,7 +578,7 @@ class TestServiceUtilitiesIntegration:
     def test_service_utilities_error_recovery_with_real_operations(self, test_data_dir):
         """Test error recovery when working with real operations."""
         # Test 1: Network recovery
-        with patch("core.service_utilities.socket.create_connection") as mock_socket:
+        with patch("core.network_probe.socket.create_connection") as mock_socket:
             # Simulate network failure then recovery
             mock_socket.side_effect = [OSError("Network down"), MagicMock()]
 

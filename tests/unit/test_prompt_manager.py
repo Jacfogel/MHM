@@ -470,8 +470,8 @@ class TestPromptManager:
     
     def test_create_contextual_prompt_error_handling_real_behavior(self, prompt_manager):
         """Test create_contextual_prompt error handling."""
-        # Simulate error
-        with patch('builtins.len', side_effect=Exception("Error")):
+        # Avoid patching builtins.len (breaks unittest.mock internals); fail on debug log instead
+        with patch("ai.prompt_manager.logger.debug", side_effect=Exception("Error")):
             result = prompt_manager.create_contextual_prompt("base", "context", "input")
             # Should return empty string on error due to @handle_errors decorator
             assert result == ""

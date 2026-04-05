@@ -238,19 +238,10 @@ class AccountManagementHandler(InteractionHandler):
 
         # Step 2: User provides confirmation code
         if not confirmation_code:
-            # Generate and send confirmation code
-            from communication.command_handlers.account_handler import (
-                _generate_confirmation_code,
-                _send_confirmation_code,
-            )
-
+            # Generate and send confirmation code (module-level helpers below)
             code = _generate_confirmation_code()
 
             # Store pending operation (in-memory for now, could be moved to a proper store)
-            from communication.command_handlers.account_handler import (
-                _pending_link_operations,
-            )
-
             _pending_link_operations[channel_identifier] = {
                 "operation_type": "link",
                 "username": username,
@@ -288,10 +279,6 @@ class AccountManagementHandler(InteractionHandler):
                 )
 
         # Step 3: Verify confirmation code and link account
-        from communication.command_handlers.account_handler import (
-            _pending_link_operations,
-        )
-
         pending = _pending_link_operations.get(channel_identifier)
 
         if not pending or pending["operation_type"] != "link":

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-04 14:34:28
+> **Last Generated**: 2026-04-05 02:38:59
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 95.1% [OK] COMPLETED**
-- **Files Scanned**: 122
-- **Functions Found**: 1698
+### **Function Documentation Coverage: 95.2% [OK] COMPLETED**
+- **Files Scanned**: 124
+- **Functions Found**: 1699
 - **Methods Found**: 1229
 - **Classes Found**: 154
-- **Total Items**: 2927
-- **Functions Documented**: 1595
+- **Total Items**: 2928
+- **Functions Documented**: 1598
 - **Methods Documented**: 1189
 - **Classes Documented**: 120
-- **Total Documented**: 2784
+- **Total Documented**: 2787
 - **Template-Generated**: 4
-- **Last Updated**: 2026-04-04
+- **Last Updated**: 2026-04-05
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (598)
+### **Core System Functions** (599)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (454)
@@ -927,8 +927,6 @@ Returns:
 #### `communication/command_handlers/notebook_handler.py`
 **Functions:**
 - [OK] `_apply_entry_ref_mutation(self, user_id, entities, flag)` - Pin/unpin or archive/unarchive by entry_ref; shared helper for pin/archive handlers.
-
-Exceptions are handled by `@handle_errors` on `_handle_pin_entry` / `_handle_archive_entry`.
 - [OK] `_build_paginated_list_response(self, entries, header, offset, limit)` - Build a paginated list response for group/tag-style list handlers.
 - [OK] `_format_entry_id(self, entry)` - Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing).
 - [OK] `_format_entry_response(self, entry)` - Formats a single entry for display.
@@ -966,8 +964,6 @@ Explains substring search, archived exclusion, and next-step commands.
 **Classes:**
 - [OK] `NotebookHandler` - Handler for notebook management interactions.
   - [OK] `NotebookHandler._apply_entry_ref_mutation(self, user_id, entities, flag)` - Pin/unpin or archive/unarchive by entry_ref; shared helper for pin/archive handlers.
-
-Exceptions are handled by `@handle_errors` on `_handle_pin_entry` / `_handle_archive_entry`.
   - [OK] `NotebookHandler._build_paginated_list_response(self, entries, header, offset, limit)` - Build a paginated list response for group/tag-style list handlers.
   - [OK] `NotebookHandler._format_entry_id(self, entry)` - Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing).
   - [OK] `NotebookHandler._format_entry_response(self, entry)` - Formats a single entry for display.
@@ -2962,8 +2958,6 @@ Args:
 - [OK] `_get_default_data(self, file_path, context)` - Get appropriate default data based on file type.
 - [OK] `_get_user_friendly_message(self, error, context)` - Convert technical error to user-friendly message.
 - [OK] `_log_error(self, error, context)` - Log error with context.
-- [MISSING] `_now_datetime_full()` - No description
-- [MISSING] `_now_timestamp_full()` - No description
 - [OK] `_show_user_error(self, error, context, custom_message)` - Show user-friendly error message.
 - [OK] `can_handle(self, error)` - Check if this strategy can handle the given error.
 - [OK] `can_handle(self, error)` - Check if this strategy can handle the given error.
@@ -3850,6 +3844,10 @@ Args:
 Raises:
     ValidationError: If message ID is not found or category is invalid
 
+#### `core/network_probe.py`
+**Functions:**
+- [OK] `wait_for_network(timeout)` - Wait for the network to be available, retrying every 5 seconds up to a timeout.
+
 #### `core/response_tracking.py`
 **Functions:**
 - [OK] `_get_response_log_filename(response_type)` - Get the filename for a response log type.
@@ -4463,7 +4461,6 @@ Raises:
 IMPORTANT:
 - Uses monotonic time (safe for measuring intervals).
 - Does NOT update last_run when returning False.
-- [OK] `wait_for_network(timeout)` - Wait for the network to be available, retrying every 5 seconds up to a timeout.
 **Classes:**
 - [OK] `InvalidTimeFormatError` - Exception raised when time format is invalid.
 
@@ -4552,9 +4549,12 @@ Returns:
 - [OK] `validate_tag(tag)` - Validates a single normalized tag for length and allowed characters.
 Raises ValidationError if invalid.
 
+#### `core/time_format_constants.py`
+
 #### `core/time_utilities.py`
 **Functions:**
-- [OK] `_log_time_error(operation, error)` - Log time utility failures without crashing the caller.
+- [OK] `_guard(operation, default_return)` - Log failures and return default_return (mirrors handle_errors defaults for time ops).
+- [OK] `decorator(func)` - Wrap ``func`` so failures are logged and ``default_return`` is used.
 - [OK] `format_timestamp(dt, fmt)` - Format a datetime using a provided format string. Returns "" for None.
 - [OK] `format_timestamp_milliseconds(dt)` - Debug-only: format to milliseconds (3 decimals).
 Example output: "2026-01-18 12:34:56.789"
@@ -4581,6 +4581,7 @@ Use this only when multiple inputs are expected.
 Prefer parse_timestamp_full / parse_timestamp_minute for critical state.
 - [OK] `parse_timestamp_full(value)` - Parse TIMESTAMP_FULL. Returns None on invalid input.
 - [OK] `parse_timestamp_minute(value)` - Parse TIMESTAMP_MINUTE. Returns None on invalid input.
+- [OK] `wrapper()` - Run the wrapped time helper; log and return the guard default on failure.
 
 #### `core/ui_management.py`
 **Functions:**
@@ -4686,6 +4687,7 @@ Args:
 
 Returns:
     str: ISO format timestamp of last interaction, or default if none found
+- [OK] `_get_user_categories(user_id)` - Resolve categories without a static import (breaks user_management cycle in tooling).
 - [OK] `_get_user_data_summary__add_core_file_info(self, file_path, file_type, summary)` - Add file info and special details for a single core file (used by process_core_files).
 - [OK] `_get_user_data_summary__add_file_info(self, file_path, file_type, summary)` - Add basic file information to the summary.
 - [OK] `_get_user_data_summary__add_json_file_detail(self, file_path, summary, file_type, detail_key, extractor, log_label)` - Load JSON from path and set summary["files"][file_type][detail_key] = extractor(data). Used for schedules (periods) and sent_messages (count).

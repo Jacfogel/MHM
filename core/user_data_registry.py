@@ -6,6 +6,7 @@ get_available_data_types, get_data_type_info, and the default load/save
 implementations for account, preferences, context, schedules, tags.
 """
 
+import importlib
 import os
 import time
 import contextlib
@@ -297,8 +298,7 @@ def _save_user_data__save_account(user_id: str, account_data: dict[str, Any]) ->
     cache_key = f"account_{user_id}"
     _user_account_cache[cache_key] = (account_data, time.time())
     try:
-        from core.user_data_manager import update_user_index
-        update_user_index(user_id)
+        importlib.import_module("core.user_data_manager").update_user_index(user_id)
     except Exception as e:
         logger.warning(
             f"Failed to update user index after account update for user {user_id}: {e}"
@@ -352,8 +352,7 @@ def _save_user_data__save_preferences(
     cache_key = f"preferences_{user_id}"
     _user_preferences_cache[cache_key] = (preferences_data, time.time())
     try:
-        from core.user_data_manager import update_user_index
-        update_user_index(user_id)
+        importlib.import_module("core.user_data_manager").update_user_index(user_id)
     except Exception as e:
         logger.warning(
             f"Failed to update user index after preferences update for user {user_id}: {e}"
@@ -417,8 +416,7 @@ def _save_user_data__save_context(user_id: str, context_data: dict[str, Any]) ->
     cache_key = f"context_{user_id}"
     _user_context_cache[cache_key] = (context_data, time.time())
     try:
-        from core.user_data_manager import update_user_index
-        update_user_index(user_id)
+        importlib.import_module("core.user_data_manager").update_user_index(user_id)
     except Exception as e:
         logger.warning(
             f"Failed to update user index after context update for user {user_id}: {e}"

@@ -68,6 +68,9 @@
       "handle_errors",
       "error_handler"
     ],
+    "equivalent_error_decorators": [
+      "_guard"
+    ],
     "exception_base_classes": [
       "AIError",
       "CommunicationError",

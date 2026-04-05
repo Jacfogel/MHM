@@ -21,6 +21,7 @@ from core.time_utilities import (
     parse_timestamp_full,
 )
 import contextlib
+import importlib
 
 logger = get_component_logger("message")
 
@@ -200,9 +201,7 @@ def add_message(user_id, category, message_data, index=None):
     save_json_data(data, str(file_path))
 
     try:
-        from core.user_data_manager import update_user_index
-
-        update_user_index(user_id)
+        importlib.import_module("core.user_data_manager").update_user_index(user_id)
     except Exception as e:
         logger.warning(
             f"Failed to update user index after message addition for user {user_id}: {e}"
@@ -260,9 +259,7 @@ def edit_message(user_id, category, message_id, updated_data):
     save_json_data(data, str(file_path))
 
     try:
-        from core.user_data_manager import update_user_index
-
-        update_user_index(user_id)
+        importlib.import_module("core.user_data_manager").update_user_index(user_id)
     except Exception as e:
         logger.warning(
             f"Failed to update user index after message edit for user {user_id}: {e}"
@@ -353,9 +350,7 @@ def delete_message(user_id, category, message_id):
     save_json_data(data, str(file_path))
 
     try:
-        from core.user_data_manager import update_user_index
-
-        update_user_index(user_id)
+        importlib.import_module("core.user_data_manager").update_user_index(user_id)
     except Exception as e:
         logger.warning(
             f"Failed to update user index after message deletion for user {user_id}: {e}"

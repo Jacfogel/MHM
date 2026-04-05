@@ -620,6 +620,13 @@ class NotebookHandler(InteractionHandler):
             suggestions=suggestions if suggestions else None,
         )
 
+    @handle_errors(
+        "applying notebook entry change",
+        default_return=InteractionResponse(
+            "Something went wrong with that notebook entry. Please try again.",
+            True,
+        ),
+    )
     def _apply_entry_ref_mutation(
         self,
         user_id: str,
@@ -632,10 +639,7 @@ class NotebookHandler(InteractionHandler):
         inactive_label: str,
         failure_message: str,
     ) -> InteractionResponse:
-        """Pin/unpin or archive/unarchive by entry_ref; shared helper for pin/archive handlers.
-
-        Exceptions are handled by `@handle_errors` on `_handle_pin_entry` / `_handle_archive_entry`.
-        """
+        """Pin/unpin or archive/unarchive by entry_ref; shared helper for pin/archive handlers."""
         entry_ref = entities.get("entry_ref")
         if not entry_ref:
             return InteractionResponse(missing_ref_message, False)

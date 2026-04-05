@@ -9,10 +9,10 @@ to eliminate code duplication and provide a single source of truth.
 from datetime import datetime
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
+from core.time_format_constants import DATE_DISPLAY_WEEKDAY
 from core.time_utilities import (
     now_datetime_full,
     TIME_ONLY_MINUTE,
-    DATE_DISPLAY_WEEKDAY,
     format_timestamp,
     parse_time_only_minute,
 )

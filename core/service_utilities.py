@@ -7,7 +7,6 @@ Contains functions for service management, network operations, and datetime hand
 import os
 import json
 import time
-import socket
 import psutil
 from pathlib import Path
 import pytz
@@ -298,30 +297,6 @@ def is_ui_service_running():
     """Check if a UI-managed MHM service is currently running"""
     processes = get_service_processes()
     return any(proc["is_ui_managed"] for proc in processes)
-
-
-@handle_errors("waiting for network", default_return=False)
-def wait_for_network(timeout=60):
-    """Wait for the network to be available, retrying every 5 seconds up to a timeout."""
-    start_time = time.time()
-    while time.time() - start_time < timeout:
-        connection = None
-        try:
-            # Attempt to connect to a common DNS server (Google DNS as an example)
-            connection = socket.create_connection(("8.8.8.8", 53))
-            logger.debug("Network is available.")
-            return True
-        except OSError:
-            logger.info("Network not available yet, retrying...")
-            time.sleep(5)  # Wait for 5 seconds before retrying
-        finally:
-            if connection is not None:
-                try:
-                    connection.close()
-                except OSError:
-                    logger.debug("Error closing network probe socket", exc_info=True)
-    logger.error("Network not available after waiting.")
-    return False
 
 
 @handle_errors("loading and localizing datetime")

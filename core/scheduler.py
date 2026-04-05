@@ -2091,7 +2091,6 @@ def run_full_scheduler_standalone():
     This can be called from the admin UI without needing a scheduler instance.
     """
     from communication.core.channel_orchestrator import CommunicationManager
-    from core.scheduler import SchedulerManager
 
     # Create communication manager and scheduler manager
     communication_manager = CommunicationManager()
@@ -2112,7 +2111,6 @@ def run_user_scheduler_standalone(user_id):
     This can be called from the admin UI without needing a scheduler instance.
     """
     from communication.core.channel_orchestrator import CommunicationManager
-    from core.scheduler import SchedulerManager
 
     # Create communication manager and scheduler manager
     communication_manager = CommunicationManager()
@@ -2133,7 +2131,6 @@ def run_category_scheduler_standalone(user_id, category):
     This can be called from the admin UI without needing a scheduler instance.
     """
     from communication.core.channel_orchestrator import CommunicationManager
-    from core.scheduler import SchedulerManager
 
     # Create communication manager and scheduler manager
     communication_manager = CommunicationManager()

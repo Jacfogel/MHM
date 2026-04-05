@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-04 14:34:36
+> **Last Generated**: 2026-04-05 02:39:11
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -48,6 +48,7 @@ C:.
 |   |   |   conftest_refactor_plan_4aa2eb26.plan.md
 |   |   |   dev_tools_v4_continuation_6131deb0.plan.md
 |   |   |   planning_documents_consolidation_f3a74815.plan.md
+|   |   |   reduce_dependency_risk_70688c22.plan.md
 |   |   |   unified_user_items_and_shared_helpers.plan.md
 |   |   |   
 |   \---rules
@@ -156,6 +157,7 @@ C:.
 |   |   logger.py
 |   |   message_analytics.py
 |   |   message_management.py
+|   |   network_probe.py
 |   |   response_tracking.py
 |   |   scheduler.py
 |   |   schedule_management.py
@@ -164,6 +166,7 @@ C:.
 |   |   service.py
 |   |   service_utilities.py
 |   |   tags.py
+|   |   time_format_constants.py
 |   |   time_utilities.py
 |   |   ui_management.py
 |   |   user_data_manager.py

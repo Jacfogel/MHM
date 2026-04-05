@@ -4,6 +4,7 @@ User Data Manager - Enhanced utilities for user-centric operations
 Provides tools for message references, backup, export, and indexing
 """
 
+import importlib
 import os
 import json
 import shutil
@@ -27,6 +28,12 @@ from core.time_utilities import now_timestamp_filename, now_timestamp_full
 
 logger = get_component_logger("main")
 data_manager_logger = get_component_logger("user_activity")
+
+
+@handle_errors("resolving user categories", default_return=[])
+def _get_user_categories(user_id: str):
+    """Resolve categories without a static import (breaks user_management cycle in tooling)."""
+    return importlib.import_module("core.user_management").get_user_categories(user_id)
 
 
 class UserDataManager:
@@ -496,7 +503,9 @@ class UserDataManager:
     ) -> None:
         """Process core user data files (profile, preferences, schedules, etc.)."""
         try:
-            from core.user_data_registry import USER_DATA_LOADERS
+            USER_DATA_LOADERS = importlib.import_module(
+                "core.user_data_registry"
+            ).USER_DATA_LOADERS
 
             dynamic_types = list(USER_DATA_LOADERS.keys()) + ["sent_messages"]
             self._get_user_data_summary__process_file_types_with_adder(
@@ -609,9 +618,11 @@ class UserDataManager:
             if not categories:
                 return
 
-            from core.message_management import ensure_user_message_files
+            _ensure = importlib.import_module(
+                "core.message_management"
+            ).ensure_user_message_files
 
-            result = ensure_user_message_files(user_id, categories)
+            result = _ensure(user_id, categories)
             if result["success"]:
                 logger.info(
                     f"Message files validation for user {user_id}: checked {result['files_checked']} categories, created {result['files_created']} files, directory_created={result['directory_created']}"
@@ -1514,9 +1525,7 @@ def get_user_info_for_data_manager(user_id: str) -> dict[str, Any] | None:
         }
 
         # Get message files
-        from core import get_user_categories
-
-        categories = get_user_categories(user_id)
+        categories = _get_user_categories(user_id)
 
         for category in categories:
             category_path = str(
@@ -1532,10 +1541,6 @@ def get_user_info_for_data_manager(user_id: str) -> dict[str, Any] | None:
     except Exception as e:
         logger.error(f"Error getting user info for data manager: {e}")
         return None
-
-
-# Import get_user_categories from user_management to avoid circular import via core
-from core.user_management import get_user_categories
 
 
 @handle_errors("building user index", default_return={})
@@ -1560,7 +1565,7 @@ def build_user_index() -> dict[str, Any]:
 
                 # Get message count
                 message_count = 0
-                categories = get_user_categories(user_id)
+                categories = _get_user_categories(user_id)
 
                 for category in categories:
                     category_path = str(
@@ -1630,7 +1635,7 @@ def get_user_summary(user_id: str) -> dict[str, Any]:
             return {}
 
         # Get categories
-        categories = get_user_categories(user_id)
+        categories = _get_user_categories(user_id)
 
         # Get message statistics
         message_stats = {}

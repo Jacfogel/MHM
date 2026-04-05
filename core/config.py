@@ -6,6 +6,7 @@ Handles environment variables, validation, and system settings.
 
 import os
 import contextlib
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -52,7 +53,9 @@ def _normalize_path(value: str) -> str:
         cleaned = cleaned.replace("/", os.sep).replace("\\", os.sep)
         return os.path.normpath(cleaned)
     except Exception as e:
-        logger.error(f"Error normalizing path '{value}': {e}")
+        logging.getLogger("mhm.config").error(
+            f"Error normalizing path {value!r}: {e}"
+        )
         return value  # Return original value on error
 
 
@@ -273,10 +276,9 @@ LOG_AI_DEV_TOOLS_FILE = _normalize_path(
     os.getenv("LOG_AI_DEV_TOOLS_FILE", str(Path(LOGS_DIR) / "ai_dev_tools.log"))
 )  # AI development tools log
 
-# Set up logger after path definitions to avoid circular imports
-from core.logger import get_component_logger
-
-logger = get_component_logger("main")
+# Stdlib logger avoids importing core.logger while config constants are initialized
+# (get_component_logger pulls paths from this module; bootstrap order matters).
+logger = logging.getLogger("mhm.main")
 
 # Communication Channel Configurations (non-blocking)
 

@@ -4,6 +4,7 @@ This module centralizes all rules for validating user account, preferences,
 context, and schedules data.
 """
 
+import importlib
 import re
 import os
 from typing import Any
@@ -361,8 +362,6 @@ def validate_user_update(
     # ACCOUNT ----------------------------------------------------------------
     if data_type == "account":
         # Account validation is now handled by Pydantic models in core/schemas.py
-        from core.schemas import validate_account_dict
-
         try:
             try:
                 from core import get_user_data
@@ -380,7 +379,9 @@ def validate_user_update(
                 merged_account["user_id"] = user_id
 
             # Use Pydantic validation for account data
-            _, validation_errors = validate_account_dict(merged_account)
+            _, validation_errors = importlib.import_module(
+                "core.schemas"
+            ).validate_account_dict(merged_account)
             if validation_errors:
                 errors.extend(validation_errors)
 
@@ -405,8 +406,6 @@ def validate_user_update(
     # PREFERENCES -------------------------------------------------------------
     elif data_type == "preferences":
         # Preferences validation is now handled by Pydantic models in core/schemas.py
-        from core.schemas import validate_preferences_dict
-
         try:
             # Retry in case of race conditions with file reads in parallel execution
             import time
@@ -436,7 +435,9 @@ def validate_user_update(
             merged_preferences.update(updates)
 
             # Use Pydantic validation for preferences data
-            _, validation_errors = validate_preferences_dict(merged_preferences)
+            _, validation_errors = importlib.import_module(
+                "core.schemas"
+            ).validate_preferences_dict(merged_preferences)
             if validation_errors:
                 errors.extend(validation_errors)
         except Exception as e:
@@ -462,8 +463,6 @@ def validate_user_update(
     # SCHEDULES ---------------------------------------------------------------
     elif data_type == "schedules":
         # Schedules validation is now handled by Pydantic models in core/schemas.py
-        from core.schemas import validate_schedules_dict
-
         try:
             try:
                 from core import get_user_data
@@ -478,7 +477,9 @@ def validate_user_update(
             merged_schedules.update(updates)
 
             # Use Pydantic validation for schedules data
-            _, validation_errors = validate_schedules_dict(merged_schedules)
+            _, validation_errors = importlib.import_module(
+                "core.schemas"
+            ).validate_schedules_dict(merged_schedules)
             if validation_errors:
                 errors.extend(validation_errors)
         except Exception as e:

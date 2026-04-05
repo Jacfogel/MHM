@@ -41,6 +41,37 @@ logger = get_component_logger("development_tools")
 config.load_external_config()
 
 
+def _collect_try_blocks_in_function_body(
+    func_node: ast.FunctionDef | ast.AsyncFunctionDef,
+) -> list[ast.Try]:
+    """Return ``try`` blocks that belong to *this* function's body only (not nested defs)."""
+
+    blocks: list[ast.Try] = []
+
+    def walk_stmts(stmts: list[ast.stmt]) -> None:
+        for st in stmts:
+            if isinstance(st, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            if isinstance(st, ast.Try):
+                blocks.append(st)
+                walk_stmts(st.body)
+                for h in st.handlers:
+                    walk_stmts(h.body)
+                walk_stmts(st.orelse)
+                walk_stmts(st.finalbody)
+            elif isinstance(st, (ast.If, ast.For, ast.AsyncFor, ast.While)):
+                walk_stmts(st.body)
+                walk_stmts(st.orelse)
+            elif isinstance(st, ast.With):
+                walk_stmts(st.body)
+            elif hasattr(ast, "Match") and isinstance(st, ast.Match):
+                for case in st.cases:
+                    walk_stmts(case.body)
+
+    walk_stmts(func_node.body)
+    return blocks
+
+
 class ModuleStats(TypedDict):
     total_functions: int
     functions_with_error_handling: int
@@ -123,6 +154,11 @@ class ErrorHandlingAnalyzer:
         # Add exception class patterns from config
         for exc_class in exception_classes:
             self.error_patterns[exc_class] = rf'{exc_class}'
+
+        # Decorators that provide the same class of protection as @handle_errors for metrics
+        # (e.g. core.time_utilities._guard: log + safe default, avoids importing error_handling).
+        equiv = error_config.get("equivalent_error_decorators", ["_guard"])
+        self.equivalent_error_decorator_ids = frozenset(equiv) if isinstance(equiv, (list, tuple, set)) else frozenset(["_guard"])
         
         # Functions that should have error handling (from config)
         self.critical_functions = error_config.get('critical_function_keywords', {
@@ -396,6 +432,11 @@ class ErrorHandlingAnalyzer:
             # They're nested inside handle_errors, so they're part of the decorator implementation
             if func_node.name in ('decorator', 'async_wrapper', 'wrapper'):
                 return True
+
+        # _guard and its nested helpers in time_utilities (cycle-safe shim; same role as handle_errors internals)
+        if file_path and "time_utilities.py" in file_path.replace("\\", "/"):
+            if func_node.name in ("_guard", "wrapper", "decorator"):
+                return True
         
         return False
 
@@ -564,13 +605,11 @@ class ErrorHandlingAnalyzer:
             'func_content': func_content  # Store for Phase 1 analysis
         }
         
-        # Check for try-except blocks and analyze them
-        try_except_blocks = []
-        for node in ast.walk(func_node):
-            if isinstance(node, ast.Try):
-                analysis['has_try_except'] = True
-                analysis['has_error_handling'] = True
-                try_except_blocks.append(node)
+        # Try/except only in this function's own body (not inside nested defs — those belong to inner functions)
+        try_except_blocks = _collect_try_blocks_in_function_body(func_node)
+        if try_except_blocks:
+            analysis['has_try_except'] = True
+            analysis['has_error_handling'] = True
         
         # Check for error handling decorators
         for decorator in func_node.decorator_list:
@@ -587,6 +626,23 @@ class ErrorHandlingAnalyzer:
             elif isinstance(decorator, ast.Attribute) and decorator.attr == 'handle_errors':
                 analysis['has_decorators'] = True
                 analysis['has_error_handling'] = True
+
+        # Config-driven equivalents (e.g. @_guard on time_utilities)
+        for decorator in func_node.decorator_list:
+            dec_id: str | None = None
+            if isinstance(decorator, ast.Call):
+                if isinstance(decorator.func, ast.Name):
+                    dec_id = decorator.func.id
+                elif isinstance(decorator.func, ast.Attribute):
+                    dec_id = decorator.func.attr
+            elif isinstance(decorator, ast.Name):
+                dec_id = decorator.id
+            elif isinstance(decorator, ast.Attribute):
+                dec_id = decorator.attr
+            if dec_id and dec_id in self.equivalent_error_decorator_ids:
+                analysis['has_decorators'] = True
+                analysis['has_error_handling'] = True
+                break
         
         # Check for error handling patterns in function content
         for pattern_name, pattern in self.error_patterns.items():

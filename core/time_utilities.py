@@ -8,7 +8,7 @@ This module is the single source of truth for:
 - Timestamp/date/time parsing helpers (return None on invalid input)
 
 Design goals:
-- Dependency-light (avoid logger/config to prevent circular imports)
+- Dependency-light (avoid logger/config/error_handling to prevent circular imports)
 - Descriptive, intuitive names
 - Strict parse helpers for critical state
 - Optional flexible parse for "messy" inputs from outside the app
@@ -16,69 +16,61 @@ Design goals:
 
 from __future__ import annotations
 
+import functools
+import logging
 from datetime import datetime
-from typing import Literal
-from collections.abc import Iterable
+from typing import Literal, TypeVar, cast
+from collections.abc import Callable, Iterable
 
-from core.error_handling import handle_errors
-from core.logger import get_component_logger
+from core.time_format_constants import (
+    DATE_ONLY,
+    EXTERNAL_TIMESTAMP_VARIANTS,
+    TIME_ONLY_MINUTE,
+    TIMESTAMP_FILENAME,
+    TIMESTAMP_FULL,
+    TIMESTAMP_MINUTE,
+    TIMESTAMP_WITH_MICROSECONDS,
+)
 
-# ---------------------------------------------------------------------------
-# Canonical formats (project-wide)
-# ---------------------------------------------------------------------------
+_time_logger = logging.getLogger("mhm.time_utilities")
 
-# Primary internal timestamp (full precision to seconds)
-TIMESTAMP_FULL = "%Y-%m-%d %H:%M:%S"
-
-# Timestamp rounded to minutes (scheduler, UI state)
-TIMESTAMP_MINUTE = "%Y-%m-%d %H:%M"
-
-# Date only (no time)
-DATE_ONLY = "%Y-%m-%d"
-
-# Time only (hour + minute)
-TIME_ONLY_MINUTE = "%H:%M"
-
-# Filename-safe timestamp (no spaces or colons)
-TIMESTAMP_FILENAME = "%Y-%m-%d_%H-%M-%S"
-
-# Display-only formats (never for parsing critical state)
-DATE_DISPLAY_MONTH_DAY = "%b %d"
-DATE_DISPLAY_WEEKDAY = "%A"
-
-# Full timestamp with sub-second precision (debug only)
-TIMESTAMP_WITH_MICROSECONDS = "%Y-%m-%d %H:%M:%S.%f"
-
-# External timestamp inputs we may encounter (parse-only; never emit)
-# (These are common machine timestamp shapes you might receive from other tools/services.)
-EXTERNAL_TIMESTAMP_VARIANTS: list[str] = [
-    "%Y-%m-%dT%H:%M:%S",
-    "%Y-%m-%dT%H:%M:%SZ",
-    "%Y-%m-%dT%H:%M:%S.%fZ",
-]
-
-_time_logger = get_component_logger("time_utilities")
+F = TypeVar("F", bound=Callable[..., object])
 
 
-@handle_errors("logging time error", default_return=None, user_friendly=False)
-def _log_time_error(operation: str, error: Exception) -> None:
-    """Log time utility failures without crashing the caller."""
-    _time_logger.error(f"{operation} failed: {error}", exc_info=True)
+def _guard(operation: str, default_return: object) -> Callable[[F], F]:
+    """Log failures and return default_return (mirrors handle_errors defaults for time ops)."""
+
+    def decorator(func: F) -> F:
+        """Wrap ``func`` so failures are logged and ``default_return`` is used."""
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]
+            """Run the wrapped time helper; log and return the guard default on failure."""
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                _time_logger.error(
+                    f"{operation} failed: {e}", exc_info=True
+                )
+                return default_return
+
+        return cast(F, wrapper)
+
+    return decorator
 
 
-@handle_errors("getting canonical timestamp", default_return="", user_friendly=False)
+@_guard("getting canonical timestamp", "")
 def now_timestamp_full() -> str:
     """Current local timestamp formatted with TIMESTAMP_FULL."""
     return datetime.now().strftime(TIMESTAMP_FULL)
 
 
-@handle_errors("getting canonical minute timestamp", default_return="", user_friendly=False)
+@_guard("getting canonical minute timestamp", "")
 def now_timestamp_minute() -> str:
     """Current local timestamp formatted with TIMESTAMP_MINUTE."""
     return datetime.now().strftime(TIMESTAMP_MINUTE)
 
 
-@handle_errors("getting filename-safe timestamp", default_return="", user_friendly=False)
+@_guard("getting filename-safe timestamp", "")
 def now_timestamp_filename() -> str:
     """Current local timestamp formatted with TIMESTAMP_FILENAME."""
     return datetime.now().strftime(TIMESTAMP_FILENAME)
@@ -89,7 +81,7 @@ def now_timestamp_filename() -> str:
 # ---------------------------------------------------------------------------
 
 
-@handle_errors("building canonical datetime", default_return=datetime.min, user_friendly=False)
+@_guard("building canonical datetime", datetime.min)
 def now_datetime_full() -> datetime:
     """
     Current local-naive datetime with second precision matching TIMESTAMP_FULL.
@@ -97,17 +89,14 @@ def now_datetime_full() -> datetime:
     This is the canonical replacement for datetime.now() in places that need a
     datetime object (arithmetic/comparisons) rather than a formatted string.
     """
-    # Derive through canonical formatting/parsing to guarantee the same shape
-    # as persisted TIMESTAMP_FULL timestamps.
     value = now_timestamp_full()
     dt = parse_timestamp_full(value)
     if dt is None:
-        # Defensive: should never happen unless the canonical helpers are broken.
         return datetime.min
     return dt
 
 
-@handle_errors("building canonical minute datetime", default_return=datetime.min, user_friendly=False)
+@_guard("building canonical minute datetime", datetime.min)
 def now_datetime_minute() -> datetime:
     """
     Current local-naive datetime rounded to minute precision matching TIMESTAMP_MINUTE.
@@ -126,7 +115,7 @@ def now_datetime_minute() -> datetime:
 # ---------------------------------------------------------------------------
 
 
-@handle_errors("formatting timestamp", default_return="", user_friendly=False)
+@_guard("formatting timestamp", "")
 def format_timestamp(dt: datetime | None, fmt: str) -> str:
     """Format a datetime using a provided format string. Returns "" for None."""
     if dt is None:
@@ -134,7 +123,7 @@ def format_timestamp(dt: datetime | None, fmt: str) -> str:
     return dt.strftime(fmt)
 
 
-@handle_errors("formatting timestamp with milliseconds", default_return="", user_friendly=False)
+@_guard("formatting timestamp with milliseconds", "")
 def format_timestamp_milliseconds(dt: datetime | None) -> str:
     """
     Debug-only: format to milliseconds (3 decimals).
@@ -142,7 +131,6 @@ def format_timestamp_milliseconds(dt: datetime | None) -> str:
     """
     if dt is None:
         return ""
-    # %f is microseconds; trim to milliseconds
     return dt.strftime(TIMESTAMP_WITH_MICROSECONDS)[:-3]
 
 

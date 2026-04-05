@@ -8,6 +8,7 @@ listing, completing, deleting, updating, and getting statistics for tasks.
 """
 
 import calendar
+import importlib
 import re
 from datetime import datetime, timedelta
 from typing import Any
@@ -281,9 +282,9 @@ class TaskManagementHandler(InteractionHandler):
                     )
                 response += f" (repeats: {interval_text})"
 
-            from communication.message_processing.conversation_flow_manager import (
-                conversation_manager,
-            )
+            conversation_manager = importlib.import_module(
+                "communication.message_processing.conversation_flow_manager"
+            ).conversation_manager
 
             # If no valid due date/time, ask for it first
             # Explicitly check for None, empty string, or invalid date
