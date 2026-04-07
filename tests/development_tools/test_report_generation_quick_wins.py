@@ -475,8 +475,9 @@ def test_consolidated_dependency_patterns_include_top_findings(temp_project_copy
 
 @pytest.mark.unit
 def test_ai_priorities_include_dev_tools_coverage_when_normalized_shape(temp_project_copy):
-    """AI_PRIORITIES should include dev-tools coverage priority for normalized details payloads."""
+    """DEV_TOOLS_PRIORITIES (dev-tools-scoped) should include the dev-tools coverage priority."""
     service = AIToolsService(project_root=str(temp_project_copy))
+    service.dev_tools_only_mode = True
 
     service.dev_tools_coverage_results = {
         "summary": {"total_issues": 12099, "files_affected": 0},
@@ -515,6 +516,7 @@ def test_ai_priorities_warn_and_support_legacy_raw_dev_tools_shape(
 ):
     """Legacy raw dev-tools coverage payloads should still work with a warning."""
     service = AIToolsService(project_root=str(temp_project_copy))
+    service.dev_tools_only_mode = True
 
     service.dev_tools_coverage_results = {
         "overall": {
@@ -549,8 +551,9 @@ def test_ai_priorities_warn_and_support_legacy_raw_dev_tools_shape(
 def test_ai_priorities_keeps_dev_tools_coverage_when_modules_below_80(
     temp_project_copy,
 ):
-    """Keep dev-tools coverage priority when module-level coverage remains below 80%."""
+    """Dev-tools-scoped report keeps the coverage priority when module-level coverage is below 80%."""
     service = AIToolsService(project_root=str(temp_project_copy))
+    service.dev_tools_only_mode = True
 
     service.dev_tools_coverage_results = {
         "summary": {"total_issues": 9000, "files_affected": 0},
@@ -584,8 +587,9 @@ def test_ai_priorities_keeps_dev_tools_coverage_when_modules_below_80(
 def test_ai_priorities_omits_dev_tools_coverage_when_overall_and_modules_meet_target(
     temp_project_copy,
 ):
-    """Do not surface dev-tools coverage priority when overall >=60 and modules >=80."""
+    """Dev-tools-scoped report omits the priority when overall >=60 and sampled modules >=80."""
     service = AIToolsService(project_root=str(temp_project_copy))
+    service.dev_tools_only_mode = True
 
     service.dev_tools_coverage_results = {
         "summary": {"total_issues": 1000, "files_affected": 0},
@@ -617,6 +621,47 @@ def test_ai_priorities_omits_dev_tools_coverage_when_overall_and_modules_meet_ta
     doc = service._generate_ai_priorities_document()
 
     assert "Raise development tools coverage" not in doc
+
+
+@pytest.mark.unit
+def test_ai_priorities_full_audit_does_not_duplicate_dev_tools_coverage_priority(
+    temp_project_copy,
+):
+    """Full-repo AI_PRIORITIES lists development_tools only under domain coverage, not as its own item."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    assert service.dev_tools_only_mode is False
+
+    service.dev_tools_coverage_results = {
+        "summary": {"total_issues": 12099, "files_affected": 0},
+        "details": {
+            "overall": {
+                "overall_coverage": 47.0,
+                "total_statements": 22829,
+                "total_missed": 12099,
+            },
+            "modules": {
+                "development_tools/a.py": {"coverage": 35, "missed": 100, "statements": 150},
+            },
+        },
+    }
+
+    service._load_tool_data = lambda *args, **kwargs: {}
+    service._load_coverage_summary = lambda: {
+        "modules": [
+            {
+                "module": "development_tools",
+                "coverage": 62.0,
+                "missed": 9000,
+            },
+        ]
+    }
+    service._load_dev_tools_coverage = lambda: None
+
+    doc = service._generate_ai_priorities_document()
+
+    assert "Raise development tools coverage" not in doc
+    assert "Raise coverage for domains below target" in doc
+    assert "development_tools" in doc
 
 
 @pytest.mark.unit

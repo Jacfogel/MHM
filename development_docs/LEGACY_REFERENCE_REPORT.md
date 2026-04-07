@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-05 03:22:20
+> **Last Generated**: 2026-04-06 20:54:39
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 3
 **Legacy Compatibility Markers Detected**: 6
@@ -47,17 +47,17 @@
 ### development_tools\shared\service\audit_orchestration.py
 **Issues Found**: 3
 
-- **Line 1524**: `# LEGACY COMPATIBILITY:`
+- **Line 1545**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: unscoped aggregate (V5 Section 7.16).
   ```
 
-- **Line 1645**: `# LEGACY COMPATIBILITY:`
+- **Line 1666**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: unscoped aggregate (V5 Section 7.16).
   ```
 
-- **Line 2075**: `# LEGACY COMPATIBILITY:`
+- **Line 2096**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: pre-scopes reports/jsons/tool_timings.json (see V5 Section 7.16).
   ```

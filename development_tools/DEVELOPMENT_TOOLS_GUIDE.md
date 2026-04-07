@@ -4,8 +4,7 @@
 > **Audience**: Human maintainers and contributors
 > **Purpose**: Detailed reference for every development tool, its tiers, trust level, and scope
 > **Style**: Explicit, actionable, high-signal
-> **Pair**: [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)
-> This document is paired with [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md). Keep both H2 headings identical and keep the AI doc concise while this guide carries the detailed context.
+> **Pair**: [AI_DEVELOPMENT_TOOLS_GUIDE.md](AI_DEVELOPMENT_TOOLS_GUIDE.md) - keep both H2 headings identical and keep the AI doc concise while this guide carries the detailed context.
 
 ---
 
@@ -14,7 +13,7 @@
 Use this guide when you need:
 - The authoritative human-readable catalog of tools and tiers
 - Rationale behind trust levels and roadmap priorities
-- Links to supporting plans such as [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) (V4 checklist history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md))
+- Links to supporting plans such as [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) (V4 checklist history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md))
 
 The machine-readable metadata lives in `development_tools/shared/tool_metadata.py` and is surfaced to AI collaborators through the paired guide.
 
@@ -64,7 +63,7 @@ python development_tools/run_development_tools.py --project-root . --config-path
 - **Porting** `development_tools/` only: install a matching Python stack in the host repo and ensure tools referenced in `development_tools/config/development_tools_config.json` are available.
 - **Future options** (when portability criteria land): optional `requirements-devtools.txt`, `[project.optional-dependencies]` devtools extra in `pyproject.toml`, or a lock file for reproducible tool-only CI.
 
-See improvement plan Section 7.6 in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) for background.
+See improvement plan Section 7.6 in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) for background.
 
 ### 2.2. Command Examples
 
@@ -227,7 +226,7 @@ The modular structure provides clear separation of concerns, making the codebase
 **Performance**: Total full audit time: ~6-7 minutes (coverage tools run in parallel, reducing total time from ~460s to ~365s)
 
 Pipeline artifacts:
-- AI-facing (root): [AI_STATUS.md](development_tools/AI_STATUS.md), `AI_PRIORITIES.md`, `CONSOLIDATED_REPORT.md`
+- AI-facing (root): [AI_STATUS.md](AI_STATUS.md), `AI_PRIORITIES.md`, `CONSOLIDATED_REPORT.md`
 - Domain-specific JSON: `reports/analysis_detailed_results.json`, `error_handling/error_handling_details.json`, `tests/jsons/coverage_dev_tools.json`, `config/analyze_config_results.json`, `imports/.unused_imports_cache.json`
 - `reports/analysis_detailed_results.json` caches complexity metrics, validation results, and system signals for `status` command
 - `AI_PRIORITIES.md` includes complexity refactoring priority when critical/high complexity functions exist
@@ -381,13 +380,13 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 - **Failure-aware dev tools invalidation**: `tests/dev_tools_coverage_cache.py` stores last run success/exit code and invalidates cache after failed previous dev-tools coverage runs.
 - **Parallel Execution**: Tools run in parallel where possible to reduce audit time:
 - **Tier 2**: Independent tools (5 tools) run in parallel; dependent groups run sequentially within groups but in parallel with each other
-- **Tier 3**: Coverage tools (main tests and dev tools tests) run in parallel (~365s max); legacy reference group runs in parallel with coverage tools; coverage-dependent tools (marker analysis, report generation) run sequentially after coverage completes
-- **Tool Dependencies**: Some tools must run together due to dependencies (e.g., analysis -> report, imports -> patterns/dependencies). Coverage-dependent tools require data from both test suites, so they run after coverage completes. See `development_tools/shared/service/audit_orchestration.py` for dependency groupings.
+- **Tier 3**: **Full-repo scope** runs a **single** main coverage subprocess (`run_test_coverage`) that includes `tests/development_tools/` and measures the `development_tools` package; legacy reference and static-analysis groups run in parallel with that step; coverage-dependent tools (marker analysis, full-repo report generation) run after it. **`audit --full --dev-tools-only`** runs only `generate_dev_tools_coverage` (no main coverage refresh).
+- **Tool Dependencies**: Some tools must run together due to dependencies (e.g., analysis -> report, imports -> patterns/dependencies). Coverage-dependent tools run after the coverage step for the active scope. See `development_tools/shared/service/audit_orchestration.py` for dependency groupings.
 - **Output Format Standardization**: All 19 analysis tools output JSON in a standardized structure with `summary` (total_issues, files_affected, status) and `details` (tool-specific data). This enables consistent data aggregation and simplified report generation. Tools support `--json` flag for direct standard format output. Results are validated against the standard format in `shared/result_format.py`.
 - When adding or relocating tools, update:
 - `shared/tool_metadata.py`
 - This guide and the AI guide (paired H2 requirements)
-- [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) if scope or gaps change
+- [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) if scope or gaps change
 - Maintain directory integrity (`development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) so automation can locate artifacts; keep generated reports under the paths enumerated in `shared/constants.py`.
 - Use the shared test locations: `tests/development_tools/` for suites and `tests/fixtures/development_tools_demo/` for synthetic inputs.
 - For detailed testing guidance, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
@@ -410,7 +409,7 @@ development_tools/tests/logs/
 ```
 
 - Do not implement bespoke exclusion logic inside individual tools - always import from `shared/standard_exclusions.py` so rules remain centralized.
-- Treat the tooling as a self-contained subproject: track follow-up work in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), document shipped changes in both changelogs, and keep the AI + human guides synchronized.
+- Treat the tooling as a self-contained subproject: track follow-up work in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), document shipped changes in both changelogs, and keep the AI + human guides synchronized.
 
 Keeping these standards ensures the tooling ecosystem remains predictable for both humans and AI collaborators.
 
@@ -618,6 +617,10 @@ Development-tools modules may import `core.logger` for structured logging. All o
 
 **Status**: Not wired into audit tiers; see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 4.1 for the integration backlog.
 
+- **Manual pilot (Windows PowerShell, repo root, venv active)**:
+  - `python -m pip install bandit pip-audit`
+  - `python -m bandit -r core communication ui user ai tasks -ll` (expand/shrink paths and severity flags after triage; keep `tests/` out until policy exists).
+  - `python -m pip_audit`
 - **Bandit** / **pip-audit**: Run manually from the venv when reviewing security or dependency risk; promote to Tier 1 only after noise levels are acceptable.
 - **Radon**: Overlaps existing complexity/refactor signals (`analyze_functions`, `analyze_module_refactor_candidates`); adopt only for metrics Ruff does not provide.
 - **pydeps**: Optional dependency-graph visualization; compare against `imports/analyze_module_dependencies.py` / consolidated report before adding a second graph pipeline.

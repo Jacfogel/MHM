@@ -1006,7 +1006,6 @@ class CommandsMixin:
         if self._is_coverage_file_fresh(
             main_coverage_file,
             main_coverage_patterns,
-            exclude_prefixes=["development_tools/"],
             tool_names=["run_test_coverage"],
             config_paths=[
                 "development_tools/tests/coverage.ini",
@@ -1152,11 +1151,15 @@ class CommandsMixin:
             }
             payload_coverage_collected = False
             payload_from_cache = False
+            dev_tools_from_payload: dict | None = None
             if coverage_output_file.exists():
                 try:
                     with open(coverage_output_file, encoding="utf-8") as f:
                         coverage_payload = json.load(f)
                     if isinstance(coverage_payload, dict):
+                        _dt = coverage_payload.get("dev_tools_test_outcome")
+                        if isinstance(_dt, dict) and _dt.get("classification"):
+                            dev_tools_from_payload = _dt
                         payload_coverage_collected = bool(
                             coverage_payload.get("coverage_collected")
                         )
@@ -1236,9 +1239,8 @@ class CommandsMixin:
             )
             self.tier3_test_outcome = {
                 **structured_outcome,
-                "development_tools": existing_tier3.get(
-                    "development_tools", {"state": "unknown"}
-                ),
+                "development_tools": dev_tools_from_payload
+                or existing_tier3.get("development_tools", {"state": "unknown"}),
             }
             tier3_state = structured_outcome.get("state", "coverage_failed")
             if tier3_state == "coverage_failed":
@@ -1279,6 +1281,25 @@ class CommandsMixin:
                         }
                         save_tool_result('analyze_test_coverage', 'tests', standard_format, project_root=self.project_root)
                         logger.debug(f"Saved analyze_test_coverage results to standardized storage (coverage: {overall_coverage}%)")
+                        try:
+                            self._load_dev_tools_coverage()
+                            if hasattr(self, "dev_tools_coverage_results") and isinstance(
+                                self.dev_tools_coverage_results, dict
+                            ):
+                                dt_norm = self._to_standard_dev_tools_coverage_result(
+                                    self.dev_tools_coverage_results
+                                )
+                                save_tool_result(
+                                    "generate_dev_tools_coverage",
+                                    "tests",
+                                    dt_norm,
+                                    project_root=self.project_root,
+                                )
+                        except Exception as dt_save_err:
+                            logger.debug(
+                                "Optional generate_dev_tools_coverage save after unified run failed: %s",
+                                dt_save_err,
+                            )
                     else:
                         logger.warning("No coverage data available to save - _load_coverage_summary() returned None (coverage.json may not exist or be empty)")
                 except Exception as save_error:

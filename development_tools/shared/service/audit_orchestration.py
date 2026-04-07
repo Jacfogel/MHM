@@ -263,8 +263,29 @@ class AuditOrchestrationMixin:
                 outcome["state"] = "clean"
         else:
             self._tier3_skipped_main_tracks = False
-            self._tier3_skipped_dev_track = True
-            outcome["development_tools"] = skipped_scope_dev
+            dev_existing = outcome.get("development_tools")
+            keep_unified_dev = False
+            if isinstance(dev_existing, dict):
+                cls = dev_existing.get("classification")
+                creason = dev_existing.get("classification_reason")
+                st = dev_existing.get("state")
+                if creason == "cache_only_precheck":
+                    keep_unified_dev = False
+                elif (
+                    cls in ("passed", "failed", "crashed", "infra_cleanup_error")
+                    or creason
+                    in (
+                        "no_dev_tools_failures_unified_run",
+                        "pytest_failed_or_errored",
+                    )
+                    or st in ("passed", "failed", "crashed")
+                ):
+                    keep_unified_dev = True
+            if keep_unified_dev:
+                self._tier3_skipped_dev_track = False
+            else:
+                self._tier3_skipped_dev_track = True
+                outcome["development_tools"] = skipped_scope_dev
 
         self.tier3_test_outcome = outcome
 

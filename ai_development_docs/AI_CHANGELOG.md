@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-04-06 - Unified Tier 3 dev-tools coverage (V5 plan) **COMPLETED**
+- **Behavior**: `run_test_coverage` (full-repo Tier 3) now includes `tests/development_tools/`, measures `development_tools`, writes `coverage_dev_tools.json` from main `coverage.json`, saves `generate_dev_tools_coverage`, and reports `dev_tools_test_outcome`; config `derived_prefix_excludes.core` no longer drops `development_tools` from `CORE_MODULES` for MHM.
+- **Docs**: [`AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md`](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), paired dev-tools guides + `dev_tools.mdc` updated; see [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for file list and tests run.
+- **Fix**: Dev-tools subset logging uses single-string `ComponentLogger.info`/`warning` messages; Ruff SIM114 in `_finalize_tier3_audit_scope`; guide link targets normalized under `development_tools/` + `doc-fix`/`doc-sync` clean.
+- **Reports**: Full-repo `AI_PRIORITIES.md` no longer adds a separate **Raise development tools coverage** item; `development_tools` appears only in **Raise coverage for domains below target**. Dev-tools-only output still uses the dedicated priority + watch ([`report_generation.py`](../development_tools/shared/service/report_generation.py)).
+- **Docs**: [`AI_DEVELOPMENT_TOOLS_GUIDE.md`](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) uses repo-relative `development_docs/TEST_COVERAGE_REPORT.md` in backticks so path-drift no longer reports a false missing file.
+- **Reports**: [`TEST_COVERAGE_REPORT.md`](../development_docs/TEST_COVERAGE_REPORT.md) domain table includes **`development_tools`** ([`generate_test_coverage_report.py`](../development_tools/tests/generate_test_coverage_report.py)); matches unified main coverage run.
+
 ### 2026-04-06 - Reduce dependency pattern risk (plan complete) **COMPLETED**
 - **Scope**: [reduce_dependency_risk_70688c22.plan.md](../.cursor/plans/reduce_dependency_risk_70688c22.plan.md) - triaged mutual-import cycles (core infra, data/message cluster, communication flow triangle, UI dynamic list pair); verification and full-audit passes completed per plan.
 - **Outcomes**: Cycles addressed with thin modules, deferred/`TYPE_CHECKING` imports, and narrower surfaces (no long-lived legacy bridges required for this slice). [MODULE_DEPENDENCIES_DETAIL.md](../development_docs/MODULE_DEPENDENCIES_DETAIL.md) and [analyze_dependency_patterns.py](../development_tools/imports/analyze_dependency_patterns.py) remain the evidence path; post-change **`circular_dependencies`** in [analysis_detailed_results.json](../development_tools/reports/scopes/full/analysis_detailed_results.json) is empty under typical full audits.

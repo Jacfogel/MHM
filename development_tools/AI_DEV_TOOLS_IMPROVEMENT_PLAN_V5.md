@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Single forward-looking backlog after V4; collapsed history; actionable next steps  
 > **Style**: Direct and concise  
-> **Last Updated**: 2026-03-31  
+> **Last Updated**: 2026-04-06  
 > **Supersedes**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (keep V4 for detailed checkbox history)
 
 **Authoritative metrics**: [development_tools/AI_STATUS.md](AI_STATUS.md) and [development_tools/AI_PRIORITIES.md](AI_PRIORITIES.md) after `python development_tools/run_development_tools.py audit` or `audit --full`.
@@ -88,6 +88,7 @@ No per-task history here — see V4 for checkboxes.
 - Slow-test optimizations, worker fallback **4→6**, `@pytest.mark.slow` on heavy tests.
 - Retired unapproved standalone docs (content folded into code/guides).
 - **2026-03-28 (V5 continuation slice)**: `DEV_TOOLS_*` report scope (headers, `--dev-tools-only` source line, scope/role blurbs; omit domain-coverage priority in dev-tools priorities); legacy report noise fix (`root_ruff_compat_mirror` empty `search_terms`, inventory summary unchanged); portability bootstrap (`run_dev_tools.py`, `fix_legacy_references.py` `Path.resolve()`; `generate_function_registry` output paths use module `project_root`); owned [`pyrightconfig.json`](config/pyrightconfig.json) `venvPath` / `venv` for repo interpreter; paired changelogs — see [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) / [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md).
+- **2026-04-06**: Unified full-repo Tier 3 coverage (§1.9 / §7.17): main `run_test_coverage` runs dev-tools tests, measures `development_tools` in `coverage.ini`, derives `coverage_dev_tools.json`, persists `generate_dev_tools_coverage` on success, `constants.derived_prefix_excludes.core` updated for this repo.
 
 ---
 
@@ -97,14 +98,14 @@ Rough ordering for triage (see **§5** for full V4-sourced detail):
 
 | Tier | Themes |
 |------|--------|
-| **High** | **Tier 3 coverage driven by audit scope** (§5.1 — 1.9; orchestration in `audit_orchestration` / `run_test_coverage`, aligns §7.15); legacy executable paths + [DEPRECATION_INVENTORY.json](config/jsons/DEPRECATION_INVENTORY.json) (§6); portability / dual Pyright+Ruff baselines (§3.17, §7.6); directory taxonomy Phase 2–3 (§7.7). |
-| **Medium** | Finish `--dev-tools-only` story after 1.9 (remaining §2.8 report/tool sections if any); coverage cache numeric benchmarks (§1.5); validation triggers (§3.2); external security/complexity tools (§4.1); doc overlap analyzer (§5.2); AI work validation thin profile (§5.3); TODO sync automation (§5.4); gap-analysis tool rollout (§5.5). |
+| **High** | Legacy executable paths + [DEPRECATION_INVENTORY.json](config/jsons/DEPRECATION_INVENTORY.json) (§6); portability / dual Pyright+Ruff baselines (§3.17, §7.6); directory taxonomy Phase 2–3 (§7.7); §7.16 read-fallback retirement when scoped-only consumers are verified. |
+| **Medium** | §2.8 remaining scoped-report polish; coverage cache numeric benchmarks (§1.5); validation triggers (§3.2); external security/complexity tools (§4.1); doc overlap analyzer (§5.2); AI work validation thin profile (§5.3); TODO sync automation (§5.4); gap-analysis tool rollout (§5.5). |
 | **Lower / backlog** | `test_config.json` migration (§1.1); example-marking checker (§3.0); flaky detector + scripts migration (§3.12–3.15); unused-imports fixer (§5.1); memory profiler (§5.6); large-file refactors (§3.16); human backlog §7.8–7.13, §7.15. |
 | **Monitoring** | Intermittent low coverage warning (§1.3) — reopen if recurrence. |
 
 ### 4.1 Phase 2 scheduling (after §4 High / Phase 1 portability-legacy work)
 
-Suggested order when returning from Phase 1: **(1)** **§5.1 — 1.9** — Tier 3 **test/coverage execution** follows audit scope (full audit → main/project coverage only; `--dev-tools-only` → dev-tools coverage only; clarify stale-vs-fresh rules for `AI_STATUS` / caches). **(2)** §2.8 any remaining scope-aware **sections** once 1.9 makes metrics honest without report-only filtering. **(3)** §1.5 coverage-cache benchmark session (methodology in §5.1 — 1.5; optional numeric capture). **(4)** §4.1 external tools evaluation (bandit, pip-audit, radon, pre-commit) per paired guides §10. **(5)** §5.2 documentation overlap analyzer improvements. **(6)** §5.3 AI work validation (keep thin). **(7)** §5.4 TODO sync dry-run automation. **(8)** §5.5 gap-analysis tool rollout (incremental).
+Suggested order when returning from Phase 1: **(1)** §2.8 any remaining scope-aware **sections** (1.9 shipped 2026-04-06). **(2)** §1.5 coverage-cache benchmark session (methodology in §5.1 — 1.5; optional numeric capture). **(3)** §4.1 external tools evaluation (bandit, pip-audit, radon, pre-commit) per paired guides §10. **(4)** §5.2 documentation overlap analyzer improvements. **(5)** §5.3 AI work validation (keep thin). **(6)** §5.4 TODO sync dry-run automation. **(7)** §5.5 gap-analysis tool rollout (incremental). **(8)** §7.16 search-and-close on legacy read paths.
 
 ---
 
@@ -112,7 +113,7 @@ Suggested order when returning from Phase 1: **(1)** **§5.1 — 1.9** — Tier 
 
 Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Completed V4 checkboxes are omitted; use V4 for historical `[x]` audit trail.
 
-**V4 sections with no remaining open tasks** (fully complete in V4; not expanded below): **1.4**, **1.6**, **1.7**; **2.1**, **2.3**, **2.6–2.7**, **2.9** (Tier 3 audit failure / exit semantics — completed follow-ups), **2.10–2.11**; **3.1**, **3.4–3.11**, **3.11.1**; **5.0**, **5.1.1**; **7.1–7.5**, **7.14**, **7.16–7.17**. **§1.7** also noted optional future caching for tools still uncached — discovery done; not a gated backlog item.
+**V4 sections with no remaining open tasks** (fully complete in V4; not expanded below): **1.4**, **1.6**, **1.7**; **2.1**, **2.3**, **2.6–2.7**, **2.9** (Tier 3 audit failure / exit semantics — completed follow-ups), **2.10–2.11**; **3.1**, **3.4–3.11**, **3.11.1**; **5.0**, **5.1.1**; **7.1–7.5**, **7.14**, **7.16**. **§1.7** also noted optional future caching for tools still uncached — discovery done; not a gated backlog item.
 
 ### 5.1 Section 1 — Reliability, coverage, and test health
 
@@ -134,7 +135,7 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 - **Status**: **IN PROGRESS** (core behavior done in V4).
 - **Open**:
   - Compare **full** vs **domain-filtered** runs and document **numeric** results in changelog — defer until a dedicated benchmark session captures stable numbers (machine-dependent).
-  - **Methodology (V4)**: On Windows PowerShell, `Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache }` vs the same **without** `--no-domain-cache` after a warm cache; compare wall-clock and logs for hit/miss. Paired changelog may reference the recipe without numbers until benchmarks exist.
+  - **Methodology (V4)**: On Windows PowerShell, `Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache }` vs the same **without** `--no-domain-cache` after a warm cache; compare wall-clock and logs for hit/miss. Paired changelog may reference the recipe without numbers until benchmarks exist. **2026-04-06**: The same style of comparison applies to unified full-repo runs (`python development_tools/run_development_tools.py audit --full` with vs without `--no-domain-cache` / `--clear-cache` as appropriate) when capturing domain-cache ROI after §1.9; numbers remain machine-specific.
 
 #### 1.8 Improve slow development tools tests (residual)
 
@@ -143,14 +144,12 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 #### 1.9 Tier 3 coverage and test execution by audit scope (orchestration)
 
-- **Status**: **PRIORITY — not implemented (2026-03-28)**. Today, a full Tier 3 audit may still refresh **both** main/project coverage and **development_tools** coverage tracks; `--dev-tools-only` restricts **analyzers** via `get_scan_directories()` but coverage subprocess design should align so effort and artifacts match intent.
-- **Goal**:
-  - **`audit --full` (default, full-repo scope)** — run **project / main-track** pytest+coverage (existing domain summary, `TEST_COVERAGE_REPORT`, etc.) as today; do **not** require a separate dev-tools coverage run in the same pass unless policy explicitly keeps both (if both stay, document why).
-  - **`audit --full --dev-tools-only`** — run **only** `tests/development_tools/` (or equivalent dev-tools coverage entrypoint); refresh **only** dev-tools coverage JSON/HTML consumed by `DEV_TOOLS_*` reports; avoid refreshing or implying fresh **full-repo** coverage in that pass.
-- **Why**: Reduces duplicate wall-clock, avoids **stale full-repo metrics** appearing next to **fresh dev-tools** metrics (or the reverse), and can **remove reliance** on report-layer omissions (e.g. hiding domain priorities) because the **data** simply is not produced out of scope.
-- **Touchpoints**: [`shared/service/audit_orchestration.py`](shared/service/audit_orchestration.py) (Tier 3 sequencing), [`tests/run_test_coverage.py`](tests/run_test_coverage.py) (`CoverageMetricsRegenerator`, CLI), Tier 3 outcome/cache contracts, paired guides §10 / Standard Audit Recipe.
-- **Acceptance**: After `--dev-tools-only` full audit, project-wide coverage files and `AI_STATUS` coverage lines either **omit** “last full-repo run” or **mark stale** per documented rules; after normal `--full`, dev-tools-only artifacts behave symmetrically. Tests under `tests/development_tools/` cover branching; `audit --quick` still passes.
-- **Related**: **§7.15** (separate coverage from full audit — product direction); **§5.2 — 2.8** (report scope; metadata/priorities partial **2026-03-28**, orchestration here).
+- **Status**: **COMPLETE — unified full-repo run (2026-04-06)**. Tier 3 schedules one heavy coverage subprocess per scope ([`shared/audit_tiers.py`](shared/audit_tiers.py) `get_tier3_groups`): full-repo runs **`run_test_coverage` only**; `--dev-tools-only` runs **`generate_dev_tools_coverage` only**. **Unified metrics (Option A / §7.17):** main `run_test_coverage` now **includes** `tests/development_tools/`, measures the **`development_tools`** package ([`tests/coverage.ini`](tests/coverage.ini); `development_tools` removed from `constants.derived_prefix_excludes.core` in project config), derives **`coverage_dev_tools.json`** from main **`coverage.json`**, persists **`generate_dev_tools_coverage`** after a successful full-repo run, and emits **`dev_tools_test_outcome`** for Tier 3; [`audit_orchestration._finalize_tier3_audit_scope`](shared/service/audit_orchestration.py) keeps dev-tools outcomes when present instead of always injecting “skipped this pass.”
+- **Goals** (current behavior):
+  - **`audit --full`** — single pytest+coverage pass for product **and** dev-tools tests; **Development Tools Coverage** in `AI_STATUS` refreshes with full-repo coverage.
+  - **`audit --full --dev-tools-only`** — only dev-tools coverage/artifacts; main-repo coverage line documents staleness (unchanged).
+- **Touchpoints**: [`shared/service/commands.py`](shared/service/commands.py) (`run_coverage_regeneration`), [`tests/run_test_coverage.py`](tests/run_test_coverage.py), [`config/development_tools_config.json`](config/development_tools_config.json).
+- **Related**: **§7.15** (optional: coverage outside audit); **§5.2 — 2.8** (report copy vs data).
 
 ---
 
@@ -169,8 +168,8 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 - **Status**: **PARTIAL (2026-03-28)**. Implemented: `audit --dev-tools-only`, `DEV_TOOLS_*` output paths, `get_scan_directories() -> ['development_tools']`, and **report-layer** scope (`ReportGenerationMixin`: titles, file blurbs, `--dev-tools-only` on source command, scope/role lines; domain-coverage priority omitted in dev-tools priorities).
 - **Open**:
-  - **Orchestration**: Tier 3 **coverage/test runs** should follow audit scope (**§5.1 — 1.9**) so metrics are not mixed or stale across scopes; reduces need for report-only filtering.
-  - Any remaining **sections** in `DEV_TOOLS_STATUS` / `DEV_TOOLS_CONSOLIDATED_REPORT` that still read as full-repo after 1.9 — trim or label explicitly once data pipeline is scoped.
+  - **Orchestration**: ~~Tier 3 coverage/test scope split~~ **Done (2026-04-06)** per §1.9.
+  - Any remaining **sections** in `DEV_TOOLS_STATUS` / `DEV_TOOLS_CONSOLIDATED_REPORT` that still read ambiguously for scoped runs — trim or label explicitly.
 
 #### 2.9 Console output polish (optional)
 
@@ -401,7 +400,7 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 
 #### 7.16 Retire audit artifact read fallbacks (flat JSON / unscoped aggregates)
 
-**Status**: **OPEN** (bridge code in loaders; not a user-visible bug). **Goal**: after workspaces and CI are consistently on scoped trees (`development_tools/<domain>/jsons/scopes/<full|dev_tools>/`, `development_tools/reports/scopes/<full|dev_tools>/`), remove read-only compatibility branches so only canonical paths are used.
+**Status**: **OPEN** (bridge code in loaders; not a user-visible bug). **2026-04-06**: No code removal in this session; `legacy_flat_jsons_dir` and loaders still support mixed consumers—see search hits in [`shared/output_storage.py`](shared/output_storage.py). **Goal**: after workspaces and CI are consistently on scoped trees (`development_tools/<domain>/jsons/scopes/<full|dev_tools>/`, `development_tools/reports/scopes/<full|dev_tools>/`), remove read-only compatibility branches so only canonical paths are used.
 
 Canonical writes already use scoped directories only. **LEGACY COMPATIBILITY** code may still **read** pre-migration paths until this backlog item is completed:
 
@@ -414,7 +413,11 @@ Canonical writes already use scoped directories only. **LEGACY COMPATIBILITY** c
 
 **Removal**: Drop each fallback only after search-and-close proves no remaining consumers need it; update loaders and this table in the same change. Primary helper: `development_tools/shared/audit_storage_scope.py` (`legacy_flat_jsons_dir`).
 
-#### 7.17 audit full should include development tools test run/coverage, as part of full test run/coverage, it should just be it's own domain or whatever
+#### 7.17 Full audit includes development_tools tests and package coverage (resolved)
+
+- **Decision (2026-04-06)**: **Option A — unified main run.** `run_test_coverage` executes **`tests/development_tools/`** with the main suite, measures **`development_tools`** via `coverage.ini` + `CORE_MODULES` (project config no longer excludes `development_tools` from derived `core_modules`), and writes **`coverage_dev_tools.json`** as a filtered view of **`coverage.json`** so `AI_STATUS` / `generate_dev_tools_coverage_results.json` stay aligned without a second pytest in the same full-repo Tier 3 pass. `--dev-tools-only` remains the narrow pass for dev-tools tree work without refreshing full-repo coverage.
+- **Implementation refs**: [`tests/run_test_coverage.py`](tests/run_test_coverage.py) (`_write_dev_tools_coverage_json_from_main`, `_build_unified_dev_tools_test_outcome`), [`shared/service/commands.py`](shared/service/commands.py), [`shared/service/audit_orchestration.py`](shared/service/audit_orchestration.py).
+
 ---
 
 ### 5.8 Monitoring and deferred test work (no active V4 tasks)

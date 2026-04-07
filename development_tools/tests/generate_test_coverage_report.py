@@ -133,7 +133,7 @@ class TestCoverageReportGenerator:
                 domains = [s.strip() for s in source.split(",") if s.strip()]
         except Exception:
             return domains
-        return [d for d in domains if d and d != "development_tools"]
+        return [d for d in domains if d]
 
     def _configure_paths_from_coverage_ini(self) -> None:
         """Override default coverage paths when coverage.ini explicitly sets them."""
@@ -163,6 +163,7 @@ class TestCoverageReportGenerator:
         # Union of coverage.ini [run] source= domains and domains present in coverage_data
         # for the **Coverage Scope** line. The **Coverage by Domain** section only lists domains
         # with measured statements so we do not emit misleading 0/0 rows when data is all under one prefix.
+        # Includes `development_tools` like other `source=` entries (unified Tier 3 main run).
         seen: set[str] = set()
         configured_domains: list[str] = []
         for d in self._source_domains_from_coverage_ini():
@@ -173,7 +174,7 @@ class TestCoverageReportGenerator:
             for module_name in coverage_data:
                 normalized = str(module_name).replace("\\", "/")
                 domain = normalized.split("/", 1)[0]
-                if domain and domain != "development_tools" and domain not in seen:
+                if domain and domain not in seen:
                     seen.add(domain)
                     configured_domains.append(domain)
         configured_domains.sort()
@@ -182,6 +183,7 @@ class TestCoverageReportGenerator:
                 "ai",
                 "communication",
                 "core",
+                "development_tools",
                 "notebook",
                 "tasks",
                 "ui",
@@ -207,7 +209,7 @@ class TestCoverageReportGenerator:
             f"- **Uncovered Statements**: {overall_data['total_missed']:,}"
         )
         summary_lines.append(
-            f"- **Coverage Scope**: Main project domains only ({', '.join(f'`{d}`' for d in configured_domains)}); `development_tools/` coverage is tracked separately."
+            f"- **Coverage Scope**: Packages under measurement ({', '.join(f'`{d}`' for d in configured_domains)}), from `development_tools/tests/coverage.ini` `[run] source=`."
         )
         summary_lines.append(
             "- **Goal**: Expand to **80%+ coverage** for comprehensive reliability\n"

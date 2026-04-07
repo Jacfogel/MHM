@@ -4,8 +4,7 @@
 > **Audience**: AI collaborators and automated tooling  
 > **Purpose**: Routing and constraints for all AI development tools used to analyze, audit, and maintain the MHM codebase  
 > **Style**: Minimal, reference-only (no deep explanations)  
-> **Pair**: [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md)  
-> This document is paired with [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md). Keep both H2 headings identical and consider changes in the context of the human counterpart.
+> **Pair**: [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) - keep both H2 headings identical and consider changes in the context of the human counterpart.
 
 ---
 
@@ -105,21 +104,20 @@ python development_tools/run_development_tools.py help
 - **Use case**: Standard quality checks, daily development workflow
 
 ### 3.3. Tier 3: Full Audit - `audit --full`
-- **Duration**: ~6-7 minutes (coverage tools run in parallel, reducing total time from ~460s to ~365s)
+- **Duration**: Environment-dependent (~6-30+ minutes); heaviest wall-clock is usually `run_test_coverage`
 - **Tools**: Everything in Tier 1 & 2 PLUS tools >10s (or groups containing tools >10s):
-  - **Coverage tools** (run in parallel, ~365s max):
-    - `run_test_coverage` - Full test coverage execution (~365s, >10s)
-    - `generate_dev_tools_coverage` - Dev tools test coverage (~94s, >10s, runs in parallel with main tests)
-  - **Coverage-dependent tools** (run sequentially after coverage completes, ~7s):
+  - **Coverage (full-repo scope)** - exactly **one** subprocess: `run_test_coverage` runs the **full** suite including `tests/development_tools/`, measures product packages **and** the `development_tools` tree per `development_tools/tests/coverage.ini`, writes `development_tools/tests/jsons/coverage.json`, derives `coverage_dev_tools.json` for dev-tools-only metrics, and persists `generate_dev_tools_coverage` results after success. Tier 3 schedules **no** separate `generate_dev_tools_coverage` in the same pass when scope is full-repo ([development_tools/shared/audit_tiers.py](shared/audit_tiers.py) `get_tier3_groups`).
+  - **Coverage (`--dev-tools-only`)** - only `generate_dev_tools_coverage` (dev-tools tests + dev-tools coverage config); main `coverage.json` / `development_docs/TEST_COVERAGE_REPORT.md` are not refreshed this pass (reports document that).
+  - **Coverage-dependent tools** (run sequentially after the coverage step for this scope, ~7s full-repo):
     - `analyze_test_markers` - Test marker analysis (~2s, requires coverage data)
-    - `generate_test_coverage_report` - Coverage report generation (~5s, generates TEST_COVERAGE_REPORT.md, HTML, JSON)
-  - **Legacy group** (runs in parallel with coverage tools):
+    - `generate_test_coverage_report` - Coverage report generation (~5s; **full-repo only**, generates `development_docs/TEST_COVERAGE_REPORT.md` from main coverage data)
+  - **Legacy group** (runs in parallel with the coverage step):
     - `analyze_legacy_references` - Legacy code scanning (~62s, >10s)
     - `generate_legacy_reference_report` - Legacy report generation (~1s, but part of legacy group)
   - **Static analysis group** (runs in parallel with coverage and legacy groups):
     - `analyze_ruff` - Ruff diagnostics summary (advisory)
     - `analyze_pyright` - Pyright diagnostics summary (advisory)
-- **Execution**: Coverage tools and legacy group run in parallel; coverage-dependent tools run sequentially after coverage completes
+- **Execution**: The coverage subprocess group, legacy group, and static-analysis group run in parallel where the platform allows; coverage-dependent tools run sequentially after coverage completes
 - **Use case**: Comprehensive analysis, pre-release checks, periodic deep audits
 - **Tier 3 outcome states**: `clean`, `test_failures`, `crashed`, `infra_cleanup_error`, `coverage_failed`.
 - **Strict mode behavior**: `audit --strict` returns non-zero for Tier 3 `test_failures`, `crashed`, or `infra_cleanup_error`; default audit mode remains non-strict.
@@ -313,3 +311,9 @@ See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for fu
 ## 10. External tools evaluation (Bandit, pip-audit, Radon, pre-commit)
 
 Not integrated into audit tiers. Run manually when assessing security/complexity hooks; see Section 10 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 4.1. **Also evaluate**: **pydeps** (graphs vs existing dependency tools), **vulture** (dead code vs unused-imports/registry). **Scripts backlog**: [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) (policy, flaky detector Section 3.2, inventory refresh Section 6); V5 Section 3.12-Section 3.14. **Do not add** unapproved standalone migration markdown files; use approved guides + V5.
+
+**Manual pilot (venv active; do not broaden `requirements.txt` until Tier decision)**:
+
+- `python -m pip install bandit pip-audit` - install tools for a one-off review session.
+- `python -m bandit -r core communication ui user ai tasks -ll` - start with product packages; widen or tighten `-ll` / `-iii` after noise triage; exclude `tests/` paths until policy is defined.
+- `python -m pip_audit` - dependency vulnerability report; review exit code and whether results belong in CI vs advisory audit notes.

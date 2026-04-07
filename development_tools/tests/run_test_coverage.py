@@ -85,6 +85,51 @@ config.load_external_config()
 
 logger = get_component_logger("development_tools")
 
+_DEV_TOOLS_TEST_POSIX_PREFIX = "tests/development_tools/"
+
+
+def _coverage_path_to_rel_posix(path_key: str, project_root: Path) -> str | None:
+    """Map a coverage.json file key to a project-relative posix path."""
+    raw = str(path_key).replace("\\", "/")
+    try:
+        p = Path(path_key)
+        if p.is_absolute():
+            rel = p.resolve().relative_to(project_root.resolve())
+            return str(rel).replace("\\", "/")
+        return raw
+    except ValueError:
+        root_norm = str(project_root.resolve()).replace("\\", "/").rstrip("/")
+        prefix = root_norm + "/"
+        if raw.lower().startswith(prefix.lower()):
+            return raw[len(prefix) :].replace("\\", "/")
+        return None
+
+
+def _recompute_coverage_totals_from_files(files: dict[str, Any]) -> dict[str, Any]:
+    """Build coverage.py-style totals dict from filtered file summaries."""
+    num_statements = 0
+    missing_lines = 0
+    covered_lines = 0
+    for info in files.values():
+        if not isinstance(info, dict):
+            continue
+        summary = info.get("summary") or {}
+        num_statements += int(summary.get("num_statements", 0) or 0)
+        missing_lines += int(summary.get("missing_lines", 0) or 0)
+        covered_lines += int(summary.get("covered_lines", 0) or 0)
+    pct = (
+        round((covered_lines / num_statements * 100), 2)
+        if num_statements
+        else 0.0
+    )
+    return {
+        "covered_lines": covered_lines,
+        "num_statements": num_statements,
+        "missing_lines": missing_lines,
+        "percent_covered": pct,
+        "excluded_lines": 0,
+    }
+
 
 class CoverageMetricsRegenerator:
     """
@@ -1055,22 +1100,8 @@ class CoverageMetricsRegenerator:
                     str(tf.relative_to(self.project_root)) for tf in test_files_to_run
                 ]
 
-        # Main product coverage run should not execute development-tools test files.
-        # Those are handled separately by generate_dev_tools_coverage in Tier 3.
-        dev_tools_test_prefix = "tests/development_tools/"
-        if test_filter_args:
-            original_count = len(test_filter_args)
-            test_filter_args = [
-                path
-                for path in test_filter_args
-                if not path.replace("\\", "/").startswith(dev_tools_test_prefix)
-            ]
-            if logger and len(test_filter_args) != original_count:
-                excluded_count = original_count - len(test_filter_args)
-                logger.info(
-                    f"Excluded {excluded_count} development-tools test file(s) from main coverage run; "
-                    "they run under generate_dev_tools_coverage"
-                )
+        # Unified Tier 3 (V5): main run includes tests/development_tools/; dev-tools coverage
+        # JSON is derived from the same coverage.json (see _write_dev_tools_coverage_json_from_main).
 
         # Store coverage.json in development_tools/tests/jsons/ instead of root
         jsons_dir = self.project_root / "development_tools" / "tests" / "jsons"
@@ -1222,8 +1253,6 @@ class CoverageMetricsRegenerator:
                         # Ignore temp directories to prevent collecting tests from temp files
                         "--ignore=tests/data/pytest-tmp-*",
                         "--ignore=tests/data/pytest-of-*",
-                        # Dev-tools tests are executed by generate_dev_tools_coverage
-                        "--ignore=tests/development_tools/",
                     ]
                 )
                 # Add test files or directories
@@ -1246,8 +1275,6 @@ class CoverageMetricsRegenerator:
                         # Ignore temp directories to prevent collecting tests from temp files
                         "--ignore=tests/data/pytest-tmp-*",
                         "--ignore=tests/data/pytest-of-*",
-                        # Dev-tools tests are executed by generate_dev_tools_coverage
-                        "--ignore=tests/development_tools/",
                     ]
                 )
                 # Add test files or directories
@@ -3555,6 +3582,12 @@ class CoverageMetricsRegenerator:
             )
             combined_failed_nodes = list(parallel_outcome.get("failed_node_ids", []))
             combined_failed_nodes.extend(no_parallel_outcome.get("failed_node_ids", []))
+            dev_tools_test_outcome = self._build_unified_dev_tools_test_outcome(
+                parallel_test_results,
+                no_parallel_test_results,
+                parallel_outcome,
+                no_parallel_outcome,
+            )
             coverage_outcome = {
                 "state": self._classify_coverage_outcome(
                     parallel_outcome,
@@ -3574,6 +3607,7 @@ class CoverageMetricsRegenerator:
                 "coverage_collected": coverage_collected,
                 "pytest_ran": pytest_ran,  # Track whether pytest actually executed
                 "coverage_outcome": coverage_outcome,
+                "dev_tools_test_outcome": dev_tools_test_outcome,
                 "logs": {
                     "stdout": (
                         str(self.pytest_stdout_log) if self.pytest_stdout_log else None
@@ -4633,6 +4667,163 @@ class CoverageMetricsRegenerator:
         if log_file:
             logger.error(f"Check log for details: {log_file}")
 
+    def _dev_tools_test_path_predicate(self, node_id: str) -> bool:
+        """True when a pytest node id refers to tests under tests/development_tools/."""
+        raw = node_id.replace("\\", "/")
+        return raw.startswith(_DEV_TOOLS_TEST_POSIX_PREFIX)
+
+    def _build_unified_dev_tools_test_outcome(
+        self,
+        parallel_test_results: dict[str, Any],
+        no_parallel_test_results: dict[str, Any],
+        parallel_outcome: dict[str, Any],
+        no_parallel_outcome: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Tier 3 dev-tools track derived from failures under tests/development_tools/ only."""
+
+        def pick_logs() -> tuple[str | None, str | None]:
+            p_log = parallel_outcome.get("log_file")
+            n_log = no_parallel_outcome.get("log_file")
+            return (
+                str(p_log) if p_log else None,
+                str(n_log) if n_log else None,
+            )
+
+        def merge_failed(pred, pr: dict, npr: dict) -> list[str]:
+            out: list[str] = []
+            for seq_key in ("failed_tests", "error_tests"):
+                for n in pr.get(seq_key, []) or []:
+                    if isinstance(n, str) and pred(n):
+                        out.append(n)
+                for n in npr.get(seq_key, []) or []:
+                    if isinstance(n, str) and pred(n):
+                        out.append(n)
+            return out
+
+        failed_node_ids = merge_failed(
+            self._dev_tools_test_path_predicate,
+            parallel_test_results if isinstance(parallel_test_results, dict) else {},
+            no_parallel_test_results if isinstance(no_parallel_test_results, dict) else {},
+        )
+        par_rc = parallel_outcome.get("return_code")
+        np_rc = no_parallel_outcome.get("return_code")
+        log_par, log_np = pick_logs()
+        if failed_node_ids:
+            classification_reason = "pytest_failed_or_errored"
+            actionable = (
+                "One or more tests under tests/development_tools/ failed or errored "
+                "in the unified Tier 3 run."
+            )
+            rc = par_rc if par_rc not in (None, 0) else np_rc
+            return {
+                "state": "failed",
+                "classification": "failed",
+                "classification_reason": classification_reason,
+                "actionable_context": actionable,
+                "log_file": log_par or log_np,
+                "return_code_hex": parallel_outcome.get("return_code_hex")
+                or no_parallel_outcome.get("return_code_hex"),
+                "return_code": rc,
+                "passed_count": 0,
+                "failed_count": len(failed_node_ids),
+                "error_count": 0,
+                "skipped_count": 0,
+                "failed_node_ids": failed_node_ids,
+            }
+
+        # No dev-tools-specific failures: treat track as passed if both pytest runs were healthy.
+        p_st = parallel_outcome.get("classification", parallel_outcome.get("state"))
+        n_st = no_parallel_outcome.get(
+            "classification", no_parallel_outcome.get("state")
+        )
+        if p_st in ("infra_cleanup_error",) or n_st in ("infra_cleanup_error",):
+            rc = par_rc if np_rc in (None, 0) else np_rc
+            return self._build_track_outcome(
+                return_code=rc if isinstance(rc, int) else None,
+                parsed_results={"total_tests": 0},
+                output="",
+                track_name="development_tools",
+                log_file=Path(log_par) if log_par else (Path(log_np) if log_np else None),
+            )
+        if p_st == "crashed" or n_st == "crashed":
+            rc = par_rc if par_rc not in (None, 0) else np_rc
+            return self._build_track_outcome(
+                return_code=rc if isinstance(rc, int) else None,
+                parsed_results={"total_tests": 0},
+                output="",
+                track_name="development_tools",
+                log_file=Path(log_par) if log_par else (Path(log_np) if log_np else None),
+            )
+        return {
+            "state": "passed",
+            "classification": "passed",
+            "classification_reason": "no_dev_tools_failures_unified_run",
+            "actionable_context": (
+                "No failures reported under tests/development_tools/ in the unified Tier 3 run."
+            ),
+            "log_file": log_par or log_np,
+            "return_code_hex": parallel_outcome.get("return_code_hex"),
+            "return_code": (
+                par_rc if par_rc is not None else np_rc
+            ),
+            "passed_count": 0,
+            "failed_count": 0,
+            "error_count": 0,
+            "skipped_count": 0,
+            "failed_node_ids": [],
+        }
+
+    def _write_dev_tools_coverage_json_from_main(self, main_coverage_path: Path) -> None:
+        """Write coverage_dev_tools.json as a subset of unified main coverage.json."""
+        root = self.project_root.resolve()
+        try:
+            if not main_coverage_path.is_file():
+                return
+            with main_coverage_path.open("r", encoding="utf-8") as handle:
+                data = json.load(handle)
+        except (OSError, json.JSONDecodeError) as exc:
+            if logger:
+                logger.warning(
+                    f"Skipping dev-tools coverage subset: cannot read main coverage ({exc})"
+                )
+            return
+        if not isinstance(data, dict):
+            return
+        files = data.get("files")
+        if not isinstance(files, dict):
+            return
+        out_files: dict[str, Any] = {}
+        for path_key, payload in files.items():
+            if not isinstance(payload, dict):
+                continue
+            rel = _coverage_path_to_rel_posix(str(path_key), root)
+            if rel is None:
+                continue
+            if rel == "development_tools" or rel.startswith("development_tools/"):
+                out_files[str(path_key)] = payload
+        totals = _recompute_coverage_totals_from_files(out_files)
+        subset = dict(data)
+        subset["files"] = out_files
+        subset["totals"] = totals
+        meta = subset.get("_metadata")
+        if isinstance(meta, dict):
+            meta = dict(meta)
+            meta["dev_tools_subset_from"] = "unified_main_coverage.json"
+            subset["_metadata"] = meta
+        out_path = root / "development_tools" / "tests" / "jsons" / "coverage_dev_tools.json"
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with out_path.open("w", encoding="utf-8") as handle:
+                json.dump(subset, handle, indent=2)
+            if logger:
+                pct = float(totals.get("percent_covered", 0.0) or 0.0)
+                logger.info(
+                    f"Wrote dev-tools coverage subset to {out_path} ({pct:.1f}% of dev-tools statements)"
+                )
+        except OSError as exc:
+            if logger:
+                logger.warning(f"Failed to write {out_path}: {exc}")
+
     def _build_track_outcome(
         self,
         return_code: int | None,
@@ -4987,6 +5178,16 @@ class CoverageMetricsRegenerator:
                         f"Error from coverage analysis: {coverage_results.get('error')}"
                     )
                 return {}
+
+            main_cov = (
+                self.project_root
+                / "development_tools"
+                / "tests"
+                / "jsons"
+                / "coverage.json"
+            )
+            if main_cov.exists():
+                self._write_dev_tools_coverage_json_from_main(main_cov)
 
             # Generate summary
             if self.report_generator:

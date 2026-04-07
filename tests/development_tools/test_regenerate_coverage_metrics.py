@@ -191,6 +191,41 @@ class TestCoverageSummary:
         assert "- **ui**: 0.0%" not in summary
         assert "`core`" in summary and "`ui`" in summary and "`communication`" in summary
 
+    @pytest.mark.unit
+    def test_generate_coverage_summary_includes_development_tools_domain(self, tmp_path):
+        """Coverage by Domain lists development_tools when present in coverage.ini and data."""
+        (tmp_path / "development_tools" / "tests").mkdir(parents=True)
+        (tmp_path / "development_tools" / "tests" / "coverage.ini").write_text(
+            "[run]\nsource = core,development_tools\n",
+            encoding="utf-8",
+        )
+        generator = TestCoverageReportGenerator(str(tmp_path))
+        coverage_data = {
+            "core/foo.py": {
+                "statements": 10,
+                "missed": 0,
+                "coverage": 100,
+                "covered": 10,
+                "missing_lines": [],
+            },
+            "development_tools/x.py": {
+                "statements": 20,
+                "missed": 10,
+                "coverage": 50,
+                "covered": 10,
+                "missing_lines": [],
+            },
+        }
+        overall_data = {
+            "total_statements": 30,
+            "total_missed": 10,
+            "overall_coverage": 66.7,
+        }
+        summary = generator.generate_coverage_summary(coverage_data, overall_data)
+        assert "- **development_tools**:" in summary
+        assert "50.0%" in summary
+        assert "`development_tools`" in summary
+
 
 class TestCoverageAnalysis:
     """Test coverage analysis execution."""
