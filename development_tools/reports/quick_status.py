@@ -21,6 +21,10 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from core.logger import get_component_logger
+from development_tools.shared.audit_storage_scope import (
+    STORAGE_SCOPE_FULL,
+    scoped_analysis_detailed_path,
+)
 
 logger = get_component_logger("development_tools")
 
@@ -109,13 +113,11 @@ class QuickStatus:
         """Check documentation status"""
         docs = {"coverage": "Unknown", "recent_audit": None, "key_files": {}}
 
-        # Check for recent audit results
-        # File is in development_tools/reports/, not development_tools/reports/quick_status.py's parent
-        audit_file = (
-            self.project_root
-            / "development_tools"
-            / "reports"
-            / "analysis_detailed_results.json"
+        # Tier 3 aggregate (scoped layout; V5 §7.16)
+        audit_file = scoped_analysis_detailed_path(
+            self.project_root,
+            configured_relative="development_tools/reports/analysis_detailed_results.json",
+            audit_scope=STORAGE_SCOPE_FULL,
         )
         if audit_file.exists():
             try:
@@ -233,13 +235,10 @@ class QuickStatus:
             "recent_changes": set(),  # Use set to avoid duplicates
         }
 
-        # Check for recent audit
-        # File is in development_tools/reports/, not development_tools/reports/quick_status.py's parent
-        audit_file = (
-            self.project_root
-            / "development_tools"
-            / "reports"
-            / "analysis_detailed_results.json"
+        audit_file = scoped_analysis_detailed_path(
+            self.project_root,
+            configured_relative="development_tools/reports/analysis_detailed_results.json",
+            audit_scope=STORAGE_SCOPE_FULL,
         )
         if audit_file.exists():
             try:

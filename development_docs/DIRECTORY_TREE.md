@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-05 02:39:11
+> **Last Generated**: 2026-04-07 17:38:45
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -50,6 +50,7 @@ C:.
 |   |   |   planning_documents_consolidation_f3a74815.plan.md
 |   |   |   reduce_dependency_risk_70688c22.plan.md
 |   |   |   unified_user_items_and_shared_helpers.plan.md
+|   |   |   v5_dev-tools_continuation_5ab62a62.plan.md
 |   |   |   
 |   \---rules
 |           communication-guidelines.mdc

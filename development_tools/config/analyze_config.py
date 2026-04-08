@@ -42,7 +42,7 @@ class ConfigValidator:
         # Prefer config-driven project root; fall back to package location if unset/relative
         cfg_root = Path(config.get_project_root()).expanduser()
         self.project_root = (
-            cfg_root.resolve() if cfg_root.is_absolute() else _PACKAGE_ROOT
+            cfg_root.resolve() if cfg_root.is_absolute() else _PACKAGE_ROOT.resolve()
         )
         self.ai_tools_dir = self.project_root / "development_tools"
         self.validation_results = {

@@ -53,10 +53,19 @@ KNOWN_DELETED_FILES = _DEFAULT_KNOWN_DELETED_FILES
 
 def find_all_json_cache_files(project_root: Path) -> list[Path]:
     """Find all JSON cache and results files."""
+    from development_tools.shared.audit_storage_scope import (
+        STORAGE_SCOPE_DEV_TOOLS,
+        STORAGE_SCOPE_FULL,
+        scoped_analysis_detailed_path,
+    )
+
     cache_files = []
-    
-    # Standard results files
-    cache_files.append(project_root / 'development_tools' / 'reports' / 'analysis_detailed_results.json')
+    cfg = "development_tools/reports/analysis_detailed_results.json"
+    for scope in (STORAGE_SCOPE_FULL, STORAGE_SCOPE_DEV_TOOLS):
+        p = scoped_analysis_detailed_path(
+            project_root, configured_relative=cfg, audit_scope=scope
+        )
+        cache_files.append(p)
     
     # Tool-specific cache files
     cache_dirs = [
@@ -123,11 +132,22 @@ def check_tool_results_for_deleted_files(project_root: Path, deleted_files: set[
     """Check all tool result JSON files for deleted file references."""
     issues = []
     
-    # Check standard results file
-    results_file = project_root / 'development_tools' / 'reports' / 'analysis_detailed_results.json'
-    if results_file.exists():
-        cache_issues = check_cache_file_for_deleted_files(results_file, project_root, deleted_files)
-        issues.extend(cache_issues)
+    from development_tools.shared.audit_storage_scope import (
+        STORAGE_SCOPE_DEV_TOOLS,
+        STORAGE_SCOPE_FULL,
+        scoped_analysis_detailed_path,
+    )
+
+    cfg = "development_tools/reports/analysis_detailed_results.json"
+    for scope in (STORAGE_SCOPE_FULL, STORAGE_SCOPE_DEV_TOOLS):
+        results_file = scoped_analysis_detailed_path(
+            project_root, configured_relative=cfg, audit_scope=scope
+        )
+        if results_file.exists():
+            cache_issues = check_cache_file_for_deleted_files(
+                results_file, project_root, deleted_files
+            )
+            issues.extend(cache_issues)
     
     # Check tool-specific cache files
     cache_files = find_all_json_cache_files(project_root)

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-05 02:38:59
+> **Last Generated**: 2026-04-07 17:38:35
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 95.2% [OK] COMPLETED**
 - **Files Scanned**: 124
-- **Functions Found**: 1699
+- **Functions Found**: 1700
 - **Methods Found**: 1229
 - **Classes Found**: 154
-- **Total Items**: 2928
-- **Functions Documented**: 1598
+- **Total Items**: 2929
+- **Functions Documented**: 1599
 - **Methods Documented**: 1189
 - **Classes Documented**: 120
-- **Total Documented**: 2787
+- **Total Documented**: 2788
 - **Template-Generated**: 4
-- **Last Updated**: 2026-04-05
+- **Last Updated**: 2026-04-07
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (599)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (454)
+### **Communication Functions** (455)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (426)
@@ -2017,6 +2017,7 @@ Args:
 
 Returns:
     bool: True if successful
+- [OK] `welcome_tracking_json_path()` - Path to welcome-tracking JSON under the current BASE_DATA_DIR (tests may patch BASE_DATA_DIR).
 
 #### `communication/message_processing/__init__.py`
 

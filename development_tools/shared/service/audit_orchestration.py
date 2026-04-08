@@ -1538,19 +1538,6 @@ class AuditOrchestrationMixin:
             results_file = scoped_analysis_detailed_path(
                 self.project_root, configured_relative=configured
             )
-            if (
-                not results_file.exists()
-                and not getattr(self, "dev_tools_only_mode", False)
-            ):
-                # LEGACY COMPATIBILITY: unscoped aggregate (V5 Section 7.16).
-                legacy_agg = (
-                    self.project_root
-                    / "development_tools"
-                    / "reports"
-                    / "analysis_detailed_results.json"
-                )
-                if legacy_agg.exists():
-                    results_file = legacy_agg
             if results_file.exists():
                 with open(results_file, encoding='utf-8') as f:
                     cached_data = json.load(f)
@@ -1659,19 +1646,6 @@ class AuditOrchestrationMixin:
             results_file = scoped_analysis_detailed_path(
                 self.project_root, configured_relative=configured
             )
-            if (
-                not results_file.exists()
-                and not getattr(self, "dev_tools_only_mode", False)
-            ):
-                # LEGACY COMPATIBILITY: unscoped aggregate (V5 Section 7.16).
-                legacy_agg = (
-                    self.project_root
-                    / "development_tools"
-                    / "reports"
-                    / "analysis_detailed_results.json"
-                )
-                if legacy_agg.exists():
-                    results_file = legacy_agg
             is_test_dir_check = self._is_test_directory(self.project_root)
             if results_file.exists() and not is_test_dir_check:
                 file_size_mb = results_file.stat().st_size / (1024 * 1024)
@@ -2089,28 +2063,14 @@ class AuditOrchestrationMixin:
             timing_file = scoped_tool_timings_path(self.project_root)
             timing_file.parent.mkdir(parents=True, exist_ok=True)
             
-            # Load existing timing data (prefer scoped path; migrate legacy file once)
+            # Load existing timing data (scoped path only; see V5 §7.16)
             existing_data: dict[str, Any] = {}
-            timing_load_candidates = [timing_file]
-            if not getattr(self, "dev_tools_only_mode", False):
-                # LEGACY COMPATIBILITY: pre-scopes reports/jsons/tool_timings.json (see V5 Section 7.16).
-                legacy_timings = (
-                    self.project_root
-                    / "development_tools"
-                    / "reports"
-                    / "jsons"
-                    / "tool_timings.json"
-                )
-                if legacy_timings.resolve() != timing_file.resolve():
-                    timing_load_candidates.append(legacy_timings)
-            for cand in timing_load_candidates:
-                if cand.exists():
-                    try:
-                        with open(cand, encoding='utf-8') as f:
-                            existing_data = json.load(f)
-                        break
-                    except (json.JSONDecodeError, OSError):
-                        existing_data = {}
+            if timing_file.exists():
+                try:
+                    with open(timing_file, encoding='utf-8') as f:
+                        existing_data = json.load(f)
+                except (json.JSONDecodeError, OSError):
+                    existing_data = {}
             
             def _to_human_timestamp(raw_value: object) -> str:
                 """Normalize timestamps to human-readable format."""

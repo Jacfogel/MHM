@@ -52,7 +52,7 @@ def test_validate_result_files_exist_filters_deleted_and_updates_counts(tmp_path
 @pytest.mark.unit
 def test_load_tool_cache_removes_corrupted_cache(tmp_path):
     """Corrupted cache JSON should return None and delete the cache file."""
-    cache_dir = tmp_path / "development_tools" / "docs" / "jsons"
+    cache_dir = tmp_path / "development_tools" / "docs" / "jsons" / "scopes" / "full"
     cache_dir.mkdir(parents=True, exist_ok=True)
     cache_file = cache_dir / ".bad_tool_cache.json"
     cache_file.write_text("{not-json", encoding="utf-8")
@@ -89,7 +89,7 @@ def test_get_all_tool_results_prefers_newer_timestamp(tmp_path):
 @pytest.mark.unit
 def test_load_tool_result_returns_none_on_invalid_normalized_payload(tmp_path):
     """load_tool_result should return None when normalization raises ValueError."""
-    result_dir = tmp_path / "development_tools" / "docs" / "jsons"
+    result_dir = tmp_path / "development_tools" / "docs" / "jsons" / "scopes" / "full"
     result_dir.mkdir(parents=True, exist_ok=True)
     result_file = result_dir / "demo_tool_results.json"
     result_file.write_text(json.dumps({"data": {"x": 1}}), encoding="utf-8")

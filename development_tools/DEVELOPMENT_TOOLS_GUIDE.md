@@ -601,7 +601,7 @@ Development-tools modules may import `core.logger` for structured logging. All o
 
 **Phased migration** (when restructuring): (1) clarify docs + ownership map (this section); (2) compatibility shims if modules move; (3) migrate imports and remove shims. Core CLI entrypoints (`run_development_tools.py`, `audit` tiers) should keep working throughout.
 
-**Phase 2 (evaluation, not yet executed)**: Before moving files out of `development_tools/config/`, decide which items are true "policy surface" vs runtime/plumbing. Candidate home for runtime-only helpers: a dedicated package (for example `development_tools/shared/runtime_config/`) with **temporary** re-export shims only when required-each shim must follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) (inventory, removal plan, no silent long-term duplication). Acceptance: contributors can find config entrypoints within minutes; existing imports keep working until an explicit deprecation window ends.
+**Phase 2 (evaluation, not yet executed)**: Gate is recorded in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 7.7. Before moving files out of `development_tools/config/`, decide which items are true "policy surface" vs runtime/plumbing. Candidate home for runtime-only helpers: a dedicated package (for example `development_tools/shared/runtime_config/`) with **temporary** re-export shims only when required-each shim must follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) (inventory, removal plan, no silent long-term duplication). Acceptance: contributors can find config entrypoints within minutes; existing imports keep working until an explicit deprecation window ends.
 
 **Pyright configs**: Root `pyrightconfig.json` supports IDE and whole-repo workflows (JSON with `//` comments); `development_tools/config/pyrightconfig.json` is dev-tools-owned strict JSON for explicit `--project` use in audits. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` remains a compatibility mirror. Policy tests: `tests/development_tools/test_pyright_config_paths.py` (Pyright JSON + Ruff TOML presence/parse).
 
@@ -618,9 +618,10 @@ Development-tools modules may import `core.logger` for structured logging. All o
 **Status**: Not wired into audit tiers; see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 4.1 for the integration backlog.
 
 - **Manual pilot (Windows PowerShell, repo root, venv active)**:
-  - `python -m pip install bandit pip-audit`
+  - `python -m pip install bandit pip-audit` (add `radon` for cyclomatic-complexity sampling: `python -m pip install radon`)
   - `python -m bandit -r core communication ui user ai tasks -ll` (expand/shrink paths and severity flags after triage; keep `tests/` out until policy exists).
   - `python -m pip_audit`
+  - `python -m radon cc development_tools -a -s` (advisory; overlaps internal `analyze_functions` / refactor signals-use to cross-check hot spots, not as a second source of truth in CI until policy exists).
 - **Bandit** / **pip-audit**: Run manually from the venv when reviewing security or dependency risk; promote to Tier 1 only after noise levels are acceptable.
 - **Radon**: Overlaps existing complexity/refactor signals (`analyze_functions`, `analyze_module_refactor_candidates`); adopt only for metrics Ruff does not provide.
 - **pydeps**: Optional dependency-graph visualization; compare against `imports/analyze_module_dependencies.py` / consolidated report before adding a second graph pipeline.

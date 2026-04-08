@@ -7,12 +7,9 @@ Both layouts live under parallel trees:
 - ``development_tools/<domain>/jsons/scopes/dev_tools/`` — ``--dev-tools-only``
 - ``development_tools/reports/scopes/<full|dev_tools>/...`` — aggregated JSON and timings
 
-**LEGACY COMPATIBILITY (read-only, migration bridge):** flat per-domain JSON under
-``development_tools/<domain>/jsons/*.json`` (no ``scopes/``), plus unscoped
-``development_tools/reports/analysis_detailed_results.json`` and
-``development_tools/reports/jsons/tool_timings.json`` in a few loaders—see
-``development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md`` Section 7.16 (backlog to remove these read fallbacks).
-New writes use ``scopes/<full|dev_tools>/`` only.
+**Reads:** tool JSON only under ``jsons/scopes/<full|dev_tools>/``; Tier 3 aggregates and
+``tool_timings.json`` only under ``reports/scopes/<scope>/`` (V5 §7.16). ``--clear-cache`` may
+still remove orphan unscoped files left from older runs.
 """
 
 from __future__ import annotations
@@ -66,10 +63,9 @@ def jsons_dir_for_scope(
 
 
 def legacy_flat_jsons_dir(project_root: Path, domain: str) -> Path:
-    """LEGACY COMPATIBILITY: ``development_tools/<domain>/jsons`` without ``scopes/``.
+    """Path to pre-scopes flat ``development_tools/<domain>/jsons`` (no longer read by tool loaders).
 
-    Read-only bridge for ``STORAGE_SCOPE_FULL`` loaders; see module docstring and
-    ``AI_LEGACY_COMPATIBILITY_GUIDE.md``.
+    Retained for cleanup helpers and inventory search terms; see V5 §7.16.
     """
     return Path(project_root).resolve() / "development_tools" / domain / "jsons"
 

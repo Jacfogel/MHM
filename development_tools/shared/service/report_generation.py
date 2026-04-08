@@ -588,6 +588,9 @@ class ReportGenerationMixin:
             lines.append(
                 "> **Scope**: Analyzers used `get_scan_directories() -> ['development_tools']` for this audit."
             )
+            lines.append(
+                "> **Artifact layout**: Reads/writes use scoped paths only (`**/jsons/scopes/dev_tools/`, `reports/scopes/dev_tools/`); pre-scopes flat JSON under `development_tools/**/jsons/*.json` is not loaded."
+            )
         else:
             lines.append(
                 "> **Role**: Quick operational snapshot for AI contributors (current health signals)."
@@ -2550,6 +2553,9 @@ class ReportGenerationMixin:
             )
             lines.append(
                 "> **Scope**: Metrics derive from a `development_tools/` scan when `--dev-tools-only` was used."
+            )
+            lines.append(
+                "> **Artifact layout**: Scoped storage only (`**/jsons/scopes/dev_tools/`, `reports/scopes/dev_tools/`); see DEV_TOOLS_STATUS header for detail."
             )
         else:
             lines.append(
@@ -5059,6 +5065,9 @@ class ReportGenerationMixin:
             )
             lines.append(
                 "> **Scope**: `get_scan_directories() -> ['development_tools']` for this run. Use `CONSOLIDATED_REPORT.md` without `--dev-tools-only` for full-repo evidence."
+            )
+            lines.append(
+                "> **Artifact layout**: Same as DEV_TOOLS_STATUS — scoped JSON/timings only; legacy flat tool or aggregate files are not read (run `audit --full` with default scope to refresh full-repo caches)."
             )
         else:
             lines.append(

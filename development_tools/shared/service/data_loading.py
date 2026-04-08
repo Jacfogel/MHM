@@ -13,6 +13,10 @@ from typing import Any
 from collections.abc import Callable
 
 from core.logger import get_component_logger
+from development_tools.shared.audit_storage_scope import (
+    STORAGE_SCOPE_FULL,
+    scoped_analysis_detailed_path,
+)
 
 logger = get_component_logger("development_tools")
 
@@ -29,8 +33,8 @@ class DataLoadingMixin:
         
         Loads tool data from multiple sources in order of preference:
         1. results_cache (in-memory, current audit run)
-        2. load_tool_result() (standardized storage, recent run)
-        3. Central aggregation file (analysis_detailed_results.json, cached)
+        2. load_tool_result() (standardized storage under ``jsons/scopes/...``, recent run)
+        3. Central aggregation file (scoped ``reports/scopes/.../analysis_detailed_results.json``, cached)
         
         All data is normalized to standard format before returning.
         
@@ -209,7 +213,14 @@ class DataLoadingMixin:
                     # This allows tests to work with mocked data in results_cache
                     pass  # Continue to return statement at end of function
                 
-                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+                cfg = (self.audit_config or {}).get(
+                    "results_file", "development_tools/reports/analysis_detailed_results.json"
+                )
+                results_file = scoped_analysis_detailed_path(
+                    self.project_root,
+                    configured_relative=cfg,
+                    audit_scope=STORAGE_SCOPE_FULL,
+                )
                 if results_file.exists():
                     with open(results_file, encoding='utf-8') as f:
                         cached_data = json.load(f)
@@ -362,12 +373,14 @@ class DataLoadingMixin:
                 status_lines.append(f"[MISSING] {file_path}")
         
         # Check recent audit results
-        results_file_name = (self.audit_config or {}).get('results_file', 'development_tools/reports/analysis_detailed_results.json')
-        for prefix in ('ai_tools/', 'development_tools/'):
-            if results_file_name.startswith(prefix):
-                results_file_name = results_file_name[len(prefix):]
-                break
-        results_file = self.project_root / results_file_name
+        results_file_name = (self.audit_config or {}).get(
+            "results_file", "development_tools/reports/analysis_detailed_results.json"
+        )
+        results_file = scoped_analysis_detailed_path(
+            self.project_root,
+            configured_relative=results_file_name,
+            audit_scope=STORAGE_SCOPE_FULL,
+        )
         if results_file.exists():
             try:
                 with open(results_file) as f:

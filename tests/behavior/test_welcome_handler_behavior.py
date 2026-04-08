@@ -7,7 +7,6 @@ These tests verify that welcome handler actually works and produces expected sid
 
 import pytest
 from unittest.mock import patch
-from pathlib import Path
 import uuid
 from communication.communication_channels.discord.welcome_handler import (
     has_been_welcomed,
@@ -20,65 +19,63 @@ from communication.communication_channels.discord.welcome_handler import (
 
 class TestWelcomeHandlerBehavior:
     """Test welcome handler real behavior and side effects."""
-    
+
+    @pytest.fixture(autouse=True)
+    def isolate_welcome_manager_base(self, tmp_path):
+        """Parallel-safe: each test gets its own welcome_manager BASE_DATA_DIR root."""
+        d = tmp_path / f"wh_{uuid.uuid4().hex[:8]}"
+        d.mkdir()
+        with patch(
+            "communication.core.welcome_manager.BASE_DATA_DIR",
+            str(d.resolve()),
+        ):
+            yield
+
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.communication
     @pytest.mark.file_io
-    def test_has_been_welcomed_delegates_to_manager(self, test_data_dir):
+    def test_has_been_welcomed_delegates_to_manager(self):
         """Test: has_been_welcomed delegates to welcome_manager with discord channel type."""
-        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            discord_user_id = 'discord_user_123'
-            
-            # Mark as welcomed using the handler
-            mark_as_welcomed(discord_user_id)
-            
-            # Check using handler
-            result = has_been_welcomed(discord_user_id)
-            
-            # Assert: Should return True
-            assert result is True, "Should return True after marking as welcomed"
+        discord_user_id = 'discord_user_123'
+
+        mark_as_welcomed(discord_user_id)
+
+        result = has_been_welcomed(discord_user_id)
+
+        assert result is True, "Should return True after marking as welcomed"
     
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.communication
     @pytest.mark.file_io
-    def test_mark_as_welcomed_delegates_to_manager(self, test_data_dir):
+    def test_mark_as_welcomed_delegates_to_manager(self):
         """Test: mark_as_welcomed delegates to welcome_manager with discord channel type."""
-        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            discord_user_id = 'discord_user_456'
-            
-            # Mark as welcomed using handler
-            result = mark_as_welcomed(discord_user_id)
-            
-            # Assert: Should mark successfully
-            assert result is True, "Should mark as welcomed successfully"
-            
-            # Verify using manager directly
-            from communication.core.welcome_manager import has_been_welcomed as manager_has_been_welcomed
-            assert manager_has_been_welcomed(discord_user_id, channel_type='discord'), "Manager should confirm user is welcomed"
+        discord_user_id = 'discord_user_456'
+
+        result = mark_as_welcomed(discord_user_id)
+
+        assert result is True, "Should mark as welcomed successfully"
+
+        from communication.core.welcome_manager import has_been_welcomed as manager_has_been_welcomed
+
+        assert manager_has_been_welcomed(discord_user_id, channel_type='discord'), "Manager should confirm user is welcomed"
     
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.communication
     @pytest.mark.file_io
-    def test_clear_welcomed_status_delegates_to_manager(self, test_data_dir):
+    def test_clear_welcomed_status_delegates_to_manager(self):
         """Test: clear_welcomed_status delegates to welcome_manager with discord channel type."""
-        tracking_file = Path(test_data_dir) / "welcome_tracking.json"
-        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir), \
-             patch('communication.core.welcome_manager.WELCOME_TRACKING_FILE', tracking_file):
-            discord_user_id = f'discord_user_789_{uuid.uuid4().hex[:8]}'
-            
-            # Mark as welcomed first
-            mark_as_welcomed(discord_user_id)
-            assert has_been_welcomed(discord_user_id), "Should be welcomed"
-            
-            # Clear using handler
-            result = clear_welcomed_status(discord_user_id)
-            
-            # Assert: Should clear successfully
-            assert result is True, "Should clear welcomed status successfully"
-            assert not has_been_welcomed(discord_user_id), "Should no longer be welcomed"
+        discord_user_id = f'discord_user_789_{uuid.uuid4().hex[:8]}'
+
+        mark_as_welcomed(discord_user_id)
+        assert has_been_welcomed(discord_user_id), "Should be welcomed"
+
+        result = clear_welcomed_status(discord_user_id)
+
+        assert result is True, "Should clear welcomed status successfully"
+        assert not has_been_welcomed(discord_user_id), "Should no longer be welcomed"
     
     @pytest.mark.behavior
     @pytest.mark.communication

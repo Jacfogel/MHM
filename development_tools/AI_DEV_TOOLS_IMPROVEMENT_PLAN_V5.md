@@ -89,6 +89,7 @@ No per-task history here — see V4 for checkboxes.
 - Retired unapproved standalone docs (content folded into code/guides).
 - **2026-03-28 (V5 continuation slice)**: `DEV_TOOLS_*` report scope (headers, `--dev-tools-only` source line, scope/role blurbs; omit domain-coverage priority in dev-tools priorities); legacy report noise fix (`root_ruff_compat_mirror` empty `search_terms`, inventory summary unchanged); portability bootstrap (`run_dev_tools.py`, `fix_legacy_references.py` `Path.resolve()`; `generate_function_registry` output paths use module `project_root`); owned [`pyrightconfig.json`](config/pyrightconfig.json) `venvPath` / `venv` for repo interpreter; paired changelogs — see [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) / [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md).
 - **2026-04-06**: Unified full-repo Tier 3 coverage (§1.9 / §7.17): main `run_test_coverage` runs dev-tools tests, measures `development_tools` in `coverage.ini`, derives `coverage_dev_tools.json`, persists `generate_dev_tools_coverage` on success, `constants.derived_prefix_excludes.core` updated for this repo.
+- **2026-04-06 (V5 continuation)**: §7.16 read-fallback removal (scoped aggregates/tool JSON only); Phase 2 taxonomy gate recorded inline (§7.7); paired-guide §5 overlap advisory + §10 Radon line; `DEPRECATION_INVENTORY` bridge record; `analyze_config` / DEV_TOOLS report header polish.
 
 ---
 
@@ -98,14 +99,14 @@ Rough ordering for triage (see **§5** for full V4-sourced detail):
 
 | Tier | Themes |
 |------|--------|
-| **High** | Legacy executable paths + [DEPRECATION_INVENTORY.json](config/jsons/DEPRECATION_INVENTORY.json) (§6); portability / dual Pyright+Ruff baselines (§3.17, §7.6); directory taxonomy Phase 2–3 (§7.7); §7.16 read-fallback retirement when scoped-only consumers are verified. |
+| **High** | Legacy executable paths + [DEPRECATION_INVENTORY.json](config/jsons/DEPRECATION_INVENTORY.json) (§6); portability / dual Pyright+Ruff baselines (§3.17, §7.6); directory taxonomy Phase 2–3 (§7.7). |
 | **Medium** | §2.8 remaining scoped-report polish; coverage cache numeric benchmarks (§1.5); validation triggers (§3.2); external security/complexity tools (§4.1); doc overlap analyzer (§5.2); AI work validation thin profile (§5.3); TODO sync automation (§5.4); gap-analysis tool rollout (§5.5). |
 | **Lower / backlog** | `test_config.json` migration (§1.1); example-marking checker (§3.0); flaky detector + scripts migration (§3.12–3.15); unused-imports fixer (§5.1); memory profiler (§5.6); large-file refactors (§3.16); human backlog §7.8–7.13, §7.15. |
 | **Monitoring** | Intermittent low coverage warning (§1.3) — reopen if recurrence. |
 
 ### 4.1 Phase 2 scheduling (after §4 High / Phase 1 portability-legacy work)
 
-Suggested order when returning from Phase 1: **(1)** §2.8 any remaining scope-aware **sections** (1.9 shipped 2026-04-06). **(2)** §1.5 coverage-cache benchmark session (methodology in §5.1 — 1.5; optional numeric capture). **(3)** §4.1 external tools evaluation (bandit, pip-audit, radon, pre-commit) per paired guides §10. **(4)** §5.2 documentation overlap analyzer improvements. **(5)** §5.3 AI work validation (keep thin). **(6)** §5.4 TODO sync dry-run automation. **(7)** §5.5 gap-analysis tool rollout (incremental). **(8)** §7.16 search-and-close on legacy read paths.
+Suggested order when returning from Phase 1: **(1)** §2.8 any remaining scope-aware **sections** (1.9 shipped 2026-04-06; DEV_TOOLS headers updated 2026-04-06). **(2)** §1.5 coverage-cache benchmark session (methodology in §5.1 — 1.5; optional numeric capture). **(3)** §4.1 external tools evaluation (bandit, pip-audit, radon, pre-commit) per paired guides §10 (Radon one-liner added 2026-04-06). **(4)** §5.2 documentation overlap analyzer improvements (advisory note in paired guide §5). **(5)** §5.3 AI work validation (keep thin). **(6)** §5.4 TODO sync dry-run automation. **(7)** §5.5 gap-analysis tool rollout (incremental). ~~**(8)** §7.16~~ **done 2026-04-06**.
 
 ---
 
@@ -113,7 +114,7 @@ Suggested order when returning from Phase 1: **(1)** §2.8 any remaining scope-a
 
 Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Completed V4 checkboxes are omitted; use V4 for historical `[x]` audit trail.
 
-**V4 sections with no remaining open tasks** (fully complete in V4; not expanded below): **1.4**, **1.6**, **1.7**; **2.1**, **2.3**, **2.6–2.7**, **2.9** (Tier 3 audit failure / exit semantics — completed follow-ups), **2.10–2.11**; **3.1**, **3.4–3.11**, **3.11.1**; **5.0**, **5.1.1**; **7.1–7.5**, **7.14**, **7.16**. **§1.7** also noted optional future caching for tools still uncached — discovery done; not a gated backlog item.
+**V4 sections with no remaining open tasks** (fully complete in V4; not expanded below): **1.4**, **1.6**, **1.7**; **2.1**, **2.3**, **2.6–2.7**, **2.9** (Tier 3 audit failure / exit semantics — completed follow-ups), **2.10–2.11**; **3.1**, **3.4–3.11**, **3.11.1**; **5.0**, **5.1.1**; **7.1–7.5**, **7.14**. **§7.16** read-fallback removal completed in V5 (2026-04-06). **§1.7** also noted optional future caching for tools still uncached — discovery done; not a gated backlog item.
 
 ### 5.1 Section 1 — Reliability, coverage, and test health
 
@@ -358,7 +359,7 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 #### 7.7 Directory taxonomy and config boundary cleanup (residual)
 
 - **Done (V4)**: Phase 1 taxonomy docs, configuration surface table (guides §9), phased plan outline.
-- **Phase 2–3 evaluation (2026-03-27)**: No directory moves or new packages this session. **Decision**: keep `development_tools/config/` as the single config surface for JSON/TOML/Pyright entrypoints; `development_tools/shared/` remains shared runtime (locks, orchestration, exclusions). Before any `runtime_config/` split: prototype a short ADR (or changelog note) listing **which** files would move, **import** re-exports for one deprecation window, and **rollback** steps. **Gate**: `python development_tools/run_development_tools.py audit --quick` still passes with no new import-boundary violations (`analyze_dev_tools_import_boundaries`).
+- **Phase 2–3 evaluation (2026-03-27)**: No directory moves or new packages this session. **Decision**: keep `development_tools/config/` as the single config surface for JSON/TOML/Pyright entrypoints; `development_tools/shared/` remains shared runtime (locks, orchestration, exclusions).\n+  - **Gate for any Phase 2 move (recorded 2026-04-06)**: Do not move anything unless **(a)** `python development_tools/run_development_tools.py audit --quick` passes with no new import-boundary violations (`analyze_dev_tools_import_boundaries`), and **(b)** the change lists the exact files to move, temporary import re-exports for one deprecation window, and rollback steps in the same PR (or the paired changelog entry for that PR).\n+  - This keeps contributors oriented and avoids partial/half-migrated directory surfaces.
 - **Open**:
   - Evaluate moving runtime/platform internals out of `development_tools/config/` (e.g. `development_tools/shared/runtime_config/`) with backward compatibility.
   - Evaluate overlap `development_tools/shared/` vs `development_tools/config/` — config plumbing vs generic utilities; ownership rules.
@@ -400,18 +401,14 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 
 #### 7.16 Retire audit artifact read fallbacks (flat JSON / unscoped aggregates)
 
-**Status**: **OPEN** (bridge code in loaders; not a user-visible bug). **2026-04-06**: No code removal in this session; `legacy_flat_jsons_dir` and loaders still support mixed consumers—see search hits in [`shared/output_storage.py`](shared/output_storage.py). **Goal**: after workspaces and CI are consistently on scoped trees (`development_tools/<domain>/jsons/scopes/<full|dev_tools>/`, `development_tools/reports/scopes/<full|dev_tools>/`), remove read-only compatibility branches so only canonical paths are used.
+**Status**: **COMPLETE (2026-04-06)** — read fallbacks removed; `legacy_flat_jsons_dir()` retained for cleanup/`--clear-cache` orphan deletion and inventory history ([`DEPRECATION_INVENTORY.json`](config/jsons/DEPRECATION_INVENTORY.json) `legacy_flat_tool_json_and_unscoped_aggregate_read_bridges`).
 
-Canonical writes already use scoped directories only. **LEGACY COMPATIBILITY** code may still **read** pre-migration paths until this backlog item is completed:
-
-| Location | Role |
-| -------- | ---- |
-| `development_tools/<domain>/jsons/*_results.json` and dot caches | Fall back in `output_storage.load_*` / `get_all_tool_results` when `audit_scope` is full-repo |
-| `development_tools/reports/analysis_detailed_results.json` | Fall back in `audit_orchestration._reload_all_cache_data` (non-dev-tools-only paths) |
-| `development_tools/reports/jsons/tool_timings.json` | Fall back in `_save_timing_data` when merging timings |
-| Same basename under `reports/` (third candidate) | `analyze_system_signals._resolve_analysis_detailed_results_path` |
-
-**Removal**: Drop each fallback only after search-and-close proves no remaining consumers need it; update loaders and this table in the same change. Primary helper: `development_tools/shared/audit_storage_scope.py` (`legacy_flat_jsons_dir`).
+| Location | Outcome |
+| -------- | ------- |
+| `development_tools/<domain>/jsons/*` (flat) | No longer read by `output_storage.load_tool_result` / `load_tool_cache` / `get_all_tool_results` |
+| `development_tools/reports/analysis_detailed_results.json` (unscoped) | No longer a load fallback in `audit_orchestration` / `quick_status` / `data_loading` / `data_freshness_audit` |
+| `development_tools/reports/jsons/tool_timings.json` (unscoped) | No longer merged in `_save_timing_data` load path |
+| `analyze_system_signals` aggregate candidates | Scoped `reports/scopes/{full,dev_tools}/` only |
 
 #### 7.17 Full audit includes development_tools tests and package coverage (resolved)
 
@@ -425,7 +422,7 @@ Canonical writes already use scoped directories only. **LEGACY COMPATIBILITY** c
 - **§1.3** — Intermittent low coverage: **MONITORING**; reopen on recurrence.
 - **§1.2** — `test_audit_tier_comprehensive.py`: **deferred** unless cost/benefit justifies re-enable.
 
-**Lower backlog (opportunistic, 2026-03-28)** — pick up when touching related code: §1.1 adopt `test_config.json` in analyzer tests you edit; §1.9 orchestration when refactoring Tier 3; §3.0 example-marking in doc-sync; §3.12 restore `flaky_detector` from history if needed then migrate; §3.13–3.14 scripts inventory; §3.15 gap heuristics; §3.16 extract helpers from `report_generation.py` / `run_test_coverage.py`; §7.8–7.13, §7.15, §7.16 as separately prioritized.
+**Lower backlog (opportunistic, 2026-03-28)** — pick up when touching related code: §1.1 adopt `test_config.json` in analyzer tests you edit; §1.9 orchestration when refactoring Tier 3; §3.0 example-marking in doc-sync; §3.12 restore `flaky_detector` from history if needed then migrate; §3.13–3.14 scripts inventory; §3.15 gap heuristics; §3.16 extract helpers from `report_generation.py` / `run_test_coverage.py`; §7.8–7.13, §7.15 as separately prioritized.
 
 ---
 

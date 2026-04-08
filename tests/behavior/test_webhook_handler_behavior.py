@@ -9,7 +9,6 @@ import pytest
 import json
 import asyncio
 import uuid
-from pathlib import Path
 from unittest.mock import patch, MagicMock, AsyncMock
 from tests.test_helpers.test_utilities import TestUserFactory
 from core import get_user_id_by_identifier
@@ -19,12 +18,13 @@ class TestWebhookHandlerBehavior:
     """Test webhook handler real behavior and side effects."""
 
     @pytest.fixture(autouse=True)
-    def isolate_welcome_tracking(self, test_data_dir):
-        """Isolate welcome tracking file to avoid cross-worker collisions."""
-        tracking_file = Path(test_data_dir) / f"welcome_tracking_{uuid.uuid4().hex[:8]}.json"
+    def isolate_welcome_tracking(self, tmp_path):
+        """Isolate welcome_manager data root so parallel workers do not share one JSON file."""
+        d = tmp_path / f"webhook_welcome_{uuid.uuid4().hex[:8]}"
+        d.mkdir()
         with patch(
-            'communication.core.welcome_manager.WELCOME_TRACKING_FILE',
-            tracking_file,
+            "communication.core.welcome_manager.BASE_DATA_DIR",
+            str(d.resolve()),
         ):
             yield
     

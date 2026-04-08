@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-04-07 - Welcome tracking parallel flake fix **COMPLETED**
+- `welcome_manager` load/save use `welcome_tracking_json_path()` so patched `BASE_DATA_DIR` matches I/O; tests isolate via `tmp_path` per test (welcome manager, handler, webhook behavior modules).
+- Fixes xdist race on `tests/data/welcome_tracking.json` (`test_welcome_tracking_handles_missing_file_gracefully` and related). **Tests**: `pytest` on those three behavior modules with `-n 4` (pass).
+- `welcome_tracking_json_path`: `@handle_errors(..., re_raise=True)`; Ruff F401 cleanup on behavior tests; `run_development_tools.py docs` for registry.
+- **V5 continuation**: Scoped-only reads for tool JSON and Tier 3 aggregates/timings (removed flat/unscoped read fallbacks per Section 7.16); `DEPRECATION_INVENTORY` updated; ADR for directory taxonomy Phase 2 gate; DEV_TOOLS report headers + paired guides (overlap advisory, Radon pilot, scoped JSON examples); `analyze_config` resolved package root. Tests: `python -m pytest tests/development_tools/` (1161 passed).
+
 ### 2026-04-06 - Unified Tier 3 dev-tools coverage (V5 plan) **COMPLETED**
 - **Behavior**: `run_test_coverage` (full-repo Tier 3) now includes `tests/development_tools/`, measures `development_tools`, writes `coverage_dev_tools.json` from main `coverage.json`, saves `generate_dev_tools_coverage`, and reports `dev_tools_test_outcome`; config `derived_prefix_excludes.core` no longer drops `development_tools` from `CORE_MODULES` for MHM.
 - **Docs**: [`AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md`](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), paired dev-tools guides + `dev_tools.mdc` updated; see [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for file list and tests run.
@@ -138,12 +144,6 @@ Guidelines:
 ### 2026-03-23 - Legacy cleanup + AI Dev Tools Plan V4 **Progressed**
 - **Legacy bridges retired**: (1) **tier3_coverage_outcome_compat_bridge**-Option A: invalidate caches lacking coverage_outcome (delete file on load); `--clear-cache` already clears it. (2) **backup_zip_compat_bridge**-removed zip read/restore/validate; directory-only backups. (3) **legacy_timestamp_parsing**-Option B: added `scripts/migrate_sent_messages_timestamps.py`; removed fallback in `_normalize_message_timestamps`; run migration before deploy.
 - **AI Dev Tools V4**: Validation (3.2) fixed module-dependencies false warning; error-handling (3.6) uses `error_details`; DEPRECATION_INVENTORY.json created; coverage tests added; consolidated_report -> CONSOLIDATED_REPORT.md; `audit --dev-tools-only`; logging moved to logger.info only.
-
-### 2026-03-22 - List consolidation; LIST_OF_LISTS Section 15; path drift; AI_PRIORITIES; analyze_function_patterns **Progressed**
-- LIST_OF_LISTS Section 15: Next action steps documented and implemented. Static check `excluded_dirs`, `allowed_logging_import_paths` -> config. Error-handling keywords from config. Function registry `directory_descriptions`, `priority_order`, `decision_trees` -> config. Exclusions merge: `base_exclusions_additions`, `base_exclusions_removals`.
-- **analyze_function_patterns**: entry_point_names, data_access_keywords, communication_keywords, decorator_names -> config `analyze_function_patterns`; projects override as needed.
-- Path drift: LIST_OF_LISTS bare paths -> full `development_tools/shared/...`. AI_FUNCTION_REGISTRY regenerated; doc-sync path drift now 0.
-- Ruff: SIM108, F401 fixes. Tests and Ruff pass. Re-run audit to refresh AI_PRIORITIES.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

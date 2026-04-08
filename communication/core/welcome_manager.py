@@ -13,25 +13,34 @@ from core.config import BASE_DATA_DIR
 
 logger = get_component_logger("communication_manager")
 
-# File to track which users have been welcomed (channel-agnostic)
-WELCOME_TRACKING_FILE = Path(BASE_DATA_DIR) / "welcome_tracking.json"
+
+@handle_errors("resolving welcome tracking path", re_raise=True)
+def welcome_tracking_json_path() -> Path:
+    """Path to welcome-tracking JSON under the current BASE_DATA_DIR (tests may patch BASE_DATA_DIR)."""
+    return Path(BASE_DATA_DIR) / "welcome_tracking.json"
+
+
+# Import-time snapshot for legacy readers; I/O uses welcome_tracking_json_path().
+WELCOME_TRACKING_FILE = welcome_tracking_json_path()
 
 
 @handle_errors("loading welcome tracking data", default_return={})
 def _load_welcome_tracking() -> dict[str, dict[str, Any]]:
     """Load the welcome tracking data."""
-    if not WELCOME_TRACKING_FILE.exists():
+    path = welcome_tracking_json_path()
+    if not path.exists():
         return {}
 
-    with open(WELCOME_TRACKING_FILE, encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 
 @handle_errors("saving welcome tracking data", default_return=False)
 def _save_welcome_tracking(tracking_data: dict[str, dict[str, Any]]) -> bool:
     """Save the welcome tracking data."""
-    WELCOME_TRACKING_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(WELCOME_TRACKING_FILE, "w", encoding="utf-8") as f:
+    path = welcome_tracking_json_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(tracking_data, f, indent=2)
     return True
 

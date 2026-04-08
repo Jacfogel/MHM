@@ -6,11 +6,8 @@ Standardized output storage utility for development tools.
 Provides consistent storage patterns for tool results and cache files,
 with automatic archiving and rotation support.
 
-LEGACY COMPATIBILITY: when ``audit_scope`` is full-repo default, ``load_tool_result`` /
-``load_tool_cache`` / ``get_all_tool_results`` may also read flat
-``development_tools/<domain>/jsons/`` (no ``scopes/``). See
-``audit_storage_scope.legacy_flat_jsons_dir`` and V5 Section 7.16 in
-``development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md``.
+Tool results and caches load only from ``jsons/scopes/<full|dev_tools>/`` (V5 §7.16 —
+flat ``development_tools/<domain>/jsons/*.json`` read fallbacks removed).
 """
 
 import json
@@ -26,10 +23,8 @@ from development_tools.shared.time_helpers import (
 from .file_rotation import FileRotator
 from .audit_storage_scope import (
     AUDIT_SCOPE_USE_CONTEXT,
-    STORAGE_SCOPE_FULL,
     effective_storage_scope,
     jsons_dir_for_scope,
-    legacy_flat_jsons_dir,
 )
 import contextlib
 
@@ -89,10 +84,10 @@ def _get_project_root() -> Path:
     try:
         from .. import config
 
-        return Path(config.get_project_root())
+        return Path(config.get_project_root()).resolve()
     except (ImportError, AttributeError):
         # Fallback: assume we're in development_tools/shared/
-        return Path(__file__).parent.parent.parent
+        return Path(__file__).resolve().parent.parent.parent
 
 
 def save_tool_result(
@@ -299,21 +294,10 @@ def load_tool_result(
     if domain is None:
         domain = _get_domain_from_tool_name(tool_name, project_root)
 
-    scope_eff = effective_storage_scope(audit_scope)  # type: ignore[arg-type]
     scoped_file = jsons_dir_for_scope(
         project_root, domain, audit_scope=audit_scope  # type: ignore[arg-type]
     ) / f"{tool_name}_results.json"
-    candidate_files: list[Path] = [scoped_file]
-    if scope_eff == STORAGE_SCOPE_FULL:
-        legacy_file = legacy_flat_jsons_dir(project_root, domain) / f"{tool_name}_results.json"
-        if legacy_file.resolve() != scoped_file.resolve():
-            candidate_files.append(legacy_file)
-
-    result_file: Path | None = None
-    for candidate in candidate_files:
-        if candidate.exists():
-            result_file = candidate
-            break
+    result_file: Path | None = scoped_file if scoped_file.exists() else None
     if result_file is None:
         return None
 
@@ -429,14 +413,9 @@ def load_tool_cache(
     if domain is None:
         domain = _get_domain_from_tool_name(tool_name, project_root)
 
-    scope_eff = effective_storage_scope(audit_scope)  # type: ignore[arg-type]
     cache_file = jsons_dir_for_scope(
         project_root, domain, audit_scope=audit_scope  # type: ignore[arg-type]
     ) / f".{tool_name}_cache.json"
-    if not cache_file.exists() and scope_eff == STORAGE_SCOPE_FULL:
-        legacy_cache = legacy_flat_jsons_dir(project_root, domain) / f".{tool_name}_cache.json"
-        if legacy_cache.exists():
-            cache_file = legacy_cache
 
     if not cache_file.exists():
         return None
@@ -496,19 +475,13 @@ def get_all_tool_results(
         except OSError:
             return datetime.min
 
-    scope_eff = effective_storage_scope(audit_scope)  # type: ignore[arg-type]
-
     for domain in domains:
-        dirs_to_scan: list[Path] = []
         primary = jsons_dir_for_scope(
             project_root, domain, audit_scope=audit_scope  # type: ignore[arg-type]
         )
-        if primary.exists():
-            dirs_to_scan.append(primary)
-        if scope_eff == STORAGE_SCOPE_FULL:
-            leg = legacy_flat_jsons_dir(project_root, domain)
-            if leg.exists() and leg.resolve() not in {d.resolve() for d in dirs_to_scan}:
-                dirs_to_scan.append(leg)
+        if not primary.exists():
+            continue
+        dirs_to_scan: list[Path] = [primary]
 
         seen_paths: set[Path] = set()
         for jsons_dir in dirs_to_scan:

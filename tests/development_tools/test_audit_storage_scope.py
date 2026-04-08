@@ -73,8 +73,8 @@ def test_save_and_get_tool_results_under_dev_tools_scope(tmp_path):
 
 
 @pytest.mark.unit
-def test_get_all_tool_results_full_reads_scoped_and_legacy_flat(tmp_path):
-    """Full scope prefers ``scopes/full`` and still picks up legacy flat jsons/."""
+def test_get_all_tool_results_full_reads_scoped_only(tmp_path):
+    """Full scope loads only ``jsons/scopes/full`` (flat jsons/ no longer scanned)."""
     docs_flat = tmp_path / "development_tools" / "docs" / "jsons"
     docs_scoped = docs_flat / "scopes" / "full"
     docs_scoped.mkdir(parents=True, exist_ok=True)
@@ -84,7 +84,7 @@ def test_get_all_tool_results_full_reads_scoped_and_legacy_flat(tmp_path):
         json.dumps({"timestamp": "2026-03-31T12:00:00", "data": {"which": "scoped"}}),
         encoding="utf-8",
     )
-    (docs_flat / "from_legacy_results.json").write_text(
+    (docs_flat / "from_legacy_only_results.json").write_text(
         json.dumps({"timestamp": "2026-03-31T11:00:00", "data": {"which": "legacy"}}),
         encoding="utf-8",
     )
@@ -93,17 +93,16 @@ def test_get_all_tool_results_full_reads_scoped_and_legacy_flat(tmp_path):
         project_root=tmp_path, audit_scope=scope_mod.STORAGE_SCOPE_FULL
     )
     assert full["from_scoped"]["data"]["which"] == "scoped"
-    assert full["from_legacy"]["data"]["which"] == "legacy"
+    assert "from_legacy_only" not in full
 
     only_scoped = output_storage.get_all_tool_results(
         project_root=tmp_path, audit_scope=scope_mod.STORAGE_SCOPE_DEV_TOOLS
     )
     assert "from_scoped" not in only_scoped
-    assert "from_legacy" not in only_scoped
 
 
 @pytest.mark.unit
-def test_get_all_prefers_newer_when_same_tool_in_scoped_and_legacy(tmp_path):
+def test_get_all_tool_results_uses_scoped_file_for_tool(tmp_path):
     docs_flat = tmp_path / "development_tools" / "docs" / "jsons"
     scoped = docs_flat / "scopes" / "full"
     scoped.mkdir(parents=True, exist_ok=True)
@@ -113,7 +112,7 @@ def test_get_all_prefers_newer_when_same_tool_in_scoped_and_legacy(tmp_path):
         encoding="utf-8",
     )
     (docs_flat / "same_tool_results.json").write_text(
-        json.dumps({"timestamp": "2026-02-25T10:00:00", "data": {"source": "legacy"}}),
+        json.dumps({"timestamp": "2026-02-25T10:00:00", "data": {"source": "flat_only"}}),
         encoding="utf-8",
     )
     results = output_storage.get_all_tool_results(

@@ -242,7 +242,7 @@ class ProjectCleanup:
                 if archived.is_file():
                     artifacts.append(archived)
 
-        # LEGACY COMPATIBILITY: flat paths before scopes migration (still read by some fallbacks).
+        # Orphan pre-scopes aggregates (safe to delete if present; loaders use reports/scopes/**).
         legacy_analysis = dev_tools_dir / "reports" / "analysis_detailed_results.json"
         if legacy_analysis.is_file():
             artifacts.append(legacy_analysis)

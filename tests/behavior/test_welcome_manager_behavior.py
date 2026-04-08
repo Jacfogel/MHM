@@ -9,13 +9,13 @@ import pytest
 import json
 import uuid
 import contextlib
-from pathlib import Path
 from unittest.mock import patch
 from communication.core.welcome_manager import (
     has_been_welcomed,
     mark_as_welcomed,
     clear_welcomed_status,
-    get_welcome_message
+    get_welcome_message,
+    welcome_tracking_json_path,
 )
 
 
@@ -23,160 +23,131 @@ class TestWelcomeManagerBehavior:
     """Test welcome manager real behavior and side effects."""
     
     @pytest.fixture(autouse=True)
-    def setup_welcome_tracking(self, test_data_dir):
-        """Set up an isolated welcome tracking file for each test."""
-        tracking_file = Path(test_data_dir) / f"welcome_tracking_{uuid.uuid4().hex[:8]}.json"
-        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir), patch(
-            'communication.core.welcome_manager.WELCOME_TRACKING_FILE',
-            tracking_file,
+    def setup_welcome_tracking(self, tmp_path):
+        """Isolate welcome tracking under pytest tmp_path so parallel workers cannot share one JSON file."""
+        isolated = tmp_path / f"welcome_{uuid.uuid4().hex[:8]}"
+        isolated.mkdir()
+        with patch(
+            "communication.core.welcome_manager.BASE_DATA_DIR",
+            str(isolated.resolve()),
         ):
             yield
     
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    def test_has_been_welcomed_returns_false_for_new_user(self, test_data_dir):
+    def test_has_been_welcomed_returns_false_for_new_user(self):
         """Test: has_been_welcomed returns False for new user."""
-        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            result = has_been_welcomed('new_user_123', channel_type='discord')
-            
-            # Assert: Should return False for new user
-            assert result is False, "Should return False for new user"
+        result = has_been_welcomed('new_user_123', channel_type='discord')
+
+        # Assert: Should return False for new user
+        assert result is False, "Should return False for new user"
     
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    def test_mark_as_welcomed_creates_tracking_file(self, test_data_dir):
+    def test_mark_as_welcomed_creates_tracking_file(self):
         """Test: mark_as_welcomed creates tracking file and saves data."""
-        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            channel_identifier = 'test_user_456'
-            result = mark_as_welcomed(channel_identifier, channel_type='discord')
-            
-            # Assert: Should save successfully
-            assert result is True, "Should mark as welcomed successfully"
-            
-            # Verify file was created
-            from communication.core import welcome_manager
-            tracking_file = welcome_manager.WELCOME_TRACKING_FILE
-            assert tracking_file.exists(), "Tracking file should be created"
-            
-            # Verify data was saved
+        channel_identifier = 'test_user_456'
+        result = mark_as_welcomed(channel_identifier, channel_type='discord')
+
+        # Assert: Should save successfully
+        assert result is True, "Should mark as welcomed successfully"
+
+        tracking_file = welcome_tracking_json_path()
+        assert tracking_file.exists(), "Tracking file should be created"
+
+        with open(tracking_file, encoding='utf-8') as f:
+            data = json.load(f)
+
+        key = "discord:test_user_456"
+        assert key in data, "User should be in tracking data"
+        assert data[key]['welcomed'] is True, "Should be marked as welcomed"
+        assert 'welcomed_at' in data[key], "Should have timestamp"
+        assert data[key]['channel_type'] == 'discord', "Should have channel type"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    def test_has_been_welcomed_returns_true_after_marking(self):
+        """Test: has_been_welcomed returns True after marking user as welcomed."""
+        channel_identifier = 'test_user_789'
+
+        mark_as_welcomed(channel_identifier, channel_type='discord')
+
+        result = has_been_welcomed(channel_identifier, channel_type='discord')
+
+        assert result is True, "Should return True after marking as welcomed"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    def test_clear_welcomed_status_removes_user_from_tracking(self):
+        """Test: clear_welcomed_status removes user from tracking file."""
+        channel_identifier = 'test_user_clear'
+
+        mark_as_welcomed(channel_identifier, channel_type='discord')
+        assert has_been_welcomed(channel_identifier, channel_type='discord'), "Should be welcomed"
+
+        result = clear_welcomed_status(channel_identifier, channel_type='discord')
+
+        assert result is True, "Should clear welcomed status successfully"
+        assert not has_been_welcomed(channel_identifier, channel_type='discord'), "Should no longer be welcomed"
+
+        tracking_file = welcome_tracking_json_path()
+        if tracking_file.exists():
             with open(tracking_file, encoding='utf-8') as f:
                 data = json.load(f)
-            
-            key = "discord:test_user_456"
-            assert key in data, "User should be in tracking data"
-            assert data[key]['welcomed'] is True, "Should be marked as welcomed"
-            assert 'welcomed_at' in data[key], "Should have timestamp"
-            assert data[key]['channel_type'] == 'discord', "Should have channel type"
+            key = "discord:test_user_clear"
+            assert key not in data, "User should be removed from tracking"
     
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    def test_has_been_welcomed_returns_true_after_marking(self, test_data_dir):
-        """Test: has_been_welcomed returns True after marking user as welcomed."""
-        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            channel_identifier = 'test_user_789'
-            
-            # Mark as welcomed
-            mark_as_welcomed(channel_identifier, channel_type='discord')
-            
-            # Check if welcomed
-            result = has_been_welcomed(channel_identifier, channel_type='discord')
-            
-            # Assert: Should return True
-            assert result is True, "Should return True after marking as welcomed"
-    
-    @pytest.mark.behavior
-    @pytest.mark.communication
-    @pytest.mark.file_io
-    def test_clear_welcomed_status_removes_user_from_tracking(self, test_data_dir):
-        """Test: clear_welcomed_status removes user from tracking file."""
-        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            channel_identifier = 'test_user_clear'
-            
-            # Mark as welcomed first
-            mark_as_welcomed(channel_identifier, channel_type='discord')
-            assert has_been_welcomed(channel_identifier, channel_type='discord'), "Should be welcomed"
-            
-            # Clear welcomed status
-            result = clear_welcomed_status(channel_identifier, channel_type='discord')
-            
-            # Assert: Should clear successfully
-            assert result is True, "Should clear welcomed status successfully"
-            assert not has_been_welcomed(channel_identifier, channel_type='discord'), "Should no longer be welcomed"
-            
-            # Verify file still exists but user is removed
-            from communication.core import welcome_manager
-            tracking_file = welcome_manager.WELCOME_TRACKING_FILE
-            if tracking_file.exists():
-                with open(tracking_file, encoding='utf-8') as f:
-                    data = json.load(f)
-                key = "discord:test_user_clear"
-                assert key not in data, "User should be removed from tracking"
-    
-    @pytest.mark.behavior
-    @pytest.mark.communication
-    @pytest.mark.file_io
-    def test_clear_welcomed_status_handles_nonexistent_user(self, test_data_dir):
+    def test_clear_welcomed_status_handles_nonexistent_user(self):
         """Test: clear_welcomed_status handles nonexistent user gracefully."""
-        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            channel_identifier = 'nonexistent_user'
-            
-            # Clear welcomed status for user that doesn't exist
-            result = clear_welcomed_status(channel_identifier, channel_type='discord')
-            
-            # Assert: Should return True (success, user already not in list)
-            assert result is True, "Should return True for nonexistent user"
+        channel_identifier = 'nonexistent_user'
+
+        result = clear_welcomed_status(channel_identifier, channel_type='discord')
+
+        assert result is True, "Should return True for nonexistent user"
     
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    def test_welcome_tracking_supports_multiple_channels(self, test_data_dir):
+    def test_welcome_tracking_supports_multiple_channels(self):
         """Test: Welcome tracking supports multiple channel types."""
-        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            # Use unique channel identifier to avoid conflicts with other tests
-            import uuid
-            channel_identifier = f'test_multi_channel_{uuid.uuid4().hex[:8]}'
-            
-            # Mark as welcomed for Discord
-            mark_as_welcomed(channel_identifier, channel_type='discord')
-            
-            # Mark as welcomed for Email
-            mark_as_welcomed(channel_identifier, channel_type='email')
-            
-            # Assert: Both should be tracked separately
-            assert has_been_welcomed(channel_identifier, channel_type='discord'), "Discord should be welcomed"
-            assert has_been_welcomed(channel_identifier, channel_type='email'), "Email should be welcomed"
-            
-            # Clear one, other should remain
-            clear_welcomed_status(channel_identifier, channel_type='discord')
-            
-            # Verify Discord is cleared and Email remains welcomed
-            assert not has_been_welcomed(channel_identifier, channel_type='discord'), "Discord should be cleared"
-            assert has_been_welcomed(channel_identifier, channel_type='email'), "Email should still be welcomed"
+        channel_identifier = f'test_multi_channel_{uuid.uuid4().hex[:8]}'
+
+        mark_as_welcomed(channel_identifier, channel_type='discord')
+
+        mark_as_welcomed(channel_identifier, channel_type='email')
+
+        assert has_been_welcomed(channel_identifier, channel_type='discord'), "Discord should be welcomed"
+        assert has_been_welcomed(channel_identifier, channel_type='email'), "Email should be welcomed"
+
+        clear_welcomed_status(channel_identifier, channel_type='discord')
+
+        assert not has_been_welcomed(channel_identifier, channel_type='discord'), "Discord should be cleared"
+        assert has_been_welcomed(channel_identifier, channel_type='email'), "Email should still be welcomed"
     
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    def test_welcome_tracking_supports_multiple_users(self, test_data_dir):
+    def test_welcome_tracking_supports_multiple_users(self):
         """Test: Welcome tracking supports multiple users."""
-        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            user1 = f'user_1_{uuid.uuid4().hex[:8]}'
-            user2 = f'user_2_{uuid.uuid4().hex[:8]}'
-            
-            # Mark both as welcomed
-            mark_as_welcomed(user1, channel_type='discord')
-            mark_as_welcomed(user2, channel_type='discord')
-            
-            # Assert: Both should be tracked
-            assert has_been_welcomed(user1, channel_type='discord'), "User 1 should be welcomed"
-            assert has_been_welcomed(user2, channel_type='discord'), "User 2 should be welcomed"
-            
-            # Clear one, other should remain
-            clear_welcomed_status(user1, channel_type='discord')
-            assert not has_been_welcomed(user1, channel_type='discord'), "User 1 should be cleared"
-            assert has_been_welcomed(user2, channel_type='discord'), "User 2 should still be welcomed"
+        user1 = f'user_1_{uuid.uuid4().hex[:8]}'
+        user2 = f'user_2_{uuid.uuid4().hex[:8]}'
+
+        mark_as_welcomed(user1, channel_type='discord')
+        mark_as_welcomed(user2, channel_type='discord')
+
+        assert has_been_welcomed(user1, channel_type='discord'), "User 1 should be welcomed"
+        assert has_been_welcomed(user2, channel_type='discord'), "User 2 should be welcomed"
+
+        clear_welcomed_status(user1, channel_type='discord')
+        assert not has_been_welcomed(user1, channel_type='discord'), "User 1 should be cleared"
+        assert has_been_welcomed(user2, channel_type='discord'), "User 2 should still be welcomed"
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -236,80 +207,60 @@ class TestWelcomeManagerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    def test_mark_as_welcomed_persists_across_calls(self, test_data_dir):
+    def test_mark_as_welcomed_persists_across_calls(self):
         """Test: mark_as_welcomed persists data across multiple calls."""
-        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            channel_identifier = f'persistent_user_{uuid.uuid4().hex[:8]}'
-            
-            # Mark as welcomed
-            mark_as_welcomed(channel_identifier, channel_type='discord')
-            
-            # Verify persisted
-            assert has_been_welcomed(channel_identifier, channel_type='discord'), "Should be welcomed"
-            
-            # Mark again (should update timestamp)
-            mark_as_welcomed(channel_identifier, channel_type='discord')
-            
-            # Should still be welcomed
-            assert has_been_welcomed(channel_identifier, channel_type='discord'), "Should still be welcomed after second mark"
-            
-            # Verify file has updated data
-            from communication.core import welcome_manager
-            tracking_file = welcome_manager.WELCOME_TRACKING_FILE
-            with open(tracking_file, encoding='utf-8') as f:
-                data = json.load(f)
-            key = f"discord:{channel_identifier}"
-            assert key in data, "User should still be in tracking"
-            assert data[key]['welcomed'] is True, "Should still be marked as welcomed"
+        channel_identifier = f'persistent_user_{uuid.uuid4().hex[:8]}'
+
+        mark_as_welcomed(channel_identifier, channel_type='discord')
+
+        assert has_been_welcomed(channel_identifier, channel_type='discord'), "Should be welcomed"
+
+        mark_as_welcomed(channel_identifier, channel_type='discord')
+
+        assert has_been_welcomed(channel_identifier, channel_type='discord'), "Should still be welcomed after second mark"
+
+        tracking_file = welcome_tracking_json_path()
+        with open(tracking_file, encoding='utf-8') as f:
+            data = json.load(f)
+        key = f"discord:{channel_identifier}"
+        assert key in data, "User should still be in tracking"
+        assert data[key]['welcomed'] is True, "Should still be marked as welcomed"
     
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    def test_welcome_tracking_handles_missing_file_gracefully(self, test_data_dir):
+    def test_welcome_tracking_handles_missing_file_gracefully(self):
         """Test: Welcome tracking handles missing file gracefully."""
-        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            from communication.core import welcome_manager
-            tracking_file = welcome_manager.WELCOME_TRACKING_FILE
-            
-            # Ensure file doesn't exist (handle file locking in parallel execution)
-            if tracking_file.exists():
-                # File might be locked by another test - that's OK for this test
-                with contextlib.suppress(PermissionError, OSError):
-                    tracking_file.unlink()
-            
-            # Should return False for nonexistent file
-            result = has_been_welcomed('any_user', channel_type='discord')
-            assert result is False, "Should return False when file doesn't exist"
-            
-            # Should be able to mark as welcomed (creates file)
-            mark_result = mark_as_welcomed('any_user', channel_type='discord')
-            assert mark_result is True, "Should create file and mark as welcomed"
-            assert tracking_file.exists(), "File should be created"
+        tracking_file = welcome_tracking_json_path()
+
+        if tracking_file.exists():
+            with contextlib.suppress(PermissionError, OSError):
+                tracking_file.unlink()
+
+        result = has_been_welcomed('any_user', channel_type='discord')
+        assert result is False, "Should return False when file doesn't exist"
+
+        mark_result = mark_as_welcomed('any_user', channel_type='discord')
+        assert mark_result is True, "Should create file and mark as welcomed"
+        assert tracking_file.exists(), "File should be created"
     
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    def test_welcome_tracking_handles_corrupted_file_gracefully(self, test_data_dir):
+    def test_welcome_tracking_handles_corrupted_file_gracefully(self):
         """Test: Welcome tracking handles corrupted file gracefully."""
-        with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
-            from communication.core import welcome_manager
-            tracking_file = welcome_manager.WELCOME_TRACKING_FILE
-            
-            # Create corrupted file
-            tracking_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(tracking_file, 'w', encoding='utf-8') as f:
-                f.write('{ invalid json }')
-            
-            # Should handle gracefully
-            result = has_been_welcomed('test_user', channel_type='discord')
-            # Should return False (default for corrupted file)
-            assert result is False, "Should return False for corrupted file"
-            
-            # Should be able to recover by marking as welcomed
-            mark_result = mark_as_welcomed('test_user', channel_type='discord')
-            assert mark_result is True, "Should recover and save successfully"
-            
-            # Verify file is now valid
-            with open(tracking_file, encoding='utf-8') as f:
-                data = json.load(f)
-            assert isinstance(data, dict), "File should be valid JSON"
+        tracking_file = welcome_tracking_json_path()
+
+        tracking_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(tracking_file, 'w', encoding='utf-8') as f:
+            f.write('{ invalid json }')
+
+        result = has_been_welcomed('test_user', channel_type='discord')
+        assert result is False, "Should return False for corrupted file"
+
+        mark_result = mark_as_welcomed('test_user', channel_type='discord')
+        assert mark_result is True, "Should recover and save successfully"
+
+        with open(tracking_file, encoding='utf-8') as f:
+            data = json.load(f)
+        assert isinstance(data, dict), "File should be valid JSON"

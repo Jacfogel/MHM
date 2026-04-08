@@ -320,7 +320,7 @@ def test_quick_status_documentation_status_extracts_coverage_from_audit_json(
     qs = quick_status_module.QuickStatus()
     qs.project_root = tmp_path
 
-    audit_dir = tmp_path / "development_tools" / "reports"
+    audit_dir = tmp_path / "development_tools" / "reports" / "scopes" / "full"
     audit_dir.mkdir(parents=True, exist_ok=True)
     audit_file = audit_dir / "analysis_detailed_results.json"
     audit_file.write_text(
