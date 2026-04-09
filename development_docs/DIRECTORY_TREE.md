@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-07 17:38:45
+> **Last Generated**: 2026-04-09 01:09:11
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -51,6 +51,7 @@ C:.
 |   |   |   reduce_dependency_risk_70688c22.plan.md
 |   |   |   unified_user_items_and_shared_helpers.plan.md
 |   |   |   v5_dev-tools_continuation_5ab62a62.plan.md
+|   |   |   v5_dev-tools_continuation_95e84204.plan.md
 |   |   |   
 |   \---rules
 |           communication-guidelines.mdc
@@ -313,6 +314,8 @@ C:.
     (log files)
 |   |   +---scopes
 |   |   |   +---dev_tools
+|   |   |   |   |   analysis_detailed_results.json
+|   |   |   |   |   
 |   |   |   |   \---jsons
     (JSON files created by development tools)
 |   |   |   \---full
@@ -604,6 +607,7 @@ C:.
 |   |   |   test_deprecation_inventory_guard.py
 |   |   |   test_development_tools_package_init.py
 |   |   |   test_dev_tools_coverage_cache.py
+|   |   |   test_dev_tools_scoped_status_report.py
 |   |   |   test_documentation_sync_checker.py
 |   |   |   test_error_scenarios.py
 |   |   |   test_exclusion_utilities.py

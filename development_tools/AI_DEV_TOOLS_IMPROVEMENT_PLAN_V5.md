@@ -74,6 +74,8 @@ Use **AI_STATUS.md** after each audit. Example **2026-04-08** (Tier 3 full, afte
 
 **2026-04-08 (this plan iteration)**: §2.8 scoped-report copy in `DEV_TOOLS_*` (snapshot coverage vs full-repo staleness, scope notes, consolidated reference links); overlap analyzer filters numbered generic headings; §4.1 external-tool stance recorded in paired guides §10; §1.5 benchmark recipe noted in paired changelogs (numeric wall-clock still machine-local).
 
+**2026-04-09**: Legacy scan now clean after removing a false-positive "legacy paths" phrase from `fix_project_cleanup.py`; documentation-overlap noise reduced by adding `prerequisites` and `test suite structure` to `EXPECTED_OVERLAPS` so shared test-guide boilerplate is not flagged.
+
 ---
 
 ## 3. Completed themes (V4 collapsed)
@@ -363,7 +365,9 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 #### 7.7 Directory taxonomy and config boundary cleanup (residual)
 
 - **Done (V4)**: Phase 1 taxonomy docs, configuration surface table (guides §9), phased plan outline.
-- **Phase 2–3 evaluation (2026-03-27)**: No directory moves or new packages this session. **Decision**: keep `development_tools/config/` as the single config surface for JSON/TOML/Pyright entrypoints; `development_tools/shared/` remains shared runtime (locks, orchestration, exclusions).\n+  - **Gate for any Phase 2 move (recorded 2026-04-06)**: Do not move anything unless **(a)** `python development_tools/run_development_tools.py audit --quick` passes with no new import-boundary violations (`analyze_dev_tools_import_boundaries`), and **(b)** the change lists the exact files to move, temporary import re-exports for one deprecation window, and rollback steps in the same PR (or the paired changelog entry for that PR).\n+  - This keeps contributors oriented and avoids partial/half-migrated directory surfaces.
+- **Phase 2–3 evaluation (2026-03-27)**: No directory moves or new packages this session. **Decision**: keep `development_tools/config/` as the single config surface for JSON/TOML/Pyright entrypoints; `development_tools/shared/` remains shared runtime (locks, orchestration, exclusions).
+  - **Gate for any Phase 2 move (recorded 2026-04-06)**: Do not move anything unless **(a)** `python development_tools/run_development_tools.py audit --quick` passes with no new import-boundary violations (`analyze_dev_tools_import_boundaries`), and **(b)** the change lists the exact files to move, temporary import re-exports for one deprecation window, and rollback steps in the same PR (or the paired changelog entry for that PR).
+  - This keeps contributors oriented and avoids partial/half-migrated directory surfaces.
 - **Open**:
   - Evaluate moving runtime/platform internals out of `development_tools/config/` (e.g. `development_tools/shared/runtime_config/`) with backward compatibility.
   - Evaluate overlap `development_tools/shared/` vs `development_tools/config/` — config plumbing vs generic utilities; ownership rules.

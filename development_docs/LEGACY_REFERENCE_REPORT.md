@@ -2,15 +2,12 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-08 21:42:57
+> **Last Generated**: 2026-04-09 01:47:18
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 1
-**Legacy Compatibility Markers Detected**: 1
+**Total Files with Issues**: 0
+**Legacy Compatibility Markers Detected**: 0
 
 ## Summary
-- Scan mode only: no automated fixes were applied.
-- Changelogs, archive folders, and planning documents are intentionally historical and excluded from this report.
-
 ## Recommended Follow-Up
 - Additional guidance: [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md)
 1. Identify active legacy compatibility behavior and migrate all callers/dependencies to current implementations before deleting markers.
@@ -23,14 +20,3 @@
 - Removed entries: 4
 - Active search terms: 0
 - Current inventory-term hits in scan: 0 file(s), 0 marker(s)
-
-## Legacy Inventory Tracking
-**Files Affected**: 1
-
-### development_tools\shared\fix_project_cleanup.py
-**Issues Found**: 1
-
-- **Line 170**: `legacy path`
-  ```
-  ``coverage.json``, archives, legacy paths, flat dot caches) - leaves
-  ```

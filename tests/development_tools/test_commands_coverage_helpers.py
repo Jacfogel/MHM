@@ -214,6 +214,32 @@ def test_extract_changed_domains_malformed_json_bracket_falls_back_to_split(tmp_
 
 
 @pytest.mark.unit
+def test_build_coverage_metadata_includes_cache_mode_and_reason(tmp_path):
+    service = _DummyService(tmp_path)
+    out = "Using cached coverage data only\nDomain(s) changed: [\"core\"]\n"
+    meta = service._build_coverage_metadata(out, source="main")
+    assert meta["cache_mode"] == "cache_only"
+    assert meta["source"] == "main"
+    assert "cached coverage" in str(meta["invalidation_reason"]).lower()
+    assert meta["changed_domains"] == ["core"]
+
+
+@pytest.mark.unit
+def test_latest_mtime_for_patterns_ignores_excluded_paths(tmp_path):
+    service = _DummyService(tmp_path)
+    (tmp_path / "keep").mkdir()
+    (tmp_path / "skip").mkdir()
+    older = tmp_path / "keep" / "a.py"
+    newer = tmp_path / "skip" / "b.py"
+    older.write_text("x", encoding="utf-8")
+    newer.write_text("y", encoding="utf-8")
+
+    # Exclude `skip/` so only `keep/a.py` counts.
+    latest = service._latest_mtime_for_patterns(["**/*.py"], exclude_prefixes=["skip/"])
+    assert latest == pytest.approx(older.stat().st_mtime)
+
+
+@pytest.mark.unit
 def test_get_existing_audit_related_locks_cleans_stale_lock(tmp_path):
     """Stale lock files are removed before returning active paths."""
     service = _DummyService(tmp_path)

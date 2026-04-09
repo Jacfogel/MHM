@@ -219,6 +219,41 @@ def test_run_analyze_duplicate_functions_for_audit_tier_and_config(
 
 
 @pytest.mark.unit
+def test_finalize_tier3_audit_scope_dev_tools_only_marks_main_tracks_skipped(
+    temp_project_copy: Path,
+) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.dev_tools_only_mode = True
+    service.tier3_test_outcome = {"development_tools": {"state": "clean", "classification": "passed"}}
+
+    service._finalize_tier3_audit_scope()
+
+    assert service._tier3_skipped_main_tracks is True
+    assert service._tier3_skipped_dev_track is False
+    outcome = cast(dict, service.tier3_test_outcome)
+    assert outcome["parallel"]["state"] == "skipped"
+    assert outcome["no_parallel"]["state"] == "skipped"
+    assert outcome["development_tools"]["classification"] == "passed"
+
+
+@pytest.mark.unit
+def test_finalize_tier3_audit_scope_full_repo_marks_dev_track_skipped_by_default(
+    temp_project_copy: Path,
+) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.dev_tools_only_mode = False
+    service.tier3_test_outcome = {"parallel": {"classification": "passed"}, "no_parallel": {"classification": "passed"}}
+
+    service._finalize_tier3_audit_scope()
+
+    assert service._tier3_skipped_main_tracks is False
+    assert service._tier3_skipped_dev_track is True
+    outcome = cast(dict, service.tier3_test_outcome)
+    assert outcome["development_tools"]["state"] == "skipped"
+    assert outcome["development_tools"]["classification_reason"] == "not_run_this_audit_scope"
+
+
+@pytest.mark.unit
 def test_get_tier3_groups_respects_full_vs_dev_tools_only_scope():
     """Tier 3 coverage arms are mutually exclusive by audit scope (V5 §1.9)."""
     from development_tools.shared.audit_tiers import get_tier3_groups

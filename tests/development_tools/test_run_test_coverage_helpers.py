@@ -16,6 +16,32 @@ CoverageMetricsRegenerator = coverage_module.CoverageMetricsRegenerator
 
 
 @pytest.mark.unit
+def test_coverage_path_to_rel_posix_handles_relative_and_absolute(tmp_path: Path) -> None:
+    rel = coverage_module._coverage_path_to_rel_posix("tests\\unit\\test_x.py", tmp_path)
+    assert rel == "tests/unit/test_x.py"
+
+    abs_file = tmp_path / "tests" / "unit" / "test_y.py"
+    abs_file.parent.mkdir(parents=True, exist_ok=True)
+    abs_file.write_text("x", encoding="utf-8")
+    mapped = coverage_module._coverage_path_to_rel_posix(str(abs_file), tmp_path)
+    assert mapped == "tests/unit/test_y.py"
+
+
+@pytest.mark.unit
+def test_recompute_coverage_totals_from_files_sums_and_percent() -> None:
+    totals = coverage_module._recompute_coverage_totals_from_files(
+        {
+            "a.py": {"summary": {"num_statements": 10, "missing_lines": 2, "covered_lines": 8}},
+            "b.py": {"summary": {"num_statements": 5, "missing_lines": 5, "covered_lines": 0}},
+        }
+    )
+    assert totals["num_statements"] == 15
+    assert totals["missing_lines"] == 7
+    assert totals["covered_lines"] == 8
+    assert totals["percent_covered"] == round(8 / 15 * 100, 2)
+
+
+@pytest.mark.unit
 def test_strip_xdist_args_removes_xdist_flags():
     cmd = [
         "python",

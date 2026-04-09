@@ -167,7 +167,7 @@ class ProjectCleanup:
               scopes, archives, legacy aggregates, coverage JSON, dot caches). Used by
               interactive ``cleanup`` / tests expecting a full reset.
             - ``full``: only full-repo audit artifacts (``scopes/full``, main
-              ``coverage.json``, archives, legacy paths, flat dot caches) - leaves
+              ``coverage.json``, archives, historical layouts, flat dot caches) - leaves
               ``scopes/dev_tools`` and ``coverage_dev_tools.json`` intact.
             - ``dev_tools``: only dev-tools-scoped audit artifacts - leaves full-repo
               scope caches intact.

@@ -20,6 +20,15 @@ def test_config_validator_relative_project_root_uses_package_anchor(
 
 
 @pytest.mark.unit
+def test_config_validator_absolute_project_root_is_used(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(analyze_config.config, "get_project_root", lambda: str(tmp_path))
+    v = analyze_config.ConfigValidator()
+    assert v.project_root == tmp_path.resolve()
+
+
+@pytest.mark.unit
 def test_analyze_tool_config_usage_detects_entry_point(tmp_path: Path) -> None:
     """AIToolsService() marks entry-point scripts exempt from config-import rules."""
     p = tmp_path / "entry.py"

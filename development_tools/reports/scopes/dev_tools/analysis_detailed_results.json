@@ -1,37 +1,37 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-04-08 21:45:57",
+  "last_generated": "2026-04-09 01:34:34",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-04-08T21:45:57.713558",
+  "timestamp": "2026-04-09T01:34:34.472392",
   "successful": [
     "analyze_backup_health",
     "analyze_system_signals",
     "analyze_test_markers",
-    "analyze_dev_tools_import_boundaries",
     "analyze_config",
+    "analyze_dev_tools_import_boundaries",
     "analyze_function_patterns",
     "analyze_documentation",
     "decision_support",
     "analyze_functions",
-    "analyze_package_exports",
     "analyze_module_imports",
+    "analyze_package_exports",
     "analyze_module_dependencies",
     "analyze_ascii_compliance",
-    "analyze_heading_numbering",
     "analyze_unused_imports",
+    "analyze_heading_numbering",
     "analyze_missing_addresses",
     "analyze_unconverted_links",
     "analyze_error_handling",
     "analyze_duplicate_functions",
-    "analyze_module_refactor_candidates",
     "analyze_dependency_patterns",
+    "analyze_module_refactor_candidates",
     "analyze_function_registry",
     "analyze_documentation_sync",
     "analyze_ruff",
-    "analyze_pyright",
     "analyze_legacy_references",
+    "analyze_pyright",
     "generate_dev_tools_coverage"
   ],
   "failed": [],
@@ -39,7 +39,7 @@
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-04-08T21:45:57",
+        "generated_at": "2026-04-09T01:34:34",
         "project_root": "C:\\Users\\Julie\\projects\\MHM\\MHM",
         "summary": {
           "status": "PASS",
@@ -48,8 +48,8 @@
           "success": true,
           "total_checks": 7,
           "passed_checks": 7,
-          "latest_backup_path": "data\\backups\\weekly_backup_2026-03-31_01-00-04",
-          "latest_backup_created_at": "2026-03-31 01:00:04",
+          "latest_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
+          "latest_backup_created_at": "2026-04-09 01:00:05",
           "drill_executed": true
         },
         "details": {
@@ -68,41 +68,41 @@
               "name": "backups_discoverable",
               "success": true,
               "details": {
-                "backup_count": 3
+                "backup_count": 4
               }
             },
             {
               "name": "weekly_backup_present",
               "success": true,
               "details": {
-                "weekly_backup_count": 3,
-                "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-03-31_01-00-04",
-                "latest_weekly_created_at": "2026-03-31 01:00:04"
+                "weekly_backup_count": 4,
+                "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
+                "latest_weekly_created_at": "2026-04-09 01:00:05"
               }
             },
             {
               "name": "weekly_backup_recent_enough",
               "success": true,
               "details": {
-                "recent_cutoff": "2026-03-25T21:45:57",
-                "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-03-31_01-00-04",
-                "latest_weekly_created_at": "2026-03-31 01:00:04"
+                "recent_cutoff": "2026-03-26T01:34:34",
+                "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
+                "latest_weekly_created_at": "2026-04-09 01:00:05"
               }
             },
             {
               "name": "latest_backup_recent_enough",
               "success": true,
               "details": {
-                "latest_backup_path": "data\\backups\\weekly_backup_2026-03-31_01-00-04",
-                "latest_created_at": "2026-03-31 01:00:04",
-                "recent_cutoff": "2026-03-25T21:45:57"
+                "latest_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
+                "latest_created_at": "2026-04-09 01:00:05",
+                "recent_cutoff": "2026-03-26T01:34:34"
               }
             },
             {
               "name": "latest_backup_validates",
               "success": true,
               "details": {
-                "backup_path": "data\\backups\\weekly_backup_2026-03-31_01-00-04",
+                "backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
                 "errors": []
               }
             },
@@ -134,41 +134,41 @@
             "name": "backups_discoverable",
             "success": true,
             "details": {
-              "backup_count": 3
+              "backup_count": 4
             }
           },
           {
             "name": "weekly_backup_present",
             "success": true,
             "details": {
-              "weekly_backup_count": 3,
-              "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-03-31_01-00-04",
-              "latest_weekly_created_at": "2026-03-31 01:00:04"
+              "weekly_backup_count": 4,
+              "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
+              "latest_weekly_created_at": "2026-04-09 01:00:05"
             }
           },
           {
             "name": "weekly_backup_recent_enough",
             "success": true,
             "details": {
-              "recent_cutoff": "2026-03-25T21:45:57",
-              "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-03-31_01-00-04",
-              "latest_weekly_created_at": "2026-03-31 01:00:04"
+              "recent_cutoff": "2026-03-26T01:34:34",
+              "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
+              "latest_weekly_created_at": "2026-04-09 01:00:05"
             }
           },
           {
             "name": "latest_backup_recent_enough",
             "success": true,
             "details": {
-              "latest_backup_path": "data\\backups\\weekly_backup_2026-03-31_01-00-04",
-              "latest_created_at": "2026-03-31 01:00:04",
-              "recent_cutoff": "2026-03-25T21:45:57"
+              "latest_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
+              "latest_created_at": "2026-04-09 01:00:05",
+              "recent_cutoff": "2026-03-26T01:34:34"
             }
           },
           {
             "name": "latest_backup_validates",
             "success": true,
             "details": {
-              "backup_path": "data\\backups\\weekly_backup_2026-03-31_01-00-04",
+              "backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
               "errors": []
             }
           },
@@ -184,20 +184,20 @@
           }
         ]
       },
-      "timestamp": "2026-04-08T21:45:57"
+      "timestamp": "2026-04-09T01:34:34"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 1,
+          "total_issues": 2,
           "files_affected": 0,
-          "status": "ISSUES"
+          "status": "CRITICAL"
         },
         "details": {
-          "timestamp": "2026-04-08T21:42:31.975618",
+          "timestamp": "2026-04-09T01:28:32.241107",
           "system_health": {
-            "overall_status": "ISSUES",
+            "overall_status": "CRITICAL",
             "core_files": {
               "run_mhm.py": "OK",
               "run_tests.py": "OK",
@@ -215,7 +215,7 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-04-08T21:25:13.492997",
+            "last_audit": "2026-04-09T00:51:01.655079",
             "audit_freshness": "<1 hour",
             "test_coverage_status": "Unknown",
             "documentation_sync_status": "Synchronized",
@@ -224,36 +224,38 @@
               "Documentation is synchronized"
             ],
             "recommendations": [
-              "Check logs/errors.log for recent errors"
+              "Review logs/errors.log for recent error details"
             ],
             "warnings": [],
             "errors": [],
             "severity_levels": {
               "INFO": [],
-              "WARNING": [
-                "Errors detected in logs/errors.log (last 24 hours)"
-              ],
-              "CRITICAL": []
+              "WARNING": [],
+              "CRITICAL": [
+                "Recent errors detected in logs/errors.log (last hour)"
+              ]
             }
           },
           "recent_activity": {
             "recent_changes": [
-              "development_tools/shared/service/data_freshness_audit.py",
-              "communication/core/welcome_manager.py",
-              "development_tools/reports/quick_status.py",
-              "tests/development_tools/test_output_storage_helpers.py",
-              "development_tools/shared/cli_interface.py",
-              "development_tools/config/analyze_config.py",
-              "development_tools/shared/audit_storage_scope.py",
-              "development_tools/shared/output_storage.py",
-              "tests/development_tools/test_audit_storage_scope.py",
+              "development_tools/shared/service/report_generation.py",
+              "development_tools/shared/constants.py",
+              "tests/development_tools/test_run_test_coverage_helpers.py",
+              "tests/development_tools/test_commands_coverage_helpers.py",
+              "tests/development_tools/test_fix_project_cleanup.py",
+              "tests/development_tools/test_analyze_documentation.py",
+              "tests/development_tools/test_audit_orchestration_helpers.py",
+              "tests/development_tools/test_integration_workflows.py",
+              "development_tools/run_development_tools.py",
               "tests/development_tools/test_dev_tools_scoped_status_report.py"
             ],
             "git_status": "Modified",
             "last_commit": null,
             "uncommitted_changes": true
           },
-          "critical_alerts": [],
+          "critical_alerts": [
+            "CRITICAL: Recent errors in logs/errors.log"
+          ],
           "performance_indicators": {
             "log_file_sizes": {
               "ai.log": "0.0MB",
@@ -274,7 +276,7 @@
           }
         }
       },
-      "timestamp": "2026-04-08T21:42:32"
+      "timestamp": "2026-04-09T01:28:32"
     },
     "analyze_test_markers": {
       "success": true,
@@ -288,24 +290,7 @@
           "missing": []
         }
       },
-      "timestamp": "2026-04-08T21:45:57"
-    },
-    "analyze_dev_tools_import_boundaries": {
-      "success": true,
-      "data": {
-        "summary": {
-          "total_issues": 0,
-          "files_affected": 0
-        },
-        "details": {
-          "violations": [],
-          "summary": {
-            "total_violations": 0,
-            "files_with_violations": 0
-          }
-        }
-      },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34"
     },
     "analyze_config": {
       "success": true,
@@ -373,7 +358,24 @@
           }
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
+    },
+    "analyze_dev_tools_import_boundaries": {
+      "success": true,
+      "data": {
+        "summary": {
+          "total_issues": 0,
+          "files_affected": 0
+        },
+        "details": {
+          "violations": [],
+          "summary": {
+            "total_violations": 0,
+            "files_with_violations": 0
+          }
+        }
+      },
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -405,7 +407,7 @@
           "schedulers": []
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "analyze_documentation": {
       "success": true,
@@ -445,7 +447,7 @@
                 "ui/UI_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.19791072836040194,
+              "similarity_score": 0.19808096541772557,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -685,7 +687,7 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 28260,
+              "content_length": 27190,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
               "section_count": 21,
               "sections": [
@@ -694,11 +696,11 @@
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
-                "2026-04-08 - V5 dev-tools continuation (scoped reports + doc overlap) **COMPLETED**",
+                "2026-04-09 - Dev-tools overlap + helper tests **COMPLETED**",
+                "2026-04-08 - V5 dev-tools continuation (scoped reports + doc overlap) **Progressed**",
                 "2026-04-07 - Welcome tracking parallel flake fix **COMPLETED**",
                 "2026-04-06 - Unified Tier 3 dev-tools coverage (V5 plan) **COMPLETED**",
-                "2026-04-06 - Reduce dependency pattern risk (plan complete) **COMPLETED**",
-                "2026-04-04 - Docs ASCII, duplicate markers, notebook empty-result UX, sent_messages archiving **COMPLETED**"
+                "2026-04-06 - Reduce dependency pattern risk (plan complete) **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -887,9 +889,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 415401,
+              "content_length": 416967,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 138,
+              "section_count": 139,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -897,10 +899,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-04-09 - Dev-tools cleanup (legacy scan noise, portability, helper coverage)",
                 "2026-04-08 - Dev-tools V5 plan continuation (scoped reports, overlap filter, external-tool stance)",
                 "2026-04-07 - Welcome tracking path + parallel-safe behavior tests",
-                "2026-04-06 - Unified Tier 3 coverage (dev-tools improvement plan V5)",
-                "2026-04-06 - Reduce dependency pattern risk (Cursor plan closure)"
+                "2026-04-06 - Unified Tier 3 coverage (dev-tools improvement plan V5)"
               ]
             },
             "development_docs/PLANS.md": {
@@ -1147,23 +1149,14 @@
               ]
             }
           ],
-          "section_overlaps": {
-            "2. Test Suite Structure": [
-              "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
-              "tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md"
-            ],
-            "3. Prerequisites": [
-              "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
-              "tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md"
-            ]
-          }
+          "section_overlaps": {}
         },
         "summary": {
           "files_affected": 0,
           "total_issues": 12
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "decision_support": {
       "success": true,
@@ -1304,7 +1297,7 @@
           ]
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "analyze_functions": {
       "success": true,
@@ -1509,7 +1502,58 @@
           "utilities": 0
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
+    },
+    "analyze_module_imports": {
+      "success": true,
+      "data": {
+        "summary": {
+          "total_issues": 0,
+          "files_affected": 0
+        },
+        "details": {
+          "run_headless_service.py": {
+            "imports": {
+              "standard_library": [
+                {
+                  "module": "sys",
+                  "as_name": null,
+                  "imported_items": [
+                    "sys"
+                  ]
+                }
+              ],
+              "third_party": [],
+              "local": [
+                {
+                  "module": "core.headless_service",
+                  "as_name": null,
+                  "imported_items": [
+                    "HeadlessServiceManager"
+                  ]
+                },
+                {
+                  "module": "core.logger",
+                  "as_name": null,
+                  "imported_items": [
+                    "setup_logging",
+                    "get_component_logger"
+                  ]
+                },
+                {
+                  "module": "core.error_handling",
+                  "as_name": null,
+                  "imported_items": [
+                    "handle_errors"
+                  ]
+                }
+              ]
+            },
+            "total_imports": 4
+          }
+        }
+      },
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "analyze_package_exports": {
       "success": true,
@@ -7710,6 +7754,223 @@
                 "is_valid_intent"
               ]
             },
+            "tasks": {
+              "package": "tasks",
+              "current_exports_count": 20,
+              "should_export_count": 29,
+              "already_exported": [
+                "TaskManagementError",
+                "add_user_task_tag",
+                "are_tasks_enabled",
+                "cleanup_task_reminders",
+                "complete_task",
+                "create_task",
+                "delete_task",
+                "ensure_task_directory",
+                "get_task_by_id",
+                "get_tasks_due_soon",
+                "get_user_task_stats",
+                "load_active_tasks",
+                "load_completed_tasks",
+                "remove_user_task_tag",
+                "restore_task",
+                "save_active_tasks",
+                "save_completed_tasks",
+                "schedule_task_reminders",
+                "setup_default_task_tags",
+                "update_task"
+              ],
+              "missing_exports": [
+                "ACTIVE_TASKS_FILENAME",
+                "ALLOWED_UPDATE_FIELDS",
+                "COMPLETED_TASKS_FILENAME",
+                "TASK_SCHEDULES_FILENAME",
+                "VALID_PRIORITIES",
+                "is_valid_due_date",
+                "is_valid_priority",
+                "is_valid_task_title",
+                "validate_update_field"
+              ],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "_tasks_mod": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/command_handlers/profile_handler.py",
+                    "communication/command_handlers/task_handler.py"
+                  ],
+                  "import_types": [
+                    "direct_import"
+                  ],
+                  "module_path": null
+                }
+              },
+              "import_usage_details": {
+                "ACTIVE_TASKS_FILENAME": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "COMPLETED_TASKS_FILENAME": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "TASK_SCHEDULES_FILENAME": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "load_active_tasks": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "save_active_tasks": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "load_completed_tasks": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "save_completed_tasks": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "is_valid_task_title": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_validation"
+                },
+                "is_valid_priority": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_validation"
+                },
+                "validate_update_field": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_validation"
+                },
+                "VALID_PRIORITIES": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_validation.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "ALLOWED_UPDATE_FIELDS": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_validation.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "_tasks_mod": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/command_handlers/profile_handler.py",
+                    "communication/command_handlers/task_handler.py"
+                  ],
+                  "import_types": [
+                    "direct_import"
+                  ],
+                  "module_path": null
+                }
+              },
+              "package_api_items": [
+                "TaskManagementError",
+                "add_user_task_tag",
+                "are_tasks_enabled",
+                "cleanup_task_reminders",
+                "complete_task",
+                "create_task",
+                "delete_task",
+                "ensure_task_directory",
+                "get_task_by_id",
+                "get_tasks_due_soon",
+                "get_user_task_stats",
+                "is_valid_due_date",
+                "is_valid_priority",
+                "is_valid_task_title",
+                "load_active_tasks",
+                "load_completed_tasks",
+                "remove_user_task_tag",
+                "restore_task",
+                "save_active_tasks",
+                "save_completed_tasks",
+                "schedule_task_reminders",
+                "setup_default_task_tags",
+                "update_task",
+                "validate_update_field"
+              ],
+              "registry_items": [
+                "_calculate_next_due_date",
+                "ensure_task_directory",
+                "is_valid_due_date",
+                "is_valid_priority"
+              ]
+            },
             "ui": {
               "package": "ui",
               "current_exports_count": 34,
@@ -8390,301 +8651,6 @@
                 "set_selected_categories"
               ]
             },
-            "tasks": {
-              "package": "tasks",
-              "current_exports_count": 20,
-              "should_export_count": 29,
-              "already_exported": [
-                "TaskManagementError",
-                "add_user_task_tag",
-                "are_tasks_enabled",
-                "cleanup_task_reminders",
-                "complete_task",
-                "create_task",
-                "delete_task",
-                "ensure_task_directory",
-                "get_task_by_id",
-                "get_tasks_due_soon",
-                "get_user_task_stats",
-                "load_active_tasks",
-                "load_completed_tasks",
-                "remove_user_task_tag",
-                "restore_task",
-                "save_active_tasks",
-                "save_completed_tasks",
-                "schedule_task_reminders",
-                "setup_default_task_tags",
-                "update_task"
-              ],
-              "missing_exports": [
-                "ACTIVE_TASKS_FILENAME",
-                "ALLOWED_UPDATE_FIELDS",
-                "COMPLETED_TASKS_FILENAME",
-                "TASK_SCHEDULES_FILENAME",
-                "VALID_PRIORITIES",
-                "is_valid_due_date",
-                "is_valid_priority",
-                "is_valid_task_title",
-                "validate_update_field"
-              ],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "_tasks_mod": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/profile_handler.py",
-                    "communication/command_handlers/task_handler.py"
-                  ],
-                  "import_types": [
-                    "direct_import"
-                  ],
-                  "module_path": null
-                }
-              },
-              "import_usage_details": {
-                "ACTIVE_TASKS_FILENAME": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "COMPLETED_TASKS_FILENAME": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "TASK_SCHEDULES_FILENAME": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "load_active_tasks": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "save_active_tasks": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "load_completed_tasks": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "save_completed_tasks": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "is_valid_task_title": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_validation"
-                },
-                "is_valid_priority": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_validation"
-                },
-                "validate_update_field": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_validation"
-                },
-                "VALID_PRIORITIES": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_validation.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "ALLOWED_UPDATE_FIELDS": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_validation.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "_tasks_mod": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/profile_handler.py",
-                    "communication/command_handlers/task_handler.py"
-                  ],
-                  "import_types": [
-                    "direct_import"
-                  ],
-                  "module_path": null
-                }
-              },
-              "package_api_items": [
-                "TaskManagementError",
-                "add_user_task_tag",
-                "are_tasks_enabled",
-                "cleanup_task_reminders",
-                "complete_task",
-                "create_task",
-                "delete_task",
-                "ensure_task_directory",
-                "get_task_by_id",
-                "get_tasks_due_soon",
-                "get_user_task_stats",
-                "is_valid_due_date",
-                "is_valid_priority",
-                "is_valid_task_title",
-                "load_active_tasks",
-                "load_completed_tasks",
-                "remove_user_task_tag",
-                "restore_task",
-                "save_active_tasks",
-                "save_completed_tasks",
-                "schedule_task_reminders",
-                "setup_default_task_tags",
-                "update_task",
-                "validate_update_field"
-              ],
-              "registry_items": [
-                "_calculate_next_due_date",
-                "ensure_task_directory",
-                "is_valid_due_date",
-                "is_valid_priority"
-              ]
-            },
-            "user": {
-              "package": "user",
-              "current_exports_count": 4,
-              "should_export_count": 4,
-              "already_exported": [
-                "UserContext",
-                "UserContextManager",
-                "UserPreferences",
-                "user_context_manager"
-              ],
-              "missing_exports": [],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "user_context_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "ai/context_builder.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.context_manager"
-                },
-                "UserContext": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/scheduler.py",
-                    "core/schedule_management.py",
-                    "ui/ui_app_qt.py",
-                    "user/context_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.user_context"
-                }
-              },
-              "import_usage_details": {
-                "user_context_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "ai/context_builder.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.context_manager"
-                },
-                "UserContext": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/scheduler.py",
-                    "core/schedule_management.py",
-                    "ui/ui_app_qt.py",
-                    "user/context_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.user_context"
-                }
-              },
-              "package_api_items": [
-                "UserContext",
-                "UserContextManager",
-                "UserPreferences"
-              ],
-              "registry_items": [
-                "__getattr__",
-                "__init__",
-                "__new__",
-                "_get_conversation_history",
-                "get_all_preferences",
-                "get_instance_context"
-              ]
-            },
             "ai": {
               "package": "ai",
               "current_exports_count": 22,
@@ -8809,62 +8775,89 @@
                 "add_prompt_template",
                 "ensure_lm_studio_ready"
               ]
+            },
+            "user": {
+              "package": "user",
+              "current_exports_count": 4,
+              "should_export_count": 4,
+              "already_exported": [
+                "UserContext",
+                "UserContextManager",
+                "UserPreferences",
+                "user_context_manager"
+              ],
+              "missing_exports": [],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "user_context_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/chatbot.py",
+                    "ai/context_builder.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.context_manager"
+                },
+                "UserContext": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "core/scheduler.py",
+                    "core/schedule_management.py",
+                    "ui/ui_app_qt.py",
+                    "user/context_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.user_context"
+                }
+              },
+              "import_usage_details": {
+                "user_context_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/chatbot.py",
+                    "ai/context_builder.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.context_manager"
+                },
+                "UserContext": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "core/scheduler.py",
+                    "core/schedule_management.py",
+                    "ui/ui_app_qt.py",
+                    "user/context_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.user_context"
+                }
+              },
+              "package_api_items": [
+                "UserContext",
+                "UserContextManager",
+                "UserPreferences"
+              ],
+              "registry_items": [
+                "__getattr__",
+                "__init__",
+                "__new__",
+                "_get_conversation_history",
+                "get_all_preferences",
+                "get_instance_context"
+              ]
             }
           }
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
-    },
-    "analyze_module_imports": {
-      "success": true,
-      "data": {
-        "summary": {
-          "total_issues": 0,
-          "files_affected": 0
-        },
-        "details": {
-          "run_headless_service.py": {
-            "imports": {
-              "standard_library": [
-                {
-                  "module": "sys",
-                  "as_name": null,
-                  "imported_items": [
-                    "sys"
-                  ]
-                }
-              ],
-              "third_party": [],
-              "local": [
-                {
-                  "module": "core.headless_service",
-                  "as_name": null,
-                  "imported_items": [
-                    "HeadlessServiceManager"
-                  ]
-                },
-                {
-                  "module": "core.logger",
-                  "as_name": null,
-                  "imported_items": [
-                    "setup_logging",
-                    "get_component_logger"
-                  ]
-                },
-                {
-                  "module": "core.error_handling",
-                  "as_name": null,
-                  "imported_items": [
-                    "handle_errors"
-                  ]
-                }
-              ]
-            },
-            "total_imports": 4
-          }
-        }
-      },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -8875,7 +8868,7 @@
         },
         "details": {}
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -8893,22 +8886,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
-    },
-    "analyze_heading_numbering": {
-      "success": true,
-      "data": {
-        "summary": {
-          "total_issues": 0,
-          "files_affected": 0,
-          "status": "CLEAN"
-        },
-        "files": {},
-        "details": {
-          "detailed_issues": {}
-        }
-      },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -8936,25 +8914,25 @@
             "files_scanned": 561,
             "files_with_issues": 0,
             "total_unused": 0,
-            "cache_hits": 561,
-            "cache_misses": 0,
-            "changed_files": 0,
-            "cache_mode": "cache_only",
+            "cache_hits": 560,
+            "cache_misses": 1,
+            "changed_files": 1,
+            "cache_mode": "partial_cache",
             "backend": "ruff"
           },
           "performance": {
             "backend": "ruff",
-            "scan_mode": "cache_only",
+            "scan_mode": "partial_cache",
             "timings": {
-              "discovery_seconds": 1.8315,
-              "detection_seconds": 0.1073,
-              "categorization_seconds": 0.0057,
-              "total_seconds": 2.2035
+              "discovery_seconds": 2.4416,
+              "detection_seconds": 0.6075,
+              "categorization_seconds": 0.0082,
+              "total_seconds": 3.4628
             },
-            "files_per_second": 254.59,
-            "cache_hits": 561,
-            "cache_misses": 0,
-            "changed_files": 0,
+            "files_per_second": 162.01,
+            "cache_hits": 560,
+            "cache_misses": 1,
+            "changed_files": 1,
             "batch_size": 200,
             "fallback_used": false,
             "fallback_reason": ""
@@ -8973,22 +8951,37 @@
           },
           "files_scanned": 561,
           "_cache_metadata": {
-            "cache_mode": "cache_only",
-            "hits": 561,
-            "misses": 0,
+            "cache_mode": "partial_cache",
+            "hits": 560,
+            "misses": 1,
             "total_cache_checks": 561,
-            "hit_rate": 100.0
+            "hit_rate": 99.8
           }
         },
         "_cache_metadata": {
-          "cache_mode": "cache_only",
-          "hits": 561,
-          "misses": 0,
+          "cache_mode": "partial_cache",
+          "hits": 560,
+          "misses": 1,
           "total_cache_checks": 561,
-          "hit_rate": 100.0
+          "hit_rate": 99.8
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
+    },
+    "analyze_heading_numbering": {
+      "success": true,
+      "data": {
+        "summary": {
+          "total_issues": 0,
+          "files_affected": 0,
+          "status": "CLEAN"
+        },
+        "files": {},
+        "details": {
+          "detailed_issues": {}
+        }
+      },
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -9003,7 +8996,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -9018,7 +9011,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "analyze_error_handling": {
       "success": true,
@@ -9046,12 +9039,12 @@
             "handle_configuration_error": 4,
             "error_handler_usage": 8,
             "handle_validation_error": 2,
-            "MHMError": 2,
-            "CommunicationError": 2,
             "AIError": 2,
-            "handle_file_error": 3,
+            "MHMError": 2,
             "safe_file_operation": 1,
-            "FileOperationError": 8
+            "FileOperationError": 8,
+            "CommunicationError": 2,
+            "handle_file_error": 3
           },
           "missing_error_handling": [],
           "error_handling_quality": {
@@ -9099,7 +9092,7 @@
           ]
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "analyze_duplicate_functions": {
       "success": true,
@@ -11060,7 +11053,25 @@
           "body_similarity_min_name_threshold": 0.35
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
+    },
+    "analyze_dependency_patterns": {
+      "success": true,
+      "data": {
+        "summary": {
+          "total_issues": 0,
+          "files_affected": 0
+        },
+        "details": {
+          "core_dependencies": [],
+          "communication_dependencies": [],
+          "ui_dependencies": [],
+          "third_party_dependencies": [],
+          "circular_dependencies": [],
+          "high_coupling": []
+        }
+      },
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "analyze_module_refactor_candidates": {
       "success": true,
@@ -11802,25 +11813,7 @@
           }
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
-    },
-    "analyze_dependency_patterns": {
-      "success": true,
-      "data": {
-        "summary": {
-          "total_issues": 0,
-          "files_affected": 0
-        },
-        "details": {
-          "core_dependencies": [],
-          "communication_dependencies": [],
-          "ui_dependencies": [],
-          "third_party_dependencies": [],
-          "circular_dependencies": [],
-          "high_coupling": []
-        }
-      },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "analyze_function_registry": {
       "success": true,
@@ -14088,7 +14081,7 @@
           }
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -14165,7 +14158,7 @@
           }
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "analyze_ruff": {
       "success": true,
@@ -14184,7 +14177,44 @@
           "top_rules": []
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
+    },
+    "analyze_legacy_references": {
+      "success": true,
+      "data": {
+        "summary": {
+          "total_issues": 0,
+          "files_affected": 0
+        },
+        "details": {
+          "findings": {},
+          "files_with_issues": 0,
+          "legacy_markers": 0,
+          "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md",
+          "deprecation_inventory": {
+            "inventory_path": "development_tools/config/jsons/DEPRECATION_INVENTORY.json",
+            "exists": true,
+            "loaded": true,
+            "error": null,
+            "active_or_candidate_entries": 1,
+            "removed_entries": 4,
+            "active_search_terms": 0,
+            "injected_pattern_count": 0
+          },
+          "deprecation_inventory_sync": {
+            "status": "disabled",
+            "check_passed": true
+          },
+          "cache": {
+            "cache_mode": "partial_cache",
+            "hits": 558,
+            "misses": 2,
+            "total_cache_checks": 560,
+            "hit_rate": 99.6
+          }
+        }
+      },
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "analyze_pyright": {
       "success": true,
@@ -14207,74 +14237,20 @@
           "top_warning_files": []
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
-    },
-    "analyze_legacy_references": {
-      "success": true,
-      "data": {
-        "summary": {
-          "total_issues": 1,
-          "files_affected": 1
-        },
-        "details": {
-          "findings": {
-            "legacy_inventory_tracking": [
-              [
-                "development_tools\\shared\\fix_project_cleanup.py",
-                "#!/usr/bin/env python3\n# TOOL_TIER: supporting\n# TOOL_PORTABILITY: portable\n\n\"\"\"\nfix_project_cleanup.py\nProject cleanup tool to remove cache files, temporary directories, and unnecessary artifacts.\n\nFollows the fix_* naming convention for cleanup/repair operations.\n\nThis tool removes:\n- Python cache directories (__pycache__)\n- pytest cache (.pytest_cache)\n- Coverage files (.coverage)\n- Old coverage regeneration logs\n- Temporary test directories\n- Test user data directories\n- Other generated/cache files\n\nConfiguration is loaded from external config file (development_tools_config.json)\nif available, making this tool portable across different projects.\n\"\"\"\n\nimport os\nimport shutil\nimport sys\nfrom pathlib import Path\n\n# Add project root to path for core module imports\nproject_root = Path(__file__).parent.parent.parent\nif str(project_root) not in sys.path:\n    sys.path.insert(0, str(project_root))\n\n# Handle both relative and absolute imports\ntry:\n    from .. import config\nexcept ImportError:\n    from development_tools import config\n\nfrom core.logger import get_component_logger\n\n# Ensure external config is loaded\nconfig.load_external_config()\n\nlogger = get_component_logger(\"development_tools\")\n\n\nclass ProjectCleanup:\n    \"\"\"Clean up project cache files, temporary directories, and artifacts.\"\"\"\n\n    def __init__(self, project_root: Path | None = None):\n        self.project_root = project_root or Path(config.get_project_root())\n\n    def find_directories(self, pattern: str) -> list[Path]:\n        \"\"\"Find all directories matching a pattern.\"\"\"\n        directories = []\n        for root, dirs, _files in os.walk(self.project_root):\n            # Skip certain directories from being searched\n            dirs[:] = [\n                d for d in dirs if d not in [\".git\", \"venv\", \".venv\", \"node_modules\"]\n            ]\n\n            for dir_name in dirs:\n                if pattern in dir_name:\n                    dir_path = Path(root) / dir_name\n                    directories.append(dir_path)\n\n        return directories\n\n    def find_files(self, pattern: str) -> list[Path]:\n        \"\"\"Find all files matching a pattern.\"\"\"\n        files = []\n        for root, dirs, filenames in os.walk(self.project_root):\n            # Skip certain directories from being searched\n            dirs[:] = [\n                d for d in dirs if d not in [\".git\", \"venv\", \".venv\", \"node_modules\"]\n            ]\n\n            for filename in filenames:\n                if pattern in filename:\n                    file_path = Path(root) / filename\n                    files.append(file_path)\n\n        return files\n\n    def get_size(self, path: Path) -> str:\n        \"\"\"Get human-readable size of file or directory.\"\"\"\n        try:\n            if path.is_file():\n                size = path.stat().st_size\n            elif path.is_dir():\n                size = sum(f.stat().st_size for f in path.rglob(\"*\") if f.is_file())\n            else:\n                return \"0 B\"\n\n            for unit in [\"B\", \"KB\", \"MB\", \"GB\"]:\n                if size < 1024.0:\n                    return f\"{size:.1f} {unit}\"\n                size /= 1024.0\n            return f\"{size:.1f} TB\"\n        except Exception:\n            return \"unknown size\"\n\n    def remove_path(self, path: Path, dry_run: bool = False) -> tuple[bool, str]:\n        \"\"\"Remove a file or directory.\"\"\"\n        try:\n            if not path.exists():\n                return False, f\"Does not exist: {path}\"\n\n            if dry_run:\n                size = self.get_size(path)\n                return True, f\"Would remove: {path} ({size})\"\n\n            if path.is_file():\n                path.unlink()\n                return True, f\"Removed file: {path}\"\n            elif path.is_dir():\n                shutil.rmtree(path)\n                return True, f\"Removed directory: {path}\"\n            else:\n                return False, f\"Unknown type: {path}\"\n        except PermissionError as e:\n            return False, f\"Permission denied: {path} - {e}\"\n        except Exception as e:\n            return False, f\"Error removing {path}: {e}\"\n\n    def cleanup_cache_directories(\n        self, dry_run: bool = False, include_tool_caches: bool = False\n    ) -> tuple[int, int]:\n        \"\"\"\n        Remove __pycache__ directories.\n\n        Args:\n            dry_run: If True, show what would be removed without actually removing\n            include_tool_caches: If True, also clean standardized storage cache files\n        \"\"\"\n        directories = self.find_directories(\"__pycache__\")\n        removed = 0\n        failed = 0\n\n        for dir_path in directories:\n            success, message = self.remove_path(dir_path, dry_run)\n            if success:\n                removed += 1\n                if not dry_run:\n                    logger.info(f\"  {message}\")\n            else:\n                failed += 1\n                if not dry_run:\n                    logger.warning(f\"  {message}\")\n\n        # Only clean standardized/tool cache files if explicitly requested.\n        if include_tool_caches:\n            tool_removed, tool_failed = self.cleanup_tool_cache_artifacts(dry_run=dry_run)\n            removed += tool_removed\n            failed += tool_failed\n\n        return removed, failed\n\n    def cleanup_tool_cache_artifacts(\n        self, dry_run: bool = False, cache_scope: str | None = None\n    ) -> tuple[int, int]:\n        \"\"\"Remove development-tools cache/result artifacts used for audit cache reuse.\n\n        ``cache_scope``:\n            - ``None`` (default): remove **all** known tool cache layouts (full + dev_tools\n              scopes, archives, legacy aggregates, coverage JSON, dot caches). Used by\n              interactive ``cleanup`` / tests expecting a full reset.\n            - ``full``: only full-repo audit artifacts (``scopes/full``, main\n              ``coverage.json``, archives, legacy paths, flat dot caches) - leaves\n              ``scopes/dev_tools`` and ``coverage_dev_tools.json`` intact.\n            - ``dev_tools``: only dev-tools-scoped audit artifacts - leaves full-repo\n              scope caches intact.\n\n        Includes flat and scoped layouts per scope; see ``audit_storage_scope`` module.\n        \"\"\"\n        removed = 0\n        failed = 0\n        for cache_file in self._iter_tool_cache_artifacts(cache_scope=cache_scope):\n            success, message = self.remove_path(cache_file, dry_run)\n            if success:\n                removed += 1\n                if not dry_run:\n                    logger.info(f\"  {message}\")\n            else:\n                failed += 1\n                if not dry_run:\n                    logger.warning(f\"  {message}\")\n        return removed, failed\n\n    def _iter_tool_cache_artifacts(\n        self, cache_scope: str | None = None\n    ) -> list[Path]:\n        \"\"\"Return cache/artifact files used for cache-style reuse.\"\"\"\n        if cache_scope == \"dev_tools\":\n            return self._iter_dev_tools_only_tool_cache_artifacts()\n        if cache_scope == \"full\":\n            return self._iter_full_repo_only_tool_cache_artifacts()\n        return self._iter_all_tool_cache_artifacts()\n\n    def _dedupe_artifact_paths(self, artifacts: list[Path]) -> list[Path]:\n        unique: list[Path] = []\n        seen: set[str] = set()\n        for artifact in artifacts:\n            if not artifact.is_file():\n                continue\n            normalized = str(artifact.resolve()).lower()\n            if normalized in seen:\n                continue\n            seen.add(normalized)\n            unique.append(artifact)\n        return unique\n\n    def _iter_dev_tools_only_tool_cache_artifacts(self) -> list[Path]:\n        \"\"\"Scoped cache files for ``audit --full --dev-tools-only`` reuse only.\"\"\"\n        artifacts: list[Path] = []\n        dev_tools_dir = self.project_root / \"development_tools\"\n        if not dev_tools_dir.exists():\n            return artifacts\n        for cache_file in dev_tools_dir.glob(\"**/jsons/scopes/dev_tools/**/*\"):\n            if cache_file.is_file():\n                artifacts.append(cache_file)\n        reports_scoped_dev = dev_tools_dir / \"reports\" / \"scopes\" / \"dev_tools\"\n        if reports_scoped_dev.is_dir():\n            for scoped_report in reports_scoped_dev.rglob(\"*\"):\n                if scoped_report.is_file():\n                    artifacts.append(scoped_report)\n        tests_jsons = dev_tools_dir / \"tests\" / \"jsons\"\n        if tests_jsons.exists():\n            for name in (\n                \"coverage_dev_tools.json\",\n                \"generate_dev_tools_coverage_results.json\",\n            ):\n                p = tests_jsons / name\n                if p.is_file():\n                    artifacts.append(p)\n        return self._dedupe_artifact_paths(artifacts)\n\n    def _iter_full_repo_only_tool_cache_artifacts(self) -> list[Path]:\n        \"\"\"Scoped cache files for default full-repo audits (not dev_tools scope tree).\"\"\"\n        all_paths = self._iter_all_tool_cache_artifacts()\n        dev_only = {\n            str(p.resolve()).lower()\n            for p in self._iter_dev_tools_only_tool_cache_artifacts()\n        }\n        return [\n            p\n            for p in all_paths\n            if str(p.resolve()).lower() not in dev_only\n        ]\n\n    def _iter_all_tool_cache_artifacts(self) -> list[Path]:\n        \"\"\"Return every known tool cache file (full + dev_tools + shared).\"\"\"\n        artifacts: list[Path] = []\n        dev_tools_dir = self.project_root / \"development_tools\"\n        if not dev_tools_dir.exists():\n            return artifacts\n        # Canonical tool list: derive cache and result files from central metadata.\n        try:\n            from development_tools.shared.tool_metadata import iter_tools\n\n            for tool_info in iter_tools():\n                path_parts = tool_info.path.replace(\"\\\\\", \"/\").split(\"/\")\n                # Expected form: development_tools/<domain>/<tool>.py\n                if len(path_parts) < 3 or path_parts[0] != \"development_tools\":\n                    continue\n                domain = path_parts[1]\n                jsons_dir = dev_tools_dir / domain / \"jsons\"\n                if not jsons_dir.exists():\n                    continue\n                artifacts.append(jsons_dir / f\".{tool_info.name}_cache.json\")\n\n                # Result payloads are also used as freshness inputs for some domains.\n                if domain in {\"docs\", \"tests\"}:\n                    artifacts.append(jsons_dir / f\"{tool_info.name}_results.json\")\n        except Exception:\n            # Fall back to generic globbing if metadata is unavailable.\n            pass\n\n        # Generic discovery catches current and future cache files (including unregistered tools).\n        for cache_file in dev_tools_dir.glob(\"**/jsons/.*_cache.json\"):\n            if cache_file.is_file():\n                artifacts.append(cache_file)\n        for cache_file in dev_tools_dir.glob(\"**/jsons/*_cache.json\"):\n            if cache_file.is_file():\n                artifacts.append(cache_file)\n\n        # Dev-tools-only audit scope (per-tool results/caches under .../jsons/scopes/dev_tools/).\n        for cache_file in dev_tools_dir.glob(\"**/jsons/scopes/dev_tools/**/*\"):\n            if cache_file.is_file():\n                artifacts.append(cache_file)\n        reports_scoped_dev = dev_tools_dir / \"reports\" / \"scopes\" / \"dev_tools\"\n        if reports_scoped_dev.is_dir():\n            for scoped_report in reports_scoped_dev.rglob(\"*\"):\n                if scoped_report.is_file():\n                    artifacts.append(scoped_report)\n\n        # Full-repo audit scope (default Tier 2/3 layout): per-domain .../jsons/scopes/full/** and\n        # aggregated JSON under development_tools/reports/scopes/full/** (see audit_storage_scope).\n        for cache_file in dev_tools_dir.glob(\"**/jsons/scopes/full/**/*\"):\n            if cache_file.is_file():\n                artifacts.append(cache_file)\n        reports_scoped_full = dev_tools_dir / \"reports\" / \"scopes\" / \"full\"\n        if reports_scoped_full.is_dir():\n            for scoped_report in reports_scoped_full.rglob(\"*\"):\n                if scoped_report.is_file():\n                    artifacts.append(scoped_report)\n\n        # Rotated markdown snapshots (AI_STATUS / AI_PRIORITIES / CONSOLIDATED) from prior runs.\n        reports_archive = dev_tools_dir / \"reports\" / \"archive\"\n        if reports_archive.is_dir():\n            for archived in reports_archive.rglob(\"*\"):\n                if archived.is_file():\n                    artifacts.append(archived)\n\n        # Orphan pre-scopes aggregates (safe to delete if present; loaders use reports/scopes/**).\n        legacy_analysis = dev_tools_dir / \"reports\" / \"analysis_detailed_results.json\"\n        if legacy_analysis.is_file():\n            artifacts.append(legacy_analysis)\n        legacy_timings = dev_tools_dir / \"reports\" / \"jsons\" / \"tool_timings.json\"\n        if legacy_timings.is_file():\n            artifacts.append(legacy_timings)\n\n        # Coverage JSON artifacts used as warm-run inputs.\n        tests_jsons = dev_tools_dir / \"tests\" / \"jsons\"\n        if tests_jsons.exists():\n            for file_path in tests_jsons.glob(\"coverage*.json\"):\n                if file_path.is_file():\n                    artifacts.append(file_path)\n            for file_path in tests_jsons.glob(\"run_test_coverage*_results.json\"):\n                if file_path.is_file():\n                    artifacts.append(file_path)\n\n        return self._dedupe_artifact_paths(artifacts)\n\n    def cleanup_pytest_cache(self, dry_run: bool = False) -> tuple[int, int]:\n        \"\"\"Remove .pytest_cache directories.\"\"\"\n        directories = self.find_directories(\".pytest_cache\")\n        removed = 0\n        failed = 0\n\n        for dir_path in directories:\n            success, message = self.remove_path(dir_path, dry_run)\n            if success:\n                removed += 1\n                if not dry_run:\n                    logger.info(f\"  {message}\")\n            else:\n                failed += 1\n                if not dry_run:\n                    logger.warning(f\"  {message}\")\n\n        return removed, failed\n\n    def cleanup_coverage_files(self, dry_run: bool = False) -> tuple[int, int]:\n        \"\"\"Remove .coverage files and coverage cache files.\"\"\"\n        files = self.find_files(\".coverage\")\n        removed = 0\n        failed = 0\n\n        for file_path in files:\n            success, message = self.remove_path(file_path, dry_run)\n            if success:\n                removed += 1\n                if not dry_run:\n                    logger.info(f\"  {message}\")\n            else:\n                failed += 1\n                if not dry_run:\n                    logger.warning(f\"  {message}\")\n\n        # Clean up test-file-based coverage cache (now in jsons/ directory)\n        jsons_dir = self.project_root / \"development_tools\" / \"tests\" / \"jsons\"\n        if jsons_dir.exists():\n            # New test-file-based cache\n            test_file_cache_file = jsons_dir / \"test_file_coverage_cache.json\"\n            if test_file_cache_file.exists():\n                success, message = self.remove_path(test_file_cache_file, dry_run)\n                if success:\n                    removed += 1\n                    if not dry_run:\n                        logger.info(f\"  {message}\")\n                else:\n                    failed += 1\n                    if not dry_run:\n                        logger.warning(f\"  {message}\")\n\n            # Dev tools coverage cache\n            dev_tools_cache_file = jsons_dir / \"dev_tools_coverage_cache.json\"\n            if dev_tools_cache_file.exists():\n                success, message = self.remove_path(dev_tools_cache_file, dry_run)\n                if success:\n                    removed += 1\n                    if not dry_run:\n                        logger.info(f\"  {message}\")\n                else:\n                    failed += 1\n                    if not dry_run:\n                        logger.warning(f\"  {message}\")\n\n        return removed, failed\n\n    def cleanup_coverage_logs(self, dry_run: bool = False) -> tuple[int, int]:\n        \"\"\"Remove old coverage regeneration log files, keeping only the 2 most recent per type.\"\"\"\n        coverage_logs_dir = (\n            self.project_root / \"development_tools\" / \"logs\" / \"coverage_regeneration\"\n        )\n        removed = 0\n        failed = 0\n\n        if not coverage_logs_dir.exists():\n            return removed, failed\n\n        # Get all log files (excluding .latest.log files which should always be kept)\n        log_files = [\n            f\n            for f in coverage_logs_dir.glob(\"*.log\")\n            if not f.name.endswith(\".latest.log\")\n        ]\n\n        # Group by base name (e.g., pytest_stdout, coverage_html)\n        log_groups = {}\n        for log_file in log_files:\n            base_name = log_file.stem\n            # Remove timestamp patterns - try multiple formats\n            if \"_\" in base_name:\n                parts = base_name.rsplit(\"_\", 2)\n                # Check if last parts look like timestamps\n                if len(parts) >= 2:\n                    # Pattern might be: name_20251103_010734\n                    if len(parts[-1]) == 6 and len(parts[-2]) == 8:\n                        base_name = \"_\".join(parts[:-2])\n                    elif \"-\" in parts[-1]:\n                        # Pattern: name_20251103-010734\n                        base_name = \"_\".join(parts[:-1])\n            if \"-\" in base_name:\n                # Pattern: name-20251103-010734\n                parts = base_name.rsplit(\"-\", 2)\n                if len(parts) >= 2 and len(parts[-1]) == 6 and len(parts[-2]) == 8:\n                    base_name = parts[0]\n\n            if base_name not in log_groups:\n                log_groups[base_name] = []\n            log_groups[base_name].append(log_file)\n\n        for _base_name, files in log_groups.items():\n            if len(files) <= 2:\n                continue  # Keep all if we have 2 or fewer\n\n            # Sort by modification time (newest first)\n            files.sort(key=lambda f: f.stat().st_mtime, reverse=True)\n            # Keep only the 2 most recent, remove the rest\n            files_to_remove = files[2:]\n\n            for file_path in files_to_remove:\n                success, message = self.remove_path(file_path, dry_run)\n                if success:\n                    removed += 1\n                    if not dry_run:\n                        logger.info(f\"  {message}\")\n                else:\n                    failed += 1\n                    if not dry_run:\n                        logger.warning(f\"  {message}\")\n\n        return removed, failed\n\n    def cleanup_test_temp_dirs(self, dry_run: bool = False) -> tuple[int, int]:\n        \"\"\"Remove temporary test directories.\"\"\"\n        try:\n            from development_tools import config as _config\n\n            paths_cfg = _config.get_paths_config()\n            tests_data_rel = paths_cfg.get(\"tests_data_dir\") or \"tests/data\"\n        except Exception:\n            tests_data_rel = \"tests/data\"\n\n        test_data_dir = self.project_root / tests_data_rel\n        removed = 0\n        failed = 0\n\n        if not test_data_dir.exists():\n            return removed, failed\n\n        # Remove pytest-of-* directories (created by pytest's tmpdir plugin)\n        pytest_of_dirs = list(test_data_dir.glob(\"pytest-of-*\"))\n        for dir_path in pytest_of_dirs:\n            success, message = self._remove_test_temp_dir(dir_path, dry_run)\n            if success is True:\n                removed += 1\n                if not dry_run:\n                    logger.info(f\"  {message}\")\n            elif success is False:\n                failed += 1\n                if not dry_run:\n                    logger.warning(f\"  {message}\")\n\n        # Remove pytest-tmp-* directories (created during parallel test execution)\n        pytest_tmp_dirs = list(test_data_dir.glob(\"pytest-tmp-*\"))\n        for dir_path in pytest_tmp_dirs:\n            success, message = self._remove_test_temp_dir(dir_path, dry_run)\n            if success is True:\n                removed += 1\n                if not dry_run:\n                    logger.info(f\"  {message}\")\n            elif success is False:\n                failed += 1\n                if not dry_run:\n                    logger.warning(f\"  {message}\")\n\n        # Remove tmp subdirectories (but keep the tmp directory itself)\n        tmp_dir = test_data_dir / \"tmp\"\n        if tmp_dir.exists():\n            for item in tmp_dir.iterdir():\n                if item.is_dir():\n                    success, message = self._remove_test_temp_dir(item, dry_run)\n                    if success is True:\n                        removed += 1\n                        if not dry_run:\n                            logger.info(f\"  {message}\")\n                    elif success is False:\n                        failed += 1\n                        if not dry_run:\n                            logger.warning(f\"  {message}\")\n\n        # Remove conversation_states.json\n        conversation_states = test_data_dir / \"conversation_states.json\"\n        if conversation_states.exists():\n            success, message = self.remove_path(conversation_states, dry_run)\n            if success:\n                removed += 1\n                if not dry_run:\n                    logger.info(f\"  {message}\")\n            else:\n                failed += 1\n                if not dry_run:\n                    logger.warning(f\"  {message}\")\n\n        # Clean up flags, requests, backups directories (contents only)\n        for subdir_name in [\"flags\", \"requests\", \"backups\"]:\n            subdir = test_data_dir / subdir_name\n            if subdir.exists():\n                for item in subdir.iterdir():\n                    success, message = self._remove_test_temp_dir(item, dry_run)\n                    if success is True:\n                        removed += 1\n                        if not dry_run:\n                            logger.info(f\"  {message}\")\n                    elif success is False:\n                        failed += 1\n                        if not dry_run:\n                            logger.warning(f\"  {message}\")\n\n        return removed, failed\n\n    def _remove_test_temp_dir(\n        self, path: Path, dry_run: bool = False\n    ) -> tuple[bool | None, str]:\n        \"\"\"Remove test temp directory with permission-safe handling.\n\n        Returns:\n            (True, message) if removed\n            (False, message) if failed\n            (None, message) if skipped due to permissions\n        \"\"\"\n        if dry_run:\n            return self.remove_path(path, dry_run)\n        try:\n            if not path.exists():\n                return False, f\"Does not exist: {path}\"\n            if path.is_file():\n                path.unlink()\n                return True, f\"Removed file: {path}\"\n            shutil.rmtree(path)\n            return True, f\"Removed directory: {path}\"\n        except PermissionError as exc:\n            return None, f\"Permission denied: {path} - {exc}\"\n        except Exception as exc:\n            return False, f\"Error removing {path}: {exc}\"\n\n    def cleanup_test_user_data(self, dry_run: bool = False) -> tuple[int, int]:\n        \"\"\"Remove test user data directories.\"\"\"\n        users_dir = self.project_root / \"data\" / \"users\"\n        removed = 0\n        failed = 0\n\n        if not users_dir.exists():\n            return removed, failed\n\n        # Remove test_* user directories\n        test_user_dirs = [\n            d for d in users_dir.iterdir() if d.is_dir() and d.name.startswith(\"test_\")\n        ]\n\n        for dir_path in test_user_dirs:\n            success, message = self.remove_path(dir_path, dry_run)\n            if success:\n                removed += 1\n                if not dry_run:\n                    logger.info(f\"  {message}\")\n            else:\n                failed += 1\n                if not dry_run:\n                    logger.warning(f\"  {message}\")\n\n        return removed, failed\n\n    def cleanup_all(\n        self,\n        dry_run: bool = False,\n        cache: bool = True,\n        test_data: bool = True,\n        coverage: bool = True,\n        keep_vscode: bool = False,\n        keep_cursor: bool = False,\n        include_tool_caches: bool = False,\n    ) -> dict:\n        \"\"\"\n        Run all cleanup operations.\n\n        Args:\n            dry_run: If True, show what would be removed without actually removing\n            cache: Clean cache directories (__pycache__, .pytest_cache)\n            test_data: Clean test data directories\n            coverage: Clean coverage files, logs, and test-file-based coverage cache\n            keep_vscode: Keep VSCode cache directories (not implemented)\n            keep_cursor: Keep Cursor cache directories (not implemented)\n            include_tool_caches: If True, also clean standardized storage/tool cache artifacts\n\n        Returns:\n            Dictionary with cleanup results for each category\n        \"\"\"\n        results = {\n            \"cache\": {\"removed\": 0, \"failed\": 0},\n            \"pytest_cache\": {\"removed\": 0, \"failed\": 0},\n            \"coverage\": {\"removed\": 0, \"failed\": 0},\n            \"coverage_logs\": {\"removed\": 0, \"failed\": 0},\n            \"test_data\": {\"removed\": 0, \"failed\": 0},\n            \"test_user_data\": {\"removed\": 0, \"failed\": 0},\n            \"total_removed\": 0,\n            \"total_failed\": 0,\n        }\n\n        if cache:\n            removed, failed = self.cleanup_cache_directories(\n                dry_run, include_tool_caches=include_tool_caches\n            )\n            results[\"cache\"] = {\"removed\": removed, \"failed\": failed}\n            results[\"total_removed\"] += removed\n            results[\"total_failed\"] += failed\n\n            removed, failed = self.cleanup_pytest_cache(dry_run)\n            results[\"pytest_cache\"] = {\"removed\": removed, \"failed\": failed}\n            results[\"total_removed\"] += removed\n            results[\"total_failed\"] += failed\n\n        if coverage:\n            removed, failed = self.cleanup_coverage_files(dry_run)\n            results[\"coverage\"] = {\"removed\": removed, \"failed\": failed}\n            results[\"total_removed\"] += removed\n            results[\"total_failed\"] += failed\n\n            removed, failed = self.cleanup_coverage_logs(dry_run)\n            results[\"coverage_logs\"] = {\"removed\": removed, \"failed\": failed}\n            results[\"total_removed\"] += removed\n            results[\"total_failed\"] += failed\n\n        if test_data:\n            removed, failed = self.cleanup_test_temp_dirs(dry_run)\n            results[\"test_data\"] = {\"removed\": removed, \"failed\": failed}\n            results[\"total_removed\"] += removed\n            results[\"total_failed\"] += failed\n\n            removed, failed = self.cleanup_test_user_data(dry_run)\n            results[\"test_user_data\"] = {\"removed\": removed, \"failed\": failed}\n            results[\"total_removed\"] += removed\n            results[\"total_failed\"] += failed\n\n        return results\n\n\ndef main():\n    import argparse\n\n    parser = argparse.ArgumentParser(\n        description=\"Clean up project cache and temporary files\"\n    )\n    parser.add_argument(\n        \"--dry-run\",\n        action=\"store_true\",\n        help=\"Show what would be removed without actually removing\",\n    )\n    parser.add_argument(\n        \"--cache\",\n        action=\"store_true\",\n        help=\"Clean cache directories (__pycache__, .pytest_cache)\",\n    )\n    parser.add_argument(\n        \"--test-data\", action=\"store_true\", help=\"Clean test data directories\"\n    )\n    parser.add_argument(\n        \"--coverage\", action=\"store_true\", help=\"Clean coverage files and logs\"\n    )\n    parser.add_argument(\n        \"--all\",\n        action=\"store_true\",\n        help=\"Clean all categories (default if no specific category specified)\",\n    )\n    parser.add_argument(\"--json\", action=\"store_true\", help=\"Output results as JSON\")\n\n    args = parser.parse_args()\n\n    # If no specific category is specified, default to --all\n    if not (args.cache or args.test_data or args.coverage):\n        args.all = True\n\n    cleanup = ProjectCleanup()\n\n    if args.all:\n        results = cleanup.cleanup_all(\n            dry_run=args.dry_run, cache=True, test_data=True, coverage=True\n        )\n    else:\n        results = cleanup.cleanup_all(\n            dry_run=args.dry_run,\n            cache=args.cache,\n            test_data=args.test_data,\n            coverage=args.coverage,\n        )\n\n    if args.json:\n        import json\n\n        print(json.dumps(results, indent=2))\n    else:\n        if args.dry_run:\n            logger.info(\"DRY RUN MODE - No files were actually removed\")\n        logger.info(\n            f\"Summary: {results['total_removed']} items removed, {results['total_failed']} failed\"\n        )\n\n    return 0 if results[\"total_failed\"] == 0 else 1\n\n\nif __name__ == \"__main__\":\n    sys.exit(main())\n",
-                [
-                  {
-                    "pattern": "(?i)legacy path",
-                    "match": "legacy path",
-                    "line": 170,
-                    "line_content": "``coverage.json``, archives, legacy paths, flat dot caches) - leaves",
-                    "start": 5840,
-                    "end": 5851
-                  }
-                ]
-              ]
-            ]
-          },
-          "files_with_issues": 1,
-          "legacy_markers": 1,
-          "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md",
-          "deprecation_inventory": {
-            "inventory_path": "development_tools/config/jsons/DEPRECATION_INVENTORY.json",
-            "exists": true,
-            "loaded": true,
-            "error": null,
-            "active_or_candidate_entries": 1,
-            "removed_entries": 4,
-            "active_search_terms": 0,
-            "injected_pattern_count": 0
-          },
-          "deprecation_inventory_sync": {
-            "status": "disabled",
-            "check_passed": true
-          },
-          "cache": {
-            "cache_mode": "partial_cache",
-            "hits": 561,
-            "misses": 1,
-            "total_cache_checks": 562,
-            "hit_rate": 99.8
-          }
-        }
-      },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 10782,
+          "total_issues": 10694,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "overall_coverage": 62.0,
+            "overall_coverage": 62.3,
             "total_statements": 28343,
-            "total_missed": 10782
+            "total_missed": 10694
           },
           "modules": {
             "development_tools\\__init__.py": {
@@ -16937,8 +16913,8 @@
             },
             "development_tools\\functions\\generate_function_registry.py": {
               "statements": 493,
-              "missed": 141,
-              "coverage": 71,
+              "missed": 140,
+              "coverage": 72,
               "missing_lines": [
                 "20",
                 "25",
@@ -17027,7 +17003,6 @@
                 "919",
                 "924",
                 "954",
-                "1085",
                 "1210",
                 "1211",
                 "1213",
@@ -17082,7 +17057,7 @@
                 "1326",
                 "1327"
               ],
-              "covered": 352
+              "covered": 353
             },
             "development_tools\\imports\\__init__.py": {
               "statements": 0,
@@ -17190,8 +17165,8 @@
             },
             "development_tools\\imports\\analyze_module_imports.py": {
               "statements": 310,
-              "missed": 125,
-              "coverage": 60,
+              "missed": 52,
+              "coverage": 83,
               "missing_lines": [
                 "17",
                 "26",
@@ -17211,8 +17186,6 @@
                 "172",
                 "174",
                 "200",
-                "207",
-                "240",
                 "250",
                 "252",
                 "258",
@@ -17223,103 +17196,32 @@
                 "273",
                 "274",
                 "275",
-                "289",
-                "290",
-                "291",
                 "315",
                 "325",
                 "326",
-                "355",
                 "356",
-                "357",
-                "358",
-                "359",
                 "360",
-                "361",
                 "362",
-                "363",
                 "364",
-                "365",
                 "366",
-                "367",
                 "368",
-                "369",
                 "370",
-                "371",
                 "372",
-                "374",
-                "379",
-                "380",
-                "381",
-                "382",
-                "383",
-                "384",
-                "385",
-                "386",
-                "387",
-                "388",
-                "389",
-                "390",
-                "391",
-                "392",
-                "393",
-                "394",
-                "395",
-                "396",
-                "397",
                 "398",
-                "399",
-                "400",
-                "401",
-                "402",
                 "403",
-                "404",
-                "405",
-                "406",
-                "407",
-                "408",
-                "409",
-                "410",
                 "411",
-                "412",
-                "413",
-                "414",
-                "415",
-                "416",
-                "417",
-                "419",
-                "424",
-                "425",
-                "428",
-                "429",
-                "432",
                 "433",
-                "436",
-                "437",
-                "439",
-                "444",
                 "445",
-                "448",
                 "449",
-                "452",
                 "453",
-                "456",
                 "457",
-                "461",
-                "466",
-                "467",
-                "468",
-                "469",
-                "471",
-                "476",
-                "481",
-                "485",
+                "479",
                 "487",
                 "489",
                 "491",
                 "557"
               ],
-              "covered": 185
+              "covered": 258
             },
             "development_tools\\imports\\analyze_unused_imports.py": {
               "statements": 599,
@@ -17526,8 +17428,8 @@
             },
             "development_tools\\imports\\generate_module_dependencies.py": {
               "statements": 358,
-              "missed": 173,
-              "coverage": 52,
+              "missed": 157,
+              "coverage": 56,
               "missing_lines": [
                 "16",
                 "33",
@@ -17539,24 +17441,8 @@
                 "218",
                 "223",
                 "272",
-                "331",
-                "332",
-                "333",
-                "334",
-                "335",
-                "336",
-                "337",
                 "338",
                 "339",
-                "340",
-                "362",
-                "363",
-                "364",
-                "370",
-                "371",
-                "372",
-                "373",
-                "374",
                 "375",
                 "402",
                 "409",
@@ -17703,7 +17589,7 @@
                 "892",
                 "897"
               ],
-              "covered": 185
+              "covered": 201
             },
             "development_tools\\imports\\generate_unused_imports_report.py": {
               "statements": 176,
@@ -18031,7 +17917,7 @@
             },
             "development_tools\\reports\\analyze_system_signals.py": {
               "statements": 439,
-              "missed": 201,
+              "missed": 200,
               "coverage": 54,
               "missing_lines": [
                 "27",
@@ -18153,7 +18039,6 @@
                 "450",
                 "474",
                 "475",
-                "498",
                 "506",
                 "508",
                 "509",
@@ -18236,7 +18121,7 @@
                 "800",
                 "810"
               ],
-              "covered": 238
+              "covered": 239
             },
             "development_tools\\reports\\decision_support.py": {
               "statements": 107,
@@ -18738,15 +18623,15 @@
                 "467",
                 "468",
                 "469",
-                "668",
                 "670",
-                "671",
+                "672",
                 "673",
                 "675",
-                "676",
-                "692",
-                "707",
-                "710"
+                "677",
+                "678",
+                "694",
+                "709",
+                "712"
               ],
               "covered": 180
             },
@@ -19165,8 +19050,8 @@
             },
             "development_tools\\shared\\mtime_cache.py": {
               "statements": 254,
-              "missed": 50,
-              "coverage": 80,
+              "missed": 54,
+              "coverage": 79,
               "missing_lines": [
                 "41",
                 "42",
@@ -19178,6 +19063,10 @@
                 "145",
                 "146",
                 "147",
+                "173",
+                "174",
+                "178",
+                "180",
                 "184",
                 "185",
                 "186",
@@ -19219,7 +19108,7 @@
                 "482",
                 "484"
               ],
-              "covered": 204
+              "covered": 200
             },
             "development_tools\\shared\\output_storage.py": {
               "statements": 240,
@@ -19337,14 +19226,13 @@
             },
             "development_tools\\shared\\service\\audit_orchestration.py": {
               "statements": 1316,
-              "missed": 697,
+              "missed": 696,
               "coverage": 47,
               "missing_lines": [
                 "122",
                 "123",
                 "124",
                 "204",
-                "261",
                 "269",
                 "270",
                 "271",
@@ -20038,7 +19926,7 @@
                 "2179",
                 "2180"
               ],
-              "covered": 619
+              "covered": 620
             },
             "development_tools\\shared\\service\\commands.py": {
               "statements": 1276,
@@ -21236,7 +21124,7 @@
             },
             "development_tools\\shared\\service\\report_generation.py": {
               "statements": 4093,
-              "missed": 1703,
+              "missed": 1719,
               "coverage": 58,
               "missing_lines": [
                 "35",
@@ -21366,21 +21254,9 @@
                 "506",
                 "528",
                 "537",
-                "550",
-                "551",
-                "556",
-                "557",
-                "558",
-                "559",
-                "564",
                 "565",
-                "566",
-                "567",
-                "568",
-                "569",
                 "570",
                 "571",
-                "573",
                 "581",
                 "590",
                 "660",
@@ -21590,6 +21466,10 @@
                 "1694",
                 "1695",
                 "1699",
+                "1712",
+                "1716",
+                "1719",
+                "1720",
                 "1725",
                 "1726",
                 "1729",
@@ -21748,7 +21628,7 @@
                 "2316",
                 "2317",
                 "2318",
-                "2343",
+                "2345",
                 "2423",
                 "2433",
                 "2434",
@@ -21803,10 +21683,9 @@
                 "2614",
                 "2634",
                 "2657",
-                "2667",
-                "2670",
+                "2672",
+                "2675",
                 "2685",
-                "2698",
                 "2701",
                 "2702",
                 "2749",
@@ -22027,6 +21906,14 @@
                 "4057",
                 "4166",
                 "4171",
+                "4180",
+                "4181",
+                "4184",
+                "4185",
+                "4188",
+                "4189",
+                "4192",
+                "4195",
                 "4210",
                 "4213",
                 "4214",
@@ -22197,7 +22084,6 @@
                 "4976",
                 "4982",
                 "4983",
-                "4995",
                 "5027",
                 "5028",
                 "5032",
@@ -22515,6 +22401,10 @@
                 "6303",
                 "6312",
                 "6313",
+                "6324",
+                "6327",
+                "6330",
+                "6331",
                 "6356",
                 "6359",
                 "6382",
@@ -22716,8 +22606,22 @@
                 "6923",
                 "6947",
                 "6952",
+                "6955",
+                "6957",
+                "6958",
+                "6959",
+                "6960",
+                "6961",
+                "6962",
+                "6963",
+                "6964",
                 "6966",
+                "6968",
+                "6969",
+                "6972",
+                "6975",
                 "6976",
+                "6977",
                 "7024",
                 "7029",
                 "7030",
@@ -22902,9 +22806,9 @@
                 "8011",
                 "8012",
                 "8031",
-                "8041",
-                "8042",
-                "8043",
+                "8045",
+                "8046",
+                "8047",
                 "8087",
                 "8088",
                 "8089",
@@ -22943,7 +22847,7 @@
                 "8190",
                 "8193"
               ],
-              "covered": 2390
+              "covered": 2374
             },
             "development_tools\\shared\\service\\report_generation_linkify.py": {
               "statements": 25,
@@ -23592,8 +23496,8 @@
             },
             "development_tools\\shared\\standard_exclusions.py": {
               "statements": 117,
-              "missed": 14,
-              "coverage": 88,
+              "missed": 13,
+              "coverage": 89,
               "missing_lines": [
                 "44",
                 "46",
@@ -23603,14 +23507,13 @@
                 "138",
                 "143",
                 "169",
-                "293",
                 "321",
                 "326",
                 "345",
                 "387",
                 "422"
               ],
-              "covered": 103
+              "covered": 104
             },
             "development_tools\\shared\\time_helpers.py": {
               "statements": 8,
@@ -24331,8 +24234,8 @@
             },
             "development_tools\\tests\\run_test_coverage.py": {
               "statements": 2276,
-              "missed": 1317,
-              "coverage": 42,
+              "missed": 1302,
+              "coverage": 43,
               "missing_lines": [
                 "46",
                 "61",
@@ -24346,31 +24249,13 @@
                 "79",
                 "80",
                 "81",
-                "93",
-                "94",
-                "95",
-                "96",
-                "97",
-                "98",
-                "99",
                 "100",
                 "101",
                 "102",
                 "103",
                 "104",
                 "105",
-                "110",
-                "111",
-                "112",
-                "113",
-                "114",
                 "115",
-                "116",
-                "117",
-                "118",
-                "119",
-                "120",
-                "125",
                 "186",
                 "192",
                 "221",
@@ -25592,6 +25477,9 @@
                 "4912",
                 "4913",
                 "4914",
+                "5008",
+                "5009",
+                "5010",
                 "5013",
                 "5014",
                 "5015",
@@ -25652,7 +25540,7 @@
                 "5260",
                 "5261"
               ],
-              "covered": 959
+              "covered": 974
             },
             "development_tools\\tests\\test_file_coverage_cache.py": {
               "statements": 619,
@@ -25871,10 +25759,10 @@
             "log_file": null,
             "return_code_hex": "0x00000000",
             "return_code": 0,
-            "passed_count": 1167,
+            "passed_count": 1173,
             "failed_count": 0,
             "error_count": 0,
-            "skipped_count": 0,
+            "skipped_count": 1,
             "failed_node_ids": []
           }
         },
@@ -25884,7 +25772,7 @@
           "source": "run_test_coverage --dev-tools-only"
         }
       },
-      "timestamp": "2026-04-08T21:45:57.713558"
+      "timestamp": "2026-04-09T01:34:34.472392"
     }
   }
 }

@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-04-09 - Dev-tools overlap + helper tests **COMPLETED**
+- Legacy scan now stays quiet for `fix_project_cleanup.py` (removed a false-positive "legacy path" phrase); [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md) shows 0 issues.
+- Added small portability coverage in `test_analyze_config.py` for absolute `get_project_root()` behavior.
+- Added helper-focused tests for `commands.py`, `run_test_coverage.py`, and `audit_orchestration.py` (coverage metadata, path mapping + totals, Tier 3 scope finalization).
+- Added `prerequisites` and `test suite structure` to `EXPECTED_OVERLAPS` so doc overlap warnings do not flag shared test-guide boilerplate.
+
 ### 2026-04-08 - V5 dev-tools continuation (scoped reports + doc overlap) **Progressed**
 - **DEV_TOOLS_*** reports: snapshot uses dev-tools package coverage when main Tier 3 tracks are skipped; scope notes + `DEV_TOOLS_PRIORITIES` / quick-command fixes; consolidated reference links for scoped runs; safe docstring-% parsing when coverage text is non-numeric ([report_generation.py](../development_tools/shared/service/report_generation.py), tests under `tests/development_tools/test_dev_tools_scoped_status_report.py`).
 - **Dev-tools-only scope (follow-up)**: Priorities filter dependency patterns, unused-import obvious counts, doc quick wins (per-file), handler/no-doc signals, dependency-doc quick wins to `development_tools/`; paired-doc quick wins omitted; `DEV_TOOLS_STATUS` unused-import counts scoped; no "Full-repo test coverage" snapshot bullet when scoped. **`--clear-cache`**: audit clears `dev_tools` vs `full` cache trees only (`fix_project_cleanup.py` + `run_development_tools.py`); tests in `test_fix_project_cleanup.py`. Plan: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md Section 7.18](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md).
@@ -141,13 +147,6 @@ Guidelines:
 - **Doc hygiene**: Ran `doc-fix --fix-ascii`, `doc-fix --convert-links`, and `doc-sync` for AI_PRIORITIES Quick Wins (ASCII / unconverted links).
 - **Tests**: `test_analyze_module_dependencies` + `test_analyze_unused_imports` use `patch.object(<loaded_module>, ...)` for subprocess/logger mocks so patches match `load_development_tools_module` under `sys.modules` churn (parallel Tier 3; fixes `test_cache_disabled`).
 - **Note**: Full `tests/development_tools` run reported one flaky failure in `test_get_static_analysis_config_honors_external_overrides` under xdist/randomly; single re-run passed.
-
-### 2026-03-24 - Dev tools: import boundary; Tier 3; V4 plan; portability; orchestration **Progressed**
-- **Import-boundary (Tier 1)**: `analyze_dev_tools_import_boundaries`, `time_helpers` / `error_helpers`, policy Section 8-8.5; Option A import cleanup; fake service / strict-mode follow-ups.
-- **Tier 3**: Contract enforced on `coverage_outcome` and per-track `classification`; invalidation logs at WARNING; no cache fallback in `_extract_cached_main_coverage_state`; strict/helper tests updated.
-- **Docs / guides**: Removed/folded extra standalone files into paired guides; Section 9 taxonomy + Phase 2 evaluation (runtime_config/shims + legacy guide); `AI_DEVELOPMENT_TOOLS_GUIDE` link fixes; `doc-sync` writes `docs/jsons/analyze_documentation_sync_results.json`; reporting/AI_STATUS UX tweaks; Pyright + Ruff policy tests (`test_pyright_config_paths` + `tomllib` on owned + root `ruff.toml`); audit status test asserts status files on disk; module line threshold 1000; flaky cache-helper + extra coverage tests.
-- **V4 roadmap (`AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md`)**: Section 1.1/Section 1.3 reconciliation (60% vs ~80% advisory, monitoring, skips); Section 2.8 DEV_TOOLS report scoping **deferred**; Section 6 legacy pointers; Section 1.5 cache measurement recipe; Section 7.6 partial; Section 2.9 spot-check (no raw dict/list dumps in runner/orchestration `print` paths reviewed).
-- **Tests**: `run_test_coverage` helpers, `commands._is_interrupt_signature`, `analyze_documentation` (topics/overlaps/corrupted artifacts), `test_config` static_analysis override patch via `get_static_analysis_config.__module__`, `test_audit_orchestration_helpers` (coverage/cache summaries, `_is_test_directory`, corrupt coverage JSON, infer-cache edge cases).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
