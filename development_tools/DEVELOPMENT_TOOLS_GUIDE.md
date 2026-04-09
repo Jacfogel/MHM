@@ -617,6 +617,8 @@ Development-tools modules may import `core.logger` for structured logging. All o
 
 **Status**: Not wired into audit tiers; see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 4.1 for the integration backlog.
 
+- **Evaluation (2026-04-08)**: **Tier 1 integration** deferred; tools are **not** in default `requirements.txt`. Install manually for pilots. **pre-commit** is optional per-developer (no shared `.pre-commit-config.yaml` required for MHM). Revisit when security/complexity gates are policy-defined.
+
 - **Manual pilot (Windows PowerShell, repo root, venv active)**:
   - `python -m pip install bandit pip-audit` (add `radon` for cyclomatic-complexity sampling: `python -m pip install radon`)
   - `python -m bandit -r core communication ui user ai tasks -ll` (expand/shrink paths and severity flags after triage; keep `tests/` out until policy exists).

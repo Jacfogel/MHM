@@ -255,6 +255,60 @@ class TestProjectCleanup:
         assert not legacy.exists()
 
     @pytest.mark.unit
+    def test_cleanup_tool_cache_dev_tools_scope_leaves_full_scope_artifacts(
+        self, temp_project_copy
+    ):
+        """``cache_scope='dev_tools'`` clears only dev_tools tree caches, not ``scopes/full``."""
+        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        dt = temp_project_copy / "development_tools"
+        full_tool = (
+            dt / "functions" / "jsons" / "scopes" / "full" / "keep_full.json"
+        )
+        full_tool.parent.mkdir(parents=True, exist_ok=True)
+        full_tool.write_text("{}")
+
+        dev_tool = (
+            dt / "functions" / "jsons" / "scopes" / "dev_tools" / "clear_me.json"
+        )
+        dev_tool.parent.mkdir(parents=True, exist_ok=True)
+        dev_tool.write_text("{}")
+
+        removed, failed = cleanup.cleanup_tool_cache_artifacts(
+            dry_run=False, cache_scope="dev_tools"
+        )
+        assert failed == 0
+        assert removed >= 1
+        assert full_tool.exists()
+        assert not dev_tool.exists()
+
+    @pytest.mark.unit
+    def test_cleanup_tool_cache_full_scope_leaves_dev_tools_scope_artifacts(
+        self, temp_project_copy
+    ):
+        """``cache_scope='full'`` clears full-repo audit caches but not ``scopes/dev_tools``."""
+        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        dt = temp_project_copy / "development_tools"
+        full_tool = (
+            dt / "docs" / "jsons" / "scopes" / "full" / "clear_full.json"
+        )
+        full_tool.parent.mkdir(parents=True, exist_ok=True)
+        full_tool.write_text("{}")
+
+        dev_tool = (
+            dt / "docs" / "jsons" / "scopes" / "dev_tools" / "keep_dev.json"
+        )
+        dev_tool.parent.mkdir(parents=True, exist_ok=True)
+        dev_tool.write_text("{}")
+
+        removed, failed = cleanup.cleanup_tool_cache_artifacts(
+            dry_run=False, cache_scope="full"
+        )
+        assert failed == 0
+        assert removed >= 1
+        assert not full_tool.exists()
+        assert dev_tool.exists()
+
+    @pytest.mark.unit
     def test_cleanup_cache_directories_include_tool_caches(self, temp_project_copy):
         """Tool cache cleanup should remove both standardized cache forms and derived cache artifacts."""
         cleanup = ProjectCleanup(project_root=temp_project_copy)

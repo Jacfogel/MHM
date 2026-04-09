@@ -236,6 +236,28 @@ def document_profiles(docs: dict[str, str]) -> list[str]:
     return lines
 
 
+def _section_title_matches_expected_overlap(
+    section: str, expected: frozenset[str]
+) -> bool:
+    """Return True if section is a numbered variant of a generic heading we filter out.
+
+    Docs often use "## 1. Purpose and Scope" while EXPECTED_OVERLAPS stores "purpose";
+    normalize leading numbering so those are not flagged as high-signal duplicates.
+    """
+    raw = section.strip().lower()
+    core = re.sub(r"^\d+(?:\.\d+)*\.\s*", "", raw).strip()
+    if core in expected or raw in expected:
+        return True
+    for phrase in expected:
+        if core == phrase:
+            return True
+        if core.startswith(f"{phrase} ") or core.startswith(f"{phrase}:"):
+            return True
+        if core.startswith(f"{phrase}. "):
+            return True
+    return False
+
+
 def detect_section_overlaps(docs: dict[str, str]) -> dict[str, list[str]]:
     """Detect sections that appear in multiple files (overlap detection).
 
@@ -274,9 +296,8 @@ def detect_section_overlaps(docs: dict[str, str]) -> dict[str, list[str]]:
     overlaps = {}
     for section, files in section_files.items():
         if len(files) > 1:
-            # Skip if it's an expected/common overlap
-            section_lower = section.lower().strip()
-            if section_lower in EXPECTED_OVERLAPS:
+            # Skip if it's an expected/common overlap (including "1. Purpose and Scope")
+            if _section_title_matches_expected_overlap(section, EXPECTED_OVERLAPS):
                 continue
 
             # Skip if all files with this section are paired docs (paired docs are required to have matching headers)

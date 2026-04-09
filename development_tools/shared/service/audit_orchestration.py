@@ -640,12 +640,20 @@ class AuditOrchestrationMixin:
                     if cache_summary:
                         cache_msg = f"Cache mode summary: {cache_summary}"
                         logger.info(cache_msg)
-                print(f"  * AI Status: {ai_status_file}")
-                print(f"  * AI Priorities: {ai_priorities_file}")
-                print(f"  * Consolidated Report: {consolidated_file}")
-                logger.info(f"* AI Status: {ai_status_file}")
-                logger.info(f"* AI Priorities: {ai_priorities_file}")
-                logger.info(f"* Consolidated Report: {consolidated_file}")
+                if getattr(self, "dev_tools_only_mode", False):
+                    print(f"  * Dev Tools Status: {ai_status_file}")
+                    print(f"  * Dev Tools Priorities: {ai_priorities_file}")
+                    print(f"  * Dev Tools Consolidated Report: {consolidated_file}")
+                    logger.info(f"* Dev Tools Status: {ai_status_file}")
+                    logger.info(f"* Dev Tools Priorities: {ai_priorities_file}")
+                    logger.info(f"* Dev Tools Consolidated Report: {consolidated_file}")
+                else:
+                    print(f"  * AI Status: {ai_status_file}")
+                    print(f"  * AI Priorities: {ai_priorities_file}")
+                    print(f"  * Consolidated Report: {consolidated_file}")
+                    logger.info(f"* AI Status: {ai_status_file}")
+                    logger.info(f"* AI Priorities: {ai_priorities_file}")
+                    logger.info(f"* Consolidated Report: {consolidated_file}")
             else:
                 if strict and tier >= 3 and tier3_state in {"test_failures", "crashed", "infra_cleanup_error"}:
                     print(f"Completed {operation_name} with strict-mode test failures/crashes/infra errors")

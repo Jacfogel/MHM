@@ -69,7 +69,7 @@ class TestCommandRouting:
         mock_service.run_audit.return_value = True
         clear_cache_calls = []
 
-        def _fake_clear_cache(_project_root):
+        def _fake_clear_cache(_project_root, cache_scope=None, **_kwargs):
             clear_cache_calls.append(True)
             return 3
 
@@ -85,6 +85,30 @@ class TestCommandRouting:
         mock_service.run_audit.assert_called_once_with(
             quick=False, full=False, include_overlap=False, strict=False
         )
+
+    @pytest.mark.integration
+    def test_global_dev_tools_only_sets_service_mode(self, monkeypatch, tmp_path):
+        """Parent CLI parses `--dev-tools-only` before the audit subcommand; service must still get the flag."""
+        mock_service = MagicMock()
+        mock_service.run_audit.return_value = True
+        monkeypatch.setattr(
+            runner,
+            "AIToolsService",
+            lambda project_root=None, config_path=None: mock_service,
+        )
+        assert (
+            runner.main(
+                [
+                    "--project-root",
+                    str(tmp_path),
+                    "audit",
+                    "--full",
+                    "--dev-tools-only",
+                ]
+            )
+            == 0
+        )
+        assert mock_service.dev_tools_only_mode is True
 
     @pytest.mark.integration
     def test_unknown_command_returns_2(self):

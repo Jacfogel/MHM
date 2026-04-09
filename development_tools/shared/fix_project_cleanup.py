@@ -157,16 +157,26 @@ class ProjectCleanup:
 
         return removed, failed
 
-    def cleanup_tool_cache_artifacts(self, dry_run: bool = False) -> tuple[int, int]:
+    def cleanup_tool_cache_artifacts(
+        self, dry_run: bool = False, cache_scope: str | None = None
+    ) -> tuple[int, int]:
         """Remove development-tools cache/result artifacts used for audit cache reuse.
 
-        Includes flat and scoped layouts: ``**/jsons/scopes/{full,dev_tools}/**``,
-        ``reports/scopes/{full,dev_tools}/**``, ``reports/archive/**`` (rotated markdown),
-        and legacy ``reports/analysis_detailed_results.json`` / ``reports/jsons/tool_timings.json``.
+        ``cache_scope``:
+            - ``None`` (default): remove **all** known tool cache layouts (full + dev_tools
+              scopes, archives, legacy aggregates, coverage JSON, dot caches). Used by
+              interactive ``cleanup`` / tests expecting a full reset.
+            - ``full``: only full-repo audit artifacts (``scopes/full``, main
+              ``coverage.json``, archives, legacy paths, flat dot caches) - leaves
+              ``scopes/dev_tools`` and ``coverage_dev_tools.json`` intact.
+            - ``dev_tools``: only dev-tools-scoped audit artifacts - leaves full-repo
+              scope caches intact.
+
+        Includes flat and scoped layouts per scope; see ``audit_storage_scope`` module.
         """
         removed = 0
         failed = 0
-        for cache_file in self._iter_tool_cache_artifacts():
+        for cache_file in self._iter_tool_cache_artifacts(cache_scope=cache_scope):
             success, message = self.remove_path(cache_file, dry_run)
             if success:
                 removed += 1
@@ -178,8 +188,69 @@ class ProjectCleanup:
                     logger.warning(f"  {message}")
         return removed, failed
 
-    def _iter_tool_cache_artifacts(self) -> list[Path]:
+    def _iter_tool_cache_artifacts(
+        self, cache_scope: str | None = None
+    ) -> list[Path]:
         """Return cache/artifact files used for cache-style reuse."""
+        if cache_scope == "dev_tools":
+            return self._iter_dev_tools_only_tool_cache_artifacts()
+        if cache_scope == "full":
+            return self._iter_full_repo_only_tool_cache_artifacts()
+        return self._iter_all_tool_cache_artifacts()
+
+    def _dedupe_artifact_paths(self, artifacts: list[Path]) -> list[Path]:
+        unique: list[Path] = []
+        seen: set[str] = set()
+        for artifact in artifacts:
+            if not artifact.is_file():
+                continue
+            normalized = str(artifact.resolve()).lower()
+            if normalized in seen:
+                continue
+            seen.add(normalized)
+            unique.append(artifact)
+        return unique
+
+    def _iter_dev_tools_only_tool_cache_artifacts(self) -> list[Path]:
+        """Scoped cache files for ``audit --full --dev-tools-only`` reuse only."""
+        artifacts: list[Path] = []
+        dev_tools_dir = self.project_root / "development_tools"
+        if not dev_tools_dir.exists():
+            return artifacts
+        for cache_file in dev_tools_dir.glob("**/jsons/scopes/dev_tools/**/*"):
+            if cache_file.is_file():
+                artifacts.append(cache_file)
+        reports_scoped_dev = dev_tools_dir / "reports" / "scopes" / "dev_tools"
+        if reports_scoped_dev.is_dir():
+            for scoped_report in reports_scoped_dev.rglob("*"):
+                if scoped_report.is_file():
+                    artifacts.append(scoped_report)
+        tests_jsons = dev_tools_dir / "tests" / "jsons"
+        if tests_jsons.exists():
+            for name in (
+                "coverage_dev_tools.json",
+                "generate_dev_tools_coverage_results.json",
+            ):
+                p = tests_jsons / name
+                if p.is_file():
+                    artifacts.append(p)
+        return self._dedupe_artifact_paths(artifacts)
+
+    def _iter_full_repo_only_tool_cache_artifacts(self) -> list[Path]:
+        """Scoped cache files for default full-repo audits (not dev_tools scope tree)."""
+        all_paths = self._iter_all_tool_cache_artifacts()
+        dev_only = {
+            str(p.resolve()).lower()
+            for p in self._iter_dev_tools_only_tool_cache_artifacts()
+        }
+        return [
+            p
+            for p in all_paths
+            if str(p.resolve()).lower() not in dev_only
+        ]
+
+    def _iter_all_tool_cache_artifacts(self) -> list[Path]:
+        """Return every known tool cache file (full + dev_tools + shared)."""
         artifacts: list[Path] = []
         dev_tools_dir = self.project_root / "development_tools"
         if not dev_tools_dir.exists():
@@ -260,18 +331,7 @@ class ProjectCleanup:
                 if file_path.is_file():
                     artifacts.append(file_path)
 
-        # Deduplicate while preserving order.
-        unique: list[Path] = []
-        seen = set()
-        for artifact in artifacts:
-            if not artifact.is_file():
-                continue
-            normalized = str(artifact.resolve()).lower()
-            if normalized in seen:
-                continue
-            seen.add(normalized)
-            unique.append(artifact)
-        return unique
+        return self._dedupe_artifact_paths(artifacts)
 
     def cleanup_pytest_cache(self, dry_run: bool = False) -> tuple[int, int]:
         """Remove .pytest_cache directories."""

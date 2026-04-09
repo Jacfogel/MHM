@@ -29,6 +29,152 @@ class ReportGenerationMixin:
         """True when reports are written for DEV_TOOLS_*.md (dev-tools-only audit)."""
         return bool(getattr(self, "dev_tools_only_mode", False))
 
+    def _path_is_under_development_tools_dir(self, path_str: str) -> bool:
+        """True if ``path_str`` resolves under ``project_root/development_tools``."""
+        if not path_str or not isinstance(path_str, str):
+            return False
+        try:
+            root = self.project_root.resolve()
+            anchor = (root / "development_tools").resolve()
+            raw = Path(path_str.strip())
+            candidate = (raw if raw.is_absolute() else (root / path_str)).resolve()
+            return anchor in candidate.parents or candidate == anchor
+        except (OSError, ValueError, RuntimeError):
+            norm = path_str.replace("\\", "/").strip().lstrip("./")
+            return (
+                norm.startswith("development_tools/")
+                or norm == "development_tools"
+            )
+
+    def _filter_duplicate_groups_dev_tools(
+        self, groups: list[Any]
+    ) -> list[Any]:
+        """Keep duplicate groups where every function maps to a file under development_tools/."""
+        out: list[Any] = []
+        for group in groups:
+            if not isinstance(group, dict):
+                continue
+            funcs = group.get("functions", [])
+            if not isinstance(funcs, list) or not funcs:
+                continue
+            paths: list[str] = []
+            for fn in funcs:
+                if isinstance(fn, dict):
+                    fp = fn.get("file", "")
+                    if fp:
+                        paths.append(str(fp))
+            if not paths:
+                continue
+            if all(self._path_is_under_development_tools_dir(p) for p in paths):
+                out.append(group)
+        return out
+
+    def _count_duplicate_affected_files_dev_tools(self, groups: list[Any]) -> int:
+        files: set[str] = set()
+        for group in groups:
+            if not isinstance(group, dict):
+                continue
+            for fn in group.get("functions", []) or []:
+                if isinstance(fn, dict) and fn.get("file"):
+                    p = str(fn["file"])
+                    if self._path_is_under_development_tools_dir(p):
+                        files.add(p.replace("\\", "/"))
+        return len(files)
+
+    def _filter_circular_dependencies_dev_tools(self, chains: list[Any]) -> list[Any]:
+        """Keep dependency cycles that involve at least one module under ``development_tools/``."""
+        out: list[Any] = []
+        for chain in chains:
+            if not isinstance(chain, list):
+                continue
+            paths = [p for p in chain if isinstance(p, str) and p.strip()]
+            if paths and any(
+                self._path_is_under_development_tools_dir(p) for p in paths
+            ):
+                out.append(chain)
+        return out
+
+    def _filter_high_coupling_dev_tools(
+        self, items: list[Any]
+    ) -> list[dict[str, Any]]:
+        out: list[dict[str, Any]] = []
+        for item in items:
+            if isinstance(item, dict) and self._path_is_under_development_tools_dir(
+                str(item.get("file", ""))
+            ):
+                out.append(item)
+        return out
+
+    def _scoped_obvious_unused_import_metrics(
+        self, unused_imports_data: dict[str, Any]
+    ) -> tuple[int, int, dict[str, int]]:
+        """Metrics for obvious/type-hint unused imports limited to ``development_tools/`` files."""
+        details = (
+            unused_imports_data.get("details", {})
+            if isinstance(unused_imports_data, dict)
+            else {}
+        )
+        findings = details.get("findings", {}) if isinstance(details, dict) else {}
+        if not isinstance(findings, dict):
+            findings = {}
+        obvious_list = findings.get("obvious_unused", [])
+        if not isinstance(obvious_list, list):
+            obvious_list = []
+        scoped_obvious = [
+            x
+            for x in obvious_list
+            if isinstance(x, dict)
+            and self._path_is_under_development_tools_dir(str(x.get("file", "")))
+        ]
+        type_list = findings.get("type_hints_only", [])
+        if not isinstance(type_list, list):
+            type_list = []
+        type_scoped = sum(
+            1
+            for x in type_list
+            if isinstance(x, dict)
+            and self._path_is_under_development_tools_dir(str(x.get("file", "")))
+        )
+        per_file: dict[str, int] = {}
+        for x in scoped_obvious:
+            fp = str(x.get("file", "")).strip()
+            if fp:
+                per_file[fp] = per_file.get(fp, 0) + 1
+        return len(scoped_obvious), type_scoped, per_file
+
+    def _scoped_unused_imports_status_metrics(
+        self, unused_imports_data: dict[str, Any]
+    ) -> tuple[int, int, dict[str, int]] | None:
+        """Per-category counts and totals for unused imports in ``development_tools/`` only."""
+        details = (
+            unused_imports_data.get("details", {})
+            if isinstance(unused_imports_data, dict)
+            else {}
+        )
+        findings = details.get("findings", {}) if isinstance(details, dict) else {}
+        if not isinstance(findings, dict) or not findings:
+            return None
+        by_cat: dict[str, int] = {}
+        files_set: set[str] = set()
+        for cat, items in findings.items():
+            if not isinstance(items, list):
+                continue
+            for x in items:
+                if not isinstance(x, dict):
+                    continue
+                if not self._path_is_under_development_tools_dir(
+                    str(x.get("file", ""))
+                ):
+                    continue
+                by_cat[cat] = by_cat.get(cat, 0) + 1
+                fp = str(x.get("file", "")).strip()
+                if fp:
+                    files_set.add(fp)
+        total = sum(by_cat.values())
+        if total <= 0:
+            return 0, 0, {}
+        return total, len(files_set), by_cat
+
     def _audit_source_cmd_display(self, base_cmd: str) -> str:
         """Append --dev-tools-only to documented source command when scope is restricted."""
         if self._is_dev_tools_scoped_report() and "--dev-tools-only" not in base_cmd:
@@ -505,13 +651,18 @@ class ReportGenerationMixin:
         """Generate AI-optimized status document."""
         # Log data source context
         audit_tier = getattr(self, "current_audit_tier", None)
+        status_target = (
+            "DEV_TOOLS_STATUS.md"
+            if self._is_dev_tools_scoped_report()
+            else "AI_STATUS.md"
+        )
         if audit_tier:
             logger.info(
-                f"[REPORT GENERATION] Generating AI_STATUS.md using data from Tier {audit_tier} audit"
+                f"[REPORT GENERATION] Generating {status_target} using data from Tier {audit_tier} audit"
             )
         else:
             logger.info(
-                "[REPORT GENERATION] Generating AI_STATUS.md using cached data (no active audit)"
+                f"[REPORT GENERATION] Generating {status_target} using cached data (no active audit)"
             )
 
         # Check if this is a mid-audit write
@@ -1115,8 +1266,35 @@ class ReportGenerationMixin:
                 "- **Doc Sync**: Not collected in this run (pending doc-sync refresh)"
             )
 
-        # Test coverage (use primary when overall <25% due to ui/tasks/notebook)
-        if coverage_summary and isinstance(coverage_summary, dict):
+        # Test coverage snapshot: dev-tools-only runs skip full-repo refresh; avoid showing
+        # stale overall % from coverage.json alongside "not refreshed" in the Test Coverage section.
+        skip_main_tracks_snap = bool(
+            getattr(self, "_tier3_skipped_main_tracks", False)
+        )
+        if self._is_dev_tools_scoped_report() and skip_main_tracks_snap:
+            dev_snap = self._get_dev_tools_coverage_insights()
+            if dev_snap and dev_snap.get("overall_pct") is not None:
+                pct = dev_snap["overall_pct"]
+                stmts = dev_snap.get("statements")
+                covd = dev_snap.get("covered")
+                if stmts is not None and covd is not None:
+                    lines.append(
+                        f"- **Development Tools Package Coverage (this pass)**: "
+                        f"{percent_text(pct, 1)} ({covd} of {stmts} statements; "
+                        f"`development_tools/` only)"
+                    )
+                else:
+                    lines.append(
+                        f"- **Development Tools Package Coverage (this pass)**: "
+                        f"{percent_text(pct, 1)} (`development_tools/` only)"
+                    )
+            else:
+                lines.append(
+                    "- **Development Tools Package Coverage (this pass)**: "
+                    "No `coverage_dev_tools.json` loaded - run `audit --full --dev-tools-only` "
+                    "with Tier 3 dev-tools coverage enabled."
+                )
+        elif coverage_summary and isinstance(coverage_summary, dict):
             overall = coverage_summary.get("overall") or {}
             primary = coverage_summary.get("primary_overall") or {}
             use_primary = (
@@ -1783,7 +1961,40 @@ class ReportGenerationMixin:
         )
         skip_dev_track = bool(getattr(self, "_tier3_skipped_dev_track", False))
 
-        if skip_main_tracks:
+        if skip_main_tracks and self._is_dev_tools_scoped_report():
+            lines.append(
+                "- **Scope**: Lines below describe **`development_tools` package** coverage from "
+                "this dev-tools-only Tier 3 pass only."
+            )
+            if dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
+                dev_pct = dev_tools_insights["overall_pct"]
+                dev_statements = dev_tools_insights.get("statements")
+                dev_covered = dev_tools_insights.get("covered")
+                summary_line = (
+                    f"- **Development Tools Coverage**: {percent_text(dev_pct, 1)}"
+                )
+                if dev_statements is not None and dev_covered is not None:
+                    summary_line += (
+                        f" ({dev_covered} of {dev_statements} statements)"
+                    )
+                lines.append(summary_line)
+                gen_json = (
+                    self.project_root
+                    / "development_tools"
+                    / "tests"
+                    / "jsons"
+                    / "generate_dev_tools_coverage_results.json"
+                )
+                if gen_json.exists():
+                    href = self._markdown_href_from_dev_tools_report(gen_json)
+                    lines.append(
+                        f"    - **Machine-readable summary**: [generate_dev_tools_coverage_results.json]({href})"
+                    )
+            else:
+                lines.append(
+                    "- **Development Tools Coverage**: No parsed coverage insights for this pass."
+                )
+        elif skip_main_tracks:
             lines.append(
                 "- **Overall Coverage**: Not refreshed this pass (`audit --full --dev-tools-only`). "
                 "Run `python development_tools/run_development_tools.py audit --full` without "
@@ -1901,17 +2112,35 @@ class ReportGenerationMixin:
             total_unused = summary.get("total_issues", 0)
             files_with_issues = summary.get("files_affected", 0)
             status = summary.get("status", "GOOD")
+            details = unused_imports_data.get("details", {})
+            by_category: dict[str, Any] = details.get("by_category") or {}
+            perf = details.get("performance") or {}
+            if self._is_dev_tools_scoped_report():
+                scoped_imp = self._scoped_unused_imports_status_metrics(
+                    unused_imports_data
+                )
+                if scoped_imp is None:
+                    scoped_imp = (0, 0, {})
+                total_unused, files_with_issues, by_category = scoped_imp
+                if total_unused == 0:
+                    status = "GOOD"
+                elif total_unused < 20:
+                    status = "NEEDS ATTENTION"
+                else:
+                    status = "CRITICAL"
 
             if total_unused > 0 or files_with_issues > 0:
                 lines.append("## Unused Imports")
+                if self._is_dev_tools_scoped_report():
+                    lines.append(
+                        "- **Scope**: Counts below are **development_tools/** files only "
+                        "(same audit run may include unused imports elsewhere)."
+                    )
                 lines.append(
                     f"- **Total Unused**: {total_unused} imports across {files_with_issues} files"
                 )
                 if status:
                     lines.append(f"- **Status**: {status}")
-                details = unused_imports_data.get("details", {})
-                by_category = details.get("by_category") or {}
-                perf = details.get("performance") or {}
                 if by_category:
                     obvious = by_category.get("obvious_unused", 0)
                     type_only = by_category.get("type_hints_only", 0)
@@ -2011,6 +2240,12 @@ class ReportGenerationMixin:
 
         lines.append("")
         lines.append("## Dependency Patterns")
+        if self._is_dev_tools_scoped_report():
+            lines.append(
+                "- **Scope note**: Import/coupling metrics below are for the "
+                "`development_tools/` scan root only. Product-wide dependency signals "
+                "are in `AI_STATUS.md` from a default-scope audit."
+            )
         dependency_patterns_details = (
             dependency_patterns_data.get("details", {})
             if isinstance(dependency_patterns_data, dict)
@@ -2125,6 +2360,11 @@ class ReportGenerationMixin:
 
         lines.append("")
         lines.append("## Duplicate Functions")
+        if self._is_dev_tools_scoped_report():
+            lines.append(
+                "- **Scope note**: Duplicate groups are detected within the "
+                "`development_tools/` scan only (not a product-wide duplicate audit)."
+            )
         duplicate_data = self._load_tool_data(
             "analyze_duplicate_functions", "functions"
         )
@@ -2162,9 +2402,15 @@ class ReportGenerationMixin:
             refactor_data.get("summary", {}) if isinstance(refactor_data, dict) else {}
         )
         refactor_count = to_int(refactor_summary.get("total_issues")) or 0
+        prio_ref = (
+            "DEV_TOOLS_PRIORITIES"
+            if self._is_dev_tools_scoped_report()
+            else "AI_PRIORITIES"
+        )
         if refactor_count > 0:
             lines.append(
-                f"- **Large/High-Complexity Modules**: {refactor_count} candidate(s) for refactoring (see AI_PRIORITIES)"
+                f"- **Large/High-Complexity Modules**: {refactor_count} candidate(s) "
+                f"for refactoring (see {prio_ref})"
             )
         else:
             lines.append("- **Large/High-Complexity Modules**: 0 candidates")
@@ -2463,12 +2709,26 @@ class ReportGenerationMixin:
         lines.append("")
         self._append_tier3_test_outcome_lines(lines)
         lines.append("## Quick Commands")
-        lines.append(
-            "- `python development_tools/run_development_tools.py status` - Refresh this snapshot"
-        )
-        lines.append(
-            "- `python development_tools/run_development_tools.py audit --full` - Regenerate all metrics"
-        )
+        if self._is_dev_tools_scoped_report():
+            lines.append(
+                "- `python development_tools/run_development_tools.py audit --full` - "
+                "Regenerate full-repo `AI_STATUS.md` and refresh `coverage.json` / product metrics"
+            )
+            lines.append(
+                "- `python development_tools/run_development_tools.py audit --full --dev-tools-only` - "
+                "Regenerate this file (`DEV_TOOLS_*`) and dev-tools coverage only"
+            )
+            lines.append(
+                "- `python development_tools/run_development_tools.py status` - Read-only; "
+                "uses cached aggregate results (full-repo oriented; prefer the commands above for scoped refresh)"
+            )
+        else:
+            lines.append(
+                "- `python development_tools/run_development_tools.py status` - Refresh this snapshot"
+            )
+            lines.append(
+                "- `python development_tools/run_development_tools.py audit --full` - Regenerate all metrics"
+            )
         lines.append(
             "- `python development_tools/run_development_tools.py doc-sync` - Update documentation pairing data"
         )
@@ -2480,13 +2740,18 @@ class ReportGenerationMixin:
         """Generate AI-optimized priorities document with immediate next steps."""
         # Log data source context
         audit_tier = getattr(self, "current_audit_tier", None)
+        priorities_target = (
+            "DEV_TOOLS_PRIORITIES.md"
+            if self._is_dev_tools_scoped_report()
+            else "AI_PRIORITIES.md"
+        )
         if audit_tier:
             logger.info(
-                f"[REPORT GENERATION] Generating AI_PRIORITIES.md using data from Tier {audit_tier} audit"
+                f"[REPORT GENERATION] Generating {priorities_target} using data from Tier {audit_tier} audit"
             )
         else:
             logger.info(
-                "[REPORT GENERATION] Generating AI_PRIORITIES.md using cached data (no active audit)"
+                f"[REPORT GENERATION] Generating {priorities_target} using cached data (no active audit)"
             )
 
         # Check if this is a mid-audit write
@@ -2994,6 +3259,20 @@ class ReportGenerationMixin:
                         if high_examples:
                             function_metrics["high_complexity_examples"] = high_examples
 
+        if self._is_dev_tools_scoped_report():
+
+            def _complexity_example_in_scope(ex: Any) -> bool:
+                if not isinstance(ex, dict):
+                    return False
+                return self._path_is_under_development_tools_dir(str(ex.get("file", "")))
+
+            critical_examples = [
+                e for e in (critical_examples or []) if _complexity_example_in_scope(e)
+            ]
+            high_examples = [
+                e for e in (high_examples or []) if _complexity_example_in_scope(e)
+            ]
+
         moderate_complex = to_int(metrics.get("moderate"))
         high_complex = to_int(metrics.get("high"))
         critical_complex = to_int(metrics.get("critical"))
@@ -3013,6 +3292,10 @@ class ReportGenerationMixin:
                     critical_complex = to_int(
                         decision_metrics.get("critical_complexity")
                     )
+
+        if self._is_dev_tools_scoped_report():
+            critical_complex = len(critical_examples) if critical_examples else 0
+            high_complex = len(high_examples) if high_examples else 0
 
         priority_items: list[dict[str, Any]] = []
         watch_items: list[dict[str, Any]] = []
@@ -3424,7 +3707,48 @@ class ReportGenerationMixin:
         phase1_by_priority = get_error_field("phase1_by_priority", {}) or {}
         phase1_high = to_int(phase1_by_priority.get("high", 0))
         phase2_total = to_int(get_error_field("phase2_total", 0))
-        phase2_by_type = get_error_field("phase2_by_type", {}) or {}
+        _phase2_by_type_raw = get_error_field("phase2_by_type", {}) or {}
+        phase2_by_type: dict[str, Any] = (
+            dict(_phase2_by_type_raw) if isinstance(_phase2_by_type_raw, dict) else {}
+        )
+
+        phase1_candidates_pref = get_error_field("phase1_candidates", []) or []
+        if not isinstance(phase1_candidates_pref, list):
+            phase1_candidates_pref = []
+        phase2_exceptions_pref = get_error_field("phase2_exceptions", []) or []
+        if not isinstance(phase2_exceptions_pref, list):
+            phase2_exceptions_pref = []
+
+        if self._is_dev_tools_scoped_report():
+            phase1_candidates_pref = [
+                c
+                for c in phase1_candidates_pref
+                if isinstance(c, dict)
+                and self._path_is_under_development_tools_dir(
+                    str(c.get("file_path", ""))
+                )
+            ]
+            phase2_exceptions_pref = [
+                e
+                for e in phase2_exceptions_pref
+                if isinstance(e, dict)
+                and self._path_is_under_development_tools_dir(
+                    str(e.get("file_path", ""))
+                )
+            ]
+            phase1_total = len(phase1_candidates_pref)
+            phase2_total = len(phase2_exceptions_pref)
+            phase1_by_priority = {"high": 0, "medium": 0, "low": 0}
+            for c in phase1_candidates_pref:
+                pr = str(c.get("priority", "")).lower()
+                if pr in phase1_by_priority:
+                    phase1_by_priority[pr] += 1
+            phase1_high = to_int(phase1_by_priority.get("high", 0))
+            phase2_by_type = {}
+            for e in phase2_exceptions_pref:
+                et = str(e.get("exc_type", e.get("type", "Exception")))
+                prev = to_int(phase2_by_type.get(et)) or 0
+                phase2_by_type[et] = prev + 1
 
         if (phase1_total and phase1_total > 0) or (phase2_total and phase2_total > 0):
             modernization_bullets: list[str] = []
@@ -3434,9 +3758,7 @@ class ReportGenerationMixin:
                     f"Phase 1 (decorator-first): {phase1_total} function(s) should replace basic try-except blocks with `@handle_errors` where possible."
                 )
 
-                phase1_candidates = get_error_field("phase1_candidates", []) or []
-                if not isinstance(phase1_candidates, list):
-                    phase1_candidates = []
+                phase1_candidates = phase1_candidates_pref
 
                 if phase1_candidates:
                     from collections import defaultdict
@@ -3517,9 +3839,7 @@ class ReportGenerationMixin:
                         f"Phase 2 most common: {self._format_list_for_display(exc_details, limit=3)}"
                     )
 
-                phase2_exceptions = get_error_field("phase2_exceptions", []) or []
-                if not isinstance(phase2_exceptions, list):
-                    phase2_exceptions = []
+                phase2_exceptions = phase2_exceptions_pref
                 if phase2_exceptions:
                     from collections import defaultdict
 
@@ -3764,6 +4084,15 @@ class ReportGenerationMixin:
         if isinstance(dependency_payload, dict):
             circular_dependencies = dependency_payload.get("circular_dependencies", [])
             high_coupling = dependency_payload.get("high_coupling", [])
+            if self._is_dev_tools_scoped_report():
+                if isinstance(circular_dependencies, list):
+                    circular_dependencies = (
+                        self._filter_circular_dependencies_dev_tools(
+                            circular_dependencies
+                        )
+                    )
+                if isinstance(high_coupling, list):
+                    high_coupling = self._filter_high_coupling_dev_tools(high_coupling)
             circular_count = (
                 len(circular_dependencies)
                 if isinstance(circular_dependencies, list)
@@ -3967,6 +4296,14 @@ class ReportGenerationMixin:
 
             if handlers:
                 handlers_no_doc = [h for h in handlers if not h.get("has_doc", True)]
+                if self._is_dev_tools_scoped_report():
+                    handlers_no_doc = [
+                        h
+                        for h in handlers_no_doc
+                        if self._path_is_under_development_tools_dir(
+                            str(h.get("file", ""))
+                        )
+                    ]
                 if handlers_no_doc:
                     if len(handlers_no_doc) <= 5:
                         if not hasattr(self, "_quick_wins_handlers"):
@@ -4085,40 +4422,40 @@ class ReportGenerationMixin:
             summary = unused_imports_data.get("summary", {})
             details = unused_imports_data.get("details", {})
             by_category = details.get("by_category", {})
-            obvious_unused = (
-                by_category.get("obvious_unused", 0)
-                if isinstance(by_category, dict)
-                else 0
-            )
+            if self._is_dev_tools_scoped_report():
+                obvious_unused, type_only, files_dict_scoped = (
+                    self._scoped_obvious_unused_import_metrics(unused_imports_data)
+                )
+                files_dict: dict[Any, Any] = files_dict_scoped
+            else:
+                obvious_unused = (
+                    by_category.get("obvious_unused", 0)
+                    if isinstance(by_category, dict)
+                    else 0
+                )
+                type_only = (
+                    by_category.get("type_hints_only", 0)
+                    if isinstance(by_category, dict)
+                    else 0
+                )
+                files_dict = unused_imports_data.get("files", {})
 
             # Only create recommendation if there are obvious unused imports
             if obvious_unused and obvious_unused > 0:
                 unused_bullets: list[str] = []
 
-                # Get files with obvious unused imports
-                files_dict = unused_imports_data.get("files", {})
-                if files_dict and isinstance(files_dict, dict):
-                    # Filter files to only those with obvious unused imports
-                    # We need to check the category for each file's imports
-                    for _file_path, imports in files_dict.items():
-                        if isinstance(imports, list):
-                            # Check if any import in this file is marked as obvious_unused
-                            # The structure may vary, so we'll count files that have obvious unused
-                            # For now, we'll show top files from the report
-                            pass
-
                 # Get top files if available (showing all files, but recommendation is only for obvious)
                 if files_dict and isinstance(files_dict, dict):
                     sorted_files = sorted(
                         files_dict.items(),
-                        key=lambda x: len(x[1]) if isinstance(x[1], list) else 1,
+                        key=lambda x: len(x[1]) if isinstance(x[1], list) else int(x[1]),
                         reverse=True,
                     )[:5]
                     if sorted_files:
                         file_list = []
                         for file_path, imports in sorted_files:
                             import_count = (
-                                len(imports) if isinstance(imports, list) else 1
+                                len(imports) if isinstance(imports, list) else int(imports)
                             )
                             file_name = Path(file_path).name if file_path else "Unknown"
                             file_list.append(f"{file_name} ({import_count} imports)")
@@ -4132,12 +4469,6 @@ class ReportGenerationMixin:
 
                 unused_bullets.append(
                     f"{obvious_unused} obvious removals (safe to delete)"
-                )
-
-                type_only = (
-                    by_category.get("type_hints_only", 0)
-                    if isinstance(by_category, dict)
-                    else 0
                 )
                 if type_only and type_only > 0:
                     unused_bullets.append(
@@ -4183,10 +4514,16 @@ class ReportGenerationMixin:
         if duplicate_functions_data and isinstance(duplicate_functions_data, dict):
             summary = duplicate_functions_data.get("summary", {})
             details = duplicate_functions_data.get("details", {})
-            dup_groups = to_int(summary.get("total_issues")) or 0
-            dup_files = to_int(summary.get("files_affected")) or 0
             groups = (
                 details.get("duplicate_groups", []) if isinstance(details, dict) else []
+            )
+            if self._is_dev_tools_scoped_report() and isinstance(groups, list):
+                groups = self._filter_duplicate_groups_dev_tools(groups)
+            dup_groups = len(groups) if isinstance(groups, list) and groups else 0
+            dup_files = (
+                self._count_duplicate_affected_files_dev_tools(groups)
+                if isinstance(groups, list) and groups
+                else 0
             )
             if dup_groups > 0 and isinstance(groups, list) and groups:
 
@@ -4261,13 +4598,23 @@ class ReportGenerationMixin:
         if module_refactor_candidates_data and isinstance(
             module_refactor_candidates_data, dict
         ):
-            refactor_summary = module_refactor_candidates_data.get("summary", {})
             refactor_details = module_refactor_candidates_data.get("details", {})
-            refactor_count = to_int(refactor_summary.get("total_issues")) or 0
             candidates_list = (
                 refactor_details.get("refactor_candidates", [])
                 if isinstance(refactor_details, dict)
                 else []
+            )
+            if self._is_dev_tools_scoped_report() and isinstance(candidates_list, list):
+                candidates_list = [
+                    c
+                    for c in candidates_list
+                    if isinstance(c, dict)
+                    and self._path_is_under_development_tools_dir(
+                        str(c.get("file", ""))
+                    )
+                ]
+            refactor_count = (
+                len(candidates_list) if isinstance(candidates_list, list) else 0
             )
             if (
                 refactor_count > 0
@@ -4774,15 +5121,30 @@ class ReportGenerationMixin:
                 or dependency_summary.get("missing_sections")
                 or []
             )
+            scoped_dt = self._is_dev_tools_scoped_report()
+            if scoped_dt and isinstance(files, list):
+                files = [
+                    f
+                    for f in files
+                    if self._path_is_under_development_tools_dir(str(f))
+                ]
             if missing > 0:
-                files_str = (
-                    self._format_list_for_display(files, limit=2)
-                    if files
-                    else "affected files"
-                )
-                quick_wins.append(
-                    f"Refresh dependency documentation: {missing} module dependencies are undocumented ({files_str}). Regenerate via `python development_tools/run_development_tools.py docs`."
-                )
+                if scoped_dt and isinstance(files, list) and not files:
+                    pass
+                else:
+                    miss_display = (
+                        len(files)
+                        if scoped_dt and isinstance(files, list)
+                        else missing
+                    )
+                    files_str = (
+                        self._format_list_for_display(files, limit=2)
+                        if files
+                        else "affected files"
+                    )
+                    quick_wins.append(
+                        f"Refresh dependency documentation: {miss_display} module dependencies are undocumented ({files_str}). Regenerate via `python development_tools/run_development_tools.py docs`."
+                    )
 
         # Add handler classes without docs to Quick Wins (if small count)
         if hasattr(self, "_quick_wins_handlers") and self._quick_wins_handlers:
@@ -4818,7 +5180,11 @@ class ReportGenerationMixin:
                     f"Review {self._quick_wins_todo} completed TODO entry/entries - if documented in changelogs, remove from TODO.md; otherwise move to CHANGELOG_DETAIL.md and AI_CHANGELOG.md first."
                 )
 
-        if paired_doc_issues and not (path_drift_count and path_drift_count > 0):
+        if (
+            not self._is_dev_tools_scoped_report()
+            and paired_doc_issues
+            and not (path_drift_count and path_drift_count > 0)
+        ):
             if doc_sync_summary:
                 paired_docs_data = doc_sync_summary.get("paired_docs", {})
                 if isinstance(paired_docs_data, dict):
@@ -4869,9 +5235,17 @@ class ReportGenerationMixin:
             summary = tool_data.get("summary", {})
             total_issues = to_int(summary.get("total_issues")) or 0
             files_affected = to_int(summary.get("files_affected")) or 0
+            file_counts = self._extract_file_issue_counts(tool_data)
+            if self._is_dev_tools_scoped_report():
+                file_counts = {
+                    k: v
+                    for k, v in file_counts.items()
+                    if self._path_is_under_development_tools_dir(k)
+                }
+                total_issues = sum(int(v) for v in file_counts.values())
+                files_affected = len(file_counts)
             if total_issues <= 0:
                 return
-            file_counts = self._extract_file_issue_counts(tool_data)
             top_files = sorted(
                 file_counts.items(), key=lambda item: item[1], reverse=True
             )[:3]
@@ -4894,9 +5268,13 @@ class ReportGenerationMixin:
         )
         # Fallback: if final audit summary recorded ASCII issues but the ASCII tool payload
         # was not refreshed in this tier, still surface an actionable quick win.
-        if (to_int(ascii_issues) or 0) > 0 and not any(
-            isinstance(win, str) and win.startswith("ASCII compliance:")
-            for win in quick_wins
+        if (
+            not self._is_dev_tools_scoped_report()
+            and (to_int(ascii_issues) or 0) > 0
+            and not any(
+                isinstance(win, str) and win.startswith("ASCII compliance:")
+                for win in quick_wins
+            )
         ):
             quick_wins.append(
                 "ASCII compliance: non-ASCII characters detected in documentation. "
@@ -4993,13 +5371,18 @@ class ReportGenerationMixin:
         """Generate comprehensive consolidated report combining all tool outputs."""
         # Log data source context
         audit_tier = getattr(self, "current_audit_tier", None)
+        consolidated_target = (
+            "DEV_TOOLS_CONSOLIDATED_REPORT.md"
+            if self._is_dev_tools_scoped_report()
+            else "CONSOLIDATED_REPORT.md"
+        )
         if audit_tier:
             logger.info(
-                f"[REPORT GENERATION] Generating CONSOLIDATED_REPORT.md using data from Tier {audit_tier} audit"
+                f"[REPORT GENERATION] Generating {consolidated_target} using data from Tier {audit_tier} audit"
             )
         else:
             logger.info(
-                "[REPORT GENERATION] Generating CONSOLIDATED_REPORT.md using cached data (no active audit)"
+                f"[REPORT GENERATION] Generating {consolidated_target} using cached data (no active audit)"
             )
 
         # Check if this is a mid-audit write
@@ -6936,12 +7319,20 @@ class ReportGenerationMixin:
 
         # Function Docstring Coverage
         if not func_undocumented and total_funcs and doc_coverage:
-            doc_coverage_float = (
-                float(doc_coverage.replace("%", ""))
-                if isinstance(doc_coverage, str)
-                else doc_coverage
-            )
-            if doc_coverage_float < 100 and total_funcs:
+            doc_coverage_float: float | None = None
+            if isinstance(doc_coverage, str):
+                raw = doc_coverage.replace("%", "").strip()
+                try:
+                    doc_coverage_float = float(raw)
+                except ValueError:
+                    doc_coverage_float = None
+            elif isinstance(doc_coverage, (int, float)):
+                doc_coverage_float = float(doc_coverage)
+            if (
+                doc_coverage_float is not None
+                and doc_coverage_float < 100
+                and total_funcs
+            ):
                 func_undocumented = int(total_funcs * (100 - doc_coverage_float) / 100)
 
         lines.append(
@@ -7254,6 +7645,11 @@ class ReportGenerationMixin:
 
             if circular_deps > 0 or high_coupling > 0:
                 lines.append("## Dependency Patterns")
+                if self._is_dev_tools_scoped_report():
+                    lines.append(
+                        "- **Scope**: Import/coupling metrics are for the "
+                        "`development_tools/` scan root only."
+                    )
                 if circular_deps > 0:
                     lines.append(
                         f"- **Circular Dependencies**: {circular_deps} circular dependency chains detected"
@@ -7312,6 +7708,11 @@ class ReportGenerationMixin:
                             )
             elif circular_deps == 0 and high_coupling == 0 and patterns_data:
                 lines.append("## Dependency Patterns")
+                if self._is_dev_tools_scoped_report():
+                    lines.append(
+                        "- **Scope**: Import/coupling metrics are for the "
+                        "`development_tools/` scan root only."
+                    )
                 lines.append(
                     "- **Status**: CLEAN (no circular dependencies or high coupling detected)"
                 )
@@ -7687,12 +8088,23 @@ class ReportGenerationMixin:
             ai_status_path = "development_tools/AI_STATUS.md"
             ai_priorities_path = "development_tools/AI_PRIORITIES.md"
 
-        lines.append(
-            f"- Latest AI status: [AI_STATUS.md]({self._markdown_href_from_dev_tools_report(self.project_root / ai_status_path)})"
-        )
-        lines.append(
-            f"- Current AI priorities: [AI_PRIORITIES.md]({self._markdown_href_from_dev_tools_report(self.project_root / ai_priorities_path)})"
-        )
+        if self._is_dev_tools_scoped_report():
+            lines.append(
+                f"- Full-repo status (not produced by this run): [AI_STATUS.md]({self._markdown_href_from_dev_tools_report(self.project_root / ai_status_path)})"
+            )
+            lines.append(
+                f"- Scoped priorities from this run: [DEV_TOOLS_PRIORITIES.md]({self._markdown_href_from_dev_tools_report(self.project_root / 'development_tools' / 'DEV_TOOLS_PRIORITIES.md')})"
+            )
+            lines.append(
+                f"- Full-repo priorities: [AI_PRIORITIES.md]({self._markdown_href_from_dev_tools_report(self.project_root / ai_priorities_path)})"
+            )
+        else:
+            lines.append(
+                f"- Latest AI status: [AI_STATUS.md]({self._markdown_href_from_dev_tools_report(self.project_root / ai_status_path)})"
+            )
+            lines.append(
+                f"- Current AI priorities: [AI_PRIORITIES.md]({self._markdown_href_from_dev_tools_report(self.project_root / ai_priorities_path)})"
+            )
         lines.append(
             f"- Detailed JSON results: [analysis_detailed_results.json]({self._markdown_href_from_dev_tools_report(self._get_results_file_path())})"
         )

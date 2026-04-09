@@ -255,3 +255,23 @@ to be filled: placeholder
         assert "SharedTopic" in overlaps
         assert set(overlaps["SharedTopic"]) == {"notes_a.md", "notes_b.md"}
 
+    @pytest.mark.unit
+    def test_detect_section_overlaps_ignores_numbered_generic_headings(self):
+        """Numbered '1. Purpose and Scope'-style titles match EXPECTED_OVERLAPS and are skipped."""
+        body = "x" * 60
+        docs = {
+            "a.md": f"## 1. Purpose and Scope\n{body}\n",
+            "b.md": f"## 1. Purpose and Scope\n{body}\n",
+        }
+        overlaps = detect_section_overlaps(docs)
+        assert "1. Purpose and Scope" not in overlaps
+
+    @pytest.mark.unit
+    def test_detect_section_overlaps_ignores_numbered_quick_start(self):
+        docs = {
+            "t.md": "## 1. Quick Start\n" + ("y" * 60),
+            "u.md": "## 1. Quick Start\n" + ("z" * 60),
+        }
+        overlaps = detect_section_overlaps(docs)
+        assert "1. Quick Start" not in overlaps
+

@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Single forward-looking backlog after V4; collapsed history; actionable next steps  
 > **Style**: Direct and concise  
-> **Last Updated**: 2026-04-06  
+> **Last Updated**: 2026-04-08  
 > **Supersedes**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (keep V4 for detailed checkbox history)
 
 **Authoritative metrics**: [development_tools/AI_STATUS.md](AI_STATUS.md) and [development_tools/AI_PRIORITIES.md](AI_PRIORITIES.md) after `python development_tools/run_development_tools.py audit` or `audit --full`.
@@ -36,7 +36,7 @@ This section answers: *Were V4 completed items actually done? Was work thorough 
 ### 1.3 Not complete (V4 correctly left open)
 
 - **`tests/development_tools/test_config.json` migration** for all analyzer-using tests — still deferred (V4 §1.1).
-- **Scope-aware report content** for `--dev-tools-only` — **partial (2026-03-28)**: `DEV_TOOLS_*` titles, metadata, source command (`--dev-tools-only`), scope blurbs; domain-coverage priority omitted in `DEV_TOOLS_PRIORITIES.md`. **Remaining**: drive **Tier 3 coverage execution from audit scope** so a single run does not refresh both full-repo and dev-tools coverage when only one scope is intended (see **§5.1 — 1.9** and **§7.15**).
+- **Scope-aware report content** for `--dev-tools-only` — **expanded (2026-04-08)**: priorities/status quick wins and several ranked items filter to `development_tools/`; paired-doc quick wins intentionally omitted on dev-tools runs; see **§7.18**. **Remaining**: drive **Tier 3 coverage execution from audit scope** so a single run does not refresh both full-repo and dev-tools coverage when only one scope is intended (see **§5.1 — 1.9** and **§7.15**).
 - **Flaky detector**: `scripts/flaky_detector.py` is **not** in the current tree; migration and CLI wiring **not done** (V4 §3.12).
 - **Scripts migration inventory**, **3.14 review candidates**, **3.15 gap tasks** — open.
 - **§3.16** `report_generation.py` / `run_test_coverage.py` split — **plan only**, no implementation backlog beyond AI_PRIORITIES refactor candidates.
@@ -70,7 +70,9 @@ Use this block when a V4 **Status** line says “IN PROGRESS” or “COMPLETE�
 
 ## 2. Current state snapshot (rolling)
 
-Use **AI_STATUS.md** after each audit. Example **2026-03-28** (Tier 3 full, after `audit --full`): overall test coverage **~76.1%**; development-tools coverage **~61.9%**; doc sync **PASS**; static analysis **CLEAN**; legacy references **CLEAN (0 files)**; duplicate-function groups **12**; refresh **AI_PRIORITIES** / **CONSOLIDATED_REPORT** for module-refactor, coupling, and complexity counts before §6-style work.
+Use **AI_STATUS.md** after each audit. Example **2026-04-08** (Tier 3 full, after `audit --full --strict`): overall test coverage **~69.9%**; development-tools coverage **~61.7%**; doc sync **PASS**; static analysis **CLEAN**; legacy references **CLEAN (0 files)**; duplicate-function groups **9**; high-coupling modules **51**; refresh **AI_PRIORITIES** / **CONSOLIDATED_REPORT** for module-refactor, coupling, and complexity counts before §6-style work.
+
+**2026-04-08 (this plan iteration)**: §2.8 scoped-report copy in `DEV_TOOLS_*` (snapshot coverage vs full-repo staleness, scope notes, consolidated reference links); overlap analyzer filters numbered generic headings; §4.1 external-tool stance recorded in paired guides §10; §1.5 benchmark recipe noted in paired changelogs (numeric wall-clock still machine-local).
 
 ---
 
@@ -90,6 +92,7 @@ No per-task history here — see V4 for checkboxes.
 - **2026-03-28 (V5 continuation slice)**: `DEV_TOOLS_*` report scope (headers, `--dev-tools-only` source line, scope/role blurbs; omit domain-coverage priority in dev-tools priorities); legacy report noise fix (`root_ruff_compat_mirror` empty `search_terms`, inventory summary unchanged); portability bootstrap (`run_dev_tools.py`, `fix_legacy_references.py` `Path.resolve()`; `generate_function_registry` output paths use module `project_root`); owned [`pyrightconfig.json`](config/pyrightconfig.json) `venvPath` / `venv` for repo interpreter; paired changelogs — see [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) / [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md).
 - **2026-04-06**: Unified full-repo Tier 3 coverage (§1.9 / §7.17): main `run_test_coverage` runs dev-tools tests, measures `development_tools` in `coverage.ini`, derives `coverage_dev_tools.json`, persists `generate_dev_tools_coverage` on success, `constants.derived_prefix_excludes.core` updated for this repo.
 - **2026-04-06 (V5 continuation)**: §7.16 read-fallback removal (scoped aggregates/tool JSON only); Phase 2 taxonomy gate recorded inline (§7.7); paired-guide §5 overlap advisory + §10 Radon line; `DEPRECATION_INVENTORY` bridge record; `analyze_config` / DEV_TOOLS report header polish.
+- **2026-04-08**: §2.8 `DEV_TOOLS_*` clarity (snapshot dev-tools coverage vs stale full-repo `coverage.json`, dependency/duplicate scope notes, `DEV_TOOLS_PRIORITIES` refactor pointer, quick commands, consolidated reference links); §5.2 numbered-heading overlap filter in `analyze_documentation.detect_section_overlaps`; §4.1 / §10 external-tool evaluation notes (manual-only, no `requirements.txt` change); §1.5 benchmark methodology in paired changelogs.
 
 ---
 
@@ -170,7 +173,7 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 - **Status**: **PARTIAL (2026-03-28)**. Implemented: `audit --dev-tools-only`, `DEV_TOOLS_*` output paths, `get_scan_directories() -> ['development_tools']`, and **report-layer** scope (`ReportGenerationMixin`: titles, file blurbs, `--dev-tools-only` on source command, scope/role lines; domain-coverage priority omitted in dev-tools priorities).
 - **Open**:
   - **Orchestration**: ~~Tier 3 coverage/test scope split~~ **Done (2026-04-06)** per §1.9.
-  - Any remaining **sections** in `DEV_TOOLS_STATUS` / `DEV_TOOLS_CONSOLIDATED_REPORT` that still read ambiguously for scoped runs — trim or label explicitly.
+  - ~~Ambiguous snapshot/scope copy~~ **Reduced (2026-04-08)**: snapshot coverage line, dependency/duplicate notes, quick commands, consolidated references; reopen if new sections confuse scoped vs full-repo readers.
 
 #### 2.9 Console output polish (optional)
 
@@ -286,8 +289,9 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 #### 5.2 Documentation overlap analysis enhancements
 
-- **Status**: **PENDING**. **User priority**: Medium.
-- **Open**: Review consolidation opportunities (Development Workflow, Testing); consolidation plan; improve actionable insights; reduce false positives.
+- **Status**: **IN PROGRESS**. **User priority**: Medium.
+- **Done (2026-04-08)**: `detect_section_overlaps` treats numbered generic headings (`1. Purpose and Scope`, `1. Quick Start`, …) like `EXPECTED_OVERLAPS` entries to cut **AI_STATUS** / doc-sync noise.
+- **Open**: Review consolidation opportunities (Development Workflow, Testing); consolidation plan; improve actionable insights; further false-positive tuning beyond generic headings.
 
 #### 5.3 AI work validation improvements
 
@@ -414,6 +418,13 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 
 - **Decision (2026-04-06)**: **Option A — unified main run.** `run_test_coverage` executes **`tests/development_tools/`** with the main suite, measures **`development_tools`** via `coverage.ini` + `CORE_MODULES` (project config no longer excludes `development_tools` from derived `core_modules`), and writes **`coverage_dev_tools.json`** as a filtered view of **`coverage.json`** so `AI_STATUS` / `generate_dev_tools_coverage_results.json` stay aligned without a second pytest in the same full-repo Tier 3 pass. `--dev-tools-only` remains the narrow pass for dev-tools tree work without refreshing full-repo coverage.
 - **Implementation refs**: [`tests/run_test_coverage.py`](tests/run_test_coverage.py) (`_write_dev_tools_coverage_json_from_main`, `_build_unified_dev_tools_test_outcome`), [`shared/service/commands.py`](shared/service/commands.py), [`shared/service/audit_orchestration.py`](shared/service/audit_orchestration.py).
+
+#### 7.18 Scoped `DEV_TOOLS_*` reports and `--clear-cache`
+
+- **`DEV_TOOLS_STATUS.md` / `DEV_TOOLS_PRIORITIES.md` / `DEV_TOOLS_CONSOLIDATED_REPORT.md`**: Built when `audit --full --dev-tools-only` (or other tiers with the same flag) runs. Text and ranked items should reflect **`development_tools/`** where the underlying JSON is repo-wide (duplicates, refactor candidates, dependency-pattern examples, unused-import **obvious** counts, doc quick wins from doc-fix tools, etc.). Paired-documentation quick wins (`TODO.md` / changelog pairing) are **omitted** from dev-tools priorities quick wins because they target repo docs outside `development_tools/`; use a default-scope audit for those.
+- **`--clear-cache`**: For `audit` / `full-audit`, cache clearing is **scope-aligned**: with `--dev-tools-only` (global or on the command), only **`**/jsons/scopes/dev_tools/**`**, **`reports/scopes/dev_tools/**`**, and dev-tools coverage JSON siblings are removed; without it, only **full-repo** tool cache artifacts are removed (parallel **`scopes/full`** tree, main `coverage.json` inputs, archives, legacy aggregates), leaving dev-tools-only caches intact. A bare `cleanup --clear-cache` (non-audit) still clears **all** tool cache layouts.
+- **Logging**: Report generation log lines use the real output filename (`DEV_TOOLS_STATUS.md`, etc.) when scope is dev-tools-only.
+- **Residual full-repo rows**: Some tiered priorities (e.g. legacy reference counts, backup health) still use **aggregate audit payloads** that are not path-sliced in this pass; when in doubt, confirm against `AI_STATUS.md` / `AI_PRIORITIES.md` from a default-scope audit.
 
 ---
 

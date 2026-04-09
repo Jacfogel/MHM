@@ -313,6 +313,8 @@ See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for fu
 
 Not integrated into audit tiers. Run manually when assessing security/complexity hooks; see Section 10 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 4.1. **Also evaluate**: **pydeps** (graphs vs existing dependency tools), **vulture** (dead code vs unused-imports/registry). **Scripts backlog**: [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) (policy, flaky detector Section 3.2, inventory refresh Section 6); V5 Section 3.12-Section 3.14. **Do not add** unapproved standalone migration markdown files; use approved guides + V5.
 
+**Evaluation note (2026-04-08)**: **bandit**, **pip-audit**, and **radon** are optional one-off installs (`pip install` per bullets below); they are intentionally **not** listed in root `requirements.txt` until Tier 1 noise thresholds and path policies are decided. **pre-commit** remains optional on developer machines only (no repo-root hook config added in this session); audit truth stays `run_development_tools.py` + `tests/development_tools/`.
+
 **Manual pilot (venv active; do not broaden `requirements.txt` until Tier decision)**:
 
 - `python -m pip install bandit pip-audit` - install tools for a one-off review session (optional: `python -m pip install radon` for CC sampling).

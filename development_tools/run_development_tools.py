@@ -140,18 +140,23 @@ def _cleanup_transient_runtime_artifacts(project_root: Path) -> None:
             pass
 
 
-def _clear_all_caches(project_root: Path) -> int:
+def _clear_all_caches(project_root: Path, *, cache_scope: str | None = None) -> int:
     """
-    Clear all development tools cache files.
+    Clear development tools cache files used for audit reuse.
 
-    Includes development-tools cache artifacts only (tool json caches/results
-    used for cache reuse and freshness checks). It intentionally does NOT clean:
+    ``cache_scope`` is ``\"full\"`` (default full-repo audit caches), ``\"dev_tools\"``
+    (dev-tools-only audit caches), or ``None`` to clear **all** tool cache layouts
+    (used by the interactive ``cleanup`` command path).
+
+    Includes development-tools cache artifacts only (tool json caches/results).
+    It intentionally does NOT clean:
     - Python interpreter caches (__pycache__)
     - pytest runtime caches (.pytest_cache)
     - unrelated non-tool cache directories
 
     Args:
         project_root: Project root directory
+        cache_scope: Which parallel audit cache tree to clear (see ``ProjectCleanup``).
 
     Returns:
         Number of cache files cleared
@@ -161,8 +166,9 @@ def _clear_all_caches(project_root: Path) -> int:
         from development_tools.shared.fix_project_cleanup import ProjectCleanup
 
         cleanup = ProjectCleanup(project_root=project_root)
-        # --clear-cache for audit should be scoped to development-tools caches only.
-        removed, failed = cleanup.cleanup_tool_cache_artifacts(dry_run=False)
+        removed, failed = cleanup.cleanup_tool_cache_artifacts(
+            dry_run=False, cache_scope=cache_scope
+        )
         cache_files_cleared += removed
         if failed:
             logger.warning(f"Failed to clear {failed} development-tools cache artifact(s)")
@@ -311,6 +317,12 @@ def main(argv=None) -> int:
     parser.add_argument("--project-root", type=str, default=None)
     parser.add_argument("--config-path", type=str, default=None)
     parser.add_argument("--clear-cache", "--cache-clear", dest="clear_cache", action="store_true")
+    parser.add_argument(
+        "--dev-tools-only",
+        dest="dev_tools_only",
+        action="store_true",
+        help="With --clear-cache, only remove dev-tools-scoped audit caches (scopes/dev_tools).",
+    )
     parser.add_argument("command", nargs="?")
 
     # Use parse_known_args to separate global args from command args
@@ -322,6 +334,7 @@ def main(argv=None) -> int:
     project_root = known_args.project_root
     config_path = known_args.config_path
     clear_cache = known_args.clear_cache
+    global_dev_tools_only = getattr(known_args, "dev_tools_only", False)
     command_name = known_args.command
 
     # Determine project root for cache clearing (before service initialization)
@@ -331,12 +344,29 @@ def main(argv=None) -> int:
         # Use the same logic as service initialization
         project_root_path = Path(__file__).resolve().parent.parent
 
-    # Clear caches if requested
+    # Clear caches if requested (match audit scope when possible)
     if clear_cache:
-        cache_count = _clear_all_caches(project_root_path)
+        cache_scope_for_clear = None
+        if command_name in {"audit", "full-audit"}:
+            cache_scope_for_clear = (
+                "dev_tools"
+                if global_dev_tools_only
+                or any(a == "--dev-tools-only" for a in remaining_args)
+                else "full"
+            )
+        cache_count = _clear_all_caches(
+            project_root_path, cache_scope=cache_scope_for_clear
+        )
         if cache_count > 0:
-            print(f"Cleared {cache_count} cache file(s).")
-            logger.info(f"Cleared {cache_count} cache file(s) before running command")
+            scope_note = (
+                f" ({cache_scope_for_clear} scope)"
+                if cache_scope_for_clear
+                else " (all tool caches)"
+            )
+            print(f"Cleared {cache_count} cache file(s){scope_note}.")
+            logger.info(
+                f"Cleared {cache_count} cache file(s) before running command{scope_note}"
+            )
         else:
             print("No cache files found to clear.")
             logger.debug("No cache files found to clear")
@@ -375,6 +405,10 @@ def main(argv=None) -> int:
             if has_active_locks:
                 return 1
         service = AIToolsService(project_root=project_root, config_path=config_path)
+        # Parent parser consumes `--dev-tools-only` before the audit subparser runs; mirror it here
+        # so `audit --full --dev-tools-only` still enables DEV_TOOLS_* outputs and Tier 3 scope (§1.9).
+        if command_name in {"audit", "full-audit"} and global_dev_tools_only:
+            service.dev_tools_only_mode = True
         command = commands[command_name]
         # Align with run_tests.py: first SIGINT ignored, second within 2s stops
         if command_name in {"audit", "full-audit"}:

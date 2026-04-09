@@ -93,8 +93,12 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         include_dev_tools=ns.include_dev_tools or ns.include_all,
     )
 
-    # Dev-tools-only mode: scan development_tools only, output to DEV_TOOLS_* files
-    service.dev_tools_only_mode = getattr(ns, "dev_tools_only", False)
+    # Dev-tools-only mode: scan development_tools only, output to DEV_TOOLS_* files.
+    # OR with run_development_tools.py global `--dev-tools-only` (set on service before this runs).
+    service.dev_tools_only_mode = bool(
+        getattr(ns, "dev_tools_only", False)
+        or getattr(service, "dev_tools_only_mode", False)
+    )
 
     success = service.run_audit(
         quick=quick_mode,
