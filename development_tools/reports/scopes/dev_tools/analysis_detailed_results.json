@@ -1,17 +1,17 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-04-09 01:34:34",
+  "last_generated": "2026-04-09 03:04:06",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-04-09T01:34:34.472392",
+  "timestamp": "2026-04-09T03:04:06.314721",
   "successful": [
     "analyze_backup_health",
     "analyze_system_signals",
     "analyze_test_markers",
-    "analyze_config",
     "analyze_dev_tools_import_boundaries",
     "analyze_function_patterns",
+    "analyze_config",
     "analyze_documentation",
     "decision_support",
     "analyze_functions",
@@ -19,14 +19,14 @@
     "analyze_package_exports",
     "analyze_module_dependencies",
     "analyze_ascii_compliance",
-    "analyze_unused_imports",
     "analyze_heading_numbering",
+    "analyze_unused_imports",
     "analyze_missing_addresses",
     "analyze_unconverted_links",
     "analyze_error_handling",
     "analyze_duplicate_functions",
-    "analyze_dependency_patterns",
     "analyze_module_refactor_candidates",
+    "analyze_dependency_patterns",
     "analyze_function_registry",
     "analyze_documentation_sync",
     "analyze_ruff",
@@ -39,7 +39,7 @@
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-04-09T01:34:34",
+        "generated_at": "2026-04-09T03:04:06",
         "project_root": "C:\\Users\\Julie\\projects\\MHM\\MHM",
         "summary": {
           "status": "PASS",
@@ -84,7 +84,7 @@
               "name": "weekly_backup_recent_enough",
               "success": true,
               "details": {
-                "recent_cutoff": "2026-03-26T01:34:34",
+                "recent_cutoff": "2026-03-26T03:04:06",
                 "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
                 "latest_weekly_created_at": "2026-04-09 01:00:05"
               }
@@ -95,7 +95,7 @@
               "details": {
                 "latest_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
                 "latest_created_at": "2026-04-09 01:00:05",
-                "recent_cutoff": "2026-03-26T01:34:34"
+                "recent_cutoff": "2026-03-26T03:04:06"
               }
             },
             {
@@ -150,7 +150,7 @@
             "name": "weekly_backup_recent_enough",
             "success": true,
             "details": {
-              "recent_cutoff": "2026-03-26T01:34:34",
+              "recent_cutoff": "2026-03-26T03:04:06",
               "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
               "latest_weekly_created_at": "2026-04-09 01:00:05"
             }
@@ -161,7 +161,7 @@
             "details": {
               "latest_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
               "latest_created_at": "2026-04-09 01:00:05",
-              "recent_cutoff": "2026-03-26T01:34:34"
+              "recent_cutoff": "2026-03-26T03:04:06"
             }
           },
           {
@@ -184,20 +184,20 @@
           }
         ]
       },
-      "timestamp": "2026-04-09T01:34:34"
+      "timestamp": "2026-04-09T03:04:06"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 2,
+          "total_issues": 1,
           "files_affected": 0,
-          "status": "CRITICAL"
+          "status": "ISSUES"
         },
         "details": {
-          "timestamp": "2026-04-09T01:28:32.241107",
+          "timestamp": "2026-04-09T02:59:50.499171",
           "system_health": {
-            "overall_status": "CRITICAL",
+            "overall_status": "ISSUES",
             "core_files": {
               "run_mhm.py": "OK",
               "run_tests.py": "OK",
@@ -215,7 +215,7 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-04-09T00:51:01.655079",
+            "last_audit": "2026-04-09T02:59:03.365727",
             "audit_freshness": "<1 hour",
             "test_coverage_status": "Unknown",
             "documentation_sync_status": "Synchronized",
@@ -224,38 +224,36 @@
               "Documentation is synchronized"
             ],
             "recommendations": [
-              "Review logs/errors.log for recent error details"
+              "Check logs/errors.log for recent errors"
             ],
             "warnings": [],
             "errors": [],
             "severity_levels": {
               "INFO": [],
-              "WARNING": [],
-              "CRITICAL": [
-                "Recent errors detected in logs/errors.log (last hour)"
-              ]
+              "WARNING": [
+                "Errors detected in logs/errors.log (last 24 hours)"
+              ],
+              "CRITICAL": []
             }
           },
           "recent_activity": {
             "recent_changes": [
-              "development_tools/shared/service/report_generation.py",
+              "development_tools/shared/tool_metadata.py",
+              "development_tools/tests/verify_process_cleanup.py",
               "development_tools/shared/constants.py",
-              "tests/development_tools/test_run_test_coverage_helpers.py",
-              "tests/development_tools/test_commands_coverage_helpers.py",
-              "tests/development_tools/test_fix_project_cleanup.py",
-              "tests/development_tools/test_analyze_documentation.py",
-              "tests/development_tools/test_audit_orchestration_helpers.py",
-              "tests/development_tools/test_integration_workflows.py",
-              "development_tools/run_development_tools.py",
-              "tests/development_tools/test_dev_tools_scoped_status_report.py"
+              "development_tools/shared/cli_interface.py",
+              "tests/integration/test_error_handling_improvements.py",
+              "tests/development_tools/test_analyze_config.py",
+              "tests/development_tools/test_cli_interface.py",
+              "development_tools/tests/flaky_detector.py",
+              "tests/unit/test_config.py",
+              "tests/development_tools/test_commands_coverage_helpers.py"
             ],
             "git_status": "Modified",
             "last_commit": null,
             "uncommitted_changes": true
           },
-          "critical_alerts": [
-            "CRITICAL: Recent errors in logs/errors.log"
-          ],
+          "critical_alerts": [],
           "performance_indicators": {
             "log_file_sizes": {
               "ai.log": "0.0MB",
@@ -276,9 +274,36 @@
           }
         }
       },
-      "timestamp": "2026-04-09T01:28:32"
+      "timestamp": "2026-04-09T02:59:50"
     },
     "analyze_test_markers": {
+      "success": true,
+      "data": {
+        "summary": {
+          "total_issues": 2,
+          "files_affected": 1
+        },
+        "details": {
+          "missing_count": 2,
+          "missing": [
+            {
+              "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\tests\\development_tools\\test_flaky_detector.py",
+              "line": 14,
+              "name": "test_extract_failed_tests_parses_pytest_output",
+              "type": "function"
+            },
+            {
+              "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\tests\\development_tools\\test_flaky_detector.py",
+              "line": 30,
+              "name": "test_analyze_results_splits_flaky_and_consistent",
+              "type": "function"
+            }
+          ]
+        }
+      },
+      "timestamp": "2026-04-09T03:04:05"
+    },
+    "analyze_dev_tools_import_boundaries": {
       "success": true,
       "data": {
         "summary": {
@@ -286,11 +311,46 @@
           "files_affected": 0
         },
         "details": {
-          "missing_count": 0,
-          "missing": []
+          "violations": [],
+          "summary": {
+            "total_violations": 0,
+            "files_with_violations": 0
+          }
         }
       },
-      "timestamp": "2026-04-09T01:34:34"
+      "timestamp": "2026-04-09T03:04:06.314721"
+    },
+    "analyze_function_patterns": {
+      "success": true,
+      "data": {
+        "summary": {
+          "total_issues": 0,
+          "files_affected": 0
+        },
+        "details": {
+          "handlers": [],
+          "managers": [],
+          "factories": [],
+          "context_managers": [],
+          "widgets": [],
+          "dialogs": [],
+          "validators": [],
+          "decorators": [],
+          "schemas": [],
+          "entry_points": [
+            {
+              "file": "run_headless_service.py",
+              "function": "main",
+              "has_doc": true
+            }
+          ],
+          "data_access": [],
+          "communication": [],
+          "error_handlers": [],
+          "schedulers": []
+        }
+      },
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_config": {
       "success": true,
@@ -358,56 +418,7 @@
           }
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
-    },
-    "analyze_dev_tools_import_boundaries": {
-      "success": true,
-      "data": {
-        "summary": {
-          "total_issues": 0,
-          "files_affected": 0
-        },
-        "details": {
-          "violations": [],
-          "summary": {
-            "total_violations": 0,
-            "files_with_violations": 0
-          }
-        }
-      },
-      "timestamp": "2026-04-09T01:34:34.472392"
-    },
-    "analyze_function_patterns": {
-      "success": true,
-      "data": {
-        "summary": {
-          "total_issues": 0,
-          "files_affected": 0
-        },
-        "details": {
-          "handlers": [],
-          "managers": [],
-          "factories": [],
-          "context_managers": [],
-          "widgets": [],
-          "dialogs": [],
-          "validators": [],
-          "decorators": [],
-          "schemas": [],
-          "entry_points": [
-            {
-              "file": "run_headless_service.py",
-              "function": "main",
-              "has_doc": true
-            }
-          ],
-          "data_access": [],
-          "communication": [],
-          "error_handlers": [],
-          "schedulers": []
-        }
-      },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_documentation": {
       "success": true,
@@ -447,7 +458,7 @@
                 "ui/UI_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.19808096541772557,
+              "similarity_score": 0.1981114475966144,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -621,7 +632,7 @@
               ]
             },
             "TODO.md": {
-              "content_length": 17388,
+              "content_length": 17512,
               "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
               "section_count": 12,
               "sections": [
@@ -687,7 +698,7 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 27190,
+              "content_length": 27625,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
               "section_count": 21,
               "sections": [
@@ -889,7 +900,7 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 416967,
+              "content_length": 418143,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
               "section_count": 139,
               "sections": [
@@ -923,7 +934,7 @@
               ]
             },
             "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 29327,
+              "content_length": 29488,
               "header_info": "# AI Development Tools Guide\n\n> **File**: `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: AI collaborators and automated tooling  \n> **Purpose**: Routing and constraints for all AI",
               "section_count": 15,
               "sections": [
@@ -940,7 +951,7 @@
               ]
             },
             "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 53567,
+              "content_length": 53751,
               "header_info": "# Development Tools Guide\n\n> **File**: `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`\n> **Audience**: Human maintainers and contributors\n> **Purpose**: Detailed reference for every development tool, i",
               "section_count": 31,
               "sections": [
@@ -1156,7 +1167,7 @@
           "total_issues": 12
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "decision_support": {
       "success": true,
@@ -1297,7 +1308,7 @@
           ]
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_functions": {
       "success": true,
@@ -1502,7 +1513,7 @@
           "utilities": 0
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_module_imports": {
       "success": true,
@@ -1553,7 +1564,7 @@
           }
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_package_exports": {
       "success": true,
@@ -7754,223 +7765,6 @@
                 "is_valid_intent"
               ]
             },
-            "tasks": {
-              "package": "tasks",
-              "current_exports_count": 20,
-              "should_export_count": 29,
-              "already_exported": [
-                "TaskManagementError",
-                "add_user_task_tag",
-                "are_tasks_enabled",
-                "cleanup_task_reminders",
-                "complete_task",
-                "create_task",
-                "delete_task",
-                "ensure_task_directory",
-                "get_task_by_id",
-                "get_tasks_due_soon",
-                "get_user_task_stats",
-                "load_active_tasks",
-                "load_completed_tasks",
-                "remove_user_task_tag",
-                "restore_task",
-                "save_active_tasks",
-                "save_completed_tasks",
-                "schedule_task_reminders",
-                "setup_default_task_tags",
-                "update_task"
-              ],
-              "missing_exports": [
-                "ACTIVE_TASKS_FILENAME",
-                "ALLOWED_UPDATE_FIELDS",
-                "COMPLETED_TASKS_FILENAME",
-                "TASK_SCHEDULES_FILENAME",
-                "VALID_PRIORITIES",
-                "is_valid_due_date",
-                "is_valid_priority",
-                "is_valid_task_title",
-                "validate_update_field"
-              ],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "_tasks_mod": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/profile_handler.py",
-                    "communication/command_handlers/task_handler.py"
-                  ],
-                  "import_types": [
-                    "direct_import"
-                  ],
-                  "module_path": null
-                }
-              },
-              "import_usage_details": {
-                "ACTIVE_TASKS_FILENAME": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "COMPLETED_TASKS_FILENAME": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "TASK_SCHEDULES_FILENAME": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "load_active_tasks": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "save_active_tasks": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "load_completed_tasks": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "save_completed_tasks": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "is_valid_task_title": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_validation"
-                },
-                "is_valid_priority": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_validation"
-                },
-                "validate_update_field": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_validation"
-                },
-                "VALID_PRIORITIES": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_validation.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "ALLOWED_UPDATE_FIELDS": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_validation.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "_tasks_mod": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/profile_handler.py",
-                    "communication/command_handlers/task_handler.py"
-                  ],
-                  "import_types": [
-                    "direct_import"
-                  ],
-                  "module_path": null
-                }
-              },
-              "package_api_items": [
-                "TaskManagementError",
-                "add_user_task_tag",
-                "are_tasks_enabled",
-                "cleanup_task_reminders",
-                "complete_task",
-                "create_task",
-                "delete_task",
-                "ensure_task_directory",
-                "get_task_by_id",
-                "get_tasks_due_soon",
-                "get_user_task_stats",
-                "is_valid_due_date",
-                "is_valid_priority",
-                "is_valid_task_title",
-                "load_active_tasks",
-                "load_completed_tasks",
-                "remove_user_task_tag",
-                "restore_task",
-                "save_active_tasks",
-                "save_completed_tasks",
-                "schedule_task_reminders",
-                "setup_default_task_tags",
-                "update_task",
-                "validate_update_field"
-              ],
-              "registry_items": [
-                "_calculate_next_due_date",
-                "ensure_task_directory",
-                "is_valid_due_date",
-                "is_valid_priority"
-              ]
-            },
             "ui": {
               "package": "ui",
               "current_exports_count": 34,
@@ -8651,6 +8445,301 @@
                 "set_selected_categories"
               ]
             },
+            "tasks": {
+              "package": "tasks",
+              "current_exports_count": 20,
+              "should_export_count": 29,
+              "already_exported": [
+                "TaskManagementError",
+                "add_user_task_tag",
+                "are_tasks_enabled",
+                "cleanup_task_reminders",
+                "complete_task",
+                "create_task",
+                "delete_task",
+                "ensure_task_directory",
+                "get_task_by_id",
+                "get_tasks_due_soon",
+                "get_user_task_stats",
+                "load_active_tasks",
+                "load_completed_tasks",
+                "remove_user_task_tag",
+                "restore_task",
+                "save_active_tasks",
+                "save_completed_tasks",
+                "schedule_task_reminders",
+                "setup_default_task_tags",
+                "update_task"
+              ],
+              "missing_exports": [
+                "ACTIVE_TASKS_FILENAME",
+                "ALLOWED_UPDATE_FIELDS",
+                "COMPLETED_TASKS_FILENAME",
+                "TASK_SCHEDULES_FILENAME",
+                "VALID_PRIORITIES",
+                "is_valid_due_date",
+                "is_valid_priority",
+                "is_valid_task_title",
+                "validate_update_field"
+              ],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "_tasks_mod": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/command_handlers/profile_handler.py",
+                    "communication/command_handlers/task_handler.py"
+                  ],
+                  "import_types": [
+                    "direct_import"
+                  ],
+                  "module_path": null
+                }
+              },
+              "import_usage_details": {
+                "ACTIVE_TASKS_FILENAME": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "COMPLETED_TASKS_FILENAME": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "TASK_SCHEDULES_FILENAME": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "load_active_tasks": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "save_active_tasks": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "load_completed_tasks": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "save_completed_tasks": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "is_valid_task_title": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_validation"
+                },
+                "is_valid_priority": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_validation"
+                },
+                "validate_update_field": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_validation"
+                },
+                "VALID_PRIORITIES": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_validation.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "ALLOWED_UPDATE_FIELDS": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_validation.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "_tasks_mod": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/command_handlers/profile_handler.py",
+                    "communication/command_handlers/task_handler.py"
+                  ],
+                  "import_types": [
+                    "direct_import"
+                  ],
+                  "module_path": null
+                }
+              },
+              "package_api_items": [
+                "TaskManagementError",
+                "add_user_task_tag",
+                "are_tasks_enabled",
+                "cleanup_task_reminders",
+                "complete_task",
+                "create_task",
+                "delete_task",
+                "ensure_task_directory",
+                "get_task_by_id",
+                "get_tasks_due_soon",
+                "get_user_task_stats",
+                "is_valid_due_date",
+                "is_valid_priority",
+                "is_valid_task_title",
+                "load_active_tasks",
+                "load_completed_tasks",
+                "remove_user_task_tag",
+                "restore_task",
+                "save_active_tasks",
+                "save_completed_tasks",
+                "schedule_task_reminders",
+                "setup_default_task_tags",
+                "update_task",
+                "validate_update_field"
+              ],
+              "registry_items": [
+                "_calculate_next_due_date",
+                "ensure_task_directory",
+                "is_valid_due_date",
+                "is_valid_priority"
+              ]
+            },
+            "user": {
+              "package": "user",
+              "current_exports_count": 4,
+              "should_export_count": 4,
+              "already_exported": [
+                "UserContext",
+                "UserContextManager",
+                "UserPreferences",
+                "user_context_manager"
+              ],
+              "missing_exports": [],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "user_context_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/chatbot.py",
+                    "ai/context_builder.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.context_manager"
+                },
+                "UserContext": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "core/scheduler.py",
+                    "core/schedule_management.py",
+                    "ui/ui_app_qt.py",
+                    "user/context_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.user_context"
+                }
+              },
+              "import_usage_details": {
+                "user_context_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/chatbot.py",
+                    "ai/context_builder.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.context_manager"
+                },
+                "UserContext": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "core/scheduler.py",
+                    "core/schedule_management.py",
+                    "ui/ui_app_qt.py",
+                    "user/context_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.user_context"
+                }
+              },
+              "package_api_items": [
+                "UserContext",
+                "UserContextManager",
+                "UserPreferences"
+              ],
+              "registry_items": [
+                "__getattr__",
+                "__init__",
+                "__new__",
+                "_get_conversation_history",
+                "get_all_preferences",
+                "get_instance_context"
+              ]
+            },
             "ai": {
               "package": "ai",
               "current_exports_count": 22,
@@ -8775,89 +8864,11 @@
                 "add_prompt_template",
                 "ensure_lm_studio_ready"
               ]
-            },
-            "user": {
-              "package": "user",
-              "current_exports_count": 4,
-              "should_export_count": 4,
-              "already_exported": [
-                "UserContext",
-                "UserContextManager",
-                "UserPreferences",
-                "user_context_manager"
-              ],
-              "missing_exports": [],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "user_context_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "ai/context_builder.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.context_manager"
-                },
-                "UserContext": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/scheduler.py",
-                    "core/schedule_management.py",
-                    "ui/ui_app_qt.py",
-                    "user/context_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.user_context"
-                }
-              },
-              "import_usage_details": {
-                "user_context_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "ai/context_builder.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.context_manager"
-                },
-                "UserContext": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/scheduler.py",
-                    "core/schedule_management.py",
-                    "ui/ui_app_qt.py",
-                    "user/context_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.user_context"
-                }
-              },
-              "package_api_items": [
-                "UserContext",
-                "UserContextManager",
-                "UserPreferences"
-              ],
-              "registry_items": [
-                "__getattr__",
-                "__init__",
-                "__new__",
-                "_get_conversation_history",
-                "get_all_preferences",
-                "get_instance_context"
-              ]
             }
           }
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -8868,7 +8879,7 @@
         },
         "details": {}
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -8886,7 +8897,22 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
+    },
+    "analyze_heading_numbering": {
+      "success": true,
+      "data": {
+        "summary": {
+          "total_issues": 0,
+          "files_affected": 0,
+          "status": "CLEAN"
+        },
+        "files": {},
+        "details": {
+          "detailed_issues": {}
+        }
+      },
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -8911,10 +8937,10 @@
             "ui_imports": []
           },
           "stats": {
-            "files_scanned": 561,
+            "files_scanned": 564,
             "files_with_issues": 0,
             "total_unused": 0,
-            "cache_hits": 560,
+            "cache_hits": 563,
             "cache_misses": 1,
             "changed_files": 1,
             "cache_mode": "partial_cache",
@@ -8924,13 +8950,13 @@
             "backend": "ruff",
             "scan_mode": "partial_cache",
             "timings": {
-              "discovery_seconds": 2.4416,
-              "detection_seconds": 0.6075,
-              "categorization_seconds": 0.0082,
-              "total_seconds": 3.4628
+              "discovery_seconds": 2.3327,
+              "detection_seconds": 0.3453,
+              "categorization_seconds": 0.0068,
+              "total_seconds": 2.978
             },
-            "files_per_second": 162.01,
-            "cache_hits": 560,
+            "files_per_second": 189.39,
+            "cache_hits": 563,
             "cache_misses": 1,
             "changed_files": 1,
             "batch_size": 200,
@@ -8949,39 +8975,24 @@
             "production_test_mocking": 0,
             "ui_imports": 0
           },
-          "files_scanned": 561,
+          "files_scanned": 564,
           "_cache_metadata": {
             "cache_mode": "partial_cache",
-            "hits": 560,
+            "hits": 563,
             "misses": 1,
-            "total_cache_checks": 561,
+            "total_cache_checks": 564,
             "hit_rate": 99.8
           }
         },
         "_cache_metadata": {
           "cache_mode": "partial_cache",
-          "hits": 560,
+          "hits": 563,
           "misses": 1,
-          "total_cache_checks": 561,
+          "total_cache_checks": 564,
           "hit_rate": 99.8
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
-    },
-    "analyze_heading_numbering": {
-      "success": true,
-      "data": {
-        "summary": {
-          "total_issues": 0,
-          "files_affected": 0,
-          "status": "CLEAN"
-        },
-        "files": {},
-        "details": {
-          "detailed_issues": {}
-        }
-      },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -8996,7 +9007,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -9011,7 +9022,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_error_handling": {
       "success": true,
@@ -9039,12 +9050,12 @@
             "handle_configuration_error": 4,
             "error_handler_usage": 8,
             "handle_validation_error": 2,
-            "AIError": 2,
-            "MHMError": 2,
+            "handle_file_error": 3,
             "safe_file_operation": 1,
             "FileOperationError": 8,
             "CommunicationError": 2,
-            "handle_file_error": 3
+            "MHMError": 2,
+            "AIError": 2
           },
           "missing_error_handling": [],
           "error_handling_quality": {
@@ -9092,7 +9103,7 @@
           ]
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_duplicate_functions": {
       "success": true,
@@ -11053,25 +11064,7 @@
           "body_similarity_min_name_threshold": 0.35
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
-    },
-    "analyze_dependency_patterns": {
-      "success": true,
-      "data": {
-        "summary": {
-          "total_issues": 0,
-          "files_affected": 0
-        },
-        "details": {
-          "core_dependencies": [],
-          "communication_dependencies": [],
-          "ui_dependencies": [],
-          "third_party_dependencies": [],
-          "circular_dependencies": [],
-          "high_coupling": []
-        }
-      },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_module_refactor_candidates": {
       "success": true,
@@ -11813,7 +11806,25 @@
           }
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
+    },
+    "analyze_dependency_patterns": {
+      "success": true,
+      "data": {
+        "summary": {
+          "total_issues": 0,
+          "files_affected": 0
+        },
+        "details": {
+          "core_dependencies": [],
+          "communication_dependencies": [],
+          "ui_dependencies": [],
+          "third_party_dependencies": [],
+          "circular_dependencies": [],
+          "high_coupling": []
+        }
+      },
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_function_registry": {
       "success": true,
@@ -14081,7 +14092,7 @@
           }
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -14158,7 +14169,7 @@
           }
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_ruff": {
       "success": true,
@@ -14177,7 +14188,7 @@
           "top_rules": []
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -14197,7 +14208,7 @@
             "loaded": true,
             "error": null,
             "active_or_candidate_entries": 1,
-            "removed_entries": 4,
+            "removed_entries": 7,
             "active_search_terms": 0,
             "injected_pattern_count": 0
           },
@@ -14207,14 +14218,14 @@
           },
           "cache": {
             "cache_mode": "partial_cache",
-            "hits": 558,
+            "hits": 565,
             "misses": 2,
-            "total_cache_checks": 560,
+            "total_cache_checks": 567,
             "hit_rate": 99.6
           }
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "analyze_pyright": {
       "success": true,
@@ -14230,27 +14241,27 @@
           "errors": 0,
           "warnings": 0,
           "information": 0,
-          "files_analyzed": 590,
+          "files_analyzed": 593,
           "returncode": 0,
           "top_files": [],
           "top_error_files": [],
           "top_warning_files": []
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 10694,
+          "total_issues": 10793,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "overall_coverage": 62.3,
-            "total_statements": 28343,
-            "total_missed": 10694
+            "overall_coverage": 62.2,
+            "total_statements": 28529,
+            "total_missed": 10793
           },
           "modules": {
             "development_tools\\__init__.py": {
@@ -14458,8 +14469,8 @@
             },
             "development_tools\\config\\config.py": {
               "statements": 596,
-              "missed": 125,
-              "coverage": 79,
+              "missed": 131,
+              "coverage": 78,
               "missing_lines": [
                 "60",
                 "62",
@@ -14485,16 +14496,21 @@
                 "453",
                 "454",
                 "455",
-                "507",
-                "517",
+                "514",
+                "515",
+                "516",
                 "527",
                 "535",
                 "536",
                 "537",
                 "538",
                 "539",
-                "559",
-                "569",
+                "556",
+                "557",
+                "558",
+                "566",
+                "567",
+                "568",
                 "600",
                 "616",
                 "617",
@@ -14585,9 +14601,10 @@
                 "1534",
                 "1568",
                 "1577",
-                "1579"
+                "1579",
+                "1662"
               ],
-              "covered": 471
+              "covered": 465
             },
             "development_tools\\config\\sync_ruff_toml.py": {
               "statements": 69,
@@ -16913,8 +16930,8 @@
             },
             "development_tools\\functions\\generate_function_registry.py": {
               "statements": 493,
-              "missed": 140,
-              "coverage": 72,
+              "missed": 141,
+              "coverage": 71,
               "missing_lines": [
                 "20",
                 "25",
@@ -17003,6 +17020,7 @@
                 "919",
                 "924",
                 "954",
+                "1085",
                 "1210",
                 "1211",
                 "1213",
@@ -17057,7 +17075,7 @@
                 "1326",
                 "1327"
               ],
-              "covered": 353
+              "covered": 352
             },
             "development_tools\\imports\\__init__.py": {
               "statements": 0,
@@ -17802,8 +17820,8 @@
             },
             "development_tools\\legacy\\fix_legacy_references.py": {
               "statements": 166,
-              "missed": 26,
-              "coverage": 84,
+              "missed": 25,
+              "coverage": 85,
               "missing_lines": [
                 "36",
                 "46",
@@ -17811,7 +17829,6 @@
                 "50",
                 "58",
                 "59",
-                "95",
                 "103",
                 "104",
                 "125",
@@ -17832,7 +17849,7 @@
                 "364",
                 "366"
               ],
-              "covered": 140
+              "covered": 141
             },
             "development_tools\\legacy\\generate_legacy_reference_report.py": {
               "statements": 189,
@@ -18394,9 +18411,9 @@
               "covered": 51
             },
             "development_tools\\shared\\cli_interface.py": {
-              "statements": 358,
+              "statements": 364,
               "missed": 143,
-              "coverage": 60,
+              "coverage": 61,
               "missing_lines": [
                 "20",
                 "35",
@@ -18481,68 +18498,68 @@
                 "372",
                 "373",
                 "374",
-                "412",
-                "413",
-                "454",
-                "455",
-                "508",
-                "511",
-                "514",
-                "515",
-                "518",
-                "519",
-                "522",
+                "424",
+                "425",
+                "466",
+                "467",
+                "520",
                 "523",
-                "524",
+                "526",
                 "527",
-                "528",
-                "538",
+                "530",
+                "531",
+                "534",
+                "535",
+                "536",
                 "539",
-                "543",
-                "544",
-                "545",
-                "554",
+                "540",
+                "550",
+                "551",
                 "555",
                 "556",
-                "573",
-                "580",
-                "581",
-                "624",
-                "625",
-                "626",
-                "627",
-                "628",
-                "629",
-                "632",
-                "633",
-                "634",
-                "635",
+                "557",
+                "566",
+                "567",
+                "568",
+                "585",
+                "592",
+                "593",
                 "636",
                 "637",
+                "638",
+                "639",
+                "640",
                 "641",
-                "642",
-                "667",
-                "668",
+                "644",
+                "645",
+                "646",
+                "647",
+                "648",
+                "649",
+                "653",
+                "654",
                 "679",
-                "682",
-                "692",
-                "696",
-                "697",
-                "698",
-                "700",
-                "701",
-                "702",
-                "703",
-                "707",
+                "680",
+                "691",
+                "694",
+                "704",
                 "708",
                 "709",
                 "710",
-                "711",
                 "712",
+                "713",
                 "714",
-                "715"
+                "715",
+                "719",
+                "720",
+                "721",
+                "722",
+                "723",
+                "724",
+                "726",
+                "727"
               ],
-              "covered": 215
+              "covered": 221
             },
             "development_tools\\shared\\common.py": {
               "statements": 108,
@@ -21124,8 +21141,8 @@
             },
             "development_tools\\shared\\service\\report_generation.py": {
               "statements": 4093,
-              "missed": 1719,
-              "coverage": 58,
+              "missed": 1680,
+              "coverage": 59,
               "missing_lines": [
                 "35",
                 "42",
@@ -21239,7 +21256,6 @@
                 "376",
                 "377",
                 "383",
-                "387",
                 "393",
                 "425",
                 "434",
@@ -21573,9 +21589,8 @@
                 "2078",
                 "2089",
                 "2090",
-                "2093",
-                "2094",
-                "2099",
+                "2103",
+                "2104",
                 "2119",
                 "2122",
                 "2123",
@@ -21683,9 +21698,10 @@
                 "2614",
                 "2634",
                 "2657",
-                "2672",
-                "2675",
+                "2667",
+                "2670",
                 "2685",
+                "2698",
                 "2701",
                 "2702",
                 "2749",
@@ -21969,30 +21985,7 @@
                 "4341",
                 "4344",
                 "4347",
-                "4369",
-                "4372",
-                "4373",
-                "4375",
-                "4376",
-                "4377",
-                "4378",
-                "4379",
-                "4380",
-                "4381",
-                "4383",
-                "4384",
-                "4389",
-                "4390",
-                "4391",
-                "4392",
-                "4393",
-                "4394",
                 "4395",
-                "4398",
-                "4402",
-                "4405",
-                "4408",
-                "4412",
                 "4426",
                 "4429",
                 "4463",
@@ -22222,7 +22215,6 @@
                 "5723",
                 "5726",
                 "5743",
-                "5745",
                 "5764",
                 "5781",
                 "5782",
@@ -22494,23 +22486,9 @@
                 "6616",
                 "6628",
                 "6629",
-                "6632",
-                "6633",
-                "6638",
-                "6641",
-                "6643",
-                "6644",
-                "6645",
-                "6646",
-                "6647",
-                "6648",
-                "6649",
-                "6651",
-                "6652",
-                "6657",
-                "6661",
                 "6662",
-                "6665",
+                "6667",
+                "6668",
                 "6673",
                 "6690",
                 "6693",
@@ -22806,9 +22784,9 @@
                 "8011",
                 "8012",
                 "8031",
-                "8045",
-                "8046",
-                "8047",
+                "8041",
+                "8042",
+                "8043",
                 "8087",
                 "8088",
                 "8089",
@@ -22847,7 +22825,7 @@
                 "8190",
                 "8193"
               ],
-              "covered": 2374
+              "covered": 2413
             },
             "development_tools\\shared\\service\\report_generation_linkify.py": {
               "statements": 25,
@@ -23548,8 +23526,8 @@
               "missed": 2,
               "coverage": 95,
               "missing_lines": [
-                "498",
-                "511"
+                "514",
+                "527"
               ],
               "covered": 37
             },
@@ -23875,8 +23853,8 @@
             },
             "development_tools\\tests\\dev_tools_coverage_cache.py": {
               "statements": 274,
-              "missed": 85,
-              "coverage": 69,
+              "missed": 88,
+              "coverage": 68,
               "missing_lines": [
                 "26",
                 "27",
@@ -23889,6 +23867,9 @@
                 "51",
                 "114",
                 "115",
+                "117",
+                "123",
+                "129",
                 "132",
                 "133",
                 "141",
@@ -23964,7 +23945,7 @@
                 "409",
                 "410"
               ],
-              "covered": 189
+              "covered": 186
             },
             "development_tools\\tests\\domain_mapper.py": {
               "statements": 162,
@@ -24038,6 +24019,87 @@
                 "75"
               ],
               "covered": 29
+            },
+            "development_tools\\tests\\flaky_detector.py": {
+              "statements": 124,
+              "missed": 73,
+              "coverage": 41,
+              "missing_lines": [
+                "41",
+                "61",
+                "87",
+                "93",
+                "94",
+                "98",
+                "99",
+                "100",
+                "101",
+                "102",
+                "103",
+                "104",
+                "114",
+                "121",
+                "122",
+                "123",
+                "124",
+                "133",
+                "135",
+                "136",
+                "137",
+                "138",
+                "139",
+                "141",
+                "149",
+                "150",
+                "153",
+                "155",
+                "156",
+                "169",
+                "170",
+                "171",
+                "172",
+                "173",
+                "174",
+                "176",
+                "178",
+                "179",
+                "181",
+                "182",
+                "195",
+                "196",
+                "204",
+                "205",
+                "207",
+                "208",
+                "209",
+                "210",
+                "212",
+                "213",
+                "214",
+                "216",
+                "224",
+                "226",
+                "227",
+                "229",
+                "230",
+                "232",
+                "233",
+                "234",
+                "235",
+                "239",
+                "240",
+                "241",
+                "242",
+                "243",
+                "244",
+                "245",
+                "246",
+                "247",
+                "249",
+                "250",
+                "251"
+              ],
+              "covered": 51
             },
             "development_tools\\tests\\generate_test_coverage_report.py": {
               "statements": 398,
@@ -24234,7 +24296,7 @@
             },
             "development_tools\\tests\\run_test_coverage.py": {
               "statements": 2276,
-              "missed": 1302,
+              "missed": 1301,
               "coverage": 43,
               "missing_lines": [
                 "46",
@@ -24258,9 +24320,11 @@
                 "115",
                 "186",
                 "192",
+                "203",
                 "221",
                 "228",
                 "237",
+                "244",
                 "300",
                 "303",
                 "305",
@@ -25477,9 +25541,6 @@
                 "4912",
                 "4913",
                 "4914",
-                "5008",
-                "5009",
-                "5010",
                 "5013",
                 "5014",
                 "5015",
@@ -25540,11 +25601,11 @@
                 "5260",
                 "5261"
               ],
-              "covered": 974
+              "covered": 975
             },
             "development_tools\\tests\\test_file_coverage_cache.py": {
               "statements": 619,
-              "missed": 197,
+              "missed": 198,
               "coverage": 68,
               "missing_lines": [
                 "38",
@@ -25611,19 +25672,20 @@
                 "431",
                 "432",
                 "433",
-                "443",
-                "444",
-                "445",
-                "446",
                 "448",
                 "449",
                 "450",
                 "451",
                 "463",
                 "464",
+                "466",
+                "467",
+                "473",
                 "474",
                 "475",
                 "476",
+                "477",
+                "483",
                 "491",
                 "494",
                 "495",
@@ -25745,7 +25807,71 @@
                 "1144",
                 "1155"
               ],
-              "covered": 422
+              "covered": 421
+            },
+            "development_tools\\tests\\verify_process_cleanup.py": {
+              "statements": 56,
+              "missed": 56,
+              "coverage": 0,
+              "missing_lines": [
+                "8",
+                "10",
+                "11",
+                "12",
+                "13",
+                "16",
+                "18",
+                "19",
+                "20",
+                "27",
+                "28",
+                "30",
+                "31",
+                "32",
+                "33",
+                "34",
+                "35",
+                "36",
+                "37",
+                "38",
+                "39",
+                "40",
+                "41",
+                "44",
+                "46",
+                "47",
+                "48",
+                "49",
+                "50",
+                "51",
+                "52",
+                "53",
+                "54",
+                "57",
+                "58",
+                "59",
+                "60",
+                "61",
+                "63",
+                "64",
+                "65",
+                "66",
+                "67",
+                "68",
+                "69",
+                "71",
+                "72",
+                "73",
+                "74",
+                "75",
+                "77",
+                "78",
+                "79",
+                "80",
+                "81",
+                "82"
+              ],
+              "covered": 0
             }
           },
           "coverage_collected": true,
@@ -25759,10 +25885,10 @@
             "log_file": null,
             "return_code_hex": "0x00000000",
             "return_code": 0,
-            "passed_count": 1173,
+            "passed_count": 1177,
             "failed_count": 0,
             "error_count": 0,
-            "skipped_count": 1,
+            "skipped_count": 0,
             "failed_node_ids": []
           }
         },
@@ -25772,7 +25898,7 @@
           "source": "run_test_coverage --dev-tools-only"
         }
       },
-      "timestamp": "2026-04-09T01:34:34.472392"
+      "timestamp": "2026-04-09T03:04:06.314721"
     }
   }
 }

@@ -260,20 +260,24 @@ def test_get_tier3_groups_respects_full_vs_dev_tools_only_scope():
 
     svc = MagicMock()
     svc.dev_tools_only_mode = False
-    main, dev, dep, _, _ = get_tier3_groups(svc)
+    main, dev, dep, _, static = get_tier3_groups(svc)
     assert [n for n, _ in main] == ["run_test_coverage"]
     assert dev == []
     dep_names = [n for n, _ in dep]
     assert "generate_test_coverage_report" in dep_names
     assert "analyze_test_markers" in dep_names
+    static_names = [n for n, _ in static]
+    assert "verify_process_cleanup" in static_names
 
     svc.dev_tools_only_mode = True
-    main, dev, dep, _, _ = get_tier3_groups(svc)
+    main, dev, dep, _, static = get_tier3_groups(svc)
     assert main == []
     assert [n for n, _ in dev] == ["generate_dev_tools_coverage"]
     dep_names_dt = [n for n, _ in dep]
     assert "generate_test_coverage_report" not in dep_names_dt
     assert "analyze_backup_health" in dep_names_dt
+    static_names_dt = [n for n, _ in static]
+    assert "verify_process_cleanup" in static_names_dt
 
 
 @pytest.mark.unit
@@ -291,6 +295,7 @@ def test_get_expected_tools_for_tier_matrix(temp_project_copy: Path):
     assert "run_test_coverage" in tier3
     assert "generate_dev_tools_coverage" not in tier3
     assert "analyze_pyright" in tier3
+    assert "verify_process_cleanup" in tier3
 
     service.dev_tools_only_mode = True
     tier3_dt = service._get_expected_tools_for_tier(3)

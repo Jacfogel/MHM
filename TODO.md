@@ -39,8 +39,8 @@ When adding new tasks, follow this format:
 
 **Development tools backlog (scheduled review order, 2026-03-26)**  
 - Portability / Section 7.6: full Pyright diagnostic parity tests when tolerance rules exist (policy tests today: `tests/development_tools/test_pyright_config_paths.py`).  
-- Section 3.12 flaky detector: `scripts/flaky_detector.py` when present; migrate per [scripts/SCRIPTS_GUIDE.md](scripts/SCRIPTS_GUIDE.md) Section 3.2, CLI + metadata wiring.  
-- Section 3.13-Section 3.14: scripts inventory; decision on `scripts/testing/verify_process_cleanup.py`; cleanup candidates under `scripts/`.  
+- Section 3.12 flaky detector: migrated to tracked `development_tools/tests/flaky_detector.py` with CLI command `flaky-detector`; continue follow-up hardening/tests as needed.  
+- Section 3.13-Section 3.14: migrated `scripts/testing/verify_process_cleanup.py` to tracked `development_tools/tests/verify_process_cleanup.py`; `scripts/cleanup_project.py` remains historical while `development_tools/shared/fix_project_cleanup.py` is canonical.  
 - Section 4.1: external tools evaluation (bandit, pip-audit, radon, pre-commit) per paired guides Section 10.  
 - Section 5.x: low-priority gap tools (unused-imports fixer, doc overlap, TODO sync auto-clean, memory profiler).  
 Detail: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md).

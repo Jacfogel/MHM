@@ -647,6 +647,98 @@ class ReportGenerationMixin:
             )
         lines.append("")
 
+    def _lines_for_verify_process_cleanup_status_snapshot(
+        self, vpc_data: dict[str, Any] | None
+    ) -> list[str]:
+        """1-2 lines for AI_STATUS Snapshot: Tier 3 verify_process_cleanup advisory."""
+        if not vpc_data or not isinstance(vpc_data, dict):
+            return [
+                "- **Pytest process cleanup**: No data (run `audit --full` Tier 3 to refresh)"
+            ]
+        details = vpc_data.get("details", {})
+        summary = vpc_data.get("summary", {})
+        platform = str(details.get("platform", "") or "")
+        if platform != "win32":
+            return ["- **Pytest process cleanup**: N/A (Windows-only check)"]
+        n = self._coerce_int(summary.get("total_issues"), 0) or 0
+        st = str(summary.get("status", "")).upper()
+        if n > 0 or st == "WARN":
+            return [
+                "- **Pytest process cleanup**: "
+                f"WARN ({n} candidate python.exe process(es); heuristic — see CONSOLIDATED_REPORT.md)"
+            ]
+        return ["- **Pytest process cleanup**: PASS (no candidate orphan workers)"]
+
+    def _lines_for_verify_process_cleanup_consolidated_section(
+        self, vpc_data: dict[str, Any] | None
+    ) -> list[str]:
+        """Detailed ## Pytest process cleanup section for CONSOLIDATED_REPORT."""
+        out: list[str] = []
+        out.append("## Pytest process cleanup (Windows)")
+        if not vpc_data or not isinstance(vpc_data, dict):
+            out.append(
+                "- **Status**: No tool data loaded (run `audit --full` Tier 3 to refresh)."
+            )
+            out.append("")
+            return out
+        details = vpc_data.get("details", {})
+        summary = vpc_data.get("summary", {})
+        platform = str(details.get("platform", "") or "")
+        if platform != "win32":
+            out.append(
+                f"- **Status**: Skipped on this host (`platform={platform or 'unknown'}`); "
+                "the check is implemented for Windows."
+            )
+            out.append("")
+            return out
+        n = self._coerce_int(summary.get("total_issues"), 0) or 0
+        st = str(summary.get("status", "")).upper()
+        found = bool(details.get("orphaned_processes_found"))
+        offenders = details.get("orphaned_processes") or []
+        out.append(
+            f"- **Summary**: status={st}, `orphaned_processes_found`={found}, "
+            f"candidate count={n} (heuristic on python.exe command lines)."
+        )
+        out.append(
+            "- **Note**: Detection is limited until command lines are populated reliably "
+            "(see AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md §3.18)."
+        )
+        json_path = (
+            self.project_root
+            / "development_tools"
+            / "tests"
+            / "jsons"
+            / "verify_process_cleanup_results.json"
+        )
+        if not json_path.exists():
+            scoped = (
+                self.project_root
+                / "development_tools"
+                / "tests"
+                / "jsons"
+                / "scopes"
+                / "full"
+                / "verify_process_cleanup_results.json"
+            )
+            if scoped.exists():
+                json_path = scoped
+        if json_path.exists():
+            href = self._markdown_href_from_dev_tools_report(json_path)
+            out.append(
+                f"- **Machine-readable**: [verify_process_cleanup_results.json]({href})"
+            )
+        if isinstance(offenders, list) and offenders:
+            out.append("- **Candidates** (PID and flags; command line may be empty):")
+            for off in offenders[:20]:
+                if isinstance(off, dict):
+                    pid = off.get("pid", "?")
+                    pytest_flag = off.get("is_pytest", False)
+                    out.append(f"    - PID {pid}, pytest_like={pytest_flag}")
+            if len(offenders) > 20:
+                out.append(f"    - ... +{len(offenders) - 20} more")
+        out.append("")
+        return out
+
     def _generate_ai_status_document(self) -> str:
         """Generate AI-optimized status document."""
         # Log data source context
@@ -829,6 +921,9 @@ class ReportGenerationMixin:
             "analyze_backup_health", "reports", log_source=False
         )
         static_analysis = self._get_static_analysis_snapshot()
+        verify_process_cleanup_status_data = self._load_tool_data(
+            "verify_process_cleanup", "tests"
+        )
 
         # Extract overlap analysis data
         details = analyze_docs_data.get("details", {})
@@ -1369,6 +1464,12 @@ class ReportGenerationMixin:
             )
         else:
             lines.append("- **Static Analysis (ruff/pyright)**: CLEAN")
+
+        lines.extend(
+            self._lines_for_verify_process_cleanup_status_snapshot(
+                verify_process_cleanup_status_data
+            )
+        )
 
         lines.append("")
         lines.append("## Documentation Signals")
@@ -2891,6 +2992,9 @@ class ReportGenerationMixin:
             "analyze_unconverted_links", "docs"
         )
         test_markers_data = self._load_tool_data("analyze_test_markers", "tests")
+        verify_process_cleanup_priority_data = self._load_tool_data(
+            "verify_process_cleanup", "tests"
+        )
         unused_imports_data = self._load_tool_data("analyze_unused_imports", "imports")
         dependency_patterns_data = self._load_tool_data(
             "analyze_dependency_patterns", "imports"
@@ -3396,6 +3500,7 @@ class ReportGenerationMixin:
                 "Update tools to use centralized config": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
                 "Add docstrings to handler classes": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Add pytest category markers to tests": "ai_development_docs/AI_TESTING_GUIDE.md",
+                "Review orphaned pytest worker processes (Windows)": "ai_development_docs/AI_TESTING_GUIDE.md",
                 "Remove obvious unused imports": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Investigate possible duplicate functions/methods": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Consider refactoring large or high-complexity modules": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md, ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
@@ -3419,6 +3524,7 @@ class ReportGenerationMixin:
                 "Update tools to use centralized config": "development_tools/ai_work/jsons/analyze_ai_work_results.json",
                 "Add docstrings to handler classes": "development_tools/functions/jsons/analyze_function_patterns_results.json",
                 "Add pytest category markers to tests": "development_tools/tests/jsons/analyze_test_markers_results.json",
+                "Review orphaned pytest worker processes (Windows)": "development_tools/tests/jsons/verify_process_cleanup_results.json",
                 "Remove obvious unused imports": "development_docs/UNUSED_IMPORTS_REPORT.md",
                 "Investigate possible duplicate functions/methods": "development_tools/functions/jsons/analyze_duplicate_functions_results.json",
                 "Consider refactoring large or high-complexity modules": "development_tools/functions/jsons/analyze_module_refactor_candidates_results.json",
@@ -4415,6 +4521,31 @@ class ReportGenerationMixin:
                     reason=f"{actual_count} tests are missing pytest category markers.",
                     bullets=test_markers_bullets,
                 )
+
+        # verify_process_cleanup — Windows only; surface in priorities when WARN/issues
+        if verify_process_cleanup_priority_data and isinstance(
+            verify_process_cleanup_priority_data, dict
+        ):
+            vpc_pd = verify_process_cleanup_priority_data.get("details", {}) or {}
+            vpc_ps = verify_process_cleanup_priority_data.get("summary", {}) or {}
+            if str(vpc_pd.get("platform", "") or "") == "win32":
+                vpc_n = self._coerce_int(vpc_ps.get("total_issues"), 0) or 0
+                vpc_st = str(vpc_ps.get("status", "") or "").upper()
+                if vpc_n > 0 or vpc_st == "WARN":
+                    vpc_bullets = [
+                        "Action: Inspect candidate PIDs in the results JSON; end only processes you have verified are stale pytest-xdist workers.",
+                        "Limitation: orphan detection is heuristic until full command lines are available from the OS (see AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md §3.18).",
+                    ]
+                    add_priority(
+                        tier=3,
+                        title="Review orphaned pytest worker processes (Windows)",
+                        reason=(
+                            f"{vpc_n} candidate orphan pytest worker process(es) "
+                            "(heuristic; see JSON for PID list)."
+                        ),
+                        bullets=vpc_bullets,
+                        validate=False,
+                    )
 
         # Unused imports priority
         # Only recommend removing "Obvious Unused" imports (not test mocking, Qt testing, etc.)
@@ -5630,6 +5761,9 @@ class ReportGenerationMixin:
         backup_health_data = self._load_tool_data(
             "analyze_backup_health", "reports", log_source=False
         )
+        verify_process_cleanup_data_cr = self._load_tool_data(
+            "verify_process_cleanup", "tests", log_source=False
+        )
         static_analysis = self._get_static_analysis_snapshot()
 
         # Get missing docstrings count for consolidated report
@@ -5745,6 +5879,20 @@ class ReportGenerationMixin:
                 lines.append(
                     f"- Test markers: {missing_markers} tests missing category markers"
                 )
+
+        if verify_process_cleanup_data_cr and isinstance(
+            verify_process_cleanup_data_cr, dict
+        ):
+            vpc_ex = verify_process_cleanup_data_cr.get("details", {}) or {}
+            vpc_sm = verify_process_cleanup_data_cr.get("summary", {}) or {}
+            if str(vpc_ex.get("platform", "") or "") == "win32":
+                vpc_n_ex = self._coerce_int(vpc_sm.get("total_issues"), 0) or 0
+                vpc_st_ex = str(vpc_sm.get("status", "") or "").upper()
+                if vpc_n_ex > 0 or vpc_st_ex == "WARN":
+                    lines.append(
+                        f"- **Pytest process cleanup (Windows)**: WARN — {vpc_n_ex} "
+                        "candidate orphan worker process(es); see **Pytest process cleanup (Windows)** below."
+                    )
 
         # Use error_details for consistent metric sourcing (same as AI_STATUS/AI_PRIORITIES)
         error_cov = error_details.get("analyze_error_handling") or error_details.get(
@@ -6677,6 +6825,12 @@ class ReportGenerationMixin:
             lines.append("- Run `audit --full` to regenerate coverage metrics")
 
         lines.append("")
+
+        lines.extend(
+            self._lines_for_verify_process_cleanup_consolidated_section(
+                verify_process_cleanup_data_cr
+            )
+        )
 
         # Unused Imports
         lines.append("## Unused Imports")

@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Single forward-looking backlog after V4; collapsed history; actionable next steps  
 > **Style**: Direct and concise  
-> **Last Updated**: 2026-04-08  
+> **Last Updated**: 2026-04-09  
 > **Supersedes**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (keep V4 for detailed checkbox history)
 
 **Authoritative metrics**: [development_tools/AI_STATUS.md](AI_STATUS.md) and [development_tools/AI_PRIORITIES.md](AI_PRIORITIES.md) after `python development_tools/run_development_tools.py audit` or `audit --full`.
@@ -37,8 +37,9 @@ This section answers: *Were V4 completed items actually done? Was work thorough 
 
 - **`tests/development_tools/test_config.json` migration** for all analyzer-using tests — still deferred (V4 §1.1).
 - **Scope-aware report content** for `--dev-tools-only` — **expanded (2026-04-08)**: priorities/status quick wins and several ranked items filter to `development_tools/`; paired-doc quick wins intentionally omitted on dev-tools runs; see **§7.18**. **Remaining**: drive **Tier 3 coverage execution from audit scope** so a single run does not refresh both full-repo and dev-tools coverage when only one scope is intended (see **§5.1 — 1.9** and **§7.15**).
-- **Flaky detector**: `scripts/flaky_detector.py` is **not** in the current tree; migration and CLI wiring **not done** (V4 §3.12).
-- **Scripts migration inventory**, **3.14 review candidates**, **3.15 gap tasks** — open.
+- **Flaky detector**: migrated from `scripts/flaky_detector.py` into tracked `development_tools/tests/flaky_detector.py` with CLI command wiring (`flaky-detector`) and tests — see **§5.3 — 3.12**.
+- **Scripts migration inventory / 3.14 review candidates**: updated with concrete migrations for `flaky_detector` and `verify_process_cleanup`, plus canonical cleanup ownership (`development_tools/shared/fix_project_cleanup.py`) — see **§5.3 — 3.13/3.14**.
+- **§3.15 gap tasks** — deferred unless a concrete replacement requirement reappears with active source.
 - **§3.16** `report_generation.py` / `run_test_coverage.py` split — **plan only**, no implementation backlog beyond AI_PRIORITIES refactor candidates.
 - **§6 Audit-driven remediation** (legacy markers, deprecation inventory items, domain coverage, complexity) — **ongoing product work**, not tool-suite bugs.
 
@@ -75,6 +76,8 @@ Use **AI_STATUS.md** after each audit. Example **2026-04-08** (Tier 3 full, afte
 **2026-04-08 (this plan iteration)**: §2.8 scoped-report copy in `DEV_TOOLS_*` (snapshot coverage vs full-repo staleness, scope notes, consolidated reference links); overlap analyzer filters numbered generic headings; §4.1 external-tool stance recorded in paired guides §10; §1.5 benchmark recipe noted in paired changelogs (numeric wall-clock still machine-local).
 
 **2026-04-09**: Legacy scan now clean after removing a false-positive "legacy paths" phrase from `fix_project_cleanup.py`; documentation-overlap noise reduced by adding `prerequisites` and `test suite structure` to `EXPECTED_OVERLAPS` so shared test-guide boilerplate is not flagged.
+
+**2026-04-09 (scripts backlog execution slice)**: migrated local script utilities into tracked dev-tools paths: `scripts/flaky_detector.py` -> `development_tools/tests/flaky_detector.py` and `scripts/testing/verify_process_cleanup.py` -> `development_tools/tests/verify_process_cleanup.py`; added CLI commands (`flaky-detector`, `verify-process-cleanup`), command docs updates, and unit tests. `development_tools/shared/fix_project_cleanup.py` remains canonical cleanup implementation for the `cleanup_project` overlap.
 
 ---
 
@@ -207,41 +210,33 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 #### 3.12 Integrate flaky detector into development tools suite
 
-- **Status**: **PENDING**. **User priority**: Medium/low.
-- **Context (V4)**: Backlog pointer in paired guides §10; `scripts/flaky_detector.py` may be **absent** from tree — restore from git history before move if needed; see [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) §3.2.
-- **Open tasks**:
-  - Move `scripts/flaky_detector.py` to `development_tools/tests/` with clear ownership and module boundaries.
-  - Wire flaky detection into dev-tools CLI + tool metadata (standalone command + optional audit hook).
-  - Standardize logs/outputs (`development_tools/tests/logs` + JSON/markdown schema).
-  - Add tests: runtime metrics, timeout behavior, worker-log consolidation on interrupted runs.
-  - Update [AI_DEVELOPMENT_TOOLS_GUIDE.md](AI_DEVELOPMENT_TOOLS_GUIDE.md), [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md), test workflow docs.
+- **Status**: **COMPLETE (2026-04-09)**.
+- **Decision**: Migrated functionality to tracked `development_tools/tests/flaky_detector.py`.
+- **Delivered**: CLI wiring (`flaky-detector`), tool metadata registration, and targeted unit tests.
 
 #### 3.13 Scripts-to-development-tools migration (persistent scripts)
 
-- **Status**: **PENDING**. **User priority**: Continue.
+- **Status**: **COMPLETE (2026-04-09)**. **User priority**: Continue.
+- **Completed this slice**:
+  - Built a definitive inventory from local script sources and migrated persistent test utilities into tracked dev-tools ownership.
+  - Migrated `scripts/testing/verify_process_cleanup.py` to `development_tools/tests/verify_process_cleanup.py`.
+  - Updated active guidance docs to reflect migration/canonical ownership decisions.
 - **Open tasks**:
-  - Build a **definitive migration inventory** from current tracked references to `scripts/` (exclude changelog-history-only references).
-  - **Decision**: Move `scripts/testing/verify_process_cleanup.py` to `development_tools/tests/` **only if** kept as a maintained diagnostic; else retire and remove doc references.
-  - Add/adjust tests for migrated scripts where behavior is non-trivial (argument parsing, output paths, failure codes).
-  - Remove stale `scripts/` references from **active** docs after migration completes.
-  - Track project-specific script ownership in `TODO.md` (not in this plan).
-  - **Do not duplicate**: flaky detector stays under §3.12; memory profiler under §5.6.
+  - Keep project-specific script ownership items in `TODO.md` (runtime/admin utilities that are not dev-tools portability work).
+  - If new persistent scripts are introduced later, classify immediately (`migrate_to_development_tools` / `retain_as_project_script` / `retire`) using canonical-list and portability rules.
 
 #### 3.14 Scripts review candidates (evaluate before retire/migrate)
 
-- **Status**: **PENDING**. **User priority**: Systematic review.
-- **Open**: Review each path for durable value vs retirement:
-  - `scripts/utilities/cleanup/cleanup_test_data.py`
-  - `scripts/utilities/cleanup/cleanup_user_message_files.py`
-  - `scripts/cleanup_project.py` vs `development_tools/shared/fix_project_cleanup.py`
-  - AI/manual smoke: `scripts/testing/ai/script_test_ai_with_clear_cache.py`, `script_test_comprehensive_ai.py`, `script_test_data_integrity.py`, `script_test_lm_studio.py`, `scripts/testing/script_test_user_data_analysis.py`
-  - Worker/memory diagnostics: `scripts/testing/parse_worker_from_terminal.py`, `extract_worker_test_assignments.py`, `extract_worker_tests_from_profiler_output.py`, `cross_reference_worker_runs.py`, `debug_memory_leak.py`, `investigate_memory_leak.py`, `analyze_memory_leak.py`, `cleanup_old_test_dirs.py`
-  - `scripts/testing/validate_config.py` — runtime/admin vs retire
-  - Ad-hoc: `scripts/debug/*.py`, `scripts/demo_dynamic_checkin.py`
+- **Status**: **PARTIAL COMPLETE (2026-04-09)**. **User priority**: Systematic review.
+- **Decision set (tracked tree)**:
+  - `scripts/cleanup_project.py` vs `development_tools/shared/fix_project_cleanup.py`: canonical owner is `development_tools/shared/fix_project_cleanup.py`; script path treated as retired historical reference.
+  - `flaky_detector` and `verify_process_cleanup` are now migrated to tracked dev-tools paths.
+  - Remaining non-migrated `scripts/*` candidates continue as backlog items for later path-by-path review.
+- **Operational rule**: keep `scripts/` temporary-only; if a script becomes persistent, migrate immediately to tracked ownership per [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md).
 
 #### 3.15 Gap tasks from retired scripts (development-tools scope)
 
-- **Status**: **PENDING**. **User priority**: Low.
+- **Status**: **DEFERRED (no active source files in tracked tree)**. **User priority**: Low.
 - **Open**:
   - Incorporate heuristics from retired `scripts/cleanup_unused_imports.py` (missing logging / error-handling / type-hints categorization) into `analyze_unused_imports.py` and/or `generate_unused_imports_report.py` — **evaluate**.
   - Add dedicated per-function AST helper/fixer for try-except → decorator migration (inspired by `scripts/replace_try_except_with_decorator.py`), complementing `error_handling/analyze_error_handling.py` — **evaluate**.
@@ -260,6 +255,13 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
   - Hardcoded-path hotspots: **2026-03-28** slices landed for `run_dev_tools.py` / `legacy/fix_legacy_references.py` (`Path.resolve()` bootstrap), `generate_function_registry.py` output paths (module `project_root`); continue review for `run_development_tools.py`, `config/analyze_config.py`, and any new call sites.
   - Some environments: `audit --full --strict` may hit **runtime limits** — full portability validation still a goal.
   - Import-boundary check exists; keep enforcing isolation of `development_tools/**` from business domains.
+
+#### 3.18 `verify_process_cleanup` — reliable Windows orphan detection
+
+- **Status**: **OPEN**. **User priority**: Medium.
+- **Problem**: The checker uses `tasklist`-style process listing, which does **not** expose full command lines. Heuristic matching on empty/partial cmdline under-reports or mis-classifies pytest-xdist workers.
+- **Goal**: Retrieve `CommandLine` reliably on Windows (e.g. **WMI/CIM** `Win32_Process`, or `Get-CimInstance` / `wmic` with documented fallbacks) so reporting in **AI_PRIORITIES** / **CONSOLIDATED_REPORT** reflects real orphan risk.
+- **Reporting**: Tier 3 JSON + STATUS snapshot + consolidated section already surface WARN when candidates exist; priorities list the item **only when** there are issues.
 
 ---
 
@@ -437,7 +439,7 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 - **§1.3** — Intermittent low coverage: **MONITORING**; reopen on recurrence.
 - **§1.2** — `test_audit_tier_comprehensive.py`: **deferred** unless cost/benefit justifies re-enable.
 
-**Lower backlog (opportunistic, 2026-03-28)** — pick up when touching related code: §1.1 adopt `test_config.json` in analyzer tests you edit; §1.9 orchestration when refactoring Tier 3; §3.0 example-marking in doc-sync; §3.12 restore `flaky_detector` from history if needed then migrate; §3.13–3.14 scripts inventory; §3.15 gap heuristics; §3.16 extract helpers from `report_generation.py` / `run_test_coverage.py`; §7.8–7.13, §7.15 as separately prioritized.
+**Lower backlog (opportunistic, 2026-03-28)** — pick up when touching related code: §1.1 adopt `test_config.json` in analyzer tests you edit; §1.9 orchestration when refactoring Tier 3; §3.0 example-marking in doc-sync; §3.13–3.14 remaining scripts inventory/review candidates; §3.15 gap heuristics; §3.16 extract helpers from `report_generation.py` / `run_test_coverage.py`; §7.8–7.13, §7.15 as separately prioritized.
 
 ---
 

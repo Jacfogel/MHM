@@ -1918,6 +1918,93 @@ class CommandsMixin:
             result['error'] = error_msg
         
         return result
+
+    def run_flaky_detector(self, *args: str) -> dict:
+        """Run flaky detector and normalize output to standard format."""
+        logger.debug("Running flaky detector...")
+        cli_args = list(args)
+        if "--json" not in cli_args:
+            cli_args.append("--json")
+
+        result = self.run_script("flaky_detector", *cli_args, timeout=3600)
+        output = result.get("output", "")
+        if not output:
+            logger.error("flaky_detector returned empty output")
+            return {
+                "success": False,
+                "output": "",
+                "error": result.get("error", "No output"),
+                "returncode": result.get("returncode"),
+            }
+
+        try:
+            raw_data = json.loads(output)
+            from ..result_format import normalize_to_standard_format
+
+            normalized = normalize_to_standard_format("flaky_detector", raw_data)
+            result["data"] = normalized
+            result["success"] = True
+            try:
+                save_tool_result(
+                    "flaky_detector", "tests", normalized, project_root=self.project_root
+                )
+            except Exception as e:
+                logger.debug(f"Failed to save flaky_detector result: {e}")
+            return result
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.error(f"flaky_detector output normalization failed: {e}")
+            return {
+                "success": False,
+                "output": output,
+                "error": f"Invalid JSON output: {e}",
+                "returncode": result.get("returncode"),
+            }
+
+    def run_verify_process_cleanup(self, *args: str) -> dict:
+        """Run process-cleanup verifier and normalize output to standard format."""
+        logger.debug("Running verify_process_cleanup...")
+        cli_args = list(args)
+        if "--json" not in cli_args:
+            cli_args.append("--json")
+
+        result = self.run_script("verify_process_cleanup", *cli_args, timeout=300)
+        output = result.get("output", "")
+        if not output:
+            logger.error("verify_process_cleanup returned empty output")
+            return {
+                "success": False,
+                "output": "",
+                "error": result.get("error", "No output"),
+                "returncode": result.get("returncode"),
+            }
+
+        try:
+            raw_data = json.loads(output)
+            from ..result_format import normalize_to_standard_format
+
+            normalized = normalize_to_standard_format(
+                "verify_process_cleanup", raw_data
+            )
+            result["data"] = normalized
+            result["success"] = True
+            try:
+                save_tool_result(
+                    "verify_process_cleanup",
+                    "tests",
+                    normalized,
+                    project_root=self.project_root,
+                )
+            except Exception as e:
+                logger.debug(f"Failed to save verify_process_cleanup result: {e}")
+            return result
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.error(f"verify_process_cleanup output normalization failed: {e}")
+            return {
+                "success": False,
+                "output": output,
+                "error": f"Invalid JSON output: {e}",
+                "returncode": result.get("returncode"),
+            }
     
     def run_unused_imports_report(self):
         """Run unused imports report generation (generates markdown report from analysis results)"""

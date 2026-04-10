@@ -117,6 +117,8 @@ Coverage worker config (`coverage` section):
 - `decision-support` - generates decision support insights.
 - `unused-imports` - runs the AST-based unused import detection tool (analysis only).
 - `unused-imports-report` - generates unused imports report from analysis results.
+- `flaky-detector` - runs repeated parallel pytest passes to identify intermittent failures/flaky tests. **Not** part of `audit --full` (nested pytest would fight the coverage run); invoke manually when investigating flakes.
+- `verify-process-cleanup` - checks for potential orphaned pytest/python worker processes (included in Tier 3 full audit).
 - `duplicate-functions` - detects possible duplicate or similar functions (analysis only).
 - `module-refactor-candidates` - identifies large or high-complexity modules as refactoring candidates (analysis only).
 - `workflow` - executes an audit-first workflow task.
@@ -634,7 +636,7 @@ Development-tools modules may import `core.logger` for structured logging. All o
 
 **Snapshot (refresh when migrating)**:
 
-- **`scripts/flaky_detector.py`**: V5 target is to host under `development_tools/tests/` and wire CLI/metadata per [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) (Section 3.2); migration and metadata wiring remain open.
-- **`scripts/testing/verify_process_cleanup.py`**: evaluate migrate vs retire; confirm presence in your tree with the inventory command in [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) Section 6.
-- **Inventory**: use the PowerShell recipe in [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) Section 6; record decisions in V5 Section 3.13 tasks or [TODO.md](../TODO.md) - do not add standalone markdown inventories.
+- **`scripts/flaky_detector.py`**: migrated to tracked `development_tools/tests/flaky_detector.py`; run via `python development_tools/run_development_tools.py flaky-detector`.
+- **`scripts/testing/verify_process_cleanup.py`**: migrated to tracked `development_tools/tests/verify_process_cleanup.py`; run via `python development_tools/run_development_tools.py verify-process-cleanup`.
+- **Inventory**: use the PowerShell recipe in [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) Section 6 for remaining script candidates; record outcomes in V5 Section 3.13-Section 3.14 and [TODO.md](../TODO.md) - do not add standalone markdown inventories.
 - **Non-tool parallel work**: legacy markers and domain coverage follow [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md) and regenerated `AI_PRIORITIES.md`.

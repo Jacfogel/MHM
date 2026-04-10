@@ -37,6 +37,7 @@ class _StubService:
         self.backup_retention_calls = []
         self.backup_drill_calls = []
         self.backup_verify_calls = []
+        self.script_calls = []
 
     def set_exclusion_config(self, include_tests=False, include_dev_tools=False):
         self.exclusion_calls.append((include_tests, include_dev_tools))
@@ -156,6 +157,10 @@ class _StubService:
     def run_backup_health_check(self, *, run_drill):
         self.backup_verify_calls.append(run_drill)
         return {"success": True}
+
+    def run_script(self, script_name, *args, timeout=300):
+        self.script_calls.append((script_name, list(args), timeout))
+        return {"success": True, "output": "", "error": "", "returncode": 0}
 
 
 @pytest.fixture
@@ -351,8 +356,25 @@ def test_backup_subcommands_wire_to_service(cli_module):
 
 
 @pytest.mark.unit
+def test_flaky_detector_and_verify_process_cleanup_commands(cli_module):
+    service = _StubService()
+
+    assert cli_module._flaky_detector_command(
+        service, ["--runs", "2", "--workers", "2"]
+    ) == 0
+    assert cli_module._verify_process_cleanup_command(service, ["--watch"]) == 0
+
+    assert service.script_calls[0][0] == "flaky_detector"
+    assert service.script_calls[0][1] == ["--runs", "2", "--workers", "2"]
+    assert service.script_calls[1][0] == "verify_process_cleanup"
+    assert service.script_calls[1][1] == ["--watch"]
+
+
+@pytest.mark.unit
 def test_list_commands_contains_expected_aliases(cli_module):
     names = [c.name for c in cli_module.list_commands()]
     assert "audit" in names
     assert "full-audit" in names
     assert "clean-up" in names
+    assert "flaky-detector" in names
+    assert "verify-process-cleanup" in names

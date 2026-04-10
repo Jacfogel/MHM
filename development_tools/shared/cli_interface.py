@@ -374,6 +374,18 @@ def _unused_imports_report_command(
     return 0 if success else 1
 
 
+def _flaky_detector_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Run the migrated flaky detector utility."""
+    result = service.run_script("flaky_detector", *argv, timeout=3600)
+    return 0 if result.get("success") else 1
+
+
+def _verify_process_cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Run the migrated process cleanup verifier utility."""
+    result = service.run_script("verify_process_cleanup", *argv, timeout=300)
+    return 0 if result.get("success") else 1
+
+
 def _duplicate_functions_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     """Handle duplicate-functions command (analysis only)."""
     parser = argparse.ArgumentParser(prog="duplicate-functions", add_help=False)
@@ -832,6 +844,22 @@ COMMAND_REGISTRY = OrderedDict(
                 "unused-imports-report",
                 _unused_imports_report_command,
                 "Generate unused imports report from analysis results.",
+            ),
+        ),
+        (
+            "flaky-detector",
+            CommandRegistration(
+                "flaky-detector",
+                _flaky_detector_command,
+                "Detect flaky tests via repeated parallel runs.",
+            ),
+        ),
+        (
+            "verify-process-cleanup",
+            CommandRegistration(
+                "verify-process-cleanup",
+                _verify_process_cleanup_command,
+                "Check for orphaned pytest/python worker processes.",
             ),
         ),
         (

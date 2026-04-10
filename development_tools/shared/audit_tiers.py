@@ -44,6 +44,8 @@ TIER2_TOOL_NAMES = [
 ]
 
 # Tier 3: Full audit (>10s acceptable).
+# flaky_detector is manual/CLI-only: it spawns nested parallel pytest and must not run alongside
+# run_test_coverage (resource contention, timeouts, empty capture). See flaky-detector command.
 TIER3_TOOL_NAMES = [
     "run_test_coverage",
     "generate_dev_tools_coverage",
@@ -54,6 +56,7 @@ TIER3_TOOL_NAMES = [
     "generate_legacy_reference_report",
     "analyze_ruff",
     "analyze_pyright",
+    "verify_process_cleanup",
 ]
 
 
@@ -101,6 +104,8 @@ def _get_runnable(service: Any, tool_name: str) -> Callable[[], Any]:
         return lambda: service.run_test_markers("check")
     if tool_name == "analyze_backup_health":
         return lambda: service.run_backup_health_check(run_drill=True)
+    if tool_name == "verify_process_cleanup":
+        return service.run_verify_process_cleanup
     if tool_name == "run_test_coverage":
         return service.run_coverage_regeneration
     if tool_name == "generate_dev_tools_coverage":
@@ -210,5 +215,6 @@ def get_tier3_groups(
     static_analysis_group = [
         ("analyze_ruff", _get_runnable(service, "analyze_ruff")),
         ("analyze_pyright", _get_runnable(service, "analyze_pyright")),
+        ("verify_process_cleanup", _get_runnable(service, "verify_process_cleanup")),
     ]
     return coverage_main, coverage_dev_tools, coverage_dependent, legacy_group, static_analysis_group
