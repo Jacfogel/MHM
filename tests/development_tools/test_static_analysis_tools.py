@@ -124,7 +124,7 @@ def test_analyze_pyright_passes_owned_project_path(monkeypatch, temp_project_cop
         lambda: {
             "pyright_command": ["python", "-m", "pyright"],
             "pyright_args": ["--outputjson"],
-            "pyright_project_path": "pyrightconfig.json",
+            "pyright_project_path": "pyproject.toml",
             "timeout_seconds": 10,
         },
     )
@@ -150,7 +150,7 @@ def test_analyze_pyright_passes_owned_project_path(monkeypatch, temp_project_cop
     cmd, kwargs = calls[0]
     assert "--project" in cmd
     project_index = cmd.index("--project") + 1
-    assert cmd[project_index].replace("\\", "/").endswith("pyrightconfig.json")
+    assert cmd[project_index].replace("\\", "/").endswith("pyproject.toml")
     assert kwargs["cwd"] == str(temp_project_copy)
 
 
@@ -164,7 +164,7 @@ def test_analyze_pyright_respects_existing_project_arg(monkeypatch, temp_project
         lambda: {
             "pyright_command": ["python", "-m", "pyright"],
             "pyright_args": ["--outputjson", "--project", "custom_pyright.json"],
-            "pyright_project_path": "pyrightconfig.json",
+            "pyright_project_path": "pyproject.toml",
             "timeout_seconds": 10,
         },
     )
@@ -201,7 +201,7 @@ def test_analyze_pyright_keyboard_interrupt_returns_warn(monkeypatch, temp_proje
         lambda: {
             "pyright_command": ["python", "-m", "pyright"],
             "pyright_args": ["--outputjson"],
-            "pyright_project_path": "pyrightconfig.json",
+            "pyright_project_path": "pyproject.toml",
             "timeout_seconds": 10,
         },
     )

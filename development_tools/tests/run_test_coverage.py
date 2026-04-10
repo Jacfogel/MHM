@@ -1396,7 +1396,7 @@ class CoverageMetricsRegenerator:
                     "(SIGINT/control event)."
                 )
                 if logger:
-                    logger.error(interrupt_msg)
+                    logger.warning(interrupt_msg)
                 partial_output = ""
                 if stdout_log_path.exists():
                     partial_output = stdout_log_path.read_text(
@@ -1510,6 +1510,11 @@ class CoverageMetricsRegenerator:
                                 timeout=pytest_timeout,
                             )
                         except KeyboardInterrupt:
+                            if logger:
+                                logger.warning(
+                                    "KeyboardInterrupt while waiting for retry subprocess "
+                                    "(SIGINT/control event)."
+                                )
                             retry_result = subprocess.CompletedProcess(
                                 fallback_cmd,
                                 returncode=130,
@@ -1536,7 +1541,7 @@ class CoverageMetricsRegenerator:
                     cmd = fallback_cmd
 
             if self._is_interrupt_return_code(result.returncode) and logger:
-                logger.error(
+                logger.warning(
                     "Main coverage pytest subprocess terminated with interrupt signature "
                     f"(returncode={result.returncode}, hex={self._format_return_code_hex(result.returncode) or 'n/a'})."
                 )
@@ -2143,7 +2148,7 @@ class CoverageMetricsRegenerator:
                         )
                 except KeyboardInterrupt:
                     if logger:
-                        logger.error(
+                        logger.warning(
                             "KeyboardInterrupt while waiting for no_parallel pytest subprocess "
                             "(SIGINT/control event)."
                         )
@@ -2188,7 +2193,7 @@ class CoverageMetricsRegenerator:
                     logger
                     and self._is_interrupt_return_code(no_parallel_return_code)
                 ):
-                    logger.error(
+                    logger.warning(
                         "No_parallel pytest subprocess terminated with interrupt signature "
                         f"(returncode={no_parallel_return_code}, hex={self._format_return_code_hex(no_parallel_return_code) or 'n/a'})."
                     )
@@ -4021,7 +4026,7 @@ class CoverageMetricsRegenerator:
                     "(SIGINT/control event)."
                 )
                 if logger:
-                    logger.error(interrupt_msg)
+                    logger.warning(interrupt_msg)
                 with open(
                     dev_tools_stdout_log, "w", encoding="utf-8", errors="replace"
                 ) as log_file:
@@ -4070,7 +4075,7 @@ class CoverageMetricsRegenerator:
 
             if self._is_interrupt_return_code(getattr(result, "returncode", None)):
                 if logger:
-                    logger.error(
+                    logger.warning(
                         "Dev tools coverage pytest subprocess terminated with interrupt signature "
                         f"(returncode={result.returncode}, hex={self._format_return_code_hex(result.returncode) or 'n/a'})."
                     )

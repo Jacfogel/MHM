@@ -1,4 +1,6 @@
 # Core dependencies
+# Security floors (pip-audit): aiohttp is pulled by discord.py; explicit floor for known CVEs.
+aiohttp>=3.13.4
 discord.py>=2.3.0  # For Discord bot functionality
 schedule>=1.2.0  # For task scheduling
 python-dotenv>=1.0.0  # For environment variable management
@@ -6,10 +8,11 @@ pytz>=2023.3  # For timezone handling (used in scheduler.py)
 tzlocal>=5.3.1  # For detecting system timezone in account creation
 psutil>=5.9.0  # For process management in UI application
 dnspython>=2.4.0  # For DNS resolution with alternative servers
-PyNaCl>=1.5.0  # For Discord webhook signature verification (ed25519)
+PyNaCl>=1.6.2  # For Discord webhook signature verification (ed25519); pip-audit floor
 
 # AI/ML dependencies  
-requests>=2.31.0  # For LM Studio HTTP API calls
+requests>=2.33.0  # For LM Studio HTTP API calls (pip-audit floor)
+urllib3>=2.6.3  # Transitive; explicit floor for CVE fixes
 pydantic>=2.7.0  # For JSON schema validation and parsing
 
 # UI dependencies
@@ -29,10 +32,13 @@ pytest-cov>=4.1.0  # For coverage (required by development_tools audit --full)
 py-spy>=0.4.1  # For timeout stack diagnostics in flaky_detector
 
 # Optional but recommended for development
-black>=23.0.0  # For code formatting
+black>=26.3.1  # For code formatting (pip-audit; CVE fixes in formatter)
+pygments>=2.20.0  # Pulled by several tools; explicit floor for pip-audit
 ruff>=0.1.0  # Linting and unused-imports (development_tools audit; preferred over pylint)
 pylint>=2.17.0  # For code linting (fallback when ruff unavailable)
 pyright>=1.1.380  # For static type checking
+bandit[toml]>=1.7.0  # Security lint; TOML for [tool.bandit] in pyproject.toml (audit --full Tier 3)
+pip-audit>=2.6.0  # Dependency vulnerability scan (development_tools audit --full Tier 3)
 
 # Note: The following are part of Python's standard library and don't need to be installed:
 # - tkinter (comes with Python installation)

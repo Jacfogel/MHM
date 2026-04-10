@@ -392,6 +392,20 @@ _TOOLS: dict[str, ToolInfo] = {
         trust="advisory",
         description="Runs pyright in JSON mode and summarizes type-check diagnostics for reports.",
     ),
+    "analyze_bandit": ToolInfo(
+        name="analyze_bandit",
+        path="development_tools/static_checks/analyze_bandit.py",
+        tier="supporting",
+        trust="advisory",
+        description="Runs bandit in JSON mode for security findings (MEDIUM/HIGH in summary).",
+    ),
+    "analyze_pip_audit": ToolInfo(
+        name="analyze_pip_audit",
+        path="development_tools/static_checks/analyze_pip_audit.py",
+        tier="supporting",
+        trust="advisory",
+        description="Runs pip-audit JSON report for dependency vulnerabilities (WARN when findings).",
+    ),
     "decision_support": ToolInfo(
         name="decision_support",
         path="development_tools/reports/decision_support.py",

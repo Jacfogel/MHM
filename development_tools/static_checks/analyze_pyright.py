@@ -20,6 +20,13 @@ except ImportError:
         sys.path.insert(0, str(project_root))
     from development_tools import config
 
+try:
+    from core.logger import get_component_logger
+
+    _pyright_log = get_component_logger("development_tools.static_checks.analyze_pyright")
+except ImportError:
+    _pyright_log = None
+
 
 def _build_unavailable_result(message: str) -> dict[str, Any]:
     return {
@@ -137,12 +144,26 @@ def run_pyright(project_root: Path) -> dict[str, Any]:
     args = list(static_cfg.get("pyright_args", ["--outputjson"]))
     if "--project" not in args:
         configured_project = static_cfg.get(
-            "pyright_project_path", "pyrightconfig.json"
+            "pyright_project_path", "pyproject.toml"
         )
         if configured_project:
             project_config_path = Path(str(configured_project))
             if not project_config_path.is_absolute():
                 project_config_path = project_root / project_config_path
+            project_config_path = project_config_path.resolve()
+            # External config may still reference removed root `pyrightconfig.json`; Pyright
+            # then behaves as if unconfigured (huge file lists under archive/scripts). Prefer
+            # `pyproject.toml` [tool.pyright] when the configured path is missing.
+            if not project_config_path.is_file():
+                fallback = (project_root / "pyproject.toml").resolve()
+                if fallback.is_file():
+                    if _pyright_log:
+                        _pyright_log.warning(
+                            "static_analysis pyright_project_path %s not found; using %s",
+                            project_config_path,
+                            fallback,
+                        )
+                    project_config_path = fallback
             args.extend(["--project", str(project_config_path)])
     timeout_seconds = int(static_cfg.get("timeout_seconds", 600) or 600)
 

@@ -203,7 +203,10 @@ class WebhookServer:
     def start(self) -> bool:
         """Start the webhook server"""
         try:
-            self.server = HTTPServer(("0.0.0.0", self.port), DiscordWebhookHandler)
+            self.server = HTTPServer(
+                ("0.0.0.0", self.port),  # nosec B104 — Discord inbound webhooks need a reachable bind
+                DiscordWebhookHandler,
+            )
             DiscordWebhookHandler.bot_instance = self.bot_instance
             logger.info(f"Discord webhook server started on port {self.port}")
 

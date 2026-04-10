@@ -15,6 +15,7 @@ Usage:
 """
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -117,9 +118,10 @@ class DirectoryTreeGenerator:
         if output_file is None:
             output_file = f"{self.docs_dir}/DIRECTORY_TREE.md"
 
-        # Run tree command
+        # Run tree command (Windows: tree.com; avoid shell=True — Bandit B602)
+        tree_exe = "tree.com" if os.name == "nt" else "tree"
         result = subprocess.run(
-            ["tree", "/F", "/A"], capture_output=True, text=True, shell=True
+            [tree_exe, "/F", "/A"], capture_output=True, text=True, shell=False
         )
 
         if result.returncode != 0:

@@ -155,6 +155,8 @@ pyright-report.json
 # ============================
 # Development tools cache and result files
 # ============================
+# Ad-hoc Bandit JSON dumps (e.g. `bandit -r ... -f json -o br.json`); not project config
+/br.json
 development_tools/**/jsons/
 development_tools/config/development_tools_config.json
 development_tools/tests/coverage_html/

@@ -1172,7 +1172,7 @@
     "pyright_args": [
       "--outputjson"
     ],
-    "pyright_project_path": "pyrightconfig.json",
+    "pyright_project_path": "pyproject.toml",
     "ruff_args": [
       "check",
       ".",

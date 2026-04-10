@@ -61,7 +61,7 @@ Use this block when a V4 **Status** line says “IN PROGRESS” or “COMPLETE�
 | **§2.5 System signals “IN PROGRESS”** | Decision to **keep** tool + clarify scope is done; further overlap trim with doc-sync is **optional**. | **§5.2 — 2.5** |
 | **§2.9 Console “IN PROGRESS”** | Stdout/logging review done; **spinners/TUI** still optional. | **§5.2 — 2.9** |
 | **§3.17 Portability “IN PROGRESS”** | Many checklist items are `[x]` in V4, but **hardcoded-path hotspots** and **strict full-audit** validation in slow environments remain **ongoing** — not contradictory. | **§5.3 — 3.17** |
-| **Dual Pyright / dual Ruff configs** | Root configs = IDE/whole-repo workflows; dev-tools configs = audit wrappers. **Diagnostic parity** between root and `development_tools/config/pyrightconfig.json` is **not** guaranteed yet — see next row. | **§5.7 — 7.6** |
+| **Dual Pyright / dual Ruff configs** | Root **`pyproject.toml` `[tool.pyright]`** = IDE/whole-repo workflows; `development_tools/config/pyrightconfig.json` = alternate audit `--project`. **Diagnostic parity** between them is **not** guaranteed yet — see next row. | **§5.7 — 7.6** |
 | **Live metric snapshots** | Legacy file/marker counts, coverage %, duplicate groups, and coupling counts **change** after each `audit --full`. Prefer **AI_STATUS** / **LEGACY_REFERENCE_REPORT** over any numeric example embedded in V4/V5 prose. | §2 snapshot; **§5.6** |
 | **Legacy report vs runtime legacy** | [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md) flags **legacy markers** and **injected inventory terms**. **2026-03-28**: active-bridge **inventory** may list **0 search terms** on purpose (`root_ruff_compat_mirror`); the report still shows **Deprecation Inventory** counts — not a broken generator. Executable `LEGACY COMPATIBILITY` branches — [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md). | §1.4; **§5.6** |
 | **Tier 3 coverage vs audit scope** | Full audit may still run **both** main-track and dev-tools coverage today; `--dev-tools-only` should eventually run **only** dev-tools coverage so `DEV_TOOLS_*` metrics are not mixed with stale full-repo refreshes — **§5.1 — 1.9**. | **§5.1 — 1.9**; **§7.15** |
@@ -80,6 +80,8 @@ Use **AI_STATUS.md** after each audit. Example **2026-04-08** (Tier 3 full, afte
 **2026-04-09 (scripts backlog execution slice)**: migrated local script utilities into tracked dev-tools paths: `scripts/flaky_detector.py` -> `development_tools/tests/flaky_detector.py` and `scripts/testing/verify_process_cleanup.py` -> `development_tools/tests/verify_process_cleanup.py`; added CLI commands (`flaky-detector`, `verify-process-cleanup`), command docs updates, and unit tests. `development_tools/shared/fix_project_cleanup.py` remains canonical cleanup implementation for the `cleanup_project` overlap.
 
 **2026-04-09 (V5 plan continuation — tooling slice)**: `verify_process_cleanup` uses **Get-CimInstance Win32_Process** on Windows for real `CommandLine` (Section 3.18); `sync-todo --dry-run` prints the dry-run report; `EXPECTED_OVERLAPS` extended (generic doc headings); guides Section 10 record **2026-04-09** external-tool decisions + Section 10.1 gap-analysis alignment; policy tests for Phase 2 taxonomy gate and Pyright delta env documentation. **Section 1.5** numeric cache benchmark still deferred (recipe unchanged; machine-local).
+
+**2026-04-10 (V5 §4.2)**: **Bandit** + **pip-audit** integrated into Tier 3 static-analysis group; `requirements.txt`; coverage subprocess KeyboardInterrupt logs demoted to **WARNING** for cleaner `logs/errors.log`; `EXPECTED_OVERLAPS` + `external tools`.
 
 ---
 
@@ -273,7 +275,8 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 - **Status**: **IN PROGRESS**. **User priority**: Evaluate bandit, pip-audit, radon, pre-commit; ruff already in use for lint.
 - **Done (V4)**: Evaluation stance + backlog pointer in paired guides §10.
-- **Recorded (2026-04-09)**: Bandit / pip-audit / Radon / pydeps remain **manual-only** (no `requirements.txt` change); decisions and pydeps pilot one-liner live in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) §10; gap-analysis alignment note in §10.1.
+- **Recorded (2026-04-09)**: Radon / pydeps remain **manual-only** pilots.
+- **Recorded (2026-04-10)**: **Bandit** + **pip-audit** integrated into Tier 3 (`analyze_bandit`, `analyze_pip_audit`); listed in `requirements.txt`; paired guides §10 updated.
 - **Open tasks**:
   - Evaluate **ruff** (lint/format) and **radon** (complexity) for deeper integration.
   - Evaluate **pydeps** for dependency graphs vs existing dependency tooling.
@@ -285,16 +288,10 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 #### 4.2 Integrate Bandit and pip-audit into audit tiers
 
-- **Status**: **OPEN**. **User priority**: Medium (security/supply-chain signal in the standard audit pipeline).
-- **Goal**: Run **bandit** (static security) and **pip-audit** (dependency vulnerabilities) from the dev-tools runner with structured JSON + report lines, aligned with existing `analyze_ruff` / `analyze_pyright` patterns (cache, scope, `DEV_TOOLS_*` behavior as appropriate).
-- **Prerequisites**: Pilot runs and noise triage (paths, severity, exit semantics); decide whether results are **WARN** vs **FAIL** for `audit --full` / strict mode; network policy for **pip-audit** (offline/CI constraints).
-- **Open tasks**:
-  - Add optional dependencies or document **pinned** `requirements.txt` / dev extra for `bandit` and `pip-audit` (project policy: not in default install until integrated).
-  - Implement wrappers in `development_tools/shared/service/commands.py` (or dedicated module), **tool_metadata** + CLI hooks, JSON under `development_tools/reports/` or scoped `jsons/` per existing layout.
-  - Register tier placement (**Tier 2 or Tier 3** — recommend Tier 3 with `run_test_coverage` / heavy tools, or Tier 2 if runtime stays low); wire [`shared/audit_tiers.py`](shared/audit_tiers.py) and [`config/development_tools_config.json`](config/development_tools_config.json) / example.
-  - Surface summaries in **AI_STATUS** / **CONSOLIDATED_REPORT** / **AI_PRIORITIES** when issues exist (mirror Pyright/Ruff blocks).
-  - Tests under `tests/development_tools/` (mock subprocess or minimal fixture project); update [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) / [AI_DEVELOPMENT_TOOLS_GUIDE.md](AI_DEVELOPMENT_TOOLS_GUIDE.md) Section 10 and paired changelogs when shipped.
-- **Related**: §5.4 — 4.1 (evaluation backlog); [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10 manual pilot commands.
+- **Status**: **COMPLETE (2026-04-10)** — Tier 3 static-analysis group; `tool_wrappers` + scoped JSON + mtime cache (bandit) / requirements-hash cache (pip-audit); **AI_STATUS** / **CONSOLIDATED_REPORT** / **AI_PRIORITIES**; tests in [`tests/development_tools/test_analyze_security_static_checks.py`](../tests/development_tools/test_analyze_security_static_checks.py).
+- **Semantics shipped**: Bandit summary counts **MEDIUM/HIGH** only (tests/ trees excluded by default); pip-audit findings use summary **WARN** when vulnerabilities exist; **strict** exit still driven by pytest Tier 3 outcome, not these tools.
+- **Residual / follow-up**: CI offline policy for pip-audit; optional noise tuning via `static_analysis` config keys in [`config/config.py`](config/config.py); Radon/pydeps manual pilots remain §4.1.
+- **Related**: §5.4 — 4.1 (evaluation backlog); [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10.
 
 ---
 
@@ -373,13 +370,13 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 - **Open — acceptance criteria and tests**:
   - Fixture-based validation: suite runs in a **minimal external repo** with no root lint/type config files.
   - Validation: reports remain complete when host-repo lint/type configs differ from dev-tools defaults.
-  - **Partial (V4)**: `tests/development_tools/test_pyright_config_paths.py` — Pyright JSON smoke, root JSONC markers; owned + root `ruff.toml` parse; owned `pyrightconfig.json` has `typeCheckingMode` + non-empty `exclude`.
-- **Dual-config situation (V4 2026-03-02)**:
-  - Root `pyrightconfig.json` = whole-repo IDE/direct baseline; `development_tools/config/pyrightconfig.json` = dev-tools-owned (diagnostics not yet fully comparable).
+  - **Partial (V4)**: `tests/development_tools/test_pyright_config_paths.py` — root `pyproject.toml` `[tool.pyright]`, owned Pyright JSON, owned + root `ruff.toml` parse; owned `development_tools/config/pyrightconfig.json` has `typeCheckingMode` + non-empty `exclude`.
+- **Dual-config situation (V4 2026-03-02; root Pyright 2026-04-10 in `pyproject.toml`)**:
+  - Root **`pyproject.toml` `[tool.pyright]`** = whole-repo IDE/direct baseline; `development_tools/config/pyrightconfig.json` = dev-tools-owned alternate `--project` (diagnostics not yet fully comparable).
   - Root `.ruff.toml` = compatibility mirror; `development_tools/config/ruff.toml` = owned path for wrappers.
 - **Next steps before single baseline**:
   - Align dev-tools Pyright so `analyze_pyright` matches root diagnostic baseline (no artificial drops from scope drift).
-  - Regression tests: both Pyright paths; fail if error/warning deltas exceed agreed tolerance without explicit exclusions. **Partial (2026-03-27)**: optional enforcement in `tests/development_tools/test_pyright_config_paths.py` e2e — set env `PYRIGHT_ERROR_COUNT_MAX_DELTA` to a non-negative integer when running the e2e Pyright test; unset by default (scopes differ). **2026-03-28**: owned [`pyrightconfig.json`](config/pyrightconfig.json) adds `venvPath` / `venv` so `pyright --project` resolves the repo `.venv` from the owned config path.
+  - Regression tests: both Pyright paths; fail if error/warning deltas exceed agreed tolerance without explicit exclusions. **Partial (2026-03-27)**: optional enforcement in `tests/development_tools/test_pyright_config_paths.py` e2e — set env `PYRIGHT_ERROR_COUNT_MAX_DELTA` to a non-negative integer when running the e2e Pyright test; unset by default (scopes differ). **2026-03-28**: owned [`pyrightconfig.json`](config/pyrightconfig.json) adds `venvPath` / `venv` so `pyright --project` resolves the repo `.venv` from the owned config path. **2026-04-10**: root baseline moved to [`pyproject.toml`](../pyproject.toml) `[tool.pyright]` (removed root `pyrightconfig.json`).
   - Decide: keep root `.ruff.toml` permanently as mirror vs deprecate after portability criteria met.
   - If deprecating root configs: migration + fallback documented in both guides before removal.
 
@@ -450,6 +447,19 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 - **`--clear-cache`**: For `audit` / `full-audit`, cache clearing is **scope-aligned**: with `--dev-tools-only` (global or on the command), only **`**/jsons/scopes/dev_tools/**`**, **`reports/scopes/dev_tools/**`**, and dev-tools coverage JSON siblings are removed; without it, only **full-repo** tool cache artifacts are removed (parallel **`scopes/full`** tree, main `coverage.json` inputs, archives, legacy aggregates), leaving dev-tools-only caches intact. A bare `cleanup --clear-cache` (non-audit) still clears **all** tool cache layouts.
 - **Logging**: Report generation log lines use the real output filename (`DEV_TOOLS_STATUS.md`, etc.) when scope is dev-tools-only.
 - **Residual full-repo rows**: Some tiered priorities (e.g. legacy reference counts, backup health) still use **aggregate audit payloads** that are not path-sliced in this pass; when in doubt, confirm against `AI_STATUS.md` / `AI_PRIORITIES.md` from a default-scope audit.
+- **Full-repo `development_docs` reports vs narrow scope**: Do not rely on dev-tools-only runs to refresh whole-repo markdown under `development_docs/` — see **§7.19**.
+
+#### 7.19 Full-repo `development_docs` reports — skip regeneration on dev-tools-only / non–full-repo audits
+
+- **Problem**: `audit --full --dev-tools-only` and other **non–full-repo** audit paths can still invoke generators that **overwrite** whole-repository evidence in `development_docs/`, so those files appear **wrong or misleadingly stale** until a **default-scope** (`full-repo`) audit runs.
+- **Open — implementation**:
+  - **Gate** regeneration of these files so they run only when audit scope is **full-repo** (or an explicit opt-in), **not** on `--dev-tools-only` (or equivalent narrow scope) alone:
+    - [`UNUSED_IMPORTS_REPORT.md`](../development_docs/UNUSED_IMPORTS_REPORT.md)
+    - [`TEST_COVERAGE_REPORT.md`](../development_docs/TEST_COVERAGE_REPORT.md)
+    - [`LEGACY_REFERENCE_REPORT.md`](../development_docs/LEGACY_REFERENCE_REPORT.md)
+  - **Alternatives** for narrow runs: write **scoped** artifacts (e.g. under `development_tools/reports/scopes/dev_tools/` or existing `DEV_TOOLS_*` outputs), or **skip** with a clear log line when scope ≠ full-repo.
+  - **Tests**: policy or integration coverage that dev-tools-only audits do not rewrite those three paths (unless explicitly overridden).
+- **Related**: **§7.18** (scoped `DEV_TOOLS_*` reports); **§5.1 — 1.9** (coverage dimension vs audit scope).
 
 ---
 

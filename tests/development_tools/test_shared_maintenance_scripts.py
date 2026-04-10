@@ -164,6 +164,12 @@ def test_run_timing_analysis_with_mocked_service(monkeypatch, tmp_path):
         def run_analyze_pyright(self):
             return {"success": True}
 
+        def run_analyze_bandit(self):
+            return {"success": True}
+
+        def run_analyze_pip_audit(self):
+            return {"success": True}
+
         def run_verify_process_cleanup(self):
             return {"success": True}
 

@@ -406,7 +406,12 @@ def _default_test_marker_fallbacks() -> tuple[
     return (
         cats,
         {c: c for c in cats},
-        ("/tmp/", "/tmp_pytest_runtime/", "pytest-tmp-", "pytest-of-"),
+        (
+            "/tmp/",  # nosec B108 — path substring markers, not tempfile API
+            "/tmp_pytest_runtime/",  # nosec B108
+            "pytest-tmp-",  # nosec B108
+            "pytest-of-",  # nosec B108
+        ),
         ("ai/test_ai", "test_ai"),
     )
 
@@ -505,6 +510,7 @@ EXPECTED_OVERLAPS: frozenset[str] = frozenset({
     "see also",
     "references",
     "related documents",
+    "external tools",
 })
 
 # Words that are generic in paths (path-drift: skip when path is just this word)

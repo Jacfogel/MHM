@@ -580,7 +580,11 @@ def _build_body_candidate_pairs(
         buckets: dict[str, list[int]] = {}
         for i in eligible:
             seq = getattr(records[i], "body_node_sequence", None) or ()
-            key = md5(" ".join(seq).encode()).hexdigest() if seq else ""
+            key = (
+                md5(" ".join(seq).encode(), usedforsecurity=False).hexdigest()
+                if seq
+                else ""
+            )
             buckets.setdefault(key, []).append(i)
         for indices in buckets.values():
             for ii in range(len(indices)):

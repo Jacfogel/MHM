@@ -134,7 +134,7 @@ Coverage worker config (`coverage` section):
 
 ### 2.4. Seeing all type-check issues (Pyright)
 
-The Problems panel in the editor may only show issues for open files. To see **all** type-check issues for the project in one run (respecting `pyrightconfig.json`):
+The Problems panel in the editor may only show issues for open files. To see **all** type-check issues for the project in one run (respecting `[tool.pyright]` in root `pyproject.toml`):
 
 ```powershell
 # From project root, with venv activated
@@ -143,7 +143,7 @@ python -m pyright
 
 Ensure `pyright` is installed in the venv (`pip install pyright` or `requirements.txt`). Exit code 1 means errors or warnings were reported; the summary line at the end shows error/warning counts. This is the same checker used by the basedpyright/Pyright extension, so results match what the language server would report for the full codebase.
 
-Note: this direct command uses the host/root `pyrightconfig.json` workflow. Development-tools audit wrappers (`analyze_pyright`) use an explicit owned config path (`development_tools/config/pyrightconfig.json`) unless overridden in `development_tools_config.json`.
+Note: this direct command uses the host/root `pyproject.toml` (`[tool.pyright]`) workflow. Development-tools audit wrappers (`analyze_pyright`) pass `--project` to that file by default; they can instead use the owned path `development_tools/config/pyrightconfig.json` when overridden in `development_tools_config.json`.
 
 ### 2.5. Entry Point Expectations
 
@@ -163,7 +163,7 @@ Regardless of command:
 
 **Static analysis config ownership**:
 - Ruff owned config path: `static_analysis.ruff_config_path` (default `development_tools/config/ruff.toml`)
-- Pyright owned project config path: `static_analysis.pyright_project_path` (default `pyrightconfig.json`)
+- Pyright owned project config path: `static_analysis.pyright_project_path` (default `pyproject.toml` for `[tool.pyright]`)
 - Root Ruff compatibility mirror toggle: `static_analysis.ruff_sync_root_compat` (default `true`)
 - `analyze_ruff` always passes explicit `--config` to the owned Ruff config path.
 - `analyze_pyright` always passes explicit `--project` to the configured Pyright config path unless `--project` already exists in `static_analysis.pyright_args`.
@@ -594,7 +594,7 @@ Development-tools modules may import `core.logger` for structured logging. All o
 | `development_tools/config/development_tools_config.json` | Project overrides (not always in git) |
 | `development_tools/config/development_tools_config.json.example` | Template for overrides |
 | `development_tools/config/sync_ruff_toml.py` | Generates owned `ruff.toml` |
-| `development_tools/config/ruff.toml` / `pyrightconfig.json` | Owned static-analysis configs for portable audits |
+| `development_tools/config/ruff.toml` / `development_tools/config/pyrightconfig.json` | Owned static-analysis configs for portable audits (Pyright audit may also target root `pyproject.toml`) |
 
 **Runtime / implementation** (shared plumbing, not the "policy" surface):
 
@@ -605,11 +605,11 @@ Development-tools modules may import `core.logger` for structured logging. All o
 
 **Phase 2 (evaluation, not yet executed)**: Gate is recorded in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 7.7. Before moving files out of `development_tools/config/`, decide which items are true "policy surface" vs runtime/plumbing. Candidate home for runtime-only helpers: a dedicated package (for example `development_tools/shared/runtime_config/`) with **temporary** re-export shims only when required-each shim must follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) (inventory, removal plan, no silent long-term duplication). Acceptance: contributors can find config entrypoints within minutes; existing imports keep working until an explicit deprecation window ends.
 
-**Pyright configs**: Root `pyrightconfig.json` supports IDE and whole-repo workflows (JSON with `//` comments); `development_tools/config/pyrightconfig.json` is dev-tools-owned strict JSON for explicit `--project` use in audits. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` remains a compatibility mirror. Policy tests: `tests/development_tools/test_pyright_config_paths.py` (Pyright JSON + Ruff TOML presence/parse).
+**Pyright configs**: Root **`[tool.pyright]`** in `pyproject.toml` is the whole-repo / IDE baseline (Pylance discovers it); `development_tools/config/pyrightconfig.json` remains dev-tools-owned JSON for alternate `--project` / parity work. Default `analyze_pyright` uses **`pyproject.toml`**. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` remains a compatibility mirror. Policy tests: `tests/development_tools/test_pyright_config_paths.py` (Pyright TOML section + owned JSON + Ruff TOML).
 
 **Portability acceptance criteria (V5 Section 7.6)** - incremental; full numeric parity is not required in CI until tolerance rules exist:
 
-- **Structural**: Owned Pyright JSON loads; root JSONC exists; both exclude `tests/data` (and related temp/fixture paths). Policy tests enforce this.
+- **Structural**: Owned Pyright JSON loads; root `pyproject.toml` contains `[tool.pyright]`; both exclude `tests/data` (and related temp/fixture paths). Policy tests enforce this.
 - **Runtime**: `python -m pyright --outputjson --project <config>` succeeds for both configs when Pyright is installed (optional `pytest -m e2e` smoke in [`tests/development_tools/test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py), excluded from default runs).
 - **Diagnostic counts**: Root vs owned `errorCount`/`warningCount` may differ because include/exclude scopes differ. Optional: set `PYRIGHT_ERROR_COUNT_MAX_DELTA` when running the e2e Pyright test in `tests/development_tools/test_pyright_config_paths.py` to enforce a maximum `errorCount` delta between runs (unset keeps comparison advisory only).
 
@@ -617,19 +617,19 @@ Development-tools modules may import `core.logger` for structured logging. All o
 
 ## 10. External tools evaluation (Bandit, pip-audit, Radon, pre-commit)
 
-**Status**: Not wired into audit tiers; see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 4.1 for the integration backlog.
+**Status (2026-04-10)**: **Bandit** and **pip-audit** are integrated into **Tier 3** (`audit --full`): wrappers [`development_tools/static_checks/analyze_bandit.py`](static_checks/analyze_bandit.py) and [`development_tools/static_checks/analyze_pip_audit.py`](static_checks/analyze_pip_audit.py), JSON under scoped `development_tools/**/jsons/static_checks/`, summaries in `AI_STATUS.md` / `CONSOLIDATED_REPORT.md` / `AI_PRIORITIES.md`. Both are listed in root `requirements.txt` (`bandit[toml]` for `[tool.bandit]`). **Bandit** scans **first-party package roots** (see `bandit_scan_roots` in [`config.py`](config/config.py)) plus `run_tests.py` / `run_mhm.py`, not a blind `-r .` (avoids `.venv` / site-packages noise); [`pyproject.toml`](../pyproject.toml) **`[tool.bandit]`** lists `exclude_dirs` (e.g. `tests`, `archive`). **Strict mode** still keys off Tier 3 **pytest** outcome, not these tools. **pip-audit** needs network access to the vulnerability index on fresh runs (cache keyed off `requirements.txt` / `pyproject.toml`); upgrade **`pip`** in the venv if pip-audit reports CVEs on pip itself.
 
-- **Evaluation (2026-04-08)**: **Tier 1 integration** deferred; tools are **not** in default `requirements.txt`. Install manually for pilots. **pre-commit** is optional per-developer (no shared `.pre-commit-config.yaml` required for MHM). Revisit when security/complexity gates are policy-defined.
+- **Evaluation (2026-04-08)**: **pre-commit** is optional per-developer (no shared `.pre-commit-config.yaml` required for MHM).
 
-- **Recorded decisions (2026-04-09)**: **Bandit**, **pip-audit**, **Radon**, and **pydeps** remain **manual-only** pilots (no new `requirements.txt` entries in this pass). **vulture** / **pre-commit** unchanged: optional, same rationale as 2026-04-08. Prefer Tier 2 `module-refactor-candidates` and `analyze_functions` JSON as the in-audit complexity signals; use Radon for spot-checks only.
+- **Recorded decisions (2026-04-09-10)**: **Radon** and **pydeps** remain **manual-only** pilots. **vulture** / **pre-commit** unchanged: optional. Prefer Tier 2 `module-refactor-candidates` and `analyze_functions` JSON as the in-audit complexity signals; use Radon for spot-checks only.
 
-- **Manual pilot (Windows PowerShell, repo root, venv active)**:
-  - `python -m pip install bandit pip-audit` (add `radon` for cyclomatic-complexity sampling: `python -m pip install radon`)
-  - `python -m bandit -r core communication ui user ai tasks -ll` (expand/shrink paths and severity flags after triage; keep `tests/` out until policy exists).
+- **Manual commands (Windows PowerShell, repo root, venv active)** - still valid for ad-hoc triage:
+  - `python development_tools/static_checks/analyze_bandit.py --json` / `python development_tools/static_checks/analyze_pip_audit.py --json` (same JSON shape as the audit subprocess).
+  - `python -m bandit -c pyproject.toml -r core communication ui ...` (optional; audit uses the same first-party roots + `[tool.bandit]` excludes).
   - `python -m pip_audit`
   - `python -m radon cc development_tools -a -s` (advisory; overlaps internal `analyze_functions` / refactor signals-use to cross-check hot spots, not as a second source of truth in CI until policy exists).
   - **pydeps** (optional): `python -m pip install pydeps` then e.g. `python -m pydeps core --max-bacon=2` for a shallow graph sample; compare to `development_tools/imports/analyze_module_dependencies.py` before relying on graphs in documentation.
-- **Bandit** / **pip-audit**: Run manually from the venv when reviewing security or dependency risk; promote to Tier 1 only after noise levels are acceptable.
+- **Bandit** / **pip-audit**: In-audit defaults - Bandit summary counts **MEDIUM/HIGH** only (LOW counts appear under `details.low_severity_count`); pip-audit findings are **WARN** severity in JSON when vulnerabilities exist (supply-chain triage).
 - **Radon**: Overlaps existing complexity/refactor signals (`analyze_functions`, `analyze_module_refactor_candidates`); adopt only for metrics Ruff does not provide.
 - **pydeps**: Optional dependency-graph visualization; compare against `imports/analyze_module_dependencies.py` / consolidated report before adding a second graph pipeline.
 - **vulture**: Optional dead-code scan; overlaps unused-imports and function-registry tools-evaluate noise vs signal before Tier integration.

@@ -241,8 +241,8 @@ class ReportGenerationMixin:
 
             # Check for common temp directory patterns
             test_indicators = [
-                "/tmp",
-                "/temp",  # Unix-style temp
+                "/tmp",  # nosec B108 — path substring markers for test/temp detection
+                "/temp",  # nosec B108
                 "/tests/",
                 "/test/",  # Test directories
                 "tests/data/",
@@ -310,9 +310,14 @@ class ReportGenerationMixin:
         return details if isinstance(details, dict) else {}
 
     def _get_static_analysis_snapshot(self) -> dict[str, dict[str, Any]]:
-        """Load normalized summary/details for ruff and pyright static analysis tools."""
+        """Load normalized summary/details for static analysis tools (ruff, pyright, bandit, pip-audit)."""
         result: dict[str, dict[str, Any]] = {}
-        for tool_name in ("analyze_ruff", "analyze_pyright"):
+        for tool_name in (
+            "analyze_ruff",
+            "analyze_pyright",
+            "analyze_bandit",
+            "analyze_pip_audit",
+        ):
             tool_data = self._load_tool_data(
                 tool_name, "static_checks", log_source=False
             )
@@ -1447,23 +1452,57 @@ class ReportGenerationMixin:
             if isinstance(static_analysis, dict)
             else {}
         )
+        bandit_summary = (
+            static_analysis.get("analyze_bandit", {}).get("summary", {})
+            if isinstance(static_analysis, dict)
+            else {}
+        )
+        pip_audit_summary = (
+            static_analysis.get("analyze_pip_audit", {}).get("summary", {})
+            if isinstance(static_analysis, dict)
+            else {}
+        )
         ruff_available = bool(
             static_analysis.get("analyze_ruff", {}).get("available", False)
         ) if isinstance(static_analysis, dict) else False
         pyright_available = bool(
             static_analysis.get("analyze_pyright", {}).get("available", False)
         ) if isinstance(static_analysis, dict) else False
+        bandit_available = bool(
+            static_analysis.get("analyze_bandit", {}).get("available", False)
+        ) if isinstance(static_analysis, dict) else False
+        pip_audit_available = bool(
+            static_analysis.get("analyze_pip_audit", {}).get("available", False)
+        ) if isinstance(static_analysis, dict) else False
         ruff_total = to_int(ruff_summary.get("total_issues")) or 0
         pyright_total = to_int(pyright_summary.get("total_issues")) or 0
-        if not (ruff_available and pyright_available):
-            lines.append("- **Static Analysis (ruff/pyright)**: UNAVAILABLE")
-        elif ruff_total > 0 or pyright_total > 0:
+        bandit_total = to_int(bandit_summary.get("total_issues")) or 0
+        pip_audit_total = to_int(pip_audit_summary.get("total_issues")) or 0
+        static_ready = (
+            ruff_available
+            and pyright_available
+            and bandit_available
+            and pip_audit_available
+        )
+        if not static_ready:
             lines.append(
-                f"- **Static Analysis (ruff/pyright)**: {ruff_total + pyright_total} issue(s) "
-                f"(ruff={ruff_total}, pyright={pyright_total})"
+                "- **Static Analysis (ruff/pyright/bandit/pip-audit)**: UNAVAILABLE"
+            )
+        elif (
+            ruff_total > 0
+            or pyright_total > 0
+            or bandit_total > 0
+            or pip_audit_total > 0
+        ):
+            lines.append(
+                f"- **Static Analysis (ruff/pyright/bandit/pip-audit)**: "
+                f"{ruff_total + pyright_total + bandit_total + pip_audit_total} issue(s) "
+                f"(ruff={ruff_total}, pyright={pyright_total}, bandit={bandit_total}, pip-audit={pip_audit_total})"
             )
         else:
-            lines.append("- **Static Analysis (ruff/pyright)**: CLEAN")
+            lines.append(
+                "- **Static Analysis (ruff/pyright/bandit/pip-audit)**: CLEAN"
+            )
 
         lines.extend(
             self._lines_for_verify_process_cleanup_status_snapshot(
@@ -2297,12 +2336,24 @@ class ReportGenerationMixin:
         if isinstance(static_analysis, dict):
             ruff_data = static_analysis.get("analyze_ruff", {})
             pyright_data = static_analysis.get("analyze_pyright", {})
+            bandit_data = static_analysis.get("analyze_bandit", {})
+            pip_audit_data = static_analysis.get("analyze_pip_audit", {})
             ruff_summary = (
                 ruff_data.get("summary", {}) if isinstance(ruff_data, dict) else {}
             )
             pyright_summary = (
                 pyright_data.get("summary", {})
                 if isinstance(pyright_data, dict)
+                else {}
+            )
+            bandit_summary = (
+                bandit_data.get("summary", {})
+                if isinstance(bandit_data, dict)
+                else {}
+            )
+            pip_audit_summary = (
+                pip_audit_data.get("summary", {})
+                if isinstance(pip_audit_data, dict)
                 else {}
             )
             ruff_details = (
@@ -2313,8 +2364,20 @@ class ReportGenerationMixin:
                 if isinstance(pyright_data, dict)
                 else {}
             )
+            bandit_details = (
+                bandit_data.get("details", {})
+                if isinstance(bandit_data, dict)
+                else {}
+            )
+            pip_audit_details = (
+                pip_audit_data.get("details", {})
+                if isinstance(pip_audit_data, dict)
+                else {}
+            )
             ruff_available = bool(ruff_data.get("available", False))
             pyright_available = bool(pyright_data.get("available", False))
+            bandit_available = bool(bandit_data.get("available", False))
+            pip_audit_available = bool(pip_audit_data.get("available", False))
             lines.append(
                 f"- **Ruff**: {ruff_summary.get('status', 'UNKNOWN')} "
                 f"({to_int(ruff_summary.get('total_issues')) or 0} issue(s) across "
@@ -2326,6 +2389,16 @@ class ReportGenerationMixin:
                 f"- **Pyright**: {pyright_summary.get('status', 'UNKNOWN')} "
                 f"({pyright_errors} error(s), {pyright_warnings} warning(s))"
             )
+            lines.append(
+                f"- **Bandit**: {bandit_summary.get('status', 'UNKNOWN')} "
+                f"({to_int(bandit_summary.get('total_issues')) or 0} MEDIUM/HIGH issue(s) across "
+                f"{to_int(bandit_summary.get('files_affected')) or 0} file(s))"
+            )
+            lines.append(
+                f"- **pip-audit**: {pip_audit_summary.get('status', 'UNKNOWN')} "
+                f"({to_int(pip_audit_summary.get('total_issues')) or 0} vulnerability finding(s) across "
+                f"{to_int(pip_audit_summary.get('files_affected')) or 0} package(s))"
+            )
             if not ruff_available:
                 message = str(ruff_details.get("message", "")).strip()
                 if message:
@@ -2334,6 +2407,14 @@ class ReportGenerationMixin:
                 message = str(pyright_details.get("message", "")).strip()
                 if message:
                     lines.append(f"  - Pyright unavailable: {message}")
+            if not bandit_available:
+                message = str(bandit_details.get("message", "")).strip()
+                if message:
+                    lines.append(f"  - Bandit unavailable: {message}")
+            if not pip_audit_available:
+                message = str(pip_audit_details.get("message", "")).strip()
+                if message:
+                    lines.append(f"  - pip-audit unavailable: {message}")
         else:
             lines.append(
                 "- Static analysis data unavailable (run `audit --full` for latest diagnostics)"
@@ -4068,15 +4149,29 @@ class ReportGenerationMixin:
                         bullets=dev_bullets,
                     )
 
-        # Static analysis priority (ruff + pyright)
+        # Static analysis priority (ruff, pyright, bandit, pip-audit)
         if isinstance(static_analysis, dict):
             ruff_data = static_analysis.get("analyze_ruff", {})
             pyright_data = static_analysis.get("analyze_pyright", {})
+            bandit_data = static_analysis.get("analyze_bandit", {})
+            pip_audit_data = static_analysis.get("analyze_pip_audit", {})
             ruff_summary = static_analysis.get("analyze_ruff", {}).get("summary", {})
             pyright_summary = static_analysis.get("analyze_pyright", {}).get(
                 "summary", {}
             )
+            bandit_summary = static_analysis.get("analyze_bandit", {}).get(
+                "summary", {}
+            )
+            pip_audit_summary = static_analysis.get("analyze_pip_audit", {}).get(
+                "summary", {}
+            )
             pyright_details = static_analysis.get("analyze_pyright", {}).get(
+                "details", {}
+            )
+            bandit_details = static_analysis.get("analyze_bandit", {}).get(
+                "details", {}
+            )
+            pip_audit_details = static_analysis.get("analyze_pip_audit", {}).get(
                 "details", {}
             )
             ruff_details = (
@@ -4084,14 +4179,26 @@ class ReportGenerationMixin:
             )
             ruff_available = bool(ruff_data.get("available", False))
             pyright_available = bool(pyright_data.get("available", False))
+            bandit_available = bool(bandit_data.get("available", False))
+            pip_audit_available = bool(pip_audit_data.get("available", False))
             ruff_issues = to_int(ruff_summary.get("total_issues")) or 0
             pyright_issues = to_int(pyright_summary.get("total_issues")) or 0
+            bandit_issues = to_int(bandit_summary.get("total_issues")) or 0
+            pip_audit_issues = to_int(pip_audit_summary.get("total_issues")) or 0
             pyright_errors = to_int(pyright_details.get("errors")) or 0
             pyright_warnings = to_int(pyright_details.get("warnings")) or 0
-            if not (ruff_available and pyright_available):
+            static_tools_ok = (
+                ruff_available
+                and pyright_available
+                and bandit_available
+                and pip_audit_available
+            )
+            if not static_tools_ok:
                 unavailable_bullets: list[str] = []
                 ruff_msg = str(ruff_details.get("message", "")).strip()
                 pyright_msg = str(pyright_details.get("message", "")).strip()
+                bandit_msg = str(bandit_details.get("message", "")).strip()
+                pip_audit_msg = str(pip_audit_details.get("message", "")).strip()
                 if not ruff_available:
                     unavailable_bullets.append(
                         f"Ruff unavailable: {ruff_msg if ruff_msg else 'no details provided'}"
@@ -4100,16 +4207,25 @@ class ReportGenerationMixin:
                     unavailable_bullets.append(
                         f"Pyright unavailable: {pyright_msg if pyright_msg else 'no details provided'}"
                     )
+                if not bandit_available:
+                    unavailable_bullets.append(
+                        f"Bandit unavailable: {bandit_msg if bandit_msg else 'no details provided'}"
+                    )
+                if not pip_audit_available:
+                    unavailable_bullets.append(
+                        f"pip-audit unavailable: {pip_audit_msg if pip_audit_msg else 'no details provided'}"
+                    )
                 unavailable_bullets.append(
-                    "Action: install missing tooling in the audit interpreter (for example `.venv`) and rerun `python development_tools/run_development_tools.py audit --full`."
+                    "Action: install missing tooling in the audit interpreter (for example `.venv`; "
+                    "`pip install bandit pip-audit`) and rerun `python development_tools/run_development_tools.py audit --full`."
                 )
                 unavailable_bullets.append(
-                    "Why this matters: without ruff/pyright, static-analysis signals in reports are incomplete."
+                    "Why this matters: without the full static-analysis stack, security and type/lint signals in reports are incomplete."
                 )
                 add_priority(
                     tier=2,
                     title="Enable static analysis tooling for audits",
-                    reason="Ruff and/or pyright are unavailable in the current audit environment.",
+                    reason="One or more static-analysis tools are unavailable in the current audit environment.",
                     bullets=unavailable_bullets,
                 )
             else:
@@ -4151,6 +4267,46 @@ class ReportGenerationMixin:
                             f"Pyright reports {pyright_errors} error(s), {pyright_warnings} warning(s)."
                         ),
                         bullets=pyright_bullets,
+                    )
+                if bandit_issues > 0:
+                    bandit_bullets: list[str] = [
+                        f"Bandit MEDIUM/HIGH findings: {bandit_issues} issue(s) across "
+                        f"{to_int(bandit_summary.get('files_affected')) or 0} file(s).",
+                        "Action: Run `python -m bandit -r . -f screen` (or `python development_tools/static_checks/analyze_bandit.py`) to review.",
+                        "Why this matters: Security regressions in application code increase exploit risk.",
+                        "Review for details: development_tools/CONSOLIDATED_REPORT.md",
+                    ]
+                    bandit_bullets.insert(
+                        0, "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
+                    )
+                    add_priority(
+                        tier=3,
+                        title="Address Bandit security findings",
+                        reason=(
+                            f"Bandit reports {bandit_issues} MEDIUM/HIGH issue(s) across "
+                            f"{to_int(bandit_summary.get('files_affected')) or 0} file(s)."
+                        ),
+                        bullets=bandit_bullets,
+                    )
+                if pip_audit_issues > 0:
+                    pip_bullets: list[str] = [
+                        f"pip-audit reports {pip_audit_issues} vulnerability finding(s) across "
+                        f"{to_int(pip_audit_summary.get('files_affected')) or 0} package(s).",
+                        "Action: Run `python -m pip_audit --format json` and upgrade pinned dependencies per advisory fix versions.",
+                        "Why this matters: Known CVEs in dependencies are a supply-chain risk.",
+                        "Review for details: development_tools/CONSOLIDATED_REPORT.md",
+                    ]
+                    pip_bullets.insert(
+                        0, "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
+                    )
+                    add_priority(
+                        tier=2,
+                        title="Review pip-audit dependency vulnerabilities",
+                        reason=(
+                            f"pip-audit reports {pip_audit_issues} vulnerability finding(s) across "
+                            f"{to_int(pip_audit_summary.get('files_affected')) or 0} package(s)."
+                        ),
+                        bullets=pip_bullets,
                     )
 
         # Watch coverage when thresholds are currently met (monitor for regressions).
@@ -6987,11 +7143,21 @@ class ReportGenerationMixin:
         if isinstance(static_analysis, dict):
             ruff_data = static_analysis.get("analyze_ruff", {})
             pyright_data = static_analysis.get("analyze_pyright", {})
+            bandit_data = static_analysis.get("analyze_bandit", {})
+            pip_audit_data = static_analysis.get("analyze_pip_audit", {})
             ruff_summary = (
                 ruff_data.get("summary", {}) if isinstance(ruff_data, dict) else {}
             )
             pyright_summary = (
                 pyright_data.get("summary", {}) if isinstance(pyright_data, dict) else {}
+            )
+            bandit_summary = (
+                bandit_data.get("summary", {}) if isinstance(bandit_data, dict) else {}
+            )
+            pip_audit_summary = (
+                pip_audit_data.get("summary", {})
+                if isinstance(pip_audit_data, dict)
+                else {}
             )
             ruff_details = (
                 ruff_data.get("details", {}) if isinstance(ruff_data, dict) else {}
@@ -6999,8 +7165,18 @@ class ReportGenerationMixin:
             pyright_details = (
                 pyright_data.get("details", {}) if isinstance(pyright_data, dict) else {}
             )
+            bandit_details = (
+                bandit_data.get("details", {}) if isinstance(bandit_data, dict) else {}
+            )
+            pip_audit_details = (
+                pip_audit_data.get("details", {})
+                if isinstance(pip_audit_data, dict)
+                else {}
+            )
             ruff_available = bool(ruff_data.get("available", False))
             pyright_available = bool(pyright_data.get("available", False))
+            bandit_available = bool(bandit_data.get("available", False))
+            pip_audit_available = bool(pip_audit_data.get("available", False))
             lines.append(
                 f"- **Ruff**: {ruff_summary.get('status', 'UNKNOWN')} "
                 f"({to_int(ruff_summary.get('total_issues')) or 0} issue(s), "
@@ -7010,6 +7186,16 @@ class ReportGenerationMixin:
                 f"- **Pyright**: {pyright_summary.get('status', 'UNKNOWN')} "
                 f"({to_int(pyright_details.get('errors')) or 0} error(s), "
                 f"{to_int(pyright_details.get('warnings')) or 0} warning(s))"
+            )
+            lines.append(
+                f"- **Bandit**: {bandit_summary.get('status', 'UNKNOWN')} "
+                f"({to_int(bandit_summary.get('total_issues')) or 0} MEDIUM/HIGH issue(s), "
+                f"{to_int(bandit_summary.get('files_affected')) or 0} file(s))"
+            )
+            lines.append(
+                f"- **pip-audit**: {pip_audit_summary.get('status', 'UNKNOWN')} "
+                f"({to_int(pip_audit_summary.get('total_issues')) or 0} vulnerability finding(s), "
+                f"{to_int(pip_audit_summary.get('files_affected')) or 0} package(s))"
             )
             if not ruff_available:
                 message = str(ruff_details.get("message", "")).strip()
@@ -7040,8 +7226,37 @@ class ReportGenerationMixin:
                 message = str(pyright_details.get("message", "")).strip()
                 if message:
                     lines.append(f"  - Pyright unavailable: {message}")
-            elif isinstance(pyright_details.get("top_error_files"), list) or isinstance(
-                pyright_details.get("top_warning_files"), list
+            if not bandit_available:
+                message = str(bandit_details.get("message", "")).strip()
+                if message:
+                    lines.append(f"  - Bandit unavailable: {message}")
+            elif bandit_available and isinstance(bandit_details.get("top_files"), list):
+                top_b = (bandit_details.get("top_files") or [])[:5]
+                if top_b:
+                    file_text = ", ".join(
+                        f"{Path(str(item.get('file', 'unknown'))).name} ({to_int(item.get('count')) or 0})"
+                        for item in top_b
+                        if isinstance(item, dict)
+                    )
+                    if file_text:
+                        lines.append(f"  - Top Bandit Files: {file_text}")
+            if not pip_audit_available:
+                message = str(pip_audit_details.get("message", "")).strip()
+                if message:
+                    lines.append(f"  - pip-audit unavailable: {message}")
+            elif isinstance(pip_audit_details.get("vulnerable_packages"), list):
+                pkgs = (pip_audit_details.get("vulnerable_packages") or [])[:5]
+                if pkgs:
+                    pkg_text = ", ".join(
+                        f"{str(item.get('name', ''))} ({to_int(item.get('vuln_count')) or 0})"
+                        for item in pkgs
+                        if isinstance(item, dict)
+                    )
+                    if pkg_text:
+                        lines.append(f"  - Top pip-audit packages: {pkg_text}")
+            if pyright_available and (
+                isinstance(pyright_details.get("top_error_files"), list)
+                or isinstance(pyright_details.get("top_warning_files"), list)
             ):
                 if (to_int(pyright_details.get("errors")) or 0) > 0:
                     top_error_files = pyright_details.get("top_error_files", [])[:5]
@@ -7063,7 +7278,7 @@ class ReportGenerationMixin:
                         )
                         if file_text:
                             lines.append(f"  - Top Pyright Warning Files: {file_text}")
-            elif isinstance(pyright_details.get("top_files"), list):
+            elif pyright_available and isinstance(pyright_details.get("top_files"), list):
                 top_files = pyright_details.get("top_files", [])[:5]
                 if top_files:
                     file_text = ", ".join(

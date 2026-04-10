@@ -24,8 +24,8 @@ def path_looks_like_test_directory(path: Path) -> bool:
         test_indicators = [
             "/tests/",
             "/test/",
-            "/tmp/",
-            "/temp/",
+            "/tmp/",  # nosec B108 — path heuristics, not tempfile usage
+            "/temp/",  # nosec B108
             "/pytest-",
             "/pytest_of_",
             "tests/data/",

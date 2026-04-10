@@ -1325,7 +1325,7 @@ def extract_failures_from_junit_xml(xml_path: str) -> list[dict[str, str]]:
         return failures
 
     try:
-        tree = ET.parse(xml_path)
+        tree = ET.parse(xml_path)  # nosec B314 — local JUnit from pytest, not remote XML
         root = tree.getroot()
 
         # Find all testcase elements with failure or error children
@@ -1400,7 +1400,7 @@ def parse_junit_xml(xml_path: str) -> dict[str, int]:
     # Parse XML - errors are handled by decorator, but we catch parsing errors
     # to return empty results gracefully
     try:
-        tree = ET.parse(xml_path)
+        tree = ET.parse(xml_path)  # nosec B314 — local JUnit from pytest, not remote XML
         root = tree.getroot()
 
         # JUnit XML structure: <testsuites> contains <testsuite> elements

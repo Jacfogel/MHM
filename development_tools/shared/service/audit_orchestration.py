@@ -1706,7 +1706,8 @@ class AuditOrchestrationMixin:
             
             # Check for common temp directory patterns
             test_indicators = [
-                '/tmp', '/temp',  # Unix-style temp
+                "/tmp",  # nosec B108 — path substring markers for test/temp detection
+                "/temp",  # nosec B108
                 '/tests/', '/test/',  # Test directories
                 'tests/data/', 'tests/fixtures/', 'tests/temp/',
                 'demo_project',  # Demo project used in tests

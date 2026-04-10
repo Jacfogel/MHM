@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-09 01:09:11
+> **Last Generated**: 2026-04-09 23:50:55
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -20,7 +20,6 @@ C:.
 |   HOW_TO_RUN.md
 |   PROJECT_VISION.md
 |   pyproject.toml
-|   pyrightconfig.json
 |   pytest.ini
 |   README.md
 |   requirements.txt
@@ -369,6 +368,8 @@ C:.
 |   |   |   |   __init__.py
 |   |   |   |   
 |   +---static_checks
+|   |   |   analyze_bandit.py
+|   |   |   analyze_pip_audit.py
 |   |   |   analyze_pyright.py
 |   |   |   analyze_ruff.py
 |   |   |   check_channel_loggers.py
@@ -384,9 +385,11 @@ C:.
 |   |   |   dev_tools_coverage_cache.py
 |   |   |   domain_mapper.py
 |   |   |   fix_test_markers.py
+|   |   |   flaky_detector.py
 |   |   |   generate_test_coverage_report.py
 |   |   |   run_test_coverage.py
 |   |   |   test_file_coverage_cache.py
+|   |   |   verify_process_cleanup.py
 |   |   |   __init__.py
 |   |   |   
 |   |   +---jsons
@@ -573,6 +576,7 @@ C:.
 |   |   |   test_analyze_module_imports_cli.py
 |   |   |   test_analyze_module_refactor_candidates.py
 |   |   |   test_analyze_package_exports.py
+|   |   |   test_analyze_security_static_checks.py
 |   |   |   test_analyze_system_signals_additional.py
 |   |   |   test_analyze_test_coverage.py
 |   |   |   test_analyze_test_markers.py
@@ -608,6 +612,7 @@ C:.
 |   |   |   test_development_tools_package_init.py
 |   |   |   test_dev_tools_coverage_cache.py
 |   |   |   test_dev_tools_scoped_status_report.py
+|   |   |   test_directory_taxonomy_policy.py
 |   |   |   test_documentation_sync_checker.py
 |   |   |   test_error_scenarios.py
 |   |   |   test_exclusion_utilities.py
@@ -625,6 +630,7 @@ C:.
 |   |   |   test_fix_test_markers.py
 |   |   |   test_fix_version_sync_file_discovery.py
 |   |   |   test_fix_version_sync_todo_sync.py
+|   |   |   test_flaky_detector.py
 |   |   |   test_generate_consolidated_report.py
 |   |   |   test_generate_directory_tree.py
 |   |   |   test_generate_error_handling_recommendations.py
@@ -666,6 +672,7 @@ C:.
 |   |   |   test_tool_wrappers_package_exports.py
 |   |   |   test_tool_wrappers_static_analysis.py
 |   |   |   test_verification_summary.py
+|   |   |   test_verify_process_cleanup.py
 |   |   |   __init__.py
 |   |   |   
 |   +---fixtures

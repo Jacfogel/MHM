@@ -739,10 +739,10 @@ def _derive_default_docs_list() -> list[str]:
 TEST_MARKERS_BASE: dict[str, Any] = {
     "categories": ["unit", "integration", "behavior", "ui"],
     "transient_data_path_markers": [
-        "/tmp/",
-        "/tmp_pytest_runtime/",
-        "pytest-tmp-",
-        "pytest-of-",
+        "/tmp/",  # nosec B108 — string markers for pytest path detection, not tempfile API use
+        "/tmp_pytest_runtime/",  # nosec B108
+        "pytest-tmp-",  # nosec B108
+        "pytest-of-",  # nosec B108
     ],
     "ai_path_tokens": ["ai/test_ai", "test_ai"],
 }
@@ -1296,12 +1296,21 @@ def get_unused_imports_config():
 STATIC_ANALYSIS = {
     "pyright_command": ["python", "-m", "pyright"],
     "pyright_args": ["--outputjson"],
-    "pyright_project_path": "pyrightconfig.json",
+    "pyright_project_path": "pyproject.toml",
     "ruff_command": _DEFAULT_RUFF_COMMAND,  # Overridden by tool_commands.ruff_command or static_analysis.ruff_command
     "ruff_args": ["check", ".", "--output-format", "json"],
     "ruff_config_path": "development_tools/config/ruff.toml",
     "ruff_sync_root_compat": True,
     "timeout_seconds": 600,
+    # Bandit / pip-audit (Tier 3 security signals; see DEVELOPMENT_TOOLS_GUIDE §10)
+    "bandit_command": ["python", "-m", "bandit"],
+    "bandit_args": [],
+    # First-party scan roots avoid `.venv` entirely (see analyze_bandit bandit_scan_roots).
+    "bandit_exclude": "__pycache__,.git",
+    "bandit_timeout_seconds": 900,
+    "pip_audit_command": ["python", "-m", "pip_audit"],
+    "pip_audit_args": [],
+    "pip_audit_timeout_seconds": 600,
 }
 
 

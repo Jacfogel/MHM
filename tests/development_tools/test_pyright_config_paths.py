@@ -2,7 +2,7 @@
 
 V4 §7.6 portability acceptance (incremental):
 - Owned `development_tools/config/pyrightconfig.json` is valid JSON and suitable for `pyright --project` in dev-tools audits.
-- Root `pyrightconfig.json` remains the whole-repo / IDE baseline (JSONC); policy tests only require presence of core keys in text.
+- Root Pyright settings live in `pyproject.toml` under `[tool.pyright]` (whole-repo / IDE baseline); policy tests parse TOML.
 - Full diagnostic parity (error counts vs root) is deferred: add subprocess-based comparison only after explicit tolerance rules exist.
 """
 
@@ -19,6 +19,13 @@ import pytest
 project_root = Path(__file__).resolve().parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
+
+
+def _root_tool_pyright() -> dict:
+    data = tomllib.loads((project_root / "pyproject.toml").read_text(encoding="utf-8"))
+    sec = data.get("tool", {}).get("pyright")
+    assert isinstance(sec, dict), "pyproject.toml must define [tool.pyright]"
+    return sec
 
 
 @pytest.mark.unit
@@ -43,8 +50,8 @@ def test_dev_tools_pyrightconfig_has_typing_and_exclude_roots() -> None:
 @pytest.mark.unit
 def test_pyright_owned_and_root_both_declare_type_checking_mode() -> None:
     """Both config stacks declare typeCheckingMode (baseline for future parity work)."""
-    root_text = (project_root / "pyrightconfig.json").read_text(encoding="utf-8")
-    assert '"typeCheckingMode"' in root_text
+    root = _root_tool_pyright()
+    assert root.get("typeCheckingMode")
     owned = json.loads(
         (project_root / "development_tools" / "config" / "pyrightconfig.json").read_text(
             encoding="utf-8"
@@ -54,13 +61,12 @@ def test_pyright_owned_and_root_both_declare_type_checking_mode() -> None:
 
 
 @pytest.mark.unit
-def test_root_pyrightconfig_exists() -> None:
-    """Root config uses JSONC (// comments); require file and core keys only."""
-    path = project_root / "pyrightconfig.json"
-    assert path.is_file(), f"Missing {path}"
-    text = path.read_text(encoding="utf-8")
-    assert '"typeCheckingMode"' in text
-    assert '"venv"' in text
+def test_root_pyright_in_pyproject_exists() -> None:
+    """Root Pyright config is [tool.pyright] in pyproject.toml."""
+    root = _root_tool_pyright()
+    assert root.get("typeCheckingMode")
+    assert root.get("venv") == ".venv"
+    assert root.get("venvPath") == "."
 
 
 @pytest.mark.unit
@@ -111,7 +117,8 @@ def test_pyright_diagnostic_parity_strategy_note() -> None:
     policy tests require structural readiness (typeCheckingMode, exclude roots) only.
     """
     assert (project_root / "development_tools" / "config" / "pyrightconfig.json").is_file()
-    assert (project_root / "pyrightconfig.json").is_file()
+    assert (project_root / "pyproject.toml").is_file()
+    assert _root_tool_pyright().get("typeCheckingMode")
 
 
 @pytest.mark.unit
@@ -126,8 +133,10 @@ def test_pyright_owned_and_root_both_reference_tests_data_excludes() -> None:
     flat = " ".join(str(x) for x in ex)
     assert "tests/data" in flat
 
-    root_text = (project_root / "pyrightconfig.json").read_text(encoding="utf-8")
-    assert "tests/data" in root_text or "tests\\data" in root_text
+    root_ex = _root_tool_pyright().get("exclude", [])
+    assert isinstance(root_ex, list)
+    root_flat = " ".join(str(x) for x in root_ex)
+    assert "tests/data" in root_flat or "tests\\data" in root_flat
 
 
 @pytest.mark.integration
@@ -171,7 +180,7 @@ def test_e2e_pyright_outputjson_parses_for_owned_and_root_projects() -> None:
         return payload
 
     owned_payload = _run("development_tools/config/pyrightconfig.json")
-    root_payload = _run("pyrightconfig.json")
+    root_payload = _run("pyproject.toml")
     assert isinstance(owned_payload["summary"], dict)
     assert isinstance(root_payload["summary"], dict)
 

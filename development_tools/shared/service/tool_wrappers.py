@@ -30,7 +30,13 @@ SCRIPT_REGISTRY = get_script_registry()
 # Tier 3 runs these alongside heavy pytest workers; SIGINT to stop coverage must not
 # tear down nested pyright/ruff mid-communicate without emitting JSON.
 _WIN_PROCESS_GROUP_SCRIPTS = frozenset(
-    {"run_test_coverage", "analyze_pyright", "analyze_ruff"}
+    {
+        "run_test_coverage",
+        "analyze_pyright",
+        "analyze_ruff",
+        "analyze_bandit",
+        "analyze_pip_audit",
+    }
 )
 
 
@@ -1810,8 +1816,172 @@ class ToolWrappersMixin:
             result["success"] = False
         return result
 
+    def run_analyze_bandit(self) -> dict:
+        """Run bandit security analysis with structured JSON handling."""
+        logger.debug("Analyzing bandit security findings...")
+        cached = self._try_static_check_cache("analyze_bandit", "static_checks")
+        if cached is not None:
+            result = {
+                "success": True,
+                "output": "",
+                "error": "",
+                "data": cached,
+                "returncode": 0,
+            }
+            summary = cached.get("summary", {}) if isinstance(cached, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            self.results_cache["analyze_bandit"] = cached
+            logger.debug("Using cached analyze_bandit result (source unchanged)")
+            return result
+        result = self.run_script("analyze_bandit", "--json", timeout=900)
+        output = result.get("output", "")
+        data = None
+        if output:
+            try:
+                data = json.loads(output)
+            except json.JSONDecodeError:
+                data = None
+        if data is not None:
+            result["data"] = data
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            result["success"] = True
+            result["error"] = ""
+            self.results_cache["analyze_bandit"] = data
+            try:
+                save_tool_result(
+                    "analyze_bandit",
+                    "static_checks",
+                    data,
+                    project_root=self.project_root,
+                )
+                self._save_static_check_cache("analyze_bandit", "static_checks", data)
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_bandit result: {e}")
+        else:
+            if not result.get("error"):
+                result["error"] = "No parseable JSON output from analyze_bandit"
+            result["success"] = False
+        return result
+
+    def run_analyze_pip_audit(self) -> dict:
+        """Run pip-audit with structured JSON handling (requirements-lock cache)."""
+        logger.debug("Analyzing pip-audit dependency vulnerabilities...")
+        cached = self._try_pip_audit_cache("static_checks")
+        if cached is not None:
+            result = {
+                "success": True,
+                "output": "",
+                "error": "",
+                "data": cached,
+                "returncode": 0,
+            }
+            summary = cached.get("summary", {}) if isinstance(cached, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            self.results_cache["analyze_pip_audit"] = cached
+            logger.debug("Using cached analyze_pip_audit result (requirements unchanged)")
+            return result
+        result = self.run_script("analyze_pip_audit", "--json", timeout=600)
+        output = result.get("output", "")
+        data = None
+        if output:
+            try:
+                data = json.loads(output)
+            except json.JSONDecodeError:
+                data = None
+        if data is not None:
+            result["data"] = data
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            result["success"] = True
+            result["error"] = ""
+            self.results_cache["analyze_pip_audit"] = data
+            try:
+                save_tool_result(
+                    "analyze_pip_audit",
+                    "static_checks",
+                    data,
+                    project_root=self.project_root,
+                )
+                self._save_pip_audit_cache("static_checks", data)
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_pip_audit result: {e}")
+        else:
+            if not result.get("error"):
+                result["error"] = "No parseable JSON output from analyze_pip_audit"
+            result["success"] = False
+        return result
+
+    def _compute_requirements_lock_signature(self) -> str | None:
+        """Hash requirements.txt / pyproject.toml for pip-audit cache invalidation."""
+        try:
+            import hashlib
+
+            root = Path(self.project_root)
+            h = hashlib.sha256()
+            found = False
+            for name in ("requirements.txt", "pyproject.toml"):
+                p = root / name
+                if p.is_file():
+                    found = True
+                    h.update(name.encode("utf-8"))
+                    h.update(b"\0")
+                    with open(p, "rb") as handle:
+                        h.update(handle.read())
+            return h.hexdigest() if found else None
+        except Exception as e:
+            logger.debug(f"Could not compute requirements lock signature: {e}")
+            return None
+
+    def _try_pip_audit_cache(self, domain: str) -> dict | None:
+        """Return cached pip-audit result if dependency files unchanged."""
+        from ..audit_storage_scope import jsons_dir_for_scope
+
+        sig = self._compute_requirements_lock_signature()
+        if not sig:
+            return None
+        jsons_dir = jsons_dir_for_scope(self.project_root, domain)
+        cache_file = jsons_dir / ".analyze_pip_audit_requirements_cache.json"
+        if not cache_file.exists():
+            return None
+        try:
+            with open(cache_file, encoding="utf-8") as f:
+                cache_data = json.load(f)
+            if cache_data.get("requirements_signature") != sig:
+                return None
+        except (json.JSONDecodeError, OSError):
+            return None
+        loaded = load_tool_result(
+            "analyze_pip_audit", domain, project_root=self.project_root, normalize=False
+        )
+        if loaded and isinstance(loaded, dict):
+            return loaded
+        return None
+
+    def _save_pip_audit_cache(self, domain: str, data: dict) -> None:
+        """Persist requirements signature after a successful pip-audit run."""
+        from ..audit_storage_scope import jsons_dir_for_scope
+
+        sig = self._compute_requirements_lock_signature()
+        if not sig:
+            return
+        jsons_dir = jsons_dir_for_scope(self.project_root, domain)
+        cache_file = jsons_dir / ".analyze_pip_audit_requirements_cache.json"
+        cache_file.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with open(cache_file, "w", encoding="utf-8") as f:
+                json.dump({"requirements_signature": sig}, f)
+        except OSError as e:
+            logger.debug(f"Could not save pip-audit cache: {e}")
+
     def _compute_source_signature(self) -> str | None:
-        """Compute hash of .py sources for static-check cache invalidation."""
+        """Compute hash for static-check cache invalidation (Python sources + tool configs).
+
+        Includes ``pyproject.toml`` (``[tool.pyright]``, ``[tool.bandit]``, etc.) and owned
+        static-analysis configs so results refresh when only config moves (e.g. Pyright
+        settings merged from ``pyrightconfig.json`` into ``pyproject.toml``) without any
+        ``.py`` edits — otherwise stale Pyright/Ruff/Bandit JSON would be served from cache.
+        """
         try:
             import hashlib
             from ..standard_exclusions import should_exclude_file
@@ -1836,6 +2006,17 @@ class ToolWrappersMixin:
                     sig.update(file_hash.digest())
                 except (OSError, ValueError):
                     continue
+            # Tool configs (not part of *.py scan): must bust cache when they change alone.
+            for rel in (
+                "pyproject.toml",
+                "development_tools/config/pyrightconfig.json",
+                "development_tools/config/ruff.toml",
+            ):
+                cfg = root / rel
+                if cfg.is_file():
+                    sig.update(rel.encode("utf-8"))
+                    sig.update(b"\0")
+                    sig.update(cfg.read_bytes())
             return sig.hexdigest()
         except Exception as e:
             logger.debug(f"Could not compute source signature: {e}")

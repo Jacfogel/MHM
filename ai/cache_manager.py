@@ -44,7 +44,9 @@ class ResponseCache:
     ) -> str:
         """Generate cache key from prompt, user context, and prompt type"""
         base_string = f"{user_id or 'anonymous'}:{prompt_type}:{prompt}"  # Hash the full prompt to avoid collisions
-        return hashlib.md5(base_string.encode()).hexdigest()
+        return hashlib.md5(
+            base_string.encode(), usedforsecurity=False
+        ).hexdigest()
 
     @handle_errors("getting cached response", default_return=None)
     def get(

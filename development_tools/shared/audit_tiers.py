@@ -56,6 +56,8 @@ TIER3_TOOL_NAMES = [
     "generate_legacy_reference_report",
     "analyze_ruff",
     "analyze_pyright",
+    "analyze_bandit",
+    "analyze_pip_audit",
     "verify_process_cleanup",
 ]
 
@@ -215,6 +217,8 @@ def get_tier3_groups(
     static_analysis_group = [
         ("analyze_ruff", _get_runnable(service, "analyze_ruff")),
         ("analyze_pyright", _get_runnable(service, "analyze_pyright")),
+        ("analyze_bandit", _get_runnable(service, "analyze_bandit")),
+        ("analyze_pip_audit", _get_runnable(service, "analyze_pip_audit")),
         ("verify_process_cleanup", _get_runnable(service, "verify_process_cleanup")),
     ]
     return coverage_main, coverage_dev_tools, coverage_dependent, legacy_group, static_analysis_group

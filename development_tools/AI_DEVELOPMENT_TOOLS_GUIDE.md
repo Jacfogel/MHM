@@ -69,7 +69,7 @@ python development_tools/run_development_tools.py help
 
 **Static analysis config ownership**:
 - Ruff owned config path: `static_analysis.ruff_config_path` (default `development_tools/config/ruff.toml`)
-- Pyright owned project config path: `static_analysis.pyright_project_path` (default `pyrightconfig.json`)
+- Pyright owned project config path: `static_analysis.pyright_project_path` (default `pyproject.toml` for `[tool.pyright]`)
 - Root Ruff compatibility mirror toggle: `static_analysis.ruff_sync_root_compat` (default `true`)
 - `analyze_ruff` always passes explicit `--config` to the owned Ruff config path.
 - `analyze_pyright` always passes explicit `--project` to the configured Pyright config path unless `--project` is already present in `static_analysis.pyright_args`.
@@ -300,10 +300,10 @@ See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for fu
 
 ## 9. Directory taxonomy and configuration surface (Phase 1)
 
-- **Config surface**: `development_tools/config/` - `development_tools/config/config.py`, `development_tools/config/development_tools_config.json` (+ `.example`), `development_tools/config/sync_ruff_toml.py`, owned `development_tools/config/ruff.toml` / `development_tools/config/pyrightconfig.json`.
+- **Config surface**: Repo root `pyproject.toml` (`[tool.pyright]`, `[tool.bandit]`, ...); `development_tools/config/` - `development_tools/config/config.py`, `development_tools/config/development_tools_config.json` (+ `.example`), `development_tools/config/sync_ruff_toml.py`, owned `development_tools/config/ruff.toml` / `development_tools/config/pyrightconfig.json`.
 - **Implementation**: `development_tools/shared/**` (service mixins, scanners, caches); generated JSON under `reports/jsons/`, `tests/jsons/`.
 - **Phase 2**: Gate is recorded in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 7.7. Use shims only per [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md); see Section 9 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
-- **Dual Pyright**: repo root `pyrightconfig.json` (IDE/whole repo; JSONC) vs `development_tools/config/pyrightconfig.json` (audit `--project`; strict JSON). **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` mirror. Policy tests: `pytest tests/development_tools/test_pyright_config_paths.py`. Optional parity gate: set environment variable `PYRIGHT_ERROR_COUNT_MAX_DELTA` to a non-negative integer when running the e2e Pyright test so owned vs root `errorCount` may differ only within that bound (unset = advisory comparison only).
+- **Dual Pyright**: root `pyproject.toml` **`[tool.pyright]`** (IDE/whole repo) vs `development_tools/config/pyrightconfig.json` (alternate `--project` for audits/parity). Default `analyze_pyright` uses **`pyproject.toml`**. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` mirror. Policy tests: `pytest tests/development_tools/test_pyright_config_paths.py`. Optional parity gate: set environment variable `PYRIGHT_ERROR_COUNT_MAX_DELTA` to a non-negative integer when running the e2e Pyright test so owned vs root `errorCount` may differ only within that bound (unset = advisory comparison only).
 - **Portability (V5 Section 7.6)**: Structural checks today (valid configs, shared `tests/data` exclusions). Full diagnostic parity between root and owned Pyright remains goal-oriented; use `PYRIGHT_ERROR_COUNT_MAX_DELTA` for incremental tightening. Optional `pytest -m e2e` smoke in [`tests/development_tools/test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py).
 - **Human detail**: Section 9 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
 
@@ -311,17 +311,17 @@ See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for fu
 
 ## 10. External tools evaluation (Bandit, pip-audit, Radon, pre-commit)
 
-Not integrated into audit tiers. Run manually when assessing security/complexity hooks; see Section 10 (and **10.1 gap-analysis alignment**) in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 4.1. **Also evaluate**: **pydeps** (graphs vs existing dependency tools), **vulture** (dead code vs unused-imports/registry). **Scripts backlog**: [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) (policy + inventory refresh). `flaky_detector` and `verify_process_cleanup` now have tracked dev-tools homes/commands; keep remaining script candidates on the V5 backlog. **Do not add** unapproved standalone migration markdown files; use approved guides + V5.
+**Bandit** and **pip-audit** run in **Tier 3** full audits (`audit --full`) via `analyze_bandit` / `analyze_pip_audit`; they are in root `requirements.txt`. **Radon** / **pydeps** / **vulture** remain manual pilots. Full detail and manual one-off commands: Section 10 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md). **Scripts backlog**: [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md). **Do not add** unapproved standalone migration markdown files; use approved guides + V5.
 
 **TODO sync dry-run**: `python development_tools/docs/fix_version_sync.py sync-todo --dry-run` prints the dry-run summary to stdout (no file edits).
 
-**Evaluation note (2026-04-08)**: **bandit**, **pip-audit**, and **radon** are optional one-off installs (`pip install` per bullets below); they are intentionally **not** listed in root `requirements.txt` until Tier 1 noise thresholds and path policies are decided. **pre-commit** remains optional on developer machines only (no repo-root hook config added in this session); audit truth stays `run_development_tools.py` + `tests/development_tools/`.
+**Evaluation note (2026-04-10)**: **radon** remains an optional one-off install for CC sampling. **pre-commit** remains optional on developer machines only; audit truth stays `run_development_tools.py` + `tests/development_tools/`.
 
-**Manual pilot (venv active; do not broaden `requirements.txt` until Tier decision)**:
+**Manual pilot (venv active)** - optional extras beyond the integrated wrappers:
 
-- `python -m pip install bandit pip-audit` - install tools for a one-off review session (optional: `python -m pip install radon` for CC sampling).
-- `python -m bandit -r core communication ui user ai tasks -ll` - start with product packages; widen or tighten `-ll` / `-iii` after noise triage; exclude `tests/` paths until policy is defined.
-- `python -m pip_audit` - dependency vulnerability report; review exit code and whether results belong in CI vs advisory audit notes.
+- `python -m pip install radon` (optional CC sampling).
+- `python -m bandit -c pyproject.toml -r core communication ui user ai tasks -ll` - ad-hoc path experiments; audit uses `development_tools/static_checks/analyze_bandit.py` with `[tool.bandit]` excludes.
+- `python -m pip_audit` - ad-hoc; audit uses `development_tools/static_checks/analyze_pip_audit.py` (requirements-hash cache).
 - `python -m radon cc development_tools -a -s` - advisory complexity sample; overlaps internal analyzers-cross-check only until Tier policy exists.
 
 ### 10.1. Gap-analysis alignment (V5 Section 5.5)

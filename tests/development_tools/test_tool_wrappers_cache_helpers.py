@@ -50,6 +50,32 @@ def test_compute_source_signature_changes_when_source_changes(tmp_path: Path):
 
 
 @pytest.mark.unit
+def test_compute_source_signature_changes_when_pyproject_toml_changes(tmp_path: Path):
+    """Static-check cache must invalidate when only pyproject.toml changes (e.g. [tool.pyright])."""
+    (tmp_path / "development_tools" / "static_checks").mkdir(parents=True)
+    src_file = tmp_path / "development_tools" / "static_checks" / "code.py"
+    src_file.write_text("x = 1\n", encoding="utf-8")
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text('[project]\nname = "t"\nversion = "0"\n', encoding="utf-8")
+
+    with patch(
+        "development_tools.shared.standard_exclusions.should_exclude_file",
+        return_value=False,
+    ):
+        service = AIToolsService(project_root=str(tmp_path))
+        sig_before = service._compute_source_signature()
+        pyproject.write_text(
+            '[project]\nname = "t"\nversion = "0"\n[tool.pyright]\nexclude = ["archive"]\n',
+            encoding="utf-8",
+        )
+        sig_after = service._compute_source_signature()
+
+    assert isinstance(sig_before, str) and sig_before
+    assert isinstance(sig_after, str) and sig_after
+    assert sig_before != sig_after
+
+
+@pytest.mark.unit
 def test_try_static_check_cache_returns_cached_result_on_signature_match(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):

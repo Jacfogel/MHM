@@ -58,3 +58,53 @@ def test_run_analyze_pyright_parses_json_and_marks_issues(temp_project_copy, mon
     assert result["success"] is True
     assert result["issues_found"] is True
     assert result["data"]["details"]["errors"] == 2
+
+
+@pytest.mark.unit
+def test_run_analyze_bandit_parses_json_and_marks_issues(temp_project_copy, monkeypatch):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_args, **_kwargs: {
+            "success": True,
+            "output": '{"summary":{"total_issues":2,"files_affected":1,"status":"FAIL"},"details":{"tool":"bandit"}}',
+            "error": "",
+            "returncode": 0,
+        },
+        raising=True,
+    )
+    monkeypatch.setattr(
+        tool_wrappers_module, "save_tool_result", lambda *_a, **_k: None, raising=True
+    )
+
+    result = service.run_analyze_bandit()
+
+    assert result["success"] is True
+    assert result["issues_found"] is True
+    assert result["data"]["summary"]["total_issues"] == 2
+
+
+@pytest.mark.unit
+def test_run_analyze_pip_audit_parses_json_and_marks_issues(temp_project_copy, monkeypatch):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_args, **_kwargs: {
+            "success": True,
+            "output": '{"summary":{"total_issues":4,"files_affected":2,"status":"WARN"},"details":{"tool":"pip_audit"}}',
+            "error": "",
+            "returncode": 0,
+        },
+        raising=True,
+    )
+    monkeypatch.setattr(
+        tool_wrappers_module, "save_tool_result", lambda *_a, **_k: None, raising=True
+    )
+
+    result = service.run_analyze_pip_audit()
+
+    assert result["success"] is True
+    assert result["issues_found"] is True
+    assert result["data"]["summary"]["total_issues"] == 4

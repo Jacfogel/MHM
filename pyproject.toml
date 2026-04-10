@@ -21,3 +21,70 @@ exclude = ["logs*", "resources*", "archive*", "development_docs*", "ai_developme
 
 [tool.setuptools.package-data]
 "ui.generated" = ["*.py"]
+
+# Pyright: whole-repo / IDE baseline (`pyright --project pyproject.toml`). Pylance discovers [tool.pyright] automatically.
+# Former root `pyrightconfig.json` (JSONC) was merged here to reduce root dotfiles.
+[tool.pyright]
+typeCheckingMode = "basic"
+venvPath = "."
+venv = ".venv"
+reportReturnType = "none"
+reportArgumentType = "warning"
+reportOptionalMemberAccess = "warning"
+reportAttributeAccessIssue = "warning"
+reportGeneralTypeIssues = "warning"
+reportUnboundVariable = "error"
+reportUnsupportedDunderAll = "none"
+ignore = []
+exclude = [
+  "scripts",
+  "scripts/**",
+  "ui/generated",
+  "ui/generated/**",
+  "**/__pycache__",
+  "**/node_modules",
+  "**/.pytest_cache",
+  "**/.venv",
+  "**/venv",
+  "logs",
+  "logs/**",
+  "resources",
+  "resources/**",
+  "archive",
+  "archive/**",
+  "development_docs",
+  "development_docs/**",
+  "ai_development_docs",
+  "ai_development_docs/**",
+  "styles",
+  "styles/**",
+  "tests/logs",
+  "tests/logs/**",
+  "tests/data",
+  "tests/data/**",
+  "tests/temp",
+  "tests/temp/**",
+  "tests/fixtures",
+  "tests/fixtures/**",
+  ".git",
+  ".pytest_cache",
+  ".coverage",
+  "*.pyc",
+  "*.pyo",
+]
+
+# Bandit: loaded via `bandit -c pyproject.toml` (see development_tools/static_checks/analyze_bandit.py).
+[tool.bandit]
+exclude_dirs = [
+  "tests",
+  "development_tools/tests",
+  "archive",
+  "scripts/testing",
+  "tests/fixtures",
+  ".venv",
+  "venv",
+  "build",
+  "dist",
+  "node_modules",
+  "__pycache__",
+]
