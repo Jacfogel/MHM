@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-04-09 18:14:21",
+  "last_generated": "2026-04-09 22:19:33",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-04-09T18:14:21.448136",
+  "timestamp": "2026-04-09T22:19:33.037622",
   "successful": [
     "analyze_ai_work",
     "analyze_config",
@@ -53,7 +53,7 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-04-09T18:13:52"
+      "timestamp": "2026-04-09T22:11:30"
     },
     "analyze_config": {
       "success": true,
@@ -121,7 +121,7 @@
           }
         }
       },
-      "timestamp": "2026-04-09T18:13:52"
+      "timestamp": "2026-04-09T22:11:30"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -139,7 +139,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-09T18:14:03"
+      "timestamp": "2026-04-09T22:11:44"
     },
     "analyze_documentation": {
       "success": true,
@@ -179,7 +179,7 @@
                 "ui/UI_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.19806287388819513,
+              "similarity_score": 0.19790917636560237,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -419,20 +419,20 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 28236,
+              "content_length": 28833,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
-              "section_count": 21,
+              "section_count": 22,
               "sections": [
                 "Introduction",
                 "Overview",
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2026-04-10 - verify_process_cleanup Pyright clean **COMPLETED**",
                 "2026-04-09 - Dev-tools overlap + helper tests **COMPLETED**",
                 "2026-04-08 - V5 dev-tools continuation (scoped reports + doc overlap) **Progressed**",
                 "2026-04-07 - Welcome tracking parallel flake fix **COMPLETED**",
-                "2026-04-06 - Unified Tier 3 dev-tools coverage (V5 plan) **COMPLETED**",
-                "2026-04-06 - Reduce dependency pattern risk (plan complete) **COMPLETED**"
+                "2026-04-06 - Unified Tier 3 dev-tools coverage (V5 plan) **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -621,9 +621,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 419742,
+              "content_length": 421923,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 139,
+              "section_count": 140,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -631,10 +631,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-04-10 - Pyright warnings in verify_process_cleanup",
                 "2026-04-09 - Dev-tools cleanup (legacy scan noise, portability, helper coverage)",
                 "2026-04-08 - Dev-tools V5 plan continuation (scoped reports, overlap filter, external-tool stance)",
-                "2026-04-07 - Welcome tracking path + parallel-safe behavior tests",
-                "2026-04-06 - Unified Tier 3 coverage (dev-tools improvement plan V5)"
+                "2026-04-07 - Welcome tracking path + parallel-safe behavior tests"
               ]
             },
             "development_docs/PLANS.md": {
@@ -655,9 +655,9 @@
               ]
             },
             "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 29545,
+              "content_length": 30114,
               "header_info": "# AI Development Tools Guide\n\n> **File**: `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: AI collaborators and automated tooling  \n> **Purpose**: Routing and constraints for all AI",
-              "section_count": 15,
+              "section_count": 16,
               "sections": [
                 "Introduction",
                 "1. Purpose and Scope",
@@ -672,9 +672,9 @@
               ]
             },
             "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 53903,
+              "content_length": 54939,
               "header_info": "# Development Tools Guide\n\n> **File**: `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`\n> **Audience**: Human maintainers and contributors\n> **Purpose**: Detailed reference for every development tool, i",
-              "section_count": 31,
+              "section_count": 32,
               "sections": [
                 "Introduction",
                 "1. Purpose and Scope",
@@ -827,7 +827,8 @@
             {
               "file": "ai_development_docs/AI_CHANGELOG.md",
               "matches": [
-                "TODO"
+                "TODO",
+                "todo"
               ]
             },
             {
@@ -852,6 +853,7 @@
             {
               "file": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
               "matches": [
+                "TODO",
                 "todo"
               ]
             },
@@ -888,7 +890,7 @@
           "total_issues": 12
         }
       },
-      "timestamp": "2026-04-09T18:13:53"
+      "timestamp": "2026-04-09T22:11:30"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -965,7 +967,7 @@
           }
         }
       },
-      "timestamp": "2026-04-09T18:14:08"
+      "timestamp": "2026-04-09T22:11:52"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -980,7 +982,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-09T18:14:03"
+      "timestamp": "2026-04-09T22:11:45"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -995,7 +997,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-09T18:14:07"
+      "timestamp": "2026-04-09T22:11:49"
     },
     "analyze_path_drift": {
       "success": true,
@@ -1008,7 +1010,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-09T18:14:02"
+      "timestamp": "2026-04-09T22:11:43"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -1023,7 +1025,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-09T18:14:08"
+      "timestamp": "2026-04-09T22:11:52"
     },
     "analyze_error_handling": {
       "success": true,
@@ -1051,11 +1053,11 @@
             "handle_configuration_error": 4,
             "error_handler_usage": 8,
             "handle_validation_error": 2,
-            "AIError": 2,
-            "safe_file_operation": 1,
-            "FileOperationError": 8,
             "handle_file_error": 3,
+            "safe_file_operation": 1,
             "MHMError": 2,
+            "AIError": 2,
+            "FileOperationError": 8,
             "CommunicationError": 2
           },
           "missing_error_handling": [],
@@ -1104,7 +1106,7 @@
           ]
         }
       },
-      "timestamp": "2026-04-09T18:13:57"
+      "timestamp": "2026-04-09T22:11:38"
     },
     "analyze_duplicate_functions": {
       "success": true,
@@ -1120,8 +1122,8 @@
           "groups_filtered_single_function": 10,
           "cache": {
             "total_files": 122,
-            "cached_files": 122,
-            "scanned_files": 0
+            "cached_files": 0,
+            "scanned_files": 122
           },
           "pairs_considered": 20000,
           "pairs_reported": 31,
@@ -3065,7 +3067,7 @@
           "body_similarity_min_name_threshold": 0.35
         }
       },
-      "timestamp": "2026-04-09T18:13:59"
+      "timestamp": "2026-04-09T22:11:39"
     },
     "analyze_functions": {
       "success": true,
@@ -3270,7 +3272,7 @@
           "utilities": 0
         }
       },
-      "timestamp": "2026-04-09T18:13:58"
+      "timestamp": "2026-04-09T22:11:37"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -5303,7 +5305,7 @@
           ]
         }
       },
-      "timestamp": "2026-04-09T18:13:55"
+      "timestamp": "2026-04-09T22:11:33"
     },
     "analyze_function_registry": {
       "success": true,
@@ -7554,7 +7556,7 @@
           "total_issues": 47
         }
       },
-      "timestamp": "2026-04-09T18:14:02"
+      "timestamp": "2026-04-09T22:11:41"
     },
     "analyze_module_refactor_candidates": {
       "success": true,
@@ -8296,7 +8298,7 @@
           }
         }
       },
-      "timestamp": "2026-04-09T18:14:00"
+      "timestamp": "2026-04-09T22:11:40"
     },
     "analyze_package_exports": {
       "success": true,
@@ -14497,348 +14499,6 @@
                 "wait_for_network"
               ]
             },
-            "ai": {
-              "package": "ai",
-              "current_exports_count": 22,
-              "should_export_count": 22,
-              "already_exported": [
-                "AIChatBotSingleton",
-                "CacheEntry",
-                "ContextAnalysis",
-                "ContextBuilder",
-                "ContextCache",
-                "ContextData",
-                "ConversationHistory",
-                "ConversationMessage",
-                "ConversationSession",
-                "LMStudioManager",
-                "PromptManager",
-                "PromptTemplate",
-                "ResponseCache",
-                "ensure_lm_studio_ready",
-                "get_ai_chatbot",
-                "get_context_builder",
-                "get_context_cache",
-                "get_conversation_history",
-                "get_lm_studio_manager",
-                "get_prompt_manager",
-                "get_response_cache",
-                "is_lm_studio_ready"
-              ],
-              "missing_exports": [],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "get_ai_chatbot": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "communication/message_processing/command_parser.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.chatbot"
-                }
-              },
-              "import_usage_details": {
-                "get_prompt_manager": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/chatbot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.prompt_manager"
-                },
-                "get_response_cache": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/chatbot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.cache_manager"
-                },
-                "is_lm_studio_ready": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/chatbot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.lm_studio_manager"
-                },
-                "get_ai_chatbot": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "communication/message_processing/command_parser.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.chatbot"
-                }
-              },
-              "package_api_items": [
-                "AIChatBotSingleton",
-                "CacheEntry",
-                "ContextAnalysis",
-                "ContextBuilder",
-                "ContextCache",
-                "ContextData",
-                "ConversationHistory",
-                "ConversationMessage",
-                "ConversationSession",
-                "LMStudioManager",
-                "PromptManager",
-                "PromptTemplate",
-                "ResponseCache",
-                "ensure_lm_studio_ready",
-                "get_ai_chatbot",
-                "get_context_builder",
-                "get_context_cache",
-                "get_conversation_history",
-                "get_lm_studio_manager",
-                "get_prompt_manager",
-                "get_response_cache",
-                "is_lm_studio_ready"
-              ],
-              "registry_items": [
-                "__init__",
-                "__new__",
-                "__post_init__",
-                "_build_contextual_summary",
-                "_cleanup_lru",
-                "_load_custom_prompt",
-                "add_prompt_template",
-                "ensure_lm_studio_ready"
-              ]
-            },
-            "tasks": {
-              "package": "tasks",
-              "current_exports_count": 20,
-              "should_export_count": 29,
-              "already_exported": [
-                "TaskManagementError",
-                "add_user_task_tag",
-                "are_tasks_enabled",
-                "cleanup_task_reminders",
-                "complete_task",
-                "create_task",
-                "delete_task",
-                "ensure_task_directory",
-                "get_task_by_id",
-                "get_tasks_due_soon",
-                "get_user_task_stats",
-                "load_active_tasks",
-                "load_completed_tasks",
-                "remove_user_task_tag",
-                "restore_task",
-                "save_active_tasks",
-                "save_completed_tasks",
-                "schedule_task_reminders",
-                "setup_default_task_tags",
-                "update_task"
-              ],
-              "missing_exports": [
-                "ACTIVE_TASKS_FILENAME",
-                "ALLOWED_UPDATE_FIELDS",
-                "COMPLETED_TASKS_FILENAME",
-                "TASK_SCHEDULES_FILENAME",
-                "VALID_PRIORITIES",
-                "is_valid_due_date",
-                "is_valid_priority",
-                "is_valid_task_title",
-                "validate_update_field"
-              ],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "_tasks_mod": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/profile_handler.py",
-                    "communication/command_handlers/task_handler.py"
-                  ],
-                  "import_types": [
-                    "direct_import"
-                  ],
-                  "module_path": null
-                }
-              },
-              "import_usage_details": {
-                "ACTIVE_TASKS_FILENAME": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "COMPLETED_TASKS_FILENAME": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "TASK_SCHEDULES_FILENAME": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "load_active_tasks": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "save_active_tasks": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "load_completed_tasks": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "save_completed_tasks": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
-                "is_valid_task_title": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_validation"
-                },
-                "is_valid_priority": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_validation"
-                },
-                "validate_update_field": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_validation"
-                },
-                "VALID_PRIORITIES": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_validation.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "ALLOWED_UPDATE_FIELDS": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "tasks/task_validation.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_schemas"
-                },
-                "_tasks_mod": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/command_handlers/profile_handler.py",
-                    "communication/command_handlers/task_handler.py"
-                  ],
-                  "import_types": [
-                    "direct_import"
-                  ],
-                  "module_path": null
-                }
-              },
-              "package_api_items": [
-                "TaskManagementError",
-                "add_user_task_tag",
-                "are_tasks_enabled",
-                "cleanup_task_reminders",
-                "complete_task",
-                "create_task",
-                "delete_task",
-                "ensure_task_directory",
-                "get_task_by_id",
-                "get_tasks_due_soon",
-                "get_user_task_stats",
-                "is_valid_due_date",
-                "is_valid_priority",
-                "is_valid_task_title",
-                "load_active_tasks",
-                "load_completed_tasks",
-                "remove_user_task_tag",
-                "restore_task",
-                "save_active_tasks",
-                "save_completed_tasks",
-                "schedule_task_reminders",
-                "setup_default_task_tags",
-                "update_task",
-                "validate_update_field"
-              ],
-              "registry_items": [
-                "_calculate_next_due_date",
-                "ensure_task_directory",
-                "is_valid_due_date",
-                "is_valid_priority"
-              ]
-            },
             "ui": {
               "package": "ui",
               "current_exports_count": 34,
@@ -15519,6 +15179,348 @@
                 "set_selected_categories"
               ]
             },
+            "tasks": {
+              "package": "tasks",
+              "current_exports_count": 20,
+              "should_export_count": 29,
+              "already_exported": [
+                "TaskManagementError",
+                "add_user_task_tag",
+                "are_tasks_enabled",
+                "cleanup_task_reminders",
+                "complete_task",
+                "create_task",
+                "delete_task",
+                "ensure_task_directory",
+                "get_task_by_id",
+                "get_tasks_due_soon",
+                "get_user_task_stats",
+                "load_active_tasks",
+                "load_completed_tasks",
+                "remove_user_task_tag",
+                "restore_task",
+                "save_active_tasks",
+                "save_completed_tasks",
+                "schedule_task_reminders",
+                "setup_default_task_tags",
+                "update_task"
+              ],
+              "missing_exports": [
+                "ACTIVE_TASKS_FILENAME",
+                "ALLOWED_UPDATE_FIELDS",
+                "COMPLETED_TASKS_FILENAME",
+                "TASK_SCHEDULES_FILENAME",
+                "VALID_PRIORITIES",
+                "is_valid_due_date",
+                "is_valid_priority",
+                "is_valid_task_title",
+                "validate_update_field"
+              ],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "_tasks_mod": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/command_handlers/profile_handler.py",
+                    "communication/command_handlers/task_handler.py"
+                  ],
+                  "import_types": [
+                    "direct_import"
+                  ],
+                  "module_path": null
+                }
+              },
+              "import_usage_details": {
+                "ACTIVE_TASKS_FILENAME": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "COMPLETED_TASKS_FILENAME": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "TASK_SCHEDULES_FILENAME": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "load_active_tasks": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "save_active_tasks": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "load_completed_tasks": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "save_completed_tasks": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "is_valid_task_title": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_validation"
+                },
+                "is_valid_priority": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_validation"
+                },
+                "validate_update_field": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_validation"
+                },
+                "VALID_PRIORITIES": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_validation.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "ALLOWED_UPDATE_FIELDS": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "tasks/task_validation.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_schemas"
+                },
+                "_tasks_mod": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/command_handlers/profile_handler.py",
+                    "communication/command_handlers/task_handler.py"
+                  ],
+                  "import_types": [
+                    "direct_import"
+                  ],
+                  "module_path": null
+                }
+              },
+              "package_api_items": [
+                "TaskManagementError",
+                "add_user_task_tag",
+                "are_tasks_enabled",
+                "cleanup_task_reminders",
+                "complete_task",
+                "create_task",
+                "delete_task",
+                "ensure_task_directory",
+                "get_task_by_id",
+                "get_tasks_due_soon",
+                "get_user_task_stats",
+                "is_valid_due_date",
+                "is_valid_priority",
+                "is_valid_task_title",
+                "load_active_tasks",
+                "load_completed_tasks",
+                "remove_user_task_tag",
+                "restore_task",
+                "save_active_tasks",
+                "save_completed_tasks",
+                "schedule_task_reminders",
+                "setup_default_task_tags",
+                "update_task",
+                "validate_update_field"
+              ],
+              "registry_items": [
+                "_calculate_next_due_date",
+                "ensure_task_directory",
+                "is_valid_due_date",
+                "is_valid_priority"
+              ]
+            },
+            "ai": {
+              "package": "ai",
+              "current_exports_count": 22,
+              "should_export_count": 22,
+              "already_exported": [
+                "AIChatBotSingleton",
+                "CacheEntry",
+                "ContextAnalysis",
+                "ContextBuilder",
+                "ContextCache",
+                "ContextData",
+                "ConversationHistory",
+                "ConversationMessage",
+                "ConversationSession",
+                "LMStudioManager",
+                "PromptManager",
+                "PromptTemplate",
+                "ResponseCache",
+                "ensure_lm_studio_ready",
+                "get_ai_chatbot",
+                "get_context_builder",
+                "get_context_cache",
+                "get_conversation_history",
+                "get_lm_studio_manager",
+                "get_prompt_manager",
+                "get_response_cache",
+                "is_lm_studio_ready"
+              ],
+              "missing_exports": [],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "get_ai_chatbot": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/message_processing/command_parser.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.chatbot"
+                }
+              },
+              "import_usage_details": {
+                "get_prompt_manager": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/chatbot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.prompt_manager"
+                },
+                "get_response_cache": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/chatbot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.cache_manager"
+                },
+                "is_lm_studio_ready": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/chatbot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.lm_studio_manager"
+                },
+                "get_ai_chatbot": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/message_processing/command_parser.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.chatbot"
+                }
+              },
+              "package_api_items": [
+                "AIChatBotSingleton",
+                "CacheEntry",
+                "ContextAnalysis",
+                "ContextBuilder",
+                "ContextCache",
+                "ContextData",
+                "ConversationHistory",
+                "ConversationMessage",
+                "ConversationSession",
+                "LMStudioManager",
+                "PromptManager",
+                "PromptTemplate",
+                "ResponseCache",
+                "ensure_lm_studio_ready",
+                "get_ai_chatbot",
+                "get_context_builder",
+                "get_context_cache",
+                "get_conversation_history",
+                "get_lm_studio_manager",
+                "get_prompt_manager",
+                "get_response_cache",
+                "is_lm_studio_ready"
+              ],
+              "registry_items": [
+                "__init__",
+                "__new__",
+                "__post_init__",
+                "_build_contextual_summary",
+                "_cleanup_lru",
+                "_load_custom_prompt",
+                "add_prompt_template",
+                "ensure_lm_studio_ready"
+              ]
+            },
             "user": {
               "package": "user",
               "current_exports_count": 4,
@@ -15600,7 +15602,7 @@
           }
         }
       },
-      "timestamp": "2026-04-09T18:13:59"
+      "timestamp": "2026-04-09T22:11:38"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -18657,7 +18659,7 @@
           ]
         }
       },
-      "timestamp": "2026-04-09T18:13:59"
+      "timestamp": "2026-04-09T22:11:40"
     },
     "analyze_dev_tools_import_boundaries": {
       "success": true,
@@ -18674,7 +18676,7 @@
           }
         }
       },
-      "timestamp": "2026-04-09T18:13:52"
+      "timestamp": "2026-04-09T22:11:30"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -18685,7 +18687,7 @@
         },
         "details": {}
       },
-      "timestamp": "2026-04-09T18:14:02"
+      "timestamp": "2026-04-09T22:11:42"
     },
     "analyze_module_imports": {
       "success": true,
@@ -31052,7 +31054,7 @@
           }
         }
       },
-      "timestamp": "2026-04-09T18:13:59"
+      "timestamp": "2026-04-09T22:11:40"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -31077,28 +31079,28 @@
             "ui_imports": []
           },
           "stats": {
-            "files_scanned": 564,
+            "files_scanned": 566,
             "files_with_issues": 0,
             "total_unused": 0,
-            "cache_hits": 564,
-            "cache_misses": 0,
-            "changed_files": 0,
-            "cache_mode": "cache_only",
+            "cache_hits": 0,
+            "cache_misses": 566,
+            "changed_files": 566,
+            "cache_mode": "cold_scan",
             "backend": "ruff"
           },
           "performance": {
             "backend": "ruff",
-            "scan_mode": "cache_only",
+            "scan_mode": "cold_scan",
             "timings": {
-              "discovery_seconds": 1.6789,
-              "detection_seconds": 0.1158,
-              "categorization_seconds": 0.0056,
-              "total_seconds": 2.0598
+              "discovery_seconds": 1.8501,
+              "detection_seconds": 1.0012,
+              "categorization_seconds": 0.0058,
+              "total_seconds": 2.9889
             },
-            "files_per_second": 273.82,
-            "cache_hits": 564,
-            "cache_misses": 0,
-            "changed_files": 0,
+            "files_per_second": 189.37,
+            "cache_hits": 0,
+            "cache_misses": 566,
+            "changed_files": 566,
             "batch_size": 200,
             "fallback_used": false,
             "fallback_reason": ""
@@ -31115,24 +31117,24 @@
             "production_test_mocking": 0,
             "ui_imports": 0
           },
-          "files_scanned": 564,
+          "files_scanned": 566,
           "_cache_metadata": {
-            "cache_mode": "cache_only",
-            "hits": 564,
-            "misses": 0,
-            "total_cache_checks": 564,
-            "hit_rate": 100.0
+            "cache_mode": "cold_scan",
+            "hits": 0,
+            "misses": 566,
+            "total_cache_checks": 566,
+            "hit_rate": 0.0
           }
         },
         "_cache_metadata": {
-          "cache_mode": "cache_only",
-          "hits": 564,
-          "misses": 0,
-          "total_cache_checks": 564,
-          "hit_rate": 100.0
+          "cache_mode": "cold_scan",
+          "hits": 0,
+          "misses": 566,
+          "total_cache_checks": 566,
+          "hit_rate": 0.0
         }
       },
-      "timestamp": "2026-04-09T18:14:04"
+      "timestamp": "2026-04-09T22:11:44"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -31161,20 +31163,20 @@
             "check_passed": true
           },
           "cache": {
-            "cache_mode": "partial_cache",
-            "hits": 562,
-            "misses": 1,
-            "total_cache_checks": 563,
-            "hit_rate": 99.8
+            "cache_mode": "cold_scan",
+            "hits": 0,
+            "misses": 566,
+            "total_cache_checks": 566,
+            "hit_rate": 0.0
           }
         }
       },
-      "timestamp": "2026-04-09T18:14:15"
+      "timestamp": "2026-04-09T22:11:59"
     },
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-04-09T18:14:21",
+        "generated_at": "2026-04-09T22:19:33",
         "project_root": "C:\\Users\\Julie\\projects\\MHM\\MHM",
         "summary": {
           "status": "PASS",
@@ -31219,7 +31221,7 @@
               "name": "weekly_backup_recent_enough",
               "success": true,
               "details": {
-                "recent_cutoff": "2026-03-26T18:14:21",
+                "recent_cutoff": "2026-03-26T22:19:32",
                 "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
                 "latest_weekly_created_at": "2026-04-09 01:00:05"
               }
@@ -31230,7 +31232,7 @@
               "details": {
                 "latest_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
                 "latest_created_at": "2026-04-09 01:00:05",
-                "recent_cutoff": "2026-03-26T18:14:21"
+                "recent_cutoff": "2026-03-26T22:19:32"
               }
             },
             {
@@ -31285,7 +31287,7 @@
             "name": "weekly_backup_recent_enough",
             "success": true,
             "details": {
-              "recent_cutoff": "2026-03-26T18:14:21",
+              "recent_cutoff": "2026-03-26T22:19:32",
               "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
               "latest_weekly_created_at": "2026-04-09 01:00:05"
             }
@@ -31296,7 +31298,7 @@
             "details": {
               "latest_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
               "latest_created_at": "2026-04-09 01:00:05",
-              "recent_cutoff": "2026-03-26T18:14:21"
+              "recent_cutoff": "2026-03-26T22:19:32"
             }
           },
           {
@@ -31319,7 +31321,7 @@
           }
         ]
       },
-      "timestamp": "2026-04-09T18:14:21"
+      "timestamp": "2026-04-09T22:19:33"
     },
     "analyze_system_signals": {
       "success": true,
@@ -31330,7 +31332,7 @@
           "status": "ISSUES"
         },
         "details": {
-          "timestamp": "2026-04-09T18:13:51.441127",
+          "timestamp": "2026-04-09T22:11:29.144444",
           "system_health": {
             "overall_status": "ISSUES",
             "core_files": {
@@ -31350,12 +31352,13 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-04-09T18:10:50.290653",
-            "audit_freshness": "<1 hour",
+            "last_audit": "2026-04-09T21:04:17.867866",
+            "audit_freshness": "<24 hours",
             "test_coverage_status": "Unknown",
-            "documentation_sync_status": "Minor Issues",
+            "documentation_sync_status": "Synchronized",
             "health_indicators": [
-              "Audit data is very recent (<1 hour)"
+              "Audit data is recent (1 hours ago)",
+              "Documentation is synchronized"
             ],
             "recommendations": [
               "Check logs/errors.log for recent errors"
@@ -31363,9 +31366,7 @@
             "warnings": [],
             "errors": [],
             "severity_levels": {
-              "INFO": [
-                "Documentation has 2 minor sync issue(s)"
-              ],
+              "INFO": [],
               "WARNING": [
                 "Errors detected in logs/errors.log (last 24 hours)"
               ],
@@ -31374,16 +31375,16 @@
           },
           "recent_activity": {
             "recent_changes": [
-              "development_tools/shared/constants.py",
-              "tests/development_tools/test_audit_orchestration_helpers.py",
               "development_tools/shared/cli_interface.py",
-              "development_tools/shared/service/commands.py",
-              "tests/unit/test_config.py",
-              "tests/development_tools/test_commands_coverage_helpers.py",
-              "tests/development_tools/test_run_test_coverage_helpers.py",
-              "development_tools/tests/flaky_detector.py",
+              "tests/development_tools/test_pyright_config_paths.py",
+              "tests/development_tools/test_cli_interface.py",
               "tests/development_tools/test_flaky_detector.py",
-              "tests/development_tools/test_analyze_config.py"
+              "development_tools/tests/flaky_detector.py",
+              "development_tools/shared/tool_metadata.py",
+              "tests/development_tools/test_audit_orchestration_helpers.py",
+              "development_tools/docs/fix_version_sync.py",
+              "tests/development_tools/test_directory_taxonomy_policy.py",
+              "tests/development_tools/test_verify_process_cleanup.py"
             ],
             "git_status": "Modified",
             "last_commit": null,
@@ -31410,7 +31411,7 @@
           }
         }
       },
-      "timestamp": "2026-04-09T18:13:51"
+      "timestamp": "2026-04-09T22:11:29"
     },
     "decision_support": {
       "success": true,
@@ -31551,27 +31552,27 @@
           ]
         }
       },
-      "timestamp": "2026-04-09T18:13:54"
+      "timestamp": "2026-04-09T22:11:34"
     },
     "analyze_test_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 15957,
+          "total_issues": 16346,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "coverage": 70.8,
-            "statements": 54663,
-            "covered": 38706,
-            "missed": 15957,
-            "generated": null
+            "coverage": 69.8,
+            "statements": 54206,
+            "covered": 37860,
+            "missed": 16346,
+            "generated": "2026-04-09T22:19:21.259518"
           },
           "primary_overall": {
-            "coverage": 78.1,
-            "statements": 22400,
-            "covered": 17504,
+            "coverage": 77.2,
+            "statements": 22189,
+            "covered": 17141,
             "domains": [
               "ai",
               "communication",
@@ -31582,32 +31583,32 @@
           "modules": [
             {
               "module": "development_tools",
-              "coverage": 63.5,
-              "missed": 8922
+              "coverage": 62.2,
+              "missed": 9159
             },
             {
               "module": "ui",
-              "coverage": 69.6,
+              "coverage": 69.3,
               "missed": 2062
             },
             {
               "module": "communication",
-              "coverage": 76.8,
+              "coverage": 76.5,
               "missed": 2234
             },
             {
               "module": "core",
-              "coverage": 78.7,
-              "missed": 2280
+              "coverage": 77.2,
+              "missed": 2428
             },
             {
               "module": "ai",
-              "coverage": 79.1,
-              "missed": 370
+              "coverage": 78.7,
+              "missed": 374
             },
             {
               "module": "tasks",
-              "coverage": 89.1,
+              "coverage": 89.0,
               "missed": 50
             },
             {
@@ -31617,7 +31618,7 @@
             },
             {
               "module": "user",
-              "coverage": 96.0,
+              "coverage": 95.9,
               "missed": 12
             }
           ],
@@ -31628,34 +31629,80 @@
               "missing": 0
             },
             {
+              "path": "development_tools/docs/__init__.py",
+              "coverage": 0.0,
+              "missing": 0
+            },
+            {
               "path": "development_tools/error_handling/__init__.py",
               "coverage": 0.0,
               "missing": 0
             },
             {
-              "path": "development_tools/shared/measure_tool_timings.py",
-              "coverage": 12.6,
-              "missing": 104
+              "path": "development_tools/functions/__init__.py",
+              "coverage": 0.0,
+              "missing": 0
             },
             {
-              "path": "development_tools/shared/verify_tool_storage.py",
-              "coverage": 18.9,
-              "missing": 60
-            },
-            {
-              "path": "ui/dialogs/schedule_editor_dialog.py",
-              "coverage": 26.0,
-              "missing": 162
+              "path": "development_tools/imports/__init__.py",
+              "coverage": 0.0,
+              "missing": 0
             }
-          ]
+          ],
+          "tier3_test_outcome": {
+            "state": "clean",
+            "parallel": {
+              "state": "passed",
+              "classification": "passed",
+              "classification_reason": "pytest_passed",
+              "actionable_context": "Track completed successfully.",
+              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-04-09_22-11-54.log",
+              "return_code_hex": "0x00000000",
+              "return_code": 0,
+              "passed_count": 5273,
+              "failed_count": 0,
+              "error_count": 0,
+              "skipped_count": 1,
+              "failed_node_ids": []
+            },
+            "no_parallel": {
+              "state": "passed",
+              "classification": "passed",
+              "classification_reason": "pytest_passed",
+              "actionable_context": "Track completed successfully.",
+              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_no_parallel_stdout_2026-04-09_22-17-11.log",
+              "return_code_hex": "0x00000000",
+              "return_code": 0,
+              "passed_count": 125,
+              "failed_count": 0,
+              "error_count": 0,
+              "skipped_count": 20,
+              "failed_node_ids": []
+            },
+            "failed_node_ids": [],
+            "development_tools": {
+              "state": "passed",
+              "classification": "passed",
+              "classification_reason": "no_dev_tools_failures_unified_run",
+              "actionable_context": "No failures reported under tests/development_tools/ in the unified Tier 3 run.",
+              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-04-09_22-11-54.log",
+              "return_code_hex": "0x00000000",
+              "return_code": 0,
+              "passed_count": 0,
+              "failed_count": 0,
+              "error_count": 0,
+              "skipped_count": 0,
+              "failed_node_ids": []
+            }
+          }
         },
         "_cache_metadata": {
-          "cache_mode": "cache_only",
-          "invalidation_reason": "Precheck: core/test sources unchanged since coverage.json",
-          "source": "orchestration_precheck"
+          "cache_mode": "cold_scan",
+          "invalidation_reason": "Coverage command executed (stdout mode markers unavailable)",
+          "source": "run_test_coverage"
         }
       },
-      "timestamp": "2026-04-09T18:14:11"
+      "timestamp": "2026-04-09T22:19:27"
     },
     "analyze_test_markers": {
       "success": true,
@@ -31669,38 +31716,38 @@
           "missing": []
         }
       },
-      "timestamp": "2026-04-09T18:14:18"
+      "timestamp": "2026-04-09T22:19:30"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 8922,
+          "total_issues": 9159,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "overall_coverage": 63.5,
-            "total_statements": 24417,
-            "total_missed": 8922
+            "overall_coverage": 62.2,
+            "total_statements": 24234,
+            "total_missed": 9159
           },
           "modules": {
             "development_tools\\__init__.py": {
-              "statements": 4,
+              "statements": 3,
               "missed": 0,
               "coverage": 100,
               "missing_lines": [],
-              "covered": 4
+              "covered": 3
             },
             "development_tools\\ai_work\\__init__.py": {
               "statements": 0,
               "missed": 0,
-              "coverage": 0,
+              "coverage": 100,
               "missing_lines": [],
               "covered": 0
             },
             "development_tools\\ai_work\\analyze_ai_work.py": {
-              "statements": 284,
+              "statements": 282,
               "missed": 65,
               "coverage": 77,
               "missing_lines": [
@@ -31770,17 +31817,17 @@
                 "545",
                 "547"
               ],
-              "covered": 219
+              "covered": 217
             },
             "development_tools\\config\\__init__.py": {
-              "statements": 2,
+              "statements": 1,
               "missed": 0,
               "coverage": 100,
               "missing_lines": [],
-              "covered": 2
+              "covered": 1
             },
             "development_tools\\config\\analyze_config.py": {
-              "statements": 236,
+              "statements": 233,
               "missed": 101,
               "coverage": 57,
               "missing_lines": [
@@ -31886,11 +31933,11 @@
                 "545",
                 "547"
               ],
-              "covered": 135
+              "covered": 132
             },
             "development_tools\\config\\config.py": {
-              "statements": 597,
-              "missed": 118,
+              "statements": 596,
+              "missed": 120,
               "coverage": 80,
               "missing_lines": [
                 "60",
@@ -31917,6 +31964,7 @@
                 "453",
                 "454",
                 "455",
+                "507",
                 "517",
                 "527",
                 "535",
@@ -32010,12 +32058,13 @@
                 "1534",
                 "1568",
                 "1577",
-                "1579"
+                "1579",
+                "1662"
               ],
-              "covered": 479
+              "covered": 476
             },
             "development_tools\\config\\sync_ruff_toml.py": {
-              "statements": 71,
+              "statements": 69,
               "missed": 14,
               "coverage": 80,
               "missing_lines": [
@@ -32034,19 +32083,19 @@
                 "141",
                 "146"
               ],
-              "covered": 57
+              "covered": 55
             },
             "development_tools\\docs\\__init__.py": {
-              "statements": 1,
+              "statements": 0,
               "missed": 0,
               "coverage": 100,
               "missing_lines": [],
-              "covered": 1
+              "covered": 0
             },
             "development_tools\\docs\\analyze_ascii_compliance.py": {
-              "statements": 111,
+              "statements": 108,
               "missed": 44,
-              "coverage": 60,
+              "coverage": 59,
               "missing_lines": [
                 "27",
                 "36",
@@ -32093,10 +32142,10 @@
                 "257",
                 "259"
               ],
-              "covered": 67
+              "covered": 64
             },
             "development_tools\\docs\\analyze_documentation.py": {
-              "statements": 323,
+              "statements": 321,
               "missed": 139,
               "coverage": 57,
               "missing_lines": [
@@ -32240,12 +32289,12 @@
                 "651",
                 "668"
               ],
-              "covered": 184
+              "covered": 182
             },
             "development_tools\\docs\\analyze_documentation_sync.py": {
-              "statements": 91,
+              "statements": 88,
               "missed": 35,
-              "coverage": 62,
+              "coverage": 60,
               "missing_lines": [
                 "34",
                 "43",
@@ -32283,12 +32332,12 @@
                 "201",
                 "203"
               ],
-              "covered": 56
+              "covered": 53
             },
             "development_tools\\docs\\analyze_heading_numbering.py": {
-              "statements": 207,
+              "statements": 204,
               "missed": 67,
-              "coverage": 68,
+              "coverage": 67,
               "missing_lines": [
                 "27",
                 "36",
@@ -32358,12 +32407,12 @@
                 "466",
                 "468"
               ],
-              "covered": 140
+              "covered": 137
             },
             "development_tools\\docs\\analyze_missing_addresses.py": {
-              "statements": 119,
+              "statements": 116,
               "missed": 51,
-              "coverage": 57,
+              "coverage": 56,
               "missing_lines": [
                 "26",
                 "34",
@@ -32417,12 +32466,12 @@
                 "269",
                 "271"
               ],
-              "covered": 68
+              "covered": 65
             },
             "development_tools\\docs\\analyze_path_drift.py": {
-              "statements": 385,
+              "statements": 382,
               "missed": 125,
-              "coverage": 68,
+              "coverage": 67,
               "missing_lines": [
                 "28",
                 "56",
@@ -32550,12 +32599,12 @@
                 "871",
                 "873"
               ],
-              "covered": 260
+              "covered": 257
             },
             "development_tools\\docs\\analyze_unconverted_links.py": {
-              "statements": 276,
+              "statements": 273,
               "missed": 133,
-              "coverage": 52,
+              "coverage": 51,
               "missing_lines": [
                 "28",
                 "36",
@@ -32691,10 +32740,10 @@
                 "549",
                 "551"
               ],
-              "covered": 143
+              "covered": 140
             },
             "development_tools\\docs\\fix_documentation.py": {
-              "statements": 60,
+              "statements": 58,
               "missed": 6,
               "coverage": 90,
               "missing_lines": [
@@ -32705,12 +32754,12 @@
                 "42",
                 "45"
               ],
-              "covered": 54
+              "covered": 52
             },
             "development_tools\\docs\\fix_documentation_addresses.py": {
-              "statements": 96,
+              "statements": 93,
               "missed": 30,
-              "coverage": 69,
+              "coverage": 68,
               "missing_lines": [
                 "25",
                 "36",
@@ -32743,12 +32792,12 @@
                 "180",
                 "184"
               ],
-              "covered": 66
+              "covered": 63
             },
             "development_tools\\docs\\fix_documentation_ascii.py": {
-              "statements": 67,
+              "statements": 64,
               "missed": 24,
-              "coverage": 64,
+              "coverage": 62,
               "missing_lines": [
                 "24",
                 "33",
@@ -32775,10 +32824,10 @@
                 "126",
                 "130"
               ],
-              "covered": 43
+              "covered": 40
             },
             "development_tools\\docs\\fix_documentation_headings.py": {
-              "statements": 274,
+              "statements": 271,
               "missed": 90,
               "coverage": 67,
               "missing_lines": [
@@ -32873,12 +32922,12 @@
                 "334",
                 "378"
               ],
-              "covered": 184
+              "covered": 181
             },
             "development_tools\\docs\\fix_documentation_links.py": {
-              "statements": 157,
+              "statements": 154,
               "missed": 46,
-              "coverage": 71,
+              "coverage": 70,
               "missing_lines": [
                 "25",
                 "35",
@@ -32927,12 +32976,12 @@
                 "280",
                 "281"
               ],
-              "covered": 111
+              "covered": 108
             },
             "development_tools\\docs\\fix_version_sync.py": {
-              "statements": 459,
+              "statements": 457,
               "missed": 240,
-              "coverage": 48,
+              "coverage": 47,
               "missing_lines": [
                 "21",
                 "23",
@@ -33175,10 +33224,10 @@
                 "933",
                 "934"
               ],
-              "covered": 219
+              "covered": 217
             },
             "development_tools\\docs\\generate_directory_tree.py": {
-              "statements": 130,
+              "statements": 127,
               "missed": 26,
               "coverage": 80,
               "missing_lines": [
@@ -33209,17 +33258,17 @@
                 "239",
                 "240"
               ],
-              "covered": 104
+              "covered": 101
             },
             "development_tools\\error_handling\\__init__.py": {
               "statements": 0,
               "missed": 0,
-              "coverage": 0,
+              "coverage": 100,
               "missing_lines": [],
               "covered": 0
             },
             "development_tools\\error_handling\\analyze_error_handling.py": {
-              "statements": 634,
+              "statements": 631,
               "missed": 292,
               "coverage": 54,
               "missing_lines": [
@@ -33516,10 +33565,10 @@
                 "1244",
                 "1246"
               ],
-              "covered": 342
+              "covered": 339
             },
             "development_tools\\error_handling\\generate_error_handling_report.py": {
-              "statements": 112,
+              "statements": 109,
               "missed": 4,
               "coverage": 96,
               "missing_lines": [
@@ -33528,17 +33577,17 @@
                 "30",
                 "205"
               ],
-              "covered": 108
+              "covered": 105
             },
             "development_tools\\functions\\__init__.py": {
-              "statements": 1,
+              "statements": 0,
               "missed": 0,
               "coverage": 100,
               "missing_lines": [],
-              "covered": 1
+              "covered": 0
             },
             "development_tools\\functions\\analyze_duplicate_functions.py": {
-              "statements": 584,
+              "statements": 582,
               "missed": 218,
               "coverage": 63,
               "missing_lines": [
@@ -33761,10 +33810,10 @@
                 "1025",
                 "1031"
               ],
-              "covered": 366
+              "covered": 364
             },
             "development_tools\\functions\\analyze_function_patterns.py": {
-              "statements": 99,
+              "statements": 97,
               "missed": 8,
               "coverage": 92,
               "missing_lines": [
@@ -33777,10 +33826,10 @@
                 "299",
                 "303"
               ],
-              "covered": 91
+              "covered": 89
             },
             "development_tools\\functions\\analyze_function_registry.py": {
-              "statements": 426,
+              "statements": 424,
               "missed": 109,
               "coverage": 74,
               "missing_lines": [
@@ -33894,10 +33943,10 @@
                 "717",
                 "721"
               ],
-              "covered": 317
+              "covered": 315
             },
             "development_tools\\functions\\analyze_functions.py": {
-              "statements": 391,
+              "statements": 389,
               "missed": 140,
               "coverage": 64,
               "missing_lines": [
@@ -34042,12 +34091,12 @@
                 "859",
                 "862"
               ],
-              "covered": 251
+              "covered": 249
             },
             "development_tools\\functions\\analyze_module_refactor_candidates.py": {
-              "statements": 138,
+              "statements": 136,
               "missed": 43,
-              "coverage": 69,
+              "coverage": 68,
               "missing_lines": [
                 "54",
                 "61",
@@ -34093,10 +34142,10 @@
                 "283",
                 "284"
               ],
-              "covered": 95
+              "covered": 93
             },
             "development_tools\\functions\\analyze_package_exports.py": {
-              "statements": 355,
+              "statements": 353,
               "missed": 157,
               "coverage": 56,
               "missing_lines": [
@@ -34258,12 +34307,12 @@
                 "737",
                 "738"
               ],
-              "covered": 198
+              "covered": 196
             },
             "development_tools\\functions\\fix_function_docstrings.py": {
-              "statements": 225,
-              "missed": 90,
-              "coverage": 60,
+              "statements": 223,
+              "missed": 88,
+              "coverage": 61,
               "missing_lines": [
                 "24",
                 "30",
@@ -34293,8 +34342,6 @@
                 "245",
                 "247",
                 "248",
-                "309",
-                "310",
                 "312",
                 "313",
                 "315",
@@ -34359,9 +34406,9 @@
               "covered": 135
             },
             "development_tools\\functions\\generate_function_registry.py": {
-              "statements": 495,
+              "statements": 493,
               "missed": 141,
-              "coverage": 72,
+              "coverage": 71,
               "missing_lines": [
                 "20",
                 "25",
@@ -34505,17 +34552,17 @@
                 "1326",
                 "1327"
               ],
-              "covered": 354
+              "covered": 352
             },
             "development_tools\\imports\\__init__.py": {
-              "statements": 1,
+              "statements": 0,
               "missed": 0,
               "coverage": 100,
               "missing_lines": [],
-              "covered": 1
+              "covered": 0
             },
             "development_tools\\imports\\analyze_dependency_patterns.py": {
-              "statements": 289,
+              "statements": 286,
               "missed": 19,
               "coverage": 93,
               "missing_lines": [
@@ -34539,12 +34586,12 @@
                 "484",
                 "485"
               ],
-              "covered": 270
+              "covered": 267
             },
             "development_tools\\imports\\analyze_dev_tools_import_boundaries.py": {
-              "statements": 84,
+              "statements": 81,
               "missed": 15,
-              "coverage": 82,
+              "coverage": 81,
               "missing_lines": [
                 "21",
                 "28",
@@ -34562,16 +34609,18 @@
                 "158",
                 "159"
               ],
-              "covered": 69
+              "covered": 66
             },
             "development_tools\\imports\\analyze_module_dependencies.py": {
-              "statements": 224,
-              "missed": 37,
-              "coverage": 83,
+              "statements": 222,
+              "missed": 39,
+              "coverage": 82,
               "missing_lines": [
                 "18",
                 "28",
                 "29",
+                "124",
+                "125",
                 "129",
                 "171",
                 "174",
@@ -34607,12 +34656,12 @@
                 "428",
                 "429"
               ],
-              "covered": 187
+              "covered": 183
             },
             "development_tools\\imports\\analyze_module_imports.py": {
-              "statements": 313,
-              "missed": 125,
-              "coverage": 60,
+              "statements": 310,
+              "missed": 52,
+              "coverage": 83,
               "missing_lines": [
                 "17",
                 "26",
@@ -34632,8 +34681,6 @@
                 "172",
                 "174",
                 "200",
-                "207",
-                "240",
                 "250",
                 "252",
                 "258",
@@ -34644,108 +34691,37 @@
                 "273",
                 "274",
                 "275",
-                "289",
-                "290",
-                "291",
                 "315",
                 "325",
                 "326",
-                "355",
                 "356",
-                "357",
-                "358",
-                "359",
                 "360",
-                "361",
                 "362",
-                "363",
                 "364",
-                "365",
                 "366",
-                "367",
                 "368",
-                "369",
                 "370",
-                "371",
                 "372",
-                "374",
-                "379",
-                "380",
-                "381",
-                "382",
-                "383",
-                "384",
-                "385",
-                "386",
-                "387",
-                "388",
-                "389",
-                "390",
-                "391",
-                "392",
-                "393",
-                "394",
-                "395",
-                "396",
-                "397",
                 "398",
-                "399",
-                "400",
-                "401",
-                "402",
                 "403",
-                "404",
-                "405",
-                "406",
-                "407",
-                "408",
-                "409",
-                "410",
                 "411",
-                "412",
-                "413",
-                "414",
-                "415",
-                "416",
-                "417",
-                "419",
-                "424",
-                "425",
-                "428",
-                "429",
-                "432",
                 "433",
-                "436",
-                "437",
-                "439",
-                "444",
                 "445",
-                "448",
                 "449",
-                "452",
                 "453",
-                "456",
                 "457",
-                "461",
-                "466",
-                "467",
-                "468",
-                "469",
-                "471",
-                "476",
-                "481",
-                "485",
+                "479",
                 "487",
                 "489",
                 "491",
                 "557"
               ],
-              "covered": 188
+              "covered": 258
             },
             "development_tools\\imports\\analyze_unused_imports.py": {
-              "statements": 602,
+              "statements": 599,
               "missed": 195,
-              "coverage": 68,
+              "coverage": 67,
               "missing_lines": [
                 "38",
                 "41",
@@ -34943,12 +34919,12 @@
                 "1421",
                 "1425"
               ],
-              "covered": 407
+              "covered": 404
             },
             "development_tools\\imports\\generate_module_dependencies.py": {
-              "statements": 360,
-              "missed": 173,
-              "coverage": 52,
+              "statements": 358,
+              "missed": 157,
+              "coverage": 56,
               "missing_lines": [
                 "16",
                 "33",
@@ -34960,24 +34936,8 @@
                 "218",
                 "223",
                 "272",
-                "331",
-                "332",
-                "333",
-                "334",
-                "335",
-                "336",
-                "337",
                 "338",
                 "339",
-                "340",
-                "362",
-                "363",
-                "364",
-                "370",
-                "371",
-                "372",
-                "373",
-                "374",
                 "375",
                 "402",
                 "409",
@@ -35124,10 +35084,10 @@
                 "892",
                 "897"
               ],
-              "covered": 187
+              "covered": 201
             },
             "development_tools\\imports\\generate_unused_imports_report.py": {
-              "statements": 179,
+              "statements": 176,
               "missed": 32,
               "coverage": 82,
               "missing_lines": [
@@ -35164,17 +35124,17 @@
                 "390",
                 "399"
               ],
-              "covered": 147
+              "covered": 144
             },
             "development_tools\\legacy\\__init__.py": {
-              "statements": 1,
+              "statements": 0,
               "missed": 0,
               "coverage": 100,
               "missing_lines": [],
-              "covered": 1
+              "covered": 0
             },
             "development_tools\\legacy\\analyze_legacy_references.py": {
-              "statements": 423,
+              "statements": 420,
               "missed": 155,
               "coverage": 63,
               "missing_lines": [
@@ -35334,12 +35294,12 @@
                 "875",
                 "876"
               ],
-              "covered": 268
+              "covered": 265
             },
             "development_tools\\legacy\\fix_legacy_references.py": {
-              "statements": 169,
+              "statements": 166,
               "missed": 26,
-              "coverage": 85,
+              "coverage": 84,
               "missing_lines": [
                 "36",
                 "46",
@@ -35368,12 +35328,12 @@
                 "364",
                 "366"
               ],
-              "covered": 143
+              "covered": 140
             },
             "development_tools\\legacy\\generate_legacy_reference_report.py": {
-              "statements": 192,
+              "statements": 189,
               "missed": 66,
-              "coverage": 66,
+              "coverage": 65,
               "missing_lines": [
                 "28",
                 "37",
@@ -35442,19 +35402,19 @@
                 "421",
                 "423"
               ],
-              "covered": 126
+              "covered": 123
             },
             "development_tools\\reports\\__init__.py": {
-              "statements": 1,
+              "statements": 0,
               "missed": 0,
               "coverage": 100,
               "missing_lines": [],
-              "covered": 1
+              "covered": 0
             },
             "development_tools\\reports\\analyze_system_signals.py": {
-              "statements": 442,
+              "statements": 439,
               "missed": 200,
-              "coverage": 55,
+              "coverage": 54,
               "missing_lines": [
                 "27",
                 "37",
@@ -35657,10 +35617,10 @@
                 "800",
                 "810"
               ],
-              "covered": 242
+              "covered": 239
             },
             "development_tools\\reports\\decision_support.py": {
-              "statements": 109,
+              "statements": 107,
               "missed": 13,
               "coverage": 88,
               "missing_lines": [
@@ -35678,22 +35638,22 @@
                 "153",
                 "160"
               ],
-              "covered": 96
+              "covered": 94
             },
             "development_tools\\reports\\generate_consolidated_report.py": {
-              "statements": 28,
+              "statements": 26,
               "missed": 4,
-              "coverage": 86,
+              "coverage": 85,
               "missing_lines": [
                 "20",
                 "26",
                 "27",
                 "28"
               ],
-              "covered": 24
+              "covered": 22
             },
             "development_tools\\reports\\quick_status.py": {
-              "statements": 250,
+              "statements": 247,
               "missed": 59,
               "coverage": 76,
               "missing_lines": [
@@ -35757,19 +35717,19 @@
                 "447",
                 "449"
               ],
-              "covered": 191
+              "covered": 188
             },
             "development_tools\\run_dev_tools.py": {
-              "statements": 9,
+              "statements": 6,
               "missed": 1,
-              "coverage": 89,
+              "coverage": 83,
               "missing_lines": [
                 "17"
               ],
-              "covered": 8
+              "covered": 5
             },
             "development_tools\\run_development_tools.py": {
-              "statements": 245,
+              "statements": 242,
               "missed": 64,
               "coverage": 74,
               "missing_lines": [
@@ -35838,26 +35798,26 @@
                 "462",
                 "463"
               ],
-              "covered": 181
+              "covered": 178
             },
             "development_tools\\shared\\__init__.py": {
-              "statements": 5,
+              "statements": 4,
               "missed": 0,
               "coverage": 100,
               "missing_lines": [],
-              "covered": 5
+              "covered": 4
             },
             "development_tools\\shared\\audit_signal_state.py": {
-              "statements": 40,
+              "statements": 39,
               "missed": 0,
               "coverage": 100,
               "missing_lines": [],
-              "covered": 40
+              "covered": 39
             },
             "development_tools\\shared\\audit_storage_scope.py": {
-              "statements": 48,
+              "statements": 47,
               "missed": 6,
-              "coverage": 88,
+              "coverage": 87,
               "missing_lines": [
                 "33",
                 "37",
@@ -35866,12 +35826,12 @@
                 "70",
                 "88"
               ],
-              "covered": 42
+              "covered": 41
             },
             "development_tools\\shared\\audit_tiers.py": {
-              "statements": 80,
+              "statements": 79,
               "missed": 29,
-              "coverage": 64,
+              "coverage": 63,
               "missing_lines": [
                 "84",
                 "95",
@@ -35903,20 +35863,20 @@
                 "179",
                 "180"
               ],
-              "covered": 51
+              "covered": 50
             },
             "development_tools\\shared\\backup_inventory.py": {
-              "statements": 53,
+              "statements": 52,
               "missed": 2,
               "coverage": 96,
               "missing_lines": [
                 "41",
                 "44"
               ],
-              "covered": 51
+              "covered": 50
             },
             "development_tools\\shared\\backup_policy_models.py": {
-              "statements": 149,
+              "statements": 148,
               "missed": 9,
               "coverage": 94,
               "missing_lines": [
@@ -35930,19 +35890,19 @@
                 "240",
                 "254"
               ],
-              "covered": 140
+              "covered": 139
             },
             "development_tools\\shared\\backup_reports.py": {
-              "statements": 53,
+              "statements": 52,
               "missed": 1,
               "coverage": 98,
               "missing_lines": [
                 "26"
               ],
-              "covered": 52
+              "covered": 51
             },
             "development_tools\\shared\\cli_interface.py": {
-              "statements": 366,
+              "statements": 364,
               "missed": 143,
               "coverage": 61,
               "missing_lines": [
@@ -36090,12 +36050,12 @@
                 "726",
                 "727"
               ],
-              "covered": 223
+              "covered": 221
             },
             "development_tools\\shared\\common.py": {
-              "statements": 110,
+              "statements": 108,
               "missed": 30,
-              "coverage": 73,
+              "coverage": 72,
               "missing_lines": [
                 "20",
                 "22",
@@ -36128,10 +36088,10 @@
                 "186",
                 "187"
               ],
-              "covered": 80
+              "covered": 78
             },
             "development_tools\\shared\\constants.py": {
-              "statements": 226,
+              "statements": 225,
               "missed": 45,
               "coverage": 80,
               "missing_lines": [
@@ -36171,22 +36131,22 @@
                 "467",
                 "468",
                 "469",
-                "670",
-                "672",
-                "673",
-                "675",
+                "674",
+                "676",
                 "677",
-                "678",
-                "694",
-                "709",
-                "712"
+                "679",
+                "681",
+                "682",
+                "698",
+                "713",
+                "716"
               ],
-              "covered": 181
+              "covered": 180
             },
             "development_tools\\shared\\error_helpers.py": {
-              "statements": 21,
+              "statements": 20,
               "missed": 5,
-              "coverage": 76,
+              "coverage": 75,
               "missing_lines": [
                 "41",
                 "42",
@@ -36194,10 +36154,10 @@
                 "44",
                 "45"
               ],
-              "covered": 16
+              "covered": 15
             },
             "development_tools\\shared\\exclusion_utilities.py": {
-              "statements": 56,
+              "statements": 55,
               "missed": 3,
               "coverage": 95,
               "missing_lines": [
@@ -36205,10 +36165,10 @@
                 "52",
                 "122"
               ],
-              "covered": 53
+              "covered": 52
             },
             "development_tools\\shared\\export_code_snapshot.py": {
-              "statements": 106,
+              "statements": 104,
               "missed": 14,
               "coverage": 87,
               "missing_lines": [
@@ -36227,10 +36187,10 @@
                 "210",
                 "217"
               ],
-              "covered": 92
+              "covered": 90
             },
             "development_tools\\shared\\export_docs_snapshot.py": {
-              "statements": 134,
+              "statements": 132,
               "missed": 33,
               "coverage": 75,
               "missing_lines": [
@@ -36268,10 +36228,10 @@
                 "312",
                 "317"
               ],
-              "covered": 101
+              "covered": 99
             },
             "development_tools\\shared\\file_rotation.py": {
-              "statements": 339,
+              "statements": 337,
               "missed": 156,
               "coverage": 54,
               "missing_lines": [
@@ -36432,10 +36392,10 @@
                 "697",
                 "715"
               ],
-              "covered": 183
+              "covered": 181
             },
             "development_tools\\shared\\fix_project_cleanup.py": {
-              "statements": 450,
+              "statements": 447,
               "missed": 95,
               "coverage": 79,
               "missing_lines": [
@@ -36535,10 +36495,10 @@
                 "604",
                 "724"
               ],
-              "covered": 355
+              "covered": 352
             },
             "development_tools\\shared\\lock_state.py": {
-              "statements": 110,
+              "statements": 109,
               "missed": 27,
               "coverage": 75,
               "missing_lines": [
@@ -36570,12 +36530,12 @@
                 "168",
                 "169"
               ],
-              "covered": 83
+              "covered": 82
             },
             "development_tools\\shared\\measure_tool_timings.py": {
-              "statements": 119,
+              "statements": 117,
               "missed": 104,
-              "coverage": 13,
+              "coverage": 11,
               "missing_lines": [
                 "33",
                 "34",
@@ -36682,12 +36642,12 @@
                 "304",
                 "305"
               ],
-              "covered": 15
+              "covered": 13
             },
             "development_tools\\shared\\mtime_cache.py": {
-              "statements": 256,
-              "missed": 59,
-              "coverage": 77,
+              "statements": 254,
+              "missed": 63,
+              "coverage": 75,
               "missing_lines": [
                 "41",
                 "42",
@@ -36706,6 +36666,10 @@
                 "147",
                 "149",
                 "157",
+                "173",
+                "174",
+                "178",
+                "180",
                 "184",
                 "185",
                 "186",
@@ -36749,10 +36713,10 @@
                 "482",
                 "484"
               ],
-              "covered": 197
+              "covered": 191
             },
             "development_tools\\shared\\output_storage.py": {
-              "statements": 241,
+              "statements": 240,
               "missed": 60,
               "coverage": 75,
               "missing_lines": [
@@ -36817,17 +36781,17 @@
                 "521",
                 "522"
               ],
-              "covered": 181
+              "covered": 180
             },
             "development_tools\\shared\\result_format.py": {
-              "statements": 13,
+              "statements": 12,
               "missed": 0,
               "coverage": 100,
               "missing_lines": [],
-              "covered": 13
+              "covered": 12
             },
             "development_tools\\shared\\retention_engine.py": {
-              "statements": 133,
+              "statements": 132,
               "missed": 24,
               "coverage": 82,
               "missing_lines": [
@@ -36856,17 +36820,17 @@
                 "240",
                 "241"
               ],
-              "covered": 109
+              "covered": 108
             },
             "development_tools\\shared\\service\\__init__.py": {
-              "statements": 4,
+              "statements": 3,
               "missed": 0,
               "coverage": 100,
               "missing_lines": [],
-              "covered": 4
+              "covered": 3
             },
             "development_tools\\shared\\service\\audit_orchestration.py": {
-              "statements": 1319,
+              "statements": 1316,
               "missed": 696,
               "coverage": 47,
               "missing_lines": [
@@ -37567,10 +37531,10 @@
                 "2179",
                 "2180"
               ],
-              "covered": 623
+              "covered": 620
             },
             "development_tools\\shared\\service\\commands.py": {
-              "statements": 1326,
+              "statements": 1324,
               "missed": 809,
               "coverage": 39,
               "missing_lines": [
@@ -38384,20 +38348,20 @@
                 "2503",
                 "2504"
               ],
-              "covered": 517
+              "covered": 515
             },
             "development_tools\\shared\\service\\core.py": {
-              "statements": 46,
+              "statements": 44,
               "missed": 2,
-              "coverage": 96,
+              "coverage": 95,
               "missing_lines": [
                 "41",
                 "92"
               ],
-              "covered": 44
+              "covered": 42
             },
             "development_tools\\shared\\service\\data_freshness_audit.py": {
-              "statements": 121,
+              "statements": 119,
               "missed": 29,
               "coverage": 76,
               "missing_lines": [
@@ -38431,12 +38395,12 @@
                 "233",
                 "253"
               ],
-              "covered": 92
+              "covered": 90
             },
             "development_tools\\shared\\service\\data_loading.py": {
-              "statements": 768,
-              "missed": 327,
-              "coverage": 57,
+              "statements": 766,
+              "missed": 347,
+              "coverage": 55,
               "missing_lines": [
                 "66",
                 "69",
@@ -38461,7 +38425,26 @@
                 "179",
                 "180",
                 "186",
+                "225",
+                "226",
+                "229",
+                "230",
+                "231",
+                "232",
+                "233",
+                "234",
+                "235",
+                "236",
                 "237",
+                "238",
+                "239",
+                "240",
+                "241",
+                "242",
+                "243",
+                "244",
+                "245",
+                "248",
                 "249",
                 "250",
                 "251",
@@ -38474,6 +38457,7 @@
                 "260",
                 "261",
                 "262",
+                "265",
                 "266",
                 "267",
                 "268",
@@ -38766,12 +38750,12 @@
                 "1193",
                 "1196"
               ],
-              "covered": 441
+              "covered": 419
             },
             "development_tools\\shared\\service\\report_generation.py": {
               "statements": 4167,
-              "missed": 1652,
-              "coverage": 60,
+              "missed": 1952,
+              "coverage": 53,
               "missing_lines": [
                 "35",
                 "42",
@@ -38860,7 +38844,10 @@
                 "262",
                 "265",
                 "266",
-                "277",
+                "278",
+                "279",
+                "281",
+                "282",
                 "283",
                 "284",
                 "290",
@@ -38870,9 +38857,15 @@
                 "295",
                 "296",
                 "297",
+                "301",
                 "302",
+                "303",
+                "304",
+                "306",
                 "307",
                 "308",
+                "309",
+                "310",
                 "320",
                 "325",
                 "329",
@@ -39006,6 +38999,7 @@
                 "1092",
                 "1093",
                 "1094",
+                "1101",
                 "1120",
                 "1128",
                 "1129",
@@ -39074,13 +39068,16 @@
                 "1313",
                 "1314",
                 "1330",
-                "1337",
-                "1342",
-                "1345",
-                "1348",
-                "1349",
+                "1357",
                 "1382",
                 "1387",
+                "1423",
+                "1429",
+                "1430",
+                "1431",
+                "1432",
+                "1433",
+                "1434",
                 "1459",
                 "1480",
                 "1486",
@@ -39119,7 +39116,7 @@
                 "1662",
                 "1663",
                 "1670",
-                "1683",
+                "1679",
                 "1694",
                 "1709",
                 "1724",
@@ -39233,8 +39230,17 @@
                 "2177",
                 "2178",
                 "2179",
+                "2184",
+                "2185",
+                "2186",
+                "2187",
+                "2188",
                 "2190",
                 "2191",
+                "2193",
+                "2194",
+                "2195",
+                "2200",
                 "2204",
                 "2205",
                 "2220",
@@ -39306,9 +39312,40 @@
                 "2575",
                 "2580",
                 "2592",
+                "2600",
+                "2606",
+                "2607",
+                "2608",
+                "2609",
+                "2610",
+                "2611",
+                "2612",
+                "2613",
+                "2614",
+                "2615",
+                "2616",
+                "2617",
+                "2618",
+                "2619",
+                "2620",
+                "2621",
                 "2622",
+                "2623",
+                "2624",
+                "2625",
+                "2628",
+                "2632",
+                "2635",
+                "2636",
+                "2638",
+                "2639",
+                "2640",
+                "2641",
+                "2642",
+                "2643",
                 "2644",
                 "2645",
+                "2646",
                 "2660",
                 "2661",
                 "2662",
@@ -39342,11 +39379,44 @@
                 "2709",
                 "2710",
                 "2715",
+                "2722",
+                "2723",
+                "2724",
+                "2725",
+                "2729",
+                "2730",
+                "2731",
                 "2735",
+                "2739",
+                "2740",
+                "2741",
+                "2742",
+                "2743",
+                "2746",
+                "2747",
+                "2748",
+                "2751",
+                "2754",
                 "2758",
+                "2763",
+                "2764",
+                "2765",
+                "2766",
+                "2767",
                 "2768",
                 "2771",
+                "2772",
+                "2773",
+                "2776",
+                "2778",
+                "2785",
                 "2786",
+                "2790",
+                "2791",
+                "2792",
+                "2793",
+                "2797",
+                "2798",
                 "2799",
                 "2802",
                 "2803",
@@ -39628,7 +39698,36 @@
                 "4447",
                 "4450",
                 "4453",
+                "4462",
+                "4463",
+                "4464",
+                "4465",
+                "4468",
+                "4474",
+                "4475",
+                "4478",
+                "4479",
+                "4481",
+                "4482",
+                "4483",
+                "4484",
+                "4485",
+                "4486",
+                "4487",
+                "4489",
+                "4490",
+                "4495",
+                "4496",
+                "4497",
+                "4498",
+                "4499",
+                "4500",
                 "4501",
+                "4504",
+                "4508",
+                "4511",
+                "4514",
+                "4518",
                 "4535",
                 "4539",
                 "4557",
@@ -39640,6 +39739,8 @@
                 "4652",
                 "4702",
                 "4739",
+                "4787",
+                "4789",
                 "4791",
                 "4794",
                 "4795",
@@ -39663,9 +39764,30 @@
                 "4840",
                 "4843",
                 "4848",
+                "4852",
+                "4853",
+                "4862",
+                "4863",
+                "4864",
+                "4865",
+                "4866",
+                "4867",
+                "4869",
+                "4870",
                 "4872",
                 "4874",
+                "4875",
+                "4876",
+                "4880",
+                "4885",
+                "4886",
+                "4887",
+                "4889",
+                "4890",
+                "4891",
                 "4892",
+                "4895",
+                "4898",
                 "4905",
                 "4906",
                 "4907",
@@ -39858,7 +39980,12 @@
                 "5856",
                 "5857",
                 "5860",
+                "5867",
+                "5874",
+                "5875",
                 "5877",
+                "5878",
+                "5879",
                 "5892",
                 "5912",
                 "5940",
@@ -39873,6 +40000,13 @@
                 "5960",
                 "5964",
                 "5965",
+                "6010",
+                "6016",
+                "6017",
+                "6018",
+                "6019",
+                "6020",
+                "6021",
                 "6035",
                 "6036",
                 "6041",
@@ -39881,15 +40015,28 @@
                 "6101",
                 "6103",
                 "6105",
+                "6110",
                 "6111",
+                "6113",
+                "6115",
+                "6116",
+                "6117",
+                "6118",
+                "6119",
+                "6121",
+                "6122",
+                "6123",
                 "6125",
                 "6126",
                 "6128",
+                "6130",
+                "6131",
                 "6132",
                 "6133",
                 "6134",
                 "6135",
                 "6137",
+                "6139",
                 "6140",
                 "6145",
                 "6146",
@@ -39903,6 +40050,7 @@
                 "6158",
                 "6159",
                 "6160",
+                "6162",
                 "6169",
                 "6180",
                 "6181",
@@ -39932,12 +40080,22 @@
                 "6223",
                 "6234",
                 "6235",
+                "6240",
+                "6241",
+                "6242",
+                "6243",
                 "6245",
                 "6247",
+                "6248",
                 "6249",
+                "6250",
+                "6251",
+                "6252",
+                "6253",
+                "6256",
+                "6259",
                 "6260",
-                "6263",
-                "6264",
+                "6261",
                 "6269",
                 "6270",
                 "6271",
@@ -40089,9 +40247,31 @@
                 "6706",
                 "6708",
                 "6744",
+                "6770",
+                "6771",
+                "6772",
+                "6773",
+                "6774",
                 "6776",
                 "6777",
+                "6779",
+                "6780",
+                "6781",
+                "6786",
+                "6789",
+                "6791",
+                "6792",
+                "6793",
+                "6794",
+                "6795",
+                "6796",
+                "6797",
+                "6799",
+                "6800",
+                "6805",
+                "6809",
                 "6810",
+                "6813",
                 "6815",
                 "6816",
                 "6821",
@@ -40373,21 +40553,125 @@
                 "8013",
                 "8014",
                 "8017",
+                "8026",
+                "8032",
+                "8033",
+                "8034",
+                "8035",
+                "8036",
+                "8037",
+                "8038",
+                "8039",
+                "8040",
+                "8041",
+                "8042",
+                "8043",
+                "8044",
+                "8045",
+                "8046",
+                "8047",
                 "8048",
+                "8049",
+                "8050",
+                "8051",
+                "8054",
+                "8058",
+                "8061",
+                "8062",
+                "8063",
+                "8064",
+                "8065",
+                "8066",
+                "8067",
+                "8068",
                 "8069",
                 "8070",
+                "8071",
+                "8072",
+                "8073",
+                "8074",
+                "8075",
                 "8076",
+                "8077",
+                "8078",
+                "8079",
+                "8080",
+                "8081",
+                "8082",
+                "8083",
+                "8084",
                 "8085",
+                "8086",
+                "8092",
+                "8093",
+                "8094",
+                "8095",
+                "8096",
+                "8097",
+                "8098",
+                "8099",
+                "8100",
+                "8101",
                 "8102",
+                "8103",
                 "8104",
+                "8105",
+                "8106",
+                "8107",
+                "8108",
+                "8109",
+                "8110",
+                "8111",
+                "8112",
+                "8113",
+                "8114",
+                "8115",
+                "8116",
+                "8117",
+                "8118",
+                "8119",
+                "8120",
                 "8121",
+                "8123",
+                "8124",
+                "8125",
+                "8129",
+                "8130",
                 "8149",
+                "8154",
+                "8155",
+                "8156",
+                "8157",
+                "8161",
+                "8162",
                 "8165",
                 "8166",
+                "8171",
+                "8174",
+                "8175",
+                "8178",
+                "8179",
+                "8180",
+                "8183",
+                "8184",
                 "8185",
+                "8190",
+                "8191",
+                "8192",
+                "8193",
+                "8194",
                 "8195",
                 "8196",
                 "8197",
+                "8198",
+                "8199",
+                "8200",
+                "8201",
+                "8204",
+                "8209",
+                "8214",
+                "8215",
+                "8216",
                 "8241",
                 "8242",
                 "8243",
@@ -40426,17 +40710,17 @@
                 "8344",
                 "8347"
               ],
-              "covered": 2515
+              "covered": 2215
             },
             "development_tools\\shared\\service\\report_generation_linkify.py": {
-              "statements": 26,
+              "statements": 25,
               "missed": 0,
               "coverage": 100,
               "missing_lines": [],
-              "covered": 26
+              "covered": 25
             },
             "development_tools\\shared\\service\\tool_wrappers.py": {
-              "statements": 1034,
+              "statements": 1032,
               "missed": 489,
               "coverage": 53,
               "missing_lines": [
@@ -40930,10 +41214,10 @@
                 "1945",
                 "1946"
               ],
-              "covered": 545
+              "covered": 543
             },
             "development_tools\\shared\\service\\utilities.py": {
-              "statements": 408,
+              "statements": 406,
               "missed": 133,
               "coverage": 67,
               "missing_lines": [
@@ -41071,10 +41355,10 @@
                 "538",
                 "539"
               ],
-              "covered": 275
+              "covered": 273
             },
             "development_tools\\shared\\standard_exclusions.py": {
-              "statements": 119,
+              "statements": 117,
               "missed": 13,
               "coverage": 89,
               "missing_lines": [
@@ -41092,17 +41376,17 @@
                 "387",
                 "422"
               ],
-              "covered": 106
+              "covered": 104
             },
             "development_tools\\shared\\time_helpers.py": {
-              "statements": 9,
+              "statements": 8,
               "missed": 0,
               "coverage": 100,
               "missing_lines": [],
-              "covered": 9
+              "covered": 8
             },
             "development_tools\\shared\\tool_guide.py": {
-              "statements": 170,
+              "statements": 168,
               "missed": 13,
               "coverage": 92,
               "missing_lines": [
@@ -41120,22 +41404,22 @@
                 "465",
                 "466"
               ],
-              "covered": 157
+              "covered": 155
             },
             "development_tools\\shared\\tool_metadata.py": {
-              "statements": 40,
+              "statements": 39,
               "missed": 2,
               "coverage": 95,
               "missing_lines": [
                 "514",
                 "527"
               ],
-              "covered": 38
+              "covered": 37
             },
             "development_tools\\shared\\verify_tool_storage.py": {
-              "statements": 74,
+              "statements": 72,
               "missed": 60,
-              "coverage": 19,
+              "coverage": 17,
               "missing_lines": [
                 "23",
                 "25",
@@ -41198,12 +41482,12 @@
                 "169",
                 "171"
               ],
-              "covered": 14
+              "covered": 12
             },
             "development_tools\\static_checks\\analyze_pyright.py": {
-              "statements": 124,
+              "statements": 122,
               "missed": 46,
-              "coverage": 63,
+              "coverage": 62,
               "missing_lines": [
                 "17",
                 "18",
@@ -41252,12 +41536,12 @@
                 "216",
                 "221"
               ],
-              "covered": 78
+              "covered": 76
             },
             "development_tools\\static_checks\\analyze_ruff.py": {
-              "statements": 121,
+              "statements": 119,
               "missed": 55,
-              "coverage": 55,
+              "coverage": 54,
               "missing_lines": [
                 "19",
                 "20",
@@ -41315,10 +41599,10 @@
                 "220",
                 "225"
               ],
-              "covered": 66
+              "covered": 64
             },
             "development_tools\\static_checks\\check_channel_loggers.py": {
-              "statements": 102,
+              "statements": 99,
               "missed": 11,
               "coverage": 89,
               "missing_lines": [
@@ -41334,7 +41618,7 @@
                 "139",
                 "157"
               ],
-              "covered": 91
+              "covered": 88
             }
           },
           "coverage_collected": true,
@@ -41342,7 +41626,7 @@
           "html_dir": null
         }
       },
-      "timestamp": "2026-04-09T18:10:44"
+      "timestamp": "2026-04-09T22:19:27"
     },
     "verify_process_cleanup": {
       "success": true,
@@ -41358,7 +41642,7 @@
           "orphaned_processes": []
         }
       },
-      "timestamp": "2026-04-09T18:14:16"
+      "timestamp": "2026-04-09T22:12:55"
     },
     "analyze_ruff": {
       "success": true,
@@ -41377,7 +41661,7 @@
           "top_rules": []
         }
       },
-      "timestamp": "2026-04-09T18:14:21.448136"
+      "timestamp": "2026-04-09T22:19:33.037622"
     },
     "analyze_pyright": {
       "success": true,
@@ -41393,14 +41677,14 @@
           "errors": 0,
           "warnings": 0,
           "information": 0,
-          "files_analyzed": 593,
+          "files_analyzed": 595,
           "returncode": 0,
           "top_files": [],
           "top_error_files": [],
           "top_warning_files": []
         }
       },
-      "timestamp": "2026-04-09T18:14:21.448136"
+      "timestamp": "2026-04-09T22:19:33.037622"
     }
   }
 }

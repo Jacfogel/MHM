@@ -497,10 +497,14 @@ EXPECTED_OVERLAPS: frozenset[str] = frozenset({
     "quick reference",
     "table of contents",
     "test suite structure",
+    "getting started",
+    "installation",
+    "configuration",
     "contents",
     "navigation",
     "see also",
     "references",
+    "related documents",
 })
 
 # Words that are generic in paths (path-drift: skip when path is just this word)

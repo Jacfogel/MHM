@@ -30,7 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-04-10 - verify_process_cleanup Pyright clean **COMPLETED**
+- [verify_process_cleanup.py](../development_tools/tests/verify_process_cleanup.py): avoid `int(None)` typing path when reading `ProcessId` from CIM JSON (Pyright `reportArgumentType` warnings resolved).
+
 ### 2026-04-09 - Dev-tools overlap + helper tests **COMPLETED**
+- **V5 plan continuation**: `verify_process_cleanup` uses Windows **CIM** (`Win32_Process` command lines); `sync-todo --dry-run`; expanded `EXPECTED_OVERLAPS`; guides Section 10 decisions + Section 10.1 gap alignment; taxonomy + Pyright policy tests; V5 sections updated (Section 3.18 complete, Sections 4.1 / 5.x partial).
 - Legacy scan now stays quiet for `fix_project_cleanup.py` (removed a false-positive "legacy path" phrase); [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md) shows 0 issues.
 - Added small portability coverage in `test_analyze_config.py` for absolute `get_project_root()` behavior.
 - Added helper-focused tests for `commands.py`, `run_test_coverage.py`, and `audit_orchestration.py` (coverage metadata, path mapping + totals, Tier 3 scope finalization).
@@ -138,18 +142,6 @@ Guidelines:
 - **Deprecation inventory**: Phrase-only `search_terms` for `root_ruff_compat_mirror` so legacy scans surface the Ruff root-compat bridge in `sync_ruff_toml.py` without noise from tests or `sync_root_compat` uses elsewhere; `LEGACY_REFERENCE_REPORT` refreshed (**1** file / **4** markers).
 - **Tests**: `test_analyze_config.py` for `ConfigValidator`; `test_pyright_config_paths` exclude + Section 7.6 parity strategy note. **AI_PRIORITIES #2**: extended `test_audit_orchestration_helpers`, `test_commands_coverage_helpers`, `test_run_test_coverage_helpers` for `audit_orchestration.py`, `commands.py`, `run_test_coverage.py`. **Strict Tier 3**: lock-path tests use `patch.object` on `import development_tools as dt; dt.config` so `get_external_value` mocks match the runtime config binding after conftest loads.
 - **Docs**: V4 Section 3.16 structure map + Section 6 snapshot; [TODO.md](TODO.md) dev-tools backlog scheduling block.
-
-### 2026-03-25 - V4 continuation: coverage tests, reports, guides, portability **COMPLETED**
-- **file_rotation / tests**: Extracted `path_looks_like_test_directory()` (module-level) from `create_output_file` so test isolation logic stays single-source; [tests/development_tools/test_file_rotation.py](tests/development_tools/test_file_rotation.py) fixes Tier-3 failures (patch `get_component_logger` for DIRECTORY_TREE safeguard; patch heuristic off for AI_STATUS isolation under `tmp_path`); per-test `@pytest.mark.unit`; Ruff-clean. `doc-fix --fix-ascii` re-run for CHANGELOG ASCII Quick Win.
-- **V4 backlog hygiene**: `test_pyright_config_paths` Section 7.6 doc + extra test; scripts/refactor backlog text consolidated into V4 + paired guides Section 10 (removed ad-hoc `development_tools/docs/*.md` inventories).
-- **Docs + tests**: `test_fix_documentation_links` main tests use `patch.object(links_module, 'DocumentationLinkFixer')` so `load_development_tools_module` and `main()` share the same module object; deleted unapproved ad-hoc inventory docs under `development_tools/docs/` (content merged into V4 + **DEVELOPMENT_TOOLS_GUIDE** / **AI_DEVELOPMENT_TOOLS_GUIDE** Section 10).
-- **Config / coverage**: Fixed import cycle so `load_external_config()` runs before `constants.LOCAL_MODULE_PREFIXES` freezes - pytest-cov now receives all `core_modules` from JSON (not only `core`); lazy `AUDIT_TIERS` + `test_constants_config_import_order.py` (`@pytest.mark.unit` satisfies category marker policy).
-- **Tests**: `test_audit_signal_state.py` (SIGINT multi-tap); extended `commands` lock-path config-failure and `run_test_coverage` shard wait/discover helpers; `test_pyright_config_paths` owned Pyright structural check; linkify + domain-summary tests; `format_repo_paths_as_markdown_links` + `test_service_utilities` coverage.
-- **Reports**: AI_PRIORITIES "Review for guidance/details" linkifies `.md`/`.json` paths; path-drift **Top offenders** use markdown links with `/`; TEST_COVERAGE_REPORT domain section shows measured domains only plus an "in scope, not represented" note (no fake `0/0` rows); **Coverage Scope** still lists all `coverage.ini` sources.
-- **Docs**: V4 snapshot (2026-03-25 metrics); paired guides **Section 10** (external tools evaluation + scripts backlog-removed dead `scripts/testing/flaky_detector.py` prose path); **version-sync** experimental docs; Section 6 legacy count alignment.
-- **Doc hygiene**: Ran `doc-fix --fix-ascii`, `doc-fix --convert-links`, and `doc-sync` for AI_PRIORITIES Quick Wins (ASCII / unconverted links).
-- **Tests**: `test_analyze_module_dependencies` + `test_analyze_unused_imports` use `patch.object(<loaded_module>, ...)` for subprocess/logger mocks so patches match `load_development_tools_module` under `sys.modules` churn (parallel Tier 3; fixes `test_cache_disabled`).
-- **Note**: Full `tests/development_tools` run reported one flaky failure in `test_get_static_analysis_config_honors_external_overrides` under xdist/randomly; single re-run passed.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

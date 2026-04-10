@@ -311,7 +311,9 @@ See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for fu
 
 ## 10. External tools evaluation (Bandit, pip-audit, Radon, pre-commit)
 
-Not integrated into audit tiers. Run manually when assessing security/complexity hooks; see Section 10 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 4.1. **Also evaluate**: **pydeps** (graphs vs existing dependency tools), **vulture** (dead code vs unused-imports/registry). **Scripts backlog**: [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) (policy + inventory refresh). `flaky_detector` and `verify_process_cleanup` now have tracked dev-tools homes/commands; keep remaining script candidates on the V5 backlog. **Do not add** unapproved standalone migration markdown files; use approved guides + V5.
+Not integrated into audit tiers. Run manually when assessing security/complexity hooks; see Section 10 (and **10.1 gap-analysis alignment**) in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 4.1. **Also evaluate**: **pydeps** (graphs vs existing dependency tools), **vulture** (dead code vs unused-imports/registry). **Scripts backlog**: [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md) (policy + inventory refresh). `flaky_detector` and `verify_process_cleanup` now have tracked dev-tools homes/commands; keep remaining script candidates on the V5 backlog. **Do not add** unapproved standalone migration markdown files; use approved guides + V5.
+
+**TODO sync dry-run**: `python development_tools/docs/fix_version_sync.py sync-todo --dry-run` prints the dry-run summary to stdout (no file edits).
 
 **Evaluation note (2026-04-08)**: **bandit**, **pip-audit**, and **radon** are optional one-off installs (`pip install` per bullets below); they are intentionally **not** listed in root `requirements.txt` until Tier 1 noise thresholds and path policies are decided. **pre-commit** remains optional on developer machines only (no repo-root hook config added in this session); audit truth stays `run_development_tools.py` + `tests/development_tools/`.
 
@@ -321,3 +323,7 @@ Not integrated into audit tiers. Run manually when assessing security/complexity
 - `python -m bandit -r core communication ui user ai tasks -ll` - start with product packages; widen or tighten `-ll` / `-iii` after noise triage; exclude `tests/` paths until policy is defined.
 - `python -m pip_audit` - dependency vulnerability report; review exit code and whether results belong in CI vs advisory audit notes.
 - `python -m radon cc development_tools -a -s` - advisory complexity sample; overlaps internal analyzers-cross-check only until Tier policy exists.
+
+### 10.1. Gap-analysis alignment (V5 Section 5.5)
+
+Tier 2 **`module-refactor-candidates`** is the in-repo "large module / complexity" gap signal; pair it with `AI_PRIORITIES.md` and `analyze_module_refactor_candidates_results.json` when triaging Documentation / Code quality / Testing themes. Full detail: Section 10.1 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).

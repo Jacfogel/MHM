@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Single forward-looking backlog after V4; collapsed history; actionable next steps  
 > **Style**: Direct and concise  
-> **Last Updated**: 2026-04-09  
+> **Last Updated**: 2026-04-10  
 > **Supersedes**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (keep V4 for detailed checkbox history)
 
 **Authoritative metrics**: [development_tools/AI_STATUS.md](AI_STATUS.md) and [development_tools/AI_PRIORITIES.md](AI_PRIORITIES.md) after `python development_tools/run_development_tools.py audit` or `audit --full`.
@@ -79,6 +79,8 @@ Use **AI_STATUS.md** after each audit. Example **2026-04-08** (Tier 3 full, afte
 
 **2026-04-09 (scripts backlog execution slice)**: migrated local script utilities into tracked dev-tools paths: `scripts/flaky_detector.py` -> `development_tools/tests/flaky_detector.py` and `scripts/testing/verify_process_cleanup.py` -> `development_tools/tests/verify_process_cleanup.py`; added CLI commands (`flaky-detector`, `verify-process-cleanup`), command docs updates, and unit tests. `development_tools/shared/fix_project_cleanup.py` remains canonical cleanup implementation for the `cleanup_project` overlap.
 
+**2026-04-09 (V5 plan continuation — tooling slice)**: `verify_process_cleanup` uses **Get-CimInstance Win32_Process** on Windows for real `CommandLine` (Section 3.18); `sync-todo --dry-run` prints the dry-run report; `EXPECTED_OVERLAPS` extended (generic doc headings); guides Section 10 record **2026-04-09** external-tool decisions + Section 10.1 gap-analysis alignment; policy tests for Phase 2 taxonomy gate and Pyright delta env documentation. **Section 1.5** numeric cache benchmark still deferred (recipe unchanged; machine-local).
+
 ---
 
 ## 3. Completed themes (V4 collapsed)
@@ -108,13 +110,13 @@ Rough ordering for triage (see **§5** for full V4-sourced detail):
 | Tier | Themes |
 |------|--------|
 | **High** | Legacy executable paths + [DEPRECATION_INVENTORY.json](config/jsons/DEPRECATION_INVENTORY.json) (§6); portability / dual Pyright+Ruff baselines (§3.17, §7.6); directory taxonomy Phase 2–3 (§7.7). |
-| **Medium** | §2.8 remaining scoped-report polish; coverage cache numeric benchmarks (§1.5); validation triggers (§3.2); external security/complexity tools (§4.1); doc overlap analyzer (§5.2); AI work validation thin profile (§5.3); TODO sync automation (§5.4); gap-analysis tool rollout (§5.5). |
+| **Medium** | §2.8 remaining scoped-report polish; coverage cache numeric benchmarks (§1.5); validation triggers (§3.2); external security/complexity tools (§4.1), **including Bandit + pip-audit audit integration (§5.4 — 4.2)**; doc overlap analyzer (§5.2); AI work validation thin profile (§5.3); TODO sync automation (§5.4); gap-analysis tool rollout (§5.5). |
 | **Lower / backlog** | `test_config.json` migration (§1.1); example-marking checker (§3.0); flaky detector + scripts migration (§3.12–3.15); unused-imports fixer (§5.1); memory profiler (§5.6); large-file refactors (§3.16); human backlog §7.8–7.13, §7.15. |
 | **Monitoring** | Intermittent low coverage warning (§1.3) — reopen if recurrence. |
 
 ### 4.1 Phase 2 scheduling (after §4 High / Phase 1 portability-legacy work)
 
-Suggested order when returning from Phase 1: **(1)** §2.8 any remaining scope-aware **sections** (1.9 shipped 2026-04-06; DEV_TOOLS headers updated 2026-04-06). **(2)** §1.5 coverage-cache benchmark session (methodology in §5.1 — 1.5; optional numeric capture). **(3)** §4.1 external tools evaluation (bandit, pip-audit, radon, pre-commit) per paired guides §10 (Radon one-liner added 2026-04-06). **(4)** §5.2 documentation overlap analyzer improvements (advisory note in paired guide §5). **(5)** §5.3 AI work validation (keep thin). **(6)** §5.4 TODO sync dry-run automation. **(7)** §5.5 gap-analysis tool rollout (incremental). ~~**(8)** §7.16~~ **done 2026-04-06**.
+Suggested order when returning from Phase 1: **(1)** §2.8 any remaining scope-aware **sections** (1.9 shipped 2026-04-06; DEV_TOOLS headers updated 2026-04-06). **(2)** §1.5 coverage-cache benchmark session (methodology in §5.1 — 1.5; optional numeric capture). **(3)** §4.1 external tools evaluation (bandit, pip-audit, radon, pre-commit) per paired guides §10 (Radon one-liner added 2026-04-06); **tracked integration slice**: **§5.4 — 4.2** (Bandit + pip-audit). **(4)** §5.2 documentation overlap analyzer improvements (advisory note in paired guide §5). **(5)** §5.3 AI work validation (keep thin). **(6)** §5.4 TODO sync dry-run automation. **(7)** §5.5 gap-analysis tool rollout (incremental). ~~**(8)** §7.16~~ **done 2026-04-06**.
 
 ---
 
@@ -258,10 +260,10 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 #### 3.18 `verify_process_cleanup` — reliable Windows orphan detection
 
-- **Status**: **OPEN**. **User priority**: Medium.
-- **Problem**: The checker uses `tasklist`-style process listing, which does **not** expose full command lines. Heuristic matching on empty/partial cmdline under-reports or mis-classifies pytest-xdist workers.
-- **Goal**: Retrieve `CommandLine` reliably on Windows (e.g. **WMI/CIM** `Win32_Process`, or `Get-CimInstance` / `wmic` with documented fallbacks) so reporting in **AI_PRIORITIES** / **CONSOLIDATED_REPORT** reflects real orphan risk.
-- **Reporting**: Tier 3 JSON + STATUS snapshot + consolidated section already surface WARN when candidates exist; priorities list the item **only when** there are issues.
+- **Status**: **COMPLETE (2026-04-09)** — primary path uses **PowerShell Get-CimInstance** `Win32_Process` (full `CommandLine`); **tasklist** CSV retained only as fallback when CIM fails.
+- **Problem (resolved)**: Prior `tasklist`-only listing did not expose command lines; pytest/xdist heuristics were unreliable.
+- **Goal**: Retrieve `CommandLine` reliably on Windows — **done** via CIM; fallback logs a warning.
+- **Reporting**: Tier 3 JSON + STATUS snapshot + consolidated section unchanged; priorities list the item **only when** there are issues.
 
 ---
 
@@ -271,6 +273,7 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 - **Status**: **IN PROGRESS**. **User priority**: Evaluate bandit, pip-audit, radon, pre-commit; ruff already in use for lint.
 - **Done (V4)**: Evaluation stance + backlog pointer in paired guides §10.
+- **Recorded (2026-04-09)**: Bandit / pip-audit / Radon / pydeps remain **manual-only** (no `requirements.txt` change); decisions and pydeps pilot one-liner live in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) §10; gap-analysis alignment note in §10.1.
 - **Open tasks**:
   - Evaluate **ruff** (lint/format) and **radon** (complexity) for deeper integration.
   - Evaluate **pydeps** for dependency graphs vs existing dependency tooling.
@@ -279,6 +282,19 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
   - Decide: replace, complement, or keep existing tools.
   - If integrating: wrappers, `requirements.txt`, docs.
   - Optional: **vulture** (dead code), **pre-commit** (hooks).
+
+#### 4.2 Integrate Bandit and pip-audit into audit tiers
+
+- **Status**: **OPEN**. **User priority**: Medium (security/supply-chain signal in the standard audit pipeline).
+- **Goal**: Run **bandit** (static security) and **pip-audit** (dependency vulnerabilities) from the dev-tools runner with structured JSON + report lines, aligned with existing `analyze_ruff` / `analyze_pyright` patterns (cache, scope, `DEV_TOOLS_*` behavior as appropriate).
+- **Prerequisites**: Pilot runs and noise triage (paths, severity, exit semantics); decide whether results are **WARN** vs **FAIL** for `audit --full` / strict mode; network policy for **pip-audit** (offline/CI constraints).
+- **Open tasks**:
+  - Add optional dependencies or document **pinned** `requirements.txt` / dev extra for `bandit` and `pip-audit` (project policy: not in default install until integrated).
+  - Implement wrappers in `development_tools/shared/service/commands.py` (or dedicated module), **tool_metadata** + CLI hooks, JSON under `development_tools/reports/` or scoped `jsons/` per existing layout.
+  - Register tier placement (**Tier 2 or Tier 3** — recommend Tier 3 with `run_test_coverage` / heavy tools, or Tier 2 if runtime stays low); wire [`shared/audit_tiers.py`](shared/audit_tiers.py) and [`config/development_tools_config.json`](config/development_tools_config.json) / example.
+  - Surface summaries in **AI_STATUS** / **CONSOLIDATED_REPORT** / **AI_PRIORITIES** when issues exist (mirror Pyright/Ruff blocks).
+  - Tests under `tests/development_tools/` (mock subprocess or minimal fixture project); update [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) / [AI_DEVELOPMENT_TOOLS_GUIDE.md](AI_DEVELOPMENT_TOOLS_GUIDE.md) Section 10 and paired changelogs when shipped.
+- **Related**: §5.4 — 4.1 (evaluation backlog); [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10 manual pilot commands.
 
 ---
 
@@ -295,6 +311,7 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 - **Status**: **IN PROGRESS**. **User priority**: Medium.
 - **Done (2026-04-08)**: `detect_section_overlaps` treats numbered generic headings (`1. Purpose and Scope`, `1. Quick Start`, …) like `EXPECTED_OVERLAPS` entries to cut **AI_STATUS** / doc-sync noise.
+- **Done (2026-04-09)**: Added `getting started`, `installation`, `configuration`, `related documents` to `EXPECTED_OVERLAPS` (shared guide boilerplate).
 - **Open**: Review consolidation opportunities (Development Workflow, Testing); consolidation plan; improve actionable insights; further false-positive tuning beyond generic headings.
 
 #### 5.3 AI work validation improvements
@@ -304,13 +321,15 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 #### 5.4 TODO sync cleanup automation
 
-- **Status**: **PENDING**. **User priority**: Low.
-- **Open**: Auto-clean with **dry-run** option; document workflow and best practices (V4 already improved detection + manual vs auto-cleanable reporting).
+- **Status**: **PARTIAL (2026-04-09)**. **User priority**: Low.
+- **Done**: `python development_tools/docs/fix_version_sync.py sync-todo --dry-run` prints **dry_run_report** to stdout (no edits); documented in [AI_DEVELOPMENT_TOOLS_GUIDE.md](AI_DEVELOPMENT_TOOLS_GUIDE.md).
+- **Open**: Auto-clean of auto-cleanable checklist lines (still manual); broader workflow docs if needed.
 
 #### 5.5 New tool creation based on gap analysis
 
 - **Status**: **IN PROGRESS**. **Effort**: Large.
 - **Done (V4)**: `module-refactor-candidates` tool and Tier 2 integration.
+- **Done (2026-04-09)**: [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) §10.1 documents using **`module-refactor-candidates`** + priorities JSON as the practical gap signal until a multi-category matrix exists.
 - **Open**:
   - Prioritize gaps across: Documentation, Code quality, Testing, Configuration/environment, AI/prompt, Integration/workflow.
   - Implement tools (analyze/generate/fix patterns).

@@ -621,16 +621,23 @@ Development-tools modules may import `core.logger` for structured logging. All o
 
 - **Evaluation (2026-04-08)**: **Tier 1 integration** deferred; tools are **not** in default `requirements.txt`. Install manually for pilots. **pre-commit** is optional per-developer (no shared `.pre-commit-config.yaml` required for MHM). Revisit when security/complexity gates are policy-defined.
 
+- **Recorded decisions (2026-04-09)**: **Bandit**, **pip-audit**, **Radon**, and **pydeps** remain **manual-only** pilots (no new `requirements.txt` entries in this pass). **vulture** / **pre-commit** unchanged: optional, same rationale as 2026-04-08. Prefer Tier 2 `module-refactor-candidates` and `analyze_functions` JSON as the in-audit complexity signals; use Radon for spot-checks only.
+
 - **Manual pilot (Windows PowerShell, repo root, venv active)**:
   - `python -m pip install bandit pip-audit` (add `radon` for cyclomatic-complexity sampling: `python -m pip install radon`)
   - `python -m bandit -r core communication ui user ai tasks -ll` (expand/shrink paths and severity flags after triage; keep `tests/` out until policy exists).
   - `python -m pip_audit`
   - `python -m radon cc development_tools -a -s` (advisory; overlaps internal `analyze_functions` / refactor signals-use to cross-check hot spots, not as a second source of truth in CI until policy exists).
+  - **pydeps** (optional): `python -m pip install pydeps` then e.g. `python -m pydeps core --max-bacon=2` for a shallow graph sample; compare to `development_tools/imports/analyze_module_dependencies.py` before relying on graphs in documentation.
 - **Bandit** / **pip-audit**: Run manually from the venv when reviewing security or dependency risk; promote to Tier 1 only after noise levels are acceptable.
 - **Radon**: Overlaps existing complexity/refactor signals (`analyze_functions`, `analyze_module_refactor_candidates`); adopt only for metrics Ruff does not provide.
 - **pydeps**: Optional dependency-graph visualization; compare against `imports/analyze_module_dependencies.py` / consolidated report before adding a second graph pipeline.
 - **vulture**: Optional dead-code scan; overlaps unused-imports and function-registry tools-evaluate noise vs signal before Tier integration.
 - **pre-commit**: Optional host-repo hygiene; policy tests under `tests/development_tools/` remain the authoritative CLI/exclusion checks for this repository.
+
+### 10.1. Gap-analysis alignment (V5 Section 5.5)
+
+Tier 2 **`module-refactor-candidates`** is the in-repo "large module / complexity" gap signal; pair it with `AI_PRIORITIES.md` and `analyze_module_refactor_candidates_results.json` when triaging Documentation / Code quality / Testing themes. A single combined "gap matrix" tool remains future work; use existing JSON and priorities until then.
 
 **Scripts backlog** (migration/review): Policy, triage, flaky-detector notes, and inventory refresh command live in [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md). Task checklist: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 3.12-Section 3.14 and [TODO.md](../TODO.md).
 

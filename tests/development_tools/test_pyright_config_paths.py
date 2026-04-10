@@ -95,6 +95,15 @@ def test_dev_tools_pyrightconfig_excludes_tests_data_and_temp() -> None:
 
 
 @pytest.mark.unit
+def test_optional_pyright_error_delta_env_documented_in_e2e() -> None:
+    """V5 §7.6: e2e test documents PYRIGHT_ERROR_COUNT_MAX_DELTA for optional parity enforcement."""
+    src = (project_root / "tests" / "development_tools" / "test_pyright_config_paths.py").read_text(
+        encoding="utf-8"
+    )
+    assert "PYRIGHT_ERROR_COUNT_MAX_DELTA" in src
+
+
+@pytest.mark.unit
 def test_pyright_diagnostic_parity_strategy_note() -> None:
     """V4 §7.6: full error-count parity between root and owned Pyright configs is deferred.
 

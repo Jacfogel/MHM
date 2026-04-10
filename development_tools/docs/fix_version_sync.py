@@ -993,6 +993,8 @@ if __name__ == "__main__":
                 sys.exit(1)  # Exit with error code to fail audit
         elif command == "sync-todo":
             result = sync_todo_with_changelog()
+            if "--dry-run" in sys.argv and result.get("dry_run_report"):
+                print(result["dry_run_report"])
             logger.info(f"TODO sync: {result['message']}")
             if result.get("completed_entries", 0) > 0:
                 logger.warning(
@@ -1057,6 +1059,9 @@ if __name__ == "__main__":
             )
             print(
                 "  python development_tools/docs/fix_version_sync.py sync-todo                # Sync TODO.md with AI_CHANGELOG.md"
+            )
+            print(
+                "  python development_tools/docs/fix_version_sync.py sync-todo --dry-run    # Print dry-run summary only (no edits)"
             )
     else:
         # Default: show current versions
