@@ -11,6 +11,10 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
+from core.logger import get_component_logger
+
+logger = get_component_logger("development_tools")
+
 # -----------------------------------------------------------------------------
 # Flat tool name lists (for reporting, timing, _get_expected_tools_for_tier)
 # -----------------------------------------------------------------------------
@@ -72,18 +76,37 @@ def get_tier3_tool_names_dev_tools_only() -> list[str]:
     return [
         name
         for name in TIER3_TOOL_NAMES
-        if name not in ("run_test_coverage", "generate_test_coverage_report")
+        if name
+        not in (
+            "run_test_coverage",
+            "generate_test_coverage_report",
+            "generate_legacy_reference_report",
+        )
     ]
 
 
-def get_expected_tools_for_tier(tier: int) -> list[str]:
-    """Return expected tool names for a given audit tier (1, 2, or 3)."""
+def get_expected_tools_for_tier(tier: int, *, dev_tools_only: bool = False) -> list[str]:
+    """Return expected tool names for a given audit tier (1, 2, or 3).
+
+    When ``dev_tools_only`` is True, Tier 2/3 expectations omit markdown generators that
+    write full-repo ``development_docs/*.md`` reports (V5 §7.19).
+    """
     if tier <= 1:
         return list(TIER1_TOOL_NAMES)
     tier1_no_quick = [t for t in TIER1_TOOL_NAMES if t != "quick_status"]
+    tier2_names = (
+        [n for n in TIER2_TOOL_NAMES if n != "generate_unused_imports_report"]
+        if dev_tools_only
+        else list(TIER2_TOOL_NAMES)
+    )
     if tier == 2:
-        return tier1_no_quick + list(TIER2_TOOL_NAMES)
-    return tier1_no_quick + list(TIER2_TOOL_NAMES) + get_tier3_tool_names_full_repo()
+        return tier1_no_quick + tier2_names
+    tier3_names = (
+        get_tier3_tool_names_dev_tools_only()
+        if dev_tools_only
+        else get_tier3_tool_names_full_repo()
+    )
+    return tier1_no_quick + tier2_names + tier3_names
 
 
 # -----------------------------------------------------------------------------
@@ -164,6 +187,7 @@ def get_tier1_groups(service: Any) -> tuple[list[tuple[str, Any]], list[tuple[st
 
 def get_tier2_groups(service: Any) -> tuple[list[tuple[str, Any]], list[list[tuple[str, Any]]]]:
     """Return (independent_tools, dependent_groups) for Tier 2."""
+    dev_tools_only = bool(getattr(service, "dev_tools_only_mode", False))
     independent_names = [
         "analyze_functions",
         "analyze_error_handling",
@@ -171,11 +195,21 @@ def get_tier2_groups(service: Any) -> tuple[list[tuple[str, Any]], list[list[tup
         "analyze_duplicate_functions",
         "analyze_module_refactor_candidates",
     ]
+    unused_imports_group = (
+        ["analyze_unused_imports"]
+        if dev_tools_only
+        else ["analyze_unused_imports", "generate_unused_imports_report"]
+    )
+    if dev_tools_only:
+        logger.info(
+            "Skipping generate_unused_imports_report (dev-tools-only scope); "
+            "development_docs/UNUSED_IMPORTS_REPORT.md left unchanged."
+        )
     dependent_group_names = [
         ["analyze_module_imports", "analyze_dependency_patterns", "analyze_module_dependencies"],
         ["analyze_function_registry"],
         ["analyze_documentation_sync"],
-        ["analyze_unused_imports", "generate_unused_imports_report"],
+        unused_imports_group,
     ]
     independent_tools = [(n, _get_runnable(service, n)) for n in independent_names]
     dependent_groups = [[(n, _get_runnable(service, n)) for n in group] for group in dependent_group_names]
@@ -194,6 +228,10 @@ def get_tier3_groups(
     """
     dev_tools_only = bool(getattr(service, "dev_tools_only_mode", False))
     if dev_tools_only:
+        logger.info(
+            "Skipping generate_test_coverage_report (dev-tools-only scope); "
+            "development_docs/TEST_COVERAGE_REPORT.md left unchanged."
+        )
         coverage_main = []
         coverage_dev_tools = [
             ("generate_dev_tools_coverage", _get_runnable(service, "generate_dev_tools_coverage")),
@@ -210,10 +248,19 @@ def get_tier3_groups(
             ("generate_test_coverage_report", _get_runnable(service, "generate_test_coverage_report")),
             ("analyze_backup_health", _get_runnable(service, "analyze_backup_health")),
         ]
-    legacy_group = [
-        ("analyze_legacy_references", _get_runnable(service, "analyze_legacy_references")),
-        ("generate_legacy_reference_report", _get_runnable(service, "generate_legacy_reference_report")),
-    ]
+    if dev_tools_only:
+        legacy_group = [
+            ("analyze_legacy_references", _get_runnable(service, "analyze_legacy_references")),
+        ]
+        logger.info(
+            "Skipping generate_legacy_reference_report (dev-tools-only scope); "
+            "development_docs/LEGACY_REFERENCE_REPORT.md left unchanged."
+        )
+    else:
+        legacy_group = [
+            ("analyze_legacy_references", _get_runnable(service, "analyze_legacy_references")),
+            ("generate_legacy_reference_report", _get_runnable(service, "generate_legacy_reference_report")),
+        ]
     static_analysis_group = [
         ("analyze_ruff", _get_runnable(service, "analyze_ruff")),
         ("analyze_pyright", _get_runnable(service, "analyze_pyright")),

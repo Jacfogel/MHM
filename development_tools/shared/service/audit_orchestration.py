@@ -2056,10 +2056,10 @@ class AuditOrchestrationMixin:
     
     def _get_expected_tools_for_tier(self, tier: int) -> list[str]:
         """Return expected tool names for a given audit tier (from canonical audit_tiers)."""
-        if tier != 3:
-            return audit_tiers_get_expected_tools_for_tier(tier)
         dev_only = bool(getattr(self, "dev_tools_only_mode", False))
-        base = audit_tiers_get_expected_tools_for_tier(2)
+        if tier != 3:
+            return audit_tiers_get_expected_tools_for_tier(tier, dev_tools_only=dev_only)
+        base = audit_tiers_get_expected_tools_for_tier(2, dev_tools_only=dev_only)
         if dev_only:
             return base + get_tier3_tool_names_dev_tools_only()
         return base + get_tier3_tool_names_full_repo()

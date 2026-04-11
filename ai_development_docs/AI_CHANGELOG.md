@@ -30,6 +30,9 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-04-10 - V5 Section 7.19 `development_docs` report gating **COMPLETED**
+- **Dev-tools-only full audits** no longer schedule `generate_unused_imports_report`, `generate_test_coverage_report`, or `generate_legacy_reference_report`, so [`UNUSED_IMPORTS_REPORT.md`](../development_docs/UNUSED_IMPORTS_REPORT.md), [`TEST_COVERAGE_REPORT.md`](../development_docs/TEST_COVERAGE_REPORT.md), and [`LEGACY_REFERENCE_REPORT.md`](../development_docs/LEGACY_REFERENCE_REPORT.md) are not overwritten; analyzers `analyze_unused_imports` and `analyze_legacy_references` still run. INFO logs per skip; [`audit_tiers.py`](../development_tools/shared/audit_tiers.py) + [`audit_orchestration.py`](../development_tools/shared/service/audit_orchestration.py) expected-tool lists updated; tests in [`test_audit_orchestration_helpers.py`](../tests/development_tools/test_audit_orchestration_helpers.py). Plan: [Section 7.19](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md).
+
 ### 2026-04-10 - Tier 3 Bandit + pip-audit; Pyright in pyproject; coverage interrupt logging **COMPLETED**
 - **Security/supply-chain**: Tier 3 runs [`analyze_bandit`](../development_tools/static_checks/analyze_bandit.py) and [`analyze_pip_audit`](../development_tools/static_checks/analyze_pip_audit.py) (JSON + report surfacing); `bandit` / `pip-audit` added to `requirements.txt`; paired guides Section 10 updated; V5 Section 5.4 - 4.2 marked complete.
 - **Operational**: KeyboardInterrupt during coverage pytest subprocesses logs at **WARNING** (not ERROR) so intentional audit stops do not pollute `logs/errors.log` / system-signals noise.
@@ -143,11 +146,6 @@ Guidelines:
 - **Reports**: Git tracks `development_tools/CONSOLIDATED_REPORT.md` (case-normalized) to match config; `.cursor/rules/dev_tools.mdc` updated.
 - **Bridge / inventory**: `sync_ruff_toml` CLI uses component logger (not `print`); `DEPRECATION_INVENTORY` `root_ruff_compat_mirror` search_terms trimmed; `analyze_config`/`generate_function_registry` portability tweaks; optional Pyright e2e delta via `PYRIGHT_ERROR_COUNT_MAX_DELTA`; [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 1.2 Section 4.1 Section 7.6-7.7 Section 5.8 updates.
 - **Earlier same day**: Doc-sync + `report_generation_linkify` extract + Pyright policy tests + inventory notes + scripts guide consolidation (see CHANGELOG_DETAIL).
-
-### 2026-03-26 - V4 continuation: inventory, analyze_config tests, roadmap **COMPLETED**
-- **Deprecation inventory**: Phrase-only `search_terms` for `root_ruff_compat_mirror` so legacy scans surface the Ruff root-compat bridge in `sync_ruff_toml.py` without noise from tests or `sync_root_compat` uses elsewhere; `LEGACY_REFERENCE_REPORT` refreshed (**1** file / **4** markers).
-- **Tests**: `test_analyze_config.py` for `ConfigValidator`; `test_pyright_config_paths` exclude + Section 7.6 parity strategy note. **AI_PRIORITIES #2**: extended `test_audit_orchestration_helpers`, `test_commands_coverage_helpers`, `test_run_test_coverage_helpers` for `audit_orchestration.py`, `commands.py`, `run_test_coverage.py`. **Strict Tier 3**: lock-path tests use `patch.object` on `import development_tools as dt; dt.config` so `get_external_value` mocks match the runtime config binding after conftest loads.
-- **Docs**: V4 Section 3.16 structure map + Section 6 snapshot; [TODO.md](TODO.md) dev-tools backlog scheduling block.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

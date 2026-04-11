@@ -260,24 +260,46 @@ def test_get_tier3_groups_respects_full_vs_dev_tools_only_scope():
 
     svc = MagicMock()
     svc.dev_tools_only_mode = False
-    main, dev, dep, _, static = get_tier3_groups(svc)
+    main, dev, dep, legacy, static = get_tier3_groups(svc)
     assert [n for n, _ in main] == ["run_test_coverage"]
     assert dev == []
     dep_names = [n for n, _ in dep]
     assert "generate_test_coverage_report" in dep_names
     assert "analyze_test_markers" in dep_names
+    legacy_names = [n for n, _ in legacy]
+    assert legacy_names == ["analyze_legacy_references", "generate_legacy_reference_report"]
     static_names = [n for n, _ in static]
     assert "verify_process_cleanup" in static_names
 
     svc.dev_tools_only_mode = True
-    main, dev, dep, _, static = get_tier3_groups(svc)
+    main, dev, dep, legacy, static = get_tier3_groups(svc)
     assert main == []
     assert [n for n, _ in dev] == ["generate_dev_tools_coverage"]
     dep_names_dt = [n for n, _ in dep]
     assert "generate_test_coverage_report" not in dep_names_dt
     assert "analyze_backup_health" in dep_names_dt
+    legacy_names_dt = [n for n, _ in legacy]
+    assert legacy_names_dt == ["analyze_legacy_references"]
+    assert "generate_legacy_reference_report" not in legacy_names_dt
     static_names_dt = [n for n, _ in static]
     assert "verify_process_cleanup" in static_names_dt
+
+
+@pytest.mark.unit
+def test_get_tier2_groups_skips_unused_imports_report_when_dev_tools_only():
+    """Dev-tools-only audits still analyze unused imports but do not rewrite UNUSED_IMPORTS_REPORT.md (V5 §7.19)."""
+    from development_tools.shared.audit_tiers import get_tier2_groups
+
+    svc = MagicMock()
+    svc.dev_tools_only_mode = False
+    _ind, groups = get_tier2_groups(svc)
+    last_group = [n for n, _ in groups[-1]]
+    assert last_group == ["analyze_unused_imports", "generate_unused_imports_report"]
+
+    svc.dev_tools_only_mode = True
+    _ind_dt, groups_dt = get_tier2_groups(svc)
+    last_dt = [n for n, _ in groups_dt[-1]]
+    assert last_dt == ["analyze_unused_imports"]
 
 
 @pytest.mark.unit
@@ -300,10 +322,13 @@ def test_get_expected_tools_for_tier_matrix(temp_project_copy: Path):
     assert "verify_process_cleanup" in tier3
 
     service.dev_tools_only_mode = True
+    tier2_dt = service._get_expected_tools_for_tier(2)
+    assert "generate_unused_imports_report" not in tier2_dt
     tier3_dt = service._get_expected_tools_for_tier(3)
     assert "generate_dev_tools_coverage" in tier3_dt
     assert "run_test_coverage" not in tier3_dt
     assert "generate_test_coverage_report" not in tier3_dt
+    assert "generate_legacy_reference_report" not in tier3_dt
 
 
 @pytest.mark.unit

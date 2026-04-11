@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Single forward-looking backlog after V4; collapsed history; actionable next steps  
 > **Style**: Direct and concise  
-> **Last Updated**: 2026-04-10  
+> **Last Updated**: 2026-04-11  
 > **Supersedes**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (keep V4 for detailed checkbox history)
 
 **Authoritative metrics**: [development_tools/AI_STATUS.md](AI_STATUS.md) and [development_tools/AI_PRIORITIES.md](AI_PRIORITIES.md) after `python development_tools/run_development_tools.py audit` or `audit --full`.
@@ -447,19 +447,36 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 - **`--clear-cache`**: For `audit` / `full-audit`, cache clearing is **scope-aligned**: with `--dev-tools-only` (global or on the command), only **`**/jsons/scopes/dev_tools/**`**, **`reports/scopes/dev_tools/**`**, and dev-tools coverage JSON siblings are removed; without it, only **full-repo** tool cache artifacts are removed (parallel **`scopes/full`** tree, main `coverage.json` inputs, archives, legacy aggregates), leaving dev-tools-only caches intact. A bare `cleanup --clear-cache` (non-audit) still clears **all** tool cache layouts.
 - **Logging**: Report generation log lines use the real output filename (`DEV_TOOLS_STATUS.md`, etc.) when scope is dev-tools-only.
 - **Residual full-repo rows**: Some tiered priorities (e.g. legacy reference counts, backup health) still use **aggregate audit payloads** that are not path-sliced in this pass; when in doubt, confirm against `AI_STATUS.md` / `AI_PRIORITIES.md` from a default-scope audit.
-- **Full-repo `development_docs` reports vs narrow scope**: Do not rely on dev-tools-only runs to refresh whole-repo markdown under `development_docs/` — see **§7.19**.
+- **Full-repo `development_docs` reports vs narrow scope**: Do not rely on dev-tools-only runs to refresh whole-repo markdown under `development_docs/` — **§7.19** implements gating (analyzers may still run; markdown writers for those paths are skipped with INFO logs).
 
 #### 7.19 Full-repo `development_docs` reports — skip regeneration on dev-tools-only / non–full-repo audits
 
 - **Problem**: `audit --full --dev-tools-only` and other **non–full-repo** audit paths can still invoke generators that **overwrite** whole-repository evidence in `development_docs/`, so those files appear **wrong or misleadingly stale** until a **default-scope** (`full-repo`) audit runs.
-- **Open — implementation**:
-  - **Gate** regeneration of these files so they run only when audit scope is **full-repo** (or an explicit opt-in), **not** on `--dev-tools-only` (or equivalent narrow scope) alone:
-    - [`UNUSED_IMPORTS_REPORT.md`](../development_docs/UNUSED_IMPORTS_REPORT.md)
-    - [`TEST_COVERAGE_REPORT.md`](../development_docs/TEST_COVERAGE_REPORT.md)
-    - [`LEGACY_REFERENCE_REPORT.md`](../development_docs/LEGACY_REFERENCE_REPORT.md)
-  - **Alternatives** for narrow runs: write **scoped** artifacts (e.g. under `development_tools/reports/scopes/dev_tools/` or existing `DEV_TOOLS_*` outputs), or **skip** with a clear log line when scope ≠ full-repo.
-  - **Tests**: policy or integration coverage that dev-tools-only audits do not rewrite those three paths (unless explicitly overridden).
-- **Related**: **§7.18** (scoped `DEV_TOOLS_*` reports); **§5.1 — 1.9** (coverage dimension vs audit scope).
+- **Status**: **COMPLETE (2026-04-09)** — `development_tools/shared/audit_tiers.py` gates markdown generators when `dev_tools_only_mode` is true:
+  - **[`UNUSED_IMPORTS_REPORT.md`](../development_docs/UNUSED_IMPORTS_REPORT.md)**: Tier 2 still runs `analyze_unused_imports`; `generate_unused_imports_report` is not scheduled.
+  - **[`TEST_COVERAGE_REPORT.md`](../development_docs/TEST_COVERAGE_REPORT.md)**: Tier 3 omits `generate_test_coverage_report` from the coverage-dependent chain (unchanged from prior dev-tools-only Tier 3 split); INFO log documents skip.
+  - **[`LEGACY_REFERENCE_REPORT.md`](../development_docs/LEGACY_REFERENCE_REPORT.md)**: Tier 3 still runs `analyze_legacy_references`; `generate_legacy_reference_report` is not scheduled.
+  - **Logging**: INFO lines name the skipped tool and `development_docs/` target path. **Tests**: `tests/development_tools/test_audit_orchestration_helpers.py` (`get_tier2_groups`, `get_tier3_groups`, `_get_expected_tools_for_tier` with `dev_tools_only_mode`).
+- **Alternatives** (deferred): write **scoped** markdown under `development_tools/reports/scopes/dev_tools/` instead of skipping — not implemented in this slice.
+- **Related**: **§7.18** (scoped `DEV_TOOLS_*` reports); **§5.1 — 1.9** (coverage dimension vs audit scope); **§7.20** (future parameterized audit root).
+
+#### 7.20 Future: audit scoped to an arbitrary directory
+
+- **Goal**: Run a tiered audit against **any** repo subtree (e.g. `communication/` only), not only **full repo** vs **`development_tools/`** (`audit --full --dev-tools-only`). **Status**: **deferred / design-first** — not a small extension of §7.19.
+
+- **What exists today**
+  - [`audit_orchestration.py`](shared/service/audit_orchestration.py) temporarily replaces `get_scan_directories()` with `["development_tools"]` when `dev_tools_only_mode` is set — a **binary** narrow scope, not a parameterized path.
+  - Individual tools combine `get_scan_directories()`, config exclusions, and domain-specific roots; behavior is **not** uniformly “restrict every analyzer to one directory.”
+
+- **Incremental / easier pieces**
+  - A future CLI flag (e.g. `--audit-scope <relative_dir>`) or service field such as `audit_scope_paths: list[str]` threaded into orchestration and **`get_scan_directories()`** for tools that already respect scan roots.
+
+- **Hard pieces (separate epic after design sign-off)**
+  - **Coverage / pytest**: `run_test_coverage` and `generate_dev_tools_coverage` assume fixed test layouts and [`coverage.ini`](tests/coverage.ini) / domain wiring; an arbitrary folder may not map to one coverage run without new semantics.
+  - **Tier tools**: Many analyzers assume fixed package locations and repo-relative JSON outputs; a usable “audit this tree only” needs **per-tool scope contracts**, consistent **scoped** artifacts (partially modeled under `jsons/scopes/`), and regression tests.
+  - **Report generators**: Same class of policy as **§7.19** — which `development_docs/` (or other) markdown files may be written for which scope; needs an explicit matrix, not ad hoc skips.
+
+- **Recommendation**: Ship **§7.19** (full-repo vs dev-tools-only gating for the three reports) first. Then add a short **design doc** (CLI shape, which tiers honor scope, coverage behavior, DEV_TOOLS vs ad-hoc scope) and track implementation in phased PRs. **Related**: **§7.19**, **§7.18**, **§5.1 — 1.9**.
 
 ---
 
