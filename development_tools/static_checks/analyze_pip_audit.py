@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -31,6 +32,30 @@ def _build_unavailable_result(message: str) -> dict[str, Any]:
             "message": message,
             "vulnerable_packages": [],
             "returncode": None,
+        },
+    }
+
+
+def _pip_audit_skip_env_enabled() -> bool:
+    """CI/offline: skip network fetch when MHM_PIP_AUDIT_SKIP is truthy."""
+    val = os.environ.get("MHM_PIP_AUDIT_SKIP", "").strip().lower()
+    return val in ("1", "true", "yes", "on")
+
+
+def _build_skipped_by_env_result() -> dict[str, Any]:
+    """Structured PASS with zero findings; details record policy skip (no subprocess)."""
+    return {
+        "summary": {"total_issues": 0, "files_affected": 0, "status": "PASS"},
+        "details": {
+            "tool": "pip_audit",
+            "tool_available": True,
+            "returncode": 0,
+            "pip_audit_skipped": True,
+            "message": (
+                "pip-audit skipped: MHM_PIP_AUDIT_SKIP is set (CI/offline policy; "
+                "no vulnerability index fetch)."
+            ),
+            "vulnerable_packages": [],
         },
     }
 
@@ -125,6 +150,8 @@ def requirements_signature(project_root: Path) -> str | None:
 
 
 def run_pip_audit(project_root: Path) -> dict[str, Any]:
+    if _pip_audit_skip_env_enabled():
+        return _build_skipped_by_env_result()
     static_cfg = config.get_static_analysis_config()
     command = _resolve_python_command(
         list(static_cfg.get("pip_audit_command", [sys.executable, "-m", "pip_audit"]))

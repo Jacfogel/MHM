@@ -311,7 +311,7 @@ See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for fu
 
 ## 10. External tools evaluation (Bandit, pip-audit, Radon, pre-commit)
 
-**Bandit** and **pip-audit** run in **Tier 3** full audits (`audit --full`) via `analyze_bandit` / `analyze_pip_audit`; they are in root `requirements.txt`. **Radon** / **pydeps** / **vulture** remain manual pilots. Full detail and manual one-off commands: Section 10 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md). **Scripts backlog**: [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md). **Do not add** unapproved standalone migration markdown files; use approved guides + V5.
+**Bandit** and **pip-audit** run in **Tier 3** full audits (`audit --full`) via `analyze_bandit` / `analyze_pip_audit`; they are in root `requirements.txt`. **`MHM_PIP_AUDIT_SKIP`** (truthy) skips pip-audit network use in [`development_tools/static_checks/analyze_pip_audit.py`](static_checks/analyze_pip_audit.py) (CI/offline; see [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10). **Radon** / **pydeps** / **vulture** remain manual pilots. Full detail and manual one-off commands: Section 10 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md). **Scripts backlog**: [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md). **Do not add** unapproved standalone migration markdown files; use approved guides + V5.
 
 **TODO sync dry-run**: `python development_tools/docs/fix_version_sync.py sync-todo --dry-run` prints the dry-run summary to stdout (no file edits).
 

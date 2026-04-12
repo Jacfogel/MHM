@@ -61,6 +61,33 @@ def test_pyright_owned_and_root_both_declare_type_checking_mode() -> None:
 
 
 @pytest.mark.unit
+def test_pyright_owned_matches_root_diagnostic_and_exclude_keys() -> None:
+    """V5 §7.6: owned JSON aligns root `[tool.pyright]` for shared policy keys (venvPath differs by design)."""
+    root = _root_tool_pyright()
+    owned = json.loads(
+        (project_root / "development_tools" / "config" / "pyrightconfig.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    for key in (
+        "typeCheckingMode",
+        "reportReturnType",
+        "reportArgumentType",
+        "reportOptionalMemberAccess",
+        "reportAttributeAccessIssue",
+        "reportGeneralTypeIssues",
+        "reportUnboundVariable",
+        "reportUnsupportedDunderAll",
+        "ignore",
+        "exclude",
+    ):
+        assert owned.get(key) == root.get(key), f"pyrightconfig vs pyproject [tool.pyright] mismatch: {key}"
+    assert owned.get("venv") == root.get("venv")
+    assert owned.get("venvPath") == "../.."
+    assert root.get("venvPath") == "."
+
+
+@pytest.mark.unit
 def test_root_pyright_in_pyproject_exists() -> None:
     """Root Pyright config is [tool.pyright] in pyproject.toml."""
     root = _root_tool_pyright()

@@ -31,6 +31,17 @@ def test_extract_failed_tests_parses_pytest_output():
 
 
 @pytest.mark.unit
+def test_extract_failed_tests_empty_strings():
+    assert flaky_detector.extract_failed_tests("", "") == set()
+
+
+@pytest.mark.unit
+def test_analyze_results_skips_zero_failure_runs():
+    flaky, consistent = flaky_detector.analyze_results({"tests/a.py::t": []}, 3)
+    assert flaky == [] and consistent == []
+
+
+@pytest.mark.unit
 def test_analyze_results_splits_flaky_and_consistent():
     failures = {
         "tests/unit/test_a.py::test_one": [1, 3],

@@ -28,6 +28,15 @@ def test_coverage_path_to_rel_posix_handles_relative_and_absolute(tmp_path: Path
 
 
 @pytest.mark.unit
+def test_coverage_path_to_rel_posix_absolute_outside_project_returns_none(tmp_path: Path) -> None:
+    """Absolute paths outside project_root cannot be relativized; helper returns None."""
+    outside = (tmp_path.parent / "outside_proj" / "mod.py").resolve()
+    outside.parent.mkdir(parents=True, exist_ok=True)
+    outside.write_text("# x", encoding="utf-8")
+    assert coverage_module._coverage_path_to_rel_posix(str(outside), tmp_path) is None
+
+
+@pytest.mark.unit
 def test_recompute_coverage_totals_from_files_sums_and_percent() -> None:
     totals = coverage_module._recompute_coverage_totals_from_files(
         {

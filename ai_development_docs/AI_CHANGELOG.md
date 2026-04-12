@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-04-11 - V5 dev-tools continuation (Pyright parity, pip-audit CI skip, tests) **COMPLETED**
+- **Plan/doc**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 4.1 / Section 4.2 reconciled (Bandit/pip-audit Tier 3 shipped; remaining evaluation backlog clarified); Section 2 snapshot updated.
+- **Portability (Section 7.6)**: [`test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py) asserts owned [`pyrightconfig.json`](../development_tools/config/pyrightconfig.json) matches root [`pyproject.toml`](../pyproject.toml) `[tool.pyright]` for shared keys (venvPath differs by design).
+- **pip-audit**: [`analyze_pip_audit.py`](../development_tools/static_checks/analyze_pip_audit.py) honors **`MHM_PIP_AUDIT_SKIP`** (offline/CI); [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 10 + [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) Section 10; [`config.py`](../development_tools/config/config.py) comment.
+- **Inventory (Section 5.6)**: [`test_deprecation_inventory_policy.py`](../tests/development_tools/test_deprecation_inventory_policy.py) validates active `root_ruff_compat_mirror` row; extra unit tests for pip-audit skip, [`run_test_coverage`](../development_tools/tests/run_test_coverage.py) path helper, [`flaky_detector`](../development_tools/tests/flaky_detector.py).
+
 ### 2026-04-10 - V5 Section 7.19 `development_docs` report gating **COMPLETED**
 - **Dev-tools-only full audits** no longer schedule `generate_unused_imports_report`, `generate_test_coverage_report`, or `generate_legacy_reference_report`, so [`UNUSED_IMPORTS_REPORT.md`](../development_docs/UNUSED_IMPORTS_REPORT.md), [`TEST_COVERAGE_REPORT.md`](../development_docs/TEST_COVERAGE_REPORT.md), and [`LEGACY_REFERENCE_REPORT.md`](../development_docs/LEGACY_REFERENCE_REPORT.md) are not overwritten; analyzers `analyze_unused_imports` and `analyze_legacy_references` still run. INFO logs per skip; [`audit_tiers.py`](../development_tools/shared/audit_tiers.py) + [`audit_orchestration.py`](../development_tools/shared/service/audit_orchestration.py) expected-tool lists updated; tests in [`test_audit_orchestration_helpers.py`](../tests/development_tools/test_audit_orchestration_helpers.py). Plan: [Section 7.19](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md).
 
@@ -140,12 +146,6 @@ Guidelines:
 - **Reports**: Dev-tools-only audits label `DEV_TOOLS_*.md` outputs, scope blurbs, source line with `--dev-tools-only`, and drop full-repo domain-coverage priority from dev-tools priorities; `core.py` duplicate `_tools_run_in_current_tier` line removed.
 - **Portability / Pyright**: `run_dev_tools.py`, `fix_legacy_references.py` resolve bootstrap paths; `generate_function_registry` rotation uses shared `project_root`; owned `pyrightconfig.json` declares repo venv via `venvPath`/`venv`.
 - **Follow-up**: Section 1.5 cache benchmark numbers remain local - see CHANGELOG_DETAIL for the PowerShell `Measure-Command` pairing recipe.
-
-### 2026-03-27 - V4 plan + V5 roadmap continuation (docs, casing, portability slice) **COMPLETED**
-- **V5 backlog**: [TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md), [LIST_OF_LISTS.md](development_docs/LIST_OF_LISTS.md), paired dev-tools guides now point at [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) for current work; V4 remains historical checkboxes.
-- **Reports**: Git tracks `development_tools/CONSOLIDATED_REPORT.md` (case-normalized) to match config; `.cursor/rules/dev_tools.mdc` updated.
-- **Bridge / inventory**: `sync_ruff_toml` CLI uses component logger (not `print`); `DEPRECATION_INVENTORY` `root_ruff_compat_mirror` search_terms trimmed; `analyze_config`/`generate_function_registry` portability tweaks; optional Pyright e2e delta via `PYRIGHT_ERROR_COUNT_MAX_DELTA`; [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 1.2 Section 4.1 Section 7.6-7.7 Section 5.8 updates.
-- **Earlier same day**: Doc-sync + `report_generation_linkify` extract + Pyright policy tests + inventory notes + scripts guide consolidation (see CHANGELOG_DETAIL).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

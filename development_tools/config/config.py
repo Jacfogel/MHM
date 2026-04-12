@@ -1310,6 +1310,7 @@ STATIC_ANALYSIS = {
     "bandit_timeout_seconds": 900,
     "pip_audit_command": ["python", "-m", "pip_audit"],
     "pip_audit_args": [],
+    # Offline/CI: analyze_pip_audit.run_pip_audit skips the subprocess when MHM_PIP_AUDIT_SKIP is truthy.
     "pip_audit_timeout_seconds": 600,
 }
 

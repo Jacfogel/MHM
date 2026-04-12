@@ -83,6 +83,8 @@ Use **AI_STATUS.md** after each audit. Example **2026-04-08** (Tier 3 full, afte
 
 **2026-04-10 (V5 §4.2)**: **Bandit** + **pip-audit** integrated into Tier 3 static-analysis group; `requirements.txt`; coverage subprocess KeyboardInterrupt logs demoted to **WARNING** for cleaner `logs/errors.log`; `EXPECTED_OVERLAPS` + `external tools`.
 
+**2026-04-11 (V5 continuation — plan slice)**: Reconciled **§4.1** vs **§4.2** (Tier 3 Bandit/pip-audit complete; remaining §4.1 = Radon/pydeps/pre-commit/vulture/ruff depth + pip-audit CI residual). **§7.6**: policy test asserts owned [`pyrightconfig.json`](config/pyrightconfig.json) matches root [`pyproject.toml`](../pyproject.toml) `[tool.pyright]` for shared diagnostic/exclude keys. **pip-audit**: `MHM_PIP_AUDIT_SKIP` env skips subprocess (offline/CI); guides + [`config.py`](config/config.py) comment. **§5.6**: `test_deprecation_inventory_policy.py` structural check for `root_ruff_compat_mirror`. Targeted tests: pip-audit skip, `_coverage_path_to_rel_posix` outside-project absolute path → `None`, flaky_detector empty inputs.
+
 ---
 
 ## 3. Completed themes (V4 collapsed)
@@ -112,13 +114,13 @@ Rough ordering for triage (see **§5** for full V4-sourced detail):
 | Tier | Themes |
 |------|--------|
 | **High** | Legacy executable paths + [DEPRECATION_INVENTORY.json](config/jsons/DEPRECATION_INVENTORY.json) (§6); portability / dual Pyright+Ruff baselines (§3.17, §7.6); directory taxonomy Phase 2–3 (§7.7). |
-| **Medium** | §2.8 remaining scoped-report polish; coverage cache numeric benchmarks (§1.5); validation triggers (§3.2); external security/complexity tools (§4.1), **including Bandit + pip-audit audit integration (§5.4 — 4.2)**; doc overlap analyzer (§5.2); AI work validation thin profile (§5.3); TODO sync automation (§5.4); gap-analysis tool rollout (§5.5). |
+| **Medium** | §2.8 remaining scoped-report polish; coverage cache numeric benchmarks (§1.5); validation triggers (§3.2); **§4.1** complementary tools (Radon, pydeps, pre-commit, vulture, deeper ruff) — Bandit + pip-audit **Tier 3 integration shipped (§5.4 — 4.2)**; **§4.2** residual (pip-audit CI/offline policy); doc overlap analyzer (§5.2); AI work validation thin profile (§5.3); TODO sync automation (§5.4); gap-analysis tool rollout (§5.5). |
 | **Lower / backlog** | `test_config.json` migration (§1.1); example-marking checker (§3.0); flaky detector + scripts migration (§3.12–3.15); unused-imports fixer (§5.1); memory profiler (§5.6); large-file refactors (§3.16); human backlog §7.8–7.13, §7.15. |
 | **Monitoring** | Intermittent low coverage warning (§1.3) — reopen if recurrence. |
 
 ### 4.1 Phase 2 scheduling (after §4 High / Phase 1 portability-legacy work)
 
-Suggested order when returning from Phase 1: **(1)** §2.8 any remaining scope-aware **sections** (1.9 shipped 2026-04-06; DEV_TOOLS headers updated 2026-04-06). **(2)** §1.5 coverage-cache benchmark session (methodology in §5.1 — 1.5; optional numeric capture). **(3)** §4.1 external tools evaluation (bandit, pip-audit, radon, pre-commit) per paired guides §10 (Radon one-liner added 2026-04-06); **tracked integration slice**: **§5.4 — 4.2** (Bandit + pip-audit). **(4)** §5.2 documentation overlap analyzer improvements (advisory note in paired guide §5). **(5)** §5.3 AI work validation (keep thin). **(6)** §5.4 TODO sync dry-run automation. **(7)** §5.5 gap-analysis tool rollout (incremental). ~~**(8)** §7.16~~ **done 2026-04-06**.
+Suggested order when returning from Phase 1: **(1)** §2.8 any remaining scope-aware **sections** (1.9 shipped 2026-04-06; DEV_TOOLS headers updated 2026-04-06). **(2)** §1.5 coverage-cache benchmark session (methodology in §5.1 — 1.5; optional numeric capture). **(3)** §4.1 **remaining** external tools (Radon, pydeps, pre-commit, vulture, deeper ruff evaluation) per paired guides §10 — **Bandit + pip-audit Tier 3** are **complete** (**§5.4 — 4.2**, 2026-04-10); optional **Tier 1** promotion is a separate decision. **(4)** §5.2 documentation overlap analyzer improvements (advisory note in paired guide §5). **(5)** §5.3 AI work validation (keep thin). **(6)** §5.4 TODO sync dry-run automation. **(7)** §5.5 gap-analysis tool rollout (incremental). ~~**(8)** §7.16~~ **done 2026-04-06**.
 
 ---
 
@@ -277,20 +279,19 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 - **Done (V4)**: Evaluation stance + backlog pointer in paired guides §10.
 - **Recorded (2026-04-09)**: Radon / pydeps remain **manual-only** pilots.
 - **Recorded (2026-04-10)**: **Bandit** + **pip-audit** integrated into Tier 3 (`analyze_bandit`, `analyze_pip_audit`); listed in `requirements.txt`; paired guides §10 updated.
-- **Open tasks**:
-  - Evaluate **ruff** (lint/format) and **radon** (complexity) for deeper integration.
+- **Open tasks** (post–Tier 3 Bandit/pip-audit):
+  - Evaluate **ruff** (lint/format) and **radon** (complexity) for deeper integration beyond current audit usage.
   - Evaluate **pydeps** for dependency graphs vs existing dependency tooling.
-  - Run **bandit** security scan; decide Tier 1 integration.
-  - Run **pip-audit**; decide Tier 1 integration.
-  - Decide: replace, complement, or keep existing tools.
-  - If integrating: wrappers, `requirements.txt`, docs.
+  - Optional: promote **bandit** / **pip-audit** to **Tier 1** (quick audit) if latency and signal justify it — today they run in **Tier 3** only (**§5.4 — 4.2**).
+  - Decide: replace, complement, or keep other complementary tools.
+  - If integrating additional tools: wrappers, `requirements.txt`, docs.
   - Optional: **vulture** (dead code), **pre-commit** (hooks).
 
 #### 4.2 Integrate Bandit and pip-audit into audit tiers
 
 - **Status**: **COMPLETE (2026-04-10)** — Tier 3 static-analysis group; `tool_wrappers` + scoped JSON + mtime cache (bandit) / requirements-hash cache (pip-audit); **AI_STATUS** / **CONSOLIDATED_REPORT** / **AI_PRIORITIES**; tests in [`tests/development_tools/test_analyze_security_static_checks.py`](../tests/development_tools/test_analyze_security_static_checks.py).
 - **Semantics shipped**: Bandit summary counts **MEDIUM/HIGH** only (tests/ trees excluded by default); pip-audit findings use summary **WARN** when vulnerabilities exist; **strict** exit still driven by pytest Tier 3 outcome, not these tools.
-- **Residual / follow-up**: CI offline policy for pip-audit; optional noise tuning via `static_analysis` config keys in [`config/config.py`](config/config.py); Radon/pydeps manual pilots remain §4.1.
+- **Residual / follow-up**: CI/offline policy for pip-audit (`MHM_PIP_AUDIT_SKIP` env + paired guide §10); optional noise tuning via `static_analysis` config keys in [`config/config.py`](config/config.py); Radon/pydeps manual pilots remain §4.1.
 - **Related**: §5.4 — 4.1 (evaluation backlog); [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10.
 
 ---
