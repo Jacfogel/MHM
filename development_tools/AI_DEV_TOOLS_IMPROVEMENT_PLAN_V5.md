@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Single forward-looking backlog after V4; collapsed history; actionable next steps  
 > **Style**: Direct and concise  
-> **Last Updated**: 2026-04-11  
+> **Last Updated**: 2026-04-12  
 > **Supersedes**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (keep V4 for detailed checkbox history)
 
 **Authoritative metrics**: [development_tools/AI_STATUS.md](AI_STATUS.md) and [development_tools/AI_PRIORITIES.md](AI_PRIORITIES.md) after `python development_tools/run_development_tools.py audit` or `audit --full`.
@@ -84,6 +84,8 @@ Use **AI_STATUS.md** after each audit. Example **2026-04-08** (Tier 3 full, afte
 **2026-04-10 (V5 §4.2)**: **Bandit** + **pip-audit** integrated into Tier 3 static-analysis group; `requirements.txt`; coverage subprocess KeyboardInterrupt logs demoted to **WARNING** for cleaner `logs/errors.log`; `EXPECTED_OVERLAPS` + `external tools`.
 
 **2026-04-11 (V5 continuation — plan slice)**: Reconciled **§4.1** vs **§4.2** (Tier 3 Bandit/pip-audit complete; remaining §4.1 = Radon/pydeps/pre-commit/vulture/ruff depth + pip-audit CI residual). **§7.6**: policy test asserts owned [`pyrightconfig.json`](config/pyrightconfig.json) matches root [`pyproject.toml`](../pyproject.toml) `[tool.pyright]` for shared diagnostic/exclude keys. **pip-audit**: `MHM_PIP_AUDIT_SKIP` env skips subprocess (offline/CI); guides + [`config.py`](config/config.py) comment. **§5.6**: `test_deprecation_inventory_policy.py` structural check for `root_ruff_compat_mirror`. Targeted tests: pip-audit skip, `_coverage_path_to_rel_posix` outside-project absolute path → `None`, flaky_detector empty inputs.
+
+**2026-04-12 (V5 plan continuation)**: Fresh **`audit --full --clear-cache`** run for live Tier 3 pytest metrics. **§1.5** numeric domain-cache benchmark still deferred (recipe unchanged). **§3.0** initial `example_marker_validation` + `--check-example-markers` on [`analyze_documentation_sync.py`](docs/analyze_documentation_sync.py) (advisory). **`sync_todo_with_changelog(apply_auto_clean=True)`** + CLI **`sync-todo --apply`** removes auto-cleanable `- [x]` lines; mutually exclusive with `--dry-run`. **§5.2** [`EXPECTED_OVERLAPS`](shared/constants.py) extended (`development workflow`, `testing guide`). **§1.1** additional demo-project tests pass [`test_config.json`](../tests/development_tools/test_config.json). **§7.7** policy test asserts [`DEVELOPMENT_TOOLS_GUIDE.md`](DEVELOPMENT_TOOLS_GUIDE.md) §9 references Phase 2 / V5; **`root_ruff_compat_mirror`** exit criteria string enforced in inventory policy test. **`analyze_ai_work`**: docstring reminds thin scope (§5.3).
 
 ---
 
@@ -196,13 +198,12 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 #### 3.0 Example marking standards checker (doc-sync validation)
 
-- **Status**: **PENDING**. **User priority**: Low.
+- **Status**: **PARTIAL (2026-04-12)** — advisory scan shipped; strict gating / CI failure TBD.
+- **Done (2026-04-12)**: [`example_marker_validation.py`](docs/example_marker_validation.py); CLI flag `--check-example-markers` on [`analyze_documentation_sync.py`](docs/analyze_documentation_sync.py); unit tests [`test_example_marker_validation.py`](../tests/development_tools/test_example_marker_validation.py).
 - **Open tasks**:
-  - Add validation to `development_tools/docs/analyze_documentation_sync.py` or a **new** validation module.
-  - Detect file path references in example contexts missing `[OK]`, `[AVOID]`, `[GOOD]`, `[BAD]`, `[EXAMPLE]` markers.
-  - Validate example headings (`Examples:`, `Example Usage:`, `Example Code:`).
-  - Report unmarked examples with file/line detail.
-  - Integrate into `doc-sync` workflow and document the new check.
+  - Tighten heuristics (reduce false positives); optional integration into default `doc-sync` / audit tiers once signal is trusted.
+  - Validate example headings (`Examples:`, `Example Usage:`, `Example Code:`) beyond Markdown `##` patterns.
+  - Report unmarked examples with file/line detail in consolidated output when promoted from advisory.
 
 #### 3.2 Validation warnings cleanup (residual)
 
@@ -319,9 +320,9 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 #### 5.4 TODO sync cleanup automation
 
-- **Status**: **PARTIAL (2026-04-09)**. **User priority**: Low.
-- **Done**: `python development_tools/docs/fix_version_sync.py sync-todo --dry-run` prints **dry_run_report** to stdout (no edits); documented in [AI_DEVELOPMENT_TOOLS_GUIDE.md](AI_DEVELOPMENT_TOOLS_GUIDE.md).
-- **Open**: Auto-clean of auto-cleanable checklist lines (still manual); broader workflow docs if needed.
+- **Status**: **PARTIAL (2026-04-12)**. **User priority**: Low.
+- **Done**: `python development_tools/docs/fix_version_sync.py sync-todo --dry-run` prints **dry_run_report** to stdout (no edits); documented in [AI_DEVELOPMENT_TOOLS_GUIDE.md](AI_DEVELOPMENT_TOOLS_GUIDE.md). **`sync-todo --apply`** removes auto-cleanable `- [x]` / `- [X]` checklist lines only (`sync_todo_with_changelog(apply_auto_clean=True)`); mutually exclusive with `--dry-run`.
+- **Open**: Broader workflow docs if needed; optional changelog cross-check before apply remains human responsibility.
 
 #### 5.5 New tool creation based on gap analysis
 

@@ -5,7 +5,8 @@
 Lightweight structural validator for AI-generated work.
 Helps verify basic completeness and consistency before presenting to user.
 
-Note: This tool performs lightweight structural validation only. For comprehensive
+Note: This tool performs lightweight structural validation only (V5 §5.3: keep this
+module thin; avoid duplicating logic from domain analyzers). For comprehensive
 analysis, use the domain-specific tools:
 - Documentation: docs/analyze_documentation_sync.py
 - Error handling: error_handling/analyze_error_handling.py

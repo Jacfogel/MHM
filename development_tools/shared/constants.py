@@ -511,6 +511,8 @@ EXPECTED_OVERLAPS: frozenset[str] = frozenset({
     "references",
     "related documents",
     "external tools",
+    "development workflow",
+    "testing guide",
 })
 
 # Words that are generic in paths (path-drift: skip when path is just this word)

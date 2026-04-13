@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-04-11 20:03:22",
+  "last_generated": "2026-04-12 21:15:53",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-04-11T20:03:22.500830",
+  "timestamp": "2026-04-12T21:15:53.651676",
   "successful": [
     "analyze_ai_work",
     "analyze_config",
@@ -55,7 +55,7 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-04-11T20:02:52"
+      "timestamp": "2026-04-12T21:13:58"
     },
     "analyze_config": {
       "success": true,
@@ -123,7 +123,7 @@
           }
         }
       },
-      "timestamp": "2026-04-11T20:02:52"
+      "timestamp": "2026-04-12T21:13:58"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -141,7 +141,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-11T20:03:02"
+      "timestamp": "2026-04-12T21:14:14"
     },
     "analyze_documentation": {
       "success": true,
@@ -181,7 +181,7 @@
                 "ui/UI_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.19762657934360597,
+              "similarity_score": 0.1977325283701637,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -421,7 +421,7 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 28499,
+              "content_length": 29097,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
               "section_count": 21,
               "sections": [
@@ -430,11 +430,11 @@
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2026-04-12 - V5 continuation (TODO sync apply, example markers, test_config adoption) **COMPLETED**",
                 "2026-04-11 - V5 dev-tools continuation (Pyright parity, pip-audit CI skip, tests) **COMPLETED**",
                 "2026-04-10 - V5 Section 7.19 `development_docs` report gating **COMPLETED**",
                 "2026-04-10 - Tier 3 Bandit + pip-audit; Pyright in pyproject; coverage interrupt logging **COMPLETED**",
-                "2026-04-09 - Dev-tools overlap + helper tests **COMPLETED**",
-                "2026-04-08 - V5 dev-tools continuation (scoped reports + doc overlap) **Progressed**"
+                "2026-04-09 - Dev-tools overlap + helper tests **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -623,9 +623,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 430880,
+              "content_length": 434060,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 142,
+              "section_count": 143,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -633,10 +633,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-04-12 - V5 continuation: TODO sync --apply, example-marker advisory scan, overlap + test_config slices",
                 "2026-04-11 - V5 continuation: Pyright parity policy, pip-audit offline skip, inventory + helper tests",
                 "2026-04-10 - V5 Section 7.19 full-repo `development_docs` report gating (dev-tools-only audits)",
-                "2026-04-10 - Tier 3 Bandit + pip-audit; Pyright pyproject.toml; logging; verify_process_cleanup Pyright",
-                "2026-04-09 - Dev-tools cleanup (legacy scan noise, portability, helper coverage)"
+                "2026-04-10 - Tier 3 Bandit + pip-audit; Pyright pyproject.toml; logging; verify_process_cleanup Pyright"
               ]
             },
             "development_docs/PLANS.md": {
@@ -657,7 +657,7 @@
               ]
             },
             "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 29943,
+              "content_length": 30363,
               "header_info": "# AI Development Tools Guide\n\n> **File**: `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: AI collaborators and automated tooling  \n> **Purpose**: Routing and constraints for all AI",
               "section_count": 16,
               "sections": [
@@ -674,7 +674,7 @@
               ]
             },
             "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 56450,
+              "content_length": 57493,
               "header_info": "# Development Tools Guide\n\n> **File**: `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`\n> **Audience**: Human maintainers and contributors\n> **Purpose**: Detailed reference for every development tool, i",
               "section_count": 32,
               "sections": [
@@ -892,7 +892,7 @@
           "total_issues": 12
         }
       },
-      "timestamp": "2026-04-11T20:02:52"
+      "timestamp": "2026-04-12T21:13:59"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -969,7 +969,7 @@
           }
         }
       },
-      "timestamp": "2026-04-11T20:03:07"
+      "timestamp": "2026-04-12T21:14:21"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -984,7 +984,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-11T20:03:03"
+      "timestamp": "2026-04-12T21:14:15"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -999,7 +999,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-11T20:03:06"
+      "timestamp": "2026-04-12T21:14:19"
     },
     "analyze_path_drift": {
       "success": true,
@@ -1012,7 +1012,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-11T20:03:02"
+      "timestamp": "2026-04-12T21:14:13"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -1027,7 +1027,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-11T20:03:07"
+      "timestamp": "2026-04-12T21:14:21"
     },
     "analyze_error_handling": {
       "success": true,
@@ -1055,12 +1055,12 @@
             "handle_configuration_error": 4,
             "error_handler_usage": 8,
             "handle_validation_error": 2,
-            "FileOperationError": 8,
             "handle_file_error": 3,
             "safe_file_operation": 1,
-            "AIError": 2,
+            "MHMError": 2,
             "CommunicationError": 2,
-            "MHMError": 2
+            "AIError": 2,
+            "FileOperationError": 8
           },
           "missing_error_handling": [],
           "error_handling_quality": {
@@ -1108,7 +1108,7 @@
           ]
         }
       },
-      "timestamp": "2026-04-11T20:02:57"
+      "timestamp": "2026-04-12T21:14:05"
     },
     "analyze_duplicate_functions": {
       "success": true,
@@ -3069,7 +3069,7 @@
           "body_similarity_min_name_threshold": 0.35
         }
       },
-      "timestamp": "2026-04-11T20:02:58"
+      "timestamp": "2026-04-12T21:14:07"
     },
     "analyze_functions": {
       "success": true,
@@ -3274,7 +3274,7 @@
           "utilities": 0
         }
       },
-      "timestamp": "2026-04-11T20:02:57"
+      "timestamp": "2026-04-12T21:14:06"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -5307,7 +5307,7 @@
           ]
         }
       },
-      "timestamp": "2026-04-11T20:02:55"
+      "timestamp": "2026-04-12T21:14:03"
     },
     "analyze_function_registry": {
       "success": true,
@@ -7558,7 +7558,7 @@
           "total_issues": 47
         }
       },
-      "timestamp": "2026-04-11T20:03:01"
+      "timestamp": "2026-04-12T21:14:11"
     },
     "analyze_module_refactor_candidates": {
       "success": true,
@@ -8300,7 +8300,7 @@
           }
         }
       },
-      "timestamp": "2026-04-11T20:03:00"
+      "timestamp": "2026-04-12T21:14:09"
     },
     "analyze_package_exports": {
       "success": true,
@@ -15604,7 +15604,7 @@
           }
         }
       },
-      "timestamp": "2026-04-11T20:02:59"
+      "timestamp": "2026-04-12T21:14:09"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -18661,7 +18661,7 @@
           ]
         }
       },
-      "timestamp": "2026-04-11T20:03:00"
+      "timestamp": "2026-04-12T21:14:08"
     },
     "analyze_dev_tools_import_boundaries": {
       "success": true,
@@ -18678,7 +18678,7 @@
           }
         }
       },
-      "timestamp": "2026-04-11T20:02:52"
+      "timestamp": "2026-04-12T21:13:59"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -18689,7 +18689,7 @@
         },
         "details": {}
       },
-      "timestamp": "2026-04-11T20:03:01"
+      "timestamp": "2026-04-12T21:14:10"
     },
     "analyze_module_imports": {
       "success": true,
@@ -31056,7 +31056,7 @@
           }
         }
       },
-      "timestamp": "2026-04-11T20:03:00"
+      "timestamp": "2026-04-12T21:14:08"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -31081,28 +31081,28 @@
             "ui_imports": []
           },
           "stats": {
-            "files_scanned": 570,
+            "files_scanned": 572,
             "files_with_issues": 0,
             "total_unused": 0,
-            "cache_hits": 570,
-            "cache_misses": 0,
-            "changed_files": 0,
-            "cache_mode": "cache_only",
+            "cache_hits": 571,
+            "cache_misses": 1,
+            "changed_files": 1,
+            "cache_mode": "partial_cache",
             "backend": "ruff"
           },
           "performance": {
             "backend": "ruff",
-            "scan_mode": "cache_only",
+            "scan_mode": "partial_cache",
             "timings": {
-              "discovery_seconds": 1.9677,
-              "detection_seconds": 0.1199,
-              "categorization_seconds": 0.0064,
-              "total_seconds": 2.3709
+              "discovery_seconds": 2.2612,
+              "detection_seconds": 0.6788,
+              "categorization_seconds": 0.0078,
+              "total_seconds": 3.3292
             },
-            "files_per_second": 240.42,
-            "cache_hits": 570,
-            "cache_misses": 0,
-            "changed_files": 0,
+            "files_per_second": 171.81,
+            "cache_hits": 571,
+            "cache_misses": 1,
+            "changed_files": 1,
             "batch_size": 200,
             "fallback_used": false,
             "fallback_reason": ""
@@ -31119,24 +31119,24 @@
             "production_test_mocking": 0,
             "ui_imports": 0
           },
-          "files_scanned": 570,
+          "files_scanned": 572,
           "_cache_metadata": {
-            "cache_mode": "cache_only",
-            "hits": 570,
-            "misses": 0,
-            "total_cache_checks": 570,
-            "hit_rate": 100.0
+            "cache_mode": "partial_cache",
+            "hits": 571,
+            "misses": 1,
+            "total_cache_checks": 572,
+            "hit_rate": 99.8
           }
         },
         "_cache_metadata": {
-          "cache_mode": "cache_only",
-          "hits": 570,
-          "misses": 0,
-          "total_cache_checks": 570,
-          "hit_rate": 100.0
+          "cache_mode": "partial_cache",
+          "hits": 571,
+          "misses": 1,
+          "total_cache_checks": 572,
+          "hit_rate": 99.8
         }
       },
-      "timestamp": "2026-04-11T20:03:03"
+      "timestamp": "2026-04-12T21:14:14"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -31173,12 +31173,12 @@
           }
         }
       },
-      "timestamp": "2026-04-11T20:03:14"
+      "timestamp": "2026-04-12T21:14:29"
     },
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-04-11T20:03:22",
+        "generated_at": "2026-04-12T21:15:53",
         "project_root": "C:\\Users\\Julie\\projects\\MHM\\MHM",
         "summary": {
           "status": "PASS",
@@ -31223,7 +31223,7 @@
               "name": "weekly_backup_recent_enough",
               "success": true,
               "details": {
-                "recent_cutoff": "2026-03-28T20:03:22",
+                "recent_cutoff": "2026-03-29T21:15:53",
                 "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
                 "latest_weekly_created_at": "2026-04-09 01:00:05"
               }
@@ -31234,7 +31234,7 @@
               "details": {
                 "latest_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
                 "latest_created_at": "2026-04-09 01:00:05",
-                "recent_cutoff": "2026-03-28T20:03:22"
+                "recent_cutoff": "2026-03-29T21:15:53"
               }
             },
             {
@@ -31289,7 +31289,7 @@
             "name": "weekly_backup_recent_enough",
             "success": true,
             "details": {
-              "recent_cutoff": "2026-03-28T20:03:22",
+              "recent_cutoff": "2026-03-29T21:15:53",
               "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
               "latest_weekly_created_at": "2026-04-09 01:00:05"
             }
@@ -31300,7 +31300,7 @@
             "details": {
               "latest_backup_path": "data\\backups\\weekly_backup_2026-04-09_01-00-05",
               "latest_created_at": "2026-04-09 01:00:05",
-              "recent_cutoff": "2026-03-28T20:03:22"
+              "recent_cutoff": "2026-03-29T21:15:53"
             }
           },
           {
@@ -31323,20 +31323,20 @@
           }
         ]
       },
-      "timestamp": "2026-04-11T20:03:22"
+      "timestamp": "2026-04-12T21:15:53"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
+          "total_issues": 1,
           "files_affected": 0,
-          "status": "OK"
+          "status": "ISSUES"
         },
         "details": {
-          "timestamp": "2026-04-11T20:02:51.161862",
+          "timestamp": "2026-04-12T21:13:57.438589",
           "system_health": {
-            "overall_status": "OK",
+            "overall_status": "ISSUES",
             "core_files": {
               "run_mhm.py": "OK",
               "run_tests.py": "OK",
@@ -31354,36 +31354,38 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-04-11T19:12:41.942474",
-            "audit_freshness": "<1 hour",
+            "last_audit": "2026-04-12T14:18:27.042172",
+            "audit_freshness": "<24 hours",
             "test_coverage_status": "Unknown",
-            "documentation_sync_status": "Minor Issues",
+            "documentation_sync_status": "Issues",
             "health_indicators": [
-              "Audit data is very recent (<1 hour)"
+              "Audit data is recent (6 hours ago)"
             ],
-            "recommendations": [],
+            "recommendations": [
+              "Run `python development_tools/run_development_tools.py doc-fix` to address documentation issues"
+            ],
             "warnings": [],
             "errors": [],
             "severity_levels": {
-              "INFO": [
-                "Documentation has 1 minor sync issue(s)"
+              "INFO": [],
+              "WARNING": [
+                "Documentation has 8 sync issue(s)"
               ],
-              "WARNING": [],
               "CRITICAL": []
             }
           },
           "recent_activity": {
             "recent_changes": [
-              "tests/development_tools/test_flaky_detector.py",
-              "development_tools/static_checks/analyze_pip_audit.py",
+              "development_tools/config/config.py",
               "tests/development_tools/test_deprecation_inventory_policy.py",
               "tests/development_tools/test_analyze_security_static_checks.py",
-              "development_tools/shared/audit_tiers.py",
-              "tests/development_tools/test_pyright_config_paths.py",
-              "tests/development_tools/test_audit_orchestration_helpers.py",
-              "development_tools/shared/service/audit_orchestration.py",
-              "tests/development_tools/test_run_test_coverage_helpers.py",
-              "development_tools/config/config.py"
+              "development_tools/ai_work/analyze_ai_work.py",
+              "tests/development_tools/test_analyze_documentation.py",
+              "tests/development_tools/test_example_marker_validation.py",
+              "tests/development_tools/test_fix_version_sync_todo_sync.py",
+              "tests/development_tools/test_directory_taxonomy_policy.py",
+              "tests/development_tools/test_analyze_ai_work.py",
+              "tests/development_tools/test_documentation_sync_checker.py"
             ],
             "git_status": "Modified",
             "last_commit": null,
@@ -31410,7 +31412,7 @@
           }
         }
       },
-      "timestamp": "2026-04-11T20:02:51"
+      "timestamp": "2026-04-12T21:13:57"
     },
     "decision_support": {
       "success": true,
@@ -31551,27 +31553,27 @@
           ]
         }
       },
-      "timestamp": "2026-04-11T20:02:54"
+      "timestamp": "2026-04-12T21:14:02"
     },
     "analyze_test_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 16367,
+          "total_issues": 16428,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "coverage": 70.1,
-            "statements": 54660,
-            "covered": 38293,
-            "missed": 16367,
-            "generated": "2026-04-11T19:12:30.142100"
+            "coverage": 70.0,
+            "statements": 54739,
+            "covered": 38311,
+            "missed": 16428,
+            "generated": "2026-04-12T14:18:15.594151"
           },
           "primary_overall": {
             "coverage": 77.9,
             "statements": 22189,
-            "covered": 17279,
+            "covered": 17278,
             "domains": [
               "ai",
               "communication",
@@ -31582,13 +31584,13 @@
           "modules": [
             {
               "module": "development_tools",
-              "coverage": 62.3,
-              "missed": 9310
+              "coverage": 62.1,
+              "missed": 9378
             },
             {
               "module": "ui",
-              "coverage": 69.2,
-              "missed": 2070
+              "coverage": 69.3,
+              "missed": 2062
             },
             {
               "module": "communication",
@@ -31597,13 +31599,13 @@
             },
             {
               "module": "core",
-              "coverage": 78.4,
-              "missed": 2300
+              "coverage": 78.5,
+              "missed": 2289
             },
             {
               "module": "ai",
-              "coverage": 79.3,
-              "missed": 364
+              "coverage": 78.6,
+              "missed": 376
             },
             {
               "module": "tasks",
@@ -31655,7 +31657,7 @@
           "source": "orchestration_precheck"
         }
       },
-      "timestamp": "2026-04-11T20:03:10"
+      "timestamp": "2026-04-12T21:14:24"
     },
     "analyze_test_markers": {
       "success": true,
@@ -31669,20 +31671,20 @@
           "missing": []
         }
       },
-      "timestamp": "2026-04-11T20:03:19"
+      "timestamp": "2026-04-12T21:15:50"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 9310,
+          "total_issues": 9378,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "overall_coverage": 62.3,
-            "total_statements": 24688,
-            "total_missed": 9310
+            "overall_coverage": 62.1,
+            "total_statements": 24767,
+            "total_missed": 9378
           },
           "modules": {
             "development_tools\\__init__.py": {
@@ -31704,71 +31706,71 @@
               "missed": 65,
               "coverage": 77,
               "missing_lines": [
-                "26",
-                "32",
+                "27",
                 "33",
                 "34",
-                "36",
+                "35",
                 "37",
                 "38",
                 "39",
                 "40",
-                "68",
+                "41",
                 "69",
-                "73",
+                "70",
                 "74",
-                "83",
+                "75",
                 "84",
-                "95",
-                "100",
+                "85",
+                "96",
                 "101",
-                "105",
-                "122",
-                "125",
-                "160",
-                "213",
-                "278",
-                "284",
-                "287",
-                "290",
+                "102",
+                "106",
+                "123",
+                "126",
+                "161",
+                "214",
+                "279",
+                "285",
+                "288",
                 "291",
-                "298",
-                "333",
+                "292",
+                "299",
                 "334",
                 "335",
-                "346",
+                "336",
                 "347",
                 "348",
-                "360",
+                "349",
                 "361",
                 "362",
-                "383",
-                "389",
-                "424",
+                "363",
+                "384",
+                "390",
                 "425",
                 "426",
                 "427",
-                "429",
+                "428",
                 "430",
                 "431",
                 "432",
                 "433",
-                "436",
-                "438",
-                "440",
+                "434",
+                "437",
+                "439",
                 "441",
                 "442",
                 "443",
                 "444",
-                "460",
-                "464",
-                "531",
-                "533",
-                "535",
-                "537",
-                "539",
-                "545",
-                "547"
+                "445",
+                "461",
+                "465",
+                "532",
+                "534",
+                "536",
+                "538",
+                "540",
+                "546",
+                "548"
               ],
               "covered": 217
             },
@@ -31890,8 +31892,8 @@
             },
             "development_tools\\config\\config.py": {
               "statements": 596,
-              "missed": 127,
-              "coverage": 79,
+              "missed": 115,
+              "coverage": 81,
               "missing_lines": [
                 "60",
                 "62",
@@ -31917,24 +31919,16 @@
                 "453",
                 "454",
                 "455",
-                "507",
-                "514",
-                "515",
-                "516",
-                "524",
-                "525",
-                "526",
+                "517",
+                "527",
                 "535",
                 "536",
                 "537",
                 "538",
                 "539",
-                "556",
-                "557",
-                "558",
-                "566",
-                "567",
-                "568",
+                "559",
+                "569",
+                "600",
                 "616",
                 "617",
                 "618",
@@ -31959,9 +31953,6 @@
                 "814",
                 "828",
                 "840",
-                "874",
-                "875",
-                "876",
                 "908",
                 "910",
                 "911",
@@ -31994,7 +31985,6 @@
                 "1262",
                 "1263",
                 "1264",
-                "1364",
                 "1415",
                 "1445",
                 "1470",
@@ -32021,7 +32011,7 @@
                 "1587",
                 "1589"
               ],
-              "covered": 469
+              "covered": 481
             },
             "development_tools\\config\\sync_ruff_toml.py": {
               "statements": 69,
@@ -32106,8 +32096,8 @@
             },
             "development_tools\\docs\\analyze_documentation.py": {
               "statements": 321,
-              "missed": 139,
-              "coverage": 57,
+              "missed": 136,
+              "coverage": 58,
               "missing_lines": [
                 "18",
                 "36",
@@ -32236,9 +32226,6 @@
                 "569",
                 "570",
                 "571",
-                "584",
-                "587",
-                "588",
                 "626",
                 "627",
                 "628",
@@ -32249,17 +32236,16 @@
                 "651",
                 "668"
               ],
-              "covered": 182
+              "covered": 185
             },
             "development_tools\\docs\\analyze_documentation_sync.py": {
-              "statements": 88,
-              "missed": 35,
-              "coverage": 60,
+              "statements": 108,
+              "missed": 54,
+              "coverage": 50,
               "missing_lines": [
                 "34",
                 "43",
                 "44",
-                "64",
                 "72",
                 "118",
                 "119",
@@ -32285,14 +32271,34 @@
                 "184",
                 "186",
                 "189",
-                "193",
-                "195",
-                "197",
-                "199",
+                "192",
                 "201",
-                "203"
+                "203",
+                "205",
+                "207",
+                "208",
+                "212",
+                "213",
+                "214",
+                "215",
+                "218",
+                "219",
+                "223",
+                "225",
+                "227",
+                "228",
+                "229",
+                "230",
+                "231",
+                "232",
+                "233",
+                "234",
+                "235",
+                "236",
+                "237",
+                "239"
               ],
-              "covered": 53
+              "covered": 54
             },
             "development_tools\\docs\\analyze_heading_numbering.py": {
               "statements": 204,
@@ -32702,6 +32708,18 @@
               ],
               "covered": 140
             },
+            "development_tools\\docs\\example_marker_validation.py": {
+              "statements": 43,
+              "missed": 4,
+              "coverage": 91,
+              "missing_lines": [
+                "52",
+                "65",
+                "68",
+                "69"
+              ],
+              "covered": 39
+            },
             "development_tools\\docs\\fix_documentation.py": {
               "statements": 58,
               "missed": 6,
@@ -32939,9 +32957,9 @@
               "covered": 108
             },
             "development_tools\\docs\\fix_version_sync.py": {
-              "statements": 457,
-              "missed": 240,
-              "coverage": 47,
+              "statements": 473,
+              "missed": 241,
+              "coverage": 49,
               "missing_lines": [
                 "21",
                 "23",
@@ -33032,159 +33050,160 @@
                 "358",
                 "362",
                 "370",
-                "431",
-                "492",
-                "493",
-                "512",
+                "438",
+                "478",
+                "526",
                 "527",
-                "541",
-                "562",
+                "548",
                 "563",
                 "577",
-                "596",
-                "608",
-                "636",
-                "639",
-                "652",
-                "653",
-                "654",
-                "656",
-                "657",
-                "658",
-                "659",
-                "660",
-                "661",
-                "662",
-                "664",
-                "665",
-                "667",
+                "598",
+                "599",
+                "613",
+                "632",
+                "644",
+                "672",
                 "675",
-                "676",
-                "677",
+                "688",
                 "689",
                 "690",
-                "691",
                 "692",
-                "718",
-                "719",
+                "693",
+                "694",
+                "695",
+                "696",
+                "697",
+                "698",
+                "700",
+                "701",
+                "703",
+                "711",
+                "712",
+                "713",
                 "725",
-                "737",
-                "738",
-                "743",
-                "744",
-                "746",
-                "748",
-                "749",
-                "750",
-                "751",
+                "726",
+                "727",
+                "728",
                 "754",
-                "756",
-                "757",
-                "758",
-                "760",
+                "755",
                 "761",
-                "764",
-                "766",
-                "768",
-                "771",
-                "772",
                 "773",
                 "774",
-                "775",
-                "777",
-                "778",
-                "781",
-                "783",
+                "779",
+                "780",
+                "782",
                 "784",
+                "785",
+                "786",
                 "787",
-                "789",
+                "790",
+                "792",
                 "793",
-                "798",
+                "794",
+                "796",
+                "797",
+                "800",
                 "802",
-                "803",
                 "804",
-                "805",
-                "806",
+                "807",
                 "808",
+                "809",
+                "810",
                 "811",
-                "812",
+                "813",
                 "814",
-                "816",
                 "817",
-                "818",
                 "819",
+                "820",
                 "823",
-                "827",
-                "828",
-                "830",
-                "833",
+                "825",
+                "829",
                 "834",
-                "835",
-                "837",
                 "838",
                 "839",
-                "843",
+                "840",
+                "841",
+                "842",
+                "844",
+                "847",
                 "848",
                 "850",
                 "852",
                 "853",
                 "854",
                 "855",
-                "856",
-                "858",
-                "860",
-                "862",
+                "859",
                 "863",
                 "864",
-                "865",
                 "866",
-                "868",
                 "869",
-                "872",
+                "870",
+                "871",
                 "873",
                 "874",
-                "876",
-                "878",
+                "875",
                 "879",
-                "880",
-                "881",
-                "883",
+                "884",
+                "886",
                 "888",
+                "889",
                 "890",
+                "891",
                 "892",
-                "893",
                 "894",
-                "895",
                 "896",
                 "898",
+                "899",
                 "900",
+                "901",
                 "902",
-                "903",
                 "904",
                 "905",
-                "907",
                 "908",
                 "909",
                 "910",
-                "911",
                 "912",
+                "914",
                 "915",
+                "916",
                 "917",
                 "919",
-                "921",
-                "922",
-                "923",
                 "924",
                 "926",
-                "927",
                 "928",
                 "929",
+                "930",
                 "931",
                 "932",
-                "933",
-                "934"
+                "934",
+                "936",
+                "938",
+                "939",
+                "940",
+                "941",
+                "943",
+                "944",
+                "945",
+                "946",
+                "947",
+                "948",
+                "951",
+                "953",
+                "955",
+                "957",
+                "958",
+                "959",
+                "960",
+                "962",
+                "963",
+                "964",
+                "965",
+                "967",
+                "968",
+                "969",
+                "970"
               ],
-              "covered": 217
+              "covered": 232
             },
             "development_tools\\docs\\generate_directory_tree.py": {
               "statements": 129,
@@ -34620,8 +34639,8 @@
             },
             "development_tools\\imports\\analyze_module_imports.py": {
               "statements": 310,
-              "missed": 52,
-              "coverage": 83,
+              "missed": 130,
+              "coverage": 58,
               "missing_lines": [
                 "17",
                 "26",
@@ -34641,6 +34660,13 @@
                 "172",
                 "174",
                 "200",
+                "207",
+                "218",
+                "220",
+                "226",
+                "227",
+                "228",
+                "240",
                 "250",
                 "252",
                 "258",
@@ -34651,32 +34677,103 @@
                 "273",
                 "274",
                 "275",
+                "289",
+                "290",
+                "291",
                 "315",
                 "325",
                 "326",
+                "355",
                 "356",
+                "357",
+                "358",
+                "359",
                 "360",
+                "361",
                 "362",
+                "363",
                 "364",
+                "365",
                 "366",
+                "367",
                 "368",
+                "369",
                 "370",
+                "371",
                 "372",
+                "374",
+                "379",
+                "380",
+                "381",
+                "382",
+                "383",
+                "384",
+                "385",
+                "386",
+                "387",
+                "388",
+                "389",
+                "390",
+                "391",
+                "392",
+                "393",
+                "394",
+                "395",
+                "396",
+                "397",
                 "398",
+                "399",
+                "400",
+                "401",
+                "402",
                 "403",
+                "404",
+                "405",
+                "406",
+                "407",
+                "408",
+                "409",
+                "410",
                 "411",
+                "412",
+                "413",
+                "414",
+                "415",
+                "416",
+                "417",
+                "419",
+                "424",
+                "425",
+                "428",
+                "429",
+                "432",
                 "433",
+                "436",
+                "437",
+                "439",
+                "444",
                 "445",
+                "448",
                 "449",
+                "452",
                 "453",
+                "456",
                 "457",
-                "479",
+                "461",
+                "466",
+                "467",
+                "468",
+                "469",
+                "471",
+                "476",
+                "481",
+                "485",
                 "487",
                 "489",
                 "491",
                 "557"
               ],
-              "covered": 258
+              "covered": 180
             },
             "development_tools\\imports\\analyze_unused_imports.py": {
               "statements": 599,
@@ -34883,8 +34980,8 @@
             },
             "development_tools\\imports\\generate_module_dependencies.py": {
               "statements": 358,
-              "missed": 157,
-              "coverage": 56,
+              "missed": 173,
+              "coverage": 52,
               "missing_lines": [
                 "16",
                 "33",
@@ -34896,8 +34993,24 @@
                 "218",
                 "223",
                 "272",
+                "331",
+                "332",
+                "333",
+                "334",
+                "335",
+                "336",
+                "337",
                 "338",
                 "339",
+                "340",
+                "362",
+                "363",
+                "364",
+                "370",
+                "371",
+                "372",
+                "373",
+                "374",
                 "375",
                 "402",
                 "409",
@@ -35044,7 +35157,7 @@
                 "892",
                 "897"
               ],
-              "covered": 201
+              "covered": 185
             },
             "development_tools\\imports\\generate_unused_imports_report.py": {
               "statements": 176,
@@ -35258,8 +35371,8 @@
             },
             "development_tools\\legacy\\fix_legacy_references.py": {
               "statements": 166,
-              "missed": 26,
-              "coverage": 84,
+              "missed": 25,
+              "coverage": 85,
               "missing_lines": [
                 "36",
                 "46",
@@ -35267,7 +35380,6 @@
                 "50",
                 "58",
                 "59",
-                "95",
                 "103",
                 "104",
                 "125",
@@ -35288,7 +35400,7 @@
                 "364",
                 "366"
               ],
-              "covered": 140
+              "covered": 141
             },
             "development_tools\\legacy\\generate_legacy_reference_report.py": {
               "statements": 189,
@@ -36086,15 +36198,15 @@
                 "472",
                 "473",
                 "474",
-                "680",
                 "682",
-                "683",
+                "684",
                 "685",
                 "687",
-                "688",
-                "704",
-                "719",
-                "722"
+                "689",
+                "690",
+                "706",
+                "721",
+                "724"
               ],
               "covered": 180
             },
@@ -36601,8 +36713,8 @@
             },
             "development_tools\\shared\\mtime_cache.py": {
               "statements": 254,
-              "missed": 54,
-              "coverage": 79,
+              "missed": 50,
+              "coverage": 80,
               "missing_lines": [
                 "41",
                 "42",
@@ -36611,12 +36723,9 @@
                 "112",
                 "131",
                 "132",
+                "145",
                 "146",
                 "147",
-                "173",
-                "174",
-                "178",
-                "180",
                 "184",
                 "185",
                 "186",
@@ -36625,7 +36734,6 @@
                 "202",
                 "203",
                 "204",
-                "215",
                 "223",
                 "224",
                 "235",
@@ -36659,7 +36767,7 @@
                 "482",
                 "484"
               ],
-              "covered": 200
+              "covered": 204
             },
             "development_tools\\shared\\output_storage.py": {
               "statements": 240,
@@ -38700,7 +38808,7 @@
             },
             "development_tools\\shared\\service\\report_generation.py": {
               "statements": 4247,
-              "missed": 1970,
+              "missed": 1940,
               "coverage": 54,
               "missing_lines": [
                 "35",
@@ -39066,10 +39174,10 @@
                 "1701",
                 "1702",
                 "1709",
-                "1718",
+                "1722",
                 "1733",
                 "1748",
-                "1763",
+                "1767",
                 "1787",
                 "1813",
                 "1814",
@@ -39476,7 +39584,14 @@
                 "3559",
                 "3565",
                 "3624",
+                "3678",
+                "3679",
+                "3680",
+                "3684",
                 "3685",
+                "3688",
+                "3691",
+                "3694",
                 "3703",
                 "3705",
                 "3706",
@@ -39976,28 +40091,15 @@
                 "6257",
                 "6259",
                 "6261",
-                "6266",
                 "6267",
-                "6269",
-                "6271",
-                "6272",
-                "6273",
-                "6274",
-                "6275",
-                "6277",
-                "6278",
-                "6279",
                 "6281",
                 "6282",
                 "6284",
-                "6286",
-                "6287",
                 "6288",
                 "6289",
                 "6290",
                 "6291",
                 "6293",
-                "6295",
                 "6296",
                 "6301",
                 "6302",
@@ -40011,7 +40113,6 @@
                 "6314",
                 "6315",
                 "6316",
-                "6318",
                 "6325",
                 "6336",
                 "6337",
@@ -40028,30 +40129,25 @@
                 "6356",
                 "6357",
                 "6364",
+                "6366",
+                "6369",
                 "6370",
+                "6371",
+                "6372",
+                "6373",
+                "6374",
                 "6376",
                 "6377",
                 "6378",
-                "6381",
-                "6382",
+                "6379",
                 "6390",
                 "6391",
-                "6396",
-                "6397",
-                "6398",
-                "6399",
                 "6401",
                 "6403",
-                "6404",
                 "6405",
-                "6406",
-                "6407",
-                "6408",
-                "6409",
-                "6412",
-                "6415",
                 "6416",
-                "6417",
+                "6419",
+                "6420",
                 "6425",
                 "6426",
                 "6427",
@@ -40084,22 +40180,12 @@
                 "6488",
                 "6489",
                 "6490",
-                "6500",
-                "6503",
-                "6504",
-                "6505",
                 "6509",
                 "6511",
-                "6512",
                 "6513",
-                "6514",
-                "6515",
-                "6518",
-                "6519",
-                "6524",
-                "6527",
                 "6528",
-                "6529",
+                "6531",
+                "6532",
                 "6552",
                 "6553",
                 "6558",
@@ -40305,17 +40391,9 @@
                 "7128",
                 "7129",
                 "7203",
-                "7207",
                 "7208",
-                "7209",
-                "7210",
-                "7211",
-                "7212",
                 "7213",
-                "7214",
-                "7215",
                 "7217",
-                "7219",
                 "7228",
                 "7232",
                 "7236",
@@ -40674,7 +40752,7 @@
                 "8559",
                 "8562"
               ],
-              "covered": 2277
+              "covered": 2307
             },
             "development_tools\\shared\\service\\report_generation_linkify.py": {
               "statements": 25,
@@ -41746,7 +41824,7 @@
           "html_dir": null
         }
       },
-      "timestamp": "2026-04-11T19:12:36"
+      "timestamp": "2026-04-12T14:18:22"
     },
     "verify_process_cleanup": {
       "success": true,
@@ -41762,7 +41840,7 @@
           "orphaned_processes": []
         }
       },
-      "timestamp": "2026-04-11T20:03:17"
+      "timestamp": "2026-04-12T21:15:47"
     },
     "analyze_ruff": {
       "success": true,
@@ -41781,7 +41859,7 @@
           "top_rules": []
         }
       },
-      "timestamp": "2026-04-11T20:03:22.500830"
+      "timestamp": "2026-04-12T21:15:53.651676"
     },
     "analyze_pyright": {
       "success": true,
@@ -41797,14 +41875,14 @@
           "errors": 0,
           "warnings": 0,
           "information": 0,
-          "files_analyzed": 599,
+          "files_analyzed": 601,
           "returncode": 0,
           "top_files": [],
           "top_error_files": [],
           "top_warning_files": []
         }
       },
-      "timestamp": "2026-04-11T20:03:22.500830"
+      "timestamp": "2026-04-12T21:15:53.651676"
     },
     "analyze_bandit": {
       "success": true,
@@ -41828,7 +41906,7 @@
           "top_files": []
         }
       },
-      "timestamp": "2026-04-11T20:03:22.500830"
+      "timestamp": "2026-04-12T21:15:53.651676"
     },
     "analyze_pip_audit": {
       "success": true,
@@ -41845,7 +41923,7 @@
           "vulnerable_packages": []
         }
       },
-      "timestamp": "2026-04-11T20:03:22.500830"
+      "timestamp": "2026-04-12T21:15:53.651676"
     }
   }
 }

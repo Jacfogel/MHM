@@ -154,11 +154,15 @@ More complete content here.
         # Should have no or minimal placeholders
     
     @pytest.mark.integration
-    def test_analyze_documentation_basic(self, demo_project_root):
+    def test_analyze_documentation_basic(self, demo_project_root, test_config_path):
         """Test basic documentation analysis."""
         import argparse
         args = argparse.Namespace(files=None, overlap=False)
-        exit_code, result, payload = execute(args, project_root=Path(demo_project_root))
+        exit_code, result, payload = execute(
+            args,
+            project_root=Path(demo_project_root),
+            config_path=test_config_path,
+        )
         
         assert isinstance(result, str), "Result should be a string"
         assert len(result) > 0, "Result should have content"

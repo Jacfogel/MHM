@@ -395,8 +395,13 @@ def _build_todo_sync_dry_run_report(
     )
 
 
-def sync_todo_with_changelog():
-    """Detect completed TODO entries and report dry-run cleanup candidates."""
+def sync_todo_with_changelog(apply_auto_clean: bool = False):
+    """Detect completed TODO entries and report dry-run cleanup candidates.
+
+    When ``apply_auto_clean`` is True, removes completed checklist lines (``- [x]`` / ``- [X]``)
+    classified as auto-cleanable. Manual-review completions (strikethrough, bold markers,
+    etc.) are never removed automatically.
+    """
     todo_path = "TODO.md"
     changelog_path = "ai_development_docs/AI_CHANGELOG.md"
 
@@ -412,13 +417,15 @@ def sync_todo_with_changelog():
                 "manual_review_count": 0,
             },
             "dry_run_report": "TODO sync dry-run summary:\n- required files not found",
+            "apply_performed": False,
+            "auto_clean_lines_removed": 0,
         }
 
     try:
         with open(todo_path, encoding="utf-8") as f:
             todo_content = f.read()
 
-        lines = todo_content.split("\n")
+        lines = todo_content.splitlines()
         scan_start = _find_todo_scan_start(lines)
         completed_entries: list[dict] = []
         auto_cleanable_entries: list[dict] = []
@@ -454,6 +461,29 @@ def sync_todo_with_changelog():
             total_completed, auto_cleanable_entries, manual_review_entries
         )
 
+        apply_performed = False
+        auto_clean_lines_removed = 0
+        if apply_auto_clean and auto_cleanable_entries:
+            work_lines = list(lines)
+            remove_idxs = sorted(
+                {int(e["line_number"]) - 1 for e in auto_cleanable_entries},
+                reverse=True,
+            )
+            for idx in remove_idxs:
+                if 0 <= idx < len(work_lines):
+                    work_lines.pop(idx)
+                    auto_clean_lines_removed += 1
+            new_content = "\n".join(work_lines)
+            if todo_content.endswith("\n"):
+                new_content += "\n"
+            with open(todo_path, "w", encoding="utf-8") as f:
+                f.write(new_content)
+            apply_performed = True
+            dry_run_report += (
+                f"\n- --apply: removed {auto_clean_lines_removed} auto-cleanable "
+                "checklist line(s) from TODO.md\n"
+            )
+
         if total_completed > 0:
             return {
                 "status": "ok",
@@ -472,6 +502,8 @@ def sync_todo_with_changelog():
                     "manual_review_count": len(manual_review_entries),
                 },
                 "dry_run_report": dry_run_report,
+                "apply_performed": apply_performed,
+                "auto_clean_lines_removed": auto_clean_lines_removed,
             }
 
         return {
@@ -487,6 +519,8 @@ def sync_todo_with_changelog():
                 "manual_review_count": 0,
             },
             "dry_run_report": dry_run_report,
+            "apply_performed": apply_performed,
+            "auto_clean_lines_removed": auto_clean_lines_removed,
         }
 
     except Exception as e:
@@ -501,6 +535,8 @@ def sync_todo_with_changelog():
                 "manual_review_count": 0,
             },
             "dry_run_report": "TODO sync dry-run summary:\n- analysis failed",
+            "apply_performed": False,
+            "auto_clean_lines_removed": 0,
         }
 
 
@@ -992,8 +1028,18 @@ if __name__ == "__main__":
                 logger.error(f"Path validation error: {result['message']}")
                 sys.exit(1)  # Exit with error code to fail audit
         elif command == "sync-todo":
-            result = sync_todo_with_changelog()
-            if "--dry-run" in sys.argv and result.get("dry_run_report"):
+            apply_flag = "--apply" in sys.argv
+            dry_flag = "--dry-run" in sys.argv
+            if apply_flag and dry_flag:
+                print(
+                    "Error: use either --dry-run or --apply, not both.",
+                    file=sys.stderr,
+                )
+                sys.exit(2)
+            result = sync_todo_with_changelog(apply_auto_clean=apply_flag)
+            if (
+                dry_flag or apply_flag
+            ) and result.get("dry_run_report"):
                 print(result["dry_run_report"])
             logger.info(f"TODO sync: {result['message']}")
             if result.get("completed_entries", 0) > 0:
@@ -1062,6 +1108,9 @@ if __name__ == "__main__":
             )
             print(
                 "  python development_tools/docs/fix_version_sync.py sync-todo --dry-run    # Print dry-run summary only (no edits)"
+            )
+            print(
+                "  python development_tools/docs/fix_version_sync.py sync-todo --apply      # Remove auto-cleanable - [x] checklist lines"
             )
     else:
         # Default: show current versions

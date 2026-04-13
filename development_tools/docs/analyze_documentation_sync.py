@@ -189,6 +189,14 @@ def main():
     parser.add_argument(
         "--json", action="store_true", help="Output results as JSON in standard format"
     )
+    parser.add_argument(
+        "--check-example-markers",
+        action="store_true",
+        help=(
+            "Advisory (V5 §3.0): flag file paths in Example sections that lack "
+            "[OK]/[AVOID]/[GOOD]/[BAD]/[EXAMPLE] line markers"
+        ),
+    )
 
     args = parser.parse_args()
 
@@ -196,11 +204,41 @@ def main():
 
     results = checker.run_checks()
 
+    if args.check_example_markers:
+        from development_tools.docs.example_marker_validation import (
+            scan_paths_for_example_marker_findings,
+        )
+
+        paired_roots: list[str] = []
+        for human_doc, ai_doc in checker.paired_docs.items():
+            paired_roots.extend([human_doc, ai_doc])
+        findings = scan_paths_for_example_marker_findings(
+            checker.project_root, sorted(set(paired_roots))
+        )
+        results["details"]["example_marker_findings"] = findings
+        results["summary"]["example_marker_hint_count"] = sum(
+            len(v) for v in findings.values()
+        )
+
     if args.json:
         # Output JSON in standard format
         print(json.dumps(results, indent=2))
     else:
         checker.print_report(results)
+        if args.check_example_markers:
+            ex = results["details"].get("example_marker_findings") or {}
+            if ex:
+                print("\nEXAMPLE MARKER HINTS (advisory, V5 §3.0):")
+                for fn, lines in sorted(ex.items()):
+                    print(f"   {fn}:")
+                    for line in lines[:20]:
+                        print(f"     - {line}")
+                    if len(lines) > 20:
+                        print(f"     ... +{len(lines) - 20} more")
+            else:
+                print(
+                    "\nExample marker scan: no advisory hints (or no paired files scanned)."
+                )
 
 
 if __name__ == "__main__":

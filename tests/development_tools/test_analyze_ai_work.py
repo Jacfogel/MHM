@@ -138,10 +138,14 @@ class TestClass:
         assert 'warnings' in result, "Result should have warnings"
     
     @pytest.mark.integration
-    def test_analyze_ai_work_basic(self, demo_project_root):
+    def test_analyze_ai_work_basic(self, demo_project_root, test_config_path):
         """Test basic AI work analysis."""
         # Run analysis on demo project
-        result = analyze_ai_work("documentation", project_root=str(demo_project_root))
+        result = analyze_ai_work(
+            "documentation",
+            project_root=str(demo_project_root),
+            config_path=test_config_path,
+        )
         
         # Verify results structure (returns standard format dict)
         assert isinstance(result, dict), "Result should be a dictionary"

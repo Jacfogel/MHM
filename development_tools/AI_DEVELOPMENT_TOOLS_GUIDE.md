@@ -313,7 +313,9 @@ See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for fu
 
 **Bandit** and **pip-audit** run in **Tier 3** full audits (`audit --full`) via `analyze_bandit` / `analyze_pip_audit`; they are in root `requirements.txt`. **`MHM_PIP_AUDIT_SKIP`** (truthy) skips pip-audit network use in [`development_tools/static_checks/analyze_pip_audit.py`](static_checks/analyze_pip_audit.py) (CI/offline; see [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10). **Radon** / **pydeps** / **vulture** remain manual pilots. Full detail and manual one-off commands: Section 10 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md). **Scripts backlog**: [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md). **Do not add** unapproved standalone migration markdown files; use approved guides + V5.
 
-**TODO sync dry-run**: `python development_tools/docs/fix_version_sync.py sync-todo --dry-run` prints the dry-run summary to stdout (no file edits).
+**TODO sync**: `python development_tools/docs/fix_version_sync.py sync-todo --dry-run` prints the dry-run summary to stdout (no file edits). **`sync-todo --apply`** removes auto-cleanable completed checklist lines (`- [x]` / `- [X]` only); do not combine `--apply` with `--dry-run`.
+
+**Example markers (advisory, V5 Section 3.0)**: `python development_tools/docs/analyze_documentation_sync.py --check-example-markers` scans paired docs for Example sections with path-like backticks missing standard markers; use `--json` for machine-readable `example_marker_findings`.
 
 **Evaluation note (2026-04-10)**: **radon** remains an optional one-off install for CC sampling. **pre-commit** remains optional on developer machines only; audit truth stays `run_development_tools.py` + `tests/development_tools/`.
 

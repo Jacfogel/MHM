@@ -21,3 +21,13 @@ def test_v5_records_phase2_gate_before_config_moves() -> None:
     assert "audit --quick" in v5
     assert "analyze_dev_tools_import_boundaries" in v5
     assert "import-boundary" in v5.lower() or "import boundary" in v5.lower()
+
+
+@pytest.mark.unit
+def test_development_tools_guide_section9_links_phase2_gate() -> None:
+    """Human guide §9 cross-links V5 §7.7 Phase 2 gate (documentation lock-in)."""
+    guide = (project_root / "development_tools" / "DEVELOPMENT_TOOLS_GUIDE.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Phase 2" in guide
+    assert "AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5" in guide

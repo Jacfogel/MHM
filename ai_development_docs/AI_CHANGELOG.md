@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-04-12 - V5 continuation (TODO sync apply, example markers, test_config adoption) **COMPLETED**
+- **Plan**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 2 snapshot + Section 3.0 / Section 5.4 status updates (example-marker advisory; sync-todo `--apply`).
+- **TODO sync**: [`fix_version_sync.py`](../development_tools/docs/fix_version_sync.py) - `sync_todo_with_changelog(apply_auto_clean=True)` removes completed `- [x]` checklist lines; CLI `sync-todo --apply` (exclusive with `--dry-run`).
+- **Doc examples (Section 3.0)**: [`example_marker_validation.py`](../development_tools/docs/example_marker_validation.py) + [`analyze_documentation_sync.py`](../development_tools/docs/analyze_documentation_sync.py) `--check-example-markers`; tests in [`test_example_marker_validation.py`](../tests/development_tools/test_example_marker_validation.py). **Ruff**: `_line_has_example_marker` uses `any(...)` (SIM110).
+- **Overlap noise**: [`EXPECTED_OVERLAPS`](../development_tools/shared/constants.py) adds `development workflow`, `testing guide`; demo-project tests use [`test_config.json`](../tests/development_tools/test_config.json) where applicable; inventory policy asserts `root_ruff_compat_mirror` **exit_criteria**; taxonomy policy test links [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 9 to V5 Section 7.7; [`analyze_ai_work`](../development_tools/ai_work/analyze_ai_work.py) docstring - thin validator (Section 5.3).
+
 ### 2026-04-11 - V5 dev-tools continuation (Pyright parity, pip-audit CI skip, tests) **COMPLETED**
 - **Plan/doc**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 4.1 / Section 4.2 reconciled (Bandit/pip-audit Tier 3 shipped; remaining evaluation backlog clarified); Section 2 snapshot updated.
 - **Portability (Section 7.6)**: [`test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py) asserts owned [`pyrightconfig.json`](../development_tools/config/pyrightconfig.json) matches root [`pyproject.toml`](../pyproject.toml) `[tool.pyright]` for shared keys (venvPath differs by design).
@@ -140,12 +146,6 @@ Guidelines:
 - **LIST_OF_LISTS** section 12b flags config blocks for future ROI review; sections 3 and 13 updated for canonical locations.
 - **Dev-tools tests**: `patch.object` on `load_development_tools_module` targets for `generate_directory_tree`, `fix_project_cleanup`, and `fix_documentation_headings` (`config` / `DEFAULT_DOCS` / `DocumentationHeadingFixer`) - avoids patches missing the importlib-loaded module under parallel/coverage (`audit --full` Tier 3).
 - **Task behavior tests**: autouse `monkeypatch` on `core.user_item_storage.get_user_data_dir` so task JSON stays under each test's `test_path_factory` root (fixes Tier 3 parallel failures from I/O under `tests/data/users/...`). **Docs**: ASCII cleanup in paired changelogs; repo-relative links in [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md); unconverted-link + LIST_OF_LISTS path-drift cleanup (`CONFIGURATION_REFERENCE` link text; qualify `config.py` as `development_tools/config/config.py`); `doc-sync` PASS; root `custom.md` removed and gitignored (tree-generator artifact).
-
-### 2026-03-28 - V5 plan: legacy report clean, DEV_TOOLS report scope, Pyright venv **COMPLETED**
-- **Inventory / legacy**: `root_ruff_compat_mirror` no longer injects grep `search_terms` (bridge still listed); `LEGACY_REFERENCE_REPORT` can show **0** hits while the entry documents exit criteria.
-- **Reports**: Dev-tools-only audits label `DEV_TOOLS_*.md` outputs, scope blurbs, source line with `--dev-tools-only`, and drop full-repo domain-coverage priority from dev-tools priorities; `core.py` duplicate `_tools_run_in_current_tier` line removed.
-- **Portability / Pyright**: `run_dev_tools.py`, `fix_legacy_references.py` resolve bootstrap paths; `generate_function_registry` rotation uses shared `project_root`; owned `pyrightconfig.json` declares repo venv via `venvPath`/`venv`.
-- **Follow-up**: Section 1.5 cache benchmark numbers remain local - see CHANGELOG_DETAIL for the PowerShell `Measure-Command` pairing recipe.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

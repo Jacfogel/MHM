@@ -111,11 +111,13 @@ class TestPathDrift:
     """Test path drift detection."""
     
     @pytest.mark.unit
-    def test_check_path_drift_valid_paths(self, demo_project_root):
+    def test_check_path_drift_valid_paths(self, demo_project_root, test_config_path):
         """Test that valid file paths are not flagged."""
         path_drift_module = load_development_tools_module("analyze_path_drift")
         PathDriftAnalyzer = path_drift_module.PathDriftAnalyzer
-        analyzer = PathDriftAnalyzer(str(demo_project_root))
+        analyzer = PathDriftAnalyzer(
+            str(demo_project_root), config_path=test_config_path
+        )
         
         # The demo project has valid paths, so should not flag them
         drift_issues = analyzer.check_path_drift()
@@ -163,11 +165,13 @@ class TestASCIICompliance:
     """Test ASCII compliance checking."""
     
     @pytest.mark.unit
-    def test_check_ascii_compliance_clean_file(self, demo_project_root):
+    def test_check_ascii_compliance_clean_file(self, demo_project_root, test_config_path):
         """Test that files with only ASCII pass."""
         ascii_module = load_development_tools_module("analyze_ascii_compliance")
         ASCIIComplianceAnalyzer = ascii_module.ASCIIComplianceAnalyzer
-        analyzer = ASCIIComplianceAnalyzer(str(demo_project_root))
+        analyzer = ASCIIComplianceAnalyzer(
+            str(demo_project_root), config_path=test_config_path
+        )
         
         # Check the ASCII test doc which should be clean
         ascii_doc = demo_project_root / "docs" / "ascii_test_doc.md"
@@ -181,11 +185,13 @@ class TestASCIICompliance:
                 pass  # Just verify it doesn't crash
     
     @pytest.mark.unit
-    def test_check_ascii_compliance_non_ascii_detected(self, demo_project_root):
+    def test_check_ascii_compliance_non_ascii_detected(self, demo_project_root, test_config_path):
         """Test that non-ASCII characters are detected."""
         ascii_module = load_development_tools_module("analyze_ascii_compliance")
         ASCIIComplianceAnalyzer = ascii_module.ASCIIComplianceAnalyzer
-        analyzer = ASCIIComplianceAnalyzer(str(demo_project_root))
+        analyzer = ASCIIComplianceAnalyzer(
+            str(demo_project_root), config_path=test_config_path
+        )
         
         # Check the non-ASCII doc which should have issues
         non_ascii_doc = demo_project_root / "docs" / "non_ascii_doc.md"
@@ -202,11 +208,13 @@ class TestHeadingNumbering:
     """Test heading numbering validation."""
     
     @pytest.mark.unit
-    def test_check_heading_numbering_valid(self, demo_project_root):
+    def test_check_heading_numbering_valid(self, demo_project_root, test_config_path):
         """Test that valid numbered headings pass."""
         heading_module = load_development_tools_module("analyze_heading_numbering")
         HeadingNumberingAnalyzer = heading_module.HeadingNumberingAnalyzer
-        analyzer = HeadingNumberingAnalyzer(str(demo_project_root))
+        analyzer = HeadingNumberingAnalyzer(
+            str(demo_project_root), config_path=test_config_path
+        )
         
         # Check the numbered doc which should be valid
         numbered_doc = demo_project_root / "docs" / "numbered_doc.md"
@@ -220,11 +228,13 @@ class TestHeadingNumbering:
                 pass  # Just verify it doesn't crash
     
     @pytest.mark.unit
-    def test_check_heading_numbering_missing_numbers(self, demo_project_root):
+    def test_check_heading_numbering_missing_numbers(self, demo_project_root, test_config_path):
         """Test that missing numbers are detected."""
         heading_module = load_development_tools_module("analyze_heading_numbering")
         HeadingNumberingAnalyzer = heading_module.HeadingNumberingAnalyzer
-        analyzer = HeadingNumberingAnalyzer(str(demo_project_root))
+        analyzer = HeadingNumberingAnalyzer(
+            str(demo_project_root), config_path=test_config_path
+        )
         
         # Check the bad numbering doc which should have issues
         bad_doc = demo_project_root / "docs" / "bad_numbering_doc.md"
@@ -239,11 +249,13 @@ class TestHeadingNumbering:
                 assert 'missing number' in issue_text.lower() or 'out of order' in issue_text.lower()
     
     @pytest.mark.unit
-    def test_check_heading_numbering_out_of_order(self, demo_project_root):
+    def test_check_heading_numbering_out_of_order(self, demo_project_root, test_config_path):
         """Test that out-of-order numbers are detected."""
         heading_module = load_development_tools_module("analyze_heading_numbering")
         HeadingNumberingAnalyzer = heading_module.HeadingNumberingAnalyzer
-        analyzer = HeadingNumberingAnalyzer(str(demo_project_root))
+        analyzer = HeadingNumberingAnalyzer(
+            str(demo_project_root), config_path=test_config_path
+        )
         
         # Check the bad numbering doc which has out-of-order sections
         bad_doc = demo_project_root / "docs" / "bad_numbering_doc.md"
@@ -262,9 +274,11 @@ class TestIntegration:
     """Integration tests for full checker workflow."""
     
     @pytest.mark.integration
-    def test_run_checks_integration(self, demo_project_root):
+    def test_run_checks_integration(self, demo_project_root, test_config_path):
         """Test that full run_checks() returns expected structure."""
-        checker = DocumentationSyncChecker(str(demo_project_root))
+        checker = DocumentationSyncChecker(
+            str(demo_project_root), config_path=test_config_path
+        )
         
         results = checker.run_checks()
         

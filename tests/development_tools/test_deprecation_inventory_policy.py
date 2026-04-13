@@ -23,6 +23,7 @@ def test_deprecation_inventory_loads_and_root_ruff_bridge_active() -> None:
     assert "root_ruff_compat_mirror" in ids
     bridge = next(x for x in active if x.get("id") == "root_ruff_compat_mirror")
     assert bridge.get("status") == "active_bridge"
+    assert isinstance(bridge.get("exit_criteria"), str) and bridge["exit_criteria"].strip()
     removed = data.get("removed_inventory", [])
     assert isinstance(removed, list)
 
