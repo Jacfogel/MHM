@@ -50,13 +50,38 @@ def _get_channel_loggers_config():
     ``development_tools_config.json`` (``static_checks.channel_loggers``) with defaults
     and merge behavior in ``development_tools.config.config`` — see
     ``development_docs/LIST_OF_LISTS.md`` §6–7.
+
+    Loads ``config.py`` via importlib (same pattern as ``standard_exclusions``) so this
+    script does not import ``development_tools`` package init (which pulls ``core.logger``
+    and ``core.config``, requiring ``python-dotenv``). GitHub Actions runs this step
+    without ``pip install``.
     """
     cfg_json = REPO_ROOT / "development_tools" / "config" / "development_tools_config.json"
-    from development_tools import config as dt_config
-
-    # Resolve JSON from repo root (not cwd) so this script works when invoked from any cwd.
-    dt_config.load_external_config(str(cfg_json))
-    return dt_config.get_static_check_channel_loggers_config()
+    module_path = REPO_ROOT / "development_tools" / "config" / "config.py"
+    try:
+        spec = importlib.util.spec_from_file_location(
+            "_mhm_static_check_dt_config", module_path
+        )
+        if spec is None or spec.loader is None:
+            raise RuntimeError(f"Unable to load config module from {module_path}")
+        dt_config = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(dt_config)
+        dt_config.load_external_config(str(cfg_json))
+        return dt_config.get_static_check_channel_loggers_config()
+    except Exception:
+        # Align with STATIC_CHECK_CHANNEL_LOGGERS_DEFAULT in development_tools/config/config.py
+        return {
+            "excluded_dirs": ["tests", "scripts", "ai_tools", "development_tools"],
+            "allowed_logging_import_paths": [
+                "core/logger.py",
+                "core/error_handling.py",
+                "core/service.py",
+                "core/config.py",
+                "core/network_probe.py",
+                "core/time_utilities.py",
+                "run_tests.py",
+            ],
+        }
 
 
 _channel_loggers_config = None

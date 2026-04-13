@@ -31,6 +31,7 @@ Guidelines:
 ## Recent Changes (Most Recent First)
 
 ### 2026-04-13 - Example-marker scan: report noise + heuristics **COMPLETED**
+- **CI static logging check**: [`check_channel_loggers.py`](../development_tools/static_checks/check_channel_loggers.py) loads dev-tools `config.py` via importlib (avoids `development_tools` package init and `dotenv`); fixes GitHub **Logging Enforcement** on runners without `pip install`.
 - **Doc list alignment**: [`analyze_documentation_sync.py`](../development_tools/docs/analyze_documentation_sync.py) `--check-example-markers` now scans **`DEFAULT_DOCS`** (config-derived union: `paired_docs`, `fix_version_sync.ai_docs`/`docs`, `default_docs_extra` per [`config.get_constants_config()`](../development_tools/config/config.py)), not paired-doc endpoints only; [`_resolve_example_marker_scan_paths`](../development_tools/docs/analyze_documentation_sync.py) + tests in [`test_documentation_sync_checker.py`](../tests/development_tools/test_documentation_sync_checker.py).
 - **V5 Section 5.3 - 3.20**: Backlog task to retarget **AI_PRIORITIES** `add_priority` guidance/details defaults toward [`DEVELOPMENT_TOOLS_GUIDE.md`](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) / [`AI_DEVELOPMENT_TOOLS_GUIDE.md`](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) and ensure those guides hold needed procedures.
 - **AI_STATUS**: Documentation Signals line for example markers is summary-only (no file list); points to doc-sync JSON and **AI_PRIORITIES** for triage.
