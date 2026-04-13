@@ -1361,6 +1361,22 @@ class ReportGenerationMixin:
             if total_issues is not None and total_issues > 0:
                 sync_line += f" ({total_issues} tracked issues)"
             lines.append(sync_line)
+            em_hints = get_doc_sync_field(
+                doc_sync_summary, "example_marker_hint_count", 0
+            )
+            try:
+                em_n = int(em_hints or 0)
+            except (TypeError, ValueError):
+                em_n = 0
+            if em_n > 0:
+                lines.append(
+                    f"- **Example markers (advisory)**: {em_n} hint(s) in paired docs "
+                    "(Example sections / path backticks without standard markers)"
+                )
+            else:
+                lines.append(
+                    "- **Example markers (advisory)**: no hints (paired-doc Example scan)"
+                )
         else:
             lines.append(
                 "- **Doc Sync**: Not collected in this run (pending doc-sync refresh)"
@@ -1558,6 +1574,12 @@ class ReportGenerationMixin:
                 "path_drift_files": get_doc_sync_field(
                     self.docs_sync_summary, "path_drift_files", []
                 ),
+                "example_marker_hint_count": get_doc_sync_field(
+                    self.docs_sync_summary, "example_marker_hint_count", 0
+                ),
+                "example_marker_findings": get_doc_sync_field(
+                    self.docs_sync_summary, "example_marker_findings", {}
+                ),
             }
 
         # Fall back to cache if not available in memory
@@ -1587,6 +1609,12 @@ class ReportGenerationMixin:
                     ),
                     "path_drift_files": get_doc_sync_field(
                         doc_sync_result, "path_drift_files", []
+                    ),
+                    "example_marker_hint_count": get_doc_sync_field(
+                        doc_sync_result, "example_marker_hint_count", 0
+                    ),
+                    "example_marker_findings": get_doc_sync_field(
+                        doc_sync_result, "example_marker_findings", {}
                     ),
                 }
 
@@ -1767,6 +1795,26 @@ class ReportGenerationMixin:
                 lines.append(
                     "- **Unconverted Links**: CLEAN (all links properly converted)"
                 )
+
+        # Example markers (advisory; from analyze_documentation_sync + --check-example-markers)
+        em_hint_n = 0
+        if doc_sync_summary_for_signals:
+            try:
+                em_hint_n = int(
+                    doc_sync_summary_for_signals.get("example_marker_hint_count") or 0
+                )
+            except (TypeError, ValueError):
+                em_hint_n = 0
+        if em_hint_n > 0:
+            lines.append(
+                f"- **Example markers (advisory)**: {em_hint_n} hint(s) — path-like lines in "
+                "Example sections without a marker within ±5 lines (see AI_DOCUMENTATION_GUIDE §3.6); "
+                "details in doc-sync JSON / AI_PRIORITIES when triaging"
+            )
+        else:
+            lines.append(
+                "- **Example markers (advisory)**: no hints (paired-doc Example scan is clean)"
+            )
 
         # Add Dependency Docs to Documentation Signals
         dependency_summary = getattr(self, "module_dependency_summary", None) or (
@@ -3590,6 +3638,7 @@ class ReportGenerationMixin:
                 "Investigate backup health failures": "ai_development_docs/AI_BACKUP_GUIDE.md",
                 "Consolidate documentation files": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Review documentation overlaps": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Triage documentation example-marker hints": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md (section 3.6)",
             }
             details_defaults: dict[str, str] = {
                 "Stabilize documentation drift": "development_tools/docs/jsons/analyze_documentation_sync_results.json",
@@ -3616,6 +3665,7 @@ class ReportGenerationMixin:
                 "Investigate backup health failures": "development_tools/reports/jsons/backup_health_report.json",
                 "Consolidate documentation files": "development_tools/docs/jsons/analyze_documentation_results.json",
                 "Review documentation overlaps": "development_tools/docs/jsons/analyze_documentation_results.json",
+                "Triage documentation example-marker hints": "development_tools/docs/jsons/analyze_documentation_sync_results.json (details.example_marker_findings)",
             }
 
             normalized_bullets: list[str] = []
@@ -5356,6 +5406,79 @@ class ReportGenerationMixin:
                 bullets=backup_bullets,
             )
 
+        # Example-marker hints (doc hygiene; surfaced from doc-sync + --check-example-markers)
+        doc_sync_em: dict[str, Any] = {}
+        if hasattr(self, "docs_sync_summary") and isinstance(
+            self.docs_sync_summary, dict
+        ):
+            doc_sync_em = self.docs_sync_summary
+        if not doc_sync_em or not doc_sync_em.get("details"):
+            loaded_sync = self._load_tool_data(
+                "analyze_documentation_sync", "docs", log_source=False
+            )
+            if isinstance(loaded_sync, dict):
+                doc_sync_em = loaded_sync
+        em_details = (
+            doc_sync_em.get("details", {})
+            if isinstance(doc_sync_em.get("details"), dict)
+            else {}
+        )
+        em_hint_total = 0
+        try:
+            em_hint_total = int(em_details.get("example_marker_hint_count") or 0)
+        except (TypeError, ValueError):
+            em_hint_total = 0
+        if em_hint_total > 0:
+            em_findings_raw = em_details.get("example_marker_findings") or {}
+            em_file_count = (
+                len(em_findings_raw)
+                if isinstance(em_findings_raw, dict)
+                else 0
+            )
+            ranked_em_files: list[tuple[str, int]] = []
+            if isinstance(em_findings_raw, dict):
+                for rel_path, hint_lines in em_findings_raw.items():
+                    n = len(hint_lines) if isinstance(hint_lines, list) else 0
+                    if n > 0:
+                        ranked_em_files.append(
+                            (str(rel_path).replace("\\", "/").strip(), n)
+                        )
+                ranked_em_files.sort(key=lambda t: (-t[1], t[0].lower()))
+            em_file_bullets: list[str] = []
+            if ranked_em_files:
+                em_file_bullets.append(
+                    "Top file(s) by hint line count (up to 3):"
+                )
+                for idx, (rel_path, n_hints) in enumerate(
+                    ranked_em_files[:3], start=1
+                ):
+                    em_file_bullets.append(
+                        f"{idx}. `{rel_path}` — {n_hints} hint line(s)"
+                    )
+                if em_file_count > 3:
+                    em_file_bullets.append(
+                        f"({em_file_count - 3} other documentation file(s) with hints; full list in JSON.)"
+                    )
+            elif em_file_count > 0:
+                em_file_bullets.append(
+                    f"{em_file_count} documentation file(s) report hints (see JSON for paths)."
+                )
+            # Order matches other priorities: auto guidance first, content, details, action last.
+            em_bullets: list[str] = em_file_bullets + [
+                "Review for details: development_tools/docs/jsons/analyze_documentation_sync_results.json (details.example_marker_findings)",
+                "Action: Add [OK]/[AVOID]/[GOOD]/[BAD]/[EXAMPLE] next to path references in Example sections where they are intentional examples, or move neutral citations out of Example headings.",
+            ]
+
+            add_priority(
+                tier=4,
+                title="Triage documentation example-marker hints",
+                reason=(
+                    f"{em_hint_total} line-level hint(s) in documentation Example sections."
+                ),
+                bullets=em_bullets,
+                validate=False,
+            )
+
         lines.append("## Immediate Focus Ranked")
         if priority_items:
             for idx, item in enumerate(
@@ -6220,6 +6343,12 @@ class ReportGenerationMixin:
                 "path_drift_files": docs_sync_summary_details.get(
                     "path_drift_files", []
                 ),
+                "example_marker_hint_count": docs_sync_summary_details.get(
+                    "example_marker_hint_count", 0
+                ),
+                "example_marker_findings": docs_sync_summary_details.get(
+                    "example_marker_findings", {}
+                ),
             }
 
         if not doc_sync_summary_for_signals:
@@ -6244,6 +6373,12 @@ class ReportGenerationMixin:
                     "paired_doc_issues": details.get("paired_doc_issues", 0),
                     "ascii_issues": details.get("ascii_issues", 0),
                     "path_drift_files": details.get("path_drift_files", []),
+                    "example_marker_hint_count": details.get(
+                        "example_marker_hint_count", 0
+                    ),
+                    "example_marker_findings": details.get(
+                        "example_marker_findings", {}
+                    ),
                 }
 
         effective_summary = (
@@ -6530,6 +6665,42 @@ class ReportGenerationMixin:
             else:
                 lines.append("**Unconverted Links** CLEAN")
                 lines.append("  - 0 files with unconverted links")
+
+            # Example markers (advisory; audit runs --check-example-markers with doc-sync).
+            # effective_summary may be standard {summary,details} or a flat doc_sync_summary_for_signals dict.
+            if isinstance(effective_summary, dict) and isinstance(
+                effective_summary.get("summary"), dict
+            ):
+                em_c = get_doc_sync_field(
+                    effective_summary, "example_marker_hint_count", 0
+                )
+                em_cf = get_doc_sync_field(
+                    effective_summary, "example_marker_findings", {}
+                )
+            elif isinstance(effective_summary, dict):
+                em_c = effective_summary.get("example_marker_hint_count", 0)
+                em_cf = effective_summary.get("example_marker_findings", {})
+            else:
+                em_c = 0
+                em_cf = {}
+            try:
+                em_cn = int(em_c or 0)
+            except (TypeError, ValueError):
+                em_cn = 0
+            if not isinstance(em_cf, dict):
+                em_cf = {}
+            if em_cn > 0:
+                lines.append("**Example Markers (advisory)** ATTENTION")
+                lines.append(
+                    f"  - {em_cn} hint(s): path-like lines in Example sections without "
+                    "standard [OK]/[AVOID]/[GOOD]/[BAD]/[EXAMPLE] markers"
+                )
+                top_em = sorted(em_cf.keys())[:5]
+                if top_em:
+                    lines.append(f"  - Files with hints: {', '.join(top_em)}")
+            else:
+                lines.append("**Example Markers (advisory)** CLEAN")
+                lines.append("  - 0 hints from paired-doc Example scan")
 
             # Dependency Documentation
             dependency_summary = getattr(self, "module_dependency_summary", None) or (

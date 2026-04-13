@@ -29,6 +29,87 @@ Use `core/foo.py` for the hook.
 
 
 @pytest.mark.unit
+def test_find_unmarked_treats_command_examples_heading_as_example_section() -> None:
+    md = """## 2.3. Command Examples
+
+- Use `development_tools/run_development_tools.py` to run audits.
+"""
+    hits = find_unmarked_example_path_lines(md)
+    assert len(hits) == 1
+
+
+@pytest.mark.unit
+def test_find_unmarked_skips_bare_filename_without_slash() -> None:
+    md = """## Examples
+
+Use `README.md` at repo root.
+"""
+    assert find_unmarked_example_path_lines(md) == []
+
+
+@pytest.mark.unit
+def test_find_unmarked_skips_marker_on_previous_line() -> None:
+    md = """## Examples
+
+[OK] This is the canonical layout.
+
+Later we mention `core/foo.py` again without repeating the tag.
+"""
+    hits = find_unmarked_example_path_lines(md)
+    assert hits == []
+
+
+@pytest.mark.unit
+def test_find_unmarked_with_marker_outside_small_window_is_flagged() -> None:
+    md = """## Examples
+
+[OK] Marker too far above for the reduced window.
+
+
+
+Use `core/foo.py` for the hook.
+"""
+    hits = find_unmarked_example_path_lines(md)
+    assert len(hits) == 1
+
+
+@pytest.mark.unit
+def test_find_unmarked_skips_see_citation_bullet() -> None:
+    md = """## Examples
+
+- See `docs/guide.md` for the full checklist.
+"""
+    assert find_unmarked_example_path_lines(md) == []
+
+
+@pytest.mark.unit
+def test_changelog_heading_with_example_markers_phrase_is_now_included() -> None:
+    """Broad matching now includes changelog phrases that contain 'example markers'."""
+    md = """### 2026-01-01 - Work (example markers) **COMPLETED**
+
+- Bullet with `core/foo.py` path.
+
+    ## Real Examples
+
+Run `core/bar.py` for real.
+"""
+    hits = find_unmarked_example_path_lines(md)
+    assert len(hits) == 2
+
+
+@pytest.mark.unit
+def test_find_unmarked_flags_path_inside_fenced_block() -> None:
+    md = """## Examples
+
+```
+Use `core/hidden.py` in legacy mode.
+```
+"""
+    hits = find_unmarked_example_path_lines(md)
+    assert len(hits) == 1
+
+
+@pytest.mark.unit
 def test_find_unmarked_skips_when_marker_present() -> None:
     md = """## Example Usage
 
@@ -48,4 +129,25 @@ def test_scan_paths_resolves_tmp_files(tmp_path: Path) -> None:
     out = scan_paths_for_example_marker_findings(tmp_path, ["guide.md"])
     assert "guide.md" in out
     assert any("test_x.py" in x for x in out["guide.md"])
+
+
+@pytest.mark.unit
+def test_scan_paths_excludes_changelog_category(tmp_path: Path) -> None:
+    changelog = tmp_path / "ai_development_docs" / "AI_CHANGELOG.md"
+    changelog.parent.mkdir(parents=True, exist_ok=True)
+    changelog.write_text(
+        "## Command Examples\n\nUse `core/foo.py`.\n",
+        encoding="utf-8",
+    )
+    guide = tmp_path / "guide.md"
+    guide.write_text(
+        "## Examples\n\nUse `core/bar.py`.\n",
+        encoding="utf-8",
+    )
+    out = scan_paths_for_example_marker_findings(
+        tmp_path,
+        ["ai_development_docs/AI_CHANGELOG.md", "guide.md"],
+    )
+    assert "ai_development_docs/AI_CHANGELOG.md" not in out
+    assert "guide.md" in out
 

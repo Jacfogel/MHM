@@ -2324,33 +2324,51 @@ class CommandsMixin:
             )
             if isinstance(cached_sync, dict):
                 details = cached_sync.get("details", {})
-                all_results["paired_docs"] = (
-                    details.get("paired_docs", {})
-                    if isinstance(details, dict)
-                    else {}
-                )
-                subcheck_modes["paired_docs"] = "cache_only"
-                logger.debug("  - Paired docs: using cached result (mtime up to date)")
+                if not isinstance(details, dict) or "example_marker_findings" not in details:
+                    paired_docs_cached = False
+                    logger.debug(
+                        "  - Paired docs: cache missing example_marker_findings; refreshing"
+                    )
+                else:
+                    all_results["paired_docs"] = (
+                        details.get("paired_docs", {})
+                        if isinstance(details, dict)
+                        else {}
+                    )
+                    ex_findings = details.get("example_marker_findings", {})
+                    all_results["example_marker_findings"] = (
+                        ex_findings if isinstance(ex_findings, dict) else {}
+                    )
+                    subcheck_modes["paired_docs"] = "cache_only"
+                    logger.debug("  - Paired docs: using cached result (mtime up to date)")
             else:
                 paired_docs_cached = False
 
         if not paired_docs_cached:
-            result = self.run_script("analyze_documentation_sync", "--json")
+            result = self.run_script(
+                "analyze_documentation_sync", "--json", "--check-example-markers"
+            )
             if result.get("output") and result.get("success"):
                 try:
                     parsed = json.loads(result.get("output", ""))
                     details = parsed.get("details", {}) if isinstance(parsed, dict) else {}
                     all_results["paired_docs"] = details.get("paired_docs", {})
+                    ex_raw = details.get("example_marker_findings", {})
+                    all_results["example_marker_findings"] = (
+                        ex_raw if isinstance(ex_raw, dict) else {}
+                    )
                     subcheck_modes["paired_docs"] = "cold_scan"
                 except json.JSONDecodeError as e:
                     logger.warning(f"analyze_documentation_sync output could not be parsed as JSON: {e}")
                     all_results["paired_docs"] = {}
+                    all_results["example_marker_findings"] = {}
                     subcheck_modes["paired_docs"] = "unknown"
             else:
                 logger.warning(
                     f"analyze_documentation_sync failed: {result.get('error', 'Unknown error')}"
                 )
                 all_results["paired_docs"] = {}
+                all_results["example_marker_findings"] = {}
                 subcheck_modes["paired_docs"] = "unknown"
 
         logger.debug("  - Analyzing path drift...")
@@ -2453,6 +2471,8 @@ class CommandsMixin:
                 "path_drift_files": path_drift_files
                 if isinstance(path_drift_files, list)
                 else [],
+                "example_marker_hint_count": summary.get("example_marker_hint_count", 0),
+                "example_marker_findings": all_results.get("example_marker_findings", {}),
             },
         }
         self.docs_sync_results = {

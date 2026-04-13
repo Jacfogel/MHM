@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Single forward-looking backlog after V4; collapsed history; actionable next steps  
 > **Style**: Direct and concise  
-> **Last Updated**: 2026-04-12  
+> **Last Updated**: 2026-04-13  
 > **Supersedes**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (keep V4 for detailed checkbox history)
 
 **Authoritative metrics**: [development_tools/AI_STATUS.md](AI_STATUS.md) and [development_tools/AI_PRIORITIES.md](AI_PRIORITIES.md) after `python development_tools/run_development_tools.py audit` or `audit --full`.
@@ -86,6 +86,8 @@ Use **AI_STATUS.md** after each audit. Example **2026-04-08** (Tier 3 full, afte
 **2026-04-11 (V5 continuation — plan slice)**: Reconciled **§4.1** vs **§4.2** (Tier 3 Bandit/pip-audit complete; remaining §4.1 = Radon/pydeps/pre-commit/vulture/ruff depth + pip-audit CI residual). **§7.6**: policy test asserts owned [`pyrightconfig.json`](config/pyrightconfig.json) matches root [`pyproject.toml`](../pyproject.toml) `[tool.pyright]` for shared diagnostic/exclude keys. **pip-audit**: `MHM_PIP_AUDIT_SKIP` env skips subprocess (offline/CI); guides + [`config.py`](config/config.py) comment. **§5.6**: `test_deprecation_inventory_policy.py` structural check for `root_ruff_compat_mirror`. Targeted tests: pip-audit skip, `_coverage_path_to_rel_posix` outside-project absolute path → `None`, flaky_detector empty inputs.
 
 **2026-04-12 (V5 plan continuation)**: Fresh **`audit --full --clear-cache`** run for live Tier 3 pytest metrics. **§1.5** numeric domain-cache benchmark still deferred (recipe unchanged). **§3.0** initial `example_marker_validation` + `--check-example-markers` on [`analyze_documentation_sync.py`](docs/analyze_documentation_sync.py) (advisory). **`sync_todo_with_changelog(apply_auto_clean=True)`** + CLI **`sync-todo --apply`** removes auto-cleanable `- [x]` lines; mutually exclusive with `--dry-run`. **§5.2** [`EXPECTED_OVERLAPS`](shared/constants.py) extended (`development workflow`, `testing guide`). **§1.1** additional demo-project tests pass [`test_config.json`](../tests/development_tools/test_config.json). **§7.7** policy test asserts [`DEVELOPMENT_TOOLS_GUIDE.md`](DEVELOPMENT_TOOLS_GUIDE.md) §9 references Phase 2 / V5; **`root_ruff_compat_mirror`** exit criteria string enforced in inventory policy test. **`analyze_ai_work`**: docstring reminds thin scope (§5.3).
+
+**2026-04-13 (V5 continuation — audit observability + marker recalibration backlog)**: Added scoped backlog tasks for cache inventory/expansion, pip-audit elapsed-time diagnosis, domain-marker validation in `analyze_test_markers`, and audit-tier participation/report-inclusion matrix; example-marker findings currently skew heavily to changelog/guide citation bullets after broad heading matching rollback (live sample: ~665 hints across 3 files, dominated by changelogs) — add calibration task in **§5.3 — 3.0** before promoting advisory severity.
 
 ---
 
@@ -200,10 +202,42 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 - **Status**: **PARTIAL (2026-04-12)** — advisory scan shipped; strict gating / CI failure TBD.
 - **Done (2026-04-12)**: [`example_marker_validation.py`](docs/example_marker_validation.py); CLI flag `--check-example-markers` on [`analyze_documentation_sync.py`](docs/analyze_documentation_sync.py); unit tests [`test_example_marker_validation.py`](../tests/development_tools/test_example_marker_validation.py).
+- **Done (2026-04-13)**: Example-marker scan targets **`DEFAULT_DOCS`** from [`constants.py`](shared/constants.py) (merged config via [`get_constants_config()`](config/config.py): `paired_docs` + [`fix_version_sync` `ai_docs` / `docs`](../config/development_tools_config.json) + `default_docs_extra`), not only paired-doc endpoints — keeps the pass aligned with the approved documentation path list. Fallback if that set is empty: paired-doc keys only. Tests: [`test_documentation_sync_checker.py`](../tests/development_tools/test_documentation_sync_checker.py) `TestExampleMarkerScanPaths`.
 - **Open tasks**:
   - Tighten heuristics (reduce false positives); optional integration into default `doc-sync` / audit tiers once signal is trusted.
   - Validate example headings (`Examples:`, `Example Usage:`, `Example Code:`) beyond Markdown `##` patterns.
   - Report unmarked examples with file/line detail in consolidated output when promoted from advisory.
+  - **New (2026-04-13)**: Recalibrate broad heading matching after rollback so command/guidance citations (especially changelog bullets with many backtick paths) do not dominate advisory volume.
+    - Baseline from latest full-scope output: `example_marker_hint_count` ~= **665** with concentration in [`development_docs/CHANGELOG_DETAIL.md`](../development_docs/CHANGELOG_DETAIL.md), [`ai_development_docs/AI_CHANGELOG.md`](../ai_development_docs/AI_CHANGELOG.md), and [`development_tools/DEVELOPMENT_TOOLS_GUIDE.md`](DEVELOPMENT_TOOLS_GUIDE.md).
+    - Investigate which classes of lines should be considered true example intent vs reference/citation prose.
+    - Propose bounded filters (for example: heading-shape allowlist, changelog-aware guardrails, command-reference exclusions) and keep tests covering both desired broad sections (e.g., "Command Examples") and false-positive classes.
+    - Acceptance criteria: advisory count drops to a manageable triage level on this repo while still flagging intentionally unmarked "good/bad" path examples.
+
+#### 3.19 Caching coverage inventory and expansion (new)
+
+- **Status**: **PENDING (2026-04-13)**.
+- **Goal**: Build a definitive inventory of which tools currently use caching and where cache keys/invalidation live, then expand caching to high-cost uncached tools where safe.
+- **Scope**:
+  - Enumerate per-tool cache strategy (mtime cache, signature cache, requirements-hash cache, test-file cache, none), source(s) of invalidation, and artifact locations.
+  - Add a report/table artifact (JSON + markdown pointer) so this remains auditable in future audits.
+  - Prioritize additions for `analyze_pyright` and `analyze_bandit` (and any other high-latency tools identified).
+- **Acceptance criteria**:
+  - Inventory generated from code + runtime metadata (not hand-maintained only).
+  - Policy tests cover cache invalidation on config/tool/source changes for newly cached tools.
+  - Paired guides/documentation updated with cache behavior and troubleshooting notes.
+
+#### 3.20 AI_PRIORITIES `add_priority` guidance/details defaults — dev-tools guides (new)
+
+- **Status**: **PENDING (2026-04-13)**.
+- **Problem**: [`report_generation.py`](shared/service/report_generation.py) `add_priority` uses `guidance_defaults` / `details_defaults` keyed by priority title; many entries still point at **product** AI docs (e.g. `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`) rather than **development-tools-owned** guidance ([`DEVELOPMENT_TOOLS_GUIDE.md`](DEVELOPMENT_TOOLS_GUIDE.md), [`AI_DEVELOPMENT_TOOLS_GUIDE.md`](AI_DEVELOPMENT_TOOLS_GUIDE.md)).
+- **Goal**:
+  - Audit every `guidance_defaults` / `details_defaults` entry for dev-tools work items; where the actionable procedure lives in the tools suite, retarget bullets to the paired dev-tools guides (and only cite AI\_\* workflow/testing/error docs when the fix is genuinely product-wide).
+  - Extend [`DEVELOPMENT_TOOLS_GUIDE.md`](DEVELOPMENT_TOOLS_GUIDE.md) / [`AI_DEVELOPMENT_TOOLS_GUIDE.md`](AI_DEVELOPMENT_TOOLS_GUIDE.md) so they contain the **necessary procedural detail** that was previously only in AI\_\* docs (or add explicit “see also” bridges with enough context to act without opening five files).
+  - Prefer **config-relative** or **tool-output** pointers for “details” where that is the source of truth (JSON under `development_tools/**`, generated reports), not hardcoded product paths.
+- **Acceptance criteria**:
+  - Table or checklist in one of the paired dev-tools guides listing priority themes → primary guide section / JSON artifact (maintained alongside `add_priority` changes).
+  - Spot-check: regenerate **AI_PRIORITIES** after `audit` and confirm dev-tools-tier items point readers to dev-tools guides first.
+  - Tests unchanged or extended only if stringly defaults move behind a single helper (optional refactor).
 
 #### 3.2 Validation warnings cleanup (residual)
 
@@ -295,6 +329,16 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 - **Residual / follow-up**: CI/offline policy for pip-audit (`MHM_PIP_AUDIT_SKIP` env + paired guide §10); optional noise tuning via `static_analysis` config keys in [`config/config.py`](config/config.py); Radon/pydeps manual pilots remain §4.1.
 - **Related**: §5.4 — 4.1 (evaluation backlog); [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10.
 
+#### 4.3 Investigate `analyze_pip_audit` elapsed=`0.00s` runs (new)
+
+- **Status**: **PENDING (2026-04-13)**.
+- **Problem**: Some runs report near-zero elapsed time, which may indicate cache-hit fast-path, skip path (`MHM_PIP_AUDIT_SKIP`), wrapper timing bug, or subprocess timing/parse mismatch.
+- **Tasks**:
+  - Trace timing source from wrapper execution through JSON/report serialization.
+  - Distinguish and label explicit states: `executed`, `cache_hit`, `skipped_env`, `skipped_offline`, `error`.
+  - Ensure reports show meaningful elapsed semantics for each state (avoid ambiguous `0.00s` without context).
+  - Add tests for each state and expected elapsed/status fields.
+
 ---
 
 ### 5.5 Section 5 — Future enhancements
@@ -340,6 +384,20 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 - **Status**: **PENDING**. **Source**: `scripts/testing/memory_profiler.py`. **User priority**: TBD.
 - **Open**: Integrate or not; approach (new tool vs enhancement vs standalone); JSON/report + CLI; tests + fixture; metadata + docs + tier placement.
+
+#### 5.7 Expand `analyze_test_markers` for domain-marker requirements (new)
+
+- **Status**: **PENDING (2026-04-13)**.
+- **Goal**: Extend test-marker analysis to flag tests that do not include at least one **domain-based marker** (in addition to category markers).
+- **Tasks**:
+  - Define canonical domain marker taxonomy and config location (project-owned, configurable).
+  - Update analyzer to detect missing domain markers per test and summarize by file/module.
+  - Decide migration strategy for legacy tests (warn-only phase vs enforced failure threshold).
+  - Add fixture/demo tests for compliant/non-compliant combinations and edge cases.
+- **Acceptance criteria**:
+  - Reports expose counts + top files for missing domain markers.
+  - AI_PRIORITIES includes actionable guidance when violations exceed threshold.
+  - Guides updated with marker policy and examples.
 
 ---
 
@@ -479,6 +537,19 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
   - **Report generators**: Same class of policy as **§7.19** — which `development_docs/` (or other) markdown files may be written for which scope; needs an explicit matrix, not ad hoc skips.
 
 - **Recommendation**: Ship **§7.19** (full-repo vs dev-tools-only gating for the three reports) first. Then add a short **design doc** (CLI shape, which tiers honor scope, coverage behavior, DEV_TOOLS vs ad-hoc scope) and track implementation in phased PRs. **Related**: **§7.19**, **§7.18**, **§5.1 — 1.9**.
+
+#### 7.21 Audit-tier participation and report-inclusion matrix (new)
+
+- **Status**: **PENDING (2026-04-13)**.
+- **Goal**: Identify tools that do not run in audit tiers, explain why, and evaluate whether they should; also verify that outputs from tools that do run are represented in AI_STATUS/AI_PRIORITIES/CONSOLIDATED_REPORT.
+- **Tasks**:
+  - Generate tool matrix: `tool -> tier participation (quick/default/full) -> reason (dependency/runtime/manual-only)` from metadata + orchestration groups.
+  - List non-audit tools and classify rationale (`manual investigative`, `unsafe to auto-run`, `too slow`, `redundant`, `not wired yet`).
+  - Cross-check report inclusion: for each in-audit tool, identify where (if anywhere) its outputs appear in status/priorities/consolidated; flag missing or stale links.
+  - Recommend tier moves or report-integration changes with risk/performance notes.
+- **Acceptance criteria**:
+  - Matrix artifact checked in (JSON + human-readable summary).
+  - At least one policy test guards against silent drift between tool metadata/orchestration/report inclusion.
 
 ---
 

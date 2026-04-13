@@ -975,7 +975,8 @@ class DataLoadingMixin:
             'heading_numbering_issues': 0,
             'missing_address_issues': 0,
             'unconverted_link_issues': 0,
-            'path_drift_files': []
+            'path_drift_files': [],
+            'example_marker_hint_count': 0,
         }
         # Aggregate paired docs
         paired_docs = all_results.get('paired_docs', {})
@@ -1012,6 +1013,12 @@ class DataLoadingMixin:
         if isinstance(unconverted_links, dict):
             summary['unconverted_link_issues'] = unconverted_links.get('summary', {}).get('total_issues', 0)
             summary['total_issues'] += summary['unconverted_link_issues']
+        # Example markers (advisory): do not affect total_issues or PASS/FAIL
+        example_findings = all_results.get('example_marker_findings', {})
+        if isinstance(example_findings, dict):
+            summary['example_marker_hint_count'] = sum(
+                len(v) for v in example_findings.values() if isinstance(v, list)
+            )
         # Determine overall status
         if summary['total_issues'] > 0:
             summary['status'] = 'FAIL'

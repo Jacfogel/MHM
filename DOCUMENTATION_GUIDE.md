@@ -404,7 +404,7 @@ Best practices for AI collaborators:
     directory.
 -   Verify paths exist using file search tools before referencing.
 -   Use consistent formatting: backticks for file references (for
-    example, `core/service.py`).
+    [EXAMPLE] example, `core/service.py`).
 
 Path drift checker behavior:
 

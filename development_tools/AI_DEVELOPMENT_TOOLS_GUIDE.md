@@ -315,7 +315,7 @@ See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for fu
 
 **TODO sync**: `python development_tools/docs/fix_version_sync.py sync-todo --dry-run` prints the dry-run summary to stdout (no file edits). **`sync-todo --apply`** removes auto-cleanable completed checklist lines (`- [x]` / `- [X]` only); do not combine `--apply` with `--dry-run`.
 
-**Example markers (advisory, V5 Section 3.0)**: `python development_tools/docs/analyze_documentation_sync.py --check-example-markers` scans paired docs for Example sections with path-like backticks missing standard markers; use `--json` for machine-readable `example_marker_findings`.
+**Example markers (advisory, V5 Section 3.0)**: Tiered `audit` and `doc-sync` run `analyze_documentation_sync` with `--check-example-markers` over paths in **`DEFAULT_DOCS`** ([`shared/constants.py`](shared/constants.py), merged from `development_tools_config.json` via `get_constants_config()`). Hints are stored in doc-sync JSON and surfaced in **AI_STATUS** (summary), **CONSOLIDATED_REPORT**, and **AI_PRIORITIES** (Tier 4 when count > 0). Heuristics and exclusions: Section 10 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md). Standalone: `python development_tools/docs/analyze_documentation_sync.py --json --check-example-markers`.
 
 **Evaluation note (2026-04-10)**: **radon** remains an optional one-off install for CC sampling. **pre-commit** remains optional on developer machines only; audit truth stays `run_development_tools.py` + `tests/development_tools/`.
 

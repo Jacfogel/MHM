@@ -130,6 +130,32 @@ def test_aggregate_doc_sync_results_sums_component_issues(temp_project_copy: Pat
 
 
 @pytest.mark.unit
+def test_aggregate_doc_sync_results_example_markers_advisory_do_not_affect_total(
+    temp_project_copy: Path,
+):
+    """V5 §3.0: example marker hints are counted separately; they do not fail doc sync."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    all_results = {
+        "paired_docs": {},
+        "path_drift": {"summary": {"total_issues": 0}, "files": {}},
+        "ascii_compliance": {"summary": {"total_issues": 0}},
+        "heading_numbering": {"summary": {"total_issues": 0}},
+        "missing_addresses": {"summary": {"total_issues": 0}},
+        "unconverted_links": {"summary": {"total_issues": 0}},
+        "example_marker_findings": {
+            "a.md": ["line 1"],
+            "b.md": ["x", "y"],
+        },
+    }
+
+    summary = service._aggregate_doc_sync_results(all_results)
+
+    assert summary["status"] == "PASS"
+    assert summary["total_issues"] == 0
+    assert summary["example_marker_hint_count"] == 3
+
+
+@pytest.mark.unit
 def test_parse_ascii_and_heading_outputs_handle_invalid_json(temp_project_copy: Path):
     service = AIToolsService(project_root=str(temp_project_copy))
 

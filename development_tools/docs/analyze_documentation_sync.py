@@ -38,12 +38,23 @@ from core.logger import get_component_logger
 # Handle both relative and absolute imports
 if __name__ != "__main__" and __package__ and "." in __package__:
     from .. import config
-    from ..shared.constants import PAIRED_DOCS
+    from ..shared.constants import DEFAULT_DOCS, PAIRED_DOCS
 else:
     from development_tools import config
-    from development_tools.shared.constants import PAIRED_DOCS
+    from development_tools.shared.constants import DEFAULT_DOCS, PAIRED_DOCS
 
 logger = get_component_logger("development_tools")
+
+
+def _resolve_example_marker_scan_paths(paired_docs: dict[str, str]) -> list[str]:
+    """Paths to scan for example markers: config-derived DEFAULT_DOCS, else paired-doc keys."""
+    scan_targets = sorted(set(DEFAULT_DOCS))
+    if scan_targets:
+        return scan_targets
+    paired_fallback: list[str] = []
+    for human_doc, ai_doc in paired_docs.items():
+        paired_fallback.extend([human_doc, ai_doc])
+    return sorted(set(paired_fallback))
 
 
 class DocumentationSyncChecker:
@@ -209,11 +220,9 @@ def main():
             scan_paths_for_example_marker_findings,
         )
 
-        paired_roots: list[str] = []
-        for human_doc, ai_doc in checker.paired_docs.items():
-            paired_roots.extend([human_doc, ai_doc])
+        scan_targets = _resolve_example_marker_scan_paths(checker.paired_docs)
         findings = scan_paths_for_example_marker_findings(
-            checker.project_root, sorted(set(paired_roots))
+            checker.project_root, scan_targets
         )
         results["details"]["example_marker_findings"] = findings
         results["summary"]["example_marker_hint_count"] = sum(
@@ -237,7 +246,7 @@ def main():
                         print(f"     ... +{len(lines) - 20} more")
             else:
                 print(
-                    "\nExample marker scan: no advisory hints (or no paired files scanned)."
+                    "\nExample marker scan: no advisory hints (or no matching files under configured doc paths)."
                 )
 
 

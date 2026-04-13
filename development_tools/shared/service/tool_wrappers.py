@@ -868,6 +868,8 @@ class ToolWrappersMixin:
                 "heading_numbering": all_results.get("heading_numbering", {}),
                 "missing_addresses": all_results.get("missing_addresses", {}),
                 "unconverted_links": all_results.get("unconverted_links", {}),
+                "example_marker_hint_count": details.get("example_marker_hint_count", 0),
+                "example_marker_findings": details.get("example_marker_findings", {}),
             },
         }
         try:
@@ -905,9 +907,29 @@ class ToolWrappersMixin:
                                 "paired_doc_issues", 0
                             ),
                             "paired_docs": data["details"].get("paired_docs", {}),
+                            "example_marker_hint_count": data["details"].get(
+                                "example_marker_hint_count", 0
+                            ),
+                            "example_marker_findings": data["details"].get(
+                                "example_marker_findings", {}
+                            ),
                         },
                     }
                     checker.print_report(report_results)
+                    ex = report_results["details"].get("example_marker_findings") or {}
+                    if ex:
+                        print("\nEXAMPLE MARKER HINTS (advisory, V5 §3.0):")
+                        for fn, line_list in sorted(ex.items()):
+                            print(f"   {fn}:")
+                            for line in line_list[:20]:
+                                print(f"     - {line}")
+                            if len(line_list) > 20:
+                                print(f"     ... +{len(line_list) - 20} more")
+                    else:
+                        print(
+                            "\nExample marker scan: no advisory hints "
+                            "(or no paired files scanned)."
+                        )
                     output = output_buffer.getvalue()
                 finally:
                     sys.stdout = original_stdout

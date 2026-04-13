@@ -297,3 +297,19 @@ class TestIntegration:
         # Note: Other checks (path_drift, ascii_compliance, heading_numbering) are now
         # in separate tools and are called via service modules during audits
 
+
+class TestExampleMarkerScanPaths:
+    """Example-marker scan uses config-derived DEFAULT_DOCS (not paired-docs only)."""
+
+    @pytest.mark.unit
+    def test_resolve_example_marker_scan_paths_prefers_default_docs(self, monkeypatch):
+        resolve = checker_module._resolve_example_marker_scan_paths
+        monkeypatch.setattr(checker_module, "DEFAULT_DOCS", ("z.md", "a.md", "z.md"))
+        assert resolve({}) == ["a.md", "z.md"]
+
+    @pytest.mark.unit
+    def test_resolve_example_marker_scan_paths_falls_back_to_paired(self, monkeypatch):
+        resolve = checker_module._resolve_example_marker_scan_paths
+        monkeypatch.setattr(checker_module, "DEFAULT_DOCS", ())
+        assert resolve({"human.md": "ai.md"}) == ["ai.md", "human.md"]
+
