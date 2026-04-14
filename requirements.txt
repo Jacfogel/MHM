@@ -22,9 +22,9 @@ PyOpenGL>=3.1.7  # OpenGL bindings required for Qt on headless systems
 PyOpenGL-accelerate>=3.1.7  # Optional OpenGL acceleration
 
 # Testing dependencies (optional)
-pytest>=7.0.0  # For testing
+pytest>=9.0.3  # For testing; floor for CVE-2025-71176 / GHSA-6w46-j5rx-g56g (tmp dir privilege issue on UNIX)
 pytest-mock>=3.14.0  # For mocking in tests
-pytest-asyncio>=0.24.0  # For async test support
+pytest-asyncio>=1.2.0  # For async test support; 1.2+ supports pytest 9 (CVE fix floor)
 pytest-randomly>=3.15.0  # For order randomization to enforce determinism
 pytest-xdist>=3.5.0  # For parallel test execution
 pytest-timeout>=2.1.0  # For test timeout enforcement to prevent hanging
