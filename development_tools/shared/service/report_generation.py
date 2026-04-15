@@ -706,7 +706,7 @@ class ReportGenerationMixin:
         )
         out.append(
             "- **Note**: Detection is limited until command lines are populated reliably "
-            "(see AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md §3.18)."
+            "(see AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md Section 3.18)."
         )
         json_path = (
             self.project_root
@@ -2184,10 +2184,10 @@ class ReportGenerationMixin:
                 )
         elif skip_main_tracks:
             lines.append(
-                "- **Overall Coverage**: Not refreshed this pass (`audit --full --dev-tools-only`). "
-                "Run `python development_tools/run_development_tools.py audit --full` without "
-                "`--dev-tools-only` for full-repo coverage and "
-                "`development_docs/TEST_COVERAGE_REPORT.md`."
+                "- **Overall Coverage**: **Skipped** — this pass used **`audit --full --dev-tools-only`**, "
+                "so full-repo pytest/coverage did not run and `development_docs/TEST_COVERAGE_REPORT.md` "
+                "was not rebuilt. For updated overall %, run "
+                "`python development_tools/run_development_tools.py audit --full` (omit `--dev-tools-only`)."
             )
         elif coverage_summary and isinstance(coverage_summary, dict):
             overall = coverage_summary.get("overall") or {}
@@ -2229,9 +2229,10 @@ class ReportGenerationMixin:
 
             if skip_dev_track:
                 lines.append(
-                    "- **Development Tools Coverage**: Not refreshed this pass (full-repo Tier 3 scope). "
-                    "Run `python development_tools/run_development_tools.py audit --full --dev-tools-only` "
-                    "to update dev-tools coverage metrics."
+                    "- **Development Tools Coverage**: **Skipped** — this pass was full-repo Tier 3; the "
+                    "dev-tools coverage track did not run. To refresh `development_tools/` coverage and "
+                    "DEV_TOOLS_* metrics, run "
+                    "`python development_tools/run_development_tools.py audit --full --dev-tools-only`."
                 )
             elif dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
                 dev_pct = dev_tools_insights["overall_pct"]
@@ -2250,9 +2251,10 @@ class ReportGenerationMixin:
                 )
             if skip_dev_track:
                 lines.append(
-                    "- **Development Tools Coverage**: Not refreshed this pass (full-repo Tier 3 scope). "
-                    "Run `python development_tools/run_development_tools.py audit --full --dev-tools-only` "
-                    "to update dev-tools coverage metrics."
+                    "- **Development Tools Coverage**: **Skipped** — this pass was full-repo Tier 3; the "
+                    "dev-tools coverage track did not run. To refresh `development_tools/` coverage and "
+                    "DEV_TOOLS_* metrics, run "
+                    "`python development_tools/run_development_tools.py audit --full --dev-tools-only`."
                 )
             elif dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
                 dev_pct = dev_tools_insights["overall_pct"]
@@ -7016,8 +7018,10 @@ class ReportGenerationMixin:
 
         if skip_main_tracks_cr:
             lines.append(
-                "- **Overall Coverage**: Not refreshed this pass (`audit --full --dev-tools-only`). "
-                "Run a full audit without `--dev-tools-only` for product coverage."
+                "- **Overall Coverage**: **Skipped** - `audit --full --dev-tools-only` does not re-run "
+                "full-repo coverage. Run `python development_tools/run_development_tools.py audit --full` "
+                "(no `--dev-tools-only`) for updated product coverage and "
+                "`development_docs/TEST_COVERAGE_REPORT.md`."
             )
         elif coverage_summary and isinstance(coverage_summary, dict):
             overall = coverage_summary.get("overall") or {}
@@ -7069,8 +7073,9 @@ class ReportGenerationMixin:
             dev_tools_insights = self._get_dev_tools_coverage_insights()
             if skip_dev_track_cr:
                 lines.append(
-                    "- **Development Tools Coverage**: Not refreshed this pass (full-repo Tier 3 scope). "
-                    "Use `audit --full --dev-tools-only` to refresh."
+                    "- **Development Tools Coverage**: **Skipped** — full-repo Tier 3 omitted the "
+                    "dev-tools coverage track. Run `audit --full --dev-tools-only` to refresh "
+                    "development_tools coverage and DEV_TOOLS reports."
                 )
             elif dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
                 dev_pct = dev_tools_insights["overall_pct"]

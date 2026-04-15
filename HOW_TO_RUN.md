@@ -115,6 +115,8 @@ If you run the development tools full audit on this or another PC:
 - **First run**: The backup health check reports "no backups" (skipped) until you create backups via the app; that is normal on a fresh install and does not fail the audit.
 - **Commands**: `python development_tools/run_development_tools.py audit --full` runs the full Tier 3 audit (tests + coverage + reports). See [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) for details.
 
+- **Tier 3 freshness (coverage / pytest rows in AI_STATUS)**: A default `audit --full` refreshes full-repo coverage and Tier 3 test outcomes. If **AI_STATUS** still shows `cache_only_precheck` or stale numbers, run again with `--clear-cache` to bypass Tier 3 caches (see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) nuance index). To refresh **development_tools-only** coverage and DEV_TOOLS_* reports without re-running the full product test track, use `python development_tools/run_development_tools.py audit --full --dev-tools-only`.
+
 - **Never install dependencies globally** - this can cause conflicts
 - **If you see (.venv) in your terminal prompt**, you're using the virtual environment correctly
 - **To deactivate the virtual environment**, simply type `deactivate`

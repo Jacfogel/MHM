@@ -30,6 +30,15 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-04-14 - V5 continuation (scoped coverage copy, overlaps, Radon pilot, Pyright notes) **COMPLETED**
+- **Reports**: [`report_generation.py`](../development_tools/shared/service/report_generation.py) - Test Coverage lines use **Skipped** + reason for `audit --full --dev-tools-only` vs full-repo Tier 3 (clearer than "Not refreshed").
+- **HOW_TO_RUN**: Tier 3 freshness - `--clear-cache`, `audit --full --dev-tools-only` for DEV_TOOLS-only refresh; links to V5 nuance index.
+- **Overlaps**: [`EXPECTED_OVERLAPS`](../development_tools/shared/constants.py) adds `known limitations`, `scope`, `related reading`.
+- **Guides Section 10**: Radon manual pilot note (V5 Section 4.1); paired [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) / [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md).
+- **Section 7.6**: [`test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py) docstring - update root + owned Pyright together when adding keys.
+- **V5**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 2 snapshot + Section 1.5 cross-ref to HOW_TO_RUN.
+- **Doc hygiene (AI_PRIORITIES)**: `doc-fix --all` for ASCII + links; [`report_generation.py`](../development_tools/shared/service/report_generation.py) CONSOLIDATED dev-tools **Skipped** line uses `development_docs/TEST_COVERAGE_REPORT.md` (path drift); pytest cleanup note uses **Section 3.18**; [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) HOW_TO_RUN link corrected after auto-fix.
+
 ### 2026-04-13 - Example-marker scan: report noise + heuristics **COMPLETED**
 - **CI static logging check**: [`check_channel_loggers.py`](../development_tools/static_checks/check_channel_loggers.py) loads dev-tools `config.py` via importlib (avoids `development_tools` package init and `dotenv`); fixes GitHub **Logging Enforcement** on runners without `pip install`.
 - **CI tooling policy / doc parity**: Documented **`version-sync`** with a Section 2 list bullet (backtick-wrapped command name) in [`DEVELOPMENT_TOOLS_GUIDE.md`](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) and [`AI_DEVELOPMENT_TOOLS_GUIDE.md`](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) so `test_command_doc_parity_policy` passes (was `[EXAMPLE]`/inline only).
@@ -145,12 +154,6 @@ Guidelines:
 - Tier 3 Windows: `run_script` isolates `analyze_pyright` / `analyze_ruff` process groups; static-check scripts catch `KeyboardInterrupt` during tool subprocess so audits get JSON instead of uncaught tracebacks when SIGINT propagates.
 - Dev-tools-only audit: `_get_status_file_mtimes` uses `DEV_TOOLS_*.md` paths so report finalization does not false-warn about `AI_*.md` mtimes when those files were not written.
 - **Audit artifact scope**: `jsons/scopes/<full|dev_tools>/` and `reports/scopes/<full|dev_tools>/` for writes; legacy flat `jsons/` remains read-fallback for full scope; `--clear-cache` clears scoped trees; unused-imports CLI loads scoped results if flat file missing.
-
-### 2026-03-30 - Tier 3 scope split + portability/docs **COMPLETED**
-- **V5 Section 1.9**: Full `audit --full` runs main `run_test_coverage` only; `audit --full --dev-tools-only` runs `generate_dev_tools_coverage` only (no `generate_test_coverage_report` in that pass). Tier 3 outcome + status sections mark skipped tracks; `DEV_TOOLS_*.md` vs full-repo outputs documented in paired workflow Section 10.
-- **`analyze_config`**: Single `_PACKAGE_ROOT` fallback anchor; unit test for relative `get_project_root()`.
-- **Guides**: `PYRIGHT_ERROR_COUNT_MAX_DELTA` noted for optional Pyright parity (AI + human dev-tools guides).
-- **Benchmark note**: Section 1.5 `Measure-Command` recipe recorded in CHANGELOG_DETAIL for future domain-cache timing.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

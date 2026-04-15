@@ -1,5 +1,8 @@
 """Policy: Pyright and Ruff config files exist and are readable (portability baseline).
 
+When adding shared diagnostic keys, update **both** root `pyproject.toml` `[tool.pyright]` and
+`development_tools/config/pyrightconfig.json`, then extend `test_pyright_owned_matches_root_diagnostic_and_exclude_keys`.
+
 V4 §7.6 portability acceptance (incremental):
 - Owned `development_tools/config/pyrightconfig.json` is valid JSON and suitable for `pyright --project` in dev-tools audits.
 - Root Pyright settings live in `pyproject.toml` under `[tool.pyright]` (whole-repo / IDE baseline); policy tests parse TOML.

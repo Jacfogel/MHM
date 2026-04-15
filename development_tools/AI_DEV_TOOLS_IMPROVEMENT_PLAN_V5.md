@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Single forward-looking backlog after V4; collapsed history; actionable next steps  
 > **Style**: Direct and concise  
-> **Last Updated**: 2026-04-13  
+> **Last Updated**: 2026-04-14  
 > **Supersedes**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (keep V4 for detailed checkbox history)
 
 **Authoritative metrics**: [development_tools/AI_STATUS.md](AI_STATUS.md) and [development_tools/AI_PRIORITIES.md](AI_PRIORITIES.md) after `python development_tools/run_development_tools.py audit` or `audit --full`.
@@ -72,6 +72,8 @@ Use this block when a V4 **Status** line says “IN PROGRESS” or “COMPLETE�
 ## 2. Current state snapshot (rolling)
 
 Use **AI_STATUS.md** after each audit. Example **2026-04-08** (Tier 3 full, after `audit --full --strict`): overall test coverage **~69.9%**; development-tools coverage **~61.7%**; doc sync **PASS**; static analysis **CLEAN**; legacy references **CLEAN (0 files)**; duplicate-function groups **9**; high-coupling modules **51**; refresh **AI_PRIORITIES** / **CONSOLIDATED_REPORT** for module-refactor, coupling, and complexity counts before §6-style work.
+
+**2026-04-14 (V5 plan continuation — §2.8 copy, §4.1 Radon, §5.2 overlaps, §7.6 notes)**: **AI_STATUS** / **CONSOLIDATED_REPORT** Test Coverage lines now say **Skipped** with explicit reason (`--dev-tools-only` vs full-repo Tier 3 omitting dev-tools track) and the matching refresh command; [HOW_TO_RUN.md](../HOW_TO_RUN.md) §5.1 documents Tier 3 freshness (`--clear-cache`, `audit --full --dev-tools-only`). **EXPECTED_OVERLAPS** adds generic headings (`known limitations`, `scope`, `related reading`). Paired guides §10: Radon pilot alignment with V5 §4.1 (manual vs `analyze_functions`). **test_pyright_config_paths.py** docstring: update both Pyright configs when adding shared keys. Baseline: `audit --full --dev-tools-only` to refresh DEV_TOOLS_* artifacts when needed.
 
 **2026-04-08 (this plan iteration)**: §2.8 scoped-report copy in `DEV_TOOLS_*` (snapshot coverage vs full-repo staleness, scope notes, consolidated reference links); overlap analyzer filters numbered generic headings; §4.1 external-tool stance recorded in paired guides §10; §1.5 benchmark recipe noted in paired changelogs (numeric wall-clock still machine-local).
 
@@ -154,7 +156,7 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 - **Status**: **IN PROGRESS** (core behavior done in V4).
 - **Open**:
   - Compare **full** vs **domain-filtered** runs and document **numeric** results in changelog — defer until a dedicated benchmark session captures stable numbers (machine-dependent).
-  - **Methodology (V4)**: On Windows PowerShell, `Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache }` vs the same **without** `--no-domain-cache` after a warm cache; compare wall-clock and logs for hit/miss. Paired changelog may reference the recipe without numbers until benchmarks exist. **2026-04-06**: The same style of comparison applies to unified full-repo runs (`python development_tools/run_development_tools.py audit --full` with vs without `--no-domain-cache` / `--clear-cache` as appropriate) when capturing domain-cache ROI after §1.9; numbers remain machine-specific.
+  - **Methodology (V4)**: On Windows PowerShell, `Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache }` vs the same **without** `--no-domain-cache` after a warm cache; compare wall-clock and logs for hit/miss. Paired changelog may reference the recipe without numbers until benchmarks exist. **2026-04-06**: The same style of comparison applies to unified full-repo runs (`python development_tools/run_development_tools.py audit --full` with vs without `--no-domain-cache` / `--clear-cache` as appropriate) when capturing domain-cache ROI after §1.9; numbers remain machine-specific. **2026-04-14**: [HOW_TO_RUN.md](../HOW_TO_RUN.md) §5.1 cross-links stale Tier 3 rows to `--clear-cache` and documents `audit --full --dev-tools-only` for DEV_TOOLS-only refresh (operational complement to numeric benchmarks).
 
 #### 1.8 Improve slow development tools tests (residual)
 

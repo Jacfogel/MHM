@@ -626,6 +626,8 @@ Development-tools modules may import `core.logger` for structured logging. All o
 
 - **Recorded decisions (2026-04-09-10)**: **Radon** and **pydeps** remain **manual-only** pilots. **vulture** / **pre-commit** unchanged: optional. Prefer Tier 2 `module-refactor-candidates` and `analyze_functions` JSON as the in-audit complexity signals; use Radon for spot-checks only.
 
+- **Radon pilot (V5 Section 4.1, 2026-04-14)**: Keep Radon **out of default audit tiers** until policy defines tolerances vs `analyze_functions` / `analyze_module_refactor_candidates`. When triaging, run `python -m radon cc <path> -a -s`, compare ranks to `development_tools/functions/jsons/analyze_functions_results.json` (complexity) and refactor-candidate JSON; document notable divergences in changelogs only if you change thresholds or add a wrapper.
+
 - **Manual commands (Windows PowerShell, repo root, venv active)** - still valid for ad-hoc triage:
   - `python development_tools/static_checks/analyze_bandit.py --json` / `python development_tools/static_checks/analyze_pip_audit.py --json` (same JSON shape as the audit subprocess).
   - `python -m bandit -c pyproject.toml -r core communication ui ...` (optional; audit uses the same first-party roots + `[tool.bandit]` excludes).
