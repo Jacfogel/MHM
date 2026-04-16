@@ -1,0 +1,79 @@
+{
+  "description": "Cache strategies derived from tool_metadata.CACHE_AWARE_TOOLS; details from wrapper/orchestration semantics.",
+  "entries": [
+    {
+      "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/*bandit*.json",
+      "implementation": "development_tools/shared/service/tool_wrappers.py _try_static_check_cache / _save_static_check_cache",
+      "invalidation": "Static check JSON mtime vs source tree",
+      "strategy": "mtime_json_cache",
+      "tool": "analyze_bandit"
+    },
+    {
+      "artifact_glob": "development_tools/**/jsons/scopes/*/docs/*.json",
+      "implementation": "orchestration cache metadata; doc sync payloads",
+      "invalidation": "Doc file mtimes and paired-doc registry",
+      "strategy": "paired_doc_cache",
+      "tool": "analyze_documentation_sync"
+    },
+    {
+      "artifact_glob": "development_tools/**/jsons/scopes/*/legacy/*.json",
+      "implementation": "details.cache in tool JSON; orchestration CACHE_AWARE_TOOLS",
+      "invalidation": "Content hash / scan metadata in tool payload",
+      "strategy": "marker_scan_cache",
+      "tool": "analyze_legacy_references"
+    },
+    {
+      "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/.analyze_pip_audit_requirements_cache.json",
+      "implementation": "development_tools/shared/service/tool_wrappers.py _try_pip_audit_cache / _save_pip_audit_cache",
+      "invalidation": "SHA-256 of requirements.txt + pyproject.toml",
+      "strategy": "requirements_hash_json_cache",
+      "tool": "analyze_pip_audit"
+    },
+    {
+      "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/*pyright*.json",
+      "implementation": "development_tools/shared/service/tool_wrappers.py _try_static_check_cache / _save_static_check_cache",
+      "invalidation": "Static check JSON mtime vs source tree",
+      "strategy": "mtime_json_cache",
+      "tool": "analyze_pyright"
+    },
+    {
+      "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/*ruff*.json",
+      "implementation": "development_tools/shared/service/tool_wrappers.py _try_static_check_cache / _save_static_check_cache",
+      "invalidation": "Static check JSON mtime vs source tree",
+      "strategy": "mtime_json_cache",
+      "tool": "analyze_ruff"
+    },
+    {
+      "artifact_glob": "development_tools/**/jsons/scopes/*/imports/*.json",
+      "implementation": "imports analyzer + optional cache stats in JSON details",
+      "invalidation": "Ruff batch paths keyed by Path.resolve(); tool JSON mtime",
+      "strategy": "ruff_batch_and_optional_tool_json",
+      "tool": "analyze_unused_imports"
+    },
+    {
+      "artifact_glob": "development_tools/tests/jsons/coverage_dev_tools.json",
+      "implementation": "development_tools/tests/run_test_coverage.py (coverage metadata)",
+      "invalidation": "Per test-file cache keys; see coverage JSON _metadata",
+      "strategy": "domain_test_file_cache_merge",
+      "tool": "generate_dev_tools_coverage"
+    },
+    {
+      "artifact_glob": "development_tools/tests/jsons/coverage.json",
+      "implementation": "development_tools/tests/run_test_coverage.py (coverage metadata)",
+      "invalidation": "Per test-file cache keys; see coverage JSON _metadata",
+      "strategy": "domain_test_file_cache_merge",
+      "tool": "run_test_coverage"
+    }
+  ],
+  "expansion_candidates": [
+    {
+      "note": "Already mtime-cached; further invalidation tuning via config only.",
+      "tool": "analyze_pyright"
+    },
+    {
+      "note": "Already mtime-cached; Bandit targets exclude tests/ by default.",
+      "tool": "analyze_bandit"
+    }
+  ],
+  "schema_version": 1
+}

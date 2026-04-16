@@ -55,8 +55,16 @@ def _marker_within_window(lines: list[str], idx: int) -> bool:
     return any(_line_has_example_marker(lines[j]) for j in range(lo, hi))
 
 
+def _is_changelog_style_doc(relative_path: str) -> bool:
+    """Changelog files cite many backtick paths in bullets; skip advisory scan (V5 §3.0)."""
+    name = Path(relative_path.replace("\\", "/")).name.lower()
+    return "changelog" in name and name.endswith(".md")
+
+
 def _is_excluded_example_marker_doc(relative_path: str) -> bool:
     """Use historical preserve exclusions to skip citation-heavy docs."""
+    if _is_changelog_style_doc(relative_path):
+        return True
     rel = relative_path.replace("\\", "/").strip()
     name = Path(rel).name
     for pattern in HISTORICAL_PRESERVE_FILES:

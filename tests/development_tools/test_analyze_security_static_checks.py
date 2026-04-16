@@ -47,6 +47,8 @@ def test_run_pip_audit_skip_env_skips_subprocess(
     assert out["summary"]["status"] == "PASS"
     assert out["summary"]["total_issues"] == 0
     assert out["details"].get("pip_audit_skipped") is True
+    assert out["details"].get("pip_audit_execution_state") == "skipped_env"
+    assert out["details"].get("pip_audit_subprocess_seconds") == 0.0
     monkeypatch.delenv("MHM_PIP_AUDIT_SKIP", raising=False)
 
 
@@ -68,6 +70,8 @@ def test_run_pip_audit_counts_vulnerabilities(mock_run: MagicMock, tmp_path) -> 
     assert out["summary"]["total_issues"] == 1
     assert out["summary"]["files_affected"] == 1
     assert out["summary"]["status"] == "WARN"
+    assert out["details"].get("pip_audit_execution_state") == "executed_subprocess"
+    assert out["details"].get("pip_audit_subprocess_seconds") is not None
 
 
 @pytest.mark.unit

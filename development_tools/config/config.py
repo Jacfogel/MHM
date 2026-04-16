@@ -738,6 +738,8 @@ def _derive_default_docs_list() -> list[str]:
 
 TEST_MARKERS_BASE: dict[str, Any] = {
     "categories": ["unit", "integration", "behavior", "ui"],
+    # Optional domain markers (e.g. core, communication) — empty list disables the advisory gap check (V5 §5.7).
+    "domain_markers": [],
     "transient_data_path_markers": [
         "/tmp/",  # nosec B108 — string markers for pytest path detection, not tempfile API use
         "/tmp_pytest_runtime/",  # nosec B108

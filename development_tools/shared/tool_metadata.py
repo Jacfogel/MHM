@@ -555,6 +555,7 @@ CACHE_AWARE_TOOLS: frozenset[str] = frozenset({
     "analyze_unused_imports",
     "analyze_legacy_references",
     "analyze_documentation_sync",
+    "analyze_pip_audit",
 })
 
 

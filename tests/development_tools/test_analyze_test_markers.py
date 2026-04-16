@@ -24,6 +24,10 @@ class _FakeAnalyzer:
     def __init__(self) -> None:
         self.find_missing_markers_ast: Callable[..., Any] = lambda: []
         self.analyze_markers: Callable[..., Any] = lambda: {}
+        self.domain_markers: tuple[str, ...] = ()
+
+    def get_last_domain_marker_gaps(self) -> list:
+        return []
 
 TMP_ROOT = (
     Path(__file__).resolve().parents[2]
@@ -284,6 +288,8 @@ def test_main_check_json_output(monkeypatch, capsys):
     assert output["summary"]["total_issues"] == 1
     assert output["summary"]["files_affected"] == 1
     assert output["details"]["missing_count"] == 1
+    assert output["details"]["missing_domain_count"] == 0
+    assert output["details"]["missing_domain"] == []
 
 
 @pytest.mark.unit

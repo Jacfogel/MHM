@@ -308,6 +308,8 @@ See section 8 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for fu
 - **Portability (V5 Section 7.6)**: Structural checks today (valid configs, shared `tests/data` exclusions). Full diagnostic parity between root and owned Pyright remains goal-oriented; use `PYRIGHT_ERROR_COUNT_MAX_DELTA` for incremental tightening. Optional `pytest -m e2e` smoke in [`tests/development_tools/test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py).
 - **Human detail**: Section 9 in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
 
+**AI_PRIORITIES defaults**: Theme -> guide -> JSON table: [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
+
 ---
 
 ## 10. External tools evaluation (Bandit, pip-audit, Radon, pre-commit)

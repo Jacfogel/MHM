@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # TOOL_TIER: supporting
 # TOOL_PORTABILITY: portable
+from __future__ import annotations
 
 """
 analyze_test_markers.py
@@ -127,6 +128,16 @@ class TestMarkerAnalyzer:
             if str(token).strip()
         ) or TEST_MARKER_AI_PATH_TOKENS
 
+        dm = test_markers_config.get("domain_markers", [])
+        if isinstance(dm, list) and dm:
+            self.domain_markers: tuple[str, ...] = tuple(
+                str(x).strip() for x in dm if str(x).strip()
+            )
+        else:
+            self.domain_markers = ()
+
+        self._last_marker_finder: MissingMarkerFinder | None = None
+
     @staticmethod
     def _normalize_rel_path(path_value: str) -> str:
         """Normalize relative path strings for cross-platform substring matching."""
@@ -226,13 +237,23 @@ class TestMarkerAnalyzer:
 
     def find_missing_markers_ast(self) -> list[tuple[str, int, str, str]]:
         """Find missing markers using AST analysis (more accurate)."""
-        finder = MissingMarkerFinder(category_markers=self.category_markers)
+        finder = MissingMarkerFinder(
+            category_markers=self.category_markers,
+            domain_markers=self.domain_markers,
+        )
         test_files = self.find_test_files()
 
         for file_path in test_files:
             finder.analyze_file(file_path)
 
+        self._last_marker_finder = finder
         return finder.missing
+
+    def get_last_domain_marker_gaps(self) -> list[tuple[str, int, str, str]]:
+        """Advisory: tests with a category marker but no configured domain marker (V5 §5.7)."""
+        if self._last_marker_finder is None:
+            return []
+        return self._last_marker_finder.missing_domain
 
     def add_markers(self, dry_run: bool = False) -> dict:
         """
@@ -377,9 +398,15 @@ class TestMarkerAnalyzer:
 class MissingMarkerFinder:
     """AST-based finder for missing markers (more accurate than regex)."""
 
-    def __init__(self, category_markers: tuple[str, ...] | None = None):
+    def __init__(
+        self,
+        category_markers: tuple[str, ...] | None = None,
+        domain_markers: tuple[str, ...] | None = None,
+    ):
         self.missing = []
+        self.missing_domain: list[tuple[str, int, str, str]] = []
         self.category_markers = set(category_markers or TEST_CATEGORY_MARKERS)
+        self.domain_markers = set(domain_markers or ())
 
     def _is_pytest_fixture(self, decorators):
         for dec in decorators:
@@ -415,14 +442,39 @@ class MissingMarkerFinder:
                     return True
         return False
 
-    def process_function(self, node, file_path, inherited_category=False):
+    def has_domain_marker(self, decorators):
+        if not self.domain_markers:
+            return False
+        for dec in decorators:
+            target = dec
+            if isinstance(dec, ast.Call):
+                target = dec.func
+            if isinstance(target, ast.Attribute):
+                if target.attr in self.domain_markers:
+                    value = target.value
+                    if isinstance(value, ast.Attribute) and value.attr == "mark":
+                        return True
+                    if isinstance(value, ast.Name) and value.id == "mark":
+                        return True
+            elif isinstance(target, ast.Name):
+                if target.id in self.domain_markers:
+                    return True
+        return False
+
+    def process_function(
+        self, node, file_path, inherited_category=False, inherited_domain=False
+    ):
         if not node.name.startswith("test_"):
             return
         if self._is_pytest_fixture(node.decorator_list):
             return
-        if inherited_category or self.has_category_marker(node.decorator_list):
+        has_cat = inherited_category or self.has_category_marker(node.decorator_list)
+        has_dom = inherited_domain or self.has_domain_marker(node.decorator_list)
+        if not has_cat:
+            self.missing.append((str(file_path), node.lineno, node.name, "function"))
             return
-        self.missing.append((str(file_path), node.lineno, node.name, "function"))
+        if self.domain_markers and not has_dom:
+            self.missing_domain.append((str(file_path), node.lineno, node.name, "function"))
 
     def _class_marked_not_test(self, node):
         for stmt in node.body:
@@ -436,17 +488,28 @@ class MissingMarkerFinder:
                             return True
         return False
 
-    def process_class(self, node, file_path, inherited_category=False):
+    def process_class(self, node, file_path, inherited_category=False, inherited_domain=False):
         if self._class_marked_not_test(node):
             return
         if not node.name.startswith("Test") and not inherited_category:
             return
-        class_has = inherited_category or self.has_category_marker(node.decorator_list)
+        class_has_cat = inherited_category or self.has_category_marker(node.decorator_list)
+        class_has_dom = inherited_domain or self.has_domain_marker(node.decorator_list)
         for stmt in node.body:
             if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                self.process_function(stmt, file_path, inherited_category=class_has)
+                self.process_function(
+                    stmt,
+                    file_path,
+                    inherited_category=class_has_cat,
+                    inherited_domain=class_has_dom,
+                )
             elif isinstance(stmt, ast.ClassDef):
-                self.process_class(stmt, file_path, inherited_category=class_has)
+                self.process_class(
+                    stmt,
+                    file_path,
+                    inherited_category=class_has_cat,
+                    inherited_domain=class_has_dom,
+                )
 
     def analyze_file(self, file_path):
         try:
@@ -520,6 +583,11 @@ def main():
                 {"file": f, "line": line_number, "name": n, "type": t}
                 for f, line_number, n, t in missing
             ]
+            domain_gaps = analyzer.get_last_domain_marker_gaps()
+            missing_domain_list = [
+                {"file": f, "line": line_number, "name": n, "type": t}
+                for f, line_number, n, t in domain_gaps
+            ]
             files_affected = len({item["file"] for item in missing_list if item.get("file")})
             standard_result = {
                 "summary": {
@@ -529,6 +597,9 @@ def main():
                 "details": {
                     "missing_count": len(missing_list),
                     "missing": missing_list,
+                    "missing_domain_count": len(missing_domain_list),
+                    "missing_domain": missing_domain_list,
+                    "domain_markers_configured": list(analyzer.domain_markers),
                 },
             }
             print(json.dumps(standard_result, indent=2))

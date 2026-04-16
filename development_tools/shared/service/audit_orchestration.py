@@ -6,6 +6,7 @@ and managing audit state.
 """
 # pyright: reportAttributeAccessIssue=false
 
+import contextlib
 import json
 import os
 import time
@@ -958,6 +959,8 @@ class AuditOrchestrationMixin:
             "cache_only": "utilized",
             "partial_cache": "partially_utilized",
             "cold_scan": "invalidated",
+            "cache_hit": "utilized",
+            "skipped_env": "skipped",
             "unknown": "none_found",
         }
         return mapping.get(normalized, "none_found")
@@ -1042,9 +1045,27 @@ class AuditOrchestrationMixin:
             detail_fragment = " detailed_report=development_docs/TEST_COVERAGE_REPORT.md"
         elif tool_name == "generate_legacy_reference_report" and success:
             detail_fragment = " detailed_report=development_docs/LEGACY_REFERENCE_REPORT.md"
+        pip_audit_fragment = ""
+        if tool_name == "analyze_pip_audit" and isinstance(result, dict):
+            pdata = result.get("data")
+            if isinstance(pdata, dict):
+                det = pdata.get("details", {})
+                if isinstance(det, dict):
+                    pstate = str(det.get("pip_audit_execution_state") or "").strip()
+                    psub = det.get("pip_audit_subprocess_seconds")
+                    if pstate == "requirements_lock_cache_hit":
+                        pip_audit_fragment = " pip_audit=cache_hit(no_subprocess)"
+                    elif pstate == "skipped_env":
+                        pip_audit_fragment = " pip_audit=skipped_env"
+                    elif pstate == "executed_subprocess" and isinstance(
+                        psub, (int, float)
+                    ):
+                        pip_audit_fragment = f" pip_audit=subprocess={float(psub):.2f}s"
+                    elif pstate == "error":
+                        pip_audit_fragment = " pip_audit=error"
         message = (
             f"Completed {tool_name}: {status}{issue_fragment}"
-            f"{cache_fragment} elapsed={elapsed_time:.2f}s{detail_fragment}"
+            f"{cache_fragment} elapsed={elapsed_time:.2f}s{pip_audit_fragment}{detail_fragment}"
         )
         if success:
             logger.info(message)
@@ -1132,6 +1153,23 @@ class AuditOrchestrationMixin:
                     cache_data = details.get('cache', {}) if isinstance(details, dict) else {}
                     if isinstance(cache_data, dict):
                         metadata.update(cache_data)
+
+                if tool_name == 'analyze_pip_audit':
+                    details = data.get('details', {})
+                    if isinstance(details, dict):
+                        state = details.get('pip_audit_execution_state')
+                        if state:
+                            metadata['pip_audit_execution_state'] = state
+                        sub = details.get('pip_audit_subprocess_seconds')
+                        if sub is not None:
+                            with contextlib.suppress(TypeError, ValueError):
+                                metadata['pip_audit_subprocess_seconds'] = float(sub)
+                        if state == 'requirements_lock_cache_hit':
+                            metadata.setdefault('cache_mode', 'cache_hit')
+                        elif state == 'executed_subprocess':
+                            metadata.setdefault('cache_mode', 'cold_scan')
+                        elif state == 'skipped_env':
+                            metadata.setdefault('cache_mode', 'skipped_env')
 
         if tool_name in {'run_test_coverage', 'generate_dev_tools_coverage'}:
             coverage_metadata = self._extract_coverage_cache_metadata(tool_name)

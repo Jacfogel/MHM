@@ -346,6 +346,25 @@ class ReportGenerationMixin:
             }
         return result
 
+    def _pip_audit_elapsed_suffix(self, details: dict[str, Any]) -> str:
+        """Clarify pip-audit timing semantics for consolidated-style static-analysis lines (V5 §4.3)."""
+        if not isinstance(details, dict):
+            return ""
+        state = str(details.get("pip_audit_execution_state") or "").strip()
+        if state == "executed_subprocess":
+            sub = details.get("pip_audit_subprocess_seconds")
+            if sub is not None:
+                try:
+                    return f" — pip-audit subprocess ~{float(sub):.2f}s"
+                except (TypeError, ValueError):
+                    return ""
+            return ""
+        if state == "requirements_lock_cache_hit":
+            return " — reused cached pip-audit JSON (requirements unchanged)"
+        if state == "skipped_env":
+            return " — pip-audit subprocess skipped (MHM_PIP_AUDIT_SKIP)"
+        return ""
+
     def _extract_file_issue_counts(self, tool_data: Any) -> dict[str, int]:
         """Extract per-file issue counts from standardized tool payload."""
         if not isinstance(tool_data, dict):
@@ -2448,6 +2467,7 @@ class ReportGenerationMixin:
                 f"- **pip-audit**: {pip_audit_summary.get('status', 'UNKNOWN')} "
                 f"({to_int(pip_audit_summary.get('total_issues')) or 0} vulnerability finding(s) across "
                 f"{to_int(pip_audit_summary.get('files_affected')) or 0} package(s))"
+                f"{self._pip_audit_elapsed_suffix(pip_audit_details)}"
             )
             if not ruff_available:
                 message = str(ruff_details.get("message", "")).strip()
@@ -3618,28 +3638,28 @@ class ReportGenerationMixin:
             normalized_tier = max(1, min(4, tier))
 
             guidance_defaults: dict[str, str] = {
-                "Stabilize documentation drift": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Stabilize documentation drift": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md (doc-sync), ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
                 "Add docstrings to missing functions": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Update function registry": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Add error handling to missing functions": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
                 "Modernize error handling (Phase 1 + Phase 2)": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
                 "Raise coverage for domains below target": "ai_development_docs/AI_TESTING_GUIDE.md",
-                "Raise development tools coverage": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md and ai_development_docs/AI_TESTING_GUIDE.md",
-                "Reduce dependency pattern risk": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Raise development tools coverage": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_TESTING_GUIDE.md",
+                "Reduce dependency pattern risk": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md (CONSOLIDATED_REPORT), ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Fix development tools import boundary violations": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md (section 8.5)",
                 "Remove legacy compatibility code (after full call-site migration)": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
                 "Update tools to use centralized config": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
                 "Add docstrings to handler classes": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Add pytest category markers to tests": "ai_development_docs/AI_TESTING_GUIDE.md",
-                "Review orphaned pytest worker processes (Windows)": "ai_development_docs/AI_TESTING_GUIDE.md",
-                "Remove obvious unused imports": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Investigate possible duplicate functions/methods": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Consider refactoring large or high-complexity modules": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md, ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
-                "Refactor high-complexity functions": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md, ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
-                "Investigate and correct test failures/errors": "ai_development_docs/AI_TESTING_GUIDE.md",
+                "Add pytest category markers to tests": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md (test markers), ai_development_docs/AI_TESTING_GUIDE.md",
+                "Review orphaned pytest worker processes (Windows)": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_TESTING_GUIDE.md",
+                "Remove obvious unused imports": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+                "Investigate possible duplicate functions/methods": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Consider refactoring large or high-complexity modules": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Refactor high-complexity functions": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Investigate and correct test failures/errors": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_TESTING_GUIDE.md",
                 "Investigate backup health failures": "ai_development_docs/AI_BACKUP_GUIDE.md",
-                "Consolidate documentation files": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Review documentation overlaps": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Consolidate documentation files": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Review documentation overlaps": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Triage documentation example-marker hints": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md (section 3.6)",
             }
             details_defaults: dict[str, str] = {
@@ -7372,6 +7392,7 @@ class ReportGenerationMixin:
                 f"- **pip-audit**: {pip_audit_summary.get('status', 'UNKNOWN')} "
                 f"({to_int(pip_audit_summary.get('total_issues')) or 0} vulnerability finding(s), "
                 f"{to_int(pip_audit_summary.get('files_affected')) or 0} package(s))"
+                f"{self._pip_audit_elapsed_suffix(pip_audit_details)}"
             )
             if not ruff_available:
                 message = str(ruff_details.get("message", "")).strip()

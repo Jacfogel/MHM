@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Single forward-looking backlog after V4; collapsed history; actionable next steps  
 > **Style**: Direct and concise  
-> **Last Updated**: 2026-04-14  
+> **Last Updated**: 2026-04-15  
 > **Supersedes**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (keep V4 for detailed checkbox history)
 
 **Authoritative metrics**: [development_tools/AI_STATUS.md](AI_STATUS.md) and [development_tools/AI_PRIORITIES.md](AI_PRIORITIES.md) after `python development_tools/run_development_tools.py audit` or `audit --full`.
@@ -70,6 +70,8 @@ Use this block when a V4 **Status** line says “IN PROGRESS” or “COMPLETE�
 ---
 
 ## 2. Current state snapshot (rolling)
+
+**2026-04-15 (V5 plan execution — §4.3 pip-audit timing, §7.21 matrix, §3.19 cache inventory, §3.20 priorities, §3.0 changelog example-marker skip, §5.7 domain markers config)**: `pip_audit_execution_state` / subprocess seconds in JSON and logs; checked-in `config/audit_tool_matrix.json` + `config/tool_cache_inventory.json` with policy tests; `add_priority` defaults retarget dev-tools guides (paired §9.1); example-marker scan skips `*CHANGELOG*.md`; optional `test_markers.domain_markers` drives advisory `missing_domain` in `analyze_test_markers` JSON; see changelogs 2026-04-15.
 
 Use **AI_STATUS.md** after each audit. Example **2026-04-08** (Tier 3 full, after `audit --full --strict`): overall test coverage **~69.9%**; development-tools coverage **~61.7%**; doc sync **PASS**; static analysis **CLEAN**; legacy references **CLEAN (0 files)**; duplicate-function groups **9**; high-coupling modules **51**; refresh **AI_PRIORITIES** / **CONSOLIDATED_REPORT** for module-refactor, coupling, and complexity counts before §6-style work.
 
@@ -217,7 +219,7 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 #### 3.19 Caching coverage inventory and expansion (new)
 
-- **Status**: **PENDING (2026-04-13)**.
+- **Status**: **PARTIAL (2026-04-15)** — inventory artifact and policy test shipped; expansion of additional caches remains opportunistic.
 - **Goal**: Build a definitive inventory of which tools currently use caching and where cache keys/invalidation live, then expand caching to high-cost uncached tools where safe.
 - **Scope**:
   - Enumerate per-tool cache strategy (mtime cache, signature cache, requirements-hash cache, test-file cache, none), source(s) of invalidation, and artifact locations.
@@ -230,7 +232,7 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 #### 3.20 AI_PRIORITIES `add_priority` guidance/details defaults — dev-tools guides (new)
 
-- **Status**: **PENDING (2026-04-13)**.
+- **Status**: **COMPLETE (2026-04-15)** — defaults retargeted in `report_generation.add_priority`; paired guides §9.1 theme table.
 - **Problem**: [`report_generation.py`](shared/service/report_generation.py) `add_priority` uses `guidance_defaults` / `details_defaults` keyed by priority title; many entries still point at **product** AI docs (e.g. `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`) rather than **development-tools-owned** guidance ([`DEVELOPMENT_TOOLS_GUIDE.md`](DEVELOPMENT_TOOLS_GUIDE.md), [`AI_DEVELOPMENT_TOOLS_GUIDE.md`](AI_DEVELOPMENT_TOOLS_GUIDE.md)).
 - **Goal**:
   - Audit every `guidance_defaults` / `details_defaults` entry for dev-tools work items; where the actionable procedure lives in the tools suite, retarget bullets to the paired dev-tools guides (and only cite AI\_\* workflow/testing/error docs when the fix is genuinely product-wide).
@@ -333,13 +335,9 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 #### 4.3 Investigate `analyze_pip_audit` elapsed=`0.00s` runs (new)
 
-- **Status**: **PENDING (2026-04-13)**.
-- **Problem**: Some runs report near-zero elapsed time, which may indicate cache-hit fast-path, skip path (`MHM_PIP_AUDIT_SKIP`), wrapper timing bug, or subprocess timing/parse mismatch.
-- **Tasks**:
-  - Trace timing source from wrapper execution through JSON/report serialization.
-  - Distinguish and label explicit states: `executed`, `cache_hit`, `skipped_env`, `skipped_offline`, `error`.
-  - Ensure reports show meaningful elapsed semantics for each state (avoid ambiguous `0.00s` without context).
-  - Add tests for each state and expected elapsed/status fields.
+- **Status**: **COMPLETE (2026-04-15)** — JSON `details` carry `pip_audit_execution_state` and `pip_audit_subprocess_seconds`; requirements-lock cache path injects `requirements_lock_cache_hit`; logs and consolidated static-analysis lines annotate semantics (V5 execution slice).
+- **Problem (resolved)**: Near-zero orchestration time on cache hit or env skip was ambiguous vs subprocess duration.
+- **Delivered**: Subprocess wall time measured in `analyze_pip_audit.run_pip_audit`; wrapper deep-copy labels cache hits; `CACHE_AWARE_TOOLS` + timing metadata; report suffix helper; tests in `test_analyze_security_static_checks.py`.
 
 ---
 
@@ -542,7 +540,7 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 
 #### 7.21 Audit-tier participation and report-inclusion matrix (new)
 
-- **Status**: **PENDING (2026-04-13)**.
+- **Status**: **COMPLETE (2026-04-15)** — `development_tools/shared/audit_tool_matrix.py`, `config/audit_tool_matrix.json`, `test_audit_tool_matrix_policy.py`.
 - **Goal**: Identify tools that do not run in audit tiers, explain why, and evaluate whether they should; also verify that outputs from tools that do run are represented in AI_STATUS/AI_PRIORITIES/CONSOLIDATED_REPORT.
 - **Tasks**:
   - Generate tool matrix: `tool -> tier participation (quick/default/full) -> reason (dependency/runtime/manual-only)` from metadata + orchestration groups.

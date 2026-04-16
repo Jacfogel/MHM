@@ -74,6 +74,20 @@ Use `core/foo.py` for the hook.
 
 
 @pytest.mark.unit
+def test_scan_skips_changelog_named_files(tmp_path: Path) -> None:
+    """Changelog bullets cite many paths; exclude *CHANGELOG*.md from advisory scan (V5 §3.0)."""
+    cal = tmp_path / "CHANGELOG_DETAIL.md"
+    cal.write_text(
+        "## Examples\n\n- `development_tools/foo.py` did something.\n",
+        encoding="utf-8",
+    )
+    out = scan_paths_for_example_marker_findings(
+        tmp_path, ["CHANGELOG_DETAIL.md"]
+    )
+    assert out == {}
+
+
+@pytest.mark.unit
 def test_find_unmarked_skips_see_citation_bullet() -> None:
     md = """## Examples
 

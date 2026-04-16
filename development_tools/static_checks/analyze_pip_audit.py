@@ -11,6 +11,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -32,6 +33,8 @@ def _build_unavailable_result(message: str) -> dict[str, Any]:
             "message": message,
             "vulnerable_packages": [],
             "returncode": None,
+            "pip_audit_execution_state": "error",
+            "pip_audit_subprocess_seconds": None,
         },
     }
 
@@ -51,6 +54,8 @@ def _build_skipped_by_env_result() -> dict[str, Any]:
             "tool_available": True,
             "returncode": 0,
             "pip_audit_skipped": True,
+            "pip_audit_execution_state": "skipped_env",
+            "pip_audit_subprocess_seconds": 0.0,
             "message": (
                 "pip-audit skipped: MHM_PIP_AUDIT_SKIP is set (CI/offline policy; "
                 "no vulnerability index fetch)."
@@ -112,21 +117,31 @@ def _count_vulnerabilities(payload: Any) -> tuple[int, int, list[dict[str, Any]]
     return total, packages, samples
 
 
-def _build_result_from_payload(payload: Any, returncode: int) -> dict[str, Any]:
+def _build_result_from_payload(
+    payload: Any,
+    returncode: int,
+    *,
+    subprocess_seconds: float | None,
+) -> dict[str, Any]:
     total, pkg_count, samples = _count_vulnerabilities(payload)
     status = "WARN" if total > 0 else "PASS"
+    details: dict[str, Any] = {
+        "tool": "pip_audit",
+        "tool_available": True,
+        "returncode": returncode,
+        "vulnerable_packages": samples,
+        "pip_audit_execution_state": "executed_subprocess",
+        "pip_audit_subprocess_seconds": (
+            round(subprocess_seconds, 4) if subprocess_seconds is not None else None
+        ),
+    }
     return {
         "summary": {
             "total_issues": total,
             "files_affected": pkg_count,
             "status": status,
         },
-        "details": {
-            "tool": "pip_audit",
-            "tool_available": True,
-            "returncode": returncode,
-            "vulnerable_packages": samples,
-        },
+        "details": details,
     }
 
 
@@ -161,6 +176,7 @@ def run_pip_audit(project_root: Path) -> dict[str, Any]:
     args: list[str] = ["--format", "json"] + extra_args
 
     try:
+        t0 = time.perf_counter()
         result = subprocess.run(
             command + args,
             cwd=str(project_root),
@@ -168,6 +184,7 @@ def run_pip_audit(project_root: Path) -> dict[str, Any]:
             text=True,
             timeout=timeout_seconds,
         )
+        subprocess_seconds = time.perf_counter() - t0
     except FileNotFoundError:
         return _build_unavailable_result("pip-audit command not found")
     except subprocess.TimeoutExpired:
@@ -193,7 +210,9 @@ def run_pip_audit(project_root: Path) -> dict[str, Any]:
     except json.JSONDecodeError:
         return _build_unavailable_result("pip-audit output was not valid JSON")
 
-    return _build_result_from_payload(payload, result.returncode)
+    return _build_result_from_payload(
+        payload, result.returncode, subprocess_seconds=subprocess_seconds
+    )
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -5,6 +5,7 @@ Contains methods for running analysis, generation, and fix tools.
 """
 # pyright: reportAttributeAccessIssue=false
 
+import copy
 import json
 import os
 import subprocess
@@ -1891,16 +1892,26 @@ class ToolWrappersMixin:
         logger.debug("Analyzing pip-audit dependency vulnerabilities...")
         cached = self._try_pip_audit_cache("static_checks")
         if cached is not None:
+            merged = copy.deepcopy(cached) if isinstance(cached, dict) else cached
+            if isinstance(merged, dict):
+                det = merged.setdefault("details", {})
+                if isinstance(det, dict):
+                    det["pip_audit_execution_state"] = "requirements_lock_cache_hit"
+                    det["pip_audit_subprocess_seconds"] = None
+                    det["pip_audit_timing_note"] = (
+                        "Requirements unchanged; reused pip-audit JSON from a prior run. "
+                        "Orchestration elapsed time reflects cache lookup only, not subprocess."
+                    )
             result = {
                 "success": True,
                 "output": "",
                 "error": "",
-                "data": cached,
+                "data": merged,
                 "returncode": 0,
             }
-            summary = cached.get("summary", {}) if isinstance(cached, dict) else {}
+            summary = merged.get("summary", {}) if isinstance(merged, dict) else {}
             result["issues_found"] = bool(summary.get("total_issues", 0))
-            self.results_cache["analyze_pip_audit"] = cached
+            self.results_cache["analyze_pip_audit"] = merged
             logger.debug("Using cached analyze_pip_audit result (requirements unchanged)")
             return result
         result = self.run_script("analyze_pip_audit", "--json", timeout=600)

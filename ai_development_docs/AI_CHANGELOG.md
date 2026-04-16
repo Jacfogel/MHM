@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-04-15 - V5 dev-tools backlog slice (pip-audit semantics, matrices, markers, priorities) **COMPLETED**
+- **Ruff SIM105**: `audit_orchestration` pip-audit metadata uses `contextlib.suppress` so `--strict` full audits are not blocked.
+- **pip-audit**: Execution states and subprocess timing in JSON/logs; cache hits no longer look like broken timers (`analyze_pip_audit`, `tool_wrappers`, `report_generation`).
+- **Policy artifacts**: Checked-in `audit_tool_matrix.json` and `tool_cache_inventory.json` with builder modules and drift tests.
+- **Guidance**: `add_priority` defaults favor `DEVELOPMENT_TOOLS_GUIDE` / `AI_DEVELOPMENT_TOOLS_GUIDE`; paired Section 9 theme table.
+- **Markers**: Changelog files skipped for example-marker advisory noise; optional `domain_markers` list drives advisory domain gaps in `analyze_test_markers` JSON.
+
 ### 2026-04-14 - V5 continuation (scoped coverage copy, overlaps, Radon pilot, Pyright notes) **COMPLETED**
 - **Reports**: [`report_generation.py`](../development_tools/shared/service/report_generation.py) - Test Coverage lines use **Skipped** + reason for `audit --full --dev-tools-only` vs full-repo Tier 3 (clearer than "Not refreshed").
 - **HOW_TO_RUN**: Tier 3 freshness - `--clear-cache`, `audit --full --dev-tools-only` for DEV_TOOLS-only refresh; links to V5 nuance index.
@@ -139,21 +146,6 @@ Guidelines:
 - **Admin panel channel status**: Email/Discord running/stopped labels use `LOG_EMAIL_FILE` / `LOG_DISCORD_FILE` + merged tails from `LOG_BACKUP_DIR` (TimedRotating backups), plus email IMAP/send activity heuristics; fixes false "Email: Stopped" after log rotation or custom log paths.
 - **Tier 3 / dev tools import fix**: [core/headless_service.py](core/headless_service.py) no longer imports top-level `run_mhm` (not on `sys.path` when running `development_tools/tests/run_test_coverage.py`), which was causing immediate `ModuleNotFoundError` and `run_test_coverage` -> `coverage_failed`.
 - **Audit queue**: `@handle_errors` on UI channel log merge helpers; xdist-safe Discord + user-management tests; Ruff; ASCII doc-fix and function registry regen (`docs`, doc-sync).
-
-### 2026-03-31 - Doc-sync, DEV_TOOLS placeholders, test/parse fixes **COMPLETED**
-- Audit artifact read-fallback backlog: detailed table lives under V5 Section 7.16 (not AI_LEGACY); comments/docs retargeted; Pyright warnings cleared in `utilities.py` optional `details` handling.
-- Workflow section 10: repo-relative paths; ASCII cleanup; Section-sign cleanup in changelogs.
-- Placeholder `development_tools/DEV_TOOLS_*.md` so path drift passes; overwritten by dev-tools-only audit.
-- **Status markdown links**: `report_generation._markdown_href_from_dev_tools_report` so `AI_STATUS` / `DEV_TOOLS_STATUS` / consolidated reference links resolve from `development_tools/` (e.g. `../development_docs/...`, sibling `reports/scopes/...`).
-- Task handler: `_add_one_calendar_month` uses `@handle_errors` plus safe month advance; Discord behavior test `test_discord_complete_task_by_name_variation` rebuilds user index + factory UUID fallback for xdist.
-- Output storage tests: expect `jsons/scopes/full/` for saves/archives; archiving-failure test matches move-then-write semantics.
-- **Report / cache**: `_extract_documentation_metrics` and `_extract_error_handling_metrics` keep standard `{summary, details}` in `results_cache` instead of replacing with flat metrics (fixes `[DATA SOURCE] ... missing 'summary' dict` during status generation after audit).
-- **System signals**: `analyze_system_signals` resolves `analysis_detailed_results.json` from `reports/scopes/{full|dev_tools}/` or legacy `reports/` so "No recent audit data found" matches scoped audit output.
-- **Tier 3 status text**: Scope-skipped tracks (`not_run_this_audit_scope`) are omitted from `AI_STATUS` / consolidated Tier 3 sections instead of showing redundant "skipped" lines.
-- **Legacy audit paths**: V5 Section 7.16 table (backlog) + `LEGACY COMPATIBILITY` comments on aggregate/timing fallbacks and `legacy_flat_jsons_dir`; artifact-storage detail removed from `AI_LEGACY_COMPATIBILITY_GUIDE` (pointer to V5 only).
-- Tier 3 Windows: `run_script` isolates `analyze_pyright` / `analyze_ruff` process groups; static-check scripts catch `KeyboardInterrupt` during tool subprocess so audits get JSON instead of uncaught tracebacks when SIGINT propagates.
-- Dev-tools-only audit: `_get_status_file_mtimes` uses `DEV_TOOLS_*.md` paths so report finalization does not false-warn about `AI_*.md` mtimes when those files were not written.
-- **Audit artifact scope**: `jsons/scopes/<full|dev_tools>/` and `reports/scopes/<full|dev_tools>/` for writes; legacy flat `jsons/` remains read-fallback for full scope; `--clear-cache` clears scoped trees; unused-imports CLI loads scoped results if flat file missing.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
