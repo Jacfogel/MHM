@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-04-17 - V5 continuation: post-full-audit alignment and Tier 3 semantics **COMPLETED**
+- V5 continuation plan execution completed: roadmap text in `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md` was reconciled to current Tier 3 evidence and next-slice priorities were updated.
+- Report semantics were clarified in `report_generation.py`: full Tier 3 coverage now explicitly states `development_tools` is included, and the separate dev-tools row clearly describes `audit --full --dev-tools-only` refresh semantics.
+- Duplicate-function summary wording now uses a duplicate-group fallback file count, preventing contradictory "0 files affected" text when duplicate groups exist.
+- Focused helper tests were added/expanded across central dev-tools service modules (`audit_orchestration`, `data_loading`, `report_generation`, and `commands` helpers) to improve regression coverage for this slice.
+- Tier 3 exit-code tracing was validated: strict-mode non-zero forcing is limited to Tier 3 `test_failures`/`crashed`/`infra_cleanup_error`; recent strict full run evidence showed clean Tier 3 with exit code `0`.
+
 ### 2026-04-15 - V5 dev-tools backlog slice (pip-audit semantics, matrices, markers, priorities) **COMPLETED**
 - **Ruff SIM105**: `audit_orchestration` pip-audit metadata uses `contextlib.suppress` so `--strict` full audits are not blocked.
 - **pip-audit**: Execution states and subprocess timing in JSON/logs; cache hits no longer look like broken timers (`analyze_pip_audit`, `tool_wrappers`, `report_generation`).

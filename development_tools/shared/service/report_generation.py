@@ -81,6 +81,20 @@ class ReportGenerationMixin:
                         files.add(p.replace("\\", "/"))
         return len(files)
 
+    def _count_duplicate_affected_files(self, groups: list[Any]) -> int:
+        """Count unique files represented by duplicate-function groups."""
+        files: set[str] = set()
+        for group in groups:
+            if not isinstance(group, dict):
+                continue
+            for fn in group.get("functions", []) or []:
+                if not isinstance(fn, dict):
+                    continue
+                path_value = str(fn.get("file", "")).strip()
+                if path_value:
+                    files.add(path_value.replace("\\", "/"))
+        return len(files)
+
     def _filter_circular_dependencies_dev_tools(self, chains: list[Any]) -> list[Any]:
         """Keep dependency cycles that involve at least one module under ``development_tools/``."""
         out: list[Any] = []
@@ -724,8 +738,8 @@ class ReportGenerationMixin:
             f"candidate count={n} (heuristic on python.exe command lines)."
         )
         out.append(
-            "- **Note**: Detection is limited until command lines are populated reliably "
-            "(see AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md Section 3.18)."
+            "- **Note**: Primary detection uses Windows command-line inspection via CIM; "
+            "the fallback path is less informative when command lines are unavailable."
         )
         json_path = (
             self.project_root
@@ -2248,10 +2262,11 @@ class ReportGenerationMixin:
 
             if skip_dev_track:
                 lines.append(
-                    "- **Development Tools Coverage**: **Skipped** — this pass was full-repo Tier 3; the "
-                    "dev-tools coverage track did not run. To refresh `development_tools/` coverage and "
-                    "DEV_TOOLS_* metrics, run "
-                    "`python development_tools/run_development_tools.py audit --full --dev-tools-only`."
+                    "- **Development Tools Coverage**: Separate `--dev-tools-only` refresh not run in this "
+                    "full-repo Tier 3 pass. The overall coverage line above already includes "
+                    "`development_tools`; run "
+                    "`python development_tools/run_development_tools.py audit --full --dev-tools-only` "
+                    "only when you need refreshed DEV_TOOLS_* artifacts and the dedicated scoped track."
                 )
             elif dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
                 dev_pct = dev_tools_insights["overall_pct"]
@@ -2270,10 +2285,11 @@ class ReportGenerationMixin:
                 )
             if skip_dev_track:
                 lines.append(
-                    "- **Development Tools Coverage**: **Skipped** — this pass was full-repo Tier 3; the "
-                    "dev-tools coverage track did not run. To refresh `development_tools/` coverage and "
-                    "DEV_TOOLS_* metrics, run "
-                    "`python development_tools/run_development_tools.py audit --full --dev-tools-only`."
+                    "- **Development Tools Coverage**: Separate `--dev-tools-only` refresh not run in this "
+                    "full-repo Tier 3 pass. The overall coverage line above already includes "
+                    "`development_tools`; run "
+                    "`python development_tools/run_development_tools.py audit --full --dev-tools-only` "
+                    "only when you need refreshed DEV_TOOLS_* artifacts and the dedicated scoped track."
                 )
             elif dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
                 dev_pct = dev_tools_insights["overall_pct"]
@@ -2632,6 +2648,12 @@ class ReportGenerationMixin:
         )
         duplicate_groups = to_int(duplicate_summary.get("total_issues")) or 0
         duplicate_files = to_int(duplicate_summary.get("files_affected")) or 0
+        if duplicate_files == 0 and isinstance(duplicate_details_status, dict):
+            duplicate_groups_list = duplicate_details_status.get("duplicate_groups", [])
+            if isinstance(duplicate_groups_list, list) and duplicate_groups_list:
+                duplicate_files = self._count_duplicate_affected_files(
+                    duplicate_groups_list
+                )
         dup_capped = isinstance(
             duplicate_details_status, dict
         ) and duplicate_details_status.get("groups_capped", False)
@@ -4881,6 +4903,10 @@ class ReportGenerationMixin:
             dup_groups = len(groups) if isinstance(groups, list) and groups else 0
             dup_files = (
                 self._count_duplicate_affected_files_dev_tools(groups)
+                if self._is_dev_tools_scoped_report()
+                and isinstance(groups, list)
+                and groups
+                else self._count_duplicate_affected_files(groups)
                 if isinstance(groups, list) and groups
                 else 0
             )
@@ -7093,9 +7119,10 @@ class ReportGenerationMixin:
             dev_tools_insights = self._get_dev_tools_coverage_insights()
             if skip_dev_track_cr:
                 lines.append(
-                    "- **Development Tools Coverage**: **Skipped** — full-repo Tier 3 omitted the "
-                    "dev-tools coverage track. Run `audit --full --dev-tools-only` to refresh "
-                    "development_tools coverage and DEV_TOOLS reports."
+                    "- **Development Tools Coverage**: Separate `--dev-tools-only` refresh not run in this "
+                    "full-repo Tier 3 pass. Overall coverage above already includes "
+                    "`development_tools`; run `audit --full --dev-tools-only` only to refresh "
+                    "DEV_TOOLS reports and the dedicated scoped track."
                 )
             elif dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
                 dev_pct = dev_tools_insights["overall_pct"]
@@ -8023,6 +8050,12 @@ class ReportGenerationMixin:
         )
         duplicate_groups = to_int(duplicate_summary.get("total_issues")) or 0
         duplicate_files = to_int(duplicate_summary.get("files_affected")) or 0
+        if duplicate_files == 0 and isinstance(duplicate_details, dict):
+            duplicate_groups_list = duplicate_details.get("duplicate_groups", [])
+            if isinstance(duplicate_groups_list, list) and duplicate_groups_list:
+                duplicate_files = self._count_duplicate_affected_files(
+                    duplicate_groups_list
+                )
         dup_capped_cr = isinstance(duplicate_details, dict) and duplicate_details.get(
             "groups_capped", False
         )

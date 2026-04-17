@@ -2784,6 +2784,37 @@ No behavioral changes intended beyond timestamp formatting consistency.
 - **Impact**: Improved code quality, documentation accuracy, and test reliability. Error handling is now consistent across flagged functions, documentation paths are correct, and the ASCII fixer can automatically handle more common non-ASCII characters in future runs.
 - **Files**: `ui/dialogs/channel_management_dialog.py`, `run_tests.py`, `development_tools/tests/generate_test_coverage_report.py`, `development_tools/docs/fix_documentation_ascii.py`, `development_tools/docs/analyze_ascii_compliance.py`, `development_tools/error_handling/analyze_error_handling.py`, `tests/ui/test_channel_management_dialog_coverage_expansion.py`, [TODO.md](TODO.md), [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`
 
+### 2026-04-17 - V5 Post-Full-Audit Continuation: Coverage Semantics, Duplicate Scope Accuracy, and Dev-Tools Test Expansion **COMPLETED**
+- **Feature**: Executed the "Continue V5 After Full Audit" slice: reconciled the V5 roadmap to current Tier 3 evidence, clarified coverage/report semantics, fixed duplicate-function file-count wording drift, and added focused tests across central dev-tools service modules.
+- **Technical Changes**:
+  - **Roadmap Reconciliation (V5)**: Updated `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md` to align with fresh full-audit outputs, including current dev-tools coverage posture, Tier 3 scope status, and updated next-slice guidance.
+  - **Report Semantics Clarification** (`development_tools/shared/service/report_generation.py`):
+    - Added duplicate-file counting fallback logic for duplicate groups so summaries no longer show contradictory "0 files affected" when groups exist.
+    - Updated coverage wording so full Tier 3 audits explicitly state overall coverage already includes `development_tools`.
+    - Updated the dedicated development-tools coverage row to explain it reflects the `audit --full --dev-tools-only` refresh path.
+    - Updated `verify_process_cleanup` summary note to current CIM-primary/fallback behavior wording.
+  - **Exit-Code Traceability**:
+    - Confirmed audit command exit codes are determined by `run_audit()` success (`0` on success, `1` on failure), with strict-mode non-zero forcing only for Tier 3 test/crash/infra-failure states.
+    - Confirmed recent strict Tier 3 run behavior in terminal/log evidence where clean Tier 3 outcome correctly produced exit code `0`.
+  - **Targeted Test Coverage Expansion**:
+    - Added/extended tests in `tests/development_tools/test_audit_orchestration_helpers.py`.
+    - Added/extended tests in `tests/development_tools/test_data_loading_helpers.py`.
+    - Added/extended tests in `tests/development_tools/test_report_generation_dev_tools_scope.py`.
+    - Added/extended tests in `tests/development_tools/test_commands_additional_helpers.py` (including cache freshness behavior tied to runner-script mtimes).
+  - **Stability Fix During Slice**:
+    - Resolved an intermediate `NameError` regression in report-generation duplicate summary flow.
+    - Removed a temporary-print test artifact that violated the no-prints policy in the development-tools test suite.
+- **Impact**: Tier 3 generated outputs (`AI_STATUS`, `AI_PRIORITIES`, `CONSOLIDATED_REPORT`) now read more consistently for coverage semantics, duplicate-function prioritization messaging no longer undercounts affected files when groups are present, and central orchestration/report/data-loading helper paths have stronger regression coverage for future V5 slices.
+- **Files**:
+  - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md`
+  - `development_tools/shared/service/report_generation.py`
+  - `development_tools/run_development_tools.py`
+  - `development_tools/shared/cli_interface.py`
+  - `tests/development_tools/test_audit_orchestration_helpers.py`
+  - `tests/development_tools/test_data_loading_helpers.py`
+  - `tests/development_tools/test_report_generation_dev_tools_scope.py`
+  - `tests/development_tools/test_commands_additional_helpers.py`
+
 ### 2026-01-04 - Memory Leak Fix: Test Mocking and Parallel Execution Stability **COMPLETED**
 - **Feature**: Fixed critical memory leak in parallel test execution that was causing worker crashes at 94% system memory. Root cause was `test_full_audit_status_reflects_final_results` running real tools instead of mocks, causing memory accumulation when multiple workers executed real audit tools simultaneously.
 - **Technical Changes**:

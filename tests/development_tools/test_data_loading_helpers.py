@@ -82,6 +82,83 @@ def test_load_tool_data_returns_empty_when_no_sources_found(
 
 
 @pytest.mark.unit
+def test_load_dev_tools_coverage_reads_json_and_builds_standard_shape(
+    temp_project_copy: Path,
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    coverage_path = (
+        temp_project_copy
+        / "development_tools"
+        / "tests"
+        / "jsons"
+        / "coverage_dev_tools.json"
+    )
+    coverage_path.parent.mkdir(parents=True, exist_ok=True)
+    coverage_path.write_text(
+        """
+        {
+          "files": {
+            "development_tools/shared/service/commands.py": {
+              "summary": {
+                "num_statements": 10,
+                "missing_lines": 3,
+                "covered_lines": 7,
+                "percent_covered": 70.0
+              },
+              "missing_lines": [2, 4, 8]
+            }
+          }
+        }
+        """.strip(),
+        encoding="utf-8",
+    )
+
+    service._load_dev_tools_coverage()
+
+    details = service.dev_tools_coverage_results["details"]
+    assert details["overall"]["overall_coverage"] == 70.0
+    assert details["overall"]["total_statements"] == 10
+    assert details["overall"]["total_missed"] == 3
+    assert details["coverage_collected"] is True
+    assert (
+        details["modules"]["development_tools/shared/service/commands.py"]["covered"]
+        == 7
+    )
+
+
+@pytest.mark.unit
+def test_get_dev_tools_coverage_insights_supports_raw_shape(temp_project_copy: Path):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.dev_tools_coverage_results = {
+        "overall": {"overall_coverage": 62.1, "total_statements": 100, "total_missed": 38},
+        "modules": {
+            "development_tools/shared/service/commands.py": {
+                "statements": 10,
+                "missed": 6,
+                "coverage": 40,
+                "covered": 4,
+                "missing_lines": ["1", "2"],
+            },
+            "development_tools/shared/service/audit_orchestration.py": {
+                "statements": 20,
+                "missed": 8,
+                "coverage": 60,
+                "covered": 12,
+                "missing_lines": ["3"],
+            },
+        },
+    }
+
+    insights = service._get_dev_tools_coverage_insights()
+
+    assert insights is not None
+    assert insights["overall_pct"] == 62.1
+    assert insights["statements"] == 100
+    assert insights["covered"] == 62
+    assert insights["low_modules"][0]["path"].endswith("commands.py")
+
+
+@pytest.mark.unit
 def test_parse_doc_sync_output_extracts_status_counts_and_files(temp_project_copy: Path):
     service = AIToolsService(project_root=str(temp_project_copy))
     output = """

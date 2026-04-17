@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -145,4 +146,36 @@ def test_is_interrupt_signature_detects_keyboard_interrupt_and_code(
     assert service._is_interrupt_signature("Traceback\nKeyboardInterrupt", None) is True
     assert service._is_interrupt_signature("", 130) is True
     assert service._is_interrupt_signature("ok", 0) is False
+
+
+@pytest.mark.unit
+def test_is_coverage_file_fresh_invalidates_when_runner_script_is_newer(tmp_path: Path):
+    service = AIToolsService(project_root=str(tmp_path))
+    coverage_file = tmp_path / ".coverage"
+    test_file = tmp_path / "tests" / "unit" / "test_x.py"
+    runner = tmp_path / "development_tools" / "tests" / "run_test_coverage.py"
+    test_file.parent.mkdir(parents=True, exist_ok=True)
+    runner.parent.mkdir(parents=True, exist_ok=True)
+    test_file.write_text("pass", encoding="utf-8")
+    runner.write_text("RUNNER = 'ok'\n", encoding="utf-8")
+    coverage_file.write_text("data", encoding="utf-8")
+
+    old_time = time.time() - 10
+    Path(coverage_file).touch()
+    import os
+
+    os.utime(coverage_file, (old_time, old_time))
+
+    with patch(
+        "development_tools.shared.service.tool_wrappers.SCRIPT_REGISTRY",
+        {"run_test_coverage": "development_tools/tests/run_test_coverage.py"},
+    ):
+        assert (
+            service._is_coverage_file_fresh(
+                coverage_file,
+                source_patterns=["tests/**/*.py"],
+                tool_names=["run_test_coverage"],
+            )
+            is False
+        )
 
