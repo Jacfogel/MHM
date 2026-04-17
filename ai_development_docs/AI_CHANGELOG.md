@@ -36,6 +36,8 @@ Guidelines:
 - Duplicate-function summary wording now uses a duplicate-group fallback file count, preventing contradictory "0 files affected" text when duplicate groups exist.
 - Focused helper tests were added/expanded across central dev-tools service modules (`audit_orchestration`, `data_loading`, `report_generation`, and `commands` helpers) to improve regression coverage for this slice.
 - Tier 3 exit-code tracing was validated: strict-mode non-zero forcing is limited to Tier 3 `test_failures`/`crashed`/`infra_cleanup_error`; recent strict full run evidence showed clean Tier 3 with exit code `0`.
+- Continued the coverage slice with helper-script tests in `test_shared_maintenance_scripts.py` and completed a bounded Section 3.0 follow-up in `example_marker_validation.py` (supports `Example Code` headings, suppresses changelog-style `example markers` heading noise) with updated `test_example_marker_validation.py`.
+- A fresh full audit was run after these updates; generated outputs now show a documentation quick win for unconverted links in [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) and a cache-only Tier 3 outcome classification for this pass.
 
 ### 2026-04-15 - V5 dev-tools backlog slice (pip-audit semantics, matrices, markers, priorities) **COMPLETED**
 - **Ruff SIM105**: `audit_orchestration` pip-audit metadata uses `contextlib.suppress` so `--strict` full audits are not blocked.
@@ -145,14 +147,6 @@ Guidelines:
 - Core coverage: [tests/core/test_user_data_read_scenarios.py](tests/core/test_user_data_read_scenarios.py) exercises [core/user_data_read.py](core/user_data_read.py) (`ensure_unique_ids`, `get_user_data` validation and `fields`, metadata, `normalize_on_read`, `load_and_ensure_ids`).
 - `--clear-cache`: [fix_project_cleanup.py](development_tools/shared/fix_project_cleanup.py) clears scoped **full** audit JSON, `reports/scopes/full/`, `reports/archive/`, and legacy aggregate paths (not just **dev_tools** scope); test `test_cleanup_tool_cache_includes_full_scope_and_reports_archive`; guides + dev_tools rule updated.
 - Tier 3 xdist: `test_reminder_followup_handles_task_without_due_date` unique user + canonical id + flow state cleanup (avoid shared `test_no_due_date` collision).
-
-### 2026-04-02 - Headless service startup and process classification **COMPLETED**
-- Headless launcher uses [core/launch_env.py](core/launch_env.py) for `resolve_python_interpreter` / `prepare_launch_environment` and always sets `MHM_HEADLESS_SERVICE` / `MHM_SERVICE_TYPE` (previously only when `.venv/Scripts` existed, so Linux/macOS and some Windows layouts never got markers).
-- UI-started backend sets `MHM_UI_MANAGED_SERVICE` / `MHM_SERVICE_TYPE`; `get_service_processes` prefers env markers and drops the brittle `"ui" in path` heuristic that misclassified paths like `rapidui`.
-- Behavior tests: UI+headless classification uses `core/service.py` + env; new case for `rapidui` folder path.
-- **Admin panel channel status**: Email/Discord running/stopped labels use `LOG_EMAIL_FILE` / `LOG_DISCORD_FILE` + merged tails from `LOG_BACKUP_DIR` (TimedRotating backups), plus email IMAP/send activity heuristics; fixes false "Email: Stopped" after log rotation or custom log paths.
-- **Tier 3 / dev tools import fix**: [core/headless_service.py](core/headless_service.py) no longer imports top-level `run_mhm` (not on `sys.path` when running `development_tools/tests/run_test_coverage.py`), which was causing immediate `ModuleNotFoundError` and `run_test_coverage` -> `coverage_failed`.
-- **Audit queue**: `@handle_errors` on UI channel log merge helpers; xdist-safe Discord + user-management tests; Ruff; ASCII doc-fix and function registry regen (`docs`, doc-sync).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

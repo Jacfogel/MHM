@@ -2787,7 +2787,7 @@ No behavioral changes intended beyond timestamp formatting consistency.
 ### 2026-04-17 - V5 Post-Full-Audit Continuation: Coverage Semantics, Duplicate Scope Accuracy, and Dev-Tools Test Expansion **COMPLETED**
 - **Feature**: Executed the "Continue V5 After Full Audit" slice: reconciled the V5 roadmap to current Tier 3 evidence, clarified coverage/report semantics, fixed duplicate-function file-count wording drift, and added focused tests across central dev-tools service modules.
 - **Technical Changes**:
-  - **Roadmap Reconciliation (V5)**: Updated `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md` to align with fresh full-audit outputs, including current dev-tools coverage posture, Tier 3 scope status, and updated next-slice guidance.
+  - **Roadmap Reconciliation (V5)**: Updated [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) to align with fresh full-audit outputs, including current dev-tools coverage posture, Tier 3 scope status, and updated next-slice guidance.
   - **Report Semantics Clarification** (`development_tools/shared/service/report_generation.py`):
     - Added duplicate-file counting fallback logic for duplicate groups so summaries no longer show contradictory "0 files affected" when groups exist.
     - Updated coverage wording so full Tier 3 audits explicitly state overall coverage already includes `development_tools`.
@@ -2801,12 +2801,21 @@ No behavioral changes intended beyond timestamp formatting consistency.
     - Added/extended tests in `tests/development_tools/test_data_loading_helpers.py`.
     - Added/extended tests in `tests/development_tools/test_report_generation_dev_tools_scope.py`.
     - Added/extended tests in `tests/development_tools/test_commands_additional_helpers.py` (including cache freshness behavior tied to runner-script mtimes).
+  - **Coverage Slice Continuation (helper-heavy)**:
+    - Added focused tests for low-coverage utility scripts in `tests/development_tools/test_shared_maintenance_scripts.py` (`measure_tool_timings` non-dict result path, default report output path, and `verify_tool_storage` data-loading fallback classification path).
+    - Updated/extended `tests/development_tools/test_example_marker_validation.py` for heading-shape coverage including `Example Code` headings and changelog-style `example markers` noise suppression expectations.
+  - **Example-Marker Revalidation (Section 3.0 bounded item)**:
+    - `development_tools/docs/example_marker_validation.py` heading matching now includes `example code` and ignores changelog-style headings containing `example markers`.
+    - Targeted regression suite executed and passing for `test_example_marker_validation.py`, `test_shared_maintenance_scripts.py`, and `test_commands_additional_helpers.py`.
+  - **Post-run Audit Reconciliation**:
+    - Fresh `python development_tools/run_development_tools.py audit --full` regenerated `AI_STATUS`, `AI_PRIORITIES`, `CONSOLIDATED_REPORT`, and `TEST_COVERAGE_REPORT`.
+    - Reconciled current generated state into V5 narrative: overall coverage remains ~69.8%; quick-win signal moved from ASCII to unconverted links ([CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md)); Tier 3 outcome rows currently show `cache_only_precheck` classifications in this pass.
   - **Stability Fix During Slice**:
     - Resolved an intermediate `NameError` regression in report-generation duplicate summary flow.
     - Removed a temporary-print test artifact that violated the no-prints policy in the development-tools test suite.
 - **Impact**: Tier 3 generated outputs (`AI_STATUS`, `AI_PRIORITIES`, `CONSOLIDATED_REPORT`) now read more consistently for coverage semantics, duplicate-function prioritization messaging no longer undercounts affected files when groups are present, and central orchestration/report/data-loading helper paths have stronger regression coverage for future V5 slices.
 - **Files**:
-  - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md`
+  - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md)
   - `development_tools/shared/service/report_generation.py`
   - `development_tools/run_development_tools.py`
   - `development_tools/shared/cli_interface.py`
@@ -2814,6 +2823,9 @@ No behavioral changes intended beyond timestamp formatting consistency.
   - `tests/development_tools/test_data_loading_helpers.py`
   - `tests/development_tools/test_report_generation_dev_tools_scope.py`
   - `tests/development_tools/test_commands_additional_helpers.py`
+  - `tests/development_tools/test_shared_maintenance_scripts.py`
+  - `tests/development_tools/test_example_marker_validation.py`
+  - `development_tools/docs/example_marker_validation.py`
 
 ### 2026-01-04 - Memory Leak Fix: Test Mocking and Parallel Execution Stability **COMPLETED**
 - **Feature**: Fixed critical memory leak in parallel test execution that was causing worker crashes at 94% system memory. Root cause was `test_full_audit_status_reflects_final_results` running real tools instead of mocks, causing memory accumulation when multiple workers executed real audit tools simultaneously.

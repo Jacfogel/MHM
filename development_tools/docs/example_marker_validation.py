@@ -25,8 +25,10 @@ from development_tools.shared.constants import EXAMPLE_MARKERS
 from development_tools.shared.standard_exclusions import HISTORICAL_PRESERVE_FILES
 
 # Headings that open an "example" region (content until the next ## heading).
-# Broad on purpose: include headings like "Command Examples".
-_EXAMPLE_HEADING = re.compile(r"^##+\s+.*\b(examples?|example usage)\b", re.IGNORECASE)
+# Broad on purpose: include headings like "Command Examples" and "Example Code".
+_EXAMPLE_HEADING = re.compile(
+    r"^##+\s+.*\b(examples?|example usage|example code)\b", re.IGNORECASE
+)
 
 # Paths in backticks: repo-style (contains /) with a known extension — skips bare `foo.md`
 # noise from short citations per §3.7 "full paths from project root".
@@ -41,6 +43,14 @@ _CITATION_LINE = re.compile(
 )
 
 _MARKER_WINDOW = 2
+
+
+def _is_example_heading(line: str) -> bool:
+    """True when heading should open an example scan region."""
+    if not _EXAMPLE_HEADING.match(line):
+        return False
+    # Changelog bullets like "(example markers)" are not runnable examples.
+    return "example markers" not in line.lower()
 
 
 def _line_has_example_marker(line: str) -> bool:
@@ -89,7 +99,7 @@ def find_unmarked_example_path_lines(content: str) -> list[tuple[int, str]]:
     i = 0
     while i < len(lines):
         line = lines[i]
-        if _EXAMPLE_HEADING.match(line):
+        if _is_example_heading(line):
             i += 1
             while i < len(lines) and not lines[i].startswith("## "):
                 body = lines[i]

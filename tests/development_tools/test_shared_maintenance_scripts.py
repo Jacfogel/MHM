@@ -29,6 +29,29 @@ def test_measure_tool_execution_with_dict_result():
 
 
 @pytest.mark.unit
+def test_measure_tool_execution_with_non_dict_result():
+    """Non-dict truthy/falsy tool outputs should still map to success bool."""
+
+    success_true, elapsed_true, error_true = measure_tool_timings.measure_tool_execution(
+        service=None,
+        tool_name="demo_tool",
+        tool_func=lambda: ["ok"],
+    )
+    assert success_true is True
+    assert elapsed_true >= 0.0
+    assert error_true == ""
+
+    success_false, elapsed_false, error_false = measure_tool_timings.measure_tool_execution(
+        service=None,
+        tool_name="demo_tool",
+        tool_func=lambda: [],
+    )
+    assert success_false is False
+    assert elapsed_false >= 0.0
+    assert error_false == ""
+
+
+@pytest.mark.unit
 def test_measure_tool_execution_handles_exceptions():
     """Exceptions should return a failed result with error text."""
 
@@ -193,6 +216,38 @@ def test_run_timing_analysis_with_mocked_service(monkeypatch, tmp_path):
 
 
 @pytest.mark.unit
+def test_run_timing_analysis_uses_default_output_path(monkeypatch, tmp_path):
+    """When no output path is provided, the module default path is used."""
+
+    class _FakeService:
+        pass
+
+    monkeypatch.setattr(measure_tool_timings, "AIToolsService", _FakeService)
+    monkeypatch.setattr(
+        measure_tool_timings,
+        "get_tier_runnables",
+        lambda _service, _tier, include_quick_status=False: [],
+    )
+    monkeypatch.setattr(measure_tool_timings, "project_root", tmp_path)
+
+    called = {}
+
+    def _fake_report(results, report_path):
+        called["results"] = results
+        called["path"] = report_path
+
+    monkeypatch.setattr(measure_tool_timings, "generate_timing_report", _fake_report)
+
+    results = measure_tool_timings.run_timing_analysis()
+    expected = tmp_path / "development_tools" / "TIMING_ANALYSIS.md"
+
+    assert called["path"] == expected
+    assert results["summary"]["total_tools"] == 0
+    assert results["summary"]["successful"] == 0
+    assert results["summary"]["failed"] == 0
+
+
+@pytest.mark.unit
 def test_check_tool_uses_save_tool_result_true_and_false():
     """Source inspection should detect save_tool_result usage."""
 
@@ -269,3 +324,25 @@ def test_verify_all_tools_failure(monkeypatch, capsys):
     out = capsys.readouterr().out
     assert result is False
     assert "WARNING: 1 tools need attention" in out
+
+
+@pytest.mark.unit
+def test_verify_all_tools_data_loading_wrapper_path(monkeypatch, capsys):
+    """Unknown tool wrappers should use data_loading fallback and remain pass."""
+    monkeypatch.setattr(
+        verify_tool_storage,
+        "EXPECTED_TOOLS",
+        {"unknown_tool": "reports"},
+    )
+
+    class _Empty:
+        pass
+
+    monkeypatch.setattr(verify_tool_storage, "ToolWrappersMixin", _Empty)
+    monkeypatch.setattr(verify_tool_storage, "CommandsMixin", _Empty)
+    monkeypatch.setattr(verify_tool_storage, "AuditOrchestrationMixin", _Empty)
+
+    result = verify_tool_storage.verify_all_tools()
+    out = capsys.readouterr().out
+    assert result is True
+    assert "data_loading wrapper" in out

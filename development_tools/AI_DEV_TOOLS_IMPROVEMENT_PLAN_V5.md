@@ -71,13 +71,15 @@ Use this block when a V4 **Status** line says “IN PROGRESS” or “COMPLETE�
 
 ## 2. Current state snapshot (rolling)
 
+**2026-04-17 (V5 continuation — coverage + marker revalidation slice)**: Added focused helper tests for the lowest-coverage utility scripts (`shared/measure_tool_timings.py`, `shared/verify_tool_storage.py`) and continued service-helper coverage work. A fresh `audit --full` regenerated **AI_STATUS**, **AI_PRIORITIES**, **CONSOLIDATED_REPORT**, and **TEST_COVERAGE_REPORT** timestamps; current signals show static analysis **CLEAN**, legacy references **CLEAN**, duplicate groups **9**, high-coupling modules **51**, and overall coverage **69.8%**. Documentation signals now show **Unconverted Links: 2 issues in `development_docs/CHANGELOG_DETAIL.md`**; ASCII and example-marker advisory remain clean. Tier 3 outcome rows are currently **cache_only_precheck/unknown** in this pass (no fresh pytest run in that audit execution path), which is operationally valid per §1.5 nuance.
+
 **2026-04-16 (V5 continuation — post implementation/full audit refresh)**: After targeted tests for `shared/service/commands.py`, `shared/service/audit_orchestration.py`, and related report/data-loading paths, a fresh `audit --full` regenerated **AI_STATUS**, **AI_PRIORITIES**, and **CONSOLIDATED_REPORT**. Current evidence: overall coverage **69.9%**, development-tools coverage **63.4%**, duplicate-function groups **9 across 7 files**, Tier 3 test outcome **clean**, static analysis **CLEAN**, and legacy references **CLEAN (0 files)**. The earlier **full-vs-dev-tools-only coverage wording mismatch is resolved** in generated outputs, and the duplicate-groups priority now agrees with status/report file counts. The only live doc-sync issue remains **ASCII compliance: 1 issue in `TODO.md`**.
 
 **2026-04-16 (V5 continuation — post full audit reconciliation)**: Fresh `audit --full` regenerated **AI_STATUS**, **AI_PRIORITIES**, and **CONSOLIDATED_REPORT**. Current evidence: static analysis **CLEAN**, legacy references **CLEAN (0 files)**, backup health **PASS**, config validation **CLEAN**, duplicate-function groups **9**, high-coupling modules **51**, overall coverage **69.9%**, and development-tools coverage **62.1%** in the detailed coverage report. Active plan focus now shifts away from already-landed audit infrastructure toward **targeted dev-tools coverage improvements**, **report-semantic clarity for full vs dev-tools-only coverage rows**, and a **small set of medium-priority backlog items** (example-marker follow-up only if the clean advisory result proves misleading, documentation-overlap tuning, portability parity follow-up). The only live doc-sync issue in the generated status is **ASCII compliance: 1 issue in `TODO.md`**.
 
 **2026-04-15 (V5 plan execution — §4.3 pip-audit timing, §7.21 matrix, §3.19 cache inventory, §3.20 priorities, §3.0 changelog example-marker skip, §5.7 domain markers config)**: `pip_audit_execution_state` / subprocess seconds in JSON and logs; checked-in `config/audit_tool_matrix.json` + `config/tool_cache_inventory.json` with policy tests; `add_priority` defaults retarget dev-tools guides (paired §9.1); example-marker scan skips `*CHANGELOG*.md`; optional `test_markers.domain_markers` drives advisory `missing_domain` in `analyze_test_markers` JSON; see changelogs 2026-04-15.
 
-Use **AI_STATUS.md** after each audit and prefer the latest generated values over any examples embedded here. As of **2026-04-16** (Tier 3 full): overall test coverage **69.9%**; development-tools coverage **62.1%** in the detailed coverage report; static analysis **CLEAN**; legacy references **CLEAN (0 files)**; duplicate-function groups **9**; high-coupling modules **51**. Refresh **AI_PRIORITIES** / **CONSOLIDATED_REPORT** before choosing follow-up work in §5–§6.
+Use **AI_STATUS.md** after each audit and prefer the latest generated values over any examples embedded here. As of **2026-04-17** (Tier 3 full): overall test coverage **69.8%**; static analysis **CLEAN**; legacy references **CLEAN (0 files)**; duplicate-function groups **9**; high-coupling modules **51**; documentation quick win currently points to **unconverted links** in `development_docs/CHANGELOG_DETAIL.md`. Refresh **AI_PRIORITIES** / **CONSOLIDATED_REPORT** before choosing follow-up work in §5–§6.
 
 **2026-04-14 (V5 plan continuation — §2.8 copy, §4.1 Radon, §5.2 overlaps, §7.6 notes)**: **AI_STATUS** / **CONSOLIDATED_REPORT** Test Coverage lines now say **Skipped** with explicit reason (`--dev-tools-only` vs full-repo Tier 3 omitting dev-tools track) and the matching refresh command; [HOW_TO_RUN.md](../HOW_TO_RUN.md) §5.1 documents Tier 3 freshness (`--clear-cache`, `audit --full --dev-tools-only`). **EXPECTED_OVERLAPS** adds generic headings (`known limitations`, `scope`, `related reading`). Paired guides §10: Radon pilot alignment with V5 §4.1 (manual vs `analyze_functions`). **test_pyright_config_paths.py** docstring: update both Pyright configs when adding shared keys. Baseline: `audit --full --dev-tools-only` to refresh DEV_TOOLS_* artifacts when needed.
 
@@ -121,7 +123,7 @@ No per-task history here — see V4 for checkboxes.
 
 ## 4. Priority map (quick scan)
 
-Current ordering after the latest **2026-04-16** full audit refresh (see **§5** for detail):
+Current ordering after the latest **2026-04-17** full audit refresh (see **§5** for detail):
 
 | Tier | Themes |
 |------|--------|
@@ -132,11 +134,11 @@ Current ordering after the latest **2026-04-16** full audit refresh (see **§5**
 
 ### 4.1 Next execution slice (recommended)
 
-Suggested order for the next work slice after the just-completed coverage/semantics pass:
+Suggested order for the next work slice after the 2026-04-17 continuation slice:
 
-1. Address the current generated Tier 3 failure outside the dev-tools roadmap slice: `tests/unit/test_no_prints_policy.py::test_no_print_calls_in_tests`.
-2. Use **`TEST_COVERAGE_REPORT.md`** / dev-tools coverage artifacts to choose the next small set of low-coverage tooling modules for targeted test additions, keeping the focus on high-centrality modules before utility scripts.
-3. Resume medium-priority tooling work in order: example-marker revalidation, documentation-overlap tuning, and portability parity validation.
+1. Resolve current doc-sync quick win: run `doc-fix --convert-links` and verify the 2 unconverted-link issues in `development_docs/CHANGELOG_DETAIL.md` are cleared.
+2. Use **`TEST_COVERAGE_REPORT.md`** / dev-tools coverage artifacts to choose the next small set of low-coverage tooling modules for targeted test additions, keeping the focus on high-centrality modules after this helper-heavy slice.
+3. Resume medium-priority tooling work in order: documentation-overlap tuning, then portability parity validation (example-marker revalidation had a bounded follow-up in this slice).
 
 ### 4.2 Deferred after the next slice
 
@@ -160,7 +162,7 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 #### 1.1 Raise development tools coverage beyond the current floor
 
-- **Status update (2026-04-16 refresh)**: The old V4 threshold is no longer the useful target. Latest full-audit evidence shows **development-tools coverage ~63.4%**, so the active question is **where targeted tests buy down the most risk next**, not whether the suite can clear 60%.
+- **Status update (2026-04-17 refresh)**: The old V4 threshold is no longer the useful target. Latest generated priorities still show **development-tools coverage ~61.9%** in the dedicated track, so the active question is **where targeted tests buy down the most risk next**, not whether the suite can clear 60%.
 - **Next focus**: Prefer coverage work on low-coverage, high-centrality tooling modules surfaced in `TEST_COVERAGE_REPORT.md`, especially `development_tools/shared/measure_tool_timings.py`, `development_tools/shared/verify_tool_storage.py`, `development_tools/shared/service/commands.py`, `development_tools/shared/service/audit_orchestration.py`, and `development_tools/shared/service/report_generation.py`.
 - **Open**: Migrate remaining analyzer-style tests to `tests/development_tools/test_config.json` via `test_config_path` when touching those tests; keep this as opportunistic cleanup, not the headline coverage strategy.
 - **Guidance**: Use live `AI_PRIORITIES.md`, `TEST_COVERAGE_REPORT.md`, and `generate_dev_tools_coverage_results.json` to pick modules; do not duplicate long module lists in this plan.
@@ -227,6 +229,7 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 - **Status**: **PARTIAL (2026-04-12)** — advisory scan shipped; strict gating / CI failure TBD.
 - **Done (2026-04-12)**: [`example_marker_validation.py`](docs/example_marker_validation.py); CLI flag `--check-example-markers` on [`analyze_documentation_sync.py`](docs/analyze_documentation_sync.py); unit tests [`test_example_marker_validation.py`](../tests/development_tools/test_example_marker_validation.py).
 - **Done (2026-04-13)**: Example-marker scan targets **`DEFAULT_DOCS`** from [`constants.py`](shared/constants.py) (merged config via [`get_constants_config()`](config/config.py): `paired_docs` + [`fix_version_sync` `ai_docs` / `docs`](../config/development_tools_config.json) + `default_docs_extra`), not only paired-doc endpoints — keeps the pass aligned with the approved documentation path list. Fallback if that set is empty: paired-doc keys only. Tests: [`test_documentation_sync_checker.py`](../tests/development_tools/test_documentation_sync_checker.py) `TestExampleMarkerScanPaths`.
+- **Done (2026-04-17)**: Heading matcher expanded to include **Example Code** headings while suppressing changelog-style **example markers** heading noise; regression tests updated in [`test_example_marker_validation.py`](../tests/development_tools/test_example_marker_validation.py).
 - **Open tasks**:
   - Tighten heuristics (reduce false positives); optional integration into default `doc-sync` / audit tiers once signal is trusted.
   - Validate example headings (`Examples:`, `Example Usage:`, `Example Code:`) beyond Markdown `##` patterns.

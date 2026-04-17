@@ -39,6 +39,16 @@ def test_find_unmarked_treats_command_examples_heading_as_example_section() -> N
 
 
 @pytest.mark.unit
+def test_find_unmarked_treats_example_code_heading_as_example_section() -> None:
+    md = """## 2.4 Example Code:
+
+Use `development_tools/shared/service/commands.py` for orchestration.
+"""
+    hits = find_unmarked_example_path_lines(md)
+    assert len(hits) == 1
+
+
+@pytest.mark.unit
 def test_find_unmarked_skips_bare_filename_without_slash() -> None:
     md = """## Examples
 
@@ -97,8 +107,8 @@ def test_find_unmarked_skips_see_citation_bullet() -> None:
 
 
 @pytest.mark.unit
-def test_changelog_heading_with_example_markers_phrase_is_now_included() -> None:
-    """Broad matching now includes changelog phrases that contain 'example markers'."""
+def test_changelog_heading_with_example_markers_phrase_is_ignored() -> None:
+    """Changelog-style headings with 'example markers' are ignored as advisory noise."""
     md = """### 2026-01-01 - Work (example markers) **COMPLETED**
 
 - Bullet with `core/foo.py` path.
@@ -108,7 +118,7 @@ def test_changelog_heading_with_example_markers_phrase_is_now_included() -> None
 Run `core/bar.py` for real.
 """
     hits = find_unmarked_example_path_lines(md)
-    assert len(hits) == 2
+    assert hits == []
 
 
 @pytest.mark.unit
