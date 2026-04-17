@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import time
 from pathlib import Path
 from unittest.mock import patch
@@ -178,4 +179,68 @@ def test_is_coverage_file_fresh_invalidates_when_runner_script_is_newer(tmp_path
             )
             is False
         )
+
+
+@pytest.mark.unit
+def test_run_flaky_detector_normalizes_json_and_appends_json_flag(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    captured: dict[str, tuple[str, ...]] = {}
+
+    def _fake_run_script(_script_name: str, *args: str, **_kwargs: object) -> dict:
+        captured["args"] = tuple(args)
+        return {
+            "success": True,
+            "output": json.dumps(
+                {
+                    "summary": {"total_issues": 1, "files_affected": 1},
+                    "details": {"flaky_tests": ["tests/test_demo.py::test_a"]},
+                }
+            ),
+            "error": "",
+            "returncode": 0,
+        }
+
+    monkeypatch.setattr(service, "run_script", _fake_run_script)
+    save_calls: list[dict] = []
+
+    def _capture_save(_tool: str, _domain: str, data: dict, **_kwargs: object) -> None:
+        save_calls.append(data)
+
+    monkeypatch.setitem(
+        service.run_flaky_detector.__func__.__globals__,
+        "save_tool_result",
+        _capture_save,
+    )
+
+    result = service.run_flaky_detector("--max-runs", "3")
+
+    assert result["success"] is True
+    assert "--json" in captured["args"]
+    assert result["data"]["summary"]["total_issues"] == 1
+    assert save_calls and save_calls[-1]["summary"]["files_affected"] == 1
+
+
+@pytest.mark.unit
+def test_run_verify_process_cleanup_returns_error_on_invalid_json(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_args, **_kwargs: {
+            "success": True,
+            "output": "not-json",
+            "error": "",
+            "returncode": 0,
+        },
+    )
+
+    result = service.run_verify_process_cleanup("--target", "pytest")
+
+    assert result["success"] is False
+    assert "Invalid JSON output" in result["error"]
+    assert result["returncode"] == 0
 

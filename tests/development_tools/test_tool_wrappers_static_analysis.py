@@ -108,3 +108,59 @@ def test_run_analyze_pip_audit_parses_json_and_marks_issues(temp_project_copy, m
     assert result["success"] is True
     assert result["issues_found"] is True
     assert result["data"]["summary"]["total_issues"] == 4
+
+
+@pytest.mark.unit
+def test_run_analyze_pip_audit_uses_cache_and_sets_execution_state(
+    temp_project_copy, monkeypatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    monkeypatch.setattr(
+        service,
+        "_try_pip_audit_cache",
+        lambda _domain: {
+            "summary": {"total_issues": 0, "files_affected": 0},
+            "details": {},
+        },
+        raising=True,
+    )
+    run_calls = {"count": 0}
+
+    def _unexpected_run(*_args, **_kwargs):
+        run_calls["count"] += 1
+        return {}
+
+    monkeypatch.setattr(service, "run_script", _unexpected_run, raising=True)
+
+    result = service.run_analyze_pip_audit()
+
+    assert run_calls["count"] == 0
+    assert result["success"] is True
+    assert result["issues_found"] is False
+    details = result["data"]["details"]
+    assert details["pip_audit_execution_state"] == "requirements_lock_cache_hit"
+    assert details["pip_audit_subprocess_seconds"] is None
+
+
+@pytest.mark.unit
+def test_run_analyze_pyright_returns_failure_when_output_is_not_json(
+    temp_project_copy, monkeypatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    monkeypatch.setattr(service, "_try_static_check_cache", lambda *_a, **_k: None, raising=True)
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_args, **_kwargs: {
+            "success": False,
+            "output": "pyright failed to serialize",
+            "error": "stderr payload",
+            "returncode": 1,
+        },
+        raising=True,
+    )
+
+    result = service.run_analyze_pyright()
+
+    assert result["success"] is False
+    assert "stderr payload" in result["error"]

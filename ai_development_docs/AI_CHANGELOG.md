@@ -30,14 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-04-17 - V5 continuation: post-full-audit alignment and Tier 3 semantics **COMPLETED**
-- V5 continuation plan execution completed: roadmap text in `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md` was reconciled to current Tier 3 evidence and next-slice priorities were updated.
-- Report semantics were clarified in `report_generation.py`: full Tier 3 coverage now explicitly states `development_tools` is included, and the separate dev-tools row clearly describes `audit --full --dev-tools-only` refresh semantics.
-- Duplicate-function summary wording now uses a duplicate-group fallback file count, preventing contradictory "0 files affected" text when duplicate groups exist.
-- Focused helper tests were added/expanded across central dev-tools service modules (`audit_orchestration`, `data_loading`, `report_generation`, and `commands` helpers) to improve regression coverage for this slice.
-- Tier 3 exit-code tracing was validated: strict-mode non-zero forcing is limited to Tier 3 `test_failures`/`crashed`/`infra_cleanup_error`; recent strict full run evidence showed clean Tier 3 with exit code `0`.
-- Continued the coverage slice with helper-script tests in `test_shared_maintenance_scripts.py` and completed a bounded Section 3.0 follow-up in `example_marker_validation.py` (supports `Example Code` headings, suppresses changelog-style `example markers` heading noise) with updated `test_example_marker_validation.py`.
-- A fresh full audit was run after these updates; generated outputs now show a documentation quick win for unconverted links in [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) and a cache-only Tier 3 outcome classification for this pass.
+### 2026-04-17 - V5 roadmap continuation: tests, overlap, portability, audit rebaseline **COMPLETED**
+- **Plan**: [`AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md`](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) — rolling snapshot and §4.1 next-slice guidance reconciled to latest audit outputs (coverage-first; doc-sync monitor-only when signals stay CLEAN).
+- **Tests**: [`test_commands_additional_helpers.py`](../tests/development_tools/test_commands_additional_helpers.py) — `run_flaky_detector` / `run_verify_process_cleanup` paths; [`test_tool_wrappers_static_analysis.py`](../tests/development_tools/test_tool_wrappers_static_analysis.py) — pip-audit cache-hit execution state, pyright non-JSON failure.
+- **Overlaps (§5.5)**: [`constants.py`](../development_tools/shared/constants.py) `EXPECTED_OVERLAPS` adds **related docs**; [`test_analyze_documentation.py`](../tests/development_tools/test_analyze_documentation.py) regression for numbered **Related Docs** headings.
+- **Portability (§7.6)**: [`test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py) — root `.ruff.toml` vs owned `development_tools/config/ruff.toml` core policy alignment.
+- **Audit**: `audit --quick` + `audit --full` rebaseline; generated **AI_STATUS** / **AI_PRIORITIES** / **CONSOLIDATED_REPORT** refreshed (e.g. overall coverage ~70.9%, development_tools ~63.9%); documentation signals CLEAN in this pass.
 
 ### 2026-04-15 - V5 dev-tools backlog slice (pip-audit semantics, matrices, markers, priorities) **COMPLETED**
 - **Ruff SIM105**: `audit_orchestration` pip-audit metadata uses `contextlib.suppress` so `--strict` full audits are not blocked.

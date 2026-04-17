@@ -279,3 +279,12 @@ to be filled: placeholder
         overlaps = detect_section_overlaps(docs)
         assert "1. Quick Start" not in overlaps
 
+    @pytest.mark.unit
+    def test_detect_section_overlaps_ignores_numbered_related_docs_heading(self):
+        docs = {
+            "alpha.md": "## 2. Related Docs\n" + ("a" * 60),
+            "beta.md": "## 2. Related Docs\n" + ("b" * 60),
+        }
+        overlaps = detect_section_overlaps(docs)
+        assert "2. Related Docs" not in overlaps
+

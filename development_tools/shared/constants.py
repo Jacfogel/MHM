@@ -510,6 +510,7 @@ EXPECTED_OVERLAPS: frozenset[str] = frozenset({
     "see also",
     "references",
     "related documents",
+    "related docs",
     "external tools",
     "development workflow",
     "testing guide",

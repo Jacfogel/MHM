@@ -119,6 +119,21 @@ def test_root_ruff_toml_exists_for_direct_ruff_workflows() -> None:
 
 
 @pytest.mark.unit
+def test_root_and_owned_ruff_configs_share_core_policy_keys() -> None:
+    """Portability follow-up: keep direct-workflow Ruff mirror aligned with owned dev-tools Ruff config."""
+    root = tomllib.loads((project_root / ".ruff.toml").read_text(encoding="utf-8"))
+    owned = tomllib.loads(
+        (project_root / "development_tools" / "config" / "ruff.toml").read_text(
+            encoding="utf-8"
+        )
+    )
+    for key in ("line-length", "target-version", "exclude"):
+        assert root.get(key) == owned.get(key), f"ruff mirror drift for key: {key}"
+    assert root.get("lint", {}).get("select") == owned.get("lint", {}).get("select")
+    assert root.get("lint", {}).get("ignore") == owned.get("lint", {}).get("ignore")
+
+
+@pytest.mark.unit
 def test_dev_tools_pyrightconfig_excludes_tests_data_and_temp() -> None:
     """Owned Pyright config must keep test fixtures and temp trees out of analysis scope."""
     path = project_root / "development_tools" / "config" / "pyrightconfig.json"
