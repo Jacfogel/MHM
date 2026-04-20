@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Single forward-looking backlog after V4; collapsed history; actionable next steps  
 > **Style**: Direct and concise  
-> **Last Updated**: 2026-04-17  
+> **Last Updated**: 2026-04-19  
 > **Supersedes**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (keep V4 for detailed checkbox history)
 
 **Authoritative metrics**: [development_tools/AI_STATUS.md](AI_STATUS.md) and [development_tools/AI_PRIORITIES.md](AI_PRIORITIES.md) after `python development_tools/run_development_tools.py audit` or `audit --full`.
@@ -254,6 +254,54 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
   - Policy tests cover cache invalidation on config/tool/source changes for newly cached tools.
   - Paired guides/documentation updated with cache behavior and troubleshooting notes.
 
+- **Standardized invalidation (config + tool code) — backlog tasks**:
+  1. **Done (2026-04-18 — slice 1)**: Include `development_tools/config/development_tools_config.json` in `ToolWrappersMixin._compute_source_signature` so Ruff/Pyright/Bandit static-check JSON invalidates when that file changes without any `.py` edit; regression test in `tests/development_tools/test_tool_wrappers_cache_helpers.py`; inventory invalidation text + [HOW_TO_RUN.md](../HOW_TO_RUN.md) §5.1.5 aligned.
+  2. **Done (2026-04-18 — slice 2)**: [`cache_dependency_paths.py`](shared/cache_dependency_paths.py) exports `STATIC_CHECK_CONFIG_RELATIVE_PATHS` and `static_check_config_paths()`; [`tool_wrappers.py`](shared/service/tool_wrappers.py) `_compute_source_signature` and [`test_file_coverage_cache.py`](tests/test_file_coverage_cache.py) `_get_default_tool_paths` share the same tuple (plus coverage-only scripts) so config drift cannot split static-check vs coverage invalidation; optional root [`.ruff.toml`](../.ruff.toml) included when present; policy tests in [`test_cache_dependency_paths.py`](../tests/development_tools/test_cache_dependency_paths.py) + [`test_tool_wrappers_cache_helpers.py`](../tests/development_tools/test_tool_wrappers_cache_helpers.py); inventory + HOW_TO_RUN §5.1.5 point at the module.
+  3. **Done (2026-04-18 — slice 3)**: `requirements_lock_signature` / `PIP_AUDIT_DEPENDENCY_RELATIVE_PATHS` in [`cache_dependency_paths.py`](shared/cache_dependency_paths.py); [`tool_wrappers.py`](shared/service/tool_wrappers.py) and [`analyze_pip_audit.py`](static_checks/analyze_pip_audit.py) delegate; inventory invalidation text updated; [`dev_tools_coverage_cache.py`](tests/dev_tools_coverage_cache.py) uses `static_check_config_paths` like test coverage cache; tests in [`test_cache_dependency_paths.py`](../tests/development_tools/test_cache_dependency_paths.py).
+  4. **Partial (2026-04-18 — Phase 2 wired)**: Merge helpers + [`analyze_ruff.py`](../static_checks/analyze_ruff.py) / [`analyze_bandit.py`](../static_checks/analyze_bandit.py) sharding via `static_analysis.ruff_shard_scan` + `ruff_path_shards` / `bandit_shard_scan` (defaults **on** in `STATIC_ANALYSIS`; disable for single subprocess); tests [`test_sharded_static_scan_wiring.py`](../tests/development_tools/test_sharded_static_scan_wiring.py). Pyright subset policy unchanged; periodic full pass still mandatory for whole-repo parity (§3.19.1).
+  5. **Open (backlog)**: Extend **path-scoped runs, merge contracts, or similar** to other **cache-using** audit tools where it measurably reduces latency without weakening guarantees — candidates from [`tool_cache_inventory`](config/tool_cache_inventory.json) / [`CACHE_AWARE_TOOLS`](shared/tool_metadata.py) / Tier 2–3 analyzers (e.g. doc-sync subchecks, unused-imports batching, `analyze_pyright` only if a safe subset story exists). Each addition needs its own invalidation story and tests; do not copy Ruff/Bandit blindly.
+  6. **Open (backlog) — review**: **Domain-scoped test coverage** cache and invalidation ([`test_file_coverage_cache.py`](tests/test_file_coverage_cache.py), [`run_test_coverage.py`](tests/run_test_coverage.py), [`domain_mapper.py`](tests/domain_mapper.py)): operator feedback that invalidation is **over-broad** (often refreshing **all** domains when only a **subset** should bust). Tasks: trace domain ↔ source/test dependencies as implemented; document when global invalidation is intentional vs defect; add logging or counters to validate behavior on real runs; tighten selective invalidation if safe; regression tests proving partial bust scenarios.
+  7. **Open (backlog) — directory-scoped static-check cache**: Implement **per-root / per-shard** signatures and **partial** disk cache reuse for Ruff and Bandit JSON in [`tool_wrappers.py`](shared/service/tool_wrappers.py) (`_try_static_check_cache` / `_save_static_check_cache` today use a **single** `_compute_source_signature` over the whole repo — see **§3.19.2**). Sharded subprocess + merge in [`analyze_ruff.py`](../static_checks/analyze_ruff.py) / [`analyze_bandit.py`](../static_checks/analyze_bandit.py) (**§3.19.1**) is **execution** only until this slice lands; it does **not** provide incremental cache hits per directory. Pyright policy remains per **§3.19.1** / **§3.19.2** (whole-project default; subset caching only with an explicit non-parity + periodic full-pass story).
+
+**§3.19.1 Sharded static analysis (design note, 2026-04-18)**
+
+- **Problem**: `_compute_source_signature` hashes the full analyzed `*.py` tree; any edit anywhere invalidates Ruff/Pyright/Bandit JSON cache, unlike coverage (domain / test-file partial invalidation).
+- **Goal**: Allow partial cache reuse when only some trees change, without weakening audit guarantees.
+- **Ruff / Bandit — Phase 2 (done)**: Multiple CLI invocations with path-scoped args, then **merge** normalized tool JSON (dedupe by file path + rule/diagnostic key; stable ordering for reports). Merge helpers: [`sharded_static_analysis.py`](shared/sharded_static_analysis.py). **Defaults on** (`STATIC_ANALYSIS`): `static_analysis.ruff_shard_scan` + `ruff_path_shards` in [`analyze_ruff.py`](../static_checks/analyze_ruff.py); `static_analysis.bandit_shard_scan` in [`analyze_bandit.py`](../static_checks/analyze_bandit.py) when multiple scan targets exist. Tests: [`test_sharded_static_analysis.py`](../tests/development_tools/test_sharded_static_analysis.py), [`test_sharded_static_scan_wiring.py`](../tests/development_tools/test_sharded_static_scan_wiring.py).
+- **Important**: Phase 2 changes **how many subprocesses run** and how JSON is merged; it does **not** change static-check **cache invalidation** (still one global signature in `_compute_source_signature`). **Directory-scoped caching** is **§3.19.2** / backlog item **7**.
+- **Pyright**: Whole-project analysis is the default; narrowing scope (per-directory configs or subset paths) can **drop** cross-package diagnostics. Any shard strategy must either (a) accept a defined subset with documented gaps, or (b) run a periodic full pass (e.g. cold `--clear-cache` or CI) to retain whole-repo parity with **§5.7 — 7.6** (Portability follow-up: static tooling) in this plan.
+- **When a shard is “enough” vs full run mandatory**: Subset/sharded Ruff or Bandit runs are cache hits only for the **merged** diagnostic set from those shards; treat as authoritative for audit only if the orchestration explicitly limits scope. A **full** Ruff/Bandit/Pyright pass (default `audit --full` static-check path, or any run after `--clear-cache` that recomputes `_compute_source_signature`) remains the parity baseline for cross-package issues. Pyright subset modes remain **non-parity** unless followed by a periodic full Pyright run on the whole project.
+- **Acceptance (future implementation)**: Document when a shard is a cache hit vs when a full run is mandatory; strict audit / exit semantics unchanged unless explicitly gated.
+
+**§3.19.2 Directory-scoped static-check cache (implementation plan — not yet implemented)**
+
+This section is the authoritative outline for backlog item **7**. Until it ships, static-check tools (`analyze_ruff`, `analyze_pyright`, `analyze_bandit`) continue to use **whole-project** `_compute_source_signature` in [`tool_wrappers.py`](shared/service/tool_wrappers.py).
+
+- **Distinction**:
+  - **Sharded execution** (**§3.19.1**): already runs Ruff/Bandit per configured roots and merges — reduces **wall-clock** when all shards must run.
+  - **Directory-scoped caching** (this section): store **per-shard (or per-root) signatures** and **cached partial JSON** so a change under e.g. `core/` only **busts** that shard’s cache entry; unchanged shards **reuse** stored diagnostics and merge with fresh shards — reduces redundant subprocess work on incremental audits compared with today’s **single** global signature (any `.py` edit invalidates the whole static-check cache).
+
+- **Current behavior (baseline)**:
+  - [`_compute_source_signature`](shared/service/tool_wrappers.py) walks **all** non-excluded `*.py` files under the project root plus [`STATIC_CHECK_CONFIG_RELATIVE_PATHS`](shared/cache_dependency_paths.py).
+  - [`_try_static_check_cache`](shared/service/tool_wrappers.py) / [`_save_static_check_cache`](shared/service/tool_wrappers.py) store one `source_signature` per tool cache file (e.g. `.analyze_ruff_mtime_cache.json`). **All-or-nothing**: any `.py` edit anywhere invalidates the whole static-check cache for that tool.
+
+- **Target alignment**:
+  - Use the **same normalized path roots** as static analysis config (`ruff_path_shards`, `bandit_scan_roots` / effective targets) so **one definition of “shard”** drives both subprocess scheduling and cache partitioning (avoid divergent trees).
+  - **Merge**: reuse existing [`merge_ruff_check_json_lists`](shared/sharded_static_analysis.py) / [`merge_bandit_raw_payloads`](shared/sharded_static_analysis.py) when assembling cached + freshly computed shard payloads.
+
+- **Implementation steps (order)**:
+  1. **Cache artifact design**: Define on-disk shape (versioned): e.g. per-tool JSON holding per-shard `{signature, payload_fragment}` plus merged result metadata, or equivalent sidecar files — must survive partial updates and remain auditable.
+  2. **Scoped signature helper**: Implement hashing limited to `*.py` under a given set of repo-relative roots (same exclusion rules as today via `should_exclude_file`); optionally a single **config digest** from `STATIC_CHECK_CONFIG_RELATIVE_PATHS` (or **invalidate all shards** on any static-check config change — simplest safe default).
+  3. **Read path**: For each shard, compare scoped signature to stored value; **cache hit** → use stored fragment; **miss** → run that shard’s subprocess (as today), update fragment.
+  4. **Write path**: After a run, persist updated shard signatures + fragments and the **merged** normalized result written through existing `load_tool_result` / report paths.
+  5. **Orchestration in `tool_wrappers`**: Replace single `_try_static_check_cache` early-return with **partial reuse**: only invoke `run_ruff` / `run_bandit` for **missed** shards if the analyzers are extended to accept per-shard inputs, **or** keep analyzer API whole-repo but short-circuit inside wrapper by composing cached + new (preferred shape to be decided in step 1).
+  6. **Tests**: Regression tests proving **only** the changed shard triggers subprocess work (mock subprocess counters); config-only change busts **all** shards or matches chosen policy; merge output identical to full fresh run when all shards refreshed.
+  7. **Pyright**: Do **not** assume the same model. Default remains **whole-project** analysis and **whole-repo** signature unless a documented subset + periodic full-pass policy is approved (**§3.19.1**).
+
+- **Acceptance criteria (when implemented)**:
+  - Documented invalidation rules (per-shard vs global config bust); no silent weakening of default `audit --full` guarantees unless explicitly scoped.
+  - Policy tests for partial bust + merge parity; inventory / HOW_TO_RUN updated to describe partial static-check cache behavior.
+
 #### 3.20 AI_PRIORITIES `add_priority` guidance/details defaults — dev-tools guides (new)
 
 - **Status**: **COMPLETE (2026-04-15)** — defaults retargeted in `report_generation.add_priority`; paired guides §9.1 theme table.
@@ -266,6 +314,20 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
   - Table or checklist in one of the paired dev-tools guides listing priority themes → primary guide section / JSON artifact (maintained alongside `add_priority` changes).
   - Spot-check: regenerate **AI_PRIORITIES** after `audit` and confirm dev-tools-tier items point readers to dev-tools guides first.
   - Tests unchanged or extended only if stringly defaults move behind a single helper (optional refactor).
+
+#### 3.21 High `issues=` counts vs generated reports — trace and document (new)
+
+- **Status**: **OPEN (2026-04-19)** — investigation / documentation.
+- **Observation**: [`development_tools/reports/logs/main.log`](reports/logs/main.log) completion lines can show **large `issues=` counts** while the tool still reports **`PASS`** (tool completed successfully). Example from one `audit --full` pass (timestamps omitted): `Completed analyze_documentation: PASS issues=12`; `Completed analyze_functions: PASS issues=493`; `Completed analyze_package_exports: PASS issues=181`; `Completed analyze_function_registry: PASS issues=47`.
+- **Problem**: It is unclear to operators whether those counts are **informational metrics** (e.g. functions enumerated, export rows reviewed) vs **actionable findings**, and whether they **should** appear in [AI_PRIORITIES.md](AI_PRIORITIES.md), [AI_STATUS.md](AI_STATUS.md), and [CONSOLIDATED_REPORT.md](CONSOLIDATED_REPORT.md). If they do not surface, the **reason** (thresholds, filters, tier wiring, `add_priority` rules, summary-only sections) should be explicit so logs are not misread as “hidden debt.”
+- **Tasks**:
+  1. For each tool — **`analyze_documentation`**, **`analyze_functions`**, **`analyze_package_exports`**, **`analyze_function_registry`** — confirm what **`issues`** in the completion log represents (field semantics in JSON / wrapper).
+  2. Trace each tool’s path through [`report_generation.py`](shared/service/report_generation.py) (and related builders): which keys feed **AI_STATUS**, ranked **AI_PRIORITIES**, and **CONSOLIDATED_REPORT** sections.
+  3. Record **whether** the same numbers (or derived summaries) appear in those three artifacts; if not, document **why** (by design vs gap).
+  4. If the gap is unintentional or confusing, propose a small follow-up (log wording, report line, or guide note) — separate acceptance if implemented.
+- **Acceptance criteria**:
+  - A short **conclusion** added under this subsection (or a pointer to a paired guide subsection) stating per-tool: log `issues=` meaning, report visibility, and operator guidance.
+  - Optional: one-line clarification in [HOW_TO_RUN.md](../HOW_TO_RUN.md) or [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) if operators routinely read logs without opening JSON.
 
 #### 3.2 Validation warnings cleanup (residual)
 

@@ -117,6 +117,43 @@ If you run the development tools full audit on this or another PC:
 
 - **Tier 3 freshness (coverage / pytest rows in AI_STATUS)**: A default `audit --full` refreshes full-repo coverage and Tier 3 test outcomes. If **AI_STATUS** still shows `cache_only_precheck` or stale numbers, run again with `--clear-cache` to bypass Tier 3 caches (see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) nuance index). To refresh **development_tools-only** coverage and DEV_TOOLS_* reports without re-running the full product test track, use `python development_tools/run_development_tools.py audit --full --dev-tools-only`.
 
+#### 5.1.1. Choosing an audit tier (time vs coverage)
+
+Pick the **smallest** command that answers your question; full Tier 3 can exceed wall-clock ten minutes when pytest + coverage dominate.
+
+| Goal | Command |
+|------|---------|
+| Fast health signal (Tier 1) | `python development_tools/run_development_tools.py audit --quick` |
+| Standard checks, no pytest/coverage (Tier 1 + 2) | `python development_tools/run_development_tools.py audit` |
+| Full evidence including tests and coverage (Tier 3) | `python development_tools/run_development_tools.py audit --full` |
+| Tier 3 but only dev-tools tests/coverage + scoped DEV_TOOLS_* reports | `python development_tools/run_development_tools.py audit --full --dev-tools-only` |
+| Skip pip-audit subprocess (offline / CI) | Set environment variable `MHM_PIP_AUDIT_SKIP` (see [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)) |
+
+**Deferred (not default)**: Moving Bandit or pip-audit into Tier 1 (`audit --quick`) would make quick audits slower without addressing the main cost (pytest + coverage); see [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 5.4 - 4.1.
+
+#### 5.1.2. Where full-audit time goes (baseline snapshot)
+
+After a full Tier 3 run, see [development_tools/reports/scopes/full/jsons/tool_timings.json](development_tools/reports/scopes/full/jsons/tool_timings.json) for per-tool seconds. A representative snapshot (2026-04-17): **`run_test_coverage` ~473s** (~76% of summed tool durations); next largest single tools **`analyze_pyright` ~47s**, **`analyze_bandit` ~20s**, **`analyze_documentation_sync` ~12s**, **`analyze_pip_audit` ~8.6s**, **`analyze_legacy_references` ~7.6s**. Re-run `audit --full` to refresh; numbers are machine-specific.
+
+#### 5.1.3. Coverage domain cache (warm vs cold)
+
+Domain and test-file caching for coverage is **on** by default (`run_test_coverage` / unified audit). To measure cache benefit on your machine, compare wall time with and without `--no-domain-cache` after a warm cache (PowerShell):
+
+```powershell
+Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache }
+Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel }
+```
+
+The first command is a **cold** run (no domain/test-file cache). The second omits `--no-domain-cache` so it can reuse caches from the first run on an **unchanged** tree; it should be faster when caches hit. Use `--no-domain-cache` or `audit` / `audit --full` with `--clear-cache` when you need a cold, authoritative pass.
+
+#### 5.1.4. Pytest parallel workers
+
+`run_test_coverage` defaults to **parallel** pytest (`pytest-xdist`) with `--workers` defaulting to **`auto`**. Override only if you are diagnosing flakes or hardware limits, e.g. `python development_tools/tests/run_test_coverage.py --workers 6`. Re-check [development_tools/reports/scopes/full/jsons/tool_timings.json](development_tools/reports/scopes/full/jsons/tool_timings.json) after changes.
+
+#### 5.1.5. Static checks (Ruff, Pyright, Bandit) and cache
+
+Ruff, Pyright, and Bandit reuse results when a **source signature** matches: analyzed `.py` files plus the config paths in [`development_tools/shared/cache_dependency_paths.py`](development_tools/shared/cache_dependency_paths.py) (`STATIC_CHECK_CONFIG_RELATIVE_PATHS`), implemented in `ToolWrappersMixin._compute_source_signature` ([`development_tools/shared/service/tool_wrappers.py`](development_tools/shared/service/tool_wrappers.py)). A **second** full audit with no relevant edits should spend less time on those tools than a cold run. Pip-audit uses a requirements-hash cache and optional `MHM_PIP_AUDIT_SKIP`. See [development_tools/config/tool_cache_inventory.json](development_tools/config/tool_cache_inventory.json) for the full matrix.
+
 - **Never install dependencies globally** - this can cause conflicts
 - **If you see (.venv) in your terminal prompt**, you're using the virtual environment correctly
 - **To deactivate the virtual environment**, simply type `deactivate`

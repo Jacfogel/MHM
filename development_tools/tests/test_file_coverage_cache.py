@@ -67,6 +67,7 @@ from development_tools.shared.time_helpers import (
     now_timestamp_full,
     now_timestamp_filename,
 )
+from development_tools.shared.cache_dependency_paths import static_check_config_paths
 from development_tools.shared.standard_exclusions import should_exclude_file
 import contextlib
 
@@ -118,27 +119,20 @@ class TestFileCoverageCache:
         self.last_invalidation_reason: str | None = None
 
     def _get_default_tool_paths(self) -> tuple[Path, ...]:
-        """Return tool paths used to compute cache invalidation hash."""
-        tool_files = [
+        """Return tool paths used to compute cache invalidation hash.
+
+        Coverage scripts are listed here; shared config paths match
+        ``STATIC_CHECK_CONFIG_RELATIVE_PATHS`` (see ``cache_dependency_paths``)
+        so invalidation stays aligned with static-check caching.
+        """
+        coverage_tool_scripts = (
             self.project_root / "development_tools" / "tests" / "run_test_coverage.py",
-            self.project_root
-            / "development_tools"
-            / "tests"
-            / "test_file_coverage_cache.py",
-            self.project_root
-            / "development_tools"
-            / "tests"
-            / "dev_tools_coverage_cache.py",
-            self.project_root
-            / "development_tools"
-            / "tests"
-            / "domain_mapper.py",
-            self.project_root
-            / "development_tools"
-            / "config"
-            / "development_tools_config.json",
-        ]
-        return tuple(path for path in tool_files if path.exists())
+            self.project_root / "development_tools" / "tests" / "test_file_coverage_cache.py",
+            self.project_root / "development_tools" / "tests" / "dev_tools_coverage_cache.py",
+            self.project_root / "development_tools" / "tests" / "domain_mapper.py",
+        )
+        combined = (*coverage_tool_scripts, *static_check_config_paths(self.project_root))
+        return tuple(path for path in combined if path.exists())
 
     def _default_cache_data(self) -> dict[str, Any]:
         """Return default cache payload for new/legacy cache files."""

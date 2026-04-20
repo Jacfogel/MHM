@@ -76,6 +76,68 @@ def test_compute_source_signature_changes_when_pyproject_toml_changes(tmp_path: 
 
 
 @pytest.mark.unit
+def test_compute_source_signature_changes_when_development_tools_config_changes(
+    tmp_path: Path,
+):
+    """Static-check cache must invalidate when only development_tools_config.json changes."""
+    (tmp_path / "development_tools" / "static_checks").mkdir(parents=True)
+    (tmp_path / "development_tools" / "config").mkdir(parents=True)
+    src_file = tmp_path / "development_tools" / "static_checks" / "code.py"
+    src_file.write_text("x = 1\n", encoding="utf-8")
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text('[project]\nname = "t"\nversion = "0"\n', encoding="utf-8")
+    dev_cfg = tmp_path / "development_tools" / "config" / "development_tools_config.json"
+    dev_cfg.write_text('{"version": 1, "x": 1}\n', encoding="utf-8")
+
+    with patch(
+        "development_tools.shared.standard_exclusions.should_exclude_file",
+        return_value=False,
+    ):
+        service = AIToolsService(project_root=str(tmp_path))
+        sig_before = service._compute_source_signature()
+        dev_cfg.write_text('{"version": 1, "x": 2}\n', encoding="utf-8")
+        sig_after = service._compute_source_signature()
+
+    assert isinstance(sig_before, str) and sig_before
+    assert isinstance(sig_after, str) and sig_after
+    assert sig_before != sig_after
+
+
+@pytest.mark.unit
+def test_compute_source_signature_changes_when_root_ruff_toml_changes(tmp_path: Path):
+    """Optional root .ruff.toml participates in static-check invalidation when present."""
+    (tmp_path / "development_tools" / "static_checks").mkdir(parents=True)
+    (tmp_path / "development_tools" / "config").mkdir(parents=True)
+    src_file = tmp_path / "development_tools" / "static_checks" / "code.py"
+    src_file.write_text("x = 1\n", encoding="utf-8")
+    (tmp_path / "pyproject.toml").write_text("[project]\nname = \"t\"\n", encoding="utf-8")
+    (tmp_path / "development_tools" / "config" / "development_tools_config.json").write_text(
+        "{}\n", encoding="utf-8"
+    )
+    (tmp_path / "development_tools" / "config" / "pyrightconfig.json").write_text(
+        "{}\n", encoding="utf-8"
+    )
+    (tmp_path / "development_tools" / "config" / "ruff.toml").write_text(
+        "[lint]\n", encoding="utf-8"
+    )
+    root_ruff = tmp_path / ".ruff.toml"
+    root_ruff.write_text("# a\n", encoding="utf-8")
+
+    with patch(
+        "development_tools.shared.standard_exclusions.should_exclude_file",
+        return_value=False,
+    ):
+        service = AIToolsService(project_root=str(tmp_path))
+        sig_before = service._compute_source_signature()
+        root_ruff.write_text("# b\n", encoding="utf-8")
+        sig_after = service._compute_source_signature()
+
+    assert isinstance(sig_before, str) and sig_before
+    assert isinstance(sig_after, str) and sig_after
+    assert sig_before != sig_after
+
+
+@pytest.mark.unit
 def test_try_static_check_cache_returns_cached_result_on_signature_match(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):

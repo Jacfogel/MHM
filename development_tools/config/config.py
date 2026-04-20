@@ -1294,6 +1294,20 @@ def get_unused_imports_config():
     return result
 
 
+# Default Ruff shards: one subprocess per top-level tree (merged JSON; §3.19.1).
+# Aligns with first-party roots; empty/missing dirs are skipped at runtime.
+_DEFAULT_RUFF_PATH_SHARDS: list[list[str]] = [
+    ["core"],
+    ["communication"],
+    ["ui"],
+    ["ai"],
+    ["user"],
+    ["tasks"],
+    ["notebook"],
+    ["development_tools"],
+    ["tests"],
+]
+
 # Static analysis configuration (ruff + pyright)
 STATIC_ANALYSIS = {
     "pyright_command": ["python", "-m", "pyright"],
@@ -1303,12 +1317,19 @@ STATIC_ANALYSIS = {
     "ruff_args": ["check", ".", "--output-format", "json"],
     "ruff_config_path": "development_tools/config/ruff.toml",
     "ruff_sync_root_compat": True,
+    # When True and ``ruff_path_shards`` is non-empty, run one subprocess per shard
+    # and merge JSON (see sharded_static_analysis.merge_ruff_check_json_lists). Default: on.
+    "ruff_shard_scan": True,
+    # List of shards: each shard is a list of repo-relative path strings (forward slashes).
+    "ruff_path_shards": [list(s) for s in _DEFAULT_RUFF_PATH_SHARDS],
     "timeout_seconds": 600,
     # Bandit / pip-audit (Tier 3 security signals; see DEVELOPMENT_TOOLS_GUIDE §10)
     "bandit_command": ["python", "-m", "bandit"],
     "bandit_args": [],
     # First-party scan roots avoid `.venv` entirely (see analyze_bandit bandit_scan_roots).
     "bandit_exclude": "__pycache__,.git",
+    # When True, run bandit once per scan root / root_py entry and merge results (§3.19.1).
+    "bandit_shard_scan": True,
     "bandit_timeout_seconds": 900,
     "pip_audit_command": ["python", "-m", "pip_audit"],
     "pip_audit_args": [],

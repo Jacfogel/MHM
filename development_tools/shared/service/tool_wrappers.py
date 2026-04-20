@@ -19,6 +19,10 @@ from development_tools import config as dev_config
 logger = get_component_logger("development_tools")
 
 # Import output storage
+from ..cache_dependency_paths import (
+    STATIC_CHECK_CONFIG_RELATIVE_PATHS,
+    requirements_lock_signature,
+)
 from ..output_storage import load_tool_result, save_tool_result
 import contextlib
 
@@ -26,6 +30,12 @@ import contextlib
 from ..tool_metadata import get_script_registry
 
 SCRIPT_REGISTRY = get_script_registry()
+
+
+def _static_check_tool_cache_metadata(*, from_disk_cache: bool) -> dict[str, str]:
+    """Labels for audit logs (orchestration maps cache_hit/cold_scan to utilized/created)."""
+    return {"cache_mode": "cache_hit" if from_disk_cache else "cold_scan"}
+
 
 # Windows: child inherits console control events unless isolated in a new process group.
 # Tier 3 runs these alongside heavy pytest workers; SIGINT to stop coverage must not
@@ -934,13 +944,18 @@ class ToolWrappersMixin:
                     output = output_buffer.getvalue()
                 finally:
                     sys.stdout = original_stdout
-                return {
+                out: dict[str, Any] = {
                     "success": True,
                     "output": output,
                     "error": "",
                     "returncode": 0,
                     "data": data,
                 }
+                if hasattr(self, "_tool_cache_metadata"):
+                    cm = self._tool_cache_metadata.get("analyze_documentation_sync")
+                    if isinstance(cm, dict):
+                        out["cache_metadata"] = cm.copy()
+                return out
             else:
                 return {
                     "success": False,
@@ -1748,6 +1763,7 @@ class ToolWrappersMixin:
                 "error": "",
                 "data": cached,
                 "returncode": 0,
+                "cache_metadata": _static_check_tool_cache_metadata(from_disk_cache=True),
             }
             summary = cached.get("summary", {}) if isinstance(cached, dict) else {}
             result["issues_found"] = bool(summary.get("total_issues", 0))
@@ -1768,6 +1784,7 @@ class ToolWrappersMixin:
             result["issues_found"] = bool(summary.get("total_issues", 0))
             result["success"] = True
             result["error"] = ""
+            result["cache_metadata"] = _static_check_tool_cache_metadata(from_disk_cache=False)
             self.results_cache["analyze_pyright"] = data
             try:
                 save_tool_result(
@@ -1788,6 +1805,7 @@ class ToolWrappersMixin:
                 err_preview = err[:500] + ("..." if len(err) > 500 else "")
                 logger.warning(f"analyze_pyright produced no parseable JSON; stderr: {err_preview}")
             result["success"] = False
+            result["cache_metadata"] = _static_check_tool_cache_metadata(from_disk_cache=False)
         return result
 
     def run_analyze_ruff(self) -> dict:
@@ -1802,6 +1820,7 @@ class ToolWrappersMixin:
                 "error": "",
                 "data": cached,
                 "returncode": 0,
+                "cache_metadata": _static_check_tool_cache_metadata(from_disk_cache=True),
             }
             summary = cached.get("summary", {}) if isinstance(cached, dict) else {}
             result["issues_found"] = bool(summary.get("total_issues", 0))
@@ -1822,6 +1841,7 @@ class ToolWrappersMixin:
             result["issues_found"] = bool(summary.get("total_issues", 0))
             result["success"] = True
             result["error"] = ""
+            result["cache_metadata"] = _static_check_tool_cache_metadata(from_disk_cache=False)
             self.results_cache["analyze_ruff"] = data
             try:
                 save_tool_result(
@@ -1837,6 +1857,7 @@ class ToolWrappersMixin:
             if not result.get("error"):
                 result["error"] = "No parseable JSON output from analyze_ruff"
             result["success"] = False
+            result["cache_metadata"] = _static_check_tool_cache_metadata(from_disk_cache=False)
         return result
 
     def run_analyze_bandit(self) -> dict:
@@ -1850,6 +1871,7 @@ class ToolWrappersMixin:
                 "error": "",
                 "data": cached,
                 "returncode": 0,
+                "cache_metadata": _static_check_tool_cache_metadata(from_disk_cache=True),
             }
             summary = cached.get("summary", {}) if isinstance(cached, dict) else {}
             result["issues_found"] = bool(summary.get("total_issues", 0))
@@ -1870,6 +1892,7 @@ class ToolWrappersMixin:
             result["issues_found"] = bool(summary.get("total_issues", 0))
             result["success"] = True
             result["error"] = ""
+            result["cache_metadata"] = _static_check_tool_cache_metadata(from_disk_cache=False)
             self.results_cache["analyze_bandit"] = data
             try:
                 save_tool_result(
@@ -1885,6 +1908,7 @@ class ToolWrappersMixin:
             if not result.get("error"):
                 result["error"] = "No parseable JSON output from analyze_bandit"
             result["success"] = False
+            result["cache_metadata"] = _static_check_tool_cache_metadata(from_disk_cache=False)
         return result
 
     def run_analyze_pip_audit(self) -> dict:
@@ -1908,6 +1932,7 @@ class ToolWrappersMixin:
                 "error": "",
                 "data": merged,
                 "returncode": 0,
+                "cache_metadata": _static_check_tool_cache_metadata(from_disk_cache=True),
             }
             summary = merged.get("summary", {}) if isinstance(merged, dict) else {}
             result["issues_found"] = bool(summary.get("total_issues", 0))
@@ -1928,6 +1953,11 @@ class ToolWrappersMixin:
             result["issues_found"] = bool(summary.get("total_issues", 0))
             result["success"] = True
             result["error"] = ""
+            details = data.get("details", {}) if isinstance(data, dict) else {}
+            if isinstance(details, dict) and details.get("pip_audit_execution_state") == "skipped_env":
+                result["cache_metadata"] = {"cache_mode": "skipped_env"}
+            else:
+                result["cache_metadata"] = _static_check_tool_cache_metadata(from_disk_cache=False)
             self.results_cache["analyze_pip_audit"] = data
             try:
                 save_tool_result(
@@ -1943,25 +1973,13 @@ class ToolWrappersMixin:
             if not result.get("error"):
                 result["error"] = "No parseable JSON output from analyze_pip_audit"
             result["success"] = False
+            result["cache_metadata"] = _static_check_tool_cache_metadata(from_disk_cache=False)
         return result
 
     def _compute_requirements_lock_signature(self) -> str | None:
         """Hash requirements.txt / pyproject.toml for pip-audit cache invalidation."""
         try:
-            import hashlib
-
-            root = Path(self.project_root)
-            h = hashlib.sha256()
-            found = False
-            for name in ("requirements.txt", "pyproject.toml"):
-                p = root / name
-                if p.is_file():
-                    found = True
-                    h.update(name.encode("utf-8"))
-                    h.update(b"\0")
-                    with open(p, "rb") as handle:
-                        h.update(handle.read())
-            return h.hexdigest() if found else None
+            return requirements_lock_signature(Path(self.project_root))
         except Exception as e:
             logger.debug(f"Could not compute requirements lock signature: {e}")
             return None
@@ -2010,10 +2028,10 @@ class ToolWrappersMixin:
     def _compute_source_signature(self) -> str | None:
         """Compute hash for static-check cache invalidation (Python sources + tool configs).
 
-        Includes ``pyproject.toml`` (``[tool.pyright]``, ``[tool.bandit]``, etc.) and owned
-        static-analysis configs so results refresh when only config moves (e.g. Pyright
-        settings merged from ``pyrightconfig.json`` into ``pyproject.toml``) without any
-        ``.py`` edits — otherwise stale Pyright/Ruff/Bandit JSON would be served from cache.
+        Non-Python inputs are listed in
+        ``development_tools.shared.cache_dependency_paths.STATIC_CHECK_CONFIG_RELATIVE_PATHS``
+        (``pyproject.toml``, dev-tools JSON, Pyright/Ruff configs, optional root ``.ruff.toml``)
+        so results refresh when only config moves without any ``.py`` edits.
         """
         try:
             import hashlib
@@ -2040,11 +2058,7 @@ class ToolWrappersMixin:
                 except (OSError, ValueError):
                     continue
             # Tool configs (not part of *.py scan): must bust cache when they change alone.
-            for rel in (
-                "pyproject.toml",
-                "development_tools/config/pyrightconfig.json",
-                "development_tools/config/ruff.toml",
-            ):
+            for rel in STATIC_CHECK_CONFIG_RELATIVE_PATHS:
                 cfg = root / rel
                 if cfg.is_file():
                     sig.update(rel.encode("utf-8"))

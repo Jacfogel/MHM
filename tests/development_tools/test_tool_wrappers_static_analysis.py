@@ -33,6 +33,7 @@ def test_run_analyze_ruff_parses_json_and_marks_issues(temp_project_copy, monkey
     assert result["success"] is True
     assert result["issues_found"] is True
     assert result["data"]["summary"]["total_issues"] == 5
+    assert result["cache_metadata"]["cache_mode"] == "cold_scan"
 
 
 @pytest.mark.unit
@@ -58,6 +59,7 @@ def test_run_analyze_pyright_parses_json_and_marks_issues(temp_project_copy, mon
     assert result["success"] is True
     assert result["issues_found"] is True
     assert result["data"]["details"]["errors"] == 2
+    assert result["cache_metadata"]["cache_mode"] == "cold_scan"
 
 
 @pytest.mark.unit
@@ -83,6 +85,7 @@ def test_run_analyze_bandit_parses_json_and_marks_issues(temp_project_copy, monk
     assert result["success"] is True
     assert result["issues_found"] is True
     assert result["data"]["summary"]["total_issues"] == 2
+    assert result["cache_metadata"]["cache_mode"] == "cold_scan"
 
 
 @pytest.mark.unit
@@ -108,6 +111,7 @@ def test_run_analyze_pip_audit_parses_json_and_marks_issues(temp_project_copy, m
     assert result["success"] is True
     assert result["issues_found"] is True
     assert result["data"]["summary"]["total_issues"] == 4
+    assert result["cache_metadata"]["cache_mode"] == "cold_scan"
 
 
 @pytest.mark.unit
@@ -140,6 +144,7 @@ def test_run_analyze_pip_audit_uses_cache_and_sets_execution_state(
     details = result["data"]["details"]
     assert details["pip_audit_execution_state"] == "requirements_lock_cache_hit"
     assert details["pip_audit_subprocess_seconds"] is None
+    assert result["cache_metadata"]["cache_mode"] == "cache_hit"
 
 
 @pytest.mark.unit
@@ -164,3 +169,4 @@ def test_run_analyze_pyright_returns_failure_when_output_is_not_json(
 
     assert result["success"] is False
     assert "stderr payload" in result["error"]
+    assert result["cache_metadata"]["cache_mode"] == "cold_scan"

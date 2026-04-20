@@ -1181,6 +1181,19 @@
     ],
     "ruff_config_path": "development_tools/config/ruff.toml",
     "ruff_sync_root_compat": true,
+    "ruff_shard_scan": true,
+    "ruff_path_shards": [
+      ["core"],
+      ["communication"],
+      ["ui"],
+      ["ai"],
+      ["user"],
+      ["tasks"],
+      ["notebook"],
+      ["development_tools"],
+      ["tests"]
+    ],
+    "bandit_shard_scan": true,
     "timeout_seconds": 600
   },
   "quick_status": {

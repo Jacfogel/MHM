@@ -556,6 +556,9 @@ CACHE_AWARE_TOOLS: frozenset[str] = frozenset({
     "analyze_legacy_references",
     "analyze_documentation_sync",
     "analyze_pip_audit",
+    "analyze_ruff",
+    "analyze_pyright",
+    "analyze_bandit",
 })
 
 

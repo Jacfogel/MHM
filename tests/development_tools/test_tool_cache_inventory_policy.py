@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from development_tools.shared.audit_tiers import get_expected_tools_for_tier
 from development_tools.shared.tool_cache_inventory import build_tool_cache_inventory
 
 _ROOT = Path(__file__).resolve().parents[2]
@@ -26,3 +27,22 @@ def test_tool_cache_inventory_lists_pip_audit_and_static_checks() -> None:
     assert "analyze_pip_audit" in names
     assert "analyze_pyright" in names
     assert "analyze_bandit" in names
+
+
+@pytest.mark.unit
+def test_tool_cache_inventory_covers_tier2_and_tier3_tools() -> None:
+    """V5 §3.19: every Tier 2 / Tier 3 audit tool has an inventory row."""
+    tier1_no_quick = {
+        t for t in get_expected_tools_for_tier(1) if t != "quick_status"
+    }
+    expected = set(get_expected_tools_for_tier(3, dev_tools_only=False)) - tier1_no_quick
+    names = {e["tool"] for e in build_tool_cache_inventory()["entries"]}
+    assert expected <= names, f"missing: {sorted(expected - names)}"
+
+
+@pytest.mark.unit
+def test_static_analysis_tools_use_mtime_json_cache() -> None:
+    """Ruff, Pyright, Bandit share mtime JSON caching in tool_wrappers."""
+    by_tool = {e["tool"]: e for e in build_tool_cache_inventory()["entries"]}
+    for name in ("analyze_pyright", "analyze_ruff", "analyze_bandit"):
+        assert by_tool[name]["strategy"] == "mtime_json_cache"

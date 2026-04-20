@@ -16,12 +16,21 @@ from typing import Any
 try:
     from .. import config
     from ..config.sync_ruff_toml import sync_ruff_toml
+    from ..shared.sharded_static_analysis import merge_ruff_check_json_lists
 except ImportError:
     project_root = Path(__file__).resolve().parents[2]
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     from development_tools import config
     from development_tools.config.sync_ruff_toml import sync_ruff_toml
+    from development_tools.shared.sharded_static_analysis import merge_ruff_check_json_lists
+
+try:
+    from core.logger import get_component_logger
+
+    _ruff_log = get_component_logger("development_tools.static_checks.analyze_ruff")
+except ImportError:
+    _ruff_log = None
 
 
 def _build_unavailable_result(message: str) -> dict[str, Any]:
@@ -129,6 +138,68 @@ def _resolve_top_rule_names(
     return resolved
 
 
+def _normalize_ruff_shard_rel_paths(project_root: Path, shard: Any) -> list[str]:
+    """Return existing repo-relative paths for one shard (forward slashes, no traversal)."""
+    if not isinstance(shard, (list, tuple)):
+        return []
+    out: list[str] = []
+    for rel in shard:
+        s = str(rel).strip().replace("\\", "/")
+        if not s or s.startswith("/") or ".." in s.split("/"):
+            continue
+        p = (project_root / s).resolve()
+        try:
+            p.relative_to(project_root.resolve())
+        except ValueError:
+            continue
+        if p.exists():
+            out.append(s)
+    return out
+
+
+def _run_ruff_subprocess_for_json_list(
+    project_root: Path,
+    command: list[str],
+    args: list[str],
+    timeout_seconds: int,
+) -> tuple[int | None, list[dict[str, Any]] | None, str]:
+    """Run ruff; return (returncode, json list payload, error_message if failed)."""
+    try:
+        result = subprocess.run(
+            command + args,
+            cwd=str(project_root),
+            capture_output=True,
+            text=True,
+            timeout=timeout_seconds,
+        )
+    except FileNotFoundError:
+        return None, None, "ruff command not found"
+    except subprocess.TimeoutExpired:
+        return None, None, "ruff execution timed out"
+    except KeyboardInterrupt:
+        return None, None, (
+            "ruff interrupted (console control event while waiting for ruff)"
+        )
+    except Exception as exc:
+        return None, None, f"ruff execution failed: {exc}"
+
+    stdout_text = result.stdout.strip()
+    if not stdout_text:
+        stderr_text = result.stderr.strip()
+        if stderr_text:
+            return None, None, f"ruff returned no JSON output: {stderr_text}"
+        return None, None, "ruff returned no JSON output"
+
+    try:
+        payload = json.loads(stdout_text)
+    except json.JSONDecodeError:
+        return None, None, "ruff output was not valid JSON"
+
+    if not isinstance(payload, list):
+        return None, None, "ruff output payload is not a JSON list"
+    return result.returncode, payload, ""
+
+
 def run_ruff(project_root: Path) -> dict[str, Any]:
     static_cfg = config.get_static_analysis_config()
     configured_ruff_path = static_cfg.get(
@@ -143,45 +214,74 @@ def run_ruff(project_root: Path) -> dict[str, Any]:
     command = _resolve_python_command(
         list(static_cfg.get("ruff_command", [sys.executable, "-m", "ruff"]))
     )
-    args = list(static_cfg.get("ruff_args", ["check", ".", "--output-format", "json"]))
-    if "--config" not in args:
-        args.extend(["--config", str(ruff_toml_path)])
     timeout_seconds = int(static_cfg.get("timeout_seconds", 600) or 600)
 
-    try:
-        result = subprocess.run(
-            command + args,
-            cwd=str(project_root),
-            capture_output=True,
-            text=True,
-            timeout=timeout_seconds,
+    use_shards = bool(static_cfg.get("ruff_shard_scan", False))
+    raw_shards = static_cfg.get("ruff_path_shards")
+    shards: list[Any] = list(raw_shards) if isinstance(raw_shards, list) else []
+
+    payload: list[dict[str, Any]] | None = None
+    result_returncode = 0
+    shard_run_info: dict[str, Any] | None = None
+
+    if use_shards and shards:
+        shard_lists: list[list[dict[str, Any]]] = []
+        max_rc = 0
+        for shard in shards:
+            rels = _normalize_ruff_shard_rel_paths(project_root, shard)
+            if not rels:
+                continue
+            args = ["check"] + rels + ["--output-format", "json"]
+            if "--config" not in args:
+                args.extend(["--config", str(ruff_toml_path)])
+            rc, pl, err = _run_ruff_subprocess_for_json_list(
+                project_root, command, args, timeout_seconds
+            )
+            if rc is None or pl is None:
+                return _build_unavailable_result(err)
+            max_rc = max(max_rc, int(rc))
+            shard_lists.append(pl)
+        if shard_lists:
+            payload = merge_ruff_check_json_lists(shard_lists)
+            result_returncode = max_rc
+            shard_run_info = {
+                "mode": "sharded",
+                "subprocesses": len(shard_lists),
+                "merged": True,
+            }
+
+    if payload is None:
+        args = list(static_cfg.get("ruff_args", ["check", ".", "--output-format", "json"]))
+        if "--config" not in args:
+            args.extend(["--config", str(ruff_toml_path)])
+        rc, pl, err = _run_ruff_subprocess_for_json_list(
+            project_root, command, args, timeout_seconds
         )
-    except FileNotFoundError:
-        return _build_unavailable_result("ruff command not found")
-    except subprocess.TimeoutExpired:
-        return _build_unavailable_result("ruff execution timed out")
-    except KeyboardInterrupt:
-        return _build_unavailable_result(
-            "ruff interrupted (console control event while waiting for ruff)"
-        )
-    except Exception as exc:
-        return _build_unavailable_result(f"ruff execution failed: {exc}")
+        if rc is None or pl is None:
+            return _build_unavailable_result(err)
+        payload = pl
+        result_returncode = int(rc)
+        if shard_run_info is None:
+            shard_run_info = (
+                {
+                    "mode": "single_fallback",
+                    "subprocesses": 1,
+                    "reason": "no_shard_paths_resolved",
+                }
+                if (use_shards and shards)
+                else {"mode": "single", "subprocesses": 1}
+            )
 
-    stdout_text = result.stdout.strip()
-    if not stdout_text:
-        stderr_text = result.stderr.strip()
-        if stderr_text:
-            return _build_unavailable_result(f"ruff returned no JSON output: {stderr_text}")
-        return _build_unavailable_result("ruff returned no JSON output")
-
-    try:
-        payload = json.loads(stdout_text)
-    except json.JSONDecodeError:
-        return _build_unavailable_result("ruff output was not valid JSON")
-
-    parsed_result = _build_result_from_payload(payload, result.returncode)
+    parsed_result = _build_result_from_payload(payload, result_returncode)
     details = parsed_result.get("details", {})
     if isinstance(details, dict):
+        if shard_run_info is not None:
+            details["shard_run"] = shard_run_info
+            if _ruff_log and shard_run_info.get("mode") == "sharded":
+                n = shard_run_info.get("subprocesses")
+                _ruff_log.info(
+                    f"analyze_ruff: sharded run merged {n} ruff subprocess(es)"
+                )
         top_rule_counts = details.get("violations_by_rule", {})
         if isinstance(top_rule_counts, dict) and top_rule_counts:
             ordered_codes = [str(code) for code in top_rule_counts]

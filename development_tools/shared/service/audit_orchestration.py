@@ -1037,6 +1037,8 @@ class AuditOrchestrationMixin:
         )
         if success and cache_state == "invalidated":
             cache_state = "created"
+        if cache_state == "none_found":
+            cache_state = None
         cache_fragment = f" cache={cache_state}" if cache_state else ""
         detail_fragment = ""
         if tool_name == "generate_unused_imports_report" and success:

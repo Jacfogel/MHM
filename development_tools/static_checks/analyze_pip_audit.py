@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import subprocess
@@ -17,11 +16,13 @@ from typing import Any
 
 try:
     from .. import config
+    from ..shared.cache_dependency_paths import requirements_lock_signature
 except ImportError:
     project_root = Path(__file__).resolve().parents[2]
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     from development_tools import config
+    from development_tools.shared.cache_dependency_paths import requirements_lock_signature
 
 
 def _build_unavailable_result(message: str) -> dict[str, Any]:
@@ -146,22 +147,8 @@ def _build_result_from_payload(
 
 
 def requirements_signature(project_root: Path) -> str | None:
-    """Stable hash of dependency files for cache invalidation."""
-    root = project_root.resolve()
-    parts: list[bytes] = []
-    for rel in ("requirements.txt", "pyproject.toml"):
-        p = root / rel
-        if p.is_file():
-            try:
-                parts.append(rel.encode() + b"\0" + p.read_bytes())
-            except OSError:
-                continue
-    if not parts:
-        return None
-    h = hashlib.sha256()
-    for blob in parts:
-        h.update(blob)
-    return h.hexdigest()
+    """Stable hash of dependency files for cache invalidation (see ``requirements_lock_signature``)."""
+    return requirements_lock_signature(project_root)
 
 
 def run_pip_audit(project_root: Path) -> dict[str, Any]:

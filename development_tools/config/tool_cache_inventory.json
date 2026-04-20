@@ -1,79 +1,184 @@
 {
+  "schema_version": 1,
   "description": "Cache strategies derived from tool_metadata.CACHE_AWARE_TOOLS; details from wrapper/orchestration semantics.",
   "entries": [
     {
+      "tool": "analyze_backup_health",
+      "strategy": "no_persistent_tool_json_cache",
+      "implementation": "development_tools/shared/service/commands.py (backup health command)",
+      "artifact_glob": "development_tools/reports/jsons/backup_health_report.json; development_tools/**/jsons/scopes/*/reports/*.json",
+      "invalidation": "N/A — live backup checks; JSON overwrites each run"
+    },
+    {
+      "tool": "analyze_bandit",
+      "strategy": "mtime_json_cache",
+      "implementation": "development_tools/shared/service/tool_wrappers.py _try_static_check_cache / _save_static_check_cache",
       "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/*bandit*.json",
-      "implementation": "development_tools/shared/service/tool_wrappers.py _try_static_check_cache / _save_static_check_cache",
-      "invalidation": "Static check JSON mtime vs source tree",
-      "strategy": "mtime_json_cache",
-      "tool": "analyze_bandit"
+      "invalidation": "Source signature: analyzed *.py + config files in development_tools.shared.cache_dependency_paths.STATIC_CHECK_CONFIG_RELATIVE_PATHS (see tool_wrappers._compute_source_signature)"
     },
     {
-      "artifact_glob": "development_tools/**/jsons/scopes/*/docs/*.json",
-      "implementation": "orchestration cache metadata; doc sync payloads",
-      "invalidation": "Doc file mtimes and paired-doc registry",
-      "strategy": "paired_doc_cache",
-      "tool": "analyze_documentation_sync"
-    },
-    {
-      "artifact_glob": "development_tools/**/jsons/scopes/*/legacy/*.json",
-      "implementation": "details.cache in tool JSON; orchestration CACHE_AWARE_TOOLS",
-      "invalidation": "Content hash / scan metadata in tool payload",
-      "strategy": "marker_scan_cache",
-      "tool": "analyze_legacy_references"
-    },
-    {
-      "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/.analyze_pip_audit_requirements_cache.json",
-      "implementation": "development_tools/shared/service/tool_wrappers.py _try_pip_audit_cache / _save_pip_audit_cache",
-      "invalidation": "SHA-256 of requirements.txt + pyproject.toml",
-      "strategy": "requirements_hash_json_cache",
-      "tool": "analyze_pip_audit"
-    },
-    {
-      "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/*pyright*.json",
-      "implementation": "development_tools/shared/service/tool_wrappers.py _try_static_check_cache / _save_static_check_cache",
-      "invalidation": "Static check JSON mtime vs source tree",
-      "strategy": "mtime_json_cache",
-      "tool": "analyze_pyright"
-    },
-    {
-      "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/*ruff*.json",
-      "implementation": "development_tools/shared/service/tool_wrappers.py _try_static_check_cache / _save_static_check_cache",
-      "invalidation": "Static check JSON mtime vs source tree",
-      "strategy": "mtime_json_cache",
-      "tool": "analyze_ruff"
-    },
-    {
+      "tool": "analyze_dependency_patterns",
+      "strategy": "per_run_json_overwrite",
+      "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",
       "artifact_glob": "development_tools/**/jsons/scopes/*/imports/*.json",
-      "implementation": "imports analyzer + optional cache stats in JSON details",
-      "invalidation": "Ruff batch paths keyed by Path.resolve(); tool JSON mtime",
+      "invalidation": "Full re-analysis each audit unless covered by a specialized cache above"
+    },
+    {
+      "tool": "analyze_documentation_sync",
+      "strategy": "paired_doc_cache",
+      "implementation": "orchestration cache metadata; doc sync payloads",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/docs/*.json",
+      "invalidation": "Doc file mtimes and paired-doc registry"
+    },
+    {
+      "tool": "analyze_duplicate_functions",
+      "strategy": "per_run_json_overwrite",
+      "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/functions/*.json",
+      "invalidation": "Full re-analysis each audit unless covered by a specialized cache above"
+    },
+    {
+      "tool": "analyze_error_handling",
+      "strategy": "per_run_json_overwrite",
+      "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/error_handling/*.json",
+      "invalidation": "Full re-analysis each audit unless covered by a specialized cache above"
+    },
+    {
+      "tool": "analyze_function_registry",
+      "strategy": "per_run_json_overwrite",
+      "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/functions/*.json",
+      "invalidation": "Full re-analysis each audit unless covered by a specialized cache above"
+    },
+    {
+      "tool": "analyze_functions",
+      "strategy": "per_run_json_overwrite",
+      "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/functions/*.json",
+      "invalidation": "Full re-analysis each audit unless covered by a specialized cache above"
+    },
+    {
+      "tool": "analyze_legacy_references",
+      "strategy": "marker_scan_cache",
+      "implementation": "details.cache in tool JSON; orchestration CACHE_AWARE_TOOLS",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/legacy/*.json",
+      "invalidation": "Content hash / scan metadata in tool payload"
+    },
+    {
+      "tool": "analyze_module_dependencies",
+      "strategy": "per_run_json_overwrite",
+      "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/imports/*.json",
+      "invalidation": "Full re-analysis each audit unless covered by a specialized cache above"
+    },
+    {
+      "tool": "analyze_module_imports",
+      "strategy": "per_run_json_overwrite",
+      "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/imports/*.json",
+      "invalidation": "Full re-analysis each audit unless covered by a specialized cache above"
+    },
+    {
+      "tool": "analyze_module_refactor_candidates",
+      "strategy": "per_run_json_overwrite",
+      "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/functions/*.json",
+      "invalidation": "Full re-analysis each audit unless covered by a specialized cache above"
+    },
+    {
+      "tool": "analyze_package_exports",
+      "strategy": "per_run_json_overwrite",
+      "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/functions/*.json",
+      "invalidation": "Full re-analysis each audit unless covered by a specialized cache above"
+    },
+    {
+      "tool": "analyze_pip_audit",
+      "strategy": "requirements_hash_json_cache",
+      "implementation": "development_tools/shared/service/tool_wrappers.py _try_pip_audit_cache / _save_pip_audit_cache",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/.analyze_pip_audit_requirements_cache.json",
+      "invalidation": "development_tools.shared.cache_dependency_paths.requirements_lock_signature (PIP_AUDIT_DEPENDENCY_RELATIVE_PATHS; see tool_wrappers pip-audit cache)"
+    },
+    {
+      "tool": "analyze_pyright",
+      "strategy": "mtime_json_cache",
+      "implementation": "development_tools/shared/service/tool_wrappers.py _try_static_check_cache / _save_static_check_cache",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/*pyright*.json",
+      "invalidation": "Source signature: analyzed *.py + config files in development_tools.shared.cache_dependency_paths.STATIC_CHECK_CONFIG_RELATIVE_PATHS (see tool_wrappers._compute_source_signature)"
+    },
+    {
+      "tool": "analyze_ruff",
+      "strategy": "mtime_json_cache",
+      "implementation": "development_tools/shared/service/tool_wrappers.py _try_static_check_cache / _save_static_check_cache",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/*ruff*.json",
+      "invalidation": "Source signature: analyzed *.py + config files in development_tools.shared.cache_dependency_paths.STATIC_CHECK_CONFIG_RELATIVE_PATHS (see tool_wrappers._compute_source_signature)"
+    },
+    {
+      "tool": "analyze_test_markers",
+      "strategy": "reads_coverage_artifacts",
+      "implementation": "development_tools/tests/analyze_test_markers.py (consumes coverage JSON)",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/tests/*test_markers*.json",
+      "invalidation": "Re-run when coverage JSON or marker config changes"
+    },
+    {
+      "tool": "analyze_unused_imports",
       "strategy": "ruff_batch_and_optional_tool_json",
-      "tool": "analyze_unused_imports"
+      "implementation": "imports analyzer + optional cache stats in JSON details",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/imports/*.json",
+      "invalidation": "Ruff batch paths keyed by Path.resolve(); tool JSON mtime"
     },
     {
+      "tool": "generate_dev_tools_coverage",
+      "strategy": "domain_test_file_cache_merge",
+      "implementation": "development_tools/tests/run_test_coverage.py (coverage metadata)",
       "artifact_glob": "development_tools/tests/jsons/coverage_dev_tools.json",
-      "implementation": "development_tools/tests/run_test_coverage.py (coverage metadata)",
-      "invalidation": "Per test-file cache keys; see coverage JSON _metadata",
-      "strategy": "domain_test_file_cache_merge",
-      "tool": "generate_dev_tools_coverage"
+      "invalidation": "Per test-file cache keys; see coverage JSON _metadata"
     },
     {
-      "artifact_glob": "development_tools/tests/jsons/coverage.json",
-      "implementation": "development_tools/tests/run_test_coverage.py (coverage metadata)",
-      "invalidation": "Per test-file cache keys; see coverage JSON _metadata",
+      "tool": "generate_legacy_reference_report",
+      "strategy": "downstream_of_analyze_legacy_references",
+      "implementation": "development_tools/legacy/generate_legacy_reference_report.py",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/legacy/*.json; development_docs/LEGACY_REFERENCE_REPORT.md",
+      "invalidation": "Regenerates from analyze_legacy_references JSON"
+    },
+    {
+      "tool": "generate_test_coverage_report",
+      "strategy": "downstream_of_coverage_json",
+      "implementation": "development_tools/tests/generate_test_coverage_report.py",
+      "artifact_glob": "development_tools/tests/jsons/coverage.json; development_docs/TEST_COVERAGE_REPORT.md",
+      "invalidation": "Regenerates when upstream coverage data is refreshed"
+    },
+    {
+      "tool": "generate_unused_imports_report",
+      "strategy": "downstream_of_analyze_unused_imports",
+      "implementation": "development_tools/imports/generate_unused_imports_report.py",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/imports/*.json; development_docs/UNUSED_IMPORTS_REPORT.md",
+      "invalidation": "Regenerates from analyze_unused_imports JSON"
+    },
+    {
+      "tool": "run_test_coverage",
       "strategy": "domain_test_file_cache_merge",
-      "tool": "run_test_coverage"
+      "implementation": "development_tools/tests/run_test_coverage.py (coverage metadata)",
+      "artifact_glob": "development_tools/tests/jsons/coverage.json",
+      "invalidation": "Per test-file cache keys; see coverage JSON _metadata"
+    },
+    {
+      "tool": "verify_process_cleanup",
+      "strategy": "no_persistent_tool_json_cache",
+      "implementation": "development_tools/tests/verify_process_cleanup.py (process probe)",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/verify_process_cleanup*.json",
+      "invalidation": "N/A — advisory probe; JSON is per-run output only"
     }
   ],
   "expansion_candidates": [
     {
-      "note": "Already mtime-cached; further invalidation tuning via config only.",
-      "tool": "analyze_pyright"
+      "tool": "analyze_pyright",
+      "note": "Already mtime-cached; further invalidation tuning via config only."
     },
     {
-      "note": "Already mtime-cached; Bandit targets exclude tests/ by default.",
-      "tool": "analyze_bandit"
+      "tool": "analyze_bandit",
+      "note": "Already mtime-cached; Bandit targets exclude tests/ by default."
     }
-  ],
-  "schema_version": 1
+  ]
 }

@@ -14,11 +14,20 @@ from typing import Any
 
 try:
     from .. import config
+    from ..shared.sharded_static_analysis import merge_bandit_raw_payloads
 except ImportError:
     project_root = Path(__file__).resolve().parents[2]
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     from development_tools import config
+    from development_tools.shared.sharded_static_analysis import merge_bandit_raw_payloads
+
+try:
+    from core.logger import get_component_logger
+
+    _bandit_log = get_component_logger("development_tools.static_checks.analyze_bandit")
+except ImportError:
+    _bandit_log = None
 
 
 def _build_unavailable_result(message: str) -> dict[str, Any]:
@@ -93,6 +102,49 @@ def _build_result_from_payload(payload: dict[str, Any], returncode: int) -> dict
     }
 
 
+def _run_bandit_subprocess_for_json(
+    project_root: Path,
+    command: list[str],
+    args: list[str],
+    timeout_seconds: int,
+) -> tuple[int | None, dict[str, Any] | None, str]:
+    """Run bandit; return (returncode, root JSON object, error_message if failed)."""
+    try:
+        result = subprocess.run(
+            command + args,
+            cwd=str(project_root),
+            capture_output=True,
+            text=True,
+            timeout=timeout_seconds,
+        )
+    except FileNotFoundError:
+        return None, None, "bandit command not found"
+    except subprocess.TimeoutExpired:
+        return None, None, "bandit execution timed out"
+    except KeyboardInterrupt:
+        return None, None, (
+            "bandit interrupted (console control event while waiting for bandit)"
+        )
+    except Exception as exc:
+        return None, None, f"bandit execution failed: {exc}"
+
+    stdout_text = (result.stdout or "").strip()
+    if not stdout_text:
+        stderr_text = (result.stderr or "").strip()
+        if stderr_text:
+            return None, None, f"bandit returned no JSON output: {stderr_text}"
+        return None, None, "bandit returned no JSON output"
+
+    try:
+        payload = json.loads(stdout_text)
+    except json.JSONDecodeError:
+        return None, None, "bandit output was not valid JSON"
+
+    if not isinstance(payload, dict):
+        return None, None, "bandit JSON root must be an object"
+    return result.returncode, payload, ""
+
+
 def run_bandit(project_root: Path) -> dict[str, Any]:
     static_cfg = config.get_static_analysis_config()
     command = _resolve_python_command(
@@ -137,6 +189,40 @@ def run_bandit(project_root: Path) -> dict[str, Any]:
     config_prefix: list[str] = (
         ["-c", str(pyproject_path)] if pyproject_path.is_file() else []
     )
+
+    shard_scan = bool(static_cfg.get("bandit_shard_scan", False))
+    if shard_scan and len(path_args) > 1:
+        payloads: list[dict[str, Any]] = []
+        max_rc = 0
+        for rel_target in path_args:
+            args_one: list[str] = (
+                config_prefix
+                + ["-r", rel_target]
+                + ["-f", "json", "-q", "-x", exclude_csv]
+                + extra_args
+            )
+            rc, payload, err = _run_bandit_subprocess_for_json(
+                project_root, command, args_one, timeout_seconds
+            )
+            if rc is None or payload is None:
+                return _build_unavailable_result(err)
+            max_rc = max(max_rc, int(rc))
+            payloads.append(payload)
+        merged = merge_bandit_raw_payloads(payloads)
+        out = _build_result_from_payload(merged, max_rc)
+        det = out.get("details")
+        if isinstance(det, dict):
+            det["shard_run"] = {
+                "mode": "sharded",
+                "subprocesses": len(payloads),
+                "merged": True,
+            }
+        if _bandit_log:
+            _bandit_log.info(
+                f"analyze_bandit: sharded run merged {len(payloads)} bandit subprocess(es)"
+            )
+        return out
+
     args: list[str] = (
         config_prefix
         + ["-r"]
@@ -144,42 +230,16 @@ def run_bandit(project_root: Path) -> dict[str, Any]:
         + ["-f", "json", "-q", "-x", exclude_csv]
         + extra_args
     )
-
-    try:
-        result = subprocess.run(
-            command + args,
-            cwd=str(project_root),
-            capture_output=True,
-            text=True,
-            timeout=timeout_seconds,
-        )
-    except FileNotFoundError:
-        return _build_unavailable_result("bandit command not found")
-    except subprocess.TimeoutExpired:
-        return _build_unavailable_result("bandit execution timed out")
-    except KeyboardInterrupt:
-        return _build_unavailable_result(
-            "bandit interrupted (console control event while waiting for bandit)"
-        )
-    except Exception as exc:
-        return _build_unavailable_result(f"bandit execution failed: {exc}")
-
-    stdout_text = (result.stdout or "").strip()
-    if not stdout_text:
-        stderr_text = (result.stderr or "").strip()
-        if stderr_text:
-            return _build_unavailable_result(f"bandit returned no JSON output: {stderr_text}")
-        return _build_unavailable_result("bandit returned no JSON output")
-
-    try:
-        payload = json.loads(stdout_text)
-    except json.JSONDecodeError:
-        return _build_unavailable_result("bandit output was not valid JSON")
-
-    if not isinstance(payload, dict):
-        return _build_unavailable_result("bandit JSON root must be an object")
-
-    return _build_result_from_payload(payload, result.returncode)
+    rc, payload, err = _run_bandit_subprocess_for_json(
+        project_root, command, args, timeout_seconds
+    )
+    if rc is None or payload is None:
+        return _build_unavailable_result(err)
+    out = _build_result_from_payload(payload, int(rc))
+    det = out.get("details")
+    if isinstance(det, dict):
+        det["shard_run"] = {"mode": "single", "subprocesses": 1}
+    return out
 
 
 def main(argv: list[str] | None = None) -> int:
