@@ -9,7 +9,10 @@ import pytest
 from development_tools.shared.cache_dependency_paths import (
     PIP_AUDIT_DEPENDENCY_RELATIVE_PATHS,
     STATIC_CHECK_CONFIG_RELATIVE_PATHS,
+    compute_full_static_check_source_signature,
+    compute_scoped_py_source_signature,
     requirements_lock_signature,
+    static_check_config_digest,
     static_check_config_paths,
 )
 from development_tools.tests.dev_tools_coverage_cache import DevToolsCoverageCache
@@ -73,6 +76,48 @@ def test_requirements_lock_signature_matches_pip_audit_files(tmp_path: Path) -> 
 @pytest.mark.unit
 def test_requirements_lock_signature_none_when_no_dependency_files(tmp_path: Path) -> None:
     assert requirements_lock_signature(tmp_path) is None
+
+
+@pytest.mark.unit
+def test_static_check_config_digest_changes_with_pyproject(tmp_path: Path) -> None:
+    (tmp_path / "pyproject.toml").write_text("a\n", encoding="utf-8")
+    s1 = static_check_config_digest(tmp_path)
+    assert s1 and len(s1) == 64
+    (tmp_path / "pyproject.toml").write_text("b\n", encoding="utf-8")
+    assert static_check_config_digest(tmp_path) != s1
+
+
+@pytest.mark.unit
+def test_compute_scoped_py_source_signature_only_sees_roots(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        "development_tools.shared.standard_exclusions.should_exclude_file",
+        lambda *_a, **_k: False,
+    )
+    (tmp_path / "a").mkdir()
+    (tmp_path / "b").mkdir()
+    (tmp_path / "a" / "x.py").write_text("1\n", encoding="utf-8")
+    (tmp_path / "b" / "y.py").write_text("2\n", encoding="utf-8")
+    sa = compute_scoped_py_source_signature(tmp_path, ["a"])
+    sb = compute_scoped_py_source_signature(tmp_path, ["b"])
+    assert sa and sb and sa != sb
+
+
+@pytest.mark.unit
+def test_compute_full_static_check_matches_service_signature(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        "development_tools.shared.standard_exclusions.should_exclude_file",
+        lambda *_a, **_k: False,
+    )
+    (tmp_path / "t.py").write_text("z\n", encoding="utf-8")
+    (tmp_path / "pyproject.toml").write_text("[project]\nname=x\n", encoding="utf-8")
+    from development_tools.shared.service import AIToolsService
+
+    svc = AIToolsService(project_root=str(tmp_path))
+    assert svc._compute_source_signature() == compute_full_static_check_source_signature(tmp_path)
 
 
 @pytest.mark.unit

@@ -41,8 +41,8 @@ def test_tool_cache_inventory_covers_tier2_and_tier3_tools() -> None:
 
 
 @pytest.mark.unit
-def test_static_analysis_tools_use_mtime_json_cache() -> None:
-    """Ruff, Pyright, Bandit share mtime JSON caching in tool_wrappers."""
+def test_static_analysis_tools_use_shard_fragment_cache() -> None:
+    """Ruff, Pyright, Bandit use per-shard fragment caches in analyze_* scripts."""
     by_tool = {e["tool"]: e for e in build_tool_cache_inventory()["entries"]}
     for name in ("analyze_pyright", "analyze_ruff", "analyze_bandit"):
-        assert by_tool[name]["strategy"] == "mtime_json_cache"
+        assert by_tool[name]["strategy"] == "shard_fragment_json_cache"

@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import re
 import subprocess
@@ -16,14 +17,42 @@ from typing import Any
 try:
     from .. import config
     from ..config.sync_ruff_toml import sync_ruff_toml
+    from ..shared.audit_storage_scope import jsons_dir_for_scope
+    from ..shared.cache_dependency_paths import (
+        compute_full_repo_py_source_signature,
+        compute_scoped_py_source_signature,
+        static_check_config_digest,
+    )
     from ..shared.sharded_static_analysis import merge_ruff_check_json_lists
+    from ..shared.static_analysis_shard_cache import (
+        load_shard_manifest,
+        save_shard_manifest_atomic,
+        shard_cache_path,
+        shard_entry_hit,
+        stable_shard_id,
+        upsert_shard_manifest,
+    )
 except ImportError:
     project_root = Path(__file__).resolve().parents[2]
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     from development_tools import config
     from development_tools.config.sync_ruff_toml import sync_ruff_toml
+    from development_tools.shared.audit_storage_scope import jsons_dir_for_scope
+    from development_tools.shared.cache_dependency_paths import (
+        compute_full_repo_py_source_signature,
+        compute_scoped_py_source_signature,
+        static_check_config_digest,
+    )
     from development_tools.shared.sharded_static_analysis import merge_ruff_check_json_lists
+    from development_tools.shared.static_analysis_shard_cache import (
+        load_shard_manifest,
+        save_shard_manifest_atomic,
+        shard_cache_path,
+        shard_entry_hit,
+        stable_shard_id,
+        upsert_shard_manifest,
+    )
 
 try:
     from core.logger import get_component_logger
@@ -220,16 +249,41 @@ def run_ruff(project_root: Path) -> dict[str, Any]:
     raw_shards = static_cfg.get("ruff_path_shards")
     shards: list[Any] = list(raw_shards) if isinstance(raw_shards, list) else []
 
+    jsons_dir = jsons_dir_for_scope(project_root, "static_checks")
+    cache_path = shard_cache_path(jsons_dir, "analyze_ruff")
+    working_manifest = load_shard_manifest(cache_path)
+    cfg_digest = static_check_config_digest(project_root)
+
     payload: list[dict[str, Any]] | None = None
     result_returncode = 0
     shard_run_info: dict[str, Any] | None = None
+    cache_dirty = False
 
     if use_shards and shards:
         shard_lists: list[list[dict[str, Any]]] = []
         max_rc = 0
+        subprocess_runs = 0
+        fragment_hits = 0
         for shard in shards:
             rels = _normalize_ruff_shard_rel_paths(project_root, shard)
             if not rels:
+                continue
+            sid = stable_shard_id(rels)
+            src_sig = compute_scoped_py_source_signature(project_root, rels)
+            effective_sig = src_sig or "__empty_scope__"
+            cached_list: list[dict[str, Any]] | None = None
+            if cfg_digest is not None:
+                frag = shard_entry_hit(
+                    working_manifest,
+                    config_digest=cfg_digest,
+                    shard_id=sid,
+                    source_signature=effective_sig,
+                )
+                if isinstance(frag, list):
+                    cached_list = frag
+            if cached_list is not None:
+                shard_lists.append(cached_list)
+                fragment_hits += 1
                 continue
             args = ["check"] + rels + ["--output-format", "json"]
             if "--config" not in args:
@@ -239,38 +293,89 @@ def run_ruff(project_root: Path) -> dict[str, Any]:
             )
             if rc is None or pl is None:
                 return _build_unavailable_result(err)
+            subprocess_runs += 1
             max_rc = max(max_rc, int(rc))
             shard_lists.append(pl)
+            if cfg_digest is not None:
+                working_manifest = upsert_shard_manifest(
+                    working_manifest,
+                    tool_name="analyze_ruff",
+                    config_digest=cfg_digest,
+                    shard_id=sid,
+                    source_signature=effective_sig,
+                    fragment=pl,
+                )
+                cache_dirty = True
         if shard_lists:
             payload = merge_ruff_check_json_lists(shard_lists)
             result_returncode = max_rc
             shard_run_info = {
                 "mode": "sharded",
-                "subprocesses": len(shard_lists),
+                "subprocesses": subprocess_runs,
                 "merged": True,
+                "fragment_cache_hits": fragment_hits,
+                "fragment_cache_misses": subprocess_runs,
             }
+        if cache_dirty and isinstance(working_manifest, dict):
+            with contextlib.suppress(OSError):
+                save_shard_manifest_atomic(cache_path, working_manifest)
+            cache_dirty = False
 
     if payload is None:
-        args = list(static_cfg.get("ruff_args", ["check", ".", "--output-format", "json"]))
-        if "--config" not in args:
-            args.extend(["--config", str(ruff_toml_path)])
-        rc, pl, err = _run_ruff_subprocess_for_json_list(
-            project_root, command, args, timeout_seconds
-        )
-        if rc is None or pl is None:
-            return _build_unavailable_result(err)
-        payload = pl
-        result_returncode = int(rc)
-        if shard_run_info is None:
-            shard_run_info = (
-                {
-                    "mode": "single_fallback",
-                    "subprocesses": 1,
-                    "reason": "no_shard_paths_resolved",
-                }
-                if (use_shards and shards)
-                else {"mode": "single", "subprocesses": 1}
+        mono_id = "__monolithic__"
+        full_sig = compute_full_repo_py_source_signature(project_root)
+        mono_cached: list[dict[str, Any]] | None = None
+        if full_sig is not None and cfg_digest is not None:
+            mf = load_shard_manifest(cache_path)
+            frag = shard_entry_hit(
+                mf,
+                config_digest=cfg_digest,
+                shard_id=mono_id,
+                source_signature=full_sig,
             )
+            if isinstance(frag, list):
+                mono_cached = frag
+        if mono_cached is not None:
+            payload = mono_cached
+            result_returncode = 0
+            shard_run_info = {
+                "mode": "single",
+                "subprocesses": 0,
+                "fragment_cache_hits": 1,
+                "fragment_cache_misses": 0,
+            }
+        else:
+            args = list(static_cfg.get("ruff_args", ["check", ".", "--output-format", "json"]))
+            if "--config" not in args:
+                args.extend(["--config", str(ruff_toml_path)])
+            rc, pl, err = _run_ruff_subprocess_for_json_list(
+                project_root, command, args, timeout_seconds
+            )
+            if rc is None or pl is None:
+                return _build_unavailable_result(err)
+            payload = pl
+            result_returncode = int(rc)
+            if shard_run_info is None:
+                shard_run_info = (
+                    {
+                        "mode": "single_fallback",
+                        "subprocesses": 1,
+                        "reason": "no_shard_paths_resolved",
+                    }
+                    if (use_shards and shards)
+                    else {"mode": "single", "subprocesses": 1}
+                )
+            if full_sig is not None and cfg_digest is not None:
+                wm = upsert_shard_manifest(
+                    load_shard_manifest(cache_path),
+                    tool_name="analyze_ruff",
+                    config_digest=cfg_digest,
+                    shard_id=mono_id,
+                    source_signature=full_sig,
+                    fragment=pl,
+                )
+                with contextlib.suppress(OSError):
+                    save_shard_manifest_atomic(cache_path, wm)
 
     parsed_result = _build_result_from_payload(payload, result_returncode)
     details = parsed_result.get("details", {})
@@ -278,9 +383,10 @@ def run_ruff(project_root: Path) -> dict[str, Any]:
         if shard_run_info is not None:
             details["shard_run"] = shard_run_info
             if _ruff_log and shard_run_info.get("mode") == "sharded":
-                n = shard_run_info.get("subprocesses")
+                n = int(shard_run_info.get("subprocesses") or 0)
+                h = int(shard_run_info.get("fragment_cache_hits") or 0)
                 _ruff_log.info(
-                    f"analyze_ruff: sharded run merged {n} ruff subprocess(es)"
+                    f"analyze_ruff: sharded run subprocesses={n} cache_hits={h}"
                 )
         top_rule_counts = details.get("violations_by_rule", {})
         if isinstance(top_rule_counts, dict) and top_rule_counts:

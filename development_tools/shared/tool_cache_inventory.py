@@ -31,13 +31,21 @@ def _cache_entry(tool_name: str, domain: str) -> dict[str, str]:
     if tool_name in static_check_tools:
         return {
             "tool": tool_name,
-            "strategy": "mtime_json_cache",
-            "implementation": "development_tools/shared/service/tool_wrappers.py _try_static_check_cache / _save_static_check_cache",
-            "artifact_glob": f"development_tools/**/jsons/scopes/*/{domain}/*{tool_name.split('_', 1)[1]}*.json",
+            "strategy": "shard_fragment_json_cache",
+            "implementation": (
+                "development_tools/static_checks/analyze_ruff|analyze_bandit|analyze_pyright.run_* "
+                "+ development_tools/shared/static_analysis_shard_cache.py "
+                "(coarse wrapper mtime cache not used for these tools)"
+            ),
+            "artifact_glob": (
+                f"development_tools/**/jsons/scopes/*/{domain}/.{tool_name}_shard_cache.v1.json; "
+                f"development_tools/**/jsons/scopes/*/{domain}/*{tool_name.split('_', 1)[1]}*.json"
+            ),
             "invalidation": (
-                "Source signature: analyzed *.py + config files in "
-                "development_tools.shared.cache_dependency_paths.STATIC_CHECK_CONFIG_RELATIVE_PATHS "
-                "(see tool_wrappers._compute_source_signature)"
+                "Per-shard Python signatures via "
+                "development_tools.shared.cache_dependency_paths.compute_scoped_py_source_signature "
+                "or compute_full_repo_py_source_signature (__monolithic__); "
+                "static_check_config_digest over STATIC_CHECK_CONFIG_RELATIVE_PATHS busts all shards"
             ),
         }
     if tool_name == "analyze_pip_audit":
@@ -151,16 +159,36 @@ def build_tool_cache_inventory() -> dict:
         entries.append(_cache_entry(tool_name, domain))
     return {
         "schema_version": 1,
-        "description": "Cache strategies derived from tool_metadata.CACHE_AWARE_TOOLS; details from wrapper/orchestration semantics.",
+        "description": (
+            "Cache strategies derived from tool_metadata.CACHE_AWARE_TOOLS; "
+            "static checks use per-shard fragment caches (§3.19.2)."
+        ),
         "entries": entries,
-        "expansion_candidates": [
+        "phase2_cache_aware_followups": [
             {
-                "tool": "analyze_pyright",
-                "note": "Already mtime-cached; further invalidation tuning via config only.",
+                "tool": "run_test_coverage",
+                "note": "Domain/test-file keyed already; selective invalidation tuning (§3.19 backlog).",
             },
             {
-                "tool": "analyze_bandit",
-                "note": "Already mtime-cached; Bandit targets exclude tests/ by default.",
+                "tool": "generate_dev_tools_coverage",
+                "note": "Same family as run_test_coverage; no path-shard subprocess model.",
+            },
+            {
+                "tool": "analyze_pip_audit",
+                "note": "requirements_lock_signature; sharding N/A.",
+            },
+            {
+                "tool": "analyze_unused_imports",
+                "note": "Evaluate batched/chunked targets if latency warrants; not directory shards.",
+            },
+            {
+                "tool": "analyze_legacy_references",
+                "note": "Marker scan cache; batching optional if measurable.",
+            },
+            {
+                "tool": "analyze_documentation_sync",
+                "note": "Paired-doc cache; batching optional if measurable.",
             },
         ],
+        "expansion_candidates": [],
     }

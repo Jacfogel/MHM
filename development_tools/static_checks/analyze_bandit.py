@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import subprocess
 import sys
@@ -14,13 +15,39 @@ from typing import Any
 
 try:
     from .. import config
+    from ..shared.audit_storage_scope import jsons_dir_for_scope
+    from ..shared.cache_dependency_paths import (
+        compute_scoped_py_source_signature,
+        static_check_config_digest,
+    )
     from ..shared.sharded_static_analysis import merge_bandit_raw_payloads
+    from ..shared.static_analysis_shard_cache import (
+        load_shard_manifest,
+        save_shard_manifest_atomic,
+        shard_cache_path,
+        shard_entry_hit,
+        stable_shard_id,
+        upsert_shard_manifest,
+    )
 except ImportError:
     project_root = Path(__file__).resolve().parents[2]
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     from development_tools import config
+    from development_tools.shared.audit_storage_scope import jsons_dir_for_scope
+    from development_tools.shared.cache_dependency_paths import (
+        compute_scoped_py_source_signature,
+        static_check_config_digest,
+    )
     from development_tools.shared.sharded_static_analysis import merge_bandit_raw_payloads
+    from development_tools.shared.static_analysis_shard_cache import (
+        load_shard_manifest,
+        save_shard_manifest_atomic,
+        shard_cache_path,
+        shard_entry_hit,
+        stable_shard_id,
+        upsert_shard_manifest,
+    )
 
 try:
     from core.logger import get_component_logger
@@ -190,11 +217,37 @@ def run_bandit(project_root: Path) -> dict[str, Any]:
         ["-c", str(pyproject_path)] if pyproject_path.is_file() else []
     )
 
+    jsons_dir = jsons_dir_for_scope(project_root, "static_checks")
+    cache_path = shard_cache_path(jsons_dir, "analyze_bandit")
+    working_manifest = load_shard_manifest(cache_path)
+    cfg_digest = static_check_config_digest(project_root)
+
     shard_scan = bool(static_cfg.get("bandit_shard_scan", False))
+    cache_dirty = False
+
     if shard_scan and len(path_args) > 1:
         payloads: list[dict[str, Any]] = []
         max_rc = 0
+        subprocess_runs = 0
+        fragment_hits = 0
         for rel_target in path_args:
+            sid = stable_shard_id([rel_target])
+            src_sig = compute_scoped_py_source_signature(project_root, [rel_target])
+            effective_sig = src_sig or "__empty_scope__"
+            cached_payload: dict[str, Any] | None = None
+            if cfg_digest is not None:
+                frag = shard_entry_hit(
+                    working_manifest,
+                    config_digest=cfg_digest,
+                    shard_id=sid,
+                    source_signature=effective_sig,
+                )
+                if isinstance(frag, dict):
+                    cached_payload = frag
+            if cached_payload is not None:
+                payloads.append(cached_payload)
+                fragment_hits += 1
+                continue
             args_one: list[str] = (
                 config_prefix
                 + ["-r", rel_target]
@@ -206,21 +259,63 @@ def run_bandit(project_root: Path) -> dict[str, Any]:
             )
             if rc is None or payload is None:
                 return _build_unavailable_result(err)
+            subprocess_runs += 1
             max_rc = max(max_rc, int(rc))
             payloads.append(payload)
+            if cfg_digest is not None:
+                working_manifest = upsert_shard_manifest(
+                    working_manifest,
+                    tool_name="analyze_bandit",
+                    config_digest=cfg_digest,
+                    shard_id=sid,
+                    source_signature=effective_sig,
+                    fragment=payload,
+                )
+                cache_dirty = True
         merged = merge_bandit_raw_payloads(payloads)
         out = _build_result_from_payload(merged, max_rc)
         det = out.get("details")
         if isinstance(det, dict):
             det["shard_run"] = {
                 "mode": "sharded",
-                "subprocesses": len(payloads),
+                "subprocesses": subprocess_runs,
                 "merged": True,
+                "fragment_cache_hits": fragment_hits,
+                "fragment_cache_misses": subprocess_runs,
             }
         if _bandit_log:
             _bandit_log.info(
-                f"analyze_bandit: sharded run merged {len(payloads)} bandit subprocess(es)"
+                f"analyze_bandit: sharded run subprocesses={subprocess_runs} cache_hits={fragment_hits}"
             )
+        if cache_dirty and isinstance(working_manifest, dict):
+            with contextlib.suppress(OSError):
+                save_shard_manifest_atomic(cache_path, working_manifest)
+        return out
+
+    mono_id = "__monolithic__"
+    full_sig = compute_scoped_py_source_signature(project_root, path_args)
+    mono_cached: dict[str, Any] | None = None
+    if full_sig is not None and cfg_digest is not None:
+        mf = load_shard_manifest(cache_path)
+        frag = shard_entry_hit(
+            mf,
+            config_digest=cfg_digest,
+            shard_id=mono_id,
+            source_signature=full_sig,
+        )
+        if isinstance(frag, dict):
+            mono_cached = frag
+    if mono_cached is not None:
+        out = _build_result_from_payload(mono_cached, 0)
+        det = out.get("details")
+        if isinstance(det, dict):
+            det["shard_run"] = {
+                "mode": "single",
+                "subprocesses": 0,
+                "merged": False,
+                "fragment_cache_hits": 1,
+                "fragment_cache_misses": 0,
+            }
         return out
 
     args: list[str] = (
@@ -239,6 +334,17 @@ def run_bandit(project_root: Path) -> dict[str, Any]:
     det = out.get("details")
     if isinstance(det, dict):
         det["shard_run"] = {"mode": "single", "subprocesses": 1}
+    if full_sig is not None and cfg_digest is not None:
+        wm = upsert_shard_manifest(
+            load_shard_manifest(cache_path),
+            tool_name="analyze_bandit",
+            config_digest=cfg_digest,
+            shard_id=mono_id,
+            source_signature=full_sig,
+            fragment=payload,
+        )
+        with contextlib.suppress(OSError):
+            save_shard_manifest_atomic(cache_path, wm)
     return out
 
 

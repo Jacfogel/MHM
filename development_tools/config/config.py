@@ -1322,6 +1322,10 @@ STATIC_ANALYSIS = {
     "ruff_shard_scan": True,
     # List of shards: each shard is a list of repo-relative path strings (forward slashes).
     "ruff_path_shards": [list(s) for s in _DEFAULT_RUFF_PATH_SHARDS],
+    # Pyright: mirror Ruff shards by default (merge_pyright_json_payloads). Subset runs may
+    # miss cross-package diagnostics; periodic full-project run restores parity (§3.19.1).
+    "pyright_shard_scan": True,
+    "pyright_path_shards": [list(s) for s in _DEFAULT_RUFF_PATH_SHARDS],
     "timeout_seconds": 600,
     # Bandit / pip-audit (Tier 3 security signals; see DEVELOPMENT_TOOLS_GUIDE §10)
     "bandit_command": ["python", "-m", "bandit"],

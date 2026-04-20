@@ -20,7 +20,7 @@ logger = get_component_logger("development_tools")
 
 # Import output storage
 from ..cache_dependency_paths import (
-    STATIC_CHECK_CONFIG_RELATIVE_PATHS,
+    compute_full_static_check_source_signature,
     requirements_lock_signature,
 )
 from ..output_storage import load_tool_result, save_tool_result
@@ -1754,22 +1754,7 @@ class ToolWrappersMixin:
     def run_analyze_pyright(self) -> dict:
         """Run pyright static analysis with structured JSON handling."""
         logger.debug("Analyzing pyright diagnostics...")
-        # Try mtime cache first (skip run if source unchanged)
-        cached = self._try_static_check_cache("analyze_pyright", "static_checks")
-        if cached is not None:
-            result = {
-                "success": True,
-                "output": "",
-                "error": "",
-                "data": cached,
-                "returncode": 0,
-                "cache_metadata": _static_check_tool_cache_metadata(from_disk_cache=True),
-            }
-            summary = cached.get("summary", {}) if isinstance(cached, dict) else {}
-            result["issues_found"] = bool(summary.get("total_issues", 0))
-            self.results_cache["analyze_pyright"] = cached
-            logger.debug("Using cached analyze_pyright result (source unchanged)")
-            return result
+        # Per-shard cache lives in analyze_pyright.run_pyright (subprocess); no coarse wrapper bypass.
         result = self.run_script("analyze_pyright", "--json", timeout=900)
         output = result.get("output", "")
         data = None
@@ -1793,7 +1778,6 @@ class ToolWrappersMixin:
                     data,
                     project_root=self.project_root,
                 )
-                self._save_static_check_cache("analyze_pyright", "static_checks", data)
             except Exception as e:
                 logger.warning(f"Failed to save analyze_pyright result: {e}")
         else:
@@ -1811,22 +1795,7 @@ class ToolWrappersMixin:
     def run_analyze_ruff(self) -> dict:
         """Run ruff static analysis with structured JSON handling."""
         logger.debug("Analyzing ruff diagnostics...")
-        # Try mtime cache first (skip run if source unchanged)
-        cached = self._try_static_check_cache("analyze_ruff", "static_checks")
-        if cached is not None:
-            result = {
-                "success": True,
-                "output": "",
-                "error": "",
-                "data": cached,
-                "returncode": 0,
-                "cache_metadata": _static_check_tool_cache_metadata(from_disk_cache=True),
-            }
-            summary = cached.get("summary", {}) if isinstance(cached, dict) else {}
-            result["issues_found"] = bool(summary.get("total_issues", 0))
-            self.results_cache["analyze_ruff"] = cached
-            logger.debug("Using cached analyze_ruff result (source unchanged)")
-            return result
+        # Per-shard cache lives in analyze_ruff.run_ruff (subprocess).
         result = self.run_script("analyze_ruff", "--json", timeout=900)
         output = result.get("output", "")
         data = None
@@ -1850,7 +1819,6 @@ class ToolWrappersMixin:
                     data,
                     project_root=self.project_root,
                 )
-                self._save_static_check_cache("analyze_ruff", "static_checks", data)
             except Exception as e:
                 logger.warning(f"Failed to save analyze_ruff result: {e}")
         else:
@@ -1863,21 +1831,7 @@ class ToolWrappersMixin:
     def run_analyze_bandit(self) -> dict:
         """Run bandit security analysis with structured JSON handling."""
         logger.debug("Analyzing bandit security findings...")
-        cached = self._try_static_check_cache("analyze_bandit", "static_checks")
-        if cached is not None:
-            result = {
-                "success": True,
-                "output": "",
-                "error": "",
-                "data": cached,
-                "returncode": 0,
-                "cache_metadata": _static_check_tool_cache_metadata(from_disk_cache=True),
-            }
-            summary = cached.get("summary", {}) if isinstance(cached, dict) else {}
-            result["issues_found"] = bool(summary.get("total_issues", 0))
-            self.results_cache["analyze_bandit"] = cached
-            logger.debug("Using cached analyze_bandit result (source unchanged)")
-            return result
+        # Per-shard cache lives in analyze_bandit.run_bandit (subprocess).
         result = self.run_script("analyze_bandit", "--json", timeout=900)
         output = result.get("output", "")
         data = None
@@ -1901,7 +1855,6 @@ class ToolWrappersMixin:
                     data,
                     project_root=self.project_root,
                 )
-                self._save_static_check_cache("analyze_bandit", "static_checks", data)
             except Exception as e:
                 logger.warning(f"Failed to save analyze_bandit result: {e}")
         else:
@@ -2028,43 +1981,10 @@ class ToolWrappersMixin:
     def _compute_source_signature(self) -> str | None:
         """Compute hash for static-check cache invalidation (Python sources + tool configs).
 
-        Non-Python inputs are listed in
-        ``development_tools.shared.cache_dependency_paths.STATIC_CHECK_CONFIG_RELATIVE_PATHS``
-        (``pyproject.toml``, dev-tools JSON, Pyright/Ruff configs, optional root ``.ruff.toml``)
-        so results refresh when only config moves without any ``.py`` edits.
+        Delegates to :func:`development_tools.shared.cache_dependency_paths.compute_full_static_check_source_signature`.
         """
         try:
-            import hashlib
-            from ..standard_exclusions import should_exclude_file
-            sig = hashlib.sha256()
-            root = Path(self.project_root)
-            py_files = sorted(root.rglob("*.py"))
-            for p in py_files:
-                try:
-                    rel = str(p.relative_to(root)).replace("\\", "/")
-                    if should_exclude_file(rel, tool_type="analysis"):
-                        continue
-                    stat = p.stat()
-                    mtime_ns = getattr(
-                        stat, "st_mtime_ns", int(stat.st_mtime * 1_000_000_000)
-                    )
-                    sig.update(f"{rel}:{mtime_ns}:{stat.st_size}".encode())
-                    # Include file bytes digest so same-size rapid edits still invalidate.
-                    file_hash = hashlib.sha256()
-                    with open(p, "rb") as handle:
-                        for chunk in iter(lambda: handle.read(8192), b""):
-                            file_hash.update(chunk)
-                    sig.update(file_hash.digest())
-                except (OSError, ValueError):
-                    continue
-            # Tool configs (not part of *.py scan): must bust cache when they change alone.
-            for rel in STATIC_CHECK_CONFIG_RELATIVE_PATHS:
-                cfg = root / rel
-                if cfg.is_file():
-                    sig.update(rel.encode("utf-8"))
-                    sig.update(b"\0")
-                    sig.update(cfg.read_bytes())
-            return sig.hexdigest()
+            return compute_full_static_check_source_signature(Path(self.project_root))
         except Exception as e:
             logger.debug(f"Could not compute source signature: {e}")
             return None

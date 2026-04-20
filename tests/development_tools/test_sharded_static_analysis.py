@@ -6,7 +6,9 @@ import pytest
 
 from development_tools.shared.sharded_static_analysis import (
     merge_bandit_raw_payloads,
+    merge_pyright_json_payloads,
     merge_ruff_check_json_lists,
+    pyright_diagnostic_identity,
     ruff_diagnostic_identity,
 )
 
@@ -78,3 +80,44 @@ def test_merge_bandit_dedupes_and_sorts() -> None:
 @pytest.mark.unit
 def test_merge_bandit_empty_payloads() -> None:
     assert merge_bandit_raw_payloads([]) == {"results": []}
+
+
+@pytest.mark.unit
+def test_merge_pyright_dedupes_same_diagnostic() -> None:
+    d = {
+        "file": "a.py",
+        "severity": "error",
+        "message": "m",
+        "range": {
+            "start": {"line": 1, "character": 0},
+            "end": {"line": 1, "character": 1},
+        },
+        "rule": "R",
+    }
+    p1 = {
+        "version": "1",
+        "summary": {"errorCount": 1, "warningCount": 0, "informationCount": 0},
+        "generalDiagnostics": [d],
+    }
+    p2 = {
+        "version": "1",
+        "summary": {"errorCount": 1, "warningCount": 0, "informationCount": 0},
+        "generalDiagnostics": [dict(d)],
+    }
+    merged = merge_pyright_json_payloads([p1, p2])
+    assert len(merged["generalDiagnostics"]) == 1
+    assert merged["summary"]["errorCount"] == 1
+    assert pyright_diagnostic_identity(merged["generalDiagnostics"][0]) == (
+        "a.py",
+        1,
+        0,
+        "error",
+        "R",
+        "m",
+    )
+
+
+@pytest.mark.unit
+def test_merge_pyright_empty_payloads() -> None:
+    out = merge_pyright_json_payloads([])
+    assert out["generalDiagnostics"] == []

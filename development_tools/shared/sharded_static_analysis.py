@@ -21,8 +21,10 @@ or CI) so strict whole-repo parity is periodically restored.
 calls :func:`merge_ruff_check_json_lists` when ``static_analysis.ruff_shard_scan`` is true
 and ``ruff_path_shards`` is non-empty. :func:`development_tools.static_checks.analyze_bandit.run_bandit`
 calls :func:`merge_bandit_raw_payloads` when ``static_analysis.bandit_shard_scan`` is true
-and there are multiple scan targets. Defaults in ``STATIC_ANALYSIS`` enable sharding; set
-flags to false or clear ``ruff_path_shards`` for a single subprocess (Ruff falls back to
+and there are multiple scan targets. :func:`development_tools.static_checks.analyze_pyright.run_pyright`
+calls :func:`merge_pyright_json_payloads` when ``static_analysis.pyright_shard_scan`` is true
+and ``pyright_path_shards`` is non-empty. Defaults in ``STATIC_ANALYSIS`` enable sharding; set
+flags to false or clear shard lists for a single subprocess (Ruff falls back to
 ``check .`` if no shard paths exist).
 """
 
@@ -107,3 +109,72 @@ def merge_bandit_raw_payloads(payloads: list[dict[str, Any]]) -> dict[str, Any]:
             seen.setdefault(key, item)
     merged_list = sorted(seen.values(), key=bandit_result_sort_key)
     return {"results": merged_list}
+
+
+def pyright_diagnostic_identity(item: dict[str, Any]) -> tuple[str, int, int, str, str, str]:
+    """Stable key for Pyright ``generalDiagnostics`` deduplication."""
+    fn = _norm_path_sep(str(item.get("file", "")).strip())
+    sev = str(item.get("severity", "")).lower().strip()
+    msg = str(item.get("message", "")).strip()
+    rule = str(item.get("rule", "") or "").strip()
+    rng = item.get("range")
+    line, char = 0, 0
+    if isinstance(rng, dict):
+        start = rng.get("start")
+        if isinstance(start, dict):
+            try:
+                line = int(start.get("line", 0))
+            except (TypeError, ValueError):
+                line = 0
+            try:
+                char = int(start.get("character", 0))
+            except (TypeError, ValueError):
+                char = 0
+    return (fn, line, char, sev, rule, msg)
+
+
+def pyright_diagnostic_sort_key(item: dict[str, Any]) -> tuple[str, int, int, str, str, str]:
+    return pyright_diagnostic_identity(item)
+
+
+def merge_pyright_json_payloads(payloads: list[dict[str, Any]]) -> dict[str, Any]:
+    """Merge Pyright ``--outputjson`` objects: union ``generalDiagnostics``, dedupe, fix ``summary``."""
+    if not payloads:
+        return {"version": "", "summary": {}, "generalDiagnostics": []}
+    seen: dict[tuple[str, int, int, str, str, str], dict[str, Any]] = {}
+    for payload in payloads:
+        if not isinstance(payload, dict):
+            continue
+        diags = payload.get("generalDiagnostics")
+        if not isinstance(diags, list):
+            continue
+        for d in diags:
+            if not isinstance(d, dict):
+                continue
+            key = pyright_diagnostic_identity(d)
+            seen.setdefault(key, d)
+    merged_diags = sorted(seen.values(), key=pyright_diagnostic_sort_key)
+    err = sum(1 for d in merged_diags if str(d.get("severity", "")).lower() == "error")
+    warn = sum(1 for d in merged_diags if str(d.get("severity", "")).lower() == "warning")
+    info = sum(
+        1 for d in merged_diags if str(d.get("severity", "")).lower() == "information"
+    )
+    files_with_diag: set[str] = set()
+    for d in merged_diags:
+        fn = str(d.get("file", "")).strip()
+        if fn:
+            files_with_diag.add(_norm_path_sep(fn))
+    base: dict[str, Any] = dict(payloads[0])
+    base["generalDiagnostics"] = merged_diags
+    summ: dict[str, Any] = dict(base.get("summary") or {}) if isinstance(base.get("summary"), dict) else {}
+    summ["errorCount"] = err
+    summ["warningCount"] = warn
+    summ["informationCount"] = info
+    prev_fa = 0
+    try:
+        prev_fa = int(summ.get("filesAnalyzed", 0) or 0)
+    except (TypeError, ValueError):
+        prev_fa = 0
+    summ["filesAnalyzed"] = max(prev_fa, len(files_with_diag))
+    base["summary"] = summ
+    return base

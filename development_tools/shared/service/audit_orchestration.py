@@ -1173,6 +1173,26 @@ class AuditOrchestrationMixin:
                         elif state == 'skipped_env':
                             metadata.setdefault('cache_mode', 'skipped_env')
 
+                if tool_name in {'analyze_ruff', 'analyze_pyright', 'analyze_bandit'}:
+                    details = data.get('details', {})
+                    shard_run = details.get('shard_run', {}) if isinstance(details, dict) else {}
+                    if isinstance(shard_run, dict):
+                        hits_raw = shard_run.get('fragment_cache_hits')
+                        misses_raw = shard_run.get('fragment_cache_misses')
+                        if isinstance(hits_raw, (int, float, str)) and isinstance(
+                            misses_raw, (int, float, str)
+                        ):
+                            with contextlib.suppress(TypeError, ValueError):
+                                hits = int(hits_raw)
+                                misses = int(misses_raw)
+                                metadata['hits'] = hits
+                                metadata['misses'] = misses
+                                metadata['total_cache_checks'] = hits + misses
+                                # Shard-aware mode should override wrapper's default cold_scan marker.
+                                metadata['cache_mode'] = self._infer_cache_mode_from_hits_misses(
+                                    hits, misses
+                                )
+
         if tool_name in {'run_test_coverage', 'generate_dev_tools_coverage'}:
             coverage_metadata = self._extract_coverage_cache_metadata(tool_name)
             if coverage_metadata:

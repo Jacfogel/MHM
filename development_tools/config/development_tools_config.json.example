@@ -1193,6 +1193,18 @@
       ["development_tools"],
       ["tests"]
     ],
+    "pyright_shard_scan": true,
+    "pyright_path_shards": [
+      ["core"],
+      ["communication"],
+      ["ui"],
+      ["ai"],
+      ["user"],
+      ["tasks"],
+      ["notebook"],
+      ["development_tools"],
+      ["tests"]
+    ],
     "bandit_shard_scan": true,
     "timeout_seconds": 600
   },

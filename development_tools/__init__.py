@@ -3,6 +3,8 @@
 Contains development and analysis tools for AI-assisted development,
 including function discovery, module dependency analysis, coverage metrics,
 documentation generation, and code quality assessments.
+
+This module also centralizes package-level re-exports used by tooling scripts.
 """
 
 # Main public API - package-level exports for easier refactoring

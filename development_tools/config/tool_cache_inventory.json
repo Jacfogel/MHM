@@ -1,20 +1,20 @@
 {
   "schema_version": 1,
-  "description": "Cache strategies derived from tool_metadata.CACHE_AWARE_TOOLS; details from wrapper/orchestration semantics.",
+  "description": "Cache strategies derived from tool_metadata.CACHE_AWARE_TOOLS; static checks use per-shard fragment caches (\u00a73.19.2).",
   "entries": [
     {
       "tool": "analyze_backup_health",
       "strategy": "no_persistent_tool_json_cache",
       "implementation": "development_tools/shared/service/commands.py (backup health command)",
       "artifact_glob": "development_tools/reports/jsons/backup_health_report.json; development_tools/**/jsons/scopes/*/reports/*.json",
-      "invalidation": "N/A — live backup checks; JSON overwrites each run"
+      "invalidation": "N/A \u2014 live backup checks; JSON overwrites each run"
     },
     {
       "tool": "analyze_bandit",
-      "strategy": "mtime_json_cache",
-      "implementation": "development_tools/shared/service/tool_wrappers.py _try_static_check_cache / _save_static_check_cache",
-      "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/*bandit*.json",
-      "invalidation": "Source signature: analyzed *.py + config files in development_tools.shared.cache_dependency_paths.STATIC_CHECK_CONFIG_RELATIVE_PATHS (see tool_wrappers._compute_source_signature)"
+      "strategy": "shard_fragment_json_cache",
+      "implementation": "development_tools/static_checks/analyze_ruff|analyze_bandit|analyze_pyright.run_* + development_tools/shared/static_analysis_shard_cache.py (coarse wrapper mtime cache not used for these tools)",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/.analyze_bandit_shard_cache.v1.json; development_tools/**/jsons/scopes/*/static_checks/*bandit*.json",
+      "invalidation": "Per-shard Python signatures via development_tools.shared.cache_dependency_paths.compute_scoped_py_source_signature or compute_full_repo_py_source_signature (__monolithic__); static_check_config_digest over STATIC_CHECK_CONFIG_RELATIVE_PATHS busts all shards"
     },
     {
       "tool": "analyze_dependency_patterns",
@@ -102,17 +102,17 @@
     },
     {
       "tool": "analyze_pyright",
-      "strategy": "mtime_json_cache",
-      "implementation": "development_tools/shared/service/tool_wrappers.py _try_static_check_cache / _save_static_check_cache",
-      "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/*pyright*.json",
-      "invalidation": "Source signature: analyzed *.py + config files in development_tools.shared.cache_dependency_paths.STATIC_CHECK_CONFIG_RELATIVE_PATHS (see tool_wrappers._compute_source_signature)"
+      "strategy": "shard_fragment_json_cache",
+      "implementation": "development_tools/static_checks/analyze_ruff|analyze_bandit|analyze_pyright.run_* + development_tools/shared/static_analysis_shard_cache.py (coarse wrapper mtime cache not used for these tools)",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/.analyze_pyright_shard_cache.v1.json; development_tools/**/jsons/scopes/*/static_checks/*pyright*.json",
+      "invalidation": "Per-shard Python signatures via development_tools.shared.cache_dependency_paths.compute_scoped_py_source_signature or compute_full_repo_py_source_signature (__monolithic__); static_check_config_digest over STATIC_CHECK_CONFIG_RELATIVE_PATHS busts all shards"
     },
     {
       "tool": "analyze_ruff",
-      "strategy": "mtime_json_cache",
-      "implementation": "development_tools/shared/service/tool_wrappers.py _try_static_check_cache / _save_static_check_cache",
-      "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/*ruff*.json",
-      "invalidation": "Source signature: analyzed *.py + config files in development_tools.shared.cache_dependency_paths.STATIC_CHECK_CONFIG_RELATIVE_PATHS (see tool_wrappers._compute_source_signature)"
+      "strategy": "shard_fragment_json_cache",
+      "implementation": "development_tools/static_checks/analyze_ruff|analyze_bandit|analyze_pyright.run_* + development_tools/shared/static_analysis_shard_cache.py (coarse wrapper mtime cache not used for these tools)",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/.analyze_ruff_shard_cache.v1.json; development_tools/**/jsons/scopes/*/static_checks/*ruff*.json",
+      "invalidation": "Per-shard Python signatures via development_tools.shared.cache_dependency_paths.compute_scoped_py_source_signature or compute_full_repo_py_source_signature (__monolithic__); static_check_config_digest over STATIC_CHECK_CONFIG_RELATIVE_PATHS busts all shards"
     },
     {
       "tool": "analyze_test_markers",
@@ -168,17 +168,34 @@
       "strategy": "no_persistent_tool_json_cache",
       "implementation": "development_tools/tests/verify_process_cleanup.py (process probe)",
       "artifact_glob": "development_tools/**/jsons/scopes/*/verify_process_cleanup*.json",
-      "invalidation": "N/A — advisory probe; JSON is per-run output only"
+      "invalidation": "N/A \u2014 advisory probe; JSON is per-run output only"
     }
   ],
-  "expansion_candidates": [
+  "phase2_cache_aware_followups": [
     {
-      "tool": "analyze_pyright",
-      "note": "Already mtime-cached; further invalidation tuning via config only."
+      "tool": "run_test_coverage",
+      "note": "Domain/test-file keyed already; selective invalidation tuning (\u00a73.19 backlog)."
     },
     {
-      "tool": "analyze_bandit",
-      "note": "Already mtime-cached; Bandit targets exclude tests/ by default."
+      "tool": "generate_dev_tools_coverage",
+      "note": "Same family as run_test_coverage; no path-shard subprocess model."
+    },
+    {
+      "tool": "analyze_pip_audit",
+      "note": "requirements_lock_signature; sharding N/A."
+    },
+    {
+      "tool": "analyze_unused_imports",
+      "note": "Evaluate batched/chunked targets if latency warrants; not directory shards."
+    },
+    {
+      "tool": "analyze_legacy_references",
+      "note": "Marker scan cache; batching optional if measurable."
+    },
+    {
+      "tool": "analyze_documentation_sync",
+      "note": "Paired-doc cache; batching optional if measurable."
     }
-  ]
+  ],
+  "expansion_candidates": []
 }
