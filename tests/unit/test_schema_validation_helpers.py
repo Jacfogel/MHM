@@ -3,11 +3,15 @@ import copy
 import pytest
 
 from core.schemas import (
+
     validate_account_dict,
     validate_messages_file_dict,
     validate_preferences_dict,
     validate_schedules_dict,
 )
+
+pytestmark = [pytest.mark.core]
+
 
 
 @pytest.mark.unit
@@ -20,6 +24,7 @@ from core.schemas import (
         ({"automated_messages": "enabled", "checkins": "no", "task_management": False}, "disabled"),
     ],
 )
+@pytest.mark.core
 def test_validate_account_dict_normalizes_features_when_validation_fails(features, expected_checkins):
     bad_account = {
         # Missing required user_id triggers validation error path
@@ -41,6 +46,7 @@ def test_validate_account_dict_normalizes_features_when_validation_fails(feature
 
 @pytest.mark.unit
 @pytest.mark.regression
+@pytest.mark.core
 def test_validate_preferences_dict_reports_errors_and_returns_original(monkeypatch):
     monkeypatch.setattr("core.message_management.get_message_categories", lambda: ["allowed"])
     data = {
@@ -58,6 +64,7 @@ def test_validate_preferences_dict_reports_errors_and_returns_original(monkeypat
 
 @pytest.mark.unit
 @pytest.mark.regression
+@pytest.mark.core
 def test_validate_schedules_dict_normalizes_compatibility_shape_and_invalid_fields():
     compatibility_shape = {
         "general": {
@@ -86,6 +93,7 @@ def test_validate_schedules_dict_normalizes_compatibility_shape_and_invalid_fiel
 
 @pytest.mark.unit
 @pytest.mark.regression
+@pytest.mark.core
 def test_validate_messages_file_dict_best_effort_normalization_with_bad_rows():
     payload = {
         "messages": [

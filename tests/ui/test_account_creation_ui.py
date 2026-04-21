@@ -15,8 +15,10 @@ from tests.test_helpers.test_support.test_helpers import wait_until
 
 ensure_qt_runtime()
 
-
 import pytest
+
+pytestmark = [pytest.mark.core]
+
 import os
 import json
 from unittest.mock import patch, Mock
@@ -142,6 +144,7 @@ def qapp():
     # Don't quit the app as it might be used by other tests
 
 
+@pytest.mark.core
 class TestAccountCreationDialogRealBehavior:
     """Test account creation dialog with real behavior verification."""
 
@@ -802,6 +805,7 @@ class TestAccountCreationDialogRealBehavior:
             mock_checkin.assert_called_once()
 
 
+@pytest.mark.core
 class TestAccountManagementRealBehavior:
     """Test account management functionality with real behavior verification."""
 
@@ -1129,6 +1133,7 @@ class TestAccountManagementRealBehavior:
         ), "Automated messages should be enabled"
 
 
+@pytest.mark.core
 class TestAccountCreationErrorHandling:
     """Test error handling in account creation and management."""
 
@@ -1387,6 +1392,7 @@ class TestAccountCreationErrorHandling:
         dialog.deleteLater()
 
 
+@pytest.mark.core
 class TestAccountCreationIntegration:
     """Test integration scenarios for account creation and management."""
 
@@ -1712,6 +1718,7 @@ class TestAccountCreationIntegration:
             pass
 
 
+@pytest.mark.core
 class TestAccountCreatorDialogHelperMethods:
     """Test helper methods in account creator dialog."""
 
@@ -1983,6 +1990,7 @@ class TestAccountCreatorDialogHelperMethods:
         assert isinstance(errors, (list, str)), "Should return errors"
 
 
+@pytest.mark.core
 class TestAccountCreatorDialogCreateAccountBehavior:
     """Test account creator dialog create_account method with real behavior verification."""
 

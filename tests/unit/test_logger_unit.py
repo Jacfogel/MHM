@@ -14,6 +14,7 @@ from unittest.mock import patch, MagicMock
 from pathlib import Path
 
 from core.logger import (
+
     _is_testing_environment,
     _get_log_paths_for_environment,
     PytestContextLogFormatter,
@@ -30,7 +31,11 @@ from core.logger import (
     clear_log_file_locks,
 )
 
+pytestmark = [pytest.mark.core]
 
+
+
+@pytest.mark.core
 class TestTestingEnvironmentDetection:
     """Test testing environment detection."""
     
@@ -84,6 +89,7 @@ class TestTestingEnvironmentDetection:
         )
 
 
+@pytest.mark.core
 class TestPytestContextLogFormatter:
     """Test PytestContextLogFormatter class."""
     
@@ -142,6 +148,7 @@ class TestPytestContextLogFormatter:
             assert result == 'Test message', "Should format message without test name"
 
 
+@pytest.mark.core
 class TestApplyTestContextFormatter:
     """Test apply_test_context_formatter_to_all_loggers function."""
     
@@ -174,6 +181,7 @@ class TestApplyTestContextFormatter:
             assert True, "Should not raise error when not testing"
 
 
+@pytest.mark.core
 class TestComponentLogger:
     """Test ComponentLogger class."""
     
@@ -321,6 +329,7 @@ class TestComponentLogger:
                 logger.logger.removeHandler(handler)
 
 
+@pytest.mark.core
 class TestBackupDirectoryRotatingFileHandler:
     """Test BackupDirectoryRotatingFileHandler class."""
     
@@ -414,6 +423,7 @@ class TestBackupDirectoryRotatingFileHandler:
         assert not result, "Should not rollover recent files"
 
 
+@pytest.mark.core
 class TestHeartbeatWarningFilter:
     """Test HeartbeatWarningFilter class."""
     
@@ -485,6 +495,7 @@ class TestHeartbeatWarningFilter:
         assert result, "Should allow non-heartbeat messages"
 
 
+@pytest.mark.core
 class TestExcludeLoggerNamesFilter:
     """Test ExcludeLoggerNamesFilter class."""
     
@@ -525,6 +536,7 @@ class TestExcludeLoggerNamesFilter:
         assert result, "Should allow other loggers"
 
 
+@pytest.mark.core
 class TestEnsureLogsDirectory:
     """Test ensure_logs_directory function."""
     
@@ -557,6 +569,7 @@ class TestEnsureLogsDirectory:
             assert os.path.exists(archive_dir), f"Should create archive directory at {archive_dir}"
 
 
+@pytest.mark.core
 class TestGetComponentLogger:
     """Test get_component_logger function."""
     
@@ -606,6 +619,7 @@ class TestGetComponentLogger:
                 assert logger.component_name == 'main', "Should default to 'main'"
 
 
+@pytest.mark.core
 class TestSetupThirdPartyErrorLogging:
     """Test setup_third_party_error_logging function."""
     
@@ -626,6 +640,7 @@ class TestSetupThirdPartyErrorLogging:
                 assert len(discord_logger.handlers) > 0, "Should add error handler to discord logger"
 
 
+@pytest.mark.core
 class TestCompressOldLogs:
     """Test compress_old_logs function."""
     
@@ -659,6 +674,7 @@ class TestCompressOldLogs:
             assert result >= 0, "Should return count of compressed files"
 
 
+@pytest.mark.core
 class TestCleanupOldArchives:
     """Test cleanup_old_archives function."""
     
@@ -690,6 +706,7 @@ class TestCleanupOldArchives:
             assert result >= 0, "Should return count of removed files"
 
 
+@pytest.mark.core
 class TestClearLogFileLocks:
     """Test clear_log_file_locks function."""
     

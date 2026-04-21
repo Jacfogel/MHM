@@ -23,6 +23,7 @@ from core.schedule_management import (
 )
 
 
+@pytest.mark.tasks
 @pytest.mark.behavior
 class TestScheduleManagementBehavior:
     """Test schedule management real behavior and side effects."""

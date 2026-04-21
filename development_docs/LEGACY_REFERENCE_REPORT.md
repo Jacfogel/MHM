@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-20 18:56:32
+> **Last Generated**: 2026-04-21 16:51:46
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 2
 **Legacy Compatibility Markers Detected**: 2
@@ -30,7 +30,7 @@
 ### development_tools\tests\domain_mapper.py
 **Issues Found**: 1
 
-- **Line 387**: `legacy path`
+- **Line 394**: `legacy path`
   ```
   callers can use legacy path-based / keyword inference.
   ```

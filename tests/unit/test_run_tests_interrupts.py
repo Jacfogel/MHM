@@ -6,7 +6,10 @@ import pytest
 import run_tests as rt
 
 
+pytestmark = [pytest.mark.user_management]
+
 @pytest.mark.unit
+@pytest.mark.user_management
 def test_interrupt_handler_single_sigint_ignored_with_message(monkeypatch, capsys):
     """First SIGINT should be ignored and prompt for a second within the window."""
     # Arrange: reset globals
@@ -32,6 +35,7 @@ def test_interrupt_handler_single_sigint_ignored_with_message(monkeypatch, capsy
 
 
 @pytest.mark.unit
+@pytest.mark.user_management
 def test_interrupt_handler_second_sigint_within_window_sets_interrupt(monkeypatch, capsys):
     """Second SIGINT within the double-tap window should request interrupt."""
     # Arrange: simulate a previous SIGINT shortly before
@@ -53,6 +57,7 @@ def test_interrupt_handler_second_sigint_within_window_sets_interrupt(monkeypatc
 
 
 @pytest.mark.unit
+@pytest.mark.user_management
 def test_interrupt_handler_second_sigint_outside_window_behaves_like_first(monkeypatch, capsys):
     """A second SIGINT after the window should behave like a fresh first SIGINT."""
     # Arrange: previous SIGINT too far in the past

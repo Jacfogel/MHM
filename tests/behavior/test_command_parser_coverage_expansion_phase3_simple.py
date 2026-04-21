@@ -12,6 +12,7 @@ import pytest
 from communication.command_handlers.shared_types import ParsedCommand
 
 
+@pytest.mark.communication
 @pytest.mark.behavior
 class TestCommandParserCoverageExpansionPhase3Simple:
     """Test coverage expansion for command_parser.py - Phase 3 Simple"""

@@ -9,10 +9,14 @@ from datetime import datetime, timezone
 from unittest.mock import patch
 
 from core.message_management import (
+
     archive_old_messages,
     get_message_categories,
     store_sent_message,
 )
+
+pytestmark = [pytest.mark.core]
+
 
 
 def _patch_message_mgmt_utc_now(monkeypatch, fixed_now: datetime) -> None:
@@ -31,6 +35,7 @@ def _patch_message_mgmt_utc_now(monkeypatch, fixed_now: datetime) -> None:
 
 @pytest.mark.unit
 @pytest.mark.messages
+@pytest.mark.core
 class TestGetMessageCategories:
     """Test get_message_categories function."""
     
@@ -61,6 +66,7 @@ class TestGetMessageCategories:
 
 @pytest.mark.unit
 @pytest.mark.messages
+@pytest.mark.core
 class TestStoreSentMessage:
     """Test store_sent_message function."""
     
@@ -74,6 +80,7 @@ class TestStoreSentMessage:
 
 @pytest.mark.unit
 @pytest.mark.messages
+@pytest.mark.core
 class TestArchiveOldMessages:
     """Tests for archive_old_messages (retention / sent_messages.json)."""
 

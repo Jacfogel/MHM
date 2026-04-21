@@ -277,7 +277,7 @@ def test_discord_delivery_flow():
 
 If you add or rename markers:
 
-- Update `pytest.ini`.
+- Update root `pytest.ini` under the `[pytest]` section (not `[tool:pytest]`).
 - Update this section and the equivalent part of [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 Use fixtures and helpers:

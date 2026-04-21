@@ -6,6 +6,8 @@ from communication.command_handlers.profile_handler import ProfileHandler
 from communication.command_handlers.shared_types import ParsedCommand
 
 
+pytestmark = [pytest.mark.communication]
+
 class _BadEqIntent:
     def __eq__(self, other):
         raise RuntimeError("bad comparison")
@@ -44,6 +46,7 @@ class _FlakyAccount:
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_can_handle_internal_exception_returns_false():
     handler = ProfileHandler()
     result = ProfileHandler.can_handle.__wrapped__(handler, _BadEqIntent())
@@ -51,6 +54,7 @@ def test_can_handle_internal_exception_returns_false():
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_handle_show_profile_public_entrypoint(monkeypatch):
     handler = ProfileHandler()
     monkeypatch.setattr(handler, "_handle_show_profile", lambda user_id: "ok")
@@ -58,6 +62,7 @@ def test_handle_show_profile_public_entrypoint(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_show_profile_includes_health_summary_and_normalizes_feature_values(monkeypatch):
     handler = ProfileHandler()
 
@@ -101,6 +106,7 @@ def test_show_profile_includes_health_summary_and_normalizes_feature_values(monk
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_update_profile_date_of_birth_loved_ones_and_email_failure(monkeypatch):
     handler = ProfileHandler()
 
@@ -139,6 +145,7 @@ def test_update_profile_date_of_birth_loved_ones_and_email_failure(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_update_profile_loved_ones_non_string_and_email_success(monkeypatch):
     handler = ProfileHandler()
 
@@ -178,6 +185,7 @@ def test_update_profile_loved_ones_non_string_and_email_success(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_format_profile_text_string_gender_and_overflow_loved_ones_and_long_note():
     handler = ProfileHandler()
     text = handler._format_profile_text(
@@ -208,6 +216,7 @@ def test_format_profile_text_string_gender_and_overflow_loved_ones_and_long_note
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_format_profile_text_gender_join_exception_uses_not_set():
     handler = ProfileHandler()
     text = handler._format_profile_text(
@@ -219,6 +228,7 @@ def test_format_profile_text_gender_join_exception_uses_not_set():
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_format_profile_text_inner_warning_paths(monkeypatch):
     handler = ProfileHandler()
     warning_messages = []
@@ -245,6 +255,7 @@ def test_format_profile_text_inner_warning_paths(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_format_profile_text_account_features_exception_falls_back_unknown(monkeypatch):
     handler = ProfileHandler()
     warning_messages = []
@@ -263,6 +274,7 @@ def test_format_profile_text_account_features_exception_falls_back_unknown(monke
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_show_profile_normalization_try_exception_is_swallowed(monkeypatch):
     handler = ProfileHandler()
 
@@ -284,6 +296,7 @@ def test_show_profile_normalization_try_exception_is_swallowed(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_format_profile_text_outer_exception_uses_fallback(monkeypatch):
     handler = ProfileHandler()
 
@@ -304,6 +317,7 @@ def test_format_profile_text_outer_exception_uses_fallback(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_handle_routes_profile_stats_branch(monkeypatch):
     handler = ProfileHandler()
     monkeypatch.setattr(

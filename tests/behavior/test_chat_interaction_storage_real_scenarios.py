@@ -12,6 +12,7 @@ from core.response_tracking import (
     store_chat_interaction,
     get_recent_responses
 )
+@pytest.mark.communication
 
 
 class TestChatInteractionStorageRealScenarios:
@@ -419,6 +420,7 @@ class TestChatInteractionStorageRealScenarios:
         
         # Verify all interactions used context
         assert all(chat["context_used"] for chat in recent_chats), "All interactions should have used context"
+@pytest.mark.communication
 
 
 class TestChatInteractionStorageEdgeCases:

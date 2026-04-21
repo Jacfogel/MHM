@@ -15,6 +15,7 @@ from core import (
 from core.config import get_user_file_path
 from core.time_utilities import TIMESTAMP_FULL, format_timestamp, now_datetime_full
 from tests.test_helpers.test_utilities import TestUserFactory
+@pytest.mark.core
 
 
 class TestQuantitativeAnalyticsExpansion:

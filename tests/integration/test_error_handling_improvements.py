@@ -21,6 +21,8 @@ from core.backup_manager import BackupManager
 from communication.communication_channels.discord.bot import DiscordBot
 from communication.message_processing.message_router import MessageRouter
 from communication.core.channel_orchestrator import CommunicationManager
+pytestmark = [pytest.mark.core]
+
 # from ui.ui_app_qt import ServiceManager  # Commented out to avoid Qt issues in tests
 from communication.command_handlers.base_handler import InteractionHandler
 from ai.chatbot import AIChatBotSingleton
@@ -28,6 +30,7 @@ from tasks import create_task, load_active_tasks, ensure_task_directory
 
 
 @pytest.mark.integration
+@pytest.mark.core
 class TestErrorHandlingImprovements:
     """Test suite for improved error handling patterns."""
     

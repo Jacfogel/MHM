@@ -8,14 +8,19 @@ from datetime import datetime
 from unittest.mock import patch
 
 from core.schedule_utilities import (
+
     get_active_schedules,
     is_schedule_active,
     get_current_active_schedules,
 )
 
+pytestmark = [pytest.mark.core]
+
+
 
 @pytest.mark.unit
 @pytest.mark.scheduler
+@pytest.mark.core
 class TestScheduleUtilities:
     """Test schedule utility functions."""
 

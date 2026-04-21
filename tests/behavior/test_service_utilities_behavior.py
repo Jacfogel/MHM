@@ -22,6 +22,7 @@ from core.time_utilities import TIMESTAMP_MINUTE, format_timestamp
 from core.user_data_validation import _shared__title_case
 
 
+@pytest.mark.core
 @pytest.mark.behavior
 class TestServiceUtilitiesBehavior:
     """Test real behavior of service utility functions."""
@@ -533,6 +534,7 @@ class TestServiceUtilitiesBehavior:
         assert result1 == "AI Chatbot MHM System", "Should produce correct title case"
 
 
+@pytest.mark.core
 @pytest.mark.behavior
 class TestServiceUtilitiesIntegration:
     """Test integration between service utility functions."""

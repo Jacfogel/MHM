@@ -5,6 +5,7 @@ from tasks import load_active_tasks, save_active_tasks
 from tests.test_helpers.test_utilities import setup_test_data_environment, cleanup_test_data_environment, create_test_user
 
 
+@pytest.mark.tasks
 @pytest.mark.behavior
 class TestTaskCrudDisambiguation:
     def setup_method(self):

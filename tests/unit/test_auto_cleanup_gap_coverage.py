@@ -9,7 +9,10 @@ import core.auto_cleanup as auto_cleanup
 import core.config as core_config
 
 
+pytestmark = [pytest.mark.core]
+
 @pytest.mark.unit
+@pytest.mark.core
 def test_calculate_pyc_files_size_logs_warning_on_getsize_error(monkeypatch, tmp_path):
     pyc_file = tmp_path / "bad.pyc"
     pyc_file.write_text("x", encoding="utf-8")
@@ -27,6 +30,7 @@ def test_calculate_pyc_files_size_logs_warning_on_getsize_error(monkeypatch, tmp
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_remove_cache_directories_and_files_warning_paths(monkeypatch, tmp_path):
     pycache_dir = tmp_path / "__pycache__"
     pycache_dir.mkdir(parents=True, exist_ok=True)
@@ -47,6 +51,7 @@ def test_remove_cache_directories_and_files_warning_paths(monkeypatch, tmp_path)
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_cleanup_old_backup_files_missing_dir_returns_true(monkeypatch, tmp_path):
     missing = tmp_path / "not-there"
     monkeypatch.setattr(core_config, "get_backups_dir", lambda: str(missing), raising=False)
@@ -54,6 +59,7 @@ def test_cleanup_old_backup_files_missing_dir_returns_true(monkeypatch, tmp_path
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_cleanup_old_request_files_old_and_failed_remove(monkeypatch, tmp_path):
     requests_dir = tmp_path / "requests"
     requests_dir.mkdir(parents=True, exist_ok=True)
@@ -90,6 +96,7 @@ def test_cleanup_old_request_files_old_and_failed_remove(monkeypatch, tmp_path):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_cleanup_old_message_archives_user_iteration_warnings(monkeypatch, tmp_path):
     base_dir = tmp_path / "data"
     archives = base_dir / "users" / "u1" / "messages" / "archives"
@@ -137,6 +144,7 @@ def test_cleanup_old_message_archives_user_iteration_warnings(monkeypatch, tmp_p
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_cleanup_old_backup_files_branches_with_zip_artifacts(monkeypatch, tmp_path):
     backup_dir = tmp_path / "backups"
     backup_dir.mkdir(parents=True, exist_ok=True)
@@ -180,6 +188,7 @@ def test_cleanup_old_backup_files_branches_with_zip_artifacts(monkeypatch, tmp_p
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_cleanup_old_backup_files_outer_exception_returns_false(monkeypatch):
     monkeypatch.setattr(
         core_config,
@@ -191,6 +200,7 @@ def test_cleanup_old_backup_files_outer_exception_returns_false(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_cleanup_old_request_files_removes_old_and_logs_summary(monkeypatch, tmp_path):
     requests_dir = tmp_path / "requests"
     requests_dir.mkdir(parents=True, exist_ok=True)
@@ -210,6 +220,7 @@ def test_cleanup_old_request_files_removes_old_and_logs_summary(monkeypatch, tmp
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_cleanup_old_request_files_outer_exception_returns_false(monkeypatch, tmp_path):
     requests_dir = tmp_path / "requests"
     requests_dir.mkdir(parents=True, exist_ok=True)
@@ -219,6 +230,7 @@ def test_cleanup_old_request_files_outer_exception_returns_false(monkeypatch, tm
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_cleanup_old_message_archives_success_and_outer_exception(monkeypatch, tmp_path):
     base_dir = tmp_path / "data"
     archives = base_dir / "users" / "u1" / "messages" / "archives"
@@ -246,6 +258,7 @@ def test_cleanup_old_message_archives_success_and_outer_exception(monkeypatch, t
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_cleanup_data_directory_exception_paths(monkeypatch):
     warnings = []
     monkeypatch.setattr(auto_cleanup.logger, "warning", lambda msg: warnings.append(msg))
@@ -273,6 +286,7 @@ def test_cleanup_data_directory_exception_paths(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_cleanup_data_directory_success_logs_info(monkeypatch):
     infos = []
     monkeypatch.setattr(auto_cleanup.logger, "info", lambda msg: infos.append(msg))
@@ -284,6 +298,7 @@ def test_cleanup_data_directory_success_logs_info(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_auto_cleanup_if_needed_noncritical_step_exceptions(monkeypatch):
     warnings = []
     monkeypatch.setattr(auto_cleanup.logger, "warning", lambda msg: warnings.append(msg))
@@ -324,6 +339,7 @@ def test_auto_cleanup_if_needed_noncritical_step_exceptions(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_auto_cleanup_if_needed_when_cleanup_fails(monkeypatch):
     errors = []
     monkeypatch.setattr(auto_cleanup.logger, "error", lambda msg: errors.append(msg))
@@ -334,12 +350,14 @@ def test_auto_cleanup_if_needed_when_cleanup_fails(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_archive_old_messages_for_all_users_no_users(monkeypatch):
     monkeypatch.setattr("core.get_all_user_ids", lambda: [])
     assert auto_cleanup.archive_old_messages_for_all_users() is True
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_archive_old_messages_for_all_users_mixed_results(monkeypatch):
     logs = {"debug": [], "warning": []}
     monkeypatch.setattr(auto_cleanup.logger, "debug", lambda msg: logs["debug"].append(msg))
@@ -361,6 +379,7 @@ def test_archive_old_messages_for_all_users_mixed_results(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_archive_old_messages_for_all_users_outer_exception(monkeypatch):
     monkeypatch.setattr(
         "core.get_all_user_ids",
@@ -370,6 +389,7 @@ def test_archive_old_messages_for_all_users_outer_exception(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_cleanup_status_helpers_handle_none_now(monkeypatch):
     monkeypatch.setattr(auto_cleanup, "now_datetime_full", lambda: None)
     days_since, last_date = auto_cleanup._get_cleanup_status__calculate_days_since_cleanup(
@@ -384,6 +404,7 @@ def test_cleanup_status_helpers_handle_none_now(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_cleanup_tests_data_directory_fallback_resolution_and_cleanup(monkeypatch, tmp_path):
     fake_project = tmp_path / "fake_project" / "core"
     fake_project.mkdir(parents=True, exist_ok=True)
@@ -408,6 +429,7 @@ def test_cleanup_tests_data_directory_fallback_resolution_and_cleanup(monkeypatc
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_cleanup_tests_data_directory_additional_fallback_paths(monkeypatch, tmp_path):
     fake_project = tmp_path / "project" / "core"
     fake_project.mkdir(parents=True, exist_ok=True)

@@ -18,7 +18,10 @@ from unittest.mock import patch
 from user.user_preferences import UserPreferences
 
 
+pytestmark = [pytest.mark.user_management]
+
 @pytest.mark.unit
+@pytest.mark.user_management
 class TestUserPreferences:
     """Comprehensive test coverage for UserPreferences class."""
     

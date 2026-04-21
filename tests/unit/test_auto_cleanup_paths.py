@@ -9,7 +9,10 @@ import pytest
 import core.auto_cleanup as auto_cleanup
 
 
+pytestmark = [pytest.mark.core]
+
 @pytest.mark.unit
+@pytest.mark.core
 def test_update_cleanup_timestamp_respects_test_data_dir(monkeypatch):
     """Ensure the cleanup tracker honors a custom test data directory."""
 

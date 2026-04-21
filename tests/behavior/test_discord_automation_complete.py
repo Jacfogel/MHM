@@ -21,6 +21,7 @@ import pytest
 from tests.test_helpers.test_utilities import TestUserFactory
 
 
+@pytest.mark.communication
 @pytest.mark.behavior
 class TestDiscordCompleteAutomation:
     """Complete automated testing for all Discord command scenarios."""

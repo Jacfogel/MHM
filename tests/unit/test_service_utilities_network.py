@@ -6,7 +6,10 @@ import pytest
 from core.network_probe import wait_for_network
 
 
+pytestmark = [pytest.mark.core]
+
 @pytest.mark.unit
+@pytest.mark.core
 def test_wait_for_network_closes_connection_on_success():
     mock_connection = MagicMock()
     with patch(
@@ -18,6 +21,7 @@ def test_wait_for_network_closes_connection_on_success():
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_wait_for_network_skips_close_when_connection_fails():
     time_values = itertools.chain([0, 0, 2], itertools.repeat(2))
     with patch(

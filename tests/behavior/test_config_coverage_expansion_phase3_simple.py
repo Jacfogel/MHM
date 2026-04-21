@@ -10,6 +10,7 @@ import pytest
 import core.config
 
 
+@pytest.mark.core
 @pytest.mark.behavior
 class TestConfigCoverageExpansionPhase3Simple:
     """Test coverage expansion for core/config.py - Phase 3 Simple"""

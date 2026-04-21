@@ -13,6 +13,8 @@ import pytest
 import core.file_locking as file_locking_mod
 
 
+pytestmark = [pytest.mark.core]
+
 @pytest.fixture
 def unix_file_locking_module(monkeypatch):
     """Reload core.file_locking as if running on Unix (non-win32)."""
@@ -34,6 +36,7 @@ def unix_file_locking_module(monkeypatch):
 
 @pytest.mark.unit
 @pytest.mark.file_io
+@pytest.mark.core
 class TestFileLockingPlatformBranches:
     def test_windows_lock_path_oserror_timeout_branch(self, test_data_dir):
         target = Path(test_data_dir) / "windows_oserror_timeout.json"

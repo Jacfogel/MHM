@@ -5,6 +5,7 @@ from unittest.mock import patch
 import uuid
 
 from core.schedule_management import (
+
     add_schedule_period,
     edit_schedule_period,
     delete_schedule_period,
@@ -16,7 +17,11 @@ from core.schedule_management import (
     get_period_data__time_12h_display_to_24h
 )
 
+pytestmark = [pytest.mark.core]
 
+
+
+@pytest.mark.core
 class TestPeriodValidation:
     """Tests for time validation and conversion helpers."""
 
@@ -43,6 +48,7 @@ class TestPeriodValidation:
         assert get_period_data__time_24h_to_12h_display("bad") is None
 
 
+@pytest.mark.core
 class TestScheduleManagement:
     """Tests for schedule period lifecycle operations."""
 

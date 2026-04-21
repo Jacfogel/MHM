@@ -18,6 +18,7 @@ TEST_ANCHOR_DT = datetime(2026, 1, 20, 12, 0, 0)
 # Do not modify sys.path; rely on package imports
 
 
+@pytest.mark.communication
 @pytest.mark.behavior
 class TestMessageAnalyticsInitializationBehavior:
     """Test MessageAnalytics initialization with real behavior verification."""
@@ -33,6 +34,7 @@ class TestMessageAnalyticsInitializationBehavior:
         assert isinstance(analytics, MessageAnalytics), "Should be correct type"
 
 
+@pytest.mark.communication
 @pytest.mark.behavior
 class TestMessageAnalyticsFrequencyBehavior:
     """Test message frequency analysis with real behavior verification."""
@@ -138,6 +140,7 @@ class TestMessageAnalyticsFrequencyBehavior:
         ), "Should only have motivational category"
 
 
+@pytest.mark.communication
 @pytest.mark.behavior
 class TestMessageAnalyticsDeliveryBehavior:
     """Test message delivery success rate analysis with real behavior verification."""
@@ -209,6 +212,7 @@ class TestMessageAnalyticsDeliveryBehavior:
         assert "period_days" in result, "Should have period_days"
 
 
+@pytest.mark.communication
 @pytest.mark.behavior
 class TestMessageAnalyticsSummaryBehavior:
     """Test message summary functionality with real behavior verification."""

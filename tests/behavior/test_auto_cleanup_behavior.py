@@ -15,6 +15,8 @@ from unittest.mock import patch
 from datetime import datetime
 from core.time_utilities import now_datetime_full
 
+pytestmark = [pytest.mark.core]
+
 # Do not modify sys.path; rely on package imports
 
 from core.auto_cleanup import (
@@ -33,6 +35,7 @@ from core.auto_cleanup import (
 TRACKER_FILENAME = Path(CLEANUP_TRACKER_FILE).name
 
 
+@pytest.mark.core
 class TestAutoCleanupTimestampBehavior:
     """Test timestamp tracking functionality with real behavior verification."""
 
@@ -122,6 +125,7 @@ class TestAutoCleanupTimestampBehavior:
         assert isinstance(data["last_cleanup_date"], str), "Date should be string"
 
 
+@pytest.mark.core
 class TestAutoCleanupLogicBehavior:
     """Test cleanup logic and decision making with real behavior verification."""
 
@@ -227,6 +231,7 @@ class TestAutoCleanupLogicBehavior:
             ), "Should run cleanup at custom interval boundary"
 
 
+@pytest.mark.core
 class TestAutoCleanupFileDiscoveryBehavior:
     """Test file discovery functionality with real behavior verification."""
 
@@ -654,6 +659,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
         assert total_size >= 0, "Should handle file changes gracefully"
 
 
+@pytest.mark.core
 class TestAutoCleanupStatusBehavior:
     """Test cleanup status functionality with real behavior verification."""
 
@@ -1003,6 +1009,7 @@ class TestAutoCleanupStatusBehavior:
         ), "Error should indicate invalid timestamp field"
 
 
+@pytest.mark.core
 class TestAutoCleanupIntegrationBehavior:
     """Test integrated cleanup functionality with real behavior verification."""
 

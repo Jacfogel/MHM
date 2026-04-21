@@ -6,6 +6,13 @@ Maps source code directories to test directories and pytest markers for test-fil
 This enables selective test execution: when source files in a domain change, only test files
 covering that domain are re-run.
 
+**Taxonomy:** ``domain_mapper`` keys are **product domains** (top-level source areas: ``core``,
+``communication``, ``ui``, ``tasks``, ``ai``, ``user``, ``notebook``, ``development_tools``).
+That is separate from **suite category** markers (``unit``, ``integration``, ``behavior``, ``ui``)
+and from **quality** markers (e.g. ``critical``, ``smoke``). Per-domain ``source_to_test_mapping``
+marker lists may still include category or tier names for legacy cache behavior; they are not
+redefining those as “domains.”
+
 Usage:
     from development_tools.tests.domain_mapper import DomainMapper
 
@@ -31,8 +38,8 @@ def _default_domain_mapper_config() -> dict:
     """Fallback when config module is unavailable."""
     return {
         "source_to_test_mapping": {
-            "core": [["tests/core/", "tests/unit/"], ["unit", "critical"]],
-            "communication": [["tests/communication/"], ["communication", "integration"]],
+            "core": [["tests/core/", "tests/unit/"], ["core"]],
+            "communication": [["tests/communication/"], ["communication"]],
             "ui": [["tests/ui/"], ["ui"]],
             "tasks": [[], ["tasks"]],
             "ai": [["tests/ai/"], ["ai"]],

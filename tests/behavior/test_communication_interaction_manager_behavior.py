@@ -591,6 +591,7 @@ class TestInteractionManagerBehavior:
         assert hasattr(augmented, 'suggestions'), "Response should have suggestions"
         if not response.completed:
             assert augmented.suggestions is not None, "Suggestions should be added for incomplete responses"
+@pytest.mark.communication
 
 
 class TestInteractionManagerRealBehavior:

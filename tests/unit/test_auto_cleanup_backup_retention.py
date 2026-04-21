@@ -11,6 +11,8 @@ import core.auto_cleanup as auto_cleanup
 import core.config as core_config
 
 
+pytestmark = [pytest.mark.core]
+
 def _make_backup_dir(root: Path, name: str, mtime: int) -> Path:
     path = root / name
     path.mkdir(parents=True, exist_ok=True)
@@ -34,6 +36,7 @@ def backup_root(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_cleanup_old_backup_files_caps_total_backups_at_ten(backup_root):
     base = 2_000_000_000
     for i in range(12):
@@ -45,6 +48,7 @@ def test_cleanup_old_backup_files_caps_total_backups_at_ten(backup_root):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_cleanup_old_backup_files_preserves_weekly_backups_in_separate_bucket(
     backup_root,
 ):

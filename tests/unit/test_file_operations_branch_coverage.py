@@ -4,7 +4,10 @@ import pytest
 from core.file_operations import determine_file_path, verify_file_access
 
 
+pytestmark = [pytest.mark.core]
+
 @pytest.mark.unit
+@pytest.mark.core
 class TestFileOperationsBranchCoverage:
     def test_verify_file_access_invalid_paths_input(self):
         assert verify_file_access(None) is False

@@ -13,6 +13,7 @@ from communication.message_processing.interaction_manager import handle_user_mes
 from tasks import load_active_tasks, save_active_tasks
 from tests.test_helpers.test_utilities import TestUserFactory
 from core import get_user_id_by_identifier
+@pytest.mark.tasks
 
 
 class TestTaskSuggestionRelevance:

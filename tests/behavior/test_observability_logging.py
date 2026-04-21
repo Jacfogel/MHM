@@ -5,6 +5,7 @@ import pytest
 
 
 @pytest.mark.behavior
+@pytest.mark.core
 def test_component_logs_isolation_and_errors_capture(tmp_path, monkeypatch):
     """Verify component logs go to their files, do not duplicate into app.log, and errors go to errors.log."""
     # Arrange test logs directory

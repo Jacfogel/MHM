@@ -24,6 +24,7 @@ def mock_communication_manager():
     mock_cm = Mock()
     mock_cm.send_message = Mock(return_value=True)
     return mock_cm
+@pytest.mark.tasks
 
 
 class TestSchedulerManager:
@@ -241,6 +242,7 @@ class TestSchedulerManager:
 
             # Should not raise any exceptions
             scheduler_manager.log_scheduled_tasks()
+@pytest.mark.tasks
 
 
 class TestSchedulerFunctions:
@@ -335,6 +337,7 @@ class TestSchedulerFunctions:
 
         assert isinstance(prefs, dict)
         assert len(prefs) == 0
+@pytest.mark.tasks
 
 
 class TestSchedulerIntegration:
@@ -373,6 +376,7 @@ class TestSchedulerIntegration:
 
                 # Verify communication manager was not called (since we're not actually running)
                 mock_communication_manager.send_message.assert_not_called()
+@pytest.mark.tasks
 
 
 class TestSchedulerEdgeCases:
@@ -454,6 +458,7 @@ class TestSchedulerEdgeCases:
 
             # Verify side effect: function should have been called multiple times
             assert mock_get_periods.call_count == 10
+@pytest.mark.tasks
 
 
 class TestTaskReminderFunctions:

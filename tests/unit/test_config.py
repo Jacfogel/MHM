@@ -9,6 +9,7 @@ import os
 from unittest.mock import patch
 
 from core.config import (
+
     validate_core_paths,
     validate_ai_configuration,
     validate_communication_channels,
@@ -24,7 +25,11 @@ from core.config import (
     DEFAULT_MESSAGES_DIR_PATH
 )
 
+pytestmark = [pytest.mark.core]
 
+
+
+@pytest.mark.core
 class TestConfigValidation:
     """Test configuration validation functions."""
     
@@ -280,6 +285,7 @@ class TestConfigValidation:
                                         pytest.fail(f"Expected ConfigValidationError, but got {type(e).__name__}: {e}")
 
 
+@pytest.mark.core
 class TestConfigConstants:
     """Test configuration constants."""
     

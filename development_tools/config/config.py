@@ -860,9 +860,12 @@ def get_path_drift_config() -> dict[str, Any]:
 
 
 def domain_marker_union_from_domain_mapper() -> list[str]:
-    """Union of domain-attribution pytest marks from ``source_to_test_mapping`` (sorted).
+    """Union of product-domain pytest marks from ``source_to_test_mapping`` (sorted).
 
-    These are **domain** marks (product areas), not pytest **category** marks like ``behavior``.
+    Policy: marker lists for each domain should contain only product-area attribution marks
+    (for example ``core``, ``communication``, ``tasks``, ``ai``, ``user_management``,
+    ``notebook``, ``ui``), not suite category markers (``unit``, ``integration``, ``behavior``)
+    or quality/tier markers (``critical``, ``smoke``, ``regression``).
     """
     dm = get_domain_mapper_config()
     stm = dm.get("source_to_test_mapping") or {}

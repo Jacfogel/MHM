@@ -17,8 +17,11 @@ from core.file_locking import file_lock, safe_json_read, safe_json_write
 import contextlib
 
 
+pytestmark = [pytest.mark.core]
+
 @pytest.mark.unit
 @pytest.mark.file_io
+@pytest.mark.core
 class TestFileLocking:
     """Test file locking functionality."""
 
@@ -147,6 +150,7 @@ class TestFileLocking:
 
 @pytest.mark.unit
 @pytest.mark.file_io
+@pytest.mark.core
 class TestSafeJsonRead:
     """Test safe JSON read functionality."""
 
@@ -214,6 +218,7 @@ class TestSafeJsonRead:
 
 @pytest.mark.unit
 @pytest.mark.file_io
+@pytest.mark.core
 class TestSafeJsonWrite:
     """Test safe JSON write functionality."""
 
@@ -355,6 +360,7 @@ class TestSafeJsonWrite:
 
 @pytest.mark.unit
 @pytest.mark.file_io
+@pytest.mark.core
 class TestFileLockingConcurrency:
     """Test file locking with concurrent access."""
 

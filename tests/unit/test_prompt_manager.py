@@ -19,7 +19,10 @@ from unittest.mock import patch, mock_open
 from ai.prompt_manager import PromptManager, PromptTemplate, get_prompt_manager
 
 
+pytestmark = [pytest.mark.ai]
+
 @pytest.mark.unit
+@pytest.mark.ai
 class TestPromptManager:
     """Comprehensive test coverage for PromptManager class."""
     

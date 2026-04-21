@@ -48,6 +48,7 @@ from tasks import (
 )
 
 
+@pytest.mark.tasks
 @pytest.mark.behavior
 class TestTaskManagementCoverageExpansion:
     """Comprehensive test coverage expansion for task management."""

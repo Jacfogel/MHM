@@ -16,6 +16,7 @@ from core.time_utilities import TIMESTAMP_FULL
 import pytest
 
 
+@pytest.mark.core
 @pytest.mark.behavior
 @pytest.mark.checkins
 class TestCheckinExpirySemantics:

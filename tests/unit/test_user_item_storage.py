@@ -3,14 +3,19 @@ from pathlib import Path
 import pytest
 
 from core.user_item_storage import (
+
     ensure_user_subdir,
     get_user_subdir_path,
     load_user_json_file,
     save_user_json_file,
 )
 
+pytestmark = [pytest.mark.core]
+
+
 
 @pytest.mark.unit
+@pytest.mark.core
 class TestUserItemStorageCoverage:
     def test_get_user_subdir_path_invalid_user_id(self):
         assert get_user_subdir_path("", "tasks") is None

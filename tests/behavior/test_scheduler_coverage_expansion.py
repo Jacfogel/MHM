@@ -40,6 +40,7 @@ def mock_communication_manager():
 def scheduler_manager(mock_communication_manager):
     """Create a SchedulerManager instance for testing."""
     return SchedulerManager(mock_communication_manager)
+@pytest.mark.tasks
 
 
 class TestSchedulerManagerLifecycle:
@@ -142,6 +143,7 @@ class TestSchedulerManagerLifecycle:
         # Verify scheduler state remains clean
         assert scheduler_manager.scheduler_thread is None
         assert scheduler_manager.running is False
+@pytest.mark.tasks
 
 
 class TestMessageScheduling:
@@ -389,6 +391,7 @@ class TestMessageScheduling:
                         assert (
                             mock_wake.call_count >= 0
                         )  # Allow for the case where it doesn't reach this point
+@pytest.mark.tasks
 
 
 class TestTaskReminderScheduling:
@@ -563,6 +566,7 @@ class TestTaskReminderScheduling:
         assert end_dt_obj is not None
         end_time_obj = end_dt_obj.time()
         assert start_time_obj <= result_time <= end_time_obj
+@pytest.mark.tasks
 
 
 class TestTimeManagement:
@@ -681,6 +685,7 @@ class TestTimeManagement:
 
             # Verify side effect
             assert result is None
+@pytest.mark.tasks
 
 
 class TestMessageHandling:
@@ -832,6 +837,7 @@ class TestMessageHandling:
                 mock_get_task.assert_called_once_with(user_id, task_id)
                 scheduler_manager.communication_manager.handle_task_reminder.assert_not_called()
                 mock_update_task.assert_not_called()
+@pytest.mark.tasks
 
 
 class TestWakeTimerFunctionality:
@@ -894,6 +900,7 @@ class TestWakeTimerFunctionality:
 
             # Verify side effect: should have called subprocess.run
             mock_run.assert_called_once()
+@pytest.mark.tasks
 
 
 class TestCleanupOperations:
@@ -938,6 +945,7 @@ class TestCleanupOperations:
                 # Verify the remaining job is not for the test user/category
                 remaining_job = jobs_list[0]
                 assert remaining_job.job_func.keywords["user_id"] == "other-user"
+@pytest.mark.tasks
 
 
 class TestStandaloneFunctions:
@@ -1030,6 +1038,7 @@ class TestStandaloneFunctions:
             assert prefs.get("enabled") is True
             assert prefs.get("frequency") == "daily"
             mock_get_data.assert_called_once_with(user_id, "preferences")
+@pytest.mark.tasks
 
 
 class TestErrorHandling:
@@ -1126,6 +1135,7 @@ class TestErrorHandling:
                     # Verify side effects: should have retried the maximum number of times
                     assert mock_get_time.call_count == 10  # Max retries
                     assert mock_conflict.call_count == 10
+@pytest.mark.tasks
 
 
 class TestSchedulerLoopCoverage:
@@ -1249,6 +1259,7 @@ class TestSchedulerLoopCoverage:
 
             # Verify side effects: scheduler should have stopped
             assert not scheduler_manager.running
+@pytest.mark.tasks
 
 
 class TestCheckinSchedulingCoverage:
@@ -1325,6 +1336,7 @@ class TestCheckinSchedulingCoverage:
 
             # Verify side effects: should not crash, just log error
             # No assertions needed - function should complete without error
+@pytest.mark.tasks
 
 
 class TestTaskReminderSchedulingCoverage:
@@ -1448,6 +1460,7 @@ class TestTaskReminderSchedulingCoverage:
 
             # Verify side effects: should not crash, just skip period
             # No assertions needed - function should complete without error
+@pytest.mark.tasks
 
 
 class TestWakeTimerCoverage:
@@ -1490,6 +1503,7 @@ class TestWakeTimerCoverage:
             mock_wake_timer.assert_called_once_with(
                 schedule_time, user_id, category, period
             )
+@pytest.mark.tasks
 
 
 class TestSelectTaskForReminderBehavior:

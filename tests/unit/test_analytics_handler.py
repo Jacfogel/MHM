@@ -3,10 +3,14 @@
 import pytest
 
 from communication.command_handlers.analytics_handler import (
+
     AnalyticsHandler,
     InteractionResponse,
     ParsedCommand,
 )
+
+pytestmark = [pytest.mark.communication]
+
 
 
 class _FakeCheckinAnalytics:
@@ -18,6 +22,7 @@ class _FakeCheckinAnalytics:
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_can_handle_known_intent():
     handler = AnalyticsHandler()
 
@@ -27,6 +32,7 @@ def test_can_handle_known_intent():
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_handle_returns_default_for_unknown_intent(monkeypatch):
     handler = AnalyticsHandler()
     parsed = ParsedCommand(
@@ -46,6 +52,7 @@ def test_handle_returns_default_for_unknown_intent(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_handle_mood_trends_includes_trend_and_distribution(monkeypatch):
     handler = AnalyticsHandler()
     mood_payload = {
@@ -72,6 +79,7 @@ def test_handle_mood_trends_includes_trend_and_distribution(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_get_field_scale_and_truncate_response():
     handler = AnalyticsHandler()
 

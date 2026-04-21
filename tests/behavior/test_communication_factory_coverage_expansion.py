@@ -13,6 +13,7 @@ import pytest
 from communication.communication_channels.base.base_channel import BaseChannel, ChannelConfig
 
 
+@pytest.mark.communication
 @pytest.mark.behavior
 class TestCommunicationFactoryCoverageExpansion:
     """Test coverage expansion for Communication Factory module."""

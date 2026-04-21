@@ -29,6 +29,7 @@ import core.config
 import contextlib
 
 
+@pytest.mark.core
 @pytest.mark.behavior
 class TestBackupManagerBehavior:
     """Test BackupManager behavior with real file system operations."""

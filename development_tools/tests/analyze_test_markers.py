@@ -8,15 +8,25 @@ analyze_test_markers.py
 Analyze test files for pytest marker usage (read-only analysis).
 For fixing operations, use fix_test_markers.py.
 
-**Domain markers (policy):** ``domain_mapper`` lists **product domains** (e.g. communication, ui)
-and which pytest marks denote coverage for each. The default ``domain_markers`` list is the union
-of those marks—so tests must carry at least one **domain** mark, not only a **category** mark
-(``unit`` / ``integration`` / ``behavior`` / ``ui``). ``behavior`` is a suite category, not a
-domain; behavior tests still need a real domain mark (e.g. ``communication``) alongside
-``@pytest.mark.behavior`` when policy is on. The intent is to rely on explicit domain tags over
-time rather than inferring domain from paths like ``tests/unit/`` ⇒ core. Exceptions: directories
-whose mapping is **directory-only** (no domain marks in config, e.g. ``tests/development_tools/``).
-Set ``test_markers.use_domain_mapper_marker_union`` to false and ``domain_markers`` to ``[]`` to
+**Marker kinds (policy):**
+
+- **Category** (suite layer): ``unit``, ``integration``, ``behavior``, ``ui`` — align with
+  ``tests/<subdir>/`` layout and selective runs by suite type.
+- **Quality / tier** (optional): e.g. ``critical``, ``smoke``, ``regression`` — not product domains.
+- **Domain** (product / source area): the eight areas in ``domain_mapper`` (``core``,
+  ``communication``, ``ui``, ``tasks``, ``ai``, ``user``, ``notebook``, ``development_tools``).
+  Typical **domain-attribution** pytest names include ``communication``, ``ai``, ``tasks``,
+  ``notebook``, ``user_management``, etc. **Categories** are ``unit``, ``integration``,
+  ``behavior``, ``ui``; **tier** markers include ``critical``, ``smoke``, ``regression``. Those are
+  not the same thing as the eight **product domains** (though ``ui`` doubles as a category label and
+  a product area).
+
+**Analyzer config:** ``get_test_markers_config()`` fills ``domain_markers`` from
+``domain_marker_union_from_domain_mapper()``, which unions marker strings in
+``source_to_test_mapping``’s marker lists. Policy is that those lists contain only
+product-domain attribution marks (no category/tier aliases). Exceptions: **directory-only** mappings (empty marker list,
+e.g. ``development_tools``) skip domain enforcement. Set
+``test_markers.use_domain_mapper_marker_union`` to false and ``domain_markers`` to ``[]`` to
 disable domain-marker enforcement.
 """
 

@@ -439,6 +439,7 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
 
 
 @pytest.mark.behavior
+@pytest.mark.user_management
 @pytest.mark.scheduler
 @pytest.mark.file_io
 @pytest.mark.regression

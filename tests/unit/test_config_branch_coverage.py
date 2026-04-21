@@ -6,7 +6,10 @@ import pytest
 import core.config as config
 
 
+pytestmark = [pytest.mark.core]
+
 @pytest.mark.unit
+@pytest.mark.core
 class TestConfigBranchCoverage:
     def test_validate_ai_configuration_threshold_branches(self):
         with (

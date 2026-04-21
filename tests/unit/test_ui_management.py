@@ -15,6 +15,8 @@ Coverage Areas:
 import pytest
 from unittest.mock import Mock, patch
 
+pytestmark = [pytest.mark.core]
+
 # Skip the module when Qt dependencies (e.g., libGL) are unavailable. This avoids
 # coverage runs failing during collection on environments without GUI support.
 pytest.importorskip(
@@ -38,6 +40,7 @@ from core.ui_management import (
 
 
 @pytest.mark.unit
+@pytest.mark.core
 class TestUIManagement:
     """Comprehensive test coverage for UI management functions."""
     

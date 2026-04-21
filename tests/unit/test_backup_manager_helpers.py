@@ -8,6 +8,7 @@ import pytest
 import core.config
 import core.backup_manager as backup_module
 from core.backup_manager import (
+
     BackupManager,
     _validate_system_state__ensure_user_data_directory,
     _validate_system_state__validate_user_index,
@@ -15,6 +16,9 @@ from core.backup_manager import (
     perform_safe_operation,
     validate_system_state,
 )
+
+pytestmark = [pytest.mark.core]
+
 
 
 @pytest.fixture
@@ -26,6 +30,7 @@ def manager(tmp_path, monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 class TestBackupManagerHelpers:
     def test_validate_user_index_missing_file_returns_true(self, tmp_path, monkeypatch):
         monkeypatch.setattr(core.config, "BASE_DATA_DIR", str(tmp_path))

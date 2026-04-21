@@ -45,6 +45,7 @@ def user_dir(test_data_dir, unique_user_id):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_normalize_tag_strips_whitespace_and_hashes():
     assert normalize_tag("  #Work-Now  ") == "work-now"
     assert normalize_tag("Priority") == "priority"
@@ -52,6 +53,7 @@ def test_normalize_tag_strips_whitespace_and_hashes():
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_normalize_tags_handles_duplicates_and_invalid_types():
     assert normalize_tags("not a list") == []
     assert normalize_tags(["Work", "#work", "Personal", " personal "]) == [
@@ -61,6 +63,7 @@ def test_normalize_tags_handles_duplicates_and_invalid_types():
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_parse_tags_from_text_extracts_and_normalizes():
     text, discovered_tags = parse_tags_from_text(
         "Plan #Work personal:priority #work extra details"
@@ -73,6 +76,7 @@ def test_parse_tags_from_text_extracts_and_normalizes():
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test__load_default_tags_from_resources_returns_known_values():
     defaults = tags_module._load_default_tags_from_resources()
     assert isinstance(defaults, list)
@@ -80,12 +84,14 @@ def test__load_default_tags_from_resources_returns_known_values():
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_ensure_user_dir_for_tags_returns_none_for_invalid_ids():
     assert tags_module.ensure_user_dir_for_tags("") is None
     assert tags_module.ensure_user_dir_for_tags(None) is None
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_load_user_tags_initializes_defaults(user_dir, unique_user_id):
     tags_file = user_dir / "tags.json"
     assert not tags_file.exists()
@@ -101,6 +107,7 @@ def test_load_user_tags_initializes_defaults(user_dir, unique_user_id):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_save_user_tags_normalizes_and_updates_metadata(user_dir, unique_user_id):
     tags_file = user_dir / "tags.json"
     payload = {
@@ -118,6 +125,7 @@ def test_save_user_tags_normalizes_and_updates_metadata(user_dir, unique_user_id
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_add_and_remove_user_tag_respects_normalization(user_dir, unique_user_id):
     tag_value = "Special_Tag"
 
@@ -131,6 +139,7 @@ def test_add_and_remove_user_tag_respects_normalization(user_dir, unique_user_id
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_ensure_tags_initialized_is_idempotent(user_dir, unique_user_id):
     ensure_tags_initialized(unique_user_id)
     assert (user_dir / "tags.json").exists()

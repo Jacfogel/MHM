@@ -8,6 +8,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 from core.file_auditor import (
+
     FileAuditor, 
     _auditor, 
     start_auditor, 
@@ -17,11 +18,15 @@ from core.file_auditor import (
     _classify_path
 )
 
+pytestmark = [pytest.mark.core]
+
+
 TESTS_DATA_TMP = Path(__file__).resolve().parents[1] / "data" / "tmp"
 TESTS_DATA_TMP.mkdir(parents=True, exist_ok=True)
 
 
 @pytest.mark.unit
+@pytest.mark.core
 class TestFileAuditorUtilities:
     """Test utility functions."""
     
@@ -87,6 +92,7 @@ class TestFileAuditorUtilities:
 
 
 @pytest.mark.unit
+@pytest.mark.core
 class TestFileAuditor:
     """Test FileAuditor class."""
     
@@ -136,6 +142,7 @@ class TestFileAuditor:
 
 
 @pytest.mark.unit
+@pytest.mark.core
 class TestFileAuditorSingleton:
     """Test FileAuditor singleton functions."""
     
@@ -157,6 +164,7 @@ class TestFileAuditorSingleton:
 
 
 @pytest.mark.unit
+@pytest.mark.core
 class TestRecordCreated:
     """Test record_created function."""
     
@@ -298,6 +306,7 @@ class TestRecordCreated:
 
 
 @pytest.mark.unit
+@pytest.mark.core
 class TestFileAuditorErrorHandling:
     """Test FileAuditor error handling."""
     

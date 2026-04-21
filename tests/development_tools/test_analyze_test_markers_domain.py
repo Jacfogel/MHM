@@ -20,10 +20,13 @@ def test_domain_marker_union_matches_domain_mapper_markers() -> None:
     """Default union is the sorted set of markers from domain_mapper.source_to_test_mapping."""
     config.load_external_config()
     union = set(config.domain_marker_union_from_domain_mapper())
-    assert "unit" in union
+    assert "core" in union
     assert "communication" in union
     assert "ui" in union
     assert "tasks" in union
+    assert "unit" not in union
+    assert "integration" not in union
+    assert "critical" not in union
     tm = config.get_test_markers_config()
     assert tm.get("use_domain_mapper_marker_union") is True
     assert set(tm.get("domain_markers") or []) == union

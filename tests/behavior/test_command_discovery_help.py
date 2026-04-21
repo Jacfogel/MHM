@@ -15,6 +15,7 @@ from communication.command_handlers.shared_types import InteractionResponse, Par
 from tests.test_helpers.test_utilities import TestUserFactory
 
 
+@pytest.mark.communication
 @pytest.mark.behavior
 class TestCommandDiscoveryHelp:
     """Test command discovery through help system."""

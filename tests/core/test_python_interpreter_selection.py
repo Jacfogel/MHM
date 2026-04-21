@@ -6,7 +6,10 @@ import pytest
 from core.launch_env import prepare_launch_environment, resolve_python_interpreter
 
 
+pytestmark = [pytest.mark.core]
+
 @pytest.mark.unit
+@pytest.mark.core
 def test_resolve_python_interpreter_prefers_windows(tmp_path):
     script_dir = tmp_path
     scripts_dir = script_dir / '.venv' / 'Scripts'
@@ -23,6 +26,7 @@ def test_resolve_python_interpreter_prefers_windows(tmp_path):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_resolve_python_interpreter_posix(tmp_path):
     script_dir = tmp_path
     bin_dir = script_dir / '.venv' / 'bin'
@@ -35,6 +39,7 @@ def test_resolve_python_interpreter_posix(tmp_path):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_resolve_python_interpreter_falls_back_to_sys_executable(tmp_path):
     script_dir = tmp_path
     # Ensure neither interpreter path exists
@@ -44,6 +49,7 @@ def test_resolve_python_interpreter_falls_back_to_sys_executable(tmp_path):
 
 @pytest.mark.skipif(os.name == 'nt', reason="PATH expectations differ on Windows")
 @pytest.mark.unit
+@pytest.mark.core
 def test_prepare_launch_environment_includes_posix_bin(tmp_path):
     script_dir = tmp_path
     bin_dir = script_dir / '.venv' / 'bin'

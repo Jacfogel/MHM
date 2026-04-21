@@ -15,6 +15,7 @@ from core.time_utilities import TIMESTAMP_FULL, format_timestamp
 
 # Deterministic 'now' for tests that compare timestamps to "recent activity" thresholds.
 TEST_NOW_DT = datetime(2026, 1, 20, 12, 0, 0)
+@pytest.mark.core
 
 
 class TestCoreServiceCoverageExpansion:

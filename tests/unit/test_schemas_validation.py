@@ -3,11 +3,15 @@ import copy
 import pytest
 
 from core.schemas import (
+
     validate_account_dict,
     validate_preferences_dict,
     validate_schedules_dict,
     validate_messages_file_dict,
 )
+
+pytestmark = [pytest.mark.core]
+
 
 
 @pytest.fixture()
@@ -25,6 +29,7 @@ def base_account_data():
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_validate_account_dict_coerces_features_and_normalizes_email(base_account_data):
     normalized, errors = validate_account_dict(base_account_data)
 
@@ -38,6 +43,7 @@ def test_validate_account_dict_coerces_features_and_normalizes_email(base_accoun
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_validate_account_dict_reports_errors_when_required_fields_missing(base_account_data):
     incomplete = copy.deepcopy(base_account_data)
     incomplete.pop("user_id")
@@ -51,6 +57,7 @@ def test_validate_account_dict_reports_errors_when_required_fields_missing(base_
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_validate_preferences_dict_retains_original_on_error():
     # Invalid category should trigger a validation error and return original payload
     prefs = {
@@ -66,6 +73,7 @@ def test_validate_preferences_dict_retains_original_on_error():
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_validate_schedules_dict_normalizes_days_and_times():
     schedules = {
         "motivational": {
@@ -97,6 +105,7 @@ def test_validate_schedules_dict_normalizes_days_and_times():
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_validate_messages_file_dict_filters_invalid_entries():
     data = {
         "messages": [

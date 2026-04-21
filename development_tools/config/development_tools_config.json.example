@@ -297,8 +297,7 @@
           "tests/unit/"
         ],
         [
-          "unit",
-          "critical"
+          "core"
         ]
       ],
       "communication": [
@@ -306,8 +305,7 @@
           "tests/communication/"
         ],
         [
-          "communication",
-          "integration"
+          "communication"
         ]
       ],
       "ui": [

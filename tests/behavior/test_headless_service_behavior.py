@@ -14,6 +14,7 @@ from unittest.mock import patch, Mock, MagicMock
 from core.headless_service import HeadlessServiceManager
 
 
+@pytest.mark.core
 @pytest.mark.behavior
 class TestHeadlessServiceManagerBehavior:
     """Test headless service manager real behavior and side effects."""

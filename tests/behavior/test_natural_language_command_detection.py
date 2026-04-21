@@ -7,6 +7,7 @@ are properly detected as command_with_clarification mode instead of chat mode.
 
 import pytest
 from ai.chatbot import get_ai_chatbot
+@pytest.mark.ai
 
 
 class TestNaturalLanguageCommandDetection:

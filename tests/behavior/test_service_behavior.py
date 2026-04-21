@@ -34,6 +34,7 @@ from core.service import (
 from core import get_user_categories
 
 
+@pytest.mark.core
 @pytest.mark.behavior
 class TestMHMService:
     """Test cases for the MHMService class."""

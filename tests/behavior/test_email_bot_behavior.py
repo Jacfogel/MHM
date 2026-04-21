@@ -15,6 +15,7 @@ from communication.communication_channels.email.bot import EmailBot
 from communication.communication_channels.base.base_channel import ChannelConfig, ChannelStatus, ChannelType
 
 
+@pytest.mark.communication
 @pytest.mark.behavior
 class TestEmailBotBehavior:
     """Test real behavior of Email Bot."""
@@ -507,6 +508,7 @@ class TestEmailBotBehavior:
             assert test_subject in email_content, "Should contain subject"
 
 
+@pytest.mark.communication
 @pytest.mark.behavior
 class TestEmailBotIntegration:
     """Test integration behavior of Email Bot."""

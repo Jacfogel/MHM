@@ -9,6 +9,8 @@ from pathlib import Path
 import pytest
 
 
+pytestmark = [pytest.mark.user_management]
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 TESTS_ROOT = PROJECT_ROOT / "tests"
 CATEGORY_MARKERS = {"unit", "integration", "behavior", "ui"}
@@ -310,6 +312,7 @@ def _collect_no_parallel_missing_reason_lines(path: Path, text: str, tree: ast.A
 
 
 @pytest.mark.unit
+@pytest.mark.user_management
 def test_tempfile_writes_are_scoped_to_tests_data():
     """Policy: tempfile-based writes in tests must be scoped under tests/data via dir=."""
     violations: list[str] = []
@@ -320,6 +323,7 @@ def test_tempfile_writes_are_scoped_to_tests_data():
 
 
 @pytest.mark.unit
+@pytest.mark.user_management
 def test_pytest_tests_have_required_category_marker():
     """Policy: each pytest test function/method must include at least one category marker."""
     violations: list[str] = []
@@ -366,6 +370,7 @@ def test_pytest_tests_have_required_category_marker():
 
 
 @pytest.mark.unit
+@pytest.mark.user_management
 def test_no_datetime_now_in_tests():
     """Policy: tests should not call datetime.now() directly."""
     violations: list[str] = []
@@ -385,6 +390,7 @@ def test_no_datetime_now_in_tests():
 
 
 @pytest.mark.unit
+@pytest.mark.user_management
 def test_no_production_logs_in_tests():
     """Policy: tests should not reference production logs/ paths."""
     violations: list[str] = []
@@ -406,6 +412,7 @@ def test_no_production_logs_in_tests():
 
 
 @pytest.mark.unit
+@pytest.mark.user_management
 def test_no_real_user_path_usage_in_tests():
     """Policy: tests should not touch APPDATA/home dirs or direct data/users paths."""
     violations: list[str] = []
@@ -427,6 +434,7 @@ def test_no_real_user_path_usage_in_tests():
 
 
 @pytest.mark.unit
+@pytest.mark.user_management
 def test_no_parallel_marker_requires_reason():
     """Policy: every @pytest.mark.no_parallel should include an inline or preceding reason comment."""
     violations: list[str] = []

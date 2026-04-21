@@ -6,7 +6,10 @@ import pytest
 from communication.command_handlers.profile_handler import ProfileHandler
 
 
+pytestmark = [pytest.mark.communication]
+
 @pytest.mark.unit
+@pytest.mark.communication
 def test_format_profile_text_includes_health_and_support():
     handler = ProfileHandler()
     account_data = {
@@ -40,6 +43,7 @@ def test_format_profile_text_includes_health_and_support():
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_handle_update_profile_returns_success(monkeypatch):
     handler = ProfileHandler()
 
@@ -73,6 +77,7 @@ def test_handle_update_profile_returns_success(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.communication
 def test_handle_profile_stats_formats_values(monkeypatch):
     handler = ProfileHandler()
 

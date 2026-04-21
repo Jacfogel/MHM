@@ -414,6 +414,78 @@ class ReportGenerationMixin:
         except (TypeError, ValueError):
             return default
 
+    def _test_marker_gap_metrics(
+        self, test_markers_data: dict[str, Any] | None
+    ) -> tuple[int, int, list[Any], list[Any]]:
+        """Counts and issue lists from ``analyze_test_markers`` JSON.
+
+        Category gaps = missing suite markers (``tests/`` subdirs: unit, integration, behavior, ui).
+        Domain gaps = missing product-area markers per ``domain_mapper`` (not the same as category
+        or tier markers such as critical; see analyzer docstring).
+        """
+        if not test_markers_data or not isinstance(test_markers_data, dict):
+            return 0, 0, [], []
+        details = test_markers_data.get("details")
+        if isinstance(details, dict):
+            cat = self._coerce_int(details.get("missing_count"), 0) or 0
+            dom = self._coerce_int(details.get("missing_domain_count"), 0) or 0
+            mlist = details.get("missing")
+            dlist = details.get("missing_domain")
+            if not isinstance(mlist, list):
+                mlist = []
+            if not isinstance(dlist, list):
+                dlist = []
+            return cat, dom, mlist, dlist
+        cat = self._coerce_int(test_markers_data.get("missing_count"), 0) or 0
+        dom = self._coerce_int(test_markers_data.get("missing_domain_count"), 0) or 0
+        mlist = test_markers_data.get("missing")
+        if not isinstance(mlist, list):
+            mlist = []
+        if cat or dom:
+            return cat, dom, mlist, []
+        summary = test_markers_data.get("summary") or {}
+        total = self._coerce_int(summary.get("total_issues"), 0) or 0
+        if total:
+            return total, 0, mlist, []
+        return 0, 0, [], []
+
+    def _top_test_marker_files_bullet(
+        self,
+        issue_list: list[Any],
+        *,
+        limit: int = 5,
+    ) -> str | None:
+        """Single bullet line listing top files by issue count (dict items with file/name)."""
+        if not issue_list:
+            return None
+        from collections import defaultdict
+
+        files_with_missing: dict[str, list[str]] = defaultdict(list)
+        for item in issue_list:
+            if not isinstance(item, dict):
+                continue
+            file_path = item.get("file", "")
+            test_name = item.get("name", "")
+            if file_path:
+                files_with_missing[str(file_path)].append(str(test_name))
+
+        if not files_with_missing:
+            return None
+        sorted_files = sorted(
+            files_with_missing.items(),
+            key=lambda x: len(x[1]),
+            reverse=True,
+        )[:limit]
+        file_list = []
+        for file_path, tests in sorted_files:
+            file_name = Path(file_path).name if file_path else "Unknown"
+            file_list.append(f"{file_name} ({len(tests)} tests)")
+        if len(files_with_missing) > len(sorted_files):
+            file_list.append(
+                f"... +{len(files_with_missing) - len(sorted_files)} more files"
+            )
+        return f"Top files: {self._format_list_for_display(file_list, limit=limit)}"
+
     def _normalize_test_node_id(self, node_id: str) -> str:
         """Normalize pytest node IDs for compact display (drop class segment)."""
         text = str(node_id or "").strip()
@@ -2302,31 +2374,29 @@ class ReportGenerationMixin:
                     summary_line += f" ({dev_covered} of {dev_statements} statements)"
                 lines.append(summary_line)
 
-        # Test markers
+        # Test markers (category = suite; domain = product areas in domain_mapper)
         test_markers_data = self._load_tool_data("analyze_test_markers", "tests")
-        if test_markers_data and isinstance(test_markers_data, dict):
-            if "summary" in test_markers_data:
-                summary = test_markers_data.get("summary", {})
-                missing_count = summary.get("total_issues", 0)
-                details = test_markers_data.get("details", {})
-                missing_list = details.get("missing", [])
-            else:
-                missing_count = test_markers_data.get("missing_count", 0)
-                missing_list = test_markers_data.get("missing", [])
-
-            if missing_count > 0 or (missing_list and len(missing_list) > 0):
-                lines.append("## Test Markers")
-                actual_count = (
-                    missing_count
-                    if missing_count > 0
-                    else len(missing_list) if missing_list else 0
-                )
+        cat_n, dom_n, missing_list, missing_domain_list = self._test_marker_gap_metrics(
+            test_markers_data if isinstance(test_markers_data, dict) else None
+        )
+        if cat_n > 0 or dom_n > 0 or missing_list or missing_domain_list:
+            lines.append("## Test Markers")
+            if cat_n > 0 or missing_list:
+                actual_cat = cat_n if cat_n > 0 else len(missing_list)
                 lines.append(
-                    f"- **Missing Category Markers**: {actual_count} tests missing pytest category markers"
+                    f"- **Missing Category Markers** (``tests/`` suite: unit, integration, behavior, ui): "
+                    f"{actual_cat} tests"
                 )
-            else:
-                lines.append("## Test Markers")
-                lines.append("- **Status**: CLEAN (all tests have category markers)")
+            if dom_n > 0 or missing_domain_list:
+                actual_dom = dom_n if dom_n > 0 else len(missing_domain_list)
+                lines.append(
+                    f"- **Missing Domain Markers** (product domains per ``domain_mapper``): {actual_dom} tests"
+                )
+        elif test_markers_data and isinstance(test_markers_data, dict):
+            lines.append("## Test Markers")
+            lines.append(
+                "- **Status**: CLEAN (category and domain marker policy satisfied)"
+            )
 
         lines.append("")
 
@@ -3673,6 +3743,7 @@ class ReportGenerationMixin:
                 "Update tools to use centralized config": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
                 "Add docstrings to handler classes": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Add pytest category markers to tests": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md (test markers), ai_development_docs/AI_TESTING_GUIDE.md",
+                "Add pytest domain-attribution markers to tests": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md (test markers), ai_development_docs/AI_TESTING_GUIDE.md, development_docs/TEST_PLAN.md (§4.4)",
                 "Review orphaned pytest worker processes (Windows)": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_TESTING_GUIDE.md",
                 "Remove obvious unused imports": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
                 "Investigate possible duplicate functions/methods": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
@@ -3698,6 +3769,7 @@ class ReportGenerationMixin:
                 "Update tools to use centralized config": "development_tools/ai_work/jsons/analyze_ai_work_results.json",
                 "Add docstrings to handler classes": "development_tools/functions/jsons/analyze_function_patterns_results.json",
                 "Add pytest category markers to tests": "development_tools/tests/jsons/analyze_test_markers_results.json",
+                "Add pytest domain-attribution markers to tests": "development_tools/tests/jsons/analyze_test_markers_results.json",
                 "Review orphaned pytest worker processes (Windows)": "development_tools/tests/jsons/verify_process_cleanup_results.json",
                 "Remove obvious unused imports": "development_docs/UNUSED_IMPORTS_REPORT.md",
                 "Investigate possible duplicate functions/methods": "development_tools/functions/jsons/analyze_duplicate_functions_results.json",
@@ -4707,69 +4779,68 @@ class ReportGenerationMixin:
                             bullets=handlers_bullets,
                         )
 
-        # Test markers priority
+        # Test markers priority (category = suite; domain = product areas)
         if test_markers_data and isinstance(test_markers_data, dict):
-            summary = test_markers_data.get("summary", {})
-            details = test_markers_data.get("details", {})
-            missing_count = summary.get("total_issues", 0)
-            missing_list = details.get("missing", [])
-
-            # Use missing_count if available, otherwise count from missing_list
-            actual_count = (
-                missing_count
-                if missing_count > 0
-                else (len(missing_list) if missing_list else 0)
+            cat_n, dom_n, missing_list, missing_domain_list = (
+                self._test_marker_gap_metrics(test_markers_data)
+            )
+            cat_display = cat_n if cat_n > 0 else (len(missing_list) if missing_list else 0)
+            dom_display = dom_n if dom_n > 0 else (
+                len(missing_domain_list) if missing_domain_list else 0
             )
 
-            if actual_count > 0:
+            if cat_display > 0:
                 test_markers_bullets: list[str] = []
-
-                # Get top files with missing markers if available
-                if missing_list and isinstance(missing_list, list):
-                    from collections import defaultdict
-
-                    files_with_missing = defaultdict(list)
-                    for item in missing_list:
-                        if isinstance(item, dict):
-                            file_path = item.get("file", "")
-                            test_name = item.get("name", "")
-                            if file_path:
-                                files_with_missing[file_path].append(test_name)
-
-                    if files_with_missing:
-                        sorted_files = sorted(
-                            files_with_missing.items(),
-                            key=lambda x: len(x[1]),
-                            reverse=True,
-                        )[:5]
-                        file_list = []
-                        for file_path, tests in sorted_files:
-                            test_count = len(tests)
-                            file_name = Path(file_path).name if file_path else "Unknown"
-                            file_list.append(f"{file_name} ({test_count} tests)")
-                        if len(sorted_files) < len(files_with_missing):
-                            file_list.append(
-                                f"... +{len(files_with_missing) - len(sorted_files)} more files"
-                            )
-                        test_markers_bullets.append(
-                            f"Top files: {self._format_list_for_display(file_list, limit=5)}"
-                        )
-
+                top_cat = self._top_test_marker_files_bullet(missing_list)
+                if top_cat:
+                    test_markers_bullets.append(top_cat)
                 test_markers_bullets.append(
-                    "Action: Add pytest category markers to tests missing them"
+                    "Action: Add pytest category markers for the correct ``tests/`` subdirectory "
+                    "(unit, integration, behavior, ui)"
                 )
                 test_markers_bullets.append(
-                    "Why this matters: Category markers help organize tests and enable selective test execution"
+                    "Why this matters: Category markers organize the suite layer and enable selective runs"
                 )
                 test_markers_bullets.append(
                     "Command: `python development_tools/tests/fix_test_markers.py`"
                 )
-
+                test_markers_bullets.append(
+                    "Review for details: `development_tools/tests/jsons/analyze_test_markers_results.json`"
+                )
                 add_priority(
-                    tier=3,  # Tier 3: Medium priority (test organization)
+                    tier=3,
                     title="Add pytest category markers to tests",
-                    reason=f"{actual_count} tests are missing pytest category markers.",
+                    reason=f"{cat_display} tests are missing pytest category markers.",
                     bullets=test_markers_bullets,
+                )
+
+            if dom_display > 0:
+                domain_bullets: list[str] = []
+                top_dom = self._top_test_marker_files_bullet(missing_domain_list)
+                if top_dom:
+                    domain_bullets.append(top_dom)
+                domain_bullets.append(
+                    "Action: Add at least one domain-attribution marker per test (class-level "
+                    "decorators inherit) aligned with the product domain (see "
+                    "`domain_mapper` / `source_to_test_mapping` in development_tools_config.json; "
+                    "categories and tier marks like critical are separate)"
+                )
+                domain_bullets.append(
+                    "Why this matters: Domain markers tie tests to product areas for coverage "
+                    "invalidation and selective execution"
+                )
+                domain_bullets.append(
+                    "Command: `python development_tools/tests/analyze_test_markers.py --check` "
+                    "(read-only); fixes are manual or incremental rollout per TEST_PLAN.md §4.4"
+                )
+                domain_bullets.append(
+                    "Review for details: `development_tools/tests/jsons/analyze_test_markers_results.json`"
+                )
+                add_priority(
+                    tier=3,
+                    title="Add pytest domain-attribution markers to tests",
+                    reason=f"{dom_display} tests are missing domain-attribution markers (product areas per domain_mapper).",
+                    bullets=domain_bullets,
                 )
 
         # verify_process_cleanup — Windows only; surface in priorities when WARN/issues
@@ -6198,13 +6269,16 @@ class ReportGenerationMixin:
         # Add test markers to executive summary
         test_markers_data = self._load_tool_data("analyze_test_markers", "tests")
         if test_markers_data and isinstance(test_markers_data, dict):
-            if "summary" in test_markers_data:
-                missing_markers = test_markers_data["summary"].get("total_issues", 0)
-            else:
-                missing_markers = test_markers_data.get("missing_count", 0)
-            if missing_markers > 0:
+            cat_n, dom_n, _, _ = self._test_marker_gap_metrics(test_markers_data)
+            if cat_n > 0:
                 lines.append(
-                    f"- Test markers: {missing_markers} tests missing category markers"
+                    f"- Test markers: {cat_n} tests missing category markers "
+                    "(``tests/`` suite: unit, integration, behavior, ui)"
+                )
+            if dom_n > 0:
+                lines.append(
+                    f"- Test markers: {dom_n} tests missing domain-attribution markers "
+                    "(product domains per domain_mapper; categories and tier marks are separate)"
                 )
 
         if verify_process_cleanup_data_cr and isinstance(
@@ -7145,25 +7219,16 @@ class ReportGenerationMixin:
                     )
 
             test_markers_data = self._load_tool_data("analyze_test_markers", "tests")
-            if test_markers_data and isinstance(test_markers_data, dict):
-                if "summary" in test_markers_data:
-                    summary = test_markers_data.get("summary", {})
-                    missing_count = summary.get("total_issues", 0)
-                    details = test_markers_data.get("details", {})
-                    missing_list = details.get("missing", [])
-                else:
-                    missing_count = test_markers_data.get("missing_count", 0)
-                    missing_list = test_markers_data.get("missing", [])
-
-                if missing_count > 0 or (missing_list and len(missing_list) > 0):
-                    lines.append("## Test Markers")
-                    actual_count = (
-                        missing_count
-                        if missing_count > 0
-                        else len(missing_list) if missing_list else 0
-                    )
+            cat_n, dom_n, missing_list, missing_domain_list = self._test_marker_gap_metrics(
+                test_markers_data if isinstance(test_markers_data, dict) else None
+            )
+            if cat_n > 0 or dom_n > 0 or missing_list or missing_domain_list:
+                lines.append("## Test Markers")
+                if cat_n > 0 or missing_list:
+                    actual_cat = cat_n if cat_n > 0 else len(missing_list)
                     lines.append(
-                        f"- **Missing Category Markers**: {actual_count} tests missing pytest category markers"
+                        f"- **Missing Category Markers** (suite: unit, integration, behavior, ui): "
+                        f"{actual_cat} tests"
                     )
                     from collections import defaultdict
 
@@ -7189,12 +7254,43 @@ class ReportGenerationMixin:
                             file_list.append(
                                 f"... +{len(files_with_missing) - 5} files"
                             )
-                        lines.append(f"    - **Top files**: {', '.join(file_list)}")
-                else:
-                    lines.append("## Test Markers")
+                        lines.append(f"    - **Top files (category)**: {', '.join(file_list)}")
+                if dom_n > 0 or missing_domain_list:
+                    actual_dom = dom_n if dom_n > 0 else len(missing_domain_list)
                     lines.append(
-                        "- **Status**: CLEAN (all tests have category markers)"
+                        f"- **Missing Domain Markers** (product domains per domain_mapper): "
+                        f"{actual_dom} tests"
                     )
+                    from collections import defaultdict
+
+                    files_dom = defaultdict(list)
+                    for item in missing_domain_list:
+                        if isinstance(item, dict):
+                            file_path = item.get("file", "")
+                            test_name = item.get("name", "")
+                            if file_path:
+                                files_dom[file_path].append(test_name)
+
+                    if files_dom:
+                        sorted_dom = sorted(
+                            files_dom.items(),
+                            key=lambda x: len(x[1]),
+                            reverse=True,
+                        )[:5]
+                        file_list_d = [
+                            f"{Path(f).name} ({len(tests)} tests)"
+                            for f, tests in sorted_dom
+                        ]
+                        if len(files_dom) > 5:
+                            file_list_d.append(
+                                f"... +{len(files_dom) - 5} files"
+                            )
+                        lines.append(f"    - **Top files (domain)**: {', '.join(file_list_d)}")
+            elif test_markers_data and isinstance(test_markers_data, dict):
+                lines.append("## Test Markers")
+                lines.append(
+                    "- **Status**: CLEAN (category and domain marker policy satisfied)"
+                )
 
         elif hasattr(self, "coverage_results") and self.coverage_results:
             lines.append(

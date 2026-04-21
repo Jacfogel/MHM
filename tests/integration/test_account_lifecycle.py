@@ -10,9 +10,12 @@ import os
 import json
 import shutil
 
+pytestmark = [pytest.mark.core]
+
 # Removed path hacks; rely on proper package imports
 
 
+@pytest.mark.core
 class TestAccountLifecycle:
     """Test complete account lifecycle workflows with real behavior verification."""
     

@@ -9,17 +9,22 @@ from unittest.mock import patch
 import os
 
 from tasks import (
+
     create_task,
     complete_task,
     load_active_tasks,
     load_completed_tasks,
 )
+
+pytestmark = [pytest.mark.tasks]
+
 from tasks.task_data_manager import (
     _calculate_next_due_date,
 )
 
 
 @pytest.mark.unit
+@pytest.mark.tasks
 class TestRecurringTasks:
     """Test recurring tasks functionality."""
     

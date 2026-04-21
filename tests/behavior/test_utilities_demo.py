@@ -17,6 +17,7 @@ from tests.test_helpers.test_utilities import (
 pytestmark = [pytest.mark.behavior]
 
 
+@pytest.mark.core
 @pytest.mark.behavior
 class TestUtilitiesDemo:
     """Demonstration of centralized test utilities usage"""
@@ -642,6 +643,7 @@ class TestUtilitiesDemo:
         logging.getLogger("mhm_tests").info("All user types have consistent data structures")
 
 
+@pytest.mark.core
 @pytest.mark.behavior
 class TestUtilitiesBenefits:
     """Demonstrate the benefits of centralized test utilities"""

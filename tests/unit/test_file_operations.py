@@ -9,6 +9,7 @@ import os
 import json
 
 from core.file_operations import (
+
     load_json_data,
     save_json_data,
     determine_file_path,
@@ -17,7 +18,11 @@ from core.file_operations import (
     ensure_user_directory
 )
 
+pytestmark = [pytest.mark.core]
 
+
+
+@pytest.mark.core
 class TestFileOperations:
     """Test file operations functions."""
     
@@ -509,6 +514,7 @@ class TestFileOperations:
         assert os.path.isdir(user_dir)
 
 
+@pytest.mark.core
 class TestFileOperationsEdgeCases:
     """Test edge cases and error conditions."""
     
@@ -711,6 +717,7 @@ class TestFileOperationsEdgeCases:
 
 @pytest.mark.unit
 @pytest.mark.file_io
+@pytest.mark.core
 class TestFileOperationsPerformance:
     """Test file operations performance and large data handling."""
     

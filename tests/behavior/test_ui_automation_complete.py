@@ -16,6 +16,7 @@ import pytest
 from tests.test_helpers.test_utilities import TestUserFactory
 
 
+@pytest.mark.ui
 @pytest.mark.behavior
 class TestUICompleteAutomation:
     """Complete automated testing for all UI dialog scenarios."""

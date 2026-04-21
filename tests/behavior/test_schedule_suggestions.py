@@ -4,6 +4,7 @@ from communication.message_processing.interaction_manager import handle_user_mes
 from tests.test_helpers.test_utilities import setup_test_data_environment, cleanup_test_data_environment, create_test_user
 
 
+@pytest.mark.tasks
 @pytest.mark.behavior
 class TestScheduleSuggestions:
     def setup_method(self):

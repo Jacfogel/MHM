@@ -16,6 +16,7 @@ from tests.test_helpers.test_utilities import TestUserFactory, TestDataManager
 import contextlib
 
 
+@pytest.mark.communication
 @pytest.mark.behavior
 @pytest.mark.no_parallel
 class TestDiscordCheckinRetryBehavior:

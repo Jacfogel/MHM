@@ -7,6 +7,7 @@ import pytest
 from uuid import uuid4
 
 from notebook.notebook_validation import (
+
     is_valid_entry_reference,
     parse_short_id,
     format_short_id,
@@ -26,7 +27,11 @@ from notebook.notebook_validation import (
     PREFIX_TO_KIND
 )
 
+pytestmark = [pytest.mark.notebook]
 
+
+
+@pytest.mark.notebook
 class TestEntryReferenceValidation:
     """Test entry reference validation."""
     
@@ -105,6 +110,7 @@ class TestEntryReferenceValidation:
             assert result is False, f"Invalid reference {ref} should be rejected"
 
 
+@pytest.mark.notebook
 class TestShortIDParsing:
     """Test short ID parsing and formatting."""
     
@@ -184,6 +190,7 @@ class TestShortIDParsing:
         assert result is None, "Non-UUID should return None"
 
 
+@pytest.mark.notebook
 class TestEntryTitleValidation:
     """Test entry title validation."""
     
@@ -220,6 +227,7 @@ class TestEntryTitleValidation:
             assert result is False, f"Invalid title {title} should be rejected"
 
 
+@pytest.mark.notebook
 class TestEntryBodyValidation:
     """Test entry body validation."""
     
@@ -269,6 +277,7 @@ class TestEntryBodyValidation:
             assert result is False, f"Invalid body {body} should be rejected"
 
 
+@pytest.mark.notebook
 class TestEntryGroupValidation:
     """Test entry group validation."""
     
@@ -311,6 +320,7 @@ class TestEntryGroupValidation:
             assert result is False, f"Invalid group {group} should be rejected"
 
 
+@pytest.mark.notebook
 class TestEntryKindValidation:
     """Test entry kind validation."""
     
@@ -343,6 +353,7 @@ class TestEntryKindValidation:
             assert result is False, f"Invalid kind {kind} should be rejected"
 
 
+@pytest.mark.notebook
 class TestListItemIndexValidation:
     """Test list item index validation."""
     
@@ -420,6 +431,7 @@ class TestListItemIndexValidation:
             assert result is None, f"Invalid index {idx} should return None, got {result}"
 
 
+@pytest.mark.notebook
 class TestEntryContentValidation:
     """Test comprehensive entry content validation."""
     
@@ -478,6 +490,7 @@ class TestEntryContentValidation:
                 assert content['expected_error'].lower() in error.lower(), f"Error message should mention {content['expected_error']}"
 
 
+@pytest.mark.notebook
 class TestValidationConstants:
     """Test validation constants are properly defined."""
     

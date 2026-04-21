@@ -15,6 +15,7 @@ from communication.command_handlers.shared_types import InteractionResponse, Par
 from tests.test_helpers.test_utilities import TestUserFactory
 
 
+@pytest.mark.user_management
 @pytest.mark.behavior
 class TestProfileDisplayFormatting:
     """Test profile display formatting and text output."""

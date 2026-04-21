@@ -11,6 +11,8 @@ from datetime import datetime
 import core.error_handling as _error_handling_mod
 
 
+pytestmark = [pytest.mark.core]
+
 def _mock_log_text(mock_method) -> str:
     """Join all string args from logging mock calls (handles %-format style calls)."""
     parts: list[str] = []
@@ -32,6 +34,7 @@ from core.error_handling import (
 )
 
 
+@pytest.mark.core
 class TestCustomExceptions:
     """Test custom exception classes."""
     
@@ -99,6 +102,7 @@ class TestCustomExceptions:
         assert error.details['field'] == 'email'
 
 
+@pytest.mark.core
 class TestErrorHandlerDecorator:
     """Test the handle_errors decorator."""
     
@@ -153,6 +157,7 @@ class TestErrorHandlerDecorator:
             assert "User Error:" in log_blob
 
 
+@pytest.mark.core
 class TestHandleErrorsDecorator:
     """Test the handle_errors decorator."""
     
@@ -217,6 +222,7 @@ class TestHandleErrorsDecorator:
             assert "User Error:" in log_blob
 
 
+@pytest.mark.core
 class TestErrorHandlingFunctions:
     """Test specific error handling functions."""
     
@@ -256,6 +262,7 @@ class TestErrorHandlingFunctions:
             assert "User Error:" in log_blob
 
 
+@pytest.mark.core
 class TestErrorHandlingIntegration:
     """Test error handling integration scenarios."""
     
@@ -507,6 +514,7 @@ class TestErrorHandlingIntegration:
         assert call_log[3] == "function_called_with_success"
 
 
+@pytest.mark.core
 class TestErrorHandlingEdgeCases:
     """Test error handling edge cases."""
     
@@ -580,6 +588,7 @@ class TestErrorHandlingEdgeCases:
             assert result is None
 
 
+@pytest.mark.core
 class TestAsyncErrorHandling:
     """Test async function error handling."""
     

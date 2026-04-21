@@ -14,15 +14,20 @@ import os
 from unittest.mock import patch
 
 from core import (
+
     get_user_data,
     save_user_data,
     update_user_preferences,
     update_user_context
 )
+
+pytestmark = [pytest.mark.core]
+
 from tests.test_helpers.test_utilities import TestUserFactory
 from core.user_data_validation import is_valid_email
 
 
+@pytest.mark.core
 class TestUserCreationScenarios:
     """Test comprehensive user creation scenarios."""
     
@@ -193,6 +198,7 @@ class TestUserCreationScenarios:
         assert loaded_data['schedules']['motivational']['periods']['Default']['start_time'] == '18:00'
 
 
+@pytest.mark.core
 class TestUserCreationValidation:
     """Test validation scenarios during user creation."""
     
@@ -267,6 +273,7 @@ class TestUserCreationValidation:
         assert isinstance(result, dict), "Should return a result dictionary"
 
 
+@pytest.mark.core
 class TestUserCreationErrorHandling:
     """Test error handling during user creation."""
     
@@ -344,6 +351,7 @@ class TestUserCreationErrorHandling:
         assert isinstance(loaded_data, dict)
 
 
+@pytest.mark.core
 class TestUserCreationIntegration:
     """Test integration scenarios for user creation."""
     

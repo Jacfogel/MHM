@@ -4,7 +4,10 @@ from pathlib import Path
 import pytest
 
 
+pytestmark = [pytest.mark.core]
+
 @pytest.mark.unit
+@pytest.mark.core
 def test_component_logger_propagate_and_handlers(tmp_path, monkeypatch):
     # Test with individual component logging (disable consolidated mode)
     monkeypatch.setenv("MHM_TESTING", "1")
@@ -43,6 +46,7 @@ def test_component_logger_propagate_and_handlers(tmp_path, monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_errors_routed_to_tests_logs_in_verbose_mode(tmp_path, monkeypatch):
     # Test with individual component logging (disable consolidated mode)
     monkeypatch.setenv("MHM_TESTING", "1")
@@ -66,6 +70,7 @@ def test_errors_routed_to_tests_logs_in_verbose_mode(tmp_path, monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_consolidated_logging_mode(tmp_path, monkeypatch):
     """Test that consolidated logging works correctly."""
     # Test with consolidated logging enabled (default)

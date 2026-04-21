@@ -10,6 +10,8 @@ import pytest
 import core.auto_cleanup as auto_cleanup
 
 
+pytestmark = [pytest.mark.core]
+
 @pytest.fixture
 def tracker_file(monkeypatch):
     """Point the auto_cleanup tracker at a temporary file path."""
@@ -22,12 +24,14 @@ def tracker_file(monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_get_last_cleanup_timestamp_invalid_json(tracker_file):
     tracker_file.write_text("not json")
     assert auto_cleanup.get_last_cleanup_timestamp() == 0.0
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_should_run_cleanup_recent_false(tracker_file, monkeypatch):
     now = 1_000_000.0
     tracker_file.write_text(json.dumps({"last_cleanup_timestamp": now}))
@@ -37,6 +41,7 @@ def test_should_run_cleanup_recent_false(tracker_file, monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.core
 def test_should_run_cleanup_old_true(tracker_file, monkeypatch):
     interval_days = 5
     now = 1_000_000.0

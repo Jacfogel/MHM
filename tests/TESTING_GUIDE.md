@@ -500,12 +500,12 @@ When creating a new test:
 
 ### 6.2. Marker standards
 
-Markers are defined in `pytest.ini` and serve as the main mechanism for:
+Markers are defined in the root `pytest.ini` file under the `[pytest]` section (not `[tool:pytest]`-that header is for `setup.cfg` only) and serve as the main mechanism for:
 
 - Selecting subsets of tests.
 - Describing test characteristics (feature area, speed, resource needs, quality).
 
-Recommended pattern (subject to alignment with the actual `pytest.ini`):
+Recommended pattern (subject to alignment with the actual `pytest.ini` markers list):
 
 - **Category markers** (exactly one per test):
   - `unit`, `integration`, `behavior`, `ui`.
@@ -548,7 +548,7 @@ def test_discord_delivery_flow():
 
 Before adding new markers:
 
-- Update `pytest.ini` to define them.
+- Update `pytest.ini` (`[pytest]` -> `markers =`) to define them.
 - Document their intended use in this section.
 - Keep the marker set small and purposeful.
 

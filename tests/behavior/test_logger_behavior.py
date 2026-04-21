@@ -35,6 +35,7 @@ def temp_log_dir(tmp_path):
     log_dir = tmp_path / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     return log_dir
+@pytest.mark.core
 
 
 class TestLoggerInitializationBehavior:
@@ -78,6 +79,7 @@ class TestLoggerInitializationBehavior:
         with patch.dict(os.environ, {'LOG_LEVEL': 'INVALID'}, clear=True):
             level = get_log_level_from_env()
             assert level == logging.WARNING, "Invalid level should default to WARNING"
+@pytest.mark.core
 
 
 class TestLoggerVerbosityBehavior:
@@ -133,6 +135,7 @@ class TestLoggerVerbosityBehavior:
             # Verify the level was set (we can't easily test the actual handler level
             # without more complex mocking, but we can verify the function doesn't crash)
             assert True, "Setting console log level should not crash"
+@pytest.mark.core
 
 
 class TestLoggerNoiseSuppressionBehavior:
@@ -167,6 +170,7 @@ class TestLoggerNoiseSuppressionBehavior:
         assert logger is not None, "Module logger should exist"
         # Note: The actual disabled state may not be immediately visible
         # but the function should complete without error
+@pytest.mark.core
 
 
 class TestLoggerFileOperationsBehavior:
@@ -232,6 +236,7 @@ class TestLoggerFileOperationsBehavior:
         
         # [OK] VERIFY REAL BEHAVIOR: Function completes successfully (may be False if no cleanup needed)
         assert result is not None, "Cleanup function should return a boolean result"
+@pytest.mark.core
 
 
 class TestLoggerRestartBehavior:
@@ -266,6 +271,7 @@ class TestLoggerRestartBehavior:
             # Verify logging still works
             logger = get_logger("test_module")
             assert logger is not None, "Logger should work after multiple setups"
+@pytest.mark.core
 
 
 class TestLoggerIntegrationBehavior:

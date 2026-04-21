@@ -4,11 +4,16 @@ Tests for error categorization - verifying proper MHMError subclass usage.
 
 import pytest
 from core.error_handling import (
+
     ValidationError, DataError, FileOperationError, 
     ConfigurationError, CommunicationError, AIError, SchedulerError, MHMError
 )
 
+pytestmark = [pytest.mark.core]
 
+
+
+@pytest.mark.core
 class TestErrorCategorization:
     """Test that exceptions are properly categorized."""
     

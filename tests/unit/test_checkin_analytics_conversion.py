@@ -10,6 +10,9 @@ import pytest
 from core.checkin_analytics import CheckinAnalytics
 
 
+pytestmark = [pytest.mark.core]
+
+@pytest.mark.core
 class TestScoreConversion100To5:
     """Test conversion from 0-100 scale to 1-5 scale."""
     
@@ -101,6 +104,7 @@ class TestScoreConversion100To5:
         assert result > 4.0, "98.0 should convert to > 4.0"
 
 
+@pytest.mark.core
 class TestScoreConversion5To100:
     """Test conversion from 1-5 scale to 0-100 scale."""
     
@@ -195,6 +199,7 @@ class TestScoreConversion5To100:
         assert result > 90.0, "Value just below 5 should convert to > 90.0"
 
 
+@pytest.mark.core
 class TestScoreConversionRoundTrip:
     """Test that conversions are reversible (round-trip)."""
     

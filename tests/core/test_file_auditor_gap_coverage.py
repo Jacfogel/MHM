@@ -10,7 +10,10 @@ import pytest
 import core.file_auditor as file_auditor
 
 
+pytestmark = [pytest.mark.core]
+
 @pytest.mark.unit
+@pytest.mark.core
 class TestFileAuditorGapCoverage:
     def test_get_audit_directories_exception_fallback(self, monkeypatch):
         auditor = file_auditor.FileAuditor()
