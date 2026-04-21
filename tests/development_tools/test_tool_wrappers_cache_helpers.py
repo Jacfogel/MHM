@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import time
 from types import SimpleNamespace
 from pathlib import Path
@@ -138,83 +137,43 @@ def test_compute_source_signature_changes_when_root_ruff_toml_changes(tmp_path: 
 
 
 @pytest.mark.unit
-def test_try_static_check_cache_returns_cached_result_on_signature_match(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-):
-    service = AIToolsService(project_root=str(tmp_path))
-    cache_file = (
-        tmp_path
-        / "development_tools"
-        / "static_checks"
-        / "jsons"
-        / "scopes"
-        / "full"
-        / ".analyze_pyright_mtime_cache.json"
+def test_static_check_cache_metadata_from_shard_run_partial():
+    meta = tool_wrappers_module._static_check_cache_metadata_from_analyzer_details(
+        {
+            "shard_run": {
+                "mode": "sharded",
+                "fragment_cache_hits": 1,
+                "fragment_cache_misses": 2,
+                "subprocesses": 2,
+            }
+        }
     )
-    cache_file.parent.mkdir(parents=True, exist_ok=True)
-    cache_file.write_text(json.dumps({"source_signature": "sig123"}), encoding="utf-8")
-
-    monkeypatch.setattr(service, "_compute_source_signature", lambda: "sig123")
-    monkeypatch.setitem(
-        service._try_static_check_cache.__func__.__globals__,
-        "load_tool_result",
-        lambda *args, **kwargs: {
-            "summary": {"total_issues": 1, "files_affected": 1},
-            "details": {"cached": True},
-        },
-    )
-
-    cached = service._try_static_check_cache("analyze_pyright", "static_checks")
-    assert cached is not None
-    assert cached["details"]["cached"] is True
+    assert meta["cache_mode"] == "partial_cache"
+    assert meta["fragment_hits"] == 1
+    assert meta["fragment_misses"] == 2
 
 
 @pytest.mark.unit
-def test_try_static_check_cache_returns_none_on_signature_mismatch(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-):
-    service = AIToolsService(project_root=str(tmp_path))
-    cache_file = (
-        tmp_path
-        / "development_tools"
-        / "static_checks"
-        / "jsons"
-        / "scopes"
-        / "full"
-        / ".analyze_ruff_mtime_cache.json"
+def test_static_check_cache_metadata_from_shard_run_all_hits():
+    meta = tool_wrappers_module._static_check_cache_metadata_from_analyzer_details(
+        {
+            "shard_run": {
+                "mode": "sharded",
+                "fragment_cache_hits": 3,
+                "fragment_cache_misses": 0,
+                "subprocesses": 0,
+            }
+        }
     )
-    cache_file.parent.mkdir(parents=True, exist_ok=True)
-    cache_file.write_text(json.dumps({"source_signature": "old-sig"}), encoding="utf-8")
-
-    monkeypatch.setattr(service, "_compute_source_signature", lambda: "new-sig")
-    assert service._try_static_check_cache("analyze_ruff", "static_checks") is None
+    assert meta["cache_mode"] == "cache_hit"
 
 
 @pytest.mark.unit
-def test_save_static_check_cache_writes_signature(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-):
-    service = AIToolsService(project_root=str(tmp_path))
-    monkeypatch.setattr(service, "_compute_source_signature", lambda: "abc999")
-
-    service._save_static_check_cache(
-        "analyze_ruff",
-        "static_checks",
-        {"summary": {"total_issues": 0, "files_affected": 0}, "details": {}},
+def test_static_check_cache_metadata_includes_parity_note():
+    meta = tool_wrappers_module._static_check_cache_metadata_from_analyzer_details(
+        {"shard_run": {"parity_note": "subset", "fragment_cache_hits": 0, "fragment_cache_misses": 1}}
     )
-
-    cache_file = (
-        tmp_path
-        / "development_tools"
-        / "static_checks"
-        / "jsons"
-        / "scopes"
-        / "full"
-        / ".analyze_ruff_mtime_cache.json"
-    )
-    assert cache_file.exists()
-    payload = json.loads(cache_file.read_text(encoding="utf-8"))
-    assert payload["source_signature"] == "abc999"
+    assert meta["parity_note"] == "subset"
 
 
 @pytest.mark.unit

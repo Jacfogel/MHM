@@ -1,4 +1,4 @@
-"""Domain marker advisory gaps (V5 §5.7) when test_markers.domain_markers is configured."""
+"""Domain marker policy when test_markers.domain_markers is configured."""
 
 from __future__ import annotations
 
@@ -11,7 +11,22 @@ project_root = Path(__file__).resolve().parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+from development_tools import config
 from development_tools.tests.analyze_test_markers import MissingMarkerFinder
+
+
+@pytest.mark.unit
+def test_domain_marker_union_matches_domain_mapper_markers() -> None:
+    """Default union is the sorted set of markers from domain_mapper.source_to_test_mapping."""
+    config.load_external_config()
+    union = set(config.domain_marker_union_from_domain_mapper())
+    assert "unit" in union
+    assert "communication" in union
+    assert "ui" in union
+    assert "tasks" in union
+    tm = config.get_test_markers_config()
+    assert tm.get("use_domain_mapper_marker_union") is True
+    assert set(tm.get("domain_markers") or []) == union
 
 
 @pytest.mark.unit
@@ -29,6 +44,26 @@ def test_domain_gap_when_domain_markers_configured(tmp_path: Path) -> None:
     assert finder.missing == []
     assert len(finder.missing_domain) == 1
     assert finder.missing_domain[0][2] == "test_foo"
+
+
+@pytest.mark.unit
+def test_directory_only_exempt_skips_domain_marker_requirement(tmp_path: Path) -> None:
+    """tests/development_tools/ has no domain markers in mapper — exempt from pytest domain marks."""
+    p = tmp_path / "tests" / "development_tools" / "test_x.py"
+    p.parent.mkdir(parents=True)
+    p.write_text(
+        "import pytest\n\n@pytest.mark.unit\ndef test_foo():\n    assert True\n",
+        encoding="utf-8",
+    )
+    finder = MissingMarkerFinder(
+        category_markers=("unit", "integration", "behavior", "ui"),
+        domain_markers=("communication", "ui"),
+        project_root=tmp_path,
+        exempt_rel_prefixes=("tests/development_tools/",),
+    )
+    finder.analyze_file(p)
+    assert finder.missing == []
+    assert finder.missing_domain == []
 
 
 @pytest.mark.unit

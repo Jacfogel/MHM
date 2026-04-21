@@ -376,6 +376,30 @@ class DomainMapper:
 
         return expanded
 
+    def domains_from_attribution_markers(
+        self, test_file_markers: set[str]
+    ) -> set[str] | None:
+        """
+        Map pytest marks to domain names using only ``source_to_test_mapping`` marker lists.
+
+        If any marker on the test matches a domain's configured markers, returns **exactly**
+        those domains (no directory or keyword fallback). If none match, returns ``None`` so
+        callers can use legacy path-based / keyword inference.
+        """
+        if not test_file_markers:
+            return None
+        attributed: set[str] = set()
+        for domain, val in self._source_to_test_mapping.items():
+            if not isinstance(val, (list, tuple)) or len(val) < 2:
+                continue
+            markers = val[1]
+            if not isinstance(markers, (list, tuple)) or not markers:
+                continue
+            ms = {str(x).strip() for x in markers if str(x).strip()}
+            if test_file_markers & ms:
+                attributed.add(domain)
+        return attributed if attributed else None
+
     def get_pytest_marker_filter(self, domains: set[str]) -> str | None:
         """
         Get pytest marker filter expression for given domains.

@@ -7,6 +7,17 @@ from __future__ import annotations
 analyze_test_markers.py
 Analyze test files for pytest marker usage (read-only analysis).
 For fixing operations, use fix_test_markers.py.
+
+**Domain markers (policy):** ``domain_mapper`` lists **product domains** (e.g. communication, ui)
+and which pytest marks denote coverage for each. The default ``domain_markers`` list is the union
+of those marks—so tests must carry at least one **domain** mark, not only a **category** mark
+(``unit`` / ``integration`` / ``behavior`` / ``ui``). ``behavior`` is a suite category, not a
+domain; behavior tests still need a real domain mark (e.g. ``communication``) alongside
+``@pytest.mark.behavior`` when policy is on. The intent is to rely on explicit domain tags over
+time rather than inferring domain from paths like ``tests/unit/`` ⇒ core. Exceptions: directories
+whose mapping is **directory-only** (no domain marks in config, e.g. ``tests/development_tools/``).
+Set ``test_markers.use_domain_mapper_marker_union`` to false and ``domain_markers`` to ``[]`` to
+disable domain-marker enforcement.
 """
 
 import sys
@@ -138,6 +149,24 @@ class TestMarkerAnalyzer:
 
         self._last_marker_finder: MissingMarkerFinder | None = None
 
+    def _directory_only_domain_exempt_prefixes(self) -> tuple[str, ...]:
+        """Repo-relative path prefixes where domain_mapper has test dirs but no pytest markers."""
+        raw = config.get_domain_mapper_config()
+        stm = raw.get("source_to_test_mapping") or {}
+        out: list[str] = []
+        for _name, val in stm.items():
+            if not isinstance(val, (list, tuple)) or len(val) < 2:
+                continue
+            test_dirs, markers = val[0], val[1]
+            mlist = list(markers) if isinstance(markers, (list, tuple)) else []
+            if mlist:
+                continue
+            for td in test_dirs or []:
+                t = str(td).strip().replace("\\", "/").strip("/")
+                if t:
+                    out.append(f"{t}/")
+        return tuple(sorted(set(out)))
+
     @staticmethod
     def _normalize_rel_path(path_value: str) -> str:
         """Normalize relative path strings for cross-platform substring matching."""
@@ -240,6 +269,8 @@ class TestMarkerAnalyzer:
         finder = MissingMarkerFinder(
             category_markers=self.category_markers,
             domain_markers=self.domain_markers,
+            project_root=self.project_root,
+            exempt_rel_prefixes=self._directory_only_domain_exempt_prefixes(),
         )
         test_files = self.find_test_files()
 
@@ -402,11 +433,28 @@ class MissingMarkerFinder:
         self,
         category_markers: tuple[str, ...] | None = None,
         domain_markers: tuple[str, ...] | None = None,
+        project_root: Path | None = None,
+        exempt_rel_prefixes: tuple[str, ...] | None = None,
     ):
         self.missing = []
         self.missing_domain: list[tuple[str, int, str, str]] = []
         self.category_markers = set(category_markers or TEST_CATEGORY_MARKERS)
         self.domain_markers = set(domain_markers or ())
+        self.project_root = Path(project_root).resolve() if project_root else None
+        self.exempt_rel_prefixes = tuple(
+            str(p).strip().replace("\\", "/").strip("/") + "/"
+            for p in (exempt_rel_prefixes or ())
+            if str(p).strip()
+        )
+
+    def _rel_under_exempt_prefix(self, file_path: Path) -> bool:
+        if not self.exempt_rel_prefixes or not self.project_root:
+            return False
+        try:
+            rel = str(file_path.relative_to(self.project_root)).replace("\\", "/")
+        except ValueError:
+            rel = str(file_path).replace("\\", "/")
+        return any(rel.startswith(pref) for pref in self.exempt_rel_prefixes)
 
     def _is_pytest_fixture(self, decorators):
         for dec in decorators:
@@ -473,7 +521,11 @@ class MissingMarkerFinder:
         if not has_cat:
             self.missing.append((str(file_path), node.lineno, node.name, "function"))
             return
-        if self.domain_markers and not has_dom:
+        if (
+            self.domain_markers
+            and not has_dom
+            and not self._rel_under_exempt_prefix(file_path)
+        ):
             self.missing_domain.append((str(file_path), node.lineno, node.name, "function"))
 
     def _class_marked_not_test(self, node):
@@ -577,22 +629,27 @@ def main():
 
     else:  # args.check (default)
         missing = analyzer.find_missing_markers_ast()
+        domain_gaps = analyzer.get_last_domain_marker_gaps()
         if args.json:
             import json
+
             missing_list = [
                 {"file": f, "line": line_number, "name": n, "type": t}
                 for f, line_number, n, t in missing
             ]
-            domain_gaps = analyzer.get_last_domain_marker_gaps()
             missing_domain_list = [
                 {"file": f, "line": line_number, "name": n, "type": t}
                 for f, line_number, n, t in domain_gaps
             ]
-            files_affected = len({item["file"] for item in missing_list if item.get("file")})
+            file_keys = {item["file"] for item in missing_list if item.get("file")}
+            file_keys.update(
+                item["file"] for item in missing_domain_list if item.get("file")
+            )
+            total_issues = len(missing_list) + len(missing_domain_list)
             standard_result = {
                 "summary": {
-                    "total_issues": len(missing_list),
-                    "files_affected": files_affected,
+                    "total_issues": total_issues,
+                    "files_affected": len(file_keys),
                 },
                 "details": {
                     "missing_count": len(missing_list),
@@ -603,17 +660,26 @@ def main():
                 },
             }
             print(json.dumps(standard_result, indent=2))
-        else:
-            if not missing:
-                print("All tests have category markers. Great job!")
-                return 0
+            return 1 if total_issues else 0
+        if not missing and not domain_gaps:
+            print(
+                "All tests have required category markers and domain markers. Great job!"
+            )
+            return 0
 
+        if missing:
             print("Tests missing category markers (unit/integration/behavior/ui):")
             for file_path, lineno, name, node_type in missing:
                 print(f"  - {file_path}:{lineno} ({node_type} {name})")
-
-            print(f"\nTotal missing markers: {len(missing)}")
-            return 1 if missing else 0
+            print(f"\nTotal missing category markers: {len(missing)}")
+        if domain_gaps:
+            print(
+                "\nTests missing domain markers (see test_markers.domain_markers / domain_mapper):"
+            )
+            for file_path, lineno, name, node_type in domain_gaps:
+                print(f"  - {file_path}:{lineno} ({node_type} {name})")
+            print(f"\nTotal missing domain markers: {len(domain_gaps)}")
+        return 1
 
     return 0
 

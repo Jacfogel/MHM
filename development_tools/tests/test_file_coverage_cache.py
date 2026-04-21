@@ -82,6 +82,27 @@ class TestFileCoverageCache:
     - Test file -> coverage data (coverage data from each test file)
 
     When a domain changes, invalidates cache for all test files that cover that domain.
+
+    **Invalidation matrix** (``get_changed_domains``), highest priority first:
+
+    1. **tool_change** — Coverage script/tool hash changed → **all** domains (safety).
+    2. **previous_run_failed** — Uses ``last_failed_domains`` if set, else ``last_run_domains``,
+       else **all** domains if no domain list was recorded.
+    3. **previous_run_missing_no_parallel_coverage** — **all** domains.
+    4. **config_changed** — ``development_tools_config.json`` mtime changed → **all** domains.
+    5. **test_file_set_changed** — Test path set differs from cache:
+
+       - If cache had no prior ``test_files`` entries → **all** domains (cold/first mapping).
+       - Else → **selective**: domains implied only by **added** / **removed** paths (from
+         on-disk mapping + cached ``domains`` entries). Falls back to **all** domains when
+         narrowing is ambiguous (e.g. removed file had no cached domains).
+    6. **test_file_content_or_mapping_changed** — Same paths, mtime/content drift → affected
+       domains + dependency expansion.
+    7. **source_domain_changed** — Source ``*.py`` mtimes vs snapshot; new domains in mapper
+       with no snapshot yet.
+
+    Use ``last_invalidation_reason``, ``last_invalidation_detail``, and
+    ``invalidation_counters`` for operator/debug visibility.
     """
 
     DEFAULT_EXCLUDED_TEST_DIRS = [
@@ -117,6 +138,8 @@ class TestFileCoverageCache:
         self._load_cache()
         self._cached_changed_domains: set[str] | None = None
         self.last_invalidation_reason: str | None = None
+        self.last_invalidation_detail: dict[str, Any] | None = None
+        self.invalidation_counters: dict[str, Any] = {}
 
     def _get_default_tool_paths(self) -> tuple[Path, ...]:
         """Return tool paths used to compute cache invalidation hash.
@@ -643,6 +666,34 @@ class TestFileCoverageCache:
 
         return mtimes
 
+    def _narrow_domains_for_test_file_set_delta(
+        self, added: set[str], removed: set[str]
+    ) -> set[str] | None:
+        """Infer domains for added/removed test paths only. None = caller must use full bust."""
+        narrowed: set[str] = set()
+        cached_entries = self.cache_data.get("test_files", {}) or {}
+        for rel in removed:
+            entry = cached_entries.get(rel)
+            if not isinstance(entry, dict):
+                return None
+            doms = entry.get("domains", [])
+            if not isinstance(doms, list) or not doms:
+                return None
+            narrowed.update(d for d in doms if isinstance(d, str))
+        for rel in added:
+            test_file_path = self.project_root / rel
+            if not test_file_path.is_file():
+                continue
+            got: set[str] = set()
+            with contextlib.suppress(Exception):
+                got = set(self.get_test_files_domains(test_file_path, force_refresh=True))
+            if not got:
+                return None
+            narrowed.update(got)
+        if (added or removed) and not narrowed:
+            return None
+        return narrowed
+
     def get_changed_domains(self) -> set[str]:
         """
         Get set of domains that have changed source files.
@@ -655,10 +706,20 @@ class TestFileCoverageCache:
 
         changed_domains = set()
         self.last_invalidation_reason = None
+        self.last_invalidation_detail = None
+        self.invalidation_counters = {}
         tool_change_reason = self._get_tool_change_reason()
         if tool_change_reason:
             all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
             self.last_invalidation_reason = f"tool_change: {tool_change_reason}"
+            self.last_invalidation_detail = {
+                "branch": "tool_change",
+                "all_domains": True,
+            }
+            self.invalidation_counters = {
+                "changed_domain_count": len(all_domains),
+                "full_bust": True,
+            }
             if logger:
                 logger.info(
                     f"Test coverage tool code changed - invalidating test-file coverage cache ({tool_change_reason})"
@@ -677,6 +738,14 @@ class TestFileCoverageCache:
                 self.last_invalidation_reason = (
                     "previous_run_failed: failed domains from previous run"
                 )
+                self.last_invalidation_detail = {
+                    "branch": "previous_run_failed_failed_domains",
+                    "all_domains": False,
+                }
+                self.invalidation_counters = {
+                    "changed_domain_count": len(last_failed_domains),
+                    "full_bust": False,
+                }
                 if logger:
                     logger.info(
                         f"Previous test coverage run failed - invalidating failed domains only: {sorted(last_failed_domains)}"
@@ -687,6 +756,14 @@ class TestFileCoverageCache:
                 self.last_invalidation_reason = (
                     "previous_run_failed: run domains from previous run"
                 )
+                self.last_invalidation_detail = {
+                    "branch": "previous_run_failed_run_domains",
+                    "all_domains": False,
+                }
+                self.invalidation_counters = {
+                    "changed_domain_count": len(last_run_domains),
+                    "full_bust": False,
+                }
                 if logger:
                     logger.info(
                         f"Previous test coverage run failed - invalidating previously-run domains: {sorted(last_run_domains)}"
@@ -697,6 +774,14 @@ class TestFileCoverageCache:
             self.last_invalidation_reason = (
                 "previous_run_failed: no failed-domain mapping available"
             )
+            self.last_invalidation_detail = {
+                "branch": "previous_run_failed_global",
+                "all_domains": True,
+            }
+            self.invalidation_counters = {
+                "changed_domain_count": len(all_domains),
+                "full_bust": True,
+            }
             if logger:
                 logger.info(
                     "Previous test coverage run failed - invalidating test-file coverage cache"
@@ -708,6 +793,14 @@ class TestFileCoverageCache:
             self.last_invalidation_reason = (
                 "previous_run_missing_no_parallel_coverage"
             )
+            self.last_invalidation_detail = {
+                "branch": "previous_run_missing_no_parallel_coverage",
+                "all_domains": True,
+            }
+            self.invalidation_counters = {
+                "changed_domain_count": len(all_domains),
+                "full_bust": True,
+            }
             if logger:
                 logger.info(
                     "No_parallel coverage missing from previous run - invalidating test-file coverage cache"
@@ -718,6 +811,14 @@ class TestFileCoverageCache:
         if self._config_changed():
             all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
             self.last_invalidation_reason = "config_changed"
+            self.last_invalidation_detail = {
+                "branch": "config_changed",
+                "all_domains": True,
+            }
+            self.invalidation_counters = {
+                "changed_domain_count": len(all_domains),
+                "full_bust": True,
+            }
             if logger:
                 logger.info(
                     "Config file changed - invalidating test-file coverage cache"
@@ -729,13 +830,75 @@ class TestFileCoverageCache:
         cached_test_files = set(self.cache_data.get("test_files", {}).keys())
         if current_test_files != cached_test_files:
             all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
-            self.last_invalidation_reason = "test_file_set_changed"
+            added_paths = current_test_files - cached_test_files
+            removed_paths = cached_test_files - current_test_files
+            if not cached_test_files:
+                self.last_invalidation_reason = "test_file_set_changed_cold_mapping"
+                self.last_invalidation_detail = {
+                    "branch": "test_file_set_changed_cold_mapping",
+                    "all_domains": True,
+                    "added_test_files": len(added_paths),
+                    "removed_test_files": len(removed_paths),
+                }
+                self.invalidation_counters = {
+                    "changed_domain_count": len(all_domains),
+                    "full_bust": True,
+                    "added_test_files": len(added_paths),
+                    "removed_test_files": len(removed_paths),
+                }
+                if logger:
+                    logger.info(
+                        "Test file set changed (no prior per-file mapping) - invalidating all domains"
+                    )
+                self._cached_changed_domains = set(all_domains)
+                return set(all_domains)
+            narrow_base = self._narrow_domains_for_test_file_set_delta(
+                added_paths, removed_paths
+            )
+            if narrow_base is None:
+                self.last_invalidation_reason = "test_file_set_changed_full_bust"
+                self.last_invalidation_detail = {
+                    "branch": "test_file_set_changed_full_bust",
+                    "all_domains": True,
+                    "added_test_files": len(added_paths),
+                    "removed_test_files": len(removed_paths),
+                }
+                self.invalidation_counters = {
+                    "changed_domain_count": len(all_domains),
+                    "full_bust": True,
+                    "added_test_files": len(added_paths),
+                    "removed_test_files": len(removed_paths),
+                }
+                if logger:
+                    logger.info(
+                        "Test file set changed - invalidating test-file coverage cache (full bust)"
+                    )
+                self._cached_changed_domains = set(all_domains)
+                return set(all_domains)
+            expanded_narrow = self.domain_mapper.expand_domains_with_dependencies(
+                narrow_base
+            )
+            self.last_invalidation_reason = "test_file_set_changed_selective"
+            self.last_invalidation_detail = {
+                "branch": "test_file_set_changed_selective",
+                "all_domains": False,
+                "added_test_files": len(added_paths),
+                "removed_test_files": len(removed_paths),
+                "base_domains": sorted(narrow_base),
+            }
+            self.invalidation_counters = {
+                "changed_domain_count": len(expanded_narrow),
+                "full_bust": False,
+                "added_test_files": len(added_paths),
+                "removed_test_files": len(removed_paths),
+            }
             if logger:
                 logger.info(
-                    "Test file set changed - invalidating test-file coverage cache"
+                    "Test file set changed - selective invalidation: "
+                    f"expanded={sorted(expanded_narrow)} (base={sorted(narrow_base)})"
                 )
-            self._cached_changed_domains = set(all_domains)
-            return set(all_domains)
+            self._cached_changed_domains = set(expanded_narrow)
+            return set(expanded_narrow)
 
         # Invalidate affected domains when test files change (mtime/content or mapping).
         changed_test_domains = self._get_domains_affected_by_changed_test_files()
@@ -748,6 +911,15 @@ class TestFileCoverageCache:
             self.last_invalidation_reason = (
                 "test_file_content_or_mapping_changed"
             )
+            self.last_invalidation_detail = {
+                "branch": "test_file_content_or_mapping_changed",
+                "all_domains": False,
+                "base_domains": sorted(changed_test_domains),
+            }
+            self.invalidation_counters = {
+                "changed_domain_count": len(expanded_changed_test_domains),
+                "full_bust": False,
+            }
             if logger:
                 logger.info(
                     "Test file changes detected - invalidating affected domains: "
@@ -784,6 +956,15 @@ class TestFileCoverageCache:
         )
         if changed_domains:
             self.last_invalidation_reason = "source_domain_changed"
+            self.last_invalidation_detail = {
+                "branch": "source_domain_changed",
+                "all_domains": False,
+                "base_domains": sorted(changed_domains),
+            }
+            self.invalidation_counters = {
+                "changed_domain_count": len(expanded_changed_domains),
+                "full_bust": False,
+            }
         self._cached_changed_domains = set(expanded_changed_domains)
         return set(expanded_changed_domains)
 
@@ -860,6 +1041,12 @@ class TestFileCoverageCache:
         """
         Get set of domains that a test file covers.
 
+        If the file uses any **domain attribution** pytest markers (those listed in
+        ``domain_mapper.source_to_test_mapping`` for a domain), returns **only** the domain(s)
+        implied by those markers—no merging with directory rules or path keywords. Otherwise
+        uses the legacy path: test directory layout, then ``infer_domains_from_test_path`` when
+        no directory matches.
+
         Args:
             test_file: Path to test file
 
@@ -878,22 +1065,17 @@ class TestFileCoverageCache:
                     domains.update(cached_domains)
                     return domains
 
-        # Discover domains from test file location and markers
-        # Check test directory
+        test_file_markers = self.domain_mapper.parse_markers_from_test_file(test_file)
+        explicit = self.domain_mapper.domains_from_attribution_markers(test_file_markers)
+        if explicit is not None:
+            return explicit
+
+        # Legacy fallback: directory layout, then path keyword inference (no domain markers matched)
         for domain, (test_dirs, _) in self.domain_mapper.SOURCE_TO_TEST_MAPPING.items():
             for test_dir in test_dirs:
                 test_dir_path = self.project_root / test_dir
                 if test_file.is_relative_to(test_dir_path):
                     domains.add(domain)
-
-        # Check markers
-        test_file_markers = self.domain_mapper.parse_markers_from_test_file(test_file)
-        for domain, (
-            _,
-            domain_markers,
-        ) in self.domain_mapper.SOURCE_TO_TEST_MAPPING.items():
-            if test_file_markers & set(domain_markers):
-                domains.add(domain)
 
         if not domains:
             domains.update(self.domain_mapper.infer_domains_from_test_path(test_file))

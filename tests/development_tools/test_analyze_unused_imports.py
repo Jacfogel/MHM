@@ -494,6 +494,9 @@ class TestRunAnalysis:
         assert 'summary' in result
         assert 'details' in result
         assert result['summary']['total_issues'] > 0
+        inv = result["details"].get("invalidation_summary", {})
+        assert inv.get("storage") == "MtimeFileCache"
+        assert inv.get("granularity") == "per_python_file"
     
     @pytest.mark.unit
     @patch.object(UnusedImportsChecker, 'scan_codebase')

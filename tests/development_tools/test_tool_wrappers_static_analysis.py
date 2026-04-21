@@ -152,7 +152,6 @@ def test_run_analyze_pyright_returns_failure_when_output_is_not_json(
     temp_project_copy, monkeypatch
 ):
     service = AIToolsService(project_root=str(temp_project_copy))
-    monkeypatch.setattr(service, "_try_static_check_cache", lambda *_a, **_k: None, raising=True)
     monkeypatch.setattr(
         service,
         "run_script",

@@ -738,7 +738,10 @@ def _derive_default_docs_list() -> list[str]:
 
 TEST_MARKERS_BASE: dict[str, Any] = {
     "categories": ["unit", "integration", "behavior", "ui"],
-    # Optional domain markers (e.g. core, communication) — empty list disables the advisory gap check (V5 §5.7).
+    # When true (default) and domain_markers is empty after merge, fill from the union of
+    # marker lists in domain_mapper.source_to_test_mapping (one policy list for coverage domain tagging).
+    "use_domain_mapper_marker_union": True,
+    # Optional override; [] + use_domain_mapper_marker_union true → filled from domain mapper.
     "domain_markers": [],
     "transient_data_path_markers": [
         "/tmp/",  # nosec B108 — string markers for pytest path detection, not tempfile API use
@@ -856,6 +859,29 @@ def get_path_drift_config() -> dict[str, Any]:
     return out
 
 
+def domain_marker_union_from_domain_mapper() -> list[str]:
+    """Union of domain-attribution pytest marks from ``source_to_test_mapping`` (sorted).
+
+    These are **domain** marks (product areas), not pytest **category** marks like ``behavior``.
+    """
+    dm = get_domain_mapper_config()
+    stm = dm.get("source_to_test_mapping") or {}
+    seen: set[str] = set()
+    out: list[str] = []
+    for _domain, value in stm.items():
+        if not isinstance(value, (list, tuple)) or len(value) < 2:
+            continue
+        markers = value[1]
+        if not isinstance(markers, (list, tuple)):
+            continue
+        for raw in markers:
+            m = str(raw).strip()
+            if m and m not in seen:
+                seen.add(m)
+                out.append(m)
+    return sorted(out)
+
+
 def get_test_markers_config():
     """
     Get pytest test marker analysis configuration from external config.
@@ -866,6 +892,8 @@ def get_test_markers_config():
         - directory_to_marker (derived from categories as identity map when absent; see LIST_OF_LISTS §9a)
         - transient_data_path_markers
         - ai_path_tokens
+        - domain_markers (union of domain_mapper markers when use_domain_mapper_marker_union and unset)
+        - use_domain_mapper_marker_union (when false, domain_markers stays as provided, possibly empty)
     """
     test_markers = _get_external_value("test_markers", {})
     result = dict(TEST_MARKERS_BASE)
@@ -876,6 +904,16 @@ def get_test_markers_config():
         categories = result.get("categories", ("unit", "integration", "behavior", "ui"))
         if isinstance(categories, (list, tuple)) and categories:
             result["directory_to_marker"] = {str(c): str(c) for c in categories if str(c).strip()}
+    use_union = bool(result.get("use_domain_mapper_marker_union", True))
+    dm_list = result.get("domain_markers")
+    if use_union and isinstance(dm_list, list) and len(dm_list) == 0:
+        result["domain_markers"] = domain_marker_union_from_domain_mapper()
+    elif not use_union:
+        result["domain_markers"] = (
+            list(dm_list)
+            if isinstance(dm_list, list)
+            else list(result.get("domain_markers") or [])
+        )
     return result
 
 

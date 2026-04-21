@@ -15,6 +15,12 @@ Usage:
 
 Integration:
     python development_tools/run_development_tools.py unused-imports
+
+**Cache invalidation (audit visibility)**:
+Per-file results are stored via :class:`development_tools.shared.mtime_cache.MtimeFileCache`
+(keyed by path; staleness from file mtimes). The whole cache busts when
+``development_tools_config.json`` or the analyzer script / tool hash changes.
+JSON output includes ``details.invalidation_summary`` describing this contract.
 """
 
 import contextlib
@@ -1325,6 +1331,17 @@ class UnusedImportsChecker:
         else:
             return "CRITICAL"
 
+    def _invalidation_summary(self) -> dict[str, Any]:
+        """Structured invalidation story for orchestration and audits (§3.19.3)."""
+        return {
+            "storage": "MtimeFileCache",
+            "domain": "imports",
+            "granularity": "per_python_file",
+            "config_bust": "development_tools_config.json mtime (see mtime_cache)",
+            "tool_bust": "analyze_unused_imports script path + content hash in cache",
+            "stats_reflect": "cache_hits / cache_misses / changed_files per scan",
+        }
+
     def run_analysis(self) -> dict[str, Any]:
         """
         Run unused imports analysis and return results in standard format.
@@ -1362,6 +1379,7 @@ class UnusedImportsChecker:
                     category: len(items) for category, items in self.findings.items()
                 },
                 "files_scanned": self.stats["files_scanned"],
+                "invalidation_summary": self._invalidation_summary(),
             },
         }
 

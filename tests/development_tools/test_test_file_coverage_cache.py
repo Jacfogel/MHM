@@ -129,6 +129,35 @@ def test_domain_mapper_get_test_files_for_source_excludes_tests_data() -> None:
 
 
 @pytest.mark.unit
+def test_domain_mapper_domains_from_attribution_markers_exact_set() -> None:
+    """Markers that match domain lists map to exactly those domains."""
+    temp_dir = _make_local_scratch_dir()
+    try:
+        mapper = DomainMapper(temp_dir)
+        assert mapper.domains_from_attribution_markers({"communication"}) == {
+            "communication"
+        }
+        assert mapper.domains_from_attribution_markers({"communication", "ui"}) == {
+            "communication",
+            "ui",
+        }
+    finally:
+        _cleanup_local_scratch_dir(temp_dir)
+
+
+@pytest.mark.unit
+def test_domain_mapper_domains_from_attribution_markers_none_without_domain_marks() -> None:
+    """Non-attribution markers (or none) yield None so callers use directory/keyword fallback."""
+    temp_dir = _make_local_scratch_dir()
+    try:
+        mapper = DomainMapper(temp_dir)
+        assert mapper.domains_from_attribution_markers({"slow", "behavior"}) is None
+        assert mapper.domains_from_attribution_markers(set()) is None
+    finally:
+        _cleanup_local_scratch_dir(temp_dir)
+
+
+@pytest.mark.unit
 def test_cache_invalidates_domains_when_test_file_changes() -> None:
     """Changing a test file should invalidate affected (and dependent) domains."""
     temp_path = _make_local_scratch_dir()
@@ -342,5 +371,80 @@ def test_get_source_file_mtimes_respects_shared_exclusions() -> None:
 
         assert "core/module.py" in normalized_keys
         assert "core/scripts/helper.py" not in normalized_keys
+    finally:
+        _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
+def test_test_file_set_removal_selective_invalidates_subset() -> None:
+    """Removing a tracked test file should bust only implied domains when mapping is known."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        ui_dir = temp_path / "tests" / "ui"
+        ui_dir.mkdir(parents=True, exist_ok=True)
+        keep = ui_dir / "test_keep.py"
+        removed = ui_dir / "test_removed.py"
+        content = (
+            "import pytest\n\n@pytest.mark.ui\ndef test_x():\n    assert True\n"
+        )
+        keep.write_text(content, encoding="utf-8")
+        removed.write_text(content, encoding="utf-8")
+
+        cache = TestFileCoverageCache(temp_path)
+        cache.update_test_file_mapping(keep)
+        cache.update_test_file_mapping(removed)
+        for domain in cache.domain_mapper.SOURCE_TO_TEST_MAPPING:
+            cache.cache_data.setdefault("source_files_mtime", {})[
+                domain
+            ] = cache.get_source_file_mtimes(domain)
+        cache._save_cache()
+
+        removed.unlink()
+        cache._cached_changed_domains = None
+        changed = cache.get_changed_domains()
+        all_d = set(cache.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
+
+        assert cache.last_invalidation_reason == "test_file_set_changed_selective"
+        assert cache.last_invalidation_detail is not None
+        assert cache.last_invalidation_detail.get("branch") == "test_file_set_changed_selective"
+        assert cache.invalidation_counters.get("full_bust") is False
+        assert cache.invalidation_counters.get("removed_test_files") == 1
+        assert len(changed) < len(all_d)
+        assert "ui" in changed
+    finally:
+        _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
+def test_get_test_files_domains_explicit_markers_exclude_directory_fallback() -> None:
+    """With domain attribution markers, do not also tag legacy directory domains (e.g. core for tests/unit)."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        unit_dir = temp_path / "tests" / "unit"
+        unit_dir.mkdir(parents=True)
+        f = unit_dir / "test_explicit_communication.py"
+        f.write_text(
+            "import pytest\n\n@pytest.mark.communication\ndef test_x():\n    assert True\n",
+            encoding="utf-8",
+        )
+        cache = TestFileCoverageCache(temp_path, cache_dir=temp_path / "cache")
+        doms = cache.get_test_files_domains(f, force_refresh=True)
+        assert doms == {"communication"}
+    finally:
+        _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
+def test_get_test_files_domains_fallback_uses_directory_when_no_attribution_markers() -> None:
+    """No domain-attribution markers → legacy directory / keyword mapping."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        unit_dir = temp_path / "tests" / "unit"
+        unit_dir.mkdir(parents=True)
+        f = unit_dir / "test_no_marks.py"
+        f.write_text("def test_x():\n    assert True\n", encoding="utf-8")
+        cache = TestFileCoverageCache(temp_path, cache_dir=temp_path / "cache")
+        doms = cache.get_test_files_domains(f, force_refresh=True)
+        assert "core" in doms
     finally:
         _cleanup_local_scratch_dir(temp_path)

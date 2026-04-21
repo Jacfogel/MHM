@@ -37,6 +37,40 @@ def _static_check_tool_cache_metadata(*, from_disk_cache: bool) -> dict[str, str
     return {"cache_mode": "cache_hit" if from_disk_cache else "cold_scan"}
 
 
+def _static_check_cache_metadata_from_analyzer_details(
+    details: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Map ``details.shard_run`` from analyze_ruff/bandit/pyright JSON into orchestration metadata."""
+    if not isinstance(details, dict):
+        return {"cache_mode": "cold_scan"}
+    sr = details.get("shard_run")
+    if not isinstance(sr, dict):
+        return {"cache_mode": "cold_scan"}
+    hits = int(sr.get("fragment_cache_hits") or 0)
+    misses = int(sr.get("fragment_cache_misses") or 0)
+    subprocesses = int(sr.get("subprocesses") or 0)
+    if hits > 0 and misses == 0:
+        cache_mode = "cache_hit"
+    elif hits > 0 and misses > 0:
+        cache_mode = "partial_cache"
+    elif subprocesses > 0 or misses > 0:
+        cache_mode = "cold_scan"
+    else:
+        cache_mode = "cold_scan"
+    meta: dict[str, Any] = {
+        "cache_mode": cache_mode,
+        "shard_mode": sr.get("mode"),
+        "fragment_hits": hits,
+        "fragment_misses": misses,
+        "subprocesses": subprocesses,
+    }
+    if isinstance(sr.get("parity_note"), str) and sr["parity_note"]:
+        meta["parity_note"] = sr["parity_note"]
+    if isinstance(sr.get("reason"), str) and sr["reason"]:
+        meta["shard_fallback_reason"] = sr["reason"]
+    return meta
+
+
 # Windows: child inherits console control events unless isolated in a new process group.
 # Tier 3 runs these alongside heavy pytest workers; SIGINT to stop coverage must not
 # tear down nested pyright/ruff mid-communicate without emitting JSON.
@@ -1769,7 +1803,10 @@ class ToolWrappersMixin:
             result["issues_found"] = bool(summary.get("total_issues", 0))
             result["success"] = True
             result["error"] = ""
-            result["cache_metadata"] = _static_check_tool_cache_metadata(from_disk_cache=False)
+            details = data.get("details") if isinstance(data, dict) else None
+            result["cache_metadata"] = _static_check_cache_metadata_from_analyzer_details(
+                details if isinstance(details, dict) else None
+            )
             self.results_cache["analyze_pyright"] = data
             try:
                 save_tool_result(
@@ -1789,7 +1826,7 @@ class ToolWrappersMixin:
                 err_preview = err[:500] + ("..." if len(err) > 500 else "")
                 logger.warning(f"analyze_pyright produced no parseable JSON; stderr: {err_preview}")
             result["success"] = False
-            result["cache_metadata"] = _static_check_tool_cache_metadata(from_disk_cache=False)
+            result["cache_metadata"] = _static_check_cache_metadata_from_analyzer_details(None)
         return result
 
     def run_analyze_ruff(self) -> dict:
@@ -1810,7 +1847,10 @@ class ToolWrappersMixin:
             result["issues_found"] = bool(summary.get("total_issues", 0))
             result["success"] = True
             result["error"] = ""
-            result["cache_metadata"] = _static_check_tool_cache_metadata(from_disk_cache=False)
+            details = data.get("details") if isinstance(data, dict) else None
+            result["cache_metadata"] = _static_check_cache_metadata_from_analyzer_details(
+                details if isinstance(details, dict) else None
+            )
             self.results_cache["analyze_ruff"] = data
             try:
                 save_tool_result(
@@ -1825,7 +1865,7 @@ class ToolWrappersMixin:
             if not result.get("error"):
                 result["error"] = "No parseable JSON output from analyze_ruff"
             result["success"] = False
-            result["cache_metadata"] = _static_check_tool_cache_metadata(from_disk_cache=False)
+            result["cache_metadata"] = _static_check_cache_metadata_from_analyzer_details(None)
         return result
 
     def run_analyze_bandit(self) -> dict:
@@ -1846,7 +1886,10 @@ class ToolWrappersMixin:
             result["issues_found"] = bool(summary.get("total_issues", 0))
             result["success"] = True
             result["error"] = ""
-            result["cache_metadata"] = _static_check_tool_cache_metadata(from_disk_cache=False)
+            details = data.get("details") if isinstance(data, dict) else None
+            result["cache_metadata"] = _static_check_cache_metadata_from_analyzer_details(
+                details if isinstance(details, dict) else None
+            )
             self.results_cache["analyze_bandit"] = data
             try:
                 save_tool_result(
@@ -1861,7 +1904,7 @@ class ToolWrappersMixin:
             if not result.get("error"):
                 result["error"] = "No parseable JSON output from analyze_bandit"
             result["success"] = False
-            result["cache_metadata"] = _static_check_tool_cache_metadata(from_disk_cache=False)
+            result["cache_metadata"] = _static_check_cache_metadata_from_analyzer_details(None)
         return result
 
     def run_analyze_pip_audit(self) -> dict:
@@ -1979,58 +2022,16 @@ class ToolWrappersMixin:
             logger.debug(f"Could not save pip-audit cache: {e}")
 
     def _compute_source_signature(self) -> str | None:
-        """Compute hash for static-check cache invalidation (Python sources + tool configs).
+        """Full-repo static-check digest (Python sources + configs) for tests and diagnostics.
 
-        Delegates to :func:`development_tools.shared.cache_dependency_paths.compute_full_static_check_source_signature`.
+        Ruff/Pyright/Bandit **disk** reuse uses per-shard manifests in ``analyze_*.py``;
+        see :func:`development_tools.shared.cache_dependency_paths.compute_full_static_check_source_signature`.
         """
         try:
             return compute_full_static_check_source_signature(Path(self.project_root))
         except Exception as e:
             logger.debug(f"Could not compute source signature: {e}")
             return None
-
-    def _try_static_check_cache(self, tool_name: str, domain: str) -> dict | None:
-        """Return cached result if source unchanged; None to run tool."""
-        from ..audit_storage_scope import jsons_dir_for_scope
-
-        sig = self._compute_source_signature()
-        if not sig:
-            return None
-        jsons_dir = jsons_dir_for_scope(self.project_root, domain)
-        cache_file = jsons_dir / f".{tool_name}_mtime_cache.json"
-        if not cache_file.exists():
-            return None
-        try:
-            with open(cache_file, encoding="utf-8") as f:
-                cache_data = json.load(f)
-            if cache_data.get("source_signature") != sig:
-                return None
-        except (json.JSONDecodeError, OSError):
-            return None
-        loaded = load_tool_result(
-            tool_name, domain, project_root=self.project_root, normalize=False
-        )
-        if loaded and isinstance(loaded, dict):
-            return loaded
-        return None
-
-    def _save_static_check_cache(
-        self, tool_name: str, domain: str, data: dict
-    ) -> None:
-        """Save source signature after successful tool run."""
-        from ..audit_storage_scope import jsons_dir_for_scope
-
-        sig = self._compute_source_signature()
-        if not sig:
-            return
-        jsons_dir = jsons_dir_for_scope(self.project_root, domain)
-        cache_file = jsons_dir / f".{tool_name}_mtime_cache.json"
-        cache_file.parent.mkdir(parents=True, exist_ok=True)
-        try:
-            with open(cache_file, "w", encoding="utf-8") as f:
-                json.dump({"source_signature": sig}, f)
-        except OSError as e:
-            logger.debug(f"Could not save static check cache: {e}")
 
     def run_generate_unused_imports_report(self) -> dict:
         """Run generate_unused_imports_report to generate markdown report from analysis results."""

@@ -284,7 +284,7 @@ def test_main_check_json_output(monkeypatch, capsys):
     rc = analyze_test_markers.main()
     output = json.loads(capsys.readouterr().out)
 
-    assert rc == 0
+    assert rc == 1
     assert output["summary"]["total_issues"] == 1
     assert output["summary"]["files_affected"] == 1
     assert output["details"]["missing_count"] == 1
@@ -304,7 +304,7 @@ def test_main_check_returns_one_when_missing_without_json(monkeypatch, capsys):
     output = capsys.readouterr().out
 
     assert rc == 1
-    assert "Total missing markers: 1" in output
+    assert "Total missing category markers: 1" in output
 
 
 @pytest.mark.unit

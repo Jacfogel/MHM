@@ -1862,8 +1862,7 @@ class CommandsMixin:
         
         result = self.run_script('analyze_test_markers', *args)
         
-        # The script returns exit code 1 if markers are missing (which is valid data, not a failure)
-        # So we check for output rather than just success
+        # Exit code 1 means missing category or domain markers; stdout is still valid JSON.
         output = result.get('output', '')
         if output:
             try:
@@ -1872,24 +1871,45 @@ class CommandsMixin:
                 from ..result_format import normalize_to_standard_format
                 normalized = normalize_to_standard_format("analyze_test_markers", raw_data)
                 details = normalized.get("details", {})
-                missing_items = details.get('missing', []) if isinstance(details, dict) else []
-                missing_count = details.get('missing_count')
-                if not isinstance(missing_count, int):
-                    missing_count = len(missing_items) if isinstance(missing_items, list) else 0
+                if not isinstance(details, dict):
+                    details = {}
+                summary = normalized.get("summary", {})
+                total_issues = summary.get("total_issues")
+                files_affected = summary.get("files_affected")
+                missing_items = details.get("missing", [])
+                missing_domain_items = details.get("missing_domain", [])
+                if not isinstance(total_issues, int):
+                    missing_count = details.get("missing_count")
+                    missing_domain_count = details.get("missing_domain_count")
+                    if not isinstance(missing_count, int):
+                        missing_count = (
+                            len(missing_items) if isinstance(missing_items, list) else 0
+                        )
+                    if not isinstance(missing_domain_count, int):
+                        missing_domain_count = (
+                            len(missing_domain_items)
+                            if isinstance(missing_domain_items, list)
+                            else 0
+                        )
+                    total_issues = missing_count + missing_domain_count
                 missing_files = set()
-                if isinstance(missing_items, list):
-                    for item in missing_items:
-                        if isinstance(item, dict):
-                            file_path = item.get('file')
-                            if file_path:
-                                missing_files.add(file_path)
-                        elif isinstance(item, (list, tuple)) and item:
-                            missing_files.add(item[0])
+                for item in (missing_items, missing_domain_items):
+                    if not isinstance(item, list):
+                        continue
+                    for row in item:
+                        if isinstance(row, dict):
+                            fp = row.get("file")
+                            if fp:
+                                missing_files.add(fp)
+                        elif isinstance(row, (list, tuple)) and row:
+                            missing_files.add(row[0])
+                if not isinstance(files_affected, int):
+                    files_affected = len(missing_files)
                 standard_result = self._create_standard_format_result(
-                    missing_count,
-                    len(missing_files),
+                    total_issues,
+                    files_affected,
                     None,
-                    details
+                    details,
                 )
                 result['data'] = standard_result
                 result['success'] = True  # Mark as success if we got valid JSON

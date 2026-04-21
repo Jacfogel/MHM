@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-09 23:50:55
+> **Last Generated**: 2026-04-20 18:55:51
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -45,7 +45,9 @@ C:.
 |   |       
 |   +---plans
 |   |   |   conftest_refactor_plan_4aa2eb26.plan.md
+|   |   |   continue_v5_roadmap_314d28fc.plan.md
 |   |   |   dev_tools_v4_continuation_6131deb0.plan.md
+|   |   |   invalidation_backlog_continuation_330c8fc9.plan.md
 |   |   |   planning_documents_consolidation_f3a74815.plan.md
 |   |   |   reduce_dependency_risk_70688c22.plan.md
 |   |   |   unified_user_items_and_shared_helpers.plan.md
@@ -231,12 +233,14 @@ C:.
     (JSON files created by development tools)
 |   +---config
 |   |   |   analyze_config.py
+|   |   |   audit_tool_matrix.json
 |   |   |   config.py
 |   |   |   development_tools_config.json
 |   |   |   development_tools_config.json.example
 |   |   |   pyrightconfig.json
 |   |   |   ruff.toml
 |   |   |   sync_ruff_toml.py
+|   |   |   tool_cache_inventory.json
 |   |   |   __init__.py
 |   |   |   
 |   |   +---jsons
@@ -249,6 +253,7 @@ C:.
 |   |   |   analyze_missing_addresses.py
 |   |   |   analyze_path_drift.py
 |   |   |   analyze_unconverted_links.py
+|   |   |   example_marker_validation.py
 |   |   |   fix_documentation.py
 |   |   |   fix_documentation_addresses.py
 |   |   |   fix_documentation_ascii.py
@@ -326,9 +331,11 @@ C:.
 |   |   |   audit_signal_state.py
 |   |   |   audit_storage_scope.py
 |   |   |   audit_tiers.py
+|   |   |   audit_tool_matrix.py
 |   |   |   backup_inventory.py
 |   |   |   backup_policy_models.py
 |   |   |   backup_reports.py
+|   |   |   cache_dependency_paths.py
 |   |   |   cli_interface.py
 |   |   |   common.py
 |   |   |   constants.py
@@ -344,17 +351,16 @@ C:.
 |   |   |   output_storage.py
 |   |   |   result_format.py
 |   |   |   retention_engine.py
+|   |   |   sharded_static_analysis.py
 |   |   |   standard_exclusions.py
+|   |   |   static_analysis_shard_cache.py
 |   |   |   time_helpers.py
+|   |   |   tool_cache_inventory.py
 |   |   |   tool_guide.py
 |   |   |   tool_metadata.py
 |   |   |   verify_tool_storage.py
 |   |   |   __init__.py
 |   |   |   
-|   |   +---data
-    (data files)
-|   |   +---logs
-    (log files)
 |   |   +---service
 |   |   |   |   audit_orchestration.py
 |   |   |   |   commands.py
@@ -580,6 +586,7 @@ C:.
 |   |   |   test_analyze_system_signals_additional.py
 |   |   |   test_analyze_test_coverage.py
 |   |   |   test_analyze_test_markers.py
+|   |   |   test_analyze_test_markers_domain.py
 |   |   |   test_analyze_unconverted_links.py
 |   |   |   test_analyze_unused_imports.py
 |   |   |   test_audit_orchestration_helpers.py
@@ -589,9 +596,11 @@ C:.
 |   |   |   test_audit_strict_mode.py
 |   |   |   test_audit_tier_comprehensive.py
 |   |   |   test_audit_tier_e2e_verification.py
+|   |   |   test_audit_tool_matrix_policy.py
 |   |   |   test_backup_inventory.py
 |   |   |   test_backup_policy_models.py
 |   |   |   test_backup_reports.py
+|   |   |   test_cache_dependency_paths.py
 |   |   |   test_changelog_trim_tooling.py
 |   |   |   test_check_channel_loggers.py
 |   |   |   test_cli_interface.py
@@ -609,12 +618,14 @@ C:.
 |   |   |   test_data_loading_helpers.py
 |   |   |   test_decision_support.py
 |   |   |   test_deprecation_inventory_guard.py
+|   |   |   test_deprecation_inventory_policy.py
 |   |   |   test_development_tools_package_init.py
 |   |   |   test_dev_tools_coverage_cache.py
 |   |   |   test_dev_tools_scoped_status_report.py
 |   |   |   test_directory_taxonomy_policy.py
 |   |   |   test_documentation_sync_checker.py
 |   |   |   test_error_scenarios.py
+|   |   |   test_example_marker_validation.py
 |   |   |   test_exclusion_utilities.py
 |   |   |   test_export_snapshots.py
 |   |   |   test_false_negative_detection.py
@@ -658,6 +669,8 @@ C:.
 |   |   |   test_run_dev_tools.py
 |   |   |   test_run_test_coverage_helpers.py
 |   |   |   test_service_utilities.py
+|   |   |   test_sharded_static_analysis.py
+|   |   |   test_sharded_static_scan_wiring.py
 |   |   |   test_standard_exclusions.py
 |   |   |   test_static_analysis_tools.py
 |   |   |   test_status_file_timing.py
@@ -665,6 +678,7 @@ C:.
 |   |   |   test_sync_ruff_toml.py
 |   |   |   test_test_file_coverage_cache.py
 |   |   |   test_tooling_policy_consistency.py
+|   |   |   test_tool_cache_inventory_policy.py
 |   |   |   test_tool_guide.py
 |   |   |   test_tool_wrappers_additional.py
 |   |   |   test_tool_wrappers_branch_paths.py

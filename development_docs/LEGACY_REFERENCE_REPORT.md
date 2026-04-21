@@ -2,12 +2,15 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-20 03:33:48
+> **Last Generated**: 2026-04-20 18:56:32
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 0
-**Legacy Compatibility Markers Detected**: 0
+**Total Files with Issues**: 2
+**Legacy Compatibility Markers Detected**: 2
 
 ## Summary
+- Scan mode only: no automated fixes were applied.
+- Changelogs, archive folders, and planning documents are intentionally historical and excluded from this report.
+
 ## Recommended Follow-Up
 - Additional guidance: [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md)
 1. Identify active legacy compatibility behavior and migrate all callers/dependencies to current implementations before deleting markers.
@@ -20,3 +23,22 @@
 - Removed entries: 9
 - Active search terms: 0
 - Current inventory-term hits in scan: 0 file(s), 0 marker(s)
+
+## Legacy Inventory Tracking
+**Files Affected**: 2
+
+### development_tools\tests\domain_mapper.py
+**Issues Found**: 1
+
+- **Line 387**: `legacy path`
+  ```
+  callers can use legacy path-based / keyword inference.
+  ```
+
+### development_tools\tests\test_file_coverage_cache.py
+**Issues Found**: 1
+
+- **Line 1047**: `legacy path`
+  ```
+  uses the legacy path: test directory layout, then ``infer_domains_from_test_path`` when
+  ```
