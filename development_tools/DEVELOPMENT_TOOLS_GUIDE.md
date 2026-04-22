@@ -261,6 +261,12 @@ Pipeline artifacts:
 - Report generation code accesses data from `details` section
 - This standardization enables consistent data aggregation, easier tool integration, and simplified report generation.
 
+**Audit completion lines (`Completed <tool>: PASS issues=N`)** (see also [HOW_TO_RUN.md](../HOW_TO_RUN.md) Section 5.1.6):
+
+- **`PASS` / `FAIL`** indicates whether the orchestration run for that tool **completed successfully** (`success` in the tool result), not whether `total_issues` is zero.
+- When present, **`issues=N`** copies **`data.summary.total_issues`** from the tool payload (same schema as the JSON block above). For many tools that number is a **metric total** (e.g. functions counted in complexity bands, documentation rows flagged), not a count of subprocess failures.
+- For **per-tool meanings** (documentation inventory vs function complexity vs package exports vs registry gaps) and how those counts surface in **AI_STATUS** / **AI_PRIORITIES** / **CONSOLIDATED_REPORT**, see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 3.21.
+
 **When to run each command**: See "Standard Audit Recipe" section in [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) for guidance on day-to-day checks (`audit`), pre-merge/pre-release checks (`audit --full`), and documentation work (`doc-sync`, `docs`).
 
 Ensure directories listed in `development_tools/shared/constants.py` remain accurate so reports resolve predictably.

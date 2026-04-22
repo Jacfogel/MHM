@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Single forward-looking backlog after V4; collapsed history; actionable next steps  
 > **Style**: Direct and concise  
-> **Last Updated**: 2026-04-20  
+> **Last Updated**: 2026-04-21  
 > **Supersedes**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (keep V4 for detailed checkbox history)
 
 **Authoritative metrics**: [development_tools/AI_STATUS.md](AI_STATUS.md) and [development_tools/AI_PRIORITIES.md](AI_PRIORITIES.md) after `python development_tools/run_development_tools.py audit` or `audit --full`.
@@ -70,6 +70,8 @@ Use this block when a V4 **Status** line says “IN PROGRESS” or “COMPLETE�
 ---
 
 ## 2. Current state snapshot (rolling)
+
+**2026-04-21 (V5 continuation — coverage tests, Section 3.21 closeout)**: Added unit tests for [`shared/measure_tool_timings.py`](shared/measure_tool_timings.py) and [`shared/verify_tool_storage.py`](shared/verify_tool_storage.py) (`tests/development_tools/test_measure_tool_timings.py`, `tests/development_tools/test_verify_tool_storage.py`). **Section 3.21** documented: log `issues=` mirrors `data.summary.total_issues` (see [`audit_orchestration._extract_issue_count`](shared/service/audit_orchestration.py)); paired notes in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 3 and [HOW_TO_RUN.md](../HOW_TO_RUN.md) Section 5.1.6. **Section 4.3** lists the next **medium backlog** execution order after this slice. Refresh **AI_STATUS** / **AI_PRIORITIES** after your next `audit --full` for live percentages.
 
 **2026-04-20 (V5 continuation — static-check sharding, cache roadmap, §3.21 backlog)**: **Phase 2** landed: config-gated **sharded Ruff/Bandit** (merged JSON per `STATIC_ANALYSIS`); static-check **disk cache** still uses a **single whole-repo** `_compute_source_signature` — **directory-scoped** reuse is **§3.19.2** / backlog **7** (not implemented). Plan updates: **§3.19.1** distinguishes sharded **execution** from global cache keys; **§3.19.2** outlines per-shard caching steps; **§3.21** (**open**) tasks tracing large log `issues=` counts for `analyze_documentation` / `analyze_functions` / `analyze_package_exports` / `analyze_function_registry` vs **AI_PRIORITIES** / **AI_STATUS** / **CONSOLIDATED_REPORT**. Supporting work: shared **`STATIC_CHECK_CONFIG_RELATIVE_PATHS`** / pip-audit requirements-lock alignment, [`HOW_TO_RUN.md`](../HOW_TO_RUN.md) cache invalidation notes, expanded tests (`test_tool_wrappers_cache_helpers`, `test_tool_cache_inventory_policy`, `test_tool_wrappers_static_analysis`). Latest authoritative numbers: see **AI_STATUS.md** **Last Generated** (example snapshot: overall test coverage **70.5%**, development-tools coverage **63.6%**, static analysis **CLEAN**, documentation signals **CLEAN** including ASCII compliance).
 
@@ -141,6 +143,15 @@ Suggested order for the next work slice after the 2026-04-17 continuation slice:
 1. Use **`TEST_COVERAGE_REPORT.md`** / dev-tools coverage artifacts to choose the next small set of low-coverage tooling modules for targeted tests, balancing central service chokepoints with the current lowest modules surfaced by the latest report (`shared/measure_tool_timings.py`, `shared/verify_tool_storage.py`, and remaining gaps in `shared/service/*`).
 2. Rerun full-audit validation and refresh **AI_STATUS** / **AI_PRIORITIES** / **CONSOLIDATED_REPORT** so coverage movement and ranking shifts are captured before starting the next backlog theme.
 3. Resume medium-priority tooling work in order: documentation-overlap tuning, then portability parity validation; keep doc-sync work in monitor mode unless generated signals regress from **CLEAN**.
+
+### 4.3 Medium backlog queue (scheduled order after 2026-04-21 slice)
+
+Execute when **§5.1 — 1.1** coverage iterations and **§3.21** operator clarity are satisfied for the current milestone:
+
+1. **§5.5 — 5.2** — Documentation overlap tuning (`EXPECTED_OVERLAPS`, `detect_section_overlaps`); validate with a default-scope `doc-sync` / audit pass before expanding patterns.
+2. **§5.3 — 3.0** — Example-marker advisory: revalidate scan scope vs “clean” output; tighten heuristics only if audits show false negatives or churn.
+3. **§5.7 — 7.6** — Pyright portability / dual-config alignment; extend `test_pyright_config_paths.py` when tightening diagnostic parity.
+4. **§5.7 — 5.7** — Domain markers in `analyze_test_markers` (coordinate with [TEST_PLAN.md](../development_docs/TEST_PLAN.md) §4.4 and `domain_mapper`).
 
 ### 4.2 Deferred after the next slice
 
@@ -305,17 +316,21 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 #### 3.21 High `issues=` counts vs generated reports — trace and document (new)
 
-- **Status**: **OPEN (2026-04-19)** — investigation / documentation.
+- **Status**: **COMPLETE (2026-04-21)** — semantics documented; optional guide notes added.
 - **Observation**: [`development_tools/reports/logs/main.log`](reports/logs/main.log) completion lines can show **large `issues=` counts** while the tool still reports **`PASS`** (tool completed successfully). Example from one `audit --full` pass (timestamps omitted): `Completed analyze_documentation: PASS issues=12`; `Completed analyze_functions: PASS issues=493`; `Completed analyze_package_exports: PASS issues=181`; `Completed analyze_function_registry: PASS issues=47`.
-- **Problem**: It is unclear to operators whether those counts are **informational metrics** (e.g. functions enumerated, export rows reviewed) vs **actionable findings**, and whether they **should** appear in [AI_PRIORITIES.md](AI_PRIORITIES.md), [AI_STATUS.md](AI_STATUS.md), and [CONSOLIDATED_REPORT.md](CONSOLIDATED_REPORT.md). If they do not surface, the **reason** (thresholds, filters, tier wiring, `add_priority` rules, summary-only sections) should be explicit so logs are not misread as “hidden debt.”
-- **Tasks**:
-  1. For each tool — **`analyze_documentation`**, **`analyze_functions`**, **`analyze_package_exports`**, **`analyze_function_registry`** — confirm what **`issues`** in the completion log represents (field semantics in JSON / wrapper).
-  2. Trace each tool’s path through [`report_generation.py`](shared/service/report_generation.py) (and related builders): which keys feed **AI_STATUS**, ranked **AI_PRIORITIES**, and **CONSOLIDATED_REPORT** sections.
-  3. Record **whether** the same numbers (or derived summaries) appear in those three artifacts; if not, document **why** (by design vs gap).
-  4. If the gap is unintentional or confusing, propose a small follow-up (log wording, report line, or guide note) — separate acceptance if implemented.
-- **Acceptance criteria**:
-  - A short **conclusion** added under this subsection (or a pointer to a paired guide subsection) stating per-tool: log `issues=` meaning, report visibility, and operator guidance.
-  - Optional: one-line clarification in [HOW_TO_RUN.md](../HOW_TO_RUN.md) or [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) if operators routinely read logs without opening JSON.
+- **Orchestration source**: Completion lines use [`audit_orchestration._extract_issue_count`](shared/service/audit_orchestration.py): when present, **`issues=`** is `result["data"]["summary"]["total_issues"]` (integer). **`PASS`/`FAIL`** reflects whether the tool returned `success: true` for that run, not whether `total_issues` is zero.
+- **Conclusion — per-tool semantics and report visibility**:
+
+| Tool | What `total_issues` counts | Appears in AI_STATUS / priorities / consolidated? |
+|------|---------------------------|---------------------------------------------------|
+| **`analyze_documentation`** | Sum of **missing**, **duplicate**, **placeholder**, and **artifact** documentation rows from the doc inventory pass (see [`analyze_documentation.py`](docs/analyze_documentation.py)). | **Yes, indirectly**: overlap / consolidation themes pull from this tool’s JSON via `report_generation` (e.g. documentation overlaps, consolidate docs priorities). The **raw integer** is not always shown verbatim; sections use **derived** lists (e.g. overlap counts, file lists). |
+| **`analyze_functions`** | Count of **moderate + high + critical complexity** functions plus **undocumented** functions (see [`analyze_functions.py`](functions/analyze_functions.py) metrics assembly). | **Yes**: primary source for docstring coverage, complexity counts, refactor/complexity priorities, and consolidated detail blocks. Large `issues=` here is **expected** on a big codebase and is already **ranked and summarized** in generated markdown (not “hidden”). |
+| **`analyze_package_exports`** | **`total_missing_exports` + `total_unnecessary_exports`** across packages, computed in [`tool_wrappers.run_analyze_package_exports`](shared/service/tool_wrappers.py) (not only the standalone CLI `main()`). | **Yes** when exports need attention: priorities and consolidated can surface package-export work; if counts are low or below thresholds, items may **not** rank in AI_PRIORITIES while the log still shows the **aggregate** row count. |
+| **`analyze_function_registry`** | **`missing_count` + `extra_count`** (registry vs inventory alignment). | **Yes**: registry gaps appear in AI_STATUS; priorities reference registry JSON when gaps or complexity warrant. |
+
+- **Operator guidance**: Treat log **`issues=`** as the tool’s **summary metric total**, not as “pytest failures” or orchestration errors. Prefer **AI_PRIORITIES** / **AI_STATUS** / **CONSOLIDATED_REPORT** for **what to do next**; those apply thresholds, top-N lists, and theme wiring. If **`PASS`** with a large `issues=` surprises you, open the tool’s scoped JSON under `development_tools/**/jsons/` and read `summary` + `details` rather than inferring from the single integer alone.
+- **Tasks** (closed): (1)–(3) verified 2026-04-21; (4) addressed by this subsection + guide notes (no log format change required).
+- **Acceptance criteria**: Met — conclusion table above; see also [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 3 (completion lines) and [HOW_TO_RUN.md](../HOW_TO_RUN.md) Section 5.1.6.
 
 #### 3.2 Validation warnings cleanup (residual)
 
@@ -480,7 +495,7 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 ### 5.6 Section 6 — Audit-driven remediation (non-tool code)
 
-Outstanding product/codebase work **surfaced by tools**, not dev-tools implementation per se. **Use live counts** from [AI_STATUS.md](AI_STATUS.md), [AI_PRIORITIES.md](AI_PRIORITIES.md), [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md).
+Outstanding product/codebase work **surfaced by tools**, not dev-tools implementation per se. **Use live counts** from [AI_STATUS.md](AI_STATUS.md), [AI_PRIORITIES.md](AI_PRIORITIES.md), [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md). **Tracking**: treat legacy marker reduction and deprecation-inventory closures as **product workstreams** (same PR as inventory updates per [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md)); they are **not** blocked on further dev-tools suite features once reports are accurate.
 
 **User priorities (V4)**:
 

@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
-
 import pytest
 
 from tests.development_tools.conftest import load_development_tools_module
@@ -267,3 +267,191 @@ def test_get_missing_doc_files_handles_non_list(temp_project_copy: Path):
         "missing_files": ["a.py", "b.py", "c.py"]
     }
     assert service._get_missing_doc_files(limit=2) == ["a.py", "b.py"]
+
+
+@pytest.mark.unit
+def test_config_validation_summary_from_payload_requires_sections(
+    temp_project_copy: Path,
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    assert service._config_validation_summary_from_payload({"summary": {}}) is None
+    assert service._config_validation_summary_from_payload({"details": {}}) is None
+
+
+@pytest.mark.unit
+def test_config_validation_summary_from_payload_merges_validation_flags(
+    temp_project_copy: Path,
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    payload = {
+        "summary": {
+            "total_issues": 0,
+            "files_affected": 0,
+            "config_valid": False,
+            "config_complete": False,
+        },
+        "details": {
+            "summary": {"config_valid": False, "config_complete": False},
+            "validation": {"config_structure_valid": True},
+            "completeness": {"sections_complete": True},
+            "recommendations": ["fix a"],
+            "tools_analysis": {"k": 1},
+        },
+    }
+    out = service._config_validation_summary_from_payload(payload)
+    assert out is not None
+    assert out["config_valid"] is True
+    assert out["config_complete"] is True
+    assert out["recommendations"] == ["fix a"]
+    assert out["tools_analysis"] == {"k": 1}
+
+
+@pytest.mark.unit
+def test_load_config_validation_summary_prefers_results_cache(
+    temp_project_copy: Path,
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tools_run_in_current_tier = {"analyze_config"}
+    service.results_cache["analyze_config"] = {
+        "summary": {"total_issues": 0, "files_affected": 0},
+        "details": {
+            "summary": {"config_valid": True, "config_complete": True},
+            "recommendations": [],
+            "tools_analysis": {},
+        },
+    }
+    got = service._load_config_validation_summary()
+    assert got is not None
+    assert got.get("config_valid") is True
+
+
+@pytest.mark.unit
+def test_load_config_validation_summary_reads_legacy_json_file(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tools_run_in_current_tier = set()
+    cfg_dir = (
+        temp_project_copy / "development_tools" / "config" / "jsons"
+    )
+    cfg_dir.mkdir(parents=True, exist_ok=True)
+    inner = {
+        "summary": {"total_issues": 1, "files_affected": 1},
+        "details": {
+            "summary": {"config_valid": False, "config_complete": True},
+            "recommendations": [],
+            "tools_analysis": {},
+        },
+    }
+    (cfg_dir / "analyze_config_results.json").write_text(
+        json.dumps({"data": inner}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        output_storage_module,
+        "load_tool_result",
+        lambda *args, **kwargs: None,
+    )
+    live_output_storage = sys.modules.get("development_tools.shared.output_storage")
+    if live_output_storage is not None and live_output_storage is not output_storage_module:
+        monkeypatch.setattr(live_output_storage, "load_tool_result", lambda *a, **k: None)
+
+    got = service._load_config_validation_summary()
+    assert got is not None
+    assert got.get("total_issues") == 1
+
+
+@pytest.mark.unit
+def test_parse_doc_subchecks_json_and_non_json(temp_project_copy: Path):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    std = {"summary": {"total_issues": 3, "files_affected": 2}, "details": {}}
+    blob = json.dumps(std)
+
+    for parser in (
+        service._parse_path_drift_output,
+        service._parse_missing_addresses_output,
+        service._parse_unconverted_links_output,
+    ):
+        empty = parser("")
+        assert empty.get("summary", {}).get("total_issues") == 0
+        bad = parser("{not json")
+        assert bad.get("summary", {}).get("total_issues") == 0
+        ok = parser(blob)
+        assert ok["summary"]["total_issues"] == 3
+        assert ok["summary"]["files_affected"] == 2
+
+
+@pytest.mark.unit
+def test_parse_module_dependency_report_extracts_metrics(temp_project_copy: Path):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    text = """
+Files scanned: 12
+Total imports found: 99
+Dependencies documented: 80
+Standard library imports: 10
+Third-party imports: 20
+Local imports: 60
+Total missing dependencies: 2
+[FILE] a.py: missing doc
+[DIR] b/ - ENTIRE FILE MISSING
+"""
+    out = service._parse_module_dependency_report(text)
+    assert out is not None
+    assert out["files_scanned"] == 12
+    assert out["total_imports"] == 99
+    assert out["missing_dependencies"] == 2
+    assert "a.py" in out["missing_files"]
+    assert any("b/" in s for s in out["missing_sections"])
+    assert service._parse_module_dependency_report("") is None
+
+
+@pytest.mark.unit
+def test_parse_test_results_from_output_seed_summary_and_failures(
+    temp_project_copy: Path,
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    text = """
+pytest foo --randomly-seed=424242
+2 failed, 10 passed, 1 skipped, 0 warnings
+=========================== short test summary info ===========================
+FAILED tests/unit/test_x.py::test_one - assert 0
+FAILED tests/unit/test_y.py::test_two
+"""
+    r = service._parse_test_results_from_output(text)
+    assert r["random_seed"] == "424242"
+    assert r["failed_count"] == 2
+    assert r["passed_count"] == 10
+    assert r["skipped_count"] == 1
+    assert r["warnings_count"] == 0
+    assert any(
+        x.startswith("tests/unit/test_x.py::test_one") for x in r["failed_tests"]
+    )
+    assert service._parse_test_results_from_output("")["failed_count"] == 0
+
+
+@pytest.mark.unit
+def test_get_system_status_lists_key_files_and_audit_timestamp(
+    temp_project_copy: Path,
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    ok_file = temp_project_copy / "present.txt"
+    ok_file.write_text("ok", encoding="utf-8")
+    service.key_files = [str(ok_file), str(temp_project_copy / "absent.txt")]
+
+    results_dir = (
+        temp_project_copy
+        / "development_tools"
+        / "reports"
+        / "scopes"
+        / "full"
+    )
+    results_dir.mkdir(parents=True, exist_ok=True)
+    (results_dir / "analysis_detailed_results.json").write_text(
+        json.dumps({"timestamp": "2026-04-22T12:00:00"}),
+        encoding="utf-8",
+    )
+
+    status = service._get_system_status()
+    assert "[OK]" in status and "present.txt" in status
+    assert "[MISSING]" in status and "absent.txt" in status
+    assert "2026-04-22T12:00:00" in status

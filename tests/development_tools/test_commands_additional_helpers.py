@@ -244,3 +244,30 @@ def test_run_verify_process_cleanup_returns_error_on_invalid_json(
     assert "Invalid JSON output" in result["error"]
     assert result["returncode"] == 0
 
+
+@pytest.mark.unit
+def test_load_cached_result_if_available_dict_exception_and_non_dict(
+    temp_project_copy: Path,
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    with patch(
+        "development_tools.shared.output_storage.load_tool_result",
+        return_value={"summary": {"total_issues": 0}},
+    ):
+        assert service._load_cached_result_if_available("analyze_ruff", "static_checks") == {
+            "summary": {"total_issues": 0},
+        }
+
+    with patch(
+        "development_tools.shared.output_storage.load_tool_result",
+        side_effect=RuntimeError("simulated load failure"),
+    ):
+        assert service._load_cached_result_if_available("analyze_ruff", "static_checks") is None
+
+    with patch(
+        "development_tools.shared.output_storage.load_tool_result",
+        return_value=["not", "a", "dict"],
+    ):
+        assert service._load_cached_result_if_available("analyze_ruff", "static_checks") is None
+

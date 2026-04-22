@@ -5,6 +5,10 @@ Tests documentation synchronization, path drift detection, ASCII compliance,
 and heading numbering validation.
 """
 
+import json
+import sys
+from unittest.mock import patch
+
 import pytest
 
 # Import helper from conftest
@@ -312,4 +316,84 @@ class TestExampleMarkerScanPaths:
         resolve = checker_module._resolve_example_marker_scan_paths
         monkeypatch.setattr(checker_module, "DEFAULT_DOCS", ())
         assert resolve({"human.md": "ai.md"}) == ["ai.md", "human.md"]
+
+
+class TestPrintReportAndMain:
+    """print_report and main() CLI branches."""
+
+    @pytest.mark.unit
+    def test_print_report_pass_zero_issues(self, capsys, tmp_path):
+        checker = DocumentationSyncChecker(str(tmp_path))
+        payload = {
+            "summary": {
+                "total_issues": 0,
+                "files_affected": 0,
+                "status": "PASS",
+            },
+            "details": {"paired_doc_issues": 0, "paired_docs": {}},
+        }
+        checker.print_report(payload)
+        out = capsys.readouterr().out
+        assert "PASS" in out
+        assert "Total Issues: 0" in out
+        assert "All paired documentation synchronization checks passed" in out
+
+    @pytest.mark.unit
+    def test_print_report_strips_non_ascii_issue_lines(self, capsys, tmp_path):
+        checker = DocumentationSyncChecker(str(tmp_path))
+        payload = {
+            "summary": {
+                "total_issues": 1,
+                "files_affected": 0,
+                "status": "FAIL",
+            },
+            "details": {
+                "paired_doc_issues": 1,
+                "paired_docs": {"content_sync": ["caf\u00e9 mismatch"]},
+            },
+        }
+        checker.print_report(payload)
+        out = capsys.readouterr().out
+        assert "FAIL" in out
+        assert "mismatch" in out
+
+    @pytest.mark.unit
+    def test_main_json_mode(self, monkeypatch, capsys):
+        payload = {
+            "summary": {
+                "total_issues": 0,
+                "files_affected": 0,
+                "status": "PASS",
+            },
+            "details": {"paired_doc_issues": 0, "paired_docs": {}},
+        }
+        monkeypatch.setattr(sys, "argv", ["analyze_documentation_sync.py", "--json"])
+        with patch.object(DocumentationSyncChecker, "run_checks", return_value=payload):
+            checker_module.main()
+        parsed = json.loads(capsys.readouterr().out.strip())
+        assert parsed["summary"]["status"] == "PASS"
+
+    @pytest.mark.unit
+    def test_main_example_markers_branch_empty_findings(self, monkeypatch, capsys):
+        payload = {
+            "summary": {
+                "total_issues": 0,
+                "files_affected": 0,
+                "status": "PASS",
+            },
+            "details": {"paired_doc_issues": 0, "paired_docs": {}},
+        }
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            ["analyze_documentation_sync.py", "--check-example-markers"],
+        )
+        with patch.object(DocumentationSyncChecker, "run_checks", return_value=payload):
+            with patch(
+                "development_tools.docs.example_marker_validation.scan_paths_for_example_marker_findings",
+                return_value={},
+            ):
+                checker_module.main()
+        out = capsys.readouterr().out
+        assert "no advisory hints" in out.lower() or "example marker" in out.lower()
 

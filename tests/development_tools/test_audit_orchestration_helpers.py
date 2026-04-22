@@ -6,7 +6,7 @@ import json
 import time
 import concurrent.futures
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -18,6 +18,17 @@ service_module = load_development_tools_module("shared.service")
 audit_module = load_development_tools_module("shared.service.audit_orchestration")
 lock_state_module = load_development_tools_module("shared.lock_state")
 AIToolsService = service_module.AIToolsService
+
+
+def _patch_audit_logger(service: Any):
+    """Patch audit_orchestration module logger seen by AuditOrchestrationMixin methods.
+
+    ``load_development_tools_module`` may register ``audit_orchestration`` more than once;
+    mixin methods always use the function globals from the class object.
+    """
+    log_fn = service.__class__._log_tool_completion
+    mock_logger = MagicMock()
+    return patch.dict(log_fn.__globals__, {"logger": mock_logger}), mock_logger
 
 
 @pytest.mark.unit
@@ -914,5 +925,85 @@ def test_infer_cache_mode_from_hits_misses_non_positive_total(temp_project_copy:
     service = AIToolsService(project_root=str(temp_project_copy))
     assert service._infer_cache_mode_from_hits_misses(0, 0) == "unknown"
     assert service._infer_cache_mode_from_hits_misses(-1, 0) == "unknown"
+
+
+@pytest.mark.unit
+def test_log_tool_completion_success_maps_invalidated_cache_to_created(
+    temp_project_copy: Path,
+):
+    """On success, cold_scan (invalidated) cache mode is logged as created for operators."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tool_cache_metadata = {"analyze_unused_imports": {"cache_mode": "cold_scan"}}
+    result = {"success": True, "data": {"summary": {"total_issues": 4}}}
+    ctx, log = _patch_audit_logger(service)
+    with ctx:
+        service._log_tool_completion("analyze_unused_imports", result, 0.42)
+    msg = log.info.call_args[0][0]
+    assert "Completed analyze_unused_imports: PASS" in msg
+    assert "issues=4" in msg
+    assert "cache=created" in msg
+
+
+@pytest.mark.unit
+def test_log_tool_completion_failure_uses_warning(temp_project_copy: Path):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tool_cache_metadata = {}
+    ctx, log = _patch_audit_logger(service)
+    with ctx:
+        service._log_tool_completion("analyze_ruff", {"success": False}, 0.05)
+    log.warning.assert_called_once()
+    assert "Completed analyze_ruff: FAIL" in log.warning.call_args[0][0]
+
+
+@pytest.mark.unit
+def test_log_tool_completion_truthy_dict_without_success_is_fail(
+    temp_project_copy: Path,
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tool_cache_metadata = {}
+    ctx, log = _patch_audit_logger(service)
+    with ctx:
+        service._log_tool_completion("analyze_bandit", {"data": {"summary": {}}}, 0.02)
+    log.warning.assert_called_once()
+    assert "FAIL" in log.warning.call_args[0][0]
+
+
+@pytest.mark.unit
+def test_log_tool_completion_generate_unused_imports_report_adds_path(
+    temp_project_copy: Path,
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tool_cache_metadata = {}
+    ctx, log = _patch_audit_logger(service)
+    with ctx:
+        service._log_tool_completion("generate_unused_imports_report", {"success": True}, 0.03)
+    msg = log.info.call_args[0][0]
+    assert "detailed_report=development_docs/UNUSED_IMPORTS_REPORT.md" in msg
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("pstate", "needle"),
+    [
+        ("requirements_lock_cache_hit", "pip_audit=cache_hit(no_subprocess)"),
+        ("skipped_env", "pip_audit=skipped_env"),
+        ("executed_subprocess", "pip_audit=subprocess=3.00s"),
+        ("error", "pip_audit=error"),
+    ],
+)
+def test_log_tool_completion_pip_audit_fragments(
+    temp_project_copy: Path, pstate: str, needle: str
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tool_cache_metadata = {}
+    details: dict = {"pip_audit_execution_state": pstate}
+    if pstate == "executed_subprocess":
+        details["pip_audit_subprocess_seconds"] = 3
+    result = {"success": True, "data": {"details": details}}
+    ctx, log = _patch_audit_logger(service)
+    with ctx:
+        service._log_tool_completion("analyze_pip_audit", result, 0.01)
+    msg = log.info.call_args[0][0]
+    assert needle in msg
 
 
