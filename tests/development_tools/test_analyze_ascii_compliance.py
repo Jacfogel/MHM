@@ -4,8 +4,12 @@ Tests for analyze_ascii_compliance.py.
 Tests ASCII compliance analysis in documentation files.
 """
 
-import pytest
+import json
+import sys
 from pathlib import Path
+from unittest.mock import patch
+
+import pytest
 
 from tests.development_tools.conftest import load_development_tools_module
 
@@ -234,4 +238,73 @@ class TestAnalyzeASCIICompliance:
         # Demo project may or may not have ASCII issues
         assert all(isinstance(issues, list) for issues in results.values()), \
             "All issues should be lists"
+
+    @pytest.mark.unit
+    def test_run_analysis_needs_attention_threshold(self, tmp_path):
+        """Fewer than 10 issue lines -> NEEDS_ATTENTION."""
+        with patch("development_tools.shared.constants.ASCII_COMPLIANCE_FILES", ("ascii_probe.md",)):
+            text = "".join(chr(128 + i) for i in range(5))
+            (tmp_path / "ascii_probe.md").write_text(f"# x\n{text}", encoding="utf-8")
+            analyzer = ASCIIComplianceAnalyzer(project_root=str(tmp_path), use_cache=False)
+            r = analyzer.run_analysis()
+        assert r["summary"]["status"] == "NEEDS_ATTENTION"
+        assert r["summary"]["total_issues"] == 5
+
+    @pytest.mark.unit
+    def test_run_analysis_critical_threshold(self, tmp_path):
+        """10+ issue lines -> CRITICAL."""
+        with patch("development_tools.shared.constants.ASCII_COMPLIANCE_FILES", ("ascii_probe.md",)):
+            text = "".join(chr(128 + i) for i in range(10))
+            (tmp_path / "ascii_probe.md").write_text(f"# x\n{text}", encoding="utf-8")
+            analyzer = ASCIIComplianceAnalyzer(project_root=str(tmp_path), use_cache=False)
+            r = analyzer.run_analysis()
+        assert r["summary"]["status"] == "CRITICAL"
+        assert r["summary"]["total_issues"] == 10
+
+    @pytest.mark.unit
+    def test_main_json_clean_project(self, tmp_path, monkeypatch, capsys):
+        (tmp_path / "only.md").write_text("# ascii only\n", encoding="utf-8")
+        monkeypatch.setattr(sys, "argv", ["analyze_ascii_compliance", "--json"])
+        with (
+            patch("development_tools.shared.constants.ASCII_COMPLIANCE_FILES", ("only.md",)),
+            patch.object(
+                ascii_module.config, "get_project_root", return_value=str(tmp_path)
+            ),
+        ):
+            code = ascii_module.main()
+        assert code == 0
+        payload = json.loads(capsys.readouterr().out)
+        assert payload["summary"]["status"] == "CLEAN"
+
+    @pytest.mark.unit
+    def test_main_human_exits_one_shows_truncation(self, tmp_path, monkeypatch, capsys):
+        """Human mode prints at most 3 issues per file then 'more issues' line."""
+        text = "".join(chr(128 + i) for i in range(5))
+        (tmp_path / "rich.md").write_text(f"# h\n{text}", encoding="utf-8")
+        monkeypatch.setattr(sys, "argv", ["analyze_ascii_compliance"])
+        with (
+            patch("development_tools.shared.constants.ASCII_COMPLIANCE_FILES", ("rich.md",)),
+            patch.object(
+                ascii_module.config, "get_project_root", return_value=str(tmp_path)
+            ),
+        ):
+            code = ascii_module.main()
+        assert code == 1
+        out = capsys.readouterr().out
+        assert "ASCII Compliance" in out
+        assert "more issues" in out
+
+    @pytest.mark.unit
+    def test_main_human_exits_zero_when_clean(self, tmp_path, monkeypatch, capsys):
+        (tmp_path / "clean.md").write_text("ok\n", encoding="utf-8")
+        monkeypatch.setattr(sys, "argv", ["analyze_ascii_compliance"])
+        with (
+            patch("development_tools.shared.constants.ASCII_COMPLIANCE_FILES", ("clean.md",)),
+            patch.object(
+                ascii_module.config, "get_project_root", return_value=str(tmp_path)
+            ),
+        ):
+            code = ascii_module.main()
+        assert code == 0
+        assert "ascii compliant" in capsys.readouterr().out.lower()
 

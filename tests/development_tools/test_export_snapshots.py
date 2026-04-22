@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -152,3 +153,84 @@ def test_export_docs_main_writes_snapshot(
     assert "# Documentation Snapshot" in content
     assert "README.md" in content
     assert "Wrote:" in capsys.readouterr().out
+
+
+@pytest.mark.unit
+def test_export_docs_find_project_root_from_core_and_tools(
+    temp_output_dir: Path,
+) -> None:
+    root = temp_output_dir / "mini"
+    (root / "core").mkdir(parents=True)
+    (root / "development_tools").mkdir(parents=True)
+    assert export_docs_snapshot._find_project_root(root) == root
+
+
+@pytest.mark.unit
+def test_export_docs_find_project_root_raises_when_unresolved(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Force no README/core/dev_tools hits so walk exhausts (tmp may live under repo tests/data)."""
+    leaf = tmp_path / "a" / "b"
+    leaf.mkdir(parents=True)
+    real_is_dir = Path.is_dir
+
+    def is_dir(self):
+        if self.name in ("core", "development_tools"):
+            return False
+        return real_is_dir(self)
+
+    monkeypatch.setattr(Path, "is_file", lambda self: False)
+    monkeypatch.setattr(Path, "is_dir", is_dir)
+    with pytest.raises(RuntimeError, match="Could not find project root"):
+        export_docs_snapshot._find_project_root(leaf)
+
+
+@pytest.mark.unit
+def test_export_docs_matches_any_glob() -> None:
+    assert export_docs_snapshot._matches_any_glob(
+        "project/archive/old.md", ["archive/*"]
+    )
+
+
+@pytest.mark.unit
+def test_export_docs_main_invalid_root_returns_2(
+    temp_output_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        export_docs_snapshot,
+        "_find_project_root",
+        lambda _start: temp_output_dir,
+        raising=False,
+    )
+    rc = export_docs_snapshot.main(
+        ["--root", str(temp_output_dir / "does_not_exist")]
+    )
+    assert rc == 2
+
+
+@pytest.mark.unit
+def test_export_docs_write_markdown_bundle_read_error(
+    temp_output_dir: Path,
+) -> None:
+    root_dir = temp_output_dir / "scan"
+    root_dir.mkdir(parents=True)
+    bad = root_dir / "bad.md"
+    bad.write_text("x", encoding="utf-8")
+    out = temp_output_dir / "bundle.md"
+    original_read_text = Path.read_text
+
+    def _read_text(self, *a, **kw):
+        if self.name == "bad.md":
+            raise OSError("read denied")
+        return original_read_text(self, *a, **kw)
+
+    with patch.object(Path, "read_text", _read_text):
+        export_docs_snapshot._write_markdown_bundle(
+            project_root=root_dir,
+            root_dir=root_dir,
+            files=[bad],
+            output_path=out,
+        )
+    text = out.read_text(encoding="utf-8")
+    assert "[READ ERROR]" in text
+    assert "OSError" in text

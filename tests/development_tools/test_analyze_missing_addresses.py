@@ -4,6 +4,11 @@ Tests for analyze_missing_addresses.py.
 Tests missing address detection in documentation files.
 """
 
+import json
+import sys
+from pathlib import Path
+from unittest.mock import patch
+
 import pytest
 
 from tests.development_tools.conftest import (
@@ -179,3 +184,91 @@ This file should be excluded from missing address checks.
         results = analyzer.check_missing_addresses()
 
         assert isinstance(results, dict), "Result should be a dictionary"
+
+    @pytest.mark.unit
+    def test_run_analysis_status_clean(self, tmp_path):
+        """No missing addresses yields CLEAN summary status."""
+        analyzer = MissingAddressAnalyzer(project_root=str(tmp_path), use_cache=False)
+        payload = analyzer.run_analysis()
+        assert payload["summary"]["status"] == "CLEAN"
+        assert payload["summary"]["total_issues"] == 0
+        assert payload["summary"]["files_affected"] == 0
+
+    @pytest.mark.unit
+    def test_run_analysis_status_needs_attention(self, tmp_path):
+        """Between one and four issues yields NEEDS_ATTENTION."""
+        for i in range(3):
+            (tmp_path / f"gap_{i}.md").write_text("# No address header\n")
+        analyzer = MissingAddressAnalyzer(project_root=str(tmp_path), use_cache=False)
+        payload = analyzer.run_analysis()
+        assert payload["summary"]["status"] == "NEEDS_ATTENTION"
+        assert payload["summary"]["total_issues"] == 3
+
+    @pytest.mark.unit
+    def test_run_analysis_status_critical(self, tmp_path):
+        """Five or more issues yields CRITICAL."""
+        for i in range(5):
+            (tmp_path / f"many_{i}.md").write_text("# x\n")
+        analyzer = MissingAddressAnalyzer(project_root=str(tmp_path), use_cache=False)
+        payload = analyzer.run_analysis()
+        assert payload["summary"]["status"] == "CRITICAL"
+        assert payload["summary"]["total_issues"] == 5
+
+    @pytest.mark.unit
+    def test_check_missing_addresses_read_error_recorded(self, tmp_path):
+        """Unreadable files surface as error issues and appear in results."""
+        doc = tmp_path / "broken.md"
+        doc.write_text("placeholder", encoding="utf-8")
+        analyzer = MissingAddressAnalyzer(project_root=str(tmp_path), use_cache=False)
+        real_open = open
+
+        def selective_open(path, *args, **kwargs):
+            if Path(path).name == "broken.md":
+                raise OSError("simulated read failure")
+            return real_open(path, *args, **kwargs)
+
+        with patch("builtins.open", selective_open):
+            results = analyzer.check_missing_addresses()
+
+        assert "broken.md" in results
+        assert any("Error reading file" in msg for msg in results["broken.md"])
+
+    @pytest.mark.unit
+    def test_main_json_outputs_and_exits_zero(self, tmp_path, monkeypatch, capsys):
+        monkeypatch.setattr(sys, "argv", ["analyze_missing_addresses", "--json"])
+        with patch.object(
+            missing_addresses_module.config,
+            "get_project_root",
+            return_value=str(tmp_path),
+        ):
+            code = missing_addresses_module.main()
+        assert code == 0
+        parsed = json.loads(capsys.readouterr().out)
+        assert "summary" in parsed
+        assert parsed["summary"]["status"] == "CLEAN"
+
+    @pytest.mark.unit
+    def test_main_human_exits_one_when_issues(self, tmp_path, monkeypatch, capsys):
+        monkeypatch.setattr(sys, "argv", ["analyze_missing_addresses"])
+        (tmp_path / "naked.md").write_text("# no header address\n")
+        with patch.object(
+            missing_addresses_module.config,
+            "get_project_root",
+            return_value=str(tmp_path),
+        ):
+            code = missing_addresses_module.main()
+        assert code == 1
+        out = capsys.readouterr().out
+        assert "Missing Address" in out or "missing" in out.lower()
+
+    @pytest.mark.unit
+    def test_main_human_exits_zero_when_clean(self, tmp_path, monkeypatch, capsys):
+        monkeypatch.setattr(sys, "argv", ["analyze_missing_addresses"])
+        with patch.object(
+            missing_addresses_module.config,
+            "get_project_root",
+            return_value=str(tmp_path),
+        ):
+            code = missing_addresses_module.main()
+        assert code == 0
+        assert "have file addresses" in capsys.readouterr().out.lower()

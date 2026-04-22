@@ -1,5 +1,6 @@
 """Tests for development_tools/shared/common.py helpers."""
 
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -105,3 +106,84 @@ def test_summary_block_formats_title_and_body():
 
     no_body = common_module.summary_block("Only", [])
     assert no_body == "Only\n----\n"
+
+
+@pytest.mark.unit
+def test_get_project_root_fallback_when_config_raises(monkeypatch):
+    """_get_project_root uses __file__ ancestry when get_project_root fails."""
+
+    def _raise_attr():
+        raise AttributeError("no root")
+
+    monkeypatch.setattr(common_module.config, "get_project_root", _raise_attr)
+    root = common_module._get_project_root()
+    mod_file = common_module.__file__
+    assert mod_file is not None
+    assert root == Path(mod_file).resolve().parents[2]
+
+
+@pytest.mark.unit
+def test_project_paths_fallback_when_paths_config_raises(tmp_path, monkeypatch):
+    """ProjectPaths should use defaults when get_paths_config raises."""
+
+    def _raise_key():
+        raise KeyError("paths")
+
+    monkeypatch.setattr(common_module.config, "get_paths_config", _raise_key)
+    paths = common_module.ProjectPaths(root=tmp_path)
+    assert paths.root == tmp_path
+    assert paths.docs == tmp_path / "ai_development_docs"
+    assert paths.tests_data == tmp_path / "tests" / "data"
+
+
+@pytest.mark.unit
+def test_run_cli_execute_raises_propagates(monkeypatch):
+    """run_cli re-raises after logging when execute() fails."""
+
+    def execute(_ns):
+        raise ValueError("boom")
+
+    with (
+        patch("sys.argv", ["tool.py"]),
+        patch("builtins.print") as mock_print,
+    ):
+        with pytest.raises(ValueError, match="boom"):
+            common_module.run_cli(execute, description="demo")
+    assert any("ERROR in execute" in str(c) for c in mock_print.call_args_list)
+
+
+@pytest.mark.unit
+def test_run_cli_json_dumps_failure_propagates(monkeypatch):
+    """Non-serializable data with --json should surface from json.dumps."""
+
+    def execute(_ns):
+        return 0, "", {"x": object()}
+
+    with (
+        patch("sys.argv", ["tool.py", "--json"]),
+        patch("builtins.print") as mock_print,
+    ):
+        with pytest.raises(TypeError):
+            common_module.run_cli(execute, description="demo")
+    assert any("ERROR in json.dumps" in str(c) for c in mock_print.call_args_list)
+
+
+@pytest.mark.unit
+def test_run_cli_custom_arguments(monkeypatch):
+    """Optional CLI arguments should be forwarded to parse_args."""
+
+    def execute(ns):
+        assert ns.extra_flag is True
+        return 3, "done", {"code": 3}
+
+    with (
+        patch("sys.argv", ["tool.py", "--extra-flag"]),
+        patch("builtins.print") as mock_print,
+    ):
+        code = common_module.run_cli(
+            execute,
+            description="demo",
+            arguments=[(["--extra-flag"], {"action": "store_true"})],
+        )
+    assert code == 3
+    assert any("done" in str(c.args[0]) for c in mock_print.call_args_list if c.args)
