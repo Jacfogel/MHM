@@ -288,3 +288,13 @@ to be filled: placeholder
         overlaps = detect_section_overlaps(docs)
         assert "2. Related Docs" not in overlaps
 
+    @pytest.mark.unit
+    def test_detect_section_overlaps_ignores_numbered_troubleshooting(self):
+        body = "z" * 60
+        docs = {
+            "a.md": f"## 3. Troubleshooting\n{body}\n",
+            "b.md": f"## 3. Troubleshooting\n{body}\n",
+        }
+        overlaps = detect_section_overlaps(docs)
+        assert "3. Troubleshooting" not in overlaps
+

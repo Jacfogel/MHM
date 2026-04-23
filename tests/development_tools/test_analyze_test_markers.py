@@ -29,6 +29,9 @@ class _FakeAnalyzer:
     def get_last_domain_marker_gaps(self) -> list:
         return []
 
+    def get_domain_attribution_summary(self) -> dict[str, int]:
+        return {}
+
 TMP_ROOT = (
     Path(__file__).resolve().parents[2]
     / "tests"
@@ -290,6 +293,7 @@ def test_main_check_json_output(monkeypatch, capsys):
     assert output["details"]["missing_count"] == 1
     assert output["details"]["missing_domain_count"] == 0
     assert output["details"]["missing_domain"] == []
+    assert output["details"]["domain_attribution_summary"] == {}
 
 
 @pytest.mark.unit

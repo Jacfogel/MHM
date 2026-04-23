@@ -1,7 +1,7 @@
 """Tests for coverage-related helpers in CommandsMixin."""
 
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -283,3 +283,66 @@ def test_get_audit_related_lock_paths_config_error_falls_back_to_defaults(tmp_pa
     assert ".audit_in_progress.lock" in names
     assert ".coverage_in_progress.lock" in names
     assert ".coverage_dev_tools_in_progress.lock" in names
+
+
+@pytest.mark.unit
+def test_derive_tier3_state_explicit_coverage_failed(tmp_path):
+    """Explicit aggregate state short-circuits per-track classification."""
+    service = _DummyService(tmp_path)
+    assert (
+        service._derive_tier3_state_from_classifications({"state": "coverage_failed"})
+        == "coverage_failed"
+    )
+
+
+@pytest.mark.unit
+def test_derive_tier3_state_infra_precedes_failed(tmp_path):
+    service = _DummyService(tmp_path)
+    outcome = {
+        "parallel": {"classification": "failed"},
+        "no_parallel": {"classification": "infra_cleanup_error"},
+        "development_tools": {"classification": "passed"},
+    }
+    assert service._derive_tier3_state_from_classifications(outcome) == "infra_cleanup_error"
+
+
+@pytest.mark.unit
+def test_derive_tier3_state_clean_with_skipped_tracks(tmp_path):
+    service = _DummyService(tmp_path)
+    outcome = {
+        "parallel": {"classification": "skipped"},
+        "no_parallel": {"classification": "passed"},
+        "development_tools": {"classification": "skipped"},
+    }
+    assert service._derive_tier3_state_from_classifications(outcome) == "clean"
+
+
+@pytest.mark.unit
+def test_derive_tier3_state_all_unknown_is_coverage_failed(tmp_path):
+    service = _DummyService(tmp_path)
+    outcome = {
+        "parallel": {"classification": "unknown"},
+        "no_parallel": {"classification": "unknown"},
+        "development_tools": {"classification": "unknown"},
+    }
+    assert service._derive_tier3_state_from_classifications(outcome) == "coverage_failed"
+
+
+@pytest.mark.unit
+def test_is_coverage_file_fresh_false_when_coverage_stat_fails(tmp_path):
+    service = _DummyService(tmp_path)
+    coverage_file = MagicMock()
+    coverage_file.exists.return_value = True
+    coverage_file.stat.side_effect = OSError("no stat")
+    assert (
+        service._is_coverage_file_fresh(coverage_file, source_patterns=["**/*.py"])
+        is False
+    )
+
+
+@pytest.mark.unit
+def test_is_failure_state_recognizes_error_labels(tmp_path):
+    service = _DummyService(tmp_path)
+    assert service._is_failure_state("errors") is True
+    assert service._is_failure_state("error") is True
+    assert service._is_failure_state(None) is False

@@ -64,6 +64,18 @@ def test_pyright_owned_and_root_both_declare_type_checking_mode() -> None:
 
 
 @pytest.mark.unit
+def test_pyright_include_key_matches_between_root_and_owned() -> None:
+    """If either config adds ``include``, keep both in sync (currently both omit it)."""
+    root = _root_tool_pyright()
+    owned = json.loads(
+        (project_root / "development_tools" / "config" / "pyrightconfig.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert root.get("include") == owned.get("include")
+
+
+@pytest.mark.unit
 def test_pyright_owned_matches_root_diagnostic_and_exclude_keys() -> None:
     """V5 §7.6: owned JSON aligns root `[tool.pyright]` for shared policy keys (venvPath differs by design)."""
     root = _root_tool_pyright()

@@ -296,6 +296,12 @@ class TestMarkerAnalyzer:
             return []
         return self._last_marker_finder.missing_domain
 
+    def get_domain_attribution_summary(self) -> dict[str, int]:
+        """Rollup counts for domain-marker policy scope (after ``find_missing_markers_ast``)."""
+        if self._last_marker_finder is None:
+            return {}
+        return self._last_marker_finder.domain_attribution_summary()
+
     def add_markers(self, dry_run: bool = False) -> dict:
         """
         Add missing markers to test files based on directory structure.
@@ -448,6 +454,8 @@ class MissingMarkerFinder:
     ):
         self.missing = []
         self.missing_domain: list[tuple[str, int, str, str]] = []
+        self.domain_enforced_test_functions: int = 0
+        self.domain_marked_test_functions: int = 0
         self.category_markers = set(category_markers or TEST_CATEGORY_MARKERS)
         self.domain_markers = set(domain_markers or ())
         self.project_root = Path(project_root).resolve() if project_root else None
@@ -531,12 +539,23 @@ class MissingMarkerFinder:
         if not has_cat:
             self.missing.append((str(file_path), node.lineno, node.name, "function"))
             return
-        if (
-            self.domain_markers
-            and not has_dom
-            and not self._rel_under_exempt_prefix(file_path)
-        ):
+        exempt_domain = self._rel_under_exempt_prefix(file_path)
+        if self.domain_markers and not exempt_domain:
+            self.domain_enforced_test_functions += 1
+            if has_dom:
+                self.domain_marked_test_functions += 1
+        if self.domain_markers and not has_dom and not exempt_domain:
             self.missing_domain.append((str(file_path), node.lineno, node.name, "function"))
+
+    def domain_attribution_summary(self) -> dict[str, int]:
+        """Counts for tests subject to domain-marker policy (category present, not exempt)."""
+        enforced = self.domain_enforced_test_functions
+        marked = self.domain_marked_test_functions
+        return {
+            "domain_enforced_test_functions": enforced,
+            "domain_marked_test_functions": marked,
+            "domain_unmarked_test_functions": max(0, enforced - marked),
+        }
 
     def _class_marked_not_test(self, node):
         for stmt in node.body:
@@ -667,6 +686,7 @@ def main():
                     "missing_domain_count": len(missing_domain_list),
                     "missing_domain": missing_domain_list,
                     "domain_markers_configured": list(analyzer.domain_markers),
+                    "domain_attribution_summary": analyzer.get_domain_attribution_summary(),
                 },
             }
             print(json.dumps(standard_result, indent=2))

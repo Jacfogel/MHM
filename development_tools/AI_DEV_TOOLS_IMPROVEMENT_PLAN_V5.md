@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Single forward-looking backlog after V4; collapsed history; actionable next steps  
 > **Style**: Direct and concise  
-> **Last Updated**: 2026-04-21  
+> **Last Updated**: 2026-04-23  
 > **Supersedes**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (keep V4 for detailed checkbox history)
 
 **Authoritative metrics**: [development_tools/AI_STATUS.md](AI_STATUS.md) and [development_tools/AI_PRIORITIES.md](AI_PRIORITIES.md) after `python development_tools/run_development_tools.py audit` or `audit --full`.
@@ -70,6 +70,8 @@ Use this block when a V4 **Status** line says “IN PROGRESS” or “COMPLETE�
 ---
 
 ## 2. Current state snapshot (rolling)
+
+**2026-04-23 (V5 continuation — Phase A/B from attached execution plan)**: Phase **§5.1 — 1.1**: added [`test_commands_coverage_helpers.py`](../tests/development_tools/test_commands_coverage_helpers.py) cases for `_derive_tier3_state_from_classifications`, `_is_failure_state`, `_is_coverage_file_fresh` stat failure; [`test_analyze_unconverted_links.py`](../tests/development_tools/test_analyze_unconverted_links.py) for skip-outside-root, metadata line, `*.md`→`*.c` sibling, Example Code heading context. **§5.5 — 5.2**: [`EXPECTED_OVERLAPS`](shared/constants.py) **troubleshooting**, **additional resources** + [`test_analyze_documentation.py`](../tests/development_tools/test_analyze_documentation.py) numbered troubleshooting overlap regression. **§5.5 — 5.7**: [`analyze_test_markers.py`](tests/analyze_test_markers.py) — `domain_attribution_summary` / JSON `details.domain_attribution_summary` + [`test_analyze_test_markers_domain.py`](../tests/development_tools/test_analyze_test_markers_domain.py); `_FakeAnalyzer` in [`test_analyze_test_markers.py`](../tests/development_tools/test_analyze_test_markers.py). **§5.7 — 7.6**: [`test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py) `include` key parity. **§5.3 — 3.0**: example-marker advisory unchanged (clean); existing changelog/heading tests retained. **Evidence**: `pytest tests/development_tools -m "not e2e"`; `audit --full` post-change. **Next**: resume §4.3 only if new priorities emerge from fresh **AI_PRIORITIES**; optional product work §6 separate.
 
 **2026-04-21 (V5 continuation — coverage tests, Section 3.21 closeout)**: Added unit tests for [`shared/measure_tool_timings.py`](shared/measure_tool_timings.py) and [`shared/verify_tool_storage.py`](shared/verify_tool_storage.py) (`tests/development_tools/test_measure_tool_timings.py`, `tests/development_tools/test_verify_tool_storage.py`). **Section 3.21** documented: log `issues=` mirrors `data.summary.total_issues` (see [`audit_orchestration._extract_issue_count`](shared/service/audit_orchestration.py)); paired notes in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 3 and [HOW_TO_RUN.md](../HOW_TO_RUN.md) Section 5.1.6. **Section 4.3** lists the next **medium backlog** execution order after this slice. Refresh **AI_STATUS** / **AI_PRIORITIES** after your next `audit --full` for live percentages.
 

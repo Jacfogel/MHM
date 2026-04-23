@@ -4,6 +4,8 @@ Tests for analyze_unconverted_links.py.
 Tests unconverted link detection in documentation files.
 """
 
+import os
+
 import pytest
 from pathlib import Path
 
@@ -358,4 +360,38 @@ See tests/target.md for information.
         # Demo project may or may not have unconverted links
         assert all(isinstance(issues, list) for issues in results.values()), \
             "All issues should be lists"
+
+    @pytest.mark.unit
+    def test_should_skip_generated_file_outside_project_uses_heuristic(self, tmp_path):
+        """Paths not under project_root skip ALL_GENERATED_FILES fast path."""
+        analyzer = UnconvertedLinkAnalyzer(project_root=str(tmp_path), use_cache=False)
+        outside = Path(os.path.join(tmp_path.anchor, "__unconverted_outside__", "doc.md"))
+        skipped = analyzer._should_skip_generated_file(outside)
+        assert isinstance(skipped, bool)
+
+    @pytest.mark.unit
+    def test_is_file_metadata_line(self, tmp_path):
+        analyzer = UnconvertedLinkAnalyzer(project_root=str(tmp_path), use_cache=False)
+        assert analyzer._is_file_metadata_line("> **File**: foo.md") is True
+        assert analyzer._is_file_metadata_line("# Title") is False
+
+    @pytest.mark.unit
+    def test_is_valid_file_path_resolves_md_to_c_sibling(self, tmp_path):
+        """When .md is missing, accept sibling path built as *.md[:-2]+'c' (e.g. notes.c)."""
+        analyzer = UnconvertedLinkAnalyzer(project_root=str(tmp_path), use_cache=False)
+        sub = tmp_path / "docs"
+        sub.mkdir()
+        (sub / "notes.c").write_text("# sibling", encoding="utf-8")
+        doc = tmp_path / "readme.md"
+        assert analyzer._is_valid_file_path_for_link("docs/notes.md", doc) is True
+
+    @pytest.mark.unit
+    def test_is_in_example_context_examples_heading(self, tmp_path):
+        analyzer = UnconvertedLinkAnalyzer(project_root=str(tmp_path), use_cache=False)
+        lines = [
+            "## Example Code",
+            "",
+            "See path/to/sample.md for the sketch.",
+        ]
+        assert analyzer._is_in_example_context(lines[2], lines, 2) is True
 

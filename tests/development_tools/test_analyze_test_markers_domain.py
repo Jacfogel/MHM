@@ -12,7 +12,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from development_tools import config
-from development_tools.tests.analyze_test_markers import MissingMarkerFinder
+from development_tools.tests.analyze_test_markers import MissingMarkerFinder, TestMarkerAnalyzer
 
 
 @pytest.mark.unit
@@ -84,3 +84,37 @@ def test_no_domain_gap_when_core_present(tmp_path: Path) -> None:
     finder.analyze_file(p)
     assert finder.missing == []
     assert finder.missing_domain == []
+    summary = finder.domain_attribution_summary()
+    assert summary["domain_enforced_test_functions"] == 1
+    assert summary["domain_marked_test_functions"] == 1
+    assert summary["domain_unmarked_test_functions"] == 0
+
+
+@pytest.mark.unit
+def test_domain_attribution_summary_via_analyzer_ast_scan(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """JSON consumers can read domain_attribution_summary after AST scan (TEST_PLAN §4.4)."""
+    tests_dir = tmp_path / "tests" / "unit"
+    tests_dir.mkdir(parents=True)
+    fa = tests_dir / "test_a.py"
+    fb = tests_dir / "test_b.py"
+    fa.write_text(
+        "import pytest\n\n@pytest.mark.unit\n@pytest.mark.core\ndef test_one():\n    assert True\n",
+        encoding="utf-8",
+    )
+    fb.write_text(
+        "import pytest\n\n@pytest.mark.unit\ndef test_two():\n    assert True\n",
+        encoding="utf-8",
+    )
+
+    def _fixed_find(self: TestMarkerAnalyzer, exclude_ai: bool = True) -> list[Path]:
+        return sorted([fa, fb])
+
+    monkeypatch.setattr(TestMarkerAnalyzer, "find_test_files", _fixed_find)
+    analyzer = TestMarkerAnalyzer(project_root=tmp_path)
+    analyzer.find_missing_markers_ast()
+    summary = analyzer.get_domain_attribution_summary()
+    assert summary["domain_enforced_test_functions"] == 2
+    assert summary["domain_marked_test_functions"] == 1
+    assert summary["domain_unmarked_test_functions"] == 1
