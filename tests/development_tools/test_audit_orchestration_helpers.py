@@ -294,6 +294,34 @@ def test_finalize_tier3_audit_scope_full_repo_keeps_unified_dev_track_when_prese
 
 
 @pytest.mark.unit
+def test_finalize_tier3_audit_scope_full_repo_replaces_cache_only_precheck_dev_track(
+    temp_project_copy: Path,
+) -> None:
+    """cache_only_precheck dev track should not be treated as a fresh unified run."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.dev_tools_only_mode = False
+    service.tier3_test_outcome = {
+        "parallel": {"classification": "passed"},
+        "no_parallel": {"classification": "passed"},
+        "development_tools": {
+            "state": "unknown",
+            "classification": "unknown",
+            "classification_reason": "cache_only_precheck",
+        },
+    }
+
+    service._finalize_tier3_audit_scope()
+
+    assert service._tier3_skipped_dev_track is True
+    outcome = cast(dict, service.tier3_test_outcome)
+    assert outcome["development_tools"]["classification"] == "skipped"
+    assert (
+        outcome["development_tools"]["classification_reason"]
+        == "not_run_this_audit_scope"
+    )
+
+
+@pytest.mark.unit
 def test_get_tier3_groups_respects_full_vs_dev_tools_only_scope():
     """Tier 3 coverage arms are mutually exclusive by audit scope (V5 §1.9)."""
     from development_tools.shared.audit_tiers import get_tier3_groups

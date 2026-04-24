@@ -2,7 +2,11 @@ from pathlib import Path
 
 import pytest
 
-from development_tools.docs.fix_version_sync import sync_todo_with_changelog
+from development_tools.docs.fix_version_sync import (
+    _classify_completed_todo_line,
+    _find_todo_scan_start,
+    sync_todo_with_changelog,
+)
 
 
 def _write_required_files(tmp_path: Path, todo_content: str) -> None:
@@ -113,3 +117,35 @@ def test_sync_todo_apply_removes_only_checklist_lines(monkeypatch, tmp_path):
     assert "Done checklist item" not in updated
     assert "- [ ] Still open" in updated
     assert "COMPLETED" in updated
+
+
+@pytest.mark.unit
+def test_find_todo_scan_start_skips_preamble_until_first_heading():
+    lines = [
+        "# TODO",
+        "Intro line",
+        "",
+        "## High Priority",
+        "- [ ] open",
+    ]
+    assert _find_todo_scan_start(lines) == 3
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("line", "expected_type"),
+    [
+        ("- [x] done item", "checklist_checked"),
+        ("~~Legacy done~~", "strikethrough"),
+        ("Task status: COMPLETED", "trailing_status_marker"),
+        ("Refactor parser (DONE)", "trailing_status_marker"),
+        ("✅ completed migration", "emoji_status_marker"),
+        ("**DONE**", "bold_status_marker"),
+    ],
+)
+def test_classify_completed_todo_line_detects_supported_completion_markers(
+    line: str, expected_type: str
+):
+    is_done, marker_type = _classify_completed_todo_line(line)
+    assert is_done is True
+    assert marker_type == expected_type

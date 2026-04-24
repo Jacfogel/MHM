@@ -346,3 +346,96 @@ def test_is_failure_state_recognizes_error_labels(tmp_path):
     assert service._is_failure_state("errors") is True
     assert service._is_failure_state("error") is True
     assert service._is_failure_state(None) is False
+
+
+@pytest.mark.unit
+def test_run_doc_subcheck_with_cache_uses_standard_data_payload(tmp_path, monkeypatch):
+    service = _DummyService(tmp_path)
+    service._tool_cache_metadata = {}
+    service.results_cache = {}
+    service._tools_run_in_current_tier = set()
+    monkeypatch.setattr(service, "_is_doc_subcheck_cache_fresh", lambda _tool: False)
+
+    payload = {"summary": {"total_issues": 1}, "details": {"files": ["x.md"]}}
+    result = service._run_doc_subcheck_with_cache(
+        "analyze_heading_numbering",
+        "Headings",
+        lambda _output: {},
+        lambda: {"success": True, "data": payload},
+    )
+
+    assert result == payload
+    assert "analyze_heading_numbering" in service._tools_run_in_current_tier
+    assert service.results_cache["analyze_heading_numbering"] == payload
+    assert (
+        service._tool_cache_metadata["analyze_heading_numbering"]["source"]
+        == "subcheck_direct_result"
+    )
+
+
+@pytest.mark.unit
+def test_run_doc_subcheck_with_cache_parses_stdout_result(tmp_path, monkeypatch):
+    service = _DummyService(tmp_path)
+    service._tool_cache_metadata = {}
+    service.results_cache = {}
+    service._tools_run_in_current_tier = set()
+    monkeypatch.setattr(service, "_is_doc_subcheck_cache_fresh", lambda _tool: False)
+
+    parsed = {"summary": {"total_issues": 2}, "details": {"files": ["a.md", "b.md"]}}
+    save_mock = MagicMock()
+    monkeypatch.setattr(commands_module, "save_tool_result", save_mock)
+
+    result = service._run_doc_subcheck_with_cache(
+        "analyze_missing_addresses",
+        "Missing addresses",
+        lambda _output: parsed,
+        lambda: {"success": True, "output": "tool text"},
+    )
+
+    assert result == parsed
+    assert service.results_cache["analyze_missing_addresses"] == parsed
+    save_mock.assert_called_once()
+    assert (
+        service._tool_cache_metadata["analyze_missing_addresses"]["source"]
+        == "doc_subcheck_stdout"
+    )
+
+
+@pytest.mark.unit
+def test_run_doc_subcheck_with_cache_fallback_parse_when_cached_loader_errors(
+    tmp_path, monkeypatch
+):
+    service = _DummyService(tmp_path)
+    service._tool_cache_metadata = {}
+    service.results_cache = {}
+    service._tools_run_in_current_tier = set()
+    monkeypatch.setattr(service, "_is_doc_subcheck_cache_fresh", lambda _tool: False)
+    monkeypatch.setattr(
+        service,
+        "_load_mtime_cached_tool_results",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("simulated")),
+        raising=False,
+    )
+    monkeypatch.setattr(commands_module, "save_tool_result", MagicMock())
+
+    parse_calls = {"count": 0}
+
+    def _parser(_output):
+        parse_calls["count"] += 1
+        if parse_calls["count"] == 1:
+            return {"summary": {}}  # Non-standard shape forces cached-loader path.
+        return {"summary": {"total_issues": 0}, "details": {}}
+
+    result = service._run_doc_subcheck_with_cache(
+        "analyze_unconverted_links",
+        "Unconverted links",
+        _parser,
+        lambda: {"success": True, "output": "fallback parse me"},
+    )
+
+    assert parse_calls["count"] == 2
+    assert result == {"summary": {"total_issues": 0}, "details": {}}
+    assert (
+        service._tool_cache_metadata["analyze_unconverted_links"]["source"]
+        == "doc_subcheck_fallback"
+    )
