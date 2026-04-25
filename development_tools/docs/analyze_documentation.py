@@ -377,13 +377,19 @@ def generate_consolidation_recommendations(
             }
         )
 
-    workflow_files = [
-        f
-        for f in docs
-        if any(
-            kw in f.lower() for kw in ["workflow", "development", "guideline", "guide"]
-        )
-    ]
+    # Filename keywords only: avoid flagging every *guide*.md as "workflow" overlap.
+    workflow_files = []
+    for f in docs:
+        fl = f.lower().replace("\\", "/")
+        if (
+            "workflow" in fl
+            or "development_workflow" in fl.replace("-", "_")
+            or (
+                "development" in fl
+                and any(x in fl for x in ("guideline", "guidelines", "standard"))
+            )
+        ):
+            workflow_files.append(f)
     if len(workflow_files) > 1:
         similar_content = _check_content_similarity(docs, workflow_files)
         recommendations.append(
@@ -396,9 +402,18 @@ def generate_consolidation_recommendations(
             }
         )
 
-    testing_files = [
-        f for f in docs if "test" in f.lower() and "test_" not in f.lower()
-    ]
+    # Require "testing" or explicit test-plan markers so generic paths are not grouped.
+    testing_files = []
+    for f in docs:
+        tl = f.lower().replace("\\", "/")
+        if tl.endswith(".py"):
+            continue
+        if (
+            "testing" in tl
+            or "test-plan" in tl
+            or "test_plan" in tl.replace("-", "_")
+        ) and "test_" not in tl:
+            testing_files.append(f)
     if len(testing_files) > 1:
         similar_content = _check_content_similarity(docs, testing_files)
         recommendations.append(

@@ -72,6 +72,33 @@ def test_run_pip_audit_counts_vulnerabilities(mock_run: MagicMock, tmp_path) -> 
     assert out["summary"]["status"] == "WARN"
     assert out["details"].get("pip_audit_execution_state") == "executed_subprocess"
     assert out["details"].get("pip_audit_subprocess_seconds") is not None
+    assert out["details"].get("vulnerable_packages_with_fix") == 0
+    assert out["details"].get("vulnerable_packages_without_fix") == 1
+    assert out["details"]["vulnerable_packages"][0]["fix_available"] is False
+
+
+@pytest.mark.unit
+@patch("development_tools.static_checks.analyze_pip_audit.subprocess.run")
+def test_run_pip_audit_records_fix_versions(mock_run: MagicMock, tmp_path) -> None:
+    payload = {
+        "dependencies": [
+            {
+                "name": "requests",
+                "version": "1",
+                "vulns": [{"id": "CVE-1", "fix_versions": ["2.0.0"]}],
+            },
+        ]
+    }
+    mock_run.return_value = MagicMock(
+        returncode=1,
+        stdout=json.dumps(payload),
+        stderr="",
+    )
+    out = run_pip_audit(tmp_path)
+    assert out["details"].get("vulnerable_packages_with_fix") == 1
+    assert out["details"].get("vulnerable_packages_without_fix") == 0
+    assert out["details"]["vulnerable_packages"][0]["fix_versions"] == ["2.0.0"]
+    assert out["details"]["vulnerable_packages"][0]["fix_available"] is True
 
 
 @pytest.mark.unit

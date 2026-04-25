@@ -11,7 +11,7 @@ covering that domain are re-run.
 That is separate from **suite category** markers (``unit``, ``integration``, ``behavior``, ``ui``)
 and from **quality** markers (e.g. ``critical``, ``smoke``). Per-domain ``source_to_test_mapping``
 marker lists may still include category or tier names for legacy cache behavior; they are not
-redefining those as “domains.”
+redefining those as "domains."
 
 Usage:
     from development_tools.tests.domain_mapper import DomainMapper
@@ -391,7 +391,7 @@ class DomainMapper:
 
         If any marker on the test matches a domain's configured markers, returns **exactly**
         those domains (no directory or keyword fallback). If none match, returns ``None`` so
-        callers can use legacy path-based / keyword inference.
+        callers can use path-based and keyword inference as a fallback.
         """
         if not test_file_markers:
             return None

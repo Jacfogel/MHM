@@ -4455,13 +4455,35 @@ class ReportGenerationMixin:
                         bullets=bandit_bullets,
                     )
                 if pip_audit_issues > 0:
+                    pip_without_fix = to_int(
+                        pip_audit_details.get("vulnerable_packages_without_fix")
+                    ) or 0
+                    pip_with_fix = to_int(
+                        pip_audit_details.get("vulnerable_packages_with_fix")
+                    ) or 0
+                    if pip_with_fix > 0:
+                        pip_action = (
+                            "Action: Run `python -m pip_audit --format json` and upgrade "
+                            "pinned dependencies per advisory fix versions."
+                        )
+                    else:
+                        pip_action = (
+                            "Action: Run `python -m pip_audit --format json`; no advisory "
+                            "fix version is currently published, so monitor for an updated "
+                            "package release and avoid installing untrusted archives."
+                        )
                     pip_bullets: list[str] = [
                         f"pip-audit reports {pip_audit_issues} vulnerability finding(s) across "
                         f"{to_int(pip_audit_summary.get('files_affected')) or 0} package(s).",
-                        "Action: Run `python -m pip_audit --format json` and upgrade pinned dependencies per advisory fix versions.",
+                        pip_action,
                         "Why this matters: Known CVEs in dependencies are a supply-chain risk.",
                         "Review for details: development_tools/CONSOLIDATED_REPORT.md",
                     ]
+                    if pip_without_fix > 0:
+                        pip_bullets.insert(
+                            2,
+                            f"No fixed version is currently reported for {pip_without_fix} vulnerable package(s).",
+                        )
                     pip_bullets.insert(
                         0, "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
                     )
@@ -7568,7 +7590,11 @@ class ReportGenerationMixin:
                 pkgs = (pip_audit_details.get("vulnerable_packages") or [])[:5]
                 if pkgs:
                     pkg_text = ", ".join(
-                        f"{str(item.get('name', ''))} ({to_int(item.get('vuln_count')) or 0})"
+                        (
+                            f"{str(item.get('name', ''))} "
+                            f"({to_int(item.get('vuln_count')) or 0}"
+                            f"{', fix available' if item.get('fix_available') else ', no fixed version reported'})"
+                        )
                         for item in pkgs
                         if isinstance(item, dict)
                     )

@@ -28,6 +28,24 @@ def test_static_analysis_sections_render_in_generated_reports(temp_project_copy)
                 "top_warning_files": [{"file": "ui/b.py", "count": 1}],
             },
         },
+        "analyze_pip_audit": {
+            "summary": {"total_issues": 1, "files_affected": 1, "status": "WARN"},
+            "details": {
+                "tool_available": True,
+                "vulnerable_packages_with_fix": 0,
+                "vulnerable_packages_without_fix": 1,
+                "vulnerable_packages": [
+                    {
+                        "name": "pip",
+                        "version": "26.0.1",
+                        "vuln_count": 1,
+                        "example_id": "CVE-2026-3219",
+                        "fix_available": False,
+                        "fix_versions": [],
+                    }
+                ],
+            },
+        },
         "analyze_function_registry": {
             "summary": {"total_issues": 0, "files_affected": 0, "status": "PASS"},
             "details": {"coverage": "100.00%", "missing": {"count": 0, "files": {}}},
@@ -59,6 +77,10 @@ def test_static_analysis_sections_render_in_generated_reports(temp_project_copy)
     assert "Ruff" in status_doc and "Pyright" in status_doc
     assert "Address Ruff findings" in priorities_doc
     assert "Address Pyright findings" in priorities_doc
+    assert "Review pip-audit dependency vulnerabilities" in priorities_doc
+    assert "no advisory fix version is currently published" in priorities_doc
+    assert "No fixed version is currently reported" in priorities_doc
     assert "## Static Analysis" in consolidated_doc
     assert "Top Pyright Error Files: a.py (2)" in consolidated_doc
     assert "Top Pyright Warning Files: b.py (1)" in consolidated_doc
+    assert "Top pip-audit packages: pip (1, no fixed version reported)" in consolidated_doc

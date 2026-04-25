@@ -86,6 +86,7 @@ def test_pyright_owned_matches_root_diagnostic_and_exclude_keys() -> None:
     )
     for key in (
         "typeCheckingMode",
+        "pythonVersion",
         "reportReturnType",
         "reportArgumentType",
         "reportOptionalMemberAccess",

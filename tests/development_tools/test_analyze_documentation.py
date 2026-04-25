@@ -22,6 +22,7 @@ analyse_topics = docs_module.analyse_topics
 detect_corrupted_artifacts = docs_module.detect_corrupted_artifacts
 document_profiles = docs_module.document_profiles
 detect_section_overlaps = docs_module.detect_section_overlaps
+generate_consolidation_recommendations = docs_module.generate_consolidation_recommendations
 
 
 class TestAnalyzeDocumentation:
@@ -297,4 +298,36 @@ to be filled: placeholder
         }
         overlaps = detect_section_overlaps(docs)
         assert "3. Troubleshooting" not in overlaps
+
+    @pytest.mark.unit
+    def test_consolidation_workflow_narrows_to_workflow_paths(self):
+        """Generic *guide* filenames without workflow signals are not lumped into Development Workflow."""
+        docs = {
+            "ai_development_docs/AI_UI_GUIDE.md": "# UI\n" + "x" * 120,
+            "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": "# W\n" + "z" * 120,
+            "development_docs/DEVELOPMENT_WORKFLOW.md": "# W2\n" + "y" * 120,
+        }
+        recs = generate_consolidation_recommendations(docs)
+        wf = next((r for r in recs if r["category"] == "Development Workflow"), None)
+        assert wf is not None
+        assert set(wf["files"]) == {
+            "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+            "development_docs/DEVELOPMENT_WORKFLOW.md",
+        }
+
+    @pytest.mark.unit
+    def test_consolidation_testing_requires_testing_marker_in_path(self):
+        """Testing bucket uses 'testing' / test-plan markers so generic guides are excluded."""
+        docs = {
+            "development_docs/HOW_TO_RUN.md": "body " * 80,
+            "ai_development_docs/AI_TESTING_GUIDE.md": "body " * 80,
+            "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md": "body " * 80,
+        }
+        recs = generate_consolidation_recommendations(docs)
+        tr = next((r for r in recs if r["category"] == "Testing"), None)
+        assert tr is not None
+        assert set(tr["files"]) == {
+            "ai_development_docs/AI_TESTING_GUIDE.md",
+            "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
+        }
 

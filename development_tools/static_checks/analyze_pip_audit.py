@@ -75,20 +75,22 @@ def _resolve_python_command(command: list[str]) -> list[str]:
     return command
 
 
-def _count_vulnerabilities(payload: Any) -> tuple[int, int, list[dict[str, Any]]]:
-    """Return (total_vuln_count, packages_with_vulns, sample rows for top display)."""
+def _count_vulnerabilities(payload: Any) -> tuple[int, int, int, int, list[dict[str, Any]]]:
+    """Return vulnerability totals plus sample rows for reporting."""
     total = 0
     packages = 0
+    with_fix = 0
+    without_fix = 0
     samples: list[dict[str, Any]] = []
     if isinstance(payload, dict) and "dependencies" in payload:
         deps = payload.get("dependencies", [])
     elif isinstance(payload, list):
         deps = payload
     else:
-        return 0, 0, []
+        return 0, 0, 0, 0, []
 
     if not isinstance(deps, list):
-        return 0, 0, []
+        return 0, 0, 0, 0, []
 
     for dep in deps:
         if not isinstance(dep, dict):
@@ -103,19 +105,33 @@ def _count_vulnerabilities(payload: Any) -> tuple[int, int, list[dict[str, Any]]
             continue
         total += n
         packages += 1
+        package_has_fix = any(
+            isinstance(vuln, dict) and bool(vuln.get("fix_versions"))
+            for vuln in vulns
+        )
         if len(samples) < 8:
             vid = ""
+            fix_versions: list[str] = []
             if vulns and isinstance(vulns[0], dict):
                 vid = str(vulns[0].get("id", vulns[0].get("cve", ""))).strip()
+                raw_fixes = vulns[0].get("fix_versions") or []
+                if isinstance(raw_fixes, list):
+                    fix_versions = [str(item) for item in raw_fixes if str(item).strip()]
             samples.append(
                 {
                     "name": name,
                     "version": version,
                     "vuln_count": n,
                     "example_id": vid,
+                    "fix_versions": fix_versions,
+                    "fix_available": bool(fix_versions),
                 }
             )
-    return total, packages, samples
+        if package_has_fix:
+            with_fix += 1
+        else:
+            without_fix += 1
+    return total, packages, with_fix, without_fix, samples
 
 
 def _build_result_from_payload(
@@ -124,13 +140,15 @@ def _build_result_from_payload(
     *,
     subprocess_seconds: float | None,
 ) -> dict[str, Any]:
-    total, pkg_count, samples = _count_vulnerabilities(payload)
+    total, pkg_count, with_fix, without_fix, samples = _count_vulnerabilities(payload)
     status = "WARN" if total > 0 else "PASS"
     details: dict[str, Any] = {
         "tool": "pip_audit",
         "tool_available": True,
         "returncode": returncode,
         "vulnerable_packages": samples,
+        "vulnerable_packages_with_fix": with_fix,
+        "vulnerable_packages_without_fix": without_fix,
         "pip_audit_execution_state": "executed_subprocess",
         "pip_audit_subprocess_seconds": (
             round(subprocess_seconds, 4) if subprocess_seconds is not None else None

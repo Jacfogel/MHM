@@ -2,6 +2,7 @@
   "typeCheckingMode": "basic",
   "venvPath": "../..",
   "venv": ".venv",
+  "pythonVersion": "3.12",
   "reportReturnType": "none",
   "reportArgumentType": "warning",
   "reportOptionalMemberAccess": "warning",

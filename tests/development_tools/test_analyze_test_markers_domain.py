@@ -47,6 +47,9 @@ def test_domain_gap_when_domain_markers_configured(tmp_path: Path) -> None:
     assert finder.missing == []
     assert len(finder.missing_domain) == 1
     assert finder.missing_domain[0][2] == "test_foo"
+    summary = finder.domain_attribution_summary()
+    assert summary["missing_domain_test_count"] == 1
+    assert summary["missing_domain_file_count"] == 1
 
 
 @pytest.mark.unit
@@ -67,6 +70,7 @@ def test_directory_only_exempt_skips_domain_marker_requirement(tmp_path: Path) -
     finder.analyze_file(p)
     assert finder.missing == []
     assert finder.missing_domain == []
+    assert finder.domain_attribution_summary()["missing_domain_test_count"] == 0
 
 
 @pytest.mark.unit
@@ -88,6 +92,8 @@ def test_no_domain_gap_when_core_present(tmp_path: Path) -> None:
     assert summary["domain_enforced_test_functions"] == 1
     assert summary["domain_marked_test_functions"] == 1
     assert summary["domain_unmarked_test_functions"] == 0
+    assert summary["missing_domain_test_count"] == 0
+    assert summary["missing_domain_file_count"] == 0
 
 
 @pytest.mark.unit
@@ -118,3 +124,23 @@ def test_domain_attribution_summary_via_analyzer_ast_scan(
     assert summary["domain_enforced_test_functions"] == 2
     assert summary["domain_marked_test_functions"] == 1
     assert summary["domain_unmarked_test_functions"] == 1
+    assert summary["missing_domain_test_count"] == 1
+    assert summary["missing_domain_file_count"] == 1
+
+
+@pytest.mark.unit
+def test_domain_attribution_summary_counts_multiple_gaps_same_file(tmp_path: Path) -> None:
+    p = tmp_path / "test_multi.py"
+    p.write_text(
+        "import pytest\n\n@pytest.mark.unit\ndef test_a():\n    pass\n\n"
+        "@pytest.mark.unit\ndef test_b():\n    pass\n",
+        encoding="utf-8",
+    )
+    finder = MissingMarkerFinder(
+        category_markers=("unit", "integration", "behavior", "ui"),
+        domain_markers=("core",),
+    )
+    finder.analyze_file(p)
+    summary = finder.domain_attribution_summary()
+    assert summary["missing_domain_test_count"] == 2
+    assert summary["missing_domain_file_count"] == 1

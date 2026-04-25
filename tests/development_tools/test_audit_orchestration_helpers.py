@@ -872,6 +872,22 @@ def test_extract_coverage_cache_metadata_from_json(temp_project_copy: Path):
     # Unknown tool returns empty
     assert service._extract_coverage_cache_metadata("unknown_tool") == {}
 
+    cov_file.write_text(
+        json.dumps({"_metadata": {"generated_by": "custom local generator"}}),
+        encoding="utf-8",
+    )
+    meta = service._extract_coverage_cache_metadata("run_test_coverage")
+    assert meta.get("cache_mode") == "unknown"
+    assert "custom local generator" in meta.get("generated_by", "")
+
+    dev_cov = jsons_dir / "coverage_dev_tools.json"
+    dev_cov.write_text(
+        json.dumps({"_metadata": {"generated_by": "pytest-cov dev tools"}}),
+        encoding="utf-8",
+    )
+    meta_dt = service._extract_coverage_cache_metadata("generate_dev_tools_coverage")
+    assert meta_dt.get("cache_mode") == "cold_scan"
+
 
 @pytest.mark.unit
 def test_format_coverage_mode_summary_non_dict_and_partial_tools(temp_project_copy: Path):

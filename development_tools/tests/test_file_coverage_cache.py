@@ -85,20 +85,20 @@ class TestFileCoverageCache:
 
     **Invalidation matrix** (``get_changed_domains``), highest priority first:
 
-    1. **tool_change** — Coverage script/tool hash changed → **all** domains (safety).
-    2. **previous_run_failed** — Uses ``last_failed_domains`` if set, else ``last_run_domains``,
+    1. **tool_change** - Coverage script/tool hash changed -> **all** domains (safety).
+    2. **previous_run_failed** - Uses ``last_failed_domains`` if set, else ``last_run_domains``,
        else **all** domains if no domain list was recorded.
-    3. **previous_run_missing_no_parallel_coverage** — **all** domains.
-    4. **config_changed** — ``development_tools_config.json`` mtime changed → **all** domains.
-    5. **test_file_set_changed** — Test path set differs from cache:
+    3. **previous_run_missing_no_parallel_coverage** - **all** domains.
+    4. **config_changed** - ``development_tools_config.json`` mtime changed -> **all** domains.
+    5. **test_file_set_changed** - Test path set differs from cache:
 
-       - If cache had no prior ``test_files`` entries → **all** domains (cold/first mapping).
-       - Else → **selective**: domains implied only by **added** / **removed** paths (from
+       - If cache had no prior ``test_files`` entries -> **all** domains (cold/first mapping).
+       - Else -> **selective**: domains implied only by **added** / **removed** paths (from
          on-disk mapping + cached ``domains`` entries). Falls back to **all** domains when
          narrowing is ambiguous (e.g. removed file had no cached domains).
-    6. **test_file_content_or_mapping_changed** — Same paths, mtime/content drift → affected
+    6. **test_file_content_or_mapping_changed** - Same paths, mtime/content drift -> affected
        domains + dependency expansion.
-    7. **source_domain_changed** — Source ``*.py`` mtimes vs snapshot; new domains in mapper
+    7. **source_domain_changed** - Source ``*.py`` mtimes vs snapshot; new domains in mapper
        with no snapshot yet.
 
     Use ``last_invalidation_reason``, ``last_invalidation_detail``, and
@@ -1043,8 +1043,8 @@ class TestFileCoverageCache:
 
         If the file uses any **domain attribution** pytest markers (those listed in
         ``domain_mapper.source_to_test_mapping`` for a domain), returns **only** the domain(s)
-        implied by those markers—no merging with directory rules or path keywords. Otherwise
-        uses the legacy path: test directory layout, then ``infer_domains_from_test_path`` when
+        implied by those markers - no merging with directory rules or path keywords. Otherwise
+        falls back to test directory layout, then ``infer_domains_from_test_path`` when
         no directory matches.
 
         Args:

@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-04-23 01:13:33",
+  "last_generated": "2026-04-24 20:46:40",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-04-23T01:13:33.958827",
+  "timestamp": "2026-04-24T20:46:40.852108",
   "successful": [
     "analyze_ai_work",
     "analyze_config",
@@ -55,7 +55,7 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-04-23T01:04:49"
+      "timestamp": "2026-04-24T20:36:13"
     },
     "analyze_config": {
       "success": true,
@@ -123,7 +123,7 @@
           }
         }
       },
-      "timestamp": "2026-04-23T01:04:49"
+      "timestamp": "2026-04-24T20:36:13"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -141,7 +141,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-23T01:05:01"
+      "timestamp": "2026-04-24T20:36:29"
     },
     "analyze_documentation": {
       "success": true,
@@ -153,35 +153,10 @@
               "category": "Development Workflow",
               "files": [
                 "DEVELOPMENT_WORKFLOW.md",
-                "DOCUMENTATION_GUIDE.md",
-                "ai/SYSTEM_AI_GUIDE.md",
-                "ai_development_docs/AI_ARCHITECTURE.md",
-                "ai_development_docs/AI_BACKUP_GUIDE.md",
-                "ai_development_docs/AI_CHANGELOG.md",
-                "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
-                "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-                "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
-                "ai_development_docs/AI_LOGGING_GUIDE.md",
-                "ai_development_docs/AI_SESSION_STARTER.md",
-                "ai_development_docs/AI_TESTING_GUIDE.md",
-                "communication/COMMUNICATION_GUIDE.md",
-                "communication/communication_channels/discord/DISCORD_GUIDE.md",
-                "core/ERROR_HANDLING_GUIDE.md",
-                "development_docs/CHANGELOG_DETAIL.md",
-                "development_docs/PLANS.md",
-                "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
-                "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
-                "logs/LOGGING_GUIDE.md",
-                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
-                "tests/MANUAL_DISCORD_TEST_GUIDE.md",
-                "tests/MANUAL_TESTING_GUIDE.md",
-                "tests/TESTING_GUIDE.md",
-                "tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md",
-                "ui/UI_GUIDE.md"
+                "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
               ],
-              "priority": "medium",
-              "similarity_score": 0.197475136450577,
+              "priority": "high",
+              "similarity_score": 0.3993993993993994,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -421,7 +396,7 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 36117,
+              "content_length": 34845,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
               "section_count": 21,
               "sections": [
@@ -430,11 +405,11 @@
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2026-04-23 - V5 continuation: coverage tests + full-audit refresh **COMPLETED**",
                 "2026-04-22 - Dev-tools tests, audit `issues=` operator docs, Pyright test fix **COMPLETED**",
                 "2026-04-21 - Category/domain unmix, suite domain markers, UI pytest import fix, python-dotenv CVE **COMPLETED**",
                 "2026-04-20 - Domain markers, coverage-cache attribution, test-marker tooling, static-check metadata **COMPLETED**",
-                "2026-04-20 - Static-check shard caching implemented + cache-state reporting parity + mixed-hit/miss merge tests **COMPLETED**",
-                "2026-04-19 - Dev-tools static-check sharding, cache alignment, V5 Section 3.19/Section 3.21 plan **COMPLETED**"
+                "2026-04-20 - Static-check shard caching implemented + cache-state reporting parity + mixed-hit/miss merge tests **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -623,9 +598,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 479235,
+              "content_length": 481759,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 153,
+              "section_count": 154,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -633,10 +608,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-04-23 - V5 continuation: targeted coverage tests, doc-sync verification, and full-audit refresh",
                 "2026-04-22 - Development-tools test coverage and audit log semantics documentation",
                 "2026-04-21 - Category vs domain marker unmix, suite-wide domain attribution, UI collection fix, python-dotenv advisory",
-                "2026-04-20 - Domain marker policy, coverage-cache attribution, test-marker orchestration, static-check cache metadata, audit artifacts",
-                "2026-04-20 - Static-check shard cache implementation, parity validation, and cache-state reporting alignment"
+                "2026-04-20 - Domain marker policy, coverage-cache attribution, test-marker orchestration, static-check cache metadata, audit artifacts"
               ]
             },
             "development_docs/PLANS.md": {
@@ -892,7 +867,7 @@
           "total_issues": 12
         }
       },
-      "timestamp": "2026-04-23T01:04:49"
+      "timestamp": "2026-04-24T20:36:13"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -971,7 +946,7 @@
           "example_marker_findings": {}
         }
       },
-      "timestamp": "2026-04-23T01:05:06"
+      "timestamp": "2026-04-24T20:36:35"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -986,7 +961,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-23T01:05:02"
+      "timestamp": "2026-04-24T20:36:30"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -1001,7 +976,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-23T01:05:05"
+      "timestamp": "2026-04-24T20:36:32"
     },
     "analyze_path_drift": {
       "success": true,
@@ -1014,7 +989,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-23T01:05:00"
+      "timestamp": "2026-04-24T20:36:28"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -1029,7 +1004,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-04-23T01:05:06"
+      "timestamp": "2026-04-24T20:36:35"
     },
     "analyze_error_handling": {
       "success": true,
@@ -1049,20 +1024,20 @@
             "handle_errors_decorator": 1559,
             "try_except": 698,
             "handle_ai_error": 15,
-            "handle_communication_error": 4,
             "handle_network_error": 5,
+            "handle_communication_error": 4,
             "DataError": 15,
             "ConfigurationError": 4,
             "ValidationError": 25,
             "handle_configuration_error": 4,
             "error_handler_usage": 8,
             "handle_validation_error": 2,
+            "safe_file_operation": 1,
             "AIError": 2,
-            "MHMError": 2,
-            "CommunicationError": 2,
             "FileOperationError": 8,
             "handle_file_error": 3,
-            "safe_file_operation": 1
+            "MHMError": 2,
+            "CommunicationError": 2
           },
           "missing_error_handling": [],
           "error_handling_quality": {
@@ -1110,7 +1085,7 @@
           ]
         }
       },
-      "timestamp": "2026-04-23T01:04:55"
+      "timestamp": "2026-04-24T20:36:22"
     },
     "analyze_duplicate_functions": {
       "success": true,
@@ -1126,8 +1101,8 @@
           "groups_filtered_single_function": 10,
           "cache": {
             "total_files": 122,
-            "cached_files": 122,
-            "scanned_files": 0
+            "cached_files": 0,
+            "scanned_files": 122
           },
           "pairs_considered": 20000,
           "pairs_reported": 31,
@@ -3071,7 +3046,7 @@
           "body_similarity_min_name_threshold": 0.35
         }
       },
-      "timestamp": "2026-04-23T01:04:56"
+      "timestamp": "2026-04-24T20:36:22"
     },
     "analyze_functions": {
       "success": true,
@@ -3276,7 +3251,7 @@
           "utilities": 0
         }
       },
-      "timestamp": "2026-04-23T01:04:55"
+      "timestamp": "2026-04-24T20:36:20"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -5309,7 +5284,7 @@
           ]
         }
       },
-      "timestamp": "2026-04-23T01:04:53"
+      "timestamp": "2026-04-24T20:36:18"
     },
     "analyze_function_registry": {
       "success": true,
@@ -7560,7 +7535,7 @@
           "total_issues": 47
         }
       },
-      "timestamp": "2026-04-23T01:04:59"
+      "timestamp": "2026-04-24T20:36:25"
     },
     "analyze_module_refactor_candidates": {
       "success": true,
@@ -8302,7 +8277,7 @@
           }
         }
       },
-      "timestamp": "2026-04-23T01:04:58"
+      "timestamp": "2026-04-24T20:36:23"
     },
     "analyze_package_exports": {
       "success": true,
@@ -15606,7 +15581,7 @@
           }
         }
       },
-      "timestamp": "2026-04-23T01:04:57"
+      "timestamp": "2026-04-24T20:36:23"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -18663,7 +18638,7 @@
           ]
         }
       },
-      "timestamp": "2026-04-23T01:04:58"
+      "timestamp": "2026-04-24T20:36:27"
     },
     "analyze_dev_tools_import_boundaries": {
       "success": true,
@@ -18680,7 +18655,7 @@
           }
         }
       },
-      "timestamp": "2026-04-23T01:04:49"
+      "timestamp": "2026-04-24T20:36:14"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -18691,7 +18666,7 @@
         },
         "details": {}
       },
-      "timestamp": "2026-04-23T01:05:00"
+      "timestamp": "2026-04-24T20:36:29"
     },
     "analyze_module_imports": {
       "success": true,
@@ -31058,7 +31033,7 @@
           }
         }
       },
-      "timestamp": "2026-04-23T01:04:58"
+      "timestamp": "2026-04-24T20:36:27"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -31083,28 +31058,28 @@
             "ui_imports": []
           },
           "stats": {
-            "files_scanned": 586,
+            "files_scanned": 587,
             "files_with_issues": 0,
             "total_unused": 0,
-            "cache_hits": 585,
-            "cache_misses": 1,
-            "changed_files": 1,
-            "cache_mode": "partial_cache",
+            "cache_hits": 0,
+            "cache_misses": 587,
+            "changed_files": 587,
+            "cache_mode": "cold_scan",
             "backend": "ruff"
           },
           "performance": {
             "backend": "ruff",
-            "scan_mode": "partial_cache",
+            "scan_mode": "cold_scan",
             "timings": {
-              "discovery_seconds": 2.0703,
-              "detection_seconds": 0.4221,
-              "categorization_seconds": 0.0072,
-              "total_seconds": 2.8305
+              "discovery_seconds": 1.6361,
+              "detection_seconds": 1.183,
+              "categorization_seconds": 0.0077,
+              "total_seconds": 2.9905
             },
-            "files_per_second": 207.03,
-            "cache_hits": 585,
-            "cache_misses": 1,
-            "changed_files": 1,
+            "files_per_second": 196.29,
+            "cache_hits": 0,
+            "cache_misses": 587,
+            "changed_files": 587,
             "batch_size": 200,
             "fallback_used": false,
             "fallback_reason": ""
@@ -31121,7 +31096,7 @@
             "production_test_mocking": 0,
             "ui_imports": 0
           },
-          "files_scanned": 586,
+          "files_scanned": 587,
           "invalidation_summary": {
             "storage": "MtimeFileCache",
             "domain": "imports",
@@ -31131,65 +31106,34 @@
             "stats_reflect": "cache_hits / cache_misses / changed_files per scan"
           },
           "_cache_metadata": {
-            "cache_mode": "partial_cache",
-            "hits": 585,
-            "misses": 1,
-            "total_cache_checks": 586,
-            "hit_rate": 99.8
+            "cache_mode": "cold_scan",
+            "hits": 0,
+            "misses": 587,
+            "total_cache_checks": 587,
+            "hit_rate": 0.0
           }
         },
         "_cache_metadata": {
-          "cache_mode": "partial_cache",
-          "hits": 585,
-          "misses": 1,
-          "total_cache_checks": 586,
-          "hit_rate": 99.8
+          "cache_mode": "cold_scan",
+          "hits": 0,
+          "misses": 587,
+          "total_cache_checks": 587,
+          "hit_rate": 0.0
         }
       },
-      "timestamp": "2026-04-23T01:05:02"
+      "timestamp": "2026-04-24T20:36:27"
     },
     "analyze_legacy_references": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 2,
-          "files_affected": 2
+          "total_issues": 0,
+          "files_affected": 0
         },
         "details": {
-          "findings": {
-            "legacy_inventory_tracking": [
-              [
-                "development_tools\\tests\\domain_mapper.py",
-                "#!/usr/bin/env python3\n\"\"\"\nDomain Mapping Infrastructure\n\nMaps source code directories to test directories and pytest markers for test-file coverage caching.\nThis enables selective test execution: when source files in a domain change, only test files\ncovering that domain are re-run.\n\n**Taxonomy:** ``domain_mapper`` keys are **product domains** (top-level source areas: ``core``,\n``communication``, ``ui``, ``tasks``, ``ai``, ``user``, ``notebook``, ``development_tools``).\nThat is separate from **suite category** markers (``unit``, ``integration``, ``behavior``, ``ui``)\nand from **quality** markers (e.g. ``critical``, ``smoke``). Per-domain ``source_to_test_mapping``\nmarker lists may still include category or tier names for legacy cache behavior; they are not\nredefining those as \u201cdomains.\u201d\n\nUsage:\n    from development_tools.tests.domain_mapper import DomainMapper\n\n    mapper = DomainMapper(project_root)\n    source_domain = mapper.get_source_domain('core/service.py')\n    test_domains = mapper.get_test_domains_for_source('core/service.py')\n    markers = mapper.get_markers_for_source('core/service.py')\n\"\"\"\n\nimport ast\nimport re\nfrom pathlib import Path\n\nfrom development_tools.shared.standard_exclusions import should_exclude_file\n\ntry:\n    from development_tools.config.config import get_domain_mapper_config\nexcept ImportError:\n    get_domain_mapper_config = None\n\n\ndef _default_domain_mapper_config() -> dict:\n    \"\"\"Fallback when config module is unavailable.\"\"\"\n    return {\n        \"source_to_test_mapping\": {\n            \"core\": [[\"tests/core/\", \"tests/unit/\"], [\"core\"]],\n            \"communication\": [[\"tests/communication/\"], [\"communication\"]],\n            \"ui\": [[\"tests/ui/\"], [\"ui\"]],\n            \"tasks\": [[], [\"tasks\"]],\n            \"ai\": [[\"tests/ai/\"], [\"ai\"]],\n            \"user\": [[], [\"user_management\"]],\n            \"notebook\": [[], [\"notebook\"]],\n            \"development_tools\": [[\"tests/development_tools/\"], []],\n        },\n        \"domain_dependencies\": {\n            \"core\": [\"communication\", \"ui\", \"tasks\", \"ai\", \"user\", \"notebook\"],\n            \"communication\": [\"ui\", \"tasks\", \"ai\", \"user\"],\n            \"tasks\": [\"communication\", \"ui\"],\n            \"user\": [\"communication\", \"ui\", \"ai\"],\n            \"ai\": [\"communication\", \"ui\"],\n            \"ui\": [],\n            \"notebook\": [\"communication\", \"ui\"],\n            \"development_tools\": [],\n        },\n        \"keyword_map\": {\n            \"development_tools\": [\n                \"development_tools\",\n                \"dev_tools\",\n                \"audit\",\n                \"coverage\",\n                \"verification\",\n                \"status\",\n            ],\n            \"communication\": [\n                \"communication\",\n                \"discord\",\n                \"email\",\n                \"webhook\",\n                \"channel\",\n                \"command\",\n                \"interaction\",\n                \"router\",\n            ],\n            \"ai\": [\"ai\", \"chatbot\", \"prompt\", \"context\", \"llm\"],\n            \"tasks\": [\"task\"],\n            \"ui\": [\"ui\", \"dialog\", \"widget\", \"qt\", \"pyside\"],\n            \"user\": [\"user\", \"profile\", \"account\", \"preferences\"],\n            \"notebook\": [\"notebook\", \"note\", \"journal\", \"list\"],\n            \"core\": [\n                \"core\",\n                \"service\",\n                \"scheduler\",\n                \"config\",\n                \"logger\",\n                \"logging\",\n                \"observability\",\n                \"error\",\n                \"backup\",\n                \"file\",\n                \"cleanup\",\n                \"checkin\",\n                \"analytics\",\n                \"response\",\n            ],\n        },\n    }\n\n\ntry:\n    from core.logger import get_component_logger\n\n    logger = get_component_logger(\"development_tools\")\nexcept ImportError:\n    logger = None\n\n\nclass DomainMapper:\n    \"\"\"\n    Maps source code domains to test domains and pytest markers.\n\n    This enables test-file coverage caching by identifying which tests cover which source domains.\n    Configuration is loaded from development_tools_config.json (domain_mapper section) with built-in defaults.\n    \"\"\"\n\n    def __init__(self, project_root: Path):\n        \"\"\"\n        Initialize domain mapper.\n\n        Args:\n            project_root: Root directory of the project\n        \"\"\"\n        self.project_root = Path(project_root).resolve()\n        self.test_root = self.project_root / \"tests\"\n\n        # Load config (domain_mapper section) with built-in defaults\n        if get_domain_mapper_config:\n            raw = get_domain_mapper_config()\n        else:\n            raw = _default_domain_mapper_config()\n        # Convert source_to_test_mapping: config uses [test_dirs, markers], we need tuple\n        self._source_to_test_mapping: dict[str, tuple[list[str], list[str]]] = {}\n        for domain, value in raw.get(\"source_to_test_mapping\", {}).items():\n            if isinstance(value, (list, tuple)) and len(value) >= 2:\n                self._source_to_test_mapping[domain] = (\n                    list(value[0]) if value[0] else [],\n                    list(value[1]) if value[1] else [],\n                )\n        self._domain_dependencies: dict[str, list[str]] = dict(\n            raw.get(\"domain_dependencies\", {})\n        )\n        self._keyword_map: dict[str, list[str]] = dict(raw.get(\"keyword_map\", {}))\n\n        # Backward-compat for tests/code that accessed SOURCE_TO_TEST_MAPPING\n        self.SOURCE_TO_TEST_MAPPING = self._source_to_test_mapping\n\n        # Cache for parsed markers from test files\n        self._marker_cache: dict[Path, set[str]] = {}\n\n        # Build reverse mapping: source file -> domains/markers\n        self._source_domain_cache: dict[str, str] = {}\n        self._test_domain_cache: dict[str, list[str]] = {}\n        self._marker_cache_for_source: dict[str, set[str]] = {}\n\n    def get_source_domain(self, source_file: str) -> str | None:\n        \"\"\"\n        Get the source domain for a source file.\n\n        Args:\n            source_file: Relative path to source file (e.g., 'core/service.py')\n\n        Returns:\n            Source domain name (e.g., 'core') or None if not mapped\n        \"\"\"\n        if source_file in self._source_domain_cache:\n            return self._source_domain_cache[source_file]\n\n        # Extract directory from file path\n        source_path = Path(source_file)\n        if len(source_path.parts) > 0:\n            domain = source_path.parts[0]\n            if domain in self._source_to_test_mapping:\n                self._source_domain_cache[source_file] = domain\n                return domain\n\n        # Check if it's in a known source directory\n        for domain in self._source_to_test_mapping:\n            if source_file.startswith(f\"{domain}/\"):\n                self._source_domain_cache[source_file] = domain\n                return domain\n\n        return None\n\n    def get_test_domains_for_source(self, source_file: str) -> list[str]:\n        \"\"\"\n        Get test directories that cover a source file.\n\n        Args:\n            source_file: Relative path to source file (e.g., 'core/service.py')\n\n        Returns:\n            List of test directory paths (e.g., ['tests/core/', 'tests/unit/'])\n        \"\"\"\n        if source_file in self._test_domain_cache:\n            return self._test_domain_cache[source_file]\n\n        source_domain = self.get_source_domain(source_file)\n        if source_domain and source_domain in self._source_to_test_mapping:\n            test_dirs, _ = self._source_to_test_mapping[source_domain]\n            self._test_domain_cache[source_file] = test_dirs\n            return test_dirs\n\n        return []\n\n    def get_markers_for_source(self, source_file: str) -> set[str]:\n        \"\"\"\n        Get pytest markers that cover a source file.\n\n        Args:\n            source_file: Relative path to source file (e.g., 'core/service.py')\n\n        Returns:\n            Set of pytest marker names (e.g., {'unit', 'critical'})\n        \"\"\"\n        if source_file in self._marker_cache_for_source:\n            return self._marker_cache_for_source[source_file]\n\n        source_domain = self.get_source_domain(source_file)\n        if source_domain and source_domain in self._source_to_test_mapping:\n            _, markers = self._source_to_test_mapping[source_domain]\n            marker_set = set(markers)\n            self._marker_cache_for_source[source_file] = marker_set\n            return marker_set\n\n        return set()\n\n    def parse_markers_from_test_file(self, test_file: Path) -> set[str]:\n        \"\"\"\n        Parse pytest markers from a test file.\n\n        Args:\n            test_file: Path to test file\n\n        Returns:\n            Set of marker names found in the file\n        \"\"\"\n        if test_file in self._marker_cache:\n            return self._marker_cache[test_file]\n\n        markers = set()\n\n        if not test_file.exists():\n            self._marker_cache[test_file] = markers\n            return markers\n\n        try:\n            content = test_file.read_text(encoding=\"utf-8\")\n\n            # Parse using AST for accurate marker detection\n            try:\n                tree = ast.parse(content, filename=str(test_file))\n\n                # Find all decorators with @pytest.mark.*\n                for node in ast.walk(tree):\n                    if isinstance(node, (ast.FunctionDef, ast.ClassDef)):\n                        for decorator in node.decorator_list:\n                            if isinstance(decorator, ast.Attribute):\n                                if (\n                                    isinstance(decorator.value, ast.Attribute)\n                                    and decorator.value.attr == \"mark\"\n                                    and isinstance(decorator.value.value, ast.Name)\n                                    and decorator.value.value.id == \"pytest\"\n                                ):\n                                    # Found @pytest.mark.<marker>\n                                    markers.add(decorator.attr)\n                            elif isinstance(decorator, ast.Call):\n                                # Handle @pytest.mark.<marker>() or @pytest.mark.parametrize(...)\n                                if isinstance(decorator.func, ast.Attribute):\n                                    if (\n                                        isinstance(decorator.func.value, ast.Attribute)\n                                        and decorator.func.value.attr == \"mark\"\n                                        and isinstance(\n                                            decorator.func.value.value, ast.Name\n                                        )\n                                        and decorator.func.value.value.id == \"pytest\"\n                                    ):\n                                        markers.add(decorator.func.attr)\n            except SyntaxError:\n                # Fallback to regex if AST parsing fails\n                if logger:\n                    logger.debug(\n                        f\"AST parsing failed for {test_file}, using regex fallback\"\n                    )\n                # Regex pattern for @pytest.mark.<marker>\n                pattern = r\"@pytest\\.mark\\.(\\w+)\"\n                matches = re.findall(pattern, content)\n                markers.update(matches)\n\n        except Exception as e:\n            if logger:\n                logger.debug(f\"Failed to parse markers from {test_file}: {e}\")\n\n        self._marker_cache[test_file] = markers\n        return markers\n\n    def get_test_files_for_source(self, source_file: str) -> list[Path]:\n        \"\"\"\n        Get test files that potentially cover a source file.\n\n        Args:\n            source_file: Relative path to source file (e.g., 'core/service.py')\n\n        Returns:\n            List of test file paths\n        \"\"\"\n        test_files = []\n\n        # Get test directories for this source domain\n        test_dirs = self.get_test_domains_for_source(source_file)\n        for test_dir in test_dirs:\n            test_dir_path = self.project_root / test_dir\n            if test_dir_path.exists():\n                # Find all test files in this directory\n                for test_file in test_dir_path.rglob(\"test_*.py\"):\n                    rel_path = str(test_file.relative_to(self.project_root)).replace(\n                        \"\\\\\", \"/\"\n                    )\n                    if should_exclude_file(\n                        rel_path, tool_type=\"analysis\", context=\"development\"\n                    ):\n                        continue\n                    test_files.append(test_file)\n\n        # Also find test files with matching markers\n        markers = self.get_markers_for_source(source_file)\n        if markers:\n            # Search all test files for these markers\n            for test_file in self.test_root.rglob(\"test_*.py\"):\n                rel_path = str(test_file.relative_to(self.project_root)).replace(\n                    \"\\\\\", \"/\"\n                )\n                if should_exclude_file(\n                    rel_path, tool_type=\"analysis\", context=\"development\"\n                ):\n                    continue\n                file_markers = self.parse_markers_from_test_file(test_file)\n                if markers.intersection(file_markers):\n                    if test_file not in test_files:\n                        test_files.append(test_file)\n\n        return test_files\n\n    def get_changed_domains(self, changed_files: list[str]) -> set[str]:\n        \"\"\"\n        Get set of domains that have changed files.\n\n        Args:\n            changed_files: List of relative paths to changed source files\n\n        Returns:\n            Set of domain names that have changes\n        \"\"\"\n        changed_domains = set()\n        for file_path in changed_files:\n            domain = self.get_source_domain(file_path)\n            if domain:\n                changed_domains.add(domain)\n        return self.expand_domains_with_dependencies(changed_domains)\n\n    def expand_domains_with_dependencies(self, domains: set[str]) -> set[str]:\n        \"\"\"\n        Expand domains to include transitive cross-domain dependencies.\n\n        Args:\n            domains: Initial changed domains\n\n        Returns:\n            Expanded domain set including dependent domains\n        \"\"\"\n        expanded = set(domains)\n        queue = list(domains)\n\n        while queue:\n            domain = queue.pop(0)\n            for dependent_domain in self._domain_dependencies.get(domain, []):\n                if dependent_domain not in expanded:\n                    expanded.add(dependent_domain)\n                    queue.append(dependent_domain)\n\n        return expanded\n\n    def domains_from_attribution_markers(\n        self, test_file_markers: set[str]\n    ) -> set[str] | None:\n        \"\"\"\n        Map pytest marks to domain names using only ``source_to_test_mapping`` marker lists.\n\n        If any marker on the test matches a domain's configured markers, returns **exactly**\n        those domains (no directory or keyword fallback). If none match, returns ``None`` so\n        callers can use legacy path-based / keyword inference.\n        \"\"\"\n        if not test_file_markers:\n            return None\n        attributed: set[str] = set()\n        for domain, val in self._source_to_test_mapping.items():\n            if not isinstance(val, (list, tuple)) or len(val) < 2:\n                continue\n            markers = val[1]\n            if not isinstance(markers, (list, tuple)) or not markers:\n                continue\n            ms = {str(x).strip() for x in markers if str(x).strip()}\n            if test_file_markers & ms:\n                attributed.add(domain)\n        return attributed if attributed else None\n\n    def get_pytest_marker_filter(self, domains: set[str]) -> str | None:\n        \"\"\"\n        Get pytest marker filter expression for given domains.\n\n        Args:\n            domains: Set of domain names\n\n        Returns:\n            Pytest marker filter expression (e.g., 'communication or tasks') or None\n        \"\"\"\n        if not domains:\n            return None\n\n        # Collect all markers for these domains\n        all_markers = set()\n        for domain in domains:\n            if domain in self._source_to_test_mapping:\n                _, markers = self._source_to_test_mapping[domain]\n                all_markers.update(markers)\n\n        if not all_markers:\n            return None\n\n        # Create OR expression: 'marker1 or marker2 or marker3'\n        return \" or \".join(sorted(all_markers))\n\n    def get_test_directories_for_domains(self, domains: set[str]) -> list[str]:\n        \"\"\"\n        Get test directories for given domains.\n\n        Args:\n            domains: Set of domain names\n\n        Returns:\n            List of test directory paths\n        \"\"\"\n        test_dirs = set()\n        for domain in domains:\n            if domain in self._source_to_test_mapping:\n                dirs, _ = self._source_to_test_mapping[domain]\n                test_dirs.update(dirs)\n        return sorted(test_dirs)\n\n    def infer_domains_from_test_path(self, test_file: Path) -> set[str]:\n        \"\"\"\n        Infer test domains from file path/name when markers are missing.\n\n        Args:\n            test_file: Path to test file\n\n        Returns:\n            Set of inferred domain names\n        \"\"\"\n        path_lower = test_file.as_posix().lower()\n        inferred = set()\n\n        for domain, keywords in self._keyword_map.items():\n            if any(keyword in path_lower for keyword in keywords):\n                inferred.add(domain)\n\n        return inferred\n",
-                [
-                  {
-                    "pattern": "(?i)legacy path",
-                    "match": "legacy path",
-                    "line": 394,
-                    "line_content": "callers can use legacy path-based / keyword inference.",
-                    "start": 15010,
-                    "end": 15021
-                  }
-                ]
-              ],
-              [
-                "development_tools\\tests\\test_file_coverage_cache.py",
-                "#!/usr/bin/env python3\n\"\"\"\nTest-File-Based Coverage Cache\n\nProvides test-file-based caching for test coverage data, enabling granular cache invalidation.\nEach test file is associated with one or more domains. When source files in a domain change,\nonly test files that cover that domain need to be re-run.\n\nThis approach is more granular than domain-based caching and provides real time savings:\n- When a domain changes, only test files covering that domain are invalidated\n- Only those test files need to be re-run\n- Cached coverage from unchanged test files is merged with fresh coverage from re-run test files\n\nUsage:\n    from development_tools.tests.test_file_coverage_cache import TestFileCoverageCache\n\n    cache = TestFileCoverageCache(project_root)\n    changed_domains = cache.get_changed_domains()\n    test_files_to_run = cache.get_test_files_to_run(changed_domains)\n    # Run only test_files_to_run\n    # Merge cached coverage from other test files with fresh coverage\n\"\"\"\n\nimport json\nimport os\nimport time\nimport hashlib\nfrom copy import deepcopy\nfrom pathlib import Path\nfrom typing import Any\nfrom collections.abc import Iterable\nfrom datetime import datetime\n\n# Try to import file locking (Unix/Linux); use getattr so Pyright is happy on Windows stubs\ntry:\n    import fcntl\n\n    HAS_FCNTL = True\n    FCNTL_FLOCK = getattr(fcntl, \"flock\", None)\n    FCNTL_LOCK_SH = getattr(fcntl, \"LOCK_SH\", 0)\n    FCNTL_LOCK_EX = getattr(fcntl, \"LOCK_EX\", 0)\n    FCNTL_LOCK_UN = getattr(fcntl, \"LOCK_UN\", 0)\nexcept ImportError:\n    HAS_FCNTL = False\n    FCNTL_FLOCK = None\n    FCNTL_LOCK_SH = 0\n    FCNTL_LOCK_EX = 0\n    FCNTL_LOCK_UN = 0\n\n# Try to import Windows file locking\ntry:\n    import msvcrt\n\n    HAS_MSVCRT = True\nexcept ImportError:\n    HAS_MSVCRT = False\n\ntry:\n    from core.logger import get_component_logger\n\n    logger = get_component_logger(\"development_tools\")\nexcept ImportError:\n    logger = None\n\nfrom .domain_mapper import DomainMapper\nfrom development_tools.shared.time_helpers import (\n    now_timestamp_full,\n    now_timestamp_filename,\n)\nfrom development_tools.shared.cache_dependency_paths import static_check_config_paths\nfrom development_tools.shared.standard_exclusions import should_exclude_file\nimport contextlib\n\n\nclass TestFileCoverageCache:\n    \"\"\"\n    Test-file-based cache for test coverage data.\n\n    Tracks:\n    - Source file modification times per domain (to detect changes)\n    - Test file -> domains mapping (which domains each test file covers)\n    - Test file -> coverage data (coverage data from each test file)\n\n    When a domain changes, invalidates cache for all test files that cover that domain.\n\n    **Invalidation matrix** (``get_changed_domains``), highest priority first:\n\n    1. **tool_change** \u2014 Coverage script/tool hash changed \u2192 **all** domains (safety).\n    2. **previous_run_failed** \u2014 Uses ``last_failed_domains`` if set, else ``last_run_domains``,\n       else **all** domains if no domain list was recorded.\n    3. **previous_run_missing_no_parallel_coverage** \u2014 **all** domains.\n    4. **config_changed** \u2014 ``development_tools_config.json`` mtime changed \u2192 **all** domains.\n    5. **test_file_set_changed** \u2014 Test path set differs from cache:\n\n       - If cache had no prior ``test_files`` entries \u2192 **all** domains (cold/first mapping).\n       - Else \u2192 **selective**: domains implied only by **added** / **removed** paths (from\n         on-disk mapping + cached ``domains`` entries). Falls back to **all** domains when\n         narrowing is ambiguous (e.g. removed file had no cached domains).\n    6. **test_file_content_or_mapping_changed** \u2014 Same paths, mtime/content drift \u2192 affected\n       domains + dependency expansion.\n    7. **source_domain_changed** \u2014 Source ``*.py`` mtimes vs snapshot; new domains in mapper\n       with no snapshot yet.\n\n    Use ``last_invalidation_reason``, ``last_invalidation_detail``, and\n    ``invalidation_counters`` for operator/debug visibility.\n    \"\"\"\n\n    DEFAULT_EXCLUDED_TEST_DIRS = [\n        \"tests/data\",  # Test data directory - contains temporary test data files\n    ]\n\n    def __init__(self, project_root: Path, cache_dir: Path | None = None):\n        \"\"\"\n        Initialize test-file-based coverage cache.\n\n        Args:\n            project_root: Root directory of the project\n            cache_dir: Optional cache directory (default: development_tools/tests/jsons/)\n        \"\"\"\n        self.project_root = Path(project_root).resolve()\n        self.domain_mapper = DomainMapper(self.project_root)\n        self.test_root = self.project_root / \"tests\"\n\n        if cache_dir is None:\n            # Store cache file in jsons/ directory like other JSON files\n            cache_dir = self.project_root / \"development_tools\" / \"tests\" / \"jsons\"\n        self.cache_dir = Path(cache_dir)\n        self.cache_dir.mkdir(parents=True, exist_ok=True)\n\n        self.cache_file = self.cache_dir / \"test_file_coverage_cache.json\"\n        self.cache_data: dict[str, Any] = {}\n        self.tool_paths = self._get_default_tool_paths()\n        # Full coverage JSON cache (for when no domains change)\n        self.full_coverage_cache_key = \"_full_coverage_json\"\n\n        # Directories to exclude when discovering test files (test data, temp files, etc.)\n        self.excluded_test_dirs = list(self.DEFAULT_EXCLUDED_TEST_DIRS)\n        self._load_cache()\n        self._cached_changed_domains: set[str] | None = None\n        self.last_invalidation_reason: str | None = None\n        self.last_invalidation_detail: dict[str, Any] | None = None\n        self.invalidation_counters: dict[str, Any] = {}\n\n    def _get_default_tool_paths(self) -> tuple[Path, ...]:\n        \"\"\"Return tool paths used to compute cache invalidation hash.\n\n        Coverage scripts are listed here; shared config paths match\n        ``STATIC_CHECK_CONFIG_RELATIVE_PATHS`` (see ``cache_dependency_paths``)\n        so invalidation stays aligned with static-check caching.\n        \"\"\"\n        coverage_tool_scripts = (\n            self.project_root / \"development_tools\" / \"tests\" / \"run_test_coverage.py\",\n            self.project_root / \"development_tools\" / \"tests\" / \"test_file_coverage_cache.py\",\n            self.project_root / \"development_tools\" / \"tests\" / \"dev_tools_coverage_cache.py\",\n            self.project_root / \"development_tools\" / \"tests\" / \"domain_mapper.py\",\n        )\n        combined = (*coverage_tool_scripts, *static_check_config_paths(self.project_root))\n        return tuple(path for path in combined if path.exists())\n\n    def _default_cache_data(self) -> dict[str, Any]:\n        \"\"\"Return default cache payload for new/legacy cache files.\"\"\"\n        return {\n            \"cache_version\": \"2.1\",\n            \"source_files_mtime\": {},  # domain -> {file_path: mtime}\n            \"test_files\": {},  # test_file_path -> {domains: [], coverage_data: {}, last_run: timestamp}\n            \"test_files_mtime\": {},  # test_file_path -> mtime\n            \"config_mtime\": None,\n            \"tool_hash\": None,\n            \"tool_mtimes\": {},\n            \"last_run_ok\": None,\n            \"last_parallel_ok\": None,\n            \"last_no_parallel_ok\": None,\n            \"last_no_parallel_coverage_present\": None,\n            \"last_failed_domains\": [],\n            \"last_run_domains\": [],\n            \"last_run_at\": None,\n            \"last_updated\": None,\n        }\n\n    def _ensure_cache_schema(self) -> bool:\n        \"\"\"Normalize loaded cache payload and backfill missing metadata.\"\"\"\n        changed = False\n        defaults = self._default_cache_data()\n\n        if not isinstance(self.cache_data, dict):\n            self.cache_data = {}\n            changed = True\n\n        for key, default_value in defaults.items():\n            if key not in self.cache_data:\n                self.cache_data[key] = deepcopy(default_value)\n                changed = True\n\n        dict_keys = [\"source_files_mtime\", \"test_files\", \"test_files_mtime\", \"tool_mtimes\"]\n        for key in dict_keys:\n            if not isinstance(self.cache_data.get(key), dict):\n                self.cache_data[key] = {}\n                changed = True\n\n        list_keys = [\"last_failed_domains\", \"last_run_domains\"]\n        for key in list_keys:\n            if not isinstance(self.cache_data.get(key), list):\n                self.cache_data[key] = []\n                changed = True\n\n        config_mtime = self.cache_data.get(\"config_mtime\")\n        if config_mtime is not None and not isinstance(config_mtime, (int, float)):\n            self.cache_data[\"config_mtime\"] = None\n            changed = True\n\n        tool_hash = self.cache_data.get(\"tool_hash\")\n        if tool_hash is not None and not isinstance(tool_hash, str):\n            self.cache_data[\"tool_hash\"] = None\n            changed = True\n\n        if not isinstance(self.cache_data.get(\"cache_version\"), str):\n            self.cache_data[\"cache_version\"] = defaults[\"cache_version\"]\n            changed = True\n\n        if self.cache_data.get(\"tool_hash\") is None:\n            backfilled_tool_hash = self._compute_tool_hash()\n            if backfilled_tool_hash:\n                self.cache_data[\"tool_hash\"] = backfilled_tool_hash\n                changed = True\n\n        if not self.cache_data.get(\"tool_mtimes\"):\n            self.cache_data[\"tool_mtimes\"] = self._get_tool_mtimes()\n            changed = True\n\n        if self.cache_data.get(\"config_mtime\") is None:\n            before_mtime = self.cache_data.get(\"config_mtime\")\n            self._update_config_mtime()\n            if self.cache_data.get(\"config_mtime\") != before_mtime:\n                changed = True\n\n        return changed\n\n    def _compute_tool_hash(self) -> str | None:\n        \"\"\"Compute a hash for coverage tool source files.\"\"\"\n        if not self.tool_paths:\n            return None\n        hasher = hashlib.sha256()\n        has_data = False\n        for path in self.tool_paths:\n            try:\n                if not path.exists() or not path.is_file():\n                    continue\n                hasher.update(path.read_bytes())\n                has_data = True\n            except Exception:\n                return None\n        return hasher.hexdigest() if has_data else None\n\n    def _get_tool_mtimes(self) -> dict[str, float]:\n        \"\"\"Return mtimes for tool source files.\"\"\"\n        mtimes: dict[str, float] = {}\n        for path in self.tool_paths:\n            try:\n                if not path.exists():\n                    continue\n                mtimes[str(path.relative_to(self.project_root))] = path.stat().st_mtime\n            except Exception:\n                continue\n        return mtimes\n\n    def is_valid_test_file(self, test_file: Path) -> bool:\n        \"\"\"\n        Check if a file is a valid test file (not test data or temporary file).\n\n        Args:\n            test_file: Path to potential test file\n\n        Returns:\n            True if file should be included, False if it should be excluded\n        \"\"\"\n        return not self._is_excluded_test_path(test_file)\n\n    def _is_excluded_test_path(self, path: Path) -> bool:\n        \"\"\"Return True when path is under an excluded test directory.\"\"\"\n        try:\n            rel_path = str(path.relative_to(self.project_root)).replace(\"\\\\\", \"/\")\n            if should_exclude_file(\n                rel_path, tool_type=\"analysis\", context=\"development\"\n            ):\n                return True\n        except ValueError:\n            # Path may be outside project_root in some edge cases.\n            pass\n\n        excluded_dirs = getattr(self, \"excluded_test_dirs\", None)\n        if not isinstance(excluded_dirs, list) or not excluded_dirs:\n            excluded_dirs = self.DEFAULT_EXCLUDED_TEST_DIRS\n            # Backfill instance state for legacy/partial instances.\n            self.excluded_test_dirs = list(excluded_dirs)\n        for excluded_dir in excluded_dirs:\n            excluded_path = self.project_root / Path(excluded_dir)\n            if path.is_relative_to(excluded_path):\n                return True\n        return False\n\n    def _iter_test_files(self) -> Iterable[Path]:\n        \"\"\"Iterate test files while tolerating transient ACL/path errors.\"\"\"\n        if not self.test_root.exists():\n            return\n\n        def _on_walk_error(_error):\n            # Ignore inaccessible folders so cache bookkeeping remains best-effort.\n            return\n\n        for root, dirs, files in os.walk(\n            self.test_root, topdown=True, onerror=_on_walk_error\n        ):\n            root_path = Path(root)\n            dirs[:] = [\n                dirname\n                for dirname in dirs\n                if not self._is_excluded_test_path(root_path / dirname)\n            ]\n\n            for filename in files:\n                if not filename.startswith(\"test_\") or not filename.endswith(\".py\"):\n                    continue\n                test_file = root_path / filename\n                if self.is_valid_test_file(test_file):\n                    yield test_file\n\n    def _load_cache(self) -> None:\n        \"\"\"Load cache from disk with file locking for thread safety.\"\"\"\n        schema_changed = False\n        if self.cache_file.exists():\n            try:\n                max_retries = 5\n                retry_delay = 0.1\n                for attempt in range(max_retries):\n                    try:\n                        with open(self.cache_file, encoding=\"utf-8\") as f:\n                            if HAS_FCNTL:\n                                try:\n                                    if FCNTL_FLOCK is not None:\n                                        FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_SH)\n                                except (OSError, AttributeError):\n                                    pass\n                            elif HAS_MSVCRT:\n                                with contextlib.suppress(OSError, AttributeError):\n                                    msvcrt.locking(f.fileno(), msvcrt.LK_LOCK, 1)\n\n                            self.cache_data = json.load(f)\n\n                            if HAS_FCNTL:\n                                try:\n                                    if FCNTL_FLOCK is not None:\n                                        FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_UN)\n                                except (OSError, AttributeError):\n                                    pass\n                            elif HAS_MSVCRT:\n                                with contextlib.suppress(OSError, AttributeError):\n                                    msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)\n\n                            if logger:\n                                test_files_count = len(\n                                    self.cache_data.get(\"test_files\", {})\n                                )\n                                logger.debug(\n                                    f\"Loaded test-file coverage cache with {test_files_count} test files\"\n                                )\n                            break\n                    except OSError:\n                        if attempt < max_retries - 1:\n                            time.sleep(retry_delay)\n                            retry_delay *= 2\n                        else:\n                            raise\n            except Exception as e:\n                if logger:\n                    logger.warning(f\"Failed to load test-file coverage cache: {e}\")\n                self.cache_data = self._default_cache_data()\n        else:\n            self.cache_data = self._default_cache_data()\n\n        schema_changed = self._ensure_cache_schema()\n        if schema_changed:\n            try:\n                self._save_cache()\n                # Windows file locking can briefly delay atomic replace visibility.\n                # Retry once if persisted metadata still looks stale.\n                persisted_tool_hash = None\n                if self.cache_file.exists():\n                    try:\n                        persisted_payload = json.loads(\n                            self.cache_file.read_text(encoding=\"utf-8\")\n                        )\n                        persisted_tool_hash = persisted_payload.get(\"tool_hash\")\n                    except Exception:\n                        persisted_tool_hash = None\n                if not isinstance(persisted_tool_hash, str):\n                    time.sleep(0.05)\n                    self._save_cache()\n                if logger:\n                    logger.debug(\n                        \"Backfilled test-file coverage cache metadata for legacy/missing schema fields\"\n                    )\n            except Exception as e:\n                if logger:\n                    logger.debug(f\"Failed to persist cache schema backfill: {e}\")\n\n    def _save_cache(self) -> None:\n        \"\"\"Save cache to disk with file locking and atomic write for thread safety.\"\"\"\n        try:\n            self._update_config_mtime()\n            self.cache_data[\"tool_hash\"] = self._compute_tool_hash()\n            self.cache_data[\"tool_mtimes\"] = self._get_tool_mtimes()\n            self.cache_data[\"test_files_mtime\"] = self._get_current_test_file_mtimes()\n            timestamp_str = now_timestamp_full()\n            timestamp_iso = now_timestamp_filename()\n            self.cache_data[\"last_updated\"] = timestamp_iso\n            self.cache_data[\"last_updated_readable\"] = timestamp_str\n            self.cache_data[\"generated_by\"] = (\n                \"TestFileCoverageCache - Development Tools\"\n            )\n            self.cache_data[\"note\"] = (\n                \"This file is auto-generated. Do not edit manually.\"\n            )\n\n            temp_file = self.cache_file.with_suffix(\".tmp\")\n            max_retries = 5\n            retry_delay = 0.1\n\n            for attempt in range(max_retries):\n                try:\n                    with open(temp_file, \"w\", encoding=\"utf-8\") as f:\n                        if HAS_FCNTL:\n                            try:\n                                if FCNTL_FLOCK is not None:\n                                    FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_EX)\n                            except (OSError, AttributeError):\n                                pass\n                        elif HAS_MSVCRT:\n                            with contextlib.suppress(OSError, AttributeError):\n                                msvcrt.locking(f.fileno(), msvcrt.LK_LOCK, 1)\n\n                        json.dump(self.cache_data, f, indent=2)\n                        f.flush()\n                        os.fsync(f.fileno())\n\n                        if HAS_FCNTL:\n                            try:\n                                if FCNTL_FLOCK is not None:\n                                    FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_UN)\n                            except (OSError, AttributeError):\n                                pass\n                        elif HAS_MSVCRT:\n                            with contextlib.suppress(OSError, AttributeError):\n                                msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)\n\n                    temp_file.replace(self.cache_file)\n\n                    if logger:\n                        logger.debug(\"Saved test-file coverage cache\")\n                    break\n                except OSError:\n                    if attempt < max_retries - 1:\n                        time.sleep(retry_delay)\n                        retry_delay *= 2\n                    else:\n                        raise\n        except Exception as e:\n            if logger:\n                logger.warning(f\"Failed to save test-file coverage cache: {e}\")\n\n    def _get_config_file_path(self) -> Path | None:\n        \"\"\"Get the path to the development_tools_config.json file.\"\"\"\n        try:\n            import development_tools.config.config as config_module\n\n            if (\n                hasattr(config_module, \"_config_file_path\")\n                and config_module._config_file_path\n            ):\n                return Path(config_module._config_file_path)\n        except Exception:\n            pass\n\n        try:\n            config_file = (\n                self.project_root\n                / \"development_tools\"\n                / \"config\"\n                / \"development_tools_config.json\"\n            )\n            if config_file.exists():\n                return config_file\n        except Exception:\n            pass\n        return None\n\n    def _update_config_mtime(self) -> None:\n        \"\"\"Store current config file mtime in cache metadata.\"\"\"\n        config_path = self._get_config_file_path()\n        if not config_path or not config_path.exists():\n            return\n        with contextlib.suppress(Exception):\n            self.cache_data[\"config_mtime\"] = config_path.stat().st_mtime\n\n    def _config_changed(self) -> bool:\n        \"\"\"Return True if config file mtime differs from cached value.\"\"\"\n        config_path = self._get_config_file_path()\n        if not config_path or not config_path.exists():\n            return False\n        try:\n            current_mtime = config_path.stat().st_mtime\n        except Exception:\n            return False\n        cached_mtime = self.cache_data.get(\"config_mtime\")\n        if cached_mtime is None:\n            return True\n        return current_mtime != cached_mtime\n\n    def _tool_changed(self) -> bool:\n        \"\"\"Return True if tool hash differs from cached value.\"\"\"\n        return self._get_tool_change_reason() is not None\n\n    def _get_tool_change_reason(self) -> str | None:\n        \"\"\"\n        Return explicit tool-change invalidation reason, if any.\n\n        Returns:\n            A reason string if tools changed, otherwise None.\n        \"\"\"\n        current_hash = self._compute_tool_hash()\n        if not current_hash:\n            return None\n        cached_hash = self.cache_data.get(\"tool_hash\")\n        if cached_hash is None:\n            return \"tool hash missing from cache metadata\"\n        if not isinstance(cached_hash, str):\n            return \"tool hash in cache metadata has invalid type\"\n        if current_hash != cached_hash:\n            return f\"tool hash mismatch (cached={cached_hash[:12]}, current={current_hash[:12]})\"\n        return None\n\n    def _get_current_test_file_mtimes(self) -> dict[str, float]:\n        \"\"\"Return current mtimes for all valid test files.\"\"\"\n        mtimes: dict[str, float] = {}\n        for test_file in self._iter_test_files():\n            try:\n                rel_path = str(test_file.relative_to(self.project_root))\n                mtimes[rel_path] = test_file.stat().st_mtime\n            except OSError:\n                continue\n        return mtimes\n\n    def _get_domains_affected_by_changed_test_files(self) -> set[str]:\n        \"\"\"\n        Get domains affected by changed test files (new/modified/deleted).\n\n        Returns:\n            Set of domains that should be invalidated.\n        \"\"\"\n        affected_domains: set[str] = set()\n        current_mtimes = self._get_current_test_file_mtimes()\n        cached_mtimes = self.cache_data.get(\"test_files_mtime\", {}) or {}\n        changed_test_files = {\n            path\n            for path in set(current_mtimes.keys()).union(set(cached_mtimes.keys()))\n            if current_mtimes.get(path) != cached_mtimes.get(path)\n        }\n        if not changed_test_files:\n            return affected_domains\n\n        cached_test_entries = self.cache_data.get(\"test_files\", {}) or {}\n        for test_file_rel in changed_test_files:\n            test_file_path = self.project_root / test_file_rel\n\n            # Current domains from current file content/location (when file exists).\n            if test_file_path.exists():\n                with contextlib.suppress(Exception):\n                    affected_domains.update(\n                        self.get_test_files_domains(test_file_path, force_refresh=True)\n                    )\n\n            # Also include cached domains (for deleted files or mapping drift).\n            cached_entry = cached_test_entries.get(test_file_rel, {})\n            cached_domains = cached_entry.get(\"domains\", [])\n            if isinstance(cached_domains, list):\n                affected_domains.update(\n                    domain for domain in cached_domains if isinstance(domain, str)\n                )\n\n        return affected_domains\n\n    def update_run_status(\n        self,\n        *,\n        parallel_ok: bool | None = None,\n        no_parallel_ok: bool | None = None,\n        no_parallel_coverage_present: bool | None = None,\n        failed_domains: Iterable[str] | None = None,\n        run_domains: Iterable[str] | None = None,\n    ) -> None:\n        \"\"\"Record the last test coverage run status.\"\"\"\n        if parallel_ok is not None:\n            self.cache_data[\"last_parallel_ok\"] = bool(parallel_ok)\n        if no_parallel_ok is not None:\n            self.cache_data[\"last_no_parallel_ok\"] = bool(no_parallel_ok)\n        if no_parallel_coverage_present is not None:\n            self.cache_data[\"last_no_parallel_coverage_present\"] = bool(\n                no_parallel_coverage_present\n            )\n        if failed_domains is not None:\n            self.cache_data[\"last_failed_domains\"] = sorted(\n                {d for d in failed_domains if isinstance(d, str) and d}\n            )\n        if run_domains is not None:\n            self.cache_data[\"last_run_domains\"] = sorted(\n                {d for d in run_domains if isinstance(d, str) and d}\n            )\n        if parallel_ok is not None or no_parallel_ok is not None:\n            self.cache_data[\"last_run_ok\"] = bool(\n                (parallel_ok is True)\n                and (no_parallel_ok is None or no_parallel_ok is True)\n            )\n            self.cache_data[\"last_run_at\"] = datetime.now().isoformat()\n        self._save_cache()\n\n    def _get_current_test_files(self) -> set[str]:\n        \"\"\"Return relative paths for all valid test files on disk.\"\"\"\n        current_files = set()\n        for test_file in self._iter_test_files():\n            current_files.add(str(test_file.relative_to(self.project_root)))\n        return current_files\n\n    def get_source_file_mtimes(self, domain: str) -> dict[str, float]:\n        \"\"\"\n        Get current modification times for all source files in a domain.\n\n        Only tracks .py files (Python source files), ignoring documentation,\n        configuration, and log files.\n\n        Args:\n            domain: Domain name (e.g., 'core')\n\n        Returns:\n            Dictionary mapping file paths to modification times\n        \"\"\"\n        mtimes = {}\n        source_dir = self.project_root / domain\n        if not source_dir.exists():\n            return mtimes\n\n        for py_file in source_dir.rglob(\"*.py\"):\n            # Skip actual test files (files with test_ prefix) and cache directories\n            if py_file.name.startswith(\"test_\") or \".coverage_cache\" in py_file.parts:\n                continue\n            try:\n                rel_path = str(py_file.relative_to(self.project_root))\n                if should_exclude_file(\n                    rel_path.replace(\"\\\\\", \"/\"),\n                    tool_type=\"analysis\",\n                    context=\"development\",\n                ):\n                    continue\n                mtime = py_file.stat().st_mtime\n                mtimes[rel_path] = mtime\n            except OSError:\n                continue\n\n        return mtimes\n\n    def _narrow_domains_for_test_file_set_delta(\n        self, added: set[str], removed: set[str]\n    ) -> set[str] | None:\n        \"\"\"Infer domains for added/removed test paths only. None = caller must use full bust.\"\"\"\n        narrowed: set[str] = set()\n        cached_entries = self.cache_data.get(\"test_files\", {}) or {}\n        for rel in removed:\n            entry = cached_entries.get(rel)\n            if not isinstance(entry, dict):\n                return None\n            doms = entry.get(\"domains\", [])\n            if not isinstance(doms, list) or not doms:\n                return None\n            narrowed.update(d for d in doms if isinstance(d, str))\n        for rel in added:\n            test_file_path = self.project_root / rel\n            if not test_file_path.is_file():\n                continue\n            got: set[str] = set()\n            with contextlib.suppress(Exception):\n                got = set(self.get_test_files_domains(test_file_path, force_refresh=True))\n            if not got:\n                return None\n            narrowed.update(got)\n        if (added or removed) and not narrowed:\n            return None\n        return narrowed\n\n    def get_changed_domains(self) -> set[str]:\n        \"\"\"\n        Get set of domains that have changed source files.\n\n        Returns:\n            Set of domain names with changes\n        \"\"\"\n        if self._cached_changed_domains is not None:\n            return set(self._cached_changed_domains)\n\n        changed_domains = set()\n        self.last_invalidation_reason = None\n        self.last_invalidation_detail = None\n        self.invalidation_counters = {}\n        tool_change_reason = self._get_tool_change_reason()\n        if tool_change_reason:\n            all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())\n            self.last_invalidation_reason = f\"tool_change: {tool_change_reason}\"\n            self.last_invalidation_detail = {\n                \"branch\": \"tool_change\",\n                \"all_domains\": True,\n            }\n            self.invalidation_counters = {\n                \"changed_domain_count\": len(all_domains),\n                \"full_bust\": True,\n            }\n            if logger:\n                logger.info(\n                    f\"Test coverage tool code changed - invalidating test-file coverage cache ({tool_change_reason})\"\n                )\n            self._cached_changed_domains = set(all_domains)\n            return set(all_domains)\n        last_run_ok = self.cache_data.get(\"last_run_ok\")\n        last_no_parallel_ok = self.cache_data.get(\"last_no_parallel_ok\")\n        last_no_parallel_coverage_present = self.cache_data.get(\n            \"last_no_parallel_coverage_present\"\n        )\n        last_failed_domains = set(self.cache_data.get(\"last_failed_domains\", []) or [])\n        last_run_domains = set(self.cache_data.get(\"last_run_domains\", []) or [])\n        if last_run_ok is False or last_no_parallel_ok is False:\n            if last_failed_domains:\n                self.last_invalidation_reason = (\n                    \"previous_run_failed: failed domains from previous run\"\n                )\n                self.last_invalidation_detail = {\n                    \"branch\": \"previous_run_failed_failed_domains\",\n                    \"all_domains\": False,\n                }\n                self.invalidation_counters = {\n                    \"changed_domain_count\": len(last_failed_domains),\n                    \"full_bust\": False,\n                }\n                if logger:\n                    logger.info(\n                        f\"Previous test coverage run failed - invalidating failed domains only: {sorted(last_failed_domains)}\"\n                    )\n                self._cached_changed_domains = set(last_failed_domains)\n                return set(last_failed_domains)\n            if last_run_domains:\n                self.last_invalidation_reason = (\n                    \"previous_run_failed: run domains from previous run\"\n                )\n                self.last_invalidation_detail = {\n                    \"branch\": \"previous_run_failed_run_domains\",\n                    \"all_domains\": False,\n                }\n                self.invalidation_counters = {\n                    \"changed_domain_count\": len(last_run_domains),\n                    \"full_bust\": False,\n                }\n                if logger:\n                    logger.info(\n                        f\"Previous test coverage run failed - invalidating previously-run domains: {sorted(last_run_domains)}\"\n                    )\n                self._cached_changed_domains = set(last_run_domains)\n                return set(last_run_domains)\n            all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())\n            self.last_invalidation_reason = (\n                \"previous_run_failed: no failed-domain mapping available\"\n            )\n            self.last_invalidation_detail = {\n                \"branch\": \"previous_run_failed_global\",\n                \"all_domains\": True,\n            }\n            self.invalidation_counters = {\n                \"changed_domain_count\": len(all_domains),\n                \"full_bust\": True,\n            }\n            if logger:\n                logger.info(\n                    \"Previous test coverage run failed - invalidating test-file coverage cache\"\n                )\n            self._cached_changed_domains = set(all_domains)\n            return set(all_domains)\n        if last_no_parallel_coverage_present is False:\n            all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())\n            self.last_invalidation_reason = (\n                \"previous_run_missing_no_parallel_coverage\"\n            )\n            self.last_invalidation_detail = {\n                \"branch\": \"previous_run_missing_no_parallel_coverage\",\n                \"all_domains\": True,\n            }\n            self.invalidation_counters = {\n                \"changed_domain_count\": len(all_domains),\n                \"full_bust\": True,\n            }\n            if logger:\n                logger.info(\n                    \"No_parallel coverage missing from previous run - invalidating test-file coverage cache\"\n                )\n            self._cached_changed_domains = set(all_domains)\n            return set(all_domains)\n\n        if self._config_changed():\n            all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())\n            self.last_invalidation_reason = \"config_changed\"\n            self.last_invalidation_detail = {\n                \"branch\": \"config_changed\",\n                \"all_domains\": True,\n            }\n            self.invalidation_counters = {\n                \"changed_domain_count\": len(all_domains),\n                \"full_bust\": True,\n            }\n            if logger:\n                logger.info(\n                    \"Config file changed - invalidating test-file coverage cache\"\n                )\n            self._cached_changed_domains = set(all_domains)\n            return set(all_domains)\n\n        current_test_files = self._get_current_test_files()\n        cached_test_files = set(self.cache_data.get(\"test_files\", {}).keys())\n        if current_test_files != cached_test_files:\n            all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())\n            added_paths = current_test_files - cached_test_files\n            removed_paths = cached_test_files - current_test_files\n            if not cached_test_files:\n                self.last_invalidation_reason = \"test_file_set_changed_cold_mapping\"\n                self.last_invalidation_detail = {\n                    \"branch\": \"test_file_set_changed_cold_mapping\",\n                    \"all_domains\": True,\n                    \"added_test_files\": len(added_paths),\n                    \"removed_test_files\": len(removed_paths),\n                }\n                self.invalidation_counters = {\n                    \"changed_domain_count\": len(all_domains),\n                    \"full_bust\": True,\n                    \"added_test_files\": len(added_paths),\n                    \"removed_test_files\": len(removed_paths),\n                }\n                if logger:\n                    logger.info(\n                        \"Test file set changed (no prior per-file mapping) - invalidating all domains\"\n                    )\n                self._cached_changed_domains = set(all_domains)\n                return set(all_domains)\n            narrow_base = self._narrow_domains_for_test_file_set_delta(\n                added_paths, removed_paths\n            )\n            if narrow_base is None:\n                self.last_invalidation_reason = \"test_file_set_changed_full_bust\"\n                self.last_invalidation_detail = {\n                    \"branch\": \"test_file_set_changed_full_bust\",\n                    \"all_domains\": True,\n                    \"added_test_files\": len(added_paths),\n                    \"removed_test_files\": len(removed_paths),\n                }\n                self.invalidation_counters = {\n                    \"changed_domain_count\": len(all_domains),\n                    \"full_bust\": True,\n                    \"added_test_files\": len(added_paths),\n                    \"removed_test_files\": len(removed_paths),\n                }\n                if logger:\n                    logger.info(\n                        \"Test file set changed - invalidating test-file coverage cache (full bust)\"\n                    )\n                self._cached_changed_domains = set(all_domains)\n                return set(all_domains)\n            expanded_narrow = self.domain_mapper.expand_domains_with_dependencies(\n                narrow_base\n            )\n            self.last_invalidation_reason = \"test_file_set_changed_selective\"\n            self.last_invalidation_detail = {\n                \"branch\": \"test_file_set_changed_selective\",\n                \"all_domains\": False,\n                \"added_test_files\": len(added_paths),\n                \"removed_test_files\": len(removed_paths),\n                \"base_domains\": sorted(narrow_base),\n            }\n            self.invalidation_counters = {\n                \"changed_domain_count\": len(expanded_narrow),\n                \"full_bust\": False,\n                \"added_test_files\": len(added_paths),\n                \"removed_test_files\": len(removed_paths),\n            }\n            if logger:\n                logger.info(\n                    \"Test file set changed - selective invalidation: \"\n                    f\"expanded={sorted(expanded_narrow)} (base={sorted(narrow_base)})\"\n                )\n            self._cached_changed_domains = set(expanded_narrow)\n            return set(expanded_narrow)\n\n        # Invalidate affected domains when test files change (mtime/content or mapping).\n        changed_test_domains = self._get_domains_affected_by_changed_test_files()\n        if changed_test_domains:\n            expanded_changed_test_domains = (\n                self.domain_mapper.expand_domains_with_dependencies(\n                    changed_test_domains\n                )\n            )\n            self.last_invalidation_reason = (\n                \"test_file_content_or_mapping_changed\"\n            )\n            self.last_invalidation_detail = {\n                \"branch\": \"test_file_content_or_mapping_changed\",\n                \"all_domains\": False,\n                \"base_domains\": sorted(changed_test_domains),\n            }\n            self.invalidation_counters = {\n                \"changed_domain_count\": len(expanded_changed_test_domains),\n                \"full_bust\": False,\n            }\n            if logger:\n                logger.info(\n                    \"Test file changes detected - invalidating affected domains: \"\n                    f\"{sorted(expanded_changed_test_domains)} (base={sorted(changed_test_domains)})\"\n                )\n            self._cached_changed_domains = set(expanded_changed_test_domains)\n            return set(expanded_changed_test_domains)\n        source_files_mtime = self.cache_data.get(\"source_files_mtime\", {})\n\n        # Check all known domains in cache\n        for domain_name, domain_mtimes in source_files_mtime.items():\n            current_mtimes = self.get_source_file_mtimes(domain_name)\n\n            # Check if any files changed\n            for file_path, current_mtime in current_mtimes.items():\n                cached_mtime = domain_mtimes.get(file_path)\n                if cached_mtime is None or current_mtime != cached_mtime:\n                    changed_domains.add(domain_name)\n                    break\n\n        # Also check domains that might not be in cache yet (new domains or after cache clear)\n        # Get all domains from domain mapper and check if they're in cache\n        all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())\n        for domain_name in all_domains:\n            if domain_name not in source_files_mtime:\n                # Domain not in cache - treat as changed (needs initial caching)\n                changed_domains.add(domain_name)\n            else:\n                # Domain is in cache - already checked above\n                pass\n\n        expanded_changed_domains = self.domain_mapper.expand_domains_with_dependencies(\n            changed_domains\n        )\n        if changed_domains:\n            self.last_invalidation_reason = \"source_domain_changed\"\n            self.last_invalidation_detail = {\n                \"branch\": \"source_domain_changed\",\n                \"all_domains\": False,\n                \"base_domains\": sorted(changed_domains),\n            }\n            self.invalidation_counters = {\n                \"changed_domain_count\": len(expanded_changed_domains),\n                \"full_bust\": False,\n            }\n        self._cached_changed_domains = set(expanded_changed_domains)\n        return set(expanded_changed_domains)\n\n    def get_test_files_to_run(self, changed_domains: set[str]) -> list[Path]:\n        \"\"\"\n        Get list of test files that need to be re-run based on changed domains.\n\n        If all domains have changed (or cache is empty), includes ALL test files,\n        even those not mapped to any domain, to ensure complete coverage.\n\n        Args:\n            changed_domains: Set of domain names that have changed\n\n        Returns:\n            List of test file paths that need to be re-run\n        \"\"\"\n        if not changed_domains:\n            return []  # No changes, no tests to run\n\n        test_files_to_run = set()\n        test_files = self.cache_data.get(\"test_files\", {})\n\n        # Check if this is a \"full run\" scenario (all domains changed or cache is empty)\n        all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())\n        is_full_run = (changed_domains == all_domains) or (len(test_files) == 0)\n\n        if is_full_run:\n            # Full run: include ALL test files, even unmapped ones, to ensure complete coverage\n            # But exclude test data directories\n            all_test_files = list(self._iter_test_files())\n\n            return sorted(all_test_files)\n\n        # Selective run: only include test files that cover changed domains\n        # Find all test files that cover any of the changed domains\n        for test_file_path, test_file_data in test_files.items():\n            test_file_domains = set(test_file_data.get(\"domains\", []))\n            if test_file_domains & changed_domains:\n                # This test file covers at least one changed domain\n                test_file_path_obj = self.project_root / test_file_path\n                if test_file_path_obj.exists():\n                    test_files_to_run.add(test_file_path_obj)\n\n        # Also discover test files that aren't in cache yet (new test files)\n        # These should be run if they cover changed domains\n        for test_file in self._iter_test_files():\n            test_file_rel = str(test_file.relative_to(self.project_root))\n            if test_file_rel not in test_files:\n                # New test file - check if it covers changed domains\n                test_file_markers = self.domain_mapper.parse_markers_from_test_file(\n                    test_file\n                )\n                # Check if test file is in a directory that maps to changed domains\n                for domain in changed_domains:\n                    test_dirs = self.domain_mapper.get_test_domains_for_source(\n                        f\"{domain}/dummy.py\"\n                    )\n                    for test_dir in test_dirs:\n                        if test_file.is_relative_to(self.project_root / test_dir):\n                            test_files_to_run.add(test_file)\n                            break\n                    # Also check markers\n                    domain_markers = self.domain_mapper.get_markers_for_source(\n                        f\"{domain}/dummy.py\"\n                    )\n                    if test_file_markers & domain_markers:\n                        test_files_to_run.add(test_file)\n\n        return sorted(test_files_to_run)\n\n    def get_test_files_domains(\n        self, test_file: Path, force_refresh: bool = False\n    ) -> set[str]:\n        \"\"\"\n        Get set of domains that a test file covers.\n\n        If the file uses any **domain attribution** pytest markers (those listed in\n        ``domain_mapper.source_to_test_mapping`` for a domain), returns **only** the domain(s)\n        implied by those markers\u2014no merging with directory rules or path keywords. Otherwise\n        uses the legacy path: test directory layout, then ``infer_domains_from_test_path`` when\n        no directory matches.\n\n        Args:\n            test_file: Path to test file\n\n        Returns:\n            Set of domain names that this test file covers\n        \"\"\"\n        domains = set()\n        test_file_rel = str(test_file.relative_to(self.project_root))\n\n        # Check cache first unless caller explicitly requests a refresh from file content.\n        if not force_refresh:\n            test_files = self.cache_data.get(\"test_files\", {})\n            if test_file_rel in test_files:\n                cached_domains = test_files[test_file_rel].get(\"domains\", [])\n                if cached_domains:\n                    domains.update(cached_domains)\n                    return domains\n\n        test_file_markers = self.domain_mapper.parse_markers_from_test_file(test_file)\n        explicit = self.domain_mapper.domains_from_attribution_markers(test_file_markers)\n        if explicit is not None:\n            return explicit\n\n        # Legacy fallback: directory layout, then path keyword inference (no domain markers matched)\n        for domain, (test_dirs, _) in self.domain_mapper.SOURCE_TO_TEST_MAPPING.items():\n            for test_dir in test_dirs:\n                test_dir_path = self.project_root / test_dir\n                if test_file.is_relative_to(test_dir_path):\n                    domains.add(domain)\n\n        if not domains:\n            domains.update(self.domain_mapper.infer_domains_from_test_path(test_file))\n\n        return domains\n\n    def update_test_file_mapping(\n        self, test_file: Path, *, reload_cache: bool = True, save_cache: bool = True\n    ) -> None:\n        \"\"\"\n        Update domain mapping for a test file without caching coverage data.\n        Used on first runs to build the mapping without the expensive coverage caching.\n\n        Args:\n            test_file: Path to test file\n            reload_cache: Whether to reload cache before updating (default: True)\n            save_cache: Whether to persist cache after updating (default: True)\n        \"\"\"\n        # Reload cache first to merge with any concurrent updates\n        if reload_cache:\n            self._load_cache()\n\n        test_file_rel = str(test_file.relative_to(self.project_root))\n        test_file_domains = self.get_test_files_domains(test_file)\n\n        if \"test_files\" not in self.cache_data:\n            self.cache_data[\"test_files\"] = {}\n\n        # Update or create entry with just domain mapping (no coverage data)\n        if test_file_rel not in self.cache_data[\"test_files\"]:\n            self.cache_data[\"test_files\"][test_file_rel] = {\n                \"domains\": sorted(test_file_domains),\n                \"last_run\": None,  # No coverage data cached yet\n            }\n        else:\n            # Update domains if they changed\n            self.cache_data[\"test_files\"][test_file_rel][\"domains\"] = sorted(\n                test_file_domains\n            )\n\n        # Update source file mtimes for all domains this test file covers\n        if \"source_files_mtime\" not in self.cache_data:\n            self.cache_data[\"source_files_mtime\"] = {}\n\n        for domain in test_file_domains:\n            if domain not in self.cache_data[\"source_files_mtime\"]:\n                self.cache_data[\"source_files_mtime\"][domain] = {}\n            # Update mtimes for this domain\n            current_mtimes = self.get_source_file_mtimes(domain)\n            self.cache_data[\"source_files_mtime\"][domain].update(current_mtimes)\n\n        if save_cache:\n            self._save_cache()\n\n    def cache_test_file_coverage(\n        self, test_file: Path, coverage_data: dict[str, Any]\n    ) -> None:\n        \"\"\"\n        Cache coverage data for a test file.\n\n        Args:\n            test_file: Path to test file\n            coverage_data: Coverage data from this test file (subset of full coverage JSON)\n        \"\"\"\n        # Reload cache first to merge with any concurrent updates\n        self._load_cache()\n\n        test_file_rel = str(test_file.relative_to(self.project_root))\n        test_file_domains = self.get_test_files_domains(test_file)\n\n        if \"test_files\" not in self.cache_data:\n            self.cache_data[\"test_files\"] = {}\n\n        self.cache_data[\"test_files\"][test_file_rel] = {\n            \"domains\": sorted(test_file_domains),\n            \"coverage_data\": coverage_data,\n            \"last_run\": datetime.now().isoformat(),\n        }\n\n        # Update source file mtimes for all domains this test file covers\n        if \"source_files_mtime\" not in self.cache_data:\n            self.cache_data[\"source_files_mtime\"] = {}\n\n        for domain in test_file_domains:\n            if domain not in self.cache_data[\"source_files_mtime\"]:\n                self.cache_data[\"source_files_mtime\"][domain] = {}\n            # Update mtimes for this domain\n            current_mtimes = self.get_source_file_mtimes(domain)\n            self.cache_data[\"source_files_mtime\"][domain].update(current_mtimes)\n\n        self._save_cache()\n\n    def get_cached_test_file_coverage(\n        self, test_file: Path\n    ) -> dict[str, Any] | None:\n        \"\"\"\n        Get cached coverage data for a test file.\n\n        Args:\n            test_file: Path to test file\n\n        Returns:\n            Cached coverage data or None if not cached or invalid\n        \"\"\"\n        test_file_rel = str(test_file.relative_to(self.project_root))\n        test_files = self.cache_data.get(\"test_files\", {})\n\n        if test_file_rel not in test_files:\n            return None\n\n        # Check if any domains this test file covers have changed\n        test_file_data = test_files[test_file_rel]\n        test_file_domains = set(test_file_data.get(\"domains\", []))\n        changed_domains = self.get_changed_domains()\n\n        if test_file_domains & changed_domains:\n            # At least one domain this test file covers has changed\n            return None\n\n        return test_file_data.get(\"coverage_data\")\n\n    def get_full_coverage_cache(self) -> dict[str, Any] | None:\n        \"\"\"\n        Get the cached full coverage JSON (from a previous full test run).\n\n        Returns:\n            Full coverage JSON or None if not cached\n        \"\"\"\n        return self.cache_data.get(self.full_coverage_cache_key)\n\n    def cache_full_coverage(self, coverage_json: dict[str, Any]) -> None:\n        \"\"\"\n        Cache the full coverage JSON from a complete test run.\n\n        Args:\n            coverage_json: Full coverage JSON from pytest-cov\n        \"\"\"\n        self._load_cache()\n        self.cache_data[self.full_coverage_cache_key] = coverage_json\n        self._save_cache()\n        if logger:\n            logger.debug(\"Cached full coverage JSON\")\n\n    def get_all_cached_coverage(\n        self, exclude_domains: set[str] | None = None\n    ) -> dict[str, dict[str, Any]]:\n        \"\"\"\n        Get all cached coverage data, excluding test files that cover specified domains.\n\n        Args:\n            exclude_domains: Set of domains to exclude (test files covering these domains won't be included)\n\n        Returns:\n            Dictionary mapping test file paths to their coverage data\n        \"\"\"\n        if exclude_domains is None:\n            exclude_domains = set()\n\n        cached_coverage = {}\n        test_files = self.cache_data.get(\"test_files\", {})\n        changed_domains = self.get_changed_domains()\n\n        for test_file_path, test_file_data in test_files.items():\n            test_file_domains = set(test_file_data.get(\"domains\", []))\n\n            # Skip if test file covers any excluded or changed domains\n            if (\n                test_file_domains & exclude_domains\n                or test_file_domains & changed_domains\n            ):\n                continue\n\n            coverage_data = test_file_data.get(\"coverage_data\")\n            if coverage_data:\n                cached_coverage[test_file_path] = coverage_data\n\n        return cached_coverage\n\n    def clear_cache(self) -> None:\n        \"\"\"Clear all cached data.\"\"\"\n        self.cache_data = {\n            \"cache_version\": \"2.1\",\n            \"generated_by\": \"TestFileCoverageCache - Development Tools\",\n            \"note\": \"This file is auto-generated. Do not edit manually.\",\n            \"source_files_mtime\": {},\n            \"test_files\": {},\n            \"test_files_mtime\": {},\n            \"tool_hash\": None,\n            \"tool_mtimes\": {},\n            \"last_run_ok\": None,\n            \"last_parallel_ok\": None,\n            \"last_no_parallel_ok\": None,\n            \"last_no_parallel_coverage_present\": None,\n            \"last_failed_domains\": [],\n            \"last_run_domains\": [],\n            \"last_run_at\": None,\n            \"last_updated\": None,\n            \"last_updated_readable\": None,\n        }\n        self._save_cache()\n        if logger:\n            logger.info(\"Cleared all test-file coverage cache\")\n\n    def get_unmapped_test_files(self) -> list[Path]:\n        \"\"\"\n        Get list of test files that are not mapped to any domain.\n\n        Returns:\n            List of test file paths that don't have domain mappings\n        \"\"\"\n        unmapped = []\n        all_test_files = list(self._iter_test_files())\n\n        for test_file in all_test_files:\n            test_file_domains = self.get_test_files_domains(test_file)\n            if not test_file_domains:\n                unmapped.append(test_file)\n\n        return sorted(unmapped)\n\n    def get_cache_stats(self) -> dict[str, Any]:\n        \"\"\"\n        Get statistics about the cache.\n\n        Returns:\n            Dictionary with cache statistics\n        \"\"\"\n        test_files = self.cache_data.get(\"test_files\", {})\n        changed_domains = self.get_changed_domains()\n        has_full_coverage = self.get_full_coverage_cache() is not None\n\n        # Always discover actual test files from filesystem to get accurate count\n        # Don't rely on cached count which may be incomplete\n        actual_test_files = []\n        unmapped_test_files = []\n        for test_file in self._iter_test_files():\n            # Check if this test file is associated with any domain\n            test_file_domains = self.get_test_files_domains(test_file)\n            if test_file_domains:  # Only count if it has at least one domain\n                actual_test_files.append(test_file)\n            else:\n                unmapped_test_files.append(test_file)\n        total_test_files = len(actual_test_files)\n        unmapped_count = len(unmapped_test_files)\n\n        test_files_to_run = len(self.get_test_files_to_run(changed_domains))\n        # Count test files that have coverage_data cached (for selective runs)\n        test_files_with_coverage = sum(\n            1 for tf_data in test_files.values() if tf_data.get(\"coverage_data\")\n        )\n        # If we have full coverage cache and no domains changed, all test files can use cache\n        if has_full_coverage and not changed_domains:\n            test_files_cached = total_test_files\n        else:\n            test_files_cached = test_files_with_coverage\n\n        return {\n            \"total_test_files\": total_test_files,\n            \"test_files_to_run\": test_files_to_run,\n            \"test_files_cached\": test_files_cached,\n            \"test_files_with_coverage\": test_files_with_coverage,\n            \"unmapped_test_files\": unmapped_count,\n            \"has_full_coverage_cache\": has_full_coverage,\n            \"changed_domains\": len(changed_domains),\n            \"cache_version\": self.cache_data.get(\"cache_version\", \"unknown\"),\n            \"last_updated\": self.cache_data.get(\"last_updated\"),\n        }\n",
-                [
-                  {
-                    "pattern": "(?i)legacy path",
-                    "match": "legacy path",
-                    "line": 1047,
-                    "line_content": "uses the legacy path: test directory layout, then ``infer_domains_from_test_path`` when",
-                    "start": 44572,
-                    "end": 44583
-                  }
-                ]
-              ]
-            ]
-          },
-          "files_with_issues": 2,
-          "legacy_markers": 2,
+          "findings": {},
+          "files_with_issues": 0,
+          "legacy_markers": 0,
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md",
           "deprecation_inventory": {
             "inventory_path": "development_tools/config/jsons/DEPRECATION_INVENTORY.json",
@@ -31206,20 +31150,20 @@
             "check_passed": true
           },
           "cache": {
-            "cache_mode": "partial_cache",
-            "hits": 583,
-            "misses": 2,
+            "cache_mode": "cold_scan",
+            "hits": 0,
+            "misses": 585,
             "total_cache_checks": 585,
-            "hit_rate": 99.7
+            "hit_rate": 0.0
           }
         }
       },
-      "timestamp": "2026-04-23T01:05:11"
+      "timestamp": "2026-04-24T20:36:41"
     },
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-04-23T01:13:33",
+        "generated_at": "2026-04-24T20:46:40",
         "project_root": "C:\\Users\\Julie\\projects\\MHM\\MHM",
         "summary": {
           "status": "PASS",
@@ -31264,7 +31208,7 @@
               "name": "weekly_backup_recent_enough",
               "success": true,
               "details": {
-                "recent_cutoff": "2026-04-09T01:13:33",
+                "recent_cutoff": "2026-04-10T20:46:40",
                 "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-04-23_01-00-09",
                 "latest_weekly_created_at": "2026-04-23 01:00:09"
               }
@@ -31275,7 +31219,7 @@
               "details": {
                 "latest_backup_path": "data\\backups\\weekly_backup_2026-04-23_01-00-09",
                 "latest_created_at": "2026-04-23 01:00:09",
-                "recent_cutoff": "2026-04-09T01:13:33"
+                "recent_cutoff": "2026-04-10T20:46:40"
               }
             },
             {
@@ -31330,7 +31274,7 @@
             "name": "weekly_backup_recent_enough",
             "success": true,
             "details": {
-              "recent_cutoff": "2026-04-09T01:13:33",
+              "recent_cutoff": "2026-04-10T20:46:40",
               "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-04-23_01-00-09",
               "latest_weekly_created_at": "2026-04-23 01:00:09"
             }
@@ -31341,7 +31285,7 @@
             "details": {
               "latest_backup_path": "data\\backups\\weekly_backup_2026-04-23_01-00-09",
               "latest_created_at": "2026-04-23 01:00:09",
-              "recent_cutoff": "2026-04-09T01:13:33"
+              "recent_cutoff": "2026-04-10T20:46:40"
             }
           },
           {
@@ -31364,20 +31308,20 @@
           }
         ]
       },
-      "timestamp": "2026-04-23T01:13:33"
+      "timestamp": "2026-04-24T20:46:40"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
+          "total_issues": 1,
           "files_affected": 0,
-          "status": "OK"
+          "status": "ISSUES"
         },
         "details": {
-          "timestamp": "2026-04-23T01:04:48.125934",
+          "timestamp": "2026-04-24T20:36:11.890758",
           "system_health": {
-            "overall_status": "OK",
+            "overall_status": "ISSUES",
             "core_files": {
               "run_mhm.py": "OK",
               "run_tests.py": "OK",
@@ -31395,35 +31339,38 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-04-23T01:02:37.683102",
-            "audit_freshness": "<1 hour",
+            "last_audit": "2026-04-13T23:00:32.307472",
+            "audit_freshness": "4-10 days",
             "test_coverage_status": "Unknown",
-            "documentation_sync_status": "Synchronized",
-            "health_indicators": [
-              "Audit data is very recent (<1 hour)",
-              "Documentation is synchronized"
+            "documentation_sync_status": "Minor Issues",
+            "health_indicators": [],
+            "recommendations": [
+              "Run `python development_tools/run_development_tools.py audit` to refresh metrics"
             ],
-            "recommendations": [],
             "warnings": [],
             "errors": [],
             "severity_levels": {
-              "INFO": [],
-              "WARNING": [],
+              "INFO": [
+                "Documentation has 3 minor sync issue(s)"
+              ],
+              "WARNING": [
+                "Audit data is 10 days old"
+              ],
               "CRITICAL": []
             }
           },
           "recent_activity": {
             "recent_changes": [
+              "development_tools/tests/domain_mapper.py",
+              "tests/development_tools/test_commands_backup_flow.py",
               "tests/development_tools/test_pyright_config_paths.py",
-              "development_tools/shared/constants.py",
-              "development_tools/tests/analyze_test_markers.py",
+              "tests/development_tools/test_fix_version_sync_todo_sync.py",
               "tests/development_tools/test_analyze_test_markers_domain.py",
-              "tests/development_tools/test_commands_coverage_helpers.py",
-              "tests/development_tools/test_analyze_unconverted_links.py",
-              "tests/development_tools/test_analyze_test_markers.py",
+              "development_tools/docs/analyze_documentation.py",
+              "tests/development_tools/test_example_marker_validation.py",
               "tests/development_tools/test_analyze_documentation.py",
-              "tests/development_tools/test_audit_orchestration_helpers.py",
-              "tests/development_tools/test_fix_version_sync_todo_sync.py"
+              "development_tools/tests/test_file_coverage_cache.py",
+              "tests/development_tools/test_commands_coverage_helpers.py"
             ],
             "git_status": "Modified",
             "last_commit": null,
@@ -31450,7 +31397,7 @@
           }
         }
       },
-      "timestamp": "2026-04-23T01:04:48"
+      "timestamp": "2026-04-24T20:36:12"
     },
     "decision_support": {
       "success": true,
@@ -31591,27 +31538,27 @@
           ]
         }
       },
-      "timestamp": "2026-04-23T01:04:51"
+      "timestamp": "2026-04-24T20:36:18"
     },
     "analyze_test_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 15775,
+          "total_issues": 15987,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "coverage": 71.8,
-            "statements": 56008,
-            "covered": 40233,
-            "missed": 15775,
-            "generated": null
+            "coverage": 71.3,
+            "statements": 55744,
+            "covered": 39757,
+            "missed": 15987,
+            "generated": "2026-04-24T20:46:28.975625"
           },
           "primary_overall": {
-            "coverage": 78.0,
-            "statements": 22400,
-            "covered": 17469,
+            "coverage": 77.9,
+            "statements": 22189,
+            "covered": 17284,
             "domains": [
               "ai",
               "communication",
@@ -31622,32 +31569,32 @@
           "modules": [
             {
               "module": "development_tools",
-              "coverage": 66.3,
-              "missed": 8694
+              "coverage": 65.3,
+              "missed": 8938
             },
             {
               "module": "ui",
-              "coverage": 69.4,
-              "missed": 2073
+              "coverage": 69.3,
+              "missed": 2067
             },
             {
               "module": "communication",
-              "coverage": 76.8,
+              "coverage": 76.5,
               "missed": 2234
             },
             {
               "module": "core",
-              "coverage": 78.4,
-              "missed": 2310
+              "coverage": 78.5,
+              "missed": 2284
             },
             {
               "module": "ai",
-              "coverage": 78.9,
+              "coverage": 78.7,
               "missed": 375
             },
             {
               "module": "tasks",
-              "coverage": 89.1,
+              "coverage": 89.0,
               "missed": 50
             },
             {
@@ -31657,7 +31604,7 @@
             },
             {
               "module": "user",
-              "coverage": 96.0,
+              "coverage": 95.9,
               "missed": 12
             }
           ],
@@ -31695,13 +31642,13 @@
               "classification": "passed",
               "classification_reason": "pytest_passed",
               "actionable_context": "Track completed successfully.",
-              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-04-23_01-05-10.log",
+              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-04-24_20-36-38.log",
               "return_code_hex": "0x00000000",
               "return_code": 0,
-              "passed_count": 1356,
+              "passed_count": 5463,
               "failed_count": 0,
               "error_count": 0,
-              "skipped_count": 0,
+              "skipped_count": 1,
               "failed_node_ids": []
             },
             "no_parallel": {
@@ -31709,7 +31656,7 @@
               "classification": "passed",
               "classification_reason": "pytest_passed",
               "actionable_context": "Track completed successfully.",
-              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_no_parallel_stdout_2026-04-23_01-11-35.log",
+              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_no_parallel_stdout_2026-04-24_20-44-21.log",
               "return_code_hex": "0x00000000",
               "return_code": 0,
               "passed_count": 125,
@@ -31724,7 +31671,7 @@
               "classification": "passed",
               "classification_reason": "no_dev_tools_failures_unified_run",
               "actionable_context": "No failures reported under tests/development_tools/ in the unified Tier 3 run.",
-              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-04-23_01-05-10.log",
+              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-04-24_20-36-38.log",
               "return_code_hex": "0x00000000",
               "return_code": 0,
               "passed_count": 0,
@@ -31741,7 +31688,7 @@
           "source": "run_test_coverage"
         }
       },
-      "timestamp": "2026-04-23T01:13:28"
+      "timestamp": "2026-04-24T20:46:35"
     },
     "analyze_test_markers": {
       "success": true,
@@ -31767,24 +31714,26 @@
           "domain_attribution_summary": {
             "domain_enforced_test_functions": 3727,
             "domain_marked_test_functions": 3727,
-            "domain_unmarked_test_functions": 0
+            "domain_unmarked_test_functions": 0,
+            "missing_domain_test_count": 0,
+            "missing_domain_file_count": 0
           }
         }
       },
-      "timestamp": "2026-04-23T01:13:31"
+      "timestamp": "2026-04-24T20:46:38"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 8694,
+          "total_issues": 8938,
           "files_affected": 0
         },
         "details": {
           "overall": {
-            "overall_coverage": 66.3,
-            "total_statements": 25762,
-            "total_missed": 8694
+            "overall_coverage": 65.3,
+            "total_statements": 25772,
+            "total_missed": 8938
           },
           "modules": {
             "development_tools\\__init__.py": {
@@ -31797,7 +31746,7 @@
             "development_tools\\ai_work\\__init__.py": {
               "statements": 0,
               "missed": 0,
-              "coverage": 0,
+              "coverage": 100,
               "missing_lines": [],
               "covered": 0
             },
@@ -31992,8 +31941,8 @@
             },
             "development_tools\\config\\config.py": {
               "statements": 620,
-              "missed": 132,
-              "coverage": 79,
+              "missed": 124,
+              "coverage": 80,
               "missing_lines": [
                 "60",
                 "62",
@@ -32093,14 +32042,6 @@
                 "1305",
                 "1306",
                 "1307",
-                "1420",
-                "1421",
-                "1422",
-                "1423",
-                "1424",
-                "1425",
-                "1428",
-                "1431",
                 "1432",
                 "1483",
                 "1513",
@@ -32128,7 +32069,7 @@
                 "1655",
                 "1657"
               ],
-              "covered": 488
+              "covered": 496
             },
             "development_tools\\config\\sync_ruff_toml.py": {
               "statements": 69,
@@ -32181,9 +32122,9 @@
               "covered": 95
             },
             "development_tools\\docs\\analyze_documentation.py": {
-              "statements": 321,
-              "missed": 136,
-              "coverage": 58,
+              "statements": 331,
+              "missed": 88,
+              "coverage": 73,
               "missing_lines": [
                 "18",
                 "36",
@@ -32211,118 +32152,70 @@
                 "273",
                 "274",
                 "305",
-                "319",
-                "321",
-                "323",
-                "324",
-                "327",
-                "330",
-                "332",
-                "339",
-                "353",
-                "356",
-                "359",
-                "367",
                 "369",
                 "370",
-                "380",
-                "387",
-                "388",
-                "389",
-                "399",
-                "402",
-                "403",
-                "404",
-                "415",
-                "416",
-                "417",
-                "418",
-                "419",
-                "429",
+                "410",
+                "433",
                 "434",
-                "435",
-                "438",
-                "439",
-                "440",
-                "442",
-                "443",
-                "446",
-                "447",
-                "448",
-                "449",
                 "450",
-                "451",
-                "452",
-                "454",
-                "455",
-                "456",
-                "457",
-                "459",
-                "467",
-                "468",
-                "470",
-                "471",
-                "472",
-                "473",
-                "476",
-                "477",
-                "478",
-                "480",
-                "481",
-                "482",
-                "483",
-                "484",
                 "485",
                 "486",
                 "487",
                 "488",
-                "489",
-                "492",
                 "493",
-                "494",
+                "495",
                 "496",
+                "497",
+                "498",
+                "499",
+                "500",
                 "501",
-                "505",
-                "524",
-                "525",
-                "526",
-                "527",
-                "528",
-                "531",
-                "533",
-                "537",
+                "502",
+                "503",
+                "504",
+                "509",
+                "511",
+                "516",
                 "539",
+                "540",
+                "541",
                 "542",
-                "544",
+                "543",
+                "546",
                 "548",
                 "552",
-                "553",
                 "554",
-                "555",
-                "556",
+                "557",
                 "559",
-                "561",
-                "562",
                 "563",
-                "564",
-                "565",
-                "566",
                 "567",
                 "568",
                 "569",
                 "570",
                 "571",
-                "626",
-                "627",
-                "628",
-                "629",
-                "630",
-                "633",
-                "646",
-                "651",
-                "668"
+                "574",
+                "576",
+                "577",
+                "578",
+                "579",
+                "580",
+                "581",
+                "582",
+                "583",
+                "584",
+                "585",
+                "586",
+                "641",
+                "642",
+                "643",
+                "644",
+                "645",
+                "648",
+                "661",
+                "666",
+                "683"
               ],
-              "covered": 185
+              "covered": 243
             },
             "development_tools\\docs\\analyze_documentation_sync.py": {
               "statements": 114,
@@ -32955,8 +32848,8 @@
             },
             "development_tools\\docs\\fix_version_sync.py": {
               "statements": 473,
-              "missed": 238,
-              "coverage": 50,
+              "missed": 212,
+              "coverage": 55,
               "missing_lines": [
                 "21",
                 "23",
@@ -32965,12 +32858,7 @@
                 "26",
                 "31",
                 "76",
-                "94",
-                "99",
-                "100",
                 "101",
-                "102",
-                "103",
                 "108",
                 "109",
                 "110",
@@ -32982,31 +32870,15 @@
                 "120",
                 "121",
                 "122",
-                "127",
-                "129",
-                "130",
-                "132",
-                "137",
-                "140",
-                "141",
-                "142",
                 "143",
-                "146",
                 "150",
-                "152",
                 "154",
-                "156",
                 "158",
-                "160",
                 "162",
                 "164",
                 "165",
                 "166",
-                "173",
                 "175",
-                "177",
-                "179",
-                "181",
                 "191",
                 "192",
                 "193",
@@ -33021,11 +32893,6 @@
                 "209",
                 "210",
                 "211",
-                "248",
-                "251",
-                "255",
-                "256",
-                "258",
                 "264",
                 "272",
                 "280",
@@ -33197,7 +33064,7 @@
                 "969",
                 "970"
               ],
-              "covered": 235
+              "covered": 261
             },
             "development_tools\\docs\\generate_directory_tree.py": {
               "statements": 129,
@@ -33236,7 +33103,7 @@
             "development_tools\\error_handling\\__init__.py": {
               "statements": 0,
               "missed": 0,
-              "coverage": 0,
+              "coverage": 100,
               "missing_lines": [],
               "covered": 0
             },
@@ -34633,8 +34500,8 @@
             },
             "development_tools\\imports\\analyze_module_imports.py": {
               "statements": 310,
-              "missed": 52,
-              "coverage": 83,
+              "missed": 125,
+              "coverage": 60,
               "missing_lines": [
                 "17",
                 "26",
@@ -34654,6 +34521,8 @@
                 "172",
                 "174",
                 "200",
+                "207",
+                "240",
                 "250",
                 "252",
                 "258",
@@ -34664,32 +34533,103 @@
                 "273",
                 "274",
                 "275",
+                "289",
+                "290",
+                "291",
                 "315",
                 "325",
                 "326",
+                "355",
                 "356",
+                "357",
+                "358",
+                "359",
                 "360",
+                "361",
                 "362",
+                "363",
                 "364",
+                "365",
                 "366",
+                "367",
                 "368",
+                "369",
                 "370",
+                "371",
                 "372",
+                "374",
+                "379",
+                "380",
+                "381",
+                "382",
+                "383",
+                "384",
+                "385",
+                "386",
+                "387",
+                "388",
+                "389",
+                "390",
+                "391",
+                "392",
+                "393",
+                "394",
+                "395",
+                "396",
+                "397",
                 "398",
+                "399",
+                "400",
+                "401",
+                "402",
                 "403",
+                "404",
+                "405",
+                "406",
+                "407",
+                "408",
+                "409",
+                "410",
                 "411",
+                "412",
+                "413",
+                "414",
+                "415",
+                "416",
+                "417",
+                "419",
+                "424",
+                "425",
+                "428",
+                "429",
+                "432",
                 "433",
+                "436",
+                "437",
+                "439",
+                "444",
                 "445",
+                "448",
                 "449",
+                "452",
                 "453",
+                "456",
                 "457",
-                "479",
+                "461",
+                "466",
+                "467",
+                "468",
+                "469",
+                "471",
+                "476",
+                "481",
+                "485",
                 "487",
                 "489",
                 "491",
                 "557"
               ],
-              "covered": 258
+              "covered": 185
             },
             "development_tools\\imports\\analyze_unused_imports.py": {
               "statements": 601,
@@ -34896,8 +34836,8 @@
             },
             "development_tools\\imports\\generate_module_dependencies.py": {
               "statements": 358,
-              "missed": 157,
-              "coverage": 56,
+              "missed": 173,
+              "coverage": 52,
               "missing_lines": [
                 "16",
                 "33",
@@ -34909,8 +34849,24 @@
                 "218",
                 "223",
                 "272",
+                "331",
+                "332",
+                "333",
+                "334",
+                "335",
+                "336",
+                "337",
                 "338",
                 "339",
+                "340",
+                "362",
+                "363",
+                "364",
+                "370",
+                "371",
+                "372",
+                "373",
+                "374",
                 "375",
                 "402",
                 "409",
@@ -35057,7 +35013,7 @@
                 "892",
                 "897"
               ],
-              "covered": 201
+              "covered": 185
             },
             "development_tools\\imports\\generate_unused_imports_report.py": {
               "statements": 176,
@@ -35108,7 +35064,7 @@
             },
             "development_tools\\legacy\\analyze_legacy_references.py": {
               "statements": 420,
-              "missed": 155,
+              "missed": 154,
               "coverage": 63,
               "missing_lines": [
                 "28",
@@ -35160,7 +35116,6 @@
                 "418",
                 "443",
                 "445",
-                "456",
                 "468",
                 "469",
                 "470",
@@ -35267,7 +35222,7 @@
                 "875",
                 "876"
               ],
-              "covered": 265
+              "covered": 266
             },
             "development_tools\\legacy\\fix_legacy_references.py": {
               "statements": 166,
@@ -35386,7 +35341,7 @@
             },
             "development_tools\\reports\\analyze_system_signals.py": {
               "statements": 439,
-              "missed": 201,
+              "missed": 200,
               "coverage": 54,
               "missing_lines": [
                 "27",
@@ -35508,7 +35463,6 @@
                 "450",
                 "474",
                 "475",
-                "498",
                 "506",
                 "508",
                 "509",
@@ -35591,7 +35545,7 @@
                 "800",
                 "810"
               ],
-              "covered": 238
+              "covered": 239
             },
             "development_tools\\reports\\decision_support.py": {
               "statements": 107,
@@ -35704,8 +35658,8 @@
             },
             "development_tools\\run_development_tools.py": {
               "statements": 242,
-              "missed": 65,
-              "coverage": 73,
+              "missed": 64,
+              "coverage": 74,
               "missing_lines": [
                 "31",
                 "33",
@@ -35732,7 +35686,6 @@
                 "77",
                 "101",
                 "102",
-                "138",
                 "139",
                 "140",
                 "164",
@@ -35773,7 +35726,7 @@
                 "462",
                 "463"
               ],
-              "covered": 177
+              "covered": 178
             },
             "development_tools\\shared\\__init__.py": {
               "statements": 4,
@@ -36714,7 +36667,7 @@
             },
             "development_tools\\shared\\service\\audit_orchestration.py": {
               "statements": 1365,
-              "missed": 698,
+              "missed": 696,
               "coverage": 49,
               "missing_lines": [
                 "123",
@@ -37001,9 +36954,7 @@
                 "1000",
                 "1047",
                 "1049",
-                "1093",
                 "1097",
-                "1111",
                 "1122",
                 "1123",
                 "1124",
@@ -37416,12 +37367,12 @@
                 "2240",
                 "2241"
               ],
-              "covered": 667
+              "covered": 669
             },
             "development_tools\\shared\\service\\commands.py": {
               "statements": 1348,
-              "missed": 764,
-              "coverage": 43,
+              "missed": 747,
+              "coverage": 45,
               "missing_lines": [
                 "91",
                 "132",
@@ -37706,23 +37657,6 @@
                 "1374",
                 "1375",
                 "1376",
-                "1383",
-                "1384",
-                "1385",
-                "1386",
-                "1391",
-                "1397",
-                "1404",
-                "1405",
-                "1406",
-                "1410",
-                "1411",
-                "1412",
-                "1413",
-                "1419",
-                "1420",
-                "1426",
-                "1432",
                 "1439",
                 "1440",
                 "1441",
@@ -38188,7 +38122,7 @@
                 "2543",
                 "2544"
               ],
-              "covered": 584
+              "covered": 601
             },
             "development_tools\\shared\\service\\core.py": {
               "statements": 44,
@@ -38239,8 +38173,8 @@
             },
             "development_tools\\shared\\service\\data_loading.py": {
               "statements": 769,
-              "missed": 225,
-              "coverage": 71,
+              "missed": 243,
+              "coverage": 68,
               "missing_lines": [
                 "66",
                 "69",
@@ -38265,7 +38199,26 @@
                 "179",
                 "180",
                 "186",
+                "225",
+                "226",
+                "229",
+                "230",
+                "231",
+                "232",
+                "233",
+                "234",
+                "235",
+                "236",
                 "237",
+                "238",
+                "239",
+                "240",
+                "241",
+                "242",
+                "243",
+                "244",
+                "245",
+                "248",
                 "249",
                 "250",
                 "251",
@@ -38278,6 +38231,7 @@
                 "260",
                 "261",
                 "262",
+                "265",
                 "266",
                 "267",
                 "268",
@@ -38319,8 +38273,6 @@
                 "390",
                 "391",
                 "393",
-                "411",
-                "412",
                 "421",
                 "431",
                 "432",
@@ -38468,12 +38420,12 @@
                 "1200",
                 "1203"
               ],
-              "covered": 544
+              "covered": 526
             },
             "development_tools\\shared\\service\\report_generation.py": {
               "statements": 4408,
-              "missed": 1712,
-              "coverage": 61,
+              "missed": 1959,
+              "coverage": 56,
               "missing_lines": [
                 "42",
                 "43",
@@ -38512,7 +38464,10 @@
                 "276",
                 "279",
                 "280",
-                "291",
+                "292",
+                "293",
+                "295",
+                "296",
                 "297",
                 "298",
                 "304",
@@ -38522,9 +38477,15 @@
                 "309",
                 "310",
                 "311",
+                "315",
                 "316",
+                "317",
+                "318",
+                "320",
                 "321",
                 "322",
+                "323",
+                "324",
                 "339",
                 "344",
                 "348",
@@ -38547,7 +38508,13 @@
                 "591",
                 "607",
                 "638",
+                "669",
+                "674",
                 "675",
+                "676",
+                "677",
+                "678",
+                "679",
                 "680",
                 "681",
                 "691",
@@ -38647,6 +38614,7 @@
                 "1202",
                 "1203",
                 "1204",
+                "1211",
                 "1230",
                 "1238",
                 "1239",
@@ -38721,6 +38689,13 @@
                 "1477",
                 "1508",
                 "1513",
+                "1549",
+                "1555",
+                "1556",
+                "1557",
+                "1558",
+                "1559",
+                "1560",
                 "1609",
                 "1640",
                 "1646",
@@ -38882,6 +38857,8 @@
                 "2390",
                 "2391",
                 "2392",
+                "2396",
+                "2397",
                 "2414",
                 "2417",
                 "2418",
@@ -38940,7 +38917,7 @@
                 "2654",
                 "2655",
                 "2656",
-                "2681",
+                "2683",
                 "2724",
                 "2767",
                 "2777",
@@ -38958,9 +38935,40 @@
                 "2818",
                 "2823",
                 "2835",
+                "2843",
+                "2849",
+                "2850",
+                "2851",
+                "2852",
+                "2853",
+                "2854",
+                "2855",
+                "2856",
+                "2857",
+                "2858",
+                "2859",
+                "2860",
+                "2861",
+                "2862",
+                "2863",
+                "2864",
                 "2865",
+                "2866",
+                "2867",
+                "2868",
+                "2871",
+                "2875",
+                "2878",
+                "2879",
+                "2881",
+                "2882",
+                "2883",
+                "2884",
+                "2885",
+                "2886",
                 "2887",
                 "2888",
+                "2889",
                 "2903",
                 "2904",
                 "2905",
@@ -38994,13 +39002,44 @@
                 "2952",
                 "2953",
                 "2958",
+                "2965",
+                "2966",
+                "2967",
+                "2968",
+                "2972",
+                "2973",
+                "2974",
                 "2978",
+                "2982",
+                "2983",
+                "2984",
+                "2985",
+                "2986",
+                "2989",
+                "2990",
+                "2991",
+                "2994",
+                "2997",
                 "3001",
+                "3006",
+                "3007",
+                "3008",
+                "3009",
+                "3010",
                 "3011",
                 "3014",
+                "3015",
                 "3016",
                 "3019",
+                "3021",
+                "3028",
                 "3029",
+                "3033",
+                "3034",
+                "3035",
+                "3036",
+                "3040",
+                "3041",
                 "3042",
                 "3045",
                 "3046",
@@ -39228,12 +39267,17 @@
                 "4438",
                 "4445",
                 "4448",
-                "4458",
-                "4465",
-                "4468",
                 "4485",
                 "4594",
                 "4599",
+                "4608",
+                "4609",
+                "4612",
+                "4613",
+                "4616",
+                "4617",
+                "4620",
+                "4623",
                 "4638",
                 "4641",
                 "4642",
@@ -39286,6 +39330,10 @@
                 "4769",
                 "4772",
                 "4775",
+                "4784",
+                "4787",
+                "4788",
+                "4792",
                 "4793",
                 "4794",
                 "4795",
@@ -39295,6 +39343,7 @@
                 "4804",
                 "4807",
                 "4810",
+                "4817",
                 "4818",
                 "4819",
                 "4820",
@@ -39315,6 +39364,8 @@
                 "4973",
                 "5027",
                 "5064",
+                "5112",
+                "5114",
                 "5116",
                 "5119",
                 "5120",
@@ -39338,9 +39389,30 @@
                 "5165",
                 "5168",
                 "5173",
+                "5177",
+                "5178",
+                "5187",
+                "5188",
+                "5189",
+                "5190",
+                "5191",
+                "5192",
+                "5194",
+                "5195",
                 "5197",
                 "5199",
+                "5200",
+                "5201",
+                "5205",
+                "5210",
+                "5211",
+                "5212",
+                "5214",
+                "5215",
+                "5216",
                 "5217",
+                "5220",
+                "5223",
                 "5230",
                 "5231",
                 "5232",
@@ -39380,6 +39452,7 @@
                 "5364",
                 "5365",
                 "5378",
+                "5392",
                 "5394",
                 "5396",
                 "5405",
@@ -39396,6 +39469,7 @@
                 "5432",
                 "5438",
                 "5439",
+                "5451",
                 "5483",
                 "5484",
                 "5488",
@@ -39554,7 +39628,11 @@
                 "6254",
                 "6255",
                 "6258",
+                "6265",
+                "6272",
+                "6273",
                 "6274",
+                "6278",
                 "6279",
                 "6293",
                 "6313",
@@ -39570,6 +39648,13 @@
                 "6361",
                 "6365",
                 "6366",
+                "6411",
+                "6417",
+                "6418",
+                "6419",
+                "6420",
+                "6421",
+                "6422",
                 "6436",
                 "6437",
                 "6442",
@@ -39858,6 +39943,8 @@
                 "7284",
                 "7285",
                 "7288",
+                "7290",
+                "7291",
                 "7296",
                 "7319",
                 "7322",
@@ -39950,9 +40037,6 @@
                 "7561",
                 "7562",
                 "7566",
-                "7570",
-                "7575",
-                "7576",
                 "7602",
                 "7603",
                 "7604",
@@ -39961,8 +40045,22 @@
                 "7612",
                 "7636",
                 "7641",
+                "7644",
+                "7646",
+                "7647",
+                "7648",
+                "7649",
+                "7650",
+                "7651",
+                "7652",
+                "7653",
                 "7655",
+                "7657",
+                "7658",
+                "7661",
+                "7664",
                 "7665",
+                "7666",
                 "7713",
                 "7718",
                 "7719",
@@ -40132,24 +40230,125 @@
                 "8554",
                 "8555",
                 "8558",
+                "8567",
+                "8573",
+                "8574",
+                "8575",
+                "8576",
+                "8577",
+                "8578",
+                "8579",
+                "8580",
+                "8581",
+                "8582",
+                "8583",
+                "8584",
+                "8585",
+                "8586",
+                "8587",
+                "8588",
                 "8589",
+                "8590",
+                "8591",
+                "8592",
+                "8595",
+                "8599",
+                "8602",
+                "8603",
+                "8604",
+                "8605",
+                "8606",
+                "8607",
+                "8608",
+                "8609",
                 "8610",
                 "8611",
+                "8612",
+                "8613",
+                "8614",
+                "8615",
+                "8616",
                 "8617",
+                "8618",
+                "8619",
+                "8620",
+                "8621",
+                "8622",
+                "8623",
+                "8624",
+                "8625",
                 "8626",
+                "8627",
+                "8633",
+                "8634",
+                "8635",
+                "8636",
+                "8637",
+                "8638",
+                "8639",
+                "8640",
+                "8641",
+                "8642",
                 "8643",
+                "8644",
                 "8645",
+                "8646",
+                "8647",
+                "8648",
+                "8649",
+                "8650",
+                "8651",
+                "8652",
+                "8653",
+                "8654",
+                "8655",
+                "8656",
+                "8657",
+                "8658",
+                "8659",
+                "8660",
+                "8661",
                 "8662",
+                "8664",
+                "8665",
+                "8666",
+                "8670",
+                "8671",
                 "8690",
+                "8695",
+                "8696",
+                "8697",
+                "8698",
+                "8702",
+                "8703",
                 "8706",
                 "8707",
+                "8712",
+                "8715",
+                "8716",
+                "8719",
+                "8720",
+                "8721",
+                "8724",
+                "8725",
                 "8726",
+                "8731",
+                "8732",
+                "8733",
+                "8734",
+                "8735",
                 "8736",
                 "8737",
                 "8738",
+                "8739",
                 "8740",
                 "8741",
                 "8742",
+                "8745",
+                "8750",
+                "8755",
+                "8756",
+                "8757",
                 "8782",
                 "8783",
                 "8784",
@@ -40188,7 +40387,7 @@
                 "8885",
                 "8888"
               ],
-              "covered": 2696
+              "covered": 2449
             },
             "development_tools\\shared\\service\\report_generation_linkify.py": {
               "statements": 25,
@@ -41249,13 +41448,10 @@
             },
             "development_tools\\static_checks\\check_channel_loggers.py": {
               "statements": 107,
-              "missed": 18,
-              "coverage": 83,
+              "missed": 12,
+              "coverage": 89,
               "missing_lines": [
-                "24",
                 "66",
-                "69",
-                "70",
                 "100",
                 "112",
                 "116",
@@ -41264,14 +41460,11 @@
                 "123",
                 "135",
                 "137",
-                "151",
-                "152",
                 "153",
                 "164",
-                "182",
-                "226"
+                "182"
               ],
-              "covered": 89
+              "covered": 95
             }
           },
           "coverage_collected": true,
@@ -41279,7 +41472,7 @@
           "html_dir": null
         }
       },
-      "timestamp": "2026-04-23T01:13:28"
+      "timestamp": "2026-04-24T20:46:35"
     },
     "verify_process_cleanup": {
       "success": true,
@@ -41295,7 +41488,7 @@
           "orphaned_processes": []
         }
       },
-      "timestamp": "2026-04-23T01:05:47"
+      "timestamp": "2026-04-24T20:38:34"
     },
     "analyze_ruff": {
       "success": true,
@@ -41314,14 +41507,14 @@
           "top_rules": [],
           "shard_run": {
             "mode": "sharded",
-            "subprocesses": 1,
+            "subprocesses": 9,
             "merged": true,
-            "fragment_cache_hits": 8,
-            "fragment_cache_misses": 1
+            "fragment_cache_hits": 0,
+            "fragment_cache_misses": 9
           }
         }
       },
-      "timestamp": "2026-04-23T01:13:33.958827"
+      "timestamp": "2026-04-24T20:46:40.852108"
     },
     "analyze_pyright": {
       "success": true,
@@ -41344,15 +41537,15 @@
           "top_warning_files": [],
           "shard_run": {
             "mode": "sharded",
-            "subprocesses": 1,
+            "subprocesses": 9,
             "merged": true,
-            "fragment_cache_hits": 8,
-            "fragment_cache_misses": 1,
+            "fragment_cache_hits": 0,
+            "fragment_cache_misses": 9,
             "parity_note": "Sharded Pyright may omit cross-package diagnostics; run a full-project Pyright periodically (e.g. pyright_shard_scan false or CI) for strict parity."
           }
         }
       },
-      "timestamp": "2026-04-23T01:13:33.958827"
+      "timestamp": "2026-04-24T20:46:40.852108"
     },
     "analyze_bandit": {
       "success": true,
@@ -41365,7 +41558,7 @@
         "details": {
           "tool": "bandit",
           "tool_available": true,
-          "returncode": 0,
+          "returncode": 1,
           "severity_counts": {
             "LOW": 207,
             "MEDIUM": 0,
@@ -41376,34 +41569,40 @@
           "top_files": [],
           "shard_run": {
             "mode": "sharded",
-            "subprocesses": 0,
+            "subprocesses": 10,
             "merged": true,
-            "fragment_cache_hits": 10,
-            "fragment_cache_misses": 0
+            "fragment_cache_hits": 0,
+            "fragment_cache_misses": 10
           }
         }
       },
-      "timestamp": "2026-04-23T01:13:33.958827"
+      "timestamp": "2026-04-24T20:46:40.852108"
     },
     "analyze_pip_audit": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
-          "files_affected": 0,
-          "status": "PASS"
+          "total_issues": 1,
+          "files_affected": 1,
+          "status": "WARN"
         },
         "details": {
           "tool": "pip_audit",
           "tool_available": true,
-          "returncode": 0,
-          "vulnerable_packages": [],
-          "pip_audit_execution_state": "requirements_lock_cache_hit",
-          "pip_audit_subprocess_seconds": null,
-          "pip_audit_timing_note": "Requirements unchanged; reused pip-audit JSON from a prior run. Orchestration elapsed time reflects cache lookup only, not subprocess."
+          "returncode": 1,
+          "vulnerable_packages": [
+            {
+              "name": "pip",
+              "version": "26.0.1",
+              "vuln_count": 1,
+              "example_id": "CVE-2026-3219"
+            }
+          ],
+          "pip_audit_execution_state": "executed_subprocess",
+          "pip_audit_subprocess_seconds": 8.4854
         }
       },
-      "timestamp": "2026-04-23T01:13:33.958827"
+      "timestamp": "2026-04-24T20:46:40.852108"
     }
   }
 }

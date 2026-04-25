@@ -36,3 +36,40 @@ def test_find_trackable_files_skips_standard_excluded_paths(monkeypatch, tmp_pat
     assert "scripts/skip.md" not in found
     assert ".ruff_cache/skip.md" not in found
     assert "tests/data/skip.md" not in found
+
+
+@pytest.mark.unit
+def test_is_generated_file_normalizes_path_separators(monkeypatch):
+    monkeypatch.setattr(version_sync_module, "GENERATED_AI_DOCS", ["ai_development_docs/sample_generated.md"])
+    monkeypatch.setattr(version_sync_module, "GENERATED_DOCS", [])
+
+    assert version_sync_module.is_generated_file("ai_development_docs/sample_generated.md") is True
+    assert version_sync_module.is_generated_file(r"ai_development_docs\sample_generated.md") is True
+    assert version_sync_module.is_generated_file("./ai_development_docs/sample_generated.md") is True
+
+
+@pytest.mark.unit
+def test_should_track_file_unknown_scope_returns_false():
+    assert version_sync_module.should_track_file("docs/any.md", scope="not_a_real_scope") is False
+
+
+@pytest.mark.unit
+def test_should_track_file_scope_all_returns_true():
+    assert version_sync_module.should_track_file("any/path/file.xyz", scope="all") is True
+
+
+@pytest.mark.unit
+def test_extract_version_info_fills_defaults():
+    version, date_str = version_sync_module.extract_version_info("body without version keys")
+    assert version == "1.0.0"
+    assert date_str == version_sync_module.get_current_date()
+
+
+@pytest.mark.unit
+def test_get_file_modification_date_on_stat_failure(monkeypatch):
+    def _raise(_path):
+        raise OSError("no stat")
+
+    monkeypatch.setattr(version_sync_module.os.path, "getmtime", _raise)
+    out = version_sync_module.get_file_modification_date("/nonexistent/path.md")
+    assert out == version_sync_module.get_current_date()

@@ -156,6 +156,21 @@ def test_scan_paths_resolves_tmp_files(tmp_path: Path) -> None:
 
 
 @pytest.mark.unit
+def test_example_heading_with_example_markers_substring_opens_no_region() -> None:
+    """Headings that only document marker policy must not scan following lines as example bodies."""
+    md = """## Example markers policy
+
+Use `core/foo.py` in prose under this heading.
+
+## Real Examples
+
+[OK] `core/bar.py` is tagged.
+"""
+    hits = find_unmarked_example_path_lines(md)
+    assert hits == []
+
+
+@pytest.mark.unit
 def test_scan_paths_excludes_changelog_category(tmp_path: Path) -> None:
     changelog = tmp_path / "ai_development_docs" / "AI_CHANGELOG.md"
     changelog.parent.mkdir(parents=True, exist_ok=True)

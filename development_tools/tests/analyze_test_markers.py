@@ -551,10 +551,19 @@ class MissingMarkerFinder:
         """Counts for tests subject to domain-marker policy (category present, not exempt)."""
         enforced = self.domain_enforced_test_functions
         marked = self.domain_marked_test_functions
+        unmarked = max(0, enforced - marked)
+        gap_tests = len(self.missing_domain)
+        gap_files = (
+            len({Path(f).as_posix() for f, _, _, _ in self.missing_domain})
+            if self.missing_domain
+            else 0
+        )
         return {
             "domain_enforced_test_functions": enforced,
             "domain_marked_test_functions": marked,
-            "domain_unmarked_test_functions": max(0, enforced - marked),
+            "domain_unmarked_test_functions": unmarked,
+            "missing_domain_test_count": gap_tests,
+            "missing_domain_file_count": gap_files,
         }
 
     def _class_marked_not_test(self, node):
