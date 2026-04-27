@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Single forward-looking backlog after V4; collapsed history; actionable next steps  
 > **Style**: Direct and concise  
-> **Last Updated**: 2026-04-23  
+> **Last Updated**: 2026-04-26  
 > **Supersedes**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) (keep V4 for detailed checkbox history)
 
 **Authoritative metrics**: [development_tools/AI_STATUS.md](AI_STATUS.md) and [development_tools/AI_PRIORITIES.md](AI_PRIORITIES.md) after `python development_tools/run_development_tools.py audit` or `audit --full`.
@@ -71,7 +71,11 @@ Use this block when a V4 **Status** line says “IN PROGRESS” or “COMPLETE�
 
 ## 2. Current state snapshot (rolling)
 
+**2026-04-26 (V5 continuation — coverage, overlap, example-marker, portability slice)**: Executed the attached continuation plan without dependency changes. Added focused coverage tests for [`CommandsMixin`](shared/service/commands.py), [`AuditOrchestrationMixin`](shared/service/audit_orchestration.py), and [`generate_module_dependencies.py`](imports/generate_module_dependencies.py) through [`test_commands_coverage_helpers.py`](../tests/development_tools/test_commands_coverage_helpers.py), [`test_audit_orchestration_helpers.py`](../tests/development_tools/test_audit_orchestration_helpers.py), and [`test_generate_module_dependencies.py`](../tests/development_tools/test_generate_module_dependencies.py). Recorded the current `pip 26.0.1` / `CVE-2026-3219` pip-audit warning as **monitor-only** because no fixed version is reported. Tuned documentation consolidation recommendations in [`analyze_documentation.py`](docs/analyze_documentation.py) so expected paired docs and specialized testing guides are not treated as consolidation debt; tests in [`test_analyze_documentation.py`](../tests/development_tools/test_analyze_documentation.py). Revalidated example-marker advisory reporting with a JSON true-positive branch in [`test_documentation_sync_checker.py`](../tests/development_tools/test_documentation_sync_checker.py). Extended Pyright/Ruff portability policy tests in [`test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py) for no root `pyrightconfig.json`, static-check cache dependency coverage, and optional-only diagnostic-count parity. Final validation refreshed `doc-sync` and `audit --full`; live status now shows overall coverage **72.2%**, development-tools coverage **66.9%**, no documentation overlaps, Tier 3 **clean**, and the known pip-audit watch item as the only static-analysis issue. **Next handoff**: prefer another targeted dev-tools coverage slice based on live [`AI_PRIORITIES.md`](AI_PRIORITIES.md); keep pip-audit in watch mode until a trusted fixed release exists; treat broader duplicate/complexity/coupling work as product backlog unless the user switches focus.
+
 **2026-04-23 (V5 continuation — plan execution slice complete, full-audit refresh)**: Added focused tests for low-coverage dev-tools paths: [`test_commands_coverage_helpers.py`](../tests/development_tools/test_commands_coverage_helpers.py) (`_run_doc_subcheck_with_cache` standard-data/stdout/fallback parse branches), [`test_fix_version_sync_todo_sync.py`](../tests/development_tools/test_fix_version_sync_todo_sync.py) (`_find_todo_scan_start` + completion-marker classification cases), and [`test_audit_orchestration_helpers.py`](../tests/development_tools/test_audit_orchestration_helpers.py) (`cache_only_precheck` scope-finalization behavior). Ran `doc-sync` + `doc-fix --fix-ascii` verification (no residual ASCII quick-win issues; docs signals now clean). Re-ran `audit --full`; generated outputs refreshed with **Doc Sync PASS**, **ASCII CLEAN**, **Tier 3 state clean**, and dev-tools coverage now ~**66.3%** (see live [`AI_STATUS.md`](AI_STATUS.md) / [`AI_PRIORITIES.md`](AI_PRIORITIES.md)). **Next scheduled medium item (from §4.3 order)**: **§5.5 — 5.2 documentation-overlap tuning**, then **§5.3 — 3.0 example-marker revalidation**, then **§5.7 — 7.6 portability parity**.
+
+**2026-04-24 (full-audit baseline — pip-audit watch item)**: Latest generated static-analysis output reports **Ruff PASS**, **Pyright PASS**, **Bandit PASS**, and **pip-audit WARN** for `pip 26.0.1` / `CVE-2026-3219` with **no fixed version reported** in [`analyze_pip_audit_results.json`](static_checks/jsons/scopes/full/analyze_pip_audit_results.json). Treat this as a monitored supply-chain advisory: do **not** change dependencies solely for this finding until a trusted fixed release is available or a remediation decision is made explicitly. Keep generated [`AI_PRIORITIES.md`](AI_PRIORITIES.md) as the live operator queue.
 
 **2026-04-23 (V5 continuation — Phase A/B from attached execution plan)**: Phase **§5.1 — 1.1**: added [`test_commands_coverage_helpers.py`](../tests/development_tools/test_commands_coverage_helpers.py) cases for `_derive_tier3_state_from_classifications`, `_is_failure_state`, `_is_coverage_file_fresh` stat failure; [`test_analyze_unconverted_links.py`](../tests/development_tools/test_analyze_unconverted_links.py) for skip-outside-root, metadata line, `*.md`→`*.c` sibling, Example Code heading context. **§5.5 — 5.2**: [`EXPECTED_OVERLAPS`](shared/constants.py) **troubleshooting**, **additional resources** + [`test_analyze_documentation.py`](../tests/development_tools/test_analyze_documentation.py) numbered troubleshooting overlap regression. **§5.5 — 5.7**: [`analyze_test_markers.py`](tests/analyze_test_markers.py) — `domain_attribution_summary` / JSON `details.domain_attribution_summary` + [`test_analyze_test_markers_domain.py`](../tests/development_tools/test_analyze_test_markers_domain.py); `_FakeAnalyzer` in [`test_analyze_test_markers.py`](../tests/development_tools/test_analyze_test_markers.py). **§5.7 — 7.6**: [`test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py) `include` key parity. **§5.3 — 3.0**: example-marker advisory unchanged (clean); existing changelog/heading tests retained. **Evidence**: `pytest tests/development_tools -m "not e2e"`; `audit --full` post-change. **Next**: resume §4.3 only if new priorities emerge from fresh **AI_PRIORITIES**; optional product work §6 separate.
 
@@ -131,31 +135,31 @@ No per-task history here — see V4 for checkboxes.
 
 ## 4. Priority map (quick scan)
 
-Current ordering after the latest **2026-04-23** full audit refresh (see **§5** for detail):
+Current ordering after the **2026-04-26** continuation slice and full-audit refresh (see **§5** for detail):
 
 | Tier | Themes |
 |------|--------|
-| **Next execution slice** | Dev-tools coverage improvement work centered on low-coverage tooling modules (§5.1 — 1.1); short audit-reconciliation updates whenever fresh full-audit evidence changes priorities; then resume the medium backlog now that the report/status semantic clarity slice has landed (§5.1 — 1.9, §5.2 — 2.8). |
-| **Active medium backlog** | Documentation-overlap tuning / consolidation follow-up (§5.5 — 5.2); example-marker calibration before any stricter rollout (§5.3 — 3.0); portability follow-up around Pyright/Ruff parity and minimal-external-repo validation (§5.3 — 3.17, §5.7 — 7.6); narrow validation-trigger cleanup only if it becomes noisy (§5.3 — 3.2). |
+| **Next execution slice** | Choose the next targeted dev-tools coverage increment (§5.1 — 1.1) from live AI_PRIORITIES / TEST_COVERAGE_REPORT; monitor pip-audit until a trusted fixed release exists. |
+| **Active medium backlog** | Domain markers in `analyze_test_markers` (§5.5 — 5.7); portability/minimal-external-repo validation beyond structural parity (§5.3 — 3.17, §5.7 — 7.6); narrow validation-trigger cleanup only if it becomes noisy (§5.3 — 3.2). |
 | **Deferred / optional** | Coverage cache numeric benchmarks (§5.1 — 1.5); external-tool expansion beyond shipped Bandit/pip-audit integration (§5.4 — 4.1); TODO sync workflow polish (§5.5 — 5.4); gap-analysis expansion (§5.5 — 5.5); memory profiler (§5.5 — 5.6); large-file refactor work (§5.3 — 3.16); broader human backlog (§5.7 — 7.7 onward). |
 | **Monitoring only** | Intermittent low coverage warning (§1.3); deferred comprehensive audit-status tests (§1.2); legacy inventory follow-up only if future audits reintroduce active markers or new bridge-removal work (§6). |
 
 ### 4.1 Next execution slice (recommended)
 
-Suggested order for the next work slice after the 2026-04-17 continuation slice:
+Suggested order for the next work slice after the 2026-04-26 continuation slice:
 
-1. Use **`TEST_COVERAGE_REPORT.md`** / dev-tools coverage artifacts to choose the next small set of low-coverage tooling modules for targeted tests, balancing central service chokepoints with the current lowest modules surfaced by the latest report (`shared/measure_tool_timings.py`, `shared/verify_tool_storage.py`, and remaining gaps in `shared/service/*`).
-2. Rerun full-audit validation and refresh **AI_STATUS** / **AI_PRIORITIES** / **CONSOLIDATED_REPORT** so coverage movement and ranking shifts are captured before starting the next backlog theme.
-3. Resume medium-priority tooling work in order: documentation-overlap tuning, then portability parity validation; keep doc-sync work in monitor mode unless generated signals regress from **CLEAN**.
+1. Use **`TEST_COVERAGE_REPORT.md`** / dev-tools coverage artifacts to choose the next small set of low-coverage tooling modules for targeted tests, balancing central service chokepoints with the current lowest modules surfaced by the latest report.
+2. Keep the `pip 26.0.1` / `CVE-2026-3219` pip-audit finding in monitor mode until a trusted fixed version appears; do not change dependencies solely for the current no-fix advisory.
+3. Treat documentation overlap, example-marker scope, and structural Pyright/Ruff parity as complete for this slice; reopen only if generated signals regress or a stricter parity tolerance is agreed.
 
-### 4.3 Medium backlog queue (scheduled order after 2026-04-21 slice)
+### 4.3 Medium backlog queue (scheduled order after 2026-04-26 slice)
 
 Execute when **§5.1 — 1.1** coverage iterations and **§3.21** operator clarity are satisfied for the current milestone:
 
-1. **§5.5 — 5.2** — Documentation overlap tuning (`EXPECTED_OVERLAPS`, `detect_section_overlaps`); validate with a default-scope `doc-sync` / audit pass before expanding patterns.
-2. **§5.3 — 3.0** — Example-marker advisory: revalidate scan scope vs “clean” output; tighten heuristics only if audits show false negatives or churn.
-3. **§5.7 — 7.6** — Pyright portability / dual-config alignment; extend `test_pyright_config_paths.py` when tightening diagnostic parity.
-4. **§5.7 — 5.7** — Domain markers in `analyze_test_markers` (coordinate with [TEST_PLAN.md](../development_docs/TEST_PLAN.md) §4.4 and `domain_mapper`).
+1. **Done 2026-04-26 — §5.5 — 5.2**: documentation-overlap tuning now filters expected paired-doc pairs and specialized testing guides from consolidation recommendations.
+2. **Done 2026-04-26 — §5.3 — 3.0**: example-marker advisory has true-positive JSON reporting coverage; keep stricter rollout deferred until future signal warrants it.
+3. **Partial 2026-04-26 — §5.7 — 7.6**: Pyright/Ruff structural parity tests extended; diagnostic-count parity remains optional and tolerance-gated.
+4. **Next medium candidate — §5.5 — 5.7**: domain markers in `analyze_test_markers` (coordinate with [TEST_PLAN.md](../development_docs/TEST_PLAN.md) §4.4 and `domain_mapper`).
 
 ### 4.2 Deferred after the next slice
 
@@ -181,6 +185,7 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 - **Status update (2026-04-17 rebaseline)**: The old V4 threshold is no longer the useful target. Latest generated reports show development-tools coverage at **~63.9%** in the dedicated track after this slice, so the active question is still **where targeted tests buy down the most risk next**, not whether the suite can clear 60%.
 - **Next focus**: Prefer coverage work on low-coverage modules surfaced in `TEST_COVERAGE_REPORT.md`, balancing central orchestration paths (`development_tools/shared/service/commands.py`, `development_tools/shared/service/audit_orchestration.py`, `development_tools/shared/service/tool_wrappers.py`, optional follow-on `development_tools/shared/service/data_loading.py`) with currently lowest helper/tooling modules (`development_tools/shared/measure_tool_timings.py`, `development_tools/shared/verify_tool_storage.py`).
+- **Done (2026-04-26 slice)**: Added targeted helper/content tests for coverage-relevant low-coverage paths in [`test_commands_coverage_helpers.py`](../tests/development_tools/test_commands_coverage_helpers.py), [`test_audit_orchestration_helpers.py`](../tests/development_tools/test_audit_orchestration_helpers.py), and [`test_generate_module_dependencies.py`](../tests/development_tools/test_generate_module_dependencies.py). Continue coverage work in small slices rather than chasing percentage-only tests.
 - **Open**: Migrate remaining analyzer-style tests to `tests/development_tools/test_config.json` via `test_config_path` when touching those tests; keep this as opportunistic cleanup, not the headline coverage strategy.
 - **Guidance**: Use live `AI_PRIORITIES.md`, `TEST_COVERAGE_REPORT.md`, and `generate_dev_tools_coverage_results.json` to pick modules; do not duplicate long module lists in this plan.
 
@@ -247,6 +252,7 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 - **Done (2026-04-12)**: [`example_marker_validation.py`](docs/example_marker_validation.py); CLI flag `--check-example-markers` on [`analyze_documentation_sync.py`](docs/analyze_documentation_sync.py); unit tests [`test_example_marker_validation.py`](../tests/development_tools/test_example_marker_validation.py).
 - **Done (2026-04-13)**: Example-marker scan targets **`DEFAULT_DOCS`** from [`constants.py`](shared/constants.py) (merged config via [`get_constants_config()`](config/config.py): `paired_docs` + [`fix_version_sync` `ai_docs` / `docs`](../config/development_tools_config.json) + `default_docs_extra`), not only paired-doc endpoints — keeps the pass aligned with the approved documentation path list. Fallback if that set is empty: paired-doc keys only. Tests: [`test_documentation_sync_checker.py`](../tests/development_tools/test_documentation_sync_checker.py) `TestExampleMarkerScanPaths`.
 - **Done (2026-04-17)**: Heading matcher expanded to include **Example Code** headings while suppressing changelog-style **example markers** heading noise; regression tests updated in [`test_example_marker_validation.py`](../tests/development_tools/test_example_marker_validation.py).
+- **Done (2026-04-26)**: Revalidated the advisory reporting path with a JSON true-positive test in [`test_documentation_sync_checker.py`](../tests/development_tools/test_documentation_sync_checker.py). Current clean output is treated as expected unless future audits show missed true examples.
 - **Open tasks**:
   - Tighten heuristics (reduce false positives); optional integration into default `doc-sync` / audit tiers once signal is trusted.
   - Validate example headings (`Examples:`, `Example Usage:`, `Example Code:`) beyond Markdown `##` patterns.
@@ -425,6 +431,7 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 - **Status**: **COMPLETE (2026-04-10)** — Tier 3 static-analysis group; `tool_wrappers` + scoped JSON + mtime cache (bandit) / requirements-hash cache (pip-audit); **AI_STATUS** / **CONSOLIDATED_REPORT** / **AI_PRIORITIES**; tests in [`tests/development_tools/test_analyze_security_static_checks.py`](../tests/development_tools/test_analyze_security_static_checks.py).
 - **Semantics shipped**: Bandit summary counts **MEDIUM/HIGH** only (tests/ trees excluded by default); pip-audit findings use summary **WARN** when vulnerabilities exist; **strict** exit still driven by pytest Tier 3 outcome, not these tools.
 - **Residual / follow-up**: CI/offline policy for pip-audit (`MHM_PIP_AUDIT_SKIP` env + paired guide §10); optional noise tuning via `static_analysis` config keys in [`config/config.py`](config/config.py); Radon/pydeps manual pilots remain §4.1.
+- **2026-04-24 watch item**: `pip 26.0.1` / `CVE-2026-3219` currently has **no fixed version reported** by pip-audit. Keep this in monitoring mode and avoid dependency churn unless a fixed release or explicit remediation policy appears.
 - **Related**: §5.4 — 4.1 (evaluation backlog); [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) Section 10.
 
 #### 4.3 Investigate `analyze_pip_audit` elapsed=`0.00s` runs (new)
@@ -449,7 +456,8 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 - **Status**: **IN PROGRESS**. **User priority**: Medium.
 - **Done (2026-04-08)**: `detect_section_overlaps` treats numbered generic headings (`1. Purpose and Scope`, `1. Quick Start`, …) like `EXPECTED_OVERLAPS` entries to cut **AI_STATUS** / doc-sync noise.
 - **Done (2026-04-09)**: Added `getting started`, `installation`, `configuration`, `related documents` to `EXPECTED_OVERLAPS` (shared guide boilerplate).
-- **Open**: Review consolidation opportunities (Development Workflow, Testing); consolidation plan; improve actionable insights; further false-positive tuning beyond generic headings.
+- **Done (2026-04-26)**: Consolidation recommendations now skip exact configured paired-doc groups and specialized testing guides (manual, dev-tools, AI functionality) so the generated Development Workflow / Testing recommendations do not treat intentional audience-specific docs as consolidation debt.
+- **Open**: Broader consolidation plan only if future audits show real duplicated content outside paired/specialized docs; improve actionable insights if new noisy groups appear.
 - **Priority note (2026-04-16)**: Keep active as a **medium-priority** follow-up because the latest full audit still reports overlap/consolidation opportunities, but do it after the coverage/semantics slice.
 
 #### 5.3 AI work validation improvements
@@ -532,7 +540,7 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
   - Root `.ruff.toml` = compatibility mirror; `development_tools/config/ruff.toml` = owned path for wrappers.
 - **Next steps before single baseline**:
   - Align dev-tools Pyright so `analyze_pyright` matches root diagnostic baseline (no artificial drops from scope drift).
-  - Regression tests: both Pyright paths; fail if error/warning deltas exceed agreed tolerance without explicit exclusions. **Partial (2026-03-27)**: optional enforcement in `tests/development_tools/test_pyright_config_paths.py` e2e — set env `PYRIGHT_ERROR_COUNT_MAX_DELTA` to a non-negative integer when running the e2e Pyright test; unset by default (scopes differ). **2026-03-28**: owned [`pyrightconfig.json`](config/pyrightconfig.json) adds `venvPath` / `venv` so `pyright --project` resolves the repo `.venv` from the owned config path. **2026-04-10**: root baseline moved to [`pyproject.toml`](../pyproject.toml) `[tool.pyright]` (removed root `pyrightconfig.json`).
+  - Regression tests: both Pyright paths; fail if error/warning deltas exceed agreed tolerance without explicit exclusions. **Partial (2026-03-27)**: optional enforcement in `tests/development_tools/test_pyright_config_paths.py` e2e — set env `PYRIGHT_ERROR_COUNT_MAX_DELTA` to a non-negative integer when running the e2e Pyright test; unset by default (scopes differ). **2026-03-28**: owned [`pyrightconfig.json`](config/pyrightconfig.json) adds `venvPath` / `venv` so `pyright --project` resolves the repo `.venv` from the owned config path. **2026-04-10**: root baseline moved to [`pyproject.toml`](../pyproject.toml) `[tool.pyright]` (removed root `pyrightconfig.json`). **2026-04-26**: policy tests assert root JSON is not reintroduced, static-check cache invalidation includes both root/owned Pyright/Ruff config paths, and diagnostic-count parity remains optional unless `PYRIGHT_ERROR_COUNT_MAX_DELTA` is explicitly set.
   - Decide: keep root `.ruff.toml` permanently as mirror vs deprecate after portability criteria met.
   - If deprecating root configs: migration + fallback documented in both guides before removal.
   - **2026-04-16 priority**: keep this in the active backlog, but behind coverage work and report-semantic cleanup unless a portability regression appears in a fresh audit.

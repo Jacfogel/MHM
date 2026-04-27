@@ -158,6 +158,17 @@ def test_run_analyze_documentation_merges_cached_overlap_data(temp_project_copy,
         raising=True,
     )
     monkeypatch.setattr(
+        tool_wrappers_module,
+        "load_tool_result",
+        output_storage_module.load_tool_result,
+        raising=True,
+    )
+    monkeypatch.setitem(
+        service.run_analyze_documentation.__func__.__globals__,
+        "load_tool_result",
+        output_storage_module.load_tool_result,
+    )
+    monkeypatch.setattr(
         service,
         "run_script",
         lambda *_args, **_kwargs: {
@@ -232,6 +243,17 @@ def test_run_analyze_error_handling_loads_cached_data_on_successful_run_with_non
             "functions_missing_error_handling": 2,
         },
         raising=True,
+    )
+    monkeypatch.setattr(
+        tool_wrappers_module,
+        "load_tool_result",
+        output_storage_module.load_tool_result,
+        raising=True,
+    )
+    monkeypatch.setitem(
+        service.run_analyze_error_handling.__func__.__globals__,
+        "load_tool_result",
+        output_storage_module.load_tool_result,
     )
     monkeypatch.setattr(
         tool_wrappers_module,

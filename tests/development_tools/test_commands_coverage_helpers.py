@@ -225,6 +225,64 @@ def test_build_coverage_metadata_includes_cache_mode_and_reason(tmp_path):
 
 
 @pytest.mark.unit
+def test_is_interrupt_signature_detects_keyboardinterrupt_and_sigint_code(tmp_path):
+    service = _DummyService(tmp_path)
+    assert service._is_interrupt_signature("KeyboardInterrupt in pytest", 1) is True
+    assert service._is_interrupt_signature("", 130) is True
+    assert service._is_interrupt_signature("regular failure", 1) is False
+
+
+@pytest.mark.unit
+def test_to_standard_dev_tools_coverage_result_preserves_standard_payload(tmp_path):
+    service = _DummyService(tmp_path)
+    payload = {"summary": {"total_issues": 3}, "details": {"overall": {}}}
+    assert service._to_standard_dev_tools_coverage_result(payload) is payload
+
+
+@pytest.mark.unit
+def test_to_standard_dev_tools_coverage_result_wraps_raw_coverage_payload(tmp_path):
+    service = _DummyService(tmp_path)
+    raw = {"overall": {"total_missed": "12"}, "files": {"a.py": {}}}
+    normalized = service._to_standard_dev_tools_coverage_result(raw)
+    assert normalized["summary"]["total_issues"] == 12
+    assert normalized["summary"]["files_affected"] == 0
+    assert normalized["details"] == raw
+
+
+@pytest.mark.unit
+def test_extract_cached_main_coverage_state_uses_tier3_details(tmp_path):
+    service = _DummyService(tmp_path)
+    cached = {
+        "details": {
+            "tier3_test_outcome": {
+                "parallel": {"classification": "passed"},
+                "no_parallel": {"classification": "skipped"},
+            }
+        }
+    }
+    assert service._extract_cached_main_coverage_state(cached) == "clean"
+    assert service._extract_cached_main_coverage_state({"details": {}}) is None
+    assert service._extract_cached_main_coverage_state(None) is None
+
+
+@pytest.mark.unit
+def test_extract_cached_dev_tools_state_uses_structured_outcome(tmp_path):
+    service = _DummyService(tmp_path)
+    cached = {"details": {"dev_tools_test_outcome": {"classification": "failed"}}}
+    assert service._extract_cached_dev_tools_state(cached) == "failed"
+    assert service._extract_cached_dev_tools_state({"details": {"dev_tools_test_outcome": {}}}) == "unknown"
+    assert service._extract_cached_dev_tools_state({"details": {}}) is None
+
+
+@pytest.mark.unit
+def test_extract_track_classification_strips_and_defaults_unknown(tmp_path):
+    service = _DummyService(tmp_path)
+    assert service._extract_track_classification({"classification": " passed "}) == "passed"
+    assert service._extract_track_classification({"classification": ""}) == "unknown"
+    assert service._extract_track_classification("not-a-dict") == "unknown"
+
+
+@pytest.mark.unit
 def test_latest_mtime_for_patterns_ignores_excluded_paths(tmp_path):
     service = _DummyService(tmp_path)
     (tmp_path / "keep").mkdir()

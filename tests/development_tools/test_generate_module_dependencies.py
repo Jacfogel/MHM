@@ -23,6 +23,11 @@ infer_module_purpose = imports_module.infer_module_purpose
 # Import from generate_module_dependencies (content generation)
 preserve_manual_enhancements = deps_module.preserve_manual_enhancements
 generate_module_dependencies_content = deps_module.generate_module_dependencies_content
+generate_module_section = deps_module.generate_module_section
+get_directory_description = deps_module.get_directory_description
+get_module_purpose = deps_module.get_module_purpose
+identify_modules_needing_enhancement = deps_module.identify_modules_needing_enhancement
+generate_ai_module_dependencies_content = deps_module.generate_ai_module_dependencies_content
 
 
 class TestImportExtraction:
@@ -240,6 +245,126 @@ class TestContentGeneration:
         assert 'demo_module' in content.lower() or 'demo' in content.lower(), \
             f"Content should mention demo modules. Content preview: {content[:500]}"
 
+    @pytest.mark.unit
+    def test_generate_module_section_deduplicates_imports_and_reports_reverse_deps(
+        self, monkeypatch
+    ):
+        """Module sections should merge repeated imports and show reverse users."""
+        monkeypatch.setattr(
+            deps_module,
+            "infer_module_purpose",
+            lambda _file_path, _data, _all_modules: "Demo purpose",
+        )
+        monkeypatch.setattr(
+            deps_module,
+            "find_reverse_dependencies",
+            lambda _file_path, _all_modules: ["consumer.py"],
+        )
+        monkeypatch.setattr(
+            deps_module,
+            "analyze_dependency_changes",
+            lambda _file_path, _data, _existing: {
+                "added": ["core.config"],
+                "removed": [],
+                "unchanged": False,
+            },
+        )
+        data = {
+            "imports": {
+                "local": [
+                    {"module": "core.config", "imported_items": ["A"]},
+                    {"module": "core.config", "imported_items": ["B"]},
+                ],
+                "standard_library": [{"module": "json", "imported_items": []}],
+                "third_party": [{"module": "requests", "imported_items": []}],
+            },
+            "total_imports": 4,
+        }
+
+        section = "\n".join(generate_module_section("demo.py", data, {}, ""))
+
+        assert "- **Purpose**: Demo purpose" in section
+        assert section.count("core.config") == 2  # dependency line + change summary
+        assert "`consumer.py`" in section
+        assert "Added: core.config" in section
+
+    @pytest.mark.unit
+    def test_generate_module_section_handles_no_imports(self, monkeypatch):
+        monkeypatch.setattr(
+            deps_module,
+            "infer_module_purpose",
+            lambda _file_path, _data, _all_modules: "No import module",
+        )
+        monkeypatch.setattr(deps_module, "find_reverse_dependencies", lambda *_args: [])
+        monkeypatch.setattr(
+            deps_module,
+            "analyze_dependency_changes",
+            lambda *_args: {"added": [], "removed": [], "unchanged": True},
+        )
+        data = {
+            "imports": {
+                "local": [],
+                "standard_library": [],
+                "third_party": [],
+            },
+            "total_imports": 0,
+        }
+
+        section = "\n".join(generate_module_section("empty.py", data, {}, ""))
+
+        assert "None (no imports)" in section
+        assert "None (not imported by other modules)" in section
+
+    @pytest.mark.unit
+    def test_generate_ai_module_dependencies_content_uses_dynamic_pattern_sections(
+        self, monkeypatch
+    ):
+        class FakePatternAnalyzer:
+            def analyze_dependency_patterns(self, actual_imports):
+                assert "demo.py" in actual_imports
+                return {"fan_in": []}
+
+            def build_dynamic_decision_trees(self, _actual_imports):
+                return "decision tree text"
+
+            def find_critical_dependencies(self, _actual_imports):
+                return "critical dependency text"
+
+            def detect_risk_areas(self, _actual_imports, _patterns):
+                return "risk area text"
+
+            def generate_dependency_patterns_section(self, _patterns, _actual_imports):
+                return "pattern section text"
+
+            def generate_quick_reference(self, _actual_imports, _patterns):
+                return "quick reference text"
+
+        monkeypatch.setattr(deps_module, "DependencyPatternAnalyzer", FakePatternAnalyzer)
+        actual_imports = {
+            "demo.py": {
+                "total_imports": 2,
+                "imports": {
+                    "standard_library": [{"module": "json"}],
+                    "third_party": [],
+                    "local": [{"module": "core.config"}],
+                },
+            }
+        }
+
+        content = generate_ai_module_dependencies_content(actual_imports)
+
+        assert "Files Scanned**: 1" in content
+        assert "Standard Library**: 1 (50.0%)" in content
+        assert "decision tree text" in content
+        assert "quick reference text" in content
+
+    @pytest.mark.unit
+    def test_get_directory_and_module_purpose_fallbacks(self):
+        assert get_directory_description("core") == "Core System Modules (Foundation)"
+        assert get_directory_description("unknown") == "Unknown Directory"
+        assert "Configuration management" in get_module_purpose("core/config.py")
+        assert get_module_purpose("custom/tool.py") == "Module for custom/tool.py"
+
 
 class TestManualEnhancementPreservation:
     """Test manual enhancement preservation."""
@@ -272,6 +397,48 @@ This is a manual enhancement that should be preserved.
         # Should preserve the manual enhancement
         assert 'This is a manual enhancement that should be preserved.' in final_content
         assert len(preserved) > 0
+
+    @pytest.mark.unit
+    def test_preserve_manual_enhancements_appends_general_section(self):
+        existing_content = """# Module Dependencies
+
+## **Circular Dependencies**
+Keep this manually curated warning.
+<!-- MANUAL_ENHANCEMENT_END -->
+"""
+        new_content = "# Module Dependencies\n\n#### `demo.py`\n"
+
+        final_content, preserved = preserve_manual_enhancements(existing_content, new_content)
+
+        assert preserved == {}
+        assert "Keep this manually curated warning." in final_content
+
+    @pytest.mark.unit
+    def test_identify_modules_needing_enhancement_classifies_statuses(self):
+        existing_content = """#### `placeholder.py`
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+#### `enhanced.py`
+<!-- MANUAL_ENHANCEMENT_START -->
+Enhanced Purpose: Important module.
+<!-- MANUAL_ENHANCEMENT_END -->
+#### `missing.py`
+- **Purpose**: No enhancement markers here.
+"""
+        actual_imports = {
+            "placeholder.py": {},
+            "enhanced.py": {},
+            "missing.py": {},
+            "new.py": {},
+        }
+
+        statuses = identify_modules_needing_enhancement(existing_content, actual_imports)
+
+        assert statuses["placeholder.py"] == "needs_enhancement"
+        assert statuses["enhanced.py"] == "up_to_date"
+        assert statuses["missing.py"] == "missing_enhancement"
+        assert statuses["new.py"] == "new_module"
 
 
 class TestDependencyChangeAnalysis:

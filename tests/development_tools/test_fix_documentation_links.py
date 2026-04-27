@@ -23,8 +23,8 @@ class TestDocumentationLinkFixer:
     @pytest.mark.unit
     def test_init_default_project_root(self, temp_project_copy):
         """Test initialization with default project root."""
-        with patch('development_tools.docs.fix_documentation_links.config') as mock_config:
-            mock_config.get_project_root.return_value = str(temp_project_copy)
+        config_module = DocumentationLinkFixer.__init__.__globals__["config"]
+        with patch.object(config_module, "get_project_root", return_value=str(temp_project_copy)):
             
             fixer = DocumentationLinkFixer()
             
@@ -210,7 +210,10 @@ See [the target file](tests/target.md) for more information.
         doc_file = temp_project_copy / "test_doc.md"
         doc_file.write_text("# Test")
         
-        with patch('development_tools.docs.fix_documentation_links.DEFAULT_DOCS', ['test_doc.md']):
+        with patch.dict(
+            DocumentationLinkFixer.fix_convert_links.__globals__,
+            {"DEFAULT_DOCS": ["test_doc.md"]},
+        ):
             fixer = DocumentationLinkFixer(project_root=str(temp_project_copy))
             
             # Mock file read to raise exception

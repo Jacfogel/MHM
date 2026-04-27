@@ -116,6 +116,12 @@ class LegacyReferenceFixer:
             logger.info(f"Cleaning up legacy references (dry_run={dry_run})...")
 
         cleanup_results = defaultdict(list)
+        # Keep the result contract stable even when findings contain only patterns
+        # with no configured replacements.
+        cleanup_results["files_updated"]
+        cleanup_results["files_would_update"]
+        cleanup_results["changes"]
+        cleanup_results["errors"]
 
         for _pattern_type, files in findings.items():
             for file_path, content, matches in files:

@@ -6,6 +6,7 @@ and placeholder content detection.
 """
 
 import pytest
+from types import SimpleNamespace
 from pathlib import Path
 from unittest.mock import patch
 
@@ -67,9 +68,8 @@ Content for subsection
         doc2 = tmp_path / "doc2.md"
         doc2.write_text("# Document 2\n\nContent 2")
         
-        # Mock PATHS.root
-        with patch('development_tools.docs.analyze_documentation.PATHS') as mock_paths:
-            mock_paths.root = tmp_path
+        # Mock the exact module globals used by the dynamically loaded helper.
+        with patch.dict(load_documents.__globals__, {"PATHS": SimpleNamespace(root=tmp_path)}):
             
             docs, missing = load_documents(["doc1.md", "doc2.md", "nonexistent.md"])
             
@@ -321,13 +321,40 @@ to be filled: placeholder
         docs = {
             "development_docs/HOW_TO_RUN.md": "body " * 80,
             "ai_development_docs/AI_TESTING_GUIDE.md": "body " * 80,
-            "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md": "body " * 80,
+            "tests/FEATURE_TESTING_GUIDE.md": "body " * 80,
         }
         recs = generate_consolidation_recommendations(docs)
         tr = next((r for r in recs if r["category"] == "Testing"), None)
         assert tr is not None
         assert set(tr["files"]) == {
             "ai_development_docs/AI_TESTING_GUIDE.md",
-            "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
+            "tests/FEATURE_TESTING_GUIDE.md",
         }
+
+    @pytest.mark.unit
+    def test_consolidation_skips_expected_workflow_paired_docs(self):
+        """Configured paired docs are not consolidation debt by themselves."""
+        docs = {
+            "DEVELOPMENT_WORKFLOW.md": "# Workflow\n" + "human " * 80,
+            "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": "# Workflow\n" + "ai " * 80,
+        }
+
+        recs = generate_consolidation_recommendations(docs)
+
+        assert not any(r["category"] == "Development Workflow" for r in recs)
+
+    @pytest.mark.unit
+    def test_consolidation_skips_specialized_testing_guides_and_paired_docs(self):
+        """Manual, dev-tools, and AI testing guides have separate audiences."""
+        docs = {
+            "ai_development_docs/AI_TESTING_GUIDE.md": "body " * 80,
+            "tests/TESTING_GUIDE.md": "body " * 80,
+            "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md": "body " * 80,
+            "tests/MANUAL_TESTING_GUIDE.md": "body " * 80,
+            "tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md": "body " * 80,
+        }
+
+        recs = generate_consolidation_recommendations(docs)
+
+        assert not any(r["category"] == "Testing" for r in recs)
 

@@ -11,6 +11,113 @@
 **Use / fit**: Discord is the primary task interface; user doesn't use tasks much yet but wants them to work well. Discord commands and natural-language task creation are extremely important. Prioritize: recurring-task discoverability, templates, interactive follow-up with skip/flow-timeout, notes & attachments. Defer AI-based suggestions until AI overhaul.
 
 ---
+### Canonical Task Data Model Migration
+
+**Migrate tasks to canonical v2 task structure**
+- *What it means*: Convert existing active and completed task records to the new task structure.
+- *Why it helps*: Makes tasks consistent with notes, journal entries, and future events while preparing for SQLite.
+- *Estimated effort*: Large
+- *Created*: 2026-04-26
+- *Target structure*:
+  - [ ] `id`
+  - [ ] `short_id`
+  - [ ] `kind`
+  - [ ] `title`
+  - [ ] `description`
+  - [ ] `category`
+  - [ ] `group`
+  - [ ] `tags`
+  - [ ] `priority`
+  - [ ] `status`
+  - [ ] `due`
+  - [ ] `reminders`
+  - [ ] `recurrence`
+  - [ ] `completion`
+  - [ ] `source`
+  - [ ] `linked_item_ids`
+  - [ ] `created_at`
+  - [ ] `updated_at`
+  - [ ] `archived_at`
+  - [ ] `deleted_at`
+  - [ ] `metadata`
+- *Subtasks*:
+  - [ ] Convert `task_id` to `id`.
+  - [ ] Generate `short_id` using the no-dash `t####` style.
+  - [ ] Set `kind` to `task`.
+  - [ ] Preserve `title`.
+  - [ ] Preserve `description`.
+  - [ ] Normalize `category` as a broad user-facing category, not priority.
+  - [ ] Add `group`, defaulting to empty string or a migrated value if available.
+  - [ ] Add `tags`, defaulting to an empty list.
+  - [ ] Normalize `priority` to allowed values such as `low`, `medium`, `high`.
+  - [ ] Set `status` from task state, such as `active`, `completed`, `cancelled`, `archived`, or `deleted`.
+  - [ ] Move `due_date` and `due_time` into `due.date` and `due.time`.
+  - [ ] Move reminder-related fields into `reminders`.
+  - [ ] Move recurrence-related fields into `recurrence`.
+  - [ ] Move completion-related fields into `completion`.
+  - [ ] Add `source` with best available channel/source metadata.
+  - [ ] Add `linked_item_ids`, defaulting to an empty list.
+  - [ ] Rename `last_updated` to `updated_at`.
+  - [ ] Add `archived_at` and `deleted_at`, defaulting to null.
+  - [ ] Use `metadata` only for fields that cannot be safely mapped and still need manual review.
+  - [ ] Do not keep old task fields in canonical v2 records unless explicitly temporary.
+
+**Consolidate active and completed task storage**
+- *What it means*: Move toward one canonical task collection instead of separate active/completed task files.
+- *Why it helps*: Completion is task state, not a separate storage type.
+- *Estimated effort*: Large
+- *Created*: 2026-04-26
+- *Subtasks*:
+  - [ ] Decide whether the canonical v2 file is `tasks/tasks.json`.
+  - [ ] Convert active and completed task records into one collection.
+  - [ ] Use `status` and `completion.completed` to distinguish active vs completed tasks.
+  - [ ] Stop writing new data to `active_tasks.json` and `completed_tasks.json` after migration.
+  - [ ] If old files must still be readable during transition, mark that code as temporary compatibility.
+  - [ ] Add a planned removal task for old active/completed task readers.
+  - [ ] Add tests proving new task reads do not require the old split files after migration.
+
+**Normalize task category, group, tags, and priority**
+- *What it means*: Separate concepts that are currently partially mixed together.
+- *Why it helps*: Prevents values like `high` from being treated as a category when they are really priority.
+- *Estimated effort*: Medium
+- *Created*: 2026-04-26
+- *Subtasks*:
+  - [ ] Treat `priority` as urgency/importance.
+  - [ ] Treat `category` as a broad semantic category such as `health`, `home`, `family`, or `personal`.
+  - [ ] Treat `group` as a user-facing organizational bucket.
+  - [ ] Treat `tags` as flexible multi-label metadata.
+  - [ ] Migrate old `category` values of `low`, `medium`, or `high` into `priority`.
+  - [ ] Do not duplicate the same value across `category`, `group`, and `tags` unless there is a clear reason.
+  - [ ] Add tests for priority-like legacy category values.
+
+**Add task short IDs**
+- *What it means*: Add mobile-friendly task IDs like `t6ca6` while preserving UUIDs as internal IDs.
+- *Why it helps*: Makes Discord task commands easier to type and aligns tasks with notebook short IDs.
+- *Estimated effort*: Medium
+- *Created*: 2026-04-26
+- *Subtasks*:
+  - [ ] Implement centralized short ID generation if not already present.
+  - [ ] Generate task short IDs from UUIDs.
+  - [ ] Ensure no dash appears in short IDs.
+  - [ ] Add lookup support by UUID and short ID.
+  - [ ] Do not permanently support obsolete dashed short IDs unless real existing data requires it.
+  - [ ] If dashed ID support is required temporarily, mark it as temporary compatibility with planned removal.
+
+**Update task tests for v2 data**
+- *What it means*: Update task tests to use and validate the v2 task structure.
+- *Why it helps*: Makes the new structure the tested source of truth.
+- *Estimated effort*: Medium
+- *Created*: 2026-04-26
+- *Subtasks*:
+  - [ ] Update task fixtures to v2 structure.
+  - [ ] Add migration tests from current active task examples.
+  - [ ] Add migration tests from current completed task examples.
+  - [ ] Add tests for `status`.
+  - [ ] Add tests for `completion`.
+  - [ ] Add tests for `due`.
+  - [ ] Add tests for `reminders`.
+  - [ ] Add tests for `recurrence`.
+  - [ ] Remove or rewrite tests that only preserve old active/completed split behavior.
 
 ### **2025-08-25 - Comprehensive Task System Improvements** [IN PROGRESS]
 

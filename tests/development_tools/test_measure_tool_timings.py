@@ -101,27 +101,34 @@ def test_generate_timing_report_writes_md_and_json(tmp_path: Path):
 
 
 @pytest.mark.unit
-@patch("development_tools.shared.measure_tool_timings.generate_timing_report")
-@patch("development_tools.shared.measure_tool_timings.get_tier_runnables")
-@patch("development_tools.shared.measure_tool_timings.AIToolsService")
-def test_run_timing_analysis_uses_tier_lists(
-    mock_svc_cls, mock_get_tiers, mock_gen_report, tmp_path: Path
-):
+def test_run_timing_analysis_uses_tier_lists(tmp_path: Path):
     """Smoke run_timing_analysis with mocked tiers (no real tool execution)."""
 
     def t_ok():
         return {"success": True}
 
-    mock_get_tiers.side_effect = [
-        [("only_t1", t_ok)],
-        [],
-        [],
-    ]
+    calls: list[int] = []
+
+    def fake_get_tier_runnables(_service, tier: int, **_kwargs):
+        calls.append(tier)
+        return [("only_t1", t_ok)] if tier == 1 else []
+
+    mock_gen_report = MagicMock()
     out = tmp_path / "out.md"
 
-    run_timing_analysis(out)
+    # Patch the function globals directly because this suite can load dev-tools modules
+    # through alternate import paths during coverage runs.
+    with patch.dict(
+        run_timing_analysis.__globals__,
+        {
+            "AIToolsService": MagicMock(return_value=MagicMock()),
+            "get_tier_runnables": fake_get_tier_runnables,
+            "generate_timing_report": mock_gen_report,
+        },
+    ):
+        run_timing_analysis(out)
 
-    assert mock_get_tiers.call_count == 3
+    assert calls == [1, 2, 3]
     mock_gen_report.assert_called_once()
     args, _ = mock_gen_report.call_args
     assert args[1] == out

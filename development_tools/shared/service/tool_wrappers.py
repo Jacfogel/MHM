@@ -167,8 +167,6 @@ class ToolWrappersMixin:
         cached_has_consolidation = False
         if not include_overlap:
             try:
-                from ..output_storage import load_tool_result
-
                 cached_data = load_tool_result(
                     "analyze_documentation",
                     "docs",
@@ -823,8 +821,6 @@ class ToolWrappersMixin:
         )
         if data is None and script_succeeded:
             try:
-                from ..output_storage import load_tool_result
-
                 data = load_tool_result(
                     "analyze_error_handling",
                     "error_handling",

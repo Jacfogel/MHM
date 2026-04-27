@@ -55,6 +55,294 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
 **Use / fit** (2026-02-28 user-priority Q&A): Headless + email admin status fixes shipped 2026-04-02. AI items deferred until system overhaul. Script ownership, sent_messages high priority. Ruff outside tests > inside. Duplicate lists and backup audit moved to dev tools. Performance monitoring includes RAM/caching.
 
 ## High Priority
+### User Data Model Stabilization
+
+**Define canonical v2 user-data schemas before migration**
+- *What it means*: Define the final v2 JSON structures for tasks, notes, journal entries, check-ins, message templates, and message delivery records before changing runtime code.
+- *Why it helps*: Prevents piecemeal migrations and keeps the JSON model aligned with the future SQLite model.
+- *Estimated effort*: Medium
+- *Created*: 2026-04-26
+- *Subtasks*:
+  - [ ] Document the canonical v2 structures for:
+    - [ ] task
+    - [ ] note
+    - [ ] journal_entry
+    - [ ] checkin
+    - [ ] message
+    - [ ] message delivery
+  - [ ] Confirm field names before implementation, including:
+    - [ ] `id`
+    - [ ] `short_id`
+    - [ ] `kind`
+    - [ ] `title`
+    - [ ] `description`
+    - [ ] `category`
+    - [ ] `group`
+    - [ ] `tags`
+    - [ ] `status`
+    - [ ] `source`
+    - [ ] `linked_item_ids`
+    - [ ] `created_at`
+    - [ ] `updated_at`
+    - [ ] `archived_at`
+    - [ ] `deleted_at`
+    - [ ] `metadata`
+  - [ ] Confirm timestamp fields use canonical MHM timestamp helpers.
+  - [ ] Confirm short ID format uses no dash, such as `t6ca6`, `nabc123`, and `jabc123`.
+  - [ ] Do not add compatibility fields unless required for reading existing user data during migration.
+  - [ ] Any required compatibility bridge must be explicitly marked temporary, logged when exercised, and assigned a removal task.
+
+**Create user-data migration inventory**
+- *What it means*: Identify every existing user-data file and map it to its v2 destination structure.
+- *Why it helps*: Makes the migration deliberate instead of discovering issues while editing runtime code.
+- *Estimated effort*: Medium
+- *Created*: 2026-04-26
+- *Subtasks*:
+  - [ ] Inventory current files:
+    - [ ] `account.json`
+    - [ ] `preferences.json`
+    - [ ] `schedules.json`
+    - [ ] `tags.json`
+    - [ ] `user_context.json`
+    - [ ] `chat_interactions.json`
+    - [ ] `checkins.json`
+    - [ ] `messages/*.json`
+    - [ ] `messages/sent_messages.json`
+    - [ ] `notebook/entries.json`
+    - [ ] `tasks/active_tasks.json`
+    - [ ] `tasks/completed_tasks.json`
+    - [ ] `tasks/task_schedules.json`
+  - [ ] For each file, document:
+    - [ ] current wrapper shape
+    - [ ] current item fields
+    - [ ] missing v2 fields
+    - [ ] renamed v2 fields
+    - [ ] fields to remove
+    - [ ] fields to preserve in `metadata` temporarily, if needed
+  - [ ] Mark every old field as one of:
+    - [ ] migrate directly
+    - [ ] migrate with transformation
+    - [ ] drop
+    - [ ] temporary bridge only
+  - [ ] Avoid keeping old fields in the v2 model unless they are required for a specific active behavior.
+
+**Build one-time JSON migration tools**
+- *What it means*: Create explicit migration scripts/tools that convert existing JSON data to v2 JSON structures.
+- *Why it helps*: Keeps migration code out of normal runtime paths as much as possible.
+- *Estimated effort*: Large
+- *Created*: 2026-04-26
+- *Subtasks*:
+  - [ ] Add a migration tool for current JSON user data to v2 JSON user data.
+  - [ ] The tool must create a backup before writing migrated files.
+  - [ ] The tool must write a migration report listing:
+    - [ ] files migrated
+    - [ ] records migrated
+    - [ ] fields renamed
+    - [ ] fields dropped
+    - [ ] fields moved to `metadata`
+    - [ ] records skipped or requiring manual review
+  - [ ] Do not silently preserve obsolete structures.
+  - [ ] If a temporary compatibility bridge is unavoidable, add:
+    - [ ] `LEGACY COMPATIBILITY` marker in code
+    - [ ] log message when used
+    - [ ] deprecation inventory entry
+    - [ ] removal checklist
+    - [ ] planned removal condition
+
+**Add v2 schema validation**
+- *What it means*: Add validation for the new v2 structures so malformed data cannot be saved.
+- *Why it helps*: Prevents the new data model from drifting back into inconsistent JSON.
+- *Estimated effort*: Medium
+- *Created*: 2026-04-26
+- *Subtasks*:
+  - [ ] Add validation for required shared fields.
+  - [ ] Add validation for type-specific fields.
+  - [ ] Validate allowed `kind` values.
+  - [ ] Validate allowed `status` values by item type.
+  - [ ] Validate `tags` as a normalized list.
+  - [ ] Validate `linked_item_ids` as a list.
+  - [ ] Validate `source` objects.
+  - [ ] Validate timestamps through canonical time helpers.
+  - [ ] Reject new writes using old field names unless explicitly handled by a migration tool.
+
+**Add migration tests**
+- *What it means*: Add automated tests proving real current JSON examples migrate correctly to v2 structures.
+- *Why it helps*: Prevents accidental data loss and confirms the migration is safe.
+- *Estimated effort*: Large
+- *Created*: 2026-04-26
+- *Subtasks*:
+  - [ ] Add fixture copies of representative current JSON structures.
+  - [ ] Test task migration.
+  - [ ] Test notebook note migration.
+  - [ ] Test journal entry migration.
+  - [ ] Test check-in migration.
+  - [ ] Test message template migration.
+  - [ ] Test sent message delivery migration.
+  - [ ] Test malformed or incomplete records.
+  - [ ] Test backup creation before migration writes.
+  - [ ] Test that obsolete fields are removed, transformed, or explicitly moved to `metadata`.
+  - [ ] Test that temporary compatibility paths are not used after migration.
+
+**Remove temporary compatibility bridges after migration**
+- *What it means*: Track and remove any compatibility code added only to support old JSON structures.
+- *Why it helps*: Prevents permanent bloat and avoids carrying old schemas indefinitely.
+- *Estimated effort*: Medium
+- *Created*: 2026-04-26
+- *Subtasks*:
+  - [ ] Register each temporary bridge in the deprecation inventory.
+  - [ ] Add specific search terms for each old field/path.
+  - [ ] Run legacy find/verify tooling before removal.
+  - [ ] Remove bridge code only after migrated data is validated and tests pass.
+  - [ ] Remove tests that exist only to preserve old behavior.
+  - [ ] Keep historical changelog/archive references only where useful.
+  - [ ] Confirm active code/config no longer references old structures.
+
+### Check-in Data Model Migration
+
+**Migrate check-ins to canonical v2 checkin structure**
+- *What it means*: Convert check-in records from flat, evolving fields into structured response records.
+- *Why it helps*: Supports changing check-in questions without changing the top-level schema every time.
+- *Estimated effort*: Large
+- *Created*: 2026-04-26
+- *Target structure*:
+  - [ ] `schema_version`
+  - [ ] `updated_at`
+  - [ ] `checkins`
+  - [ ] `checkins[].id`
+  - [ ] `checkins[].submitted_at`
+  - [ ] `checkins[].source`
+  - [ ] `checkins[].responses`
+  - [ ] `checkins[].questions_asked`
+  - [ ] `checkins[].linked_item_ids`
+  - [ ] `checkins[].created_at`
+  - [ ] `checkins[].updated_at`
+  - [ ] `checkins[].archived_at`
+  - [ ] `checkins[].deleted_at`
+  - [ ] `checkins[].metadata`
+- *Subtasks*:
+  - [ ] Wrap raw check-in arrays in a versioned object if not already wrapped.
+  - [ ] Generate `id` for each check-in.
+  - [ ] Move existing `timestamp` to `submitted_at`.
+  - [ ] Copy `submitted_at` into `created_at` and `updated_at` during migration unless better data exists.
+  - [ ] Move all check-in answers into `responses`.
+  - [ ] Populate `questions_asked` from response keys.
+  - [ ] Add `source`, defaulting to best known channel information.
+  - [ ] Add `linked_item_ids`, defaulting to an empty list.
+  - [ ] Add `archived_at` and `deleted_at`, defaulting to null.
+  - [ ] Do not keep old top-level answer fields after successful migration.
+  - [ ] Add migration tests for older and newer check-in shapes.
+
+**Update check-in analytics to read v2 responses**
+- *What it means*: Update analytics and AI context logic to read check-in values from `responses`.
+- *Why it helps*: Keeps analytics working after the schema migration.
+- *Estimated effort*: Medium
+- *Created*: 2026-04-26
+- *Subtasks*:
+  - [ ] Identify all code reading direct check-in fields such as `mood`, `energy`, `ate_breakfast`, and `brushed_teeth`.
+  - [ ] Update reads to use `responses`.
+  - [ ] Add helper functions for common response access.
+  - [ ] Avoid adding permanent fallback reads for old flat fields.
+  - [ ] If fallback reads are temporarily required, mark them as temporary compatibility and add planned removal.
+
+---
+
+### Message Data Model Migration
+
+**Migrate message templates to canonical v2 message structure**
+- *What it means*: Convert category message files into versioned message template collections.
+- *Why it helps*: Separates reusable message definitions from delivery history.
+- *Estimated effort*: Large
+- *Created*: 2026-04-26
+- *Target structure*:
+  - [ ] `schema_version`
+  - [ ] `category`
+  - [ ] `updated_at`
+  - [ ] `messages`
+  - [ ] `messages[].id`
+  - [ ] `messages[].kind`
+  - [ ] `messages[].text`
+  - [ ] `messages[].category`
+  - [ ] `messages[].active`
+  - [ ] `messages[].schedule`
+  - [ ] `messages[].created_at`
+  - [ ] `messages[].updated_at`
+  - [ ] `messages[].archived_at`
+  - [ ] `messages[].deleted_at`
+  - [ ] `messages[].metadata`
+- *Subtasks*:
+  - [ ] Convert `message_id` to `id`.
+  - [ ] Set `kind` to `message`.
+  - [ ] Convert `message` text field to `text`.
+  - [ ] Preserve category.
+  - [ ] Add `active`.
+  - [ ] Move `days` and `time_periods` into `schedule.days` and `schedule.periods`.
+  - [ ] Add `created_at` and `updated_at`.
+  - [ ] Add `archived_at` and `deleted_at`.
+  - [ ] Use `metadata` only for unmapped fields requiring manual review.
+  - [ ] Do not keep old `message`, `days`, or `time_periods` fields in v2 records after migration.
+
+**Migrate sent messages to canonical v2 delivery records**
+- *What it means*: Convert `sent_messages.json` into message delivery history records.
+- *Why it helps*: Makes delivery tracking distinct from message templates and easier to query later.
+- *Estimated effort*: Large
+- *Created*: 2026-04-26
+- *Target structure*:
+  - [ ] `schema_version`
+  - [ ] `updated_at`
+  - [ ] `deliveries`
+  - [ ] `deliveries[].id`
+  - [ ] `deliveries[].message_template_id`
+  - [ ] `deliveries[].sent_text`
+  - [ ] `deliveries[].category`
+  - [ ] `deliveries[].channel`
+  - [ ] `deliveries[].status`
+  - [ ] `deliveries[].source`
+  - [ ] `deliveries[].sent_at`
+  - [ ] `deliveries[].time_period`
+  - [ ] `deliveries[].metadata`
+- *Subtasks*:
+  - [ ] Generate a unique delivery `id`.
+  - [ ] Move old `message_id` to `message_template_id`.
+  - [ ] Move old `message` to `sent_text`.
+  - [ ] Move `delivery_status` to `status`.
+  - [ ] Move `timestamp` to `sent_at`.
+  - [ ] Preserve `category`.
+  - [ ] Preserve `time_period`.
+  - [ ] Add `channel`, defaulting to best known channel.
+  - [ ] Add `source`, defaulting to `scheduler` when appropriate.
+  - [ ] Preserve existing metadata only if still useful.
+  - [ ] Do not keep old delivery field names in v2 delivery records after migration.
+
+**Update message selection and delivery code for v2 messages**
+- *What it means*: Update runtime code to use `text`, `schedule`, and delivery records instead of old message fields.
+- *Why it helps*: Makes the v2 message model active instead of just migrated data.
+- *Estimated effort*: Medium
+- *Created*: 2026-04-26
+- *Subtasks*:
+  - [ ] Identify all code reading message template fields.
+  - [ ] Update reads from `message` to `text`.
+  - [ ] Update schedule reads from `days` / `time_periods` to `schedule.days` / `schedule.periods`.
+  - [ ] Identify all code writing sent message history.
+  - [ ] Update writes to use delivery records.
+  - [ ] Avoid permanent fallback logic for old fields.
+  - [ ] Add temporary compatibility only if required to avoid breaking existing unmigrated data.
+  - [ ] Add planned removal for any fallback logic.
+
+---
+
+### Schedule Data Model Follow-up
+
+**Assess schedule period normalization after item migration**
+- *What it means*: Decide whether `schedules.json` should be flattened into a versioned list of schedule periods.
+- *Why it helps*: A flatter schedule model would map better to SQLite, but this should not distract from task/note/check-in/message migration.
+- *Estimated effort*: Medium
+- *Created*: 2026-04-26
+- *Subtasks*:
+  - [ ] Inventory current schedule scopes and periods.
+  - [ ] Decide whether to keep nested schedule structure temporarily.
+  - [ ] If flattening, define canonical schedule period fields.
+  - [ ] Avoid creating compatibility layers until the schedule migration is actually implemented.
+  - [ ] If compatibility is required, mark it temporary and add planned removal.
 
 ### Quality & Operations (high priority within medium)
 

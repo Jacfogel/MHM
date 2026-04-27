@@ -253,10 +253,9 @@ class TestConfigHelperFunctions:
     def test_get_analyze_function_registry_config_deep_merges_directory_descriptions(self):
         """Partial directory_descriptions in JSON overlays AUDIT_FUNCTION_REGISTRY defaults."""
         fn = config.get_analyze_function_registry_config
-        config_impl = sys.modules[fn.__module__]
-        previous = config_impl._get_external_value
+        previous = fn.__globals__["_get_external_value"]
         try:
-            config_impl._get_external_value = (  # type: ignore[attr-defined]
+            fn.__globals__["_get_external_value"] = (
                 lambda key, default: (
                     {
                         "directory_descriptions": {"core": "Custom core blurb"},
@@ -271,7 +270,7 @@ class TestConfigHelperFunctions:
             assert "communication" in result["directory_descriptions"]
             assert result["priority_directories"] == ["core"]
         finally:
-            config_impl._get_external_value = previous  # type: ignore[attr-defined]
+            fn.__globals__["_get_external_value"] = previous
 
     @pytest.mark.unit
     def test_get_file_patterns_config_matches_module_defaults_without_json(self):
@@ -300,10 +299,9 @@ class TestConfigHelperFunctions:
     def test_get_static_analysis_config_honors_external_overrides(self):
         """External static-analysis overrides should merge over defaults."""
         fn = config.get_static_analysis_config
-        config_impl = sys.modules[fn.__module__]
-        previous_get_external_value = config_impl._get_external_value
+        previous_get_external_value = fn.__globals__["_get_external_value"]
         try:
-            config_impl._get_external_value = (  # type: ignore[attr-defined]
+            fn.__globals__["_get_external_value"] = (
                 lambda key, default: {
                     "ruff_config_path": "custom/ruff.toml",
                     "pyright_project_path": "custom/pyrightconfig.json",
@@ -317,7 +315,7 @@ class TestConfigHelperFunctions:
             assert result["pyright_project_path"] == "custom/pyrightconfig.json"
             assert result["ruff_sync_root_compat"] is False
         finally:
-            config_impl._get_external_value = previous_get_external_value  # type: ignore[attr-defined]
+            fn.__globals__["_get_external_value"] = previous_get_external_value
 
 
 class TestConfigPaths:

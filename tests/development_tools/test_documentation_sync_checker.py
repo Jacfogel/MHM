@@ -397,3 +397,31 @@ class TestPrintReportAndMain:
         out = capsys.readouterr().out
         assert "no advisory hints" in out.lower() or "example marker" in out.lower()
 
+    @pytest.mark.unit
+    def test_main_example_markers_json_reports_true_positive(self, monkeypatch, capsys):
+        """The advisory branch must surface non-empty scan findings in JSON output."""
+        payload = {
+            "summary": {
+                "total_issues": 0,
+                "files_affected": 0,
+                "status": "PASS",
+            },
+            "details": {"paired_doc_issues": 0, "paired_docs": {}},
+        }
+        findings = {"guide.md": ["line 3: Use `core/foo.py`."]}
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            ["analyze_documentation_sync.py", "--json", "--check-example-markers"],
+        )
+        with patch.object(DocumentationSyncChecker, "run_checks", return_value=payload):
+            with patch(
+                "development_tools.docs.example_marker_validation.scan_paths_for_example_marker_findings",
+                return_value=findings,
+            ):
+                checker_module.main()
+
+        parsed = json.loads(capsys.readouterr().out.strip())
+        assert parsed["summary"]["example_marker_hint_count"] == 1
+        assert parsed["details"]["example_marker_findings"] == findings
+

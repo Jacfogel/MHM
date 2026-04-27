@@ -101,6 +101,124 @@ Each item:
 - Optionally display short IDs (no dash for mobile UX):
   - `n3f2a9c`, `l91ab20`, `j0c77e2`
 - Short IDs are derived from UUID prefix, and only used for lookup convenience.
+---
+### Notebook and Journal Data Model Migration
+
+**Migrate notebook entries to canonical v2 note structure**
+- *What it means*: Convert existing note records to the revised v2 note structure.
+- *Why it helps*: Aligns notes with tasks, journal entries, and future events.
+- *Estimated effort*: Large
+- *Created*: 2026-04-26
+- *Target structure*:
+  - [ ] `id`
+  - [ ] `short_id`
+  - [ ] `kind`
+  - [ ] `title`
+  - [ ] `description`
+  - [ ] `category`
+  - [ ] `group`
+  - [ ] `tags`
+  - [ ] `status`
+  - [ ] `pinned`
+  - [ ] `source`
+  - [ ] `linked_item_ids`
+  - [ ] `created_at`
+  - [ ] `updated_at`
+  - [ ] `archived_at`
+  - [ ] `deleted_at`
+  - [ ] `metadata`
+- *Subtasks*:
+  - [ ] Set `kind` to `note`.
+  - [ ] Preserve `title`.
+  - [ ] Map existing note body/content to `description` if that is the chosen canonical note text field.
+  - [ ] Confirm whether notes should continue using `body`; if not, remove `body` from canonical note writes.
+  - [ ] Add `category`, defaulting to empty string or a known migrated value.
+  - [ ] Preserve or add `group`.
+  - [ ] Preserve normalized `tags`.
+  - [ ] Convert archived flags into `status` and/or `archived_at`.
+  - [ ] Preserve `pinned`.
+  - [ ] Add `source`.
+  - [ ] Add `linked_item_ids`.
+  - [ ] Add `deleted_at`, defaulting to null.
+  - [ ] Use `metadata` only for fields requiring manual review.
+  - [ ] Do not keep duplicate text fields unless there is a temporary migration reason.
+
+**Migrate journal entries to canonical v2 journal_entry structure**
+- *What it means*: Convert journal entries to their own clear kind while sharing the same base item fields.
+- *Why it helps*: Prevents journal entries from being indistinguishable from notes.
+- *Estimated effort*: Medium
+- *Created*: 2026-04-26
+- *Target structure*:
+  - [ ] `id`
+  - [ ] `short_id`
+  - [ ] `kind`
+  - [ ] `title`
+  - [ ] `description`
+  - [ ] `category`
+  - [ ] `group`
+  - [ ] `tags`
+  - [ ] `status`
+  - [ ] `submitted_at`
+  - [ ] `source`
+  - [ ] `linked_item_ids`
+  - [ ] `created_at`
+  - [ ] `updated_at`
+  - [ ] `archived_at`
+  - [ ] `deleted_at`
+  - [ ] `metadata`
+- *Subtasks*:
+  - [ ] Set `kind` to `journal_entry`.
+  - [ ] Generate short IDs using no-dash `j####` style.
+  - [ ] Preserve title or generate a title such as `Daily Reflection YYYY-MM-DD`.
+  - [ ] Map journal text to `description`.
+  - [ ] Add `submitted_at`.
+  - [ ] Preserve category, group, and tags where available.
+  - [ ] Add `linked_item_ids`, defaulting to an empty list.
+  - [ ] Ensure journal entries are visually and structurally distinguishable from notes.
+  - [ ] Avoid retaining old journal-only fields unless explicitly needed and marked temporary.
+
+**Align notebook list entries with shared item fields**
+- *What it means*: Keep list entries compatible with the same shared item model while preserving list-specific items.
+- *Why it helps*: Lists remain searchable and organizable like notes without losing list behavior.
+- *Estimated effort*: Medium
+- *Created*: 2026-04-26
+- *Subtasks*:
+  - [ ] Confirm canonical `kind` for lists.
+  - [ ] Add or preserve shared fields:
+    - [ ] `id`
+    - [ ] `short_id`
+    - [ ] `title`
+    - [ ] `description`
+    - [ ] `category`
+    - [ ] `group`
+    - [ ] `tags`
+    - [ ] `status`
+    - [ ] `source`
+    - [ ] `linked_item_ids`
+    - [ ] `created_at`
+    - [ ] `updated_at`
+    - [ ] `archived_at`
+    - [ ] `deleted_at`
+    - [ ] `metadata`
+  - [ ] Preserve list items in a list-specific field.
+  - [ ] Do not force list items into note descriptions.
+  - [ ] Add tests for list migration.
+
+**Update notebook tests for v2 structures**
+- *What it means*: Update notebook tests to validate the revised v2 note, journal, and list models.
+- *Why it helps*: Prevents the notebook system from continuing to depend on old structures.
+- *Estimated effort*: Medium
+- *Created*: 2026-04-26
+- *Subtasks*:
+  - [ ] Update note fixtures.
+  - [ ] Update journal fixtures.
+  - [ ] Update list fixtures.
+  - [ ] Add migration tests from current `notebook/entries.json`.
+  - [ ] Add tests for no-dash short IDs.
+  - [ ] Add tests for `description`.
+  - [ ] Add tests for `category`, `group`, and `tags`.
+  - [ ] Add tests for `linked_item_ids`.
+  - [ ] Remove or rewrite tests that only preserve obsolete notebook structures.
 
 ---
 

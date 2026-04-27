@@ -339,6 +339,33 @@ def analyze_file_purposes(docs: dict[str, str]) -> dict[str, dict[str, object]]:
     return purposes
 
 
+def _normalise_doc_path(path: str) -> str:
+    """Return a normalized documentation path for comparison."""
+    return path.replace("\\", "/").strip()
+
+
+def _is_expected_paired_doc_group(files: list[str]) -> bool:
+    """Return True when a candidate group is exactly one configured paired-doc pair."""
+    normalized = {_normalise_doc_path(f) for f in files}
+    for human_doc, ai_doc in PAIRED_DOCS.items():
+        pair = {_normalise_doc_path(human_doc), _normalise_doc_path(ai_doc)}
+        if normalized == pair:
+            return True
+    return False
+
+
+def _is_specialized_testing_doc(path: str) -> bool:
+    """Specialized testing guides are intentionally separate from the main testing pair."""
+    normalized = _normalise_doc_path(path).lower()
+    specialized_tokens = (
+        "development_tools_testing",
+        "manual_testing",
+        "manual_discord_test",
+        "system_ai_functionality_testing",
+    )
+    return any(token in normalized for token in specialized_tokens)
+
+
 def generate_consolidation_recommendations(
     docs: dict[str, str],
 ) -> list[dict[str, object]]:
@@ -390,7 +417,7 @@ def generate_consolidation_recommendations(
             )
         ):
             workflow_files.append(f)
-    if len(workflow_files) > 1:
+    if len(workflow_files) > 1 and not _is_expected_paired_doc_group(workflow_files):
         similar_content = _check_content_similarity(docs, workflow_files)
         recommendations.append(
             {
@@ -413,8 +440,10 @@ def generate_consolidation_recommendations(
             or "test-plan" in tl
             or "test_plan" in tl.replace("-", "_")
         ) and "test_" not in tl:
+            if _is_specialized_testing_doc(f):
+                continue
             testing_files.append(f)
-    if len(testing_files) > 1:
+    if len(testing_files) > 1 and not _is_expected_paired_doc_group(testing_files):
         similar_content = _check_content_similarity(docs, testing_files)
         recommendations.append(
             {

@@ -197,6 +197,42 @@ def test_pyright_owned_and_root_both_reference_tests_data_excludes() -> None:
     assert "tests/data" in root_flat or "tests\\data" in root_flat
 
 
+@pytest.mark.unit
+def test_root_pyrightconfig_json_is_not_reintroduced() -> None:
+    """Root Pyright policy is pyproject.toml; JSON config stays under development_tools/config."""
+    assert not (project_root / "pyrightconfig.json").exists()
+    assert (project_root / "development_tools" / "config" / "pyrightconfig.json").is_file()
+
+
+@pytest.mark.unit
+def test_static_check_cache_dependencies_cover_dual_config_files() -> None:
+    """Static-check cache invalidation must include both root and owned tool configs."""
+    from development_tools.shared.cache_dependency_paths import (
+        STATIC_CHECK_CONFIG_RELATIVE_PATHS,
+        static_check_config_paths,
+    )
+
+    expected = {
+        "pyproject.toml",
+        "development_tools/config/pyrightconfig.json",
+        "development_tools/config/ruff.toml",
+        ".ruff.toml",
+    }
+    assert expected.issubset(set(STATIC_CHECK_CONFIG_RELATIVE_PATHS))
+    resolved = {str(p.relative_to(project_root)).replace("\\", "/") for p in static_check_config_paths(project_root)}
+    assert expected.issubset(resolved)
+
+
+@pytest.mark.unit
+def test_pyright_parity_remains_structural_unless_delta_env_set() -> None:
+    """Default policy should not require numeric diagnostic parity in normal unit runs."""
+    assert os.environ.get("PYRIGHT_ERROR_COUNT_MAX_DELTA") is None
+    src = (project_root / "tests" / "development_tools" / "test_pyright_config_paths.py").read_text(
+        encoding="utf-8"
+    )
+    assert "if max_delta is not None" in src
+
+
 @pytest.mark.integration
 @pytest.mark.e2e
 def test_e2e_pyright_outputjson_parses_for_owned_and_root_projects() -> None:

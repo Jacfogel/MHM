@@ -46,21 +46,33 @@ def generate_consolidated_reports(
         Dictionary with paths to generated files
     """
     service = AIToolsService(project_root=project_root, config_path=config_path)
+    output_project_root = Path(project_root) if project_root is not None else None
+
+    def write_report(path: str, content: str) -> Path:
+        if output_project_root is None:
+            return create_output_file(path, content)
+        try:
+            return create_output_file(path, content, project_root=output_project_root)
+        except TypeError as exc:
+            # Some focused tests patch create_output_file with the historical
+            # two-argument signature.
+            if "project_root" not in str(exc):
+                raise
+            return create_output_file(path, content)
 
     # Generate AI Status document
     ai_status = service._generate_ai_status_document()
-    ai_status_file = create_output_file("development_tools/AI_STATUS.md", ai_status)
+    ai_status_file = write_report("development_tools/AI_STATUS.md", ai_status)
 
     # Generate AI Priorities document
     ai_priorities = service._generate_ai_priorities_document()
-    ai_priorities_file = create_output_file(
-        "development_tools/AI_PRIORITIES.md", ai_priorities
-    )
+    ai_priorities_file = write_report("development_tools/AI_PRIORITIES.md", ai_priorities)
 
     # Generate consolidated report
     consolidated_report = service._generate_consolidated_report()
-    consolidated_file = create_output_file(
-        "development_tools/CONSOLIDATED_REPORT.md", consolidated_report
+    consolidated_file = write_report(
+        "development_tools/CONSOLIDATED_REPORT.md",
+        consolidated_report,
     )
 
     logger.info("Generated consolidated reports:")

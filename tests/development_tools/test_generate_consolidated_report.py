@@ -35,7 +35,7 @@ class TestGenerateConsolidatedReport:
             
             # Mock create_output_file
             with patch('development_tools.reports.generate_consolidated_report.create_output_file') as mock_create:
-                mock_create.side_effect = lambda path, content: Path(temp_project_copy) / path
+                mock_create.side_effect = lambda path, content, **_kwargs: Path(temp_project_copy) / path
                 
                 # Run generation
                 result = generate_consolidated_reports(
@@ -76,7 +76,7 @@ class TestGenerateConsolidatedReport:
             mock_service._generate_consolidated_report.return_value = "Consolidated Report"
             
             with patch('development_tools.reports.generate_consolidated_report.create_output_file') as mock_create:
-                mock_create.side_effect = lambda path, content: Path(temp_project_copy) / path
+                mock_create.side_effect = lambda path, content, **_kwargs: Path(temp_project_copy) / path
                 
                 result = generate_consolidated_reports(
                     project_root=str(temp_project_copy),
@@ -106,7 +106,7 @@ class TestGenerateConsolidatedReport:
                 # Track calls to verify paths
                 call_paths = []
                 
-                def track_create(path, content):
+                def track_create(path, content, **_kwargs):
                     call_paths.append(path)
                     return Path(temp_project_copy) / path
                 
@@ -189,7 +189,7 @@ class TestGenerateConsolidatedReport:
             mock_service._generate_consolidated_report.return_value = "Consolidated Report"
             
             with patch('development_tools.reports.generate_consolidated_report.create_output_file') as mock_create:
-                mock_create.side_effect = lambda path, content: Path(temp_project_copy) / path
+                mock_create.side_effect = lambda path, content, **_kwargs: Path(temp_project_copy) / path
                 
                 result = generate_consolidated_reports(
                     project_root=None
@@ -221,7 +221,7 @@ class TestGenerateConsolidatedReport:
             with patch('development_tools.reports.generate_consolidated_report.create_output_file') as mock_create:
                 call_contents = []
                 
-                def track_create(path, content):
+                def track_create(path, content, **_kwargs):
                     call_contents.append((path, content))
                     return Path(temp_project_copy) / path
                 
@@ -274,7 +274,7 @@ class TestGenerateConsolidatedReport:
             mock_service._generate_consolidated_report.return_value = "Consolidated Report\n\nIntegration test"
             
             with patch('development_tools.reports.generate_consolidated_report.create_output_file') as mock_create:
-                mock_create.side_effect = lambda path, content: temp_project_copy / path
+                mock_create.side_effect = lambda path, content, **_kwargs: temp_project_copy / path
                 
                 result = generate_consolidated_reports(
                     project_root=str(temp_project_copy)

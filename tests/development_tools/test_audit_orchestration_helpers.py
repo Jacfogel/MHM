@@ -965,6 +965,97 @@ def test_extract_coverage_cache_metadata_corrupt_json_returns_empty(temp_project
 
 
 @pytest.mark.unit
+def test_record_tool_cache_metadata_captures_pip_audit_subprocess_state(
+    temp_project_copy: Path,
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tool_cache_metadata = {}
+    result = {
+        "data": {
+            "details": {
+                "pip_audit_execution_state": "executed_subprocess",
+                "pip_audit_subprocess_seconds": "2.5",
+            }
+        }
+    }
+
+    service._record_tool_cache_metadata("analyze_pip_audit", result)
+
+    metadata = service._tool_cache_metadata["analyze_pip_audit"]
+    assert metadata["pip_audit_execution_state"] == "executed_subprocess"
+    assert metadata["pip_audit_subprocess_seconds"] == 2.5
+    assert metadata["cache_mode"] == "cold_scan"
+
+
+@pytest.mark.unit
+def test_record_tool_cache_metadata_marks_pip_audit_cache_hit(temp_project_copy: Path):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tool_cache_metadata = {}
+    result = {
+        "data": {
+            "details": {
+                "pip_audit_execution_state": "requirements_lock_cache_hit",
+            }
+        }
+    }
+
+    service._record_tool_cache_metadata("analyze_pip_audit", result)
+
+    assert service._tool_cache_metadata["analyze_pip_audit"]["cache_mode"] == "cache_hit"
+
+
+@pytest.mark.unit
+def test_record_tool_cache_metadata_uses_static_shard_hits(temp_project_copy: Path):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tool_cache_metadata = {"analyze_pyright": {"cache_mode": "cold_scan"}}
+    result = {
+        "data": {
+            "details": {
+                "shard_run": {
+                    "fragment_cache_hits": "3",
+                    "fragment_cache_misses": "1",
+                }
+            }
+        }
+    }
+
+    service._record_tool_cache_metadata("analyze_pyright", result)
+
+    metadata = service._tool_cache_metadata["analyze_pyright"]
+    assert metadata["hits"] == 3
+    assert metadata["misses"] == 1
+    assert metadata["total_cache_checks"] == 4
+    assert metadata["cache_mode"] == "partial_cache"
+
+
+@pytest.mark.unit
+def test_record_tool_cache_metadata_derives_unused_imports_misses(
+    temp_project_copy: Path,
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tool_cache_metadata = {}
+    result = {
+        "data": {
+            "details": {
+                "stats": {
+                    "cache_hits": 2,
+                    "cache_misses": 0,
+                    "files_scanned": 5,
+                }
+            }
+        }
+    }
+
+    service._record_tool_cache_metadata("analyze_unused_imports", result)
+
+    metadata = service._tool_cache_metadata["analyze_unused_imports"]
+    assert metadata["hits"] == 2
+    assert metadata["misses"] == 3
+    assert metadata["total_cache_checks"] == 5
+    assert metadata["cache_mode"] == "partial_cache"
+
+
+@pytest.mark.unit
 def test_infer_cache_mode_from_hits_misses_non_positive_total(temp_project_copy: Path):
     service = AIToolsService(project_root=str(temp_project_copy))
     assert service._infer_cache_mode_from_hits_misses(0, 0) == "unknown"
