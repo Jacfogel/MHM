@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-20 18:55:43
+> **Last Generated**: 2026-04-27 02:29:01
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,20 +14,20 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 95.2% [OK] COMPLETED**
-- **Files Scanned**: 124
-- **Functions Found**: 1700
-- **Methods Found**: 1229
-- **Classes Found**: 154
-- **Total Items**: 2929
-- **Functions Documented**: 1599
+### **Function Documentation Coverage: 93.9% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 125
+- **Functions Found**: 1752
+- **Methods Found**: 1242
+- **Classes Found**: 170
+- **Total Items**: 2994
+- **Functions Documented**: 1621
 - **Methods Documented**: 1189
-- **Classes Documented**: 120
-- **Total Documented**: 2788
+- **Classes Documented**: 122
+- **Total Documented**: 2810
 - **Template-Generated**: 4
-- **Last Updated**: 2026-04-20
+- **Last Updated**: 2026-04-27
 
-**Status**: [OK] **EXCELLENT** - All functions have proper documentation
+**Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
 **Template Enhancement**: This registry now includes automatic template generation for:
 - **Auto-generated Qt functions** (qtTrId, setupUi, retranslateUi)
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (599)
+### **Core System Functions** (647)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (455)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (33)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (25)
+### **Task Management Functions** (29)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -3714,6 +3714,8 @@ Returns:
 
 #### `core/message_management.py`
 **Functions:**
+- [OK] `_delivery_to_runtime_message(delivery)` - Return the recent-message shape expected by existing duplicate filters.
+- [OK] `_message_template_to_runtime(message, category)` - Return the runtime shape expected by existing message selection code.
 - [OK] `_normalize_message_timestamps(data, file_path)` - Normalize timestamps in persisted sent_messages data to the canonical TIMESTAMP_FULL shape.
 
 Returns:
@@ -3851,7 +3853,9 @@ Raises:
 
 #### `core/response_tracking.py`
 **Functions:**
+- [OK] `_checkin_to_runtime_response(checkin)` - Return the flat response shape expected by existing analytics callers.
 - [OK] `_get_response_log_filename(response_type)` - Get the filename for a response log type.
+- [OK] `_response_to_v2_checkin(response_data)` - Build a canonical v2 check-in record from the current response payload.
 - [OK] `get_checkins_by_days(user_id, days)` - Get check-ins from the last N calendar days.
 - [OK] `get_recent_chat_interactions(user_id, limit)` - Get recent chat interactions for a user.
 - [OK] `get_recent_checkins(user_id, limit)` - Get recent check-in responses for a user.
@@ -4910,6 +4914,87 @@ Returns:
 - [MISSING] `update_user_preferences(user_id, updates)` - No description
 - [MISSING] `update_user_schedules(user_id, schedules_data)` - No description
 
+#### `core/user_data_v2.py`
+**Functions:**
+- [OK] `_append_report_field(report, key, field)` - Append a field name to a report list once, keeping dry-run reports readable.
+- [MISSING] `_build_reminders(item)` - No description
+- [MISSING] `_build_user_payloads(root, report)` - No description
+- [OK] `_find_obsolete_fields(data, document_type)` - Find obsolete fields on v2 record objects without scanning nested v2 shapes.
+- [MISSING] `_list_from_wrapper(data, key)` - No description
+- [MISSING] `_metadata_for_unmapped(item, old_fields)` - No description
+- [MISSING] `_migrate_checkin(item, report)` - No description
+- [MISSING] `_migrate_delivery(item, report)` - No description
+- [MISSING] `_migrate_message_template(item, category, report)` - No description
+- [MISSING] `_migrate_notebook_entry(item, report)` - No description
+- [MISSING] `_migrate_task(item, status, report)` - No description
+- [OK] `_migration_source(actor)` - Return the standard source block for records created by this migration.
+- [OK] `_new_report(section)` - Create the standard per-section report structure.
+- [MISSING] `_read_json(path)` - No description
+- [MISSING] `_record_old_fields(item, old_fields, report)` - No description
+- [OK] `_remove_replaced_v1_task_files(root, report)` - Remove task files that are fully replaced by tasks/tasks.json.
+- [OK] `_schema_validation_error(message)` - Build a Pydantic-native validation error without generic exception raises.
+- [OK] `_stable_uuid(value)` - Return value as a UUID, deriving a stable UUID for old non-UUID IDs.
+- [OK] `_timestamp_or_none(value)` - Return a canonical timestamp or None when input is missing or invalid.
+- [OK] `_timestamp_or_now(value)` - Return a canonical timestamp, using the current time when input is invalid.
+- [OK] `_unique_backup_path(base_path)` - Return a backup path that will not collide with a prior same-second run.
+- [MISSING] `_validate_optional_timestamp(value, field_name)` - No description
+- [MISSING] `_write_user_payloads(root, payloads, report)` - No description
+- [OK] `generate_short_id(record_id, kind, length)` - Generate a mobile-friendly no-dash short ID from a UUID-like value.
+- [OK] `migrate_checkins(raw_data)` - Migrate bare check-in arrays or partial v2-like documents to v2.
+- [OK] `migrate_message_templates(raw_data, category)` - Migrate one category message template file to v2.
+- [OK] `migrate_notebook_entries(raw_data)` - Migrate notebook entries into v2 note/list/journal_entry records.
+- [OK] `migrate_sent_messages(raw_data)` - Migrate sent-message history to v2 delivery records.
+- [OK] `migrate_task_collections(active_data, completed_data, task_schedules_data)` - Migrate active/completed task files into one v2 task collection.
+- [OK] `migrate_user_data_root(user_root)` - Migrate one user data directory to v2 JSON documents.
+
+When write=False, returns the report and generated payloads without writing.
+When write=True, creates a backup under the configured backups directory,
+writes v2 files, and removes replaced v1 task files.
+- [MISSING] `normalize_string_list(cls, value)` - No description
+- [MISSING] `validate_completed_at(cls, value)` - No description
+- [MISSING] `validate_completion_status(self)` - No description
+- [MISSING] `validate_date(cls, value)` - No description
+- [MISSING] `validate_kind_details(self)` - No description
+- [MISSING] `validate_next_due_date(cls, value)` - No description
+- [MISSING] `validate_optional_timestamp(cls, value)` - No description
+- [MISSING] `validate_required_timestamp(cls, value)` - No description
+- [MISSING] `validate_sent_at(cls, value)` - No description
+- [MISSING] `validate_submitted_at(cls, value)` - No description
+- [MISSING] `validate_time(cls, value)` - No description
+- [MISSING] `validate_timestamp(cls, value)` - No description
+- [MISSING] `validate_timestamp(cls, value)` - No description
+- [OK] `validate_v2_document(document_type, data)` - Validate a v2 document and return normalized data plus validation errors.
+**Classes:**
+- [OK] `BaseItemModel` - Shared item fields for v2 task, notebook, list, and journal records.
+  - [MISSING] `BaseItemModel.normalize_string_list(cls, value)` - No description
+  - [MISSING] `BaseItemModel.validate_optional_timestamp(cls, value)` - No description
+  - [MISSING] `BaseItemModel.validate_required_timestamp(cls, value)` - No description
+- [MISSING] `CheckinCollectionV2Model` - No description
+- [MISSING] `CheckinV2Model` - No description
+  - [MISSING] `CheckinV2Model.validate_timestamp(cls, value)` - No description
+- [MISSING] `CompletionModel` - No description
+  - [MISSING] `CompletionModel.validate_completed_at(cls, value)` - No description
+- [MISSING] `DueModel` - No description
+  - [MISSING] `DueModel.validate_date(cls, value)` - No description
+  - [MISSING] `DueModel.validate_time(cls, value)` - No description
+- [MISSING] `MessageDeliveryCollectionV2Model` - No description
+- [MISSING] `MessageDeliveryV2Model` - No description
+  - [MISSING] `MessageDeliveryV2Model.validate_sent_at(cls, value)` - No description
+- [MISSING] `MessageTemplateCollectionV2Model` - No description
+- [MISSING] `MessageTemplateV2Model` - No description
+  - [MISSING] `MessageTemplateV2Model.validate_timestamp(cls, value)` - No description
+- [MISSING] `NotebookCollectionV2Model` - No description
+- [MISSING] `NotebookV2Model` - No description
+  - [MISSING] `NotebookV2Model.validate_kind_details(self)` - No description
+  - [MISSING] `NotebookV2Model.validate_submitted_at(cls, value)` - No description
+- [MISSING] `RecurrenceModel` - No description
+  - [MISSING] `RecurrenceModel.validate_next_due_date(cls, value)` - No description
+- [MISSING] `ScheduleModel` - No description
+- [OK] `SourceModel` - Best-known origin of a migrated or newly written record.
+- [MISSING] `TaskCollectionV2Model` - No description
+- [MISSING] `TaskV2Model` - No description
+  - [MISSING] `TaskV2Model.validate_completion_status(self)` - No description
+
 #### `core/user_data_validation.py`
 **Functions:**
 - [OK] `_shared__title_case(text)` - Convert text to title case with special handling for technical terms.
@@ -5161,6 +5246,10 @@ Returns:
 
 #### `tasks/task_data_handlers.py`
 **Functions:**
+- [MISSING] `_load_v2_tasks(user_id)` - No description
+- [MISSING] `_runtime_tasks_to_v2(tasks)` - No description
+- [MISSING] `_save_v2_tasks(user_id, tasks)` - No description
+- [MISSING] `_task_v2_to_runtime(task)` - No description
 - [OK] `ensure_task_directory(user_id)` - Ensure the task directory and default JSON files exist for a user.
 
 Returns:

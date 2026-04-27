@@ -60,7 +60,7 @@ except (AttributeError, ImportError):
 
 logger = get_component_logger("development_tools")
 
-REQUIRED_LEGACY_PATTERN_KEYS: list[str] = []
+REQUIRED_LEGACY_PATTERN_KEYS: list[str] = ["user_data_v1_runtime_adapters"]
 
 
 class LegacyReferenceFixer:

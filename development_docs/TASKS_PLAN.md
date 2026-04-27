@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Plan for multi-phase task system enhancements (recurrence, templates, intelligence, and advanced workflows)  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-02-28 (User-priority Q&A: Discord primary, templates/follow-up/notes prioritize, Smart Suggestions defer)  
+> **Last Updated**: 2026-04-27 (User-data v2 migration completed; v2-native cleanup tracked)  
 > **Parent**: [PLANS.md](development_docs/PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -14,67 +14,71 @@
 ### Canonical Task Data Model Migration
 
 **Migrate tasks to canonical v2 task structure**
+- *Status*: **Persisted data migration completed 2026-04-27**. Local user task data now writes to `tasks/tasks.json`; replaced v1 split files were removed from migrated user directories. Remaining work is v2-native runtime cleanup, not data migration.
 - *What it means*: Convert existing active and completed task records to the new task structure.
 - *Why it helps*: Makes tasks consistent with notes, journal entries, and future events while preparing for SQLite.
 - *Estimated effort*: Large
 - *Created*: 2026-04-26
 - *Target structure*:
-  - [ ] `id`
-  - [ ] `short_id`
-  - [ ] `kind`
-  - [ ] `title`
-  - [ ] `description`
-  - [ ] `category`
-  - [ ] `group`
-  - [ ] `tags`
-  - [ ] `priority`
-  - [ ] `status`
-  - [ ] `due`
-  - [ ] `reminders`
-  - [ ] `recurrence`
-  - [ ] `completion`
-  - [ ] `source`
-  - [ ] `linked_item_ids`
-  - [ ] `created_at`
-  - [ ] `updated_at`
-  - [ ] `archived_at`
-  - [ ] `deleted_at`
-  - [ ] `metadata`
+  - [x] `id`
+  - [x] `short_id`
+  - [x] `kind`
+  - [x] `title`
+  - [x] `description`
+  - [x] `category`
+  - [x] `group`
+  - [x] `tags`
+  - [x] `priority`
+  - [x] `status`
+  - [x] `due`
+  - [x] `reminders`
+  - [x] `recurrence`
+  - [x] `completion`
+  - [x] `source`
+  - [x] `linked_item_ids`
+  - [x] `created_at`
+  - [x] `updated_at`
+  - [x] `archived_at`
+  - [x] `deleted_at`
+  - [x] `metadata`
 - *Subtasks*:
-  - [ ] Convert `task_id` to `id`.
-  - [ ] Generate `short_id` using the no-dash `t####` style.
-  - [ ] Set `kind` to `task`.
-  - [ ] Preserve `title`.
-  - [ ] Preserve `description`.
-  - [ ] Normalize `category` as a broad user-facing category, not priority.
-  - [ ] Add `group`, defaulting to empty string or a migrated value if available.
-  - [ ] Add `tags`, defaulting to an empty list.
-  - [ ] Normalize `priority` to allowed values such as `low`, `medium`, `high`.
-  - [ ] Set `status` from task state, such as `active`, `completed`, `cancelled`, `archived`, or `deleted`.
-  - [ ] Move `due_date` and `due_time` into `due.date` and `due.time`.
-  - [ ] Move reminder-related fields into `reminders`.
-  - [ ] Move recurrence-related fields into `recurrence`.
-  - [ ] Move completion-related fields into `completion`.
-  - [ ] Add `source` with best available channel/source metadata.
-  - [ ] Add `linked_item_ids`, defaulting to an empty list.
-  - [ ] Rename `last_updated` to `updated_at`.
-  - [ ] Add `archived_at` and `deleted_at`, defaulting to null.
-  - [ ] Use `metadata` only for fields that cannot be safely mapped and still need manual review.
-  - [ ] Do not keep old task fields in canonical v2 records unless explicitly temporary.
+  - [x] Convert `task_id` to `id`.
+  - [x] Generate `short_id` using the no-dash `t####` style.
+  - [x] Set `kind` to `task`.
+  - [x] Preserve `title`.
+  - [x] Preserve `description`.
+  - [x] Normalize `category` as a broad user-facing category, not priority.
+  - [x] Add `group`, defaulting to empty string or a migrated value if available.
+  - [x] Add `tags`, defaulting to an empty list.
+  - [x] Normalize `priority` to allowed values such as `low`, `medium`, `high`, `urgent`, and `critical`.
+  - [x] Set `status` from task state, such as `active`, `completed`, `cancelled`, `archived`, or `deleted`.
+  - [x] Move `due_date` and `due_time` into `due.date` and `due.time`.
+  - [x] Move reminder-related fields into `reminders`.
+  - [x] Move recurrence-related fields into `recurrence`.
+  - [x] Move completion-related fields into `completion`.
+  - [x] Add `source` with best available channel/source metadata.
+  - [x] Add `linked_item_ids`, defaulting to an empty list.
+  - [x] Rename `last_updated` to `updated_at`.
+  - [x] Add `archived_at` and `deleted_at`, defaulting to null.
+  - [x] Use `metadata` only for fields that cannot be safely mapped and still need manual review.
+  - [x] Do not keep old task fields in canonical v2 records unless explicitly temporary.
 
 **Consolidate active and completed task storage**
+- *Status*: **Persisted storage completed 2026-04-27**. Remaining work is removing temporary runtime adapters and tests that preserve v1 split-file behavior.
 - *What it means*: Move toward one canonical task collection instead of separate active/completed task files.
 - *Why it helps*: Completion is task state, not a separate storage type.
 - *Estimated effort*: Large
 - *Created*: 2026-04-26
 - *Subtasks*:
-  - [ ] Decide whether the canonical v2 file is `tasks/tasks.json`.
-  - [ ] Convert active and completed task records into one collection.
-  - [ ] Use `status` and `completion.completed` to distinguish active vs completed tasks.
-  - [ ] Stop writing new data to `active_tasks.json` and `completed_tasks.json` after migration.
-  - [ ] If old files must still be readable during transition, mark that code as temporary compatibility.
-  - [ ] Add a planned removal task for old active/completed task readers.
-  - [ ] Add tests proving new task reads do not require the old split files after migration.
+  - [x] Decide whether the canonical v2 file is `tasks/tasks.json`.
+  - [x] Convert active and completed task records into one collection.
+  - [x] Use `status` and `completion.completed` to distinguish active vs completed tasks.
+  - [x] Stop writing new data to `active_tasks.json` and `completed_tasks.json` after migration.
+  - [ ] Mark old split-file readers as temporary compatibility or remove them after search-and-close.
+  - [x] Add a planned removal task for old active/completed task readers.
+  - [x] Add tests proving new task reads do not require the old split files after migration.
+  - [ ] Replace task runtime APIs with v2-native task objects or explicitly document adapter boundaries.
+  - [ ] Run legacy `--find` / `--verify` for `active_tasks.json`, `completed_tasks.json`, `task_schedules.json`, `task_id`, and `completed` before removing fallback support.
 
 **Normalize task category, group, tags, and priority**
 - *What it means*: Separate concepts that are currently partially mixed together.
@@ -104,20 +108,33 @@
   - [ ] If dashed ID support is required temporarily, mark it as temporary compatibility with planned removal.
 
 **Update task tests for v2 data**
+- *Status*: **Partially complete 2026-04-27**. Migration and runtime-adapter tests exist; older task behavior tests still need review before v1 split-file support can be removed.
 - *What it means*: Update task tests to use and validate the v2 task structure.
 - *Why it helps*: Makes the new structure the tested source of truth.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-26
 - *Subtasks*:
-  - [ ] Update task fixtures to v2 structure.
-  - [ ] Add migration tests from current active task examples.
-  - [ ] Add migration tests from current completed task examples.
-  - [ ] Add tests for `status`.
-  - [ ] Add tests for `completion`.
-  - [ ] Add tests for `due`.
-  - [ ] Add tests for `reminders`.
-  - [ ] Add tests for `recurrence`.
+  - [ ] Update all task fixtures to v2 structure.
+  - [x] Add migration tests from current active task examples.
+  - [x] Add migration tests from current completed task examples.
+  - [x] Add tests for `status`.
+  - [x] Add tests for `completion`.
+  - [x] Add tests for `due`.
+  - [x] Add tests for `reminders`.
+  - [x] Add tests for `recurrence`.
   - [ ] Remove or rewrite tests that only preserve old active/completed split behavior.
+
+**Retire task v1 compatibility adapters**
+- *What it means*: Remove or explicitly mark temporary adapters that convert between v2 persisted task records and old runtime dictionaries (`task_id`, `completed`, split active/completed lists).
+- *Why it helps*: Prevents v1 shapes from becoming permanent hidden APIs after the data migration.
+- *Estimated effort*: Medium
+- *Created*: 2026-04-27
+- *Subtasks*:
+  - [ ] Add `LEGACY COMPATIBILITY` markers/logging to any v1 task fallback retained short-term, or remove the fallback outright.
+  - [ ] Update `development_tools/config/jsons/DEPRECATION_INVENTORY.json` search terms as code paths are removed.
+  - [ ] Update task command/UI/analytics tests to assert v2-native behavior where practical.
+  - [ ] Remove v1 split-file fallback reads after legacy verification reports no active production dependency.
+  - [ ] Confirm `ensure_task_directory()` never recreates v1 split files for migrated users.
 
 ### **2025-08-25 - Comprehensive Task System Improvements** [IN PROGRESS]
 

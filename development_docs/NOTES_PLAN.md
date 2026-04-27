@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Implementation plan for notebook feature  
 > **Style**: Actionable, checklist-focused, roadmap-oriented  
-> **Last Updated**: 2026-02-28 (User-priority Q&A: Show More fix first, search feedback, edit sessions medium)
+> **Last Updated**: 2026-04-27 (User-data v2 migration completed; v2-native cleanup tracked)
 > **Parent**: [PLANS.md](development_docs/PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -105,106 +105,110 @@ Each item:
 ### Notebook and Journal Data Model Migration
 
 **Migrate notebook entries to canonical v2 note structure**
+- *Status*: **Persisted data migration completed 2026-04-27**. Local notebook data now writes as versioned v2 `entries[]`; runtime still adapts to existing `Entry` models until v2-native cleanup is complete.
 - *What it means*: Convert existing note records to the revised v2 note structure.
 - *Why it helps*: Aligns notes with tasks, journal entries, and future events.
 - *Estimated effort*: Large
 - *Created*: 2026-04-26
 - *Target structure*:
-  - [ ] `id`
-  - [ ] `short_id`
-  - [ ] `kind`
-  - [ ] `title`
-  - [ ] `description`
-  - [ ] `category`
-  - [ ] `group`
-  - [ ] `tags`
-  - [ ] `status`
-  - [ ] `pinned`
-  - [ ] `source`
-  - [ ] `linked_item_ids`
-  - [ ] `created_at`
-  - [ ] `updated_at`
-  - [ ] `archived_at`
-  - [ ] `deleted_at`
-  - [ ] `metadata`
+  - [x] `id`
+  - [x] `short_id`
+  - [x] `kind`
+  - [x] `title`
+  - [x] `description`
+  - [x] `category`
+  - [x] `group`
+  - [x] `tags`
+  - [x] `status`
+  - [x] `pinned`
+  - [x] `source`
+  - [x] `linked_item_ids`
+  - [x] `created_at`
+  - [x] `updated_at`
+  - [x] `archived_at`
+  - [x] `deleted_at`
+  - [x] `metadata`
 - *Subtasks*:
-  - [ ] Set `kind` to `note`.
-  - [ ] Preserve `title`.
-  - [ ] Map existing note body/content to `description` if that is the chosen canonical note text field.
-  - [ ] Confirm whether notes should continue using `body`; if not, remove `body` from canonical note writes.
-  - [ ] Add `category`, defaulting to empty string or a known migrated value.
-  - [ ] Preserve or add `group`.
-  - [ ] Preserve normalized `tags`.
-  - [ ] Convert archived flags into `status` and/or `archived_at`.
-  - [ ] Preserve `pinned`.
-  - [ ] Add `source`.
-  - [ ] Add `linked_item_ids`.
-  - [ ] Add `deleted_at`, defaulting to null.
-  - [ ] Use `metadata` only for fields requiring manual review.
-  - [ ] Do not keep duplicate text fields unless there is a temporary migration reason.
+  - [x] Set `kind` to `note`.
+  - [x] Preserve `title`.
+  - [x] Map existing note body/content to `description`.
+  - [x] Remove `body` from canonical note writes.
+  - [x] Add `category`, defaulting to empty string or a known migrated value.
+  - [x] Preserve or add `group`.
+  - [x] Preserve normalized `tags`.
+  - [x] Convert archived flags into `status` and/or `archived_at`.
+  - [x] Preserve `pinned`.
+  - [x] Add `source`.
+  - [x] Add `linked_item_ids`.
+  - [x] Add `deleted_at`, defaulting to null.
+  - [x] Use `metadata` only for fields requiring manual review.
+  - [x] Do not keep duplicate text fields unless there is a temporary migration reason.
 
 **Migrate journal entries to canonical v2 journal_entry structure**
+- *Status*: **Persisted data migration completed 2026-04-27**.
 - *What it means*: Convert journal entries to their own clear kind while sharing the same base item fields.
 - *Why it helps*: Prevents journal entries from being indistinguishable from notes.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-26
 - *Target structure*:
-  - [ ] `id`
-  - [ ] `short_id`
-  - [ ] `kind`
-  - [ ] `title`
-  - [ ] `description`
-  - [ ] `category`
-  - [ ] `group`
-  - [ ] `tags`
-  - [ ] `status`
-  - [ ] `submitted_at`
-  - [ ] `source`
-  - [ ] `linked_item_ids`
-  - [ ] `created_at`
-  - [ ] `updated_at`
-  - [ ] `archived_at`
-  - [ ] `deleted_at`
-  - [ ] `metadata`
+  - [x] `id`
+  - [x] `short_id`
+  - [x] `kind`
+  - [x] `title`
+  - [x] `description`
+  - [x] `category`
+  - [x] `group`
+  - [x] `tags`
+  - [x] `status`
+  - [x] `submitted_at`
+  - [x] `source`
+  - [x] `linked_item_ids`
+  - [x] `created_at`
+  - [x] `updated_at`
+  - [x] `archived_at`
+  - [x] `deleted_at`
+  - [x] `metadata`
 - *Subtasks*:
-  - [ ] Set `kind` to `journal_entry`.
-  - [ ] Generate short IDs using no-dash `j####` style.
-  - [ ] Preserve title or generate a title such as `Daily Reflection YYYY-MM-DD`.
-  - [ ] Map journal text to `description`.
-  - [ ] Add `submitted_at`.
-  - [ ] Preserve category, group, and tags where available.
-  - [ ] Add `linked_item_ids`, defaulting to an empty list.
-  - [ ] Ensure journal entries are visually and structurally distinguishable from notes.
-  - [ ] Avoid retaining old journal-only fields unless explicitly needed and marked temporary.
+  - [x] Set `kind` to `journal_entry`.
+  - [x] Generate short IDs using no-dash `j####` style.
+  - [x] Preserve title or generate a title such as `Daily Reflection YYYY-MM-DD`.
+  - [x] Map journal text to `description`.
+  - [x] Add `submitted_at`.
+  - [x] Preserve category, group, and tags where available.
+  - [x] Add `linked_item_ids`, defaulting to an empty list.
+  - [x] Ensure journal entries are structurally distinguishable from notes.
+  - [x] Avoid retaining old journal-only fields unless explicitly needed and marked temporary.
 
 **Align notebook list entries with shared item fields**
+- *Status*: **Persisted data migration completed 2026-04-27**.
 - *What it means*: Keep list entries compatible with the same shared item model while preserving list-specific items.
 - *Why it helps*: Lists remain searchable and organizable like notes without losing list behavior.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-26
 - *Subtasks*:
-  - [ ] Confirm canonical `kind` for lists.
+  - [x] Confirm canonical `kind` for lists.
   - [ ] Add or preserve shared fields:
-    - [ ] `id`
-    - [ ] `short_id`
-    - [ ] `title`
-    - [ ] `description`
-    - [ ] `category`
-    - [ ] `group`
-    - [ ] `tags`
-    - [ ] `status`
-    - [ ] `source`
-    - [ ] `linked_item_ids`
-    - [ ] `created_at`
-    - [ ] `updated_at`
-    - [ ] `archived_at`
-    - [ ] `deleted_at`
-    - [ ] `metadata`
-  - [ ] Preserve list items in a list-specific field.
-  - [ ] Do not force list items into note descriptions.
-  - [ ] Add tests for list migration.
+    - [x] `id`
+    - [x] `short_id`
+    - [x] `title`
+    - [x] `description`
+    - [x] `category`
+    - [x] `group`
+    - [x] `tags`
+    - [x] `status`
+    - [x] `source`
+    - [x] `linked_item_ids`
+    - [x] `created_at`
+    - [x] `updated_at`
+    - [x] `archived_at`
+    - [x] `deleted_at`
+    - [x] `metadata`
+  - [x] Preserve list items in a list-specific field.
+  - [x] Do not force list items into note descriptions.
+  - [x] Add tests for list migration.
 
 **Update notebook tests for v2 structures**
+- *Status*: **Partially complete 2026-04-27**. Migration and runtime-adapter tests exist; older notebook fixtures/tests still need review before v1 compatibility is removed.
 - *What it means*: Update notebook tests to validate the revised v2 note, journal, and list models.
 - *Why it helps*: Prevents the notebook system from continuing to depend on old structures.
 - *Estimated effort*: Medium
@@ -213,12 +217,23 @@ Each item:
   - [ ] Update note fixtures.
   - [ ] Update journal fixtures.
   - [ ] Update list fixtures.
-  - [ ] Add migration tests from current `notebook/entries.json`.
-  - [ ] Add tests for no-dash short IDs.
-  - [ ] Add tests for `description`.
-  - [ ] Add tests for `category`, `group`, and `tags`.
-  - [ ] Add tests for `linked_item_ids`.
+  - [x] Add migration tests from current `notebook/entries.json`.
+  - [x] Add tests for no-dash short IDs.
+  - [x] Add tests for `description`.
+  - [x] Add tests for `category`, `group`, and `tags`.
+  - [x] Add tests for `linked_item_ids`.
   - [ ] Remove or rewrite tests that only preserve obsolete notebook structures.
+
+**Retire notebook v1 compatibility adapters**
+- *What it means*: Remove or explicitly mark temporary adapters that translate between v2 persisted notebook records and old `Entry`/`body`/`archived` runtime shapes.
+- *Why it helps*: Prevents the notebook system from continuing to behave as if v1 JSON is the source of truth.
+- *Estimated effort*: Medium
+- *Created*: 2026-04-27
+- *Subtasks*:
+  - [ ] Add `LEGACY COMPATIBILITY` markers/logging to any v1 notebook fallback retained short-term, or remove the fallback outright.
+  - [ ] Update notebook schemas/handlers to operate directly on v2 fields (`description`, `status`, `journal_entry`) where practical.
+  - [ ] Run legacy `--find` / `--verify` for `body`, `archived`, and `kind: journal` before removing fallback support.
+  - [ ] Update notebook tests that preserve v1 shapes.
 
 ---
 

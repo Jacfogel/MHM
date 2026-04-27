@@ -3,6 +3,7 @@ Response tracking utilities for MHM.
 Contains functions for storing and retrieving user responses, check-ins, and interactions.
 """
 
+import uuid
 from typing import Any
 from core.logger import get_component_logger
 from core import get_user_data
@@ -13,10 +14,57 @@ from core.time_utilities import (
     now_datetime_full,
     parse_timestamp_full,
 )
+from core.user_data_v2 import SCHEMA_VERSION
 
 
 logger = get_component_logger("user_activity")
 tracking_logger = get_component_logger("user_activity")
+
+
+@handle_errors("converting v2 checkin to runtime response", default_return={})
+def _checkin_to_runtime_response(checkin: dict[str, Any]) -> dict[str, Any]:
+    """Return the flat response shape expected by existing analytics callers."""
+    raw_responses = checkin.get("responses")
+    responses: dict[str, Any] = raw_responses if isinstance(raw_responses, dict) else {}
+    runtime: dict[str, Any] = dict(responses)
+    runtime["timestamp"] = checkin.get("submitted_at", "")
+    runtime["questions_asked"] = checkin.get("questions_asked", list(responses.keys()))
+    runtime["responses"] = responses
+    return runtime
+
+
+@handle_errors("converting runtime response to v2 checkin", default_return={})
+def _response_to_v2_checkin(response_data: dict[str, Any]) -> dict[str, Any]:
+    """Build a canonical v2 check-in record from the current response payload."""
+    submitted_at = response_data.get("submitted_at") or response_data.get("timestamp") or now_timestamp_full()
+    responses = response_data.get("responses")
+    if not isinstance(responses, dict):
+        skipped = {
+            "timestamp",
+            "submitted_at",
+            "questions_asked",
+            "source",
+            "linked_item_ids",
+            "created_at",
+            "updated_at",
+            "archived_at",
+            "deleted_at",
+            "metadata",
+        }
+        responses = {key: value for key, value in response_data.items() if key not in skipped}
+    return {
+        "id": response_data.get("id") or str(uuid.uuid4()),
+        "submitted_at": submitted_at,
+        "source": response_data.get("source") or {"system": "mhm", "channel": "", "actor": "", "migration": None},
+        "responses": responses,
+        "questions_asked": response_data.get("questions_asked") or list(responses.keys()),
+        "linked_item_ids": response_data.get("linked_item_ids") or [],
+        "created_at": response_data.get("created_at") or submitted_at,
+        "updated_at": response_data.get("updated_at") or submitted_at,
+        "archived_at": response_data.get("archived_at"),
+        "deleted_at": response_data.get("deleted_at"),
+        "metadata": response_data.get("metadata") or {},
+    }
 
 
 @handle_errors("getting response log filename", default_return="response_log.json")
@@ -45,10 +93,23 @@ def store_user_response(
 
     existing_data = load_json_data(log_file) or []
 
+    if response_type == "checkin" and isinstance(existing_data, dict) and existing_data.get("schema_version") == SCHEMA_VERSION:
+        checkins = existing_data.setdefault("checkins", [])
+        if not isinstance(checkins, list):
+            checkins = []
+            existing_data["checkins"] = checkins
+        checkins.append(_response_to_v2_checkin(response_data))
+        existing_data["updated_at"] = now_timestamp_full()
+        save_json_data(existing_data, log_file)
+        logger.debug(f"Stored v2 {response_type} response for user {user_id}")
+        return
+
     if "timestamp" not in response_data:
         # Canonical readable timestamp for stored interaction metadata
         response_data["timestamp"] = now_timestamp_full()
 
+    if not isinstance(existing_data, list):
+        existing_data = []
     existing_data.append(response_data)
 
     save_json_data(existing_data, log_file)
@@ -85,6 +146,8 @@ def get_recent_responses(user_id: str, response_type: str = "checkin", limit: in
         log_file = get_user_file_path(user_id, f"{response_type}_log")
 
     data = load_json_data(log_file) or []
+    if response_type == "checkin" and isinstance(data, dict) and data.get("schema_version") == SCHEMA_VERSION:
+        data = [_checkin_to_runtime_response(item) for item in data.get("checkins", []) if isinstance(item, dict)]
 
     if data:
 

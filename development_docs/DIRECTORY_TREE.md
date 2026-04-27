@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-20 18:55:51
+> **Last Generated**: 2026-04-27 02:29:11
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -179,6 +179,7 @@ C:.
 |   |   user_data_registry.py
 |   |   user_data_schedule_defaults.py
 |   |   user_data_updates.py
+|   |   user_data_v2.py
 |   |   user_data_validation.py
 |   |   user_data_write.py
 |   |   user_item_storage.py
@@ -605,6 +606,7 @@ C:.
 |   |   |   test_check_channel_loggers.py
 |   |   |   test_cli_interface.py
 |   |   |   test_commands_additional_helpers.py
+|   |   |   test_commands_backup_flow.py
 |   |   |   test_commands_coverage_helpers.py
 |   |   |   test_commands_docs_locks.py
 |   |   |   test_commands_docs_workflow.py
@@ -652,6 +654,7 @@ C:.
 |   |   |   test_import_boundary_policy.py
 |   |   |   test_integration_workflows.py
 |   |   |   test_legacy_reference_cleanup.py
+|   |   |   test_measure_tool_timings.py
 |   |   |   test_mtime_cache.py
 |   |   |   test_output_storage_archiving.py
 |   |   |   test_output_storage_helpers.py
@@ -661,6 +664,7 @@ C:.
 |   |   |   test_pyright_config_paths.py
 |   |   |   test_regenerate_coverage_metrics.py
 |   |   |   test_report_generation_dev_tools_scope.py
+|   |   |   test_report_generation_helpers_pure.py
 |   |   |   test_report_generation_quick_wins.py
 |   |   |   test_report_generation_static_analysis.py
 |   |   |   test_result_format.py
@@ -687,6 +691,7 @@ C:.
 |   |   |   test_tool_wrappers_static_analysis.py
 |   |   |   test_verification_summary.py
 |   |   |   test_verify_process_cleanup.py
+|   |   |   test_verify_tool_storage.py
 |   |   |   __init__.py
 |   |   |   
 |   +---fixtures
@@ -833,6 +838,7 @@ C:.
 |   |   |   test_user_data_loader_idempotency.py
 |   |   |   test_user_data_loader_order_insensitivity.py
 |   |   |   test_user_data_manager.py
+|   |   |   test_user_data_v2_migration.py
 |   |   |   test_user_data_validation_user_id.py
 |   |   |   test_user_item_storage.py
 |   |   |   test_user_management.py

@@ -35,3 +35,4 @@ ALLOWED_UPDATE_FIELDS: tuple[str, ...] = (
 ACTIVE_TASKS_FILENAME = "active_tasks.json"
 COMPLETED_TASKS_FILENAME = "completed_tasks.json"
 TASK_SCHEDULES_FILENAME = "task_schedules.json"
+TASKS_V2_FILENAME = "tasks.json"

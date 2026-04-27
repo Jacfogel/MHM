@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-20 18:55:43
+> **Last Generated**: 2026-04-27 02:29:01
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 95.2% [OK] EXCELLENT**
-- **Total Functions**: 1700
-- **Total Methods**: 1229
-- **Documented**: 2788/2929
-- **Files Scanned**: 124
+### **Documentation Coverage: 93.9% [!] GOOD**
+- **Total Functions**: 1752
+- **Total Methods**: 1242
+- **Documented**: 2810/2994
+- **Files Scanned**: 125
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -152,6 +152,7 @@ Core System Decision Tree:
 ## [!] **Areas Needing Attention**
 
 ### **High Priority** (Missing Documentation)
+- `core/user_data_v2.py` - 39/57 functions undocumented (32% coverage)
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
 - `core/schemas.py` - 18/32 functions undocumented (44% coverage)
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
@@ -161,10 +162,10 @@ Core System Decision Tree:
 - `ui/widgets/channel_selection_widget.py` - 6/16 functions undocumented (62% coverage)
 - `core/user_lookup.py` - 5/6 functions undocumented (17% coverage)
 - `core/user_data_updates.py` - 5/7 functions undocumented (29% coverage)
-- `ui/widgets/category_selection_widget.py` - 4/6 functions undocumented (33% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
+- `tasks/task_data_handlers.py` - 4/9 functions undocumented (56% coverage)
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
 - `core/user_data_validation.py` - 3/12 functions undocumented (75% coverage)
 
@@ -199,11 +200,11 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (37 files, 885 functions)
+- `core/` - System utilities and data management (38 files, 946 functions)
 - `communication/` - Communication channels and message processing (39 files, 860 functions)
 - `ai/` - AI chatbot functionality (7 files, 219 functions)
 - `ui/` - User interface components (29 files, 827 functions)
 - `user/` - User context and preferences (4 files, 65 functions)
-- `tasks/` - Task management system (5 files, 25 functions)
+- `tasks/` - Task management system (5 files, 29 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**

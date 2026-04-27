@@ -11,6 +11,7 @@ from core.error_handling import handle_errors, FileOperationError
 from core.config import get_user_data_dir
 from core.file_operations import load_json_data, save_json_data
 from core.time_utilities import now_timestamp_full
+from core.user_data_v2 import SCHEMA_VERSION as V2_SCHEMA_VERSION, migrate_notebook_entries
 
 from notebook.notebook_schemas import Entry
 
@@ -80,6 +81,8 @@ def load_entries(user_id: str) -> list[Entry]:
         return []
 
     entries_data = raw_data.get("entries", [])
+    if raw_data.get("schema_version") == V2_SCHEMA_VERSION:
+        entries_data = [_entry_v2_to_runtime(entry) for entry in entries_data if isinstance(entry, dict)]
     loaded_entries: list[Entry] = []
     for entry_data in entries_data:
         try:
@@ -112,6 +115,21 @@ def save_entries(user_id: str, entries: list[Entry]) -> None:
 
     # Convert Pydantic models to dictionaries
     entries_data = [entry.model_dump(mode="json") for entry in entries]
+    existing_data = load_json_data(str(file_path)) if file_path.exists() else {}
+    if isinstance(existing_data, dict) and existing_data.get("schema_version") == V2_SCHEMA_VERSION:
+        data_to_save, _report = migrate_notebook_entries(
+            {
+                "schema_version": SCHEMA_VERSION,
+                "entries": entries_data,
+                "updated_at": now_timestamp_full(),
+            }
+        )
+        success = save_json_data(data_to_save, str(file_path))
+        if success:
+            logger.debug(f"Saved {len(entries)} v2 notebook entries for user {user_id}.")
+            return
+        logger.error(f"Failed to save v2 notebook entries for user {user_id}.")
+        raise FileOperationError(f"Failed to save notebook entries for user {user_id}.")
 
     data_to_save = {
         "schema_version": SCHEMA_VERSION,
@@ -126,3 +144,24 @@ def save_entries(user_id: str, entries: list[Entry]) -> None:
     else:
         logger.error(f"Failed to save notebook entries for user {user_id}.")
         raise FileOperationError(f"Failed to save notebook entries for user {user_id}.")
+
+
+def _entry_v2_to_runtime(entry: dict) -> dict:
+    kind = entry.get("kind")
+    runtime_kind = "journal" if kind == "journal_entry" else kind
+    runtime = {
+        "id": entry.get("id"),
+        "kind": runtime_kind,
+        "title": entry.get("title") or None,
+        "body": entry.get("description") or None,
+        "tags": entry.get("tags") or [],
+        "group": entry.get("group") or None,
+        "pinned": entry.get("pinned", False),
+        "archived": entry.get("status") == "archived",
+        "created_at": entry.get("created_at"),
+        "updated_at": entry.get("updated_at"),
+    }
+    if runtime_kind == "list":
+        runtime["items"] = entry.get("items")
+        runtime["body"] = None
+    return runtime

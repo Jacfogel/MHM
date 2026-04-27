@@ -20,10 +20,42 @@ from core.time_utilities import (
     now_timestamp_full,
     parse_timestamp_full,
 )
+from core.user_data_v2 import SCHEMA_VERSION, migrate_message_templates
 import contextlib
 import importlib
 
 logger = get_component_logger("message")
+
+
+@handle_errors("converting v2 message template to runtime shape", default_return={})
+def _message_template_to_runtime(message: dict[str, Any], category: str) -> dict[str, Any]:
+    """Return the runtime shape expected by existing message selection code."""
+    if message.get("schema_version") == SCHEMA_VERSION:
+        return message
+    if "text" not in message and "schedule" not in message:
+        return message
+    schedule = message.get("schedule") or {}
+    return {
+        "message_id": message.get("id") or message.get("message_id"),
+        "message": message.get("text") or message.get("message") or "",
+        "category": message.get("category") or category,
+        "days": schedule.get("days") or message.get("days") or ["ALL"],
+        "time_periods": schedule.get("periods") or message.get("time_periods") or ["ALL"],
+        "timestamp": message.get("updated_at") or message.get("created_at"),
+    }
+
+
+@handle_errors("converting v2 message delivery to runtime shape", default_return={})
+def _delivery_to_runtime_message(delivery: dict[str, Any]) -> dict[str, Any]:
+    """Return the recent-message shape expected by existing duplicate filters."""
+    return {
+        "message_id": delivery.get("message_template_id") or delivery.get("message_id"),
+        "message": delivery.get("sent_text") or delivery.get("message") or "",
+        "category": delivery.get("category", ""),
+        "timestamp": delivery.get("sent_at") or delivery.get("timestamp", ""),
+        "delivery_status": delivery.get("status") or delivery.get("delivery_status", ""),
+        "time_period": delivery.get("time_period"),
+    }
 
 
 @handle_errors("getting message categories", default_return=[])
@@ -109,7 +141,7 @@ def load_user_messages(user_id, category):
             )
             return []
 
-        messages = data["messages"]
+        messages = [_message_template_to_runtime(msg, category) for msg in data["messages"]]
         logger.debug(
             f"Loaded {len(messages)} messages for user {user_id}, category {category}"
         )
@@ -397,26 +429,31 @@ def get_recent_messages(
 
         _normalize_message_timestamps(data, file_path)
 
-        # Normalize/validate to drop malformed entries and apply defaults
-        normalized_data, errors = validate_messages_file_dict(data)
-        if errors:
-            logger.warning(
-                f"Validation issues in sent messages for user {user_id}: {'; '.join(errors)}"
-            )
+        if data.get("schema_version") == SCHEMA_VERSION and isinstance(data.get("deliveries"), list):
+            messages = [_delivery_to_runtime_message(delivery) for delivery in data["deliveries"]]
+            normalized_data = {"messages": messages}
+        else:
 
-        # Preserve categories from the source data for filtering
-        source_messages = data.get("messages", [])
-        if isinstance(source_messages, list):
-            id_to_category = {
-                msg.get("message_id"): msg.get("category")
-                for msg in source_messages
-                if isinstance(msg, dict) and msg.get("message_id")
-            }
-            for message in normalized_data.get("messages", []):
-                if "category" not in message:
-                    category_value = id_to_category.get(message.get("message_id"))
-                    if category_value:
-                        message["category"] = category_value
+            # Normalize/validate to drop malformed entries and apply defaults
+            normalized_data, errors = validate_messages_file_dict(data)
+            if errors:
+                logger.warning(
+                    f"Validation issues in sent messages for user {user_id}: {'; '.join(errors)}"
+                )
+
+            # Preserve categories from the source data for filtering
+            source_messages = data.get("messages", [])
+            if isinstance(source_messages, list):
+                id_to_category = {
+                    msg.get("message_id"): msg.get("category")
+                    for msg in source_messages
+                    if isinstance(msg, dict) and msg.get("message_id")
+                }
+                for message in normalized_data.get("messages", []):
+                    if "category" not in message:
+                        category_value = id_to_category.get(message.get("message_id"))
+                        if category_value:
+                            message["category"] = category_value
 
         if "messages" in normalized_data:
             messages = normalized_data["messages"]
@@ -506,18 +543,48 @@ def store_sent_message(
         _normalize_message_timestamps(data, file_path)
 
         # Create new message entry (without redundant user_id field)
+        sent_at = now_timestamp_full()
         new_message = {
             "message_id": message_id,
             "message": message,
             "category": category,
             # Canonical readable timestamp for metadata/log display fields
-            "timestamp": now_timestamp_full(),
+            "timestamp": sent_at,
             "delivery_status": delivery_status,
         }
 
         # Add time_period if provided
         if time_period:
             new_message["time_period"] = time_period
+
+        if data.get("schema_version") == SCHEMA_VERSION or "deliveries" in data:
+            new_delivery = {
+                "id": str(uuid.uuid4()),
+                "message_template_id": message_id,
+                "sent_text": message,
+                "category": category,
+                "channel": "",
+                "status": delivery_status,
+                "source": {
+                    "system": "mhm",
+                    "channel": "",
+                    "actor": "scheduler",
+                    "migration": None,
+                },
+                "sent_at": sent_at,
+                "time_period": time_period,
+                "metadata": {},
+            }
+            deliveries = data.get("deliveries", [])
+            deliveries.insert(0, new_delivery)
+            data = {
+                "schema_version": SCHEMA_VERSION,
+                "updated_at": now_timestamp_full(),
+                "deliveries": deliveries,
+            }
+            save_json_data(data, file_path)
+            logger.debug(f"Stored v2 sent message delivery for user {user_id}, category {category}")
+            return True
 
         # Insert message in chronological order (newest first)
         messages = data.get("messages", [])
@@ -755,25 +822,7 @@ def create_message_file_from_defaults(user_id: str, category: str) -> bool:
             logger.warning(f"No default messages found for category {category}")
             return False
 
-        # Ensure default messages are in the correct format
-        formatted_messages = []
-        for message in default_messages:
-            if isinstance(message, dict):
-                if "message" not in message:
-                    logger.warning(
-                        f"Default message missing 'message' field: {message}"
-                    )
-                    continue
-                if "message_id" not in message:
-                    message["message_id"] = str(uuid.uuid4())
-                if "days" not in message:
-                    message["days"] = ["ALL"]
-                if "time_periods" not in message:
-                    message["time_periods"] = ["ALL"]
-                formatted_messages.append(message)
-            else:
-                logger.warning(f"Invalid message format in defaults: {message}")
-                continue
+        formatted_messages = [message for message in default_messages if isinstance(message, dict)]
 
         if not formatted_messages:
             logger.error(f"No valid messages found in defaults for category {category}")
@@ -785,9 +834,7 @@ def create_message_file_from_defaults(user_id: str, category: str) -> bool:
         # Ensure the messages directory exists
         user_messages_dir.mkdir(parents=True, exist_ok=True)
         category_message_file = user_messages_dir / f"{category}.json"
-        message_data = {"messages": formatted_messages}
-        with contextlib.suppress(Exception):
-            message_data, _errs = validate_messages_file_dict(message_data)
+        message_data, _report = migrate_message_templates({"messages": formatted_messages}, category)
         # Convert Path to string for save_json_data
         success = save_json_data(message_data, str(category_message_file))
         if not success:
