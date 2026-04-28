@@ -11,13 +11,16 @@ from core.error_handling import handle_errors, FileOperationError
 from core.config import get_user_data_dir
 from core.file_operations import load_json_data, save_json_data
 from core.time_utilities import now_timestamp_full
-from core.user_data_v2 import SCHEMA_VERSION as V2_SCHEMA_VERSION, migrate_notebook_entries
+from core.user_data_v2 import (
+    SCHEMA_VERSION as V2_SCHEMA_VERSION,
+    NotebookV2Model,
+    generate_short_id,
+)
 
 from notebook.notebook_schemas import Entry
 
 logger = get_component_logger("notebook_data_handlers")
 
-SCHEMA_VERSION = 1
 NOTEBOOK_FILE_NAME = "entries.json"
 
 
@@ -83,6 +86,11 @@ def load_entries(user_id: str) -> list[Entry]:
     entries_data = raw_data.get("entries", [])
     if raw_data.get("schema_version") == V2_SCHEMA_VERSION:
         entries_data = [_entry_v2_to_runtime(entry) for entry in entries_data if isinstance(entry, dict)]
+    else:
+        # LEGACY COMPATIBILITY: Temporary v1 notebook file read until all user dirs are v2.
+        logger.warning(
+            f"Using legacy notebook entries fallback for user {user_id}; migrate to notebook/entries.json schema v2."
+        )
     loaded_entries: list[Entry] = []
     for entry_data in entries_data:
         try:
@@ -115,32 +123,16 @@ def save_entries(user_id: str, entries: list[Entry]) -> None:
 
     # Convert Pydantic models to dictionaries
     entries_data = [entry.model_dump(mode="json") for entry in entries]
-    existing_data = load_json_data(str(file_path)) if file_path.exists() else {}
-    if isinstance(existing_data, dict) and existing_data.get("schema_version") == V2_SCHEMA_VERSION:
-        data_to_save, _report = migrate_notebook_entries(
-            {
-                "schema_version": SCHEMA_VERSION,
-                "entries": entries_data,
-                "updated_at": now_timestamp_full(),
-            }
-        )
-        success = save_json_data(data_to_save, str(file_path))
-        if success:
-            logger.debug(f"Saved {len(entries)} v2 notebook entries for user {user_id}.")
-            return
-        logger.error(f"Failed to save v2 notebook entries for user {user_id}.")
-        raise FileOperationError(f"Failed to save notebook entries for user {user_id}.")
-
     data_to_save = {
-        "schema_version": SCHEMA_VERSION,
-        "entries": entries_data,
+        "schema_version": V2_SCHEMA_VERSION,
+        "entries": [_entry_runtime_to_v2(entry) for entry in entries_data],
         "updated_at": now_timestamp_full(),
     }
 
     # Use core.file_operations.save_json_data for atomic write
     success = save_json_data(data_to_save, str(file_path))
     if success:
-        logger.debug(f"Saved {len(entries)} notebook entries for user {user_id}.")
+        logger.debug(f"Saved {len(entries)} v2 notebook entries for user {user_id}.")
     else:
         logger.error(f"Failed to save notebook entries for user {user_id}.")
         raise FileOperationError(f"Failed to save notebook entries for user {user_id}.")
@@ -151,17 +143,60 @@ def _entry_v2_to_runtime(entry: dict) -> dict:
     runtime_kind = "journal" if kind == "journal_entry" else kind
     runtime = {
         "id": entry.get("id"),
+        "short_id": entry.get("short_id"),
         "kind": runtime_kind,
         "title": entry.get("title") or None,
+        "description": entry.get("description") or None,
         "body": entry.get("description") or None,
+        "status": entry.get("status") or "active",
+        "category": entry.get("category") or "",
         "tags": entry.get("tags") or [],
         "group": entry.get("group") or None,
         "pinned": entry.get("pinned", False),
         "archived": entry.get("status") == "archived",
+        "submitted_at": entry.get("submitted_at"),
+        "source": entry.get("source"),
+        "linked_item_ids": entry.get("linked_item_ids") or [],
         "created_at": entry.get("created_at"),
         "updated_at": entry.get("updated_at"),
+        "archived_at": entry.get("archived_at"),
+        "deleted_at": entry.get("deleted_at"),
+        "metadata": entry.get("metadata") or {},
     }
     if runtime_kind == "list":
         runtime["items"] = entry.get("items")
         runtime["body"] = None
     return runtime
+
+
+def _entry_runtime_to_v2(entry: dict) -> dict:
+    entry_id = str(entry.get("id") or "")
+    kind = "journal_entry" if entry.get("kind") == "journal" else entry.get("kind")
+    created_at = entry.get("created_at") or now_timestamp_full()
+    updated_at = entry.get("updated_at") or created_at
+    status = entry.get("status") or ("archived" if entry.get("archived") else "active")
+    description = entry.get("body")
+    if description is None:
+        description = entry.get("description") or ""
+    v2_entry = {
+        "id": entry_id,
+        "short_id": entry.get("short_id") or generate_short_id(entry_id, str(kind)),
+        "kind": kind,
+        "title": entry.get("title") or "",
+        "description": description or "",
+        "category": entry.get("category") or "",
+        "group": entry.get("group") or "",
+        "tags": entry.get("tags") or [],
+        "status": status,
+        "pinned": bool(entry.get("pinned", False)),
+        "submitted_at": entry.get("submitted_at") or (created_at if kind == "journal_entry" else None),
+        "items": entry.get("items") if kind == "list" else None,
+        "source": entry.get("source") or {"system": "mhm", "channel": "", "actor": "", "migration": None},
+        "linked_item_ids": entry.get("linked_item_ids") or [],
+        "created_at": created_at,
+        "updated_at": updated_at,
+        "archived_at": entry.get("archived_at") or (updated_at if status == "archived" else None),
+        "deleted_at": entry.get("deleted_at"),
+        "metadata": entry.get("metadata") or {},
+    }
+    return NotebookV2Model.model_validate(v2_entry).model_dump(mode="json")

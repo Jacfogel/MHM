@@ -30,8 +30,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-04-27 - User data v2 native runtime adoption **COMPLETED**
+- **Coverage logging**: Parallel Tier 3 runs classify pytest failures using on-disk coverage data (`.coverage_parallel` and/or shards) when the term-missing table is missing from the log, avoiding misleading `Coverage analysis failed` ERROR lines before combine.
+- **Task runtime**: `tasks.task_data_handlers` now writes canonical v2 task records directly for migrated/new `tasks/tasks.json` files and no longer uses bulk migration helpers on normal task saves.
+- **Notebook runtime**: notebook persistence now writes schema-version-2 entries directly and carries v2 fields (`description`, `status`, `short_id`, source/link/lifecycle metadata) through the runtime model while temporary `body`/`archived` compatibility remains explicit.
+- **Migration split**: one-time migration transforms, report helpers, backup orchestration, and user-root writes moved to `scripts.user_data_migration`, keeping migration tooling out of `core/`.
+- **Quality follow-up**: Closed remaining same-session priorities by switching helper timestamp/priority normalization to decorator-first error handling, updating task cleanup integration tests to canonical `tasks.json`, and resolving Pyright warnings to zero.
+- **Validation**: Focused v2/task/notebook/message/integration regressions pass, full `pyright` is clean, and `audit --full` completes successfully with updated priorities.
+
 ### 2026-04-26 - User data v2 migration foundation **COMPLETED**
-- **Schema + tooling**: Added canonical v2 models and migration helpers in [`core/user_data_v2.py`](../core/user_data_v2.py), plus an intentionally untracked `scripts/migrate_user_data_v2.py` utility for dry-run/write migration with backups and reports.
+- **Schema + tooling**: Added canonical v2 models in [`core/user_data_v2.py`](../core/user_data_v2.py), one-time migration helpers in `scripts.user_data_migration`, plus an intentionally untracked `scripts/migrate_user_data_v2.py` utility for dry-run/write migration with backups and reports.
 - **Docs + planning**: Documented the v2 contract and migration field mapping in [[USER_DATA_MODEL.md](core/USER_DATA_MODEL.md)](../core/USER_DATA_MODEL.md), retired the temporary standalone migration inventory, and updated [TODO.md](TODO.md), `TASKS_PLAN.md`, and `NOTES_PLAN.md` with completed migration status plus remaining v2-native cleanup work.
 - **Runtime + tests**: Added v2 runtime read/write support for migrated task, notebook, check-in, message-template, and delivery files, with focused tests in [`test_user_data_v2_migration.py`](../tests/unit/test_user_data_v2_migration.py); targeted v2/task/notebook/message/check-in pytest runs pass.
 - **Local migration**: Migrated four local user directories after clean dry-runs, moved migration backups under `data/backups`, removed replaced v1 task split files, made persisted migration reports opt-in, migrated default-message resources to v2, and validated all written v2 documents.
@@ -140,9 +148,6 @@ Guidelines:
 - **Portability (Section 7.6)**: [`test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py) asserts owned [`pyrightconfig.json`](../development_tools/config/pyrightconfig.json) matches root [`pyproject.toml`](../pyproject.toml) `[tool.pyright]` for shared keys (venvPath differs by design).
 - **pip-audit**: [`analyze_pip_audit.py`](../development_tools/static_checks/analyze_pip_audit.py) honors **`MHM_PIP_AUDIT_SKIP`** (offline/CI); [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 10 + [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) Section 10; [`config.py`](../development_tools/config/config.py) comment.
 - **Inventory (Section 5.6)**: [`test_deprecation_inventory_policy.py`](../tests/development_tools/test_deprecation_inventory_policy.py) validates active `root_ruff_compat_mirror` row; extra unit tests for pip-audit skip, [`run_test_coverage`](../development_tools/tests/run_test_coverage.py) path helper, [`flaky_detector`](../development_tools/tests/flaky_detector.py).
-
-### 2026-04-10 - V5 Section 7.19 `development_docs` report gating **COMPLETED**
-- **Dev-tools-only full audits** no longer schedule `generate_unused_imports_report`, `generate_test_coverage_report`, or `generate_legacy_reference_report`, so [`UNUSED_IMPORTS_REPORT.md`](../development_docs/UNUSED_IMPORTS_REPORT.md), [`TEST_COVERAGE_REPORT.md`](../development_docs/TEST_COVERAGE_REPORT.md), and [`LEGACY_REFERENCE_REPORT.md`](../development_docs/LEGACY_REFERENCE_REPORT.md) are not overwritten; analyzers `analyze_unused_imports` and `analyze_legacy_references` still run. INFO logs per skip; [`audit_tiers.py`](../development_tools/shared/audit_tiers.py) + [`audit_orchestration.py`](../development_tools/shared/service/audit_orchestration.py) expected-tool lists updated; tests in [`test_audit_orchestration_helpers.py`](../tests/development_tools/test_audit_orchestration_helpers.py). Plan: [Section 7.19](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

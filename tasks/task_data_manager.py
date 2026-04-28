@@ -58,8 +58,10 @@ def create_task(
         return None
     if due_date and parse_date_only(due_date) is None:
         logger.warning(
-            f"Invalid due_date format '{due_date}', expected YYYY-MM-DD. Task will be created but due_date may be invalid."
+            f"Invalid due_date format '{due_date}', expected YYYY-MM-DD. Task will be created without a due date."
         )
+        due_date = None
+        due_time = None
     if priority and not isinstance(priority, str):
         logger.error(f"Invalid priority type: {type(priority)}")
         return None

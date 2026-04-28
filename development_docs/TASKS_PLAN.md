@@ -64,7 +64,7 @@
   - [x] Do not keep old task fields in canonical v2 records unless explicitly temporary.
 
 **Consolidate active and completed task storage**
-- *Status*: **Persisted storage completed 2026-04-27**. Remaining work is removing temporary runtime adapters and tests that preserve v1 split-file behavior.
+- *Status*: **Persisted storage completed 2026-04-27**. Runtime saves now write canonical v2 task records directly for migrated users; remaining work is removing temporary split-file fallbacks after legacy verification is clean.
 - *What it means*: Move toward one canonical task collection instead of separate active/completed task files.
 - *Why it helps*: Completion is task state, not a separate storage type.
 - *Estimated effort*: Large
@@ -74,10 +74,10 @@
   - [x] Convert active and completed task records into one collection.
   - [x] Use `status` and `completion.completed` to distinguish active vs completed tasks.
   - [x] Stop writing new data to `active_tasks.json` and `completed_tasks.json` after migration.
-  - [ ] Mark old split-file readers as temporary compatibility or remove them after search-and-close.
+  - [x] Mark old split-file readers as temporary compatibility or remove them after search-and-close.
   - [x] Add a planned removal task for old active/completed task readers.
   - [x] Add tests proving new task reads do not require the old split files after migration.
-  - [ ] Replace task runtime APIs with v2-native task objects or explicitly document adapter boundaries.
+  - [x] Replace task runtime APIs with v2-native task objects or explicitly document adapter boundaries.
   - [ ] Run legacy `--find` / `--verify` for `active_tasks.json`, `completed_tasks.json`, `task_schedules.json`, `task_id`, and `completed` before removing fallback support.
 
 **Normalize task category, group, tags, and priority**
@@ -108,7 +108,7 @@
   - [ ] If dashed ID support is required temporarily, mark it as temporary compatibility with planned removal.
 
 **Update task tests for v2 data**
-- *Status*: **Partially complete 2026-04-27**. Migration and runtime-adapter tests exist; older task behavior tests still need review before v1 split-file support can be removed.
+- *Status*: **Partially complete 2026-04-27**. Migration and v2-native runtime tests exist; older task behavior tests still need review before v1 split-file support can be removed.
 - *What it means*: Update task tests to use and validate the v2 task structure.
 - *Why it helps*: Makes the new structure the tested source of truth.
 - *Estimated effort*: Medium
@@ -130,11 +130,11 @@
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
 - *Subtasks*:
-  - [ ] Add `LEGACY COMPATIBILITY` markers/logging to any v1 task fallback retained short-term, or remove the fallback outright.
+  - [x] Add `LEGACY COMPATIBILITY` markers/logging to any v1 task fallback retained short-term, or remove the fallback outright.
   - [ ] Update `development_tools/config/jsons/DEPRECATION_INVENTORY.json` search terms as code paths are removed.
-  - [ ] Update task command/UI/analytics tests to assert v2-native behavior where practical.
+  - [x] Update task command/UI/analytics tests to assert v2-native behavior where practical.
   - [ ] Remove v1 split-file fallback reads after legacy verification reports no active production dependency.
-  - [ ] Confirm `ensure_task_directory()` never recreates v1 split files for migrated users.
+  - [x] Confirm `ensure_task_directory()` never recreates v1 split files for migrated users.
 
 ### **2025-08-25 - Comprehensive Task System Improvements** [IN PROGRESS]
 

@@ -93,14 +93,15 @@ class TestTaskErrorHandling:
             user_id, test_data_dir=test_data_dir
         ), "Failed to create test user"
 
-        # Invalid date format should still create task (date validation happens elsewhere)
+        # Invalid date format should still create task, but v2 storage drops invalid due dates.
         task_id = create_task(
             user_id=user_id, title="Test Task", due_date="invalid-date"
         )
         assert task_id is not None, "Task should be created even with invalid date"
 
         task = get_task_by_id(user_id, task_id)
-        assert task["due_date"] == "invalid-date", "Invalid date should be stored as-is"
+        assert task is not None, "Task should remain retrievable"
+        assert task["due_date"] is None, "Invalid date should not be stored"
 
     @pytest.mark.behavior
     @pytest.mark.tasks

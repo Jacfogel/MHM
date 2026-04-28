@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-27 02:29:11
+> **Last Generated**: 2026-04-27 03:57:45
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -319,8 +319,6 @@ C:.
     (log files)
 |   |   +---scopes
 |   |   |   +---dev_tools
-|   |   |   |   |   analysis_detailed_results.json
-|   |   |   |   |   
 |   |   |   |   \---jsons
     (JSON files created by development tools)
 |   |   |   \---full

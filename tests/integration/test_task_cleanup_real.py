@@ -33,7 +33,7 @@ class TestTaskCleanupReal:
     @pytest.mark.file_io
     def test_complete_task_verifies_actual_system_changes(self, test_data_dir):
         """
-        Test: Completing a task moves it to completed_tasks.json and removes from active_tasks.json.
+        Test: Completing a task moves status in canonical tasks.json storage.
         
         Verifies actual system changes per testing guidelines.
         """
@@ -84,13 +84,16 @@ class TestTaskCleanupReal:
         # Verify file persistence - reload from disk
         from core.config import get_user_data_dir
         user_dir = Path(get_user_data_dir(user_id))
-        completed_file = user_dir / 'tasks' / 'completed_tasks.json'
-        assert completed_file.exists(), "completed_tasks.json should exist"
-        
-        with open(completed_file) as f:
+        task_file = user_dir / "tasks" / "tasks.json"
+        assert task_file.exists(), "tasks.json should exist"
+        assert not (user_dir / "tasks" / "completed_tasks.json").exists()
+
+        with open(task_file) as f:
             file_data = json.load(f)
-            assert any(t['task_id'] == task_id for t in file_data.get('completed_tasks', [])), \
-                "Task should persist in completed_tasks.json file"
+            assert any(
+                t.get("id") == task_id and t.get("status") == "completed"
+                for t in file_data.get("tasks", [])
+            ), "Task should persist in tasks.json as completed"
     
     @pytest.mark.integration
     @pytest.mark.tasks
@@ -98,7 +101,7 @@ class TestTaskCleanupReal:
     @pytest.mark.file_io
     def test_delete_task_verifies_actual_removal(self, test_data_dir):
         """
-        Test: Deleting a task removes it from active_tasks.json and file system.
+        Test: Deleting a task removes it from canonical tasks.json storage.
         
         Verifies actual system changes per testing guidelines.
         """
@@ -146,12 +149,15 @@ class TestTaskCleanupReal:
         # Verify file persistence - reload from disk
         from core.config import get_user_data_dir
         user_dir = Path(get_user_data_dir(user_id))
-        active_file = user_dir / 'tasks' / 'active_tasks.json'
-        
-        with open(active_file) as f:
+        task_file = user_dir / "tasks" / "tasks.json"
+        assert task_file.exists(), "tasks.json should exist"
+        assert not (user_dir / "tasks" / "active_tasks.json").exists()
+
+        with open(task_file) as f:
             file_data = json.load(f)
-            assert not any(t['task_id'] == task_id for t in file_data.get('tasks', [])), \
-                "Task should not persist in active_tasks.json file"
+            assert not any(
+                t.get("id") == task_id for t in file_data.get("tasks", [])
+            ), "Task should not persist in tasks.json"
     
     @pytest.mark.integration
     @pytest.mark.tasks
@@ -211,11 +217,15 @@ class TestTaskCleanupReal:
         # Verify file persistence - reload from disk
         from core.config import get_user_data_dir
         user_dir = Path(get_user_data_dir(user_id))
-        active_file = user_dir / 'tasks' / 'active_tasks.json'
-        
-        with open(active_file) as f:
+        task_file = user_dir / "tasks" / "tasks.json"
+        assert task_file.exists(), "tasks.json should exist"
+
+        with open(task_file) as f:
             file_data = json.load(f)
-            file_task = next((t for t in file_data.get('tasks', []) if t['task_id'] == task_id), None)
+            file_task = next(
+                (t for t in file_data.get("tasks", []) if t.get("id") == task_id),
+                None,
+            )
             assert file_task is not None, "Task should exist in file"
             assert file_task['title'] == 'Updated Title', "Title should persist in file"
             assert file_task['priority'] == 'high', "Priority should persist in file"

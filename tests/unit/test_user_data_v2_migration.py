@@ -3,14 +3,14 @@ from pathlib import Path
 
 import pytest
 
-from core.user_data_v2 import (
+from core.user_data_v2 import validate_v2_document
+from scripts.user_data_migration import (
     migrate_checkins,
     migrate_message_templates,
     migrate_notebook_entries,
     migrate_sent_messages,
     migrate_task_collections,
     migrate_user_data_root,
-    validate_v2_document,
 )
 from core.message_management import get_recent_messages, load_user_messages, store_sent_message
 from core.response_tracking import get_recent_checkins, store_user_response
@@ -494,6 +494,9 @@ def test_runtime_task_handlers_accept_and_write_v2_task_file(tmp_path, monkeypat
     active = load_active_tasks("user-1")
     completed = load_completed_tasks("user-1")
 
+    assert active[0]["id"] == "task-active"
+    assert active[0]["short_id"] == "tactive"
+    assert active[0]["status"] == "active"
     assert active[0]["task_id"] == "task-active"
     assert active[0]["completed"] is False
     assert completed[0]["task_id"] == "task-completed"
@@ -514,6 +517,9 @@ def test_runtime_task_handlers_accept_and_write_v2_task_file(tmp_path, monkeypat
     data = json.loads((tasks_dir / "tasks.json").read_text(encoding="utf-8"))
     assert [task["id"] for task in data["tasks"]] == ["task-new", "task-completed"]
     assert data["tasks"][0]["status"] == "active"
+    assert "task_id" not in data["tasks"][0]
+    assert not (tasks_dir / "active_tasks.json").exists()
+    assert not (tasks_dir / "completed_tasks.json").exists()
 
 
 @pytest.mark.unit
@@ -560,6 +566,8 @@ def test_runtime_notebook_handlers_accept_and_write_v2_entries(tmp_path, monkeyp
 
     entries = load_entries("user-1")
     assert entries[0].kind == "journal"
+    assert entries[0].description == "Today was okay."
+    assert entries[0].status == "active"
     assert entries[0].body == "Today was okay."
 
     save_entries("user-1", entries)

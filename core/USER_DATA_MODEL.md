@@ -115,7 +115,7 @@ Canonical v2 files:
 - `messages/<category>.json`: versioned message template collection with `messages[]`, `text`, `active`, and nested `schedule`.
 - `messages/sent_messages.json`: versioned delivery collection with `deliveries[]`, distinct from reusable templates.
 
-The one-time migration entry point is `scripts/migrate_user_data_v2.py`. This script is intentionally untracked with the rest of `scripts/`. Use dry-run mode first, then `--write` only after reviewing the generated report. Write mode stores migration backups under the configured backups directory (`data/backups` by default), removes v1 task split files replaced by `tasks/tasks.json`, and only persists a migration report when `--save-report` is provided.
+The one-time migration implementation entry point is `scripts.user_data_migration.migrate_user_data_root`; the local operator CLI remains `scripts/migrate_user_data_v2.py`. Use dry-run mode first, then `--write` only after reviewing the generated report. Write mode stores migration backups under the configured backups directory (`data/backups` by default), removes v1 task split files replaced by `tasks/tasks.json`, and only persists a migration report when `--save-report` is provided.
 
 ### 2.6. V2 migration field mapping
 
@@ -159,7 +159,7 @@ Files outside this migration slice (`account.json`, `preferences.json`, `schedul
 
 ### 2.7. Transitional compatibility status
 
-Persisted local user data and default message resources have been migrated to v2, but some runtime paths still adapt between old internal shapes and v2 files. These paths are temporary v2-adoption work, not new long-term data contracts. Track and retire them through [TODO.md](TODO.md), [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), and `development_tools/config/jsons/DEPRECATION_INVENTORY.json` using the legacy cleanup process in `ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md`.
+Persisted local user data and default message resources have been migrated to v2. Task and notebook handlers now write v2 payloads directly for migrated/new files, but some runtime paths still adapt between old internal shapes and v2 files. These paths are temporary v2-adoption work, not new long-term data contracts. Track and retire them through [TODO.md](TODO.md), [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), and `development_tools/config/jsons/DEPRECATION_INVENTORY.json` using the legacy cleanup process in `ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md`.
 
 ---
 

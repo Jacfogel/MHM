@@ -63,12 +63,8 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
 - *Estimated effort*: Large
 - *Created*: 2026-04-27
 - *Subtasks*:
-  - [ ] Add clear `LEGACY COMPATIBILITY` markers and usage logging to any remaining v1 fallback code that must stay temporarily, or remove the fallback immediately if no longer needed.
-  - [ ] Keep `development_tools/config/jsons/DEPRECATION_INVENTORY.json` updated with v1 user-data bridge search terms and exit criteria.
-  - [ ] Run `python development_tools/run_development_tools.py legacy` and targeted `--find`/`--verify` checks for old field/file names before removing adapters.
   - [ ] Triage the initial `--find "active_tasks.json"` result from 2026-04-27, which still shows active task code and tests referencing the v1 split-file path.
   - [ ] Remove or rewrite tests that exist only to preserve old v1 shapes after v2-native behavior is covered.
-  - [ ] Add/keep tests proving temporary compatibility paths are not used after migrated v2 files are present.
   - [ ] Confirm active code/config no longer depends on v1 task split files, old notebook `body`, old message `message`, or old sent-message `messages[]` structures.
 
 **Unmix `core/user_data_v2.py` into migration tooling and real runtime modules**
@@ -77,14 +73,10 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
 - *Subtasks*:
-  - [ ] Inventory everything in `core/user_data_v2.py` as either runtime schema/validation, runtime adapter support, or one-time migration/report/backup logic.
-  - [ ] Move or retire one-time migration-only functions with `scripts/` ownership, including user-root write migration, report generation, backup orchestration, obsolete-field report helpers, and v1 cleanup helpers.
   - [ ] Explore moving task v2 schemas/validators into `tasks/task_schemas.py` and `tasks/task_validation.py`.
   - [ ] Explore moving notebook/list/journal v2 schemas/validators into `notebook/notebook_schemas.py` and `notebook/notebook_validation.py`.
   - [ ] Explore moving shared v2 item/source/timestamp validation into `core/schemas.py`, `core/user_data_validation.py`, or another existing core validation home.
   - [ ] Decide where message template, message delivery, and check-in v2 schemas belong before moving them.
-  - [ ] Update imports in runtime code and tests after any split so no production code imports migration-only helpers.
-  - [ ] Add compatibility/deprecation tracking if any temporary import shims are needed during the split.
   - [ ] Keep `scripts/migrate_user_data_v2.py` as the untracked CLI entry point unless a tracked admin tool is intentionally designed later.
 
 **Make task runtime v2-native**
@@ -93,9 +85,7 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
 - *Subtasks*:
-  - [ ] Update task managers/handlers to prefer `id`, `short_id`, `status`, `due`, `reminders`, `recurrence`, and `completion`.
   - [ ] Remove fallback reads of `active_tasks.json`, `completed_tasks.json`, and `task_schedules.json` after legacy verification is clean.
-  - [ ] Confirm migrated users do not recreate v1 task split files during normal task operations.
   - [ ] Update task fixtures to v2 shapes.
 
 **Make notebook runtime v2-native**
@@ -104,7 +94,6 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
 - *Subtasks*:
-  - [ ] Update notebook schemas/data managers/handlers to use v2 fields directly where practical.
   - [ ] Remove fallback support for old `body`, `archived`, and `kind: journal` shapes after legacy verification is clean.
   - [ ] Update notebook fixtures to v2 shapes.
 

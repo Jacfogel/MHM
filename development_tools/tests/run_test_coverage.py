@@ -1715,6 +1715,37 @@ class CoverageMetricsRegenerator:
                     )
                     coverage_collected = bool(overall_coverage.get("overall_coverage"))
 
+            # Parallel xdist: the captured log often omits the term-missing table (needs a
+            # "Name" header for parse_coverage_output) when pytest exits non-zero under
+            # --maxfail, even though pytest-cov wrote data files. Without this, we log
+            # ERROR "Coverage analysis failed" before combine — misleading vs test failures.
+            # Artifact may be per-worker `.coverage_parallel.*` shards and/or a non-empty
+            # base `.coverage_parallel` (combine logs "parallel source: .coverage_parallel").
+            if self.parallel and pytest_ran and not coverage_collected:
+                cov_parent = self.coverage_data_file.parent
+                shard_info = self._discover_parallel_coverage_artifacts(cov_parent)
+
+                def _nonempty(path: Path) -> bool:
+                    try:
+                        return path.is_file() and path.stat().st_size > 0
+                    except OSError:
+                        return False
+
+                parallel_main = cov_parent / ".coverage_parallel"
+                root_parallel_main = self.project_root / ".coverage_parallel"
+                if (
+                    shard_info["parallel_shards"]
+                    or shard_info["project_root_shards"]
+                    or _nonempty(parallel_main)
+                    or _nonempty(root_parallel_main)
+                ):
+                    coverage_collected = True
+                    if logger:
+                        logger.debug(
+                            "Parallel coverage data files present without parsable term-missing "
+                            "table in log; classifying as coverage collected for failure reporting"
+                        )
+
             # Test-file-based caching: merge cached coverage with fresh coverage
             # Fresh coverage is from test files that were re-run (covering changed domains)
             # Cached coverage is from test files that didn't need to run

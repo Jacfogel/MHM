@@ -9,7 +9,7 @@ from pathlib import Path
 import json
 import uuid
 from datetime import datetime, timezone, timedelta
-from typing import Any
+from typing import Any, cast
 from core.logger import get_component_logger
 from core.config import DEFAULT_MESSAGES_DIR_PATH, get_user_data_dir
 from core.file_operations import load_json_data, save_json_data, determine_file_path
@@ -20,7 +20,7 @@ from core.time_utilities import (
     now_timestamp_full,
     parse_timestamp_full,
 )
-from core.user_data_v2 import SCHEMA_VERSION, migrate_message_templates
+from core.user_data_v2 import SCHEMA_VERSION, MessageTemplateV2Model, generate_short_id
 import contextlib
 import importlib
 
@@ -56,6 +56,43 @@ def _delivery_to_runtime_message(delivery: dict[str, Any]) -> dict[str, Any]:
         "delivery_status": delivery.get("status") or delivery.get("delivery_status", ""),
         "time_period": delivery.get("time_period"),
     }
+
+
+@handle_errors("converting default message template to v2", default_return={})
+def _message_template_default_to_v2(message: dict[str, Any], category: str) -> dict[str, Any]:
+    """Build a canonical v2 message template from default/runtime message data."""
+    message_id = str(message.get("id") or message.get("message_id") or uuid.uuid4())
+    created_at = _canonical_message_timestamp(message.get("created_at") or message.get("timestamp")) or now_timestamp_full()
+    schedule_raw = message.get("schedule")
+    schedule: dict[str, Any] = cast(dict[str, Any], schedule_raw) if isinstance(schedule_raw, dict) else {}
+    # LEGACY COMPATIBILITY: Default resources are v2, but tolerate older local
+    # message defaults until those files are verified clean and the fallback is removed.
+    template = {
+        "id": message_id,
+        "kind": "message",
+        "text": str(message.get("text") or message.get("message") or ""),
+        "category": str(message.get("category") or category),
+        "active": bool(message.get("active", True)),
+        "schedule": {
+            "days": schedule.get("days") or message.get("days") or ["ALL"],
+            "periods": schedule.get("periods") or message.get("time_periods") or ["ALL"],
+        },
+        "created_at": created_at,
+        "updated_at": _canonical_message_timestamp(message.get("updated_at") or created_at) or created_at,
+        "archived_at": message.get("archived_at"),
+        "deleted_at": message.get("deleted_at"),
+        "metadata": dict(message.get("metadata") or {}),
+    }
+    template["metadata"].setdefault("short_id", message.get("short_id") or generate_short_id(message_id, "message"))
+    return MessageTemplateV2Model.model_validate(template).model_dump(mode="json")
+
+
+@handle_errors("normalizing canonical message timestamp", default_return=None)
+def _canonical_message_timestamp(value: Any) -> str | None:
+    """Return a valid full timestamp string or current time when invalid."""
+    if isinstance(value, str) and parse_timestamp_full(value) is not None:
+        return value
+    return now_timestamp_full()
 
 
 @handle_errors("getting message categories", default_return=[])
@@ -834,7 +871,15 @@ def create_message_file_from_defaults(user_id: str, category: str) -> bool:
         # Ensure the messages directory exists
         user_messages_dir.mkdir(parents=True, exist_ok=True)
         category_message_file = user_messages_dir / f"{category}.json"
-        message_data, _report = migrate_message_templates({"messages": formatted_messages}, category)
+        message_data = {
+            "schema_version": SCHEMA_VERSION,
+            "category": category,
+            "updated_at": now_timestamp_full(),
+            "messages": [
+                _message_template_default_to_v2(message, category)
+                for message in formatted_messages
+            ],
+        }
         # Convert Path to string for save_json_data
         success = save_json_data(message_data, str(category_message_file))
         if not success:

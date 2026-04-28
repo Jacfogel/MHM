@@ -45,24 +45,57 @@ class Entry(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     id: UUID = Field(default_factory=uuid4)
+    short_id: str | None = None
     kind: EntryKind
     title: str | None = None
+    description: str | None = None
     body: str | None = None
+    category: str = ""
+    status: Literal["active", "archived", "deleted"] = "active"
     items: list[ListItem] | None = None
     tags: list[str] = Field(default_factory=list)
     group: str | None = None
     pinned: bool = False
     archived: bool = False
+    submitted_at: str | None = None
+    source: dict | None = None
+    linked_item_ids: list[str] = Field(default_factory=list)
     created_at: str = Field(default_factory=now_timestamp_full)
     updated_at: str = Field(default_factory=now_timestamp_full)
+    archived_at: str | None = None
+    deleted_at: str | None = None
+    metadata: dict = Field(default_factory=dict)
 
-    @field_validator("title", "body", "group", mode="before")
+    @field_validator("title", "description", "body", "group", mode="before")
     @classmethod
     def strip_optional_strings(cls, v: str | None) -> str | None:
         if v is not None:
             stripped_v = v.strip()
             return stripped_v if stripped_v else None
         return v
+
+    @field_validator("category", mode="before")
+    @classmethod
+    def strip_category(cls, v: str | None) -> str:
+        if v is None:
+            return ""
+        return v.strip()
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_v2_aliases(cls, data):
+        if not isinstance(data, dict):
+            return data
+        normalized = dict(data)
+        if normalized.get("body") is None and normalized.get("description") is not None:
+            normalized["body"] = normalized.get("description")
+        if normalized.get("description") is None and normalized.get("body") is not None:
+            normalized["description"] = normalized.get("body")
+        if "status" not in normalized:
+            normalized["status"] = "archived" if normalized.get("archived") else "active"
+        if "archived" not in normalized:
+            normalized["archived"] = normalized.get("status") == "archived"
+        return normalized
 
     @field_validator("tags", mode="before")
     @classmethod

@@ -84,21 +84,20 @@ class TestTaskManagementCoverageExpansion:
         assert task_dir.exists()
         assert task_dir.is_dir()
 
-        # Verify all required files were created
-        required_files = [
-            "active_tasks.json",
-            "completed_tasks.json",
-            "task_schedules.json",
-        ]
-        for filename in required_files:
-            file_path = task_dir / filename
-            assert file_path.exists()
-            assert file_path.is_file()
+        # Verify v2 task storage was created
+        task_file = task_dir / "tasks.json"
+        assert task_file.exists()
+        assert task_file.is_file()
 
-            # Verify files contain valid JSON
-            with open(file_path) as f:
-                data = json.load(f)
-                assert isinstance(data, dict)
+        with open(task_file) as f:
+            data = json.load(f)
+            assert isinstance(data, dict)
+            assert data["tasks"] == []
+
+        # Fresh v2 directories should not create v1 split files.
+        assert not (task_dir / "active_tasks.json").exists()
+        assert not (task_dir / "completed_tasks.json").exists()
+        assert not (task_dir / "task_schedules.json").exists()
 
     def test_ensure_task_directory_with_empty_user_id_real_behavior(
         self, mock_user_data_dir
@@ -210,14 +209,16 @@ class TestTaskManagementCoverageExpansion:
 
         assert result is True
 
-        # Verify file was created and contains correct data
+        # Verify v2 file was created and contains active tasks
         task_dir = Path(mock_user_data_dir) / "tasks"
-        active_file = task_dir / "active_tasks.json"
-        assert active_file.exists()
+        task_file = task_dir / "tasks.json"
+        assert task_file.exists()
 
-        with open(active_file) as f:
+        with open(task_file) as f:
             data = json.load(f)
-            assert data["tasks"] == test_tasks
+            assert [task["title"] for task in data["tasks"]] == ["Task 1", "Task 2"]
+            assert all(task["status"] == "active" for task in data["tasks"])
+        assert not (task_dir / "active_tasks.json").exists()
 
     def test_save_active_tasks_with_empty_user_id_real_behavior(
         self, mock_user_data_dir
@@ -261,14 +262,19 @@ class TestTaskManagementCoverageExpansion:
 
         assert result is True
 
-        # Verify file was created and contains correct data
+        # Verify v2 file was created and contains completed tasks
         task_dir = Path(mock_user_data_dir) / "tasks"
-        completed_file = task_dir / "completed_tasks.json"
-        assert completed_file.exists()
+        task_file = task_dir / "tasks.json"
+        assert task_file.exists()
 
-        with open(completed_file) as f:
+        with open(task_file) as f:
             data = json.load(f)
-            assert data["completed_tasks"] == test_tasks
+            assert [task["title"] for task in data["tasks"]] == [
+                "Completed Task 1",
+                "Completed Task 2",
+            ]
+            assert all(task["status"] == "completed" for task in data["tasks"])
+        assert not (task_dir / "completed_tasks.json").exists()
 
     # ============================================================================
     # Task CRUD Operations Tests
@@ -478,7 +484,7 @@ class TestTaskManagementCoverageExpansion:
         # Verify priority was updated (case-insensitive)
         tasks = load_active_tasks(user_id)
         task = tasks[0]
-        assert task["priority"] == "HIGH"  # Stored as provided
+        assert task["priority"] == "high"
 
     def test_update_task_invalid_due_date_format_real_behavior(
         self, mock_user_data_dir, user_id

@@ -42,6 +42,14 @@ def _save_updated_entry(user_id: str, entry: Entry, all_entries: list[Entry]) ->
     return entry
 
 
+def _is_entry_active(entry: Entry) -> bool:
+    return entry.status == "active" and not entry.archived
+
+
+def _is_entry_archived(entry: Entry) -> bool:
+    return entry.status == "archived" or entry.archived
+
+
 # Helper to find an entry by various references
 @handle_errors("finding entry by reference", default_return=None)
 def _find_entry_by_ref(entries: list[Entry], ref: str) -> Entry | None:
@@ -244,9 +252,8 @@ def list_recent(
     """Lists the N most recently updated entries."""
     entries = load_entries(user_id)
 
-    # Filter archived if needed
     if not include_archived:
-        entries = [e for e in entries if not e.archived]
+        entries = [e for e in entries if _is_entry_active(e)]
 
     # Sort by updated_at descending (parse timestamp strings for comparison)
     entries.sort(
@@ -398,6 +405,8 @@ def archive_entry(user_id: str, ref: str, archived: bool = True) -> Entry | None
         return None
 
     entry.archived = archived
+    entry.status = "archived" if archived else "active"
+    entry.archived_at = now_timestamp_full() if archived else None
     return _save_updated_entry(user_id, entry, entries)
 
 
@@ -440,8 +449,7 @@ def search_entries(user_id: str, query: str, limit: int = 100) -> list[Entry]:
 
     matching_entries: list[Entry] = []
     for entry in entries:
-        # Skip archived entries from search
-        if entry.archived:
+        if not _is_entry_active(entry):
             continue
 
         # Check title
@@ -597,7 +605,7 @@ def list_by_group(user_id: str, group: str, limit: int = 100) -> list[Entry]:
 def list_pinned(user_id: str, limit: int = 100) -> list[Entry]:
     """Lists pinned entries (up to limit - pagination handled in handler)."""
     entries = load_entries(user_id)
-    pinned = [e for e in entries if e.pinned and not e.archived]
+    pinned = [e for e in entries if e.pinned and _is_entry_active(e)]
     pinned.sort(
         key=lambda e: (
             (parse_timestamp_full(e.updated_at) or datetime.min)
@@ -617,7 +625,7 @@ def list_inbox(user_id: str, days: int = 30, limit: int = 100) -> list[Entry]:
 
     inbox = []
     for e in entries:
-        if not e.archived and not e.tags:
+        if _is_entry_active(e) and not e.tags:
             # Parse timestamp string to compare
             try:
                 parsed_updated_at = parse_timestamp_full(e.updated_at)
@@ -649,7 +657,7 @@ def list_inbox(user_id: str, days: int = 30, limit: int = 100) -> list[Entry]:
 def list_archived(user_id: str, limit: int = 100) -> list[Entry]:
     """Lists archived entries - up to limit (pagination handled in handler)."""
     entries = load_entries(user_id)
-    archived = [e for e in entries if e.archived]
+    archived = [e for e in entries if _is_entry_archived(e)]
     archived.sort(
         key=lambda e: (
             (parse_timestamp_full(e.updated_at) or datetime.min)
