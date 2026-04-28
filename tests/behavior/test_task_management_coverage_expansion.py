@@ -157,13 +157,13 @@ class TestTaskManagementCoverageExpansion:
         task_dir.mkdir(parents=True, exist_ok=True)
 
         test_tasks = [
-            {"task_id": "1", "title": "Task 1", "completed": False},
-            {"task_id": "2", "title": "Task 2", "completed": False},
+            {"id": "1", "title": "Task 1", "status": "active"},
+            {"id": "2", "title": "Task 2", "status": "active"},
         ]
 
-        active_file = task_dir / "active_tasks.json"
-        with open(active_file, "w") as f:
-            json.dump({"tasks": test_tasks}, f)
+        task_file = task_dir / "tasks.json"
+        with open(task_file, "w") as f:
+            json.dump({"schema_version": 2, "tasks": test_tasks}, f)
 
         # Load tasks
         tasks = load_active_tasks(user_id)
@@ -171,7 +171,7 @@ class TestTaskManagementCoverageExpansion:
         assert len(tasks) == 2
         assert tasks[0]["title"] == "Task 1"
         assert tasks[1]["title"] == "Task 2"
-        assert all(not task["completed"] for task in tasks)
+        assert all(task["status"] == "active" for task in tasks)
 
     def test_load_active_tasks_empty_file_real_behavior(
         self, mock_user_data_dir, user_id
@@ -235,13 +235,13 @@ class TestTaskManagementCoverageExpansion:
         task_dir.mkdir(parents=True, exist_ok=True)
 
         test_tasks = [
-            {"task_id": "1", "title": "Completed Task 1", "completed": True},
-            {"task_id": "2", "title": "Completed Task 2", "completed": True},
+            {"id": "1", "title": "Completed Task 1", "status": "completed"},
+            {"id": "2", "title": "Completed Task 2", "status": "completed"},
         ]
 
-        completed_file = task_dir / "completed_tasks.json"
-        with open(completed_file, "w") as f:
-            json.dump({"completed_tasks": test_tasks}, f)
+        task_file = task_dir / "tasks.json"
+        with open(task_file, "w") as f:
+            json.dump({"schema_version": 2, "tasks": test_tasks}, f)
 
         # Load tasks
         tasks = load_completed_tasks(user_id)
@@ -249,7 +249,7 @@ class TestTaskManagementCoverageExpansion:
         assert len(tasks) == 2
         assert tasks[0]["title"] == "Completed Task 1"
         assert tasks[1]["title"] == "Completed Task 2"
-        assert all(task["completed"] for task in tasks)
+        assert all(task["status"] == "completed" for task in tasks)
 
     def test_save_completed_tasks_real_behavior(self, mock_user_data_dir, user_id):
         """Test saving completed tasks with real file operations."""

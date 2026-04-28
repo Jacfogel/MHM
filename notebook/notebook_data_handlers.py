@@ -84,13 +84,7 @@ def load_entries(user_id: str) -> list[Entry]:
         return []
 
     entries_data = raw_data.get("entries", [])
-    if raw_data.get("schema_version") == V2_SCHEMA_VERSION:
-        entries_data = [_entry_v2_to_runtime(entry) for entry in entries_data if isinstance(entry, dict)]
-    else:
-        # LEGACY COMPATIBILITY: Temporary v1 notebook file read until all user dirs are v2.
-        logger.warning(
-            f"Using legacy notebook entries fallback for user {user_id}; migrate to notebook/entries.json schema v2."
-        )
+    entries_data = [_entry_v2_to_runtime(entry) for entry in entries_data if isinstance(entry, dict)]
     loaded_entries: list[Entry] = []
     for entry_data in entries_data:
         try:
@@ -139,12 +133,10 @@ def save_entries(user_id: str, entries: list[Entry]) -> None:
 
 
 def _entry_v2_to_runtime(entry: dict) -> dict:
-    kind = entry.get("kind")
-    runtime_kind = "journal" if kind == "journal_entry" else kind
     runtime = {
         "id": entry.get("id"),
         "short_id": entry.get("short_id"),
-        "kind": runtime_kind,
+        "kind": entry.get("kind"),
         "title": entry.get("title") or None,
         "description": entry.get("description") or None,
         "body": entry.get("description") or None,
@@ -163,7 +155,7 @@ def _entry_v2_to_runtime(entry: dict) -> dict:
         "deleted_at": entry.get("deleted_at"),
         "metadata": entry.get("metadata") or {},
     }
-    if runtime_kind == "list":
+    if runtime.get("kind") == "list":
         runtime["items"] = entry.get("items")
         runtime["body"] = None
     return runtime
@@ -171,7 +163,7 @@ def _entry_v2_to_runtime(entry: dict) -> dict:
 
 def _entry_runtime_to_v2(entry: dict) -> dict:
     entry_id = str(entry.get("id") or "")
-    kind = "journal_entry" if entry.get("kind") == "journal" else entry.get("kind")
+    kind = entry.get("kind")
     created_at = entry.get("created_at") or now_timestamp_full()
     updated_at = entry.get("updated_at") or created_at
     status = entry.get("status") or ("archived" if entry.get("archived") else "active")

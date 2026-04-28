@@ -588,6 +588,12 @@ class AnalyticsHandler(InteractionHandler):
         """Extract responses from current check-in records."""
         responses: dict[str, Any] = {}
 
+        stored_responses = checkin.get("responses")
+        if isinstance(stored_responses, dict):
+            for key, value in stored_responses.items():
+                if key in question_keys:
+                    responses[key] = value
+
         for key in question_keys:
             if key in checkin and key not in responses:
                 responses[key] = checkin[key]

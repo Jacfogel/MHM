@@ -144,8 +144,9 @@ class CheckinHandler(InteractionHandler):
                 timestamp = checkin.get("timestamp", "")
                 parsed_dt = parse_timestamp_full(timestamp) if timestamp else None
                 date = parsed_dt.date().isoformat() if parsed_dt else "Unknown date"
-            mood = checkin.get("mood", "No mood recorded")
-            energy = checkin.get("energy", "No energy recorded")
+            responses = checkin.get("responses") if isinstance(checkin.get("responses"), dict) else {}
+            mood = responses.get("mood", checkin.get("mood", "No mood recorded"))
+            energy = responses.get("energy", checkin.get("energy", "No energy recorded"))
 
             # Display mood and energy together if both are available
             if energy != "No energy recorded":

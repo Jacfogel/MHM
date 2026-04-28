@@ -86,12 +86,13 @@ class TestTaskManagement:
         task_dir = os.path.join(temp_dir, "tasks")
         os.makedirs(task_dir, exist_ok=True)
         test_tasks = {
+            "schema_version": 2,
             "tasks": [
-                {"task_id": "1", "title": "Test Task 1", "completed": False},
-                {"task_id": "2", "title": "Test Task 2", "completed": False},
-            ]
+                {"id": "1", "title": "Test Task 1", "status": "active"},
+                {"id": "2", "title": "Test Task 2", "status": "active"},
+            ],
         }
-        with open(os.path.join(task_dir, "active_tasks.json"), "w") as f:
+        with open(os.path.join(task_dir, "tasks.json"), "w") as f:
             json.dump(test_tasks, f)
 
         tasks = load_active_tasks(user_id)

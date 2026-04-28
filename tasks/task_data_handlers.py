@@ -16,12 +16,7 @@ from core.user_item_storage import (
     save_user_json_file,
 )
 
-from tasks.task_schemas import (
-    ACTIVE_TASKS_FILENAME,
-    COMPLETED_TASKS_FILENAME,
-    TASK_SCHEDULES_FILENAME,
-    TASKS_V2_FILENAME,
-)
+from tasks.task_schemas import TASKS_V2_FILENAME
 from core.time_utilities import now_timestamp_full, parse_timestamp_full
 from core.user_data_v2 import SCHEMA_VERSION, TaskV2Model, generate_short_id
 
@@ -29,10 +24,7 @@ logger = get_component_logger("tasks")
 
 TASKS_SUBDIR = "tasks"
 
-# Default structure for task files (used when creating or when load returns wrong type)
-ACTIVE_DEFAULT: dict = {"tasks": []}
-COMPLETED_DEFAULT: dict = {"completed_tasks": []}
-SCHEDULES_DEFAULT: dict = {"task_schedules": {}}
+# Default structure for task file (used when creating or when load returns wrong type)
 TASKS_V2_DEFAULT: dict = {"schema_version": SCHEMA_VERSION, "updated_at": "", "tasks": []}
 
 TASK_V2_FIELDS = {
@@ -75,7 +67,7 @@ def ensure_task_directory(user_id: str) -> bool:
     if path is None:
         return False
     path.mkdir(parents=True, exist_ok=True)
-    if (path / TASKS_V2_FILENAME).exists() or _has_legacy_task_files(path):
+    if (path / TASKS_V2_FILENAME).exists():
         return True
     path = ensure_user_subdir(user_id, TASKS_SUBDIR, init_files={TASKS_V2_FILENAME: TASKS_V2_DEFAULT})
     return path is not None
@@ -94,16 +86,7 @@ def load_active_tasks(user_id: str) -> list[dict[str, Any]]:
         return []
     ensure_task_directory(user_id)
     v2_tasks = _load_v2_tasks(user_id)
-    if v2_tasks is not None:
-        return [_task_v2_to_runtime(task) for task in v2_tasks if task.get("status") == "active"]
-    # LEGACY COMPATIBILITY: Temporary v1 split-file read for unmigrated user directories.
-    logger.warning(f"Using legacy active task file fallback for user {user_id}; migrate to tasks/tasks.json.")
-    data = load_user_json_file(
-        user_id, TASKS_SUBDIR, ACTIVE_TASKS_FILENAME, ACTIVE_DEFAULT
-    )
-    if isinstance(data, dict):
-        return data.get("tasks", [])
-    return []
+    return [_task_v2_to_runtime(task) for task in v2_tasks if task.get("status") == "active"]
 
 
 @handle_errors("saving active tasks", default_return=False)
@@ -114,13 +97,9 @@ def save_active_tasks(user_id: str, tasks: list[dict[str, Any]]) -> bool:
         return False
     ensure_task_directory(user_id)
     v2_tasks = _load_v2_tasks(user_id)
-    if v2_tasks is not None:
-        completed_tasks = [task for task in v2_tasks if task.get("status") == "completed"]
-        active_v2 = _runtime_tasks_to_v2(tasks, status="active")
-        return _save_v2_tasks(user_id, active_v2 + completed_tasks)
-    # LEGACY COMPATIBILITY: Temporary v1 split-file write for unmigrated user directories.
-    logger.warning(f"Using legacy active task file write fallback for user {user_id}; migrate to tasks/tasks.json.")
-    return save_user_json_file(user_id, TASKS_SUBDIR, ACTIVE_TASKS_FILENAME, {"tasks": tasks})
+    completed_tasks = [task for task in v2_tasks if task.get("status") == "completed"]
+    active_v2 = _runtime_tasks_to_v2(tasks, status="active")
+    return _save_v2_tasks(user_id, active_v2 + completed_tasks)
 
 
 @handle_errors("loading completed tasks", default_return=[])
@@ -136,16 +115,7 @@ def load_completed_tasks(user_id: str) -> list[dict[str, Any]]:
         return []
     ensure_task_directory(user_id)
     v2_tasks = _load_v2_tasks(user_id)
-    if v2_tasks is not None:
-        return [_task_v2_to_runtime(task) for task in v2_tasks if task.get("status") == "completed"]
-    # LEGACY COMPATIBILITY: Temporary v1 split-file read for unmigrated user directories.
-    logger.warning(f"Using legacy completed task file fallback for user {user_id}; migrate to tasks/tasks.json.")
-    data = load_user_json_file(
-        user_id, TASKS_SUBDIR, COMPLETED_TASKS_FILENAME, COMPLETED_DEFAULT
-    )
-    if isinstance(data, dict):
-        return data.get("completed_tasks", [])
-    return []
+    return [_task_v2_to_runtime(task) for task in v2_tasks if task.get("status") == "completed"]
 
 
 @handle_errors("saving completed tasks", default_return=False)
@@ -156,28 +126,26 @@ def save_completed_tasks(user_id: str, tasks: list[dict[str, Any]]) -> bool:
         return False
     ensure_task_directory(user_id)
     v2_tasks = _load_v2_tasks(user_id)
-    if v2_tasks is not None:
-        active_tasks = [task for task in v2_tasks if task.get("status") == "active"]
-        completed_v2 = _runtime_tasks_to_v2(tasks, status="completed")
-        return _save_v2_tasks(user_id, active_tasks + completed_v2)
-    # LEGACY COMPATIBILITY: Temporary v1 split-file write for unmigrated user directories.
-    logger.warning(f"Using legacy completed task file write fallback for user {user_id}; migrate to tasks/tasks.json.")
-    return save_user_json_file(
-        user_id, TASKS_SUBDIR, COMPLETED_TASKS_FILENAME, {"completed_tasks": tasks}
-    )
+    active_tasks = [task for task in v2_tasks if task.get("status") == "active"]
+    completed_v2 = _runtime_tasks_to_v2(tasks, status="completed")
+    return _save_v2_tasks(user_id, active_tasks + completed_v2)
 
 
-@handle_errors("loading v2 task file", default_return=None)
-def _load_v2_tasks(user_id: str) -> list[dict[str, Any]] | None:
+@handle_errors("loading v2 task file", default_return=[])
+def _load_v2_tasks(user_id: str) -> list[dict[str, Any]]:
     tasks_dir = get_user_subdir_path(user_id, TASKS_SUBDIR)
-    if tasks_dir is None or not (tasks_dir / TASKS_V2_FILENAME).exists():
-        return None
+    if tasks_dir is None:
+        return []
+    if not (tasks_dir / TASKS_V2_FILENAME).exists():
+        if not _save_v2_tasks(user_id, []):
+            return []
+        return []
     data = load_user_json_file(user_id, TASKS_SUBDIR, TASKS_V2_FILENAME, TASKS_V2_DEFAULT)
     if isinstance(data, dict) and data.get("schema_version") == SCHEMA_VERSION:
         tasks = data.get("tasks", [])
         if isinstance(tasks, list):
             return [task for task in tasks if isinstance(task, dict)]
-    return None
+    return []
 
 
 @handle_errors("saving v2 task file", default_return=False)
@@ -198,15 +166,6 @@ def _runtime_tasks_to_v2(tasks: list[dict[str, Any]], *, status: str) -> list[di
         if isinstance(task_v2, dict):
             converted.append(task_v2)
     return converted
-
-
-@handle_errors("detecting legacy task split files", default_return=False)
-def _has_legacy_task_files(tasks_dir) -> bool:
-    """Return whether legacy split task files still exist in a task directory."""
-    return any(
-        (tasks_dir / filename).exists()
-        for filename in (ACTIVE_TASKS_FILENAME, COMPLETED_TASKS_FILENAME, TASK_SCHEDULES_FILENAME)
-    )
 
 
 @handle_errors("converting runtime task to v2", default_return=None)

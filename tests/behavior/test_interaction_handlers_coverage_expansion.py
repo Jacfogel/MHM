@@ -851,29 +851,20 @@ class TestAnalyticsHandlerCoverage:
 
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
-        # Patch checkins data to have several fields
+        # Patch analytics implementation so this test focuses on handler filtering/output.
         from core import checkin_analytics as ca
 
-        monkeypatch.setattr(
-            ca,
-            "get_checkins_by_days",
-            lambda uid, days=30: [
-                {
-                    "timestamp": "2025-01-10 09:00:00",
-                    "mood": 4,
-                    "energy": 2,
-                    "stress": 3,
-                },
-                {
-                    "timestamp": "2025-01-11 09:00:00",
-                    "mood": 5,
-                    "energy": 4,
-                    "stress": 2,
-                },
-            ],
-        )
+        class _MockAnalytics:
+            def get_quantitative_summaries(self, uid, days=30, enabled_fields=None):
+                assert enabled_fields == ["mood", "energy"]
+                return {
+                    "mood": {"average": 4.5, "min": 4, "max": 5, "count": 2},
+                    "energy": {"average": 3.0, "min": 2, "max": 4, "count": 2},
+                }
 
-        # Enable only mood and energy using new questions format (patch core so handler's "from core import get_user_data" sees the mock)
+        monkeypatch.setattr(ca, "CheckinAnalytics", lambda: _MockAnalytics())
+
+        # Enable only mood and energy using new questions format.
         import core
 
         def _mock_get_user_data(uid, section):
@@ -884,7 +875,7 @@ class TestAnalyticsHandlerCoverage:
                             "questions": {
                                 "mood": {"enabled": True, "type": "scale_1_5"},
                                 "energy": {"enabled": True, "type": "scale_1_5"},
-                                "stress": {"enabled": False, "type": "scale_1_5"},
+                                "stress_level": {"enabled": False, "type": "scale_1_5"},
                             }
                         }
                     }

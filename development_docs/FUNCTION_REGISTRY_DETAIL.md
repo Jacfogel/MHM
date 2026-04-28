@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-27 03:57:35
+> **Last Generated**: 2026-04-28 02:59:58
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 94.0% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 94.2% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 125
-- **Functions Found**: 1735
-- **Methods Found**: 1242
+- **Functions Found**: 1743
+- **Methods Found**: 1243
 - **Classes Found**: 170
-- **Total Items**: 2977
-- **Functions Documented**: 1608
+- **Total Items**: 2986
+- **Functions Documented**: 1623
 - **Methods Documented**: 1189
 - **Classes Documented**: 122
-- **Total Documented**: 2797
+- **Total Documented**: 2812
 - **Template-Generated**: 4
-- **Last Updated**: 2026-04-27
+- **Last Updated**: 2026-04-28
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (624)
+### **Core System Functions** (628)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (455)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (33)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (35)
+### **Task Management Functions** (39)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -2674,6 +2674,7 @@ This class provides analytics and insights from check-in data.
 - [OK] `_get_wellness_recommendations(self, mood_score, energy_score, habit_score, sleep_score)` - Generate wellness recommendations based on component scores
 - [OK] `_is_answered_value(self, value)` - Return True if the value counts as answered.
 - [OK] `_is_question_asked(self, checkin, question_key)` - Check if a question was asked for a check-in.
+- [MISSING] `_response_value(self, checkin, key)` - No description
 - [OK] `convert_score_100_to_5(score_100)` - Convert a score from 0-100 scale to 1-5 scale for display.
 
 Args:
@@ -2733,6 +2734,7 @@ This class provides analytics and insights from check-in data.
   - [OK] `CheckinAnalytics._get_wellness_recommendations(self, mood_score, energy_score, habit_score, sleep_score)` - Generate wellness recommendations based on component scores
   - [OK] `CheckinAnalytics._is_answered_value(self, value)` - Return True if the value counts as answered.
   - [OK] `CheckinAnalytics._is_question_asked(self, checkin, question_key)` - Check if a question was asked for a check-in.
+  - [MISSING] `CheckinAnalytics._response_value(self, checkin, key)` - No description
   - [OK] `CheckinAnalytics.convert_score_100_to_5(score_100)` - Convert a score from 0-100 scale to 1-5 scale for display.
 
 Args:
@@ -3714,14 +3716,18 @@ Returns:
 
 #### `core/message_management.py`
 **Functions:**
-- [MISSING] `_canonical_message_timestamp(value)` - No description
-- [OK] `_delivery_to_runtime_message(delivery)` - Return the recent-message shape expected by existing duplicate filters.
-- [MISSING] `_message_template_default_to_v2(message, category)` - No description
-- [OK] `_message_template_to_runtime(message, category)` - Return the runtime shape expected by existing message selection code.
+- [OK] `_canonical_message_timestamp(value)` - Return a valid full timestamp string or current time when invalid.
+- [OK] `_delivery_to_runtime_message(delivery)` - Return canonical delivery shape with legacy aliases for compatibility.
+- [OK] `_ensure_v2_message_template_file(data, category)` - Normalize a message template file payload to canonical v2 wrapper shape.
+- [OK] `_message_template_default_to_v2(message, category)` - Build a canonical v2 message template from default/runtime message data.
+- [OK] `_message_template_to_runtime(message, category)` - Return canonical template shape with legacy aliases for compatibility.
 - [OK] `_normalize_message_timestamps(data, file_path)` - Normalize timestamps in persisted sent_messages data to the canonical TIMESTAMP_FULL shape.
 
 Returns:
     bool: True if any timestamps were rewritten.
+- [OK] `_normalize_message_update_payload(updated_data)` - Map legacy update fields onto canonical v2 message template fields.
+- [OK] `_normalize_runtime_message_file(data)` - Preserve canonical v2 template files and only apply runtime-schema validation
+to legacy message files.
 - [OK] `_parse_message_timestamp(timestamp_str)` - Parse timestamp string to datetime object.
 
 Args:
@@ -5219,13 +5225,12 @@ Returns:
 
 #### `tasks/task_data_handlers.py`
 **Functions:**
-- [MISSING] `_canonical_timestamp(value)` - No description
-- [MISSING] `_has_legacy_task_files(tasks_dir)` - No description
+- [OK] `_canonical_timestamp(value)` - Return a valid full timestamp string or a current-time fallback.
 - [MISSING] `_load_v2_tasks(user_id)` - No description
-- [MISSING] `_normalized_priority(value)` - No description
-- [MISSING] `_nullable_timestamp(value)` - No description
-- [MISSING] `_runtime_reminders_to_v2(task)` - No description
-- [MISSING] `_runtime_task_to_v2(task)` - No description
+- [OK] `_normalized_priority(value)` - Normalize task priority to a supported lower-case value.
+- [OK] `_nullable_timestamp(value)` - Return a valid full timestamp string, otherwise None.
+- [OK] `_runtime_reminders_to_v2(task)` - Convert runtime reminder fields into canonical v2 reminder records.
+- [OK] `_runtime_task_to_v2(task)` - Convert a runtime task dictionary to a validated canonical v2 task record.
 - [MISSING] `_runtime_tasks_to_v2(tasks)` - No description
 - [MISSING] `_save_v2_tasks(user_id, tasks)` - No description
 - [MISSING] `_task_v2_to_runtime(task)` - No description
@@ -5248,6 +5253,11 @@ Returns:
 **Functions:**
 - [OK] `_calculate_next_due_date(completion_date, recurrence_pattern, recurrence_interval, repeat_after_completion)` - Calculate the next due date for a recurring task.
 - [OK] `_create_next_recurring_task_instance(user_id, completed_task)` - Create the next instance of a recurring task when the current one is completed.
+- [OK] `_task_due_date(task)` - Return canonical due date, with temporary legacy fallback support.
+- [OK] `_task_due_time(task)` - Return canonical due time, with temporary legacy fallback support.
+- [OK] `_task_id(task)` - Return canonical task ID, tolerating legacy key for compatibility.
+- [OK] `_task_recurrence(task)` - Return recurrence data from canonical structure with legacy fallback.
+- [OK] `_task_reminder_periods(task)` - Return reminder periods from canonical reminders with legacy fallback.
 - [OK] `add_user_task_tag(user_id, tag)` - Add a new tag to the user's tag list (shared tag system).
 - [OK] `are_tasks_enabled(user_id)` - Check if task management is enabled for a user.
 - [OK] `cleanup_task_reminders(user_id, task_id)` - Clean up all reminders for a specific task.

@@ -63,9 +63,9 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
 - *Estimated effort*: Large
 - *Created*: 2026-04-27
 - *Subtasks*:
-  - [ ] Triage the initial `--find "active_tasks.json"` result from 2026-04-27, which still shows active task code and tests referencing the v1 split-file path.
-  - [ ] Remove or rewrite tests that exist only to preserve old v1 shapes after v2-native behavior is covered.
-  - [ ] Confirm active code/config no longer depends on v1 task split files, old notebook `body`, old message `message`, or old sent-message `messages[]` structures.
+  - [x] Triage the initial `--find "active_tasks.json"` result from 2026-04-27, which still shows active task code and tests referencing the v1 split-file path.
+  - [x] Remove or rewrite tests that exist only to preserve old v1 shapes after v2-native behavior is covered.
+  - [x] Confirm active code/config no longer depends on v1 task split files, old notebook `body`, old message `message`, or old sent-message `messages[]` structures.
 
 **Unmix `core/user_data_v2.py` into migration tooling and real runtime modules**
 - *What it means*: Split `core/user_data_v2.py` so one-time migration code moves out of core project modules, while lasting schemas/validation are integrated into the existing schema and validation module structure.
@@ -73,11 +73,11 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
 - *Subtasks*:
-  - [ ] Explore moving task v2 schemas/validators into `tasks/task_schemas.py` and `tasks/task_validation.py`.
-  - [ ] Explore moving notebook/list/journal v2 schemas/validators into `notebook/notebook_schemas.py` and `notebook/notebook_validation.py`.
-  - [ ] Explore moving shared v2 item/source/timestamp validation into `core/schemas.py`, `core/user_data_validation.py`, or another existing core validation home.
-  - [ ] Decide where message template, message delivery, and check-in v2 schemas belong before moving them.
-  - [ ] Keep `scripts/migrate_user_data_v2.py` as the untracked CLI entry point unless a tracked admin tool is intentionally designed later.
+  - [x] Explore moving task v2 schemas/validators into `tasks/task_schemas.py` and `tasks/task_validation.py`.
+  - [x] Explore moving notebook/list/journal v2 schemas/validators into `notebook/notebook_schemas.py` and `notebook/notebook_validation.py`.
+  - [x] Explore moving shared v2 item/source/timestamp validation into `core/schemas.py`, `core/user_data_validation.py`, or another existing core validation home.
+  - [x] Decide where message template, message delivery, and check-in v2 schemas belong before moving them.
+  - [x] Keep `scripts/migrate_user_data_v2.py` as the untracked CLI entry point unless a tracked admin tool is intentionally designed later.
 
 **Make task runtime v2-native**
 - *What it means*: Update task runtime code to operate on canonical v2 task fields instead of converting back to old task dictionaries.
@@ -85,8 +85,8 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
 - *Subtasks*:
-  - [ ] Remove fallback reads of `active_tasks.json`, `completed_tasks.json`, and `task_schedules.json` after legacy verification is clean.
-  - [ ] Update task fixtures to v2 shapes.
+  - [x] Remove fallback reads of `active_tasks.json`, `completed_tasks.json`, and `task_schedules.json` after legacy verification is clean.
+  - [x] Update task fixtures to v2 shapes.
 
 **Make notebook runtime v2-native**
 - *What it means*: Update notebook code to use v2 fields (`description`, `status`, `journal_entry`) without converting to old `body`/`archived` assumptions except where explicitly temporary.
@@ -94,8 +94,8 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
 - *Subtasks*:
-  - [ ] Remove fallback support for old `body`, `archived`, and `kind: journal` shapes after legacy verification is clean.
-  - [ ] Update notebook fixtures to v2 shapes.
+  - [x] Remove fallback support for old `body`, `archived`, and `kind: journal` shapes after legacy verification is clean.
+  - [x] Update notebook fixtures to v2 shapes.
 
 **Make message runtime and archives v2-native**
 - *What it means*: Update message template CRUD, delivery tracking, and sent-message archiving to operate on v2 templates and `deliveries[]`.
@@ -103,10 +103,10 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
 - *Estimated effort*: Large
 - *Created*: 2026-04-27
 - *Subtasks*:
-  - [ ] Update add/edit/delete template paths to use `id`, `text`, and `schedule.days` / `schedule.periods`.
-  - [ ] Update sent-message history reads/writes to use `deliveries[]`, `message_template_id`, `sent_text`, `status`, and `sent_at`.
-  - [ ] Update `archive_old_messages()` to archive v2 `deliveries[]` records and decide whether historical v1 archive files should remain read-only.
-  - [ ] Remove old `messages[]`, `message_id`, `message`, `delivery_status`, and `timestamp` fallbacks after legacy verification is clean.
+  - [x] Update add/edit/delete template paths to use `id`, `text`, and `schedule.days` / `schedule.periods`.
+  - [x] Update sent-message history reads/writes to use `deliveries[]`, `message_template_id`, `sent_text`, `status`, and `sent_at`.
+  - [x] Update `archive_old_messages()` to archive v2 `deliveries[]` records and decide whether historical v1 archive files should remain read-only.
+  - [x] Remove old `messages[]`, `message_id`, `message`, `delivery_status`, and `timestamp` fallbacks after legacy verification is clean.
 
 **Finish check-in v2 adoption**
 - *What it means*: Update analytics and AI context code to read check-in answers from `responses` consistently.
@@ -114,10 +114,10 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
 - *Subtasks*:
-  - [ ] Identify all code reading direct check-in fields such as `mood`, `energy`, `ate_breakfast`, and `brushed_teeth`.
-  - [ ] Update reads to use `responses`.
-  - [ ] Add helper functions for common response access where that reduces duplication.
-  - [ ] Remove fallback reads for old flat fields after legacy verification is clean.
+  - [x] Identify all code reading direct check-in fields such as `mood`, `energy`, `ate_breakfast`, and `brushed_teeth`.
+  - [x] Update reads to use `responses`.
+  - [x] Add helper functions for common response access where that reduces duplication.
+  - [x] Remove fallback reads for old flat fields after legacy verification is clean.
 
 **Audit top-level user files outside the v2 item migration**
 - *What it means*: Confirm whether `account.json`, `preferences.json`, `schedules.json`, `tags.json`, `user_context.json`, and `chat_interactions.json` need future schema work or should explicitly remain under their current model.

@@ -24,7 +24,7 @@ MIN_SHORT_ID_LENGTH = 6
 MAX_SHORT_ID_LENGTH = 8
 
 # Short ID prefix mapping
-ENTRY_KIND_PREFIXES = {"note": "n", "list": "l", "journal": "j"}
+ENTRY_KIND_PREFIXES = {"note": "n", "list": "l", "journal_entry": "j", "journal": "j"}
 
 # Reverse mapping for prefix to kind
 PREFIX_TO_KIND = {v: k for k, v in ENTRY_KIND_PREFIXES.items()}
@@ -145,7 +145,7 @@ def format_short_id(entry_id: UUID, kind: EntryKind) -> str | None:
 
     Args:
         entry_id: UUID of the entry
-        kind: Entry kind ('note', 'list', or 'journal')
+        kind: Entry kind ('note', 'list', 'journal_entry', or legacy 'journal')
 
     Returns:
         Short ID string (e.g., 'n3f2a9c' - no dash for easier mobile typing) or None if invalid
@@ -240,7 +240,7 @@ def is_valid_entry_kind(kind: str) -> bool:
         logger.warning(f"Entry kind must be a string, got {type(kind).__name__}")
         return False
 
-    valid_kinds = ["note", "list", "journal"]
+    valid_kinds = ["note", "list", "journal_entry", "journal"]
     if kind.lower() not in valid_kinds:
         logger.warning(f"Invalid entry kind: {kind}. Must be one of {valid_kinds}")
         return False
@@ -343,7 +343,7 @@ def validate_entry_content(
         return False, f"Invalid entry body (max {MAX_BODY_LENGTH} characters)"
 
     # For notes and journals, at least title or body should be present
-    if kind in ["note", "journal"] and not title and not body:
+    if kind in ["note", "journal", "journal_entry"] and not title and not body:
         return False, "Note or journal entries must have at least a title or body"
 
     return True, None

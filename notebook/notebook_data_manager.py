@@ -43,11 +43,11 @@ def _save_updated_entry(user_id: str, entry: Entry, all_entries: list[Entry]) ->
 
 
 def _is_entry_active(entry: Entry) -> bool:
-    return entry.status == "active" and not entry.archived
+    return entry.status == "active"
 
 
 def _is_entry_archived(entry: Entry) -> bool:
-    return entry.status == "archived" or entry.archived
+    return entry.status == "archived"
 
 
 # Helper to find an entry by various references
@@ -233,7 +233,7 @@ def create_journal(
 ) -> Entry | None:
     """Creates a journal entry."""
     return create_entry(
-        user_id, "journal", title=title, body=body, tags=tags, group=group
+        user_id, "journal_entry", title=title, body=body, tags=tags, group=group
     )
 
 

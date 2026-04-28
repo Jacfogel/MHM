@@ -31,6 +31,12 @@ Guidelines:
 ## Recent Changes (Most Recent First)
 
 ### 2026-04-27 - User data v2 native runtime adoption **COMPLETED**
+- **Task/notebook runtime cleanup**: removed task split-file fallback behavior in runtime handlers, shifted task manager logic to canonical v2 task identity/state fields, and aligned notebook runtime/tests to `journal_entry`/v2-first entry semantics.
+- **Message runtime v2-first**: template CRUD now normalizes to v2 template fields (`id`, `text`, `schedule`) and sent-message persistence/archiving now treats `deliveries[]` (`message_template_id`, `sent_text`, `status`, `sent_at`) as the primary storage path.
+- **Check-in runtime v2-first**: analytics and command rendering now prefer nested `responses` access through shared helpers instead of relying on flat top-level check-in fields.
+- **Module split + migration CLI**: task/notebook schema ownership was pushed toward domain modules (`tasks/task_schemas.py`, `notebook/notebook_schemas.py`), and `scripts/migrate_user_data_v2.py` now imports migration orchestration from `scripts.user_data_migration`.
+- **Validation**: `tests/unit/test_user_data_v2_migration.py` passes (12/12) after the runtime/test fixture updates and touched files are lint-clean.
+- **Legacy bridge compliance**: Remaining compatibility shims are now explicitly marked/logged as `LEGACY COMPATIBILITY`, and the deprecation inventory entry for `user_data_v1_runtime_adapters` was updated with current bridge scope plus removal criteria.
 - **Coverage logging**: Parallel Tier 3 runs classify pytest failures using on-disk coverage data (`.coverage_parallel` and/or shards) when the term-missing table is missing from the log, avoiding misleading `Coverage analysis failed` ERROR lines before combine.
 - **Task runtime**: `tasks.task_data_handlers` now writes canonical v2 task records directly for migrated/new `tasks/tasks.json` files and no longer uses bulk migration helpers on normal task saves.
 - **Notebook runtime**: notebook persistence now writes schema-version-2 entries directly and carries v2 fields (`description`, `status`, `short_id`, source/link/lifecycle metadata) through the runtime model while temporary `body`/`archived` compatibility remains explicit.

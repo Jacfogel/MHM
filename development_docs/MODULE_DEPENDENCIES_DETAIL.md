@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-27 03:57:37
+> **Last Generated**: 2026-04-28 03:00:00
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -21,7 +21,7 @@
 - **Standard Library Imports**: 431 (28.6%)
 - **Third-Party Imports**: 233 (15.5%)
 - **Local Imports**: 844 (56.0%)
-- **Last Updated**: 2026-04-27
+- **Last Updated**: 2026-04-28
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -1428,7 +1428,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling
-- Removed: ai/cache_manager.py, ai/chatbot.py, ai/lm_studio_manager.py, ai/prompt_manager.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/webhook_server.py, communication/communication_channels/email/bot.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/welcome_manager.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, core/auto_cleanup.py, core/backup_manager.py, core/file_operations.py, core/logger.py, core/message_management.py, core/scheduler.py, core/service.py, core/service_utilities.py, core/tags.py, core/user_data_manager.py, core/user_data_read.py, core/user_data_registry.py, core/user_data_updates.py, core/user_data_v2.py, core/user_data_validation.py, core/user_data_write.py, core/user_item_storage.py, core/user_lookup.py, core/user_management.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/ui_app_qt.py
+- Removed: ai/cache_manager.py, ai/chatbot.py, ai/lm_studio_manager.py, ai/prompt_manager.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/webhook_server.py, communication/communication_channels/email/bot.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/welcome_manager.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, core/auto_cleanup.py, core/backup_manager.py, core/file_operations.py, core/logger.py, core/message_management.py, core/scheduler.py, core/service.py, core/service_utilities.py, core/tags.py, core/user_data_manager.py, core/user_data_read.py, core/user_data_registry.py, core/user_data_updates.py, core/user_data_validation.py, core/user_data_write.py, core/user_item_storage.py, core/user_lookup.py, core/user_management.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Configuration management and validation
@@ -1853,7 +1853,7 @@
     - `json`
     - `os`
     - `pathlib (Path)`
-    - `typing (Any)`
+    - `typing (Any, cast)`
     - `uuid`
 - **Used by**: 
   - `ai/chatbot.py`
@@ -2645,9 +2645,9 @@
     - `core.user_data_v2 (SCHEMA_VERSION, TaskV2Model, generate_short_id)` (NEW)
     - `core.user_data_validation (is_valid_user_id)` (NEW)
     - `core.user_item_storage (ensure_user_subdir, get_user_subdir_path, load_user_json_file, save_user_json_file)` (NEW)
-    - `tasks.task_schemas (ACTIVE_TASKS_FILENAME, COMPLETED_TASKS_FILENAME, TASKS_V2_FILENAME, TASK_SCHEDULES_FILENAME)`
+    - `tasks.task_schemas (TASKS_V2_FILENAME)`
   - **Standard Library**:
-    - `typing (Any)`
+    - `typing (Any, cast)`
 - **Used by**: 
   - `tasks/task_data_manager.py`
 

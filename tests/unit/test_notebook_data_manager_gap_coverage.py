@@ -148,7 +148,7 @@ class TestNotebookDataManagerGapCoverage:
         monkeypatch.setattr(ndm, "save_entries", lambda user_id, entries: None)
         entry = ndm.create_journal("user-1", title="Journal", body="Today was good")
         assert entry is not None
-        assert entry.kind == "journal"
+        assert entry.kind == "journal_entry"
 
     def test_save_updated_entry_helper(self, monkeypatch):
         note = _note("12121212-1212-1212-1212-121212121212", "Save helper")

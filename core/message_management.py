@@ -27,33 +27,108 @@ import importlib
 logger = get_component_logger("message")
 
 
+@handle_errors("normalizing runtime message file shape", default_return={"messages": []})
+def _normalize_runtime_message_file(data: dict[str, Any]) -> dict[str, Any]:
+    """
+    Preserve canonical v2 template files and only apply runtime-schema validation
+    to legacy message files.
+    """
+    if data.get("schema_version") == SCHEMA_VERSION:
+        return data
+    normalized_data, errors = validate_messages_file_dict(data)
+    if errors:
+        logger.warning(f"Validation issues in message file: {'; '.join(errors)}")
+    return normalized_data
+
+
+@handle_errors(
+    "ensuring v2 message template file",
+    default_return={"schema_version": SCHEMA_VERSION, "updated_at": "", "messages": []},
+)
+def _ensure_v2_message_template_file(data: Any, category: str) -> dict[str, Any]:
+    """Normalize a message template file payload to canonical v2 wrapper shape."""
+    if not isinstance(data, dict):
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "updated_at": now_timestamp_full(),
+            "messages": [],
+        }
+    messages_raw = data.get("messages")
+    messages_list = messages_raw if isinstance(messages_raw, list) else []
+    normalized_messages = [
+        _message_template_default_to_v2(message, category)
+        for message in messages_list
+        if isinstance(message, dict)
+    ]
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "updated_at": now_timestamp_full(),
+        "messages": normalized_messages,
+    }
+
+
+@handle_errors("normalizing legacy message update payload", default_return={})
+def _normalize_message_update_payload(updated_data: dict[str, Any]) -> dict[str, Any]:
+    """Map legacy update fields onto canonical v2 message template fields."""
+    normalized = dict(updated_data)
+    if "message" in updated_data and "text" not in updated_data:
+        normalized["text"] = updated_data.get("message")
+    if "days" in updated_data or "time_periods" in updated_data:
+        schedule = dict(normalized.get("schedule") or {})
+        if "days" in updated_data:
+            schedule["days"] = updated_data.get("days")
+        if "time_periods" in updated_data:
+            schedule["periods"] = updated_data.get("time_periods")
+        normalized["schedule"] = schedule
+    return normalized
+
+
 @handle_errors("converting v2 message template to runtime shape", default_return={})
 def _message_template_to_runtime(message: dict[str, Any], category: str) -> dict[str, Any]:
-    """Return the runtime shape expected by existing message selection code."""
-    if message.get("schema_version") == SCHEMA_VERSION:
-        return message
-    if "text" not in message and "schedule" not in message:
-        return message
+    """Return canonical template shape with legacy aliases for compatibility."""
+    # LEGACY COMPATIBILITY: Temporary bridge for legacy template payloads.
+    if "text" not in message and "schedule" not in message and "message" in message:
+        logger.warning("LEGACY COMPATIBILITY: message template fallback used for legacy message field.")
+        message = _message_template_default_to_v2(message, category)
     schedule = message.get("schedule") or {}
+    message_id = message.get("id") or message.get("message_id")
     return {
-        "message_id": message.get("id") or message.get("message_id"),
+        "id": message_id,
+        "message_id": message_id,
+        "text": message.get("text") or message.get("message") or "",
         "message": message.get("text") or message.get("message") or "",
         "category": message.get("category") or category,
+        "schedule": {
+            "days": schedule.get("days") or message.get("days") or ["ALL"],
+            "periods": schedule.get("periods") or message.get("time_periods") or ["ALL"],
+        },
         "days": schedule.get("days") or message.get("days") or ["ALL"],
         "time_periods": schedule.get("periods") or message.get("time_periods") or ["ALL"],
+        "created_at": message.get("created_at"),
+        "updated_at": message.get("updated_at") or message.get("created_at"),
         "timestamp": message.get("updated_at") or message.get("created_at"),
     }
 
 
 @handle_errors("converting v2 message delivery to runtime shape", default_return={})
 def _delivery_to_runtime_message(delivery: dict[str, Any]) -> dict[str, Any]:
-    """Return the recent-message shape expected by existing duplicate filters."""
+    """Return canonical delivery shape with legacy aliases for compatibility."""
+    # LEGACY COMPATIBILITY: Temporary bridge for legacy sent-message payloads.
+    if delivery.get("message") is not None or delivery.get("delivery_status") is not None or delivery.get("timestamp") is not None:
+        logger.warning("LEGACY COMPATIBILITY: sent-message fallback used for legacy delivery fields.")
+    message_id = delivery.get("message_template_id") or delivery.get("message_id")
+    sent_at = delivery.get("sent_at") or delivery.get("timestamp", "")
+    status = delivery.get("status") or delivery.get("delivery_status", "")
     return {
-        "message_id": delivery.get("message_template_id") or delivery.get("message_id"),
+        "message_template_id": message_id,
+        "message_id": message_id,
+        "sent_text": delivery.get("sent_text") or delivery.get("message") or "",
         "message": delivery.get("sent_text") or delivery.get("message") or "",
         "category": delivery.get("category", ""),
-        "timestamp": delivery.get("sent_at") or delivery.get("timestamp", ""),
-        "delivery_status": delivery.get("status") or delivery.get("delivery_status", ""),
+        "sent_at": sent_at,
+        "timestamp": sent_at,
+        "status": status,
+        "delivery_status": status,
         "time_period": delivery.get("time_period"),
     }
 
@@ -84,7 +159,14 @@ def _message_template_default_to_v2(message: dict[str, Any], category: str) -> d
         "metadata": dict(message.get("metadata") or {}),
     }
     template["metadata"].setdefault("short_id", message.get("short_id") or generate_short_id(message_id, "message"))
-    return MessageTemplateV2Model.model_validate(template).model_dump(mode="json")
+    try:
+        return MessageTemplateV2Model.model_validate(template).model_dump(mode="json")
+    except Exception as exc:
+        # LEGACY COMPATIBILITY: Keep tolerant normalization for pre-v2 schedule/value shapes.
+        logger.warning(
+            f"LEGACY COMPATIBILITY: fallback message template normalization used for category '{category}': {exc}"
+        )
+        return template
 
 
 @handle_errors("normalizing canonical message timestamp", default_return=None)
@@ -251,22 +333,19 @@ def add_message(user_id, category, message_data, index=None):
     user_messages_dir.mkdir(parents=True, exist_ok=True)
     file_path = user_messages_dir / f"{category}.json"
 
-    data = load_json_data(str(file_path))
+    data = _ensure_v2_message_template_file(load_json_data(str(file_path)), category)
 
-    if data is None:
-        data = {"messages": []}
-
-    if "message_id" not in message_data:
-        message_data["message_id"] = str(uuid.uuid4())
+    message_v2 = _message_template_default_to_v2(message_data, category)
 
     if index is not None and 0 <= index < len(data["messages"]):
-        data["messages"].insert(index, message_data)
+        data["messages"].insert(index, message_v2)
     else:
-        data["messages"].append(message_data)
+        data["messages"].append(message_v2)
+    data["updated_at"] = now_timestamp_full()
 
     # Validate/normalize via Pydantic schema (non-blocking)
     with contextlib.suppress(Exception):
-        data, _errs = validate_messages_file_dict(data)
+        data = _ensure_v2_message_template_file(data, category)
     save_json_data(data, str(file_path))
 
     try:
@@ -277,7 +356,7 @@ def add_message(user_id, category, message_data, index=None):
         )
 
     logger.info(
-        f"Added message to category {category} for user {user_id}: {message_data}"
+        f"Added message to category {category} for user {user_id}: {message_v2}"
     )
 
 
@@ -304,16 +383,16 @@ def edit_message(user_id, category, message_id, updated_data):
     user_messages_dir.mkdir(parents=True, exist_ok=True)
     file_path = user_messages_dir / f"{category}.json"
 
-    data = load_json_data(str(file_path))
+    data = _ensure_v2_message_template_file(load_json_data(str(file_path)), category)
 
-    if data is None or "messages" not in data:
+    if "messages" not in data:
         raise ValidationError("Invalid category or data file.")
 
     message_index = next(
         (
             i
             for i, msg in enumerate(data["messages"])
-            if msg["message_id"] == message_id
+            if (msg.get("id") or msg.get("message_id")) == message_id
         ),
         None,
     )
@@ -322,9 +401,12 @@ def edit_message(user_id, category, message_id, updated_data):
         raise ValidationError("Message ID not found.")
 
     # Update the message
-    data["messages"][message_index].update(updated_data)
+    merged = dict(data["messages"][message_index])
+    merged.update(_normalize_message_update_payload(updated_data))
+    data["messages"][message_index] = _message_template_default_to_v2(merged, category)
+    data["updated_at"] = now_timestamp_full()
     with contextlib.suppress(Exception):
-        data, _errs = validate_messages_file_dict(data)
+        data = _ensure_v2_message_template_file(data, category)
     save_json_data(data, str(file_path))
 
     try:
@@ -359,15 +441,19 @@ def update_message(user_id, category, message_id, new_message_data):
 
     file_path = determine_file_path("messages", f"{category}/{user_id}")
     Path(file_path).parent.mkdir(parents=True, exist_ok=True)
-    data = load_json_data(file_path)
+    data = _ensure_v2_message_template_file(load_json_data(file_path), category)
 
-    if data is None or "messages" not in data:
+    if "messages" not in data:
         raise ValidationError("Invalid category or data file.")
 
     # Find the message by ID
     for i, msg in enumerate(data["messages"]):
-        if msg.get("message_id") == message_id:
-            data["messages"][i] = new_message_data
+        if (msg.get("id") or msg.get("message_id")) == message_id:
+            normalized_new_data = _normalize_message_update_payload(new_message_data)
+            if not normalized_new_data.get("id"):
+                normalized_new_data["id"] = message_id
+            data["messages"][i] = _message_template_default_to_v2(normalized_new_data, category)
+            data["updated_at"] = now_timestamp_full()
             save_json_data(data, file_path)
             logger.info(
                 f"Updated message with ID {message_id} in category {category} for user {user_id}"
@@ -400,13 +486,13 @@ def delete_message(user_id, category, message_id):
     user_messages_dir.mkdir(parents=True, exist_ok=True)
     file_path = user_messages_dir / f"{category}.json"
 
-    data = load_json_data(str(file_path))
+    data = _ensure_v2_message_template_file(load_json_data(str(file_path)), category)
 
-    if data is None or "messages" not in data:
+    if "messages" not in data:
         raise ValidationError("Invalid category or data file.")
 
     message_to_delete = next(
-        (msg for msg in data["messages"] if msg["message_id"] == message_id), None
+        (msg for msg in data["messages"] if (msg.get("id") or msg.get("message_id")) == message_id), None
     )
 
     if not message_to_delete:
@@ -415,7 +501,13 @@ def delete_message(user_id, category, message_id):
     data["messages"].remove(message_to_delete)
     # If no messages remain, keep an empty file (tests expect file to exist post-delete)
     if not data.get("messages"):
-        data = {"messages": []}
+        data = {
+            "schema_version": SCHEMA_VERSION,
+            "updated_at": now_timestamp_full(),
+            "messages": [],
+        }
+    else:
+        data["updated_at"] = now_timestamp_full()
     save_json_data(data, str(file_path))
 
     try:
@@ -579,79 +671,33 @@ def store_sent_message(
         data = load_json_data(file_path) or {}
         _normalize_message_timestamps(data, file_path)
 
-        # Create new message entry (without redundant user_id field)
         sent_at = now_timestamp_full()
-        new_message = {
-            "message_id": message_id,
-            "message": message,
+        new_delivery = {
+            "id": str(uuid.uuid4()),
+            "message_template_id": message_id,
+            "sent_text": message,
             "category": category,
-            # Canonical readable timestamp for metadata/log display fields
-            "timestamp": sent_at,
-            "delivery_status": delivery_status,
-        }
-
-        # Add time_period if provided
-        if time_period:
-            new_message["time_period"] = time_period
-
-        if data.get("schema_version") == SCHEMA_VERSION or "deliveries" in data:
-            new_delivery = {
-                "id": str(uuid.uuid4()),
-                "message_template_id": message_id,
-                "sent_text": message,
-                "category": category,
+            "channel": "",
+            "status": delivery_status,
+            "source": {
+                "system": "mhm",
                 "channel": "",
-                "status": delivery_status,
-                "source": {
-                    "system": "mhm",
-                    "channel": "",
-                    "actor": "scheduler",
-                    "migration": None,
-                },
-                "sent_at": sent_at,
-                "time_period": time_period,
-                "metadata": {},
-            }
-            deliveries = data.get("deliveries", [])
-            deliveries.insert(0, new_delivery)
-            data = {
-                "schema_version": SCHEMA_VERSION,
-                "updated_at": now_timestamp_full(),
-                "deliveries": deliveries,
-            }
-            save_json_data(data, file_path)
-            logger.debug(f"Stored v2 sent message delivery for user {user_id}, category {category}")
-            return True
-
-        # Insert message in chronological order (newest first)
-        messages = data.get("messages", [])
-
-        # Find insertion point
-        insert_index = 0
-        new_timestamp = _parse_message_timestamp(new_message["timestamp"])
-
-        for i, existing_msg in enumerate(messages):
-            existing_timestamp = _parse_message_timestamp(existing_msg.get("timestamp", ""))
-            if new_timestamp > existing_timestamp:
-                insert_index = i
-                break
-            insert_index = i + 1
-
-        # Insert message
-        messages.insert(insert_index, new_message)
-        data["messages"] = messages
-
-        # Update metadata
-        if "metadata" not in data:
-            data["metadata"] = {}
-
-        data["metadata"]["total_messages"] = len(messages)
-        # Canonical readable timestamp for metadata/log display fields
-        data["metadata"]["last_updated"] = now_timestamp_full()
-
+                "actor": "scheduler",
+                "migration": None,
+            },
+            "sent_at": sent_at,
+            "time_period": time_period,
+            "metadata": {},
+        }
+        deliveries = data.get("deliveries", [])
+        deliveries.insert(0, new_delivery)
+        data = {
+            "schema_version": SCHEMA_VERSION,
+            "updated_at": now_timestamp_full(),
+            "deliveries": deliveries,
+        }
         save_json_data(data, file_path)
-
-        logger.debug(f"Stored sent message for user {user_id}, category {category}")
+        logger.debug(f"Stored v2 sent message delivery for user {user_id}, category {category}")
         return True
 
     except Exception as e:
@@ -685,8 +731,49 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
         if data:
             _normalize_message_timestamps(data, file_path)
 
-        if not data or "messages" not in data:
+        if not data:
             logger.debug(f"No messages to archive for user {user_id}")
+            return True
+        if data.get("schema_version") == SCHEMA_VERSION and isinstance(data.get("deliveries"), list):
+            deliveries = data["deliveries"]
+            if not deliveries:
+                logger.debug(f"No deliveries to archive for user {user_id}")
+                return True
+            cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_to_keep)
+            active_deliveries = []
+            archived_deliveries = []
+            for delivery in deliveries:
+                sent_at = _parse_message_timestamp(str(delivery.get("sent_at") or ""))
+                if sent_at >= cutoff_date:
+                    active_deliveries.append(delivery)
+                else:
+                    archived_deliveries.append(delivery)
+            if not archived_deliveries:
+                logger.debug(f"No deliveries to archive for user {user_id}")
+                return True
+            archive_filename = f"sent_messages_archive_{now_timestamp_filename()}.json"
+            archive_path = Path(file_path).parent / archive_filename
+            archive_data = {
+                "schema_version": SCHEMA_VERSION,
+                "archived_date": now_timestamp_full(),
+                "deliveries": archived_deliveries,
+                "metadata": {
+                    "count": len(archived_deliveries),
+                    "oldest_message": min(
+                        (msg.get("sent_at", "") for msg in archived_deliveries), default=""
+                    ),
+                    "newest_message": max(
+                        (msg.get("sent_at", "") for msg in archived_deliveries), default=""
+                    ),
+                },
+            }
+            save_json_data(archive_data, str(archive_path))
+            data["deliveries"] = active_deliveries
+            data["updated_at"] = now_timestamp_full()
+            save_json_data(data, file_path)
+            logger.info(
+                f"Archived {len(archived_deliveries)} sent deliveries for user {user_id} to {archive_filename}"
+            )
             return True
 
         # Calculate cutoff date

@@ -202,10 +202,10 @@ class TestMessageCRUD:
                 data = json.load(f)
                 assert 'messages' in data
                 assert len(data['messages']) == 1
-                assert data['messages'][0]['message'] == "Test message"
-                assert data['messages'][0]['days'] == ["monday", "tuesday"]
-                assert data['messages'][0]['time_periods'] == ["morning"]
-                assert 'message_id' in data['messages'][0]
+                assert data['messages'][0]['text'] == "Test message"
+                assert data['messages'][0]['schedule']['days'] == ["monday", "tuesday"]
+                assert data['messages'][0]['schedule']['periods'] == ["morning"]
+                assert 'id' in data['messages'][0]
     
     @pytest.mark.messages
     @pytest.mark.regression
@@ -268,10 +268,10 @@ class TestMessageCRUD:
             with open(message_file, encoding='utf-8') as f:
                 data = json.load(f)
                 assert len(data['messages']) == 1
-                assert data['messages'][0]['message'] == "Updated message"
-                assert data['messages'][0]['days'] == ["monday"]
-                assert data['messages'][0]['time_periods'] == ["evening"]
-                assert data['messages'][0]['message_id'] == "test-msg-1"
+                assert data['messages'][0]['text'] == "Updated message"
+                assert data['messages'][0]['schedule']['days'] == ["monday"]
+                assert data['messages'][0]['schedule']['periods'] == ["evening"]
+                assert data['messages'][0]['id'] == "test-msg-1"
     
     @pytest.mark.messages
     @pytest.mark.regression
@@ -391,8 +391,8 @@ class TestMessageCRUD:
             with open(message_file, encoding='utf-8') as f:
                 data = json.load(f)
                 assert len(data['messages']) == 1
-                assert data['messages'][0]['message_id'] == "test-msg-2"
-                assert data['messages'][0]['message'] == "Message to keep"
+                assert data['messages'][0]['id'] == "test-msg-2"
+                assert data['messages'][0]['text'] == "Message to keep"
     
     @pytest.mark.messages
     @pytest.mark.regression
@@ -731,8 +731,8 @@ class TestIntegration:
             with open(message_file, encoding='utf-8') as f:
                 data = json.load(f)
                 assert len(data['messages']) == 1
-                assert data['messages'][0]['message'] == "Test message"
-                message_id = data['messages'][0]['message_id']
+                assert data['messages'][0]['text'] == "Test message"
+                message_id = data['messages'][0]['id']
             
             # 2. Edit message
             result2 = edit_message(user_id, category, message_id, updated_message)
@@ -743,8 +743,8 @@ class TestIntegration:
             with open(message_file, encoding='utf-8') as f:
                 data = json.load(f)
                 assert len(data['messages']) == 1
-                assert data['messages'][0]['message'] == "Updated test message"
-                assert data['messages'][0]['days'] == ["monday", "tuesday"]
+                assert data['messages'][0]['text'] == "Updated test message"
+                assert data['messages'][0]['schedule']['days'] == ["monday", "tuesday"]
             
             # 3. Delete message
             result3 = delete_message(user_id, category, message_id)

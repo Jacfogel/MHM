@@ -7,6 +7,7 @@ import pytest
 import json
 import os
 from core.checkin_analytics import CheckinAnalytics
+from core.user_data_v2 import SCHEMA_VERSION
 from core import (
     get_user_data,
     get_user_id_by_identifier,
@@ -20,6 +21,33 @@ from tests.test_helpers.test_utilities import TestUserFactory
 
 class TestQuantitativeAnalyticsExpansion:
     """Test that quantitative analytics include all opted-in quantitative questions."""
+
+    @staticmethod
+    def _as_v2_checkin_file(sample_checkins: list[dict]) -> dict:
+        """Convert flat runtime checkins into canonical v2 on-disk shape."""
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "checkins": [
+                {
+                    "id": f"checkin-{idx}",
+                    "submitted_at": checkin.get("timestamp"),
+                    "source": {"system": "mhm", "channel": "test", "actor": "pytest", "migration": None},
+                    "responses": {
+                        key: value
+                        for key, value in checkin.items()
+                        if key != "timestamp"
+                    },
+                    "questions_asked": [key for key in checkin if key != "timestamp"],
+                    "linked_item_ids": [],
+                    "created_at": checkin.get("timestamp"),
+                    "updated_at": checkin.get("timestamp"),
+                    "archived_at": None,
+                    "deleted_at": None,
+                    "metadata": {},
+                }
+                for idx, checkin in enumerate(sample_checkins, start=1)
+            ],
+        }
 
     @pytest.mark.behavior
     @pytest.mark.analytics
@@ -117,7 +145,7 @@ class TestQuantitativeAnalyticsExpansion:
         checkin_file = get_user_file_path(actual_user_id, "checkins")
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, "w", encoding="utf-8") as f:
-            json.dump(sample_checkins, f, indent=2)
+            json.dump(self._as_v2_checkin_file(sample_checkins), f, indent=2)
 
         # Act - Get quantitative summaries with explicit enabled fields (use actual_user_id)
         analytics = CheckinAnalytics()
@@ -246,7 +274,7 @@ class TestQuantitativeAnalyticsExpansion:
         checkin_file = get_user_file_path(actual_user_id, "checkins")
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, "w", encoding="utf-8") as f:
-            json.dump(sample_checkins, f, indent=2)
+            json.dump(self._as_v2_checkin_file(sample_checkins), f, indent=2)
 
         # Act - Get quantitative summaries with explicit enabled fields (use actual_user_id)
         analytics = CheckinAnalytics()
@@ -328,7 +356,7 @@ class TestQuantitativeAnalyticsExpansion:
         checkin_file = get_user_file_path(actual_user_id, "checkins")
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, "w", encoding="utf-8") as f:
-            json.dump(sample_checkins, f, indent=2)
+            json.dump(self._as_v2_checkin_file(sample_checkins), f, indent=2)
 
         # Act - Get quantitative summaries with explicit enabled fields (use actual_user_id)
         analytics = CheckinAnalytics()
@@ -435,7 +463,7 @@ class TestQuantitativeAnalyticsExpansion:
         checkin_file = get_user_file_path(actual_user_id, "checkins")
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, "w", encoding="utf-8") as f:
-            json.dump(sample_checkins, f, indent=2)
+            json.dump(self._as_v2_checkin_file(sample_checkins), f, indent=2)
 
         # Act - Get quantitative summaries with explicit enabled fields (use actual_user_id)
         analytics = CheckinAnalytics()
@@ -538,7 +566,7 @@ class TestQuantitativeAnalyticsExpansion:
         checkin_file = get_user_file_path(actual_user_id, "checkins")
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, "w", encoding="utf-8") as f:
-            json.dump(sample_checkins, f, indent=2)
+            json.dump(self._as_v2_checkin_file(sample_checkins), f, indent=2)
 
         # Act - Get quantitative summaries with explicit enabled fields (use actual_user_id)
         analytics = CheckinAnalytics()

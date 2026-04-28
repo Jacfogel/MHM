@@ -316,11 +316,16 @@ def test_runtime_message_loading_accepts_v2_template_files(tmp_path, monkeypatch
 
     assert messages == [
         {
+            "id": "template-1",
             "message_id": "template-1",
+            "text": "Keep going.",
             "message": "Keep going.",
             "category": "motivational",
+            "schedule": {"days": ["Monday"], "periods": ["morning"]},
             "days": ["Monday"],
             "time_periods": ["morning"],
+            "created_at": TIMESTAMP,
+            "updated_at": TIMESTAMP,
             "timestamp": TIMESTAMP,
         }
     ]
@@ -565,7 +570,7 @@ def test_runtime_notebook_handlers_accept_and_write_v2_entries(tmp_path, monkeyp
     monkeypatch.setattr("core.tags.ensure_tags_initialized", lambda _user_id: None)
 
     entries = load_entries("user-1")
-    assert entries[0].kind == "journal"
+    assert entries[0].kind == "journal_entry"
     assert entries[0].description == "Today was okay."
     assert entries[0].status == "active"
     assert entries[0].body == "Today was okay."

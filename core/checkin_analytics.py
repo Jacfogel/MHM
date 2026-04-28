@@ -43,6 +43,9 @@ class CheckinAnalytics:
         questions_asked = checkin.get("questions_asked")
         if isinstance(questions_asked, list):
             return [q for q in questions_asked if isinstance(q, str) and q]
+        responses = checkin.get("responses")
+        if isinstance(responses, dict):
+            return [key for key in responses if isinstance(key, str) and key]
         return [
             key
             for key in checkin
@@ -55,7 +58,22 @@ class CheckinAnalytics:
         questions_asked = checkin.get("questions_asked")
         if isinstance(questions_asked, list):
             return question_key in questions_asked
+        responses = checkin.get("responses")
+        if isinstance(responses, dict):
+            return question_key in responses
         return question_key in checkin
+
+    @handle_errors("getting check-in response value", default_return=None)
+    def _response_value(self, checkin: dict[str, Any], key: str) -> Any:
+        responses = checkin.get("responses")
+        if isinstance(responses, dict) and key in responses:
+            return responses.get(key)
+        # LEGACY COMPATIBILITY: Temporary bridge for flat top-level check-in answers.
+        if key in checkin:
+            logger.warning(
+                f"LEGACY COMPATIBILITY: check-in analytics fallback used for flat response key '{key}'."
+            )
+        return checkin.get(key)
 
     @handle_errors("checking answered value", default_return=False)
     def _is_answered_value(self, value: Any) -> bool:
@@ -188,7 +206,7 @@ class CheckinAnalytics:
                     timestamp = parse_timestamp_full(checkin["timestamp"])
                     if timestamp is None:
                         raise ValidationError("Invalid timestamp")
-                    mood_value = self._coerce_numeric(checkin.get("mood"))
+                    mood_value = self._coerce_numeric(self._response_value(checkin, "mood"))
                     if mood_value is None:
                         continue
                     mood_data.append(
@@ -270,7 +288,7 @@ class CheckinAnalytics:
 
                     if timestamp is None:
                         raise ValidationError("Invalid timestamp")
-                    energy_value = self._coerce_numeric(checkin.get("energy"))
+                    energy_value = self._coerce_numeric(self._response_value(checkin, "energy"))
                     if energy_value is None:
                         continue
                     energy_data.append(
@@ -348,7 +366,7 @@ class CheckinAnalytics:
                 question_def = question_defs.get(question_key) or {}
                 if question_def.get("type") != "yes_no":
                     continue
-                value = self._coerce_yes_no(checkin.get(question_key))
+                value = self._coerce_yes_no(self._response_value(checkin, question_key))
                 if value is None:
                     continue
                 habit_entry = habit_stats.setdefault(
@@ -408,13 +426,13 @@ class CheckinAnalytics:
                     # Add available sleep data
                     if self._is_question_asked(checkin, "sleep_quality"):
                         quality_value = self._coerce_numeric(
-                            checkin.get("sleep_quality")
+                            self._response_value(checkin, "sleep_quality")
                         )
                         if quality_value is not None:
                             sleep_entry["quality"] = quality_value
                     if self._is_question_asked(checkin, "sleep_schedule"):
                         sleep_duration = self._coerce_sleep_hours(
-                            checkin.get("sleep_schedule")
+                            self._response_value(checkin, "sleep_schedule")
                         )
                         if sleep_duration is not None:
                             sleep_entry["hours"] = sleep_duration
@@ -520,7 +538,7 @@ class CheckinAnalytics:
                 )
                 stats["asked_count"] += 1
 
-                value = checkin.get(question_key)
+                value = self._response_value(checkin, question_key)
                 if value is None or value == "SKIPPED":
                     continue
 
@@ -741,19 +759,22 @@ class CheckinAnalytics:
         }
 
         # Check for mood data
-        mood_data = [c for c in checkins if "mood" in c]
+        mood_data = [c for c in checkins if self._response_value(c, "mood") is not None]
         if mood_data:
             data_types["mood"] = True
             data_types["quantitative"] = True
 
         # Check for energy data
-        energy_data = [c for c in checkins if "energy" in c]
+        energy_data = [c for c in checkins if self._response_value(c, "energy") is not None]
         if energy_data:
             data_types["quantitative"] = True
 
         # Check for sleep data
         sleep_data = [
-            c for c in checkins if "sleep_quality" in c or "sleep_schedule" in c
+            c
+            for c in checkins
+            if self._response_value(c, "sleep_quality") is not None
+            or self._response_value(c, "sleep_schedule") is not None
         ]
         if sleep_data:
             data_types["sleep"] = True
@@ -768,7 +789,11 @@ class CheckinAnalytics:
             "hydration",
             "social_interaction",
         ]
-        habit_data = [c for c in checkins if any(field in c for field in habit_fields)]
+        habit_data = [
+            c
+            for c in checkins
+            if any(self._response_value(c, field) is not None for field in habit_fields)
+        ]
         if habit_data:
             data_types["habits"] = True
             data_types["quantitative"] = True
@@ -850,7 +875,7 @@ class CheckinAnalytics:
                     available_fields = set()
                     for checkin in checkins:
                         for field in candidate_fields:
-                            if field in checkin and checkin[field] is not None:
+                            if self._response_value(checkin, field) is not None:
                                 available_fields.add(field)
                     enabled_fields = list(available_fields)
                     logger.debug(f"Auto-detected available fields: {enabled_fields}")
@@ -860,7 +885,7 @@ class CheckinAnalytics:
                 available_fields = set()
                 for checkin in checkins:
                     for field in candidate_fields:
-                        if field in checkin and checkin[field] is not None:
+                        if self._response_value(checkin, field) is not None:
                             available_fields.add(field)
                 enabled_fields = list(available_fields)
                 logger.debug(f"Auto-detected available fields: {enabled_fields}")
@@ -878,9 +903,9 @@ class CheckinAnalytics:
             for c in checkins:
                 if not self._is_question_asked(c, field):
                     continue
-                if field in c:
+                if self._response_value(c, field) is not None:
                     try:
-                        v_raw = c[field]
+                        v_raw = self._response_value(c, field)
                         # Skip 'SKIPPED' responses to avoid analytics inaccuracies
                         if v_raw == "SKIPPED":
                             continue
@@ -977,7 +1002,7 @@ class CheckinAnalytics:
                 continue
             is_complete = True
             for key in questions_asked:
-                value = checkin.get(key)
+                value = self._response_value(checkin, key)
                 if value == "SKIPPED":
                     continue
                 if value is None:
@@ -1112,7 +1137,8 @@ class CheckinAnalytics:
         temp_streak = 0
 
         for checkin in checkins:
-            if habit_key in checkin and checkin[habit_key]:
+            habit_value = self._response_value(checkin, habit_key)
+            if habit_value:
                 temp_streak += 1
                 if temp_streak == 1:  # First day of streak
                     current_streak = temp_streak
@@ -1229,7 +1255,7 @@ class CheckinAnalytics:
         for checkin in checkins:
             if not self._is_question_asked(checkin, "mood"):
                 continue
-            mood_value = self._coerce_numeric(checkin.get("mood"))
+            mood_value = self._coerce_numeric(self._response_value(checkin, "mood"))
             if mood_value is not None:
                 moods.append(mood_value)
         if not moods:
@@ -1246,7 +1272,7 @@ class CheckinAnalytics:
         for checkin in checkins:
             if not self._is_question_asked(checkin, "energy"):
                 continue
-            energy_value = self._coerce_numeric(checkin.get("energy"))
+            energy_value = self._coerce_numeric(self._response_value(checkin, "energy"))
             if energy_value is not None:
                 energies.append(energy_value)
         if not energies:
@@ -1273,7 +1299,7 @@ class CheckinAnalytics:
             for habit in habits:
                 if not self._is_question_asked(checkin, habit):
                     continue
-                value = self._coerce_yes_no(checkin.get(habit))
+                value = self._coerce_yes_no(self._response_value(checkin, habit))
                 if value is None:
                     continue
                 total_possible += 1
@@ -1322,11 +1348,11 @@ class CheckinAnalytics:
 
             # Get sleep quality
             if self._is_question_asked(checkin, "sleep_quality"):
-                quality = self._coerce_numeric(checkin.get("sleep_quality"))
+                quality = self._coerce_numeric(self._response_value(checkin, "sleep_quality"))
 
             # Get sleep hours from sleep_schedule
             if self._is_question_asked(checkin, "sleep_schedule"):
-                hours = self._coerce_sleep_hours(checkin.get("sleep_schedule"))
+                hours = self._coerce_sleep_hours(self._response_value(checkin, "sleep_schedule"))
 
             # Need both hours and quality to calculate score
             if hours is not None and quality is not None:
