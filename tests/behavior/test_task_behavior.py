@@ -234,7 +234,7 @@ class TestTaskManagement:
         assert result is True
         # Verify task is removed
         tasks = load_active_tasks(user_id)
-        assert all(t["task_id"] != task_id for t in tasks)
+        assert all(t["id"] != task_id for t in tasks)
         # Verify file content
         task_dir = os.path.join(temp_dir, "tasks")
         task_file = os.path.join(task_dir, "tasks.json")
@@ -252,7 +252,7 @@ class TestTaskManagement:
         # Get the task by ID
         task = get_task_by_id(user_id, task_id)
         assert task is not None
-        assert task["task_id"] == task_id
+        assert task["id"] == task_id
         assert task["title"] == "Test Task"
         # Verify file content
         task_dir = os.path.join(temp_dir, "tasks")
@@ -288,8 +288,8 @@ class TestTaskManagement:
 
         # Get tasks due soon (within 7 days)
         due_soon_tasks = get_tasks_due_soon(user_id, days_ahead=7)
-        assert any(t["task_id"] == id_soon for t in due_soon_tasks)
-        assert all(t["task_id"] != id_late for t in due_soon_tasks)
+        assert any(t["id"] == id_soon for t in due_soon_tasks)
+        assert all(t["id"] != id_late for t in due_soon_tasks)
 
         # Verify file content
         task_dir = os.path.join(temp_dir, "tasks")

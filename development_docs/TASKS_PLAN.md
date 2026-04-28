@@ -122,7 +122,7 @@
   - [x] Add tests for `due`.
   - [x] Add tests for `reminders`.
   - [x] Add tests for `recurrence`.
-  - [ ] Remove or rewrite tests that only preserve old active/completed split behavior.
+  - [x] Remove or rewrite tests that only preserve old active/completed split behavior.
 
 **Retire task v1 compatibility adapters**
 - *What it means*: Remove or explicitly mark temporary adapters that convert between v2 persisted task records and old runtime dictionaries (`task_id`, `completed`, split active/completed lists).
@@ -131,9 +131,9 @@
 - *Created*: 2026-04-27
 - *Subtasks*:
   - [x] Add `LEGACY COMPATIBILITY` markers/logging to any v1 task fallback retained short-term, or remove the fallback outright.
-  - [ ] Update `development_tools/config/jsons/DEPRECATION_INVENTORY.json` search terms as code paths are removed.
+  - [x] Update `development_tools/config/jsons/DEPRECATION_INVENTORY.json` search terms as code paths are removed.
   - [x] Update task command/UI/analytics tests to assert v2-native behavior where practical.
-  - [ ] Remove v1 split-file fallback reads after legacy verification reports no active production dependency.
+  - [x] Remove v1 split-file fallback reads after legacy verification reports no active production dependency.
   - [x] Confirm `ensure_task_directory()` never recreates v1 split files for migrated users.
 
 ### **2025-08-25 - Comprehensive Task System Improvements** [IN PROGRESS]

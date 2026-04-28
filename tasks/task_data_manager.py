@@ -27,49 +27,56 @@ from tasks.task_data_handlers import (
     save_completed_tasks,
 )
 from tasks.task_validation import is_valid_task_title, is_valid_priority, validate_update_field
+from core.user_data_v2 import generate_short_id
 
 logger = get_component_logger("tasks")
 
 
 @handle_errors("resolving canonical task ID", default_return="")
 def _task_id(task: dict[str, Any]) -> str:
-    """Return canonical task ID, tolerating legacy key for compatibility."""
-    if task.get("id"):
-        return str(task.get("id"))
-    # LEGACY COMPATIBILITY: Temporary runtime bridge for v1-shaped task payloads.
-    if task.get("task_id"):
-        logger.warning("LEGACY COMPATIBILITY: task runtime fallback used for task_id key.")
-        return str(task.get("task_id"))
-    return ""
+    """Return canonical task ID."""
+    return str(task.get("id") or "")
+
+
+@handle_errors("resolving canonical task short ID", default_return="")
+def _task_short_id(task: dict[str, Any]) -> str:
+    """Return task short ID from canonical runtime payload."""
+    return str(task.get("short_id") or "")
+
+
+@handle_errors("matching task identifier", default_return=False)
+def _task_matches_identifier(task: dict[str, Any], task_identifier: str) -> bool:
+    """Match incoming identifier against canonical id/short_id values."""
+    task_identifier = str(task_identifier or "").strip().lower()
+    if not task_identifier:
+        return False
+    return task_identifier in {
+        _task_id(task).lower(),
+        _task_short_id(task).lower(),
+    }
 
 
 @handle_errors("resolving canonical task due date", default_return=None)
 def _task_due_date(task: dict[str, Any]) -> str | None:
-    """Return canonical due date, with temporary legacy fallback support."""
+    """Return canonical due date."""
     due = task.get("due")
     if isinstance(due, dict):
         return due.get("date")
-    # LEGACY COMPATIBILITY: Temporary runtime bridge for v1 due_date field.
-    if task.get("due_date") is not None:
-        logger.warning("LEGACY COMPATIBILITY: task runtime fallback used for due_date field.")
-    return task.get("due_date")
+    return None
 
 
 @handle_errors("resolving canonical task due time", default_return=None)
 def _task_due_time(task: dict[str, Any]) -> str | None:
-    """Return canonical due time, with temporary legacy fallback support."""
+    """Return canonical due time."""
     due = task.get("due")
     if isinstance(due, dict):
         return due.get("time")
-    # LEGACY COMPATIBILITY: Temporary runtime bridge for v1 due_time field.
-    if task.get("due_time") is not None:
-        logger.warning("LEGACY COMPATIBILITY: task runtime fallback used for due_time field.")
-    return task.get("due_time")
+    return None
 
 
 @handle_errors("resolving canonical task reminder periods", default_return=[])
 def _task_reminder_periods(task: dict[str, Any]) -> list[dict[str, Any]]:
-    """Return reminder periods from canonical reminders with legacy fallback."""
+    """Return reminder periods from canonical reminders."""
     reminders = task.get("reminders")
     if isinstance(reminders, list):
         periods = []
@@ -81,32 +88,16 @@ def _task_reminder_periods(task: dict[str, Any]) -> list[dict[str, Any]]:
                 periods.append(period)
         if periods:
             return periods
-    legacy_periods = task.get("reminder_periods")
-    if isinstance(legacy_periods, list):
-        # LEGACY COMPATIBILITY: Temporary runtime bridge for v1 reminder_periods field.
-        logger.warning("LEGACY COMPATIBILITY: task runtime fallback used for reminder_periods field.")
-        return [period for period in legacy_periods if isinstance(period, dict)]
     return []
 
 
 @handle_errors("resolving canonical task recurrence", default_return={})
 def _task_recurrence(task: dict[str, Any]) -> dict[str, Any]:
-    """Return recurrence data from canonical structure with legacy fallback."""
+    """Return recurrence data from canonical structure."""
     recurrence = task.get("recurrence")
     if isinstance(recurrence, dict):
         return recurrence
-    # LEGACY COMPATIBILITY: Temporary runtime bridge for v1 recurrence_* fields.
-    if any(
-        task.get(key) is not None
-        for key in ("recurrence_pattern", "recurrence_interval", "repeat_after_completion", "next_due_date")
-    ):
-        logger.warning("LEGACY COMPATIBILITY: task runtime fallback used for recurrence_* fields.")
-    return {
-        "pattern": task.get("recurrence_pattern"),
-        "interval": task.get("recurrence_interval", 1),
-        "repeat_after_completion": task.get("repeat_after_completion", True),
-        "next_due_date": task.get("next_due_date"),
-    }
+    return {}
 
 
 @handle_errors("creating new task", default_return=None)
@@ -123,6 +114,8 @@ def create_task(
     recurrence_pattern: str | None = None,
     recurrence_interval: int = 1,
     repeat_after_completion: bool = True,
+    category: str = "",
+    group: str = "",
 ) -> str | None:
     """Create a new task for a user."""
     if not user_id or not isinstance(user_id, str):
@@ -154,26 +147,38 @@ def create_task(
         return None
 
     task_id = str(uuid.uuid4())
+    short_id = generate_short_id(task_id, "task")
+    reminders: list[dict[str, Any]] = []
+    for period in reminder_periods or []:
+        if isinstance(period, dict):
+            reminders.append({"kind": "scheduled", "period": period})
+    for quick in quick_reminders or []:
+        reminders.append({"kind": "quick", "value": quick})
     task = {
         "id": task_id,
+        "short_id": short_id,
+        "kind": "task",
         "title": title,
         "description": description or "",
+        "category": str(category or ""),
+        "group": str(group or ""),
+        "tags": [str(tag) for tag in (tags or []) if isinstance(tag, str)],
         "status": "active",
         "due": {"date": due_date, "time": due_time},
         "created_at": now_timestamp_full(),
+        "updated_at": now_timestamp_full(),
         "priority": priority,
+        "completion": {"completed": False, "completed_at": None, "notes": ""},
     }
-    if reminder_periods:
-        task["reminder_periods"] = reminder_periods
-    if tags:
-        task["tags"] = tags
-    if quick_reminders:
-        task["quick_reminders"] = quick_reminders
+    if reminders:
+        task["reminders"] = reminders
     if recurrence_pattern:
-        task["recurrence_pattern"] = recurrence_pattern
-        task["recurrence_interval"] = recurrence_interval
-        task["repeat_after_completion"] = repeat_after_completion
-        task["next_due_date"] = due_date
+        task["recurrence"] = {
+            "pattern": recurrence_pattern,
+            "interval": recurrence_interval,
+            "repeat_after_completion": repeat_after_completion,
+            "next_due_date": due_date,
+        }
 
     tasks = load_active_tasks(user_id)
     tasks.append(task)
@@ -194,7 +199,8 @@ def update_task(user_id: str, task_id: str, updates: dict[str, Any]) -> bool:
         return False
     tasks = load_active_tasks(user_id)
     for task in tasks:
-        if _task_id(task) == task_id:
+        if _task_matches_identifier(task, task_id):
+            canonical_task_id = _task_id(task)
             updated_fields = []
             for field, value in updates.items():
                 ok, reason = validate_update_field(field, value)
@@ -203,22 +209,43 @@ def update_task(user_id: str, task_id: str, updates: dict[str, Any]) -> bool:
                         logger.warning(f"Task {task_id}: {reason}")
                     continue
                 old_value = task.get(field, "None")
-                task[field] = value
+                if field == "due_date":
+                    task.setdefault("due", {})["date"] = value
+                elif field == "due_time":
+                    task.setdefault("due", {})["time"] = value
+                elif field == "reminder_periods":
+                    reminder_periods = value if isinstance(value, list) else []
+                    task["reminders"] = [{"kind": "scheduled", "period": p} for p in reminder_periods if isinstance(p, dict)]
+                elif field == "quick_reminders":
+                    existing = [r for r in task.get("reminders", []) if isinstance(r, dict) and r.get("kind") == "scheduled"]
+                    quick = [{"kind": "quick", "value": q} for q in (value if isinstance(value, list) else [])]
+                    task["reminders"] = existing + quick
+                elif field in {"recurrence_pattern", "recurrence_interval", "repeat_after_completion", "next_due_date"}:
+                    recurrence = task.setdefault("recurrence", {})
+                    key_map = {
+                        "recurrence_pattern": "pattern",
+                        "recurrence_interval": "interval",
+                        "repeat_after_completion": "repeat_after_completion",
+                        "next_due_date": "next_due_date",
+                    }
+                    recurrence[key_map[field]] = value
+                else:
+                    task[field] = value
                 updated_fields.append(f"{field}: {old_value} -> {value}")
-            task["last_updated"] = now_timestamp_full()
+            task["updated_at"] = now_timestamp_full()
             if not save_active_tasks(user_id, tasks):
                 logger.error(f"Failed to save updated task for user {user_id}")
                 return False
-            logger.info(f"Updated task {task_id} for user {user_id} | Fields: {', '.join(updated_fields)}")
+            logger.info(f"Updated task {canonical_task_id} for user {user_id} | Fields: {', '.join(updated_fields)}")
             if "reminder_periods" in updates:
-                cleanup_task_reminders(user_id, task_id)
+                cleanup_task_reminders(user_id, canonical_task_id)
                 new_reminder_periods = updates.get("reminder_periods")
                 if new_reminder_periods:
                     try:
-                        schedule_task_reminders(user_id, task_id, new_reminder_periods)
+                        schedule_task_reminders(user_id, canonical_task_id, new_reminder_periods)
                     except Exception as schedule_error:
                         logger.warning(
-                            f"Failed to schedule reminders for task {task_id}, but task was updated: {schedule_error}"
+                            f"Failed to schedule reminders for task {canonical_task_id}, but task was updated: {schedule_error}"
                         )
             return True
     logger.warning(f"Task {task_id} not found for user {user_id}")
@@ -237,7 +264,7 @@ def complete_task(
     task_to_complete = None
     updated_active_tasks = []
     for task in active_tasks:
-        if _task_id(task) == task_id:
+        if _task_matches_identifier(task, task_id):
             task_to_complete = task.copy()
             task_to_complete["status"] = "completed"
             if completion_data:
@@ -295,7 +322,7 @@ def restore_task(user_id: str, task_id: str) -> bool:
     task_to_restore = None
     updated_completed_tasks = []
     for task in completed_tasks:
-        if _task_id(task) == task_id:
+        if _task_matches_identifier(task, task_id):
             task_to_restore = task.copy()
             task_to_restore["status"] = "active"
             task_to_restore["completion"] = {"completed": False, "completed_at": None, "notes": ""}
@@ -325,11 +352,11 @@ def delete_task(user_id: str, task_id: str) -> bool:
     tasks = load_active_tasks(user_id)
     task_to_delete = None
     for task in tasks:
-        if _task_id(task) == task_id:
+        if _task_matches_identifier(task, task_id):
             task_to_delete = task
             break
     original_count = len(tasks)
-    tasks = [t for t in tasks if _task_id(t) != task_id]
+    tasks = [t for t in tasks if not _task_matches_identifier(t, task_id)]
     if len(tasks) == original_count:
         logger.warning(f"Task {task_id} not found for deletion for user {user_id}")
         return False
@@ -349,10 +376,10 @@ def get_task_by_id(user_id: str, task_id: str) -> dict[str, Any] | None:
         logger.error("User ID and task ID are required for task lookup")
         return None
     for task in load_active_tasks(user_id):
-        if _task_id(task) == task_id:
+        if _task_matches_identifier(task, task_id):
             return task
     for task in load_completed_tasks(user_id):
-        if _task_id(task) == task_id:
+        if _task_matches_identifier(task, task_id):
             return task
     logger.debug(f"Task {task_id} not found for user {user_id}")
     return None
@@ -520,13 +547,19 @@ def _create_next_recurring_task_instance(user_id: str, completed_task: dict[str,
         return False
     next_due_date_str = format_timestamp(next_due_date, DATE_ONLY)
 
+    next_task_id = str(uuid.uuid4())
     next_task = {
-        "id": str(uuid.uuid4()),
+        "id": next_task_id,
+        "short_id": generate_short_id(next_task_id, "task"),
+        "kind": "task",
         "title": completed_task.get("title"),
         "description": completed_task.get("description", ""),
+        "category": completed_task.get("category", ""),
+        "group": completed_task.get("group", ""),
         "status": "active",
         "due": {"date": next_due_date_str, "time": _task_due_time(completed_task)},
         "created_at": now_timestamp_full(),
+        "updated_at": now_timestamp_full(),
         "priority": completed_task.get("priority", "medium"),
         "recurrence": {
             "pattern": recurrence_pattern,
@@ -537,11 +570,12 @@ def _create_next_recurring_task_instance(user_id: str, completed_task: dict[str,
     }
     reminder_periods = _task_reminder_periods(completed_task)
     if reminder_periods:
-        next_task["reminder_periods"] = reminder_periods
+        next_task["reminders"] = [{"kind": "scheduled", "period": p} for p in reminder_periods if isinstance(p, dict)]
     if completed_task.get("tags"):
         next_task["tags"] = completed_task["tags"]
-    if completed_task.get("quick_reminders"):
-        next_task["quick_reminders"] = completed_task["quick_reminders"]
+    for reminder in completed_task.get("reminders", []):
+        if isinstance(reminder, dict) and reminder.get("kind") == "quick":
+            next_task.setdefault("reminders", []).append(reminder)
 
     tasks = load_active_tasks(user_id)
     tasks.append(next_task)
@@ -549,8 +583,10 @@ def _create_next_recurring_task_instance(user_id: str, completed_task: dict[str,
         logger.error(f"Failed to save next recurring task instance for user {user_id}")
         return False
     logger.info(f"Created next recurring task instance for task {_task_id(completed_task)} with due date {next_due_date_str}")
-    if next_task.get("reminder_periods"):
-        schedule_task_reminders(user_id, _task_id(next_task), next_task["reminder_periods"])
+    if next_task.get("reminders"):
+        reminder_periods = [r.get("period") for r in next_task["reminders"] if isinstance(r, dict) and r.get("period")]
+        if reminder_periods:
+            schedule_task_reminders(user_id, _task_id(next_task), reminder_periods)
     return True
 
 

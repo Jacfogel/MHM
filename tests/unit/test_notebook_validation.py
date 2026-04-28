@@ -329,7 +329,7 @@ class TestEntryKindValidation:
     @pytest.mark.smoke
     def test_is_valid_entry_kind_with_valid_kinds(self):
         """Test valid entry kinds."""
-        valid_kinds = ['note', 'list', 'journal', 'NOTE', 'List', 'JOURNAL']
+        valid_kinds = ['note', 'list', 'journal_entry', 'NOTE', 'List', 'JOURNAL_ENTRY']
         
         for kind in valid_kinds:
             result = is_valid_entry_kind(kind)
@@ -449,8 +449,8 @@ class TestEntryContentValidation:
             {'title': None, 'body': 'Body Only', 'kind': 'note'},
             # List (body optional)
             {'title': 'Shopping List', 'body': None, 'kind': 'list'},
-            # Journal
-            {'title': 'Journal Entry', 'body': 'Journal body', 'kind': 'journal'},
+            # Journal entry
+            {'title': 'Journal Entry', 'body': 'Journal body', 'kind': 'journal_entry'},
         ]
         
         for content in test_cases:
@@ -508,14 +508,14 @@ class TestValidationConstants:
         """Test that entry kind prefixes are properly defined."""
         assert 'note' in ENTRY_KIND_PREFIXES
         assert 'list' in ENTRY_KIND_PREFIXES
-        assert 'journal' in ENTRY_KIND_PREFIXES
+        assert 'journal_entry' in ENTRY_KIND_PREFIXES
         assert ENTRY_KIND_PREFIXES['note'] == 'n'
         assert ENTRY_KIND_PREFIXES['list'] == 'l'
-        assert ENTRY_KIND_PREFIXES['journal'] == 'j'
+        assert ENTRY_KIND_PREFIXES['journal_entry'] == 'j'
     
     @pytest.mark.unit
     def test_prefix_to_kind_mapping(self):
         """Test that prefix to kind mapping is correct."""
         assert PREFIX_TO_KIND['n'] == 'note'
         assert PREFIX_TO_KIND['l'] == 'list'
-        assert PREFIX_TO_KIND['j'] == 'journal'
+        assert PREFIX_TO_KIND['j'] == 'journal_entry'

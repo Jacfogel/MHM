@@ -218,7 +218,7 @@ class TestValidationErrorRecovery:
         test_cases = [
             (None, None, 'note'),
             (None, None, 'list'),
-            (None, None, 'journal'),
+            (None, None, 'journal_entry'),
             ('Title', None, 'note'),
             (None, 'Body', 'note'),
         ]

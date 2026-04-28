@@ -21,8 +21,8 @@ class TestTaskCrudDisambiguation:
 
         # Create two similar tasks
         tasks = load_active_tasks(user_id)
-        tasks.append({"title": "Wash dishes", "task_id": "tdishes"})
-        tasks.append({"title": "Wash laundry", "task_id": "tlaundry"})
+        tasks.append({"title": "Wash dishes", "id": "tdishes", "short_id": "t1dishes"})
+        tasks.append({"title": "Wash laundry", "id": "tlaundry", "short_id": "t1laundry"})
         assert save_active_tasks(user_id, tasks)
 
         # Ambiguous command
@@ -38,8 +38,8 @@ class TestTaskCrudDisambiguation:
         user_id = f"user_task_delete_{uuid.uuid4().hex[:8]}"
         assert create_test_user(user_id, user_type="basic", test_data_dir=self.test_data_dir)
         tasks = load_active_tasks(user_id)
-        tasks.append({"title": "Task A", "task_id": "taskaaaa"})
-        tasks.append({"title": "Task B", "task_id": "taskbbbb"})
+        tasks.append({"title": "Task A", "id": "taskaaaa", "short_id": "t1aska"})
+        tasks.append({"title": "Task B", "id": "taskbbbb", "short_id": "t1askb"})
         assert save_active_tasks(user_id, tasks)
 
         # Delete task 2
@@ -53,7 +53,7 @@ class TestTaskCrudDisambiguation:
         user_id = "user_task_confirm"
         assert create_test_user(user_id, user_type="basic", test_data_dir=self.test_data_dir)
         tasks = load_active_tasks(user_id)
-        tasks.append({"title": "Brush teeth", "task_id": "teeth123"})
+        tasks.append({"title": "Brush teeth", "id": "teeth123", "short_id": "tteeth12"})
         assert save_active_tasks(user_id, tasks)
 
         # Name-based delete triggers confirmation
@@ -73,14 +73,14 @@ class TestTaskCrudDisambiguation:
         monkeypatch.setenv("MHM_TEST_DATA_DIR", self.test_data_dir)
         assert create_test_user(user_id, user_type="basic", test_data_dir=self.test_data_dir)
         tasks = load_active_tasks(user_id)
-        tasks.append({"title": "Wash dishes", "task_id": "wash0001"})
+        tasks.append({"title": "Wash dishes", "id": "wash0001", "short_id": "twash001"})
         assert save_active_tasks(user_id, tasks)
 
         resp = handle_user_message(user_id, "update task wash dishes due date 2025-11-02", "discord")
         assert resp.completed is False or resp.completed is True
         # Regardless of completion flag, task due_date should be updated when handler runs
         tasks2 = load_active_tasks(user_id)
-        updated = [t for t in tasks2 if t.get('task_id') == 'wash0001']
+        updated = [t for t in tasks2 if t.get("id") == "wash0001"]
         assert updated and updated[0].get('due_date') in ("2025-11-02", "Nov 2", "2025-11-02T00:00:00")
 
     def test_update_missing_field_prompts_with_suggestions(self, monkeypatch):
@@ -88,7 +88,7 @@ class TestTaskCrudDisambiguation:
         monkeypatch.setenv("MHM_TEST_DATA_DIR", self.test_data_dir)
         assert create_test_user(user_id, user_type="basic", test_data_dir=self.test_data_dir)
         tasks = load_active_tasks(user_id)
-        tasks.append({"title": "Change me", "task_id": "chg001"})
+        tasks.append({"title": "Change me", "id": "chg001", "short_id": "tchg0001"})
         assert save_active_tasks(user_id, tasks)
 
         resp = handle_user_message(user_id, "update task change me", "discord")
@@ -103,7 +103,7 @@ class TestTaskCrudDisambiguation:
         monkeypatch.setenv("MHM_TEST_DATA_DIR", self.test_data_dir)
         assert create_test_user(user_id, user_type="basic", test_data_dir=self.test_data_dir)
         tasks = load_active_tasks(user_id)
-        tasks.append({"title": "Take a walk", "task_id": "walk001"})
+        tasks.append({"title": "Take a walk", "id": "walk001", "short_id": "twalk001"})
         assert save_active_tasks(user_id, tasks)
 
         # Trigger the "Did you want to complete this task?" path by omitting identifier
@@ -119,8 +119,8 @@ class TestTaskCrudDisambiguation:
         monkeypatch.setenv("MHM_TEST_DATA_DIR", self.test_data_dir)
         assert create_test_user(user_id, user_type="basic", test_data_dir=self.test_data_dir)
         tasks = load_active_tasks(user_id)
-        tasks.append({"title": "Wash dishes", "task_id": "washA"})
-        tasks.append({"title": "Wash laundry", "task_id": "washB"})
+        tasks.append({"title": "Wash dishes", "id": "washA", "short_id": "twasha01"})
+        tasks.append({"title": "Wash laundry", "id": "washB", "short_id": "twashb01"})
         assert save_active_tasks(user_id, tasks)
 
         resp = handle_user_message(user_id, "update task wash due date 2025-11-03", "discord")
@@ -133,13 +133,13 @@ class TestTaskCrudDisambiguation:
         monkeypatch.setenv("MHM_TEST_DATA_DIR", self.test_data_dir)
         assert create_test_user(user_id, user_type="basic", test_data_dir=self.test_data_dir)
         tasks = load_active_tasks(user_id)
-        tasks.append({"title": "Rename me", "task_id": "rename01"})
+        tasks.append({"title": "Rename me", "id": "rename01", "short_id": "trename1"})
         assert save_active_tasks(user_id, tasks)
 
         # Update priority
         handle_user_message(user_id, "update task rename me priority high", "discord")
         tasks1 = load_active_tasks(user_id)
-        t1 = [t for t in tasks1 if t.get('task_id') == 'rename01'][0]
+        t1 = [t for t in tasks1 if t.get("id") == "rename01"][0]
         assert t1.get('priority') == 'high'
 
         # Update title (rename) and ensure it is not misread as completion
@@ -147,7 +147,7 @@ class TestTaskCrudDisambiguation:
         handle_user_message(user_id, "update task rename me title \"Completed project\"", "discord")
         tasks_after = load_active_tasks(user_id)
         # Task should still exist (not completed) and either title updated or awaiting clarification
-        still_exists = any(t.get('task_id') == 'rename01' for t in tasks_after)
+        still_exists = any(t.get("id") == "rename01" for t in tasks_after)
         assert still_exists, f"Task should still exist after title update. Tasks: {tasks_after}"
 
 

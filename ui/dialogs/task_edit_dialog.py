@@ -648,8 +648,14 @@ class TaskEditDialog(QDialog):
 
             if self.is_edit:
                 # Update existing task
+                task_identifier = self.task_data.get("id") or self.task_data.get("task_id")
+                if not task_identifier:
+                    QMessageBox.critical(
+                        self, "Error", "Failed to update task: missing task identifier."
+                    )
+                    return
                 success = update_task(
-                    self.user_id, self.task_data["task_id"], task_data
+                    self.user_id, task_identifier, task_data
                 )
                 if success:
                     QMessageBox.information(

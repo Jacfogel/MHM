@@ -77,10 +77,10 @@ class TestRecurringTasks:
         
         task = tasks[0]
         assert task['title'] == "Take medication"
-        assert task['recurrence_pattern'] == "daily"
-        assert task['recurrence_interval'] == 1
-        assert task['repeat_after_completion'] is True
-        assert task['next_due_date'] == "2025-01-15"
+        assert task["recurrence"]["pattern"] == "daily"
+        assert task["recurrence"]["interval"] == 1
+        assert task["recurrence"]["repeat_after_completion"] is True
+        assert task["recurrence"]["next_due_date"] == "2025-01-15"
     
     @patch('core.user_item_storage.get_user_data_dir')
     def test_complete_recurring_task_creates_next_instance(self, mock_get_user_data_dir, temp_user_dir):
@@ -107,7 +107,7 @@ class TestRecurringTasks:
         # Check that the original task is in completed tasks
         completed_tasks = load_completed_tasks(user_id)
         assert len(completed_tasks) == 1
-        assert completed_tasks[0]['task_id'] == task_id
+        assert completed_tasks[0]["id"] == task_id
         assert completed_tasks[0]['completed'] is True
         
         # Check that a new task instance was created
@@ -115,9 +115,9 @@ class TestRecurringTasks:
         assert len(active_tasks) == 1
         
         new_task = active_tasks[0]
-        assert new_task['task_id'] != task_id  # Different task ID
+        assert new_task["id"] != task_id  # Different task ID
         assert new_task['title'] == "Take medication"  # Same title
-        assert new_task['recurrence_pattern'] == "daily"  # Same recurrence pattern
+        assert new_task["recurrence"]["pattern"] == "daily"  # Same recurrence pattern
         assert new_task['completed'] is False  # Not completed
     
     def test_calculate_next_due_date_daily(self):
@@ -205,7 +205,7 @@ class TestRecurringTasks:
         # Check that the task is in completed tasks
         completed_tasks = load_completed_tasks(user_id)
         assert len(completed_tasks) == 1
-        assert completed_tasks[0]['task_id'] == task_id
+        assert completed_tasks[0]["id"] == task_id
         
         # Check that no new task was created
         active_tasks = load_active_tasks(user_id)

@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-04-28 - V2 adoption continuation slices **COMPLETED**
+- **Task runtime IDs**: Added canonical `id` + `short_id` matching in task manager and task command lookup paths, reducing reliance on legacy identifier assumptions while preserving compatibility aliases required by remaining call sites.
+- **Task/notebook tests and contracts**: Updated task behavior/integration assertions to prefer canonical `id` access and switched notebook validation expectations from legacy `journal` to `journal_entry`.
+- **Notebook validation cleanup**: Removed legacy `journal` kind acceptance from notebook validation/prefix maps and simplified schema normalization logging for remaining alias behavior.
+- **Legacy verification and tracking**: Re-ran targeted `--verify` checks for task and notebook legacy terms, updated migration planning docs ([TODO.md](TODO.md), `TASKS_PLAN.md`, `NOTES_PLAN.md`), and refreshed deprecation inventory notes/search terms for the current removal scope.
+
 ### 2026-04-27 - User data v2 native runtime adoption **COMPLETED**
 - **Task/notebook runtime cleanup**: removed task split-file fallback behavior in runtime handlers, shifted task manager logic to canonical v2 task identity/state fields, and aligned notebook runtime/tests to `journal_entry`/v2-first entry semantics.
 - **Message runtime v2-first**: template CRUD now normalizes to v2 template fields (`id`, `text`, `schedule`) and sent-message persistence/archiving now treats `deliveries[]` (`message_template_id`, `sent_text`, `status`, `sent_at`) as the primary storage path.
@@ -148,12 +154,6 @@ Guidelines:
 - **Doc examples (Section 3.0)**: [`example_marker_validation.py`](../development_tools/docs/example_marker_validation.py) + [`analyze_documentation_sync.py`](../development_tools/docs/analyze_documentation_sync.py) `--check-example-markers`; tests in [`test_example_marker_validation.py`](../tests/development_tools/test_example_marker_validation.py). **Ruff**: `_line_has_example_marker` uses `any(...)` (SIM110).
 - **Audit + reports**: `_run_doc_sync_check` invokes `analyze_documentation_sync` with `--json --check-example-markers`; `example_marker_findings` / `example_marker_hint_count` persist in doc-sync JSON and appear in **AI_STATUS** (Snapshot + Documentation Signals) and **CONSOLIDATED_REPORT** (Documentation Status); hints remain **advisory** (do not change doc-sync PASS/FAIL). Stale caches without `example_marker_findings` auto-refresh. Test: [`test_data_loading_helpers.py`](../tests/development_tools/test_data_loading_helpers.py) `test_aggregate_doc_sync_results_example_markers_advisory_do_not_affect_total`.
 - **Overlap noise**: [`EXPECTED_OVERLAPS`](../development_tools/shared/constants.py) adds `development workflow`, `testing guide`; demo-project tests use [`test_config.json`](../tests/development_tools/test_config.json) where applicable; inventory policy asserts `root_ruff_compat_mirror` **exit_criteria**; taxonomy policy test links [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 9 to V5 Section 7.7; [`analyze_ai_work`](../development_tools/ai_work/analyze_ai_work.py) docstring - thin validator (Section 5.3).
-
-### 2026-04-11 - V5 dev-tools continuation (Pyright parity, pip-audit CI skip, tests) **COMPLETED**
-- **Plan/doc**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 4.1 / Section 4.2 reconciled (Bandit/pip-audit Tier 3 shipped; remaining evaluation backlog clarified); Section 2 snapshot updated.
-- **Portability (Section 7.6)**: [`test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py) asserts owned [`pyrightconfig.json`](../development_tools/config/pyrightconfig.json) matches root [`pyproject.toml`](../pyproject.toml) `[tool.pyright]` for shared keys (venvPath differs by design).
-- **pip-audit**: [`analyze_pip_audit.py`](../development_tools/static_checks/analyze_pip_audit.py) honors **`MHM_PIP_AUDIT_SKIP`** (offline/CI); [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 10 + [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) Section 10; [`config.py`](../development_tools/config/config.py) comment.
-- **Inventory (Section 5.6)**: [`test_deprecation_inventory_policy.py`](../tests/development_tools/test_deprecation_inventory_policy.py) validates active `root_ruff_compat_mirror` row; extra unit tests for pip-audit skip, [`run_test_coverage`](../development_tools/tests/run_test_coverage.py) path helper, [`flaky_detector`](../development_tools/tests/flaky_detector.py).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

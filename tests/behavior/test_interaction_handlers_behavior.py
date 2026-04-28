@@ -288,7 +288,7 @@ class TestInteractionHandlersBehavior:
 
         # Verify task exists before trying to complete it
         tasks = load_active_tasks(actual_user_id)
-        assert any(task.get('task_id') == task_id for task in tasks), "Task should exist before completion"
+        assert any(task.get("id") == task_id for task in tasks), "Task should exist before completion"
 
         # Create a parsed command for completing the task
         parsed_command = ParsedCommand(
@@ -307,7 +307,7 @@ class TestInteractionHandlersBehavior:
         
         # Verify task was actually completed in the system
         tasks = load_active_tasks(actual_user_id)
-        assert not any(task.get('task_id') == task_id for task in tasks), "Task should be removed from active tasks"
+        assert not any(task.get("id") == task_id for task in tasks), "Task should be removed from active tasks"
     
     def test_checkin_handler_starts_checkin_flow(self, test_data_dir):
         """Test that CheckinHandler starts a check-in flow."""

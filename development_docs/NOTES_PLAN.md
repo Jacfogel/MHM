@@ -232,8 +232,8 @@ Each item:
 - *Subtasks*:
   - [x] Add `LEGACY COMPATIBILITY` markers/logging to any v1 notebook fallback retained short-term, or remove the fallback outright.
   - [x] Update notebook schemas/handlers to operate directly on v2 fields (`description`, `status`, `journal_entry`) where practical.
-  - [ ] Run legacy `--find` / `--verify` for `body`, `archived`, and `kind: journal` before removing fallback support.
-  - [ ] Update notebook tests that preserve v1 shapes.
+  - [x] Run legacy `--find` / `--verify` for `body`, `archived`, and `kind: journal` before removing fallback support.
+  - [x] Update notebook tests that preserve v1 shapes.
 
 ---
 

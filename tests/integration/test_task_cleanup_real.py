@@ -51,10 +51,10 @@ class TestTaskCleanupReal:
         
         # Verify task exists in active_tasks before completion
         active_before = load_active_tasks(user_id)
-        assert any(t['task_id'] == task_id for t in active_before), "Task should be in active_tasks"
+        assert any(t['id'] == task_id for t in active_before), "Task should be in active_tasks"
         
         completed_before = load_completed_tasks(user_id)
-        assert not any(t['task_id'] == task_id for t in completed_before), "Task should not be in completed_tasks"
+        assert not any(t['id'] == task_id for t in completed_before), "Task should not be in completed_tasks"
         
         # Act: Complete the task (mock scheduler to prevent Windows task creation and document cleanup bug)
         with patch('core.service.get_scheduler_manager') as mock_get_scheduler:
@@ -71,13 +71,13 @@ class TestTaskCleanupReal:
         
         # Verify task moved from active to completed
         active_after = load_active_tasks(user_id)
-        assert not any(t['task_id'] == task_id for t in active_after), "Task should be removed from active_tasks"
+        assert not any(t['id'] == task_id for t in active_after), "Task should be removed from active_tasks"
         
         completed_after = load_completed_tasks(user_id)
-        assert any(t['task_id'] == task_id for t in completed_after), "Task should be in completed_tasks"
+        assert any(t['id'] == task_id for t in completed_after), "Task should be in completed_tasks"
         
         # Verify task has completion timestamp
-        completed_task = next(t for t in completed_after if t['task_id'] == task_id)
+        completed_task = next(t for t in completed_after if t['id'] == task_id)
         assert completed_task['completed'] is True, "Task should be marked completed"
         assert completed_task.get('completed_at') is not None, "Task should have completion timestamp"
         
@@ -119,7 +119,7 @@ class TestTaskCleanupReal:
         
         # Verify task exists before deletion
         active_before = load_active_tasks(user_id)
-        assert any(t['task_id'] == task_id for t in active_before), "Task should exist before deletion"
+        assert any(t['id'] == task_id for t in active_before), "Task should exist before deletion"
         
         # Act: Delete the task (mock scheduler to prevent Windows task creation and document cleanup bug)
         with patch('core.service.get_scheduler_manager') as mock_get_scheduler:
@@ -136,11 +136,11 @@ class TestTaskCleanupReal:
         
         # Verify task removed from active_tasks
         active_after = load_active_tasks(user_id)
-        assert not any(t['task_id'] == task_id for t in active_after), "Task should be removed from active_tasks"
+        assert not any(t['id'] == task_id for t in active_after), "Task should be removed from active_tasks"
         
         # Verify task not in completed_tasks either
         completed_after = load_completed_tasks(user_id)
-        assert not any(t['task_id'] == task_id for t in completed_after), "Task should not be in completed_tasks"
+        assert not any(t['id'] == task_id for t in completed_after), "Task should not be in completed_tasks"
         
         # Verify task cannot be retrieved
         task = get_task_by_id(user_id, task_id)

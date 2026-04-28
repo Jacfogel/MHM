@@ -28,7 +28,7 @@ class TestTaskSuggestionRelevance:
         
         # Create a task
         tasks = load_active_tasks(internal_uid)
-        tasks.append({"title": "Test Task", "task_id": "test001"})
+        tasks.append({"title": "Test Task", "id": "test001", "short_id": "ttest001"})
         save_active_tasks(internal_uid, tasks)
         
         # Trigger update prompt without specifying what to update
@@ -64,8 +64,8 @@ class TestTaskSuggestionRelevance:
         
         # Create multiple tasks
         tasks = load_active_tasks(internal_uid)
-        tasks.append({"title": "Task One", "task_id": "task001"})
-        tasks.append({"title": "Task Two", "task_id": "task002"})
+        tasks.append({"title": "Task One", "id": "task001", "short_id": "ttask001"})
+        tasks.append({"title": "Task Two", "id": "task002", "short_id": "ttask002"})
         save_active_tasks(internal_uid, tasks)
         
         # First, list tasks
@@ -97,7 +97,7 @@ class TestTaskSuggestionRelevance:
         
         # Create a task
         tasks = load_active_tasks(internal_uid)
-        tasks.append({"title": "My Task", "task_id": "mytask01"})
+        tasks.append({"title": "My Task", "id": "mytask01", "short_id": "tmytask1"})
         save_active_tasks(internal_uid, tasks)
         
         # Test handler directly with missing identifier
@@ -118,7 +118,7 @@ class TestTaskSuggestionRelevance:
         
         # Create a task
         tasks = load_active_tasks(internal_uid)
-        tasks.append({"title": "Test Due Task", "task_id": "duetest01"})
+        tasks.append({"title": "Test Due Task", "id": "duetest01", "short_id": "tdue001"})
         save_active_tasks(internal_uid, tasks)
         
         # Update using "due" (not "due date")
@@ -130,7 +130,7 @@ class TestTaskSuggestionRelevance:
         # If it completed, verify the task was updated
         if resp.completed:
             tasks_after = load_active_tasks(internal_uid)
-            task = next((t for t in tasks_after if t.get('task_id') == 'duetest01'), None)
+            task = next((t for t in tasks_after if t.get("id") == "duetest01"), None)
             if task:
                 # Due date should be set (format may vary)
                 assert task.get('due_date') is not None
@@ -144,7 +144,7 @@ class TestTaskSuggestionRelevance:
         
         # Create a task
         tasks = load_active_tasks(internal_uid)
-        tasks.append({"title": "Test Due Date Task", "task_id": "duedatetest01"})
+        tasks.append({"title": "Test Due Date Task", "id": "duedatetest01", "short_id": "tdue002"})
         save_active_tasks(internal_uid, tasks)
         
         # Update using "due date" (full phrase)
@@ -155,7 +155,7 @@ class TestTaskSuggestionRelevance:
         # If it completed, verify the task was updated
         if resp.completed:
             tasks_after = load_active_tasks(internal_uid)
-            task = next((t for t in tasks_after if t.get('task_id') == 'duedatetest01'), None)
+            task = next((t for t in tasks_after if t.get("id") == "duedatetest01"), None)
             if task:
                 # Due date should be set (format may vary)
                 assert task.get('due_date') is not None

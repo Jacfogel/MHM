@@ -374,8 +374,8 @@ class TestTaskManagementHandlerHelpers:
     def test_get_task_candidates_by_exact_id(self):
         """Test _get_task_candidates with exact task_id."""
         tasks = [
-            {"task_id": "abc123", "title": "Task 1"},
-            {"task_id": "def456", "title": "Task 2"},
+            {"id": "abc123", "short_id": "tabc123", "title": "Task 1"},
+            {"id": "def456", "short_id": "tdef456", "title": "Task 2"},
         ]
 
         result = self.handler._get_task_candidates(tasks, "abc123")
@@ -383,21 +383,21 @@ class TestTaskManagementHandlerHelpers:
         assert result[0]["title"] == "Task 1", "Should return correct task"
 
     def test_get_task_candidates_by_short_id(self):
-        """Test _get_task_candidates with 8-character short id."""
+        """Test _get_task_candidates with canonical short_id."""
         tasks = [
-            {"task_id": "abcdef1234567890", "title": "Task 1"},
-            {"task_id": "def4567890123456", "title": "Task 2"},
+            {"id": "abcdef1234567890", "short_id": "tabc1234", "title": "Task 1"},
+            {"id": "def4567890123456", "short_id": "tdef5678", "title": "Task 2"},
         ]
 
-        result = self.handler._get_task_candidates(tasks, "abcdef12")
+        result = self.handler._get_task_candidates(tasks, "tabc1234")
         assert len(result) == 1, "Should return single match for short id"
         assert result[0]["title"] == "Task 1", "Should return correct task"
 
     def test_get_task_candidates_by_number(self):
         """Test _get_task_candidates with task number."""
         tasks = [
-            {"task_id": "abc123", "title": "Task 1"},
-            {"task_id": "def456", "title": "Task 2"},
+            {"id": "abc123", "short_id": "tabc123", "title": "Task 1"},
+            {"id": "def456", "short_id": "tdef456", "title": "Task 2"},
         ]
 
         result = self.handler._get_task_candidates(tasks, "1")
@@ -407,8 +407,8 @@ class TestTaskManagementHandlerHelpers:
     def test_get_task_candidates_by_exact_title(self):
         """Test _get_task_candidates with exact title match."""
         tasks = [
-            {"task_id": "abc123", "title": "Buy groceries"},
-            {"task_id": "def456", "title": "Call mom"},
+            {"id": "abc123", "short_id": "tabc123", "title": "Buy groceries"},
+            {"id": "def456", "short_id": "tdef456", "title": "Call mom"},
         ]
 
         result = self.handler._get_task_candidates(tasks, "Buy groceries")
@@ -418,8 +418,8 @@ class TestTaskManagementHandlerHelpers:
     def test_get_task_candidates_by_partial_title(self):
         """Test _get_task_candidates with partial title match."""
         tasks = [
-            {"task_id": "abc123", "title": "Buy groceries"},
-            {"task_id": "def456", "title": "Buy milk"},
+            {"id": "abc123", "short_id": "tabc123", "title": "Buy groceries"},
+            {"id": "def456", "short_id": "tdef456", "title": "Buy milk"},
         ]
 
         result = self.handler._get_task_candidates(tasks, "groceries")
@@ -431,8 +431,8 @@ class TestTaskManagementHandlerHelpers:
     def test_get_task_candidates_no_match(self):
         """Test _get_task_candidates with no matching tasks."""
         tasks = [
-            {"task_id": "abc123", "title": "Task 1"},
-            {"task_id": "def456", "title": "Task 2"},
+            {"id": "abc123", "short_id": "tabc123", "title": "Task 1"},
+            {"id": "def456", "short_id": "tdef456", "title": "Task 2"},
         ]
 
         result = self.handler._get_task_candidates(tasks, "nonexistent")
@@ -441,8 +441,8 @@ class TestTaskManagementHandlerHelpers:
     def test_find_task_by_identifier_exact_id(self):
         """Test _find_task_by_identifier_for_operation with exact task_id."""
         tasks = [
-            {"task_id": "abc123", "title": "Task 1"},
-            {"task_id": "def456", "title": "Task 2"},
+            {"id": "abc123", "short_id": "tabc123", "title": "Task 1"},
+            {"id": "def456", "short_id": "tdef456", "title": "Task 2"},
         ]
 
         result = self.handler._find_task_by_identifier(tasks, "abc123")
@@ -450,21 +450,21 @@ class TestTaskManagementHandlerHelpers:
         assert result["title"] == "Task 1", "Should return correct task"
 
     def test_find_task_by_identifier_short_id(self):
-        """Test _find_task_by_identifier_for_operation with 8-character short id."""
+        """Test _find_task_by_identifier_for_operation with canonical short_id."""
         tasks = [
-            {"task_id": "abcdef1234567890", "title": "Task 1"},
-            {"task_id": "def4567890123456", "title": "Task 2"},
+            {"id": "abcdef1234567890", "short_id": "tabc1234", "title": "Task 1"},
+            {"id": "def4567890123456", "short_id": "tdef5678", "title": "Task 2"},
         ]
 
-        result = self.handler._find_task_by_identifier(tasks, "abcdef12")
+        result = self.handler._find_task_by_identifier(tasks, "tabc1234")
         assert result is not None, "Should find task"
         assert result["title"] == "Task 1", "Should return correct task"
 
     def test_find_task_by_identifier_number(self):
         """Test _find_task_by_identifier_for_operation with task number."""
         tasks = [
-            {"task_id": "abc123", "title": "Task 1"},
-            {"task_id": "def456", "title": "Task 2"},
+            {"id": "abc123", "short_id": "tabc123", "title": "Task 1"},
+            {"id": "def456", "short_id": "tdef456", "title": "Task 2"},
         ]
 
         result = self.handler._find_task_by_identifier(tasks, "2")
@@ -474,8 +474,8 @@ class TestTaskManagementHandlerHelpers:
     def test_find_task_by_identifier_exact_title(self):
         """Test _find_task_by_identifier_for_operation with exact title."""
         tasks = [
-            {"task_id": "abc123", "title": "Buy groceries"},
-            {"task_id": "def456", "title": "Call mom"},
+            {"id": "abc123", "short_id": "tabc123", "title": "Buy groceries"},
+            {"id": "def456", "short_id": "tdef456", "title": "Call mom"},
         ]
 
         result = self.handler._find_task_by_identifier(tasks, "Buy groceries")
@@ -485,8 +485,8 @@ class TestTaskManagementHandlerHelpers:
     def test_find_task_by_identifier_partial_title(self):
         """Test _find_task_by_identifier_for_operation with partial title."""
         tasks = [
-            {"task_id": "abc123", "title": "Buy groceries"},
-            {"task_id": "def456", "title": "Call mom"},
+            {"id": "abc123", "short_id": "tabc123", "title": "Buy groceries"},
+            {"id": "def456", "short_id": "tdef456", "title": "Call mom"},
         ]
 
         result = self.handler._find_task_by_identifier(tasks, "groceries")
@@ -496,8 +496,8 @@ class TestTaskManagementHandlerHelpers:
     def test_find_task_by_identifier_no_match(self):
         """Test _find_task_by_identifier_for_operation with no match."""
         tasks = [
-            {"task_id": "abc123", "title": "Task 1"},
-            {"task_id": "def456", "title": "Task 2"},
+            {"id": "abc123", "short_id": "tabc123", "title": "Task 1"},
+            {"id": "def456", "short_id": "tdef456", "title": "Task 2"},
         ]
 
         result = self.handler._find_task_by_identifier(tasks, "nonexistent")
@@ -522,13 +522,13 @@ class TestTaskManagementHandlerHelpers:
 
             tasks = [
                 {
-                    "task_id": "abc123",
+                    "id": "abc123",
                     "title": "Future Task",
                     "priority": "high",
                     "due_date": tomorrow,
                 },
                 {
-                    "task_id": "def456",
+                    "id": "def456",
                     "title": "Overdue Task",
                     "priority": "low",
                     "due_date": yesterday,
@@ -557,13 +557,13 @@ class TestTaskManagementHandlerHelpers:
 
             tasks = [
                 {
-                    "task_id": "abc123",
+                    "id": "abc123",
                     "title": "Low Priority",
                     "priority": "low",
                     "due_date": tomorrow,
                 },
                 {
-                    "task_id": "def456",
+                    "id": "def456",
                     "title": "High Priority",
                     "priority": "high",
                     "due_date": tomorrow,
@@ -593,13 +593,13 @@ class TestTaskManagementHandlerHelpers:
 
             tasks = [
                 {
-                    "task_id": "abc123",
+                    "id": "abc123",
                     "title": "Due Tomorrow",
                     "priority": "high",
                     "due_date": tomorrow,
                 },
                 {
-                    "task_id": "def456",
+                    "id": "def456",
                     "title": "Due Today",
                     "priority": "high",
                     "due_date": today,
@@ -619,7 +619,7 @@ class TestTaskManagementHandlerHelpers:
         """Test _handle_list_tasks__format_list formats tasks correctly."""
         tasks = [
             {
-                "task_id": "abc123",
+                "id": "abc123",
                 "title": "Task 1",
                 "priority": "high",
                 "due_date": "2024-12-20",
@@ -636,7 +636,7 @@ class TestTaskManagementHandlerHelpers:
         """Test _handle_list_tasks__format_list includes tags."""
         tasks = [
             {
-                "task_id": "abc123",
+                "id": "abc123",
                 "title": "Task 1",
                 "priority": "medium",
                 "tags": ["work", "urgent"],
@@ -651,7 +651,7 @@ class TestTaskManagementHandlerHelpers:
         """Test _handle_list_tasks__format_list includes description."""
         tasks = [
             {
-                "task_id": "abc123",
+                "id": "abc123",
                 "title": "Task 1",
                 "priority": "low",
                 "description": "Test description",
@@ -664,7 +664,7 @@ class TestTaskManagementHandlerHelpers:
     def test_format_list_limits_to_10(self):
         """Test _handle_list_tasks__format_list limits to 10 tasks."""
         tasks = [
-            {"task_id": f"abc{i}", "title": f"Task {i}", "priority": "medium"}
+            {"id": f"abc{i}", "title": f"Task {i}", "priority": "medium"}
             for i in range(15)
         ]
 

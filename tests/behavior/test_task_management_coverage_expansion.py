@@ -305,7 +305,7 @@ class TestTaskManagementCoverageExpansion:
         assert len(tasks) == 1
 
         task = tasks[0]
-        assert task["task_id"] == task_id
+        assert task["id"] == task_id
         assert task["title"] == "Complete Task"
         assert task["description"] == "Full description"
         assert task["due_date"] == "2024-12-31"
@@ -438,7 +438,7 @@ class TestTaskManagementCoverageExpansion:
         tasks = load_active_tasks(user_id)
         task = tasks[0]
         assert task["title"] == "Updated Title"  # Allowed field updated
-        assert task["task_id"] == task_id  # Disallowed field not updated
+        assert task["id"] == task_id  # Disallowed field not updated
         assert task["completed"] is False  # Disallowed field not updated
         assert task["created_at"] != "2024-01-01"  # Disallowed field not updated
 
@@ -715,7 +715,7 @@ class TestTaskManagementCoverageExpansion:
         # Verify task was not moved to completed (save failed)
         active_tasks = load_active_tasks(user_id)
         assert len(active_tasks) == 1  # Task should still be active
-        assert active_tasks[0]["task_id"] == task_id
+        assert active_tasks[0]["id"] == task_id
         assert active_tasks[0]["completed"] is False
 
     def test_complete_task_save_completed_failure_real_behavior(
@@ -871,7 +871,7 @@ class TestTaskManagementCoverageExpansion:
         # Verify task was removed
         tasks = load_active_tasks(user_id)
         assert len(tasks) == 0
-        assert all(task["task_id"] != task_id for task in tasks)
+        assert all(task["id"] != task_id for task in tasks)
 
     def test_delete_task_not_found_real_behavior(self, mock_user_data_dir, user_id):
         """Test deleting a non-existent task."""
@@ -890,7 +890,7 @@ class TestTaskManagementCoverageExpansion:
         task = get_task_by_id(user_id, task_id)
 
         assert task is not None
-        assert task["task_id"] == task_id
+        assert task["id"] == task_id
         assert task["title"] == "Test Task"
         assert task["description"] == "Description"
 
@@ -906,7 +906,7 @@ class TestTaskManagementCoverageExpansion:
         task = get_task_by_id(user_id, task_id)
 
         assert task is not None
-        assert task["task_id"] == task_id
+        assert task["id"] == task_id
         assert task["completed"] is True
 
     def test_get_task_by_id_not_found_real_behavior(self, mock_user_data_dir, user_id):
@@ -934,7 +934,7 @@ class TestTaskManagementCoverageExpansion:
         due_soon_tasks = get_tasks_due_soon(user_id, days_ahead=7)
 
         # Should only include the soon task
-        task_ids = [task["task_id"] for task in due_soon_tasks]
+        task_ids = [task["id"] for task in due_soon_tasks]
         assert id_soon in task_ids
         assert id_late not in task_ids
         assert id_no_date not in task_ids
@@ -978,7 +978,7 @@ class TestTaskManagementCoverageExpansion:
         due_soon_tasks = get_tasks_due_soon(user_id, days_ahead=7)
 
         # Should include task exactly at cutoff (<= cutoff_date)
-        task_ids = [task["task_id"] for task in due_soon_tasks]
+        task_ids = [task["id"] for task in due_soon_tasks]
         assert id_exact in task_ids  # Exactly at cutoff should be included
         assert id_over not in task_ids  # Just over should not be included
 

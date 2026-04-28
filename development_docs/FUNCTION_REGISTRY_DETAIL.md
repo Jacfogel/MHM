@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-28 02:59:58
+> **Last Generated**: 2026-04-28 13:44:52
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 94.2% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 125
-- **Functions Found**: 1743
+- **Functions Found**: 1747
 - **Methods Found**: 1243
 - **Classes Found**: 170
-- **Total Items**: 2986
-- **Functions Documented**: 1623
+- **Total Items**: 2990
+- **Functions Documented**: 1627
 - **Methods Documented**: 1189
 - **Classes Documented**: 122
-- **Total Documented**: 2812
+- **Total Documented**: 2816
 - **Template-Generated**: 4
 - **Last Updated**: 2026-04-28
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (628)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (455)
+### **Communication Functions** (457)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (426)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (33)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (39)
+### **Task Management Functions** (41)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -1081,13 +1081,13 @@ Output examples:
 #### `communication/command_handlers/task_handler.py`
 **Functions:**
 - [OK] `_add_one_calendar_month(dt)` - Advance *dt* by one calendar month, clamping the day to the target month's last day.
-- [OK] `_find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id.
+- [OK] `_find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, canonical id, or short_id.
 
 Shared method to eliminate code duplication. Used by complete, delete, and update handlers.
 
 Args:
     tasks: List of task dictionaries to search
-    identifier: Task identifier (number, name, or task_id)
+    identifier: Task identifier (number, name, id, or short_id)
 
 Returns:
     Task dictionary if found, None otherwise
@@ -1113,6 +1113,8 @@ Returns:
 - [OK] `_handle_uncomplete_task(self, user_id, entities)` - Handle uncomplete/restore: move a completed task back to active.
 - [OK] `_handle_update_task(self, user_id, entities)` - Handle task updates
 - [OK] `_parse_time_string(self, time_str)` - Parse time string to HH:MM format
+- [OK] `_task_identifier(task)` - Return canonical task identifier for command routing.
+- [OK] `_task_short_identifier(task)` - Return canonical short_id for task matching/display.
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
 - [OK] `get_examples(self)` - Get example commands for task management.
 - [OK] `get_help(self)` - Get help text for task management commands.
@@ -1120,13 +1122,13 @@ Returns:
 - [OK] `handle_list_tasks(self, user_id, entities)` - Public entry point for /tasks (list tasks).
 **Classes:**
 - [OK] `TaskManagementHandler` - Handler for task management interactions
-  - [OK] `TaskManagementHandler._find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id.
+  - [OK] `TaskManagementHandler._find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, canonical id, or short_id.
 
 Shared method to eliminate code duplication. Used by complete, delete, and update handlers.
 
 Args:
     tasks: List of task dictionaries to search
-    identifier: Task identifier (number, name, or task_id)
+    identifier: Task identifier (number, name, id, or short_id)
 
 Returns:
     Task dictionary if found, None otherwise
@@ -5055,7 +5057,7 @@ Args:
     user_id: User identifier.
     subdir: Subdirectory name (e.g. 'notebook', 'tasks').
     init_files: Optional mapping of filename -> default JSON-serializable data.
-                Files are created only if missing (e.g. {"active_tasks.json": {"tasks": []}}).
+                Files are created only if missing (e.g. {"tasks.json": {"schema_version": 2, "tasks": []}}).
 
 Returns:
     Path to the subdir, or None on failure.
@@ -5072,7 +5074,7 @@ Returns:
 Args:
     user_id: User identifier.
     subdir: Subdirectory name (e.g. 'notebook', 'tasks').
-    filename: JSON filename (e.g. 'entries.json', 'active_tasks.json').
+    filename: JSON filename (e.g. 'entries.json', 'tasks.json').
     default_data: Returned when file is missing or load fails (must match expected type).
 
 Returns:
@@ -5253,16 +5255,18 @@ Returns:
 **Functions:**
 - [OK] `_calculate_next_due_date(completion_date, recurrence_pattern, recurrence_interval, repeat_after_completion)` - Calculate the next due date for a recurring task.
 - [OK] `_create_next_recurring_task_instance(user_id, completed_task)` - Create the next instance of a recurring task when the current one is completed.
-- [OK] `_task_due_date(task)` - Return canonical due date, with temporary legacy fallback support.
-- [OK] `_task_due_time(task)` - Return canonical due time, with temporary legacy fallback support.
-- [OK] `_task_id(task)` - Return canonical task ID, tolerating legacy key for compatibility.
-- [OK] `_task_recurrence(task)` - Return recurrence data from canonical structure with legacy fallback.
-- [OK] `_task_reminder_periods(task)` - Return reminder periods from canonical reminders with legacy fallback.
+- [OK] `_task_due_date(task)` - Return canonical due date.
+- [OK] `_task_due_time(task)` - Return canonical due time.
+- [OK] `_task_id(task)` - Return canonical task ID.
+- [OK] `_task_matches_identifier(task, task_identifier)` - Match incoming identifier against canonical id/short_id values.
+- [OK] `_task_recurrence(task)` - Return recurrence data from canonical structure.
+- [OK] `_task_reminder_periods(task)` - Return reminder periods from canonical reminders.
+- [OK] `_task_short_id(task)` - Return task short ID from canonical runtime payload.
 - [OK] `add_user_task_tag(user_id, tag)` - Add a new tag to the user's tag list (shared tag system).
 - [OK] `are_tasks_enabled(user_id)` - Check if task management is enabled for a user.
 - [OK] `cleanup_task_reminders(user_id, task_id)` - Clean up all reminders for a specific task.
 - [OK] `complete_task(user_id, task_id, completion_data)` - Mark a task as completed.
-- [OK] `create_task(user_id, title, description, due_date, due_time, priority, reminder_periods, tags, quick_reminders, recurrence_pattern, recurrence_interval, repeat_after_completion)` - Create a new task for a user.
+- [OK] `create_task(user_id, title, description, due_date, due_time, priority, reminder_periods, tags, quick_reminders, recurrence_pattern, recurrence_interval, repeat_after_completion, category, group)` - Create a new task for a user.
 - [OK] `delete_task(user_id, task_id)` - Delete a task (permanently remove it).
 - [OK] `get_task_by_id(user_id, task_id)` - Get a specific task by ID.
 - [OK] `get_tasks_due_soon(user_id, days_ahead)` - Get tasks due within the specified number of days.

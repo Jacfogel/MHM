@@ -326,7 +326,7 @@ class TestTaskReminderIntegration:
                     active_tasks[0]["title"] == "Daily Recurring Task"
                 ), "Next instance should have same title"
                 assert (
-                    active_tasks[0].get("recurrence_pattern") == "daily"
+                    active_tasks[0].get("recurrence", {}).get("pattern") == "daily"
                 ), "Next instance should be recurring"
 
                 # Verify reminders were scheduled for next instance

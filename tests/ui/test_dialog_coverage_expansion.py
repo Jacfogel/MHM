@@ -281,7 +281,8 @@ class TestTaskEditDialogBehavior:
         """Create task edit dialog for testing."""
         # Create dialog with existing task data
         task_data = {
-            'task_id': 'task1',  # Changed from 'id' to 'task_id'
+            "id": "task1",
+            "short_id": "ttask001",
             'title': 'Test Task',
             'description': 'Test Description',
             'due_date': '2024-01-01',

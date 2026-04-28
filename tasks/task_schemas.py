@@ -19,9 +19,14 @@ VALID_PRIORITIES: tuple[str, ...] = ("low", "medium", "high", "urgent", "critica
 ALLOWED_UPDATE_FIELDS: tuple[str, ...] = (
     "title",
     "description",
+    "category",
+    "group",
+    "status",
     "due_date",
     "due_time",
+    "due",
     "reminder_periods",
+    "reminders",
     "priority",
     "tags",
     "quick_reminders",
@@ -29,10 +34,7 @@ ALLOWED_UPDATE_FIELDS: tuple[str, ...] = (
     "recurrence_interval",
     "repeat_after_completion",
     "next_due_date",
+    "recurrence",
 )
 
-# Task file names under user tasks/ subdir (for reference; actual paths built in task_data_handlers)
-ACTIVE_TASKS_FILENAME = "active_tasks.json"
-COMPLETED_TASKS_FILENAME = "completed_tasks.json"
-TASK_SCHEDULES_FILENAME = "task_schedules.json"
 TASKS_V2_FILENAME = "tasks.json"

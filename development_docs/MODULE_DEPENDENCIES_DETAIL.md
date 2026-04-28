@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-28 03:00:00
+> **Last Generated**: 2026-04-28 13:44:54
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 123
-- **Total Imports Found**: 1508
+- **Total Imports Found**: 1509
 - **Dependencies Documented**: 123 (100% coverage)
 - **Standard Library Imports**: 431 (28.6%)
-- **Third-Party Imports**: 233 (15.5%)
-- **Local Imports**: 844 (56.0%)
+- **Third-Party Imports**: 233 (15.4%)
+- **Local Imports**: 845 (56.0%)
 - **Last Updated**: 2026-04-28
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -30,8 +30,8 @@
 ## Import Statistics
 
 - **Standard Library**: 431 imports (28.6%)
-- **Third-Party**: 233 imports (15.5%)
-- **Local**: 844 imports (56.0%)
+- **Third-Party**: 233 imports (15.4%)
+- **Local**: 845 imports (56.0%)
 
 ## Module Dependencies by Directory
 
@@ -2451,6 +2451,7 @@
   - `core/message_management.py`
   - `core/response_tracking.py`
   - `tasks/task_data_handlers.py`
+  - `tasks/task_data_manager.py`
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger, core.time_utilities
@@ -2669,6 +2670,7 @@
     - `core.service (get_scheduler_manager)` (NEW)
     - `core.tags (add_user_tag, get_user_tags, remove_user_tag)` (NEW)
     - `core.time_utilities (DATE_ONLY, format_timestamp, now_datetime_full, now_timestamp_full, parse_date_only, parse_timestamp_full)` (NEW)
+    - `core.user_data_v2 (generate_short_id)` (NEW)
     - `tasks.task_data_handlers (load_active_tasks, load_completed_tasks, save_active_tasks, save_completed_tasks)`
     - `tasks.task_validation (is_valid_priority, is_valid_task_title, validate_update_field)`
   - **Standard Library**:
@@ -2678,7 +2680,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger, core.service, core.tags, core.time_utilities
+- Added: core, core.error_handling, core.logger, core.service, core.tags, core.time_utilities, core.user_data_v2
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

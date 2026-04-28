@@ -175,7 +175,7 @@ def _runtime_task_to_v2(task: dict[str, Any], *, status: str) -> dict[str, Any] 
     if not task_id:
         task_id = generate_short_id(now_timestamp_full(), "task", length=12)
     created_at = _canonical_timestamp(task.get("created_at")) or now_timestamp_full()
-    updated_at = _canonical_timestamp(task.get("updated_at") or task.get("last_updated") or created_at) or created_at
+    updated_at = _canonical_timestamp(task.get("updated_at") or created_at) or created_at
     due_raw = task.get("due")
     recurrence_raw = task.get("recurrence")
     completion_raw = task.get("completion")
@@ -186,7 +186,7 @@ def _runtime_task_to_v2(task: dict[str, Any], *, status: str) -> dict[str, Any] 
     completion: dict[str, Any] = (
         cast(dict[str, Any], completion_raw) if isinstance(completion_raw, dict) else {}
     )
-    completed_at = completion.get("completed_at") or task.get("completed_at")
+    completed_at = completion.get("completed_at")
     completed = status == "completed"
     metadata = dict(task.get("metadata") or {})
     for key, value in task.items():
@@ -204,20 +204,20 @@ def _runtime_task_to_v2(task: dict[str, Any], *, status: str) -> dict[str, Any] 
         "priority": _normalized_priority(task.get("priority")) or "medium",
         "status": status,
         "due": {
-            "date": due.get("date") or task.get("due_date"),
-            "time": due.get("time") or task.get("due_time"),
+            "date": due.get("date"),
+            "time": due.get("time"),
         },
         "reminders": _runtime_reminders_to_v2(task),
         "recurrence": {
-            "pattern": recurrence.get("pattern") or task.get("recurrence_pattern"),
-            "interval": recurrence.get("interval") or task.get("recurrence_interval") or 1,
-            "repeat_after_completion": recurrence.get("repeat_after_completion", task.get("repeat_after_completion", True)),
-            "next_due_date": recurrence.get("next_due_date") or task.get("next_due_date"),
+            "pattern": recurrence.get("pattern"),
+            "interval": recurrence.get("interval") or 1,
+            "repeat_after_completion": recurrence.get("repeat_after_completion", True),
+            "next_due_date": recurrence.get("next_due_date"),
         },
         "completion": {
             "completed": completed,
             "completed_at": _nullable_timestamp(completed_at) if completed else None,
-            "notes": str(completion.get("notes") or task.get("completion_notes") or ""),
+            "notes": str(completion.get("notes") or ""),
         },
         "source": task.get("source") or {"system": "mhm", "channel": "", "actor": "", "migration": None},
         "linked_item_ids": task.get("linked_item_ids") or [],
@@ -239,18 +239,14 @@ def _task_v2_to_runtime(task: dict[str, Any]) -> dict[str, Any]:
         "id": task.get("id"),
         "short_id": task.get("short_id"),
         "kind": "task",
-        "task_id": task.get("id"),
         "title": task.get("title", ""),
         "description": task.get("description", ""),
         "category": task.get("category", ""),
         "group": task.get("group", ""),
         "status": task.get("status", "active"),
         "due": due,
-        "due_date": due.get("date"),
-        "due_time": due.get("time"),
-        "completed": task.get("status") == "completed",
         "created_at": task.get("created_at"),
-        "completed_at": completion.get("completed_at"),
+        "updated_at": task.get("updated_at"),
         "priority": task.get("priority", "medium"),
         "tags": task.get("tags", []),
         "reminders": task.get("reminders", []),
@@ -261,37 +257,26 @@ def _task_v2_to_runtime(task: dict[str, Any]) -> dict[str, Any]:
         "archived_at": task.get("archived_at"),
         "deleted_at": task.get("deleted_at"),
         "metadata": task.get("metadata", {}),
-        "last_updated": task.get("updated_at"),
     }
+    # Temporary runtime aliases until all callers/tests consume canonical fields directly.
+    runtime["due_date"] = due.get("date")
+    runtime["due_time"] = due.get("time")
+    runtime["completed"] = task.get("status") == "completed"
+    runtime["completed_at"] = completion.get("completed_at")
     if completion.get("notes"):
         runtime["completion_notes"] = completion.get("notes")
-    if task.get("reminders"):
-        reminder_periods = []
-        quick_reminders = []
-        for reminder in task.get("reminders", []):
-            if not isinstance(reminder, dict):
-                continue
-            if reminder.get("kind") == "quick":
-                quick_reminders.append(reminder.get("value"))
-            elif reminder.get("period"):
-                reminder_periods.append(reminder.get("period"))
-            else:
-                scheduled = {
-                    key: value
-                    for key, value in reminder.items()
-                    if key != "kind"
-                }
-                if scheduled:
-                    reminder_periods.append(scheduled)
-        if reminder_periods:
-            runtime["reminder_periods"] = reminder_periods
-        if quick_reminders:
-            runtime["quick_reminders"] = quick_reminders
-    if recurrence.get("pattern"):
-        runtime["recurrence_pattern"] = recurrence.get("pattern")
-        runtime["recurrence_interval"] = recurrence.get("interval", 1)
-        runtime["repeat_after_completion"] = recurrence.get("repeat_after_completion", True)
-        runtime["next_due_date"] = recurrence.get("next_due_date")
+    runtime["last_updated"] = task.get("updated_at")
+    reminders = task.get("reminders", [])
+    runtime["reminder_periods"] = [
+        reminder.get("period")
+        for reminder in reminders
+        if isinstance(reminder, dict) and reminder.get("period")
+    ]
+    runtime["quick_reminders"] = [
+        reminder.get("value")
+        for reminder in reminders
+        if isinstance(reminder, dict) and reminder.get("kind") == "quick"
+    ]
     return runtime
 
 
@@ -315,22 +300,9 @@ _TASK_V1_FIELDS = {
 @handle_errors("converting runtime reminder fields to v2", default_return=[])
 def _runtime_reminders_to_v2(task: dict[str, Any]) -> list[dict[str, Any]]:
     """Convert runtime reminder fields into canonical v2 reminder records."""
-    if isinstance(task.get("reminders"), list) and (
-        task.get("reminders")
-        or ("reminder_periods" not in task and "quick_reminders" not in task)
-    ):
+    if isinstance(task.get("reminders"), list):
         return [reminder for reminder in task["reminders"] if isinstance(reminder, dict)]
-    reminders = []
-    for period in task.get("reminder_periods") or []:
-        if isinstance(period, dict):
-            reminder = dict(period)
-            reminder.setdefault("kind", "scheduled")
-            reminders.append(reminder)
-        else:
-            reminders.append({"period": period, "kind": "scheduled"})
-    for reminder in task.get("quick_reminders") or []:
-        reminders.append({"value": reminder, "kind": "quick"})
-    return reminders
+    return []
 
 
 @handle_errors("normalizing canonical task timestamp", default_return=None)

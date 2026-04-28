@@ -50,7 +50,7 @@ def ensure_user_subdir(
         user_id: User identifier.
         subdir: Subdirectory name (e.g. 'notebook', 'tasks').
         init_files: Optional mapping of filename -> default JSON-serializable data.
-                    Files are created only if missing (e.g. {"active_tasks.json": {"tasks": []}}).
+                    Files are created only if missing (e.g. {"tasks.json": {"schema_version": 2, "tasks": []}}).
 
     Returns:
         Path to the subdir, or None on failure.
@@ -82,7 +82,7 @@ def load_user_json_file(
     Args:
         user_id: User identifier.
         subdir: Subdirectory name (e.g. 'notebook', 'tasks').
-        filename: JSON filename (e.g. 'entries.json', 'active_tasks.json').
+        filename: JSON filename (e.g. 'entries.json', 'tasks.json').
         default_data: Returned when file is missing or load fails (must match expected type).
 
     Returns:

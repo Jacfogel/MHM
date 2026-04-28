@@ -62,76 +62,50 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
 - *Why it helps*: Prevents old schemas from becoming permanent hidden APIs after successful migration.
 - *Estimated effort*: Large
 - *Created*: 2026-04-27
-- *Subtasks*:
-  - [x] Triage the initial `--find "active_tasks.json"` result from 2026-04-27, which still shows active task code and tests referencing the v1 split-file path.
-  - [x] Remove or rewrite tests that exist only to preserve old v1 shapes after v2-native behavior is covered.
-  - [x] Confirm active code/config no longer depends on v1 task split files, old notebook `body`, old message `message`, or old sent-message `messages[]` structures.
+- *Status*: Completed and documented in paired changelogs (`development_docs/CHANGELOG_DETAIL.md`, `ai_development_docs/AI_CHANGELOG.md`).
 
 **Unmix `core/user_data_v2.py` into migration tooling and real runtime modules**
 - *What it means*: Split `core/user_data_v2.py` so one-time migration code moves out of core project modules, while lasting schemas/validation are integrated into the existing schema and validation module structure.
 - *Why it helps*: Keeps migration tooling from becoming permanent production surface area and avoids creating a parallel schema system beside the established task, notebook, and core validation modules.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
-- *Subtasks*:
-  - [x] Explore moving task v2 schemas/validators into `tasks/task_schemas.py` and `tasks/task_validation.py`.
-  - [x] Explore moving notebook/list/journal v2 schemas/validators into `notebook/notebook_schemas.py` and `notebook/notebook_validation.py`.
-  - [x] Explore moving shared v2 item/source/timestamp validation into `core/schemas.py`, `core/user_data_validation.py`, or another existing core validation home.
-  - [x] Decide where message template, message delivery, and check-in v2 schemas belong before moving them.
-  - [x] Keep `scripts/migrate_user_data_v2.py` as the untracked CLI entry point unless a tracked admin tool is intentionally designed later.
+- *Status*: Completed and documented in paired changelogs (`development_docs/CHANGELOG_DETAIL.md`, `ai_development_docs/AI_CHANGELOG.md`).
 
 **Make task runtime v2-native**
 - *What it means*: Update task runtime code to operate on canonical v2 task fields instead of converting back to old task dictionaries.
 - *Why it helps*: Keeps `tasks/tasks.json` as the real source of truth and reduces conversion bugs.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
-- *Subtasks*:
-  - [x] Remove fallback reads of `active_tasks.json`, `completed_tasks.json`, and `task_schedules.json` after legacy verification is clean.
-  - [x] Update task fixtures to v2 shapes.
+- *Status*: Completed and documented in paired changelogs (`development_docs/CHANGELOG_DETAIL.md`, `ai_development_docs/AI_CHANGELOG.md`).
 
 **Make notebook runtime v2-native**
 - *What it means*: Update notebook code to use v2 fields (`description`, `status`, `journal_entry`) without converting to old `body`/`archived` assumptions except where explicitly temporary.
 - *Why it helps*: Keeps notes, lists, and journal entries aligned with the canonical shared item model.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
-- *Subtasks*:
-  - [x] Remove fallback support for old `body`, `archived`, and `kind: journal` shapes after legacy verification is clean.
-  - [x] Update notebook fixtures to v2 shapes.
+- *Status*: Completed and documented in paired changelogs (`development_docs/CHANGELOG_DETAIL.md`, `ai_development_docs/AI_CHANGELOG.md`).
 
 **Make message runtime and archives v2-native**
 - *What it means*: Update message template CRUD, delivery tracking, and sent-message archiving to operate on v2 templates and `deliveries[]`.
 - *Why it helps*: Ensures the messaging system fully benefits from the v2 separation between reusable templates and delivery history.
 - *Estimated effort*: Large
 - *Created*: 2026-04-27
-- *Subtasks*:
-  - [x] Update add/edit/delete template paths to use `id`, `text`, and `schedule.days` / `schedule.periods`.
-  - [x] Update sent-message history reads/writes to use `deliveries[]`, `message_template_id`, `sent_text`, `status`, and `sent_at`.
-  - [x] Update `archive_old_messages()` to archive v2 `deliveries[]` records and decide whether historical v1 archive files should remain read-only.
-  - [x] Remove old `messages[]`, `message_id`, `message`, `delivery_status`, and `timestamp` fallbacks after legacy verification is clean.
+- *Status*: Completed and documented in paired changelogs (`development_docs/CHANGELOG_DETAIL.md`, `ai_development_docs/AI_CHANGELOG.md`).
 
 **Finish check-in v2 adoption**
 - *What it means*: Update analytics and AI context code to read check-in answers from `responses` consistently.
 - *Why it helps*: Prevents future check-in question changes from requiring top-level schema changes.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
-- *Subtasks*:
-  - [x] Identify all code reading direct check-in fields such as `mood`, `energy`, `ate_breakfast`, and `brushed_teeth`.
-  - [x] Update reads to use `responses`.
-  - [x] Add helper functions for common response access where that reduces duplication.
-  - [x] Remove fallback reads for old flat fields after legacy verification is clean.
+- *Status*: Completed and documented in paired changelogs (`development_docs/CHANGELOG_DETAIL.md`, `ai_development_docs/AI_CHANGELOG.md`).
 
 **Audit top-level user files outside the v2 item migration**
 - *What it means*: Confirm whether `account.json`, `preferences.json`, `schedules.json`, `tags.json`, `user_context.json`, and `chat_interactions.json` need future schema work or should explicitly remain under their current model.
 - *Why it helps*: The v2 item migration intentionally skipped these files, but the old inventory task also called them out and they should not be forgotten.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
-- *Subtasks*:
-  - [ ] Review current wrapper shape and validation ownership for `account.json`.
-  - [ ] Review current wrapper shape and validation ownership for `preferences.json`.
-  - [ ] Review current wrapper shape and validation ownership for `schedules.json` alongside the schedule normalization follow-up below.
-  - [ ] Review current wrapper shape and validation ownership for `tags.json`.
-  - [ ] Review current wrapper shape and validation ownership for `user_context.json`.
-  - [ ] Review current wrapper shape and validation ownership for `chat_interactions.json`.
-  - [ ] Add a separate migration task only if a concrete schema mismatch or future SQLite requirement is found.
+- *Status*: Completed on 2026-04-28 and documented in paired changelogs (`development_docs/CHANGELOG_DETAIL.md`, `ai_development_docs/AI_CHANGELOG.md`).
+- *Result*: `account.json`/`preferences.json`/`schedules.json` remain schema-owned via `core/schemas.py` + `core/user_data_registry.py`; `tags.json` remains owned via `core/tags.py`; `user_context.json` and `chat_interactions.json` remain runtime-owned for now.
 
 ### Schedule Data Model Follow-up
 
@@ -140,12 +114,8 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
 - *Why it helps*: A flatter schedule model would map better to SQLite, but this should not distract from task/note/check-in/message migration.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-26
-- *Subtasks*:
-  - [ ] Inventory current schedule scopes and periods.
-  - [ ] Decide whether to keep nested schedule structure temporarily.
-  - [ ] If flattening, define canonical schedule period fields.
-  - [ ] Avoid creating compatibility layers until the schedule migration is actually implemented.
-  - [ ] If compatibility is required, mark it temporary and add planned removal.
+- *Status*: Completed on 2026-04-28 and documented in paired changelogs (`development_docs/CHANGELOG_DETAIL.md`, `ai_development_docs/AI_CHANGELOG.md`).
+- *Decision*: Keep nested `schedules.json` short-term; if flattened later, canonical fields are `id`, `scope`, `scope_value`, `day`, `start_time`, `end_time`, `enabled`, `source`, `created_at`, `updated_at`.
 
 ### Quality & Operations (high priority within medium)
 

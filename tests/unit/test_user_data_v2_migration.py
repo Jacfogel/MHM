@@ -502,9 +502,9 @@ def test_runtime_task_handlers_accept_and_write_v2_task_file(tmp_path, monkeypat
     assert active[0]["id"] == "task-active"
     assert active[0]["short_id"] == "tactive"
     assert active[0]["status"] == "active"
-    assert active[0]["task_id"] == "task-active"
+    assert "task_id" not in active[0]
     assert active[0]["completed"] is False
-    assert completed[0]["task_id"] == "task-completed"
+    assert completed[0]["id"] == "task-completed"
     assert completed[0]["completed"] is True
 
     assert save_active_tasks(

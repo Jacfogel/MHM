@@ -36,6 +36,18 @@ logger = get_component_logger("communication_manager")
 handlers_logger = logger
 
 
+@handle_errors("resolving task identifier", default_return="")
+def _task_identifier(task: dict[str, Any]) -> str:
+    """Return canonical task identifier for command routing."""
+    return str(task.get("id") or task.get("task_id") or "")
+
+
+@handle_errors("resolving task short identifier", default_return="")
+def _task_short_identifier(task: dict[str, Any]) -> str:
+    """Return canonical short_id for task matching/display."""
+    return str(task.get("short_id") or "")
+
+
 @handle_errors("advancing date by one calendar month", re_raise=True)
 def _add_one_calendar_month(dt: datetime) -> datetime:
     """Advance *dt* by one calendar month, clamping the day to the target month's last day."""
@@ -790,8 +802,8 @@ class TaskManagementHandler(InteractionHandler):
             if suggested_task:
                 # Suggest the most urgent task
                 task_title = suggested_task.get("title", "Unknown Task")
-                task_id = suggested_task.get("task_id", "")
-                short_id = task_id[:8] if task_id else ""
+                task_id = _task_identifier(suggested_task)
+                short_id = _task_short_identifier(suggested_task) or (task_id[:8] if task_id else "")
 
                 response = "💡 **Did you want to complete this task?**\n\n"
                 response += f"**{task_title}**\n"
@@ -833,7 +845,7 @@ class TaskManagementHandler(InteractionHandler):
             )
 
         # Complete the task
-        if _get_tasks().complete_task(user_id, task.get("task_id", task.get("id"))):
+        if _get_tasks().complete_task(user_id, _task_identifier(task)):
             return InteractionResponse(f"✅ Completed: {task['title']}", True)
         else:
             return InteractionResponse(
@@ -867,13 +879,13 @@ class TaskManagementHandler(InteractionHandler):
             for t in completed_tasks
             if str(task_identifier).strip().lower()
             in (
-                str(t.get("task_id", "")).lower(),
-                str(t.get("id", "")).lower(),
+                _task_identifier(t).lower(),
+                _task_short_identifier(t).lower(),
                 (t.get("title") or "").lower(),
             )
             or (
                 str(task_identifier).isdigit()
-                and str(t.get("task_id", "")) == str(task_identifier)
+                and _task_identifier(t) == str(task_identifier)
             )
         ]
         if not candidates:
@@ -889,7 +901,7 @@ class TaskManagementHandler(InteractionHandler):
                 "❌ Completed task not found. Please check the task number or name.",
                 True,
             )
-        task_id = task.get("task_id", task.get("id"))
+        task_id = _task_identifier(task)
         if _get_tasks().restore_task(user_id, task_id):
             return InteractionResponse(
                 f"✅ Restored to active: {task.get('title', 'Task')}", True
@@ -939,13 +951,10 @@ class TaskManagementHandler(InteractionHandler):
         # Only numeric IDs and exact task IDs allow immediate deletion
         identifier_str = str(task_identifier).strip().lower()
         is_numeric = identifier_str.isdigit()
-        is_exact_id = identifier_str in [
-            str(task.get("task_id", "")).lower(),
-            str(task.get("id", "")).lower(),
-        ]
+        is_exact_id = identifier_str in [_task_identifier(task).lower(), _task_short_identifier(task).lower()]
         if not is_numeric and not is_exact_id:
             # Name-based deletion requires confirmation
-            PENDING_DELETIONS[user_id] = task.get("task_id", task.get("id"))
+            PENDING_DELETIONS[user_id] = _task_identifier(task)
             title = task.get("title", "this task")
             return InteractionResponse(
                 f"Confirm delete: {title}. Reply 'confirm delete' to proceed.",
@@ -953,7 +962,7 @@ class TaskManagementHandler(InteractionHandler):
             )
 
         # Delete immediately for numeric or id-based selection
-        if _get_tasks().delete_task(user_id, task.get("task_id", task.get("id"))):
+        if _get_tasks().delete_task(user_id, _task_identifier(task)):
             return InteractionResponse(f"🗑️ Deleted: {task['title']}", True)
         else:
             return InteractionResponse(
@@ -1025,7 +1034,7 @@ class TaskManagementHandler(InteractionHandler):
             return InteractionResponse(prompt, completed=False, suggestions=[])
 
         # Update the task
-        if _get_tasks().update_task(user_id, task.get("task_id", task.get("id")), updates):
+        if _get_tasks().update_task(user_id, _task_identifier(task), updates):
             return InteractionResponse(f"✅ Updated: {task['title']}", True)
         else:
             return InteractionResponse(
@@ -1108,13 +1117,13 @@ class TaskManagementHandler(InteractionHandler):
         self, tasks: list[dict], identifier: str
     ) -> dict | None:
         """
-        Find a task by number, name, or task_id.
+        Find a task by number, name, canonical id, or short_id.
 
         Shared method to eliminate code duplication. Used by complete, delete, and update handlers.
 
         Args:
             tasks: List of task dictionaries to search
-            identifier: Task identifier (number, name, or task_id)
+            identifier: Task identifier (number, name, id, or short_id)
 
         Returns:
             Task dictionary if found, None otherwise
@@ -1122,17 +1131,10 @@ class TaskManagementHandler(InteractionHandler):
         if not identifier or not tasks:
             return None
 
-        # Try as task_id first (UUID)
+        # Try canonical id or short_id first
         for task in tasks:
-            if task.get("task_id") == identifier or task.get("id") == identifier:
+            if _task_identifier(task) == identifier or _task_short_identifier(task) == identifier:
                 return task
-
-        # Try as short ID (8-character prefix)
-        if isinstance(identifier, str) and len(identifier) == 8:
-            for task in tasks:
-                tid = task.get("task_id", "")
-                if tid.startswith(identifier):
-                    return task
 
         # Try as number
         try:
@@ -1187,19 +1189,10 @@ class TaskManagementHandler(InteractionHandler):
     @handle_errors("getting task candidates", default_return=[])
     def _get_task_candidates(self, tasks: list[dict], identifier: str) -> list[dict]:
         """Return candidate tasks matching identifier by id, number, or name."""
-        matches: list[dict] = []
-        # Exact id
+        # Exact id or short_id
         for t in tasks:
-            if identifier == t.get("task_id") or identifier == t.get("id"):
+            if identifier == _task_identifier(t) or identifier == _task_short_identifier(t):
                 return [t]
-        # Short id
-        if isinstance(identifier, str) and len(identifier) == 8:
-            for t in tasks:
-                tid = t.get("task_id", "")
-                if tid.startswith(identifier):
-                    matches.append(t)
-            if matches:
-                return matches
         # Number
         try:
             n = int(identifier)

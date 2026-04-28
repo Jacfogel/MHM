@@ -87,21 +87,14 @@ class Entry(BaseModel):
         if not isinstance(data, dict):
             return data
         normalized = dict(data)
-        # LEGACY COMPATIBILITY: Temporary bridge for pre-v2 notebook runtime aliases.
-        if normalized.get("kind") == "journal":
-            logger.warning("LEGACY COMPATIBILITY: notebook schema fallback used for kind='journal'.")
-            normalized["kind"] = "journal_entry"
+        # Runtime still mirrors body/description and archived/status while handlers transition.
         if normalized.get("body") is None and normalized.get("description") is not None:
-            logger.warning("LEGACY COMPATIBILITY: notebook schema fallback mirrored description -> body.")
             normalized["body"] = normalized.get("description")
         if normalized.get("description") is None and normalized.get("body") is not None:
-            logger.warning("LEGACY COMPATIBILITY: notebook schema fallback mirrored body -> description.")
             normalized["description"] = normalized.get("body")
         if "status" not in normalized:
-            logger.warning("LEGACY COMPATIBILITY: notebook schema fallback inferred status from archived flag.")
             normalized["status"] = "archived" if normalized.get("archived") else "active"
         if "archived" not in normalized:
-            logger.warning("LEGACY COMPATIBILITY: notebook schema fallback inferred archived from status.")
             normalized["archived"] = normalized.get("status") == "archived"
         return normalized
 
