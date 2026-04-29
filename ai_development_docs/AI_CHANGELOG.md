@@ -30,6 +30,17 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-04-29 - Scheduler v2 ID fix and Discord sync guard **COMPLETED**
+- **Task reminder scheduler v2 fix**: Updated `core/scheduler.py` to use canonical task `id` when scheduling reminders, eliminating the runtime `'task_id'` failure during startup scheduling.
+- **Discord startup hardening**: Updated Discord bot initialization/sync flow to avoid forcing `application_id=0`; command sync now skips with a clear warning when `application_id` is unavailable instead of raising `Unknown Application`.
+- **Message selection v2 deep-dive fix**: Updated predefined message loading in `communication/core/channel_orchestrator.py` to use the v2-aware runtime loader (`load_user_messages`) instead of legacy schema validation that could collapse v2 templates (`text`/`schedule`) into an empty `messages[]` set.
+- **Test-message helper alignment**: Updated `core/service.py` test-message content helper to read runtime-normalized messages rather than raw legacy message fields, keeping admin-panel test-message previews aligned with v2 templates.
+- **Legacy report cleanup (task flow state)**: Began triaging `LEGACY_REFERENCE_REPORT.md` by migrating conversation flow state storage from `data.task_id` to canonical `data.task_identifier` in `conversation_flow_manager`, with a temporary fallback read for persisted in-flight flow states; aligned `interaction_manager` reminder suggestion lookup and behavior tests.
+- **Legacy report cleanup (ID repair + request payloads)**: Updated `core.user_data_read.ensure_unique_ids` to repair canonical message `id` values (while synchronizing legacy `message_id` alias), and updated task-reminder request handling in `core/service.py` to accept canonical `task_identifier` payloads with fallback to `task_id`.
+- **Legacy report cleanup (timestamp/status reads)**: Updated analytics and tracking read paths to prefer canonical fields (`sent_at`, `submitted_at`, `status`) before legacy aliases (`timestamp`, `delivery_status`) in `core/message_analytics.py`, `core/response_tracking.py`, and `core/user_data_manager.py`.
+- **Tooling hygiene**: Cleared Ruff `F401`/`F841` in `channel_orchestrator`/`service`, refreshed `FUNCTION_REGISTRY_DETAIL.md` via `run_development_tools.py docs`, and documented nested `_schedule_fields` for registry completeness.
+- **Validation**: Confirmed with targeted behavior tests for scheduler reminder scheduling and Discord `on_ready` app-command sync.
+
 ### 2026-04-28 - V2 adoption continuation slices **COMPLETED**
 - **Task runtime IDs**: Added canonical `id` + `short_id` matching in task manager and task command lookup paths, reducing reliance on legacy identifier assumptions while preserving compatibility aliases required by remaining call sites.
 - **Task/notebook tests and contracts**: Updated task behavior/integration assertions to prefer canonical `id` access and switched notebook validation expectations from legacy `journal` to `journal_entry`.
@@ -150,13 +161,6 @@ Guidelines:
 - **Changelog exclusion category**: Example-marker scan now excludes changelog-class docs (`AI_CHANGELOG.md`, `CHANGELOG_DETAIL.md`) to suppress citation-heavy false positives while keeping broader example heading detection. Current advisory count dropped from ~665 to ~19 (single-file concentration) after `doc-sync`/`status` refresh.
 - **Exclusion source alignment**: exclusion now uses existing `HISTORICAL_PRESERVE_FILES` policy from [`standard_exclusions.py`](../development_tools/shared/standard_exclusions.py) instead of hardcoded filename checks.
 - **Example markers**: [`DEVELOPMENT_TOOLS_GUIDE.md`](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) - added `[EXAMPLE]` line prefixes under **Section 2.2 Command Examples** (through **Section 2.6**) so path bullets satisfy `example_marker_validation` / Section 3.6.
-
-### 2026-04-12 - V5 continuation (TODO sync apply, example markers, test_config adoption) **COMPLETED**
-- **Plan**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 2 snapshot + Section 3.0 / Section 5.4 status updates (example-marker advisory; sync-todo `--apply`).
-- **TODO sync**: [`fix_version_sync.py`](../development_tools/docs/fix_version_sync.py) - `sync_todo_with_changelog(apply_auto_clean=True)` removes completed `- [x]` checklist lines; CLI `sync-todo --apply` (exclusive with `--dry-run`).
-- **Doc examples (Section 3.0)**: [`example_marker_validation.py`](../development_tools/docs/example_marker_validation.py) + [`analyze_documentation_sync.py`](../development_tools/docs/analyze_documentation_sync.py) `--check-example-markers`; tests in [`test_example_marker_validation.py`](../tests/development_tools/test_example_marker_validation.py). **Ruff**: `_line_has_example_marker` uses `any(...)` (SIM110).
-- **Audit + reports**: `_run_doc_sync_check` invokes `analyze_documentation_sync` with `--json --check-example-markers`; `example_marker_findings` / `example_marker_hint_count` persist in doc-sync JSON and appear in **AI_STATUS** (Snapshot + Documentation Signals) and **CONSOLIDATED_REPORT** (Documentation Status); hints remain **advisory** (do not change doc-sync PASS/FAIL). Stale caches without `example_marker_findings` auto-refresh. Test: [`test_data_loading_helpers.py`](../tests/development_tools/test_data_loading_helpers.py) `test_aggregate_doc_sync_results_example_markers_advisory_do_not_affect_total`.
-- **Overlap noise**: [`EXPECTED_OVERLAPS`](../development_tools/shared/constants.py) adds `development workflow`, `testing guide`; demo-project tests use [`test_config.json`](../tests/development_tools/test_config.json) where applicable; inventory policy asserts `root_ruff_compat_mirror` **exit_criteria**; taxonomy policy test links [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md) Section 9 to V5 Section 7.7; [`analyze_ai_work`](../development_tools/ai_work/analyze_ai_work.py) docstring - thin validator (Section 5.3).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

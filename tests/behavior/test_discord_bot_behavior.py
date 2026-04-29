@@ -1790,6 +1790,7 @@ class TestDiscordBotAdditionalBehavior:
         bot = DiscordBot()
         mock_bot = MagicMock()
         mock_bot.user = "TestBot"
+        mock_bot.application_id = 123456789
         mock_bot.tree = MagicMock()
         mock_bot.tree.sync = AsyncMock()
         scheduled_coroutines = []

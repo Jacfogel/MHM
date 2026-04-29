@@ -36,7 +36,12 @@ def _checkin_to_runtime_response(checkin: dict[str, Any]) -> dict[str, Any]:
 @handle_errors("converting runtime response to v2 checkin", default_return={})
 def _response_to_v2_checkin(response_data: dict[str, Any]) -> dict[str, Any]:
     """Build a canonical v2 check-in record from the current response payload."""
-    submitted_at = response_data.get("submitted_at") or response_data.get("timestamp") or now_timestamp_full()
+    submitted_at = (
+        response_data.get("submitted_at")
+        or response_data.get("sent_at")
+        or response_data.get("timestamp")
+        or now_timestamp_full()
+    )
     responses = response_data.get("responses")
     if not isinstance(responses, dict):
         skipped = {
@@ -158,7 +163,12 @@ def get_recent_responses(user_id: str, response_type: str = "checkin", limit: in
                 if isinstance(item, str) or not isinstance(item, dict):
                     return 0.0
 
-                timestamp = item.get("timestamp", "1970-01-01 00:00:00")
+                timestamp = (
+                    item.get("submitted_at")
+                    or item.get("sent_at")
+                    or item.get("timestamp")
+                    or "1970-01-01 00:00:00"
+                )
 
                 # Canonical strict parse for stored timestamps
                 dt = parse_timestamp_full(timestamp)
@@ -203,9 +213,17 @@ def get_checkins_by_days(user_id: str, days: int = 7):
     # Filter check-ins by date
     recent_checkins = []
     for checkin in all_checkins:
-        if "timestamp" in checkin:
+        if (
+            "submitted_at" in checkin
+            or "sent_at" in checkin
+            or "timestamp" in checkin
+        ):
             # Canonical strict parse for stored timestamps
-            checkin_date = parse_timestamp_full(checkin.get("timestamp", ""))
+            checkin_date = parse_timestamp_full(
+                checkin.get("submitted_at")
+                or checkin.get("sent_at")
+                or checkin.get("timestamp", "")
+            )
             if checkin_date is None:
                 continue
 

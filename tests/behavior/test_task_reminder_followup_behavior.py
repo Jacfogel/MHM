@@ -63,11 +63,11 @@ class TestTaskReminderFollowupBehavior:
             conversation_manager.user_states[user_id]["flow"] == FLOW_TASK_REMINDER
         ), "Should be in TASK_REMINDER flow"
         assert (
-            "task_id" in conversation_manager.user_states[user_id]["data"]
-        ), "Should store task_id in flow data"
+            "task_identifier" in conversation_manager.user_states[user_id]["data"]
+        ), "Should store task identifier in flow data"
 
         # Verify task was actually created
-        task_id = conversation_manager.user_states[user_id]["data"]["task_id"]
+        task_id = conversation_manager.user_states[user_id]["data"]["task_identifier"]
         task = get_task_by_id(user_id, task_id)
         assert task is not None, "Task should exist"
         assert task["title"] == "Test reminder task", "Task should have correct title"

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-29 00:59:58
+> **Last Generated**: 2026-04-29 15:07:42
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 123
-- **Total Imports**: 1524
+- **Total Imports**: 1521
 - **Standard Library**: 431 (28.3%)
 - **Third-Party**: 233 (15.3%)
-- **Local Imports**: 860 (56.4%)
+- **Local Imports**: 857 (56.3%)
 
 ## Dependency Decision Trees
 
@@ -118,8 +118,8 @@ External libraries provide channel and UI support.
 
 ### High Coupling
 - `ui/ui_app_qt.py` -> 46 local dependencies (heavy coupling)
-- `communication/core/channel_orchestrator.py` -> 34 local dependencies (heavy coupling)
 - `communication/command_handlers/analytics_handler.py` -> 33 local dependencies (heavy coupling)
+- `communication/core/channel_orchestrator.py` -> 33 local dependencies (heavy coupling)
 - `communication/message_processing/conversation_flow_manager.py` -> 31 local dependencies (heavy coupling)
 - `core/scheduler.py` -> 30 local dependencies (heavy coupling)
 

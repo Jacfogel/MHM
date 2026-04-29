@@ -2,16 +2,16 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-29 01:19:15
+> **Last Generated**: 2026-04-29 15:12:44
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 86
-**Legacy Compatibility Markers Detected**: 1279
+**Legacy Compatibility Markers Detected**: 1265
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
 - Changelogs, archive folders, and planning documents are intentionally historical and excluded from this report.
-- Legacy compatibility markers remain in 2 file(s) (5 total markers).
-- Remaining counts come from legacy inventory tracking categories (84 file(s), 1274 marker(s)).
+- Legacy compatibility markers remain in 4 file(s) (7 total markers).
+- Remaining counts come from legacy inventory tracking categories (82 file(s), 1258 marker(s)).
 
 ## Recommended Follow-Up
 - Additional guidance: [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md)
@@ -24,7 +24,7 @@
 - Active/candidate entries: 2
 - Removed entries: 9
 - Active search terms: 6
-- Current inventory-term hits in scan: 69 file(s), 1020 marker(s)
+- Current inventory-term hits in scan: 69 file(s), 1023 marker(s)
 
 ## Deprecation Inventory Terms
 **Files Affected**: 69
@@ -498,124 +498,134 @@
   ```
 
 ### communication\core\channel_orchestrator.py
-**Issues Found**: 24
+**Issues Found**: 26
 
-- **Line 81**: `task_id`
+- **Line 77**: `task_id`
   ```
   )  # Track last task reminder per user: {user_id: task_id}
   ```
 
-- **Line 291**: `message_id`
+- **Line 287**: `message_id`
   ```
   email_id = email_msg.get("message_id")
   ```
 
-- **Line 1638**: `message_id`
+- **Line 1634**: `message_id`
   ```
   message_id = str(uuid.uuid4())
   ```
 
-- **Line 1656**: `message_id`
+- **Line 1652**: `message_id`
   ```
   message_id,
   ```
 
 - **Line 1792**: `message_id`
   ```
-  message_to_send["message_id"],
+  selected_message_id = str(
   ```
 
-- **Line 1935**: `task_id`
+- **Line 1793**: `message_id`
+  ```
+  message_to_send.get("message_id") or message_to_send.get("id") or ""
+  ```
+
+- **Line 1804**: `message_id`
+  ```
+  selected_message_id,
+  ```
+
+- **Line 1947**: `task_id`
   ```
   def handle_task_reminder(self, user_id: str, task_id: str):
   ```
 
-- **Line 1951**: `task_id`
+- **Line 1963**: `task_id`
   ```
   # Validate task_id
   ```
 
-- **Line 1952**: `task_id`
+- **Line 1964**: `task_id`
   ```
   if not task_id or not isinstance(task_id, str):
   ```
 
-- **Line 1952**: `task_id`
+- **Line 1964**: `task_id`
   ```
   if not task_id or not isinstance(task_id, str):
   ```
 
-- **Line 1953**: `task_id`
+- **Line 1965**: `task_id`
   ```
   logger.error(f"Invalid task_id: {task_id}")
   ```
 
-- **Line 1953**: `task_id`
+- **Line 1965**: `task_id`
   ```
   logger.error(f"Invalid task_id: {task_id}")
   ```
 
-- **Line 1956**: `task_id`
+- **Line 1968**: `task_id`
   ```
   if not task_id.strip():
   ```
 
-- **Line 1957**: `task_id`
+- **Line 1969**: `task_id`
   ```
   logger.error("Empty task_id provided")
   ```
 
-- **Line 1963**: `task_id`
+- **Line 1975**: `task_id`
   ```
   f"Handling task reminder for user_id: {user_id}, task_id: {task_id}"
   ```
 
-- **Line 1963**: `task_id`
+- **Line 1975**: `task_id`
   ```
   f"Handling task reminder for user_id: {user_id}, task_id: {task_id}"
   ```
 
-- **Line 1966**: `task_id`
+- **Line 1978**: `task_id`
   ```
   if not user_id or not task_id:
   ```
 
-- **Line 1979**: `task_id`
+- **Line 1991**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 1981**: `task_id`
+- **Line 1993**: `task_id`
   ```
   logger.error(f"Task {task_id} not found for user {user_id}")
   ```
 
-- **Line 1988**: `task_id`
+- **Line 2000**: `task_id`
   ```
   logger.debug(f"Task {task_id} is already completed, skipping reminder")
   ```
 
-- **Line 2033**: `task_id`
+- **Line 2045**: `task_id`
   ```
   custom_view = get_task_reminder_view(user_id, task_id, task_title)
   ```
 
-- **Line 2039**: `task_id`
+- **Line 2051**: `task_id`
   ```
   return get_task_reminder_view(user_id, task_id, task_title)
   ```
 
-- **Line 2052**: `task_id`
+- **Line 2064**: `task_id`
   ```
   f"Task reminder sent successfully for user {user_id}, task {task_id}"
   ```
 
-- **Line 2055**: `task_id`
+- **Line 2067**: `task_id`
   ```
   self._last_task_reminders[user_id] = task_id
   ```
 
-- **Line 2058**: `task_id`
+- **Line 2070**: `task_id`
   ```
   f"Failed to send task reminder for user {user_id}, task {task_id}"
   ```
@@ -646,39 +656,49 @@
 ### communication\message_processing\conversation_flow_manager.py
 **Issues Found**: 48
 
-- **Line 1362**: `task_id`
+- **Line 181**: `task_id`
   ```
-  task_id = user_state.get("data", {}).get("task_id")
-  ```
-
-- **Line 1362**: `task_id`
-  ```
-  task_id = user_state.get("data", {}).get("task_id")
+  identifier = str(data.get("task_identifier") or "").strip()
   ```
 
-- **Line 1363**: `task_id`
+- **Line 185**: `task_id`
+  ```
+  # LEGACY COMPATIBILITY: support older persisted flow states that used data.task_id.
+  ```
+
+- **Line 186**: `task_id`
+  ```
+  legacy_identifier = str(data.get("task_id") or "").strip()
+  ```
+
+- **Line 188**: `task_id`
+  ```
+  logger.debug("LEGACY COMPATIBILITY: using task_id from legacy flow state data")
+  ```
+
+- **Line 1381**: `task_id`
+  ```
+  task_id = self._get_task_flow_identifier(user_state)
+  ```
+
+- **Line 1382**: `task_id`
   ```
   if not task_id:
   ```
 
-- **Line 1365**: `task_id`
+- **Line 1384**: `task_id`
   ```
   f"Task reminder follow-up for user {user_id} but no task_id in state"
   ```
 
-- **Line 1425**: `task_id`
+- **Line 1444**: `task_id`
   ```
   user_id, task_id, message_text
   ```
 
-- **Line 1428**: `task_id`
+- **Line 1447**: `task_id`
   ```
   f"Parsed reminder_periods for task {task_id}: {reminder_periods}"
-  ```
-
-- **Line 1434**: `task_id`
-  ```
-  task = get_task_by_id(user_id, task_id)
   ```
 
 - **Line 1453**: `task_id`
@@ -686,250 +706,245 @@
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 1456**: `task_id`
+- **Line 1472**: `task_id`
+  ```
+  task = get_task_by_id(user_id, task_id)
+  ```
+
+- **Line 1475**: `task_id`
   ```
   f"Task {task_id} not found when trying to set reminder periods"
   ```
 
-- **Line 1477**: `task_id`
+- **Line 1496**: `task_id`
   ```
   f"Task {task_id} has invalid due_date format '{due_date_str}', cannot set reminders"
   ```
 
-- **Line 1490**: `task_id`
+- **Line 1509**: `task_id`
   ```
   f"Updating task {task_id} with reminder periods: {reminder_periods}"
   ```
 
-- **Line 1497**: `task_id`
+- **Line 1516**: `task_id`
   ```
   user_id, task_id, {"reminder_periods": reminder_periods}
   ```
 
-- **Line 1502**: `task_id`
+- **Line 1521**: `task_id`
   ```
   f"update_task returned False for task {task_id} with reminder periods for user {user_id}"
   ```
 
-- **Line 1511**: `task_id`
+- **Line 1530**: `task_id`
   ```
   updated_task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 1520**: `task_id`
+- **Line 1539**: `task_id`
   ```
   f"Task {task_id} was not updated with reminder_periods after update_task returned True"
   ```
 
-- **Line 1543**: `task_id`
+- **Line 1562**: `task_id`
   ```
   f"Exception in update_task for task {task_id}: {update_error}",
   ```
 
-- **Line 1569**: `task_id`
+- **Line 1588**: `task_id`
   ```
   if "task_id" in str(e).lower() or "not found" in str(e).lower():
   ```
 
-- **Line 1588**: `task_id`
+- **Line 1607**: `task_id`
   ```
   self, user_id: str, task_id: str, text: str
   ```
 
-- **Line 1602**: `task_id`
+- **Line 1621**: `task_id`
   ```
   due_datetime = self._get_task_due_datetime_for_reminders(user_id, task_id)
   ```
 
-- **Line 1609**: `task_id`
+- **Line 1628**: `task_id`
   ```
   f"for task {task_id} with due_datetime {due_datetime}"
   ```
 
-- **Line 1636**: `task_id`
+- **Line 1655**: `task_id`
   ```
   f"Parsed reminder period for task {task_id}: "
   ```
 
-- **Line 1647**: `task_id`
+- **Line 1666**: `task_id`
   ```
   logger.debug(f"Final reminder_periods for task {task_id}: {reminder_periods}")
   ```
 
-- **Line 1652**: `task_id`
+- **Line 1671**: `task_id`
   ```
   self, user_id: str, task_id: str
   ```
 
-- **Line 1657**: `task_id`
+- **Line 1676**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
-  ```
-
-- **Line 1659**: `task_id`
-  ```
-  logger.debug(f"Task {task_id} has no due_date, cannot parse reminder periods")
-  ```
-
-- **Line 1667**: `task_id`
-  ```
-  logger.debug(f"Parsed due datetime for task {task_id}: {due_datetime}")
-  ```
-
-- **Line 1673**: `task_id`
-  ```
-  f"Could not parse due date/time for task {task_id}: {due_date_str} {due_time_str}"
   ```
 
 - **Line 1678**: `task_id`
   ```
+  logger.debug(f"Task {task_id} has no due_date, cannot parse reminder periods")
+  ```
+
+- **Line 1686**: `task_id`
+  ```
+  logger.debug(f"Parsed due datetime for task {task_id}: {due_datetime}")
+  ```
+
+- **Line 1692**: `task_id`
+  ```
+  f"Could not parse due date/time for task {task_id}: {due_date_str} {due_time_str}"
+  ```
+
+- **Line 1697**: `task_id`
+  ```
   logger.debug(f"Parsed due date only for task {task_id}: {due_datetime}")
   ```
 
-- **Line 1757**: `task_id`
+- **Line 1776**: `task_id`
   ```
   def start_task_due_date_flow(self, user_id: str, task_id: str) -> None:
   ```
 
-- **Line 1765**: `task_id`
+- **Line 1784**: `task_id`
   ```
-  "data": {"task_id": task_id},
-  ```
-
-- **Line 1765**: `task_id`
-  ```
-  "data": {"task_id": task_id},
+  "data": {"task_identifier": task_id},
   ```
 
-- **Line 1769**: `task_id`
+- **Line 1784**: `task_id`
+  ```
+  "data": {"task_identifier": task_id},
+  ```
+
+- **Line 1788**: `task_id`
   ```
   logger.debug(f"Started task due date flow for user {user_id}, task {task_id}")
   ```
 
-- **Line 1772**: `task_id`
+- **Line 1791**: `task_id`
   ```
   def start_task_reminder_followup(self, user_id: str, task_id: str) -> None:
   ```
 
-- **Line 1780**: `task_id`
+- **Line 1799**: `task_id`
   ```
-  "data": {"task_id": task_id},
-  ```
-
-- **Line 1780**: `task_id`
-  ```
-  "data": {"task_id": task_id},
+  "data": {"task_identifier": task_id},
   ```
 
-- **Line 1785**: `task_id`
+- **Line 1799**: `task_id`
+  ```
+  "data": {"task_identifier": task_id},
+  ```
+
+- **Line 1804**: `task_id`
   ```
   f"Started task reminder follow-up flow for user {user_id}, task {task_id}"
   ```
 
-- **Line 1792**: `task_id`
+- **Line 1811**: `task_id`
   ```
   self, user_id: str, task_id: str
   ```
 
-- **Line 1803**: `task_id`
+- **Line 1822**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 1930**: `task_id`
+- **Line 1949**: `task_id`
   ```
-  task_id = user_state.get("data", {}).get("task_id")
-  ```
-
-- **Line 1930**: `task_id`
-  ```
-  task_id = user_state.get("data", {}).get("task_id")
+  task_id = self._get_task_flow_identifier(user_state)
   ```
 
-- **Line 1942**: `task_id`
+- **Line 1961**: `task_id`
   ```
-  task_id = user_state.get("data", {}).get("task_id")
-  ```
-
-- **Line 1942**: `task_id`
-  ```
-  task_id = user_state.get("data", {}).get("task_id")
+  task_id = self._get_task_flow_identifier(user_state)
   ```
 
-- **Line 1967**: `task_id`
+- **Line 1986**: `task_id`
   ```
-  task_id = user_state.get("data", {}).get("task_id")
-  ```
-
-- **Line 1967**: `task_id`
-  ```
-  task_id = user_state.get("data", {}).get("task_id")
+  task_id = self._get_task_flow_identifier(user_state)
   ```
 
-- **Line 1968**: `task_id`
+- **Line 1987**: `task_id`
   ```
   if not task_id:
   ```
 
-- **Line 1993**: `task_id`
+- **Line 2012**: `task_id`
   ```
   update_result = update_task(user_id, task_id, update_data)
   ```
 
-- **Line 2005**: `task_id`
+- **Line 2024**: `task_id`
   ```
   self.start_task_reminder_followup(user_id, task_id)
   ```
 
-- **Line 2006**: `task_id`
+- **Line 2025**: `task_id`
   ```
   self._generate_context_aware_reminder_suggestions(user_id, task_id)
   ```
 
 ### communication\message_processing\interaction_manager.py
-**Issues Found**: 9
+**Issues Found**: 10
 
-- **Line 621**: `task_id`
+- **Line 622**: `task_id`
   ```
-  task_id = updated_user_state.get("data", {}).get("task_id")
-  ```
-
-- **Line 621**: `task_id`
-  ```
-  task_id = updated_user_state.get("data", {}).get("task_id")
+  task_id = (state_data.get("task_identifier") or state_data.get("task_id"))
   ```
 
 - **Line 622**: `task_id`
   ```
+  task_id = (state_data.get("task_identifier") or state_data.get("task_id"))
+  ```
+
+- **Line 622**: `task_id`
+  ```
+  task_id = (state_data.get("task_identifier") or state_data.get("task_id"))
+  ```
+
+- **Line 623**: `task_id`
+  ```
   if task_id:
   ```
 
-- **Line 624**: `task_id`
+- **Line 625**: `task_id`
   ```
   user_id, task_id
   ```
 
-- **Line 644**: `task_id`
+- **Line 645**: `task_id`
   ```
   resp = handler._handle_delete_task(user_id, {"task_identifier": None})
   ```
 
-- **Line 728**: `task_id`
+- **Line 729**: `task_id`
   ```
   coerced_entities["task_identifier"] = ident
   ```
 
-- **Line 749**: `task_id`
+- **Line 750**: `task_id`
   ```
   if coerced_entities.get("task_identifier") and any(
   ```
 
-- **Line 782**: `task_id`
+- **Line 783**: `task_id`
   ```
   if "task_identifier" not in coerced_entities:
   ```
 
-- **Line 791**: `task_id`
+- **Line 792**: `task_id`
   ```
   coerced_entities["task_identifier"] = ident
   ```
@@ -939,7 +954,7 @@
 
 - **Line 149**: `delivery_status`
   ```
-  status = msg.get("delivery_status", "unknown")
+  status = msg.get("status") or msg.get("delivery_status") or "unknown"
   ```
 
 ### core\message_management.py
@@ -1161,7 +1176,7 @@
   ```
 
 ### core\scheduler.py
-**Issues Found**: 53
+**Issues Found**: 55
 
 - **Line 1070**: `task_id`
   ```
@@ -1203,227 +1218,237 @@
   f"Error sending task reminder for user {user_id}, task {task_id}: {e}"
   ```
 
-- **Line 1394**: `task_id`
+- **Line 1393**: `task_id`
   ```
-  user_id, selected_task["task_id"], random_time
+  selected_task_id = str(selected_task.get("id") or "").strip()
   ```
 
-- **Line 1650**: `task_id`
+- **Line 1394**: `task_id`
+  ```
+  if not selected_task_id:
+  ```
+
+- **Line 1401**: `task_id`
+  ```
+  user_id, selected_task_id, random_time
+  ```
+
+- **Line 1657**: `task_id`
   ```
   def schedule_task_reminder_at_time(self, user_id, task_id, reminder_time):
   ```
 
-- **Line 1658**: `task_id`
+- **Line 1665**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 1660**: `task_id`
+- **Line 1667**: `task_id`
   ```
   logger.error(f"Task {task_id} not found for user {user_id}")
   ```
 
-- **Line 1665**: `task_id`
+- **Line 1672**: `task_id`
   ```
   f"Task {task_id} is already completed, skipping reminder scheduling"
   ```
 
-- **Line 1679**: `task_id`
+- **Line 1686**: `task_id`
   ```
   self.handle_task_reminder, user_id=user_id, task_id=task_id
   ```
 
-- **Line 1679**: `task_id`
+- **Line 1686**: `task_id`
   ```
   self.handle_task_reminder, user_id=user_id, task_id=task_id
   ```
 
-- **Line 1706**: `task_id`
+- **Line 1713**: `task_id`
   ```
   f"Scheduled daily task reminder for user {user_id}, task {task_id} at {time_str}"
   ```
 
-- **Line 1712**: `task_id`
+- **Line 1719**: `task_id`
   ```
   f"Error scheduling task reminder for user {user_id}, task {task_id}: {e}"
   ```
 
-- **Line 1717**: `task_id`
+- **Line 1724**: `task_id`
   ```
   def schedule_task_reminder_at_datetime(self, user_id, task_id, date_str, time_str):
   ```
 
-- **Line 1725**: `task_id`
+- **Line 1732**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 1727**: `task_id`
+- **Line 1734**: `task_id`
   ```
   logger.error(f"Task {task_id} not found for user {user_id}")
   ```
 
-- **Line 1732**: `task_id`
+- **Line 1739**: `task_id`
   ```
   f"Task {task_id} is already completed, skipping reminder scheduling"
   ```
 
-- **Line 1755**: `task_id`
+- **Line 1762**: `task_id`
   ```
   self.handle_task_reminder, user_id=user_id, task_id=task_id
   ```
 
-- **Line 1755**: `task_id`
+- **Line 1762**: `task_id`
   ```
   self.handle_task_reminder, user_id=user_id, task_id=task_id
   ```
 
-- **Line 1759**: `task_id`
+- **Line 1766**: `task_id`
   ```
   f"Scheduled one-time task reminder for user {user_id}, task {task_id} at {reminder_datetime}"
   ```
 
-- **Line 1765**: `task_id`
+- **Line 1772**: `task_id`
   ```
   f"Error scheduling task reminder for user {user_id}, task {task_id}: {e}"
   ```
 
-- **Line 1770**: `task_id`
+- **Line 1777**: `task_id`
   ```
   def cleanup_task_reminders(self, user_id, task_id):
   ```
 
-- **Line 1774**: `task_id`
+- **Line 1781**: `task_id`
   ```
   Finds and removes all APScheduler jobs that call handle_task_reminder for the given task_id.
   ```
 
-- **Line 1779**: `task_id`
+- **Line 1786**: `task_id`
   ```
   task_id: The task ID to clean up reminders for
   ```
 
-- **Line 1785**: `task_id`
+- **Line 1792**: `task_id`
   ```
   if not user_id or not task_id:
   ```
 
-- **Line 1787**: `task_id`
+- **Line 1794**: `task_id`
   ```
   f"Invalid parameters for cleanup_task_reminders: user_id={user_id}, task_id={task_id}"
   ```
 
-- **Line 1787**: `task_id`
+- **Line 1794**: `task_id`
   ```
   f"Invalid parameters for cleanup_task_reminders: user_id={user_id}, task_id={task_id}"
   ```
 
-- **Line 1795**: `task_id`
+- **Line 1802**: `task_id`
   ```
   # Find all jobs that call handle_task_reminder with this user_id and task_id
   ```
 
-- **Line 1799**: `task_id`
+- **Line 1806**: `task_id`
   ```
   # Jobs created by schedule_task_reminder_at_datetime use: schedule.every(delay).seconds.do(handle_task_reminder, user_id=..., task_id=...)
   ```
 
-- **Line 1800**: `task_id`
+- **Line 1807**: `task_id`
   ```
   # Jobs created by schedule_task_reminder_at_time use: schedule.every().day.at(time).do(handle_task_reminder, user_id=..., task_id=...)
   ```
 
-- **Line 1810**: `task_id`
+- **Line 1817**: `task_id`
   ```
   # Check keyword arguments for user_id and task_id
   ```
 
-- **Line 1815**: `task_id`
+- **Line 1822**: `task_id`
   ```
   and kwargs.get("task_id") == task_id
   ```
 
-- **Line 1815**: `task_id`
+- **Line 1822**: `task_id`
   ```
   and kwargs.get("task_id") == task_id
-  ```
-
-- **Line 1819**: `task_id`
-  ```
-  f"Found reminder job for task {task_id}, user {user_id}"
   ```
 
 - **Line 1826**: `task_id`
   ```
+  f"Found reminder job for task {task_id}, user {user_id}"
+  ```
+
+- **Line 1833**: `task_id`
+  ```
   # handle_task_reminder signature: (self, user_id, task_id, ...)
   ```
 
-- **Line 1830**: `task_id`
+- **Line 1837**: `task_id`
   ```
   and args[1] == task_id
   ```
 
-- **Line 1839**: `task_id`
+- **Line 1846**: `task_id`
   ```
   f"Found reminder job for task {task_id}, user {user_id} (positional args)"
   ```
 
-- **Line 1854**: `task_id`
+- **Line 1861**: `task_id`
   ```
   f"Removed reminder job for task {task_id}, user {user_id}"
   ```
 
-- **Line 1862**: `task_id`
+- **Line 1869**: `task_id`
   ```
   f"Cleaned up {jobs_removed} reminder job(s) for task {task_id}, user {user_id} "
   ```
 
-- **Line 1870**: `task_id`
+- **Line 1877**: `task_id`
   ```
   f"Error cleaning up task reminders for task {task_id}, user {user_id}: {e}"
   ```
 
-- **Line 1908**: `task_id`
+- **Line 1915**: `task_id`
   ```
   task_id = kwargs.get("task_id")
   ```
 
-- **Line 1908**: `task_id`
+- **Line 1915**: `task_id`
   ```
   task_id = kwargs.get("task_id")
   ```
 
-- **Line 1909**: `task_id`
+- **Line 1916**: `task_id`
   ```
   if user_id and task_id:
   ```
 
-- **Line 1910**: `task_id`
+- **Line 1917**: `task_id`
   ```
   jobs_to_check.append((job, user_id, task_id))
   ```
 
-- **Line 1919**: `task_id`
+- **Line 1926**: `task_id`
   ```
   for job, user_id, task_id in jobs_to_check:
   ```
 
-- **Line 1921**: `task_id`
+- **Line 1928**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 1928**: `task_id`
+- **Line 1935**: `task_id`
   ```
   f"Removed orphaned reminder for non-existent task {task_id}, user {user_id}"
   ```
 
-- **Line 1939**: `task_id`
+- **Line 1946**: `task_id`
   ```
   f"Removed reminder for completed task {task_id}, user {user_id}"
   ```
 
-- **Line 1946**: `task_id`
+- **Line 1953**: `task_id`
   ```
   f"Error checking task {task_id} for user {user_id}: {e}"
   ```
@@ -1437,54 +1462,84 @@
   ```
 
 ### core\service.py
-**Issues Found**: 5
+**Issues Found**: 6
 
-- **Line 1024**: `task_id`
+- **Line 1019**: `task_id`
   ```
-  task_id = request_data.get("task_id")
-  ```
-
-- **Line 1024**: `task_id`
-  ```
-  task_id = request_data.get("task_id")
+  task_id = request_data.get("task_identifier") or request_data.get(
   ```
 
-- **Line 1025**: `task_id`
+- **Line 1019**: `task_id`
+  ```
+  task_id = request_data.get("task_identifier") or request_data.get(
+  ```
+
+- **Line 1020**: `task_id`
+  ```
+  "task_id"
+  ```
+
+- **Line 1022**: `task_id`
   ```
   if user_id and task_id and self.communication_manager:
   ```
 
-- **Line 1027**: `task_id`
+- **Line 1024**: `task_id`
   ```
   user_id, task_id
   ```
 
-- **Line 1030**: `task_id`
+- **Line 1027**: `task_id`
   ```
   f"Task reminder sent successfully for {user_id}, task {task_id}"
   ```
 
 ### core\user_data_read.py
-**Issues Found**: 4
+**Issues Found**: 9
 
-- **Line 51**: `message_id`
+- **Line 53**: `message_id`
   ```
-  if "message_id" not in message or message["message_id"] in existing_ids:
-  ```
-
-- **Line 51**: `message_id`
-  ```
-  if "message_id" not in message or message["message_id"] in existing_ids:
-  ```
-
-- **Line 52**: `message_id`
-  ```
-  message["message_id"] = str(uuid.uuid4())
+  message_id = str(message.get("id") or message.get("message_id") or "").strip()
   ```
 
 - **Line 53**: `message_id`
   ```
-  existing_ids.add(message["message_id"])
+  message_id = str(message.get("id") or message.get("message_id") or "").strip()
+  ```
+
+- **Line 54**: `message_id`
+  ```
+  if not message_id or message_id in existing_ids:
+  ```
+
+- **Line 54**: `message_id`
+  ```
+  if not message_id or message_id in existing_ids:
+  ```
+
+- **Line 55**: `message_id`
+  ```
+  message_id = str(uuid.uuid4())
+  ```
+
+- **Line 58**: `message_id`
+  ```
+  message["id"] = message_id
+  ```
+
+- **Line 60**: `message_id`
+  ```
+  message["message_id"] = message_id
+  ```
+
+- **Line 60**: `message_id`
+  ```
+  message["message_id"] = message_id
+  ```
+
+- **Line 62**: `message_id`
+  ```
+  existing_ids.add(message_id)
   ```
 
 ### core\user_data_v2.py
@@ -2101,17 +2156,17 @@
 ### tests\behavior\test_communication_manager_coverage_expansion.py
 **Issues Found**: 3
 
-- **Line 798**: `task_id`
+- **Line 797**: `task_id`
   ```
   task_id = "test_task_123"
   ```
 
-- **Line 799**: `task_id`
+- **Line 798**: `task_id`
   ```
   comm_manager._last_task_reminders[user_id] = task_id
   ```
 
-- **Line 805**: `task_id`
+- **Line 804**: `task_id`
   ```
   assert last_reminder == task_id, "Should return last task reminder"
   ```
@@ -2121,7 +2176,7 @@
 
 - **Line 705**: `task_id`
   ```
-  "data": {"task_id": "task-1"},
+  "data": {"task_identifier": "task-1"},
   ```
 
 ### tests\behavior\test_core_message_management_coverage_expansion.py
@@ -2549,17 +2604,7 @@
   ```
 
 ### tests\behavior\test_scheduler_coverage_expansion.py
-**Issues Found**: 25
-
-- **Line 424**: `task_id`
-  ```
-  "task_id": "task-1",
-  ```
-
-- **Line 429**: `task_id`
-  ```
-  "task_id": "task-2",
-  ```
+**Issues Found**: 18
 
 - **Line 490**: `task_id`
   ```
@@ -2649,31 +2694,6 @@
 - **Line 837**: `task_id`
   ```
   mock_get_task.assert_called_once_with(user_id, task_id)
-  ```
-
-- **Line 1380**: `task_id`
-  ```
-  {"task_id": "task1", "completed": False, "title": "Test Task 1"},
-  ```
-
-- **Line 1381**: `task_id`
-  ```
-  {"task_id": "task2", "completed": False, "title": "Test Task 2"},
-  ```
-
-- **Line 1385**: `task_id`
-  ```
-  mock_select_task.return_value = {"task_id": "task1", "title": "Test Task 1"}
-  ```
-
-- **Line 1453**: `task_id`
-  ```
-  {"task_id": "task1", "completed": False, "title": "Test Task 1"}
-  ```
-
-- **Line 1456**: `task_id`
-  ```
-  mock_select_task.return_value = {"task_id": "task1", "title": "Test Task 1"}
   ```
 
 ### tests\behavior\test_task_behavior.py
@@ -3712,26 +3732,21 @@
   ```
 
 ### tests\behavior\test_task_reminder_followup_behavior.py
-**Issues Found**: 26
+**Issues Found**: 25
 
 - **Line 66**: `task_id`
   ```
-  "task_id" in conversation_manager.user_states[user_id]["data"]
-  ```
-
-- **Line 67**: `task_id`
-  ```
-  ), "Should store task_id in flow data"
+  "task_identifier" in conversation_manager.user_states[user_id]["data"]
   ```
 
 - **Line 70**: `task_id`
   ```
-  task_id = conversation_manager.user_states[user_id]["data"]["task_id"]
+  task_id = conversation_manager.user_states[user_id]["data"]["task_identifier"]
   ```
 
 - **Line 70**: `task_id`
   ```
-  task_id = conversation_manager.user_states[user_id]["data"]["task_id"]
+  task_id = conversation_manager.user_states[user_id]["data"]["task_identifier"]
   ```
 
 - **Line 71**: `task_id`
@@ -3885,7 +3900,7 @@
 
 - **Line 140**: `task_id`
   ```
-  json.dumps({"user_id": "user-1", "task_id": "task-1"}),
+  json.dumps({"user_id": "user-1", "task_identifier": "task-1"}),
   ```
 
 ### tests\core\test_user_data_read_scenarios.py
@@ -3901,29 +3916,29 @@
   {"message_id": "dup", "body": "b"},
   ```
 
-- **Line 47**: `message_id`
+- **Line 53**: `message_id`
   ```
-  ids = [m["message_id"] for m in out["messages"]]
+  assert [m["message_id"] for m in out["messages"]] == ids
   ```
 
-- **Line 127**: `message_id`
+- **Line 129**: `message_id`
   ```
   def test_load_and_ensure_ids_fixes_duplicate_message_ids(
   ```
 
-- **Line 137**: `message_id`
+- **Line 139**: `message_id`
   ```
   {"message_id": "duplicate-id", "body": "first"},
   ```
 
-- **Line 138**: `message_id`
+- **Line 140**: `message_id`
   ```
   {"message_id": "duplicate-id", "body": "second"},
   ```
 
-- **Line 149**: `message_id`
+- **Line 154**: `message_id`
   ```
-  ids = [m.get("message_id") for m in reloaded["messages"]]
+  assert [m.get("message_id") for m in reloaded["messages"]] == ids
   ```
 
 ### tests\integration\test_orphaned_reminder_cleanup.py
@@ -4893,17 +4908,17 @@
 ### tests\unit\test_channel_orchestrator_message_selection.py
 **Issues Found**: 3
 
-- **Line 72**: `message_id`
+- **Line 64**: `message_id`
   ```
   message = {"message_id": "m1", "message": "Hello world"}
   ```
 
-- **Line 108**: `message_id`
+- **Line 100**: `message_id`
   ```
   data = {"messages": [{"message": "x", "message_id": "m1", "days": ["MONDAY"], "time_periods": ["morning"]}]}
   ```
 
-- **Line 123**: `message_id`
+- **Line 115**: `message_id`
   ```
   data = {"messages": [{"message": "x", "message_id": "m1", "days": ["MONDAY"], "time_periods": ["morning"]}]}
   ```
@@ -5337,7 +5352,15 @@
   ```
 
 ## Legacy Compatibility Markers
-**Files Affected**: 2
+**Files Affected**: 4
+
+### communication\message_processing\conversation_flow_manager.py
+**Issues Found**: 1
+
+- **Line 185**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: support older persisted flow states that used data.task_id.
+  ```
 
 ### core\checkin_analytics.py
 **Issues Found**: 1
@@ -5370,8 +5393,16 @@
   # LEGACY COMPATIBILITY: Keep tolerant normalization for pre-v2 schedule/value shapes.
   ```
 
+### core\user_data_read.py
+**Issues Found**: 1
+
+- **Line 59**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: keep alias in sync for older read paths.
+  ```
+
 ## User Data V1 Runtime Adapters
-**Files Affected**: 57
+**Files Affected**: 53
 
 ### ai\chatbot.py
 **Issues Found**: 3
@@ -5464,68 +5495,43 @@
 ### communication\core\channel_orchestrator.py
 **Issues Found**: 3
 
-- **Line 291**: `"message_id"`
+- **Line 287**: `"message_id"`
   ```
   email_id = email_msg.get("message_id")
   ```
 
-- **Line 352**: `.get("body"`
+- **Line 348**: `.get("body"`
   ```
   email_body = email_msg.get("body", "")
   ```
 
-- **Line 1792**: `"message_id"`
+- **Line 1793**: `"message_id"`
   ```
-  message_to_send["message_id"],
+  message_to_send.get("message_id") or message_to_send.get("id") or ""
   ```
 
 ### communication\message_processing\conversation_flow_manager.py
-**Issues Found**: 7
+**Issues Found**: 2
 
-- **Line 1362**: `"task_id"`
+- **Line 186**: `"task_id"`
   ```
-  task_id = user_state.get("data", {}).get("task_id")
+  legacy_identifier = str(data.get("task_id") or "").strip()
   ```
 
-- **Line 1569**: `"task_id"`
+- **Line 1588**: `"task_id"`
   ```
   if "task_id" in str(e).lower() or "not found" in str(e).lower():
-  ```
-
-- **Line 1765**: `"task_id"`
-  ```
-  "data": {"task_id": task_id},
-  ```
-
-- **Line 1780**: `"task_id"`
-  ```
-  "data": {"task_id": task_id},
-  ```
-
-- **Line 1930**: `"task_id"`
-  ```
-  task_id = user_state.get("data", {}).get("task_id")
-  ```
-
-- **Line 1942**: `"task_id"`
-  ```
-  task_id = user_state.get("data", {}).get("task_id")
-  ```
-
-- **Line 1967**: `"task_id"`
-  ```
-  task_id = user_state.get("data", {}).get("task_id")
   ```
 
 ### communication\message_processing\interaction_manager.py
 **Issues Found**: 2
 
-- **Line 621**: `"task_id"`
+- **Line 622**: `"task_id"`
   ```
-  task_id = updated_user_state.get("data", {}).get("task_id")
+  task_id = (state_data.get("task_identifier") or state_data.get("task_id"))
   ```
 
-- **Line 1329**: `.get("timestamp"`
+- **Line 1330**: `.get("timestamp"`
   ```
   timestamp_str = latest.get("timestamp")
   ```
@@ -5535,12 +5541,12 @@
 
 - **Line 69**: `.get("timestamp"`
   ```
-  timestamp = msg.get("timestamp", "")
+  timestamp = msg.get("sent_at") or msg.get("timestamp") or ""
   ```
 
 - **Line 149**: `"delivery_status"`
   ```
-  status = msg.get("delivery_status", "unknown")
+  status = msg.get("status") or msg.get("delivery_status") or "unknown"
   ```
 
 ### core\message_management.py
@@ -5669,35 +5675,30 @@
 ### core\response_tracking.py
 **Issues Found**: 3
 
-- **Line 39**: `.get("timestamp"`
+- **Line 42**: `.get("timestamp"`
   ```
-  submitted_at = response_data.get("submitted_at") or response_data.get("timestamp") or now_timestamp_full()
-  ```
-
-- **Line 161**: `.get("timestamp"`
-  ```
-  timestamp = item.get("timestamp", "1970-01-01 00:00:00")
+  or response_data.get("timestamp")
   ```
 
-- **Line 208**: `.get("timestamp"`
+- **Line 169**: `.get("timestamp"`
   ```
-  checkin_date = parse_timestamp_full(checkin.get("timestamp", ""))
+  or item.get("timestamp")
+  ```
+
+- **Line 225**: `.get("timestamp"`
+  ```
+  or checkin.get("timestamp", "")
   ```
 
 ### core\scheduler.py
-**Issues Found**: 3
+**Issues Found**: 2
 
-- **Line 1394**: `"task_id"`
-  ```
-  user_id, selected_task["task_id"], random_time
-  ```
-
-- **Line 1815**: `"task_id"`
+- **Line 1822**: `"task_id"`
   ```
   and kwargs.get("task_id") == task_id
   ```
 
-- **Line 1908**: `"task_id"`
+- **Line 1915**: `"task_id"`
   ```
   task_id = kwargs.get("task_id")
   ```
@@ -5705,12 +5706,12 @@
 ### core\service.py
 **Issues Found**: 2
 
-- **Line 1024**: `"task_id"`
+- **Line 1020**: `"task_id"`
   ```
-  task_id = request_data.get("task_id")
+  "task_id"
   ```
 
-- **Line 1121**: `.get("timestamp"`
+- **Line 1118**: `.get("timestamp"`
   ```
   request_timestamp = request_data.get("timestamp", 0)
   ```
@@ -5718,52 +5719,42 @@
 ### core\user_data_manager.py
 **Issues Found**: 5
 
-- **Line 792**: `.get("timestamp"`
+- **Line 795**: `.get("timestamp"`
   ```
-  return recent_checkins[0].get("timestamp", "1970-01-01 00:00:00")
-  ```
-
-- **Line 806**: `.get("timestamp"`
-  ```
-  return recent_chats[0].get("timestamp", "1970-01-01 00:00:00")
+  or recent_checkins[0].get("timestamp")
   ```
 
-- **Line 825**: `.get("timestamp"`
+- **Line 814**: `.get("timestamp"`
   ```
-  key=lambda x: x.get("timestamp", "1970-01-01 00:00:00"),
-  ```
-
-- **Line 828**: `.get("timestamp"`
-  ```
-  return sorted_messages[0].get("timestamp", "1970-01-01 00:00:00")
+  or recent_chats[0].get("timestamp")
   ```
 
-- **Line 1762**: `.get("timestamp"`
+- **Line 837**: `.get("timestamp"`
+  ```
+  or x.get("timestamp")
+  ```
+
+- **Line 844**: `.get("timestamp"`
+  ```
+  or sorted_messages[0].get("timestamp")
+  ```
+
+- **Line 1780**: `.get("timestamp"`
   ```
   data[-1].get("timestamp", "Unknown") if data else "None"
   ```
 
 ### core\user_data_read.py
-**Issues Found**: 4
-
-- **Line 51**: `"message_id"`
-  ```
-  if "message_id" not in message or message["message_id"] in existing_ids:
-  ```
-
-- **Line 51**: `"message_id"`
-  ```
-  if "message_id" not in message or message["message_id"] in existing_ids:
-  ```
-
-- **Line 52**: `"message_id"`
-  ```
-  message["message_id"] = str(uuid.uuid4())
-  ```
+**Issues Found**: 2
 
 - **Line 53**: `"message_id"`
   ```
-  existing_ids.add(message["message_id"])
+  message_id = str(message.get("id") or message.get("message_id") or "").strip()
+  ```
+
+- **Line 60**: `"message_id"`
+  ```
+  message["message_id"] = message_id
   ```
 
 ### core\user_data_v2.py
@@ -5894,14 +5885,6 @@
 - **Line 94**: `.get("timestamp"`
   ```
   if c.get("timestamp", "").startswith(today_prefix)
-  ```
-
-### tests\behavior\test_conversation_flow_manager_behavior.py
-**Issues Found**: 1
-
-- **Line 705**: `"task_id"`
-  ```
-  "data": {"task_id": "task-1"},
   ```
 
 ### tests\behavior\test_core_message_management_coverage_expansion.py
@@ -6128,44 +6111,6 @@
   "updated_at": checkin.get("timestamp"),
   ```
 
-### tests\behavior\test_scheduler_coverage_expansion.py
-**Issues Found**: 7
-
-- **Line 424**: `"task_id"`
-  ```
-  "task_id": "task-1",
-  ```
-
-- **Line 429**: `"task_id"`
-  ```
-  "task_id": "task-2",
-  ```
-
-- **Line 1380**: `"task_id"`
-  ```
-  {"task_id": "task1", "completed": False, "title": "Test Task 1"},
-  ```
-
-- **Line 1381**: `"task_id"`
-  ```
-  {"task_id": "task2", "completed": False, "title": "Test Task 2"},
-  ```
-
-- **Line 1385**: `"task_id"`
-  ```
-  mock_select_task.return_value = {"task_id": "task1", "title": "Test Task 1"}
-  ```
-
-- **Line 1453**: `"task_id"`
-  ```
-  {"task_id": "task1", "completed": False, "title": "Test Task 1"}
-  ```
-
-- **Line 1456**: `"task_id"`
-  ```
-  mock_select_task.return_value = {"task_id": "task1", "title": "Test Task 1"}
-  ```
-
 ### tests\behavior\test_task_behavior.py
 **Issues Found**: 4
 
@@ -6265,19 +6210,6 @@
   "task_id": "new-id",  # Disallowed - should be skipped
   ```
 
-### tests\behavior\test_task_reminder_followup_behavior.py
-**Issues Found**: 2
-
-- **Line 66**: `"task_id"`
-  ```
-  "task_id" in conversation_manager.user_states[user_id]["data"]
-  ```
-
-- **Line 70**: `"task_id"`
-  ```
-  task_id = conversation_manager.user_states[user_id]["data"]["task_id"]
-  ```
-
 ### tests\core\test_message_management.py
 **Issues Found**: 5
 
@@ -6306,14 +6238,6 @@
   assert active["messages"][0]["message_id"] == "new"
   ```
 
-### tests\core\test_service_request_helpers.py
-**Issues Found**: 1
-
-- **Line 140**: `"task_id"`
-  ```
-  json.dumps({"user_id": "user-1", "task_id": "task-1"}),
-  ```
-
 ### tests\core\test_user_data_read_scenarios.py
 **Issues Found**: 6
 
@@ -6327,24 +6251,24 @@
   {"message_id": "dup", "body": "b"},
   ```
 
-- **Line 47**: `"message_id"`
+- **Line 53**: `"message_id"`
   ```
-  ids = [m["message_id"] for m in out["messages"]]
+  assert [m["message_id"] for m in out["messages"]] == ids
   ```
 
-- **Line 137**: `"message_id"`
+- **Line 139**: `"message_id"`
   ```
   {"message_id": "duplicate-id", "body": "first"},
   ```
 
-- **Line 138**: `"message_id"`
+- **Line 140**: `"message_id"`
   ```
   {"message_id": "duplicate-id", "body": "second"},
   ```
 
-- **Line 149**: `"message_id"`
+- **Line 154**: `"message_id"`
   ```
-  ids = [m.get("message_id") for m in reloaded["messages"]]
+  assert [m.get("message_id") for m in reloaded["messages"]] == ids
   ```
 
 ### tests\integration\test_orphaned_reminder_cleanup.py
@@ -6566,17 +6490,17 @@
 ### tests\unit\test_channel_orchestrator_message_selection.py
 **Issues Found**: 3
 
-- **Line 72**: `"message_id"`
+- **Line 64**: `"message_id"`
   ```
   message = {"message_id": "m1", "message": "Hello world"}
   ```
 
-- **Line 108**: `"message_id"`
+- **Line 100**: `"message_id"`
   ```
   data = {"messages": [{"message": "x", "message_id": "m1", "days": ["MONDAY"], "time_periods": ["morning"]}]}
   ```
 
-- **Line 123**: `"message_id"`
+- **Line 115**: `"message_id"`
   ```
   data = {"messages": [{"message": "x", "message_id": "m1", "days": ["MONDAY"], "time_periods": ["morning"]}]}
   ```

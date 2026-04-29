@@ -1389,9 +1389,16 @@ class SchedulerManager:
                     )
                     continue
 
-                # Schedule the task reminder
+                # Schedule the task reminder using canonical task id.
+                selected_task_id = str(selected_task.get("id") or "").strip()
+                if not selected_task_id:
+                    logger.warning(
+                        f"Skipping task reminder for user {user_id}: selected task missing canonical id"
+                    )
+                    continue
+
                 if self.schedule_task_reminder_at_time(
-                    user_id, selected_task["task_id"], random_time
+                    user_id, selected_task_id, random_time
                 ):
                     scheduled_count += 1
                     logger.info(

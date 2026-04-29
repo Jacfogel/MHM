@@ -702,7 +702,7 @@ class TestConversationFlowManagerBehavior:
         manager.user_states[user_id] = {
             "flow": FLOW_TASK_REMINDER,
             "state": 0,
-            "data": {"task_id": "task-1"},
+            "data": {"task_identifier": "task-1"},
         }
 
         save_calls = {"count": 0}

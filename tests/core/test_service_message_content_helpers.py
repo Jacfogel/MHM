@@ -53,21 +53,19 @@ class TestServiceMessageContentHelpers:
                 return_value=["MONDAY"],
             ),
             patch(
-                "core.file_operations.load_json_data",
-                return_value={
-                    "messages": [
-                        {
-                            "message": "recent message",
-                            "days": ["MONDAY"],
-                            "time_periods": ["morning"],
-                        },
-                        {
-                            "message": "fresh message",
-                            "days": ["MONDAY"],
-                            "time_periods": ["morning"],
-                        },
-                    ]
-                },
+                "core.message_management.load_user_messages",
+                return_value=[
+                    {
+                        "message": "recent message",
+                        "days": ["MONDAY"],
+                        "time_periods": ["morning"],
+                    },
+                    {
+                        "message": "fresh message",
+                        "days": ["MONDAY"],
+                        "time_periods": ["morning"],
+                    },
+                ],
             ),
             patch(
                 "core.message_management.get_recent_messages",
@@ -94,8 +92,8 @@ class TestServiceMessageContentHelpers:
                 return_value=["MONDAY"],
             ),
             patch(
-                "core.file_operations.load_json_data",
-                return_value={"messages": []},
+                "core.message_management.load_user_messages",
+                return_value=[],
             ),
             patch("core.config.get_user_data_dir", return_value="C:/tmp/user-1"),
         ):

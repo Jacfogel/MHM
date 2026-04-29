@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-29 00:59:46
+> **Last Generated**: 2026-04-29 15:07:34
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 94.1% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 125
-- **Functions Found**: 1755
-- **Methods Found**: 1243
+- **Functions Found**: 1757
+- **Methods Found**: 1244
 - **Classes Found**: 170
-- **Total Items**: 2998
-- **Functions Documented**: 1633
-- **Methods Documented**: 1189
+- **Total Items**: 3001
+- **Functions Documented**: 1635
+- **Methods Documented**: 1190
 - **Classes Documented**: 122
-- **Total Documented**: 2822
+- **Total Documented**: 2825
 - **Template-Generated**: 4
 - **Last Updated**: 2026-04-29
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (628)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (457)
+### **Communication Functions** (459)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (426)
@@ -1765,9 +1765,10 @@ Returns:
     Optional[str]: Recipient ID, None if failed
 - [OK] `_handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - Handle scheduled check-in messages based on user preferences and frequency.
 - [OK] `_initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
-- [OK] `_load_predefined_messages_library(self, user_id, category)` - Load and normalize the messages library for a user/category.
+- [OK] `_load_predefined_messages_library(self, user_id, category)` - Load messages in runtime shape for selection.
 - [OK] `_normalize_message_selection_periods(self, matching_periods, valid_periods)` - Normalize matching periods for message selection.
 - [OK] `_process_incoming_email(self, email_msg)` - Process an incoming email message and send response
+- [OK] `_schedule_fields(msg)` - Return (days, periods) for filtering, from v2 ``schedule`` or legacy top-level fields.
 - [OK] `_select_weighted_message(self, available_messages, matching_periods)` - Select weighted message with validation.
 
 Returns:
@@ -1865,7 +1866,7 @@ Returns:
     Optional[str]: Recipient ID, None if failed
   - [OK] `CommunicationManager._handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - Handle scheduled check-in messages based on user preferences and frequency.
   - [OK] `CommunicationManager._initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
-  - [OK] `CommunicationManager._load_predefined_messages_library(self, user_id, category)` - Load and normalize the messages library for a user/category.
+  - [OK] `CommunicationManager._load_predefined_messages_library(self, user_id, category)` - Load messages in runtime shape for selection.
   - [OK] `CommunicationManager._normalize_message_selection_periods(self, matching_periods, valid_periods)` - Normalize matching periods for message selection.
   - [OK] `CommunicationManager._process_incoming_email(self, email_msg)` - Process an incoming email message and send response
   - [OK] `CommunicationManager._select_weighted_message(self, available_messages, matching_periods)` - Select weighted message with validation.
@@ -2108,6 +2109,7 @@ Examples:
 - [OK] `_get_question_text(self, question_key, previous_data, user_id)` - Get appropriate question text based on question type and previous responses
 - [OK] `_get_reminder_parse_patterns(self)` - Return ordered regex patterns for reminder phrase parsing.
 - [OK] `_get_task_due_datetime_for_reminders(self, user_id, task_id)` - Resolve task due datetime for reminder calculations.
+- [OK] `_get_task_flow_identifier(self, user_state)` - Get canonical task identifier from flow state, with legacy fallback.
 - [OK] `_handle_checkin(self, user_id, user_state, message_text)` - Enhanced check-in flow with dynamic questions and better validation
 - [OK] `_handle_command_during_checkin(self, user_id, message_text)` - Handle common commands while user is in a checkin flow
 - [OK] `_handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
@@ -2222,6 +2224,7 @@ Examples:
   - [OK] `ConversationManager._get_question_text(self, question_key, previous_data, user_id)` - Get appropriate question text based on question type and previous responses
   - [OK] `ConversationManager._get_reminder_parse_patterns(self)` - Return ordered regex patterns for reminder phrase parsing.
   - [OK] `ConversationManager._get_task_due_datetime_for_reminders(self, user_id, task_id)` - Resolve task due datetime for reminder calculations.
+  - [OK] `ConversationManager._get_task_flow_identifier(self, user_state)` - Get canonical task identifier from flow state, with legacy fallback.
   - [OK] `ConversationManager._handle_checkin(self, user_id, user_state, message_text)` - Enhanced check-in flow with dynamic questions and better validation
   - [OK] `ConversationManager._handle_command_during_checkin(self, user_id, message_text)` - Handle common commands while user is in a checkin flow
   - [OK] `ConversationManager._handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
@@ -4874,7 +4877,7 @@ Returns:
 #### `core/user_data_read.py`
 **Functions:**
 - [OK] `clear_user_caches(user_id)` - Clear user data caches (delegate to registry).
-- [OK] `ensure_unique_ids(data)` - Ensure all messages have unique IDs.
+- [OK] `ensure_unique_ids(data)` - Ensure all messages have unique canonical IDs.
 - [OK] `get_user_data(user_id, data_types, fields, auto_create, include_metadata, normalize_on_read)` - Get user data with comprehensive validation.
 
 Returns:

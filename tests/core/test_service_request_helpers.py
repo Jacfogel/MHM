@@ -137,7 +137,7 @@ class TestServiceTaskAndMessageRequestHelpers:
         base_dir = Path(test_path_factory)
         request_path = base_dir / "task_reminder_request_user-1.flag"
         request_path.write_text(
-            json.dumps({"user_id": "user-1", "task_id": "task-1"}),
+            json.dumps({"user_id": "user-1", "task_identifier": "task-1"}),
             encoding="utf-8",
         )
 

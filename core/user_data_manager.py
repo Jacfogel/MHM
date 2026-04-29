@@ -789,7 +789,12 @@ class UserDataManager:
 
                 recent_checkins = get_recent_checkins(user_id, limit=1)
                 if recent_checkins:
-                    return recent_checkins[0].get("timestamp", "1970-01-01 00:00:00")
+                    return (
+                        recent_checkins[0].get("submitted_at")
+                        or recent_checkins[0].get("sent_at")
+                        or recent_checkins[0].get("timestamp")
+                        or "1970-01-01 00:00:00"
+                    )
             except Exception as e:
                 logger.warning(
                     f"Error getting recent check-ins for user {user_id}: {e}"
@@ -803,7 +808,12 @@ class UserDataManager:
                     user_id, "chat_interaction", limit=1
                 )
                 if recent_chats:
-                    return recent_chats[0].get("timestamp", "1970-01-01 00:00:00")
+                    return (
+                        recent_chats[0].get("submitted_at")
+                        or recent_chats[0].get("sent_at")
+                        or recent_chats[0].get("timestamp")
+                        or "1970-01-01 00:00:00"
+                    )
             except Exception as e:
                 logger.warning(
                     f"Error getting recent chat interactions for user {user_id}: {e}"
@@ -822,10 +832,18 @@ class UserDataManager:
                     # Sort by timestamp and get the most recent
                     sorted_messages = sorted(
                         all_messages,
-                        key=lambda x: x.get("timestamp", "1970-01-01 00:00:00"),
+                        key=lambda x: x.get("sent_at")
+                        or x.get("submitted_at")
+                        or x.get("timestamp")
+                        or "1970-01-01 00:00:00",
                         reverse=True,
                     )
-                    return sorted_messages[0].get("timestamp", "1970-01-01 00:00:00")
+                    return (
+                        sorted_messages[0].get("sent_at")
+                        or sorted_messages[0].get("submitted_at")
+                        or sorted_messages[0].get("timestamp")
+                        or "1970-01-01 00:00:00"
+                    )
 
             # Fallback to account creation date
             user_data_result = get_user_data(user_id, "account")

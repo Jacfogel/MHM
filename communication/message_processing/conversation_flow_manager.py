@@ -18,6 +18,7 @@ Usage:
 
 import importlib
 import json
+from typing import Any
 from pathlib import Path
 from contextlib import suppress
 from datetime import datetime, timedelta
@@ -169,6 +170,24 @@ class ConversationManager:
                 f"FLOW_STATE_SAVE: User {user_id} | flow={state.get('flow')}, state={state.get('state')}, "
                 f"question_index={state.get('current_question_index')}"
             )
+
+    @handle_errors("resolving task flow identifier", default_return="")
+    def _get_task_flow_identifier(self, user_state: dict[str, Any]) -> str:
+        """Get canonical task identifier from flow state, with legacy fallback."""
+        data = user_state.get("data") if isinstance(user_state, dict) else {}
+        if not isinstance(data, dict):
+            return ""
+
+        identifier = str(data.get("task_identifier") or "").strip()
+        if identifier:
+            return identifier
+
+        # LEGACY COMPATIBILITY: support older persisted flow states that used data.task_id.
+        legacy_identifier = str(data.get("task_id") or "").strip()
+        if legacy_identifier:
+            logger.debug("LEGACY COMPATIBILITY: using task_id from legacy flow state data")
+            return legacy_identifier
+        return ""
 
     @handle_errors("marking flow completion", default_return=None)
     def _mark_flow_completion(self, user_id: str) -> None:
@@ -1359,7 +1378,7 @@ class ConversationManager:
         from tasks import get_task_by_id
 
         try:
-            task_id = user_state.get("data", {}).get("task_id")
+            task_id = self._get_task_flow_identifier(user_state)
             if not task_id:
                 logger.error(
                     f"Task reminder follow-up for user {user_id} but no task_id in state"
@@ -1762,7 +1781,7 @@ class ConversationManager:
         self.user_states[user_id] = {
             "flow": FLOW_TASK_DUE_DATE,
             "state": 0,
-            "data": {"task_id": task_id},
+            "data": {"task_identifier": task_id},
             "started_at": now_timestamp_full(),
         }
         self._save_user_states()
@@ -1777,7 +1796,7 @@ class ConversationManager:
         self.user_states[user_id] = {
             "flow": FLOW_TASK_REMINDER,
             "state": 0,
-            "data": {"task_id": task_id},
+            "data": {"task_identifier": task_id},
             "started_at": now_timestamp_full(),
         }
         self._save_user_states()
@@ -1927,7 +1946,7 @@ class ConversationManager:
             message_lower == keyword or message_lower.startswith(keyword + " ")
             for keyword in cancel_keywords
         ):
-            task_id = user_state.get("data", {}).get("task_id")
+            task_id = self._get_task_flow_identifier(user_state)
             self._clear_flow_state(user_id, mark_completion=True)
             return (
                 "❌ Due date setting cancelled. Task was created without a due date.",
@@ -1939,7 +1958,7 @@ class ConversationManager:
             message_lower == keyword or message_lower.startswith(keyword + " ")
             for keyword in skip_keywords
         ):
-            task_id = user_state.get("data", {}).get("task_id")
+            task_id = self._get_task_flow_identifier(user_state)
             self._clear_flow_state(user_id, mark_completion=True)
             return (
                 "✅ Task created without a due date. You can add one later by updating the task.",
@@ -1964,7 +1983,7 @@ class ConversationManager:
             return ("", True)  # Empty response to let command be processed normally
 
         # Parse date/time from user input
-        task_id = user_state.get("data", {}).get("task_id")
+        task_id = self._get_task_flow_identifier(user_state)
         if not task_id:
             self._clear_flow_state(user_id, mark_completion=True)
             return ("❌ Could not find task. Please try creating the task again.", True)

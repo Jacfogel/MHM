@@ -44,11 +44,13 @@ class TestEnsureUniqueIds:
         }
         out = ensure_unique_ids(data)
         assert out is data
-        ids = [m["message_id"] for m in out["messages"]]
+        ids = [m["id"] for m in out["messages"]]
         assert len(ids) == len(set(ids))
         assert ids[0] == "dup"
         for mid in ids[1:]:
             assert len(mid) >= 32
+        # Legacy alias remains available and synchronized.
+        assert [m["message_id"] for m in out["messages"]] == ids
 
 
 @pytest.mark.integration
@@ -146,6 +148,7 @@ class TestLoadAndEnsureIds:
 
         reloaded = load_json_data(msg_path)
         assert reloaded and "messages" in reloaded
-        ids = [m.get("message_id") for m in reloaded["messages"]]
+        ids = [m.get("id") for m in reloaded["messages"]]
         assert all(ids)
         assert len(ids) == len(set(ids))
+        assert [m.get("message_id") for m in reloaded["messages"]] == ids

@@ -22,10 +22,6 @@ from core.schedule_management import (
     get_current_time_periods_with_validation,
     get_current_day_names,
 )
-from core.file_operations import (
-    determine_file_path,
-    load_json_data,
-)  # determine_file_path needed for test mocking
 from core.config import EMAIL_SMTP_SERVER, DISCORD_BOT_TOKEN
 from core.network_probe import wait_for_network
 import contextlib
@@ -1695,23 +1691,16 @@ class CommunicationManager:
     def _load_predefined_messages_library(
         self, user_id: str, category: str
     ) -> dict | None:
-        """Load and normalize the messages library for a user/category."""
-        file_path = determine_file_path("messages", f"{category}/{user_id}")
-        data = load_json_data(file_path)
-        try:
-            from core.schemas import validate_messages_file_dict
+        """Load messages in runtime shape for selection."""
+        from core.message_management import load_user_messages
 
-            if isinstance(data, dict):
-                data, _ = validate_messages_file_dict(data)
-        except Exception:
-            pass
-
-        if not data or "messages" not in data:
+        messages = load_user_messages(user_id, category)
+        if not messages:
             logger.error(
                 f"MESSAGE_SELECTION_ERROR: No messages found for category {category} and user {user_id}."
             )
             return None
-        return data
+        return {"messages": messages}
 
     @handle_errors("filtering messages by day and period", default_return=[])
     def _filter_messages_by_day_and_period(
@@ -1721,11 +1710,28 @@ class CommunicationManager:
         matching_periods: list[str],
     ) -> list[dict]:
         """Filter messages by active day and matching period."""
+        @handle_errors("extracting message schedule fields", default_return=(["ALL"], ["ALL"]))
+        def _schedule_fields(msg: dict[str, Any]) -> tuple[list[str], list[str]]:
+            """Return (days, periods) for filtering, from v2 ``schedule`` or legacy top-level fields."""
+            schedule = msg.get("schedule")
+            if isinstance(schedule, dict):
+                days = schedule.get("days")
+                periods = schedule.get("periods")
+            else:
+                days = msg.get("days")
+                periods = msg.get("time_periods")
+
+            days_list = [d for d in (days or ["ALL"]) if isinstance(d, str)] or ["ALL"]
+            periods_list = [p for p in (periods or ["ALL"]) if isinstance(p, str)] or ["ALL"]
+            return days_list, periods_list
+
         return [
             msg
             for msg in messages
-            if any(day in msg["days"] for day in current_days)
-            and any(period in msg["time_periods"] for period in matching_periods)
+            if (
+                lambda days, periods: any(day in days for day in current_days)
+                and any(period in periods for period in matching_periods)
+            )(*_schedule_fields(msg))
         ]
 
     @handle_errors("deduplicating candidate messages", default_return=[])
@@ -1774,23 +1780,29 @@ class CommunicationManager:
         success = self.send_message_sync(
             messaging_service,
             recipient,
-            message_to_send["message"],
+            str(message_to_send.get("message") or message_to_send.get("text") or ""),
             user_id=user_id,
             category=category,
         )
 
         current_time_period = matching_periods[0] if matching_periods else None
+        selected_message_content = str(
+            message_to_send.get("message") or message_to_send.get("text") or ""
+        )
+        selected_message_id = str(
+            message_to_send.get("message_id") or message_to_send.get("id") or ""
+        )
         message_preview = (
-            message_to_send["message"][:50] + "..."
-            if len(message_to_send["message"]) > 50
-            else message_to_send["message"]
+            selected_message_content[:50] + "..."
+            if len(selected_message_content) > 50
+            else selected_message_content
         )
 
         store_sent_message(
             user_id,
             category,
-            message_to_send["message_id"],
-            message_to_send["message"],
+            selected_message_id,
+            selected_message_content,
             time_period=current_time_period,
         )
 
@@ -1798,12 +1810,12 @@ class CommunicationManager:
             logger.info(
                 f"Message sent successfully via {messaging_service} to {recipient} | User: {user_id}, Category: {category}, Period: {current_time_period} | Content: '{message_preview}'"
             )
-            return True, message_to_send["message"]
+            return True, selected_message_content
 
         logger.warning(
             f"Message send returned False but may have still been delivered for user {user_id}, category {category} | Period: {current_time_period} | Content: '{message_preview}'"
         )
-        return True, message_to_send["message"]
+        return True, selected_message_content
 
     @handle_errors("sending predefined message", default_return=(False, None))
     def _send_predefined_message(

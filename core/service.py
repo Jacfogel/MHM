@@ -716,10 +716,7 @@ class MHMService:
                 get_current_time_periods_with_validation,
                 get_current_day_names,
             )
-            from core.message_management import get_recent_messages
-            from pathlib import Path
-            from core.config import get_user_data_dir
-            from core.file_operations import load_json_data
+            from core.message_management import get_recent_messages, load_user_messages
 
             matching_periods, valid_periods = get_current_time_periods_with_validation(
                 user_id, category
@@ -731,17 +728,15 @@ class MHMService:
             if not matching_periods and "ALL" in valid_periods:
                 matching_periods = ["ALL"]
 
-            # Load messages
-            user_messages_dir = Path(get_user_data_dir(user_id)) / "messages"
-            file_path = user_messages_dir / f"{category}.json"
-            data = load_json_data(str(file_path))
+            # Load runtime-normalized messages (v2-aware).
+            messages = load_user_messages(user_id, category)
 
-            if data and "messages" in data:
+            if messages:
                 current_days = get_current_day_names()
 
                 all_messages = [
                     msg
-                    for msg in data["messages"]
+                    for msg in messages
                     if any(day in msg.get("days", []) for day in current_days)
                     and any(
                         period in msg.get("time_periods", [])
@@ -1021,7 +1016,9 @@ class MHMService:
                         request_data = json.load(f)
 
                     user_id = request_data.get("user_id")
-                    task_id = request_data.get("task_id")
+                    task_id = request_data.get("task_identifier") or request_data.get(
+                        "task_id"
+                    )
                     if user_id and task_id and self.communication_manager:
                         self.communication_manager.handle_task_reminder(
                             user_id, task_id

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-29 00:59:48
+> **Last Generated**: 2026-04-29 15:07:36
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 123
-- **Total Imports Found**: 1524
+- **Total Imports Found**: 1521
 - **Dependencies Documented**: 123 (100% coverage)
 - **Standard Library Imports**: 431 (28.3%)
 - **Third-Party Imports**: 233 (15.3%)
-- **Local Imports**: 860 (56.4%)
+- **Local Imports**: 857 (56.3%)
 - **Last Updated**: 2026-04-29
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -31,7 +31,7 @@
 
 - **Standard Library**: 431 imports (28.3%)
 - **Third-Party**: 233 imports (15.3%)
-- **Local**: 860 imports (56.4%)
+- **Local**: 857 imports (56.3%)
 
 ## Module Dependencies by Directory
 
@@ -961,12 +961,10 @@
     - `core (get_user_data, get_user_id_by_identifier)` (NEW)
     - `core.config (DISCORD_BOT_TOKEN, EMAIL_SMTP_SERVER, get_available_channels)` (NEW)
     - `core.error_handling (handle_communication_error, handle_errors, handle_network_error)` (NEW)
-    - `core.file_operations (determine_file_path, load_json_data)` (NEW)
     - `core.logger (force_restart_logging, get_component_logger)` (NEW)
-    - `core.message_management (get_recent_messages, store_sent_message)` (NEW)
+    - `core.message_management (get_recent_messages, load_user_messages, store_sent_message)` (NEW)
     - `core.network_probe (wait_for_network)` (NEW)
     - `core.schedule_management (get_current_day_names, get_current_time_periods_with_validation)` (NEW)
-    - `core.schemas (validate_messages_file_dict)` (NEW)
     - `tasks (are_tasks_enabled, get_task_by_id)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_is_completed)` (NEW)
   - **Standard Library**:
@@ -985,7 +983,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: core, core.config, core.error_handling, core.file_operations, core.logger, core.message_management, core.network_probe, core.schedule_management, core.schemas, tasks, tasks.task_data_handlers
+- Added: core, core.config, core.error_handling, core.logger, core.message_management, core.network_probe, core.schedule_management, tasks, tasks.task_data_handlers
 - Removed: communication/command_handlers/account_handler.py, core/scheduler.py, core/service.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -1132,6 +1130,7 @@
     - `pathlib (Path)`
     - `random`
     - `re`
+    - `typing (Any)`
 - **Used by**: 
   - `communication/command_handlers/checkin_handler.py`
   - `communication/command_handlers/notebook_handler.py`
@@ -1645,7 +1644,6 @@
     - `shutil`
     - `time`
 - **Used by**: 
-  - `communication/core/channel_orchestrator.py`
   - `core/checkin_dynamic_manager.py`
   - `core/message_management.py`
   - `core/response_tracking.py`
@@ -1660,7 +1658,7 @@
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.file_auditor, core.logger, core.time_utilities, core.user_data_v2, tasks.task_schemas
-- Removed: communication/core/channel_orchestrator.py, core/checkin_dynamic_manager.py, core/message_management.py, core/response_tracking.py, core/service.py, core/tags.py, core/user_data_manager.py, core/user_data_read.py, core/user_data_registry.py, core/user_data_write.py, core/user_item_storage.py, ui/dialogs/account_creator_dialog.py
+- Removed: core/checkin_dynamic_manager.py, core/message_management.py, core/response_tracking.py, core/service.py, core/tags.py, core/user_data_manager.py, core/user_data_read.py, core/user_data_registry.py, core/user_data_write.py, core/user_item_storage.py, ui/dialogs/account_creator_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: File operations and data management
@@ -2051,7 +2049,6 @@
     - `pydantic (BaseModel, ConfigDict, Field, RootModel, field_validator, model_validator)`
     - `pytz`
 - **Used by**: 
-  - `communication/core/channel_orchestrator.py`
   - `core/message_management.py`
   - `core/user_data_manager.py`
   - `core/user_data_read.py`
@@ -2060,7 +2057,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger
-- Removed: communication/core/channel_orchestrator.py, core/message_management.py, core/user_data_manager.py, core/user_data_read.py, core/user_data_registry.py, core/user_data_write.py
+- Removed: core/message_management.py, core/user_data_manager.py, core/user_data_read.py, core/user_data_registry.py, core/user_data_write.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2077,9 +2074,9 @@
     - `core.config (LOG_MAIN_FILE, USER_INFO_DIR_PATH, get_user_data_dir, print_configuration_report, validate_and_raise_if_invalid)` (NEW)
     - `core.error_handling (FileOperationError, handle_errors)` (NEW)
     - `core.file_auditor (start_auditor, stop_auditor)` (NEW)
-    - `core.file_operations (load_json_data, verify_file_access)` (NEW)
+    - `core.file_operations (verify_file_access)` (NEW)
     - `core.logger (force_restart_logging, get_component_logger, setup_logging)` (NEW)
-    - `core.message_management (get_recent_messages)` (NEW)
+    - `core.message_management (get_recent_messages, load_user_messages)` (NEW)
     - `core.schedule_management (get_current_day_names, get_current_time_periods_with_validation)` (NEW)
     - `core.scheduler (SchedulerManager)` (NEW)
     - `core.service_utilities (get_flags_dir)` (NEW)
@@ -2464,7 +2461,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger, core.time_utilities
-- Removed: core/message_management.py, core/response_tracking.py, tasks/task_data_handlers.py, tasks/task_data_manager.py
+- Removed: core/file_operations.py, core/message_management.py, core/response_tracking.py, tasks/task_data_handlers.py, tasks/task_data_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2672,7 +2669,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger, core.time_utilities, core.user_data_v2, core.user_data_validation, core.user_item_storage
-- Removed: tasks/task_data_manager.py
+- Removed: ai/chatbot.py, communication/command_handlers/task_handler.py, communication/core/channel_orchestrator.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, core/scheduler.py, tasks/task_data_manager.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2713,7 +2710,7 @@
   - `tasks/task_validation.py`
 
 **Dependency Changes**:
-- Removed: tasks/task_data_handlers.py, tasks/task_validation.py
+- Removed: core/file_operations.py, tasks/task_data_handlers.py, tasks/task_validation.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

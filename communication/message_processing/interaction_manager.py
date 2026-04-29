@@ -618,7 +618,8 @@ class InteractionManager:
                     not completed
                     and "Would you like to set custom reminder periods" in reply_text
                 ):
-                    task_id = updated_user_state.get("data", {}).get("task_id")
+                    state_data = updated_user_state.get("data", {})
+                    task_id = (state_data.get("task_identifier") or state_data.get("task_id"))
                     if task_id:
                         reminder_suggestions = conversation_manager._generate_context_aware_reminder_suggestions(
                             user_id, task_id

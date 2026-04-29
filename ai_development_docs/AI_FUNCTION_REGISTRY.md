@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-29 00:59:46
+> **Last Generated**: 2026-04-29 15:07:34
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 94.1% [!] GOOD**
-- **Total Functions**: 1755
-- **Total Methods**: 1243
-- **Documented**: 2822/2998
+- **Total Functions**: 1757
+- **Total Methods**: 1244
+- **Documented**: 2825/3001
 - **Files Scanned**: 125
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -40,7 +40,7 @@ AI Operations Decision Tree:
 ### **[COMM] Need Communication/Channels?**
 ```
 Communication Decision Tree:
-+-- `communication/core/channel_orchestrator.py` - Main communication (91/93 functions)
++-- `communication/core/channel_orchestrator.py` - Main communication (92/94 functions)
 +-- `communication/communication_channels/base/base_channel.py` - Channel base class (14 functions)
 `-- `communication/core/factory.py` - Channel creation (8 functions)```
 
@@ -187,7 +187,7 @@ Core System Decision Tree:
 Most complex functions (may need refactoring):
 1. [OK] `run_tests.py::run_command()` - Complexity: 3211
 2. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2960
-3. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2783
+3. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2796
 4. [OK] `run_tests.py::main()` - Complexity: 2691
 5. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2359
 
@@ -200,7 +200,7 @@ Most complex functions (may need refactoring):
 
 ### **File Organization**
 - `core/` - System utilities and data management (38 files, 928 functions)
-- `communication/` - Communication channels and message processing (39 files, 862 functions)
+- `communication/` - Communication channels and message processing (39 files, 865 functions)
 - `ai/` - AI chatbot functionality (7 files, 219 functions)
 - `ui/` - User interface components (29 files, 827 functions)
 - `user/` - User context and preferences (4 files, 65 functions)

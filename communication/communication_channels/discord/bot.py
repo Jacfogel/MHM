@@ -566,15 +566,15 @@ class DiscordBot(BaseChannel):
                 # Don't fail immediately, let Discord.py handle the connection
 
             # Create bot instance with automatic command processing disabled.
-            # DISCORD_APPLICATION_ID is int | None from core.config; discord.py expects int.
-            # Use 0 when unset so type checker is satisfied; tests can patch the config.
-            app_id = DISCORD_APPLICATION_ID if DISCORD_APPLICATION_ID is not None else 0
-            self.bot = commands.Bot(
-                command_prefix="!",
-                intents=intents,
-                application_id=app_id,
-                help_command=None,  # Disable default help command
-            )
+            # Only set application_id when explicitly configured.
+            bot_kwargs: dict[str, Any] = {
+                "command_prefix": "!",
+                "intents": intents,
+                "help_command": None,  # Disable default help command
+            }
+            if DISCORD_APPLICATION_ID is not None:
+                bot_kwargs["application_id"] = DISCORD_APPLICATION_ID
+            self.bot = commands.Bot(**bot_kwargs)
 
             # Register events and commands
             if not self._events_registered:
@@ -776,6 +776,13 @@ class DiscordBot(BaseChannel):
             default_return=None,
         )
         async def _sync_app_cmds():
+            app_id = getattr(bot, "application_id", None)
+            if not app_id:
+                logger.warning(
+                    "Skipping Discord command sync: application_id unavailable. "
+                    "Set DISCORD_APPLICATION_ID (matching your bot token's app) to enable sync."
+                )
+                return
             await bot.tree.sync()
             logger.info("Discord application commands synced")
 

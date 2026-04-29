@@ -43,14 +43,23 @@ def clear_user_caches(user_id: str | None = None) -> None:
 
 @handle_errors("ensuring unique ids", default_return=None)
 def ensure_unique_ids(data: Any) -> Any:
-    """Ensure all messages have unique IDs."""
+    """Ensure all messages have unique canonical IDs."""
     if not data or "messages" not in data:
         return data
     existing_ids = set()
     for message in data["messages"]:
-        if "message_id" not in message or message["message_id"] in existing_ids:
-            message["message_id"] = str(uuid.uuid4())
-        existing_ids.add(message["message_id"])
+        if not isinstance(message, dict):
+            continue
+        message_id = str(message.get("id") or message.get("message_id") or "").strip()
+        if not message_id or message_id in existing_ids:
+            message_id = str(uuid.uuid4())
+
+        # Canonical field.
+        message["id"] = message_id
+        # LEGACY COMPATIBILITY: keep alias in sync for older read paths.
+        message["message_id"] = message_id
+
+        existing_ids.add(message_id)
     return data
 
 

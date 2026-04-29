@@ -421,14 +421,14 @@ class TestTaskReminderScheduling:
                 ) as mock_load_tasks:
                     mock_load_tasks.return_value = [
                         {
-                            "task_id": "task-1",
+                            "id": "task-1",
                             "title": "Test Task 1",
-                            "completed": False,
+                            "status": "active",
                         },
                         {
-                            "task_id": "task-2",
+                            "id": "task-2",
                             "title": "Test Task 2",
-                            "completed": False,
+                            "status": "active",
                         },
                     ]
 
@@ -1377,12 +1377,12 @@ class TestTaskReminderSchedulingCoverage:
 
             # Mock active tasks
             mock_load_tasks.return_value = [
-                {"task_id": "task1", "completed": False, "title": "Test Task 1"},
-                {"task_id": "task2", "completed": False, "title": "Test Task 2"},
+                {"id": "task1", "status": "active", "title": "Test Task 1"},
+                {"id": "task2", "status": "active", "title": "Test Task 2"},
             ]
 
             # Mock task selection and time generation
-            mock_select_task.return_value = {"task_id": "task1", "title": "Test Task 1"}
+            mock_select_task.return_value = {"id": "task1", "title": "Test Task 1"}
             mock_random_time.return_value = "09:00"
             mock_schedule_task.return_value = True
 
@@ -1450,10 +1450,10 @@ class TestTaskReminderSchedulingCoverage:
 
             # Mock active tasks
             mock_load_tasks.return_value = [
-                {"task_id": "task1", "completed": False, "title": "Test Task 1"}
+                {"id": "task1", "status": "active", "title": "Test Task 1"}
             ]
 
-            mock_select_task.return_value = {"task_id": "task1", "title": "Test Task 1"}
+            mock_select_task.return_value = {"id": "task1", "title": "Test Task 1"}
 
             # Test real behavior: should handle missing times gracefully
             scheduler_manager.schedule_all_task_reminders(user_id)

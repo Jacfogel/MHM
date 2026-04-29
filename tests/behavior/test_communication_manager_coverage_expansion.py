@@ -645,9 +645,8 @@ class TestCommunicationManagerCoverageExpansion:
         with open(message_file, 'w') as f:
             json.dump(['Test motivational message'], f)
         
-        # Mock send_message_sync and determine_file_path
-        with patch.object(comm_manager, 'send_message_sync', return_value=True), \
-             patch('communication.core.channel_orchestrator.determine_file_path', return_value=message_file):
+        # Mock send_message_sync (message path resolution is via load_user_messages / user data dir).
+        with patch.object(comm_manager, 'send_message_sync', return_value=True):
             # Test sending predefined message
             comm_manager._send_predefined_message(user_id, 'motivational', 'discord', 'test_recipient')
             

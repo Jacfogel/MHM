@@ -24,23 +24,15 @@ class TestChannelOrchestratorMessageSelectionHelpers:
         assert result == ["ALL"]
 
     def test_load_predefined_messages_library_returns_none_when_missing_messages(self):
-        with (
-            patch("communication.core.channel_orchestrator.determine_file_path", return_value="ignored.json"),
-            patch("communication.core.channel_orchestrator.load_json_data", return_value=None),
-        ):
+        with patch("core.message_management.load_user_messages", return_value=[]):
             assert self.manager._load_predefined_messages_library("u1", "motivation") is None
 
-    def test_load_predefined_messages_library_validates_schema_when_dict(self):
-        payload = {"messages": [{"message": "hi", "days": ["ALL"], "time_periods": ["ALL"]}]}
-        normalized = {"messages": [{"message": "normalized", "days": ["ALL"], "time_periods": ["ALL"]}]}
-        with (
-            patch("communication.core.channel_orchestrator.determine_file_path", return_value="ignored.json"),
-            patch("communication.core.channel_orchestrator.load_json_data", return_value=payload),
-            patch("core.schemas.validate_messages_file_dict", return_value=(normalized, [])),
-        ):
+    def test_load_predefined_messages_library_uses_runtime_messages_loader(self):
+        runtime_messages = [{"message": "normalized", "days": ["ALL"], "time_periods": ["ALL"]}]
+        with patch("core.message_management.load_user_messages", return_value=runtime_messages):
             result = self.manager._load_predefined_messages_library("u1", "motivation")
 
-        assert result == normalized
+        assert result == {"messages": runtime_messages}
 
     def test_filter_messages_by_day_and_period(self):
         messages = [
