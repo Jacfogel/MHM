@@ -24,6 +24,12 @@ from core.time_utilities import (
 
 from .base_handler import InteractionHandler, InteractionResponse, ParsedCommand
 
+from tasks.task_data_handlers import (
+    runtime_task_due_date,
+    runtime_task_recurrence_interval,
+    runtime_task_recurrence_pattern,
+)
+
 
 # Lazy import to avoid circular dependency: core -> service -> channel_orchestrator -> task_handler -> tasks -> core
 @handle_errors("loading tasks module", default_return=None, re_raise=True)
@@ -39,7 +45,7 @@ handlers_logger = logger
 @handle_errors("resolving task identifier", default_return="")
 def _task_identifier(task: dict[str, Any]) -> str:
     """Return canonical task identifier for command routing."""
-    return str(task.get("id") or task.get("task_id") or "")
+    return str(task.get("id") or "")
 
 
 @handle_errors("resolving task short identifier", default_return="")
@@ -547,7 +553,7 @@ class TaskManagementHandler(InteractionHandler):
             filtered_tasks = [
                 task
                 for task in filtered_tasks
-                if task.get("due_date") and task["due_date"] < today
+                if (d := runtime_task_due_date(task)) and d < today
             ]
         elif filter_type == "high_priority":
             filtered_tasks = [
@@ -598,7 +604,7 @@ class TaskManagementHandler(InteractionHandler):
             tasks,
             key=lambda x: (
                 priority_order.get(x.get("priority", "medium"), 1),
-                x.get("due_date") or "9999-12-31",  # Handle None due_date properly
+                runtime_task_due_date(x) or "9999-12-31",
             ),
         )
 
@@ -612,13 +618,15 @@ class TaskManagementHandler(InteractionHandler):
             )
 
             # Format due date with urgency indicator
-            due_info = self._handle_list_tasks__format_due_date(task.get("due_date"))
+            due_info = self._handle_list_tasks__format_due_date(
+                runtime_task_due_date(task)
+            )
 
             # Add recurring task indicator
             recurrence_info = ""
-            if task.get("recurrence_pattern"):
-                pattern = task.get("recurrence_pattern")
-                interval = task.get("recurrence_interval", 1)
+            pattern = runtime_task_recurrence_pattern(task)
+            if pattern:
+                interval = runtime_task_recurrence_interval(task)
                 if interval == 1:
                     recurrence_info = f" 🔄 {pattern[:-2]}"  # Remove 'ly' for singular
                 else:
@@ -721,7 +729,9 @@ class TaskManagementHandler(InteractionHandler):
 
         # Check for overdue tasks first
         overdue_count = sum(
-            1 for task in tasks if task.get("due_date") and task["due_date"] < today
+            1
+            for task in tasks
+            if (d := runtime_task_due_date(task)) and d < today
         )
         if overdue_count > 0:
             return f"Show {overdue_count} overdue tasks"
@@ -736,7 +746,7 @@ class TaskManagementHandler(InteractionHandler):
         due_soon_count = sum(
             1
             for task in tasks
-            if task.get("due_date") and task["due_date"] <= soon_cutoff
+            if (d := runtime_task_due_date(task)) and d <= soon_cutoff
         )
         if due_soon_count > 0:
             return f"Show {due_soon_count} tasks due soon"
@@ -809,8 +819,8 @@ class TaskManagementHandler(InteractionHandler):
                 response += f"**{task_title}**\n"
 
                 # Add task details
-                if suggested_task.get("due_date"):
-                    response += f"📅 Due: {suggested_task['due_date']}\n"
+                if suggested_due := runtime_task_due_date(suggested_task):
+                    response += f"📅 Due: {suggested_due}\n"
                 if suggested_task.get("priority"):
                     response += f"⚡ Priority: {suggested_task['priority'].title()}\n"
 
@@ -1238,7 +1248,7 @@ class TaskManagementHandler(InteractionHandler):
             score = 0
 
             # Check if overdue (highest priority)
-            due_date = task.get("due_date")
+            due_date = runtime_task_due_date(task)
             if due_date and due_date < today:
                 score += 1000  # Overdue tasks get highest priority
 

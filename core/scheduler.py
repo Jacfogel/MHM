@@ -32,6 +32,7 @@ from user.user_context import UserContext
 from core.error_handling import handle_errors
 from core import get_user_data
 from core.backup_manager import backup_manager
+from tasks.task_data_handlers import runtime_task_is_completed
 
 # Suppress debug logging from the schedule library to reduce log spam
 from core.logger import suppress_noisy_logging
@@ -1087,7 +1088,7 @@ class SchedulerManager:
                     return
 
                 # Check if task is still active and not already completed
-                if task.get("completed", False):
+                if runtime_task_is_completed(task):
                     logger.info(
                         f"Task {task_id} is already completed, skipping reminder"
                     )
@@ -1342,9 +1343,11 @@ class SchedulerManager:
             # Load active tasks
             active_tasks = load_active_tasks(user_id)
 
+            from tasks.task_data_handlers import runtime_task_is_completed
+
             # Filter to only incomplete tasks
             incomplete_tasks = [
-                task for task in active_tasks if not task.get("completed", False)
+                task for task in active_tasks if not runtime_task_is_completed(task)
             ]
 
             if not incomplete_tasks:
@@ -1434,7 +1437,9 @@ class SchedulerManager:
     )
     def _select_task_for_reminder__calculate_due_date_weight(self, task, today):
         """Calculate due date proximity weight for a task."""
-        due_date_str = task.get("due_date")
+        from tasks.task_data_handlers import runtime_task_due_date
+
+        due_date_str = runtime_task_due_date(task)
         if not due_date_str:
             # No due date: slight reduction to encourage setting due dates
             return 0.9
@@ -1501,7 +1506,7 @@ class SchedulerManager:
         """Build a stable key for tracking reminder selection state."""
         candidate_keys = [
             str(task.get("id") or "").strip(),
-            str(task.get("task_id") or "").strip(),
+            str(task.get("short_id") or "").strip(),
             str(task.get("uuid") or "").strip(),
             str(task.get("title") or "").strip(),
         ]
@@ -1582,8 +1587,10 @@ class SchedulerManager:
             task_weights, incomplete_tasks
         )
 
+        from tasks.task_data_handlers import runtime_task_due_date
+
         logger.debug(
-            f"Selected task '{selected_task.get('title', 'Unknown')}' with priority '{selected_task.get('priority', 'medium')}' and due date '{selected_task.get('due_date', 'None')}'"
+            f"Selected task '{selected_task.get('title', 'Unknown')}' with priority '{selected_task.get('priority', 'medium')}' and due date '{runtime_task_due_date(selected_task) or 'None'}'"
         )
 
         return selected_task
@@ -1653,7 +1660,7 @@ class SchedulerManager:
                 logger.error(f"Task {task_id} not found for user {user_id}")
                 return False
 
-            if task.get("completed", False):
+            if runtime_task_is_completed(task):
                 logger.info(
                     f"Task {task_id} is already completed, skipping reminder scheduling"
                 )
@@ -1720,7 +1727,7 @@ class SchedulerManager:
                 logger.error(f"Task {task_id} not found for user {user_id}")
                 return False
 
-            if task.get("completed", False):
+            if runtime_task_is_completed(task):
                 logger.info(
                     f"Task {task_id} is already completed, skipping reminder scheduling"
                 )
@@ -1923,7 +1930,7 @@ class SchedulerManager:
                         except ValueError:
                             # Job was already removed
                             pass
-                    elif task.get("completed", False):
+                    elif runtime_task_is_completed(task):
                         # Task is completed - remove the reminder job
                         try:
                             schedule.jobs.remove(job)

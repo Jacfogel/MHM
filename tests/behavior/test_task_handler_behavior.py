@@ -348,14 +348,13 @@ class TestTaskHandlerBehavior:
             {
                 "title": "Task 1",
                 "priority": "high",
-                "due_date": "2024-12-20",
-                "task_id": "task_1",
+                "due": {"date": "2024-12-20"},
+                "id": "task_1",
             },
             {
                 "title": "Task 2",
                 "priority": "medium",
-                "due_date": None,
-                "task_id": "task_2",
+                "id": "task_2",
             },
         ]
 
@@ -430,16 +429,16 @@ class TestTaskHandlerBehavior:
             {
                 "title": "Task 1",
                 "priority": "high",
-                "due_date": "2024-12-20",
-                "task_id": "task_1",
+                "due": {"date": "2024-12-20"},
+                "id": "task_1",
             }
         ]
         mock_due_soon.return_value = [
             {
                 "title": "Due Task",
                 "priority": "medium",
-                "due_date": "2024-12-20",
-                "task_id": "task_2",
+                "due": {"date": "2024-12-20"},
+                "id": "task_2",
             }
         ]
 
@@ -474,8 +473,8 @@ class TestTaskHandlerBehavior:
         ), "Failed to create test user"
 
         mock_load_tasks.return_value = [
-            {"title": "Task 1", "priority": "high", "task_id": "task_1"},
-            {"title": "Task 2", "priority": "medium", "task_id": "task_2"},
+            {"title": "Task 1", "priority": "high", "id": "task_1"},
+            {"title": "Task 2", "priority": "medium", "id": "task_2"},
         ]
         mock_complete_task.return_value = True
 
@@ -515,7 +514,7 @@ class TestTaskHandlerBehavior:
         ), "Failed to create test user"
 
         mock_load_tasks.return_value = [
-            {"title": "Task 1", "priority": "high", "task_id": "task_1"}
+            {"title": "Task 1", "priority": "high", "id": "task_1"}
         ]
 
         parsed_command = ParsedCommand(
@@ -571,7 +570,7 @@ class TestTaskHandlerBehavior:
         ), "Failed to create test user"
 
         mock_load_tasks.return_value = [
-            {"title": "Task 1", "priority": "high", "task_id": "task_1"}
+            {"title": "Task 1", "priority": "high", "id": "task_1"}
         ]
         mock_delete_task.return_value = True
 
@@ -614,7 +613,7 @@ class TestTaskHandlerBehavior:
         ), "Failed to create test user"
 
         mock_load_tasks.return_value = [
-            {"title": "Task 1", "priority": "medium", "task_id": "task_1"}
+            {"title": "Task 1", "priority": "medium", "id": "task_1"}
         ]
         mock_update_task.return_value = True
 
@@ -667,7 +666,7 @@ class TestTaskHandlerBehavior:
         ), "Failed to create test user"
 
         mock_load_tasks.return_value = [
-            {"title": "Task 1", "priority": "medium", "task_id": "task_1"}
+            {"title": "Task 1", "priority": "medium", "id": "task_1"}
         ]
 
         parsed_command = ParsedCommand(
@@ -748,9 +747,9 @@ class TestTaskHandlerBehavior:
         """Test that TaskManagementHandler finds tasks by number."""
         handler = TaskManagementHandler()
         tasks = [
-            {"title": "Task 1", "task_id": "task_1"},
-            {"title": "Task 2", "task_id": "task_2"},
-            {"title": "Task 3", "task_id": "task_3"},
+            {"title": "Task 1", "id": "task_1"},
+            {"title": "Task 2", "id": "task_2"},
+            {"title": "Task 3", "id": "task_3"},
         ]
 
         task = handler._find_task_by_identifier(tasks, "2")
@@ -764,8 +763,8 @@ class TestTaskHandlerBehavior:
         """Test that TaskManagementHandler finds tasks by name."""
         handler = TaskManagementHandler()
         tasks = [
-            {"title": "Brush Teeth", "task_id": "task_1"},
-            {"title": "Wash Dishes", "task_id": "task_2"},
+            {"title": "Brush Teeth", "id": "task_1"},
+            {"title": "Wash Dishes", "id": "task_2"},
         ]
 
         task = handler._find_task_by_identifier(tasks, "Brush Teeth")
@@ -779,8 +778,8 @@ class TestTaskHandlerBehavior:
         """Test that TaskManagementHandler finds tasks by partial name."""
         handler = TaskManagementHandler()
         tasks = [
-            {"title": "Brush Teeth Every Morning", "task_id": "task_1"},
-            {"title": "Wash Dishes After Dinner", "task_id": "task_2"},
+            {"title": "Brush Teeth Every Morning", "id": "task_1"},
+            {"title": "Wash Dishes After Dinner", "id": "task_2"},
         ]
 
         task = handler._find_task_by_identifier(tasks, "teeth")
@@ -791,16 +790,16 @@ class TestTaskHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.tasks
     def test_task_handler_find_task_by_task_id(self):
-        """Test that TaskManagementHandler finds tasks by task_id."""
+        """Test that TaskManagementHandler finds tasks by canonical id."""
         handler = TaskManagementHandler()
         tasks = [
-            {"title": "Task 1", "task_id": "task_123"},
-            {"title": "Task 2", "task_id": "task_456"},
+            {"title": "Task 1", "id": "task_123"},
+            {"title": "Task 2", "id": "task_456"},
         ]
 
         task = handler._find_task_by_identifier(tasks, "task_123")
-        assert task is not None, "Should find task by task_id"
-        assert task["task_id"] == "task_123", "Should find correct task"
+        assert task is not None, "Should find task by id"
+        assert task["id"] == "task_123", "Should find correct task"
 
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -809,12 +808,12 @@ class TestTaskHandlerBehavior:
         """Test that TaskManagementHandler sorts tasks by priority."""
         handler = TaskManagementHandler()
         tasks = [
-            {"title": "Low Priority", "priority": "low", "due_date": "2024-12-20"},
-            {"title": "High Priority", "priority": "high", "due_date": "2024-12-25"},
+            {"title": "Low Priority", "priority": "low", "due": {"date": "2024-12-20"}},
+            {"title": "High Priority", "priority": "high", "due": {"date": "2024-12-25"}},
             {
                 "title": "Medium Priority",
                 "priority": "medium",
-                "due_date": "2024-12-22",
+                "due": {"date": "2024-12-22"},
             },
         ]
 

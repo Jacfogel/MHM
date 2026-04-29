@@ -40,6 +40,7 @@ from core.time_utilities import (
     now_timestamp_full,
     now_datetime_full,
 )
+from tasks.task_data_handlers import runtime_task_due_date, runtime_task_due_time
 
 # Route conversation orchestration to communication_manager component log
 logger = get_component_logger("communication_manager")
@@ -1431,7 +1432,7 @@ class ConversationManager:
             if not reminder_periods or len(reminder_periods) == 0:
                 # Couldn't parse - check if task has due date to give better error message
                 task = get_task_by_id(user_id, task_id)
-                if task and not task.get("due_date"):
+                if task and not runtime_task_due_date(task):
                     # Task has no due date, can't set reminder periods
                     self._clear_flow_state(user_id, mark_completion=True)
                     return (
@@ -1460,7 +1461,7 @@ class ConversationManager:
                     True,
                 )
 
-            due_date_str = task.get("due_date")
+            due_date_str = runtime_task_due_date(task)
             if not due_date_str:
                 # Task has no due date, can't set reminder periods
                 self._clear_flow_state(user_id, mark_completion=True)
@@ -1508,7 +1509,13 @@ class ConversationManager:
 
                     # Verify the task was updated correctly by reloading it
                     updated_task = get_task_by_id(user_id, task_id)
-                    if not updated_task or "reminder_periods" not in updated_task:
+                    has_scheduled = any(
+                        isinstance(r, dict)
+                        and r.get("kind") == "scheduled"
+                        and r.get("period")
+                        for r in (updated_task.get("reminders") or [])
+                    )
+                    if not updated_task or not has_scheduled:
                         logger.error(
                             f"Task {task_id} was not updated with reminder_periods after update_task returned True"
                         )
@@ -1648,13 +1655,12 @@ class ConversationManager:
         from tasks import get_task_by_id
 
         task = get_task_by_id(user_id, task_id)
-        if not task or not task.get("due_date"):
+        if not task or not runtime_task_due_date(task):
             logger.debug(f"Task {task_id} has no due_date, cannot parse reminder periods")
             return None
 
-        due_date_str = task.get("due_date")
-        due_time_str = task.get("due_time") or "09:00"
-        due_time_str = due_time_str.strip() or "09:00"
+        due_date_str = runtime_task_due_date(task)
+        due_time_str = (runtime_task_due_time(task) or "09:00").strip() or "09:00"
 
         due_datetime = parse_date_and_time_minute(due_date_str, due_time_str)
         if due_datetime is not None:
@@ -1795,11 +1801,11 @@ class ConversationManager:
         from tasks import get_task_by_id
 
         task = get_task_by_id(user_id, task_id)
-        if not task or not task.get("due_date"):
+        if not task or not runtime_task_due_date(task):
             return ["Skip"]
 
-        due_date_str = task.get("due_date")
-        due_time_str = task.get("due_time")
+        due_date_str = runtime_task_due_date(task)
+        due_time_str = runtime_task_due_time(task)
 
         try:
             # Parse due date (canonical strict helper)
@@ -2234,7 +2240,9 @@ class ConversationManager:
             # Create note without body
             from notebook.notebook_data_manager import create_note
 
-            entry = create_note(user_id, title=title, body=None, tags=tags, group=group)
+            entry = create_note(
+                user_id, title=title, description=None, tags=tags, group=group
+            )
 
             if entry:
                 short_id = str(entry.id)[:6]
@@ -2281,7 +2289,9 @@ class ConversationManager:
             body, parsed_tags = parse_tags_from_text(body)
             tags.extend(parsed_tags)
 
-        entry = create_note(user_id, title=title, body=body, tags=tags, group=group)
+        entry = create_note(
+            user_id, title=title, description=body, tags=tags, group=group
+        )
 
         if entry:
             short_id = str(entry.id)[:6]

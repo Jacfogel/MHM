@@ -11,8 +11,11 @@ Tests verify that:
 import pytest
 from communication.message_processing.interaction_manager import handle_user_message
 from tasks import load_active_tasks, save_active_tasks
+from tasks.task_data_handlers import runtime_task_due_date
 from tests.test_helpers.test_utilities import TestUserFactory
 from core import get_user_id_by_identifier
+
+
 @pytest.mark.tasks
 
 
@@ -132,8 +135,8 @@ class TestTaskSuggestionRelevance:
             tasks_after = load_active_tasks(internal_uid)
             task = next((t for t in tasks_after if t.get("id") == "duetest01"), None)
             if task:
-                # Due date should be set (format may vary)
-                assert task.get('due_date') is not None
+                # Due date should be set (canonical due.date)
+                assert runtime_task_due_date(task) is not None
 
     @pytest.mark.behavior
     def test_due_date_variation_due_date_works(self, test_data_dir):
@@ -157,8 +160,7 @@ class TestTaskSuggestionRelevance:
             tasks_after = load_active_tasks(internal_uid)
             task = next((t for t in tasks_after if t.get("id") == "duedatetest01"), None)
             if task:
-                # Due date should be set (format may vary)
-                assert task.get('due_date') is not None
+                assert runtime_task_due_date(task) is not None
 
     @pytest.mark.behavior
     def test_both_due_variations_parse_correctly(self, test_data_dir):

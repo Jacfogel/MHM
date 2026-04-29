@@ -77,9 +77,11 @@ class TestTaskCleanupReal:
         assert any(t['id'] == task_id for t in completed_after), "Task should be in completed_tasks"
         
         # Verify task has completion timestamp
-        completed_task = next(t for t in completed_after if t['id'] == task_id)
-        assert completed_task['completed'] is True, "Task should be marked completed"
-        assert completed_task.get('completed_at') is not None, "Task should have completion timestamp"
+        completed_task = next(t for t in completed_after if t["id"] == task_id)
+        assert completed_task["completion"]["completed"] is True, "Task should be marked completed"
+        assert (
+            completed_task["completion"].get("completed_at") is not None
+        ), "Task should have completion timestamp"
         
         # Verify file persistence - reload from disk
         from core.config import get_user_data_dir
@@ -212,7 +214,7 @@ class TestTaskCleanupReal:
         assert task_after['title'] == 'Updated Title', "Title should be updated"
         assert task_after['description'] == 'Updated description', "Description should be updated"
         assert task_after['priority'] == 'high', "Priority should be updated"
-        assert task_after.get('last_updated') is not None, "Task should have last_updated timestamp"
+        assert task_after.get("updated_at") is not None, "Task should have updated_at timestamp"
         
         # Verify file persistence - reload from disk
         from core.config import get_user_data_dir

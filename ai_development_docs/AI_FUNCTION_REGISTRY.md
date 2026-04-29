@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-28 13:44:52
+> **Last Generated**: 2026-04-29 00:59:46
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 94.2% [!] GOOD**
-- **Total Functions**: 1747
+### **Documentation Coverage: 94.1% [!] GOOD**
+- **Total Functions**: 1755
 - **Total Methods**: 1243
-- **Documented**: 2816/2990
+- **Documented**: 2822/2998
 - **Files Scanned**: 125
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -160,13 +160,12 @@ Core System Decision Tree:
 - `core/user_data_write.py` - 10/12 functions undocumented (17% coverage)
 - `ui/dialogs/channel_management_dialog.py` - 7/11 functions undocumented (36% coverage)
 - `ui/widgets/channel_selection_widget.py` - 6/16 functions undocumented (62% coverage)
+- `tasks/task_data_handlers.py` - 6/22 functions undocumented (73% coverage)
 - `core/user_lookup.py` - 5/6 functions undocumented (17% coverage)
-- `core/user_data_updates.py` - 5/7 functions undocumented (29% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
-- `tasks/task_data_handlers.py` - 4/14 functions undocumented (71% coverage)
 - `core/user_data_validation.py` - 3/12 functions undocumented (75% coverage)
 
 
@@ -205,6 +204,6 @@ Most complex functions (may need refactoring):
 - `ai/` - AI chatbot functionality (7 files, 219 functions)
 - `ui/` - User interface components (29 files, 827 functions)
 - `user/` - User context and preferences (4 files, 65 functions)
-- `tasks/` - Task management system (5 files, 41 functions)
+- `tasks/` - Task management system (5 files, 49 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**

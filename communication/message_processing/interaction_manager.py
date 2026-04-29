@@ -1268,14 +1268,16 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
 
             tasks = load_active_tasks(user_id) or []
 
+            from tasks.task_data_handlers import runtime_task_due_date, runtime_task_due_time
+
             @handle_errors("parsing due date", default_return=None)
             def parse_due(task: dict) -> datetime | None:
                 """
                 Parse due date/time into a datetime for sorting.
                 Uses canonical parsers from time_utilities (no inline parsing).
                 """
-                due_date = task.get("due_date")
-                due_time = task.get("due_time")
+                due_date = runtime_task_due_date(task)
+                due_time = runtime_task_due_time(task)
 
                 if not due_date:
                     return None

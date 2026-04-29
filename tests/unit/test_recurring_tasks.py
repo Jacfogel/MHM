@@ -108,17 +108,17 @@ class TestRecurringTasks:
         completed_tasks = load_completed_tasks(user_id)
         assert len(completed_tasks) == 1
         assert completed_tasks[0]["id"] == task_id
-        assert completed_tasks[0]['completed'] is True
-        
+        assert completed_tasks[0]["completion"]["completed"] is True
+
         # Check that a new task instance was created
         active_tasks = load_active_tasks(user_id)
         assert len(active_tasks) == 1
-        
+
         new_task = active_tasks[0]
         assert new_task["id"] != task_id  # Different task ID
-        assert new_task['title'] == "Take medication"  # Same title
+        assert new_task["title"] == "Take medication"  # Same title
         assert new_task["recurrence"]["pattern"] == "daily"  # Same recurrence pattern
-        assert new_task['completed'] is False  # Not completed
+        assert not new_task["completion"]["completed"]  # Not completed
     
     def test_calculate_next_due_date_daily(self):
         """Test calculating next due date for daily recurrence."""

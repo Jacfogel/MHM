@@ -117,11 +117,11 @@ class TestChannelOrchestratorHelpers:
     def test_create_task_reminder_message_basic(self):
         """Test _create_task_reminder_message with basic task."""
         task = {
-            'title': 'Test Task',
-            'description': 'Test description',
-            'due_date': '2024-01-01',
-            'priority': 'high',
-            'task_id': 'task_123'
+            "title": "Test Task",
+            "description": "Test description",
+            "due": {"date": "2024-01-01"},
+            "priority": "high",
+            "id": "task_123",
         }
         
         message = self.manager._create_task_reminder_message(task)
@@ -136,9 +136,9 @@ class TestChannelOrchestratorHelpers:
         """Test _create_task_reminder_message includes priority emoji."""
         # Test high priority
         task = {
-            'title': 'High Priority Task',
-            'priority': 'high',
-            'task_id': 'task_1'
+            "title": "High Priority Task",
+            "priority": "high",
+            "id": "task_1",
         }
         message = self.manager._create_task_reminder_message(task)
         assert '🔴' in message, "Should include red emoji for high priority"

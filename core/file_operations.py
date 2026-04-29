@@ -653,8 +653,11 @@ def _create_user_files__sent_messages_file(user_id):
 
 @handle_errors("creating task files", default_return=False)
 def _create_user_files__task_files(user_id):
-    """Create task files if tasks are enabled."""
+    """Create canonical v2 tasks.json if tasks are enabled (no v1 split files)."""
     try:
+        from core.user_data_v2 import SCHEMA_VERSION
+        from tasks.task_schemas import TASKS_V2_FILENAME
+
         user_dir = Path(get_user_data_dir(user_id))
         tasks_dir = user_dir / "tasks"
 
@@ -663,14 +666,17 @@ def _create_user_files__task_files(user_id):
             os.makedirs(tasks_dir, exist_ok=True)
             logger.debug(f"Created tasks directory for user {user_id}")
 
-        # Create initial task files
-        task_files = {"active_tasks": [], "completed_tasks": [], "task_schedules": {}}
-
-        for task_file, default_data in task_files.items():
-            task_file_path = tasks_dir / f"{task_file}.json"
-            if not os.path.exists(task_file_path):
-                save_json_data(default_data, str(task_file_path))
-                logger.debug(f"Created {task_file} file for user {user_id}")
+        tasks_file = tasks_dir / TASKS_V2_FILENAME
+        if not tasks_file.exists():
+            save_json_data(
+                {
+                    "schema_version": SCHEMA_VERSION,
+                    "updated_at": now_timestamp_full(),
+                    "tasks": [],
+                },
+                str(tasks_file),
+            )
+            logger.debug(f"Created {TASKS_V2_FILENAME} for user {user_id}")
     except Exception as e:
         logger.error(f"Error creating task files for user {user_id}: {e}")
         raise

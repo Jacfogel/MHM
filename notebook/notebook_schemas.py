@@ -49,14 +49,12 @@ class Entry(BaseModel):
     kind: EntryKind
     title: str | None = None
     description: str | None = None
-    body: str | None = None
     category: str = ""
     status: Literal["active", "archived", "deleted"] = "active"
     items: list[ListItem] | None = None
     tags: list[str] = Field(default_factory=list)
     group: str | None = None
     pinned: bool = False
-    archived: bool = False
     submitted_at: str | None = None
     source: dict | None = None
     linked_item_ids: list[str] = Field(default_factory=list)
@@ -66,7 +64,7 @@ class Entry(BaseModel):
     deleted_at: str | None = None
     metadata: dict = Field(default_factory=dict)
 
-    @field_validator("title", "description", "body", "group", mode="before")
+    @field_validator("title", "description", "group", mode="before")
     @classmethod
     def strip_optional_strings(cls, v: str | None) -> str | None:
         if v is not None:
@@ -80,23 +78,6 @@ class Entry(BaseModel):
         if v is None:
             return ""
         return v.strip()
-
-    @model_validator(mode="before")
-    @classmethod
-    def normalize_v2_aliases(cls, data):
-        if not isinstance(data, dict):
-            return data
-        normalized = dict(data)
-        # Runtime still mirrors body/description and archived/status while handlers transition.
-        if normalized.get("body") is None and normalized.get("description") is not None:
-            normalized["body"] = normalized.get("description")
-        if normalized.get("description") is None and normalized.get("body") is not None:
-            normalized["description"] = normalized.get("body")
-        if "status" not in normalized:
-            normalized["status"] = "archived" if normalized.get("archived") else "active"
-        if "archived" not in normalized:
-            normalized["archived"] = normalized.get("status") == "archived"
-        return normalized
 
     @field_validator("tags", mode="before")
     @classmethod
@@ -128,10 +109,10 @@ class Entry(BaseModel):
             raise ValueError("Only 'list' kind entries can have 'items'.")
         return v
 
-    @field_validator("body", mode="after")
+    @field_validator("description", mode="after")
     @classmethod
-    def validate_body_for_list(cls, v: str | None, info) -> str | None:
-        """For lists, body is optional and can be empty."""
+    def validate_description_for_list(cls, v: str | None, info) -> str | None:
+        """For lists, description is optional and can be empty."""
         if info.data.get("kind") == "list" and v is not None:
             stripped_v = v.strip()
             return stripped_v if stripped_v else None

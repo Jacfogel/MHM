@@ -35,6 +35,7 @@ from tasks import (
     are_tasks_enabled,
     get_user_task_stats,
 )
+from tasks.task_data_handlers import runtime_task_completed_at, runtime_task_is_completed
 
 
 @pytest.mark.behavior
@@ -106,8 +107,8 @@ class TestTaskManagement:
     def test_save_active_tasks(self, user_id, temp_dir):
         """Test saving active tasks."""
         test_tasks = [
-            {"task_id": "1", "title": "Test Task 1", "completed": False},
-            {"task_id": "2", "title": "Test Task 2", "completed": False},
+            {"id": "1", "title": "Test Task 1"},
+            {"id": "2", "title": "Test Task 2"},
         ]
 
         result = save_active_tasks(user_id, test_tasks)
@@ -150,7 +151,7 @@ class TestTaskManagement:
         assert tasks[0]["description"] == "Test Description"
         assert tasks[0]["priority"] == "high"
         assert tasks[0]["tags"] == ["work"]
-        assert tasks[0]["completed"] is False
+        assert not runtime_task_is_completed(tasks[0])
         # Verify file content
         task_dir = os.path.join(temp_dir, "tasks")
         task_file = os.path.join(task_dir, "tasks.json")
@@ -209,8 +210,8 @@ class TestTaskManagement:
         assert len(active_tasks) == 0
         completed_tasks = load_completed_tasks(user_id)
         assert len(completed_tasks) == 1
-        assert completed_tasks[0]["completed"] is True
-        assert completed_tasks[0]["completed_at"] is not None
+        assert runtime_task_is_completed(completed_tasks[0])
+        assert runtime_task_completed_at(completed_tasks[0]) is not None
         # Verify file content
         task_dir = os.path.join(temp_dir, "tasks")
         completed_file = os.path.join(task_dir, "tasks.json")

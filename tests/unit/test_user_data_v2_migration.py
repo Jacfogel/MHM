@@ -503,15 +503,15 @@ def test_runtime_task_handlers_accept_and_write_v2_task_file(tmp_path, monkeypat
     assert active[0]["short_id"] == "tactive"
     assert active[0]["status"] == "active"
     assert "task_id" not in active[0]
-    assert active[0]["completed"] is False
+    assert active[0]["completion"]["completed"] is False
     assert completed[0]["id"] == "task-completed"
-    assert completed[0]["completed"] is True
+    assert completed[0]["completion"]["completed"] is True
 
     assert save_active_tasks(
         "user-1",
         [
             {
-                "task_id": "task-new",
+                "id": "task-new",
                 "title": "Stretch",
                 "description": "",
                 "created_at": TIMESTAMP,
@@ -573,7 +573,6 @@ def test_runtime_notebook_handlers_accept_and_write_v2_entries(tmp_path, monkeyp
     assert entries[0].kind == "journal_entry"
     assert entries[0].description == "Today was okay."
     assert entries[0].status == "active"
-    assert entries[0].body == "Today was okay."
 
     save_entries("user-1", entries)
 

@@ -183,27 +183,26 @@ def is_valid_entry_title(title: str | None) -> bool:
     )
 
 
-@handle_errors("validating entry body", default_return=False)
-def is_valid_entry_body(body: str | None, kind: EntryKind = "note") -> bool:
+@handle_errors("validating entry description", default_return=False)
+def is_valid_entry_description(description: str | None, kind: EntryKind = "note") -> bool:
     """
-    Validate that a notebook entry body is valid.
+    Validate that a notebook entry description is valid.
 
     Uses general string length validation with notebook-specific MAX_BODY_LENGTH.
-    Lists have special rules (body is always optional).
+    Lists have special rules (description is always optional).
 
     Args:
-        body: Body text to validate (can be None)
+        description: Description text to validate (can be None)
         kind: Entry kind (affects validation rules - lists always allow None/empty)
 
     Returns:
-        True if body is valid, False otherwise
+        True if description is valid, False otherwise
     """
-    # For lists, body is optional and can be empty (notebook-specific rule)
     if kind == "list":
         return True
 
     return is_valid_string_length(
-        body, MAX_BODY_LENGTH, field_name="Entry body", allow_none=True
+        description, MAX_BODY_LENGTH, field_name="Entry description", allow_none=True
     )
 
 
@@ -319,14 +318,16 @@ def normalize_list_item_index(index: int, list_length: int) -> int | None:
 
 @handle_errors("validating entry content", default_return=False)
 def validate_entry_content(
-    title: str | None = None, body: str | None = None, kind: EntryKind = "note"
+    title: str | None = None,
+    description: str | None = None,
+    kind: EntryKind = "note",
 ) -> tuple[bool, str | None]:
     """
     Comprehensive validation of entry content.
 
     Args:
         title: Entry title (optional)
-        body: Entry body (optional)
+        description: Entry description (optional)
         kind: Entry kind
 
     Returns:
@@ -339,11 +340,10 @@ def validate_entry_content(
     if not is_valid_entry_title(title):
         return False, f"Invalid entry title (max {MAX_TITLE_LENGTH} characters)"
 
-    if not is_valid_entry_body(body, kind):
-        return False, f"Invalid entry body (max {MAX_BODY_LENGTH} characters)"
+    if not is_valid_entry_description(description, kind):
+        return False, f"Invalid entry description (max {MAX_BODY_LENGTH} characters)"
 
-    # For notes and journals, at least title or body should be present
-    if kind in ["note", "journal_entry"] and not title and not body:
-        return False, "Note or journal entries must have at least a title or body"
+    if kind in ["note", "journal_entry"] and not title and not description:
+        return False, "Note or journal entries must have at least a title or description"
 
     return True, None

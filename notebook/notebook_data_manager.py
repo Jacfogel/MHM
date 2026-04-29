@@ -106,7 +106,7 @@ def create_entry(
     user_id: str,
     kind: EntryKind,
     title: str | None = None,
-    body: str | None = None,
+    description: str | None = None,
     tags: list[str] | None = None,
     group: str | None = None,
     items: list[dict[str, Any]] | None = None,  # For list items
@@ -124,7 +124,9 @@ def create_entry(
         return None
 
     # Validate entry content
-    is_valid, error_msg = validate_entry_content(title=title, body=body, kind=kind)
+    is_valid, error_msg = validate_entry_content(
+        title=title, description=description, kind=kind
+    )
     if not is_valid:
         logger.error(f"Invalid entry content: {error_msg}")
         return None
@@ -137,7 +139,7 @@ def create_entry(
         "id": uuid.uuid4(),
         "kind": kind,
         "title": title,
-        "body": body,
+        "description": description,
         "tags": normalized_tags,
         "group": group,
         "created_at": now_ts,
@@ -178,8 +180,13 @@ def create_entry(
     all_entries = load_entries(user_id)
     all_entries.append(new_entry)
     save_entries(user_id, all_entries)
+    preview = (
+        (new_entry.description or "")[:30]
+        if new_entry.description
+        else str(new_entry.id)
+    )
     logger.info(
-        f"Created new {kind} entry '{new_entry.title or new_entry.body[:30] if new_entry.body else new_entry.id}' for user {user_id}."
+        f"Created new {kind} entry '{new_entry.title or preview}' for user {user_id}."
     )
     return new_entry
 
@@ -188,12 +195,14 @@ def create_entry(
 def create_note(
     user_id: str,
     title: str | None = None,
-    body: str | None = None,
+    description: str | None = None,
     tags: list[str] | None = None,
     group: str | None = None,
 ) -> Entry | None:
     """Creates a note entry."""
-    return create_entry(user_id, "note", title=title, body=body, tags=tags, group=group)
+    return create_entry(
+        user_id, "note", title=title, description=description, tags=tags, group=group
+    )
 
 
 @handle_errors("creating list")
@@ -227,13 +236,18 @@ def create_list(
 def create_journal(
     user_id: str,
     title: str | None = None,
-    body: str | None = None,
+    description: str | None = None,
     tags: list[str] | None = None,
     group: str | None = None,
 ) -> Entry | None:
     """Creates a journal entry."""
     return create_entry(
-        user_id, "journal_entry", title=title, body=body, tags=tags, group=group
+        user_id,
+        "journal_entry",
+        title=title,
+        description=description,
+        tags=tags,
+        group=group,
     )
 
 
@@ -269,11 +283,11 @@ def list_recent(
 
 
 # Update operations
-@handle_errors("appending to entry body")
+@handle_errors("appending to entry description")
 def append_to_entry_body(user_id: str, ref: str, text: str) -> Entry | None:
-    """Appends text to an entry's body."""
+    """Appends text to an entry's description (command surface retains legacy name)."""
     if not user_id:
-        logger.error("User ID is required to append to entry body.")
+        logger.error("User ID is required to append to entry description.")
         return None
 
     # Validate text length
@@ -293,39 +307,41 @@ def append_to_entry_body(user_id: str, ref: str, text: str) -> Entry | None:
         return None
 
     if entry.kind == "list":
-        logger.error("Cannot append to list entry body. Use add_list_item instead.")
-        return None
-
-    # Check if combined length would exceed limit
-    current_body = entry.body or ""
-    combined_length = len(current_body) + len("\n") + len(text)
-    if combined_length > MAX_BODY_LENGTH:
         logger.error(
-            f"Combined body length would exceed maximum of {MAX_BODY_LENGTH} characters"
+            "Cannot append to list entry description. Use add_list_item instead."
         )
         return None
 
-    if entry.body:
-        entry.body = entry.body + "\n" + text
+    # Check if combined length would exceed limit
+    current_desc = entry.description or ""
+    combined_length = len(current_desc) + len("\n") + len(text)
+    if combined_length > MAX_BODY_LENGTH:
+        logger.error(
+            f"Combined description length would exceed maximum of {MAX_BODY_LENGTH} characters"
+        )
+        return None
+
+    if entry.description:
+        entry.description = entry.description + "\n" + text
     else:
-        entry.body = text
+        entry.description = text
 
     return _save_updated_entry(user_id, entry, entries)
 
 
-@handle_errors("setting entry body")
+@handle_errors("setting entry description")
 def set_entry_body(user_id: str, ref: str, text: str) -> Entry | None:
-    """Sets (replaces) an entry's body."""
+    """Sets (replaces) an entry's description (command surface retains legacy name)."""
     if not user_id:
-        logger.error("User ID is required to set entry body.")
+        logger.error("User ID is required to set entry description.")
         return None
 
     # Validate text length
     if not is_valid_string_length(
-        text, MAX_BODY_LENGTH, field_name="Entry body", allow_none=True
+        text, MAX_BODY_LENGTH, field_name="Entry description", allow_none=True
     ):
         logger.error(
-            f"Body text exceeds maximum length of {MAX_BODY_LENGTH} characters"
+            f"Description text exceeds maximum length of {MAX_BODY_LENGTH} characters"
         )
         return None
 
@@ -338,11 +354,11 @@ def set_entry_body(user_id: str, ref: str, text: str) -> Entry | None:
 
     if entry.kind == "list":
         logger.error(
-            "Cannot set body for list entry. Use list item operations instead."
+            "Cannot set description for list entry. Use list item operations instead."
         )
         return None
 
-    entry.body = text
+    entry.description = text
     return _save_updated_entry(user_id, entry, entries)
 
 
@@ -404,7 +420,6 @@ def archive_entry(user_id: str, ref: str, archived: bool = True) -> Entry | None
         logger.error(f"Entry not found for ref '{ref}'")
         return None
 
-    entry.archived = archived
     entry.status = "archived" if archived else "active"
     entry.archived_at = now_timestamp_full() if archived else None
     return _save_updated_entry(user_id, entry, entries)
@@ -433,7 +448,7 @@ def set_group(user_id: str, ref: str, group: str | None) -> Entry | None:
 @handle_errors("searching entries", default_return=[])
 def search_entries(user_id: str, query: str, limit: int = 100) -> list[Entry]:
     """
-    Searches entries by case-insensitive substring across title, body, and list item texts.
+    Searches entries by case-insensitive substring across title, description, and list item texts.
     Returns up to limit entries (pagination handled in handler).
     """
     if not user_id:
@@ -457,8 +472,8 @@ def search_entries(user_id: str, query: str, limit: int = 100) -> list[Entry]:
             matching_entries.append(entry)
             continue  # Skip other checks to avoid duplicates
 
-        # Check body
-        if entry.body and query_lower in entry.body.lower():
+        # Check description
+        if entry.description and query_lower in entry.description.lower():
             matching_entries.append(entry)
             continue  # Skip other checks to avoid duplicates
 

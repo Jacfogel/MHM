@@ -15,7 +15,7 @@ from notebook.notebook_validation import MAX_BODY_LENGTH
 def _note(
     entry_id: str,
     title: str,
-    body: str | None = None,
+    description: str | None = None,
     tags: list[str] | None = None,
     group: str | None = None,
     archived: bool = False,
@@ -26,10 +26,10 @@ def _note(
         id=UUID(entry_id),
         kind="note",
         title=title,
-        body=body,
+        description=description,
         tags=tags or [],
         group=group,
-        archived=archived,
+        status="archived" if archived else "active",
         pinned=pinned,
         updated_at=updated_at,
     )
@@ -53,7 +53,7 @@ def _list(
         items=items,
         tags=tags or [],
         group=group,
-        archived=archived,
+        status="archived" if archived else "active",
         pinned=pinned,
         updated_at=updated_at,
     )
@@ -82,8 +82,8 @@ class TestNotebookDataManagerGapCoverage:
         assert ndm._find_entry_by_ref(entries, "naaaaaa") == entries[0]
 
     def test_create_entry_rejects_missing_user_and_bad_kind(self):
-        assert ndm.create_entry("", "note", title="T", body="B") is None
-        assert ndm.create_entry("user-1", "invalid_kind", title="T", body="B") is None
+        assert ndm.create_entry("", "note", title="T", description="B") is None
+        assert ndm.create_entry("user-1", "invalid_kind", title="T", description="B") is None
 
     def test_create_entry_accepts_listitem_objects(self, monkeypatch):
         saved_entries = []
@@ -117,7 +117,7 @@ class TestNotebookDataManagerGapCoverage:
             "user-1",
             "note",
             title="Note title",
-            body="Body",
+            description="Body",
             items=[{"text": "ignored", "order": 0}],
         )
         assert entry is not None
@@ -139,14 +139,16 @@ class TestNotebookDataManagerGapCoverage:
     def test_create_note_wrapper(self, monkeypatch):
         monkeypatch.setattr(ndm, "load_entries", lambda user_id: [])
         monkeypatch.setattr(ndm, "save_entries", lambda user_id, entries: None)
-        entry = ndm.create_note("user-1", title="Note wrapper", body="wrapped")
+        entry = ndm.create_note("user-1", title="Note wrapper", description="wrapped")
         assert entry is not None
         assert entry.kind == "note"
 
     def test_create_journal_wrapper(self, monkeypatch):
         monkeypatch.setattr(ndm, "load_entries", lambda user_id: [])
         monkeypatch.setattr(ndm, "save_entries", lambda user_id, entries: None)
-        entry = ndm.create_journal("user-1", title="Journal", body="Today was good")
+        entry = ndm.create_journal(
+            "user-1", title="Journal", description="Today was good"
+        )
         assert entry is not None
         assert entry.kind == "journal_entry"
 
@@ -158,7 +160,7 @@ class TestNotebookDataManagerGapCoverage:
         assert result.updated_at == "2026-02-01 01:02:03"
 
     def test_append_to_entry_body_edge_paths(self, monkeypatch):
-        note = _note("33333333-3333-3333-3333-333333333333", "Body note", body=None)
+        note = _note("33333333-3333-3333-3333-333333333333", "Body note", description=None)
         list_entry = _list(
             "44444444-4444-4444-4444-444444444444", "List", ["A", "B"]
         )
@@ -171,7 +173,7 @@ class TestNotebookDataManagerGapCoverage:
         too_long_note = _note(
             "55555555-5555-5555-5555-555555555555",
             "Long body",
-            body="x" * MAX_BODY_LENGTH,
+            description="x" * MAX_BODY_LENGTH,
         )
         monkeypatch.setattr(ndm, "load_entries", lambda user_id: [too_long_note])
         assert ndm.append_to_entry_body("user-1", str(too_long_note.id), "x") is None
@@ -180,10 +182,10 @@ class TestNotebookDataManagerGapCoverage:
         monkeypatch.setattr(ndm, "_save_updated_entry", lambda user_id, entry, all_entries: entry)
         updated = ndm.append_to_entry_body("user-1", str(note.id), "new text")
         assert updated is not None
-        assert updated.body == "new text"
+        assert updated.description == "new text"
 
     def test_set_entry_body_edge_paths(self, monkeypatch):
-        note = _note("66666666-6666-6666-6666-666666666666", "Set body", body="old")
+        note = _note("66666666-6666-6666-6666-666666666666", "Set body", description="old")
         list_entry = _list(
             "77777777-7777-7777-7777-777777777777", "Set body list", ["item"]
         )
@@ -200,7 +202,7 @@ class TestNotebookDataManagerGapCoverage:
         monkeypatch.setattr(ndm, "_save_updated_entry", lambda user_id, entry, all_entries: entry)
         updated = ndm.set_entry_body("user-1", str(note.id), "new")
         assert updated is not None
-        assert updated.body == "new"
+        assert updated.description == "new"
 
     def test_search_entries_validation_and_sort_fallback(self, monkeypatch):
         assert ndm.search_entries("", "query") == []
@@ -209,13 +211,13 @@ class TestNotebookDataManagerGapCoverage:
         note_title = _note(
             "88888888-8888-8888-8888-888888888888",
             "Project Alpha",
-            body="body text",
+            description="body text",
             updated_at="2026-01-03 12:00:00",
         )
         note_body = _note(
             "99999999-9999-9999-9999-999999999999",
             "Unrelated",
-            body="Contains query term",
+            description="Contains query term",
             updated_at="2026-01-02 12:00:00",
         )
         list_entry = _list(
@@ -234,7 +236,7 @@ class TestNotebookDataManagerGapCoverage:
         )
         result = ndm.search_entries("user-1", "query", limit=10)
         assert len(result) == 2
-        assert all(not entry.archived for entry in result)
+        assert all(entry.status == "active" for entry in result)
 
         monkeypatch.setattr(ndm, "parse_timestamp_full", lambda ts: (_ for _ in ()).throw(ValueError("bad parse")))
         unsorted_result = ndm.search_entries("user-1", "query", limit=10)
@@ -331,7 +333,7 @@ class TestNotebookDataManagerGapCoverage:
 
         archived = ndm.archive_entry("user-1", str(first.id), archived=True)
         assert archived is not None
-        assert archived.archived is True
+        assert archived.status == "archived"
 
         grouped = ndm.set_group("user-1", str(first.id), "  work  ")
         assert grouped is not None
@@ -398,7 +400,7 @@ class TestNotebookDataManagerGapCoverage:
 
         archived = ndm.list_archived("user-1", limit=10)
         assert len(archived) == 1
-        assert archived[0].archived is True
+        assert archived[0].status == "archived"
 
         by_tag = ndm.list_by_tag("user-1", "WORK", limit=10)
         assert len(by_tag) == 1

@@ -2,6 +2,7 @@ import pytest
 import uuid
 from communication.message_processing.interaction_manager import handle_user_message
 from tasks import load_active_tasks, save_active_tasks
+from tasks.task_data_handlers import runtime_task_due_date
 from tests.test_helpers.test_utilities import setup_test_data_environment, cleanup_test_data_environment, create_test_user
 
 
@@ -81,7 +82,9 @@ class TestTaskCrudDisambiguation:
         # Regardless of completion flag, task due_date should be updated when handler runs
         tasks2 = load_active_tasks(user_id)
         updated = [t for t in tasks2 if t.get("id") == "wash0001"]
-        assert updated and updated[0].get('due_date') in ("2025-11-02", "Nov 2", "2025-11-02T00:00:00")
+        assert updated, "task should still exist after update"
+        due = runtime_task_due_date(updated[0])
+        assert due in ("2025-11-02", "Nov 2", "2025-11-02T00:00:00")
 
     def test_update_missing_field_prompts_with_suggestions(self, monkeypatch):
         user_id = f"user_task_update_prompt_{uuid.uuid4().hex[:8]}"

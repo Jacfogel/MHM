@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Plan for multi-phase task system enhancements (recurrence, templates, intelligence, and advanced workflows)  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-04-27 (User-data v2 migration completed; v2-native cleanup tracked)  
+> **Last Updated**: 2026-04-28 (task test suites aligned to v2 runtime dicts)  
 > **Parent**: [PLANS.md](development_docs/PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -108,13 +108,13 @@
   - [ ] If dashed ID support is required temporarily, mark it as temporary compatibility with planned removal.
 
 **Update task tests for v2 data**
-- *Status*: **Partially complete 2026-04-27**. Migration and v2-native runtime tests exist; older task behavior tests still need review before v1 split-file support can be removed.
+- *Status*: **Substantially updated 2026-04-28**. Major behavior/unit/integration/UI/scheduler suites now use canonical `due`/`completion`/`reminders`/`updated_at`/`id`; spot-check remaining fixtures if new failures appear.
 - *What it means*: Update task tests to use and validate the v2 task structure.
 - *Why it helps*: Makes the new structure the tested source of truth.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-26
 - *Subtasks*:
-  - [ ] Update all task fixtures to v2 structure.
+  - [x] Update primary task fixtures/mocks to v2 structure (core suites refreshed).
   - [x] Add migration tests from current active task examples.
   - [x] Add migration tests from current completed task examples.
   - [x] Add tests for `status`.

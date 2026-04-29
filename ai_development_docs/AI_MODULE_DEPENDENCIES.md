@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-28 13:45:01
+> **Last Generated**: 2026-04-29 00:59:58
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 123
-- **Total Imports**: 1509
-- **Standard Library**: 431 (28.6%)
-- **Third-Party**: 233 (15.4%)
-- **Local Imports**: 845 (56.0%)
+- **Total Imports**: 1524
+- **Standard Library**: 431 (28.3%)
+- **Third-Party**: 233 (15.3%)
+- **Local Imports**: 860 (56.4%)
 
 ## Dependency Decision Trees
 
@@ -26,7 +26,7 @@ Core System Dependencies:
   - core/config.py <- standard library (contextlib, logging, os, pathlib), third-party (dotenv), error_handling
   - core/logger.py <- standard library (contextlib, glob, gzip, json), error_handling, config
 - Data Management
-  - core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor
+  - core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+2 more)
   - core/user_data_manager.py <- standard library (collections.abc, importlib, json, os), logger, config, file_operations, core, schemas (+4 more)
   - core/user_data_presets.py <- standard library (json, pathlib), third-party (pytz), logger, error_handling
 - Error Handling
@@ -36,7 +36,7 @@ Core System Dependencies:
 AI System Dependencies:
 - AI Core
   - ai/cache_manager.py <- standard library (dataclasses, hashlib, threading, time), logger, error_handling, config
-  - ai/chatbot.py <- standard library (asyncio, collections, datetime, json), third-party (psutil, requests), logger, config, response_tracking, core, context_manager (+7 more)
+  - ai/chatbot.py <- standard library (asyncio, collections, datetime, json), third-party (psutil, requests), logger, config, response_tracking, core, context_manager (+8 more)
 - Command Processing
   - communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_data_manager, base_handler (+2 more)
   - communication/command_handlers/analytics_handler.py <- standard library (collections, typing), logger, error_handling, base_handler, shared_types, checkin_analytics (+5 more)
@@ -55,13 +55,13 @@ Communication Dependencies:
   - communication/communication_channels/discord/account_flow_handler.py <- standard library (contextlib), third-party (discord), logger, error_handling, shared_types, account_handler, user_data_presets
   - communication/communication_channels/discord/api_client.py <- standard library (asyncio, dataclasses, time, typing), third-party (discord), logger, error_handling
 - Conversation Flow
-  - communication/message_processing/conversation_flow_manager.py <- standard library (contextlib, datetime, importlib, json), chatbot, logger, core, response_tracking, error_handling (+12 more)
+  - communication/message_processing/conversation_flow_manager.py <- standard library (contextlib, datetime, importlib, json), chatbot, logger, core, response_tracking, error_handling (+13 more)
   - communication/communication_channels/discord/account_flow_handler.py <- standard library (contextlib), third-party (discord), logger, error_handling, shared_types, account_handler, user_data_presets
 
 ### Need UI Dependencies?
 UI Dependencies:
 - Main Application
-  - ui/ui_app_qt.py <- standard library (contextlib, json, os, pathlib), third-party (PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets), launch_env, time_utilities, logger, config, error_handling (+21 more)
+  - ui/ui_app_qt.py <- standard library (contextlib, json, os, pathlib), third-party (PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets), launch_env, time_utilities, logger, config, error_handling (+22 more)
 - Dialogs
   - ui/dialogs/account_creator_dialog.py <- standard library (contextlib, pathlib, time, typing), third-party (PySide6.QtCore, PySide6.QtWidgets), logger, user_data_validation, core, error_handling, dialog_helpers (+11 more)
   - ui/dialogs/admin_panel.py <- third-party (PySide6.QtCore, PySide6.QtWidgets), logger, error_handling
@@ -104,7 +104,7 @@ External libraries provide channel and UI support.
 - `run_headless_service.py` -> standard library (sys), headless_service, logger, error_handling (main application entry)
 
 ### Data Flow
-- file_operations.py: core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor
+- file_operations.py: core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+2 more)
 - user_data_manager.py: core/user_data_manager.py <- standard library (collections.abc, importlib, json, os), logger, config, file_operations, core, schemas (+4 more)
 - user_data_presets.py: core/user_data_presets.py <- standard library (json, pathlib), third-party (pytz), logger, error_handling
 
@@ -117,11 +117,11 @@ External libraries provide channel and UI support.
 ## Dependency Risk Areas
 
 ### High Coupling
-- `ui/ui_app_qt.py` -> 45 local dependencies (heavy coupling)
+- `ui/ui_app_qt.py` -> 46 local dependencies (heavy coupling)
+- `communication/core/channel_orchestrator.py` -> 34 local dependencies (heavy coupling)
 - `communication/command_handlers/analytics_handler.py` -> 33 local dependencies (heavy coupling)
-- `communication/core/channel_orchestrator.py` -> 32 local dependencies (heavy coupling)
-- `communication/message_processing/conversation_flow_manager.py` -> 30 local dependencies (heavy coupling)
-- `core/scheduler.py` -> 26 local dependencies (heavy coupling)
+- `communication/message_processing/conversation_flow_manager.py` -> 31 local dependencies (heavy coupling)
+- `core/scheduler.py` -> 30 local dependencies (heavy coupling)
 
 ### Third-Party Risks
 - `ui/ui_app_qt.py` -> PySide6.QtWidgets (31 modules use this)

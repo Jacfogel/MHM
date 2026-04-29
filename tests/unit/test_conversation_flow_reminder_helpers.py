@@ -85,13 +85,16 @@ class TestConversationFlowReminderHelpers:
         with patch("tasks.get_task_by_id", return_value=None):
             assert manager._get_task_due_datetime_for_reminders("u1", "t1") is None
 
-        with patch("tasks.get_task_by_id", return_value={"task_id": "t1"}):
+        with patch("tasks.get_task_by_id", return_value={"id": "t1"}):
             assert manager._get_task_due_datetime_for_reminders("u1", "t1") is None
 
     def test_get_task_due_datetime_for_reminders_prefers_due_date_and_time(self, manager):
         due = datetime(2026, 3, 12, 14, 30, 0)
         with (
-            patch("tasks.get_task_by_id", return_value={"due_date": "2026-03-12", "due_time": "14:30"}),
+            patch(
+                "tasks.get_task_by_id",
+                return_value={"due": {"date": "2026-03-12", "time": "14:30"}},
+            ),
             patch("communication.message_processing.conversation_flow_manager.parse_date_and_time_minute", return_value=due),
         ):
             resolved = manager._get_task_due_datetime_for_reminders("u1", "t1")
@@ -101,7 +104,10 @@ class TestConversationFlowReminderHelpers:
     def test_get_task_due_datetime_for_reminders_falls_back_to_date_only(self, manager):
         date_only = datetime(2026, 4, 1, 0, 0, 0)
         with (
-            patch("tasks.get_task_by_id", return_value={"due_date": "2026-04-01", "due_time": ""}),
+            patch(
+                "tasks.get_task_by_id",
+                return_value={"due": {"date": "2026-04-01", "time": ""}},
+            ),
             patch("communication.message_processing.conversation_flow_manager.parse_date_and_time_minute", return_value=None),
             patch("communication.message_processing.conversation_flow_manager.parse_date_only", return_value=date_only),
         ):
@@ -111,7 +117,10 @@ class TestConversationFlowReminderHelpers:
 
     def test_get_task_due_datetime_for_reminders_invalid_date_returns_none(self, manager):
         with (
-            patch("tasks.get_task_by_id", return_value={"due_date": "bad-date", "due_time": "12:00"}),
+            patch(
+                "tasks.get_task_by_id",
+                return_value={"due": {"date": "bad-date", "time": "12:00"}},
+            ),
             patch("communication.message_processing.conversation_flow_manager.parse_date_and_time_minute", return_value=None),
             patch("communication.message_processing.conversation_flow_manager.parse_date_only", return_value=None),
         ):

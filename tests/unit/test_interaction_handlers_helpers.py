@@ -121,8 +121,8 @@ class TestTaskManagementHandlerHelpers:
     def test_apply_filters_due_soon(self):
         """Test _handle_list_tasks__apply_filters with 'due_soon' filter."""
         tasks = [
-            {"title": "Task 1", "due_date": "2024-12-20"},
-            {"title": "Task 2", "due_date": "2024-12-30"},
+            {"title": "Task 1", "due": {"date": "2024-12-20"}},
+            {"title": "Task 2", "due": {"date": "2024-12-30"}},
         ]
 
         # Patch where the function is imported/used, not where it's defined
@@ -144,8 +144,8 @@ class TestTaskManagementHandlerHelpers:
         tomorrow = format_timestamp(TEST_NOW_DT + timedelta(days=1), DATE_ONLY)
 
         tasks = [
-            {"title": "Overdue Task", "due_date": yesterday},
-            {"title": "Future Task", "due_date": tomorrow},
+            {"title": "Overdue Task", "due": {"date": yesterday}},
+            {"title": "Future Task", "due": {"date": tomorrow}},
         ]
 
         with patch(
@@ -229,9 +229,9 @@ class TestTaskManagementHandlerHelpers:
     def test_sort_tasks_by_due_date(self):
         """Test _handle_list_tasks__sort_tasks sorts by due date within same priority."""
         tasks = [
-            {"title": "Task 1", "priority": "high", "due_date": "2024-12-25"},
-            {"title": "Task 2", "priority": "high", "due_date": "2024-12-20"},
-            {"title": "Task 3", "priority": "high", "due_date": "2024-12-30"},
+            {"title": "Task 1", "priority": "high", "due": {"date": "2024-12-25"}},
+            {"title": "Task 2", "priority": "high", "due": {"date": "2024-12-20"}},
+            {"title": "Task 3", "priority": "high", "due": {"date": "2024-12-30"}},
         ]
 
         result = self.handler._handle_list_tasks__sort_tasks(tasks)
@@ -242,8 +242,8 @@ class TestTaskManagementHandlerHelpers:
     def test_sort_tasks_with_none_due_date(self):
         """Test _handle_list_tasks__sort_tasks handles None due_date."""
         tasks = [
-            {"title": "Task 1", "priority": "high", "due_date": None},
-            {"title": "Task 2", "priority": "high", "due_date": "2024-12-20"},
+            {"title": "Task 1", "priority": "high"},
+            {"title": "Task 2", "priority": "high", "due": {"date": "2024-12-20"}},
         ]
 
         result = self.handler._handle_list_tasks__sort_tasks(tasks)
@@ -525,13 +525,13 @@ class TestTaskManagementHandlerHelpers:
                     "id": "abc123",
                     "title": "Future Task",
                     "priority": "high",
-                    "due_date": tomorrow,
+                    "due": {"date": tomorrow},
                 },
                 {
                     "id": "def456",
                     "title": "Overdue Task",
                     "priority": "low",
-                    "due_date": yesterday,
+                    "due": {"date": yesterday},
                 },
             ]
 
@@ -560,13 +560,13 @@ class TestTaskManagementHandlerHelpers:
                     "id": "abc123",
                     "title": "Low Priority",
                     "priority": "low",
-                    "due_date": tomorrow,
+                    "due": {"date": tomorrow},
                 },
                 {
                     "id": "def456",
                     "title": "High Priority",
                     "priority": "high",
-                    "due_date": tomorrow,
+                    "due": {"date": tomorrow},
                 },
             ]
 
@@ -596,13 +596,13 @@ class TestTaskManagementHandlerHelpers:
                     "id": "abc123",
                     "title": "Due Tomorrow",
                     "priority": "high",
-                    "due_date": tomorrow,
+                    "due": {"date": tomorrow},
                 },
                 {
                     "id": "def456",
                     "title": "Due Today",
                     "priority": "high",
-                    "due_date": today,
+                    "due": {"date": today},
                 },
             ]
 
@@ -622,7 +622,7 @@ class TestTaskManagementHandlerHelpers:
                 "id": "abc123",
                 "title": "Task 1",
                 "priority": "high",
-                "due_date": "2024-12-20",
+                "due": {"date": "2024-12-20"},
             }
         ]
 

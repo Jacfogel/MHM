@@ -16,6 +16,7 @@ from communication.message_processing.conversation_flow_manager import (
 )
 from communication.command_handlers.task_handler import TaskManagementHandler
 from tasks import create_task, get_task_by_id
+from tasks.task_data_handlers import runtime_task_scheduled_reminder_periods
 from tests.test_helpers.test_utilities import TestUserFactory
 from core.time_utilities import (
     DATE_ONLY,
@@ -159,15 +160,11 @@ class TestTaskReminderFollowupBehavior:
         # Verify task has reminder periods set
         task = get_task_by_id(user_id, task_id)
         assert task is not None, "Task should exist"
-        assert (
-            "reminder_periods" in task
-        ), f"Task should have reminder_periods. Task: {task}"
-        assert (
-            len(task["reminder_periods"]) > 0
-        ), "Should have at least one reminder period"
+        periods = runtime_task_scheduled_reminder_periods(task)
+        assert periods, f"Task should have scheduled reminder periods. Task: {task}"
 
         # Verify reminder period is approximately correct (30-60 min before 2 PM = 1:00-1:30 PM)
-        reminder = task["reminder_periods"][0]
+        reminder = periods[0]
         assert reminder["date"] == due_date, "Reminder should be on due date"
         # Times should be around 13:00-13:30 (1:00-1:30 PM)
         start_hour = int(reminder["start_time"].split(":")[0])
@@ -213,8 +210,9 @@ class TestTaskReminderFollowupBehavior:
 
         # Verify reminder periods
         task = get_task_by_id(user_id, task_id)
-        assert "reminder_periods" in task, "Task should have reminder_periods"
-        reminder = task["reminder_periods"][0]
+        periods = runtime_task_scheduled_reminder_periods(task)
+        assert periods, "Task should have scheduled reminder periods"
+        reminder = periods[0]
 
         # Should be 3-5 hours before 3 PM = 10 AM - 12 PM
         start_hour = int(reminder["start_time"].split(":")[0])
@@ -268,8 +266,9 @@ class TestTaskReminderFollowupBehavior:
             poll_seconds=0.01,
         ), "Task should remain retrievable after follow-up save"
         task = get_task_by_id(actual_user_id, task_id)
-        assert "reminder_periods" in task, "Task should have reminder_periods"
-        reminder = task["reminder_periods"][0]
+        periods = runtime_task_scheduled_reminder_periods(task)
+        assert periods, "Task should have scheduled reminder periods"
+        reminder = periods[0]
 
         # Should be 1-2 days before due date
         reminder_dt = parse_date_only(reminder["date"])
@@ -321,8 +320,8 @@ class TestTaskReminderFollowupBehavior:
         # Task should still exist but without reminders
         task = get_task_by_id(user_id, task_id)
         assert task is not None, "Task should exist"
-        assert "reminder_periods" not in task or not task.get(
-            "reminder_periods"
+        assert not runtime_task_scheduled_reminder_periods(
+            task
         ), "Task should have no reminder periods"
 
     @pytest.mark.behavior
@@ -398,7 +397,7 @@ class TestTaskReminderFollowupBehavior:
         assert completed, "Flow should be completed"
 
         # Verify reminders were scheduled (check that schedule_task_reminders was called)
-        # This is indirect - we verify the task has reminder_periods set
+        # This is indirect - we verify the task has scheduled reminder periods
         task = get_task_by_id(user_id, task_id)
-        assert "reminder_periods" in task, "Task should have reminder_periods"
-        assert len(task["reminder_periods"]) > 0, "Should have reminder periods"
+        periods = runtime_task_scheduled_reminder_periods(task)
+        assert periods, "Task should have scheduled reminder periods"

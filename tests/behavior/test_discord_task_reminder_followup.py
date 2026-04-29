@@ -9,6 +9,7 @@ from unittest.mock import patch, MagicMock
 
 from communication.message_processing.interaction_manager import InteractionManager
 from tasks import load_active_tasks
+from tasks.task_data_handlers import runtime_task_scheduled_reminder_periods
 from communication.message_processing.conversation_flow_manager import conversation_manager, FLOW_TASK_REMINDER
 from tests.test_helpers.test_utilities import TestUserFactory
 
@@ -82,11 +83,11 @@ class TestDiscordTaskReminderFollowup:
         assert user_id not in conversation_manager.user_states, "Flow should be cleared"
         assert "reminder" in response2.message.lower() or "set" in response2.message.lower(), "Should confirm reminders set"
         
-        # Verify task has reminder periods
+        # Verify task has scheduled reminder periods (canonical reminders[])
         tasks = load_active_tasks(user_id)
         task = tasks[-1]  # Most recent task
-        assert 'reminder_periods' in task, "Task should have reminder_periods"
-        assert len(task['reminder_periods']) > 0, "Should have reminder periods"
+        periods = runtime_task_scheduled_reminder_periods(task)
+        assert periods, "Task should have scheduled reminder periods"
     
     @pytest.mark.behavior
     @pytest.mark.communication

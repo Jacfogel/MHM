@@ -47,7 +47,7 @@ class TestNotebookValidationIntegration:
             user_id=user_id,
             kind='note',
             title='Valid Title',
-            body='Valid body'
+            description='Valid body'
         )
         assert entry is not None, "Valid entry should be created"
         
@@ -57,18 +57,18 @@ class TestNotebookValidationIntegration:
             user_id=user_id,
             kind='note',
             title=long_title,
-            body='Valid body'
+            description='Valid body'
         )
         assert entry is None, "Entry with too long title should not be created"
         
-        # Invalid entry (neither title nor body) should fail
+        # Invalid entry (neither title nor description) should fail
         entry = create_entry(
             user_id=user_id,
             kind='note',
             title=None,
-            body=None
+            description=None
         )
-        assert entry is None, "Entry without title or body should not be created"
+        assert entry is None, "Entry without title or description should not be created"
     
     @pytest.mark.file_io
     def test_append_validates_length(self, test_data_dir):
@@ -77,7 +77,7 @@ class TestNotebookValidationIntegration:
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         # Create a note first
-        entry = create_note(user_id, title='Test Note', body='Initial body')
+        entry = create_note(user_id, title='Test Note', description='Initial body')
         assert entry is not None, "Note should be created"
         # Short ID format is now n123abc (no dash) for easier mobile typing
         short_id = f"n{str(entry.id).replace('-', '')[:6]}"
@@ -98,7 +98,7 @@ class TestNotebookValidationIntegration:
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         # Create a note first
-        entry = create_note(user_id, title='Test Note', body='Initial body')
+        entry = create_note(user_id, title='Test Note', description='Initial body')
         assert entry is not None, "Note should be created"
         # Short ID format is now n123abc (no dash) for easier mobile typing
         short_id = f"n{str(entry.id).replace('-', '')[:6]}"
@@ -174,7 +174,7 @@ class TestNotebookValidationIntegration:
                 user_id=user_id,
                 kind='note',
                 title='a' * (MAX_TITLE_LENGTH + 1),
-                body='Valid body'
+                description='Valid body'
             )
             
             # Entry should not be created
@@ -200,7 +200,7 @@ class TestNotebookValidationIntegration:
             user_id=user_id,
             kind='note',
             title=None,
-            body=None
+            description=None
         )
         assert entry is None, "Invalid entry should not be created"
         
@@ -208,7 +208,7 @@ class TestNotebookValidationIntegration:
         from notebook.notebook_data_manager import list_recent
         recent = list_recent(user_id, n=10)
         # Should have no entries (or only valid ones from previous tests)
-        invalid_entries = [e for e in recent if not e.title and not e.body and e.kind == 'note']
+        invalid_entries = [e for e in recent if not e.title and not e.description and e.kind == 'note']
         assert len(invalid_entries) == 0, "No invalid entries should be persisted"
     
     @pytest.mark.file_io
@@ -218,7 +218,7 @@ class TestNotebookValidationIntegration:
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         # Create a note
-        entry = create_note(user_id, title='Test Note', body='Body')
+        entry = create_note(user_id, title='Test Note', description='Body')
         assert entry is not None, "Note should be created"
         
         # Try to append with invalid reference
@@ -240,7 +240,7 @@ class TestNotebookValidationIntegration:
         # Test validate_entry_content error messages
         is_valid, error_msg = validate_entry_content(
             title=None,
-            body=None,
+            description=None,
             kind='note'
         )
         
@@ -252,7 +252,7 @@ class TestNotebookValidationIntegration:
             "Error message should not contain file/line numbers"
         
         # Error message should be actionable
-        assert 'title' in error_msg.lower() or 'body' in error_msg.lower(), \
+        assert 'title' in error_msg.lower() or 'description' in error_msg.lower(), \
             "Error message should mention what's missing"
 
 
@@ -276,11 +276,11 @@ class TestNotebookValidationEdgeCases:
         entry = create_note(
             user_id=user_id,
             title='测试标题',
-            body='测试内容 🎉'
+            description='测试内容 🎉'
         )
         assert entry is not None, "Unicode content should be accepted"
         assert entry.title == '测试标题', "Unicode title should be preserved"
-        assert entry.body == '测试内容 🎉', "Unicode body should be preserved"
+        assert entry.description == '测试内容 🎉', "Unicode description should be preserved"
     
     @pytest.mark.file_io
     def test_validation_handles_boundary_lengths(self, test_data_dir):
@@ -290,23 +290,23 @@ class TestNotebookValidationEdgeCases:
         
         # Title at max length should succeed
         max_title = 'a' * MAX_TITLE_LENGTH
-        entry = create_note(user_id=user_id, title=max_title, body='Body')
+        entry = create_note(user_id=user_id, title=max_title, description='Body')
         assert entry is not None, "Title at max length should succeed"
         
         # Title one over max should fail
         over_max_title = 'a' * (MAX_TITLE_LENGTH + 1)
-        entry = create_note(user_id=user_id, title=over_max_title, body='Body')
+        entry = create_note(user_id=user_id, title=over_max_title, description='Body')
         assert entry is None, "Title over max length should fail"
         
-        # Body at max length should succeed
+        # Description at max length should succeed
         max_body = 'a' * MAX_BODY_LENGTH
-        entry = create_note(user_id=user_id, title='Title', body=max_body)
-        assert entry is not None, "Body at max length should succeed"
+        entry = create_note(user_id=user_id, title='Title', description=max_body)
+        assert entry is not None, "Description at max length should succeed"
         
-        # Body one over max should fail
+        # Description one over max should fail
         over_max_body = 'a' * (MAX_BODY_LENGTH + 1)
-        entry = create_note(user_id=user_id, title='Title', body=over_max_body)
-        assert entry is None, "Body over max length should fail"
+        entry = create_note(user_id=user_id, title='Title', description=over_max_body)
+        assert entry is None, "Description over max length should fail"
     
     @pytest.mark.file_io
     def test_validation_handles_empty_strings_vs_none(self, test_data_dir):
@@ -315,17 +315,17 @@ class TestNotebookValidationEdgeCases:
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         # Empty string title should be treated as None (stripped)
-        entry = create_note(user_id=user_id, title='   ', body='Body')
-        # Should succeed (empty title is allowed if body exists)
+        entry = create_note(user_id=user_id, title='   ', description='Body')
+        # Should succeed (empty title is allowed if description exists)
         assert entry is not None, "Empty string title should be handled"
         
-        # None title with body should succeed
-        entry = create_note(user_id=user_id, title=None, body='Body')
-        assert entry is not None, "None title with body should succeed"
+        # None title with description should succeed
+        entry = create_note(user_id=user_id, title=None, description='Body')
+        assert entry is not None, "None title with description should succeed"
         
-        # Empty string body with title should succeed (stripped to None)
-        entry = create_note(user_id=user_id, title='Title', body='   ')
-        assert entry is not None, "Empty string body should be handled"
+        # Empty string description with title should succeed (stripped to None)
+        entry = create_note(user_id=user_id, title='Title', description='   ')
+        assert entry is not None, "Empty string description should be handled"
     
     @pytest.mark.file_io
     def test_validation_preserves_valid_data(self, test_data_dir):
@@ -343,7 +343,7 @@ class TestNotebookValidationEdgeCases:
             user_id=user_id,
             kind='note',
             title=original_title,
-            body=original_body,
+            description=original_body,
             tags=original_tags,
             group=original_group
         )
@@ -351,6 +351,6 @@ class TestNotebookValidationEdgeCases:
         assert entry is not None, "Entry should be created"
         # Validation should strip whitespace but preserve content
         assert entry.title == 'Test Title', "Title should be stripped but preserved"
-        assert entry.body == 'Test Body', "Body should be stripped but preserved"
+        assert entry.description == 'Test Body', "Description should be stripped but preserved"
         assert len(entry.tags) == 2, "Tags should be preserved"
         assert entry.group == 'work', "Group should be stripped but preserved"

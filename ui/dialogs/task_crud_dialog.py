@@ -15,6 +15,11 @@ from tasks import (
     complete_task,
     delete_task,
 )
+from tasks.task_data_handlers import (
+    runtime_task_completed_at,
+    runtime_task_due_date,
+    runtime_task_due_time,
+)
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger
 
@@ -185,10 +190,10 @@ class TaskCrudDialog(QDialog):
                 row, 1, QTableWidgetItem(task.get("description", ""))
             )
             self.ui.tableWidget_active_tasks.setItem(
-                row, 2, QTableWidgetItem(task.get("due_date", ""))
+                row, 2, QTableWidgetItem(runtime_task_due_date(task) or "")
             )
             self.ui.tableWidget_active_tasks.setItem(
-                row, 3, QTableWidgetItem(task.get("due_time", ""))
+                row, 3, QTableWidgetItem(runtime_task_due_time(task) or "")
             )
             self.ui.tableWidget_active_tasks.setItem(
                 row, 4, QTableWidgetItem(task.get("priority", "medium"))
@@ -199,7 +204,7 @@ class TaskCrudDialog(QDialog):
 
             # Store task ID in the first column for easy access
             self.ui.tableWidget_active_tasks.item(row, 0).setData(
-                Qt.ItemDataRole.UserRole, task.get("task_id")
+                Qt.ItemDataRole.UserRole, task.get("id")
             )
 
         # Re-enable sorting and restore sort state
@@ -242,18 +247,18 @@ class TaskCrudDialog(QDialog):
                 row, 1, QTableWidgetItem(task.get("description", ""))
             )
             self.ui.tableWidget_completed_tasks.setItem(
-                row, 2, QTableWidgetItem(task.get("due_date", ""))
+                row, 2, QTableWidgetItem(runtime_task_due_date(task) or "")
             )
             self.ui.tableWidget_completed_tasks.setItem(
                 row, 3, QTableWidgetItem(task.get("priority", "medium"))
             )
             self.ui.tableWidget_completed_tasks.setItem(
-                row, 5, QTableWidgetItem(task.get("completed_at", ""))
+                row, 5, QTableWidgetItem(runtime_task_completed_at(task) or "")
             )
 
             # Store task ID in the first column for easy access
             self.ui.tableWidget_completed_tasks.item(row, 0).setData(
-                Qt.ItemDataRole.UserRole, task.get("task_id")
+                Qt.ItemDataRole.UserRole, task.get("id")
             )
 
         # Re-enable sorting and restore sort state

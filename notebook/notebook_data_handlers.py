@@ -133,19 +133,24 @@ def save_entries(user_id: str, entries: list[Entry]) -> None:
 
 
 def _entry_v2_to_runtime(entry: dict) -> dict:
+    """Map persisted v2 JSON to runtime dict for Entry validation (v2-native)."""
+    description = entry.get("description")
+    if description is None and entry.get("body"):
+        description = entry.get("body")
+    status = entry.get("status") or "active"
+    if status == "active" and entry.get("archived") is True:
+        status = "archived"
     runtime = {
         "id": entry.get("id"),
         "short_id": entry.get("short_id"),
         "kind": entry.get("kind"),
         "title": entry.get("title") or None,
-        "description": entry.get("description") or None,
-        "body": entry.get("description") or None,
-        "status": entry.get("status") or "active",
+        "description": description or None,
+        "status": status,
         "category": entry.get("category") or "",
         "tags": entry.get("tags") or [],
         "group": entry.get("group") or None,
         "pinned": entry.get("pinned", False),
-        "archived": entry.get("status") == "archived",
         "submitted_at": entry.get("submitted_at"),
         "source": entry.get("source"),
         "linked_item_ids": entry.get("linked_item_ids") or [],
@@ -157,7 +162,6 @@ def _entry_v2_to_runtime(entry: dict) -> dict:
     }
     if runtime.get("kind") == "list":
         runtime["items"] = entry.get("items")
-        runtime["body"] = None
     return runtime
 
 
@@ -166,10 +170,10 @@ def _entry_runtime_to_v2(entry: dict) -> dict:
     kind = entry.get("kind")
     created_at = entry.get("created_at") or now_timestamp_full()
     updated_at = entry.get("updated_at") or created_at
-    status = entry.get("status") or ("archived" if entry.get("archived") else "active")
-    description = entry.get("body")
+    status = entry.get("status") or "active"
+    description = entry.get("description")
     if description is None:
-        description = entry.get("description") or ""
+        description = entry.get("body") or ""
     v2_entry = {
         "id": entry_id,
         "short_id": entry.get("short_id") or generate_short_id(entry_id, str(kind)),

@@ -2,16 +2,16 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-28 14:30:44
+> **Last Generated**: 2026-04-29 01:19:15
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 91
-**Legacy Compatibility Markers Detected**: 1368
+**Total Files with Issues**: 86
+**Legacy Compatibility Markers Detected**: 1279
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
 - Changelogs, archive folders, and planning documents are intentionally historical and excluded from this report.
 - Legacy compatibility markers remain in 2 file(s) (5 total markers).
-- Remaining counts come from legacy inventory tracking categories (89 file(s), 1363 marker(s)).
+- Remaining counts come from legacy inventory tracking categories (84 file(s), 1274 marker(s)).
 
 ## Recommended Follow-Up
 - Additional guidance: [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md)
@@ -24,10 +24,10 @@
 - Active/candidate entries: 2
 - Removed entries: 9
 - Active search terms: 6
-- Current inventory-term hits in scan: 71 file(s), 1063 marker(s)
+- Current inventory-term hits in scan: 69 file(s), 1020 marker(s)
 
 ## Deprecation Inventory Terms
-**Files Affected**: 71
+**Files Affected**: 69
 
 ### communication\command_handlers\analytics_handler.py
 **Issues Found**: 7
@@ -68,304 +68,299 @@
   ```
 
 ### communication\command_handlers\task_handler.py
-**Issues Found**: 60
+**Issues Found**: 59
 
-- **Line 40**: `task_id`
+- **Line 46**: `task_id`
   ```
   def _task_identifier(task: dict[str, Any]) -> str:
   ```
 
-- **Line 42**: `task_id`
-  ```
-  return str(task.get("id") or task.get("task_id") or "")
-  ```
-
-- **Line 276**: `task_id`
+- **Line 282**: `task_id`
   ```
   task_id = _get_tasks().create_task(user_id=user_id, **task_data)
   ```
 
-- **Line 278**: `task_id`
+- **Line 284**: `task_id`
   ```
   if task_id:
   ```
 
-- **Line 309**: `task_id`
+- **Line 315**: `task_id`
   ```
   f"Task {task_id} has no valid due date (valid_due_date={valid_due_date}), starting due date flow"
   ```
 
-- **Line 311**: `task_id`
+- **Line 317**: `task_id`
   ```
   conversation_manager.start_task_due_date_flow(user_id, task_id)
   ```
 
-- **Line 319**: `task_id`
+- **Line 325**: `task_id`
   ```
   f"Task {task_id} has valid due date ({valid_due_date}), starting reminder flow"
   ```
 
-- **Line 321**: `task_id`
+- **Line 327**: `task_id`
   ```
   conversation_manager.start_task_reminder_followup(user_id, task_id)
   ```
 
-- **Line 324**: `task_id`
+- **Line 330**: `task_id`
   ```
   user_id, task_id
   ```
 
-- **Line 787**: `task_id`
+- **Line 797**: `task_id`
   ```
   task_identifier = entities.get("task_identifier")
   ```
 
-- **Line 787**: `task_id`
+- **Line 797**: `task_id`
   ```
   task_identifier = entities.get("task_identifier")
   ```
 
-- **Line 788**: `task_id`
+- **Line 798**: `task_id`
   ```
   if not task_identifier:
   ```
 
-- **Line 805**: `task_id`
+- **Line 815**: `task_id`
   ```
   task_id = _task_identifier(suggested_task)
   ```
 
-- **Line 805**: `task_id`
+- **Line 815**: `task_id`
   ```
   task_id = _task_identifier(suggested_task)
   ```
 
-- **Line 806**: `task_id`
+- **Line 816**: `task_id`
   ```
   short_id = _task_short_identifier(suggested_task) or (task_id[:8] if task_id else "")
   ```
 
-- **Line 806**: `task_id`
+- **Line 816**: `task_id`
   ```
   short_id = _task_short_identifier(suggested_task) or (task_id[:8] if task_id else "")
   ```
 
-- **Line 831**: `task_id`
+- **Line 841**: `task_id`
   ```
   candidates = self._get_task_candidates(tasks, task_identifier)
   ```
 
-- **Line 848**: `task_id`
+- **Line 858**: `task_id`
   ```
   if _get_tasks().complete_task(user_id, _task_identifier(task)):
   ```
 
-- **Line 865**: `task_id`
+- **Line 875**: `task_id`
   ```
   task_identifier = entities.get("task_identifier")
   ```
 
-- **Line 865**: `task_id`
+- **Line 875**: `task_id`
   ```
   task_identifier = entities.get("task_identifier")
   ```
 
-- **Line 866**: `task_id`
+- **Line 876**: `task_id`
   ```
   if not task_identifier:
   ```
 
-- **Line 867**: `completed_tasks`
+- **Line 877**: `completed_tasks`
   ```
   completed_tasks = _get_tasks().load_completed_tasks(user_id)
   ```
 
-- **Line 867**: `completed_tasks`
+- **Line 877**: `completed_tasks`
   ```
   completed_tasks = _get_tasks().load_completed_tasks(user_id)
   ```
 
-- **Line 868**: `completed_tasks`
+- **Line 878**: `completed_tasks`
   ```
   if not completed_tasks:
   ```
 
-- **Line 876**: `completed_tasks`
+- **Line 886**: `completed_tasks`
   ```
   completed_tasks = _get_tasks().load_completed_tasks(user_id)
   ```
 
-- **Line 876**: `completed_tasks`
+- **Line 886**: `completed_tasks`
   ```
   completed_tasks = _get_tasks().load_completed_tasks(user_id)
   ```
 
-- **Line 879**: `completed_tasks`
+- **Line 889**: `completed_tasks`
   ```
   for t in completed_tasks
   ```
 
-- **Line 880**: `task_id`
+- **Line 890**: `task_id`
   ```
   if str(task_identifier).strip().lower()
   ```
 
-- **Line 882**: `task_id`
+- **Line 892**: `task_id`
   ```
   _task_identifier(t).lower(),
   ```
 
-- **Line 887**: `task_id`
+- **Line 897**: `task_id`
   ```
   str(task_identifier).isdigit()
   ```
 
-- **Line 888**: `task_id`
+- **Line 898**: `task_id`
   ```
   and _task_identifier(t) == str(task_identifier)
   ```
 
-- **Line 888**: `task_id`
+- **Line 898**: `task_id`
   ```
   and _task_identifier(t) == str(task_identifier)
   ```
 
-- **Line 894**: `completed_tasks`
+- **Line 904**: `completed_tasks`
   ```
   for t in completed_tasks
   ```
 
-- **Line 895**: `task_id`
+- **Line 905**: `task_id`
   ```
   if task_identifier.lower() in (t.get("title") or "").lower()
   ```
 
-- **Line 904**: `task_id`
+- **Line 914**: `task_id`
   ```
   task_id = _task_identifier(task)
   ```
 
-- **Line 904**: `task_id`
+- **Line 914**: `task_id`
   ```
   task_id = _task_identifier(task)
   ```
 
-- **Line 905**: `task_id`
+- **Line 915**: `task_id`
   ```
   if _get_tasks().restore_task(user_id, task_id):
   ```
 
-- **Line 916**: `task_id`
+- **Line 926**: `task_id`
   ```
   task_identifier = entities.get("task_identifier")
   ```
 
-- **Line 916**: `task_id`
+- **Line 926**: `task_id`
   ```
   task_identifier = entities.get("task_identifier")
   ```
 
-- **Line 917**: `task_id`
+- **Line 927**: `task_id`
   ```
   if not task_identifier:
   ```
 
-- **Line 934**: `task_id`
+- **Line 944**: `task_id`
   ```
   candidates = self._get_task_candidates(tasks, task_identifier)
   ```
 
-- **Line 952**: `task_id`
+- **Line 962**: `task_id`
   ```
   identifier_str = str(task_identifier).strip().lower()
   ```
 
-- **Line 954**: `task_id`
+- **Line 964**: `task_id`
   ```
   is_exact_id = identifier_str in [_task_identifier(task).lower(), _task_short_identifier(task).lower()]
   ```
 
-- **Line 957**: `task_id`
+- **Line 967**: `task_id`
   ```
   PENDING_DELETIONS[user_id] = _task_identifier(task)
   ```
 
-- **Line 965**: `task_id`
+- **Line 975**: `task_id`
   ```
   if _get_tasks().delete_task(user_id, _task_identifier(task)):
   ```
 
-- **Line 977**: `task_id`
+- **Line 987**: `task_id`
   ```
   task_identifier = entities.get("task_identifier")
   ```
 
-- **Line 977**: `task_id`
+- **Line 987**: `task_id`
   ```
   task_identifier = entities.get("task_identifier")
   ```
 
-- **Line 978**: `task_id`
+- **Line 988**: `task_id`
   ```
   if not task_identifier:
   ```
 
-- **Line 986**: `task_id`
+- **Line 996**: `task_id`
   ```
   candidates = self._get_task_candidates(tasks, task_identifier)
   ```
 
-- **Line 1025**: `task_id`
+- **Line 1035**: `task_id`
   ```
   f"{task_identifier}"
   ```
 
-- **Line 1028**: `task_id`
+- **Line 1038**: `task_id`
   ```
   f"{task_identifier}"
   ```
 
-- **Line 1031**: `task_id`
+- **Line 1041**: `task_id`
   ```
   f"{task_identifier}"
   ```
 
-- **Line 1037**: `task_id`
+- **Line 1047**: `task_id`
   ```
   if _get_tasks().update_task(user_id, _task_identifier(task), updates):
   ```
 
-- **Line 1094**: `completed_tasks`
+- **Line 1104**: `completed_tasks`
   ```
   completed_tasks = overall_stats.get("completed_tasks", 0)
   ```
 
-- **Line 1094**: `completed_tasks`
+- **Line 1104**: `completed_tasks`
   ```
   completed_tasks = overall_stats.get("completed_tasks", 0)
   ```
 
-- **Line 1095**: `completed_tasks`
+- **Line 1105**: `completed_tasks`
   ```
   total_tasks = active_tasks + completed_tasks
   ```
 
-- **Line 1098**: `completed_tasks`
+- **Line 1108**: `completed_tasks`
   ```
   overall_completion_rate = (completed_tasks / total_tasks) * 100
   ```
 
-- **Line 1101**: `completed_tasks`
+- **Line 1111**: `completed_tasks`
   ```
   response += f"✅ **Completed Tasks:** {completed_tasks}\n"
   ```
 
-- **Line 1136**: `task_id`
+- **Line 1146**: `task_id`
   ```
   if _task_identifier(task) == identifier or _task_short_identifier(task) == identifier:
   ```
 
-- **Line 1194**: `task_id`
+- **Line 1204**: `task_id`
   ```
   if identifier == _task_identifier(t) or identifier == _task_short_identifier(t):
   ```
@@ -503,7 +498,7 @@
   ```
 
 ### communication\core\channel_orchestrator.py
-**Issues Found**: 25
+**Issues Found**: 24
 
 - **Line 81**: `task_id`
   ```
@@ -595,39 +590,34 @@
   logger.error(f"Task {task_id} not found for user {user_id}")
   ```
 
-- **Line 1986**: `task_id`
+- **Line 1988**: `task_id`
   ```
   logger.debug(f"Task {task_id} is already completed, skipping reminder")
   ```
 
-- **Line 2031**: `task_id`
+- **Line 2033**: `task_id`
   ```
   custom_view = get_task_reminder_view(user_id, task_id, task_title)
   ```
 
-- **Line 2037**: `task_id`
+- **Line 2039**: `task_id`
   ```
   return get_task_reminder_view(user_id, task_id, task_title)
   ```
 
-- **Line 2050**: `task_id`
+- **Line 2052**: `task_id`
   ```
   f"Task reminder sent successfully for user {user_id}, task {task_id}"
   ```
 
-- **Line 2053**: `task_id`
+- **Line 2055**: `task_id`
   ```
   self._last_task_reminders[user_id] = task_id
   ```
 
-- **Line 2056**: `task_id`
+- **Line 2058**: `task_id`
   ```
   f"Failed to send task reminder for user {user_id}, task {task_id}"
-  ```
-
-- **Line 2105**: `task_id`
-  ```
-  task.get("task_id", "")
   ```
 
 ### communication\message_processing\command_parser.py
@@ -656,242 +646,242 @@
 ### communication\message_processing\conversation_flow_manager.py
 **Issues Found**: 48
 
-- **Line 1361**: `task_id`
-  ```
-  task_id = user_state.get("data", {}).get("task_id")
-  ```
-
-- **Line 1361**: `task_id`
+- **Line 1362**: `task_id`
   ```
   task_id = user_state.get("data", {}).get("task_id")
   ```
 
 - **Line 1362**: `task_id`
   ```
+  task_id = user_state.get("data", {}).get("task_id")
+  ```
+
+- **Line 1363**: `task_id`
+  ```
   if not task_id:
   ```
 
-- **Line 1364**: `task_id`
+- **Line 1365**: `task_id`
   ```
   f"Task reminder follow-up for user {user_id} but no task_id in state"
   ```
 
-- **Line 1424**: `task_id`
+- **Line 1425**: `task_id`
   ```
   user_id, task_id, message_text
   ```
 
-- **Line 1427**: `task_id`
+- **Line 1428**: `task_id`
   ```
   f"Parsed reminder_periods for task {task_id}: {reminder_periods}"
   ```
 
-- **Line 1433**: `task_id`
+- **Line 1434**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 1452**: `task_id`
+- **Line 1453**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 1455**: `task_id`
+- **Line 1456**: `task_id`
   ```
   f"Task {task_id} not found when trying to set reminder periods"
   ```
 
-- **Line 1476**: `task_id`
+- **Line 1477**: `task_id`
   ```
   f"Task {task_id} has invalid due_date format '{due_date_str}', cannot set reminders"
   ```
 
-- **Line 1489**: `task_id`
+- **Line 1490**: `task_id`
   ```
   f"Updating task {task_id} with reminder periods: {reminder_periods}"
   ```
 
-- **Line 1496**: `task_id`
+- **Line 1497**: `task_id`
   ```
   user_id, task_id, {"reminder_periods": reminder_periods}
   ```
 
-- **Line 1501**: `task_id`
+- **Line 1502**: `task_id`
   ```
   f"update_task returned False for task {task_id} with reminder periods for user {user_id}"
   ```
 
-- **Line 1510**: `task_id`
+- **Line 1511**: `task_id`
   ```
   updated_task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 1513**: `task_id`
+- **Line 1520**: `task_id`
   ```
   f"Task {task_id} was not updated with reminder_periods after update_task returned True"
   ```
 
-- **Line 1536**: `task_id`
+- **Line 1543**: `task_id`
   ```
   f"Exception in update_task for task {task_id}: {update_error}",
   ```
 
-- **Line 1562**: `task_id`
+- **Line 1569**: `task_id`
   ```
   if "task_id" in str(e).lower() or "not found" in str(e).lower():
   ```
 
-- **Line 1581**: `task_id`
+- **Line 1588**: `task_id`
   ```
   self, user_id: str, task_id: str, text: str
   ```
 
-- **Line 1595**: `task_id`
+- **Line 1602**: `task_id`
   ```
   due_datetime = self._get_task_due_datetime_for_reminders(user_id, task_id)
   ```
 
-- **Line 1602**: `task_id`
+- **Line 1609**: `task_id`
   ```
   f"for task {task_id} with due_datetime {due_datetime}"
   ```
 
-- **Line 1629**: `task_id`
+- **Line 1636**: `task_id`
   ```
   f"Parsed reminder period for task {task_id}: "
   ```
 
-- **Line 1640**: `task_id`
+- **Line 1647**: `task_id`
   ```
   logger.debug(f"Final reminder_periods for task {task_id}: {reminder_periods}")
   ```
 
-- **Line 1645**: `task_id`
+- **Line 1652**: `task_id`
   ```
   self, user_id: str, task_id: str
   ```
 
-- **Line 1650**: `task_id`
+- **Line 1657**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 1652**: `task_id`
+- **Line 1659**: `task_id`
   ```
   logger.debug(f"Task {task_id} has no due_date, cannot parse reminder periods")
   ```
 
-- **Line 1661**: `task_id`
+- **Line 1667**: `task_id`
   ```
   logger.debug(f"Parsed due datetime for task {task_id}: {due_datetime}")
   ```
 
-- **Line 1667**: `task_id`
+- **Line 1673**: `task_id`
   ```
   f"Could not parse due date/time for task {task_id}: {due_date_str} {due_time_str}"
   ```
 
-- **Line 1672**: `task_id`
+- **Line 1678**: `task_id`
   ```
   logger.debug(f"Parsed due date only for task {task_id}: {due_datetime}")
   ```
 
-- **Line 1751**: `task_id`
+- **Line 1757**: `task_id`
   ```
   def start_task_due_date_flow(self, user_id: str, task_id: str) -> None:
   ```
 
-- **Line 1759**: `task_id`
+- **Line 1765**: `task_id`
   ```
   "data": {"task_id": task_id},
   ```
 
-- **Line 1759**: `task_id`
+- **Line 1765**: `task_id`
   ```
   "data": {"task_id": task_id},
   ```
 
-- **Line 1763**: `task_id`
+- **Line 1769**: `task_id`
   ```
   logger.debug(f"Started task due date flow for user {user_id}, task {task_id}")
   ```
 
-- **Line 1766**: `task_id`
+- **Line 1772**: `task_id`
   ```
   def start_task_reminder_followup(self, user_id: str, task_id: str) -> None:
   ```
 
-- **Line 1774**: `task_id`
+- **Line 1780**: `task_id`
   ```
   "data": {"task_id": task_id},
   ```
 
-- **Line 1774**: `task_id`
+- **Line 1780**: `task_id`
   ```
   "data": {"task_id": task_id},
   ```
 
-- **Line 1779**: `task_id`
+- **Line 1785**: `task_id`
   ```
   f"Started task reminder follow-up flow for user {user_id}, task {task_id}"
   ```
 
-- **Line 1786**: `task_id`
+- **Line 1792**: `task_id`
   ```
   self, user_id: str, task_id: str
   ```
 
-- **Line 1797**: `task_id`
+- **Line 1803**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 1924**: `task_id`
+- **Line 1930**: `task_id`
   ```
   task_id = user_state.get("data", {}).get("task_id")
   ```
 
-- **Line 1924**: `task_id`
+- **Line 1930**: `task_id`
   ```
   task_id = user_state.get("data", {}).get("task_id")
   ```
 
-- **Line 1936**: `task_id`
+- **Line 1942**: `task_id`
   ```
   task_id = user_state.get("data", {}).get("task_id")
   ```
 
-- **Line 1936**: `task_id`
+- **Line 1942**: `task_id`
   ```
   task_id = user_state.get("data", {}).get("task_id")
   ```
 
-- **Line 1961**: `task_id`
+- **Line 1967**: `task_id`
   ```
   task_id = user_state.get("data", {}).get("task_id")
   ```
 
-- **Line 1961**: `task_id`
+- **Line 1967**: `task_id`
   ```
   task_id = user_state.get("data", {}).get("task_id")
   ```
 
-- **Line 1962**: `task_id`
+- **Line 1968**: `task_id`
   ```
   if not task_id:
   ```
 
-- **Line 1987**: `task_id`
+- **Line 1993**: `task_id`
   ```
   update_result = update_task(user_id, task_id, update_data)
   ```
 
-- **Line 1999**: `task_id`
+- **Line 2005**: `task_id`
   ```
   self.start_task_reminder_followup(user_id, task_id)
   ```
 
-- **Line 2000**: `task_id`
+- **Line 2006**: `task_id`
   ```
   self._generate_context_aware_reminder_suggestions(user_id, task_id)
   ```
@@ -942,14 +932,6 @@
 - **Line 791**: `task_id`
   ```
   coerced_entities["task_identifier"] = ident
-  ```
-
-### core\file_operations.py
-**Issues Found**: 1
-
-- **Line 667**: `completed_tasks`
-  ```
-  task_files = {"active_tasks": [], "completed_tasks": [], "task_schedules": {}}
   ```
 
 ### core\message_analytics.py
@@ -1179,274 +1161,269 @@
   ```
 
 ### core\scheduler.py
-**Issues Found**: 54
+**Issues Found**: 53
 
-- **Line 1069**: `task_id`
+- **Line 1070**: `task_id`
   ```
   def handle_task_reminder(self, user_id, task_id, retry_attempts=3, retry_delay=30):
   ```
 
-- **Line 1084**: `task_id`
+- **Line 1085**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 1086**: `task_id`
+- **Line 1087**: `task_id`
   ```
   logger.error(f"Task {task_id} not found for user {user_id}")
   ```
 
-- **Line 1092**: `task_id`
+- **Line 1093**: `task_id`
   ```
   f"Task {task_id} is already completed, skipping reminder"
   ```
 
-- **Line 1097**: `task_id`
+- **Line 1098**: `task_id`
   ```
   self.communication_manager.handle_task_reminder(user_id, task_id)
   ```
 
-- **Line 1100**: `task_id`
+- **Line 1101**: `task_id`
   ```
   update_task(user_id, task_id, {"reminder_sent": True})
   ```
 
-- **Line 1103**: `task_id`
+- **Line 1104**: `task_id`
   ```
   f"Task reminder sent successfully for user {user_id}, task {task_id}"
   ```
 
-- **Line 1109**: `task_id`
+- **Line 1110**: `task_id`
   ```
   f"Error sending task reminder for user {user_id}, task {task_id}: {e}"
   ```
 
-- **Line 1391**: `task_id`
+- **Line 1394**: `task_id`
   ```
   user_id, selected_task["task_id"], random_time
   ```
 
-- **Line 1504**: `task_id`
-  ```
-  str(task.get("task_id") or "").strip(),
-  ```
-
-- **Line 1643**: `task_id`
+- **Line 1650**: `task_id`
   ```
   def schedule_task_reminder_at_time(self, user_id, task_id, reminder_time):
   ```
 
-- **Line 1651**: `task_id`
+- **Line 1658**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 1653**: `task_id`
+- **Line 1660**: `task_id`
   ```
   logger.error(f"Task {task_id} not found for user {user_id}")
   ```
 
-- **Line 1658**: `task_id`
+- **Line 1665**: `task_id`
   ```
   f"Task {task_id} is already completed, skipping reminder scheduling"
   ```
 
-- **Line 1672**: `task_id`
+- **Line 1679**: `task_id`
   ```
   self.handle_task_reminder, user_id=user_id, task_id=task_id
   ```
 
-- **Line 1672**: `task_id`
+- **Line 1679**: `task_id`
   ```
   self.handle_task_reminder, user_id=user_id, task_id=task_id
   ```
 
-- **Line 1699**: `task_id`
+- **Line 1706**: `task_id`
   ```
   f"Scheduled daily task reminder for user {user_id}, task {task_id} at {time_str}"
   ```
 
-- **Line 1705**: `task_id`
+- **Line 1712**: `task_id`
   ```
   f"Error scheduling task reminder for user {user_id}, task {task_id}: {e}"
   ```
 
-- **Line 1710**: `task_id`
+- **Line 1717**: `task_id`
   ```
   def schedule_task_reminder_at_datetime(self, user_id, task_id, date_str, time_str):
   ```
 
-- **Line 1718**: `task_id`
+- **Line 1725**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 1720**: `task_id`
+- **Line 1727**: `task_id`
   ```
   logger.error(f"Task {task_id} not found for user {user_id}")
   ```
 
-- **Line 1725**: `task_id`
+- **Line 1732**: `task_id`
   ```
   f"Task {task_id} is already completed, skipping reminder scheduling"
   ```
 
-- **Line 1748**: `task_id`
+- **Line 1755**: `task_id`
   ```
   self.handle_task_reminder, user_id=user_id, task_id=task_id
   ```
 
-- **Line 1748**: `task_id`
+- **Line 1755**: `task_id`
   ```
   self.handle_task_reminder, user_id=user_id, task_id=task_id
   ```
 
-- **Line 1752**: `task_id`
+- **Line 1759**: `task_id`
   ```
   f"Scheduled one-time task reminder for user {user_id}, task {task_id} at {reminder_datetime}"
   ```
 
-- **Line 1758**: `task_id`
+- **Line 1765**: `task_id`
   ```
   f"Error scheduling task reminder for user {user_id}, task {task_id}: {e}"
   ```
 
-- **Line 1763**: `task_id`
+- **Line 1770**: `task_id`
   ```
   def cleanup_task_reminders(self, user_id, task_id):
   ```
 
-- **Line 1767**: `task_id`
+- **Line 1774**: `task_id`
   ```
   Finds and removes all APScheduler jobs that call handle_task_reminder for the given task_id.
   ```
 
-- **Line 1772**: `task_id`
+- **Line 1779**: `task_id`
   ```
   task_id: The task ID to clean up reminders for
   ```
 
-- **Line 1778**: `task_id`
+- **Line 1785**: `task_id`
   ```
   if not user_id or not task_id:
   ```
 
-- **Line 1780**: `task_id`
+- **Line 1787**: `task_id`
   ```
   f"Invalid parameters for cleanup_task_reminders: user_id={user_id}, task_id={task_id}"
   ```
 
-- **Line 1780**: `task_id`
+- **Line 1787**: `task_id`
   ```
   f"Invalid parameters for cleanup_task_reminders: user_id={user_id}, task_id={task_id}"
   ```
 
-- **Line 1788**: `task_id`
+- **Line 1795**: `task_id`
   ```
   # Find all jobs that call handle_task_reminder with this user_id and task_id
   ```
 
-- **Line 1792**: `task_id`
+- **Line 1799**: `task_id`
   ```
   # Jobs created by schedule_task_reminder_at_datetime use: schedule.every(delay).seconds.do(handle_task_reminder, user_id=..., task_id=...)
   ```
 
-- **Line 1793**: `task_id`
+- **Line 1800**: `task_id`
   ```
   # Jobs created by schedule_task_reminder_at_time use: schedule.every().day.at(time).do(handle_task_reminder, user_id=..., task_id=...)
   ```
 
-- **Line 1803**: `task_id`
+- **Line 1810**: `task_id`
   ```
   # Check keyword arguments for user_id and task_id
   ```
 
-- **Line 1808**: `task_id`
+- **Line 1815**: `task_id`
   ```
   and kwargs.get("task_id") == task_id
   ```
 
-- **Line 1808**: `task_id`
+- **Line 1815**: `task_id`
   ```
   and kwargs.get("task_id") == task_id
-  ```
-
-- **Line 1812**: `task_id`
-  ```
-  f"Found reminder job for task {task_id}, user {user_id}"
   ```
 
 - **Line 1819**: `task_id`
   ```
+  f"Found reminder job for task {task_id}, user {user_id}"
+  ```
+
+- **Line 1826**: `task_id`
+  ```
   # handle_task_reminder signature: (self, user_id, task_id, ...)
   ```
 
-- **Line 1823**: `task_id`
+- **Line 1830**: `task_id`
   ```
   and args[1] == task_id
   ```
 
-- **Line 1832**: `task_id`
+- **Line 1839**: `task_id`
   ```
   f"Found reminder job for task {task_id}, user {user_id} (positional args)"
   ```
 
-- **Line 1847**: `task_id`
+- **Line 1854**: `task_id`
   ```
   f"Removed reminder job for task {task_id}, user {user_id}"
   ```
 
-- **Line 1855**: `task_id`
+- **Line 1862**: `task_id`
   ```
   f"Cleaned up {jobs_removed} reminder job(s) for task {task_id}, user {user_id} "
   ```
 
-- **Line 1863**: `task_id`
+- **Line 1870**: `task_id`
   ```
   f"Error cleaning up task reminders for task {task_id}, user {user_id}: {e}"
   ```
 
-- **Line 1901**: `task_id`
+- **Line 1908**: `task_id`
   ```
   task_id = kwargs.get("task_id")
   ```
 
-- **Line 1901**: `task_id`
+- **Line 1908**: `task_id`
   ```
   task_id = kwargs.get("task_id")
   ```
 
-- **Line 1902**: `task_id`
+- **Line 1909**: `task_id`
   ```
   if user_id and task_id:
   ```
 
-- **Line 1903**: `task_id`
+- **Line 1910**: `task_id`
   ```
   jobs_to_check.append((job, user_id, task_id))
   ```
 
-- **Line 1912**: `task_id`
+- **Line 1919**: `task_id`
   ```
   for job, user_id, task_id in jobs_to_check:
   ```
 
-- **Line 1914**: `task_id`
+- **Line 1921**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 1921**: `task_id`
+- **Line 1928**: `task_id`
   ```
   f"Removed orphaned reminder for non-existent task {task_id}, user {user_id}"
   ```
 
-- **Line 1932**: `task_id`
+- **Line 1939**: `task_id`
   ```
   f"Removed reminder for completed task {task_id}, user {user_id}"
   ```
 
-- **Line 1939**: `task_id`
+- **Line 1946**: `task_id`
   ```
   f"Error checking task {task_id} for user {user_id}: {e}"
   ```
@@ -1570,7 +1547,7 @@
   ```
 
 ### tasks\task_data_handlers.py
-**Issues Found**: 13
+**Issues Found**: 12
 
 - **Line 100**: `completed_tasks`
   ```
@@ -1602,37 +1579,32 @@
   logger.error(f"Invalid user_id for save_completed_tasks: {user_id}")
   ```
 
-- **Line 174**: `task_id`
+- **Line 257**: `task_id`
   ```
-  task_id = str(task.get("id") or task.get("task_id") or "")
-  ```
-
-- **Line 174**: `task_id`
-  ```
-  task_id = str(task.get("id") or task.get("task_id") or "")
+  task_id = str(task.get("id") or "")
   ```
 
-- **Line 175**: `task_id`
+- **Line 258**: `task_id`
   ```
   if not task_id:
   ```
 
-- **Line 176**: `task_id`
+- **Line 259**: `task_id`
   ```
   task_id = generate_short_id(now_timestamp_full(), "task", length=12)
   ```
 
-- **Line 196**: `task_id`
+- **Line 303**: `task_id`
   ```
   "id": task_id,
   ```
 
-- **Line 197**: `task_id`
+- **Line 304**: `task_id`
   ```
   "short_id": task.get("short_id") or generate_short_id(task_id, "task"),
   ```
 
-- **Line 284**: `task_id`
+- **Line 374**: `task_id`
   ```
   "task_id",
   ```
@@ -2577,7 +2549,7 @@
   ```
 
 ### tests\behavior\test_scheduler_coverage_expansion.py
-**Issues Found**: 29
+**Issues Found**: 25
 
 - **Line 424**: `task_id`
   ```
@@ -2596,12 +2568,7 @@
 
 - **Line 495**: `task_id`
   ```
-  "task_id": task_id,
-  ```
-
-- **Line 495**: `task_id`
-  ```
-  "task_id": task_id,
+  "id": task_id,
   ```
 
 - **Line 504**: `task_id`
@@ -2621,12 +2588,7 @@
 
 - **Line 523**: `task_id`
   ```
-  "task_id": task_id,
-  ```
-
-- **Line 523**: `task_id`
-  ```
-  "task_id": task_id,
+  "id": task_id,
   ```
 
 - **Line 530**: `task_id`
@@ -2646,12 +2608,7 @@
 
 - **Line 800**: `task_id`
   ```
-  "task_id": task_id,
-  ```
-
-- **Line 800**: `task_id`
-  ```
-  "task_id": task_id,
+  "id": task_id,
   ```
 
 - **Line 807**: `task_id`
@@ -2681,12 +2638,7 @@
 
 - **Line 827**: `task_id`
   ```
-  "task_id": task_id,
-  ```
-
-- **Line 827**: `task_id`
-  ```
-  "task_id": task_id,
+  "id": task_id,
   ```
 
 - **Line 834**: `task_id`
@@ -2725,139 +2677,129 @@
   ```
 
 ### tests\behavior\test_task_behavior.py
-**Issues Found**: 27
+**Issues Found**: 25
 
 - **Line 28**: `completed_tasks`
   ```
   load_completed_tasks,
   ```
 
-- **Line 78**: `completed_tasks`
+- **Line 79**: `completed_tasks`
   ```
   assert not os.path.exists(os.path.join(task_dir, "completed_tasks.json"))
   ```
 
-- **Line 109**: `task_id`
-  ```
-  {"task_id": "1", "title": "Test Task 1", "completed": False},
-  ```
-
-- **Line 110**: `task_id`
-  ```
-  {"task_id": "2", "title": "Test Task 2", "completed": False},
-  ```
-
-- **Line 128**: `task_id`
+- **Line 129**: `task_id`
   ```
   assert all("task_id" not in task for task in saved_data["tasks"])
   ```
 
-- **Line 136**: `task_id`
+- **Line 137**: `task_id`
   ```
   task_id = create_task(
   ```
 
-- **Line 144**: `task_id`
+- **Line 145**: `task_id`
   ```
   assert task_id is not None
   ```
 
-- **Line 160**: `task_id`
+- **Line 161**: `task_id`
   ```
   assert any(t["id"] == task_id and t["status"] == "active" for t in data["tasks"])
   ```
 
-- **Line 168**: `task_id`
+- **Line 169**: `task_id`
   ```
   task_id = create_task(user_id, "Original Title", "Original Description")
   ```
 
-- **Line 175**: `task_id`
+- **Line 176**: `task_id`
   ```
   result = update_task(user_id, task_id, updates)
   ```
 
-- **Line 189**: `task_id`
+- **Line 190**: `task_id`
   ```
   t["id"] == task_id and t["title"] == "Updated Title"
   ```
 
-- **Line 200**: `task_id`
+- **Line 201**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 203**: `task_id`
+- **Line 204**: `task_id`
   ```
   result = complete_task(user_id, task_id)
   ```
 
-- **Line 210**: `completed_tasks`
-  ```
-  completed_tasks = load_completed_tasks(user_id)
-  ```
-
-- **Line 210**: `completed_tasks`
+- **Line 211**: `completed_tasks`
   ```
   completed_tasks = load_completed_tasks(user_id)
   ```
 
 - **Line 211**: `completed_tasks`
   ```
-  assert len(completed_tasks) == 1
+  completed_tasks = load_completed_tasks(user_id)
   ```
 
 - **Line 212**: `completed_tasks`
   ```
-  assert completed_tasks[0]["completed"] is True
+  assert len(completed_tasks) == 1
   ```
 
 - **Line 213**: `completed_tasks`
   ```
-  assert completed_tasks[0]["completed_at"] is not None
+  assert runtime_task_is_completed(completed_tasks[0])
   ```
 
-- **Line 221**: `task_id`
+- **Line 214**: `completed_tasks`
+  ```
+  assert runtime_task_completed_at(completed_tasks[0]) is not None
+  ```
+
+- **Line 222**: `task_id`
   ```
   t["id"] == task_id and t["status"] == "completed" and t["completion"]["completed"]
   ```
 
-- **Line 231**: `task_id`
+- **Line 232**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 233**: `task_id`
+- **Line 234**: `task_id`
   ```
   result = delete_task(user_id, task_id)
   ```
 
-- **Line 237**: `task_id`
+- **Line 238**: `task_id`
   ```
   assert all(t["id"] != task_id for t in tasks)
   ```
 
-- **Line 243**: `task_id`
+- **Line 244**: `task_id`
   ```
   assert all(t["id"] != task_id for t in data["tasks"])
   ```
 
-- **Line 251**: `task_id`
+- **Line 252**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task", "Desc")
   ```
 
-- **Line 253**: `task_id`
+- **Line 254**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 255**: `task_id`
+- **Line 256**: `task_id`
   ```
   assert task["id"] == task_id
   ```
 
-- **Line 262**: `task_id`
+- **Line 263**: `task_id`
   ```
   assert any(t["id"] == task_id for t in data["tasks"])
   ```
@@ -2888,326 +2830,216 @@
 ### tests\behavior\test_task_error_handling.py
 **Issues Found**: 30
 
-- **Line 77**: `task_id`
+- **Line 81**: `task_id`
   ```
   task_id = create_task(
   ```
 
-- **Line 80**: `task_id`
+- **Line 84**: `task_id`
   ```
   assert task_id is not None, "Task should be created"
   ```
 
-- **Line 82**: `task_id`
+- **Line 86**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 97**: `task_id`
+- **Line 101**: `task_id`
   ```
   task_id = create_task(
   ```
 
-- **Line 100**: `task_id`
+- **Line 104**: `task_id`
   ```
   assert task_id is not None, "Task should be created even with invalid date"
   ```
 
-- **Line 102**: `task_id`
+- **Line 106**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 159**: `task_id`
+- **Line 163**: `task_id`
   ```
   task_id = create_task(user_id=user_id, title="Test Task")
   ```
 
-- **Line 172**: `task_id`
+- **Line 176**: `task_id`
   ```
   result = schedule_task_reminders(user_id, task_id, reminder_periods)
   ```
 
-- **Line 186**: `task_id`
+- **Line 190**: `task_id`
   ```
   task_id = create_task(user_id=user_id, title="Test Task")
   ```
 
-- **Line 209**: `task_id`
+- **Line 213**: `task_id`
   ```
   result = schedule_task_reminders(user_id, task_id, incomplete_periods)
   ```
 
-- **Line 298**: `task_id`
+- **Line 302**: `task_id`
   ```
   task_id = create_task(
   ```
 
-- **Line 304**: `task_id`
+- **Line 308**: `task_id`
   ```
   assert task_id is not None, "Task should be created"
   ```
 
-- **Line 305**: `task_id`
+- **Line 309**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 328**: `task_id`
+- **Line 334**: `task_id`
   ```
   task_id = create_task(user_id=user_id, title="Overdue Task", due_date=past_date)
   ```
 
-- **Line 330**: `task_id`
+- **Line 336**: `task_id`
   ```
   assert task_id is not None, "Task should be created even with past due_date"
   ```
 
-- **Line 333**: `task_id`
+- **Line 339**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 335**: `task_id`
+- **Line 341**: `task_id`
   ```
   assert task is not None, f"Task should be retrievable. Task ID: {task_id}"
   ```
 
-- **Line 350**: `task_id`
+- **Line 356**: `task_id`
   ```
   task_id = create_task(user_id=user_id, title=long_title)
   ```
 
-- **Line 352**: `task_id`
+- **Line 358**: `task_id`
   ```
   assert task_id is not None, "Task should be created even with very long title"
   ```
 
-- **Line 353**: `task_id`
+- **Line 359**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 368**: `task_id`
+- **Line 374**: `task_id`
   ```
   task_id = create_task(user_id=user_id, title=unicode_title)
   ```
 
-- **Line 370**: `task_id`
+- **Line 376**: `task_id`
   ```
   assert task_id is not None, "Task should be created with unicode"
   ```
 
-- **Line 371**: `task_id`
+- **Line 377**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 388**: `task_id`
+- **Line 394**: `task_id`
   ```
   task_id = create_task(
   ```
 
-- **Line 392**: `task_id`
+- **Line 398**: `task_id`
   ```
   assert task_id is not None, "Task should be created"
   ```
 
-- **Line 393**: `task_id`
+- **Line 399**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 410**: `task_id`
+- **Line 416**: `task_id`
   ```
   task_id1 = create_task(user_id=user_id, title=title)
   ```
 
-- **Line 411**: `task_id`
+- **Line 417**: `task_id`
   ```
   task_id2 = create_task(user_id=user_id, title=title)
   ```
 
-- **Line 413**: `task_id`
+- **Line 419**: `task_id`
   ```
   assert task_id1 != task_id2, "Tasks should have different IDs"
   ```
 
-- **Line 413**: `task_id`
+- **Line 419**: `task_id`
   ```
   assert task_id1 != task_id2, "Tasks should have different IDs"
   ```
 
 ### tests\behavior\test_task_handler_behavior.py
-**Issues Found**: 33
+**Issues Found**: 11
 
-- **Line 352**: `task_id`
-  ```
-  "task_id": "task_1",
-  ```
-
-- **Line 358**: `task_id`
-  ```
-  "task_id": "task_2",
-  ```
-
-- **Line 434**: `task_id`
-  ```
-  "task_id": "task_1",
-  ```
-
-- **Line 442**: `task_id`
-  ```
-  "task_id": "task_2",
-  ```
-
-- **Line 477**: `task_id`
-  ```
-  {"title": "Task 1", "priority": "high", "task_id": "task_1"},
-  ```
-
-- **Line 478**: `task_id`
-  ```
-  {"title": "Task 2", "priority": "medium", "task_id": "task_2"},
-  ```
-
-- **Line 484**: `task_id`
+- **Line 483**: `task_id`
   ```
   entities={"task_identifier": "1"},
   ```
 
-- **Line 518**: `task_id`
-  ```
-  {"title": "Task 1", "priority": "high", "task_id": "task_1"}
-  ```
-
-- **Line 523**: `task_id`
+- **Line 522**: `task_id`
   ```
   entities={"task_identifier": "999"},
   ```
 
-- **Line 574**: `task_id`
-  ```
-  {"title": "Task 1", "priority": "high", "task_id": "task_1"}
-  ```
-
-- **Line 581**: `task_id`
+- **Line 580**: `task_id`
   ```
   "task_identifier": "1"
   ```
 
-- **Line 617**: `task_id`
-  ```
-  {"title": "Task 1", "priority": "medium", "task_id": "task_1"}
-  ```
-
-- **Line 623**: `task_id`
+- **Line 622**: `task_id`
   ```
   entities={"task_identifier": "1", "priority": "high"},
   ```
 
-- **Line 637**: `task_id`
+- **Line 636**: `task_id`
   ```
   # update_task is called with positional args: (user_id, task_id, updates)
   ```
 
-- **Line 640**: `task_id`
+- **Line 639**: `task_id`
   ```
   call_task_id = (
   ```
 
-- **Line 641**: `task_id`
+- **Line 640**: `task_id`
   ```
   call_args[0][1] if len(call_args[0]) > 1 else call_args[1].get("task_id")
   ```
 
-- **Line 650**: `task_id`
+- **Line 649**: `task_id`
   ```
   assert call_task_id == "task_1", "Should update correct task"
   ```
 
-- **Line 670**: `task_id`
-  ```
-  {"title": "Task 1", "priority": "medium", "task_id": "task_1"}
-  ```
-
-- **Line 675**: `task_id`
+- **Line 674**: `task_id`
   ```
   entities={"task_identifier": "1"},
   ```
 
-- **Line 707**: `completed_tasks`
+- **Line 706**: `completed_tasks`
   ```
   "completed_tasks": 10,
   ```
 
-- **Line 751**: `task_id`
-  ```
-  {"title": "Task 1", "task_id": "task_1"},
-  ```
-
-- **Line 752**: `task_id`
-  ```
-  {"title": "Task 2", "task_id": "task_2"},
-  ```
-
-- **Line 753**: `task_id`
-  ```
-  {"title": "Task 3", "task_id": "task_3"},
-  ```
-
-- **Line 767**: `task_id`
-  ```
-  {"title": "Brush Teeth", "task_id": "task_1"},
-  ```
-
-- **Line 768**: `task_id`
-  ```
-  {"title": "Wash Dishes", "task_id": "task_2"},
-  ```
-
-- **Line 782**: `task_id`
-  ```
-  {"title": "Brush Teeth Every Morning", "task_id": "task_1"},
-  ```
-
-- **Line 783**: `task_id`
-  ```
-  {"title": "Wash Dishes After Dinner", "task_id": "task_2"},
-  ```
-
-- **Line 793**: `task_id`
+- **Line 792**: `task_id`
   ```
   def test_task_handler_find_task_by_task_id(self):
   ```
 
-- **Line 794**: `task_id`
-  ```
-  """Test that TaskManagementHandler finds tasks by task_id."""
-  ```
-
-- **Line 797**: `task_id`
-  ```
-  {"title": "Task 1", "task_id": "task_123"},
-  ```
-
-- **Line 798**: `task_id`
-  ```
-  {"title": "Task 2", "task_id": "task_456"},
-  ```
-
-- **Line 802**: `task_id`
-  ```
-  assert task is not None, "Should find task by task_id"
-  ```
-
-- **Line 803**: `task_id`
-  ```
-  assert task["task_id"] == "task_123", "Should find correct task"
-  ```
-
 ### tests\behavior\test_task_management_coverage_expansion.py
-**Issues Found**: 138
+**Issues Found**: 134
 
 - **Line 32**: `completed_tasks`
   ```
@@ -3219,104 +3051,74 @@
   save_completed_tasks,
   ```
 
-- **Line 99**: `completed_tasks`
+- **Line 107**: `completed_tasks`
   ```
   assert not (task_dir / "completed_tasks.json").exists()
   ```
 
-- **Line 129**: `completed_tasks`
+- **Line 137**: `completed_tasks`
   ```
   "completed_tasks.json": {"completed_tasks": []},
   ```
 
-- **Line 129**: `completed_tasks`
+- **Line 137**: `completed_tasks`
   ```
   "completed_tasks.json": {"completed_tasks": []},
   ```
 
-- **Line 204**: `task_id`
-  ```
-  {"task_id": "1", "title": "Task 1", "completed": False},
-  ```
-
-- **Line 205**: `task_id`
-  ```
-  {"task_id": "2", "title": "Task 2", "completed": False},
-  ```
-
-- **Line 231**: `completed_tasks`
+- **Line 239**: `completed_tasks`
   ```
   def test_load_completed_tasks_real_behavior(self, mock_user_data_dir, user_id):
   ```
 
-- **Line 247**: `completed_tasks`
+- **Line 255**: `completed_tasks`
   ```
   tasks = load_completed_tasks(user_id)
   ```
 
-- **Line 254**: `completed_tasks`
+- **Line 262**: `completed_tasks`
   ```
   def test_save_completed_tasks_real_behavior(self, mock_user_data_dir, user_id):
   ```
 
-- **Line 257**: `task_id`
-  ```
-  {"task_id": "1", "title": "Completed Task 1", "completed": True},
-  ```
-
-- **Line 258**: `task_id`
-  ```
-  {"task_id": "2", "title": "Completed Task 2", "completed": True},
-  ```
-
-- **Line 261**: `completed_tasks`
+- **Line 269**: `completed_tasks`
   ```
   result = save_completed_tasks(user_id, test_tasks)
   ```
 
-- **Line 277**: `completed_tasks`
+- **Line 285**: `completed_tasks`
   ```
   assert not (task_dir / "completed_tasks.json").exists()
   ```
 
-- **Line 287**: `task_id`
+- **Line 295**: `task_id`
   ```
   task_id = create_task(
   ```
 
-- **Line 301**: `task_id`
+- **Line 309**: `task_id`
   ```
   assert task_id is not None
   ```
 
-- **Line 308**: `task_id`
+- **Line 316**: `task_id`
   ```
   assert task["id"] == task_id
   ```
 
-- **Line 326**: `task_id`
+- **Line 334**: `task_id`
   ```
   task_id = create_task(user_id=user_id, title="Minimal Task")
   ```
 
-- **Line 328**: `task_id`
+- **Line 336**: `task_id`
   ```
   assert task_id is not None
   ```
 
-- **Line 343**: `task_id`
-  ```
-  task_id = create_task(user_id="", title="Test Task")
-  ```
-
-- **Line 345**: `task_id`
-  ```
-  assert task_id is None
-  ```
-
 - **Line 351**: `task_id`
   ```
-  task_id = create_task(user_id=user_id, title="")
+  task_id = create_task(user_id="", title="Test Task")
   ```
 
 - **Line 353**: `task_id`
@@ -3324,577 +3126,587 @@
   assert task_id is None
   ```
 
-- **Line 358**: `task_id`
+- **Line 359**: `task_id`
+  ```
+  task_id = create_task(user_id=user_id, title="")
+  ```
+
+- **Line 361**: `task_id`
+  ```
+  assert task_id is None
+  ```
+
+- **Line 366**: `task_id`
   ```
   task_id = create_task(user_id, "Original Title", "Original Description")
   ```
 
-- **Line 369**: `task_id`
+- **Line 377**: `task_id`
   ```
   result = update_task(user_id, task_id, updates)
   ```
 
-- **Line 390**: `task_id`
+- **Line 398**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 404**: `task_id`
+- **Line 412**: `task_id`
   ```
   result = update_task(user_id, task_id, updates)
   ```
 
-- **Line 407**: `task_id`
+- **Line 415**: `task_id`
   ```
   mock_cleanup.assert_called_once_with(user_id, task_id)
   ```
 
-- **Line 409**: `task_id`
+- **Line 417**: `task_id`
   ```
   user_id, task_id, updates["reminder_periods"]
   ```
 
-- **Line 423**: `task_id`
+- **Line 431**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task", "Original Description")
   ```
 
-- **Line 425**: `task_id`
+- **Line 433**: `task_id`
   ```
   # Update with disallowed field (task_id, completed, created_at are not in allowed_fields)
   ```
 
-- **Line 428**: `task_id`
+- **Line 436**: `task_id`
   ```
   "task_id": "new-id",  # Disallowed - should be skipped
   ```
 
-- **Line 433**: `task_id`
+- **Line 441**: `task_id`
   ```
   result = update_task(user_id, task_id, updates)
   ```
 
-- **Line 441**: `task_id`
+- **Line 449**: `task_id`
   ```
   assert task["id"] == task_id  # Disallowed field not updated
   ```
 
-- **Line 450**: `task_id`
+- **Line 458**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task", priority="medium")
   ```
 
-- **Line 459**: `task_id`
+- **Line 467**: `task_id`
   ```
   result = update_task(user_id, task_id, updates)
   ```
 
-- **Line 475**: `task_id`
+- **Line 483**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task", priority="medium")
   ```
 
-- **Line 480**: `task_id`
+- **Line 488**: `task_id`
   ```
   result = update_task(user_id, task_id, updates)
-  ```
-
-- **Line 494**: `task_id`
-  ```
-  task_id = create_task(user_id, "Test Task", due_date="2024-12-31")
   ```
 
 - **Line 502**: `task_id`
   ```
-  result = update_task(user_id, task_id, updates)
+  task_id = create_task(user_id, "Test Task", due_date="2024-12-31")
   ```
 
-- **Line 507**: `task_id`
+- **Line 510**: `task_id`
   ```
-  task = get_task_by_id(user_id, task_id)
+  result = update_task(user_id, task_id, updates)
   ```
 
 - **Line 515**: `task_id`
   ```
-  task_id = create_task(user_id, "Original Title", "Original Description")
+  task = get_task_by_id(user_id, task_id)
   ```
 
 - **Line 523**: `task_id`
   ```
+  task_id = create_task(user_id, "Original Title", "Original Description")
+  ```
+
+- **Line 531**: `task_id`
+  ```
   result = update_task(user_id, task_id, updates)
   ```
 
-- **Line 538**: `task_id`
+- **Line 546**: `task_id`
   ```
   task_id = create_task(user_id, "Original Title")
   ```
 
-- **Line 543**: `task_id`
+- **Line 551**: `task_id`
   ```
   result = update_task(user_id, task_id, updates)
   ```
 
-- **Line 558**: `task_id`
+- **Line 566**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 577**: `task_id`
+- **Line 585**: `task_id`
   ```
   result = update_task(user_id, task_id, updates)
   ```
 
-- **Line 581**: `task_id`
+- **Line 589**: `task_id`
   ```
   mock_cleanup.assert_called_once_with(user_id, task_id)
   ```
 
-- **Line 583**: `task_id`
+- **Line 591**: `task_id`
   ```
   user_id, task_id, updates["reminder_periods"]
   ```
 
-- **Line 597**: `task_id`
+- **Line 605**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 602**: `task_id`
+- **Line 610**: `task_id`
   ```
   result = update_task(user_id, task_id, updates)
   ```
 
-- **Line 616**: `task_id`
+- **Line 624**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 626**: `task_id`
+- **Line 634**: `task_id`
   ```
   result = complete_task(user_id, task_id, completion_data)
   ```
 
-- **Line 629**: `task_id`
+- **Line 637**: `task_id`
   ```
   mock_cleanup.assert_called_once_with(user_id, task_id)
   ```
 
-- **Line 635**: `completed_tasks`
+- **Line 643**: `completed_tasks`
   ```
   completed_tasks = load_completed_tasks(user_id)
   ```
 
-- **Line 635**: `completed_tasks`
+- **Line 643**: `completed_tasks`
   ```
   completed_tasks = load_completed_tasks(user_id)
   ```
 
-- **Line 636**: `completed_tasks`
+- **Line 644**: `completed_tasks`
   ```
   assert len(completed_tasks) == 1
   ```
 
-- **Line 638**: `completed_tasks`
+- **Line 646**: `completed_tasks`
   ```
   task = completed_tasks[0]
   ```
 
-- **Line 648**: `task_id`
+- **Line 656**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 651**: `task_id`
+- **Line 659**: `task_id`
   ```
   result = complete_task(user_id, task_id)
   ```
 
-- **Line 654**: `task_id`
+- **Line 662**: `task_id`
   ```
   mock_cleanup.assert_called_once_with(user_id, task_id)
   ```
 
-- **Line 657**: `completed_tasks`
+- **Line 665**: `completed_tasks`
   ```
   completed_tasks = load_completed_tasks(user_id)
   ```
 
-- **Line 657**: `completed_tasks`
+- **Line 665**: `completed_tasks`
   ```
   completed_tasks = load_completed_tasks(user_id)
   ```
 
-- **Line 658**: `completed_tasks`
+- **Line 666**: `completed_tasks`
   ```
   assert len(completed_tasks) == 1
   ```
 
-- **Line 660**: `completed_tasks`
+- **Line 668**: `completed_tasks`
   ```
   task = completed_tasks[0]
   ```
 
-- **Line 676**: `task_id`
+- **Line 684**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 685**: `task_id`
+- **Line 693**: `task_id`
   ```
   result = complete_task(user_id, task_id, completion_data)
   ```
 
-- **Line 688**: `task_id`
+- **Line 696**: `task_id`
   ```
   mock_cleanup.assert_called_once_with(user_id, task_id)
   ```
 
-- **Line 691**: `completed_tasks`
+- **Line 699**: `completed_tasks`
   ```
   completed_tasks = load_completed_tasks(user_id)
   ```
 
-- **Line 691**: `completed_tasks`
+- **Line 699**: `completed_tasks`
   ```
   completed_tasks = load_completed_tasks(user_id)
   ```
 
-- **Line 692**: `completed_tasks`
+- **Line 700**: `completed_tasks`
   ```
   assert len(completed_tasks) == 1
   ```
 
-- **Line 694**: `completed_tasks`
+- **Line 702**: `completed_tasks`
   ```
   task = completed_tasks[0]
   ```
 
-- **Line 704**: `task_id`
+- **Line 712**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 711**: `task_id`
+- **Line 719**: `task_id`
   ```
   result = complete_task(user_id, task_id)
-  ```
-
-- **Line 718**: `task_id`
-  ```
-  assert active_tasks[0]["id"] == task_id
   ```
 
 - **Line 726**: `task_id`
   ```
+  assert active_tasks[0]["id"] == task_id
+  ```
+
+- **Line 734**: `task_id`
+  ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 732**: `completed_tasks`
+- **Line 740**: `completed_tasks`
   ```
   # Mock save_active_tasks to succeed but save_completed_tasks to fail
   ```
 
-- **Line 738**: `completed_tasks`
+- **Line 746**: `completed_tasks`
   ```
   "tasks.task_data_manager.save_completed_tasks", return_value=False
   ```
 
-- **Line 742**: `task_id`
+- **Line 750**: `task_id`
   ```
   result = complete_task(user_id, task_id)
-  ```
-
-- **Line 746**: `completed_tasks`
-  ```
-  )  # Should return False when save_completed_tasks fails
-  ```
-
-- **Line 749**: `completed_tasks`
-  ```
-  # Verify save_completed_tasks was called but failed
   ```
 
 - **Line 754**: `completed_tasks`
   ```
+  )  # Should return False when save_completed_tasks fails
+  ```
+
+- **Line 757**: `completed_tasks`
+  ```
+  # Verify save_completed_tasks was called but failed
+  ```
+
+- **Line 762**: `completed_tasks`
+  ```
   # The key is that the function returns False when save_completed_tasks fails
   ```
 
-- **Line 761**: `task_id`
+- **Line 769**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 765**: `task_id`
+- **Line 773**: `task_id`
   ```
   result = complete_task(user_id, task_id)
   ```
 
-- **Line 771**: `completed_tasks`
+- **Line 779**: `completed_tasks`
   ```
   completed_tasks = load_completed_tasks(user_id)
   ```
 
-- **Line 771**: `completed_tasks`
+- **Line 779**: `completed_tasks`
   ```
   completed_tasks = load_completed_tasks(user_id)
   ```
 
-- **Line 772**: `completed_tasks`
+- **Line 780**: `completed_tasks`
   ```
   assert len(completed_tasks) == 1
   ```
 
-- **Line 773**: `completed_tasks`
+- **Line 781**: `completed_tasks`
   ```
-  assert completed_tasks[0]["completed"] is True
+  assert runtime_task_is_completed(completed_tasks[0])
   ```
 
-- **Line 780**: `task_id`
+- **Line 788**: `task_id`
   ```
   task_id = create_task(
   ```
 
-- **Line 796**: `task_id`
+- **Line 804**: `task_id`
   ```
   result = complete_task(user_id, task_id)
   ```
 
-- **Line 802**: `completed_tasks`
+- **Line 810**: `completed_tasks`
   ```
   completed_tasks = load_completed_tasks(user_id)
   ```
 
-- **Line 802**: `completed_tasks`
+- **Line 810**: `completed_tasks`
   ```
   completed_tasks = load_completed_tasks(user_id)
   ```
 
-- **Line 803**: `completed_tasks`
+- **Line 811**: `completed_tasks`
   ```
   assert len(completed_tasks) == 1
   ```
 
-- **Line 804**: `completed_tasks`
+- **Line 812**: `completed_tasks`
   ```
-  assert completed_tasks[0]["completed"] is True
+  assert runtime_task_is_completed(completed_tasks[0])
   ```
 
-- **Line 813**: `task_id`
+- **Line 821**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 814**: `task_id`
+- **Line 822**: `task_id`
   ```
   complete_task(user_id, task_id)
   ```
 
-- **Line 817**: `task_id`
+- **Line 825**: `task_id`
   ```
   result = restore_task(user_id, task_id)
   ```
 
-- **Line 834**: `task_id`
+- **Line 842**: `task_id`
   ```
   task_id = create_task(
   ```
 
-- **Line 841**: `task_id`
+- **Line 849**: `task_id`
   ```
   complete_task(user_id, task_id)
   ```
 
-- **Line 845**: `task_id`
+- **Line 853**: `task_id`
   ```
   result = restore_task(user_id, task_id)
   ```
 
-- **Line 850**: `task_id`
+- **Line 858**: `task_id`
   ```
   task_id,
   ```
 
-- **Line 863**: `task_id`
+- **Line 871**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task")
-  ```
-
-- **Line 866**: `task_id`
-  ```
-  result = delete_task(user_id, task_id)
-  ```
-
-- **Line 869**: `task_id`
-  ```
-  mock_cleanup.assert_called_once_with(user_id, task_id)
   ```
 
 - **Line 874**: `task_id`
   ```
+  result = delete_task(user_id, task_id)
+  ```
+
+- **Line 877**: `task_id`
+  ```
+  mock_cleanup.assert_called_once_with(user_id, task_id)
+  ```
+
+- **Line 882**: `task_id`
+  ```
   assert all(task["id"] != task_id for task in tasks)
   ```
 
-- **Line 887**: `task_id`
+- **Line 895**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task", "Description")
   ```
 
-- **Line 890**: `task_id`
+- **Line 898**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 893**: `task_id`
+- **Line 901**: `task_id`
   ```
   assert task["id"] == task_id
   ```
 
-- **Line 902**: `task_id`
+- **Line 910**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 903**: `task_id`
+- **Line 911**: `task_id`
   ```
   complete_task(user_id, task_id)
   ```
 
-- **Line 906**: `task_id`
+- **Line 914**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 909**: `task_id`
+- **Line 917**: `task_id`
   ```
   assert task["id"] == task_id
   ```
 
-- **Line 937**: `task_id`
+- **Line 945**: `task_id`
   ```
   task_ids = [task["id"] for task in due_soon_tasks]
   ```
 
-- **Line 938**: `task_id`
+- **Line 946**: `task_id`
   ```
   assert id_soon in task_ids
   ```
 
-- **Line 939**: `task_id`
+- **Line 947**: `task_id`
   ```
   assert id_late not in task_ids
   ```
 
-- **Line 940**: `task_id`
+- **Line 948**: `task_id`
   ```
   assert id_no_date not in task_ids
   ```
 
-- **Line 981**: `task_id`
+- **Line 989**: `task_id`
   ```
   task_ids = [task["id"] for task in due_soon_tasks]
   ```
 
-- **Line 982**: `task_id`
+- **Line 990**: `task_id`
   ```
   assert id_exact in task_ids  # Exactly at cutoff should be included
   ```
 
-- **Line 983**: `task_id`
+- **Line 991**: `task_id`
   ```
   assert id_over not in task_ids  # Just over should not be included
   ```
 
-- **Line 1080**: `task_id`
+- **Line 1088**: `task_id`
   ```
   task_id = "test-task-id"
   ```
 
-- **Line 1091**: `task_id`
+- **Line 1099**: `task_id`
   ```
   result = schedule_task_reminders(user_id, task_id, reminder_periods)
   ```
 
-- **Line 1100**: `task_id`
+- **Line 1108**: `task_id`
   ```
   task_id = "test-task-id"
-  ```
-
-- **Line 1106**: `task_id`
-  ```
-  result = schedule_task_reminders(user_id, task_id, reminder_periods)
   ```
 
 - **Line 1114**: `task_id`
   ```
+  result = schedule_task_reminders(user_id, task_id, reminder_periods)
+  ```
+
+- **Line 1122**: `task_id`
+  ```
   task_id = "test-task-id"
   ```
 
-- **Line 1116**: `task_id`
+- **Line 1124**: `task_id`
   ```
   result = schedule_task_reminders(user_id, task_id, [])
   ```
 
-- **Line 1125**: `task_id`
+- **Line 1133**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 1137**: `task_id`
+- **Line 1145**: `task_id`
   ```
   result = schedule_task_reminders(user_id, task_id, reminder_periods)
   ```
 
-- **Line 1148**: `task_id`
+- **Line 1156**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 1163**: `task_id`
+- **Line 1171**: `task_id`
   ```
   result = schedule_task_reminders(user_id, task_id, reminder_periods)
   ```
 
-- **Line 1174**: `task_id`
+- **Line 1182**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 1187**: `task_id`
+- **Line 1195**: `task_id`
   ```
   result = schedule_task_reminders(user_id, task_id, reminder_periods)
   ```
 
-- **Line 1197**: `task_id`
+- **Line 1205**: `task_id`
   ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 1204**: `task_id`
+- **Line 1212**: `task_id`
   ```
   result = cleanup_task_reminders(user_id, task_id)
-  ```
-
-- **Line 1209**: `task_id`
-  ```
-  user_id, task_id
   ```
 
 - **Line 1217**: `task_id`
   ```
+  user_id, task_id
+  ```
+
+- **Line 1225**: `task_id`
+  ```
   task_id = create_task(user_id, "Test Task")
   ```
 
-- **Line 1224**: `task_id`
+- **Line 1232**: `task_id`
   ```
   result = cleanup_task_reminders(user_id, task_id)
   ```
 
-- **Line 1370**: `task_id`
+- **Line 1378**: `task_id`
   ```
   task_id1 = create_task(user_id, "Task 1")
   ```
 
-- **Line 1375**: `task_id`
+- **Line 1383**: `task_id`
   ```
   complete_task(user_id, task_id1)
   ```
@@ -3902,132 +3714,132 @@
 ### tests\behavior\test_task_reminder_followup_behavior.py
 **Issues Found**: 26
 
-- **Line 65**: `task_id`
+- **Line 66**: `task_id`
   ```
   "task_id" in conversation_manager.user_states[user_id]["data"]
   ```
 
-- **Line 66**: `task_id`
+- **Line 67**: `task_id`
   ```
   ), "Should store task_id in flow data"
   ```
 
-- **Line 69**: `task_id`
-  ```
-  task_id = conversation_manager.user_states[user_id]["data"]["task_id"]
-  ```
-
-- **Line 69**: `task_id`
+- **Line 70**: `task_id`
   ```
   task_id = conversation_manager.user_states[user_id]["data"]["task_id"]
   ```
 
 - **Line 70**: `task_id`
   ```
+  task_id = conversation_manager.user_states[user_id]["data"]["task_id"]
+  ```
+
+- **Line 71**: `task_id`
+  ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 86**: `task_id`
+- **Line 87**: `task_id`
   ```
   task_id = create_task(
   ```
 
-- **Line 93**: `task_id`
+- **Line 94**: `task_id`
   ```
   conversation_manager.start_task_reminder_followup(user_id, task_id)
   ```
 
-- **Line 110**: `task_id`
+- **Line 111**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 140**: `task_id`
+- **Line 141**: `task_id`
   ```
   task_id = create_task(
   ```
 
-- **Line 143**: `task_id`
+- **Line 144**: `task_id`
   ```
   conversation_manager.start_task_reminder_followup(user_id, task_id)
   ```
 
-- **Line 160**: `task_id`
+- **Line 161**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
+  ```
+
+- **Line 198**: `task_id`
+  ```
+  task_id = create_task(
   ```
 
 - **Line 201**: `task_id`
   ```
-  task_id = create_task(
-  ```
-
-- **Line 204**: `task_id`
-  ```
   conversation_manager.start_task_reminder_followup(user_id, task_id)
   ```
 
-- **Line 215**: `task_id`
+- **Line 212**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 251**: `task_id`
+- **Line 249**: `task_id`
   ```
   task_id = create_task(user_id=actual_user_id, title="Test task", due_date=due_date)
   ```
 
-- **Line 252**: `task_id`
+- **Line 250**: `task_id`
   ```
   conversation_manager.start_task_reminder_followup(actual_user_id, task_id)
   ```
 
-- **Line 266**: `task_id`
+- **Line 264**: `task_id`
   ```
   lambda: get_task_by_id(actual_user_id, task_id) is not None,
   ```
 
-- **Line 270**: `task_id`
+- **Line 268**: `task_id`
   ```
   task = get_task_by_id(actual_user_id, task_id)
   ```
 
-- **Line 306**: `task_id`
+- **Line 305**: `task_id`
   ```
   task_id = create_task(user_id=user_id, title="Test task without due date")
   ```
 
-- **Line 307**: `task_id`
+- **Line 306**: `task_id`
   ```
   conversation_manager.start_task_reminder_followup(user_id, task_id)
   ```
 
-- **Line 322**: `task_id`
+- **Line 321**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 346**: `task_id`
+- **Line 345**: `task_id`
   ```
   task_id = create_task(user_id=user_id, title="Test task", due_date=due_date)
   ```
 
-- **Line 347**: `task_id`
+- **Line 346**: `task_id`
   ```
   conversation_manager.start_task_reminder_followup(user_id, task_id)
   ```
 
-- **Line 387**: `task_id`
+- **Line 386**: `task_id`
   ```
   task_id = create_task(
   ```
 
-- **Line 390**: `task_id`
+- **Line 389**: `task_id`
   ```
   conversation_manager.start_task_reminder_followup(user_id, task_id)
   ```
 
-- **Line 402**: `task_id`
+- **Line 401**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
@@ -4035,7 +3847,7 @@
 ### tests\behavior\test_task_suggestion_relevance.py
 **Issues Found**: 1
 
-- **Line 54**: `task_id`
+- **Line 57**: `task_id`
   ```
   def test_list_to_edit_flow_confirms_task_identifier(self, test_data_dir):
   ```
@@ -4347,100 +4159,100 @@
 
 - **Line 80**: `task_id`
   ```
-  completed_task = next(t for t in completed_after if t['id'] == task_id)
+  completed_task = next(t for t in completed_after if t["id"] == task_id)
   ```
 
-- **Line 89**: `completed_tasks`
+- **Line 91**: `completed_tasks`
   ```
   assert not (user_dir / "tasks" / "completed_tasks.json").exists()
   ```
 
-- **Line 94**: `task_id`
+- **Line 96**: `task_id`
   ```
   t.get("id") == task_id and t.get("status") == "completed"
   ```
 
-- **Line 112**: `task_id`
+- **Line 114**: `task_id`
   ```
   task_id = create_task(
   ```
 
-- **Line 118**: `task_id`
+- **Line 120**: `task_id`
   ```
   assert task_id is not None, "Task should be created"
   ```
 
-- **Line 122**: `task_id`
+- **Line 124**: `task_id`
   ```
   assert any(t['id'] == task_id for t in active_before), "Task should exist before deletion"
   ```
 
-- **Line 132**: `task_id`
+- **Line 134**: `task_id`
   ```
   result = delete_task(user_id, task_id)
   ```
 
-- **Line 139**: `task_id`
+- **Line 141**: `task_id`
   ```
   assert not any(t['id'] == task_id for t in active_after), "Task should be removed from active_tasks"
   ```
 
-- **Line 141**: `completed_tasks`
+- **Line 143**: `completed_tasks`
   ```
   # Verify task not in completed_tasks either
   ```
 
-- **Line 142**: `completed_tasks`
+- **Line 144**: `completed_tasks`
   ```
   completed_after = load_completed_tasks(user_id)
   ```
 
-- **Line 143**: `task_id`
+- **Line 145**: `task_id`
   ```
   assert not any(t['id'] == task_id for t in completed_after), "Task should not be in completed_tasks"
   ```
 
-- **Line 143**: `completed_tasks`
+- **Line 145**: `completed_tasks`
   ```
   assert not any(t['id'] == task_id for t in completed_after), "Task should not be in completed_tasks"
   ```
 
-- **Line 146**: `task_id`
+- **Line 148**: `task_id`
   ```
   task = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 159**: `task_id`
+- **Line 161**: `task_id`
   ```
   t.get("id") == task_id for t in file_data.get("tasks", [])
   ```
 
-- **Line 176**: `task_id`
+- **Line 178**: `task_id`
   ```
   task_id = create_task(
   ```
 
-- **Line 183**: `task_id`
+- **Line 185**: `task_id`
   ```
   assert task_id is not None, "Task should be created"
   ```
 
-- **Line 186**: `task_id`
+- **Line 188**: `task_id`
   ```
   task_before = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 205**: `task_id`
+- **Line 207**: `task_id`
   ```
   result = update_task(user_id, task_id, updates)
   ```
 
-- **Line 211**: `task_id`
+- **Line 213**: `task_id`
   ```
   task_after = get_task_by_id(user_id, task_id)
   ```
 
-- **Line 226**: `task_id`
+- **Line 228**: `task_id`
   ```
   (t for t in file_data.get("tasks", []) if t.get("id") == task_id),
   ```
@@ -4971,7 +4783,7 @@
   ```
 
 ### tests\unit\test_channel_orchestrator.py
-**Issues Found**: 23
+**Issues Found**: 21
 
 - **Line 81**: `task_id`
   ```
@@ -4996,16 +4808,6 @@
 - **Line 89**: `task_id`
   ```
   assert result == task_id, "Should return task_id for user with reminder"
-  ```
-
-- **Line 124**: `task_id`
-  ```
-  'task_id': 'task_123'
-  ```
-
-- **Line 141**: `task_id`
-  ```
-  'task_id': 'task_1'
   ```
 
 - **Line 388**: `task_id`
@@ -5170,14 +4972,6 @@
   assert entities.get("task_identifier") == expected_task_id
   ```
 
-### tests\unit\test_conversation_flow_reminder_helpers.py
-**Issues Found**: 1
-
-- **Line 88**: `task_id`
-  ```
-  with patch("tasks.get_task_by_id", return_value={"task_id": "t1"}):
-  ```
-
 ### tests\unit\test_discord_api_client.py
 **Issues Found**: 4
 
@@ -5307,7 +5101,7 @@
 
 - **Line 111**: `completed_tasks`
   ```
-  assert completed_tasks[0]['completed'] is True
+  assert completed_tasks[0]["completion"]["completed"] is True
   ```
 
 - **Line 118**: `task_id`
@@ -5392,7 +5186,7 @@
   ```
 
 ### tests\unit\test_user_data_v2_migration.py
-**Issues Found**: 25
+**Issues Found**: 24
 
 - **Line 18**: `completed_tasks`
   ```
@@ -5504,11 +5298,6 @@
   assert "task_id" not in active[0]
   ```
 
-- **Line 514**: `task_id`
-  ```
-  "task_id": "task-new",
-  ```
-
 - **Line 525**: `task_id`
   ```
   assert "task_id" not in data["tasks"][0]
@@ -5520,39 +5309,29 @@
   ```
 
 ### ui\ui_app_qt.py
-**Issues Found**: 7
+**Issues Found**: 5
 
-- **Line 2265**: `task_id`
+- **Line 2266**: `task_id`
   ```
-  task_id = selected_task.get("task_id")
-  ```
-
-- **Line 2265**: `task_id`
-  ```
-  task_id = selected_task.get("task_id")
+  task_id = selected_task.get("id")
   ```
 
-- **Line 2268**: `task_id`
+- **Line 2269**: `task_id`
   ```
   if not task_id:
   ```
 
-- **Line 2270**: `task_id`
-  ```
-  self, "Invalid Task", "Selected task has no task_id."
-  ```
-
-- **Line 2286**: `task_id`
+- **Line 2287**: `task_id`
   ```
   base_dir / f"task_reminder_request_{self.current_user}_{task_id}.flag"
   ```
 
-- **Line 2291**: `task_id`
+- **Line 2292**: `task_id`
   ```
   "task_id": task_id,
   ```
 
-- **Line 2291**: `task_id`
+- **Line 2292**: `task_id`
   ```
   "task_id": task_id,
   ```
@@ -5592,7 +5371,7 @@
   ```
 
 ## User Data V1 Runtime Adapters
-**Files Affected**: 63
+**Files Affected**: 57
 
 ### ai\chatbot.py
 **Issues Found**: 3
@@ -5651,30 +5430,25 @@
   body = entities.get("body")
   ```
 
-- **Line 397**: `.get("body"`
+- **Line 399**: `.get("body"`
   ```
   body = entities.get("body")
   ```
 
-- **Line 484**: `.get("body"`
+- **Line 488**: `.get("body"`
   ```
   text = entities.get("text") or entities.get("body")
   ```
 
-- **Line 511**: `.get("body"`
+- **Line 515**: `.get("body"`
   ```
   text = entities.get("text") or entities.get("body")
   ```
 
 ### communication\command_handlers\task_handler.py
-**Issues Found**: 2
+**Issues Found**: 1
 
-- **Line 42**: `"task_id"`
-  ```
-  return str(task.get("id") or task.get("task_id") or "")
-  ```
-
-- **Line 1094**: `"completed_tasks"`
+- **Line 1104**: `"completed_tasks"`
   ```
   completed_tasks = overall_stats.get("completed_tasks", 0)
   ```
@@ -5688,7 +5462,7 @@
   ```
 
 ### communication\core\channel_orchestrator.py
-**Issues Found**: 4
+**Issues Found**: 3
 
 - **Line 291**: `"message_id"`
   ```
@@ -5705,45 +5479,40 @@
   message_to_send["message_id"],
   ```
 
-- **Line 2105**: `"task_id"`
-  ```
-  task.get("task_id", "")
-  ```
-
 ### communication\message_processing\conversation_flow_manager.py
 **Issues Found**: 7
 
-- **Line 1361**: `"task_id"`
+- **Line 1362**: `"task_id"`
   ```
   task_id = user_state.get("data", {}).get("task_id")
   ```
 
-- **Line 1562**: `"task_id"`
+- **Line 1569**: `"task_id"`
   ```
   if "task_id" in str(e).lower() or "not found" in str(e).lower():
   ```
 
-- **Line 1759**: `"task_id"`
+- **Line 1765**: `"task_id"`
   ```
   "data": {"task_id": task_id},
   ```
 
-- **Line 1774**: `"task_id"`
+- **Line 1780**: `"task_id"`
   ```
   "data": {"task_id": task_id},
   ```
 
-- **Line 1924**: `"task_id"`
+- **Line 1930**: `"task_id"`
   ```
   task_id = user_state.get("data", {}).get("task_id")
   ```
 
-- **Line 1936**: `"task_id"`
+- **Line 1942**: `"task_id"`
   ```
   task_id = user_state.get("data", {}).get("task_id")
   ```
 
-- **Line 1961**: `"task_id"`
+- **Line 1967**: `"task_id"`
   ```
   task_id = user_state.get("data", {}).get("task_id")
   ```
@@ -5756,17 +5525,9 @@
   task_id = updated_user_state.get("data", {}).get("task_id")
   ```
 
-- **Line 1327**: `.get("timestamp"`
+- **Line 1329**: `.get("timestamp"`
   ```
   timestamp_str = latest.get("timestamp")
-  ```
-
-### core\file_operations.py
-**Issues Found**: 1
-
-- **Line 667**: `"completed_tasks"`
-  ```
-  task_files = {"active_tasks": [], "completed_tasks": [], "task_schedules": {}}
   ```
 
 ### core\message_analytics.py
@@ -5924,24 +5685,19 @@
   ```
 
 ### core\scheduler.py
-**Issues Found**: 4
+**Issues Found**: 3
 
-- **Line 1391**: `"task_id"`
+- **Line 1394**: `"task_id"`
   ```
   user_id, selected_task["task_id"], random_time
   ```
 
-- **Line 1504**: `"task_id"`
-  ```
-  str(task.get("task_id") or "").strip(),
-  ```
-
-- **Line 1808**: `"task_id"`
+- **Line 1815**: `"task_id"`
   ```
   and kwargs.get("task_id") == task_id
   ```
 
-- **Line 1901**: `"task_id"`
+- **Line 1908**: `"task_id"`
   ```
   task_id = kwargs.get("task_id")
   ```
@@ -6094,50 +5850,32 @@
   ```
 
 ### notebook\notebook_data_handlers.py
-**Issues Found**: 2
+**Issues Found**: 4
 
-- **Line 169**: `.get("archived"`
+- **Line 138**: `.get("body"`
   ```
-  status = entry.get("status") or ("archived" if entry.get("archived") else "active")
+  if description is None and entry.get("body"):
   ```
 
-- **Line 170**: `.get("body"`
+- **Line 139**: `.get("body"`
   ```
   description = entry.get("body")
   ```
 
-### notebook\notebook_schemas.py
-**Issues Found**: 4
-
-- **Line 91**: `.get("body"`
+- **Line 141**: `.get("archived"`
   ```
-  if normalized.get("body") is None and normalized.get("description") is not None:
+  if status == "active" and entry.get("archived") is True:
   ```
 
-- **Line 93**: `.get("body"`
+- **Line 176**: `.get("body"`
   ```
-  if normalized.get("description") is None and normalized.get("body") is not None:
-  ```
-
-- **Line 94**: `.get("body"`
-  ```
-  normalized["description"] = normalized.get("body")
-  ```
-
-- **Line 96**: `.get("archived"`
-  ```
-  normalized["status"] = "archived" if normalized.get("archived") else "active"
+  description = entry.get("body") or ""
   ```
 
 ### tasks\task_data_handlers.py
-**Issues Found**: 2
+**Issues Found**: 1
 
-- **Line 174**: `"task_id"`
-  ```
-  task_id = str(task.get("id") or task.get("task_id") or "")
-  ```
-
-- **Line 284**: `"task_id"`
+- **Line 374**: `"task_id"`
   ```
   "task_id",
   ```
@@ -6362,12 +6100,12 @@
 ### tests\behavior\test_notebook_handler_behavior.py
 **Issues Found**: 2
 
-- **Line 995**: `.get("body"`
+- **Line 997**: `.get("body"`
   ```
   body = result.parsed_command.entities.get("body", "").lower()
   ```
 
-- **Line 1009**: `.get("body"`
+- **Line 1011**: `.get("body"`
   ```
   body = result.parsed_command.entities.get("body", "").lower()
   ```
@@ -6391,7 +6129,7 @@
   ```
 
 ### tests\behavior\test_scheduler_coverage_expansion.py
-**Issues Found**: 11
+**Issues Found**: 7
 
 - **Line 424**: `"task_id"`
   ```
@@ -6401,26 +6139,6 @@
 - **Line 429**: `"task_id"`
   ```
   "task_id": "task-2",
-  ```
-
-- **Line 495**: `"task_id"`
-  ```
-  "task_id": task_id,
-  ```
-
-- **Line 523**: `"task_id"`
-  ```
-  "task_id": task_id,
-  ```
-
-- **Line 800**: `"task_id"`
-  ```
-  "task_id": task_id,
-  ```
-
-- **Line 827**: `"task_id"`
-  ```
-  "task_id": task_id,
   ```
 
 - **Line 1380**: `"task_id"`
@@ -6449,238 +6167,100 @@
   ```
 
 ### tests\behavior\test_task_behavior.py
-**Issues Found**: 6
+**Issues Found**: 4
 
-- **Line 77**: `active_tasks.json`
+- **Line 78**: `active_tasks.json`
   ```
   assert not os.path.exists(os.path.join(task_dir, "active_tasks.json"))
   ```
 
-- **Line 78**: `completed_tasks.json`
+- **Line 79**: `completed_tasks.json`
   ```
   assert not os.path.exists(os.path.join(task_dir, "completed_tasks.json"))
   ```
 
-- **Line 79**: `task_schedules.json`
+- **Line 80**: `task_schedules.json`
   ```
   assert not os.path.exists(os.path.join(task_dir, "task_schedules.json"))
   ```
 
-- **Line 109**: `"task_id"`
-  ```
-  {"task_id": "1", "title": "Test Task 1", "completed": False},
-  ```
-
-- **Line 110**: `"task_id"`
-  ```
-  {"task_id": "2", "title": "Test Task 2", "completed": False},
-  ```
-
-- **Line 128**: `"task_id"`
+- **Line 129**: `"task_id"`
   ```
   assert all("task_id" not in task for task in saved_data["tasks"])
   ```
 
-### tests\behavior\test_task_error_handling.py
-**Issues Found**: 1
-
-- **Line 234**: `active_tasks.json`
-  ```
-  task_file = user_dir / "tasks" / "active_tasks.json"
-  ```
-
 ### tests\behavior\test_task_handler_behavior.py
-**Issues Found**: 22
+**Issues Found**: 2
 
-- **Line 352**: `"task_id"`
-  ```
-  "task_id": "task_1",
-  ```
-
-- **Line 358**: `"task_id"`
-  ```
-  "task_id": "task_2",
-  ```
-
-- **Line 434**: `"task_id"`
-  ```
-  "task_id": "task_1",
-  ```
-
-- **Line 442**: `"task_id"`
-  ```
-  "task_id": "task_2",
-  ```
-
-- **Line 477**: `"task_id"`
-  ```
-  {"title": "Task 1", "priority": "high", "task_id": "task_1"},
-  ```
-
-- **Line 478**: `"task_id"`
-  ```
-  {"title": "Task 2", "priority": "medium", "task_id": "task_2"},
-  ```
-
-- **Line 518**: `"task_id"`
-  ```
-  {"title": "Task 1", "priority": "high", "task_id": "task_1"}
-  ```
-
-- **Line 574**: `"task_id"`
-  ```
-  {"title": "Task 1", "priority": "high", "task_id": "task_1"}
-  ```
-
-- **Line 617**: `"task_id"`
-  ```
-  {"title": "Task 1", "priority": "medium", "task_id": "task_1"}
-  ```
-
-- **Line 641**: `"task_id"`
+- **Line 640**: `"task_id"`
   ```
   call_args[0][1] if len(call_args[0]) > 1 else call_args[1].get("task_id")
   ```
 
-- **Line 670**: `"task_id"`
-  ```
-  {"title": "Task 1", "priority": "medium", "task_id": "task_1"}
-  ```
-
-- **Line 707**: `"completed_tasks"`
+- **Line 706**: `"completed_tasks"`
   ```
   "completed_tasks": 10,
   ```
 
-- **Line 751**: `"task_id"`
-  ```
-  {"title": "Task 1", "task_id": "task_1"},
-  ```
-
-- **Line 752**: `"task_id"`
-  ```
-  {"title": "Task 2", "task_id": "task_2"},
-  ```
-
-- **Line 753**: `"task_id"`
-  ```
-  {"title": "Task 3", "task_id": "task_3"},
-  ```
-
-- **Line 767**: `"task_id"`
-  ```
-  {"title": "Brush Teeth", "task_id": "task_1"},
-  ```
-
-- **Line 768**: `"task_id"`
-  ```
-  {"title": "Wash Dishes", "task_id": "task_2"},
-  ```
-
-- **Line 782**: `"task_id"`
-  ```
-  {"title": "Brush Teeth Every Morning", "task_id": "task_1"},
-  ```
-
-- **Line 783**: `"task_id"`
-  ```
-  {"title": "Wash Dishes After Dinner", "task_id": "task_2"},
-  ```
-
-- **Line 797**: `"task_id"`
-  ```
-  {"title": "Task 1", "task_id": "task_123"},
-  ```
-
-- **Line 798**: `"task_id"`
-  ```
-  {"title": "Task 2", "task_id": "task_456"},
-  ```
-
-- **Line 803**: `"task_id"`
-  ```
-  assert task["task_id"] == "task_123", "Should find correct task"
-  ```
-
 ### tests\behavior\test_task_management_coverage_expansion.py
-**Issues Found**: 16
+**Issues Found**: 12
 
-- **Line 98**: `active_tasks.json`
+- **Line 106**: `active_tasks.json`
   ```
   assert not (task_dir / "active_tasks.json").exists()
   ```
 
-- **Line 99**: `completed_tasks.json`
+- **Line 107**: `completed_tasks.json`
   ```
   assert not (task_dir / "completed_tasks.json").exists()
   ```
 
-- **Line 100**: `task_schedules.json`
+- **Line 108**: `task_schedules.json`
   ```
   assert not (task_dir / "task_schedules.json").exists()
   ```
 
-- **Line 128**: `active_tasks.json`
+- **Line 136**: `active_tasks.json`
   ```
   "active_tasks.json": {"tasks": [{"existing": "task"}]},
   ```
 
-- **Line 129**: `completed_tasks.json`
+- **Line 137**: `completed_tasks.json`
   ```
   "completed_tasks.json": {"completed_tasks": []},
   ```
 
-- **Line 129**: `"completed_tasks"`
+- **Line 137**: `"completed_tasks"`
   ```
   "completed_tasks.json": {"completed_tasks": []},
   ```
 
-- **Line 130**: `task_schedules.json`
+- **Line 138**: `task_schedules.json`
   ```
   "task_schedules.json": {"task_schedules": {}},
   ```
 
-- **Line 144**: `active_tasks.json`
+- **Line 152**: `active_tasks.json`
   ```
   active_file = task_dir / "active_tasks.json"
   ```
 
-- **Line 184**: `active_tasks.json`
+- **Line 192**: `active_tasks.json`
   ```
   active_file = task_dir / "active_tasks.json"
   ```
 
-- **Line 204**: `"task_id"`
-  ```
-  {"task_id": "1", "title": "Task 1", "completed": False},
-  ```
-
-- **Line 205**: `"task_id"`
-  ```
-  {"task_id": "2", "title": "Task 2", "completed": False},
-  ```
-
-- **Line 221**: `active_tasks.json`
+- **Line 229**: `active_tasks.json`
   ```
   assert not (task_dir / "active_tasks.json").exists()
   ```
 
-- **Line 257**: `"task_id"`
-  ```
-  {"task_id": "1", "title": "Completed Task 1", "completed": True},
-  ```
-
-- **Line 258**: `"task_id"`
-  ```
-  {"task_id": "2", "title": "Completed Task 2", "completed": True},
-  ```
-
-- **Line 277**: `completed_tasks.json`
+- **Line 285**: `completed_tasks.json`
   ```
   assert not (task_dir / "completed_tasks.json").exists()
   ```
 
-- **Line 428**: `"task_id"`
+- **Line 436**: `"task_id"`
   ```
   "task_id": "new-id",  # Disallowed - should be skipped
   ```
@@ -6688,12 +6268,12 @@
 ### tests\behavior\test_task_reminder_followup_behavior.py
 **Issues Found**: 2
 
-- **Line 65**: `"task_id"`
+- **Line 66**: `"task_id"`
   ```
   "task_id" in conversation_manager.user_states[user_id]["data"]
   ```
 
-- **Line 69**: `"task_id"`
+- **Line 70**: `"task_id"`
   ```
   task_id = conversation_manager.user_states[user_id]["data"]["task_id"]
   ```
@@ -6818,12 +6398,12 @@
 ### tests\integration\test_task_cleanup_real.py
 **Issues Found**: 2
 
-- **Line 89**: `completed_tasks.json`
+- **Line 91**: `completed_tasks.json`
   ```
   assert not (user_dir / "tasks" / "completed_tasks.json").exists()
   ```
 
-- **Line 154**: `active_tasks.json`
+- **Line 156**: `active_tasks.json`
   ```
   assert not (user_dir / "tasks" / "active_tasks.json").exists()
   ```
@@ -6956,17 +6536,7 @@
   ```
 
 ### tests\unit\test_channel_orchestrator.py
-**Issues Found**: 7
-
-- **Line 124**: `'task_id'`
-  ```
-  'task_id': 'task_123'
-  ```
-
-- **Line 141**: `'task_id'`
-  ```
-  'task_id': 'task_1'
-  ```
+**Issues Found**: 5
 
 - **Line 401**: `"task_id"`
   ```
@@ -7029,35 +6599,6 @@
   assert entities.get("body") == expected_text
   ```
 
-### tests\unit\test_conversation_flow_reminder_helpers.py
-**Issues Found**: 1
-
-- **Line 88**: `"task_id"`
-  ```
-  with patch("tasks.get_task_by_id", return_value={"task_id": "t1"}):
-  ```
-
-### tests\unit\test_notebook_validation.py
-**Issues Found**: 2
-
-- **Line 459**: `.get('body'`
-  ```
-  body=content.get('body'),
-  ```
-
-- **Line 484**: `.get('body'`
-  ```
-  body=content.get('body'),
-  ```
-
-### tests\unit\test_notebook_validation_error_handling.py
-**Issues Found**: 1
-
-- **Line 145**: `.get('body'`
-  ```
-  body=case.get('body'),
-  ```
-
 ### tests\unit\test_recurring_tasks.py
 **Issues Found**: 3
 
@@ -7118,7 +6659,7 @@
   ```
 
 ### tests\unit\test_user_data_v2_migration.py
-**Issues Found**: 30
+**Issues Found**: 29
 
 - **Line 31**: `"task_id"`
   ```
@@ -7250,11 +6791,6 @@
   assert "task_id" not in active[0]
   ```
 
-- **Line 514**: `"task_id"`
-  ```
-  "task_id": "task-new",
-  ```
-
 - **Line 525**: `"task_id"`
   ```
   assert "task_id" not in data["tasks"][0]
@@ -7271,14 +6807,9 @@
   ```
 
 ### ui\ui_app_qt.py
-**Issues Found**: 2
+**Issues Found**: 1
 
-- **Line 2265**: `"task_id"`
-  ```
-  task_id = selected_task.get("task_id")
-  ```
-
-- **Line 2291**: `"task_id"`
+- **Line 2292**: `"task_id"`
   ```
   "task_id": task_id,
   ```

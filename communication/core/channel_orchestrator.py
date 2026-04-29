@@ -1982,7 +1982,9 @@ class CommunicationManager:
             return
 
         # Check if task is still active
-        if task.get("completed", False):
+        from tasks.task_data_handlers import runtime_task_is_completed
+
+        if runtime_task_is_completed(task):
             logger.debug(f"Task {task_id} is already completed, skipping reminder")
             return
 
@@ -2098,11 +2100,12 @@ class CommunicationManager:
         """
         Create a formatted task reminder message.
         """
+        from tasks.task_data_handlers import runtime_task_due_date
+
         title = task.get("title", "Untitled Task")
         description = task.get("description", "")
-        due_date = task.get("due_date", "")
+        due_date = runtime_task_due_date(task) or ""
         priority = task.get("priority", "medium")
-        task.get("task_id", "")
         # Tasks now use tags instead of categories
 
         # Create priority emoji

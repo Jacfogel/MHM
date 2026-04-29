@@ -492,9 +492,9 @@ class TestTaskReminderScheduling:
 
         with patch("tasks.get_task_by_id") as mock_get_task:
             mock_get_task.return_value = {
-                "task_id": task_id,
+                "id": task_id,
                 "title": "Test Task",
-                "completed": False,
+                "completion": {"completed": False},
             }
 
             # CRITICAL: Mock set_wake_timer to prevent creating real Windows tasks
@@ -520,9 +520,9 @@ class TestTaskReminderScheduling:
 
         with patch("tasks.get_task_by_id") as mock_get_task:
             mock_get_task.return_value = {
-                "task_id": task_id,
+                "id": task_id,
                 "title": "Test Task",
-                "completed": True,
+                "completion": {"completed": True},
             }
 
             # Test real behavior: function should not schedule completed tasks
@@ -797,9 +797,9 @@ class TestMessageHandling:
 
         with patch("tasks.get_task_by_id") as mock_get_task:
             mock_get_task.return_value = {
-                "task_id": task_id,
+                "id": task_id,
                 "title": "Test Task",
-                "completed": False,
+                "completion": {"completed": False},
             }
 
             with patch("tasks.update_task") as mock_update_task:
@@ -824,9 +824,9 @@ class TestMessageHandling:
 
         with patch("tasks.get_task_by_id") as mock_get_task:
             mock_get_task.return_value = {
-                "task_id": task_id,
+                "id": task_id,
                 "title": "Test Task",
-                "completed": True,
+                "completion": {"completed": True},
             }
 
             with patch("tasks.update_task") as mock_update_task:
@@ -1525,7 +1525,7 @@ class TestSelectTaskForReminderBehavior:
             "id": "task1",
             "title": "Single Task",
             "priority": "medium",
-            "due_date": "2025-09-20",
+            "due": {"date": "2025-09-20"},
         }
 
         # Test real behavior: single task should be returned
@@ -1542,31 +1542,31 @@ class TestSelectTaskForReminderBehavior:
                 "id": "task1",
                 "title": "Critical Task",
                 "priority": "critical",
-                "due_date": "2025-09-20",
+                "due": {"date": "2025-09-20"},
             },
             {
                 "id": "task2",
                 "title": "High Task",
                 "priority": "high",
-                "due_date": "2025-09-20",
+                "due": {"date": "2025-09-20"},
             },
             {
                 "id": "task3",
                 "title": "Medium Task",
                 "priority": "medium",
-                "due_date": "2025-09-20",
+                "due": {"date": "2025-09-20"},
             },
             {
                 "id": "task4",
                 "title": "Low Task",
                 "priority": "low",
-                "due_date": "2025-09-20",
+                "due": {"date": "2025-09-20"},
             },
             {
                 "id": "task5",
                 "title": "No Priority Task",
                 "priority": "none",
-                "due_date": "2025-09-20",
+                "due": {"date": "2025-09-20"},
             },
         ]
 
@@ -1625,13 +1625,13 @@ class TestSelectTaskForReminderBehavior:
                 "id": "task1",
                 "title": "Due Today",
                 "priority": "medium",
-                "due_date": today,
+                "due": {"date": today},
             },
             {
                 "id": "task2",
                 "title": "Due Later",
                 "priority": "medium",
-                "due_date": future_date,
+                "due": {"date": future_date},
             },
         ]
 
@@ -1667,13 +1667,13 @@ class TestSelectTaskForReminderBehavior:
                 "id": "task1",
                 "title": "Overdue Task",
                 "priority": "medium",
-                "due_date": overdue_date,
+                "due": {"date": overdue_date},
             },
             {
                 "id": "task2",
                 "title": "Future Task",
                 "priority": "medium",
-                "due_date": future_date,
+                "due": {"date": future_date},
             },
         ]
 
@@ -1700,7 +1700,7 @@ class TestSelectTaskForReminderBehavior:
                 "id": "task2",
                 "title": "Has Due Date",
                 "priority": "medium",
-                "due_date": "2025-09-20",
+                "due": {"date": "2025-09-20"},
             },
         ]
 
@@ -1727,13 +1727,13 @@ class TestSelectTaskForReminderBehavior:
                 "id": "task1",
                 "title": "Invalid Date",
                 "priority": "medium",
-                "due_date": "invalid-date",
+                "due": {"date": "invalid-date"},
             },
             {
                 "id": "task2",
                 "title": "Valid Date",
                 "priority": "medium",
-                "due_date": "2025-09-20",
+                "due": {"date": "2025-09-20"},
             },
         ]
 
@@ -1765,7 +1765,7 @@ class TestSelectTaskForReminderBehavior:
                     "id": f"task{i}",
                     "title": f"Task {i}",
                     "priority": priority,
-                    "due_date": due_date,
+                    "due": {"date": due_date},
                 }
             )
 
@@ -1806,13 +1806,13 @@ class TestSelectTaskForReminderBehavior:
                 "id": "task1",
                 "title": "Task 1",
                 "priority": "medium",
-                "due_date": "2025-09-20",
+                "due": {"date": "2025-09-20"},
             },
             {
                 "id": "task2",
                 "title": "Task 2",
                 "priority": "high",
-                "due_date": "2025-09-21",
+                "due": {"date": "2025-09-21"},
             },
         ]
 
@@ -1837,28 +1837,40 @@ class TestSelectTaskForReminderBehavior:
                 "id": "task1",
                 "title": "Due Tomorrow",
                 "priority": "medium",
-                "due_date": format_timestamp(
-                    datetime.combine(today + timedelta(days=1), datetime.min.time()),
-                    DATE_ONLY,
-                ),
+                "due": {
+                    "date": format_timestamp(
+                        datetime.combine(
+                            today + timedelta(days=1), datetime.min.time()
+                        ),
+                        DATE_ONLY,
+                    )
+                },
             },
             {
                 "id": "task2",
                 "title": "Due in 3 Days",
                 "priority": "medium",
-                "due_date": format_timestamp(
-                    datetime.combine(today + timedelta(days=3), datetime.min.time()),
-                    DATE_ONLY,
-                ),
+                "due": {
+                    "date": format_timestamp(
+                        datetime.combine(
+                            today + timedelta(days=3), datetime.min.time()
+                        ),
+                        DATE_ONLY,
+                    )
+                },
             },
             {
                 "id": "task3",
                 "title": "Due in 7 Days",
                 "priority": "medium",
-                "due_date": format_timestamp(
-                    datetime.combine(today + timedelta(days=7), datetime.min.time()),
-                    DATE_ONLY,
-                ),
+                "due": {
+                    "date": format_timestamp(
+                        datetime.combine(
+                            today + timedelta(days=7), datetime.min.time()
+                        ),
+                        DATE_ONLY,
+                    )
+                },
             },
         ]
 
@@ -1904,28 +1916,40 @@ class TestSelectTaskForReminderBehavior:
                 "id": "task1",
                 "title": "Due in 8 Days",
                 "priority": "medium",
-                "due_date": format_timestamp(
-                    datetime.combine(today + timedelta(days=8), datetime.min.time()),
-                    DATE_ONLY,
-                ),
+                "due": {
+                    "date": format_timestamp(
+                        datetime.combine(
+                            today + timedelta(days=8), datetime.min.time()
+                        ),
+                        DATE_ONLY,
+                    )
+                },
             },
             {
                 "id": "task2",
                 "title": "Due in 15 Days",
                 "priority": "medium",
-                "due_date": format_timestamp(
-                    datetime.combine(today + timedelta(days=15), datetime.min.time()),
-                    DATE_ONLY,
-                ),
+                "due": {
+                    "date": format_timestamp(
+                        datetime.combine(
+                            today + timedelta(days=15), datetime.min.time()
+                        ),
+                        DATE_ONLY,
+                    )
+                },
             },
             {
                 "id": "task3",
                 "title": "Due in 30 Days",
                 "priority": "medium",
-                "due_date": format_timestamp(
-                    datetime.combine(today + timedelta(days=30), datetime.min.time()),
-                    DATE_ONLY,
-                ),
+                "due": {
+                    "date": format_timestamp(
+                        datetime.combine(
+                            today + timedelta(days=30), datetime.min.time()
+                        ),
+                        DATE_ONLY,
+                    )
+                },
             },
         ]
 

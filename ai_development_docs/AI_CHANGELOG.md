@@ -33,6 +33,9 @@ Guidelines:
 ### 2026-04-28 - V2 adoption continuation slices **COMPLETED**
 - **Task runtime IDs**: Added canonical `id` + `short_id` matching in task manager and task command lookup paths, reducing reliance on legacy identifier assumptions while preserving compatibility aliases required by remaining call sites.
 - **Task/notebook tests and contracts**: Updated task behavior/integration assertions to prefer canonical `id` access and switched notebook validation expectations from legacy `journal` to `journal_entry`.
+- **Test suite v2 alignment**: Updated task/scheduler/conversation/UI tests to use v2 runtime shapes (`due`, `completion`, `reminders`, `updated_at`) and scheduler/reminder mocks with canonical completion state; added small reminder-period helpers on `task_data_handlers` for parity.
+- **Helper hardening + lint/type checks**: Added `@handle_errors` wrappers to runtime task access helpers and re-ran hygiene tooling (`ruff` clean, `pyright` clean at 0 errors/0 warnings).
+- **Security/deps + docs tooling**: Re-ran `pip_audit` (still one unresolved advisory on `pip` / `CVE-2026-3219`, no fix version), regenerated docs (`run_development_tools.py docs`), and completed link/doc sync cleanup (`doc-fix --convert-links`, `doc-sync`).
 - **Notebook validation cleanup**: Removed legacy `journal` kind acceptance from notebook validation/prefix maps and simplified schema normalization logging for remaining alias behavior.
 - **Legacy verification and tracking**: Re-ran targeted `--verify` checks for task and notebook legacy terms, updated migration planning docs ([TODO.md](TODO.md), `TASKS_PLAN.md`, `NOTES_PLAN.md`), and refreshed deprecation inventory notes/search terms for the current removal scope.
 

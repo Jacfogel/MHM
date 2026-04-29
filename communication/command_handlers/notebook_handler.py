@@ -281,12 +281,14 @@ class NotebookHandler(InteractionHandler):
             title, parsed_tags = parse_tags_from_text(title)
             tags.extend(parsed_tags)
 
-        entry = create_note(user_id, title=title, body=body, tags=tags, group=group)
+        entry = create_note(
+            user_id, title=title, description=body, tags=tags, group=group
+        )
 
         if entry:
             short_id = self._format_entry_id(entry)
             # Show title if available, otherwise body, otherwise "Untitled"
-            display_name = entry.title or entry.body or "Untitled"
+            display_name = entry.title or entry.description or "Untitled"
             response = f"✅ Note created: '{display_name}' ({short_id})"
             if entry.tags:
                 response += f"\nTags: {', '.join(entry.tags)}"
@@ -319,7 +321,7 @@ class NotebookHandler(InteractionHandler):
             tags.extend(parsed_tags)
 
         # Create note with title only, no body, always in "Quick Notes" group
-        entry = create_note(user_id, title=title, body=None, tags=tags, group=group)
+        entry = create_note(user_id, title=title, description=None, tags=tags, group=group)
 
         if entry:
             short_id = self._format_entry_id(entry)
@@ -398,7 +400,9 @@ class NotebookHandler(InteractionHandler):
         tags = entities.get("tags", [])
         group = entities.get("group")
 
-        entry = create_journal(user_id, title=title, body=body, tags=tags, group=group)
+        entry = create_journal(
+            user_id, title=title, description=body, tags=tags, group=group
+        )
 
         if entry:
             short_id = self._format_entry_id(entry)
@@ -448,7 +452,7 @@ class NotebookHandler(InteractionHandler):
         for entry in entries:
             short_id = self._format_entry_id(entry)
             title = entry.title or "Untitled"
-            kind_icon = {"note": "📄", "list": "📋", "journal": "📔"}.get(
+            kind_icon = {"note": "📄", "list": "📋", "journal_entry": "📔"}.get(
                 entry.kind, "📝"
             )
             response_parts.append(f"{kind_icon} {title} ({short_id})")
@@ -1003,7 +1007,7 @@ class NotebookHandler(InteractionHandler):
         response_parts = [f"🗄️ Archived entries ({total}):"]
         for entry in paginated:
             short_id = self._format_entry_id(entry)
-            kind_icon = {"note": "📄", "list": "📋", "journal": "📔"}.get(
+            kind_icon = {"note": "📄", "list": "📋", "journal_entry": "📔"}.get(
                 entry.kind, "📝"
             )
             response_parts.append(
@@ -1042,7 +1046,9 @@ class NotebookHandler(InteractionHandler):
     def _format_entry_response(self, entry: Entry) -> str:
         """Formats a single entry for display."""
         short_id = self._format_entry_id(entry)
-        kind_icon = {"note": "📄", "list": "📋", "journal": "📔"}.get(entry.kind, "📝")
+        kind_icon = {"note": "📄", "list": "📋", "journal_entry": "📔"}.get(
+            entry.kind, "📝"
+        )
 
         response_parts = [f"{kind_icon} **{entry.title or 'Untitled'}** ({short_id})"]
         if entry.group:
@@ -1051,11 +1057,11 @@ class NotebookHandler(InteractionHandler):
             response_parts.append(f"Tags: {', '.join(entry.tags)}")
         if entry.pinned:
             response_parts.append("📌 Pinned")
-        if entry.archived:
+        if entry.status == "archived":
             response_parts.append("🗄️ Archived")
 
-        if entry.body:
-            response_parts.append(f"\n{entry.body}")
+        if entry.description:
+            response_parts.append(f"\n{entry.description}")
 
         if entry.kind == "list" and entry.items:
             response_parts.append("\n**Items:**")

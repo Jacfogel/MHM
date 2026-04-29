@@ -12,7 +12,7 @@ from notebook.notebook_validation import (
     parse_short_id,
     format_short_id,
     is_valid_entry_title,
-    is_valid_entry_body,
+    is_valid_entry_description,
     is_valid_entry_group,
     is_valid_entry_kind,
     is_valid_list_item_index,
@@ -234,7 +234,7 @@ class TestEntryBodyValidation:
     @pytest.mark.unit
     @pytest.mark.critical
     @pytest.mark.smoke
-    def test_is_valid_entry_body_with_valid_bodies(self):
+    def test_is_valid_entry_description_with_valid_bodies(self):
         """Test valid entry bodies."""
         valid_bodies = [
             None,  # Optional
@@ -245,12 +245,12 @@ class TestEntryBodyValidation:
         ]
         
         for body in valid_bodies:
-            result = is_valid_entry_body(body)
+            result = is_valid_entry_description(body)
             assert result is True, f"Valid body {body} should be accepted"
     
     @pytest.mark.unit
     @pytest.mark.critical
-    def test_is_valid_entry_body_for_lists(self):
+    def test_is_valid_entry_description_for_lists(self):
         """Test body validation for list entries (body is optional)."""
         valid_bodies = [
             None,
@@ -259,12 +259,12 @@ class TestEntryBodyValidation:
         ]
         
         for body in valid_bodies:
-            result = is_valid_entry_body(body, kind='list')
+            result = is_valid_entry_description(body, kind='list')
             assert result is True, f"Body {body} should be valid for lists"
     
     @pytest.mark.unit
     @pytest.mark.regression
-    def test_is_valid_entry_body_with_invalid_bodies(self):
+    def test_is_valid_entry_description_with_invalid_bodies(self):
         """Test invalid entry bodies."""
         invalid_bodies = [
             'a' * (MAX_BODY_LENGTH + 1),  # Too long
@@ -273,7 +273,7 @@ class TestEntryBodyValidation:
         ]
         
         for body in invalid_bodies:
-            result = is_valid_entry_body(body)
+            result = is_valid_entry_description(body)
             assert result is False, f"Invalid body {body} should be rejected"
 
 
@@ -441,22 +441,22 @@ class TestEntryContentValidation:
     def test_validate_entry_content_with_valid_content(self):
         """Test validation of valid entry content."""
         test_cases = [
-            # Note with title and body
-            {'title': 'My Note', 'body': 'Note body', 'kind': 'note'},
+            # Note with title and description
+            {'title': 'My Note', 'description': 'Note body', 'kind': 'note'},
             # Note with title only
-            {'title': 'Title Only', 'body': None, 'kind': 'note'},
-            # Note with body only
-            {'title': None, 'body': 'Body Only', 'kind': 'note'},
-            # List (body optional)
-            {'title': 'Shopping List', 'body': None, 'kind': 'list'},
+            {'title': 'Title Only', 'description': None, 'kind': 'note'},
+            # Note with description only
+            {'title': None, 'description': 'Body Only', 'kind': 'note'},
+            # List (description optional)
+            {'title': 'Shopping List', 'description': None, 'kind': 'list'},
             # Journal entry
-            {'title': 'Journal Entry', 'body': 'Journal body', 'kind': 'journal_entry'},
+            {'title': 'Journal Entry', 'description': 'Journal body', 'kind': 'journal_entry'},
         ]
         
         for content in test_cases:
             is_valid, error = validate_entry_content(
                 title=content.get('title'),
-                body=content.get('body'),
+                description=content.get('description'),
                 kind=content['kind']
             )
             assert is_valid is True, f"Valid content {content} should pass validation, got error: {error}"
@@ -468,20 +468,20 @@ class TestEntryContentValidation:
     def test_validate_entry_content_with_invalid_content(self):
         """Test validation of invalid entry content."""
         test_cases = [
-            # Note with neither title nor body
-            {'title': None, 'body': None, 'kind': 'note', 'expected_error': 'must have at least'},
+            # Note with neither title nor description
+            {'title': None, 'description': None, 'kind': 'note', 'expected_error': 'must have at least'},
             # Invalid kind
-            {'title': 'Test', 'body': 'Body', 'kind': 'invalid', 'expected_error': 'Invalid entry kind'},
+            {'title': 'Test', 'description': 'Body', 'kind': 'invalid', 'expected_error': 'Invalid entry kind'},
             # Title too long
-            {'title': 'a' * (MAX_TITLE_LENGTH + 1), 'body': 'Body', 'kind': 'note', 'expected_error': 'title'},
-            # Body too long
-            {'title': 'Title', 'body': 'a' * (MAX_BODY_LENGTH + 1), 'kind': 'note', 'expected_error': 'body'},
+            {'title': 'a' * (MAX_TITLE_LENGTH + 1), 'description': 'Body', 'kind': 'note', 'expected_error': 'title'},
+            # Description too long
+            {'title': 'Title', 'description': 'a' * (MAX_BODY_LENGTH + 1), 'kind': 'note', 'expected_error': 'description'},
         ]
         
         for content in test_cases:
             is_valid, error = validate_entry_content(
                 title=content.get('title'),
-                body=content.get('body'),
+                description=content.get('description'),
                 kind=content['kind']
             )
             assert is_valid is False, f"Invalid content {content} should fail validation"

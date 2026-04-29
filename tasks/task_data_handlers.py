@@ -168,10 +168,93 @@ def _runtime_tasks_to_v2(tasks: list[dict[str, Any]], *, status: str) -> list[di
     return converted
 
 
+@handle_errors("reading runtime task due date", default_return=None)
+def runtime_task_due_date(task: dict[str, Any]) -> str | None:
+    """Canonical due date (YYYY-MM-DD) from runtime task dict."""
+    due = task.get("due")
+    if isinstance(due, dict):
+        val = due.get("date")
+        return str(val) if val else None
+    return None
+
+
+@handle_errors("reading runtime task due time", default_return=None)
+def runtime_task_due_time(task: dict[str, Any]) -> str | None:
+    """Canonical due time from runtime task dict."""
+    due = task.get("due")
+    if isinstance(due, dict):
+        val = due.get("time")
+        return str(val) if val else None
+    return None
+
+
+@handle_errors("reading runtime task completion state", default_return=False)
+def runtime_task_is_completed(task: dict[str, Any]) -> bool:
+    """True if task is completed per v2 status or completion block."""
+    if task.get("status") == "completed":
+        return True
+    comp = task.get("completion")
+    return bool(isinstance(comp, dict) and comp.get("completed"))
+
+
+@handle_errors("reading runtime task completion timestamp", default_return=None)
+def runtime_task_completed_at(task: dict[str, Any]) -> str | None:
+    """Completion timestamp from canonical completion block."""
+    comp = task.get("completion")
+    if isinstance(comp, dict):
+        val = comp.get("completed_at")
+        return str(val) if val else None
+    return None
+
+
+@handle_errors("reading runtime task recurrence pattern", default_return=None)
+def runtime_task_recurrence_pattern(task: dict[str, Any]) -> str | None:
+    rec = task.get("recurrence")
+    if isinstance(rec, dict):
+        val = rec.get("pattern")
+        return str(val) if val else None
+    return None
+
+
+@handle_errors("reading runtime task recurrence interval", default_return=1)
+def runtime_task_recurrence_interval(task: dict[str, Any]) -> int:
+    rec = task.get("recurrence")
+    if isinstance(rec, dict) and rec.get("interval") is not None:
+        try:
+            return int(rec.get("interval") or 1)
+        except (TypeError, ValueError):
+            return 1
+    return 1
+
+
+@handle_errors("reading runtime task scheduled reminder periods", default_return=[])
+def runtime_task_scheduled_reminder_periods(task: dict[str, Any]) -> list[dict[str, Any]]:
+    """Scheduled reminder period dicts from canonical reminders list."""
+    out: list[dict[str, Any]] = []
+    for r in task.get("reminders") or []:
+        if (
+            isinstance(r, dict)
+            and r.get("kind") == "scheduled"
+            and isinstance(r.get("period"), dict)
+        ):
+            out.append(r["period"])
+    return out
+
+
+@handle_errors("reading runtime task quick reminder values", default_return=[])
+def runtime_task_quick_reminder_values(task: dict[str, Any]) -> list[Any]:
+    """Quick reminder values from canonical reminders list."""
+    return [
+        r.get("value")
+        for r in task.get("reminders") or []
+        if isinstance(r, dict) and r.get("kind") == "quick"
+    ]
+
+
 @handle_errors("converting runtime task to v2", default_return=None)
 def _runtime_task_to_v2(task: dict[str, Any], *, status: str) -> dict[str, Any] | None:
     """Convert a runtime task dictionary to a validated canonical v2 task record."""
-    task_id = str(task.get("id") or task.get("task_id") or "")
+    task_id = str(task.get("id") or "")
     if not task_id:
         task_id = generate_short_id(now_timestamp_full(), "task", length=12)
     created_at = _canonical_timestamp(task.get("created_at")) or now_timestamp_full()
@@ -179,19 +262,43 @@ def _runtime_task_to_v2(task: dict[str, Any], *, status: str) -> dict[str, Any] 
     due_raw = task.get("due")
     recurrence_raw = task.get("recurrence")
     completion_raw = task.get("completion")
-    due: dict[str, Any] = cast(dict[str, Any], due_raw) if isinstance(due_raw, dict) else {}
+    due: dict[str, Any] = dict(cast(dict[str, Any], due_raw)) if isinstance(due_raw, dict) else {}
+    if task.get("due_date") is not None:
+        due.setdefault("date", task.get("due_date"))
+    if task.get("due_time") is not None:
+        due.setdefault("time", task.get("due_time"))
     recurrence: dict[str, Any] = (
-        cast(dict[str, Any], recurrence_raw) if isinstance(recurrence_raw, dict) else {}
+        dict(cast(dict[str, Any], recurrence_raw)) if isinstance(recurrence_raw, dict) else {}
     )
+    if task.get("recurrence_pattern"):
+        recurrence.setdefault("pattern", task.get("recurrence_pattern"))
+    if task.get("recurrence_interval") is not None:
+        try:
+            recurrence.setdefault("interval", int(task.get("recurrence_interval") or 1))
+        except (TypeError, ValueError):
+            recurrence.setdefault("interval", 1)
+    if task.get("repeat_after_completion") is not None:
+        recurrence.setdefault("repeat_after_completion", task.get("repeat_after_completion"))
+    if task.get("next_due_date") is not None:
+        recurrence.setdefault("next_due_date", task.get("next_due_date"))
     completion: dict[str, Any] = (
-        cast(dict[str, Any], completion_raw) if isinstance(completion_raw, dict) else {}
+        dict(cast(dict[str, Any], completion_raw)) if isinstance(completion_raw, dict) else {}
     )
-    completed_at = completion.get("completed_at")
     completed = status == "completed"
+    completed_at = completion.get("completed_at")
+    if completed and completed_at is None and task.get("completed_at") is not None:
+        completed_at = task.get("completed_at")
+    notes_val = completion.get("notes")
+    if (notes_val is None or notes_val == "") and task.get("completion_notes"):
+        completion["notes"] = str(task.get("completion_notes"))
     metadata = dict(task.get("metadata") or {})
+    skip_meta = TASK_V2_FIELDS | _RUNTIME_INPUT_ONLY_FIELDS
     for key, value in task.items():
-        if key not in TASK_V2_FIELDS and key not in _TASK_V1_FIELDS:
-            metadata[f"legacy_{key}"] = value
+        if key in skip_meta:
+            continue
+        if key in ("due", "recurrence", "completion", "reminders"):
+            continue
+        metadata[f"legacy_{key}"] = value
     v2_task = {
         "id": task_id,
         "short_id": task.get("short_id") or generate_short_id(task_id, "task"),
@@ -258,51 +365,41 @@ def _task_v2_to_runtime(task: dict[str, Any]) -> dict[str, Any]:
         "deleted_at": task.get("deleted_at"),
         "metadata": task.get("metadata", {}),
     }
-    # Temporary runtime aliases until all callers/tests consume canonical fields directly.
-    runtime["due_date"] = due.get("date")
-    runtime["due_time"] = due.get("time")
-    runtime["completed"] = task.get("status") == "completed"
-    runtime["completed_at"] = completion.get("completed_at")
-    if completion.get("notes"):
-        runtime["completion_notes"] = completion.get("notes")
-    runtime["last_updated"] = task.get("updated_at")
-    reminders = task.get("reminders", [])
-    runtime["reminder_periods"] = [
-        reminder.get("period")
-        for reminder in reminders
-        if isinstance(reminder, dict) and reminder.get("period")
-    ]
-    runtime["quick_reminders"] = [
-        reminder.get("value")
-        for reminder in reminders
-        if isinstance(reminder, dict) and reminder.get("kind") == "quick"
-    ]
     return runtime
 
 
-_TASK_V1_FIELDS = {
-    "task_id",
-    "completed",
-    "completed_at",
-    "completion_notes",
-    "due_date",
-    "due_time",
-    "reminder_periods",
-    "quick_reminders",
-    "recurrence_pattern",
-    "recurrence_interval",
-    "repeat_after_completion",
-    "next_due_date",
-    "last_updated",
-}
+# Top-level runtime keys accepted only as input to _runtime_task_to_v2 (not persisted as aliases).
+_RUNTIME_INPUT_ONLY_FIELDS = frozenset(
+    {
+        "task_id",
+        "completed",
+        "completed_at",
+        "completion_notes",
+        "due_date",
+        "due_time",
+        "reminder_periods",
+        "quick_reminders",
+        "recurrence_pattern",
+        "recurrence_interval",
+        "repeat_after_completion",
+        "next_due_date",
+        "last_updated",
+    }
+)
 
 
 @handle_errors("converting runtime reminder fields to v2", default_return=[])
 def _runtime_reminders_to_v2(task: dict[str, Any]) -> list[dict[str, Any]]:
     """Convert runtime reminder fields into canonical v2 reminder records."""
-    if isinstance(task.get("reminders"), list):
+    if isinstance(task.get("reminders"), list) and task["reminders"]:
         return [reminder for reminder in task["reminders"] if isinstance(reminder, dict)]
-    return []
+    out: list[dict[str, Any]] = []
+    for period in task.get("reminder_periods") or []:
+        if isinstance(period, dict):
+            out.append({"kind": "scheduled", "period": period})
+    for quick in task.get("quick_reminders") or []:
+        out.append({"kind": "quick", "value": quick})
+    return out
 
 
 @handle_errors("normalizing canonical task timestamp", default_return=None)

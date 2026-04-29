@@ -18,6 +18,10 @@ from tasks import (
     get_task_by_id,
     schedule_task_reminders,
 )
+from tasks.task_data_handlers import (
+    runtime_task_due_date,
+    runtime_task_scheduled_reminder_periods,
+)
 from communication.command_handlers.task_handler import TaskManagementHandler
 from communication.command_handlers.shared_types import ParsedCommand
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
@@ -101,7 +105,7 @@ class TestTaskErrorHandling:
 
         task = get_task_by_id(user_id, task_id)
         assert task is not None, "Task should remain retrievable"
-        assert task["due_date"] is None, "Invalid date should not be stored"
+        assert runtime_task_due_date(task) is None, "Invalid date should not be stored"
 
     @pytest.mark.behavior
     @pytest.mark.tasks
@@ -231,7 +235,7 @@ class TestTaskErrorHandling:
         from pathlib import Path
 
         user_dir = Path(get_user_data_dir(user_id))
-        task_file = user_dir / "tasks" / "active_tasks.json"
+        task_file = user_dir / "tasks" / "tasks.json"
 
         with open(task_file, "w") as f:
             f.write("invalid json content {")
@@ -304,9 +308,11 @@ class TestTaskEdgeCases:
         assert task_id is not None, "Task should be created"
         task = get_task_by_id(user_id, task_id)
         assert (
-            task["due_date"] is None or task["due_date"] == ""
+            runtime_task_due_date(task) is None or runtime_task_due_date(task) == ""
         ), "Task should have no due_date"
-        assert "reminder_periods" in task, "Task should have reminder_periods"
+        assert (
+            len(runtime_task_scheduled_reminder_periods(task)) > 0
+        ), "Task should have scheduled reminder periods"
 
     @pytest.mark.behavior
     @pytest.mark.tasks
@@ -333,7 +339,7 @@ class TestTaskEdgeCases:
         task = get_task_by_id(user_id, task_id)
 
         assert task is not None, f"Task should be retrievable. Task ID: {task_id}"
-        assert task["due_date"] == past_date, "Past due_date should be stored"
+        assert runtime_task_due_date(task) == past_date, "Past due_date should be stored"
 
     @pytest.mark.behavior
     @pytest.mark.tasks

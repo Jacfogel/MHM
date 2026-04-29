@@ -2210,6 +2210,7 @@ class MHMManagerUI(QMainWindow):
 
             # Check if tasks are enabled for this user
             from tasks import are_tasks_enabled, load_active_tasks
+            from tasks.task_data_handlers import runtime_task_is_completed
 
             if not are_tasks_enabled(self.current_user):
                 QMessageBox.warning(
@@ -2231,7 +2232,7 @@ class MHMManagerUI(QMainWindow):
 
             # Filter out completed tasks
             incomplete_tasks = [
-                task for task in active_tasks if not task.get("completed", False)
+                task for task in active_tasks if not runtime_task_is_completed(task)
             ]
             if not incomplete_tasks:
                 QMessageBox.warning(
@@ -2262,12 +2263,12 @@ class MHMManagerUI(QMainWindow):
                 )
                 return
 
-            task_id = selected_task.get("task_id")
+            task_id = selected_task.get("id")
             task_title = selected_task.get("title", "Untitled Task")
 
             if not task_id:
                 QMessageBox.warning(
-                    self, "Invalid Task", "Selected task has no task_id."
+                    self, "Invalid Task", "Selected task has no id."
                 )
                 return
 

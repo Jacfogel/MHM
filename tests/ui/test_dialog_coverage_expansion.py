@@ -283,11 +283,11 @@ class TestTaskEditDialogBehavior:
         task_data = {
             "id": "task1",
             "short_id": "ttask001",
-            'title': 'Test Task',
-            'description': 'Test Description',
-            'due_date': '2024-01-01',
-            'priority': 'Medium',
-            'category': 'work'
+            "title": "Test Task",
+            "description": "Test Description",
+            "due": {"date": "2024-01-01"},
+            "priority": "Medium",
+            "category": "work",
         }
         dialog = TaskEditDialog(
             parent=None,

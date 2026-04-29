@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-28 13:44:52
+> **Last Generated**: 2026-04-29 00:59:46
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 94.2% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 94.1% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 125
-- **Functions Found**: 1747
+- **Functions Found**: 1755
 - **Methods Found**: 1243
 - **Classes Found**: 170
-- **Total Items**: 2990
-- **Functions Documented**: 1627
+- **Total Items**: 2998
+- **Functions Documented**: 1633
 - **Methods Documented**: 1189
 - **Classes Documented**: 122
-- **Total Documented**: 2816
+- **Total Documented**: 2822
 - **Template-Generated**: 4
-- **Last Updated**: 2026-04-28
+- **Last Updated**: 2026-04-29
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (33)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (41)
+### **Task Management Functions** (49)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -3293,7 +3293,7 @@ Returns:
 - [OK] `_create_user_files__preferences_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled)` - Create preferences.json with actual user data.
 - [OK] `_create_user_files__schedules_file(user_id, categories, user_prefs, tasks_enabled, checkins_enabled)` - Create schedules file with appropriate structure.
 - [OK] `_create_user_files__sent_messages_file(user_id)` - Create sent_messages.json in messages/ subdirectory.
-- [OK] `_create_user_files__task_files(user_id)` - Create task files if tasks are enabled.
+- [OK] `_create_user_files__task_files(user_id)` - Create canonical v2 tasks.json if tasks are enabled (no v1 split files).
 - [OK] `_create_user_files__update_user_references(user_id)` - Auto-update message references and user index.
 - [OK] `create_user_files(user_id, categories, user_preferences)` - Creates files for a new user in the appropriate structure.
 Ensures schedules.json contains a block for each category, plus checkin and task reminder blocks.
@@ -5248,6 +5248,14 @@ Returns:
 
 Returns:
     List of task dicts; empty list if user_id invalid or load failed.
+- [OK] `runtime_task_completed_at(task)` - Completion timestamp from canonical completion block.
+- [OK] `runtime_task_due_date(task)` - Canonical due date (YYYY-MM-DD) from runtime task dict.
+- [OK] `runtime_task_due_time(task)` - Canonical due time from runtime task dict.
+- [OK] `runtime_task_is_completed(task)` - True if task is completed per v2 status or completion block.
+- [OK] `runtime_task_quick_reminder_values(task)` - Quick reminder values from canonical reminders list.
+- [MISSING] `runtime_task_recurrence_interval(task)` - No description
+- [MISSING] `runtime_task_recurrence_pattern(task)` - No description
+- [OK] `runtime_task_scheduled_reminder_periods(task)` - Scheduled reminder period dicts from canonical reminders list.
 - [OK] `save_active_tasks(user_id, tasks)` - Save active tasks for a user. Returns True on success.
 - [OK] `save_completed_tasks(user_id, tasks)` - Save completed tasks for a user. Returns True on success.
 

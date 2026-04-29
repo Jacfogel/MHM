@@ -46,6 +46,14 @@ from tasks import (
     setup_default_task_tags,
     get_user_task_stats,
 )
+from tasks.task_data_handlers import (
+    runtime_task_due_date,
+    runtime_task_due_time,
+    runtime_task_is_completed,
+    runtime_task_scheduled_reminder_periods,
+    runtime_task_quick_reminder_values,
+    runtime_task_completed_at,
+)
 
 
 @pytest.mark.tasks
@@ -201,8 +209,8 @@ class TestTaskManagementCoverageExpansion:
     def test_save_active_tasks_real_behavior(self, mock_user_data_dir, user_id):
         """Test saving active tasks with real file operations."""
         test_tasks = [
-            {"task_id": "1", "title": "Task 1", "completed": False},
-            {"task_id": "2", "title": "Task 2", "completed": False},
+            {"id": "1", "title": "Task 1"},
+            {"id": "2", "title": "Task 2"},
         ]
 
         result = save_active_tasks(user_id, test_tasks)
@@ -254,8 +262,8 @@ class TestTaskManagementCoverageExpansion:
     def test_save_completed_tasks_real_behavior(self, mock_user_data_dir, user_id):
         """Test saving completed tasks with real file operations."""
         test_tasks = [
-            {"task_id": "1", "title": "Completed Task 1", "completed": True},
-            {"task_id": "2", "title": "Completed Task 2", "completed": True},
+            {"id": "1", "title": "Completed Task 1"},
+            {"id": "2", "title": "Completed Task 2"},
         ]
 
         result = save_completed_tasks(user_id, test_tasks)
@@ -308,15 +316,15 @@ class TestTaskManagementCoverageExpansion:
         assert task["id"] == task_id
         assert task["title"] == "Complete Task"
         assert task["description"] == "Full description"
-        assert task["due_date"] == "2024-12-31"
-        assert task["due_time"] == "14:30"
+        assert runtime_task_due_date(task) == "2024-12-31"
+        assert runtime_task_due_time(task) == "14:30"
         assert task["priority"] == "high"
-        assert task["reminder_periods"] == [
+        assert runtime_task_scheduled_reminder_periods(task) == [
             {"date": "2024-12-30", "start_time": "09:00", "end_time": "10:00"}
         ]
         assert task["tags"] == ["work", "urgent"]
-        assert task["quick_reminders"] == ["1h", "30m"]
-        assert task["completed"] is False
+        assert runtime_task_quick_reminder_values(task) == ["1h", "30m"]
+        assert not runtime_task_is_completed(task)
         assert "created_at" in task
 
     def test_create_task_with_minimal_parameters_real_behavior(
@@ -335,7 +343,7 @@ class TestTaskManagementCoverageExpansion:
         assert task["title"] == "Minimal Task"
         assert task["description"] == ""
         assert task["priority"] == "medium"
-        assert task["completed"] is False
+        assert not runtime_task_is_completed(task)
         assert "created_at" in task
 
     def test_create_task_with_empty_user_id_real_behavior(self, mock_user_data_dir):
@@ -378,9 +386,9 @@ class TestTaskManagementCoverageExpansion:
         assert task["title"] == "Updated Title"
         assert task["description"] == "Updated Description"
         assert task["priority"] == "low"
-        assert task["due_date"] == "2024-12-31"
+        assert runtime_task_due_date(task) == "2024-12-31"
         assert task["tags"] == ["updated", "tag"]
-        assert "last_updated" in task
+        assert "updated_at" in task
 
     def test_update_task_with_reminder_periods_real_behavior(
         self, mock_user_data_dir, user_id
@@ -439,7 +447,7 @@ class TestTaskManagementCoverageExpansion:
         task = tasks[0]
         assert task["title"] == "Updated Title"  # Allowed field updated
         assert task["id"] == task_id  # Disallowed field not updated
-        assert task["completed"] is False  # Disallowed field not updated
+        assert not runtime_task_is_completed(task)  # Disallowed field not updated
         assert task["created_at"] != "2024-01-01"  # Disallowed field not updated
 
     def test_update_task_invalid_priority_real_behavior(
@@ -507,7 +515,7 @@ class TestTaskManagementCoverageExpansion:
         task = get_task_by_id(user_id, task_id)
         assert task is not None, "Updated task should still exist"
         assert task["title"] == "Updated Title"
-        assert task["due_date"] == "2024-12-31"  # Invalid date skipped, original kept
+        assert runtime_task_due_date(task) == "2024-12-31"  # Invalid date skipped, original kept
 
     def test_update_task_invalid_title_real_behavior(self, mock_user_data_dir, user_id):
         """Test that invalid title updates are skipped but update continues."""
@@ -588,7 +596,7 @@ class TestTaskManagementCoverageExpansion:
         task = tasks[0]
         assert task["title"] == "Updated Title"
         assert (
-            task["reminder_periods"] == updates["reminder_periods"]
+            runtime_task_scheduled_reminder_periods(task) == updates["reminder_periods"]
         )  # Reminder periods saved
 
     def test_update_task_save_failure_real_behavior(self, mock_user_data_dir, user_id):
@@ -636,9 +644,9 @@ class TestTaskManagementCoverageExpansion:
         assert len(completed_tasks) == 1
 
         task = completed_tasks[0]
-        assert task["completed"] is True
-        assert task["completed_at"] == "2024-12-25 15:30:00"
-        assert task["completion_notes"] == "Task completed successfully"
+        assert runtime_task_is_completed(task)
+        assert runtime_task_completed_at(task) == "2024-12-25 15:30:00"
+        assert task["completion"]["notes"] == "Task completed successfully"
 
     def test_complete_task_with_default_completion_real_behavior(
         self, mock_user_data_dir, user_id
@@ -658,9 +666,9 @@ class TestTaskManagementCoverageExpansion:
         assert len(completed_tasks) == 1
 
         task = completed_tasks[0]
-        assert task["completed"] is True
-        assert task["completed_at"] is not None
-        assert "completion_notes" not in task
+        assert runtime_task_is_completed(task)
+        assert runtime_task_completed_at(task) is not None
+        assert not (task.get("completion") or {}).get("notes")
 
     def test_complete_task_not_found_real_behavior(self, mock_user_data_dir, user_id):
         """Test completing a non-existent task."""
@@ -692,9 +700,9 @@ class TestTaskManagementCoverageExpansion:
         assert len(completed_tasks) == 1
 
         task = completed_tasks[0]
-        assert task["completed"] is True
-        assert task["completed_at"] is not None  # Should use default timestamp
-        assert task["completion_notes"] == "Task completed successfully"
+        assert runtime_task_is_completed(task)
+        assert runtime_task_completed_at(task) is not None  # Should use default timestamp
+        assert task["completion"]["notes"] == "Task completed successfully"
 
     def test_complete_task_save_failure_real_behavior(
         self, mock_user_data_dir, user_id
@@ -716,7 +724,7 @@ class TestTaskManagementCoverageExpansion:
         active_tasks = load_active_tasks(user_id)
         assert len(active_tasks) == 1  # Task should still be active
         assert active_tasks[0]["id"] == task_id
-        assert active_tasks[0]["completed"] is False
+        assert not runtime_task_is_completed(active_tasks[0])
 
     def test_complete_task_save_completed_failure_real_behavior(
         self, mock_user_data_dir, user_id
@@ -770,7 +778,7 @@ class TestTaskManagementCoverageExpansion:
         # Verify task was completed despite cleanup failure
         completed_tasks = load_completed_tasks(user_id)
         assert len(completed_tasks) == 1
-        assert completed_tasks[0]["completed"] is True
+        assert runtime_task_is_completed(completed_tasks[0])
 
     def test_complete_task_recurring_creation_failure_real_behavior(
         self, mock_user_data_dir, user_id
@@ -801,7 +809,7 @@ class TestTaskManagementCoverageExpansion:
         # Verify task was completed despite recurring task creation failure
         completed_tasks = load_completed_tasks(user_id)
         assert len(completed_tasks) == 1
-        assert completed_tasks[0]["completed"] is True
+        assert runtime_task_is_completed(completed_tasks[0])
 
         # Verify no new recurring task was created
         active_tasks = load_active_tasks(user_id)
@@ -823,8 +831,8 @@ class TestTaskManagementCoverageExpansion:
         assert len(active_tasks) == 1
 
         task = active_tasks[0]
-        assert task["completed"] is False
-        assert task["completed_at"] is None
+        assert not runtime_task_is_completed(task)
+        assert runtime_task_completed_at(task) is None
 
     def test_restore_task_with_reminders_real_behavior(
         self, mock_user_data_dir, user_id
@@ -907,7 +915,7 @@ class TestTaskManagementCoverageExpansion:
 
         assert task is not None
         assert task["id"] == task_id
-        assert task["completed"] is True
+        assert runtime_task_is_completed(task)
 
     def test_get_task_by_id_not_found_real_behavior(self, mock_user_data_dir, user_id):
         """Test getting a non-existent task by ID."""
@@ -1003,7 +1011,7 @@ class TestTaskManagementCoverageExpansion:
 
         # Verify tasks are sorted by due_date
         assert len(due_soon_tasks) == 4
-        due_dates = [task["due_date"] for task in due_soon_tasks]
+        due_dates = [runtime_task_due_date(task) for task in due_soon_tasks]
         assert due_dates == sorted(due_dates)  # Should be sorted ascending
 
     def test_are_tasks_enabled_missing_account_data_real_behavior(

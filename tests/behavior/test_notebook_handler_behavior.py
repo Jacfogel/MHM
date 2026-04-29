@@ -261,8 +261,8 @@ class TestNotebookHandlerBehavior:
         # Create a few notes first
         from notebook.notebook_data_manager import create_note
 
-        create_note(user_id, title="Note 1", body="Body 1")
-        create_note(user_id, title="Note 2", body="Body 2")
+        create_note(user_id, title="Note 1", description="Body 1")
+        create_note(user_id, title="Note 2", description="Body 2")
 
         parsed_command = ParsedCommand(
             intent="list_recent_entries",
@@ -296,7 +296,7 @@ class TestNotebookHandlerBehavior:
         # Create a note first
         from notebook.notebook_data_manager import create_note
 
-        entry = create_note(user_id, title="Test Note", body="Test body content")
+        entry = create_note(user_id, title="Test Note", description="Test body content")
         # Short ID format is now n123abc (no dash) for easier mobile typing
         short_id = f"n{str(entry.id).replace('-', '')[:6]}"
 
@@ -354,7 +354,7 @@ class TestNotebookHandlerBehavior:
         # Create a note first
         from notebook.notebook_data_manager import create_note
 
-        entry = create_note(user_id, title="Test Note", body="Original content")
+        entry = create_note(user_id, title="Test Note", description="Original content")
         # Short ID format is now n123abc (no dash) for easier mobile typing
         short_id = f"n{str(entry.id).replace('-', '')[:6]}"
 
@@ -380,8 +380,8 @@ class TestNotebookHandlerBehavior:
 
         updated_entry = get_entry(user_id, short_id)
         assert (
-            "Additional text" in updated_entry.body
-        ), "Entry body should contain appended text"
+            "Additional text" in (updated_entry.description or "")
+        ), "Entry description should contain appended text"
 
     @pytest.mark.file_io
     def test_add_tags_to_entry(self, test_data_dir):
@@ -580,7 +580,9 @@ class TestNotebookHandlerBehavior:
         # Create a note with specific content
         from notebook.notebook_data_manager import create_note
 
-        create_note(user_id, title="Project Alpha", body="Important project details")
+        create_note(
+            user_id, title="Project Alpha", description="Important project details"
+        )
 
         parsed_command = ParsedCommand(
             intent="search_entries",

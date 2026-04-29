@@ -14,7 +14,7 @@ from notebook.notebook_validation import (
     parse_short_id,
     format_short_id,
     is_valid_entry_title,
-    is_valid_entry_body,
+    is_valid_entry_description,
     is_valid_entry_group,
     is_valid_entry_kind,
     is_valid_list_item_index,
@@ -45,7 +45,7 @@ class TestValidationErrorHandling:
         assert parse_short_id(123) is None
         assert format_short_id("not-a-uuid", "note") is None
         assert is_valid_entry_title(123) is False
-        assert is_valid_entry_body(123) is False
+        assert is_valid_entry_description(123) is False
         assert is_valid_entry_group(123) is False
         assert is_valid_entry_kind(123) is False
         assert is_valid_list_item_index("not-int", 5) is False
@@ -82,7 +82,7 @@ class TestValidationErrorHandling:
         invalid_inputs = [
             (is_valid_entry_reference, [None, 123, ""]),
             (is_valid_entry_title, [123, []]),
-            (is_valid_entry_body, [123, []]),
+            (is_valid_entry_description, [123, []]),
             (is_valid_entry_group, [123, []]),
             (is_valid_entry_kind, [None, 123, []]),
             (is_valid_list_item_index, [None, "not-int", -1]),
@@ -115,25 +115,25 @@ class TestValidationErrorMessages:
         test_cases = [
             {
                 'title': None,
-                'body': None,
+                'description': None,
                 'kind': 'note',
-                'expected_keywords': ['title', 'body', 'must have']
+                'expected_keywords': ['title', 'description', 'must have']
             },
             {
                 'title': 'a' * (MAX_TITLE_LENGTH + 1),
-                'body': 'Body',
+                'description': 'Body',
                 'kind': 'note',
                 'expected_keywords': ['title', 'max', str(MAX_TITLE_LENGTH)]
             },
             {
                 'title': 'Title',
-                'body': 'a' * (MAX_BODY_LENGTH + 1),
+                'description': 'a' * (MAX_BODY_LENGTH + 1),
                 'kind': 'note',
-                'expected_keywords': ['body', 'max', str(MAX_BODY_LENGTH)]
+                'expected_keywords': ['description', 'max', str(MAX_BODY_LENGTH)]
             },
             {
                 'title': 'Title',
-                'body': 'Body',
+                'description': 'Body',
                 'kind': 'invalid',
                 'expected_keywords': ['kind', 'invalid']
             },
@@ -142,7 +142,7 @@ class TestValidationErrorMessages:
         for case in test_cases:
             is_valid, error_msg = validate_entry_content(
                 title=case.get('title'),
-                body=case.get('body'),
+                description=case.get('description'),
                 kind=case['kind']
             )
             
@@ -174,7 +174,9 @@ class TestValidationErrorMessages:
         ]
         
         for title, body, kind in test_cases:
-            is_valid, error_msg = validate_entry_content(title=title, body=body, kind=kind)
+            is_valid, error_msg = validate_entry_content(
+                title=title, description=body, kind=kind
+            )
             if not is_valid and error_msg:
                 assert len(error_msg) <= max_message_length, \
                     f"Error message too long ({len(error_msg)} chars): {error_msg}"
@@ -205,7 +207,9 @@ class TestValidationErrorRecovery:
         for title, body in edge_cases:
             # Should not raise exceptions
             try:
-                result = validate_entry_content(title=title, body=body, kind='note')
+                result = validate_entry_content(
+                    title=title, description=body, kind='note'
+                )
                 assert isinstance(result, tuple), "Should return tuple"
                 assert len(result) == 2, "Should return (is_valid, error_msg)"
             except Exception as e:
@@ -225,7 +229,9 @@ class TestValidationErrorRecovery:
         
         for title, body, kind in test_cases:
             try:
-                result = validate_entry_content(title=title, body=body, kind=kind)
+                result = validate_entry_content(
+                    title=title, description=body, kind=kind
+                )
                 assert isinstance(result, tuple), "Should return tuple"
             except Exception as e:
                 pytest.fail(f"Validation should handle None values, but raised {type(e).__name__}: {e}")
@@ -261,7 +267,7 @@ class TestValidationIntegrationWithErrorHandling:
         # When validation fails, the error should be detectable by callers
         is_valid, error_msg = validate_entry_content(
             title=None,
-            body=None,
+            description=None,
             kind='note'
         )
         
@@ -292,8 +298,8 @@ class TestValidationTypeSafety:
             (is_valid_entry_reference, [123, [], {}, None]),
             # Wrong types for title
             (is_valid_entry_title, [[], {}, 123]),
-            # Wrong types for body
-            (is_valid_entry_body, [[], {}, 123]),
+            # Wrong types for description
+            (is_valid_entry_description, [[], {}, 123]),
             # Wrong types for group
             (is_valid_entry_group, [[], {}, 123]),
             # Wrong types for kind

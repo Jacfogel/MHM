@@ -62,49 +62,49 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
 - *Why it helps*: Prevents old schemas from becoming permanent hidden APIs after successful migration.
 - *Estimated effort*: Large
 - *Created*: 2026-04-27
-- *Status*: Completed and documented in paired changelogs (`development_docs/CHANGELOG_DETAIL.md`, `ai_development_docs/AI_CHANGELOG.md`).
+- *Status*: Completed and documented in paired changelogs ([CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md), [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)).
 
 **Unmix `core/user_data_v2.py` into migration tooling and real runtime modules**
 - *What it means*: Split `core/user_data_v2.py` so one-time migration code moves out of core project modules, while lasting schemas/validation are integrated into the existing schema and validation module structure.
 - *Why it helps*: Keeps migration tooling from becoming permanent production surface area and avoids creating a parallel schema system beside the established task, notebook, and core validation modules.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
-- *Status*: Completed and documented in paired changelogs (`development_docs/CHANGELOG_DETAIL.md`, `ai_development_docs/AI_CHANGELOG.md`).
+- *Status*: Completed and documented in paired changelogs ([CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md), [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)).
 
 **Make task runtime v2-native**
 - *What it means*: Update task runtime code to operate on canonical v2 task fields instead of converting back to old task dictionaries.
 - *Why it helps*: Keeps `tasks/tasks.json` as the real source of truth and reduces conversion bugs.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
-- *Status*: Completed and documented in paired changelogs (`development_docs/CHANGELOG_DETAIL.md`, `ai_development_docs/AI_CHANGELOG.md`).
+- *Status*: Completed and documented in paired changelogs ([CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md), [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)).
 
 **Make notebook runtime v2-native**
 - *What it means*: Update notebook code to use v2 fields (`description`, `status`, `journal_entry`) without converting to old `body`/`archived` assumptions except where explicitly temporary.
 - *Why it helps*: Keeps notes, lists, and journal entries aligned with the canonical shared item model.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
-- *Status*: Completed and documented in paired changelogs (`development_docs/CHANGELOG_DETAIL.md`, `ai_development_docs/AI_CHANGELOG.md`).
+- *Status*: Completed and documented in paired changelogs ([CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md), [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)).
 
 **Make message runtime and archives v2-native**
 - *What it means*: Update message template CRUD, delivery tracking, and sent-message archiving to operate on v2 templates and `deliveries[]`.
 - *Why it helps*: Ensures the messaging system fully benefits from the v2 separation between reusable templates and delivery history.
 - *Estimated effort*: Large
 - *Created*: 2026-04-27
-- *Status*: Completed and documented in paired changelogs (`development_docs/CHANGELOG_DETAIL.md`, `ai_development_docs/AI_CHANGELOG.md`).
+- *Status*: Completed and documented in paired changelogs ([CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md), [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)).
 
 **Finish check-in v2 adoption**
 - *What it means*: Update analytics and AI context code to read check-in answers from `responses` consistently.
 - *Why it helps*: Prevents future check-in question changes from requiring top-level schema changes.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
-- *Status*: Completed and documented in paired changelogs (`development_docs/CHANGELOG_DETAIL.md`, `ai_development_docs/AI_CHANGELOG.md`).
+- *Status*: Completed and documented in paired changelogs ([CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md), [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)).
 
 **Audit top-level user files outside the v2 item migration**
 - *What it means*: Confirm whether `account.json`, `preferences.json`, `schedules.json`, `tags.json`, `user_context.json`, and `chat_interactions.json` need future schema work or should explicitly remain under their current model.
 - *Why it helps*: The v2 item migration intentionally skipped these files, but the old inventory task also called them out and they should not be forgotten.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-27
-- *Status*: Completed on 2026-04-28 and documented in paired changelogs (`development_docs/CHANGELOG_DETAIL.md`, `ai_development_docs/AI_CHANGELOG.md`).
+- *Status*: Completed on 2026-04-28 and documented in paired changelogs ([CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md), [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)).
 - *Result*: `account.json`/`preferences.json`/`schedules.json` remain schema-owned via `core/schemas.py` + `core/user_data_registry.py`; `tags.json` remains owned via `core/tags.py`; `user_context.json` and `chat_interactions.json` remain runtime-owned for now.
 
 ### Schedule Data Model Follow-up
@@ -114,7 +114,7 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
 - *Why it helps*: A flatter schedule model would map better to SQLite, but this should not distract from task/note/check-in/message migration.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-26
-- *Status*: Completed on 2026-04-28 and documented in paired changelogs (`development_docs/CHANGELOG_DETAIL.md`, `ai_development_docs/AI_CHANGELOG.md`).
+- *Status*: Completed on 2026-04-28 and documented in paired changelogs ([CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md), [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)).
 - *Decision*: Keep nested `schedules.json` short-term; if flattened later, canonical fields are `id`, `scope`, `scope_value`, `day`, `start_time`, `end_time`, `enabled`, `source`, `created_at`, `updated_at`.
 
 ### Quality & Operations (high priority within medium)

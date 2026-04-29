@@ -19,6 +19,7 @@ from ui.generated.task_edit_dialog_pyqt import Ui_Dialog_task_edit
 
 # Import core functionality
 from tasks import create_task, update_task
+from tasks.task_data_handlers import runtime_task_due_date, runtime_task_due_time
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger
 from ui.widgets.tag_widget import TagWidget
@@ -232,7 +233,7 @@ class TaskEditDialog(QDialog):
                 self.ui.comboBox_task_priority.setCurrentIndex(index)
 
         # Set due date
-        due_date = self.task_data.get("due_date")
+        due_date = runtime_task_due_date(self.task_data)
         if due_date:
             try:
                 date = QDate.fromString(due_date, "yyyy-MM-dd")
@@ -248,7 +249,7 @@ class TaskEditDialog(QDialog):
             self.ui.checkBox_no_due_date.setChecked(True)
 
         # Set due time
-        due_time = self.task_data.get("due_time")
+        due_time = runtime_task_due_time(self.task_data)
         if due_time:
             try:
                 time = QTime.fromString(due_time, "HH:mm")
@@ -257,15 +258,26 @@ class TaskEditDialog(QDialog):
             except Exception:
                 pass
 
-        # Load reminder periods
-        reminder_periods = self.task_data.get("reminder_periods", [])
+        # Load reminder periods (canonical v2 reminders[])
+        reminders = self.task_data.get("reminders") or []
+        reminder_periods = [
+            r["period"]
+            for r in reminders
+            if isinstance(r, dict)
+            and r.get("kind") == "scheduled"
+            and isinstance(r.get("period"), dict)
+        ]
         if reminder_periods:
             self.ui.checkBox_enable_reminders.setChecked(True)
             self.reminder_periods = reminder_periods.copy()
             self.render_reminder_periods()
 
         # Load quick reminders
-        quick_reminders = self.task_data.get("quick_reminders", [])
+        quick_reminders = [
+            r.get("value")
+            for r in reminders
+            if isinstance(r, dict) and r.get("kind") == "quick" and r.get("value") is not None
+        ]
         if quick_reminders:
             self.ui.checkBox_enable_reminders.setChecked(True)
             # Set the appropriate checkboxes based on stored quick reminders
@@ -292,7 +304,8 @@ class TaskEditDialog(QDialog):
             return
 
         # Load recurrence pattern
-        recurrence_pattern = self.task_data.get("recurrence_pattern")
+        rec = self.task_data.get("recurrence") or {}
+        recurrence_pattern = rec.get("pattern") if isinstance(rec, dict) else None
         if recurrence_pattern:
             pattern_map = {"daily": 1, "weekly": 2, "monthly": 3, "yearly": 4}
             pattern_index = pattern_map.get(recurrence_pattern, 0)
@@ -301,11 +314,13 @@ class TaskEditDialog(QDialog):
             self.ui.comboBox_recurring_pattern.setCurrentIndex(0)  # None
 
         # Load recurrence interval
-        recurrence_interval = self.task_data.get("recurrence_interval", 1)
+        recurrence_interval = int(rec.get("interval", 1)) if isinstance(rec, dict) else 1
         self.ui.spinBox_recurring_interval.setValue(recurrence_interval)
 
         # Load repeat after completion setting
-        repeat_after_completion = self.task_data.get("repeat_after_completion", True)
+        repeat_after_completion = (
+            rec.get("repeat_after_completion", True) if isinstance(rec, dict) else True
+        )
         self.ui.checkBox_repeat_after_completion.setChecked(repeat_after_completion)
 
     @handle_errors("setting due time from 24h format")
@@ -648,7 +663,7 @@ class TaskEditDialog(QDialog):
 
             if self.is_edit:
                 # Update existing task
-                task_identifier = self.task_data.get("id") or self.task_data.get("task_id")
+                task_identifier = self.task_data.get("id")
                 if not task_identifier:
                     QMessageBox.critical(
                         self, "Error", "Failed to update task: missing task identifier."

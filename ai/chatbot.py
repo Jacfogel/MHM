@@ -1034,6 +1034,7 @@ class AIChatBotSingleton:
                 get_tasks_due_soon,
                 are_tasks_enabled,
             )
+            from tasks.task_data_handlers import runtime_task_due_date
 
             if are_tasks_enabled(user_id):
                 active_tasks = load_active_tasks(user_id)
@@ -1057,7 +1058,7 @@ class AIChatBotSingleton:
                         # Include details for tasks due soon (up to 3)
                         for task in tasks_due_soon[:3]:
                             title = task.get("title", "Untitled task")
-                            due_date = task.get("due_date", "")
+                            due_date = runtime_task_due_date(task) or ""
                             priority = task.get("priority", "normal")
                             due_desc = f", due on {due_date}" if due_date else ""
                             priority_desc = (

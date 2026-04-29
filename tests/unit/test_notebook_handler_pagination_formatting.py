@@ -15,7 +15,7 @@ from notebook.notebook_schemas import Entry, ListItem
 
 
 def _note_entry(title: str) -> Entry:
-    return Entry(kind="note", id=uuid4(), title=title, body="body")
+    return Entry(kind="note", id=uuid4(), title=title, description="body")
 
 
 @pytest.mark.unit
@@ -99,11 +99,11 @@ class TestNotebookHandlerPaginationAndFormatting:
             kind="list",
             id=uuid4(),
             title="Weekend Plan",
-            body="Checklist",
+            description="Checklist",
             group="home",
             tags=["work", "urgent"],
             pinned=True,
-            archived=True,
+            status="archived",
             items=[
                 ListItem(text="Clean kitchen", order=0, done=True),
                 ListItem(text="Laundry", order=1, done=False),
