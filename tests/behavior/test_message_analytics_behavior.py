@@ -61,11 +61,11 @@ class TestMessageAnalyticsFrequencyBehavior:
 
             messages.append(
                 {
-                    "message_id": f"msg-{i}",
-                    "message": f"Test message {i}",
+                    "message_template_id": f"msg-{i}",
+                    "sent_text": f"Test message {i}",
                     "category": category,
-                    "timestamp": format_timestamp(date, TIMESTAMP_FULL),
-                    "delivery_status": "sent",
+                    "sent_at": format_timestamp(date, TIMESTAMP_FULL),
+                    "status": "sent",
                     "time_period": time_period,
                 }
             )
@@ -164,11 +164,11 @@ class TestMessageAnalyticsDeliveryBehavior:
 
             messages.append(
                 {
-                    "message_id": f"msg-{i}",
-                    "message": f"Test message {i}",
+                    "message_template_id": f"msg-{i}",
+                    "sent_text": f"Test message {i}",
                     "category": "motivational",
-                    "timestamp": format_timestamp(date, TIMESTAMP_FULL),
-                    "delivery_status": status,
+                    "sent_at": format_timestamp(date, TIMESTAMP_FULL),
+                    "status": status,
                     "time_period": "morning",
                 }
             )

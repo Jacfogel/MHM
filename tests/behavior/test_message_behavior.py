@@ -462,18 +462,49 @@ class TestSentMessages:
         messages_dir = os.path.join(user_dir, 'messages')
         os.makedirs(messages_dir, exist_ok=True)
         
-        # Create sent messages file with test data (new chronological structure)
+        # v2 deliveries collection
         sent_messages_file = os.path.join(messages_dir, 'sent_messages.json')
         test_sent_messages = {
-            "metadata": {
-                "version": "2.0",
-                "total_messages": 3
-            },
-            "messages": [
-                {"message_id": "msg1", "message": "Test message 1", "category": category, "timestamp": "2025-01-01 10:00:00", "delivery_status": "sent"},
-                {"message_id": "msg2", "message": "Test message 2", "category": category, "timestamp": "2025-01-01 11:00:00", "delivery_status": "sent"},
-                {"message_id": "msg3", "message": "Test message 3", "category": category, "timestamp": "2025-01-01 12:00:00", "delivery_status": "sent"}
-            ]
+            "schema_version": 2,
+            "updated_at": "2025-01-01 12:00:00",
+            "deliveries": [
+                {
+                    "id": "d1",
+                    "message_template_id": "msg1",
+                    "sent_text": "Test message 1",
+                    "category": category,
+                    "channel": "",
+                    "status": "sent",
+                    "source": {"system": "mhm", "channel": "", "actor": "", "migration": None},
+                    "sent_at": "2025-01-01 10:00:00",
+                    "time_period": None,
+                    "metadata": {},
+                },
+                {
+                    "id": "d2",
+                    "message_template_id": "msg2",
+                    "sent_text": "Test message 2",
+                    "category": category,
+                    "channel": "",
+                    "status": "sent",
+                    "source": {"system": "mhm", "channel": "", "actor": "", "migration": None},
+                    "sent_at": "2025-01-01 11:00:00",
+                    "time_period": None,
+                    "metadata": {},
+                },
+                {
+                    "id": "d3",
+                    "message_template_id": "msg3",
+                    "sent_text": "Test message 3",
+                    "category": category,
+                    "channel": "",
+                    "status": "sent",
+                    "source": {"system": "mhm", "channel": "", "actor": "", "migration": None},
+                    "sent_at": "2025-01-01 12:00:00",
+                    "time_period": None,
+                    "metadata": {},
+                },
+            ],
         }
         with open(sent_messages_file, 'w', encoding='utf-8') as f:
             json.dump(test_sent_messages, f)
@@ -483,10 +514,9 @@ class TestSentMessages:
             messages = get_recent_messages(user_id, category=category, limit=10)
             
             assert len(messages) == 3
-            # Messages are sorted by timestamp descending, so msg3 (latest) comes first
-            assert messages[0]['message_id'] == 'msg3'
-            assert messages[1]['message_id'] == 'msg2'
-            assert messages[2]['message_id'] == 'msg1'
+            assert messages[0]["message_template_id"] == "msg3"
+            assert messages[1]["message_template_id"] == "msg2"
+            assert messages[2]["message_template_id"] == "msg1"
     
     @pytest.mark.messages
     @pytest.mark.file_io
@@ -506,12 +536,11 @@ class TestSentMessages:
 
     @pytest.mark.messages
     @pytest.mark.file_io
-    def test_get_recent_messages_normalizes_invalid_entries(self, test_data_dir):
-        """Sent message reads should normalize and drop invalid rows."""
+    def test_get_recent_messages_requires_v2_deliveries(self, test_data_dir):
+        """Non-v2 sent_messages.json returns no rows (migration required)."""
         user_id = "test-user-normalize"
         category = "motivational"
 
-        # Create user directory structure and sent messages file under tests/data/users
         user_dir = os.path.join(test_data_dir, 'users', user_id)
         messages_dir = os.path.join(user_dir, 'messages')
         os.makedirs(messages_dir, exist_ok=True)
@@ -524,15 +553,7 @@ class TestSentMessages:
                     "message": "Valid message",
                     "category": category,
                     "timestamp": "2025-01-01T10:00:00Z",
-                    "days": [],
-                    "time_periods": []
                 },
-                {
-                    # Missing message_id should be dropped by normalization
-                    "message": "Bad entry",
-                    "category": category,
-                    "timestamp": "2025-01-02T10:00:00Z"
-                }
             ]
         }
         with open(sent_messages_file, 'w', encoding='utf-8') as f:
@@ -541,10 +562,7 @@ class TestSentMessages:
         with patch('core.message_management.determine_file_path', return_value=sent_messages_file):
             messages = get_recent_messages(user_id, category=category, limit=10)
 
-        assert len(messages) == 1
-        assert messages[0]['message_id'] == 'msg-good'
-        assert messages[0]['days'] == ["ALL"]
-        assert messages[0]['time_periods'] == ["ALL"]
+        assert messages == []
 
 
 @pytest.mark.communication

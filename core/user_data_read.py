@@ -54,10 +54,8 @@ def ensure_unique_ids(data: Any) -> Any:
         if not message_id or message_id in existing_ids:
             message_id = str(uuid.uuid4())
 
-        # Canonical field.
         message["id"] = message_id
-        # LEGACY COMPATIBILITY: keep alias in sync for older read paths.
-        message["message_id"] = message_id
+        message.pop("message_id", None)
 
         existing_ids.add(message_id)
     return data

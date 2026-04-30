@@ -45,6 +45,44 @@ from core import get_user_data
 
 from core.error_handling import handle_errors, FileOperationError
 import contextlib
+from typing import Any
+
+
+@handle_errors(
+    "extracting schedule lists from message template for test preview",
+    default_return=(["ALL"], ["ALL"]),
+)
+def _message_template_schedule_lists(msg: dict[str, Any]) -> tuple[list[str], list[str]]:
+    """Return day names and time periods from a v2 template ``schedule`` (or ALL defaults)."""
+    raw_schedule = msg.get("schedule")
+    sched: dict[str, Any] = raw_schedule if isinstance(raw_schedule, dict) else {}
+    days = sched.get("days") or ["ALL"]
+    periods = sched.get("periods") or ["ALL"]
+    if not isinstance(days, list):
+        days = ["ALL"]
+    if not isinstance(periods, list):
+        periods = ["ALL"]
+    dlist = [d for d in days if isinstance(d, str)] or ["ALL"]
+    plist = [p for p in periods if isinstance(p, str)] or ["ALL"]
+    return dlist, plist
+
+
+@handle_errors(
+    "matching message template schedule to current window",
+    default_return=False,
+)
+def _message_schedule_matches_current_window(
+    day_names: list[str],
+    time_periods: list[str],
+    current_days: list[str],
+    matching_periods: list[str],
+) -> bool:
+    """True if template schedule overlaps current day/period (ALL matches any)."""
+    day_ok = "ALL" in day_names or any(d in day_names for d in current_days)
+    period_ok = "ALL" in time_periods or any(
+        p in time_periods for p in matching_periods
+    )
+    return day_ok and period_ok
 
 
 class InitializationError(Exception):
@@ -734,15 +772,16 @@ class MHMService:
             if messages:
                 current_days = get_current_day_names()
 
-                all_messages = [
-                    msg
-                    for msg in messages
-                    if any(day in msg.get("days", []) for day in current_days)
-                    and any(
-                        period in msg.get("time_periods", [])
-                        for period in matching_periods
-                    )
-                ]
+                all_messages: list[dict[str, Any]] = []
+                for msg in messages:
+                    day_names, time_periods = _message_template_schedule_lists(msg)
+                    if _message_schedule_matches_current_window(
+                        day_names,
+                        time_periods,
+                        current_days,
+                        matching_periods,
+                    ):
+                        all_messages.append(msg)
 
                 if all_messages:
                     # Apply deduplication
@@ -750,14 +789,14 @@ class MHMService:
                         user_id, category=category, limit=50, days_back=60
                     )
                     recent_content = {
-                        msg.get("message", "").strip().lower()
+                        msg.get("sent_text", "").strip().lower()
                         for msg in recent_messages
-                        if msg.get("message")
+                        if msg.get("sent_text")
                     }
 
                     available_messages = []
                     for msg in all_messages:
-                        message_content = msg.get("message", "").strip()
+                        message_content = msg.get("text", "").strip()
                         if (
                             message_content
                             and message_content.lower() not in recent_content
@@ -775,7 +814,8 @@ class MHMService:
                         all_period_messages = []
 
                         for msg in available_messages:
-                            time_periods = msg.get("time_periods", [])
+                            _, plist = _message_template_schedule_lists(msg)
+                            time_periods = plist
                             has_specific_periods = any(
                                 period != "ALL" for period in time_periods
                             )
@@ -792,7 +832,7 @@ class MHMService:
                         else:
                             selected_msg = random.choice(available_messages)
 
-                        return selected_msg.get("message", "")
+                        return selected_msg.get("text", "")
         except Exception as e:
             logger.debug(f"Could not get message content: {e}")
         return None

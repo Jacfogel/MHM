@@ -56,20 +56,24 @@ class TestServiceMessageContentHelpers:
                 "core.message_management.load_user_messages",
                 return_value=[
                     {
-                        "message": "recent message",
-                        "days": ["MONDAY"],
-                        "time_periods": ["morning"],
+                        "text": "recent message",
+                        "schedule": {
+                            "days": ["MONDAY"],
+                            "periods": ["morning"],
+                        },
                     },
                     {
-                        "message": "fresh message",
-                        "days": ["MONDAY"],
-                        "time_periods": ["morning"],
+                        "text": "fresh message",
+                        "schedule": {
+                            "days": ["MONDAY"],
+                            "periods": ["morning"],
+                        },
                     },
                 ],
             ),
             patch(
                 "core.message_management.get_recent_messages",
-                return_value=[{"message": "recent message"}],
+                return_value=[{"sent_text": "recent message"}],
             ),
             patch("core.config.get_user_data_dir", return_value="C:/tmp/user-1"),
             patch("random.random", return_value=0.2),

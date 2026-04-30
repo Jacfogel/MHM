@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-29 15:07:34
+> **Last Generated**: 2026-04-29 18:51:22
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 94.1% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 125
-- **Functions Found**: 1757
-- **Methods Found**: 1244
+- **Functions Found**: 1761
+- **Methods Found**: 1245
 - **Classes Found**: 170
-- **Total Items**: 3001
-- **Functions Documented**: 1635
-- **Methods Documented**: 1190
+- **Total Items**: 3006
+- **Functions Documented**: 1639
+- **Methods Documented**: 1191
 - **Classes Documented**: 122
-- **Total Documented**: 2825
+- **Total Documented**: 2830
 - **Template-Generated**: 4
 - **Last Updated**: 2026-04-29
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (628)
+### **Core System Functions** (631)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (459)
+### **Communication Functions** (460)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (426)
@@ -1768,7 +1768,7 @@ Returns:
 - [OK] `_load_predefined_messages_library(self, user_id, category)` - Load messages in runtime shape for selection.
 - [OK] `_normalize_message_selection_periods(self, matching_periods, valid_periods)` - Normalize matching periods for message selection.
 - [OK] `_process_incoming_email(self, email_msg)` - Process an incoming email message and send response
-- [OK] `_schedule_fields(msg)` - Return (days, periods) for filtering, from v2 ``schedule`` or legacy top-level fields.
+- [OK] `_schedule_fields(msg)` - Return (days, periods) for filtering from v2 ``schedule``.
 - [OK] `_select_weighted_message(self, available_messages, matching_periods)` - Select weighted message with validation.
 
 Returns:
@@ -2109,7 +2109,7 @@ Examples:
 - [OK] `_get_question_text(self, question_key, previous_data, user_id)` - Get appropriate question text based on question type and previous responses
 - [OK] `_get_reminder_parse_patterns(self)` - Return ordered regex patterns for reminder phrase parsing.
 - [OK] `_get_task_due_datetime_for_reminders(self, user_id, task_id)` - Resolve task due datetime for reminder calculations.
-- [OK] `_get_task_flow_identifier(self, user_state)` - Get canonical task identifier from flow state, with legacy fallback.
+- [OK] `_get_task_flow_identifier(self, user_state)` - Get canonical task identifier from flow state.
 - [OK] `_handle_checkin(self, user_id, user_state, message_text)` - Enhanced check-in flow with dynamic questions and better validation
 - [OK] `_handle_command_during_checkin(self, user_id, message_text)` - Handle common commands while user is in a checkin flow
 - [OK] `_handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
@@ -2124,6 +2124,7 @@ Parses natural language responses like:
 - "No reminders needed" / "No" / "Skip"
 - [OK] `_load_user_states(self)` - Load user states from disk with comprehensive logging
 - [OK] `_mark_flow_completion(self, user_id)` - Record when a user flow completed to enforce post-flow cooldown.
+- [OK] `_normalize_loaded_flow_task_identifiers(self)` - Move persisted ``task_id`` flow data to ``task_identifier`` and save once.
 - [OK] `_normalize_reminder_text(self, text)` - Normalize reminder text variants before regex matching.
 - [OK] `_parse_date_time_from_text(self, text)` - Parse date and time from natural language text.
 
@@ -2224,7 +2225,7 @@ Examples:
   - [OK] `ConversationManager._get_question_text(self, question_key, previous_data, user_id)` - Get appropriate question text based on question type and previous responses
   - [OK] `ConversationManager._get_reminder_parse_patterns(self)` - Return ordered regex patterns for reminder phrase parsing.
   - [OK] `ConversationManager._get_task_due_datetime_for_reminders(self, user_id, task_id)` - Resolve task due datetime for reminder calculations.
-  - [OK] `ConversationManager._get_task_flow_identifier(self, user_state)` - Get canonical task identifier from flow state, with legacy fallback.
+  - [OK] `ConversationManager._get_task_flow_identifier(self, user_state)` - Get canonical task identifier from flow state.
   - [OK] `ConversationManager._handle_checkin(self, user_id, user_state, message_text)` - Enhanced check-in flow with dynamic questions and better validation
   - [OK] `ConversationManager._handle_command_during_checkin(self, user_id, message_text)` - Handle common commands while user is in a checkin flow
   - [OK] `ConversationManager._handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
@@ -2239,6 +2240,7 @@ Parses natural language responses like:
 - "No reminders needed" / "No" / "Skip"
   - [OK] `ConversationManager._load_user_states(self)` - Load user states from disk with comprehensive logging
   - [OK] `ConversationManager._mark_flow_completion(self, user_id)` - Record when a user flow completed to enforce post-flow cooldown.
+  - [OK] `ConversationManager._normalize_loaded_flow_task_identifiers(self)` - Move persisted ``task_id`` flow data to ``task_identifier`` and save once.
   - [OK] `ConversationManager._normalize_reminder_text(self, text)` - Normalize reminder text variants before regex matching.
   - [OK] `ConversationManager._parse_date_time_from_text(self, text)` - Parse date and time from natural language text.
 
@@ -3722,10 +3724,10 @@ Returns:
 #### `core/message_management.py`
 **Functions:**
 - [OK] `_canonical_message_timestamp(value)` - Return a valid full timestamp string or current time when invalid.
-- [OK] `_delivery_to_runtime_message(delivery)` - Return canonical delivery shape with legacy aliases for compatibility.
+- [OK] `_delivery_to_runtime_message(delivery)` - Return runtime dict for a v2 delivery record.
 - [OK] `_ensure_v2_message_template_file(data, category)` - Normalize a message template file payload to canonical v2 wrapper shape.
 - [OK] `_message_template_default_to_v2(message, category)` - Build a canonical v2 message template from default/runtime message data.
-- [OK] `_message_template_to_runtime(message, category)` - Return canonical template shape with legacy aliases for compatibility.
+- [OK] `_message_template_to_runtime(message, category)` - Return runtime dict for message selection (canonical v2 template fields).
 - [OK] `_normalize_message_timestamps(data, file_path)` - Normalize timestamps in persisted sent_messages data to the canonical TIMESTAMP_FULL shape.
 
 Returns:
@@ -3869,6 +3871,10 @@ Raises:
 - [OK] `_checkin_to_runtime_response(checkin)` - Return the flat response shape expected by existing analytics callers.
 - [OK] `_get_response_log_filename(response_type)` - Get the filename for a response log type.
 - [OK] `_response_to_v2_checkin(response_data)` - Build a canonical v2 check-in record from the current response payload.
+- [OK] `checkin_runtime_timestamp(checkin)` - Wall-clock timestamp string for a check-in row.
+
+Prefer v2 ``submitted_at``; fall back to ``timestamp`` (set by
+:func:`_checkin_to_runtime_response` and legacy flat rows).
 - [OK] `get_checkins_by_days(user_id, days)` - Get check-ins from the last N calendar days.
 - [OK] `get_recent_chat_interactions(user_id, limit)` - Get recent chat interactions for a user.
 - [OK] `get_recent_checkins(user_id, limit)` - Get recent check-in responses for a user.
@@ -4345,6 +4351,8 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
 - [OK] `_has_any_request_files(self, base_dir)` - Quick check if any request files exist (optimization to avoid full scan when not needed).
 - [OK] `_log_discord_connectivity_health(self)` - Log connectivity diagnostics for Discord channel health.
 - [OK] `_log_hourly_service_status(self, loop_minutes)` - Log periodic service metrics and channel-health diagnostics.
+- [OK] `_message_schedule_matches_current_window(day_names, time_periods, current_days, matching_periods)` - True if template schedule overlaps current day/period (ALL matches any).
+- [OK] `_message_template_schedule_lists(msg)` - Return day names and time periods from a v2 template ``schedule`` (or ALL defaults).
 - [OK] `_poll_request_files_if_needed(self)` - Process request-flag files only when present to keep loop overhead low.
 - [OK] `_process_shutdown_request(self, shutdown_file)` - Return True when a shutdown request was detected and loop should stop.
 - [OK] `_write_checkin_response(self, user_id, first_question)` - Write the first check-in question to a response file for the UI to read.
@@ -5234,7 +5242,7 @@ Returns:
 - [MISSING] `_load_v2_tasks(user_id)` - No description
 - [OK] `_normalized_priority(value)` - Normalize task priority to a supported lower-case value.
 - [OK] `_nullable_timestamp(value)` - Return a valid full timestamp string, otherwise None.
-- [OK] `_runtime_reminders_to_v2(task)` - Convert runtime reminder fields into canonical v2 reminder records.
+- [OK] `_runtime_reminders_to_v2(task)` - Return canonical v2 reminder records from runtime task dict.
 - [OK] `_runtime_task_to_v2(task)` - Convert a runtime task dictionary to a validated canonical v2 task record.
 - [MISSING] `_runtime_tasks_to_v2(tasks)` - No description
 - [MISSING] `_save_v2_tasks(user_id, tasks)` - No description

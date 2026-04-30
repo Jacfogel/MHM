@@ -317,16 +317,12 @@ def test_runtime_message_loading_accepts_v2_template_files(tmp_path, monkeypatch
     assert messages == [
         {
             "id": "template-1",
-            "message_id": "template-1",
             "text": "Keep going.",
-            "message": "Keep going.",
             "category": "motivational",
             "schedule": {"days": ["Monday"], "periods": ["morning"]},
-            "days": ["Monday"],
-            "time_periods": ["morning"],
             "created_at": TIMESTAMP,
             "updated_at": TIMESTAMP,
-            "timestamp": TIMESTAMP,
+            "active": True,
         }
     ]
 
@@ -362,9 +358,9 @@ def test_runtime_recent_messages_accepts_v2_delivery_files(tmp_path, monkeypatch
 
     messages = get_recent_messages("user-1", category="motivational")
 
-    assert messages[0]["message_id"] == "template-1"
-    assert messages[0]["message"] == "Keep going."
-    assert messages[0]["timestamp"] == TIMESTAMP
+    assert messages[0]["message_template_id"] == "template-1"
+    assert messages[0]["sent_text"] == "Keep going."
+    assert messages[0]["sent_at"] == TIMESTAMP
 
 
 @pytest.mark.unit

@@ -9,6 +9,7 @@ from communication.command_handlers.shared_types import (
     InteractionResponse,
     ParsedCommand,
 )
+from core.response_tracking import checkin_runtime_timestamp
 
 # Route analytics logs to command handlers component
 analytics_logger = get_component_logger("analytics_handler")
@@ -513,7 +514,7 @@ class AnalyticsHandler(InteractionHandler):
                     )
                 recent_checkins = get_recent_checkins(user_id, limit=1)
                 if recent_checkins:
-                    last_timestamp = recent_checkins[0].get("timestamp")
+                    last_timestamp = checkin_runtime_timestamp(recent_checkins[0])
                     last_dt = (
                         parse_timestamp_full(last_timestamp) if last_timestamp else None
                     )
@@ -542,7 +543,7 @@ class AnalyticsHandler(InteractionHandler):
             question_keys = set(question_defs.keys())
 
             for checkin in checkin_history[:5]:  # Show last 5 check-ins
-                timestamp = checkin.get("timestamp", "")
+                timestamp = checkin_runtime_timestamp(checkin)
                 date = checkin.get("date") or (
                     timestamp[:10] if timestamp else "Unknown date"
                 )
@@ -763,7 +764,7 @@ class AnalyticsHandler(InteractionHandler):
             value = entry.get(value_key)
             if not isinstance(value, (int, float)):
                 continue
-            date_value = entry.get("date") or entry.get("timestamp") or "Unknown"
+            date_value = entry.get("date") or checkin_runtime_timestamp(entry) or "Unknown"
             date_label = (
                 date_value[:10] if isinstance(date_value, str) else str(date_value)
             )

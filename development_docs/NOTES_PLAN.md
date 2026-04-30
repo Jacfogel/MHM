@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Implementation plan for notebook feature  
 > **Style**: Actionable, checklist-focused, roadmap-oriented  
-> **Last Updated**: 2026-04-27 (User-data v2 migration completed; v2-native cleanup tracked)
+> **Last Updated**: 2026-04-29 (Notebook v2 persisted + v2-native runtime aligned with USER_DATA_MODEL)
 > **Parent**: [PLANS.md](development_docs/PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -105,7 +105,7 @@ Each item:
 ### Notebook and Journal Data Model Migration
 
 **Migrate notebook entries to canonical v2 note structure**
-- *Status*: **Persisted data migration completed 2026-04-27**. Local notebook data now writes as versioned v2 `entries[]`; runtime still adapts to existing `Entry` models until v2-native cleanup is complete.
+- *Status*: **Persisted data migration completed 2026-04-27**; **v2-native handlers/commands completed 2026-04-29** (`description`, `journal_entry`; no `body` in command entity extraction).
 - *What it means*: Convert existing note records to the revised v2 note structure.
 - *Why it helps*: Aligns notes with tasks, journal entries, and future events.
 - *Estimated effort*: Large
@@ -208,7 +208,7 @@ Each item:
   - [x] Add tests for list migration.
 
 **Update notebook tests for v2 structures**
-- *Status*: **Partially complete 2026-04-27**. Migration and runtime-adapter tests exist; older notebook fixtures/tests still need review before v1 compatibility is removed.
+- *Status*: **Complete for v2-native runtime 2026-04-29**. Behavior/unit suites aligned with `description` and v2 entry shapes; spot-check remaining fixtures when adding new notebook features.
 - *What it means*: Update notebook tests to validate the revised v2 note, journal, and list models.
 - *Why it helps*: Prevents the notebook system from continuing to depend on old structures.
 - *Estimated effort*: Medium

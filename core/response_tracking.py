@@ -33,6 +33,21 @@ def _checkin_to_runtime_response(checkin: dict[str, Any]) -> dict[str, Any]:
     return runtime
 
 
+@handle_errors("resolving check-in runtime timestamp", default_return="")
+def checkin_runtime_timestamp(checkin: Any) -> str:
+    """Wall-clock timestamp string for a check-in row.
+
+    Prefer v2 ``submitted_at``; fall back to ``timestamp`` (set by
+    :func:`_checkin_to_runtime_response` and legacy flat rows).
+    """
+    if not isinstance(checkin, dict):
+        return ""
+    raw = checkin.get("submitted_at") or checkin.get("timestamp")
+    if raw is None:
+        return ""
+    return str(raw).strip()
+
+
 @handle_errors("converting runtime response to v2 checkin", default_return={})
 def _response_to_v2_checkin(response_data: dict[str, Any]) -> dict[str, Any]:
     """Build a canonical v2 check-in record from the current response payload."""
@@ -96,16 +111,49 @@ def store_user_response(
     else:
         log_file = get_user_file_path(user_id, f"{response_type}_log")
 
-    existing_data = load_json_data(log_file) or []
+    existing_data = load_json_data(log_file)
 
-    if response_type == "checkin" and isinstance(existing_data, dict) and existing_data.get("schema_version") == SCHEMA_VERSION:
-        checkins = existing_data.setdefault("checkins", [])
-        if not isinstance(checkins, list):
-            checkins = []
-            existing_data["checkins"] = checkins
-        checkins.append(_response_to_v2_checkin(response_data))
-        existing_data["updated_at"] = now_timestamp_full()
-        save_json_data(existing_data, log_file)
+    if response_type == "checkin":
+        envelope: dict[str, Any]
+        if (
+            isinstance(existing_data, dict)
+            and existing_data.get("schema_version") == SCHEMA_VERSION
+        ):
+            envelope = existing_data
+            checkins = envelope.setdefault("checkins", [])
+            if not isinstance(checkins, list):
+                checkins = []
+                envelope["checkins"] = checkins
+        else:
+            migrated: list[dict[str, Any]] = []
+            if isinstance(existing_data, list):
+                for item in existing_data:
+                    if isinstance(item, dict):
+                        migrated.append(_response_to_v2_checkin(item))
+            elif isinstance(existing_data, dict):
+                inner = existing_data.get("checkins")
+                if isinstance(inner, list):
+                    for item in inner:
+                        if not isinstance(item, dict):
+                            continue
+                        if item.get("submitted_at") and isinstance(
+                            item.get("responses"), dict
+                        ):
+                            migrated.append(item)
+                        else:
+                            migrated.append(_response_to_v2_checkin(item))
+            envelope = {
+                "schema_version": SCHEMA_VERSION,
+                "updated_at": now_timestamp_full(),
+                "checkins": migrated,
+            }
+
+        envelope.setdefault("checkins", [])
+        if not isinstance(envelope["checkins"], list):
+            envelope["checkins"] = []
+        envelope["checkins"].append(_response_to_v2_checkin(response_data))
+        envelope["updated_at"] = now_timestamp_full()
+        save_json_data(envelope, log_file)
         logger.debug(f"Stored v2 {response_type} response for user {user_id}")
         return
 

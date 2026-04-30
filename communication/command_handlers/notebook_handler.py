@@ -225,7 +225,7 @@ class NotebookHandler(InteractionHandler):
         )
 
         title = entities.get("title")
-        body = entities.get("body")
+        description = entities.get("description")
         tags = entities.get("tags", [])
         group = entities.get("group")
 
@@ -233,7 +233,7 @@ class NotebookHandler(InteractionHandler):
         # This shouldn't happen here since flow is handled in conversation_manager,
         # but handle it just in case
         user_state = conversation_manager.user_states.get(user_id, {})
-        if user_state.get("flow") == FLOW_NOTE_BODY and body:
+        if user_state.get("flow") == FLOW_NOTE_BODY and description:
             # Flow was already handled, but we have the body now
             flow_data = user_state.get("data", {})
             title = flow_data.get("title", title)
@@ -241,14 +241,14 @@ class NotebookHandler(InteractionHandler):
             group = flow_data.get("group", group)
 
         # If both title and body are missing, prompt for title
-        if not title and not body:
+        if not title and not description:
             return InteractionResponse(
                 "📝 What would you like to name this note? (You can add body text after)",
                 False,
             )
 
-        # If no body provided and we have a title, start flow to prompt for it
-        if not body and title:
+        # If no description provided and we have a title, start flow to prompt for it
+        if not description and title:
             # Parse tags from title first
             title, parsed_tags = parse_tags_from_text(title)
             tags.extend(parsed_tags)
@@ -267,14 +267,14 @@ class NotebookHandler(InteractionHandler):
                 suggestions=["Skip", "Cancel"],
             )
 
-        # If no title but body exists, use body as title (for simple notes like "!n My quick thought")
-        if not title and body:
-            title = body
-            body = None
+        # If no title but description exists, use description as title (for simple notes like "!n My quick thought")
+        if not title and description:
+            title = description
+            description = None
 
-        # Parse tags from body if present
-        if body:
-            body, parsed_tags = parse_tags_from_text(body)
+        # Parse tags from description if present
+        if description:
+            description, parsed_tags = parse_tags_from_text(description)
             tags.extend(parsed_tags)
         elif title:
             # Also parse tags from title if body is None
@@ -282,7 +282,7 @@ class NotebookHandler(InteractionHandler):
             tags.extend(parsed_tags)
 
         entry = create_note(
-            user_id, title=title, description=body, tags=tags, group=group
+            user_id, title=title, description=description, tags=tags, group=group
         )
 
         if entry:
@@ -396,12 +396,12 @@ class NotebookHandler(InteractionHandler):
     ) -> InteractionResponse:
         """Handle journal entry creation."""
         title = entities.get("title")
-        body = entities.get("body")
+        description = entities.get("description")
         tags = entities.get("tags", [])
         group = entities.get("group")
 
         entry = create_journal(
-            user_id, title=title, description=body, tags=tags, group=group
+            user_id, title=title, description=description, tags=tags, group=group
         )
 
         if entry:
@@ -485,7 +485,7 @@ class NotebookHandler(InteractionHandler):
     ) -> InteractionResponse:
         """Handle appending to entry body."""
         entry_ref = entities.get("entry_ref")
-        text = entities.get("text") or entities.get("body")
+        text = entities.get("text")
 
         if not entry_ref:
             return InteractionResponse(
@@ -512,7 +512,7 @@ class NotebookHandler(InteractionHandler):
     ) -> InteractionResponse:
         """Handle setting entry body."""
         entry_ref = entities.get("entry_ref")
-        text = entities.get("text") or entities.get("body")
+        text = entities.get("text")
 
         if not entry_ref:
             return InteractionResponse("Which entry would you like to edit?", False)

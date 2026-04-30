@@ -16,8 +16,9 @@ from core.response_tracking import (
     get_recent_chat_interactions,
     is_user_checkins_enabled,
     get_user_info_for_tracking,
-    track_user_response
+    track_user_response,
 )
+from core.user_data_v2 import SCHEMA_VERSION
 
 
 @pytest.mark.communication
@@ -51,10 +52,12 @@ class TestResponseTrackingBehavior:
         
         with open(checkins_file, encoding='utf-8') as f:
             data = json.load(f)
-        
-        assert len(data) == 1, "Should have one response entry"
-        assert data[0]["mood"] == 5, "Response data should be stored correctly"
-        assert "timestamp" in data[0], "Timestamp should be added automatically"
+
+        assert data.get("schema_version") == SCHEMA_VERSION
+        checkins = data.get("checkins", [])
+        assert len(checkins) == 1, "Should have one response entry"
+        assert checkins[0]["responses"]["mood"] == 5, "Response data should be stored correctly"
+        assert checkins[0].get("submitted_at"), "submitted_at should be set on v2 record"
     
     @pytest.mark.behavior
     @pytest.mark.analytics
@@ -82,10 +85,11 @@ class TestResponseTrackingBehavior:
         # Assert - Verify both entries are stored
         with open(checkins_file, encoding='utf-8') as f:
             data = json.load(f)
-        
-        assert len(data) == 2, "Should have two response entries"
-        assert data[0]["mood"] == 3, "First response should be stored"
-        assert data[1]["mood"] == 7, "Second response should be stored"
+
+        checkins = data.get("checkins", [])
+        assert len(checkins) == 2, "Should have two response entries"
+        assert checkins[0]["responses"]["mood"] == 3, "First response should be stored"
+        assert checkins[1]["responses"]["mood"] == 7, "Second response should be stored"
     
     @pytest.mark.behavior
     @pytest.mark.analytics
@@ -499,12 +503,13 @@ class TestResponseTrackingBehavior:
         # Assert - Verify both entries are preserved
         with open(checkins_file, encoding='utf-8') as f:
             data = json.load(f)
-        
-        assert len(data) == 2, "Should preserve all entries"
-        assert data[0]["notes"] == "Initial entry", "First entry should be preserved"
-        assert data[1]["notes"] == "Additional entry", "Second entry should be preserved"
-        assert "timestamp" in data[0], "First entry should have timestamp"
-        assert "timestamp" in data[1], "Second entry should have timestamp"
+
+        checkins = data.get("checkins", [])
+        assert len(checkins) == 2, "Should preserve all entries"
+        assert checkins[0]["responses"]["notes"] == "Initial entry", "First entry should be preserved"
+        assert checkins[1]["responses"]["notes"] == "Additional entry", "Second entry should be preserved"
+        assert checkins[0].get("submitted_at"), "First entry should have submitted_at"
+        assert checkins[1].get("submitted_at"), "Second entry should have submitted_at"
 
 
 @pytest.mark.communication
@@ -604,13 +609,11 @@ class TestResponseTrackingIntegration:
         # Assert - Should create new valid file with improved error handling
         with open(checkins_file, encoding='utf-8') as f:
             data = json.load(f)
-        
-        # With improved error handling, checkins files are simple lists
-        assert isinstance(data, list), "Should create valid JSON array file"
-        assert len(data) == 1, "Should have one checkin entry"
-        assert data[0]["mood"] == 5, "Should have correct mood value"
-        # The file should be created successfully (the exact data structure may vary)
-        # The main point is that error recovery works and creates a valid file
+
+        assert data.get("schema_version") == SCHEMA_VERSION
+        checkins = data.get("checkins", [])
+        assert len(checkins) == 1, "Should have one checkin entry"
+        assert checkins[0]["responses"]["mood"] == 5, "Should have correct mood value"
     
     def test_response_tracking_concurrent_access_safety(self, test_data_dir):
         """Test that response tracking handles concurrent access safely.

@@ -1712,15 +1712,12 @@ class CommunicationManager:
         """Filter messages by active day and matching period."""
         @handle_errors("extracting message schedule fields", default_return=(["ALL"], ["ALL"]))
         def _schedule_fields(msg: dict[str, Any]) -> tuple[list[str], list[str]]:
-            """Return (days, periods) for filtering, from v2 ``schedule`` or legacy top-level fields."""
+            """Return (days, periods) for filtering from v2 ``schedule``."""
             schedule = msg.get("schedule")
-            if isinstance(schedule, dict):
-                days = schedule.get("days")
-                periods = schedule.get("periods")
-            else:
-                days = msg.get("days")
-                periods = msg.get("time_periods")
-
+            if not isinstance(schedule, dict):
+                return ["ALL"], ["ALL"]
+            days = schedule.get("days")
+            periods = schedule.get("periods")
             days_list = [d for d in (days or ["ALL"]) if isinstance(d, str)] or ["ALL"]
             periods_list = [p for p in (periods or ["ALL"]) if isinstance(p, str)] or ["ALL"]
             return days_list, periods_list
@@ -1745,14 +1742,14 @@ class CommunicationManager:
             user_id, category=category, limit=50, days_back=60
         )
         recent_content = {
-            msg.get("message", "").strip().lower()
+            msg.get("sent_text", "").strip().lower()
             for msg in recent_messages
-            if msg.get("message")
+            if msg.get("sent_text")
         }
 
         available_messages = []
         for msg in all_messages:
-            message_content = msg.get("message", "").strip()
+            message_content = msg.get("text", "").strip()
             if message_content and message_content.lower() not in recent_content:
                 available_messages.append(msg)
 
@@ -1780,18 +1777,14 @@ class CommunicationManager:
         success = self.send_message_sync(
             messaging_service,
             recipient,
-            str(message_to_send.get("message") or message_to_send.get("text") or ""),
+            str(message_to_send.get("text") or ""),
             user_id=user_id,
             category=category,
         )
 
         current_time_period = matching_periods[0] if matching_periods else None
-        selected_message_content = str(
-            message_to_send.get("message") or message_to_send.get("text") or ""
-        )
-        selected_message_id = str(
-            message_to_send.get("message_id") or message_to_send.get("id") or ""
-        )
+        selected_message_content = str(message_to_send.get("text") or "")
+        selected_message_id = str(message_to_send.get("id") or "")
         message_preview = (
             selected_message_content[:50] + "..."
             if len(selected_message_content) > 50
@@ -1860,8 +1853,9 @@ class CommunicationManager:
                 # Sample first 3 messages to show what we're looking for
                 sample_messages = data["messages"][:3]
                 for i, msg in enumerate(sample_messages):
+                    sch = msg.get("schedule") if isinstance(msg.get("schedule"), dict) else {}
                     logger.debug(
-                        f"MESSAGE_SELECTION_SAMPLE_{i}: days={msg.get('days')}, time_periods={msg.get('time_periods')}, message_preview='{msg.get('message', '')[:50]}'"
+                        f"MESSAGE_SELECTION_SAMPLE_{i}: days={sch.get('days')}, periods={sch.get('periods')}, text_preview='{str(msg.get('text', ''))[:50]}'"
                     )
                 return False, None
 
@@ -2183,7 +2177,10 @@ class CommunicationManager:
         all_period_messages = []
 
         for msg in available_messages:
-            time_periods = msg.get("time_periods", [])
+            sched = msg.get("schedule") if isinstance(msg.get("schedule"), dict) else {}
+            time_periods = sched.get("periods") or ["ALL"]
+            if not isinstance(time_periods, list):
+                time_periods = ["ALL"]
             # Check if message has any specific time periods (not just 'ALL')
             has_specific_periods = any(period != "ALL" for period in time_periods)
 

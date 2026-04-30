@@ -139,7 +139,7 @@ class TestNotebookHandlerBehavior:
 
         parsed_command = ParsedCommand(
             intent="create_note",
-            entities={"title": "Meeting Notes", "body": "Discuss project X"},
+            entities={"title": "Meeting Notes", "description": "Discuss project X"},
             confidence=0.9,
             original_message="!n Meeting Notes : Discuss project X",
         )
@@ -993,9 +993,9 @@ class TestNotebookEntityExtraction:
         # Parser may normalize to lowercase
         title = result.parsed_command.entities.get("title", "").lower()
         assert "meeting notes" in title, f"Should extract correct title, got: {title}"
-        assert "body" in result.parsed_command.entities, "Should extract body"
-        body = result.parsed_command.entities.get("body", "").lower()
-        assert "discuss project x" in body, f"Should extract correct body, got: {body}"
+        assert "description" in result.parsed_command.entities, "Should extract description"
+        body = result.parsed_command.entities.get("description", "").lower()
+        assert "discuss project x" in body, f"Should extract correct description, got: {body}"
 
     def test_extract_title_and_body_with_newline_separator(self, test_data_dir):
         """Test extracting title and body using newline separator."""
@@ -1007,9 +1007,9 @@ class TestNotebookEntityExtraction:
         # Parser may normalize to lowercase
         title = result.parsed_command.entities.get("title", "").lower()
         assert "meeting notes" in title, f"Should extract correct title, got: {title}"
-        assert "body" in result.parsed_command.entities, "Should extract body"
-        body = result.parsed_command.entities.get("body", "").lower()
-        assert "discuss project x" in body, f"Should extract correct body, got: {body}"
+        assert "description" in result.parsed_command.entities, "Should extract description"
+        body = result.parsed_command.entities.get("description", "").lower()
+        assert "discuss project x" in body, f"Should extract correct description, got: {body}"
 
     def test_extract_tags_from_note_command(self, test_data_dir):
         """Test extracting tags from note commands."""
@@ -1592,7 +1592,7 @@ class TestNotebookErrorHandling:
         long_title = "A" * 1000  # Very long title
         parsed_command = ParsedCommand(
             intent="create_note",
-            entities={"title": long_title, "body": "Test body"},
+            entities={"title": long_title, "description": "Test body"},
             confidence=0.9,
             original_message=f"!n {long_title}",
         )

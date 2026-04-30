@@ -4,7 +4,11 @@ from typing import Any
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.response_tracking import is_user_checkins_enabled, get_recent_checkins
+from core.response_tracking import (
+    checkin_runtime_timestamp,
+    get_recent_checkins,
+    is_user_checkins_enabled,
+)
 from core.time_utilities import parse_timestamp_full
 from datetime import date
 from communication.command_handlers.base_handler import InteractionHandler
@@ -72,7 +76,7 @@ class CheckinHandler(InteractionHandler):
         recent_checkins = get_recent_checkins(user_id, limit=1)
         if recent_checkins:
             last_checkin = recent_checkins[0]
-            last_checkin_timestamp = last_checkin.get("timestamp", "")
+            last_checkin_timestamp = checkin_runtime_timestamp(last_checkin)
 
             # Parse the timestamp to check if it's from today
             last_checkin_dt = parse_timestamp_full(last_checkin_timestamp)
@@ -141,7 +145,7 @@ class CheckinHandler(InteractionHandler):
         for checkin in recent_checkins[:5]:  # Show last 5
             date = checkin.get("date")
             if not date:
-                timestamp = checkin.get("timestamp", "")
+                timestamp = checkin_runtime_timestamp(checkin)
                 parsed_dt = parse_timestamp_full(timestamp) if timestamp else None
                 date = parsed_dt.date().isoformat() if parsed_dt else "Unknown date"
             responses = checkin.get("responses") if isinstance(checkin.get("responses"), dict) else {}

@@ -17,6 +17,15 @@ TEST_ANCHOR_DT = datetime(2026, 1, 15, 12, 0, 0)
 # Do not modify sys.path; rely on package imports
 
 
+def _mock_checkin_row(timestamp: str, **fields) -> dict:
+    """Runtime-shaped check-in row (v2 answers under ``responses``, mirrored at top level)."""
+    data = {k: v for k, v in fields.items() if k != "user_id"}
+    row: dict = {"timestamp": timestamp, **data}
+    row["responses"] = dict(data)
+    row["questions_asked"] = list(data.keys())
+    return row
+
+
 @pytest.mark.core
 @pytest.mark.behavior
 class TestCheckinAnalyticsInitializationBehavior:
@@ -54,11 +63,11 @@ class TestCheckinAnalyticsMoodTrendsBehavior:
         for i in range(30):
             date = base_date + timedelta(days=i)
             checkins.append(
-                {
-                    "timestamp": format_timestamp(date, TIMESTAMP_FULL),
-                    "mood": 3 + (i % 3),  # Alternating moods: 3, 4, 5
-                    "user_id": "test_user",
-                }
+                _mock_checkin_row(
+                    format_timestamp(date, TIMESTAMP_FULL),
+                    mood=3 + (i % 3),  # Alternating moods: 3, 4, 5
+                    user_id="test_user",
+                )
             )
 
         return checkins
@@ -119,12 +128,9 @@ class TestCheckinAnalyticsMoodTrendsBehavior:
         """REAL BEHAVIOR TEST: Test mood trends with invalid mood data."""
         # [OK] VERIFY REAL BEHAVIOR: Invalid mood data returns error
         invalid_checkins = [
-            {
-                "timestamp": "2024-01-01 10:00:00",
-                "mood": "invalid",
-            },  # String instead of number
-            {"timestamp": "2024-01-02 10:00:00"},  # Missing mood
-            {"mood": 4},  # Missing timestamp
+            _mock_checkin_row("2024-01-01 10:00:00", mood="invalid"),
+            _mock_checkin_row("2024-01-02 10:00:00"),
+            {"mood": 4, "responses": {"mood": 4}, "questions_asked": ["mood"]},
         ]
 
         with patch(
@@ -159,16 +165,16 @@ class TestCheckinAnalyticsHabitAnalysisBehavior:
         for i in range(30):
             date = base_date + timedelta(days=i)
             checkins.append(
-                {
-                    "timestamp": format_timestamp(date, TIMESTAMP_FULL),
-                    "ate_breakfast": i % 2,  # Every other day
-                    "brushed_teeth": 1,  # Every day
-                    "medication_taken": i % 3 == 0,  # Every third day
-                    "exercise": i % 4 == 0,  # Every fourth day
-                    "hydration": 1,  # Every day
-                    "social_interaction": i % 2,  # Every other day
-                    "user_id": "test_user",
-                }
+                _mock_checkin_row(
+                    format_timestamp(date, TIMESTAMP_FULL),
+                    ate_breakfast=i % 2,
+                    brushed_teeth=1,
+                    medication_taken=i % 3 == 0,
+                    exercise=i % 4 == 0,
+                    hydration=1,
+                    social_interaction=i % 2,
+                    user_id="test_user",
+                )
             )
 
         return checkins
@@ -254,15 +260,15 @@ class TestCheckinAnalyticsSleepAnalysisBehavior:
             sleep_time = f"{23 - int(hours - 7):02d}:00"  # 23:00, 22:00, 21:00
             wake_time = "07:00"
             checkins.append(
-                {
-                    "timestamp": format_timestamp(date, TIMESTAMP_FULL),
-                    "sleep_schedule": {
+                _mock_checkin_row(
+                    format_timestamp(date, TIMESTAMP_FULL),
+                    sleep_schedule={
                         "sleep_time": sleep_time,
                         "wake_time": wake_time,
                     },
-                    "sleep_quality": 3 + (i % 3),  # 3, 4, 5 quality
-                    "user_id": "test_user",
-                }
+                    sleep_quality=3 + (i % 3),
+                    user_id="test_user",
+                )
             )
 
         return checkins
@@ -341,19 +347,19 @@ class TestCheckinAnalyticsWellnessScoreBehavior:
         for i in range(7):
             date = base_date + timedelta(days=i)
             checkins.append(
-                {
-                    "timestamp": format_timestamp(date, TIMESTAMP_FULL),
-                    "mood": 4,  # Good mood
-                    "ate_breakfast": 1,  # Good habits
-                    "brushed_teeth": 1,
-                    "medication_taken": 1,
-                    "exercise": 1,
-                    "hydration": 1,
-                    "social_interaction": 1,
-                    "sleep_schedule": {"sleep_time": "23:00", "wake_time": "07:00"},
-                    "sleep_quality": 4,
-                    "user_id": "test_user",
-                }
+                _mock_checkin_row(
+                    format_timestamp(date, TIMESTAMP_FULL),
+                    mood=4,
+                    ate_breakfast=1,
+                    brushed_teeth=1,
+                    medication_taken=1,
+                    exercise=1,
+                    hydration=1,
+                    social_interaction=1,
+                    sleep_schedule={"sleep_time": "23:00", "wake_time": "07:00"},
+                    sleep_quality=4,
+                    user_id="test_user",
+                )
             )
 
         return checkins
@@ -434,12 +440,12 @@ class TestCheckinAnalyticsHistoryBehavior:
         for i in range(30):
             date = base_date + timedelta(days=i)
             checkins.append(
-                {
-                    "timestamp": format_timestamp(date, TIMESTAMP_FULL),
-                    "mood": 4,
-                    "notes": f"Check-in note for day {i}",
-                    "user_id": "test_user",
-                }
+                _mock_checkin_row(
+                    format_timestamp(date, TIMESTAMP_FULL),
+                    mood=4,
+                    notes=f"Check-in note for day {i}",
+                    user_id="test_user",
+                )
             )
 
         return checkins
@@ -502,13 +508,13 @@ class TestCheckinAnalyticsCompletionRateBehavior:
         for i in range(30):
             date = base_date + timedelta(days=i)
             checkins.append(
-                {
-                    "timestamp": format_timestamp(date, TIMESTAMP_FULL),
-                    "ate_breakfast": i % 2,  # 50% completion
-                    "brushed_teeth": 1,  # 100% completion
-                    "medication_taken": i % 3 == 0,  # 33% completion
-                    "user_id": "test_user",
-                }
+                _mock_checkin_row(
+                    format_timestamp(date, TIMESTAMP_FULL),
+                    ate_breakfast=i % 2,
+                    brushed_teeth=1,
+                    medication_taken=i % 3 == 0,
+                    user_id="test_user",
+                )
             )
 
         return checkins
@@ -574,14 +580,14 @@ class TestCheckinAnalyticsTaskStatsBehavior:
         for i in range(7):
             date = base_date + timedelta(days=i)
             checkins.append(
-                {
-                    "timestamp": format_timestamp(date, TIMESTAMP_FULL),
-                    "ate_breakfast": i % 2 == 0,
-                    "exercise": i % 3 == 0,
-                    "hydration": True,
-                    "medication_taken": i % 4 == 0,
-                    "user_id": "test_user",
-                }
+                _mock_checkin_row(
+                    format_timestamp(date, TIMESTAMP_FULL),
+                    ate_breakfast=i % 2 == 0,
+                    exercise=i % 3 == 0,
+                    hydration=True,
+                    medication_taken=i % 4 == 0,
+                    user_id="test_user",
+                )
             )
 
         return checkins

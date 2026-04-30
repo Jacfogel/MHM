@@ -6,7 +6,10 @@ Tests that ALL quantitative questions from questions.json are included in analyt
 import pytest
 import json
 import os
+import uuid
+
 from core.checkin_analytics import CheckinAnalytics
+from core.user_data_v2 import SCHEMA_VERSION
 from core import (
     get_user_data,
     save_user_data,
@@ -15,6 +18,34 @@ from core import (
 from core.config import get_user_file_path
 from core.time_utilities import TIMESTAMP_FULL, format_timestamp, now_datetime_full
 from tests.test_helpers.test_utilities import TestUserFactory
+
+
+def _v2_checkins_document(flat_rows: list[dict]) -> dict:
+    """Wrap legacy flat list rows into on-disk v2 ``checkins.json`` shape."""
+    checkins = []
+    updated_at = ""
+    for row in flat_rows:
+        row = dict(row)
+        ts = row.pop("timestamp", "")
+        updated_at = ts
+        checkins.append(
+            {
+                "id": str(uuid.uuid4()),
+                "submitted_at": ts,
+                "source": {"system": "mhm", "channel": "", "actor": "", "migration": None},
+                "responses": row,
+                "questions_asked": list(row.keys()),
+                "linked_item_ids": [],
+                "created_at": ts,
+                "updated_at": ts,
+                "archived_at": None,
+                "deleted_at": None,
+                "metadata": {},
+            }
+        )
+    return {"schema_version": SCHEMA_VERSION, "updated_at": updated_at, "checkins": checkins}
+
+
 @pytest.mark.core
 
 
@@ -122,7 +153,7 @@ class TestComprehensiveQuantitativeAnalytics:
         checkin_file = get_user_file_path(actual_user_id, "checkins")
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, "w", encoding="utf-8") as f:
-            json.dump(sample_checkins, f, indent=2)
+            json.dump(_v2_checkins_document(sample_checkins), f, indent=2)
 
         # Act - Get quantitative summaries with explicit enabled fields (use actual_user_id)
         analytics = CheckinAnalytics()
@@ -264,7 +295,7 @@ class TestComprehensiveQuantitativeAnalytics:
         checkin_file = get_user_file_path(actual_user_id, "checkins")
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, "w", encoding="utf-8") as f:
-            json.dump(sample_checkins, f, indent=2)
+            json.dump(_v2_checkins_document(sample_checkins), f, indent=2)
 
         # Act - Get quantitative summaries (use actual_user_id)
         analytics = CheckinAnalytics()
@@ -349,7 +380,7 @@ class TestComprehensiveQuantitativeAnalytics:
         checkin_file = get_user_file_path(actual_user_id, "checkins")
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, "w", encoding="utf-8") as f:
-            json.dump(sample_checkins, f, indent=2)
+            json.dump(_v2_checkins_document(sample_checkins), f, indent=2)
 
         # Act - Get quantitative summaries (use actual_user_id)
         analytics = CheckinAnalytics()

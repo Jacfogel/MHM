@@ -10,7 +10,7 @@ understand their patterns and progress over time.
 import statistics
 from typing import Any
 from core.logger import get_component_logger
-from core.response_tracking import get_checkins_by_days
+from core.response_tracking import checkin_runtime_timestamp, get_checkins_by_days
 from core.error_handling import ValidationError, handle_errors
 from core.time_utilities import parse_timestamp_full, parse_time_only_minute
 
@@ -46,11 +46,7 @@ class CheckinAnalytics:
         responses = checkin.get("responses")
         if isinstance(responses, dict):
             return [key for key in responses if isinstance(key, str) and key]
-        return [
-            key
-            for key in checkin
-            if key not in self._RESERVED_CHECKIN_KEYS
-        ]
+        return []
 
     @handle_errors("checking question asked", default_return=False)
     def _is_question_asked(self, checkin: dict, question_key: str) -> bool:
@@ -61,19 +57,14 @@ class CheckinAnalytics:
         responses = checkin.get("responses")
         if isinstance(responses, dict):
             return question_key in responses
-        return question_key in checkin
+        return False
 
     @handle_errors("getting check-in response value", default_return=None)
     def _response_value(self, checkin: dict[str, Any], key: str) -> Any:
         responses = checkin.get("responses")
         if isinstance(responses, dict) and key in responses:
             return responses.get(key)
-        # LEGACY COMPATIBILITY: Temporary bridge for flat top-level check-in answers.
-        if key in checkin:
-            logger.warning(
-                f"LEGACY COMPATIBILITY: check-in analytics fallback used for flat response key '{key}'."
-            )
-        return checkin.get(key)
+        return None
 
     @handle_errors("checking answered value", default_return=False)
     def _is_answered_value(self, value: Any) -> bool:
@@ -706,9 +697,10 @@ class CheckinAnalytics:
 
         formatted_history = []
         for checkin in checkins:
-            if "timestamp" in checkin:
+            raw_ts = checkin_runtime_timestamp(checkin)
+            if raw_ts:
                 try:
-                    timestamp = parse_timestamp_full(checkin["timestamp"])
+                    timestamp = parse_timestamp_full(raw_ts)
 
                     if timestamp is None:
                         raise ValidationError("Invalid timestamp")
@@ -716,7 +708,7 @@ class CheckinAnalytics:
                     formatted_checkin = {
                         # ISO date should come from the date object
                         "date": timestamp.date().isoformat(),
-                        "timestamp": checkin["timestamp"],
+                        "timestamp": raw_ts,
                     }
                     if "questions_asked" in checkin:
                         formatted_checkin["questions_asked"] = checkin["questions_asked"]

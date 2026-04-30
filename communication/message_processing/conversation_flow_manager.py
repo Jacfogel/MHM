@@ -147,11 +147,32 @@ class ConversationManager:
                     f"FLOW_STATE_LOAD: User {user_id} | flow={state.get('flow')}, state={state.get('state')}, "
                     f"question_index={state.get('current_question_index')}, questions={len(state.get('question_order', []))}"
                 )
+            self._normalize_loaded_flow_task_identifiers()
         else:
             logger.debug(
                 f"FLOW_STATE_LOAD: No existing conversation states file found at {str(self._state_file)}"
             )
             self.user_states = {}
+
+    @handle_errors("normalizing legacy flow task keys", default_return=None)
+    def _normalize_loaded_flow_task_identifiers(self) -> None:
+        """Move persisted ``task_id`` flow data to ``task_identifier`` and save once."""
+        dirty = False
+        for state in self.user_states.values():
+            data = state.get("data")
+            if not isinstance(data, dict):
+                continue
+            legacy = data.get("task_id")
+            current = data.get("task_identifier")
+            if legacy and not current:
+                data["task_identifier"] = str(legacy).strip()
+                data.pop("task_id", None)
+                dirty = True
+            elif legacy and current:
+                data.pop("task_id", None)
+                dirty = True
+        if dirty:
+            self._save_user_states()
 
     @handle_errors("saving user states to disk", default_return=None)
     def _save_user_states(self) -> None:
@@ -173,21 +194,12 @@ class ConversationManager:
 
     @handle_errors("resolving task flow identifier", default_return="")
     def _get_task_flow_identifier(self, user_state: dict[str, Any]) -> str:
-        """Get canonical task identifier from flow state, with legacy fallback."""
+        """Get canonical task identifier from flow state."""
         data = user_state.get("data") if isinstance(user_state, dict) else {}
         if not isinstance(data, dict):
             return ""
 
-        identifier = str(data.get("task_identifier") or "").strip()
-        if identifier:
-            return identifier
-
-        # LEGACY COMPATIBILITY: support older persisted flow states that used data.task_id.
-        legacy_identifier = str(data.get("task_id") or "").strip()
-        if legacy_identifier:
-            logger.debug("LEGACY COMPATIBILITY: using task_id from legacy flow state data")
-            return legacy_identifier
-        return ""
+        return str(data.get("task_identifier") or "").strip()
 
     @handle_errors("marking flow completion", default_return=None)
     def _mark_flow_completion(self, user_id: str) -> None:

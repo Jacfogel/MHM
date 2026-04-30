@@ -66,7 +66,7 @@ class MessageAnalytics:
         for msg in messages:
             msg_category = msg.get("category", "unknown")
             time_period = msg.get("time_period", "unknown")
-            timestamp = msg.get("sent_at") or msg.get("timestamp") or ""
+            timestamp = msg.get("sent_at") or ""
 
             category_counts[msg_category] += 1
             time_period_counts[time_period] += 1
@@ -146,7 +146,7 @@ class MessageAnalytics:
         category_status_counts = defaultdict(lambda: defaultdict(int))
 
         for msg in messages:
-            status = msg.get("status") or msg.get("delivery_status") or "unknown"
+            status = msg.get("status") or "unknown"
             category = msg.get("category", "unknown")
 
             status_counts[status] += 1

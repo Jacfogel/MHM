@@ -85,50 +85,34 @@ def _normalize_message_update_payload(updated_data: dict[str, Any]) -> dict[str,
 
 @handle_errors("converting v2 message template to runtime shape", default_return={})
 def _message_template_to_runtime(message: dict[str, Any], category: str) -> dict[str, Any]:
-    """Return canonical template shape with legacy aliases for compatibility."""
-    # LEGACY COMPATIBILITY: Temporary bridge for legacy template payloads.
-    if "text" not in message and "schedule" not in message and "message" in message:
-        logger.warning("LEGACY COMPATIBILITY: message template fallback used for legacy message field.")
-        message = _message_template_default_to_v2(message, category)
-    schedule = message.get("schedule") or {}
+    """Return runtime dict for message selection (canonical v2 template fields)."""
+    schedule_raw = message.get("schedule")
+    schedule = cast(dict[str, Any], schedule_raw) if isinstance(schedule_raw, dict) else {}
+    days = schedule.get("days") or ["ALL"]
+    periods = schedule.get("periods") or ["ALL"]
     message_id = message.get("id") or message.get("message_id")
+    if not message_id:
+        message_id = str(uuid.uuid4())
     return {
         "id": message_id,
-        "message_id": message_id,
-        "text": message.get("text") or message.get("message") or "",
-        "message": message.get("text") or message.get("message") or "",
-        "category": message.get("category") or category,
-        "schedule": {
-            "days": schedule.get("days") or message.get("days") or ["ALL"],
-            "periods": schedule.get("periods") or message.get("time_periods") or ["ALL"],
-        },
-        "days": schedule.get("days") or message.get("days") or ["ALL"],
-        "time_periods": schedule.get("periods") or message.get("time_periods") or ["ALL"],
+        "text": str(message.get("text") or ""),
+        "category": str(message.get("category") or category),
+        "schedule": {"days": days, "periods": periods},
         "created_at": message.get("created_at"),
         "updated_at": message.get("updated_at") or message.get("created_at"),
-        "timestamp": message.get("updated_at") or message.get("created_at"),
+        "active": bool(message.get("active", True)),
     }
 
 
 @handle_errors("converting v2 message delivery to runtime shape", default_return={})
 def _delivery_to_runtime_message(delivery: dict[str, Any]) -> dict[str, Any]:
-    """Return canonical delivery shape with legacy aliases for compatibility."""
-    # LEGACY COMPATIBILITY: Temporary bridge for legacy sent-message payloads.
-    if delivery.get("message") is not None or delivery.get("delivery_status") is not None or delivery.get("timestamp") is not None:
-        logger.warning("LEGACY COMPATIBILITY: sent-message fallback used for legacy delivery fields.")
-    message_id = delivery.get("message_template_id") or delivery.get("message_id")
-    sent_at = delivery.get("sent_at") or delivery.get("timestamp", "")
-    status = delivery.get("status") or delivery.get("delivery_status", "")
+    """Return runtime dict for a v2 delivery record."""
     return {
-        "message_template_id": message_id,
-        "message_id": message_id,
-        "sent_text": delivery.get("sent_text") or delivery.get("message") or "",
-        "message": delivery.get("sent_text") or delivery.get("message") or "",
-        "category": delivery.get("category", ""),
-        "sent_at": sent_at,
-        "timestamp": sent_at,
-        "status": status,
-        "delivery_status": status,
+        "message_template_id": delivery.get("message_template_id"),
+        "sent_text": str(delivery.get("sent_text") or ""),
+        "category": str(delivery.get("category") or ""),
+        "sent_at": str(delivery.get("sent_at") or ""),
+        "status": str(delivery.get("status") or ""),
         "time_period": delivery.get("time_period"),
     }
 
@@ -140,8 +124,6 @@ def _message_template_default_to_v2(message: dict[str, Any], category: str) -> d
     created_at = _canonical_message_timestamp(message.get("created_at") or message.get("timestamp")) or now_timestamp_full()
     schedule_raw = message.get("schedule")
     schedule: dict[str, Any] = cast(dict[str, Any], schedule_raw) if isinstance(schedule_raw, dict) else {}
-    # LEGACY COMPATIBILITY: Default resources are v2, but tolerate older local
-    # message defaults until those files are verified clean and the fallback is removed.
     template = {
         "id": message_id,
         "kind": "message",
@@ -162,9 +144,8 @@ def _message_template_default_to_v2(message: dict[str, Any], category: str) -> d
     try:
         return MessageTemplateV2Model.model_validate(template).model_dump(mode="json")
     except Exception as exc:
-        # LEGACY COMPATIBILITY: Keep tolerant normalization for pre-v2 schedule/value shapes.
         logger.warning(
-            f"LEGACY COMPATIBILITY: fallback message template normalization used for category '{category}': {exc}"
+            f"Message template validation failed for category '{category}', using best-effort dict: {exc}"
         )
         return template
 
@@ -389,11 +370,7 @@ def edit_message(user_id, category, message_id, updated_data):
         raise ValidationError("Invalid category or data file.")
 
     message_index = next(
-        (
-            i
-            for i, msg in enumerate(data["messages"])
-            if (msg.get("id") or msg.get("message_id")) == message_id
-        ),
+        (i for i, msg in enumerate(data["messages"]) if msg.get("id") == message_id),
         None,
     )
 
@@ -448,7 +425,7 @@ def update_message(user_id, category, message_id, new_message_data):
 
     # Find the message by ID
     for i, msg in enumerate(data["messages"]):
-        if (msg.get("id") or msg.get("message_id")) == message_id:
+        if msg.get("id") == message_id:
             normalized_new_data = _normalize_message_update_payload(new_message_data)
             if not normalized_new_data.get("id"):
                 normalized_new_data["id"] = message_id
@@ -492,7 +469,8 @@ def delete_message(user_id, category, message_id):
         raise ValidationError("Invalid category or data file.")
 
     message_to_delete = next(
-        (msg for msg in data["messages"] if (msg.get("id") or msg.get("message_id")) == message_id), None
+        (msg for msg in data["messages"] if msg.get("id") == message_id),
+        None,
     )
 
     if not message_to_delete:
@@ -562,27 +540,10 @@ def get_recent_messages(
             messages = [_delivery_to_runtime_message(delivery) for delivery in data["deliveries"]]
             normalized_data = {"messages": messages}
         else:
-
-            # Normalize/validate to drop malformed entries and apply defaults
-            normalized_data, errors = validate_messages_file_dict(data)
-            if errors:
-                logger.warning(
-                    f"Validation issues in sent messages for user {user_id}: {'; '.join(errors)}"
-                )
-
-            # Preserve categories from the source data for filtering
-            source_messages = data.get("messages", [])
-            if isinstance(source_messages, list):
-                id_to_category = {
-                    msg.get("message_id"): msg.get("category")
-                    for msg in source_messages
-                    if isinstance(msg, dict) and msg.get("message_id")
-                }
-                for message in normalized_data.get("messages", []):
-                    if "category" not in message:
-                        category_value = id_to_category.get(message.get("message_id"))
-                        if category_value:
-                            message["category"] = category_value
+            logger.warning(
+                f"Sent messages for user {user_id} are not v2 deliveries[]; skipping recent message load."
+            )
+            return []
 
         if "messages" in normalized_data:
             messages = normalized_data["messages"]
@@ -615,12 +576,13 @@ def get_recent_messages(
             filtered_messages = [
                 msg
                 for msg in filtered_messages
-                if _parse_message_timestamp(msg.get("timestamp", "")) >= cutoff_date
+                if _parse_message_timestamp(str(msg.get("sent_at") or "")) >= cutoff_date
             ]
 
-        # Sort by timestamp descending (newest first)
+        # Sort by sent_at descending (newest first)
         filtered_messages.sort(
-            key=lambda msg: _parse_message_timestamp(msg.get("timestamp", "")), reverse=True
+            key=lambda msg: _parse_message_timestamp(str(msg.get("sent_at") or "")),
+            reverse=True,
         )
 
         # Apply limit
@@ -1087,7 +1049,7 @@ def get_timestamp_for_sorting(item):
     """
     if isinstance(item, str) or not isinstance(item, dict):
         return 0.0
-    timestamp = item.get("timestamp", "1970-01-01 00:00:00")
+    timestamp = item.get("sent_at") or item.get("timestamp") or "1970-01-01 00:00:00"
     try:
         dt = parse_timestamp_full(timestamp)
         if dt is None:

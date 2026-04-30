@@ -1418,9 +1418,9 @@ class EnhancedCommandParser:
                     )
                     # Group 2 might be None if "with body" part wasn't present, but if it is, use it
                     if match.group(2) is not None and match.group(2).strip():
-                        entities["body"] = match.group(2).strip()
+                        entities["description"] = match.group(2).strip()
                     else:
-                        entities["body"] = None
+                        entities["description"] = None
                 else:
                     # Standard format - single group with content
                     content = match.group(1).strip()
@@ -1429,16 +1429,16 @@ class EnhancedCommandParser:
                         # Single line with colon separator
                         parts = content.split(":", 1)
                         entities["title"] = parts[0].strip()
-                        entities["body"] = parts[1].strip() if len(parts) > 1 else None
+                        entities["description"] = parts[1].strip() if len(parts) > 1 else None
                     elif "\n" in content:
                         # Multi-line: first line is title, rest is body
                         lines = content.split("\n", 1)
                         entities["title"] = lines[0].strip()
-                        entities["body"] = lines[1].strip() if len(lines) > 1 else None
+                        entities["description"] = lines[1].strip() if len(lines) > 1 else None
                     else:
                         # Just title/body, no separator - will prompt for body in flow
                         entities["title"] = content
-                        entities["body"] = None
+                        entities["description"] = None
 
         elif intent == "create_quick_note":
             # Quick notes: optional title, no body expected
@@ -1448,8 +1448,8 @@ class EnhancedCommandParser:
                 entities["title"] = title if title else None
             else:
                 entities["title"] = None
-            # Quick notes never have body text
-            entities["body"] = None
+            # Quick notes never have description text
+            entities["description"] = None
 
         elif intent in ["list_recent_entries", "list_recent_notes"]:
             if match.groups():
@@ -1465,18 +1465,10 @@ class EnhancedCommandParser:
             if match.groups():
                 entities["entry_ref"] = match.group(1).strip()
 
-        elif intent == "append_to_entry":
+        elif intent in ("append_to_entry", "set_entry_body"):
             if len(match.groups()) >= 2:
                 entities["entry_ref"] = match.group(1).strip()
                 entities["text"] = match.group(2).strip()
-
-        elif intent == "set_entry_body":
-            if len(match.groups()) >= 2:
-                entities["entry_ref"] = match.group(1).strip()
-                entities["text"] = match.group(2).strip()
-                entities["body"] = match.group(
-                    2
-                ).strip()  # Also set body for consistency
 
         elif intent == "create_journal":
             if match.groups():
@@ -1485,14 +1477,14 @@ class EnhancedCommandParser:
                 if ":" in content and "\n" not in content:
                     parts = content.split(":", 1)
                     entities["title"] = parts[0].strip()
-                    entities["body"] = parts[1].strip() if len(parts) > 1 else None
+                    entities["description"] = parts[1].strip() if len(parts) > 1 else None
                 elif "\n" in content:
                     lines = content.split("\n", 1)
                     entities["title"] = lines[0].strip()
-                    entities["body"] = lines[1].strip() if len(lines) > 1 else None
+                    entities["description"] = lines[1].strip() if len(lines) > 1 else None
                 else:
                     entities["title"] = content
-                    entities["body"] = None
+                    entities["description"] = None
 
         elif intent == "add_tags_to_entry":
             if len(match.groups()) >= 2:

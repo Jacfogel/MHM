@@ -9,11 +9,11 @@ from datetime import datetime, timezone
 from unittest.mock import patch
 
 from core.message_management import (
-
     archive_old_messages,
     get_message_categories,
     store_sent_message,
 )
+from core.user_data_v2 import SCHEMA_VERSION
 
 pytestmark = [pytest.mark.core]
 
@@ -102,15 +102,22 @@ class TestArchiveOldMessages:
 
         sent = tmp_path / "sent_messages.json"
         payload = {
-            "messages": [
+            "schema_version": SCHEMA_VERSION,
+            "updated_at": "2026-06-10 10:00:00",
+            "deliveries": [
                 {
-                    "message_id": "m1",
-                    "timestamp": "2026-06-10 10:00:00",
-                    "message": "recent",
+                    "id": "d1",
+                    "message_template_id": "m1",
+                    "sent_text": "recent",
                     "category": "motivational",
+                    "channel": "",
+                    "status": "sent",
+                    "source": {"system": "mhm", "channel": "", "actor": "", "migration": None},
+                    "sent_at": "2026-06-10 10:00:00",
+                    "time_period": None,
+                    "metadata": {},
                 }
             ],
-            "metadata": {"total_messages": 1},
         }
         sent.write_text(json.dumps(payload), encoding="utf-8")
         monkeypatch.setattr(
@@ -122,7 +129,7 @@ class TestArchiveOldMessages:
         assert not archives.exists()
 
         data = json.loads(sent.read_text(encoding="utf-8"))
-        assert len(data["messages"]) == 1
+        assert len(data["deliveries"]) == 1
 
     def test_archive_old_messages_moves_stale_rows(self, tmp_path, monkeypatch):
         fixed_now = datetime(2026, 6, 15, 12, 0, 0, tzinfo=timezone.utc)
@@ -130,21 +137,34 @@ class TestArchiveOldMessages:
 
         sent = tmp_path / "sent_messages.json"
         payload = {
-            "messages": [
+            "schema_version": SCHEMA_VERSION,
+            "updated_at": "2026-06-10 10:00:00",
+            "deliveries": [
                 {
-                    "message_id": "old",
-                    "timestamp": "2026-05-01 10:00:00",
-                    "message": "stale",
+                    "id": "d-old",
+                    "message_template_id": "old",
+                    "sent_text": "stale",
                     "category": "motivational",
+                    "channel": "",
+                    "status": "sent",
+                    "source": {"system": "mhm", "channel": "", "actor": "", "migration": None},
+                    "sent_at": "2026-05-01 10:00:00",
+                    "time_period": None,
+                    "metadata": {},
                 },
                 {
-                    "message_id": "new",
-                    "timestamp": "2026-06-10 10:00:00",
-                    "message": "keep",
+                    "id": "d-new",
+                    "message_template_id": "new",
+                    "sent_text": "keep",
                     "category": "reminder",
+                    "channel": "",
+                    "status": "sent",
+                    "source": {"system": "mhm", "channel": "", "actor": "", "migration": None},
+                    "sent_at": "2026-06-10 10:00:00",
+                    "time_period": None,
+                    "metadata": {},
                 },
             ],
-            "metadata": {"total_messages": 2},
         }
         sent.write_text(json.dumps(payload), encoding="utf-8")
         monkeypatch.setattr(
@@ -157,15 +177,13 @@ class TestArchiveOldMessages:
 
         assert archive_old_messages("user-1", days_to_keep=30) is True
 
-        archive_dir = tmp_path / "archives"
-        archive_file = archive_dir / "sent_messages_archive_test_archive_ts.json"
+        archive_file = tmp_path / "sent_messages_archive_test_archive_ts.json"
         assert archive_file.is_file()
 
         archived = json.loads(archive_file.read_text(encoding="utf-8"))
-        assert len(archived["messages"]) == 1
-        assert archived["messages"][0]["message_id"] == "old"
+        assert len(archived["deliveries"]) == 1
+        assert archived["deliveries"][0]["message_template_id"] == "old"
 
         active = json.loads(sent.read_text(encoding="utf-8"))
-        assert len(active["messages"]) == 1
-        assert active["messages"][0]["message_id"] == "new"
-        assert active["metadata"]["total_messages"] == 1
+        assert len(active["deliveries"]) == 1
+        assert active["deliveries"][0]["message_template_id"] == "new"

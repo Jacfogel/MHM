@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-29 15:07:36
+> **Last Generated**: 2026-04-29 18:51:24
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 123
-- **Total Imports Found**: 1521
+- **Total Imports Found**: 1523
 - **Dependencies Documented**: 123 (100% coverage)
-- **Standard Library Imports**: 431 (28.3%)
+- **Standard Library Imports**: 432 (28.4%)
 - **Third-Party Imports**: 233 (15.3%)
-- **Local Imports**: 857 (56.3%)
+- **Local Imports**: 858 (56.3%)
 - **Last Updated**: 2026-04-29
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 431 imports (28.3%)
+- **Standard Library**: 432 imports (28.4%)
 - **Third-Party**: 233 imports (15.3%)
-- **Local**: 857 imports (56.3%)
+- **Local**: 858 imports (56.3%)
 
 ## Module Dependencies by Directory
 
@@ -89,7 +89,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.message_management (get_recent_messages)` (NEW)
-    - `core.response_tracking (get_recent_responses, is_user_checkins_enabled, store_chat_interaction)` (NEW)
+    - `core.response_tracking (checkin_runtime_timestamp, get_recent_responses, is_user_checkins_enabled, store_chat_interaction)` (NEW)
     - `core.time_utilities (TIME_ONLY_MINUTE, format_timestamp, parse_timestamp_full)` (NEW)
     - `tasks (are_tasks_enabled, get_tasks_due_soon, get_user_task_stats, load_active_tasks)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date)` (NEW)
@@ -298,7 +298,7 @@
     - `core.checkin_dynamic_manager (dynamic_checkin_manager)` (NEW)
     - `core.error_handling (handle_ai_error, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.response_tracking (get_checkins_by_days, get_recent_checkins)` (NEW)
+    - `core.response_tracking (checkin_runtime_timestamp, get_checkins_by_days, get_recent_checkins)` (NEW)
     - `core.time_utilities (parse_timestamp_full)` (NEW)
     - `tasks (get_user_task_stats, load_active_tasks, load_completed_tasks)` (NEW)
   - **Standard Library**:
@@ -352,7 +352,7 @@
     - `communication.message_processing.conversation_flow_manager (conversation_manager)`
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.response_tracking (get_recent_checkins, is_user_checkins_enabled)` (NEW)
+    - `core.response_tracking (checkin_runtime_timestamp, get_recent_checkins, is_user_checkins_enabled)` (NEW)
     - `core.time_utilities (parse_timestamp_full)` (NEW)
   - **Standard Library**:
     - `datetime (date)`
@@ -1335,7 +1335,7 @@
     - `core.checkin_dynamic_manager (dynamic_checkin_manager)` (NEW)
     - `core.error_handling (ValidationError, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.response_tracking (get_checkins_by_days)` (NEW)
+    - `core.response_tracking (checkin_runtime_timestamp, get_checkins_by_days)` (NEW)
     - `core.time_utilities (parse_time_only_minute, parse_timestamp_full)` (NEW)
   - **Standard Library**:
     - `datetime (timedelta)`
@@ -2092,6 +2092,7 @@
     - `re`
     - `signal`
     - `time`
+    - `typing (Any)`
   - **Third-party**:
     - `psutil`
 - **Used by**: 

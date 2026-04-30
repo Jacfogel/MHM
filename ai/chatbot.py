@@ -35,7 +35,11 @@ from core.config import (
     AI_COMMAND_TEMPERATURE,
     AI_CLARIFICATION_TEMPERATURE,
 )
-from core.response_tracking import get_recent_responses, store_chat_interaction
+from core.response_tracking import (
+    checkin_runtime_timestamp,
+    get_recent_responses,
+    store_chat_interaction,
+)
 from core import get_user_data
 from user.context_manager import user_context_manager
 from ai.prompt_manager import get_prompt_manager
@@ -938,7 +942,7 @@ class AIChatBotSingleton:
                 completed_today = False
                 completed_at = ""
                 if recent_checkins:
-                    ts = recent_checkins[0].get("timestamp", "")
+                    ts = checkin_runtime_timestamp(recent_checkins[0])
                     mood_val = recent_checkins[0].get("mood")
                     energy_val = recent_checkins[0].get("energy")
                     if ts:
@@ -985,8 +989,10 @@ class AIChatBotSingleton:
                 context_parts.append("Recent automated messages sent to them:")
                 for idx, msg in enumerate(recent_sent[:3]):
                     category = msg.get("category", "general")
-                    text = msg.get("message") or ""
-                    timestamp = msg.get("timestamp", "")
+                    text = (msg.get("sent_text") or msg.get("message") or "").strip()
+                    timestamp = (
+                        msg.get("sent_at") or msg.get("timestamp") or ""
+                    ).strip()
                     if idx == 0:
                         # Full text for most recent message
                         context_parts.append(
@@ -1018,8 +1024,12 @@ class AIChatBotSingleton:
             )
             if task_msgs:
                 latest_task = task_msgs[0]
-                t_text = latest_task.get("message") or ""
-                t_ts = latest_task.get("timestamp", "")
+                t_text = (
+                    latest_task.get("sent_text") or latest_task.get("message") or ""
+                ).strip()
+                t_ts = (
+                    latest_task.get("sent_at") or latest_task.get("timestamp") or ""
+                ).strip()
                 context_parts.append(
                     f'They received a task reminder at {t_ts}: "{t_text}"'
                 )

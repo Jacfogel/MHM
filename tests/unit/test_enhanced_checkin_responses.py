@@ -268,10 +268,10 @@ class TestAnalyticsSkippedQuestions:
         """Test that 'SKIPPED' responses are excluded from analytics calculations."""
         # Mock checkin data with some skipped responses
         mock_checkins = [
-            {'mood': 3, 'energy': 4, 'sleep_quality': 'SKIPPED'},
-            {'mood': 4, 'energy': 'SKIPPED', 'sleep_quality': 5},
-            {'mood': 'SKIPPED', 'energy': 3, 'sleep_quality': 4},
-            {'mood': 2, 'energy': 2, 'sleep_quality': 3}
+            {"responses": {"mood": 3, "energy": 4, "sleep_quality": "SKIPPED"}},
+            {"responses": {"mood": 4, "energy": "SKIPPED", "sleep_quality": 5}},
+            {"responses": {"mood": "SKIPPED", "energy": 3, "sleep_quality": 4}},
+            {"responses": {"mood": 2, "energy": 2, "sleep_quality": 3}},
         ]
         
         # Mock the get_checkins_by_days method
@@ -302,9 +302,9 @@ class TestAnalyticsSkippedQuestions:
         """Test that enhanced yes/no responses are properly converted for analytics."""
         # Mock checkin data with enhanced yes/no responses
         mock_checkins = [
-            {'exercise': 'absolutely', 'medication_taken': 'I did'},
-            {'exercise': 'no way', 'medication_taken': '100%'},
-            {'exercise': 'definitely not', 'medication_taken': 'never'}
+            {"responses": {"exercise": "absolutely", "medication_taken": "I did"}},
+            {"responses": {"exercise": "no way", "medication_taken": "100%"}},
+            {"responses": {"exercise": "definitely not", "medication_taken": "never"}},
         ]
         
         # Mock the get_checkins_by_days method

@@ -296,9 +296,9 @@ class TestChannelOrchestratorHelpers:
     def test_select_weighted_message_with_messages(self):
         """Test _select_weighted_message with available messages."""
         available_messages = [
-            {'message': 'Message 1', 'time_periods': ['Morning']},
-            {'message': 'Message 2', 'time_periods': ['ALL']},
-            {'message': 'Message 3', 'time_periods': ['Evening']}
+            {"text": "Message 1", "schedule": {"days": ["ALL"], "periods": ["Morning"]}},
+            {"text": "Message 2", "schedule": {"days": ["ALL"], "periods": ["ALL"]}},
+            {"text": "Message 3", "schedule": {"days": ["ALL"], "periods": ["Evening"]}},
         ]
         matching_periods = ['Morning']
         
@@ -306,8 +306,8 @@ class TestChannelOrchestratorHelpers:
         
         # Function returns the selected message dict, not a string
         assert isinstance(result, dict), "Should return dict (message object)"
-        assert 'message' in result, "Should have 'message' key"
-        assert result['message'] in ['Message 1', 'Message 2', 'Message 3'], "Should return one of the messages"
+        assert "text" in result, "Should have 'text' key"
+        assert result["text"] in ['Message 1', 'Message 2', 'Message 3'], "Should return one of the messages"
 
     def test_select_weighted_message_invalid_input(self):
         """Test _select_weighted_message with invalid input."""
@@ -320,7 +320,7 @@ class TestChannelOrchestratorHelpers:
         assert result == "", "Should return empty string for empty available_messages"
         
         # Test None matching_periods
-        result = self.manager._select_weighted_message([{'message': 'Test'}], None)
+        result = self.manager._select_weighted_message([{'text': 'Test', 'schedule': {"days": ["ALL"], "periods": ["ALL"]}}], None)
         assert result == "", "Should return empty string for None matching_periods"
         
         # Test non-list available_messages
@@ -330,8 +330,8 @@ class TestChannelOrchestratorHelpers:
     def test_select_weighted_message_prefers_specific_periods_when_weight_hits(self):
         """Test weighted branch selecting specific-period messages."""
         available_messages = [
-            {"message": "Specific", "time_periods": ["Morning"]},
-            {"message": "All", "time_periods": ["ALL"]},
+            {"text": "Specific", "schedule": {"days": ["ALL"], "periods": ["Morning"]}},
+            {"text": "All", "schedule": {"days": ["ALL"], "periods": ["ALL"]}},
         ]
 
         with (
@@ -342,13 +342,13 @@ class TestChannelOrchestratorHelpers:
                 available_messages, ["Morning"]
             )
 
-        assert result["message"] == "Specific"
+        assert result["text"] == "Specific"
 
     def test_select_weighted_message_uses_all_period_when_weight_misses(self):
         """Test weighted branch selecting ALL-period messages when specific weight misses."""
         available_messages = [
-            {"message": "Specific", "time_periods": ["Morning"]},
-            {"message": "All", "time_periods": ["ALL"]},
+            {"text": "Specific", "schedule": {"days": ["ALL"], "periods": ["Morning"]}},
+            {"text": "All", "schedule": {"days": ["ALL"], "periods": ["ALL"]}},
         ]
 
         with (
@@ -359,11 +359,11 @@ class TestChannelOrchestratorHelpers:
                 available_messages, ["Morning"]
             )
 
-        assert result["message"] == "All"
+        assert result["text"] == "All"
 
     def test_select_weighted_message_falls_back_when_only_specific_periods(self):
         """Test fallback branch when no ALL-period messages are available."""
-        available_messages = [{"message": "Specific", "time_periods": ["Morning"]}]
+        available_messages = [{"text": "Specific", "schedule": {"days": ["ALL"], "periods": ["Morning"]}}]
 
         with (
             patch("random.random", return_value=0.95),
@@ -373,7 +373,7 @@ class TestChannelOrchestratorHelpers:
                 available_messages, ["Morning"]
             )
 
-        assert result["message"] == "Specific"
+        assert result["text"] == "Specific"
 
     def test_handle_task_reminder_invalid_input(self):
         """Test handle_task_reminder with invalid input."""

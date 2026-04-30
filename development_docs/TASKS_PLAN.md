@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Plan for multi-phase task system enhancements (recurrence, templates, intelligence, and advanced workflows)  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-04-28 (task test suites aligned to v2 runtime dicts)  
+> **Last Updated**: 2026-04-29 (v2-native runtime; legacy split-file verification closed)  
 > **Parent**: [PLANS.md](development_docs/PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -14,7 +14,7 @@
 ### Canonical Task Data Model Migration
 
 **Migrate tasks to canonical v2 task structure**
-- *Status*: **Persisted data migration completed 2026-04-27**. Local user task data now writes to `tasks/tasks.json`; replaced v1 split files were removed from migrated user directories. Remaining work is v2-native runtime cleanup, not data migration.
+- *Status*: **Persisted data migration completed 2026-04-27**; **v2-native runtime completed 2026-04-29**. Local user task data uses `tasks/tasks.json` only; runtime task handlers no longer merge v1-shaped inputs.
 - *What it means*: Convert existing active and completed task records to the new task structure.
 - *Why it helps*: Makes tasks consistent with notes, journal entries, and future events while preparing for SQLite.
 - *Estimated effort*: Large
@@ -64,7 +64,7 @@
   - [x] Do not keep old task fields in canonical v2 records unless explicitly temporary.
 
 **Consolidate active and completed task storage**
-- *Status*: **Persisted storage completed 2026-04-27**. Runtime saves now write canonical v2 task records directly for migrated users; remaining work is removing temporary split-file fallbacks after legacy verification is clean.
+- *Status*: **Complete 2026-04-29**. Runtime saves canonical v2 task records; split-file fallbacks removed; repo/user-data verification shows no dependency on `active_tasks.json` / `completed_tasks.json` / `task_schedules.json`.
 - *What it means*: Move toward one canonical task collection instead of separate active/completed task files.
 - *Why it helps*: Completion is task state, not a separate storage type.
 - *Estimated effort*: Large
@@ -78,7 +78,7 @@
   - [x] Add a planned removal task for old active/completed task readers.
   - [x] Add tests proving new task reads do not require the old split files after migration.
   - [x] Replace task runtime APIs with v2-native task objects or explicitly document adapter boundaries.
-  - [ ] Run legacy `--find` / `--verify` for `active_tasks.json`, `completed_tasks.json`, `task_schedules.json`, `task_id`, and `completed` before removing fallback support.
+  - [x] Run legacy `--find` / `--verify` for `active_tasks.json`, `completed_tasks.json`, `task_schedules.json`, `task_id`, and `completed` before removing fallback support (completed 2026-04-29; split-file reads removed; `task_id` may remain as a variable name unrelated to on-disk v1).
 
 **Normalize task category, group, tags, and priority**
 - *What it means*: Separate concepts that are currently partially mixed together.

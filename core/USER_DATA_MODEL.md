@@ -157,9 +157,11 @@ Message mappings:
 
 Files outside this migration slice (`account.json`, `preferences.json`, `schedules.json`, `tags.json`, `user_context.json`, and `chat_interactions.json`) remain in their existing model unless a later migration explicitly scopes them in.
 
-### 2.7. Transitional compatibility status
+### 2.7. Runtime contract (v2-native)
 
-Persisted local user data and default message resources have been migrated to v2. Task and notebook handlers now write v2 payloads directly for migrated/new files, but some runtime paths still adapt between old internal shapes and v2 files. These paths are temporary v2-adoption work, not new long-term data contracts. Track and retire them through [TODO.md](TODO.md), [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), and `development_tools/config/jsons/DEPRECATION_INVENTORY.json` using the legacy cleanup process in `ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md`.
+On-disk user data and bundled message resources are **v2**. Runtime code treats v2 shapes as canonical: tasks in `tasks/tasks.json`, notebook entries with `description` / `journal_entry`, check-ins in `checkins.json` with `responses` and `submitted_at`, templates with `id`/`text`/`schedule`, and deliveries with `deliveries[]` (`message_template_id`, `sent_text`, `sent_at`, `status`). New check-ins are **always** persisted under the v2 envelope (`schema_version: 2`, `checkins[]`); if a legacy bare array file is still present, the next write migrates those rows into `checkins[]` before appending.
+
+Reads may still tolerate a bare array in `checkins.json` only long enough for that first write to normalize the file-operators should rely on migration tooling or normal app usage rather than hand-editing list-shaped check-ins. Broader legacy cleanup tracking (unrelated v1 terms, docs, and dev-tools mirrors) remains in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` and [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md).
 
 ---
 

@@ -619,7 +619,7 @@ class InteractionManager:
                     and "Would you like to set custom reminder periods" in reply_text
                 ):
                     state_data = updated_user_state.get("data", {})
-                    task_id = (state_data.get("task_identifier") or state_data.get("task_id"))
+                    task_id = state_data.get("task_identifier")
                     if task_id:
                         reminder_suggestions = conversation_manager._generate_context_aware_reminder_suggestions(
                             user_id, task_id
@@ -1319,6 +1319,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
         # Get check-in suggestions
         try:
             from core.response_tracking import (
+                checkin_runtime_timestamp,
                 get_recent_checkins,
                 is_user_checkins_enabled,
             )
@@ -1327,7 +1328,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
                 recent_checkins = get_recent_checkins(user_id, limit=3) or []
                 if recent_checkins:
                     latest = recent_checkins[0]
-                    timestamp_str = latest.get("timestamp")
+                    timestamp_str = checkin_runtime_timestamp(latest)
 
                     # Internal persisted state: strict canonical parse.
                     timestamp = (

@@ -28,7 +28,7 @@ class TestCommandParserNotebookEntityExtraction:
     """Coverage expansion for notebook-focused entity extraction."""
 
     @pytest.mark.parametrize(
-        "pattern, message, expected_title, expected_body",
+        "pattern, message, expected_title, expected_description",
         [
             (r"^n\s+(.+)$", "n Title: Body", "Title", "Body"),
             (r"^note\s+(.+)$", "note Title only", "Title only", None),
@@ -58,12 +58,12 @@ class TestCommandParserNotebookEntityExtraction:
         ],
     )
     def test_extract_entities_create_note(
-        self, command_parser, pattern, message, expected_title, expected_body
+        self, command_parser, pattern, message, expected_title, expected_description
     ):
         entities = _extract_entities(command_parser, "create_note", pattern, message)
 
         assert entities.get("title") == expected_title
-        assert entities.get("body") == expected_body
+        assert entities.get("description") == expected_description
 
     @pytest.mark.parametrize(
         "pattern, message, expected_title",
@@ -82,7 +82,7 @@ class TestCommandParserNotebookEntityExtraction:
         entities = _extract_entities(command_parser, "create_quick_note", pattern, message)
 
         assert entities.get("title") == expected_title
-        assert entities.get("body") is None
+        assert entities.get("description") is None
 
     @pytest.mark.parametrize(
         "pattern, message, expected_limit",
@@ -269,8 +269,6 @@ class TestCommandParserNotebookEntityExtraction:
         entities = _extract_entities(command_parser, intent, pattern, message)
 
         assert entities.get("text") == expected_text
-        if intent == "set_entry_body":
-            assert entities.get("body") == expected_text
 
     @pytest.mark.parametrize(
         "pattern, message, expected_ref",

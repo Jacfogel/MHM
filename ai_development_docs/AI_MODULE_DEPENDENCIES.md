@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-29 15:07:42
+> **Last Generated**: 2026-04-29 18:51:30
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 123
-- **Total Imports**: 1521
-- **Standard Library**: 431 (28.3%)
+- **Total Imports**: 1523
+- **Standard Library**: 432 (28.4%)
 - **Third-Party**: 233 (15.3%)
-- **Local Imports**: 857 (56.3%)
+- **Local Imports**: 858 (56.3%)
 
 ## Dependency Decision Trees
 
@@ -39,7 +39,7 @@ AI System Dependencies:
   - ai/chatbot.py <- standard library (asyncio, collections, datetime, json), third-party (psutil, requests), logger, config, response_tracking, core, context_manager (+8 more)
 - Command Processing
   - communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_data_manager, base_handler (+2 more)
-  - communication/command_handlers/analytics_handler.py <- standard library (collections, typing), logger, error_handling, base_handler, shared_types, checkin_analytics (+5 more)
+  - communication/command_handlers/analytics_handler.py <- standard library (collections, typing), logger, error_handling, base_handler, shared_types, response_tracking (+5 more)
   - communication/command_handlers/base_handler.py <- standard library (abc), shared_types, logger, error_handling, user_data_validation
 - Communication Integration
   - communication/communication_channels/__init__.py <- none
@@ -111,14 +111,14 @@ External libraries provide channel and UI support.
 ### Communication Flow
 - __init__: communication/__init__.py <- third-party (command_handlers.analytics_handler, command_handlers.base_handler, command_handlers.checkin_handler), retry_manager, channel_orchestrator, factory, channel_monitor
 - account_handler: communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_data_manager, base_handler (+2 more)
-- analytics_handler: communication/command_handlers/analytics_handler.py <- standard library (collections, typing), logger, error_handling, base_handler, shared_types, checkin_analytics (+5 more)
+- analytics_handler: communication/command_handlers/analytics_handler.py <- standard library (collections, typing), logger, error_handling, base_handler, shared_types, response_tracking (+5 more)
 
 
 ## Dependency Risk Areas
 
 ### High Coupling
 - `ui/ui_app_qt.py` -> 46 local dependencies (heavy coupling)
-- `communication/command_handlers/analytics_handler.py` -> 33 local dependencies (heavy coupling)
+- `communication/command_handlers/analytics_handler.py` -> 34 local dependencies (heavy coupling)
 - `communication/core/channel_orchestrator.py` -> 33 local dependencies (heavy coupling)
 - `communication/message_processing/conversation_flow_manager.py` -> 31 local dependencies (heavy coupling)
 - `core/scheduler.py` -> 30 local dependencies (heavy coupling)

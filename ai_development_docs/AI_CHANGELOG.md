@@ -31,6 +31,7 @@ Guidelines:
 ## Recent Changes (Most Recent First)
 
 ### 2026-04-29 - Scheduler v2 ID fix and Discord sync guard **COMPLETED**
+- **V2-native user data (session completion)**: Runtime no longer depends on v1 task/check-in/message/notebook bridges; `store_user_response` for check-ins always persists the v2 `checkins.json` envelope (migrates legacy list files on write). `USER_DATA_MODEL.md` Section 2.7 and deprecation inventory updated; legacy report regenerated.
 - **Task reminder scheduler v2 fix**: Updated `core/scheduler.py` to use canonical task `id` when scheduling reminders, eliminating the runtime `'task_id'` failure during startup scheduling.
 - **Discord startup hardening**: Updated Discord bot initialization/sync flow to avoid forcing `application_id=0`; command sync now skips with a clear warning when `application_id` is unavailable instead of raising `Unknown Application`.
 - **Message selection v2 deep-dive fix**: Updated predefined message loading in `communication/core/channel_orchestrator.py` to use the v2-aware runtime loader (`load_user_messages`) instead of legacy schema validation that could collapse v2 templates (`text`/`schedule`) into an empty `messages[]` set.
@@ -39,7 +40,11 @@ Guidelines:
 - **Legacy report cleanup (ID repair + request payloads)**: Updated `core.user_data_read.ensure_unique_ids` to repair canonical message `id` values (while synchronizing legacy `message_id` alias), and updated task-reminder request handling in `core/service.py` to accept canonical `task_identifier` payloads with fallback to `task_id`.
 - **Legacy report cleanup (timestamp/status reads)**: Updated analytics and tracking read paths to prefer canonical fields (`sent_at`, `submitted_at`, `status`) before legacy aliases (`timestamp`, `delivery_status`) in `core/message_analytics.py`, `core/response_tracking.py`, and `core/user_data_manager.py`.
 - **Tooling hygiene**: Cleared Ruff `F401`/`F841` in `channel_orchestrator`/`service`, refreshed `FUNCTION_REGISTRY_DETAIL.md` via `run_development_tools.py docs`, and documented nested `_schedule_fields` for registry completeness.
-- **Validation**: Confirmed with targeted behavior tests for scheduler reminder scheduling and Discord `on_ready` app-command sync.
+- **Validation**: Confirmed with targeted behavior tests for scheduler reminder scheduling and Discord `on_ready` app-command sync; full behavior and unit suites plus headless service start/stop smoke.
+- **Audit slice**: Tier-3 priority cleanup - test-message schedule helpers (`_message_template_schedule_lists` + `@handle_errors`), AI context `sent_text`/`sent_at`, Ruff SIM114 on notebook intents, v2 message mocks in service helper tests, doc-fix/doc-sync, registry regen, Pyright 0/0.
+- **Legacy scan (check-in timestamps)**: `core.response_tracking.checkin_runtime_timestamp` plus analytics/check-in/AI/interaction_manager call sites; `@handle_errors` on `_message_schedule_matches_current_window`; fewer `LEGACY_REFERENCE_REPORT` adapter hits after regen.
+- **Legacy scan (user_data_manager)**: v2 `deliveries[]` counts and `get_recent_messages`-based last interaction for analytics; last sent interaction uses `sent_at` only; report regen drops several false adapter hits (chat + legacy sent layout remain).
+- **Error handling**: `@handle_errors` on `checkin_runtime_timestamp` (empty string default); closes AI_PRIORITIES “missing decorator” item after next audit regen.
 
 ### 2026-04-28 - V2 adoption continuation slices **COMPLETED**
 - **Task runtime IDs**: Added canonical `id` + `short_id` matching in task manager and task command lookup paths, reducing reliance on legacy identifier assumptions while preserving compatibility aliases required by remaining call sites.

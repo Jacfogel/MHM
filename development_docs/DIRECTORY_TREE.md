@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-29 15:07:44
+> **Last Generated**: 2026-04-29 18:51:32
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -779,6 +779,7 @@ C:.
 |   |   |   test_channel_orchestrator_message_selection.py
 |   |   |   test_checkin_analytics_conversion.py
 |   |   |   test_checkin_management_dialog.py
+|   |   |   test_checkin_runtime_timestamp.py
 |   |   |   test_checkin_view.py
 |   |   |   test_cleanup.py
 |   |   |   test_command_parser_helpers.py
