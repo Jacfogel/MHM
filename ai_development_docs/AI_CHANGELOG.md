@@ -44,7 +44,7 @@ Guidelines:
 - **Audit slice**: Tier-3 priority cleanup - test-message schedule helpers (`_message_template_schedule_lists` + `@handle_errors`), AI context `sent_text`/`sent_at`, Ruff SIM114 on notebook intents, v2 message mocks in service helper tests, doc-fix/doc-sync, registry regen, Pyright 0/0.
 - **Legacy scan (check-in timestamps)**: `core.response_tracking.checkin_runtime_timestamp` plus analytics/check-in/AI/interaction_manager call sites; `@handle_errors` on `_message_schedule_matches_current_window`; fewer `LEGACY_REFERENCE_REPORT` adapter hits after regen.
 - **Legacy scan (user_data_manager)**: v2 `deliveries[]` counts and `get_recent_messages`-based last interaction for analytics; last sent interaction uses `sent_at` only; report regen drops several false adapter hits (chat + legacy sent layout remain).
-- **Error handling**: `@handle_errors` on `checkin_runtime_timestamp` (empty string default); closes AI_PRIORITIES “missing decorator” item after next audit regen.
+- **Error handling**: `@handle_errors` on `checkin_runtime_timestamp` (empty string default); `audit --quick --clear-cache` drops the former “missing error handling” top priority for this helper.
 
 ### 2026-04-28 - V2 adoption continuation slices **COMPLETED**
 - **Task runtime IDs**: Added canonical `id` + `short_id` matching in task manager and task command lookup paths, reducing reliance on legacy identifier assumptions while preserving compatibility aliases required by remaining call sites.

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-29 19:24:34
+> **Last Generated**: 2026-04-29 19:39:25
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 43
 **Legacy Compatibility Markers Detected**: 176
@@ -138,22 +138,22 @@
 ### core\response_tracking.py
 **Issues Found**: 4
 
-- **Line 44**: `.get("timestamp"`
+- **Line 45**: `.get("timestamp"`
   ```
   raw = checkin.get("submitted_at") or checkin.get("timestamp")
   ```
 
-- **Line 56**: `.get("timestamp"`
+- **Line 57**: `.get("timestamp"`
   ```
   or response_data.get("timestamp")
   ```
 
-- **Line 216**: `.get("timestamp"`
+- **Line 217**: `.get("timestamp"`
   ```
   or item.get("timestamp")
   ```
 
-- **Line 272**: `.get("timestamp"`
+- **Line 273**: `.get("timestamp"`
   ```
   or checkin.get("timestamp", "")
   ```
