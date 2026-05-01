@@ -74,6 +74,61 @@ def test_task_migration_consolidates_active_and_completed_records():
     assert validation_errors == []
 
 
+@pytest.mark.parametrize(
+    "category_value,expected_priority",
+    [
+        ("low", "low"),
+        ("medium", "medium"),
+        ("high", "high"),
+        ("urgent", "urgent"),
+        ("critical", "critical"),
+    ],
+)
+@pytest.mark.unit
+@pytest.mark.core
+def test_task_migration_moves_priority_like_category_all_levels(
+    category_value: str, expected_priority: str
+) -> None:
+    """v1 migration maps priority-shaped category into priority when priority absent."""
+    active = {
+        "tasks": [
+            {
+                "task_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+                "title": "Sample",
+                "category": category_value,
+                "created_at": TIMESTAMP,
+                "last_updated": TIMESTAMP,
+            }
+        ]
+    }
+    migrated, _report = migrate_task_collections(active, None)
+    task = migrated["tasks"][0]
+    assert task["priority"] == expected_priority
+    assert task["category"] == ""
+
+
+@pytest.mark.unit
+@pytest.mark.core
+def test_task_migration_keeps_category_when_explicit_priority_present() -> None:
+    """When v1 record already has priority, category is not auto-cleared."""
+    active = {
+        "tasks": [
+            {
+                "task_id": "bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb",
+                "title": "Sample",
+                "category": "high",
+                "priority": "medium",
+                "created_at": TIMESTAMP,
+                "last_updated": TIMESTAMP,
+            }
+        ]
+    }
+    migrated, _report = migrate_task_collections(active, None)
+    task = migrated["tasks"][0]
+    assert task["priority"] == "medium"
+    assert task["category"] == "high"
+
+
 @pytest.mark.unit
 @pytest.mark.core
 def test_notebook_migration_splits_journal_and_preserves_list_items():

@@ -2,10 +2,10 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-29 19:39:25
+> **Last Generated**: 2026-04-30 17:04:08
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 43
-**Legacy Compatibility Markers Detected**: 176
+**Legacy Compatibility Markers Detected**: 178
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
@@ -20,7 +20,7 @@
 ## Deprecation Inventory
 - Inventory file: `development_tools/config/jsons/DEPRECATION_INVENTORY.json`
 - Active/candidate entries: 1
-- Removed entries: 10
+- Removed entries: 11
 - Active search terms: 0
 - Current inventory-term hits in scan: 0 file(s), 0 marker(s)
 
@@ -72,22 +72,22 @@
 ### communication\message_processing\conversation_flow_manager.py
 **Issues Found**: 4
 
-- **Line 165**: `"task_id"`
+- **Line 166**: `"task_id"`
   ```
   legacy = data.get("task_id")
   ```
 
-- **Line 169**: `"task_id"`
+- **Line 170**: `"task_id"`
   ```
   data.pop("task_id", None)
   ```
 
-- **Line 172**: `"task_id"`
+- **Line 173**: `"task_id"`
   ```
   data.pop("task_id", None)
   ```
 
-- **Line 1600**: `"task_id"`
+- **Line 1601**: `"task_id"`
   ```
   if "task_id" in str(e).lower() or "not found" in str(e).lower():
   ```
@@ -891,7 +891,7 @@
   ```
 
 ### tests\unit\test_user_data_v2_migration.py
-**Issues Found**: 27
+**Issues Found**: 29
 
 - **Line 31**: `"task_id"`
   ```
@@ -913,117 +913,127 @@
   assert "task_id" not in active_task
   ```
 
-- **Line 85**: `"kind": "journal"`
+- **Line 96**: `"task_id"`
+  ```
+  "task_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  ```
+
+- **Line 117**: `"task_id"`
+  ```
+  "task_id": "bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb",
+  ```
+
+- **Line 140**: `"kind": "journal"`
   ```
   "kind": "journal",
   ```
 
-- **Line 141**: `"message_id"`
+- **Line 196**: `"message_id"`
   ```
   "message_id": "template-1",
   ```
 
-- **Line 155**: `"message_id"`
+- **Line 210**: `"message_id"`
   ```
   "message_id": "template-1",
   ```
 
-- **Line 158**: `"delivery_status"`
+- **Line 213**: `"delivery_status"`
   ```
   "delivery_status": "sent",
   ```
 
-- **Line 176**: `"delivery_status"`
+- **Line 231**: `"delivery_status"`
   ```
   assert "delivery_status" not in delivery
   ```
 
-- **Line 178**: `"message_id"`
+- **Line 233**: `"message_id"`
   ```
   assert set(template_report["fields_renamed"]) == {"days", "message", "message_id", "time_periods", "timestamp"}
   ```
 
-- **Line 180**: `"message_id"`
+- **Line 235**: `"message_id"`
   ```
   assert set(delivery_report["fields_renamed"]) == {"delivery_status", "message", "message_id", "timestamp"}
   ```
 
-- **Line 180**: `"delivery_status"`
+- **Line 235**: `"delivery_status"`
   ```
   assert set(delivery_report["fields_renamed"]) == {"delivery_status", "message", "message_id", "timestamp"}
   ```
 
-- **Line 206**: `"task_id"`
+- **Line 261**: `"task_id"`
   ```
   "task_id": "legacy",
   ```
 
-- **Line 225**: `"task_id"`
+- **Line 280**: `"task_id"`
   ```
   assert "task_id" in errors[0]
   ```
 
-- **Line 235**: `active_tasks.json`
+- **Line 290**: `active_tasks.json`
   ```
   (user_root / "tasks" / "active_tasks.json").write_text(
   ```
 
-- **Line 236**: `"task_id"`
+- **Line 291**: `"task_id"`
   ```
   json.dumps({"tasks": [{"task_id": "task-1", "title": "Plan", "created_at": TIMESTAMP}]}),
   ```
 
-- **Line 239**: `completed_tasks.json`
+- **Line 294**: `completed_tasks.json`
   ```
   (user_root / "tasks" / "completed_tasks.json").write_text(
   ```
 
-- **Line 240**: `"completed_tasks"`
+- **Line 295**: `"completed_tasks"`
   ```
   json.dumps({"completed_tasks": []}),
   ```
 
-- **Line 243**: `task_schedules.json`
+- **Line 298**: `task_schedules.json`
   ```
   (user_root / "tasks" / "task_schedules.json").write_text(
   ```
 
-- **Line 269**: `active_tasks.json`
+- **Line 324**: `active_tasks.json`
   ```
   assert not (user_root / "tasks" / "active_tasks.json").exists()
   ```
 
-- **Line 270**: `completed_tasks.json`
+- **Line 325**: `completed_tasks.json`
   ```
   assert not (user_root / "tasks" / "completed_tasks.json").exists()
   ```
 
-- **Line 271**: `task_schedules.json`
+- **Line 326**: `task_schedules.json`
   ```
   assert not (user_root / "tasks" / "task_schedules.json").exists()
   ```
 
-- **Line 275**: `active_tasks.json`
+- **Line 330**: `active_tasks.json`
   ```
   assert "tasks/active_tasks.json" in written["files_removed"]
   ```
 
-- **Line 501**: `"task_id"`
+- **Line 556**: `"task_id"`
   ```
   assert "task_id" not in active[0]
   ```
 
-- **Line 521**: `"task_id"`
+- **Line 576**: `"task_id"`
   ```
   assert "task_id" not in data["tasks"][0]
   ```
 
-- **Line 522**: `active_tasks.json`
+- **Line 577**: `active_tasks.json`
   ```
   assert not (tasks_dir / "active_tasks.json").exists()
   ```
 
-- **Line 523**: `completed_tasks.json`
+- **Line 578**: `completed_tasks.json`
   ```
   assert not (tasks_dir / "completed_tasks.json").exists()
   ```

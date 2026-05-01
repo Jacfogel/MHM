@@ -42,6 +42,7 @@ from core.time_utilities import (
     now_datetime_full,
 )
 from tasks.task_data_handlers import runtime_task_due_date, runtime_task_due_time
+from core.user_data_v2 import generate_short_id
 
 # Route conversation orchestration to communication_manager component log
 logger = get_component_logger("communication_manager")
@@ -2276,9 +2277,11 @@ class ConversationManager:
             )
 
             if entry:
-                short_id = str(entry.id)[:6]
+                display_short = entry.short_id or generate_short_id(
+                    str(entry.id), str(entry.kind), length=6
+                )
                 return (
-                    f"✅ Note created: '{title}' ({entry.kind[0]}-{short_id})",
+                    f"✅ Note created: '{title}' ({display_short})",
                     True,
                 )
             else:
@@ -2325,9 +2328,10 @@ class ConversationManager:
         )
 
         if entry:
-            short_id = str(entry.id)[:6]
-            kind_prefix = entry.kind[0]
-            response = f"✅ Note created: '{title}' ({kind_prefix}-{short_id})"
+            display_short = entry.short_id or generate_short_id(
+                str(entry.id), str(entry.kind), length=6
+            )
+            response = f"✅ Note created: '{title}' ({display_short})"
             if entry.tags:
                 response += f"\nTags: {', '.join(entry.tags)}"
             return (response, True)
@@ -2387,9 +2391,11 @@ class ConversationManager:
             )
 
             if entry:
-                short_id = str(entry.id)[:6]
+                display_short = entry.short_id or generate_short_id(
+                    str(entry.id), str(entry.kind), length=6
+                )
                 return (
-                    f"✅ List created: '{title}' ({entry.kind[0]}-{short_id}) with {len(item_strings)} items",
+                    f"✅ List created: '{title}' ({display_short}) with {len(item_strings)} items",
                     True,
                 )
             else:

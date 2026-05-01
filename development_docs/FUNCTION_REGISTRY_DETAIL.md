@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-29 18:51:22
+> **Last Generated**: 2026-04-29 22:46:36
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -4810,10 +4810,18 @@ Returns:
 
 Returns:
     bool: True if successful, False if failed
-- [OK] `update_user_index(self, user_id)` - Update user index with validation.
+- [OK] `update_user_index(self, user_id)` - Update the user index with current information for a specific user.
+
+Creates flat lookup mappings for fast O(1) user lookups:
+- {"internal_username": "UUID", "email:email": "UUID", "discord:discord_id": "UUID", "phone:phone": "UUID"}
+
+All detailed user data is stored in account.json, not duplicated in the index.
+
+Args:
+    user_id: The user's ID (UUID)
 
 Returns:
-    bool: True if successful, False if failed
+    bool: True if index was updated successfully
 **Classes:**
 - [OK] `UserDataManager` - Enhanced user data management with references, backup, and indexing capabilities
   - [OK] `UserDataManager.__init__(self)` - Initialize the UserDataManager.
@@ -4871,10 +4879,18 @@ Returns:
 Returns:
     List[Dict[str, Any]]: Search results, empty list if failed
   - [OK] `UserDataManager.update_message_references(self, user_id)` - Add/update message file references in user profile
-  - [OK] `UserDataManager.update_user_index(self, user_id)` - Update user index with validation.
+  - [OK] `UserDataManager.update_user_index(self, user_id)` - Update the user index with current information for a specific user.
+
+Creates flat lookup mappings for fast O(1) user lookups:
+- {"internal_username": "UUID", "email:email": "UUID", "discord:discord_id": "UUID", "phone:phone": "UUID"}
+
+All detailed user data is stored in account.json, not duplicated in the index.
+
+Args:
+    user_id: The user's ID (UUID)
 
 Returns:
-    bool: True if successful, False if failed
+    bool: True if index was updated successfully
 
 #### `core/user_data_presets.py`
 **Functions:**

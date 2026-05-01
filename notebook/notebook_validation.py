@@ -57,6 +57,14 @@ def is_valid_entry_reference(ref: str) -> bool:
         logger.warning("Entry reference cannot be empty")
         return False
 
+    # Reject obsolete dashed short-id form (kind prefix + hyphen + hex fragment). Canonical form is prefix+hex with no hyphen.
+    dashed_short_id_pattern = re.compile(r"^[nlj]-[0-9a-f]{6,8}$", re.IGNORECASE)
+    if dashed_short_id_pattern.match(ref):
+        logger.warning(
+            f"Entry reference uses obsolete dashed short-id format: {ref!r} (use no-dash form)"
+        )
+        return False
+
     # Check if it's a valid UUID format
     uuid_pattern = re.compile(
         r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE
@@ -161,7 +169,7 @@ def format_short_id(entry_id: UUID, kind: EntryKind) -> str | None:
     prefix = ENTRY_KIND_PREFIXES[kind]
     fragment = str(entry_id).replace("-", "")[:MAX_SHORT_ID_LENGTH]
 
-    # No dash for easier mobile typing (e.g., n3f2a9c instead of n-3f2a9c)
+    # No separator between prefix and hex fragment (mobile-friendly short id).
     return f"{prefix}{fragment}"
 
 
@@ -188,7 +196,8 @@ def is_valid_entry_description(description: str | None, kind: EntryKind = "note"
     """
     Validate that a notebook entry description is valid.
 
-    Uses general string length validation with notebook-specific MAX_BODY_LENGTH.
+    Uses general string length validation with notebook-specific MAX_BODY_LENGTH
+    (description text length limit).
     Lists have special rules (description is always optional).
 
     Args:

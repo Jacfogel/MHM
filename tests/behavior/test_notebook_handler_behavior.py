@@ -10,6 +10,7 @@ from unittest.mock import patch
 import uuid
 
 from core.time_utilities import now_datetime_full
+from core.user_data_v2 import generate_short_id
 
 from communication.command_handlers.notebook_handler import NotebookHandler
 from communication.command_handlers.shared_types import (
@@ -1538,7 +1539,7 @@ class TestNotebookErrorHandling:
 
         entry = create_list(user_id, title="Test List", items=["Item 1", "Item 2"])
         assert entry is not None, "List should be created"
-        short_id = f"l-{str(entry.id)[:6]}"
+        short_id = entry.short_id or generate_short_id(str(entry.id), "list", length=6)
 
         # Try to toggle invalid index (too high)
         parsed_command = ParsedCommand(

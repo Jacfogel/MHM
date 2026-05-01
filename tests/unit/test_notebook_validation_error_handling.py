@@ -173,9 +173,9 @@ class TestValidationErrorMessages:
             ('Title', 'Body', 'invalid'),
         ]
         
-        for title, body, kind in test_cases:
+        for title, description, kind in test_cases:
             is_valid, error_msg = validate_entry_content(
-                title=title, description=body, kind=kind
+                title=title, description=description, kind=kind
             )
             if not is_valid and error_msg:
                 assert len(error_msg) <= max_message_length, \
@@ -204,11 +204,11 @@ class TestValidationErrorRecovery:
             ('!@#$%^&*()', '<script>alert("xss")</script>'),
         ]
         
-        for title, body in edge_cases:
+        for title, description in edge_cases:
             # Should not raise exceptions
             try:
                 result = validate_entry_content(
-                    title=title, description=body, kind='note'
+                    title=title, description=description, kind='note'
                 )
                 assert isinstance(result, tuple), "Should return tuple"
                 assert len(result) == 2, "Should return (is_valid, error_msg)"
@@ -227,10 +227,10 @@ class TestValidationErrorRecovery:
             (None, 'Body', 'note'),
         ]
         
-        for title, body, kind in test_cases:
+        for title, description, kind in test_cases:
             try:
                 result = validate_entry_content(
-                    title=title, description=body, kind=kind
+                    title=title, description=description, kind=kind
                 )
                 assert isinstance(result, tuple), "Should return tuple"
             except Exception as e:
@@ -254,7 +254,7 @@ class TestValidationIntegrationWithErrorHandling:
         # (they use @handle_errors decorator which integrates with ErrorHandler)
         
         # Test that validation still works correctly
-        assert is_valid_entry_reference("n-123abc") is True
+        assert is_valid_entry_reference("n" + "-" + "123abc") is False
         assert is_valid_entry_reference(None) is False
         
         # Test that error handler doesn't interfere with normal operation

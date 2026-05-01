@@ -29,6 +29,7 @@ from tasks.task_data_handlers import (
     runtime_task_recurrence_interval,
     runtime_task_recurrence_pattern,
 )
+from tasks.task_schemas import VALID_PRIORITIES
 
 
 # Lazy import to avoid circular dependency: core -> service -> channel_orchestrator -> task_handler -> tasks -> core
@@ -219,8 +220,7 @@ class TaskManagementHandler(InteractionHandler):
                 valid_due_time = parsed_time
 
         # Validate priority
-        valid_priorities = ["low", "medium", "high", "urgent", "critical"]
-        if priority not in valid_priorities:
+        if priority not in VALID_PRIORITIES:
             logger.warning(
                 f"Invalid priority '{priority}' provided, defaulting to 'medium'"
             )
@@ -561,7 +561,7 @@ class TaskManagementHandler(InteractionHandler):
             ]
 
         # Apply priority filter
-        if priority_filter and priority_filter in ["low", "medium", "high"]:
+        if priority_filter and priority_filter in VALID_PRIORITIES:
             filtered_tasks = [
                 task
                 for task in filtered_tasks

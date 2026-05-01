@@ -81,31 +81,33 @@
   - [x] Run legacy `--find` / `--verify` for `active_tasks.json`, `completed_tasks.json`, `task_schedules.json`, `task_id`, and `completed` before removing fallback support (completed 2026-04-29; split-file reads removed; `task_id` may remain as a variable name unrelated to on-disk v1).
 
 **Normalize task category, group, tags, and priority**
+- *Status*: **Documented + migration-tested 2026-04-29** (`core/USER_DATA_MODEL.md` task semantics; parametrized migration tests for all five priority-shaped categories; `VALID_PRIORITIES` single source in task handler).
 - *What it means*: Separate concepts that are currently partially mixed together.
 - *Why it helps*: Prevents values like `high` from being treated as a category when they are really priority.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-26
 - *Subtasks*:
-  - [ ] Treat `priority` as urgency/importance.
-  - [ ] Treat `category` as a broad semantic category such as `health`, `home`, `family`, or `personal`.
-  - [ ] Treat `group` as a user-facing organizational bucket.
-  - [ ] Treat `tags` as flexible multi-label metadata.
-  - [ ] Migrate old `category` values of `low`, `medium`, or `high` into `priority`.
-  - [ ] Do not duplicate the same value across `category`, `group`, and `tags` unless there is a clear reason.
-  - [ ] Add tests for priority-like legacy category values.
+  - [x] Treat `priority` as urgency/importance.
+  - [x] Treat `category` as a broad semantic category such as `health`, `home`, `family`, or `personal`.
+  - [x] Treat `group` as a user-facing organizational bucket.
+  - [x] Treat `tags` as flexible multi-label metadata.
+  - [x] Migrate old `category` values of `low`, `medium`, or `high` into `priority`.
+  - [x] Do not duplicate the same value across `category`, `group`, and `tags` unless there is a clear reason.
+  - [x] Add tests for priority-like legacy category values.
 
 **Add task short IDs**
+- *Status*: **Complete 2026-04-29** (central `generate_short_id`; notebook flow confirmations use canonical no-dash IDs; dashed short-id references rejected in validation; `DEPRECATION_INVENTORY` scan pattern `dashed_short_id_display`).
 - *What it means*: Add mobile-friendly task IDs like `t6ca6` while preserving UUIDs as internal IDs.
 - *Why it helps*: Makes Discord task commands easier to type and aligns tasks with notebook short IDs.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-26
 - *Subtasks*:
-  - [ ] Implement centralized short ID generation if not already present.
-  - [ ] Generate task short IDs from UUIDs.
-  - [ ] Ensure no dash appears in short IDs.
-  - [ ] Add lookup support by UUID and short ID.
-  - [ ] Do not permanently support obsolete dashed short IDs unless real existing data requires it.
-  - [ ] If dashed ID support is required temporarily, mark it as temporary compatibility with planned removal.
+  - [x] Implement centralized short ID generation if not already present.
+  - [x] Generate task short IDs from UUIDs.
+  - [x] Ensure no dash appears in short IDs.
+  - [x] Add lookup support by UUID and short ID.
+  - [x] Do not permanently support obsolete dashed short IDs unless real existing data requires it.
+  - [x] If dashed ID support is required temporarily, mark it as temporary compatibility with planned removal.
 
 **Update task tests for v2 data**
 - *Status*: **Substantially updated 2026-04-28**. Major behavior/unit/integration/UI/scheduler suites now use canonical `due`/`completion`/`reminders`/`updated_at`/`id`; spot-check remaining fixtures if new failures appear.

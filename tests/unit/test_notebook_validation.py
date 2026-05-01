@@ -59,6 +59,35 @@ class TestEntryReferenceValidation:
         for ref in valid_refs:
             result = is_valid_entry_reference(ref)
             assert result is True, f"Short ID with prefix {ref} should be valid"
+
+    @pytest.mark.unit
+    @pytest.mark.critical
+    def test_is_valid_entry_reference_rejects_dashed_short_id(self):
+        """Obsolete dashed form (prefix + hyphen + hex) must be rejected; canonical form is no-dash."""
+        sep = "-"
+        dashed_refs = (
+            f"n{sep}3f2a9c",
+            f"l{sep}91ab20",
+            f"j{sep}0c77e2",
+            f"N{sep}ABCDEF",
+        )
+        for ref in dashed_refs:
+            assert is_valid_entry_reference(ref) is False
+
+    @pytest.mark.unit
+    @pytest.mark.critical
+    def test_format_short_id_round_trip_all_entry_kinds(self):
+        """format_short_id output parses back with parse_short_id for note, list, journal."""
+        uid = uuid4()
+        for kind in ("note", "list", "journal_entry"):
+            formatted = format_short_id(uid, kind)
+            assert formatted is not None
+            assert "-" not in formatted
+            parsed = parse_short_id(formatted)
+            assert parsed is not None
+            prefix, fragment = parsed
+            assert prefix in ("n", "l", "j")
+            assert len(fragment) >= 6
     
     @pytest.mark.unit
     @pytest.mark.critical
@@ -229,14 +258,14 @@ class TestEntryTitleValidation:
 
 @pytest.mark.notebook
 class TestEntryBodyValidation:
-    """Test entry body validation."""
+    """Test entry description validation (legacy class name: body == description text)."""
     
     @pytest.mark.unit
     @pytest.mark.critical
     @pytest.mark.smoke
     def test_is_valid_entry_description_with_valid_bodies(self):
-        """Test valid entry bodies."""
-        valid_bodies = [
+        """Test valid description text for notes."""
+        valid_descriptions = [
             None,  # Optional
             'My note body',
             'A',  # Single character
@@ -244,37 +273,37 @@ class TestEntryBodyValidation:
             '  Padded Body  ',  # Will be stripped
         ]
         
-        for body in valid_bodies:
-            result = is_valid_entry_description(body)
-            assert result is True, f"Valid body {body} should be accepted"
+        for description in valid_descriptions:
+            result = is_valid_entry_description(description)
+            assert result is True, f"Valid description {description!r} should be accepted"
     
     @pytest.mark.unit
     @pytest.mark.critical
     def test_is_valid_entry_description_for_lists(self):
-        """Test body validation for list entries (body is optional)."""
-        valid_bodies = [
+        """Test description validation for list entries (description is optional)."""
+        valid_descriptions = [
             None,
             '',
             'Optional description',
         ]
         
-        for body in valid_bodies:
-            result = is_valid_entry_description(body, kind='list')
-            assert result is True, f"Body {body} should be valid for lists"
+        for description in valid_descriptions:
+            result = is_valid_entry_description(description, kind='list')
+            assert result is True, f"Description {description!r} should be valid for lists"
     
     @pytest.mark.unit
     @pytest.mark.regression
     def test_is_valid_entry_description_with_invalid_bodies(self):
-        """Test invalid entry bodies."""
-        invalid_bodies = [
+        """Test invalid description values."""
+        invalid_descriptions = [
             'a' * (MAX_BODY_LENGTH + 1),  # Too long
             123,  # Non-string
             [],  # Non-string
         ]
         
-        for body in invalid_bodies:
-            result = is_valid_entry_description(body)
-            assert result is False, f"Invalid body {body} should be rejected"
+        for description in invalid_descriptions:
+            result = is_valid_entry_description(description)
+            assert result is False, f"Invalid description {description!r} should be rejected"
 
 
 @pytest.mark.notebook

@@ -93,6 +93,18 @@ class TestNotebookHandlerPaginationAndFormatting:
         assert short_id.startswith("n")
         assert len(short_id) == 7
 
+    def test_format_entry_id_reflects_stored_short_id_when_set(self):
+        handler = NotebookHandler()
+        eid = uuid4()
+        entry = Entry(
+            kind="note",
+            id=eid,
+            title="Titled",
+            description="text",
+            short_id="nabcdef",
+        )
+        assert handler._format_entry_id(entry) == "nabcdef"
+
     def test_format_entry_response_includes_list_metadata_and_items(self):
         handler = NotebookHandler()
         entry = Entry(

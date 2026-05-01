@@ -1033,6 +1033,8 @@ class NotebookHandler(InteractionHandler):
     @handle_errors("formatting entry ID", default_return="unknown")
     def _format_entry_id(self, entry: Entry) -> str:
         """Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing)."""
+        if getattr(entry, "short_id", None):
+            return str(entry.short_id).strip()
         short_id = format_short_id(entry.id, entry.kind)
         # Fallback if format_short_id returns None (shouldn't happen, but safety check)
         if short_id is None:

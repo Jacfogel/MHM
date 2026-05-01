@@ -180,14 +180,14 @@ Each item:
   - [x] Avoid retaining old journal-only fields unless explicitly needed and marked temporary.
 
 **Align notebook list entries with shared item fields**
-- *Status*: **Persisted data migration completed 2026-04-27**.
+- *Status*: **Persisted data migration completed 2026-04-27**; **runtime round-trip verified 2026-04-29** (`tests/unit/test_notebook_list_v2_round_trip.py`).
 - *What it means*: Keep list entries compatible with the same shared item model while preserving list-specific items.
 - *Why it helps*: Lists remain searchable and organizable like notes without losing list behavior.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-26
 - *Subtasks*:
   - [x] Confirm canonical `kind` for lists.
-  - [ ] Add or preserve shared fields:
+  - [x] Add or preserve shared fields:
     - [x] `id`
     - [x] `short_id`
     - [x] `title`
@@ -208,15 +208,15 @@ Each item:
   - [x] Add tests for list migration.
 
 **Update notebook tests for v2 structures**
-- *Status*: **Complete for v2-native runtime 2026-04-29**. Behavior/unit suites aligned with `description` and v2 entry shapes; spot-check remaining fixtures when adding new notebook features.
+- *Status*: **Complete for v2-native runtime 2026-04-29**; **fixture/helpers refreshed 2026-04-29** (`is_archived` test param, `_journal_entry` helper, short_id display test, description wording in validation tests).
 - *What it means*: Update notebook tests to validate the revised v2 note, journal, and list models.
 - *Why it helps*: Prevents the notebook system from continuing to depend on old structures.
 - *Estimated effort*: Medium
 - *Created*: 2026-04-26
 - *Subtasks*:
-  - [ ] Update note fixtures.
-  - [ ] Update journal fixtures.
-  - [ ] Update list fixtures.
+  - [x] Update note fixtures.
+  - [x] Update journal fixtures.
+  - [x] Update list fixtures.
   - [x] Add migration tests from current `notebook/entries.json`.
   - [x] Add tests for no-dash short IDs.
   - [x] Add tests for `description`.

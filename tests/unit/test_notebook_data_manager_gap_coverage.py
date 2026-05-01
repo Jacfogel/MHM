@@ -18,10 +18,11 @@ def _note(
     description: str | None = None,
     tags: list[str] | None = None,
     group: str | None = None,
-    archived: bool = False,
+    is_archived: bool = False,
     pinned: bool = False,
     updated_at: str = "2026-01-01 00:00:00",
 ) -> Entry:
+    """Build a v2 note Entry; is_archived maps to status archived vs active."""
     return Entry(
         id=UUID(entry_id),
         kind="note",
@@ -29,7 +30,7 @@ def _note(
         description=description,
         tags=tags or [],
         group=group,
-        status="archived" if archived else "active",
+        status="archived" if is_archived else "active",
         pinned=pinned,
         updated_at=updated_at,
     )
@@ -41,10 +42,11 @@ def _list(
     item_texts: list[str],
     tags: list[str] | None = None,
     group: str | None = None,
-    archived: bool = False,
+    is_archived: bool = False,
     pinned: bool = False,
     updated_at: str = "2026-01-01 00:00:00",
 ) -> Entry:
+    """Build a v2 list Entry; is_archived maps to status archived vs active."""
     items = [ListItem(text=text, order=i) for i, text in enumerate(item_texts)]
     return Entry(
         id=UUID(entry_id),
@@ -53,15 +55,42 @@ def _list(
         items=items,
         tags=tags or [],
         group=group,
-        status="archived" if archived else "active",
+        status="archived" if is_archived else "active",
         pinned=pinned,
         updated_at=updated_at,
+    )
+
+
+def _journal_entry(
+    entry_id: str,
+    title: str,
+    description: str,
+    submitted_at: str = "2026-01-01 00:00:00",
+) -> Entry:
+    """Build a v2 journal_entry for tests (distinct from note kind)."""
+    return Entry(
+        id=UUID(entry_id),
+        kind="journal_entry",
+        title=title,
+        description=description,
+        submitted_at=submitted_at,
     )
 
 
 @pytest.mark.unit
 @pytest.mark.notebook
 class TestNotebookDataManagerGapCoverage:
+    def test_journal_entry_helper_is_distinct_from_note(self):
+        j = _journal_entry(
+            "77777777-7777-4777-8777-777777777777",
+            "Reflection",
+            "Today was fine.",
+            submitted_at="2026-02-02 08:00:00",
+        )
+        assert j.kind == "journal_entry"
+        assert j.submitted_at == "2026-02-02 08:00:00"
+        assert j.description == "Today was fine."
+
     def test_find_entry_by_ref_variants(self):
         entries = [
             _note("11111111-1111-1111-1111-111111111111", "Alpha Entry"),
@@ -229,7 +258,7 @@ class TestNotebookDataManagerGapCoverage:
         archived_note = _note(
             "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
             "query in archived",
-            archived=True,
+            is_archived=True,
         )
         monkeypatch.setattr(
             ndm, "load_entries", lambda user_id: [note_title, note_body, list_entry, archived_note]
@@ -300,7 +329,7 @@ class TestNotebookDataManagerGapCoverage:
             "14141414-1414-1414-1414-141414141414",
             "Second",
             tags=["beta"],
-            archived=True,
+            is_archived=True,
             updated_at="2026-01-02 12:00:00",
         )
         monkeypatch.setattr(ndm, "load_entries", lambda user_id: [first, second])
@@ -369,7 +398,7 @@ class TestNotebookDataManagerGapCoverage:
                 group="work",
                 tags=["x"],
                 pinned=True,
-                archived=True,
+                is_archived=True,
                 updated_at="2026-01-30 11:00:00",
             ),
             _note(

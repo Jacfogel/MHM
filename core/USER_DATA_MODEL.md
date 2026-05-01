@@ -107,6 +107,20 @@ Shared v2 item fields:
 - `created_at`, `updated_at`, `archived_at`, `deleted_at`: canonical timestamps from `core.time_utilities`; nullable timestamps use `null` when absent.
 - `metadata`: only for still-useful values that cannot be safely mapped to canonical fields.
 
+**Task field semantics (category vs priority)**
+
+For `kind: "task"` records in `tasks/tasks.json`:
+
+- **`priority`**: urgency/importance only. Allowed values are the `VALID_PRIORITIES` set in `tasks/task_schemas.py` (`low`, `medium`, `high`, `urgent`, `critical`). Runtime validation rejects unknown values (defaulting where appropriate).
+- **`category`**: broad semantic domain (examples: `health`, `home`, `family`, `personal`). Free string; avoid storing priority words here. One-time migration maps legacy priority-like `category` values into `priority` when no explicit priority was present (see migration section below).
+- **`group`**: user-facing organizational bucket (free string).
+- **`tags`**: flexible multi-label metadata (`list[str]`).
+- **Convention**: avoid copying the same token into `category`, `group`, and `tags` unless you mean three different roles; this is a modeling convention, not a runtime constraint.
+
+**Short IDs (no dash)**
+
+Persisted `short_id` values use `core.user_data_v2.generate_short_id` (prefix + hex fragment, **no hyphen**), e.g. tasks `t...`, notes `n...`, lists `l...`, journal entries `j...`. User-facing confirmations and entry references should use this canonical form; dashed `n-...` / `kind[0]-uuid6` display is obsolete.
+
 Canonical v2 files:
 
 - `tasks/tasks.json`: versioned task collection with `tasks[]`. Active/completed state lives in each task's `status` and `completion`, not in separate storage files.

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-29 18:51:32
+> **Last Generated**: 2026-04-29 22:46:45
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -814,6 +814,7 @@ C:.
 |   |   |   test_notebook_data_manager_gap_coverage.py
 |   |   |   test_notebook_handler_edge_cases.py
 |   |   |   test_notebook_handler_pagination_formatting.py
+|   |   |   test_notebook_list_v2_round_trip.py
 |   |   |   test_notebook_validation.py
 |   |   |   test_notebook_validation_error_handling.py
 |   |   |   test_no_prints_policy.py
@@ -830,6 +831,7 @@ C:.
 |   |   |   test_tags.py
 |   |   |   test_tags_expansion.py
 |   |   |   test_tags_gap_coverage.py
+|   |   |   test_task_short_ids.py
 |   |   |   test_test_policy_guards.py
 |   |   |   test_ui_management.py
 |   |   |   test_user_context.py

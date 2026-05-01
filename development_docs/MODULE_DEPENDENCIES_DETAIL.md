@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-29 18:51:24
+> **Last Generated**: 2026-04-29 22:46:38
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 123
-- **Total Imports Found**: 1523
+- **Total Imports Found**: 1528
 - **Dependencies Documented**: 123 (100% coverage)
-- **Standard Library Imports**: 432 (28.4%)
-- **Third-Party Imports**: 233 (15.3%)
-- **Local Imports**: 858 (56.3%)
+- **Standard Library Imports**: 432 (28.3%)
+- **Third-Party Imports**: 233 (15.2%)
+- **Local Imports**: 863 (56.5%)
 - **Last Updated**: 2026-04-29
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 432 imports (28.4%)
-- **Third-Party**: 233 imports (15.3%)
-- **Local**: 858 imports (56.3%)
+- **Standard Library**: 432 imports (28.3%)
+- **Third-Party**: 233 imports (15.2%)
+- **Local**: 863 imports (56.5%)
 
 ## Module Dependencies by Directory
 
@@ -516,6 +516,7 @@
     - `core.time_utilities (DATE_ONLY, format_timestamp, now_datetime_full, parse_date_only)` (NEW)
     - `tasks` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_recurrence_interval, runtime_task_recurrence_pattern)` (NEW)
+    - `tasks.task_schemas (VALID_PRIORITIES)` (NEW)
   - **Standard Library**:
     - `calendar`
     - `datetime (datetime, timedelta)`
@@ -530,7 +531,7 @@
   - `communication/message_processing/interaction_manager.py`
 
 **Dependency Changes**:
-- Added: core, core.checkin_analytics, core.error_handling, core.logger, core.time_utilities, tasks, tasks.task_data_handlers
+- Added: core, core.checkin_analytics, core.error_handling, core.logger, core.time_utilities, tasks, tasks.task_data_handlers, tasks.task_schemas
 - Removed: communication/command_handlers/interaction_handlers.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -1119,6 +1120,7 @@
     - `core.response_tracking (get_recent_checkins, is_user_checkins_enabled, store_user_response)` (NEW)
     - `core.tags (parse_tags_from_text)` (NEW)
     - `core.time_utilities (DATE_ONLY, TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, now_timestamp_full, parse_date_and_time_minute, parse_date_only, parse_time_only_minute, parse_timestamp_full)` (NEW)
+    - `core.user_data_v2 (generate_short_id)` (NEW)
     - `notebook.notebook_data_manager (create_list, create_note)`
     - `tasks (get_task_by_id, update_task)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_due_time)` (NEW)
@@ -1139,7 +1141,7 @@
   - `core/service.py`
 
 **Dependency Changes**:
-- Added: core, core.checkin_dynamic_manager, core.config, core.error_handling, core.logger, core.response_tracking, core.tags, core.time_utilities, tasks, tasks.task_data_handlers
+- Added: core, core.checkin_dynamic_manager, core.config, core.error_handling, core.logger, core.response_tracking, core.tags, core.time_utilities, core.user_data_v2, tasks, tasks.task_data_handlers
 - Removed: communication/command_handlers/checkin_handler.py, communication/command_handlers/notebook_handler.py, communication/core/channel_orchestrator.py, communication/message_processing/interaction_manager.py, core/service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -1181,7 +1183,7 @@
     - `core.config (AI_MAX_RESPONSE_LENGTH)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.response_tracking (get_recent_checkins, is_user_checkins_enabled)` (NEW)
+    - `core.response_tracking (checkin_runtime_timestamp, get_recent_checkins, is_user_checkins_enabled)` (NEW)
     - `core.time_format_constants (DATE_DISPLAY_MONTH_DAY)` (NEW)
     - `core.time_utilities (format_timestamp, now_datetime_full, parse_date_and_time_minute, parse_date_only, parse_timestamp_full)` (NEW)
     - `tasks (load_active_tasks)` (NEW)
@@ -1866,6 +1868,7 @@
   - `core/auto_cleanup.py`
   - `core/message_analytics.py`
   - `core/service.py`
+  - `core/user_data_manager.py`
   - `core/user_data_updates.py`
   - `core/user_data_validation.py`
   - `ui/dialogs/message_editor_dialog.py`
@@ -2282,9 +2285,11 @@
     - `core.file_locking (safe_json_read, safe_json_write)` (NEW)
     - `core.file_operations (get_user_data_dir, get_user_file_path, load_json_data)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.response_tracking (get_recent_checkins, get_recent_responses)` (NEW)
+    - `core.message_management (get_recent_messages)` (NEW)
+    - `core.response_tracking (checkin_runtime_timestamp, get_recent_checkins, get_recent_responses)` (NEW)
     - `core.schemas (validate_messages_file_dict)` (NEW)
     - `core.time_utilities (now_timestamp_filename, now_timestamp_full)` (NEW)
+    - `core.user_data_v2 (SCHEMA_VERSION)` (NEW)
   - **Standard Library**:
     - `collections.abc (Callable)`
     - `importlib`
@@ -2302,7 +2307,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: core, core.config, core.error_handling, core.file_locking, core.file_operations, core.logger, core.response_tracking, core.schemas, core.time_utilities
+- Added: core, core.config, core.error_handling, core.file_locking, core.file_operations, core.logger, core.message_management, core.response_tracking, core.schemas, core.time_utilities, core.user_data_v2
 - Removed: collections.abc, communication/command_handlers/account_handler.py, core/user_data_write.py, ui/dialogs/account_creator_dialog.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2454,9 +2459,11 @@
     - `pydantic (BaseModel, ConfigDict, Field, field_validator, model_validator)`
     - `pydantic_core (PydanticCustomError)`
 - **Used by**: 
+  - `communication/message_processing/conversation_flow_manager.py`
   - `core/file_operations.py`
   - `core/message_management.py`
   - `core/response_tracking.py`
+  - `core/user_data_manager.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_data_manager.py`
 
@@ -2706,6 +2713,7 @@
 - **Purpose**: Task management and scheduling
 - **Dependencies**: None (no imports)
 - **Used by**: 
+  - `communication/command_handlers/task_handler.py`
   - `core/file_operations.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_validation.py`
