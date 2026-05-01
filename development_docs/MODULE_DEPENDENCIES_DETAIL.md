@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-29 22:46:38
+> **Last Generated**: 2026-04-30 20:58:40
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -21,7 +21,7 @@
 - **Standard Library Imports**: 432 (28.3%)
 - **Third-Party Imports**: 233 (15.2%)
 - **Local Imports**: 863 (56.5%)
-- **Last Updated**: 2026-04-29
+- **Last Updated**: 2026-04-30
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -1876,7 +1876,7 @@
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.file_operations, core.logger, core.schemas, core.time_utilities, core.user_data_v2
-- Removed: ai/chatbot.py, communication/core/channel_orchestrator.py, core/auto_cleanup.py, core/message_analytics.py, core/service.py, core/user_data_updates.py, core/user_data_validation.py, ui/dialogs/message_editor_dialog.py, user/context_manager.py
+- Removed: ai/chatbot.py, communication/core/channel_orchestrator.py, core/auto_cleanup.py, core/message_analytics.py, core/service.py, core/user_data_manager.py, core/user_data_updates.py, core/user_data_validation.py, ui/dialogs/message_editor_dialog.py, user/context_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Message management and storage
@@ -2469,7 +2469,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger, core.time_utilities
-- Removed: core/file_operations.py, core/message_management.py, core/response_tracking.py, tasks/task_data_handlers.py, tasks/task_data_manager.py
+- Removed: communication/message_processing/conversation_flow_manager.py, core/file_operations.py, core/message_management.py, core/response_tracking.py, core/user_data_manager.py, tasks/task_data_handlers.py, tasks/task_data_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2719,7 +2719,7 @@
   - `tasks/task_validation.py`
 
 **Dependency Changes**:
-- Removed: core/file_operations.py, tasks/task_data_handlers.py, tasks/task_validation.py
+- Removed: communication/command_handlers/task_handler.py, core/file_operations.py, tasks/task_data_handlers.py, tasks/task_validation.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

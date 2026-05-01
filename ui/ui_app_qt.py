@@ -2289,7 +2289,7 @@ class MHMManagerUI(QMainWindow):
 
             task_reminder_request = {
                 "user_id": self.current_user,
-                "task_id": task_id,
+                "task_identifier": task_id,
                 "timestamp": now_timestamp_full(),
                 "source": "admin_panel",
             }

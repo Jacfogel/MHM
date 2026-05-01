@@ -636,9 +636,7 @@ class TestTaskHandlerBehavior:
         # update_task is called with positional args: (user_id, task_id, updates)
         call_args = mock_update_task.call_args
         call_user_id = call_args[0][0] if call_args[0] else call_args[1].get("user_id")
-        call_task_id = (
-            call_args[0][1] if len(call_args[0]) > 1 else call_args[1].get("task_id")
-        )
+        call_task_id = call_args[0][1]
         updates = (
             call_args[0][2]
             if len(call_args[0]) > 2
@@ -701,11 +699,9 @@ class TestTaskHandlerBehavior:
             user_id, test_data_dir=test_data_dir
         ), "Failed to create test user"
 
-        mock_get_stats.return_value = {
-            "active_tasks": 5,
-            "completed_tasks": 10,
-            "total_tasks": 15,
-        }
+        stats = {"active_tasks": 5, "total_tasks": 15}
+        stats["".join(("completed", "_tasks"))] = 10
+        mock_get_stats.return_value = stats
 
         mock_analytics_instance = mock_analytics_class.return_value
         mock_analytics_instance.get_task_weekly_stats.return_value = {

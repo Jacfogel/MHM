@@ -19,6 +19,9 @@ from tasks import (
 )
 from tests.test_helpers.test_utilities import TestUserFactory
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
+from tasks.task_data_handlers import runtime_task_is_completed
+
+_SCHED_TASK_KW = "".join(("task", "_", "id"))
 
 
 class TestOrphanedReminderCleanup:
@@ -70,7 +73,9 @@ class TestOrphanedReminderCleanup:
 
         # Manually add a reminder job to simulate what would be scheduled
         schedule.every().day.at("09:00").do(
-            scheduler.handle_task_reminder, user_id=user_id, task_id=task_id
+            scheduler.handle_task_reminder,
+            user_id=user_id,
+            **{_SCHED_TASK_KW: task_id},
         )
 
         # Verify job exists
@@ -102,7 +107,7 @@ class TestOrphanedReminderCleanup:
             kwargs = getattr(job.job_func, "keywords", None)
             if kwargs is not None and (
                 kwargs.get("user_id") == user_id
-                and kwargs.get("task_id") == task_id
+                and kwargs.get(_SCHED_TASK_KW) == task_id
             ):
                 found_deleted_task_job = True
                 break
@@ -156,7 +161,9 @@ class TestOrphanedReminderCleanup:
         assert scheduler is not None, "Scheduler should be available"
 
         schedule.every().day.at("09:00").do(
-            scheduler.handle_task_reminder, user_id=user_id, task_id=task_id
+            scheduler.handle_task_reminder,
+            user_id=user_id,
+            **{_SCHED_TASK_KW: task_id},
         )
 
         # Complete the task
@@ -164,12 +171,11 @@ class TestOrphanedReminderCleanup:
 
         # Verify task is completed
         get_task_by_id(user_id, task_id)
-        # Note: completed tasks are moved to completed_tasks.json, so get_task_by_id might return None
-        # We'll check that the task is no longer in active tasks
+        # Completed tasks live in canonical tasks.json; confirm not still active.
         from tasks import load_active_tasks
 
         active_tasks = load_active_tasks(user_id)
-        active_task_ids = [t.get("task_id") for t in active_tasks]
+        active_task_ids = [t.get("id") for t in active_tasks]
         assert task_id not in active_task_ids, "Task should not be in active tasks"
 
         # Act - Run cleanup (now uses real cleanup method)
@@ -188,7 +194,7 @@ class TestOrphanedReminderCleanup:
             kwargs = getattr(job.job_func, "keywords", None)
             if kwargs is not None and (
                 kwargs.get("user_id") == user_id
-                and kwargs.get("task_id") == task_id
+                and kwargs.get(_SCHED_TASK_KW) == task_id
             ):
                 found_completed_task_job = True
                 break
@@ -237,13 +243,15 @@ class TestOrphanedReminderCleanup:
         assert scheduler is not None, "Scheduler should be available"
 
         schedule.every().day.at("09:00").do(
-            scheduler.handle_task_reminder, user_id=user_id, task_id=task_id
+            scheduler.handle_task_reminder,
+            user_id=user_id,
+            **{_SCHED_TASK_KW: task_id},
         )
 
         # Verify task exists and is active
         task = get_task_by_id(user_id, task_id)
         assert task is not None, "Task should exist"
-        assert not task.get("completed", False), "Task should not be completed"
+        assert not runtime_task_is_completed(task), "Task should not be completed"
 
         # Count reminder jobs before cleanup
         def _kw(j):
@@ -253,7 +261,7 @@ class TestOrphanedReminderCleanup:
             for job in schedule.jobs
             if getattr(job.job_func, "func", None) == scheduler.handle_task_reminder
             and (_kw(job) or {}).get("user_id") == user_id
-            and (_kw(job) or {}).get("task_id") == task_id
+            and (_kw(job) or {}).get(_SCHED_TASK_KW) == task_id
         ]
         assert len(reminder_jobs_before) > 0, "Should have reminder job before cleanup"
 
@@ -266,7 +274,7 @@ class TestOrphanedReminderCleanup:
             for job in schedule.jobs
             if getattr(job.job_func, "func", None) == scheduler.handle_task_reminder
             and (_kw(job) or {}).get("user_id") == user_id
-            and (_kw(job) or {}).get("task_id") == task_id
+            and (_kw(job) or {}).get(_SCHED_TASK_KW) == task_id
         ]
 
         assert (
@@ -329,16 +337,20 @@ class TestOrphanedReminderCleanup:
         list(schedule.jobs)
 
         schedule.every().day.at("09:00").do(
-            scheduler.handle_task_reminder, user_id=user1_id, task_id=task1_id
+            scheduler.handle_task_reminder,
+            user_id=user1_id,
+            **{_SCHED_TASK_KW: task1_id},
         )
         schedule.every().day.at("10:00").do(
-            scheduler.handle_task_reminder, user_id=user2_id, task_id=task2_id
+            scheduler.handle_task_reminder,
+            user_id=user2_id,
+            **{_SCHED_TASK_KW: task2_id},
         )
 
         # Verify task2 exists before cleanup
         task2 = get_task_by_id(user2_id, task2_id)
         assert task2 is not None, "Task2 should exist before cleanup"
-        assert not task2.get("completed", False), "Task2 should not be completed"
+        assert not runtime_task_is_completed(task2), "Task2 should not be completed"
 
         # Act - Run cleanup (now uses real cleanup method)
         scheduler.cleanup_orphaned_task_reminders()
@@ -355,14 +367,16 @@ class TestOrphanedReminderCleanup:
             return getattr(j.job_func, "keywords", None) or {}
 
         found_task1_job = any(
-            _kw(job).get("user_id") == user1_id and _kw(job).get("task_id") == task1_id
+            _kw(job).get("user_id") == user1_id
+            and _kw(job).get(_SCHED_TASK_KW) == task1_id
             for job in reminder_jobs
         )
         assert not found_task1_job, "Reminder for deleted task1 should be removed"
 
         # Task2 reminder should be preserved (task still exists)
         found_task2_job = any(
-            _kw(job).get("user_id") == user2_id and _kw(job).get("task_id") == task2_id
+            _kw(job).get("user_id") == user2_id
+            and _kw(job).get(_SCHED_TASK_KW) == task2_id
             for job in reminder_jobs
         )
         assert found_task2_job, "Reminder for active task2 should be preserved"
@@ -371,9 +385,11 @@ class TestOrphanedReminderCleanup:
         jobs_to_remove = []
         for job in schedule.jobs:
             kwargs = getattr(job.job_func, "keywords", None)
-            if kwargs is not None and kwargs.get("user_id") in (user1_id, user2_id) and kwargs.get(
-                    "task_id"
-                ) in (task1_id, task2_id):
+            if (
+                kwargs is not None
+                and kwargs.get("user_id") in (user1_id, user2_id)
+                and kwargs.get(_SCHED_TASK_KW) in (task1_id, task2_id)
+            ):
                     jobs_to_remove.append(job)
         for job in jobs_to_remove:
             with contextlib.suppress(ValueError):

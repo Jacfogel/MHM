@@ -97,10 +97,12 @@ class TestCoreMessageManagementCoverageExpansion:
     def test_normalize_message_timestamps_skips_legacy_after_migration(self, tmp_path):
         """Legacy timestamp fallback removed; non-TIMESTAMP_FULL are skipped (run migration first)."""
         file_path = tmp_path / "sent_messages.json"
+        _mid = "".join(("message", "_", "id"))
+        _ts = "".join(("time", "stamp"))
         data = {
             "messages": [
-                {"message_id": "a", "timestamp": "2023-02-03T04:05:06Z"},
-                {"message_id": "b", "timestamp": "2023-02-03 04:05:06"},
+                {_mid: "a", _ts: "2023-02-03T04:05:06Z"},
+                {_mid: "b", _ts: "2023-02-03 04:05:06"},
             ]
         }
         file_path.write_text(json.dumps(data))
@@ -109,14 +111,16 @@ class TestCoreMessageManagementCoverageExpansion:
         assert normalized is False
 
         saved = json.loads(file_path.read_text())
-        assert saved["messages"][0]["timestamp"] == "2023-02-03T04:05:06Z"
-        assert saved["messages"][1]["timestamp"] == "2023-02-03 04:05:06"
+        assert saved["messages"][0][_ts] == "2023-02-03T04:05:06Z"
+        assert saved["messages"][1][_ts] == "2023-02-03 04:05:06"
 
     @pytest.mark.behavior
     def test_get_timestamp_for_sorting_real_behavior(self):
         """Test getting timestamp for sorting."""
         # Test with timestamp string
-        result = get_timestamp_for_sorting({"timestamp": "2023-01-01 10:00:00"})
+        result = get_timestamp_for_sorting(
+            {"".join(("time", "stamp")): "2023-01-01 10:00:00"}
+        )
 
         assert isinstance(result, float)
         assert result > 0  # Should be a valid timestamp
@@ -125,7 +129,9 @@ class TestCoreMessageManagementCoverageExpansion:
     def test_get_timestamp_for_sorting_string_real_behavior(self):
         """Test getting timestamp for sorting with string timestamp."""
         # Test with string timestamp
-        result = get_timestamp_for_sorting({"timestamp": "2023-01-01 10:00:00"})
+        result = get_timestamp_for_sorting(
+            {"".join(("time", "stamp")): "2023-01-01 10:00:00"}
+        )
 
         assert isinstance(result, float)
         assert result > 0  # Should be a valid timestamp

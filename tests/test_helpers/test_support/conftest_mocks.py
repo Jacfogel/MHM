@@ -48,28 +48,45 @@ def mock_ai_response():
 
 @pytest.fixture(scope="function")
 def mock_task_data():
-    """Mock task data for testing."""
+    """Minimal v2 runtime task dict for tests (matches task handler / storage shape)."""
     return {
-        "task_id": "test-task-123",
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "short_id": "taaaaaaa",
+        "kind": "task",
         "title": "Test Task",
         "description": "This is a test task",
+        "category": "",
+        "group": "",
+        "status": "active",
         "priority": "medium",
-        "due_date": "2025-01-15",
-        "completed": False,
+        "due": {"date": "2025-01-15", "time": None},
+        "tags": [],
+        "reminders": [],
+        "recurrence": {
+            "pattern": None,
+            "interval": 1,
+            "repeat_after_completion": True,
+            "next_due_date": None,
+        },
+        "completion": {"completed": False, "completed_at": None, "notes": ""},
         "created_at": "2025-01-01T12:00:00Z",
         "updated_at": "2025-01-01T12:00:00Z",
+        "source": {"system": "mhm", "channel": "", "actor": "", "migration": None},
+        "linked_item_ids": [],
+        "archived_at": None,
+        "deleted_at": None,
+        "metadata": {},
     }
 
 
 @pytest.fixture(scope="function")
 def mock_message_data():
-    """Mock message data for testing."""
+    """Minimal v2-style template fields for tests (canonical ``id``)."""
     return {
-        "message_id": "test-message-123",
+        "id": "test-message-123",
         "text": "This is a test message",
         "category": "motivational",
-        "days": ["monday", "wednesday", "friday"],
-        "time_periods": ["18:00-20:00"],
+        "schedule": {"days": ["monday", "wednesday", "friday"], "time_periods": ["18:00-20:00"]},
         "active": True,
     }
 
@@ -91,7 +108,7 @@ def mock_service_data():
 def mock_communication_data():
     """Mock communication data for testing."""
     return {
-        "message_id": "test-msg-123",
+        "id": "test-msg-123",
         "user_id": "test-user-123",
         "channel": "email",
         "content": "Test message content",

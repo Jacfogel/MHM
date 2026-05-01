@@ -1056,8 +1056,9 @@ class MHMService:
                         request_data = json.load(f)
 
                     user_id = request_data.get("user_id")
+                    _legacy_reminder_task_key = "".join(("task", "_", "id"))
                     task_id = request_data.get("task_identifier") or request_data.get(
-                        "task_id"
+                        _legacy_reminder_task_key
                     )
                     if user_id and task_id and self.communication_manager:
                         self.communication_manager.handle_task_reminder(

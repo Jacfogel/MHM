@@ -135,11 +135,7 @@ def save_entries(user_id: str, entries: list[Entry]) -> None:
 def _entry_v2_to_runtime(entry: dict) -> dict:
     """Map persisted v2 JSON to runtime dict for Entry validation (v2-native)."""
     description = entry.get("description")
-    if description is None and entry.get("body"):
-        description = entry.get("body")
     status = entry.get("status") or "active"
-    if status == "active" and entry.get("archived") is True:
-        status = "archived"
     runtime = {
         "id": entry.get("id"),
         "short_id": entry.get("short_id"),
@@ -173,7 +169,7 @@ def _entry_runtime_to_v2(entry: dict) -> dict:
     status = entry.get("status") or "active"
     description = entry.get("description")
     if description is None:
-        description = entry.get("body") or ""
+        description = ""
     v2_entry = {
         "id": entry_id,
         "short_id": entry.get("short_id") or generate_short_id(entry_id, str(kind)),

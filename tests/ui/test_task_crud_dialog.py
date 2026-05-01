@@ -19,6 +19,56 @@ from PySide6.QtCore import Qt
 from ui.dialogs.task_crud_dialog import TaskCrudDialog
 
 
+def _v2_runtime_task(
+    *,
+    task_uuid: str,
+    short_id: str,
+    title: str,
+    description: str,
+    due_date: str,
+    due_time: str,
+    priority: str,
+    category: str,
+    created_at: str,
+    status: str = "active",
+    completed_at: str | None = None,
+) -> dict:
+    """Minimal v2 runtime task dict matching ``tasks.task_data_handlers._task_v2_to_runtime`` shape."""
+    completed = status == "completed"
+    return {
+        "id": task_uuid,
+        "short_id": short_id,
+        "kind": "task",
+        "title": title,
+        "description": description,
+        "category": category,
+        "group": "",
+        "status": status,
+        "priority": priority.lower(),
+        "due": {"date": due_date, "time": due_time},
+        "tags": [],
+        "reminders": [],
+        "recurrence": {
+            "pattern": None,
+            "interval": 1,
+            "repeat_after_completion": True,
+            "next_due_date": None,
+        },
+        "completion": {
+            "completed": completed,
+            "completed_at": completed_at,
+            "notes": "",
+        },
+        "source": {"system": "mhm", "channel": "", "actor": "", "migration": None},
+        "linked_item_ids": [],
+        "created_at": created_at,
+        "updated_at": created_at,
+        "archived_at": None,
+        "deleted_at": None,
+        "metadata": {},
+    }
+
+
 class TestTaskCrudDialog:
     """Test TaskCrudDialog functionality."""
     
@@ -40,41 +90,47 @@ class TestTaskCrudDialog:
     
     @pytest.fixture
     def mock_task_data(self):
-        """Mock task data for testing."""
+        """V2 runtime-shaped lists as returned by ``load_active_tasks`` / ``load_completed_tasks``."""
         return {
-            'active_tasks': [
-                {
-                    'task_id': 'task1',
-                    'title': 'Test Task 1',
-                    'description': 'Test Description 1',
-                    'due_date': '2025-10-03',
-                    'due_time': '10:00',
-                    'priority': 'High',
-                    'category': 'Work',
-                    'created_at': '2025-10-01'
-                },
-                {
-                    'task_id': 'task2',
-                    'title': 'Test Task 2',
-                    'description': 'Test Description 2',
-                    'due_date': '2025-10-04',
-                    'due_time': '14:00',
-                    'priority': 'Medium',
-                    'category': 'Personal',
-                    'created_at': '2025-10-02'
-                }
+            "active_list": [
+                _v2_runtime_task(
+                    task_uuid="00000000-0000-4000-8000-000000000001",
+                    short_id="t0000001",
+                    title="Test Task 1",
+                    description="Test Description 1",
+                    due_date="2025-10-03",
+                    due_time="10:00",
+                    priority="high",
+                    category="Work",
+                    created_at="2025-10-01T12:00:00Z",
+                ),
+                _v2_runtime_task(
+                    task_uuid="00000000-0000-4000-8000-000000000002",
+                    short_id="t0000002",
+                    title="Test Task 2",
+                    description="Test Description 2",
+                    due_date="2025-10-04",
+                    due_time="14:00",
+                    priority="medium",
+                    category="Personal",
+                    created_at="2025-10-02T12:00:00Z",
+                ),
             ],
-            'completed_tasks': [
-                {
-                    'task_id': 'task3',
-                    'title': 'Completed Task 1',
-                    'description': 'Completed Description 1',
-                    'due_date': '2025-10-01',
-                    'priority': 'Low',
-                    'category': 'Work',
-                    'completed_at': '2025-10-01'
-                }
-            ]
+            "done_list": [
+                _v2_runtime_task(
+                    task_uuid="00000000-0000-4000-8000-000000000003",
+                    short_id="t0000003",
+                    title="Completed Task 1",
+                    description="Completed Description 1",
+                    due_date="2025-10-01",
+                    due_time="",
+                    priority="low",
+                    category="Work",
+                    created_at="2025-09-30T12:00:00Z",
+                    status="completed",
+                    completed_at="2025-10-01T15:00:00Z",
+                ),
+            ],
         }
     
     @pytest.mark.ui
@@ -147,8 +203,8 @@ class TestTaskCrudDialog:
             with patch('ui.dialogs.task_crud_dialog.load_completed_tasks') as mock_load_completed:
                 with patch('ui.dialogs.task_crud_dialog.get_user_task_stats') as mock_stats:
                     # Mock return values
-                    mock_load_active.return_value = mock_task_data['active_tasks']
-                    mock_load_completed.return_value = mock_task_data['completed_tasks']
+                    mock_load_active.return_value = mock_task_data["active_list"]
+                    mock_load_completed.return_value = mock_task_data["done_list"]
                     mock_stats.return_value = {'total': 3, 'completed': 1, 'pending': 2}
                     
                     # Create dialog
@@ -195,7 +251,7 @@ class TestTaskCrudDialog:
             with patch('ui.dialogs.task_crud_dialog.load_completed_tasks') as mock_load_completed:
                 with patch('ui.dialogs.task_crud_dialog.get_user_task_stats') as mock_stats:
                     # Mock return values
-                    mock_load_active.return_value = mock_task_data['active_tasks']
+                    mock_load_active.return_value = mock_task_data["active_list"]
                     mock_load_completed.return_value = []
                     mock_stats.return_value = {'total': 2, 'completed': 0, 'pending': 2}
                     
@@ -227,7 +283,7 @@ class TestTaskCrudDialog:
                 with patch('ui.dialogs.task_crud_dialog.get_user_task_stats') as mock_stats:
                     # Mock return values
                     mock_load_active.return_value = []
-                    mock_load_completed.return_value = mock_task_data['completed_tasks']
+                    mock_load_completed.return_value = mock_task_data["done_list"]
                     mock_stats.return_value = {'total': 1, 'completed': 1, 'pending': 0}
                     
                     # Create dialog
@@ -317,7 +373,7 @@ class TestTaskCrudDialog:
             with patch('ui.dialogs.task_crud_dialog.load_completed_tasks') as mock_load_completed:
                 with patch('ui.dialogs.task_crud_dialog.get_user_task_stats') as mock_stats:
                     # Mock return values
-                    mock_load_active.return_value = mock_task_data['active_tasks']
+                    mock_load_active.return_value = mock_task_data["active_list"]
                     mock_load_completed.return_value = []
                     mock_stats.return_value = {'total': 2, 'completed': 0, 'pending': 2}
                     
@@ -368,7 +424,7 @@ class TestTaskCrudDialog:
                 with patch('ui.dialogs.task_crud_dialog.get_user_task_stats') as mock_stats:
                     with patch('tasks.complete_task') as mock_complete:
                         # Mock return values
-                        mock_load_active.return_value = mock_task_data['active_tasks']
+                        mock_load_active.return_value = mock_task_data["active_list"]
                         mock_load_completed.return_value = []
                         mock_stats.return_value = {'total': 2, 'completed': 0, 'pending': 2}
                         mock_complete.return_value = True
@@ -421,11 +477,11 @@ class TestTaskCrudDialog:
                     with patch('tasks.delete_task') as mock_delete:
                         with patch('tasks.get_task_by_id') as mock_get_task:
                             # Mock return values
-                            mock_load_active.return_value = mock_task_data['active_tasks']
+                            mock_load_active.return_value = mock_task_data["active_list"]
                             mock_load_completed.return_value = []
                             mock_stats.return_value = {'total': 2, 'completed': 0, 'pending': 2}
                             mock_delete.return_value = True
-                            mock_get_task.return_value = mock_task_data['active_tasks'][0]
+                            mock_get_task.return_value = mock_task_data["active_list"][0]
                             
                             # Create dialog
                             dialog = TaskCrudDialog(user_id='test_user')
@@ -475,7 +531,7 @@ class TestTaskCrudDialog:
                     with patch('tasks.restore_task') as mock_restore:
                         # Mock return values
                         mock_load_active.return_value = []
-                        mock_load_completed.return_value = mock_task_data['completed_tasks']
+                        mock_load_completed.return_value = mock_task_data["done_list"]
                         mock_stats.return_value = {'total': 1, 'completed': 1, 'pending': 0}
                         mock_restore.return_value = True
                         
@@ -527,7 +583,7 @@ class TestTaskCrudDialog:
                     with patch('tasks.delete_task') as mock_delete:
                         # Mock return values
                         mock_load_active.return_value = []
-                        mock_load_completed.return_value = mock_task_data['completed_tasks']
+                        mock_load_completed.return_value = mock_task_data["done_list"]
                         mock_stats.return_value = {'total': 1, 'completed': 1, 'pending': 0}
                         mock_delete.return_value = True
                         
@@ -552,8 +608,8 @@ class TestTaskCrudDialog:
             with patch('ui.dialogs.task_crud_dialog.load_completed_tasks') as mock_load_completed:
                 with patch('ui.dialogs.task_crud_dialog.get_user_task_stats') as mock_stats:
                     # Mock return values
-                    mock_load_active.return_value = mock_task_data['active_tasks']
-                    mock_load_completed.return_value = mock_task_data['completed_tasks']
+                    mock_load_active.return_value = mock_task_data["active_list"]
+                    mock_load_completed.return_value = mock_task_data["done_list"]
                     mock_stats.return_value = {'total': 3, 'completed': 1, 'pending': 2}
                     
                     # Create dialog

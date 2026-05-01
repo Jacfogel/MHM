@@ -1230,27 +1230,24 @@ class TestTaskManagementAdvancedCoverage:
         assert "no active tasks" in response.message.lower()
 
     def test_handle_edit_task_with_invalid_task_id(self, test_data_dir):
-        """Test task editing with invalid task ID."""
+        """Test task update with unknown task identifier (v2 ``task_identifier``)."""
         handler = TaskManagementHandler()
         user_id = "test_user_edit_1"
 
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
         parsed_command = ParsedCommand(
-            intent="edit_task",
-            entities={"task_id": "invalid_task_id", "title": "New Title"},
+            intent="update_task",
+            entities={"task_identifier": "invalid_task_id", "title": "New Title"},
             confidence=0.9,
-            original_message="edit task invalid_task_id",
+            original_message="update task invalid_task_id title New Title",
         )
 
         response = handler.handle(user_id, parsed_command)
 
         assert isinstance(response, InteractionResponse)
-        assert response.completed  # Actually returns completed=True with help message
-        assert (
-            "understand" in response.message.lower()
-            or "try" in response.message.lower()
-        )
+        assert response.completed
+        assert "not found" in response.message.lower()
 
     def test_handle_delete_task_with_invalid_task_id(self, test_data_dir):
         """Test task deletion with invalid task ID."""
@@ -1261,7 +1258,7 @@ class TestTaskManagementAdvancedCoverage:
 
         parsed_command = ParsedCommand(
             intent="delete_task",
-            entities={"task_id": "invalid_task_id"},
+            entities={"task_identifier": "invalid_task_id"},
             confidence=0.9,
             original_message="delete task invalid_task_id",
         )
@@ -1269,11 +1266,8 @@ class TestTaskManagementAdvancedCoverage:
         response = handler.handle(user_id, parsed_command)
 
         assert isinstance(response, InteractionResponse)
-        assert not response.completed  # Asks for clarification
-        assert (
-            "which task" in response.message.lower()
-            or "specify" in response.message.lower()
-        )
+        assert response.completed
+        assert "not found" in response.message.lower()
 
 
 @pytest.mark.communication

@@ -90,7 +90,7 @@ def _message_template_to_runtime(message: dict[str, Any], category: str) -> dict
     schedule = cast(dict[str, Any], schedule_raw) if isinstance(schedule_raw, dict) else {}
     days = schedule.get("days") or ["ALL"]
     periods = schedule.get("periods") or ["ALL"]
-    message_id = message.get("id") or message.get("message_id")
+    message_id = message.get("id")
     if not message_id:
         message_id = str(uuid.uuid4())
     return {

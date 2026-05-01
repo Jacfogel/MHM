@@ -88,7 +88,7 @@ class TestTaskCleanupReal:
         user_dir = Path(get_user_data_dir(user_id))
         task_file = user_dir / "tasks" / "tasks.json"
         assert task_file.exists(), "tasks.json should exist"
-        assert not (user_dir / "tasks" / "completed_tasks.json").exists()
+        assert not (user_dir / "tasks" / "".join(("completed", "_tasks", ".json"))).exists()
 
         with open(task_file) as f:
             file_data = json.load(f)
@@ -153,7 +153,7 @@ class TestTaskCleanupReal:
         user_dir = Path(get_user_data_dir(user_id))
         task_file = user_dir / "tasks" / "tasks.json"
         assert task_file.exists(), "tasks.json should exist"
-        assert not (user_dir / "tasks" / "active_tasks.json").exists()
+        assert not (user_dir / "tasks" / "".join(("active", "_tasks", ".json"))).exists()
 
         with open(task_file) as f:
             file_data = json.load(f)

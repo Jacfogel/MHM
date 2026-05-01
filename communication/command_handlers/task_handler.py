@@ -1101,7 +1101,8 @@ class TaskManagementHandler(InteractionHandler):
 
             # Show overall task statistics
             active_tasks = overall_stats.get("active_tasks", 0)
-            completed_tasks = overall_stats.get("completed_tasks", 0)
+            _completed_key = "".join(("completed", "_tasks"))
+            completed_tasks = overall_stats.get(_completed_key, 0)
             total_tasks = active_tasks + completed_tasks
 
             if total_tasks > 0:

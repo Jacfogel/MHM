@@ -77,10 +77,12 @@ class TestMessageEditDialogInitialization:
         
         # Create message data for editing
         message_data = {
-            'message_id': 'test_message_id',
-            'message': 'Test message text',
-            'days': ['monday', 'tuesday'],
-            'time_periods': ['morning', 'afternoon']
+            "id": "test_message_id",
+            "text": "Test message text",
+            "schedule": {
+                "days": ["monday", "tuesday"],
+                "periods": ["morning", "afternoon"],
+            },
         }
         
         # Create dialog for editing
@@ -284,10 +286,9 @@ class TestMessageEditDialogSave:
         
         # Create message data
         message_data = {
-            'message_id': 'test_message_id',
-            'message': 'Test message text',
-            'days': ['monday'],
-            'time_periods': ['morning']
+            "id": "test_message_id",
+            "text": "Test message text",
+            "schedule": {"days": ["monday"], "periods": ["morning"]},
         }
         
         # Create dialog
@@ -320,12 +321,12 @@ class TestMessageEditDialogSave:
             assert call_args[0][0] == dialog_add.user_id, "Should pass user_id"
             assert call_args[0][1] == dialog_add.category, "Should pass category"
             message_data = call_args[0][2]
-            assert message_data['message'] == "New test message", "Should pass message text"
-            assert 'monday' in message_data['days'], "Should include monday"
-            assert 'tuesday' in message_data['days'], "Should include tuesday"
-            assert 'morning' in message_data['time_periods'], "Should include morning"
-            assert 'afternoon' in message_data['time_periods'], "Should include afternoon"
-            assert 'message_id' in message_data, "Should include message_id"
+            assert message_data["text"] == "New test message", "Should pass message text"
+            assert "monday" in message_data["schedule"]["days"], "Should include monday"
+            assert "tuesday" in message_data["schedule"]["days"], "Should include tuesday"
+            assert "morning" in message_data["schedule"]["periods"], "Should include morning"
+            assert "afternoon" in message_data["schedule"]["periods"], "Should include afternoon"
+            assert "id" in message_data, "Should include canonical template id"
             assert 'created_at' in message_data, "Should include created_at"
             
             # Assert: Should show success message
@@ -352,11 +353,11 @@ class TestMessageEditDialogSave:
             call_args = mock_edit.call_args
             assert call_args[0][0] == dialog_edit.user_id, "Should pass user_id"
             assert call_args[0][1] == dialog_edit.category, "Should pass category"
-            assert call_args[0][2] == 'test_message_id', "Should pass message_id"
+            assert call_args[0][2] == "test_message_id", "Should pass template id"
             message_data = call_args[0][3]
-            assert message_data['message'] == "Updated test message", "Should pass updated message text"
-            assert 'wednesday' in message_data['days'], "Should include wednesday"
-            assert 'evening' in message_data['time_periods'], "Should include evening"
+            assert message_data["text"] == "Updated test message", "Should pass updated message text"
+            assert "wednesday" in message_data["schedule"]["days"], "Should include wednesday"
+            assert "evening" in message_data["schedule"]["periods"], "Should include evening"
             
             # Assert: Should show success message
             mock_info.assert_called_once()
@@ -365,9 +366,9 @@ class TestMessageEditDialogSave:
     
     @pytest.mark.ui
     def test_save_edit_fails_without_message_id(self, dialog_edit):
-        """Test: Save edit fails when message_id is missing"""
+        """Test: Save edit fails when template id is missing"""
         # Arrange: Dialog is created in fixture
-        dialog_edit.message_data = {}  # Remove message_id
+        dialog_edit.message_data = {}  # Remove id / legacy keys
         dialog_edit.message_text.setPlainText("Updated test message")
         dialog_edit.day_checkboxes['monday'].setChecked(True)
         dialog_edit.period_checkboxes['morning'].setChecked(True)
@@ -402,17 +403,21 @@ class TestMessageEditorDialogInitialization:
         with patch('ui.dialogs.message_editor_dialog.load_user_messages') as mock_load:
             mock_load.return_value = [
                 {
-                    'message_id': 'msg1',
-                    'message': 'Test message 1',
-                    'days': ['monday', 'tuesday'],
-                    'time_periods': ['morning']
+                    "id": "msg1",
+                    "text": "Test message 1",
+                    "schedule": {
+                        "days": ["monday", "tuesday"],
+                        "periods": ["morning"],
+                    },
                 },
                 {
-                    'message_id': 'msg2',
-                    'message': 'Test message 2',
-                    'days': ['wednesday'],
-                    'time_periods': ['afternoon', 'evening']
-                }
+                    "id": "msg2",
+                    "text": "Test message 2",
+                    "schedule": {
+                        "days": ["wednesday"],
+                        "periods": ["afternoon", "evening"],
+                    },
+                },
             ]
             
             # Create dialog
@@ -507,10 +512,9 @@ class TestMessageEditorDialogOperations:
         with patch('ui.dialogs.message_editor_dialog.load_user_messages') as mock_load:
             mock_load.return_value = [
                 {
-                    'message_id': 'msg1',
-                    'message': 'Test message 1',
-                    'days': ['monday'],
-                    'time_periods': ['morning']
+                    "id": "msg1",
+                    "text": "Test message 1",
+                    "schedule": {"days": ["monday"], "periods": ["morning"]},
                 }
             ]
             
@@ -529,10 +533,9 @@ class TestMessageEditorDialogOperations:
         with patch('ui.dialogs.message_editor_dialog.load_user_messages') as mock_load:
             mock_load.return_value = [
                 {
-                    'message_id': 'msg2',
-                    'message': 'Test message 2',
-                    'days': ['tuesday'],
-                    'time_periods': ['afternoon']
+                    "id": "msg2",
+                    "text": "Test message 2",
+                    "schedule": {"days": ["tuesday"], "periods": ["afternoon"]},
                 }
             ]
             
@@ -542,7 +545,7 @@ class TestMessageEditorDialogOperations:
             # Assert: Should reload messages
             mock_load.assert_called_once_with(dialog.user_id, dialog.category)
             assert len(dialog.messages) == 1, "Should reload messages"
-            assert dialog.messages[0]['message_id'] == 'msg2', "Should load new message"
+            assert dialog.messages[0]["id"] == "msg2", "Should load new message"
     
     @pytest.mark.ui
     def test_add_new_message(self, dialog):
@@ -595,7 +598,7 @@ class TestMessageEditorDialogOperations:
         # Arrange: Dialog is created in fixture
         # Ensure we have messages
         assert len(dialog.messages) > 0, "Should have messages to delete"
-        message_id = dialog.messages[0].get('message_id')
+        message_id = dialog.messages[0].get("id")
         
         with patch('ui.dialogs.message_editor_dialog.delete_message', return_value=None) as mock_delete, \
              patch('PySide6.QtWidgets.QMessageBox.question') as mock_question, \

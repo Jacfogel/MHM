@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-29 22:46:36
+> **Last Generated**: 2026-04-30 20:58:38
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 94.1% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 94.2% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 125
-- **Functions Found**: 1761
+- **Functions Found**: 1765
 - **Methods Found**: 1245
 - **Classes Found**: 170
-- **Total Items**: 3006
-- **Functions Documented**: 1639
+- **Total Items**: 3010
+- **Functions Documented**: 1643
 - **Methods Documented**: 1191
 - **Classes Documented**: 122
-- **Total Documented**: 2830
+- **Total Documented**: 2834
 - **Template-Generated**: 4
-- **Last Updated**: 2026-04-29
+- **Last Updated**: 2026-04-30
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -45,7 +45,7 @@ Core system utilities, configuration, error handling, and data management functi
 ### **Communication Functions** (460)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (426)
+### **User Interface Functions** (430)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (33)
@@ -2124,7 +2124,7 @@ Parses natural language responses like:
 - "No reminders needed" / "No" / "Skip"
 - [OK] `_load_user_states(self)` - Load user states from disk with comprehensive logging
 - [OK] `_mark_flow_completion(self, user_id)` - Record when a user flow completed to enforce post-flow cooldown.
-- [OK] `_normalize_loaded_flow_task_identifiers(self)` - Move persisted ``task_id`` flow data to ``task_identifier`` and save once.
+- [OK] `_normalize_loaded_flow_task_identifiers(self)` - Move persisted legacy task key flow data to ``task_identifier`` and save once.
 - [OK] `_normalize_reminder_text(self, text)` - Normalize reminder text variants before regex matching.
 - [OK] `_parse_date_time_from_text(self, text)` - Parse date and time from natural language text.
 
@@ -2240,7 +2240,7 @@ Parses natural language responses like:
 - "No reminders needed" / "No" / "Skip"
   - [OK] `ConversationManager._load_user_states(self)` - Load user states from disk with comprehensive logging
   - [OK] `ConversationManager._mark_flow_completion(self, user_id)` - Record when a user flow completed to enforce post-flow cooldown.
-  - [OK] `ConversationManager._normalize_loaded_flow_task_identifiers(self)` - Move persisted ``task_id`` flow data to ``task_identifier`` and save once.
+  - [OK] `ConversationManager._normalize_loaded_flow_task_identifiers(self)` - Move persisted legacy task key flow data to ``task_identifier`` and save once.
   - [OK] `ConversationManager._normalize_reminder_text(self, text)` - Normalize reminder text variants before regex matching.
   - [OK] `ConversationManager._parse_date_time_from_text(self, text)` - Parse date and time from natural language text.
 
@@ -5548,6 +5548,10 @@ Returns:
 **Functions:**
 - [OK] `__init__(self, parent, user_id, category, message_data)` - Initialize the message edit dialog.
 - [OK] `__init__(self, parent, user_id, category)` - Initialize the message editor dialog.
+- [OK] `_runtime_template_days(message)` - Return day codes from the v2 nested ``schedule`` dict (``days``).
+- [OK] `_runtime_template_id(message)` - Return canonical template ``id`` when present.
+- [OK] `_runtime_template_periods(message)` - Return period codes from the v2 nested ``schedule`` dict (``periods``).
+- [OK] `_runtime_template_text(message)` - Return template body text from the v2 ``text`` field.
 - [OK] `add_new_message(self)` - Add a new message.
 - [OK] `delete_message_by_row(self, row)` - Delete message at the specified row.
 - [OK] `edit_message_by_row(self, row)` - Edit message at the specified row.

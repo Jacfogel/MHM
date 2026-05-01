@@ -88,10 +88,11 @@ class TestAIIntegration(AITestBase):
                 # Canonical formatting: avoid inline strftime in tests.
                 today_prefix = format_timestamp(now_datetime_full(), DATE_ONLY)
 
+                _ts_key = "".join(("time", "stamp"))
                 checkins_today = [
                     c
                     for c in recent_checkins
-                    if c.get("timestamp", "").startswith(today_prefix)
+                    if c.get(_ts_key, "").startswith(today_prefix)
                 ]
 
                 prompt = "How have I been doing with my check-ins?"

@@ -117,17 +117,44 @@ class TestDataFactory:
         """
         tasks = []
         for i in range(task_count):
+            tid = str(uuid.uuid4())
             task = {
-                "task_id": str(uuid.uuid4()),
+                "id": tid,
+                "short_id": f"t{i:04d}",
+                "kind": "task",
                 "title": f"Test Task {i + 1}",
                 "description": f"Description for test task {i + 1}",
+                "category": "",
+                "group": "",
                 "priority": "medium",
                 "status": "active",
-                "due_date": format_timestamp(
-                    now_datetime_full() + timedelta(days=i + 1), DATE_ONLY
-                ),
+                "due": {
+                    "date": format_timestamp(
+                        now_datetime_full() + timedelta(days=i + 1), DATE_ONLY
+                    ),
+                    "time": None,
+                },
+                "tags": [],
+                "reminders": [],
+                "recurrence": {
+                    "pattern": None,
+                    "interval": 1,
+                    "repeat_after_completion": True,
+                    "next_due_date": None,
+                },
+                "completion": {"completed": False, "completed_at": None, "notes": ""},
                 "created_at": now_timestamp_full(),
                 "updated_at": now_timestamp_full(),
+                "source": {
+                    "system": "mhm",
+                    "channel": "",
+                    "actor": "",
+                    "migration": None,
+                },
+                "linked_item_ids": [],
+                "archived_at": None,
+                "deleted_at": None,
+                "metadata": {},
             }
             tasks.append(task)
 
@@ -150,9 +177,10 @@ class TestDataFactory:
 
         messages = []
         for i in range(message_count):
+            mid = str(uuid.uuid4())
             message = {
-                "message_id": str(uuid.uuid4()),
-                "content": f"Test message {i + 1} for {category}",
+                "id": mid,
+                "text": f"Test message {i + 1} for {category}",
                 "category": category,
                 "created_at": now_timestamp_full(),
                 "sent": False,

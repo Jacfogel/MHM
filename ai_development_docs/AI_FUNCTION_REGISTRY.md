@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-29 22:46:36
+> **Last Generated**: 2026-04-30 20:58:38
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 94.1% [!] GOOD**
-- **Total Functions**: 1761
+### **Documentation Coverage: 94.2% [!] GOOD**
+- **Total Functions**: 1765
 - **Total Methods**: 1245
-- **Documented**: 2830/3006
+- **Documented**: 2834/3010
 - **Files Scanned**: 125
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -202,7 +202,7 @@ Most complex functions (may need refactoring):
 - `core/` - System utilities and data management (38 files, 931 functions)
 - `communication/` - Communication channels and message processing (39 files, 867 functions)
 - `ai/` - AI chatbot functionality (7 files, 219 functions)
-- `ui/` - User interface components (29 files, 827 functions)
+- `ui/` - User interface components (29 files, 831 functions)
 - `user/` - User context and preferences (4 files, 65 functions)
 - `tasks/` - Task management system (5 files, 49 functions)
 

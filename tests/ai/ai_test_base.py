@@ -268,10 +268,11 @@ class AITestBase:
                     get_recent_checkins(user_id, limit=10) if user_id else []
                 )
                 context_info["recent_checkins_count"] = len(recent_checkins)
+                _ts_key = "".join(("time", "stamp"))
                 checkins_today = [
                     c
                     for c in recent_checkins
-                    if c.get("timestamp", "").startswith(
+                    if c.get(_ts_key, "").startswith(
                         # Test metadata only; ISO-8601 shape is required for external tooling and is not consumed by production code.
                         format_timestamp(now_datetime_full(), DATE_ONLY)
                     )

@@ -398,10 +398,14 @@ class TestChannelOrchestratorHelpers:
         user_id = "user_ok"
         task_id = "task_123"
         task = {
-            "task_id": task_id,
+            "id": task_id,
+            "short_id": "tshort1",
+            "kind": "task",
             "title": "Follow up",
-            "completed": False,
+            "status": "active",
             "priority": "medium",
+            "completion": {"completed": False, "completed_at": None, "notes": ""},
+            "due": {"date": None, "time": None},
         }
 
         with (
@@ -432,10 +436,14 @@ class TestChannelOrchestratorHelpers:
         user_id = "user_fail"
         task_id = "task_456"
         task = {
-            "task_id": task_id,
+            "id": task_id,
+            "short_id": "tshort2",
+            "kind": "task",
             "title": "Do thing",
-            "completed": False,
+            "status": "active",
             "priority": "high",
+            "completion": {"completed": False, "completed_at": None, "notes": ""},
+            "due": {"date": None, "time": None},
         }
 
         with (
@@ -468,7 +476,20 @@ class TestChannelOrchestratorHelpers:
 
     def test_handle_task_reminder_skips_completed_task(self):
         """Test completed task branch exits without sending."""
-        task = {"task_id": "task_done", "title": "Done", "completed": True}
+        task = {
+            "id": "task_done",
+            "short_id": "tdone01",
+            "kind": "task",
+            "title": "Done",
+            "status": "completed",
+            "priority": "medium",
+            "completion": {
+                "completed": True,
+                "completed_at": "2025-01-01T00:00:00Z",
+                "notes": "",
+            },
+            "due": {"date": None, "time": None},
+        }
         with (
             patch("tasks.are_tasks_enabled", return_value=True),
             patch("tasks.get_task_by_id", return_value=task),
@@ -480,7 +501,16 @@ class TestChannelOrchestratorHelpers:
 
     def test_handle_task_reminder_exits_when_preferences_missing(self):
         """Test missing preferences branch exits without sending."""
-        task = {"task_id": "task_ok", "title": "Active task", "completed": False}
+        task = {
+            "id": "task_ok",
+            "short_id": "tok00001",
+            "kind": "task",
+            "title": "Active task",
+            "status": "active",
+            "priority": "medium",
+            "completion": {"completed": False, "completed_at": None, "notes": ""},
+            "due": {"date": None, "time": None},
+        }
         with (
             patch("tasks.are_tasks_enabled", return_value=True),
             patch("tasks.get_task_by_id", return_value=task),
@@ -496,7 +526,16 @@ class TestChannelOrchestratorHelpers:
 
     def test_handle_task_reminder_exits_when_recipient_missing(self):
         """Test missing recipient branch exits without sending."""
-        task = {"task_id": "task_ok", "title": "Active task", "completed": False}
+        task = {
+            "id": "task_ok",
+            "short_id": "tok00002",
+            "kind": "task",
+            "title": "Active task",
+            "status": "active",
+            "priority": "medium",
+            "completion": {"completed": False, "completed_at": None, "notes": ""},
+            "due": {"date": None, "time": None},
+        }
         with (
             patch("tasks.are_tasks_enabled", return_value=True),
             patch("tasks.get_task_by_id", return_value=task),

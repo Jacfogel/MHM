@@ -83,17 +83,15 @@ class TestDefaultMessages:
         """Test loading default messages successfully."""
         test_messages = [
             {
-                'message': "Don't forget to be awesome today! Let's make some epic things happen!",
-                'days': ['ALL'],
-                'time_periods': ['ALL'],
-                'message_id': 'motivational_001'
+                "id": "motivational_001",
+                "text": "Don't forget to be awesome today! Let's make some epic things happen!",
+                "schedule": {"days": ["ALL"], "periods": ["ALL"]},
             },
             {
-                'message': "Remember to stay hydrated and take care of yourself!",
-                'days': ['ALL'],
-                'time_periods': ['ALL'],
-                'message_id': 'motivational_002'
-            }
+                "id": "motivational_002",
+                "text": "Remember to stay hydrated and take care of yourself!",
+                "schedule": {"days": ["ALL"], "periods": ["ALL"]},
+            },
         ]
         
         # Mock the file reading to return the exact structure
@@ -229,12 +227,12 @@ class TestMessageCRUD:
         # Create initial message file
         message_file = os.path.join(messages_dir, f"{category}.json")
         initial_data = {
-            'messages': [
+            "messages": [
                 {
-                    "message_id": "test-msg-1",
+                    "id": "test-msg-1",
                     "message": "Original message",
                     "days": ["monday", "tuesday"],
-                    "time_periods": ["morning"]
+                    "time_periods": ["morning"],
                 }
             ]
         }
@@ -283,19 +281,19 @@ class TestMessageCRUD:
         updated_data = {"message": "Updated message"}
         
         existing_messages = {
-            'messages': [
+            "messages": [
                 {
-                    "message_id": "test-msg-1",
+                    "id": "test-msg-1",
                     "message": "Original message",
                     "days": ["monday"],
-                    "time_periods": ["morning"]
+                    "time_periods": ["morning"],
                 }
             ]
         }
-        
+
         mock_load = Mock(return_value=existing_messages)
-        
-        with patch('core.message_management.load_json_data', mock_load):
+
+        with patch("core.message_management.load_json_data", mock_load):
             result = edit_message(user_id, category, message_id, updated_data)
             
             # Functions return None on failure (due to error handler)
@@ -315,22 +313,23 @@ class TestMessageCRUD:
         }
         
         existing_messages = {
-            'messages': [
+            "messages": [
                 {
-                    "message_id": "test-msg-1",
+                    "id": "test-msg-1",
                     "message": "Original message",
                     "days": ["monday", "tuesday"],
-                    "time_periods": ["morning"]
+                    "time_periods": ["morning"],
                 }
             ]
         }
-        
+
         mock_load = Mock(return_value=existing_messages)
         mock_save = Mock(return_value=True)
-        
-        with patch('core.message_management.load_json_data', mock_load), \
-             patch('core.message_management.save_json_data', mock_save):
-            
+
+        with patch("core.message_management.load_json_data", mock_load), patch(
+            "core.message_management.save_json_data", mock_save
+        ):
+
             result = update_message(user_id, category, message_id, updates)
             
             # Functions return None on success
@@ -355,19 +354,19 @@ class TestMessageCRUD:
         # Create initial message file with two messages
         message_file = os.path.join(messages_dir, f"{category}.json")
         initial_data = {
-            'messages': [
+            "messages": [
                 {
-                    "message_id": "test-msg-1",
+                    "id": "test-msg-1",
                     "message": "Message to delete",
                     "days": ["monday"],
-                    "time_periods": ["morning"]
+                    "time_periods": ["morning"],
                 },
                 {
-                    "message_id": "test-msg-2",
+                    "id": "test-msg-2",
                     "message": "Message to keep",
                     "days": ["tuesday"],
-                    "time_periods": ["evening"]
-                }
+                    "time_periods": ["evening"],
+                },
             ]
         }
         with open(message_file, 'w', encoding='utf-8') as f:
@@ -403,19 +402,19 @@ class TestMessageCRUD:
         message_id = "nonexistent"
         
         existing_messages = {
-            'messages': [
+            "messages": [
                 {
-                    "message_id": "test-msg-1",
+                    "id": "test-msg-1",
                     "message": "Existing message",
                     "days": ["monday"],
-                    "time_periods": ["morning"]
+                    "time_periods": ["morning"],
                 }
             ]
         }
-        
+
         mock_load = Mock(return_value=existing_messages)
-        
-        with patch('core.message_management.load_json_data', mock_load):
+
+        with patch("core.message_management.load_json_data", mock_load):
             result = delete_message(user_id, category, message_id)
             
             # Functions return None on failure (due to error handler)
@@ -545,14 +544,16 @@ class TestSentMessages:
         messages_dir = os.path.join(user_dir, 'messages')
         os.makedirs(messages_dir, exist_ok=True)
 
-        sent_messages_file = os.path.join(messages_dir, 'sent_messages.json')
+        sent_messages_file = os.path.join(messages_dir, "sent_messages.json")
+        _mid = "".join(("message", "_", "id"))
+        _ts = "".join(("time", "stamp"))
         test_sent_messages = {
             "messages": [
                 {
-                    "message_id": "msg-good",
+                    _mid: "msg-good",
                     "message": "Valid message",
                     "category": category,
-                    "timestamp": "2025-01-01T10:00:00Z",
+                    _ts: "2025-01-01T10:00:00Z",
                 },
             ]
         }
@@ -578,8 +579,18 @@ class TestMessageFileManagement:
         category = "motivational"
         
         default_messages = [
-            {"message_id": "default1", "message": "Default message 1", "days": ["monday"], "time_periods": ["morning"]},
-            {"message_id": "default2", "message": "Default message 2", "days": ["tuesday"], "time_periods": ["evening"]}
+            {
+                "id": "default1",
+                "text": "Default message 1",
+                "days": ["monday"],
+                "time_periods": ["morning"],
+            },
+            {
+                "id": "default2",
+                "text": "Default message 2",
+                "days": ["tuesday"],
+                "time_periods": ["evening"],
+            },
         ]
         
         # Mock file operations
@@ -627,7 +638,11 @@ class TestErrorHandling:
         """Test add_message handles file errors gracefully."""
         user_id = "test-user"
         category = "motivational"
-        message_data = {"message_id": "test_msg", "message": "Test message", "days": ["monday"], "time_periods": ["morning"]}
+        message_data = {
+            "message": "Test message",
+            "days": ["monday"],
+            "time_periods": ["morning"],
+        }
         
         # Mock file operations to raise exception
         mock_load = Mock(side_effect=Exception("File error"))
@@ -644,7 +659,11 @@ class TestErrorHandling:
         user_id = "test-user"
         category = "motivational"
         message_id = "test_msg"
-        updated_data = {"message_id": "test_msg", "message": "Updated message", "days": ["monday"], "time_periods": ["morning"]}
+        updated_data = {
+            "message": "Updated message",
+            "days": ["monday"],
+            "time_periods": ["morning"],
+        }
         
         # Mock file operations to raise exception
         mock_load = Mock(side_effect=Exception("File error"))

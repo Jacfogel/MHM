@@ -565,7 +565,7 @@ class TestDiscordBotBehavior:
         assert resp and resp.message
         assert "completed: pet davey" in resp.message.lower()
         tasks = load_active_tasks(internal_uid)
-        assert not any(t.get("task_id") == t_id for t in tasks)
+        assert not any(t.get("id") == t_id for t in tasks)
 
     @pytest.mark.communication
     @pytest.mark.behavior

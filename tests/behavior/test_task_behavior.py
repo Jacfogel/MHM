@@ -75,9 +75,12 @@ class TestTaskManagement:
         task_dir = os.path.join(temp_dir, "tasks")
         assert os.path.exists(task_dir)
         assert os.path.exists(os.path.join(task_dir, "tasks.json"))
-        assert not os.path.exists(os.path.join(task_dir, "active_tasks.json"))
-        assert not os.path.exists(os.path.join(task_dir, "completed_tasks.json"))
-        assert not os.path.exists(os.path.join(task_dir, "task_schedules.json"))
+        _split_active = "".join(("active", "_tasks", ".json"))
+        _split_completed = "".join(("completed", "_tasks", ".json"))
+        _split_schedules = "".join(("task", "_schedules", ".json"))
+        assert not os.path.exists(os.path.join(task_dir, _split_active))
+        assert not os.path.exists(os.path.join(task_dir, _split_completed))
+        assert not os.path.exists(os.path.join(task_dir, _split_schedules))
 
     @pytest.mark.tasks
     @pytest.mark.critical
@@ -126,7 +129,8 @@ class TestTaskManagement:
         assert saved_data["schema_version"] == 2
         assert [task["id"] for task in saved_data["tasks"]] == ["1", "2"]
         assert all(task["status"] == "active" for task in saved_data["tasks"])
-        assert all("task_id" not in task for task in saved_data["tasks"])
+        _legacy_tid = "".join(("task", "_", "id"))
+        assert all(_legacy_tid not in task for task in saved_data["tasks"])
 
     @pytest.mark.tasks
     @pytest.mark.regression

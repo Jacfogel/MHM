@@ -3,11 +3,14 @@
 Test recurring tasks functionality.
 """
 
-import pytest
+import json
+import os
 from datetime import datetime
 from unittest.mock import patch
-import os
 
+import pytest
+
+from core.user_data_v2 import SCHEMA_VERSION
 from tasks import (
 
     create_task,
@@ -18,9 +21,8 @@ from tasks import (
 
 pytestmark = [pytest.mark.tasks]
 
-from tasks.task_data_manager import (
-    _calculate_next_due_date,
-)
+from tasks.task_data_manager import _calculate_next_due_date
+from tasks.task_schemas import TASKS_V2_FILENAME
 
 
 @pytest.mark.unit
@@ -40,14 +42,13 @@ class TestRecurringTasks:
         tasks_dir = os.path.join(user_dir, 'tasks')
         os.makedirs(tasks_dir)
         
-        # Create initial task files
-        active_tasks_file = os.path.join(tasks_dir, 'active_tasks.json')
-        completed_tasks_file = os.path.join(tasks_dir, 'completed_tasks.json')
-        
-        with open(active_tasks_file, 'w') as f:
-            f.write('{"tasks": []}')
-        with open(completed_tasks_file, 'w') as f:
-            f.write('{"completed_tasks": []}')
+        # Canonical v2 task store (split active/completed files are not read)
+        tasks_v2_path = os.path.join(tasks_dir, TASKS_V2_FILENAME)
+        with open(tasks_v2_path, "w", encoding="utf-8") as f:
+            json.dump(
+                {"schema_version": SCHEMA_VERSION, "updated_at": "", "tasks": []},
+                f,
+            )
         
         yield user_id, temp_dir
     

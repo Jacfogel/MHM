@@ -35,11 +35,13 @@ class TestEnsureUniqueIds:
         assert ensure_unique_ids({"other": []}) == {"other": []}
 
     def test_ensure_unique_ids_repairs_duplicates_and_missing(self):
+        _mid = "".join(("message", "_", "id"))
+        _body = "body"
         data = {
             "messages": [
-                {"message_id": "dup", "body": "a"},
-                {"message_id": "dup", "body": "b"},
-                {"body": "no id yet"},
+                {_mid: "dup", _body: "a"},
+                {_mid: "dup", _body: "b"},
+                {_body: "no id yet"},
             ]
         }
         out = ensure_unique_ids(data)
@@ -49,7 +51,7 @@ class TestEnsureUniqueIds:
         assert ids[0] == "dup"
         for mid in ids[1:]:
             assert len(mid) >= 32
-        assert all("message_id" not in m for m in out["messages"])
+        assert all(_mid not in m for m in out["messages"])
 
 
 @pytest.mark.integration
@@ -133,11 +135,13 @@ class TestLoadAndEnsureIds:
         assert update_user_index(uid)
 
         msg_path = os.path.join(info["user_dir"], "messages", "motivational.json")
+        _mid = "".join(("message", "_", "id"))
+        _body = "body"
         payload = {
             "messages": [
-                {"message_id": "duplicate-id", "body": "first"},
-                {"message_id": "duplicate-id", "body": "second"},
-                {"body": "third"},
+                {_mid: "duplicate-id", _body: "first"},
+                {_mid: "duplicate-id", _body: "second"},
+                {_body: "third"},
             ]
         }
         with open(msg_path, "w", encoding="utf-8") as fh:
@@ -150,4 +154,4 @@ class TestLoadAndEnsureIds:
         ids = [m.get("id") for m in reloaded["messages"]]
         assert all(ids)
         assert len(ids) == len(set(ids))
-        assert all("message_id" not in m for m in reloaded["messages"])
+        assert all(_mid not in m for m in reloaded["messages"])

@@ -232,11 +232,11 @@ class TestMessageAnalyticsSummaryBehavior:
             date = base_date + timedelta(days=i)
             messages.append(
                 {
-                    "message_id": f"msg-{i}",
-                    "message": f"Test message {i}",
+                    "message_template_id": f"tpl-{i}",
+                    "sent_text": f"Test message {i}",
                     "category": "motivational" if i % 2 == 0 else "health",
-                    "timestamp": format_timestamp(date, TIMESTAMP_FULL),
-                    "delivery_status": "sent",
+                    "sent_at": format_timestamp(date, TIMESTAMP_FULL),
+                    "status": "sent",
                     "time_period": "morning",
                 }
             )

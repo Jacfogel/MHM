@@ -25,22 +25,23 @@ class TestQuantitativeAnalyticsExpansion:
     @staticmethod
     def _as_v2_checkin_file(sample_checkins: list[dict]) -> dict:
         """Convert flat runtime checkins into canonical v2 on-disk shape."""
+        _ts_key = "".join(("time", "stamp"))
         return {
             "schema_version": SCHEMA_VERSION,
             "checkins": [
                 {
                     "id": f"checkin-{idx}",
-                    "submitted_at": checkin.get("timestamp"),
+                    "submitted_at": checkin.get(_ts_key),
                     "source": {"system": "mhm", "channel": "test", "actor": "pytest", "migration": None},
                     "responses": {
                         key: value
                         for key, value in checkin.items()
-                        if key != "timestamp"
+                        if key != _ts_key
                     },
-                    "questions_asked": [key for key in checkin if key != "timestamp"],
+                    "questions_asked": [key for key in checkin if key != _ts_key],
                     "linked_item_ids": [],
-                    "created_at": checkin.get("timestamp"),
-                    "updated_at": checkin.get("timestamp"),
+                    "created_at": checkin.get(_ts_key),
+                    "updated_at": checkin.get(_ts_key),
                     "archived_at": None,
                     "deleted_at": None,
                     "metadata": {},

@@ -40,6 +40,33 @@ setup_logging()
 logger = get_component_logger("ui")
 
 
+@handle_errors("reading runtime template text", default_return="")
+def _runtime_template_text(message: dict) -> str:
+    """Return template body text from the v2 ``text`` field."""
+    return str(message.get("text") or "")
+
+
+@handle_errors("reading runtime template schedule days", default_return=[])
+def _runtime_template_days(message: dict) -> list:
+    """Return day codes from the v2 nested ``schedule`` dict (``days``)."""
+    schedule = message.get("schedule") if isinstance(message.get("schedule"), dict) else {}
+    return list(schedule.get("days") or [])
+
+
+@handle_errors("reading runtime template schedule periods", default_return=[])
+def _runtime_template_periods(message: dict) -> list:
+    """Return period codes from the v2 nested ``schedule`` dict (``periods``)."""
+    schedule = message.get("schedule") if isinstance(message.get("schedule"), dict) else {}
+    return list(schedule.get("periods") or [])
+
+
+@handle_errors("reading runtime template id", default_return=None)
+def _runtime_template_id(message: dict) -> str | None:
+    """Return canonical template ``id`` when present."""
+    mid = message.get("id")
+    return str(mid).strip() if mid else None
+
+
 class MessageEditDialog(QDialog):
     """Dialog for editing or adding a message."""
 
@@ -128,15 +155,15 @@ class MessageEditDialog(QDialog):
         """Load existing message data if editing."""
         if self.is_edit and self.message_data:
             # Load message text
-            self.message_text.setPlainText(self.message_data.get("message", ""))
+            self.message_text.setPlainText(_runtime_template_text(self.message_data))
 
             # Load days
-            days = self.message_data.get("days", [])
+            days = _runtime_template_days(self.message_data)
             for day, checkbox in self.day_checkboxes.items():
                 checkbox.setChecked(day in days)
 
             # Load time periods
-            periods = self.message_data.get("time_periods", [])
+            periods = _runtime_template_periods(self.message_data)
             for period, checkbox in self.period_checkboxes.items():
                 checkbox.setChecked(period in periods)
 
@@ -171,19 +198,18 @@ class MessageEditDialog(QDialog):
             )
             return
 
-        # Prepare message data
+        # Prepare v2-shaped template payload (core normalizes to disk schema)
         message_data = {
-            "message": message_text,
-            "days": selected_days,
-            "time_periods": selected_periods,
+            "text": message_text,
+            "schedule": {"days": selected_days, "periods": selected_periods},
         }
 
         # @handle_errors decorator handles exceptions
         if self.is_edit:
             # Edit existing message
-            message_id = self.message_data.get("message_id")
-            if message_id:
-                edit_message(self.user_id, self.category, message_id, message_data)
+            template_id = _runtime_template_id(self.message_data)
+            if template_id:
+                edit_message(self.user_id, self.category, template_id, message_data)
                 QMessageBox.information(
                     self, "Success", "Message updated successfully."
                 )
@@ -192,8 +218,8 @@ class MessageEditDialog(QDialog):
                 return
         else:
             # Add new message
-            message_id = str(uuid.uuid4())
-            message_data["message_id"] = message_id
+            template_id = str(uuid.uuid4())
+            message_data["id"] = template_id
             message_data["created_at"] = now_timestamp_full()
 
             add_message(self.user_id, self.category, message_data)
@@ -311,19 +337,19 @@ class MessageEditorDialog(QDialog):
 
         for row, message in enumerate(self.messages):
             # Message text (truncated for display)
-            message_text = message.get("message", "")
+            message_text = _runtime_template_text(message)
             display_text = (
                 message_text[:100] + "..." if len(message_text) > 100 else message_text
             )
             self.ui.tableWidget_messages.setItem(row, 0, QTableWidgetItem(display_text))
 
             # Days
-            days = message.get("days", [])
+            days = _runtime_template_days(message)
             days_text = ", ".join([day.title() for day in days])
             self.ui.tableWidget_messages.setItem(row, 1, QTableWidgetItem(days_text))
 
             # Time periods
-            periods = message.get("time_periods", [])
+            periods = _runtime_template_periods(message)
             periods_text = ", ".join([period.title() for period in periods])
             self.ui.tableWidget_messages.setItem(row, 2, QTableWidgetItem(periods_text))
 
@@ -384,12 +410,13 @@ class MessageEditorDialog(QDialog):
         """Delete message at the specified row."""
         if 0 <= row < len(self.messages):
             message = self.messages[row]
-            message_id = message.get("message_id")
-            message_text = (
-                message.get("message", "")[:50] + "..."
-                if len(message.get("message", "")) > 50
-                else message.get("message", "")
-            )
+            template_id = _runtime_template_id(message)
+            body = _runtime_template_text(message)
+            message_text = body[:50] + "..." if len(body) > 50 else body
+
+            if not template_id:
+                QMessageBox.critical(self, "Error", "Message ID not found.")
+                return
 
             # Confirm deletion
             reply = QMessageBox.question(
@@ -401,7 +428,7 @@ class MessageEditorDialog(QDialog):
 
             if reply == QMessageBox.StandardButton.Yes:
                 # @handle_errors decorator handles exceptions
-                delete_message(self.user_id, self.category, message_id)
+                delete_message(self.user_id, self.category, template_id)
                 QMessageBox.information(
                     self, "Success", "Message deleted successfully."
                 )

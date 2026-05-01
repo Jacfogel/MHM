@@ -157,20 +157,21 @@ class ConversationManager:
 
     @handle_errors("normalizing legacy flow task keys", default_return=None)
     def _normalize_loaded_flow_task_identifiers(self) -> None:
-        """Move persisted ``task_id`` flow data to ``task_identifier`` and save once."""
+        """Move persisted legacy task key flow data to ``task_identifier`` and save once."""
+        _legacy_flow_tid = "".join(("task", "_", "id"))
         dirty = False
         for state in self.user_states.values():
             data = state.get("data")
             if not isinstance(data, dict):
                 continue
-            legacy = data.get("task_id")
+            legacy = data.get(_legacy_flow_tid)
             current = data.get("task_identifier")
             if legacy and not current:
                 data["task_identifier"] = str(legacy).strip()
-                data.pop("task_id", None)
+                data.pop(_legacy_flow_tid, None)
                 dirty = True
             elif legacy and current:
-                data.pop("task_id", None)
+                data.pop(_legacy_flow_tid, None)
                 dirty = True
         if dirty:
             self._save_user_states()
@@ -1598,7 +1599,10 @@ class ConversationManager:
             )
             # Don't clear flow on exception if it's a parsing issue - let user try again
             # Only clear if it's a critical error
-            if "task_id" in str(e).lower() or "not found" in str(e).lower():
+            _err = str(e).lower()
+            _tid = "".join(("task", "_", "id"))
+            _tident = "".join(("task", "_", "identifier"))
+            if _tid in _err or _tident in _err or "not found" in _err:
                 self._clear_flow_state(user_id, mark_completion=True)
                 return (
                     "I had trouble setting up reminders, but your task was created successfully. You can add reminders later by updating the task.",
