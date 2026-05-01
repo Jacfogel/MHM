@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-30 20:58:40
+> **Last Generated**: 2026-05-01 00:16:15
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 123
-- **Total Imports Found**: 1528
+- **Total Imports Found**: 1527
 - **Dependencies Documented**: 123 (100% coverage)
 - **Standard Library Imports**: 432 (28.3%)
-- **Third-Party Imports**: 233 (15.2%)
-- **Local Imports**: 863 (56.5%)
-- **Last Updated**: 2026-04-30
+- **Third-Party Imports**: 233 (15.3%)
+- **Local Imports**: 862 (56.5%)
+- **Last Updated**: 2026-05-01
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -30,8 +30,8 @@
 ## Import Statistics
 
 - **Standard Library**: 432 imports (28.3%)
-- **Third-Party**: 233 imports (15.2%)
-- **Local**: 863 imports (56.5%)
+- **Third-Party**: 233 imports (15.3%)
+- **Local**: 862 imports (56.5%)
 
 ## Module Dependencies by Directory
 
@@ -1850,7 +1850,6 @@
     - `core.error_handling (ValidationError, handle_errors)` (NEW)
     - `core.file_operations (determine_file_path, load_json_data, save_json_data)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.schemas (validate_messages_file_dict)` (NEW)
     - `core.time_utilities (now_timestamp_filename, now_timestamp_full, parse_timestamp_full)` (NEW)
     - `core.user_data_v2 (MessageTemplateV2Model, SCHEMA_VERSION, generate_short_id)` (NEW)
   - **Standard Library**:
@@ -1875,7 +1874,7 @@
   - `user/context_manager.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.file_operations, core.logger, core.schemas, core.time_utilities, core.user_data_v2
+- Added: core.config, core.error_handling, core.file_operations, core.logger, core.time_utilities, core.user_data_v2
 - Removed: ai/chatbot.py, communication/core/channel_orchestrator.py, core/auto_cleanup.py, core/message_analytics.py, core/service.py, core/user_data_manager.py, core/user_data_updates.py, core/user_data_validation.py, ui/dialogs/message_editor_dialog.py, user/context_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2052,15 +2051,13 @@
     - `pydantic (BaseModel, ConfigDict, Field, RootModel, field_validator, model_validator)`
     - `pytz`
 - **Used by**: 
-  - `core/message_management.py`
-  - `core/user_data_manager.py`
   - `core/user_data_read.py`
   - `core/user_data_registry.py`
   - `core/user_data_write.py`
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger
-- Removed: core/message_management.py, core/user_data_manager.py, core/user_data_read.py, core/user_data_registry.py, core/user_data_write.py
+- Removed: core/user_data_read.py, core/user_data_registry.py, core/user_data_write.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2287,9 +2284,8 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.message_management (get_recent_messages)` (NEW)
     - `core.response_tracking (checkin_runtime_timestamp, get_recent_checkins, get_recent_responses)` (NEW)
-    - `core.schemas (validate_messages_file_dict)` (NEW)
     - `core.time_utilities (now_timestamp_filename, now_timestamp_full)` (NEW)
-    - `core.user_data_v2 (SCHEMA_VERSION)` (NEW)
+    - `core.user_data_v2 (SCHEMA_VERSION, validate_v2_document)` (NEW)
   - **Standard Library**:
     - `collections.abc (Callable)`
     - `importlib`
@@ -2307,7 +2303,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: core, core.config, core.error_handling, core.file_locking, core.file_operations, core.logger, core.message_management, core.response_tracking, core.schemas, core.time_utilities, core.user_data_v2
+- Added: core, core.config, core.error_handling, core.file_locking, core.file_operations, core.logger, core.message_management, core.response_tracking, core.time_utilities, core.user_data_v2
 - Removed: collections.abc, communication/command_handlers/account_handler.py, core/user_data_write.py, ui/dialogs/account_creator_dialog.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->

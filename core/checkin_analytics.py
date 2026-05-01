@@ -20,6 +20,7 @@ analytics_logger = get_component_logger("user_activity")
 
 class CheckinAnalytics:
     _RESERVED_CHECKIN_KEYS = {
+        "submitted_at",
         "timestamp",
         "date",
         "user_id",
@@ -192,9 +193,10 @@ class CheckinAnalytics:
         for checkin in checkins:
             if not self._is_question_asked(checkin, "mood"):
                 continue
-            if "timestamp" in checkin:
+            raw_ts = checkin_runtime_timestamp(checkin)
+            if raw_ts:
                 try:
-                    timestamp = parse_timestamp_full(checkin["timestamp"])
+                    timestamp = parse_timestamp_full(raw_ts)
                     if timestamp is None:
                         raise ValidationError("Invalid timestamp")
                     mood_value = self._coerce_numeric(self._response_value(checkin, "mood"))
@@ -204,7 +206,7 @@ class CheckinAnalytics:
                         {
                             "date": timestamp.date(),
                             "mood": mood_value,
-                            "timestamp": checkin["timestamp"],
+                            "timestamp": raw_ts,
                         }
                     )
                 except (ValidationError, TypeError):
@@ -273,9 +275,10 @@ class CheckinAnalytics:
         for checkin in checkins:
             if not self._is_question_asked(checkin, "energy"):
                 continue
-            if "timestamp" in checkin:
+            raw_ts = checkin_runtime_timestamp(checkin)
+            if raw_ts:
                 try:
-                    timestamp = parse_timestamp_full(checkin["timestamp"])
+                    timestamp = parse_timestamp_full(raw_ts)
 
                     if timestamp is None:
                         raise ValidationError("Invalid timestamp")
@@ -286,7 +289,7 @@ class CheckinAnalytics:
                         {
                             "date": timestamp.date(),
                             "energy": energy_value,
-                            "timestamp": checkin["timestamp"],
+                            "timestamp": raw_ts,
                         }
                     )
                 except (ValidationError, TypeError):
@@ -405,13 +408,16 @@ class CheckinAnalytics:
             ) or self._is_question_asked(checkin, "sleep_schedule")
             if has_sleep_data:
                 try:
-                    timestamp = parse_timestamp_full(checkin["timestamp"])
+                    raw_ts = checkin_runtime_timestamp(checkin)
+                    if not raw_ts:
+                        raise ValidationError("Invalid timestamp")
+                    timestamp = parse_timestamp_full(raw_ts)
 
                     if timestamp is None:
                         raise ValidationError("Invalid timestamp")
                     sleep_entry = {
                         "date": timestamp.date(),
-                        "timestamp": checkin["timestamp"],
+                        "timestamp": raw_ts,
                     }
 
                     # Add available sleep data
@@ -714,6 +720,7 @@ class CheckinAnalytics:
                         formatted_checkin["questions_asked"] = checkin["questions_asked"]
 
                     reserved_keys = {
+                        "submitted_at",
                         "timestamp",
                         "date",
                         "user_id",

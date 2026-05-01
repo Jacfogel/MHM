@@ -4,7 +4,6 @@ Test Coverage Expansion for Core Message Management
 Tests for core/message_management.py to improve coverage from 68% to 75%
 """
 
-import json
 import os
 import pytest
 from datetime import datetime, timezone
@@ -13,7 +12,6 @@ from unittest.mock import patch
 from core.message_management import (
     get_message_categories,
     load_default_messages,
-    _normalize_message_timestamps,
     _parse_message_timestamp,
     get_timestamp_for_sorting,
 )
@@ -94,44 +92,17 @@ class TestCoreMessageManagementCoverageExpansion:
         assert sentinel == datetime.min.replace(tzinfo=timezone.utc)
 
     @pytest.mark.behavior
-    def test_normalize_message_timestamps_skips_legacy_after_migration(self, tmp_path):
-        """Legacy timestamp fallback removed; non-TIMESTAMP_FULL are skipped (run migration first)."""
-        file_path = tmp_path / "sent_messages.json"
-        _mid = "".join(("message", "_", "id"))
-        _ts = "".join(("time", "stamp"))
-        data = {
-            "messages": [
-                {_mid: "a", _ts: "2023-02-03T04:05:06Z"},
-                {_mid: "b", _ts: "2023-02-03 04:05:06"},
-            ]
-        }
-        file_path.write_text(json.dumps(data))
-
-        normalized = _normalize_message_timestamps(data, file_path)
-        assert normalized is False
-
-        saved = json.loads(file_path.read_text())
-        assert saved["messages"][0][_ts] == "2023-02-03T04:05:06Z"
-        assert saved["messages"][1][_ts] == "2023-02-03 04:05:06"
-
-    @pytest.mark.behavior
     def test_get_timestamp_for_sorting_real_behavior(self):
-        """Test getting timestamp for sorting."""
-        # Test with timestamp string
-        result = get_timestamp_for_sorting(
-            {"".join(("time", "stamp")): "2023-01-01 10:00:00"}
-        )
+        """Test getting timestamp for sorting (v2 delivery uses sent_at)."""
+        result = get_timestamp_for_sorting({"sent_at": "2023-01-01 10:00:00"})
 
         assert isinstance(result, float)
         assert result > 0  # Should be a valid timestamp
 
     @pytest.mark.behavior
     def test_get_timestamp_for_sorting_string_real_behavior(self):
-        """Test getting timestamp for sorting with string timestamp."""
-        # Test with string timestamp
-        result = get_timestamp_for_sorting(
-            {"".join(("time", "stamp")): "2023-01-01 10:00:00"}
-        )
+        """Test get_timestamp_for_sorting with sent_at string."""
+        result = get_timestamp_for_sorting({"sent_at": "2023-01-01 10:00:00"})
 
         assert isinstance(result, float)
         assert result > 0  # Should be a valid timestamp

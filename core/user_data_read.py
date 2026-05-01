@@ -50,7 +50,8 @@ def ensure_unique_ids(data: Any) -> Any:
     for message in data["messages"]:
         if not isinstance(message, dict):
             continue
-        message_id = str(message.get("id") or message.get("message_id") or "").strip()
+        raw_id = message.get("id")
+        message_id = str(raw_id).strip() if raw_id is not None else ""
         if not message_id or message_id in existing_ids:
             message_id = str(uuid.uuid4())
 

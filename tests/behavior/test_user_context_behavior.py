@@ -284,8 +284,8 @@ class TestUserContextManagerBehavior:
             
             # Setup mock returns
             mock_get_checkins.return_value = [
-                {'timestamp': '2025-01-02 10:00:00', 'mood': 'okay', 'energy': 'medium'},
-                {'timestamp': '2025-01-01 10:00:00', 'mood': 'good', 'energy': 'high'}
+                {'submitted_at': '2025-01-02 10:00:00', 'mood': 'okay', 'energy': 'medium'},
+                {'submitted_at': '2025-01-01 10:00:00', 'mood': 'good', 'energy': 'high'}
             ]
             mock_get_user_data.return_value = {
                 'preferences': {

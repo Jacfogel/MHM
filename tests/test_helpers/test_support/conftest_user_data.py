@@ -17,6 +17,7 @@ from tests.conftest import (
     test_logger,
 )
 from core.time_utilities import now_timestamp_full
+from core.user_data_v2 import SCHEMA_VERSION
 from tests.test_helpers.test_support.conftest_cleanup_impl import _is_transient_test_data_dir_name
 import contextlib
 
@@ -618,8 +619,12 @@ def mock_user_data(mock_config, test_data_dir, request):
         "last_updated": current_time,
     }
 
-    # Create mock checkins.json
-    checkins_data = {"checkins": [], "last_checkin_date": None, "streak_count": 0}
+    # Create mock checkins.json (v2 envelope)
+    checkins_data = {
+        "schema_version": SCHEMA_VERSION,
+        "updated_at": now_timestamp_full(),
+        "checkins": [],
+    }
 
     # Create minimal schedules.json so schedule reads/writes have a base file
     schedules_data = {"categories": {}}
@@ -767,8 +772,12 @@ def mock_user_data_with_messages(test_data_dir, mock_config, request):
         "last_updated": current_time,
     }
 
-    # Create mock checkins.json
-    checkins_data = {"checkins": [], "last_checkin_date": None, "streak_count": 0}
+    # Create mock checkins.json (v2 envelope)
+    checkins_data = {
+        "schema_version": SCHEMA_VERSION,
+        "updated_at": now_timestamp_full(),
+        "checkins": [],
+    }
 
     # Create mock chat_interactions.json
     chat_data = {"interactions": [], "total_interactions": 0, "last_interaction": None}

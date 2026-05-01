@@ -22,11 +22,10 @@ from core.config import (
 from core.file_operations import load_json_data, get_user_file_path, get_user_data_dir
 from core import get_user_data
 from core import get_all_user_ids
-from core.schemas import validate_messages_file_dict
 from core.error_handling import handle_errors
 from core.time_utilities import now_timestamp_filename, now_timestamp_full
 from core.response_tracking import checkin_runtime_timestamp
-from core.user_data_v2 import SCHEMA_VERSION
+from core.user_data_v2 import SCHEMA_VERSION, validate_v2_document
 from core.message_management import get_recent_messages
 
 logger = get_component_logger("main")
@@ -808,12 +807,8 @@ class UserDataManager:
                     user_id, "chat_interaction", limit=1
                 )
                 if recent_chats:
-                    return (
-                        recent_chats[0].get("submitted_at")
-                        or recent_chats[0].get("sent_at")
-                        or recent_chats[0].get("timestamp")
-                        or "1970-01-01 00:00:00"
-                    )
+                    ts = recent_chats[0].get("timestamp")
+                    return str(ts).strip() if ts else "1970-01-01 00:00:00"
             except Exception as e:
                 logger.warning(
                     f"Error getting recent chat interactions for user {user_id}: {e}"
@@ -1577,13 +1572,16 @@ def build_user_index() -> dict[str, Any]:
                         try:
                             with open(category_path, encoding="utf-8") as f:
                                 data = json.load(f)
-                                normalized, errors = validate_messages_file_dict(data)
-
+                                if not isinstance(data, dict) or data.get("schema_version") != SCHEMA_VERSION:
+                                    logger.warning(
+                                        f"Skipping non-v2 message template file for index count: {category_path}"
+                                    )
+                                    continue
+                                normalized, errors = validate_v2_document("messages", data)
                                 if errors:
                                     logger.warning(
                                         f"Validation issues in {category_path}: {'; '.join(errors)}"
                                     )
-
                                 message_count += len(normalized.get("messages", []))
                         except Exception as e:
                             logger.warning(
@@ -1649,13 +1647,17 @@ def get_user_summary(user_id: str) -> dict[str, Any]:
                 try:
                     with open(category_path, encoding="utf-8") as f:
                         data = json.load(f)
-                        normalized, errors = validate_messages_file_dict(data)
-
+                        if not isinstance(data, dict) or data.get("schema_version") != SCHEMA_VERSION:
+                            logger.warning(
+                                f"Skipping non-v2 message template file for summary: {category_path}"
+                            )
+                            message_stats[category] = 0
+                            continue
+                        normalized, errors = validate_v2_document("messages", data)
                         if errors:
                             logger.warning(
                                 f"Validation issues in {category_path}: {'; '.join(errors)}"
                             )
-
                         message_count = len(normalized.get("messages", []))
                         message_stats[category] = message_count
                         total_messages += message_count
@@ -1774,35 +1776,14 @@ def get_user_analytics_summary(user_id: str) -> dict[str, Any]:
                         last_ix = checkin_runtime_timestamp(raw[-1]) or "Unknown"
 
             elif source == "sent_messages":
+                count = 0
                 if isinstance(raw, dict) and raw.get("schema_version") == SCHEMA_VERSION:
                     arr = raw.get("deliveries") or []
-                    count = len(arr) if isinstance(arr, list) else 0
-                elif isinstance(raw, list):
-                    count = len(raw)
-                elif isinstance(raw, dict):
-                    all_messages: list[Any] = []
-                    for category_messages in raw.values():
-                        if isinstance(category_messages, list):
-                            all_messages.extend(category_messages)
-                    count = len(all_messages)
-                    if all_messages:
-                        sorted_messages = sorted(
-                            all_messages,
-                            key=lambda x: x.get("sent_at")
-                            or x.get("submitted_at")
-                            or x.get("timestamp")
-                            or "1970-01-01 00:00:00",
-                            reverse=True,
-                        )
-                        lm = sorted_messages[0]
-                        last_ix = str(
-                            lm.get("sent_at")
-                            or lm.get("submitted_at")
-                            or lm.get("timestamp")
-                            or "Unknown"
-                        )
-                else:
-                    count = 0
+                    if isinstance(arr, list):
+                        count = len(arr)
+                        if arr and isinstance(arr[0], dict):
+                            sa = arr[0].get("sent_at")
+                            last_ix = str(sa).strip() if sa else "Unknown"
                 if last_ix == "None" and count:
                     recent = get_recent_messages(user_id, category=None, limit=1)
                     if recent and isinstance(recent[0], dict):

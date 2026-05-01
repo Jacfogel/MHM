@@ -240,8 +240,9 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
                 "category": context.get("category", "unknown"),
                 "created": now_timestamp_full(),
             }
-        elif "checkins" in file_path or "chat_interactions" in file_path:
-            # Log files should be simple arrays
+        elif "checkins" in file_path:
+            return _default_new_checkins_file_payload()
+        elif "chat_interactions" in file_path:
             return []
         elif file_path.endswith(".json"):
             # Generic JSON file - create basic structure
@@ -346,8 +347,9 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
                 "category": context.get("category", "unknown"),
                 "created": now_timestamp_full(),
             }
-        elif "checkins" in file_path or "chat_interactions" in file_path:
-            # Log files should be simple arrays
+        elif "checkins" in file_path:
+            return _default_new_checkins_file_payload()
+        elif "chat_interactions" in file_path:
             return []
         elif file_path.endswith(".json"):
             # Generic JSON file - create basic structure
@@ -809,6 +811,23 @@ def safe_file_operation(
 # ============================================================================
 
 error_handler = ErrorHandler()
+
+
+@handle_errors(
+    "building default checkins file payload",
+    user_friendly=False,
+    default_return={"schema_version": 2, "updated_at": "", "checkins": []},
+)
+def _default_new_checkins_file_payload() -> dict[str, Any]:
+    """
+    Empty v2 envelope when recovery creates ``checkins.json``.
+    ``schema_version`` must stay aligned with ``core.user_data_v2.SCHEMA_VERSION``.
+    """
+    return {
+        "schema_version": 2,
+        "updated_at": now_timestamp_full(),
+        "checkins": [],
+    }
 
 
 # ============================================================================

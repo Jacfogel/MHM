@@ -39,8 +39,8 @@ class TestEnsureUniqueIds:
         _body = "body"
         data = {
             "messages": [
-                {_mid: "dup", _body: "a"},
-                {_mid: "dup", _body: "b"},
+                {"id": "dup", _body: "a"},
+                {"id": "dup", _body: "b"},
                 {_body: "no id yet"},
             ]
         }

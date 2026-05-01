@@ -183,7 +183,7 @@ def _entry_runtime_to_v2(entry: dict) -> dict:
         "pinned": bool(entry.get("pinned", False)),
         "submitted_at": entry.get("submitted_at") or (created_at if kind == "journal_entry" else None),
         "items": entry.get("items") if kind == "list" else None,
-        "source": entry.get("source") or {"system": "mhm", "channel": "", "actor": "", "migration": None},
+        "source": entry.get("source") or {"system": "mhm", "channel": "", "actor": ""},
         "linked_item_ids": entry.get("linked_item_ids") or [],
         "created_at": created_at,
         "updated_at": updated_at,

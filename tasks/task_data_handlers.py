@@ -274,7 +274,7 @@ def _runtime_task_to_v2(task: dict[str, Any], *, status: str) -> dict[str, Any] 
             "completed_at": _nullable_timestamp(completed_at) if completed else None,
             "notes": str(completion.get("notes") or ""),
         },
-        "source": task.get("source") or {"system": "mhm", "channel": "", "actor": "", "migration": None},
+        "source": task.get("source") or {"system": "mhm", "channel": "", "actor": ""},
         "linked_item_ids": task.get("linked_item_ids") or [],
         "created_at": created_at,
         "updated_at": updated_at,

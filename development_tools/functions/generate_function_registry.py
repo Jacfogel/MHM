@@ -213,7 +213,7 @@ def generate_function_registry_content(actual_functions: dict[str, dict]) -> str
 > **Purpose**: Complete registry of all functions and classes in the {project_name} codebase  
 > **Status**: **ACTIVE** - Auto-generated from codebase analysis with template enhancement
 
-> **See [README.md](README.md) for complete navigation and project overview**
+> **See [README.md](../README.md) for complete navigation and project overview**
 > **See [ARCHITECTURE.md](../ARCHITECTURE.md) for system architecture and design**
 > **See [TODO.md](../TODO.md) for current documentation priorities**
 

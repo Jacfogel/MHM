@@ -989,10 +989,8 @@ class AIChatBotSingleton:
                 context_parts.append("Recent automated messages sent to them:")
                 for idx, msg in enumerate(recent_sent[:3]):
                     category = msg.get("category", "general")
-                    text = (msg.get("sent_text") or msg.get("message") or "").strip()
-                    timestamp = (
-                        msg.get("sent_at") or msg.get("timestamp") or ""
-                    ).strip()
+                    text = str(msg.get("sent_text") or "").strip()
+                    timestamp = str(msg.get("sent_at") or "").strip()
                     if idx == 0:
                         # Full text for most recent message
                         context_parts.append(
@@ -1024,12 +1022,8 @@ class AIChatBotSingleton:
             )
             if task_msgs:
                 latest_task = task_msgs[0]
-                t_text = (
-                    latest_task.get("sent_text") or latest_task.get("message") or ""
-                ).strip()
-                t_ts = (
-                    latest_task.get("sent_at") or latest_task.get("timestamp") or ""
-                ).strip()
+                t_text = str(latest_task.get("sent_text") or "").strip()
+                t_ts = str(latest_task.get("sent_at") or "").strip()
                 context_parts.append(
                     f'They received a task reminder at {t_ts}: "{t_text}"'
                 )

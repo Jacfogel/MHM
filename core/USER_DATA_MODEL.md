@@ -112,7 +112,7 @@ Shared v2 item fields:
 For `kind: "task"` records in `tasks/tasks.json`:
 
 - **`priority`**: urgency/importance only. Allowed values are the `VALID_PRIORITIES` set in `tasks/task_schemas.py` (`low`, `medium`, `high`, `urgent`, `critical`). Runtime validation rejects unknown values (defaulting where appropriate).
-- **`category`**: broad semantic domain (examples: `health`, `home`, `family`, `personal`). Free string; avoid storing priority words here. One-time migration maps legacy priority-like `category` values into `priority` when no explicit priority was present (see migration section below).
+- **`category`**: broad semantic domain (examples: `health`, `home`, `family`, `personal`). Free string; avoid storing priority words here. Set `priority` explicitly on new data (older v1 upgrades once mapped priority-like `category` values into `priority` when `priority` was absent).
 - **`group`**: user-facing organizational bucket (free string).
 - **`tags`**: flexible multi-label metadata (`list[str]`).
 - **Convention**: avoid copying the same token into `category`, `group`, and `tags` unless you mean three different roles; this is a modeling convention, not a runtime constraint.
@@ -129,53 +129,15 @@ Canonical v2 files:
 - `messages/<category>.json`: versioned message template collection with `messages[]`, `text`, `active`, and nested `schedule`.
 - `messages/sent_messages.json`: versioned delivery collection with `deliveries[]`, distinct from reusable templates.
 
-The one-time migration implementation entry point is `scripts.user_data_migration.migrate_user_data_root`; the local operator CLI remains `scripts/migrate_user_data_v2.py`. Use dry-run mode first, then `--write` only after reviewing the generated report. Write mode stores migration backups under the configured backups directory (`data/backups` by default), removes v1 task split files replaced by `tasks/tasks.json`, and only persists a migration report when `--save-report` is provided.
+**Migration tooling:** There is **no** shipped migration or verification CLI under `scripts/` for user data. The tree is v2-native. Recover stale trees from backups or project history; validate in code with `core.user_data_v2.validate_v2_document` (or hand-fix using Section 2.6). Do not expect an in-repo one-click migrator.
 
-### 2.6. V2 migration field mapping
+### 2.6. Legacy field rejection (v2 validation)
 
-The v2 migration handled old fields using one of four outcomes: direct migration, transformation into a canonical field/nested shape, drop after replacement, or `metadata` preservation for still-useful data that could not be safely mapped.
-
-Task mappings:
-
-- `tasks/active_tasks.json`, `tasks/completed_tasks.json`, and `tasks/task_schedules.json` were consolidated into `tasks/tasks.json`.
-- `task_id` became `id`, and `short_id` was generated from the canonical ID.
-- `completed`, `completed_at`, and `completion_notes` became `status` and `completion`.
-- `due_date` and `due_time` became `due.date` and `due.time`.
-- `reminder_periods` and `quick_reminders` became `reminders[]`.
-- `recurrence_pattern`, `recurrence_interval`, `repeat_after_completion`, and `next_due_date` became `recurrence`.
-- `last_updated` became `updated_at`.
-- Priority-like legacy `category` values (`low`, `medium`, `high`, `urgent`, `critical`) became `priority` when no explicit priority existed.
-
-Notebook mappings:
-
-- `notebook/entries.json` remains the destination file, with `schema_version: 2`.
-- Note/list IDs, titles, tags, groups, pins, and timestamps were preserved where valid.
-- `kind: "journal"` became `kind: "journal_entry"`.
-- `body` became `description`.
-- `archived` became `status` and `archived_at`.
-- List entries preserve list-specific `items`.
-
-Check-in mappings:
-
-- Bare `checkins.json` arrays became `{"schema_version": 2, "updated_at": "...", "checkins": [...]}`.
-- `timestamp` became `submitted_at`.
-- Flat answer fields such as `mood`, `energy`, `ate_breakfast`, and `brushed_teeth` moved under `responses`.
-- `questions_asked`, existing `responses`, source/link/timestamp fields, and metadata were preserved where present.
-
-Message mappings:
-
-- `messages/<category>.json` files became versioned template collections with category, `updated_at`, and `messages[]`.
-- Template `message_id` became `id`; `message` became `text`; `days` and `time_periods` became `schedule.days` and `schedule.periods`.
-- `messages/sent_messages.json` became a versioned delivery collection with `deliveries[]`.
-- Delivery `message_id` became `message_template_id`; `message` became `sent_text`; `delivery_status` became `status`; `timestamp` became `sent_at`; missing delivery IDs were generated.
-
-Files outside this migration slice (`account.json`, `preferences.json`, `schedules.json`, `tags.json`, `user_context.json`, and `chat_interactions.json`) remain in their existing model unless a later migration explicitly scopes them in.
+`core.user_data_v2.validate_v2_document` rejects known v1 field names that must not appear in v2 documents (for example `task_id` on tasks, `body` on notebook rows, top-level `timestamp` on check-ins, template `message_id` / flat `days`). The authoritative set is `FORBIDDEN_V1_FIELD_NAMES_BY_DOCUMENT` in [`core/user_data_v2.py`](user_data_v2.py). Use that list when hand-fixing stale JSON; for shape reference, see Section 2.7 and archived changelog entries from 2026-04 and earlier.
 
 ### 2.7. Runtime contract (v2-native)
 
-On-disk user data and bundled message resources are **v2**. Runtime code treats v2 shapes as canonical: tasks in `tasks/tasks.json`, notebook entries with `description` / `journal_entry`, check-ins in `checkins.json` with `responses` and `submitted_at`, templates with `id`/`text`/`schedule`, and deliveries with `deliveries[]` (`message_template_id`, `sent_text`, `sent_at`, `status`). New check-ins are **always** persisted under the v2 envelope (`schema_version: 2`, `checkins[]`); if a legacy bare array file is still present, the next write migrates those rows into `checkins[]` before appending.
-
-Reads may still tolerate a bare array in `checkins.json` only long enough for that first write to normalize the file-operators should rely on migration tooling or normal app usage rather than hand-editing list-shaped check-ins. Broader legacy cleanup tracking (unrelated v1 terms, docs, and dev-tools mirrors) remains in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` and [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md).
+On-disk user data and bundled message resources are **v2**. Runtime code treats v2 shapes as canonical: tasks in `tasks/tasks.json`, notebook entries with `description` / `journal_entry`, check-ins in `checkins.json` with `responses` and `submitted_at`, templates with `id`/`text`/`schedule`, and deliveries with `deliveries[]` (`message_template_id`, `sent_text`, `sent_at`, `status`). Check-in **writes** and **reads** require the v2 envelope (`schema_version: 2`, `checkins[]`). Legacy bare arrays or other non-v2 shapes are skipped on read and rejected on append (see logs). To fix a bad file offline: back it up, load JSON, pass it through `core.response_tracking.normalize_checkins_envelope_for_repair`, run `validate_v2_document('checkins', envelope)`, then write with `core.file_operations.save_json_data`. New users get an empty v2 file from `core.file_operations._create_user_files__checkins_file`. Missing or corrupted `checkins.json` recreated by centralized recovery (`core.error_handling` file-not-found / JSON-decode strategies) uses that same empty v2 envelope, not a bare list. Broader legacy cleanup tracking (unrelated v1 terms, docs, and dev-tools mirrors) remains in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` and [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md).
 
 ---
 
@@ -239,7 +201,7 @@ During tests, user data must be redirected into test-controlled directories (for
 If a test touches real `data/users/`, it is a defect.
 
 See:
-- [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)
+- [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md)
 - `core/config.py` (test-mode redirection controls)
 
 ---

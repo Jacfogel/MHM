@@ -24,7 +24,7 @@ NotebookStatus = Literal["active", "archived", "deleted"]
 MessageTemplateStatus = Literal["active", "archived", "deleted"]
 DeliveryStatus = Literal["sent", "failed", "skipped"]
 
-OLD_FIELD_NAMES_BY_DOCUMENT: dict[str, set[str]] = {
+FORBIDDEN_V1_FIELD_NAMES_BY_DOCUMENT: dict[str, set[str]] = {
     "task": {
         "task_id",
         "completed",
@@ -47,7 +47,7 @@ OLD_FIELD_NAMES_BY_DOCUMENT: dict[str, set[str]] = {
 }
 
 class SourceModel(BaseModel):
-    """Best-known origin of a migrated or newly written record."""
+    """Best-known origin of a persisted record."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -355,11 +355,11 @@ def validate_v2_document(document_type: str, data: dict[str, Any]) -> tuple[dict
 def _find_obsolete_fields(data: Any, document_type: str) -> set[str]:
     """Find obsolete fields on v2 record objects without scanning nested v2 shapes."""
     obsolete_by_type = {
-        "tasks": OLD_FIELD_NAMES_BY_DOCUMENT["task"],
-        "notebook": OLD_FIELD_NAMES_BY_DOCUMENT["notebook"],
-        "checkins": OLD_FIELD_NAMES_BY_DOCUMENT["checkin"],
-        "messages": OLD_FIELD_NAMES_BY_DOCUMENT["message"],
-        "deliveries": OLD_FIELD_NAMES_BY_DOCUMENT["delivery"],
+        "tasks": FORBIDDEN_V1_FIELD_NAMES_BY_DOCUMENT["task"],
+        "notebook": FORBIDDEN_V1_FIELD_NAMES_BY_DOCUMENT["notebook"],
+        "checkins": FORBIDDEN_V1_FIELD_NAMES_BY_DOCUMENT["checkin"],
+        "messages": FORBIDDEN_V1_FIELD_NAMES_BY_DOCUMENT["message"],
+        "deliveries": FORBIDDEN_V1_FIELD_NAMES_BY_DOCUMENT["delivery"],
     }
     obsolete = obsolete_by_type.get(document_type, set())
     found: set[str] = set()
@@ -386,15 +386,15 @@ def _find_obsolete_fields(data: Any, document_type: str) -> set[str]:
     return found
 
 
-@handle_errors("validating optional migration timestamp", re_raise=True)
+@handle_errors("validating optional timestamp field", re_raise=True)
 def _validate_optional_timestamp(value: str | None, field_name: str) -> None:
     if value and parse_timestamp_full(value) is None:
         raise _schema_validation_error(f"{field_name} must use canonical full timestamp format")
 
 
-@handle_errors("coercing stable migration uuid", re_raise=True)
+@handle_errors("coercing stable uuid", re_raise=True)
 def _stable_uuid(value: str) -> UUID:
-    """Return value as a UUID, deriving a stable UUID for old non-UUID IDs."""
+    """Return value as a UUID, deriving a deterministic UUID when the string is not UUID-shaped."""
     try:
         return UUID(str(value))
     except (TypeError, ValueError):

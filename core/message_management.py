@@ -13,7 +13,6 @@ from typing import Any, cast
 from core.logger import get_component_logger
 from core.config import DEFAULT_MESSAGES_DIR_PATH, get_user_data_dir
 from core.file_operations import load_json_data, save_json_data, determine_file_path
-from core.schemas import validate_messages_file_dict
 from core.error_handling import ValidationError, handle_errors
 from core.time_utilities import (
     now_timestamp_filename,
@@ -25,20 +24,6 @@ import contextlib
 import importlib
 
 logger = get_component_logger("message")
-
-
-@handle_errors("normalizing runtime message file shape", default_return={"messages": []})
-def _normalize_runtime_message_file(data: dict[str, Any]) -> dict[str, Any]:
-    """
-    Preserve canonical v2 template files and only apply runtime-schema validation
-    to legacy message files.
-    """
-    if data.get("schema_version") == SCHEMA_VERSION:
-        return data
-    normalized_data, errors = validate_messages_file_dict(data)
-    if errors:
-        logger.warning(f"Validation issues in message file: {'; '.join(errors)}")
-    return normalized_data
 
 
 @handle_errors(
@@ -67,20 +52,10 @@ def _ensure_v2_message_template_file(data: Any, category: str) -> dict[str, Any]
     }
 
 
-@handle_errors("normalizing legacy message update payload", default_return={})
+@handle_errors("normalizing message update payload", default_return={})
 def _normalize_message_update_payload(updated_data: dict[str, Any]) -> dict[str, Any]:
-    """Map legacy update fields onto canonical v2 message template fields."""
-    normalized = dict(updated_data)
-    if "message" in updated_data and "text" not in updated_data:
-        normalized["text"] = updated_data.get("message")
-    if "days" in updated_data or "time_periods" in updated_data:
-        schedule = dict(normalized.get("schedule") or {})
-        if "days" in updated_data:
-            schedule["days"] = updated_data.get("days")
-        if "time_periods" in updated_data:
-            schedule["periods"] = updated_data.get("time_periods")
-        normalized["schedule"] = schedule
-    return normalized
+    """Return a shallow copy; callers must supply v2 template fields (text, schedule, id, etc.)."""
+    return dict(updated_data)
 
 
 @handle_errors("converting v2 message template to runtime shape", default_return={})
@@ -119,20 +94,21 @@ def _delivery_to_runtime_message(delivery: dict[str, Any]) -> dict[str, Any]:
 
 @handle_errors("converting default message template to v2", default_return={})
 def _message_template_default_to_v2(message: dict[str, Any], category: str) -> dict[str, Any]:
-    """Build a canonical v2 message template from default/runtime message data."""
-    message_id = str(message.get("id") or message.get("message_id") or uuid.uuid4())
-    created_at = _canonical_message_timestamp(message.get("created_at") or message.get("timestamp")) or now_timestamp_full()
+    """Build a canonical v2 message template from v2-shaped runtime or on-disk data."""
+    raw_id = message.get("id")
+    message_id = str(raw_id).strip() if raw_id is not None and str(raw_id).strip() else str(uuid.uuid4())
+    created_at = _canonical_message_timestamp(message.get("created_at")) or now_timestamp_full()
     schedule_raw = message.get("schedule")
-    schedule: dict[str, Any] = cast(dict[str, Any], schedule_raw) if isinstance(schedule_raw, dict) else {}
+    schedule = cast(dict[str, Any], schedule_raw) if isinstance(schedule_raw, dict) else {}
     template = {
         "id": message_id,
         "kind": "message",
-        "text": str(message.get("text") or message.get("message") or ""),
+        "text": str(message.get("text") or ""),
         "category": str(message.get("category") or category),
         "active": bool(message.get("active", True)),
         "schedule": {
-            "days": schedule.get("days") or message.get("days") or ["ALL"],
-            "periods": schedule.get("periods") or message.get("time_periods") or ["ALL"],
+            "days": schedule.get("days") or ["ALL"],
+            "periods": schedule.get("periods") or ["ALL"],
         },
         "created_at": created_at,
         "updated_at": _canonical_message_timestamp(message.get("updated_at") or created_at) or created_at,
@@ -534,8 +510,6 @@ def get_recent_messages(
             logger.debug(f"No sent messages found for user {user_id}")
             return []
 
-        _normalize_message_timestamps(data, file_path)
-
         if data.get("schema_version") == SCHEMA_VERSION and isinstance(data.get("deliveries"), list):
             messages = [_delivery_to_runtime_message(delivery) for delivery in data["deliveries"]]
             normalized_data = {"messages": messages}
@@ -631,7 +605,6 @@ def store_sent_message(
     try:
         file_path = determine_file_path("sent_messages", user_id)
         data = load_json_data(file_path) or {}
-        _normalize_message_timestamps(data, file_path)
 
         sent_at = now_timestamp_full()
         new_delivery = {
@@ -645,7 +618,6 @@ def store_sent_message(
                 "system": "mhm",
                 "channel": "",
                 "actor": "scheduler",
-                "migration": None,
             },
             "sent_at": sent_at,
             "time_period": time_period,
@@ -689,9 +661,6 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
     try:
         file_path = determine_file_path("sent_messages", user_id)
         data = load_json_data(file_path)
-
-        if data:
-            _normalize_message_timestamps(data, file_path)
 
         if not data:
             logger.debug(f"No messages to archive for user {user_id}")
@@ -738,68 +707,9 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
             )
             return True
 
-        # Calculate cutoff date
-        # NOTE: This is timezone-aware UTC state used for retention filtering.
-        # core.time_utilities currently provides local-naive "now" helpers only,
-        # so this usage does not map cleanly without adding new helpers.
-        # Keep as-is for correctness.
-        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_to_keep)
-
-        messages = data["messages"]
-        active_messages = []
-        archived_messages = []
-
-        for message in messages:
-            message_timestamp = _parse_message_timestamp(message.get("timestamp", ""))
-            if message_timestamp >= cutoff_date:
-                active_messages.append(message)
-            else:
-                archived_messages.append(message)
-
-        if not archived_messages:
-            logger.debug(f"No messages to archive for user {user_id}")
-            return True
-
-        # Create archive file
-        archive_dir = Path(file_path).parent / "archives"
-        archive_dir.mkdir(exist_ok=True)
-
-        archive_filename = f"sent_messages_archive_{now_timestamp_filename()}.json"
-        archive_path = archive_dir / archive_filename
-
-        # Save archived messages
-        archive_data = {
-            "metadata": {
-                "version": "2.0",
-                # Canonical readable timestamp for metadata/log display fields
-                "archived_date": now_timestamp_full(),
-                "original_file": str(file_path),
-                "total_messages": len(archived_messages),
-                "date_range": {
-                    "oldest": min(
-                        msg.get("timestamp", "") for msg in archived_messages
-                    ),
-                    "newest": max(
-                        msg.get("timestamp", "") for msg in archived_messages
-                    ),
-                },
-            },
-            "messages": archived_messages,
-        }
-
-        save_json_data(archive_data, str(archive_path))
-
-        # Update active file
-        data["messages"] = active_messages
-        data["metadata"]["total_messages"] = len(active_messages)
-        # Canonical readable timestamp for metadata/log display fields
-        data["metadata"]["last_archived"] = now_timestamp_full()
-        data["metadata"]["archived_count"] = len(archived_messages)
-
-        save_json_data(data, file_path)
-
-        logger.info(
-            f"Archived {len(archived_messages)} old messages for user {user_id} to {archive_path}"
+        logger.debug(
+            f"archive_old_messages: sent_messages for user {user_id} is not v2 deliveries[]; "
+            "skipping (pre-v2 format no longer supported)"
         )
         return True
 
@@ -837,51 +747,6 @@ def _parse_message_timestamp(timestamp_str: str) -> datetime:
         parsed = parsed.astimezone(timezone.utc)
 
     return parsed
-
-
-@handle_errors(
-    "normalizing message timestamps",
-    default_return=False,
-    user_friendly=False,
-)
-def _normalize_message_timestamps(
-    data: dict[str, Any], file_path: str | Path
-) -> bool:
-    """
-    Normalize timestamps in persisted sent_messages data to the canonical TIMESTAMP_FULL shape.
-
-    Returns:
-        bool: True if any timestamps were rewritten.
-    """
-    messages = data.get("messages")
-    if not isinstance(messages, list):
-        return False
-
-    normalized_count = 0
-    for message in messages:
-        timestamp_value = message.get("timestamp", "")
-        if not timestamp_value:
-            continue
-
-        if parse_timestamp_full(timestamp_value) is not None:
-            continue
-
-        # Legacy fallback removed: data should be pre-migrated via scripts/migrate_sent_messages_timestamps.py
-        logger.debug(
-            f"Skipping non-TIMESTAMP_FULL timestamp in {file_path}: {timestamp_value!r}"
-        )
-        continue
-
-    if not normalized_count:
-        return False
-
-    file_path_obj = Path(file_path)
-    save_json_data(data, str(file_path_obj))
-    logger.info(
-        f"Normalized {normalized_count} legacy timestamps in {file_path_obj}"
-    )
-
-    return True
 
 
 @handle_errors("creating message file from defaults")
@@ -1049,7 +914,7 @@ def get_timestamp_for_sorting(item):
     """
     if isinstance(item, str) or not isinstance(item, dict):
         return 0.0
-    timestamp = item.get("sent_at") or item.get("timestamp") or "1970-01-01 00:00:00"
+    timestamp = item.get("sent_at") or "1970-01-01 00:00:00"
     try:
         dt = parse_timestamp_full(timestamp)
         if dt is None:

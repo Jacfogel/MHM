@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-30 20:58:48
+> **Last Generated**: 2026-05-01 00:16:21
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 123
-- **Total Imports**: 1528
+- **Total Imports**: 1527
 - **Standard Library**: 432 (28.3%)
-- **Third-Party**: 233 (15.2%)
-- **Local Imports**: 863 (56.5%)
+- **Third-Party**: 233 (15.3%)
+- **Local Imports**: 862 (56.5%)
 
 ## Dependency Decision Trees
 
@@ -27,7 +27,7 @@ Core System Dependencies:
   - core/logger.py <- standard library (contextlib, glob, gzip, json), error_handling, config
 - Data Management
   - core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+2 more)
-  - core/user_data_manager.py <- standard library (collections.abc, importlib, json, os), logger, config, file_operations, core, schemas (+6 more)
+  - core/user_data_manager.py <- standard library (collections.abc, importlib, json, os), logger, config, file_operations, core, error_handling (+5 more)
   - core/user_data_presets.py <- standard library (json, pathlib), third-party (pytz), logger, error_handling
 - Error Handling
   - core/error_handling.py <- standard library (asyncio, collections.abc, contextlib, functools), network_probe, time_utilities
@@ -105,7 +105,7 @@ External libraries provide channel and UI support.
 
 ### Data Flow
 - file_operations.py: core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+2 more)
-- user_data_manager.py: core/user_data_manager.py <- standard library (collections.abc, importlib, json, os), logger, config, file_operations, core, schemas (+6 more)
+- user_data_manager.py: core/user_data_manager.py <- standard library (collections.abc, importlib, json, os), logger, config, file_operations, core, error_handling (+5 more)
 - user_data_presets.py: core/user_data_presets.py <- standard library (json, pathlib), third-party (pytz), logger, error_handling
 
 ### Communication Flow

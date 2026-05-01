@@ -18,8 +18,8 @@ def test_checkin_runtime_timestamp_prefers_submitted_at():
 
 @pytest.mark.unit
 @pytest.mark.core
-def test_checkin_runtime_timestamp_falls_back_to_top_level_timestamp():
-    assert checkin_runtime_timestamp({"timestamp": "2026-01-03 12:00:00"}) == "2026-01-03 12:00:00"
+def test_checkin_runtime_timestamp_ignores_legacy_top_level_timestamp():
+    assert checkin_runtime_timestamp({"timestamp": "2026-01-03 12:00:00"}) == ""
 
 
 @pytest.mark.unit

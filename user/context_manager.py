@@ -137,10 +137,10 @@ class UserContextManager:
 
         if recent_responses:
             latest_response = recent_responses[0]
-            if "timestamp" in latest_response:
-                timestamp_value = latest_response["timestamp"]
+            ts = str(latest_response.get("submitted_at") or "").strip()
+            if ts:
                 # Human-readable format - extract the date part
-                activity_summary["last_response_date"] = timestamp_value.split(" ")[0]
+                activity_summary["last_response_date"] = ts.split(" ")[0]
 
         # Get recent message activity from all categories
         prefs_result = get_user_data(user_id, "preferences")
@@ -159,9 +159,10 @@ class UserContextManager:
                 if category_messages:
                     latest_msg = category_messages[
                         0
-                    ]  # Already sorted by timestamp desc
-                    if "timestamp" in latest_msg:
-                        msg_date = latest_msg["timestamp"][:10]
+                    ]  # Already sorted by sent_at desc
+                    sent_at = str(latest_msg.get("sent_at") or "").strip()
+                    if sent_at:
+                        msg_date = sent_at[:10]
                         if not most_recent_date or msg_date > most_recent_date:
                             most_recent_date = msg_date
             except Exception as cat_error:

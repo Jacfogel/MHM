@@ -215,7 +215,7 @@ class TestCheckinHandlerBehavior:
         today_str = format_timestamp(today_dt, DATE_ONLY)
 
         mock_get_recent.return_value = [
-            {"timestamp": f"{today_str} 10:00:00", "date": today_str, "mood": 4}
+            {"submitted_at": f"{today_str} 10:00:00", "date": today_str, "mood": 4}
         ]
 
         parsed_command = ParsedCommand(
@@ -430,16 +430,16 @@ class TestCheckinHandlerBehavior:
         two_days_ago_str = format_timestamp(two_days_ago_dt, DATE_ONLY)
 
         mock_get_recent.return_value = [
-            {"date": today_str, "mood": 4, "timestamp": f"{today_str} 10:00:00"},
+            {"date": today_str, "mood": 4, "submitted_at": f"{today_str} 10:00:00"},
             {
                 "date": yesterday_str,
                 "mood": 3,
-                "timestamp": f"{yesterday_str} 14:00:00",
+                "submitted_at": f"{yesterday_str} 14:00:00",
             },
             {
                 "date": two_days_ago_str,
                 "mood": 5,
-                "timestamp": f"{two_days_ago_str} 09:00:00",
+                "submitted_at": f"{two_days_ago_str} 09:00:00",
             },
         ]
 
@@ -519,7 +519,7 @@ class TestCheckinHandlerBehavior:
                     DATE_ONLY,
                 ),
                 "mood": i % 5 + 1,
-                "timestamp": (
+                "submitted_at": (
                     f"{format_timestamp(datetime.combine(today_date - (date.resolution * i), datetime.min.time()), DATE_ONLY)} 10:00:00"
                 ),
             }
@@ -571,7 +571,7 @@ class TestCheckinHandlerBehavior:
         yesterday_str = format_timestamp(yesterday_dt, DATE_ONLY)
 
         mock_get_recent.return_value = [
-            {"timestamp": f"{yesterday_str} 10:00:00", "date": yesterday_str, "mood": 4}
+            {"submitted_at": f"{yesterday_str} 10:00:00", "date": yesterday_str, "mood": 4}
         ]
 
         # Mock conversation manager starting check-in

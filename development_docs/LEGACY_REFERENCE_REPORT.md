@@ -2,10 +2,10 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-30 21:01:33
+> **Last Generated**: 2026-05-01 00:33:00
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 18
-**Legacy Compatibility Markers Detected**: 74
+**Total Files with Issues**: 17
+**Legacy Compatibility Markers Detected**: 38
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
@@ -20,25 +20,12 @@
 ## Deprecation Inventory
 - Inventory file: `development_tools/config/jsons/DEPRECATION_INVENTORY.json`
 - Active/candidate entries: 1
-- Removed entries: 12
+- Removed entries: 17
 - Active search terms: 0
 - Current inventory-term hits in scan: 0 file(s), 0 marker(s)
 
 ## User Data V1 Runtime Adapters
-**Files Affected**: 18
-
-### ai\chatbot.py
-**Issues Found**: 2
-
-- **Line 994**: `.get("timestamp"`
-  ```
-  msg.get("sent_at") or msg.get("timestamp") or ""
-  ```
-
-- **Line 1031**: `.get("timestamp"`
-  ```
-  latest_task.get("sent_at") or latest_task.get("timestamp") or ""
-  ```
+**Files Affected**: 17
 
 ### communication\communication_channels\email\bot.py
 **Issues Found**: 1
@@ -61,65 +48,17 @@
   email_body = email_msg.get("body", "")
   ```
 
-### core\message_management.py
-**Issues Found**: 7
-
-- **Line 123**: `"message_id"`
-  ```
-  message_id = str(message.get("id") or message.get("message_id") or uuid.uuid4())
-  ```
-
-- **Line 124**: `.get("timestamp"`
-  ```
-  created_at = _canonical_message_timestamp(message.get("created_at") or message.get("timestamp")) or now_timestamp_full()
-  ```
-
-- **Line 753**: `.get("timestamp"`
-  ```
-  message_timestamp = _parse_message_timestamp(message.get("timestamp", ""))
-  ```
-
-- **Line 780**: `.get("timestamp"`
-  ```
-  msg.get("timestamp", "") for msg in archived_messages
-  ```
-
-- **Line 783**: `.get("timestamp"`
-  ```
-  msg.get("timestamp", "") for msg in archived_messages
-  ```
-
-- **Line 862**: `.get("timestamp"`
-  ```
-  timestamp_value = message.get("timestamp", "")
-  ```
-
-- **Line 1052**: `.get("timestamp"`
-  ```
-  timestamp = item.get("sent_at") or item.get("timestamp") or "1970-01-01 00:00:00"
-  ```
-
 ### core\response_tracking.py
-**Issues Found**: 4
+**Issues Found**: 2
 
-- **Line 45**: `.get("timestamp"`
+- **Line 61**: `.get("timestamp"`
   ```
-  raw = checkin.get("submitted_at") or checkin.get("timestamp")
-  ```
-
-- **Line 57**: `.get("timestamp"`
-  ```
-  or response_data.get("timestamp")
+  candidates.append(response_data.get("timestamp"))
   ```
 
-- **Line 217**: `.get("timestamp"`
+- **Line 297**: `.get("timestamp"`
   ```
   or item.get("timestamp")
-  ```
-
-- **Line 273**: `.get("timestamp"`
-  ```
-  or checkin.get("timestamp", "")
   ```
 
 ### core\scheduler.py
@@ -144,37 +83,22 @@
   ```
 
 ### core\user_data_manager.py
-**Issues Found**: 4
+**Issues Found**: 2
 
-- **Line 814**: `.get("timestamp"`
+- **Line 810**: `.get("timestamp"`
   ```
-  or recent_chats[0].get("timestamp")
-  ```
-
-- **Line 1793**: `.get("timestamp"`
-  ```
-  or x.get("timestamp")
+  ts = recent_chats[0].get("timestamp")
   ```
 
-- **Line 1801**: `.get("timestamp"`
-  ```
-  or lm.get("timestamp")
-  ```
-
-- **Line 1815**: `.get("timestamp"`
+- **Line 1796**: `.get("timestamp"`
   ```
   last_ix = str(raw[-1].get("timestamp") or "Unknown")
   ```
 
 ### core\user_data_read.py
-**Issues Found**: 2
+**Issues Found**: 1
 
-- **Line 53**: `"message_id"`
-  ```
-  message_id = str(message.get("id") or message.get("message_id") or "").strip()
-  ```
-
-- **Line 58**: `"message_id"`
+- **Line 59**: `"message_id"`
   ```
   message.pop("message_id", None)
   ```
@@ -262,6 +186,14 @@
   timestamp = meta.get('timestamp')
   ```
 
+### tests\behavior\test_checkin_analytics_behavior.py
+**Issues Found**: 1
+
+- **Line 485**: `.get("timestamp"`
+  ```
+  assert checkin.get("timestamp"), "Formatted history should include display timestamp"
+  ```
+
 ### tests\unit\test_schema_validation_helpers.py
 **Issues Found**: 5
 
@@ -304,149 +236,34 @@
   ```
 
 ### tests\unit\test_user_data_v2_migration.py
-**Issues Found**: 29
+**Issues Found**: 6
 
-- **Line 31**: `"task_id"`
-  ```
-  "task_id": "11111111-1111-4111-8111-111111111111",
-  ```
-
-- **Line 44**: `"completed_tasks"`
-  ```
-  "completed_tasks": [
-  ```
-
-- **Line 46**: `"task_id"`
-  ```
-  "task_id": "22222222-2222-4222-8222-222222222222",
-  ```
-
-- **Line 71**: `"task_id"`
-  ```
-  assert "task_id" not in active_task
-  ```
-
-- **Line 96**: `"task_id"`
-  ```
-  "task_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-  ```
-
-- **Line 117**: `"task_id"`
-  ```
-  "task_id": "bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb",
-  ```
-
-- **Line 140**: `"kind": "journal"`
-  ```
-  "kind": "journal",
-  ```
-
-- **Line 196**: `"message_id"`
-  ```
-  "message_id": "template-1",
-  ```
-
-- **Line 210**: `"message_id"`
-  ```
-  "message_id": "template-1",
-  ```
-
-- **Line 213**: `"delivery_status"`
-  ```
-  "delivery_status": "sent",
-  ```
-
-- **Line 231**: `"delivery_status"`
-  ```
-  assert "delivery_status" not in delivery
-  ```
-
-- **Line 233**: `"message_id"`
-  ```
-  assert set(template_report["fields_renamed"]) == {"days", "message", "message_id", "time_periods", "timestamp"}
-  ```
-
-- **Line 235**: `"message_id"`
-  ```
-  assert set(delivery_report["fields_renamed"]) == {"delivery_status", "message", "message_id", "timestamp"}
-  ```
-
-- **Line 235**: `"delivery_status"`
-  ```
-  assert set(delivery_report["fields_renamed"]) == {"delivery_status", "message", "message_id", "timestamp"}
-  ```
-
-- **Line 261**: `"task_id"`
+- **Line 34**: `"task_id"`
   ```
   "task_id": "legacy",
   ```
 
-- **Line 280**: `"task_id"`
+- **Line 53**: `"task_id"`
   ```
   assert "task_id" in errors[0]
   ```
 
-- **Line 290**: `active_tasks.json`
-  ```
-  (user_root / "tasks" / "active_tasks.json").write_text(
-  ```
-
-- **Line 291**: `"task_id"`
-  ```
-  json.dumps({"tasks": [{"task_id": "task-1", "title": "Plan", "created_at": TIMESTAMP}]}),
-  ```
-
-- **Line 294**: `completed_tasks.json`
-  ```
-  (user_root / "tasks" / "completed_tasks.json").write_text(
-  ```
-
-- **Line 295**: `"completed_tasks"`
-  ```
-  json.dumps({"completed_tasks": []}),
-  ```
-
-- **Line 298**: `task_schedules.json`
-  ```
-  (user_root / "tasks" / "task_schedules.json").write_text(
-  ```
-
-- **Line 324**: `active_tasks.json`
-  ```
-  assert not (user_root / "tasks" / "active_tasks.json").exists()
-  ```
-
-- **Line 325**: `completed_tasks.json`
-  ```
-  assert not (user_root / "tasks" / "completed_tasks.json").exists()
-  ```
-
-- **Line 326**: `task_schedules.json`
-  ```
-  assert not (user_root / "tasks" / "task_schedules.json").exists()
-  ```
-
-- **Line 330**: `active_tasks.json`
-  ```
-  assert "tasks/active_tasks.json" in written["files_removed"]
-  ```
-
-- **Line 556**: `"task_id"`
+- **Line 275**: `"task_id"`
   ```
   assert "task_id" not in active[0]
   ```
 
-- **Line 576**: `"task_id"`
+- **Line 295**: `"task_id"`
   ```
   assert "task_id" not in data["tasks"][0]
   ```
 
-- **Line 577**: `active_tasks.json`
+- **Line 296**: `active_tasks.json`
   ```
   assert not (tasks_dir / "active_tasks.json").exists()
   ```
 
-- **Line 578**: `completed_tasks.json`
+- **Line 297**: `completed_tasks.json`
   ```
   assert not (tasks_dir / "completed_tasks.json").exists()
   ```

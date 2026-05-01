@@ -27,7 +27,8 @@ def _checkin_to_runtime_response(checkin: dict[str, Any]) -> dict[str, Any]:
     raw_responses = checkin.get("responses")
     responses: dict[str, Any] = raw_responses if isinstance(raw_responses, dict) else {}
     runtime: dict[str, Any] = dict(responses)
-    runtime["timestamp"] = checkin.get("submitted_at", "")
+    submitted_at = str(checkin.get("submitted_at", "") or "").strip()
+    runtime["submitted_at"] = submitted_at
     runtime["questions_asked"] = checkin.get("questions_asked", list(responses.keys()))
     runtime["responses"] = responses
     return runtime
@@ -35,33 +36,36 @@ def _checkin_to_runtime_response(checkin: dict[str, Any]) -> dict[str, Any]:
 
 @handle_errors("resolving check-in runtime timestamp", default_return="")
 def checkin_runtime_timestamp(checkin: Any) -> str:
-    """Wall-clock timestamp string for a check-in row.
-
-    Prefer v2 ``submitted_at``; fall back to ``timestamp`` (set by
-    :func:`_checkin_to_runtime_response` and legacy flat rows).
-    """
+    """Wall-clock timestamp string for a check-in row (v2 ``submitted_at`` only)."""
     if not isinstance(checkin, dict):
         return ""
-    raw = checkin.get("submitted_at") or checkin.get("timestamp")
+    raw = checkin.get("submitted_at")
     if raw is None:
         return ""
     return str(raw).strip()
 
 
 @handle_errors("converting runtime response to v2 checkin", default_return={})
-def _response_to_v2_checkin(response_data: dict[str, Any]) -> dict[str, Any]:
-    """Build a canonical v2 check-in record from the current response payload."""
-    submitted_at = (
-        response_data.get("submitted_at")
-        or response_data.get("sent_at")
-        or response_data.get("timestamp")
-        or now_timestamp_full()
-    )
+def _response_to_v2_checkin(
+    response_data: dict[str, Any], *, legacy_timestamp: bool = False
+) -> dict[str, Any]:
+    """Build a canonical v2 check-in record from the current response payload.
+
+    ``legacy_timestamp``: when True, allow top-level ``timestamp`` (offline repair only).
+    """
+    candidates: list[Any] = [
+        response_data.get("submitted_at"),
+        response_data.get("sent_at"),
+    ]
+    if legacy_timestamp:
+        candidates.append(response_data.get("timestamp"))
+    submitted_at = next((c for c in candidates if c), None) or now_timestamp_full()
     responses = response_data.get("responses")
     if not isinstance(responses, dict):
         skipped = {
             "timestamp",
             "submitted_at",
+            "sent_at",
             "questions_asked",
             "source",
             "linked_item_ids",
@@ -75,7 +79,8 @@ def _response_to_v2_checkin(response_data: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": response_data.get("id") or str(uuid.uuid4()),
         "submitted_at": submitted_at,
-        "source": response_data.get("source") or {"system": "mhm", "channel": "", "actor": "", "migration": None},
+        "source": response_data.get("source")
+        or {"system": "mhm", "channel": "", "actor": ""},
         "responses": responses,
         "questions_asked": response_data.get("questions_asked") or list(responses.keys()),
         "linked_item_ids": response_data.get("linked_item_ids") or [],
@@ -84,6 +89,105 @@ def _response_to_v2_checkin(response_data: dict[str, Any]) -> dict[str, Any]:
         "archived_at": response_data.get("archived_at"),
         "deleted_at": response_data.get("deleted_at"),
         "metadata": response_data.get("metadata") or {},
+    }
+
+
+@handle_errors("normalizing checkins envelope for repair", re_raise=True)
+def normalize_checkins_envelope_for_repair(existing_data: Any) -> dict[str, Any]:
+    """
+    Build a canonical v2 ``checkins.json`` envelope from any on-disk shape the app
+    used to accept (bare list, v2 dict, or dict with ``checkins`` only).
+
+    Does not append a new check-in row. For manual repair: back up ``checkins.json``, load JSON,
+    pass it through this function, validate with ``validate_v2_document('checkins', envelope)``,
+    then save with ``save_json_data`` (see ``USER_DATA_MODEL.md`` Section 2.7).
+    """
+    migrated: list[dict[str, Any]] = []
+    if existing_data is None:
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "updated_at": now_timestamp_full(),
+            "checkins": [],
+        }
+    if isinstance(existing_data, list):
+        for item in existing_data:
+            if isinstance(item, dict):
+                migrated.append(_response_to_v2_checkin(item, legacy_timestamp=True))
+    elif isinstance(existing_data, dict) and existing_data.get("schema_version") == SCHEMA_VERSION:
+        inner = existing_data.get("checkins")
+        if isinstance(inner, list):
+            for item in inner:
+                if not isinstance(item, dict):
+                    continue
+                if item.get("submitted_at") and isinstance(item.get("responses"), dict):
+                    migrated.append(item)
+                else:
+                    migrated.append(
+                        _response_to_v2_checkin(item, legacy_timestamp=True)
+                    )
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "updated_at": now_timestamp_full(),
+            "checkins": migrated,
+        }
+    elif isinstance(existing_data, dict):
+        inner = existing_data.get("checkins")
+        if isinstance(inner, list):
+            for item in inner:
+                if not isinstance(item, dict):
+                    continue
+                if item.get("submitted_at") and isinstance(item.get("responses"), dict):
+                    migrated.append(item)
+                else:
+                    migrated.append(
+                        _response_to_v2_checkin(item, legacy_timestamp=True)
+                    )
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "updated_at": now_timestamp_full(),
+        "checkins": migrated,
+    }
+
+
+@handle_errors("loading v2 checkins envelope for append", re_raise=True)
+def _coerce_v2_checkins_envelope_for_store(existing_data: Any) -> dict[str, Any] | None:
+    """
+    Return a mutable v2 envelope for appending a new check-in, or None if the file must be repaired offline.
+    """
+    # load_json_data can return {} on missing/corrupt paths; treat like no envelope yet.
+    if existing_data is None or existing_data == {}:
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "updated_at": now_timestamp_full(),
+            "checkins": [],
+        }
+    if not isinstance(existing_data, dict):
+        logger.error(
+            f"checkins.json must be a v2 object (found {type(existing_data).__name__}). "
+            "Back up the file, repair with normalize_checkins_envelope_for_repair + save_json_data, "
+            "or restore from backup."
+        )
+        return None
+    if existing_data.get("schema_version") != SCHEMA_VERSION:
+        logger.error(
+            f"checkins.json must have schema_version {SCHEMA_VERSION} "
+            f"(found {existing_data.get('schema_version')!r}). "
+            "Back up the file, repair with normalize_checkins_envelope_for_repair + save_json_data, "
+            "or restore from backup."
+        )
+        return None
+    raw_checkins = existing_data.get("checkins")
+    if not isinstance(raw_checkins, list):
+        logger.error(
+            "checkins.json v2 envelope requires a list at key 'checkins'. "
+            "Back up the file, repair with normalize_checkins_envelope_for_repair + save_json_data, "
+            "or restore from backup."
+        )
+        return None
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "updated_at": existing_data.get("updated_at") or now_timestamp_full(),
+        "checkins": list(raw_checkins),
     }
 
 
@@ -114,43 +218,9 @@ def store_user_response(
     existing_data = load_json_data(log_file)
 
     if response_type == "checkin":
-        envelope: dict[str, Any]
-        if (
-            isinstance(existing_data, dict)
-            and existing_data.get("schema_version") == SCHEMA_VERSION
-        ):
-            envelope = existing_data
-            checkins = envelope.setdefault("checkins", [])
-            if not isinstance(checkins, list):
-                checkins = []
-                envelope["checkins"] = checkins
-        else:
-            migrated: list[dict[str, Any]] = []
-            if isinstance(existing_data, list):
-                for item in existing_data:
-                    if isinstance(item, dict):
-                        migrated.append(_response_to_v2_checkin(item))
-            elif isinstance(existing_data, dict):
-                inner = existing_data.get("checkins")
-                if isinstance(inner, list):
-                    for item in inner:
-                        if not isinstance(item, dict):
-                            continue
-                        if item.get("submitted_at") and isinstance(
-                            item.get("responses"), dict
-                        ):
-                            migrated.append(item)
-                        else:
-                            migrated.append(_response_to_v2_checkin(item))
-            envelope = {
-                "schema_version": SCHEMA_VERSION,
-                "updated_at": now_timestamp_full(),
-                "checkins": migrated,
-            }
-
-        envelope.setdefault("checkins", [])
-        if not isinstance(envelope["checkins"], list):
-            envelope["checkins"] = []
+        envelope = _coerce_v2_checkins_envelope_for_store(existing_data)
+        if envelope is None:
+            return
         envelope["checkins"].append(_response_to_v2_checkin(response_data))
         envelope["updated_at"] = now_timestamp_full()
         save_json_data(envelope, log_file)
@@ -198,9 +268,17 @@ def get_recent_responses(user_id: str, response_type: str = "checkin", limit: in
     else:
         log_file = get_user_file_path(user_id, f"{response_type}_log")
 
-    data = load_json_data(log_file) or []
-    if response_type == "checkin" and isinstance(data, dict) and data.get("schema_version") == SCHEMA_VERSION:
-        data = [_checkin_to_runtime_response(item) for item in data.get("checkins", []) if isinstance(item, dict)]
+    data = load_json_data(log_file)
+    if response_type == "checkin":
+        if not isinstance(data, dict) or data.get("schema_version") != SCHEMA_VERSION:
+            return []
+        data = [
+            _checkin_to_runtime_response(item)
+            for item in data.get("checkins", [])
+            if isinstance(item, dict)
+        ]
+    else:
+        data = data or []
 
     if data:
 
@@ -211,12 +289,14 @@ def get_recent_responses(user_id: str, response_type: str = "checkin", limit: in
                 if isinstance(item, str) or not isinstance(item, dict):
                     return 0.0
 
-                timestamp = (
-                    item.get("submitted_at")
-                    or item.get("sent_at")
-                    or item.get("timestamp")
-                    or "1970-01-01 00:00:00"
-                )
+                if response_type == "checkin":
+                    timestamp = item.get("submitted_at") or "1970-01-01 00:00:00"
+                else:
+                    timestamp = (
+                        item.get("submitted_at")
+                        or item.get("timestamp")
+                        or "1970-01-01 00:00:00"
+                    )
 
                 # Canonical strict parse for stored timestamps
                 dt = parse_timestamp_full(timestamp)
@@ -261,17 +341,8 @@ def get_checkins_by_days(user_id: str, days: int = 7):
     # Filter check-ins by date
     recent_checkins = []
     for checkin in all_checkins:
-        if (
-            "submitted_at" in checkin
-            or "sent_at" in checkin
-            or "timestamp" in checkin
-        ):
-            # Canonical strict parse for stored timestamps
-            checkin_date = parse_timestamp_full(
-                checkin.get("submitted_at")
-                or checkin.get("sent_at")
-                or checkin.get("timestamp", "")
-            )
+        if checkin.get("submitted_at"):
+            checkin_date = parse_timestamp_full(str(checkin.get("submitted_at", "")))
             if checkin_date is None:
                 continue
 

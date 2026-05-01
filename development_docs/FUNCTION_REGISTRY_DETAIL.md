@@ -2,13 +2,13 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-04-30 20:58:38
+> **Last Generated**: 2026-05-01 00:16:13
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
 > **Status**: **ACTIVE** - Auto-generated from codebase analysis with template enhancement
 
-> **See [README.md](README.md) for complete navigation and project overview**
+> **See [README.md](../README.md) for complete navigation and project overview**
 > **See [ARCHITECTURE.md](../ARCHITECTURE.md) for system architecture and design**
 > **See [TODO.md](../TODO.md) for current documentation priorities**
 
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 94.2% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 125
-- **Functions Found**: 1765
+- **Functions Found**: 1766
 - **Methods Found**: 1245
 - **Classes Found**: 170
-- **Total Items**: 3010
-- **Functions Documented**: 1643
+- **Total Items**: 3011
+- **Functions Documented**: 1644
 - **Methods Documented**: 1191
 - **Classes Documented**: 122
-- **Total Documented**: 2834
+- **Total Documented**: 2835
 - **Template-Generated**: 4
-- **Last Updated**: 2026-04-30
+- **Last Updated**: 2026-05-01
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (631)
+### **Core System Functions** (632)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (460)
@@ -2964,6 +2964,8 @@ Args:
     operation: Description of the operation being performed
     user_id: ID of the user performing the operation
     category: Category of the operation
+- [OK] `_default_new_checkins_file_payload()` - Empty v2 envelope when recovery creates ``checkins.json``.
+``schema_version`` must stay aligned with ``core.user_data_v2.SCHEMA_VERSION``.
 - [OK] `_get_default_data(self, file_path, context)` - Get appropriate default data based on file type.
 - [OK] `_get_default_data(self, file_path, context)` - Get appropriate default data based on file type.
 - [OK] `_get_user_friendly_message(self, error, context)` - Convert technical error to user-friendly message.
@@ -3726,15 +3728,9 @@ Returns:
 - [OK] `_canonical_message_timestamp(value)` - Return a valid full timestamp string or current time when invalid.
 - [OK] `_delivery_to_runtime_message(delivery)` - Return runtime dict for a v2 delivery record.
 - [OK] `_ensure_v2_message_template_file(data, category)` - Normalize a message template file payload to canonical v2 wrapper shape.
-- [OK] `_message_template_default_to_v2(message, category)` - Build a canonical v2 message template from default/runtime message data.
+- [OK] `_message_template_default_to_v2(message, category)` - Build a canonical v2 message template from v2-shaped runtime or on-disk data.
 - [OK] `_message_template_to_runtime(message, category)` - Return runtime dict for message selection (canonical v2 template fields).
-- [OK] `_normalize_message_timestamps(data, file_path)` - Normalize timestamps in persisted sent_messages data to the canonical TIMESTAMP_FULL shape.
-
-Returns:
-    bool: True if any timestamps were rewritten.
-- [OK] `_normalize_message_update_payload(updated_data)` - Map legacy update fields onto canonical v2 message template fields.
-- [OK] `_normalize_runtime_message_file(data)` - Preserve canonical v2 template files and only apply runtime-schema validation
-to legacy message files.
+- [OK] `_normalize_message_update_payload(updated_data)` - Return a shallow copy; callers must supply v2 template fields (text, schedule, id, etc.).
 - [OK] `_parse_message_timestamp(timestamp_str)` - Parse timestamp string to datetime object.
 
 Args:
@@ -3869,12 +3865,12 @@ Raises:
 #### `core/response_tracking.py`
 **Functions:**
 - [OK] `_checkin_to_runtime_response(checkin)` - Return the flat response shape expected by existing analytics callers.
+- [OK] `_coerce_v2_checkins_envelope_for_store(existing_data)` - Return a mutable v2 envelope for appending a new check-in, or None if the file must be repaired offline.
 - [OK] `_get_response_log_filename(response_type)` - Get the filename for a response log type.
 - [OK] `_response_to_v2_checkin(response_data)` - Build a canonical v2 check-in record from the current response payload.
-- [OK] `checkin_runtime_timestamp(checkin)` - Wall-clock timestamp string for a check-in row.
 
-Prefer v2 ``submitted_at``; fall back to ``timestamp`` (set by
-:func:`_checkin_to_runtime_response` and legacy flat rows).
+``legacy_timestamp``: when True, allow top-level ``timestamp`` (offline repair only).
+- [OK] `checkin_runtime_timestamp(checkin)` - Wall-clock timestamp string for a check-in row (v2 ``submitted_at`` only).
 - [OK] `get_checkins_by_days(user_id, days)` - Get check-ins from the last N calendar days.
 - [OK] `get_recent_chat_interactions(user_id, limit)` - Get recent chat interactions for a user.
 - [OK] `get_recent_checkins(user_id, limit)` - Get recent check-in responses for a user.
@@ -3882,6 +3878,12 @@ Prefer v2 ``submitted_at``; fall back to ``timestamp`` (set by
 - [OK] `get_timestamp_for_sorting(item)` - Convert timestamp to float for consistent sorting
 - [OK] `get_user_info_for_tracking(user_id)` - Get user information for response tracking.
 - [OK] `is_user_checkins_enabled(user_id)` - Check if check-ins are enabled for a user.
+- [OK] `normalize_checkins_envelope_for_repair(existing_data)` - Build a canonical v2 ``checkins.json`` envelope from any on-disk shape the app
+used to accept (bare list, v2 dict, or dict with ``checkins`` only).
+
+Does not append a new check-in row. For manual repair: back up ``checkins.json``, load JSON,
+pass it through this function, validate with ``validate_v2_document('checkins', envelope)``,
+then save with ``save_json_data`` (see ``USER_DATA_MODEL.md`` Section 2.7).
 - [OK] `store_chat_interaction(user_id, user_message, ai_response, context_used)` - Store a chat interaction between user and AI.
 - [OK] `store_user_response(user_id, response_data, response_type)` - Store user response data in appropriate file structure.
 - [OK] `track_user_response(user_id, category, response_data)` - Track a user's response to a message.
@@ -4955,7 +4957,7 @@ Returns:
 **Functions:**
 - [OK] `_find_obsolete_fields(data, document_type)` - Find obsolete fields on v2 record objects without scanning nested v2 shapes.
 - [OK] `_schema_validation_error(message)` - Build a Pydantic-native validation error without generic exception raises.
-- [OK] `_stable_uuid(value)` - Return value as a UUID, deriving a stable UUID for old non-UUID IDs.
+- [OK] `_stable_uuid(value)` - Return value as a UUID, deriving a deterministic UUID when the string is not UUID-shaped.
 - [MISSING] `_validate_optional_timestamp(value, field_name)` - No description
 - [OK] `generate_short_id(record_id, kind, length)` - Generate a mobile-friendly no-dash short ID from a UUID-like value.
 - [MISSING] `normalize_string_list(cls, value)` - No description
@@ -4998,7 +5000,7 @@ Returns:
 - [MISSING] `RecurrenceModel` - No description
   - [MISSING] `RecurrenceModel.validate_next_due_date(cls, value)` - No description
 - [MISSING] `ScheduleModel` - No description
-- [OK] `SourceModel` - Best-known origin of a migrated or newly written record.
+- [OK] `SourceModel` - Best-known origin of a persisted record.
 - [MISSING] `TaskCollectionV2Model` - No description
 - [MISSING] `TaskV2Model` - No description
   - [MISSING] `TaskV2Model.validate_completion_status(self)` - No description

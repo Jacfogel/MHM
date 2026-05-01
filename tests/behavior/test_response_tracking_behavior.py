@@ -134,25 +134,36 @@ class TestResponseTrackingBehavior:
         """Test that getting recent responses actually returns stored data."""
         user_id = "test-user-recent"
         
-        # Arrange - Create test data
-        test_responses = [
-            {"mood": 5, "timestamp": "2025-01-01 10:00:00"},
-            {"mood": 7, "timestamp": "2025-01-02 10:00:00"},
-            {"mood": 3, "timestamp": "2025-01-03 10:00:00"}
-        ]
-        
         checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
         os.makedirs(os.path.dirname(checkins_file), exist_ok=True)
-        with open(checkins_file, 'w', encoding='utf-8') as f:
-            json.dump(test_responses, f)
-        
+        if os.path.exists(checkins_file):
+            os.remove(checkins_file)
+
+        # Arrange - v2 check-ins via store path
+        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+            store_user_response(
+                user_id,
+                {"mood": 5, "submitted_at": "2025-01-01 10:00:00"},
+                "checkin",
+            )
+            store_user_response(
+                user_id,
+                {"mood": 7, "submitted_at": "2025-01-02 10:00:00"},
+                "checkin",
+            )
+            store_user_response(
+                user_id,
+                {"mood": 3, "submitted_at": "2025-01-03 10:00:00"},
+                "checkin",
+            )
+
         # Act - Get recent responses with mocked file path
         with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
             recent = get_recent_responses(user_id, "checkin", limit=2)
         
         # Assert - Verify data is returned correctly
         assert len(recent) == 2, "Should return limited number of responses"
-        assert recent[0]["mood"] == 3, "Should return most recent first (sorted by timestamp)"
+        assert recent[0]["mood"] == 3, "Should return most recent first (sorted by submitted_at)"
         assert recent[1]["mood"] == 7, "Should return second most recent"
     
     @pytest.mark.analytics
@@ -162,18 +173,32 @@ class TestResponseTrackingBehavior:
     def test_get_recent_checkins_returns_checkin_data(self, test_data_dir):
         """Test that getting recent checkins returns actual checkin data."""
         user_id = "test-user-checkins"
-        
-        # Arrange - Create test checkin data
-        test_checkins = [
-            {"mood": 6, "energy": 7, "timestamp": "2025-01-01 09:00:00"},
-            {"mood": 4, "energy": 5, "timestamp": "2025-01-02 09:00:00"}
-        ]
-        
+
         checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
         os.makedirs(os.path.dirname(checkins_file), exist_ok=True)
-        with open(checkins_file, 'w', encoding='utf-8') as f:
-            json.dump(test_checkins, f)
-        
+        if os.path.exists(checkins_file):
+            os.remove(checkins_file)
+
+        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+            store_user_response(
+                user_id,
+                {
+                    "mood": 6,
+                    "energy": 7,
+                    "submitted_at": "2025-01-01 09:00:00",
+                },
+                "checkin",
+            )
+            store_user_response(
+                user_id,
+                {
+                    "mood": 4,
+                    "energy": 5,
+                    "submitted_at": "2025-01-02 09:00:00",
+                },
+                "checkin",
+            )
+
         # Act - Get recent checkins with mocked file path
         with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
             recent = get_recent_checkins(user_id, limit=1)
@@ -453,18 +478,22 @@ class TestResponseTrackingBehavior:
         user_id = "test-user-performance"
         
         # Arrange - Create large dataset to test performance
-        large_dataset = []
-        for i in range(100):
-            large_dataset.append({
-                "mood": i % 10,
-                "energy": i % 10,
-                "timestamp": f"2025-01-{i + 1:02d} 10:00:00"
-            })
-        
         checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
         os.makedirs(os.path.dirname(checkins_file), exist_ok=True)
-        with open(checkins_file, 'w', encoding='utf-8') as f:
-            json.dump(large_dataset, f)
+        if os.path.exists(checkins_file):
+            os.remove(checkins_file)
+
+        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+            for i in range(100):
+                store_user_response(
+                    user_id,
+                    {
+                        "mood": i % 10,
+                        "energy": i % 10,
+                        "submitted_at": f"2025-01-{i + 1:02d} 10:00:00",
+                    },
+                    "checkin",
+                )
         
         # Act - Get recent responses with mocked file path (should be fast even with large dataset)
         with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
@@ -474,7 +503,7 @@ class TestResponseTrackingBehavior:
         assert len(recent) == 5, "Should return limited number of responses"
         # Verify that we got some data back (performance test focuses on speed, not specific sorting)
         assert all("mood" in entry for entry in recent), "All entries should have mood data"
-        assert all("timestamp" in entry for entry in recent), "All entries should have timestamp data"
+        assert all(entry.get("submitted_at") for entry in recent), "All entries should have submitted_at"
     
     @pytest.mark.analytics
     @pytest.mark.file_io
@@ -635,7 +664,11 @@ class TestResponseTrackingIntegration:
 
         # Create initial data with explicit timestamp to control sorting
         with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
-            store_user_response(user_id, {"mood": 5, "timestamp": "2025-01-01 10:00:00"}, "checkin")
+            store_user_response(
+                user_id,
+                {"mood": 5, "submitted_at": "2025-01-01 10:00:00"},
+                "checkin",
+            )
         
         # Small delay to ensure file is written
         time.sleep(0.1)
@@ -644,7 +677,11 @@ class TestResponseTrackingIntegration:
         # This tests that the file operations are thread-safe
         with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
             recent1 = get_recent_responses(user_id, "checkin", limit=5)
-            store_user_response(user_id, {"mood": 7, "timestamp": "2025-01-02 10:00:00"}, "checkin")
+            store_user_response(
+                user_id,
+                {"mood": 7, "submitted_at": "2025-01-02 10:00:00"},
+                "checkin",
+            )
             
             # Small delay to ensure file is written before second read
             time.sleep(0.1)

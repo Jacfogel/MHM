@@ -20,7 +20,7 @@ TEST_ANCHOR_DT = datetime(2026, 1, 15, 12, 0, 0)
 def _mock_checkin_row(timestamp: str, **fields) -> dict:
     """Runtime-shaped check-in row (v2 answers under ``responses``, mirrored at top level)."""
     data = {k: v for k, v in fields.items() if k != "user_id"}
-    row: dict = {"timestamp": timestamp, **data}
+    row: dict = {"submitted_at": timestamp, **data}
     row["responses"] = dict(data)
     row["questions_asked"] = list(data.keys())
     return row
@@ -482,7 +482,7 @@ class TestCheckinAnalyticsHistoryBehavior:
 
         # [OK] VERIFY REAL BEHAVIOR: Each check-in has expected structure
         for checkin in result:
-            assert "timestamp" in checkin, "Each check-in should have timestamp"
+            assert checkin.get("timestamp"), "Formatted history should include display timestamp"
             assert "mood" in checkin, "Each check-in should have mood"
             # Notes may not be present in all check-ins
 

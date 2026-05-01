@@ -157,9 +157,8 @@ class TestMessageCRUD:
         user_id = f"test-user-add-{uuid.uuid4().hex[:8]}"
         category = "motivational"
         message_data = {
-            "message": "Test message",
-            "days": ["monday", "tuesday"],
-            "time_periods": ["morning"]
+            "text": "Test message",
+            "schedule": {"days": ["monday", "tuesday"], "periods": ["morning"]},
         }
         
         # Create user directory structure under tests/data/users
@@ -214,9 +213,8 @@ class TestMessageCRUD:
         category = "motivational"
         message_id = "test-msg-1"
         updated_data = {
-            "message": "Updated message",
-            "days": ["monday"],
-            "time_periods": ["evening"]
+            "text": "Updated message",
+            "schedule": {"days": ["monday"], "periods": ["evening"]},
         }
         
         # Create user directory structure and initial message file under tests/data/users
@@ -230,9 +228,11 @@ class TestMessageCRUD:
             "messages": [
                 {
                     "id": "test-msg-1",
-                    "message": "Original message",
-                    "days": ["monday", "tuesday"],
-                    "time_periods": ["morning"],
+                    "text": "Original message",
+                    "schedule": {
+                        "days": ["monday", "tuesday"],
+                        "periods": ["morning"],
+                    },
                 }
             ]
         }
@@ -278,15 +278,14 @@ class TestMessageCRUD:
         user_id = "test-user"
         category = "motivational"
         message_id = "nonexistent"
-        updated_data = {"message": "Updated message"}
+        updated_data = {"text": "Updated message"}
         
         existing_messages = {
             "messages": [
                 {
                     "id": "test-msg-1",
-                    "message": "Original message",
-                    "days": ["monday"],
-                    "time_periods": ["morning"],
+                    "text": "Original message",
+                    "schedule": {"days": ["monday"], "periods": ["morning"]},
                 }
             ]
         }
@@ -308,17 +307,19 @@ class TestMessageCRUD:
         category = "motivational"
         message_id = "test-msg-1"
         updates = {
-            "message": "Updated message",
-            "days": ["monday"]
+            "text": "Updated message",
+            "schedule": {"days": ["monday"], "periods": ["morning"]},
         }
         
         existing_messages = {
             "messages": [
                 {
                     "id": "test-msg-1",
-                    "message": "Original message",
-                    "days": ["monday", "tuesday"],
-                    "time_periods": ["morning"],
+                    "text": "Original message",
+                    "schedule": {
+                        "days": ["monday", "tuesday"],
+                        "periods": ["morning"],
+                    },
                 }
             ]
         }
@@ -357,15 +358,13 @@ class TestMessageCRUD:
             "messages": [
                 {
                     "id": "test-msg-1",
-                    "message": "Message to delete",
-                    "days": ["monday"],
-                    "time_periods": ["morning"],
+                    "text": "Message to delete",
+                    "schedule": {"days": ["monday"], "periods": ["morning"]},
                 },
                 {
                     "id": "test-msg-2",
-                    "message": "Message to keep",
-                    "days": ["tuesday"],
-                    "time_periods": ["evening"],
+                    "text": "Message to keep",
+                    "schedule": {"days": ["tuesday"], "periods": ["evening"]},
                 },
             ]
         }
@@ -405,9 +404,8 @@ class TestMessageCRUD:
             "messages": [
                 {
                     "id": "test-msg-1",
-                    "message": "Existing message",
-                    "days": ["monday"],
-                    "time_periods": ["morning"],
+                    "text": "Existing message",
+                    "schedule": {"days": ["monday"], "periods": ["morning"]},
                 }
             ]
         }
@@ -582,14 +580,12 @@ class TestMessageFileManagement:
             {
                 "id": "default1",
                 "text": "Default message 1",
-                "days": ["monday"],
-                "time_periods": ["morning"],
+                "schedule": {"days": ["monday"], "periods": ["morning"]},
             },
             {
                 "id": "default2",
                 "text": "Default message 2",
-                "days": ["tuesday"],
-                "time_periods": ["evening"],
+                "schedule": {"days": ["tuesday"], "periods": ["evening"]},
             },
         ]
         
@@ -639,9 +635,8 @@ class TestErrorHandling:
         user_id = "test-user"
         category = "motivational"
         message_data = {
-            "message": "Test message",
-            "days": ["monday"],
-            "time_periods": ["morning"],
+            "text": "Test message",
+            "schedule": {"days": ["monday"], "periods": ["morning"]},
         }
         
         # Mock file operations to raise exception
@@ -660,9 +655,8 @@ class TestErrorHandling:
         category = "motivational"
         message_id = "test_msg"
         updated_data = {
-            "message": "Updated message",
-            "days": ["monday"],
-            "time_periods": ["morning"],
+            "text": "Updated message",
+            "schedule": {"days": ["monday"], "periods": ["morning"]},
         }
         
         # Mock file operations to raise exception
@@ -733,16 +727,17 @@ class TestIntegration:
         
         # Message to add
         new_message = {
-            "message": "Test message",
-            "days": ["monday"],
-            "time_periods": ["morning"]
+            "text": "Test message",
+            "schedule": {"days": ["monday"], "periods": ["morning"]},
         }
         
         # Updated message
         updated_message = {
-            "message": "Updated test message",
-            "days": ["monday", "tuesday"],
-            "time_periods": ["morning", "evening"]
+            "text": "Updated test message",
+            "schedule": {
+                "days": ["monday", "tuesday"],
+                "periods": ["morning", "evening"],
+            },
         }
         
         # Mock get_user_data_dir to return our test directory

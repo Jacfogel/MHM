@@ -147,7 +147,7 @@ class TestAnalyticsHandlerHelperBranches:
         graph = self.handler._build_trend_graph(
             recent_data=[
                 {"date": "2026-02-01", "mood": 2},
-                {"timestamp": "2026-02-02 01:02:03", "mood": 3.5},
+                {"submitted_at": "2026-02-02 01:02:03", "mood": 3.5},
                 {"date": "2026-02-03", "mood": "bad"},
                 {"date": 12345, "mood": 1},
             ],

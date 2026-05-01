@@ -685,10 +685,19 @@ def _create_user_files__task_files(user_id):
 @handle_errors("creating checkins file", default_return=None)
 def _create_user_files__checkins_file(user_id):
     """Create checkins.json only if checkins are enabled."""
+    from core.user_data_v2 import SCHEMA_VERSION
+
     checkins_file = get_user_file_path(user_id, "checkins")
     if not os.path.exists(checkins_file):
-        save_json_data([], checkins_file)
-        logger.debug(f"Created checkins file for user {user_id}")
+        save_json_data(
+            {
+                "schema_version": SCHEMA_VERSION,
+                "updated_at": now_timestamp_full(),
+                "checkins": [],
+            },
+            checkins_file,
+        )
+        logger.debug(f"Created v2 checkins file for user {user_id}")
 
 
 @handle_errors("creating message files", default_return=None)

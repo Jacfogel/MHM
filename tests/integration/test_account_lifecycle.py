@@ -10,7 +10,18 @@ import os
 import json
 import shutil
 
+from core.time_utilities import now_timestamp_full
+from core.user_data_v2 import SCHEMA_VERSION
+
 pytestmark = [pytest.mark.core]
+
+
+def _empty_v2_checkins_file_payload() -> dict:
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "updated_at": now_timestamp_full(),
+        "checkins": [],
+    }
 
 # Removed path hacks; rely on proper package imports
 
@@ -342,7 +353,7 @@ class TestAccountLifecycle:
         # Create check-ins file
         user_dir = os.path.join(self.test_data_dir, "users", actual_user_id)
         with open(os.path.join(user_dir, "checkins.json"), "w") as f:
-            json.dump({"checkins": []}, f, indent=2)
+            json.dump(_empty_v2_checkins_file_payload(), f, indent=2)
         
         # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify, reduced retries)
         import time
@@ -439,7 +450,7 @@ class TestAccountLifecycle:
             json.dump({"tasks": []}, f, indent=2)
         
         with open(os.path.join(user_dir, "checkins.json"), "w") as f:
-            json.dump({"checkins": []}, f, indent=2)
+            json.dump(_empty_v2_checkins_file_payload(), f, indent=2)
         
         # Act - Disable tasks via public APIs
         self._materialize_and_verify(actual_user_id)
@@ -530,7 +541,7 @@ class TestAccountLifecycle:
         
         # Create check-ins file
         with open(os.path.join(user_dir, "checkins.json"), "w") as f:
-            json.dump({"checkins": []}, f, indent=2)
+            json.dump(_empty_v2_checkins_file_payload(), f, indent=2)
         
         # Act - Re-enable tasks via public APIs
         self._materialize_and_verify(actual_user_id)
@@ -1021,7 +1032,7 @@ class TestAccountLifecycle:
             json.dump({"tasks": []}, f, indent=2)
         
         with open(os.path.join(user_dir, "checkins.json"), "w") as f:
-            json.dump({"checkins": []}, f, indent=2)
+            json.dump(_empty_v2_checkins_file_payload(), f, indent=2)
         
         # Verify features enabled
         self._materialize_and_verify(actual_user_id)
