@@ -254,9 +254,8 @@ class TestEmailBotBehavior:
             if len(messages) > 0:
                 assert 'from' in messages[0], "Should have from field if messages exist"
                 assert 'subject' in messages[0], "Should have subject field if messages exist"
-                _mid_key = "".join(("message", "_", "id"))
-                assert _mid_key in messages[0] or "id" in messages[0], (
-                    "Should have message id field if messages exist"
+                assert "imap_email_id" in messages[0], (
+                    "Should have IMAP fetch id (not template id) if messages exist"
                 )
     
     @pytest.mark.asyncio

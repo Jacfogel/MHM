@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-01 00:16:24
+> **Last Generated**: 2026-05-01 01:30:42
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -811,7 +811,6 @@ C:.
 |   |   |   test_logger_unit.py
 |   |   |   test_logging_components.py
 |   |   |   test_message_formatter.py
-|   |   |   test_normalize_checkins_repair.py
 |   |   |   test_notebook_data_manager_gap_coverage.py
 |   |   |   test_notebook_handler_edge_cases.py
 |   |   |   test_notebook_handler_pagination_formatting.py
@@ -840,7 +839,7 @@ C:.
 |   |   |   test_user_data_loader_idempotency.py
 |   |   |   test_user_data_loader_order_insensitivity.py
 |   |   |   test_user_data_manager.py
-|   |   |   test_user_data_v2_migration.py
+|   |   |   test_user_data_v2_runtime.py
 |   |   |   test_user_data_validation_user_id.py
 |   |   |   test_user_item_storage.py
 |   |   |   test_user_management.py

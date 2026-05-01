@@ -3,11 +3,9 @@ import copy
 import pytest
 
 from core.schemas import (
-
     validate_account_dict,
     validate_preferences_dict,
     validate_schedules_dict,
-    validate_messages_file_dict,
 )
 
 pytestmark = [pytest.mark.core]
@@ -102,22 +100,3 @@ def test_validate_schedules_dict_normalizes_days_and_times():
     assert periods["morning"]["start_time"] == "00:00"
     assert periods["evening"]["days"] == ["ALL"]
     assert periods["evening"]["end_time"] == "00:00"
-
-
-@pytest.mark.unit
-@pytest.mark.core
-def test_validate_messages_file_dict_filters_invalid_entries():
-    data = {
-        "messages": [
-            {"message_id": "1", "message": "Hello!", "days": [], "time_periods": []},
-            {"message": "Missing id"},
-            "not-a-dict",
-        ]
-    }
-
-    normalized, errors = validate_messages_file_dict(data)
-
-    assert errors
-    assert normalized["messages"] == [
-        {"message_id": "1", "message": "Hello!", "days": ["ALL"], "time_periods": ["ALL"], "timestamp": None}
-    ]

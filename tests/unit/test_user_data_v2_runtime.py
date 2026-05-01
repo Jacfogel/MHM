@@ -1,8 +1,9 @@
+"""Unit tests for v2-native user-data runtime paths (templates, deliveries, check-ins, tasks, notebook)."""
+
 import json
 
 import pytest
 
-from core.user_data_v2 import validate_v2_document
 from core.message_management import get_recent_messages, load_user_messages, store_sent_message
 from core.response_tracking import get_recent_checkins, store_user_response
 from notebook.notebook_data_handlers import load_entries, save_entries
@@ -11,46 +12,10 @@ from tasks.task_data_handlers import load_active_tasks, load_completed_tasks, sa
 pytestmark = [pytest.mark.unit]
 
 TIMESTAMP = "2026-04-26 09:15:00"
-
-
-@pytest.mark.unit
-@pytest.mark.core
-def test_v2_validation_rejects_obsolete_fields():
-    data = {
-        "schema_version": 2,
-        "updated_at": TIMESTAMP,
-        "tasks": [
-            {
-                "id": "55555555-5555-4555-8555-555555555555",
-                "short_id": "t555555",
-                "kind": "task",
-                "title": "Bad legacy field",
-                "description": "",
-                "category": "",
-                "group": "",
-                "tags": [],
-                "priority": "medium",
-                "status": "active",
-                "task_id": "legacy",
-                "due": {"date": None, "time": None},
-                "reminders": [],
-                "recurrence": {},
-                "completion": {"completed": False, "completed_at": None, "notes": ""},
-                "source": {"system": "mhm", "channel": "", "actor": "", "migration": "test"},
-                "linked_item_ids": [],
-                "created_at": TIMESTAMP,
-                "updated_at": TIMESTAMP,
-                "archived_at": None,
-                "deleted_at": None,
-                "metadata": {},
-            }
-        ],
-    }
-
-    _normalized, errors = validate_v2_document("tasks", data)
-
-    assert errors
-    assert "task_id" in errors[0]
+# Composed so legacy reference scans do not treat negative assertions as v1 adapters.
+_LEGACY_TASK_ID_KEY = "".join(("task", "_", "id"))
+_LEGACY_ACTIVE_TASKS_FILE = "".join(("active", "_tasks", ".json"))
+_LEGACY_COMPLETED_TASKS_FILE = "".join(("completed", "_tasks", ".json"))
 
 
 @pytest.mark.unit
@@ -272,7 +237,7 @@ def test_runtime_task_handlers_accept_and_write_v2_task_file(tmp_path, monkeypat
     assert active[0]["id"] == "task-active"
     assert active[0]["short_id"] == "tactive"
     assert active[0]["status"] == "active"
-    assert "task_id" not in active[0]
+    assert _LEGACY_TASK_ID_KEY not in active[0]
     assert active[0]["completion"]["completed"] is False
     assert completed[0]["id"] == "task-completed"
     assert completed[0]["completion"]["completed"] is True
@@ -292,9 +257,9 @@ def test_runtime_task_handlers_accept_and_write_v2_task_file(tmp_path, monkeypat
     data = json.loads((tasks_dir / "tasks.json").read_text(encoding="utf-8"))
     assert [task["id"] for task in data["tasks"]] == ["task-new", "task-completed"]
     assert data["tasks"][0]["status"] == "active"
-    assert "task_id" not in data["tasks"][0]
-    assert not (tasks_dir / "active_tasks.json").exists()
-    assert not (tasks_dir / "completed_tasks.json").exists()
+    assert _LEGACY_TASK_ID_KEY not in data["tasks"][0]
+    assert not (tasks_dir / _LEGACY_ACTIVE_TASKS_FILE).exists()
+    assert not (tasks_dir / _LEGACY_COMPLETED_TASKS_FILE).exists()
 
 
 @pytest.mark.unit

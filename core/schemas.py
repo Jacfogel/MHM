@@ -421,69 +421,6 @@ class SchedulesModel(RootModel[dict[str, CategoryScheduleModel]]):
             return {}
 
 
-# --------------------------------- Messages ----------------------------------
-
-
-class MessageModel(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    message_id: str
-    message: str
-    days: list[str] = Field(default_factory=lambda: ["ALL"])
-    time_periods: list[str] = Field(default_factory=lambda: ["ALL"])
-    timestamp: str | None = None
-
-    @field_validator("days")
-    @classmethod
-    def _normalize_days(cls, v: list[str]) -> list[str]:
-        """
-        Normalize days list for message scheduling.
-
-        Ensures the days list is not empty by defaulting to ["ALL"] if the
-        input list is empty or None.
-
-        Args:
-            v: List of day strings (may be empty)
-
-        Returns:
-            List[str]: Normalized days list, defaults to ["ALL"] if empty
-        """
-        # NOTE: Pydantic validators should not have try-except blocks.
-        # Pydantic handles exceptions internally and will raise ValidationError if needed.
-        # This validator performs simple list checks which cannot raise exceptions.
-        if not v:
-            return ["ALL"]
-        return v
-
-    @field_validator("time_periods")
-    @classmethod
-    def _normalize_periods(cls, v: list[str]) -> list[str]:
-        """
-        Normalize time periods list for message scheduling.
-
-        Ensures the time_periods list is not empty by defaulting to ["ALL"] if the
-        input list is empty or None.
-
-        Args:
-            v: List of time period strings (may be empty)
-
-        Returns:
-            List[str]: Normalized time periods list, defaults to ["ALL"] if empty
-        """
-        # NOTE: Pydantic validators should not have try-except blocks.
-        # Pydantic handles exceptions internally and will raise ValidationError if needed.
-        # This validator performs simple list checks which cannot raise exceptions.
-        if not v:
-            return ["ALL"]
-        return v
-
-
-class MessagesFileModel(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    messages: list[MessageModel] = Field(default_factory=list)
-
-
 # ------------------------------ Helper functions -----------------------------
 
 
@@ -558,32 +495,3 @@ def validate_schedules_dict(data: dict[str, Any]) -> tuple[dict[str, Any], list[
     except Exception as e:
         logger.error(f"Error validating schedules dictionary: {e}")
         return data, [str(e)]
-
-
-@handle_errors("validating messages file dictionary")
-def validate_messages_file_dict(
-    data: dict[str, Any],
-) -> tuple[dict[str, Any], list[str]]:
-    try:
-        errors: list[str] = []
-        try:
-            model = MessagesFileModel.model_validate(data)
-            return model.model_dump(), errors
-        except Exception as e:
-            errors.append(str(e))
-            # Try to coerce to messages list
-            msgs = data.get("messages")
-            if isinstance(msgs, list):
-                normalized: list[dict[str, Any]] = []
-                for item in msgs:
-                    try:
-                        mi = MessageModel.model_validate(item)
-                        normalized.append(mi.model_dump())
-                    except Exception:
-                        # skip bad rows
-                        continue
-                return {"messages": normalized}, errors
-            return {"messages": []}, errors
-    except Exception as e:
-        logger.error(f"Error validating messages file dictionary: {e}")
-        return {"messages": []}, [str(e)]

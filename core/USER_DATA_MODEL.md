@@ -91,10 +91,10 @@ This file is the canonical v2 task collection. Active/completed state lives in e
 
 ### 2.5. Canonical v2 item model
 
-The v2 user-data migration defines canonical JSON structures in `core.user_data_v2`.
-The migration target is intentionally stricter than the current runtime files:
-obsolete v1 field names are transformed by migration tooling and rejected by v2
-validation.
+Canonical JSON structures for v2 user data live in `core.user_data_v2`.
+`validate_v2_document` validates against Pydantic models with `extra="forbid"`, so
+any field that is not part of the v2 schema (including old v1-only keys) is rejected
+with a normal validation error-there is no separate v1 key denylist.
 
 Shared v2 item fields:
 
@@ -131,13 +131,13 @@ Canonical v2 files:
 
 **Migration tooling:** There is **no** shipped migration or verification CLI under `scripts/` for user data. The tree is v2-native. Recover stale trees from backups or project history; validate in code with `core.user_data_v2.validate_v2_document` (or hand-fix using Section 2.6). Do not expect an in-repo one-click migrator.
 
-### 2.6. Legacy field rejection (v2 validation)
+### 2.6. Schema validation (v2)
 
-`core.user_data_v2.validate_v2_document` rejects known v1 field names that must not appear in v2 documents (for example `task_id` on tasks, `body` on notebook rows, top-level `timestamp` on check-ins, template `message_id` / flat `days`). The authoritative set is `FORBIDDEN_V1_FIELD_NAMES_BY_DOCUMENT` in [`core/user_data_v2.py`](user_data_v2.py). Use that list when hand-fixing stale JSON; for shape reference, see Section 2.7 and archived changelog entries from 2026-04 and earlier.
+`core.user_data_v2.validate_v2_document` runs the appropriate collection model (`TaskCollectionV2Model`, `NotebookCollectionV2Model`, etc.). Unknown or misspelled keys fail validation like any other schema error. For allowed fields and shapes, use Section 2.5 and 2.7.
 
 ### 2.7. Runtime contract (v2-native)
 
-On-disk user data and bundled message resources are **v2**. Runtime code treats v2 shapes as canonical: tasks in `tasks/tasks.json`, notebook entries with `description` / `journal_entry`, check-ins in `checkins.json` with `responses` and `submitted_at`, templates with `id`/`text`/`schedule`, and deliveries with `deliveries[]` (`message_template_id`, `sent_text`, `sent_at`, `status`). Check-in **writes** and **reads** require the v2 envelope (`schema_version: 2`, `checkins[]`). Legacy bare arrays or other non-v2 shapes are skipped on read and rejected on append (see logs). To fix a bad file offline: back it up, load JSON, pass it through `core.response_tracking.normalize_checkins_envelope_for_repair`, run `validate_v2_document('checkins', envelope)`, then write with `core.file_operations.save_json_data`. New users get an empty v2 file from `core.file_operations._create_user_files__checkins_file`. Missing or corrupted `checkins.json` recreated by centralized recovery (`core.error_handling` file-not-found / JSON-decode strategies) uses that same empty v2 envelope, not a bare list. Broader legacy cleanup tracking (unrelated v1 terms, docs, and dev-tools mirrors) remains in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` and [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md).
+On-disk user data and bundled message resources are **v2**. Runtime code treats v2 shapes as canonical: tasks in `tasks/tasks.json`, notebook entries with `description` / `journal_entry`, check-ins in `checkins.json` with `responses` and `submitted_at`, templates with `id`/`text`/`schedule`, and deliveries with `deliveries[]` (`message_template_id`, `sent_text`, `sent_at`, `status`). Check-in **writes** and **reads** require the v2 envelope (`schema_version: 2`, `checkins[]`). Legacy bare arrays or other non-v2 shapes are skipped on read and rejected on append (see logs). There is no in-repo check-in repair helper: restore `checkins.json` from backup or hand-edit JSON to this section's shape, run `validate_v2_document('checkins', data)`, then `core.file_operations.save_json_data`. New users get an empty v2 file from `core.file_operations._create_user_files__checkins_file`. Missing or corrupted `checkins.json` recreated by centralized recovery (`core.error_handling` file-not-found / JSON-decode strategies) uses that same empty v2 envelope, not a bare list. Broader legacy cleanup tracking (unrelated v1 terms, docs, and dev-tools mirrors) remains in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` and [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md).
 
 ---
 

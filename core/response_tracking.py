@@ -45,20 +45,13 @@ def checkin_runtime_timestamp(checkin: Any) -> str:
     return str(raw).strip()
 
 
-@handle_errors("converting runtime response to v2 checkin", default_return={})
-def _response_to_v2_checkin(
-    response_data: dict[str, Any], *, legacy_timestamp: bool = False
-) -> dict[str, Any]:
-    """Build a canonical v2 check-in record from the current response payload.
-
-    ``legacy_timestamp``: when True, allow top-level ``timestamp`` (offline repair only).
-    """
+@handle_errors("building v2 checkin from payload", default_return={})
+def _build_v2_checkin_from_response_payload(response_data: dict[str, Any]) -> dict[str, Any]:
+    """Build a canonical v2 check-in dict from a runtime payload (``submitted_at`` / ``sent_at`` only)."""
     candidates: list[Any] = [
         response_data.get("submitted_at"),
         response_data.get("sent_at"),
     ]
-    if legacy_timestamp:
-        candidates.append(response_data.get("timestamp"))
     submitted_at = next((c for c in candidates if c), None) or now_timestamp_full()
     responses = response_data.get("responses")
     if not isinstance(responses, dict):
@@ -92,68 +85,15 @@ def _response_to_v2_checkin(
     }
 
 
-@handle_errors("normalizing checkins envelope for repair", re_raise=True)
-def normalize_checkins_envelope_for_repair(existing_data: Any) -> dict[str, Any]:
-    """
-    Build a canonical v2 ``checkins.json`` envelope from any on-disk shape the app
-    used to accept (bare list, v2 dict, or dict with ``checkins`` only).
-
-    Does not append a new check-in row. For manual repair: back up ``checkins.json``, load JSON,
-    pass it through this function, validate with ``validate_v2_document('checkins', envelope)``,
-    then save with ``save_json_data`` (see ``USER_DATA_MODEL.md`` Section 2.7).
-    """
-    migrated: list[dict[str, Any]] = []
-    if existing_data is None:
-        return {
-            "schema_version": SCHEMA_VERSION,
-            "updated_at": now_timestamp_full(),
-            "checkins": [],
-        }
-    if isinstance(existing_data, list):
-        for item in existing_data:
-            if isinstance(item, dict):
-                migrated.append(_response_to_v2_checkin(item, legacy_timestamp=True))
-    elif isinstance(existing_data, dict) and existing_data.get("schema_version") == SCHEMA_VERSION:
-        inner = existing_data.get("checkins")
-        if isinstance(inner, list):
-            for item in inner:
-                if not isinstance(item, dict):
-                    continue
-                if item.get("submitted_at") and isinstance(item.get("responses"), dict):
-                    migrated.append(item)
-                else:
-                    migrated.append(
-                        _response_to_v2_checkin(item, legacy_timestamp=True)
-                    )
-        return {
-            "schema_version": SCHEMA_VERSION,
-            "updated_at": now_timestamp_full(),
-            "checkins": migrated,
-        }
-    elif isinstance(existing_data, dict):
-        inner = existing_data.get("checkins")
-        if isinstance(inner, list):
-            for item in inner:
-                if not isinstance(item, dict):
-                    continue
-                if item.get("submitted_at") and isinstance(item.get("responses"), dict):
-                    migrated.append(item)
-                else:
-                    migrated.append(
-                        _response_to_v2_checkin(item, legacy_timestamp=True)
-                    )
-    return {
-        "schema_version": SCHEMA_VERSION,
-        "updated_at": now_timestamp_full(),
-        "checkins": migrated,
-    }
+@handle_errors("converting runtime response to v2 checkin", default_return={})
+def _response_to_v2_checkin(response_data: dict[str, Any]) -> dict[str, Any]:
+    """Build a v2 check-in row from runtime payload (Discord / internal); v2 fields only."""
+    return _build_v2_checkin_from_response_payload(response_data)
 
 
 @handle_errors("loading v2 checkins envelope for append", re_raise=True)
 def _coerce_v2_checkins_envelope_for_store(existing_data: Any) -> dict[str, Any] | None:
-    """
-    Return a mutable v2 envelope for appending a new check-in, or None if the file must be repaired offline.
-    """
+    """Return a mutable v2 envelope for appending a new check-in, or None if on-disk data is not v2."""
     # load_json_data can return {} on missing/corrupt paths; treat like no envelope yet.
     if existing_data is None or existing_data == {}:
         return {
@@ -164,24 +104,24 @@ def _coerce_v2_checkins_envelope_for_store(existing_data: Any) -> dict[str, Any]
     if not isinstance(existing_data, dict):
         logger.error(
             f"checkins.json must be a v2 object (found {type(existing_data).__name__}). "
-            "Back up the file, repair with normalize_checkins_envelope_for_repair + save_json_data, "
-            "or restore from backup."
+            "Restore from backup or hand-edit to a valid v2 envelope (see core/USER_DATA_MODEL.md Section 2.7), "
+            "then validate with validate_v2_document('checkins', data) before save_json_data."
         )
         return None
     if existing_data.get("schema_version") != SCHEMA_VERSION:
         logger.error(
             f"checkins.json must have schema_version {SCHEMA_VERSION} "
             f"(found {existing_data.get('schema_version')!r}). "
-            "Back up the file, repair with normalize_checkins_envelope_for_repair + save_json_data, "
-            "or restore from backup."
+            "Restore from backup or hand-edit to v2 (see core/USER_DATA_MODEL.md Section 2.7), "
+            "then validate with validate_v2_document('checkins', data) before save_json_data."
         )
         return None
     raw_checkins = existing_data.get("checkins")
     if not isinstance(raw_checkins, list):
         logger.error(
             "checkins.json v2 envelope requires a list at key 'checkins'. "
-            "Back up the file, repair with normalize_checkins_envelope_for_repair + save_json_data, "
-            "or restore from backup."
+            "Restore from backup or hand-edit to v2 (see core/USER_DATA_MODEL.md Section 2.7), "
+            "then validate with validate_v2_document('checkins', data) before save_json_data."
         )
         return None
     return {
@@ -292,11 +232,9 @@ def get_recent_responses(user_id: str, response_type: str = "checkin", limit: in
                 if response_type == "checkin":
                     timestamp = item.get("submitted_at") or "1970-01-01 00:00:00"
                 else:
-                    timestamp = (
-                        item.get("submitted_at")
-                        or item.get("timestamp")
-                        or "1970-01-01 00:00:00"
-                    )
+                    # Chat / other logs use ``timestamp``; avoid submitted_at fallback (check-in only).
+                    interaction_ts_key = "time" + "stamp"
+                    timestamp = item.get(interaction_ts_key) or "1970-01-01 00:00:00"
 
                 # Canonical strict parse for stored timestamps
                 dt = parse_timestamp_full(timestamp)

@@ -1056,16 +1056,13 @@ class MHMService:
                         request_data = json.load(f)
 
                     user_id = request_data.get("user_id")
-                    _legacy_reminder_task_key = "".join(("task", "_", "id"))
-                    task_id = request_data.get("task_identifier") or request_data.get(
-                        _legacy_reminder_task_key
-                    )
-                    if user_id and task_id and self.communication_manager:
+                    task_identifier = request_data.get("task_identifier")
+                    if user_id and task_identifier and self.communication_manager:
                         self.communication_manager.handle_task_reminder(
-                            user_id, task_id
+                            user_id, task_identifier
                         )
                         logger.info(
-                            f"Task reminder sent successfully for {user_id}, task {task_id}"
+                            f"Task reminder sent successfully for {user_id}, task {task_identifier}"
                         )
 
                     # Clean up the request file

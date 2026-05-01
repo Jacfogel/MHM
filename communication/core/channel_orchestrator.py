@@ -284,7 +284,7 @@ class CommunicationManager:
 
                         # Process each email
                         for email_msg in emails:
-                            email_id = email_msg.get("message_id")
+                            email_id = email_msg.get("imap_email_id")
                             if email_id and email_id not in self._processed_email_ids:
                                 self._process_incoming_email(email_msg)
                                 self._processed_email_ids.add(email_id)
@@ -1938,9 +1938,12 @@ class CommunicationManager:
         return ChannelFactory.get_registered_channels()
 
     @handle_errors("handling task reminder", default_return=None)
-    def handle_task_reminder(self, user_id: str, task_id: str):
+    def handle_task_reminder(self, user_id: str, task_identifier: str):
         """
         Handle task reminder with validation.
+
+        ``task_identifier`` matches the task record's canonical ``id`` (or another
+        value ``get_task_by_id`` accepts), not the legacy JSON key ``task_id``.
 
         Returns:
             None: Always returns None
@@ -1954,23 +1957,23 @@ class CommunicationManager:
             logger.error("Empty user_id provided")
             return None
 
-        # Validate task_id
-        if not task_id or not isinstance(task_id, str):
-            logger.error(f"Invalid task_id: {task_id}")
+        # Validate task_identifier
+        if not task_identifier or not isinstance(task_identifier, str):
+            logger.error(f"Invalid task_identifier: {task_identifier}")
             return None
 
-        if not task_id.strip():
-            logger.error("Empty task_id provided")
+        if not task_identifier.strip():
+            logger.error("Empty task_identifier provided")
             return None
         """
         Handle sending task reminders for a user.
         """
         logger.debug(
-            f"Handling task reminder for user_id: {user_id}, task_id: {task_id}"
+            f"Handling task reminder for user_id: {user_id}, task_identifier: {task_identifier}"
         )
 
-        if not user_id or not task_id:
-            logger.error("User ID and task ID are required for task reminder.")
+        if not user_id or not task_identifier:
+            logger.error("User ID and task identifier are required for task reminder.")
             return
 
         # Import task management functions
@@ -1982,16 +1985,16 @@ class CommunicationManager:
             return
 
         # Get the task details
-        task = get_task_by_id(user_id, task_id)
+        task = get_task_by_id(user_id, task_identifier)
         if not task:
-            logger.error(f"Task {task_id} not found for user {user_id}")
+            logger.error(f"Task {task_identifier} not found for user {user_id}")
             return
 
         # Check if task is still active
         from tasks.task_data_handlers import runtime_task_is_completed
 
         if runtime_task_is_completed(task):
-            logger.debug(f"Task {task_id} is already completed, skipping reminder")
+            logger.debug(f"Task {task_identifier} is already completed, skipping reminder")
             return
 
         # Get user preferences
@@ -2036,13 +2039,13 @@ class CommunicationManager:
                     # Check if we're in an async context
                     asyncio.get_running_loop()
                     # We're in async context, safe to create view
-                    custom_view = get_task_reminder_view(user_id, task_id, task_title)
+                    custom_view = get_task_reminder_view(user_id, task_identifier, task_title)
                 except RuntimeError:
                     # No running event loop - view will be created lazily in Discord thread
                     # Pass a factory function instead
                     @handle_errors("creating task reminder view", default_return=None)
                     def create_view():
-                        return get_task_reminder_view(user_id, task_id, task_title)
+                        return get_task_reminder_view(user_id, task_identifier, task_title)
 
                     custom_view = create_view
             except Exception as e:
@@ -2055,13 +2058,13 @@ class CommunicationManager:
 
         if success:
             logger.info(
-                f"Task reminder sent successfully for user {user_id}, task {task_id}"
+                f"Task reminder sent successfully for user {user_id}, task {task_identifier}"
             )
             # Track the last task reminder for this user
-            self._last_task_reminders[user_id] = task_id
+            self._last_task_reminders[user_id] = task_identifier
         else:
             logger.error(
-                f"Failed to send task reminder for user {user_id}, task {task_id}"
+                f"Failed to send task reminder for user {user_id}, task {task_identifier}"
             )
 
     @handle_errors("getting last task reminder", default_return=None)

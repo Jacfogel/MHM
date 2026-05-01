@@ -1067,9 +1067,12 @@ class SchedulerManager:
             )
 
     @handle_errors("handling task reminder")
-    def handle_task_reminder(self, user_id, task_id, retry_attempts=3, retry_delay=30):
+    def handle_task_reminder(self, user_id, task_identifier, retry_attempts=3, retry_delay=30):
         """
         Handles sending task reminders with retries.
+
+        ``task_identifier`` is the task record's canonical ``id`` (or a value that
+        ``get_task_by_id`` resolves). Scheduled jobs must pass ``task_identifier=``.
         """
         if self.communication_manager is None:
             logger.error("Communication manager is not initialized.")
@@ -1082,32 +1085,32 @@ class SchedulerManager:
                 from tasks import get_task_by_id, update_task
 
                 # Get the task details
-                task = get_task_by_id(user_id, task_id)
+                task = get_task_by_id(user_id, task_identifier)
                 if not task:
-                    logger.error(f"Task {task_id} not found for user {user_id}")
+                    logger.error(f"Task {task_identifier} not found for user {user_id}")
                     return
 
                 # Check if task is still active and not already completed
                 if runtime_task_is_completed(task):
                     logger.info(
-                        f"Task {task_id} is already completed, skipping reminder"
+                        f"Task {task_identifier} is already completed, skipping reminder"
                     )
                     return
 
                 # Send the task reminder via communication manager
-                self.communication_manager.handle_task_reminder(user_id, task_id)
+                self.communication_manager.handle_task_reminder(user_id, task_identifier)
 
                 # Mark reminder as sent
-                update_task(user_id, task_id, {"reminder_sent": True})
+                update_task(user_id, task_identifier, {"reminder_sent": True})
 
                 logger.info(
-                    f"Task reminder sent successfully for user {user_id}, task {task_id}"
+                    f"Task reminder sent successfully for user {user_id}, task {task_identifier}"
                 )
                 return  # Exit after successful execution
 
             except Exception as e:
                 logger.error(
-                    f"Error sending task reminder for user {user_id}, task {task_id}: {e}"
+                    f"Error sending task reminder for user {user_id}, task {task_identifier}: {e}"
                 )
                 attempt += 1
                 logger.info(
@@ -1654,7 +1657,7 @@ class SchedulerManager:
             return None
 
     @handle_errors("scheduling task reminder at specific time")
-    def schedule_task_reminder_at_time(self, user_id, task_id, reminder_time):
+    def schedule_task_reminder_at_time(self, user_id, task_identifier, reminder_time):
         """
         Schedule a reminder for a specific task at the specified time (daily).
         """
@@ -1662,14 +1665,14 @@ class SchedulerManager:
             from tasks import get_task_by_id
 
             # Get the task to verify it exists and is active
-            task = get_task_by_id(user_id, task_id)
+            task = get_task_by_id(user_id, task_identifier)
             if not task:
-                logger.error(f"Task {task_id} not found for user {user_id}")
+                logger.error(f"Task {task_identifier} not found for user {user_id}")
                 return False
 
             if runtime_task_is_completed(task):
                 logger.info(
-                    f"Task {task_id} is already completed, skipping reminder scheduling"
+                    f"Task {task_identifier} is already completed, skipping reminder scheduling"
                 )
                 return False
 
@@ -1683,7 +1686,7 @@ class SchedulerManager:
 
             # Schedule the task reminder
             schedule.every().day.at(time_str).do(
-                self.handle_task_reminder, user_id=user_id, task_id=task_id
+                self.handle_task_reminder, user_id=user_id, task_identifier=task_identifier
             )
 
             # Set wake timer for the task reminder
@@ -1710,18 +1713,18 @@ class SchedulerManager:
             self.set_wake_timer(schedule_datetime, user_id, "tasks", "task_reminder")
 
             logger.info(
-                f"Scheduled daily task reminder for user {user_id}, task {task_id} at {time_str}"
+                f"Scheduled daily task reminder for user {user_id}, task {task_identifier} at {time_str}"
             )
             return True
 
         except Exception as e:
             logger.error(
-                f"Error scheduling task reminder for user {user_id}, task {task_id}: {e}"
+                f"Error scheduling task reminder for user {user_id}, task {task_identifier}: {e}"
             )
             return False
 
     @handle_errors("scheduling task reminder at specific datetime")
-    def schedule_task_reminder_at_datetime(self, user_id, task_id, date_str, time_str):
+    def schedule_task_reminder_at_datetime(self, user_id, task_identifier, date_str, time_str):
         """
         Schedule a reminder for a specific task at a specific date and time.
         """
@@ -1729,14 +1732,14 @@ class SchedulerManager:
             from tasks import get_task_by_id
 
             # Get the task to verify it exists and is active
-            task = get_task_by_id(user_id, task_id)
+            task = get_task_by_id(user_id, task_identifier)
             if not task:
-                logger.error(f"Task {task_id} not found for user {user_id}")
+                logger.error(f"Task {task_identifier} not found for user {user_id}")
                 return False
 
             if runtime_task_is_completed(task):
                 logger.info(
-                    f"Task {task_id} is already completed, skipping reminder scheduling"
+                    f"Task {task_identifier} is already completed, skipping reminder scheduling"
                 )
                 return False
 
@@ -1759,39 +1762,39 @@ class SchedulerManager:
             # Schedule the task reminder
             delay_seconds_int = max(1, int(delay_seconds))
             schedule.every(delay_seconds_int).seconds.do(
-                self.handle_task_reminder, user_id=user_id, task_id=task_id
+                self.handle_task_reminder, user_id=user_id, task_identifier=task_identifier
             )
 
             logger.info(
-                f"Scheduled one-time task reminder for user {user_id}, task {task_id} at {reminder_datetime}"
+                f"Scheduled one-time task reminder for user {user_id}, task {task_identifier} at {reminder_datetime}"
             )
             return True
 
         except Exception as e:
             logger.error(
-                f"Error scheduling task reminder for user {user_id}, task {task_id}: {e}"
+                f"Error scheduling task reminder for user {user_id}, task {task_identifier}: {e}"
             )
             return False
 
     @handle_errors("cleaning up task reminders")
-    def cleanup_task_reminders(self, user_id, task_id):
+    def cleanup_task_reminders(self, user_id, task_identifier):
         """
         Clean up all reminders for a specific task.
 
-        Finds and removes all APScheduler jobs that call handle_task_reminder for the given task_id.
+        Finds and removes all APScheduler jobs that call handle_task_reminder for the given task identifier.
         Handles both one-time reminders (schedule_task_reminder_at_datetime) and daily reminders (schedule_task_reminder_at_time).
 
         Args:
             user_id: The user's ID
-            task_id: The task ID to clean up reminders for
+            task_identifier: Canonical task ``id`` (or resolved identifier) to clean up reminders for
 
         Returns:
             bool: True if cleanup succeeded (or no reminders found), False on error
         """
         try:
-            if not user_id or not task_id:
+            if not user_id or not task_identifier:
                 logger.error(
-                    f"Invalid parameters for cleanup_task_reminders: user_id={user_id}, task_id={task_id}"
+                    f"Invalid parameters for cleanup_task_reminders: user_id={user_id}, task_identifier={task_identifier}"
                 )
                 return False
 
@@ -1799,12 +1802,11 @@ class SchedulerManager:
             initial_job_count = len(schedule.jobs)
             jobs_to_remove = []
 
-            # Find all jobs that call handle_task_reminder with this user_id and task_id
+            # Find all jobs that call handle_task_reminder with this user_id and task_identifier
             for job in schedule.jobs:
                 try:
                     # Check if this is a task reminder job
-                    # Jobs created by schedule_task_reminder_at_datetime use: schedule.every(delay).seconds.do(handle_task_reminder, user_id=..., task_id=...)
-                    # Jobs created by schedule_task_reminder_at_time use: schedule.every().day.at(time).do(handle_task_reminder, user_id=..., task_id=...)
+                    # Jobs use: .do(handle_task_reminder, user_id=..., task_identifier=...)
 
                     # Check if job function is handle_task_reminder
                     job_func = job.job_func
@@ -1814,27 +1816,27 @@ class SchedulerManager:
                         hasattr(job_func, "func")
                         and job_func.func == self.handle_task_reminder
                     ):
-                        # Check keyword arguments for user_id and task_id
+                        # Check keyword arguments for user_id and task_identifier
                         if hasattr(job_func, "keywords"):
                             kwargs = job_func.keywords
                             if (
                                 kwargs.get("user_id") == user_id
-                                and kwargs.get("task_id") == task_id
+                                and kwargs.get("task_identifier") == task_identifier
                             ):
                                 jobs_to_remove.append(job)
                                 logger.debug(
-                                    f"Found reminder job for task {task_id}, user {user_id}"
+                                    f"Found reminder job for task {task_identifier}, user {user_id}"
                                 )
 
                     # Also check positional arguments (some job types may use args instead of keywords)
                     else:
                         args = getattr(job_func, "args", None)
                         if args and len(args) >= 2:
-                            # handle_task_reminder signature: (self, user_id, task_id, ...)
+                            # handle_task_reminder: (self, user_id, ident, ...) — ident may be positional
                             if (
                                 len(args) >= 2
                                 and args[0] == user_id
-                                and args[1] == task_id
+                                and args[1] == task_identifier
                             ):
                                 # Verify it's actually handle_task_reminder
                                 if (
@@ -1843,7 +1845,7 @@ class SchedulerManager:
                                 ):
                                     jobs_to_remove.append(job)
                                     logger.debug(
-                                        f"Found reminder job for task {task_id}, user {user_id} (positional args)"
+                                        f"Found reminder job for task {task_identifier}, user {user_id} (positional args)"
                                     )
 
                 except Exception as e:
@@ -1858,7 +1860,7 @@ class SchedulerManager:
                     schedule.jobs.remove(job)
                     jobs_removed += 1
                     logger.debug(
-                        f"Removed reminder job for task {task_id}, user {user_id}"
+                        f"Removed reminder job for task {task_identifier}, user {user_id}"
                     )
                 except ValueError:
                     # Job was already removed
@@ -1866,7 +1868,7 @@ class SchedulerManager:
 
             final_job_count = len(schedule.jobs)
             logger.info(
-                f"Cleaned up {jobs_removed} reminder job(s) for task {task_id}, user {user_id} "
+                f"Cleaned up {jobs_removed} reminder job(s) for task {task_identifier}, user {user_id} "
                 f"(from {initial_job_count} to {final_job_count} total jobs)"
             )
 
@@ -1874,7 +1876,7 @@ class SchedulerManager:
 
         except Exception as e:
             logger.error(
-                f"Error cleaning up task reminders for task {task_id}, user {user_id}: {e}"
+                f"Error cleaning up task reminders for task {task_identifier}, user {user_id}: {e}"
             )
             return False
 
@@ -1912,9 +1914,9 @@ class SchedulerManager:
                     ) and hasattr(job_func, "keywords"):
                         kwargs = job_func.keywords
                         user_id = kwargs.get("user_id")
-                        task_id = kwargs.get("task_id")
-                        if user_id and task_id:
-                            jobs_to_check.append((job, user_id, task_id))
+                        task_identifier = kwargs.get("task_identifier")
+                        if user_id and task_identifier:
+                            jobs_to_check.append((job, user_id, task_identifier))
                             total_checked += 1
                 except Exception as e:
                     logger.debug(f"Could not inspect job for orphaned cleanup: {e}")
@@ -1923,16 +1925,16 @@ class SchedulerManager:
             # Check each job's task still exists
             from tasks import get_task_by_id
 
-            for job, user_id, task_id in jobs_to_check:
+            for job, user_id, task_identifier in jobs_to_check:
                 try:
-                    task = get_task_by_id(user_id, task_id)
+                    task = get_task_by_id(user_id, task_identifier)
                     if not task:
                         # Task doesn't exist - remove the reminder job
                         try:
                             schedule.jobs.remove(job)
                             orphaned_count += 1
                             logger.info(
-                                f"Removed orphaned reminder for non-existent task {task_id}, user {user_id}"
+                                f"Removed orphaned reminder for non-existent task {task_identifier}, user {user_id}"
                             )
                         except ValueError:
                             # Job was already removed
@@ -1943,14 +1945,14 @@ class SchedulerManager:
                             schedule.jobs.remove(job)
                             orphaned_count += 1
                             logger.info(
-                                f"Removed reminder for completed task {task_id}, user {user_id}"
+                                f"Removed reminder for completed task {task_identifier}, user {user_id}"
                             )
                         except ValueError:
                             # Job was already removed
                             pass
                 except Exception as e:
                     logger.debug(
-                        f"Error checking task {task_id} for user {user_id}: {e}"
+                        f"Error checking task {task_identifier} for user {user_id}: {e}"
                     )
                     continue
 

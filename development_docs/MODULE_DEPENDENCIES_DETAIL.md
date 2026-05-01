@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-01 00:16:15
+> **Last Generated**: 2026-05-01 01:30:33
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -1249,7 +1249,7 @@
     - `schedule_management (add_schedule_period)`
     - `schedule_utilities (get_active_schedules, get_current_active_schedules, is_schedule_active)`
     - `scheduler (SchedulerManager)`
-    - `schemas (AccountModel, CategoryScheduleModel, ChannelModel, FeaturesModel, MessageModel, MessagesFileModel, PeriodModel, PreferencesModel, SchedulesModel, validate_account_dict, validate_messages_file_dict, validate_preferences_dict, validate_schedules_dict)`
+    - `schemas (AccountModel, CategoryScheduleModel, ChannelModel, FeaturesModel, PeriodModel, PreferencesModel, SchedulesModel, validate_account_dict, validate_preferences_dict, validate_schedules_dict)`
     - `service (InitializationError, MHMService)`
     - `service_utilities (InvalidTimeFormatError, Throttler, create_reschedule_request, get_service_processes, is_headless_service_running, is_service_running, is_ui_service_running, load_and_localize_datetime)`
     - `ui_management (collect_period_data_from_widgets, load_period_widgets_for_category)`

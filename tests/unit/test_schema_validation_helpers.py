@@ -3,9 +3,7 @@ import copy
 import pytest
 
 from core.schemas import (
-
     validate_account_dict,
-    validate_messages_file_dict,
     validate_preferences_dict,
     validate_schedules_dict,
 )
@@ -89,48 +87,3 @@ def test_validate_schedules_dict_normalizes_compatibility_shape_and_invalid_fiel
         "start_time": "00:00",
         "end_time": "00:00",
     }
-
-
-@pytest.mark.unit
-@pytest.mark.regression
-@pytest.mark.core
-def test_validate_messages_file_dict_best_effort_normalization_with_bad_rows():
-    payload = {
-        "messages": [
-            {
-                "message_id": "1",
-                "message": "hey",
-                "days": [],
-                "time_periods": [],
-                "extra": "drop",
-            },
-            {
-                "message_id": "2",
-                "message": "bye",
-                "days": ["Funday"],
-                "time_periods": ["morning"],
-            },
-            {"message_id": "3"},
-            "bad-entry",
-        ]
-    }
-
-    normalized, errors = validate_messages_file_dict(payload)
-
-    assert errors, "Mixed-quality payloads should report validation issues"
-    assert normalized["messages"] == [
-        {
-            "message_id": "1",
-            "message": "hey",
-            "days": ["ALL"],
-            "time_periods": ["ALL"],
-            "timestamp": None,
-        },
-        {
-            "message_id": "2",
-            "message": "bye",
-            "days": ["Funday"],
-            "time_periods": ["morning"],
-            "timestamp": None,
-        },
-    ]

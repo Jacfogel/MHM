@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-01 00:16:13
+> **Last Generated**: 2026-05-01 01:30:32
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 94.2% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 125
-- **Functions Found**: 1766
-- **Methods Found**: 1245
-- **Classes Found**: 170
-- **Total Items**: 3011
-- **Functions Documented**: 1644
-- **Methods Documented**: 1191
+- **Functions Found**: 1763
+- **Methods Found**: 1243
+- **Classes Found**: 168
+- **Total Items**: 3006
+- **Functions Documented**: 1642
+- **Methods Documented**: 1189
 - **Classes Documented**: 122
-- **Total Documented**: 2835
+- **Total Documented**: 2831
 - **Template-Generated**: 4
 - **Last Updated**: 2026-05-01
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (632)
+### **Core System Functions** (629)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (460)
@@ -1813,7 +1813,10 @@ Returns:
     List[str]: List of registered channels, empty list if failed
 - [OK] `handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral)` - Handle sending messages for a user and category with improved recipient resolution.
 Now uses scheduled check-ins instead of random replacement.
-- [OK] `handle_task_reminder(self, user_id, task_id)` - Handle task reminder with validation.
+- [OK] `handle_task_reminder(self, user_id, task_identifier)` - Handle task reminder with validation.
+
+``task_identifier`` matches the task record's canonical ``id`` (or another
+value ``get_task_by_id`` accepts), not the legacy JSON key ``task_id``.
 
 Returns:
     None: Always returns None
@@ -1911,7 +1914,10 @@ Returns:
     List[str]: List of registered channels, empty list if failed
   - [OK] `CommunicationManager.handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral)` - Handle sending messages for a user and category with improved recipient resolution.
 Now uses scheduled check-ins instead of random replacement.
-  - [OK] `CommunicationManager.handle_task_reminder(self, user_id, task_id)` - Handle task reminder with validation.
+  - [OK] `CommunicationManager.handle_task_reminder(self, user_id, task_identifier)` - Handle task reminder with validation.
+
+``task_identifier`` matches the task record's canonical ``id`` (or another
+value ``get_task_by_id`` accepts), not the legacy JSON key ``task_id``.
 
 Returns:
     None: Always returns None
@@ -3864,12 +3870,11 @@ Raises:
 
 #### `core/response_tracking.py`
 **Functions:**
+- [OK] `_build_v2_checkin_from_response_payload(response_data)` - Build a canonical v2 check-in dict from a runtime payload (``submitted_at`` / ``sent_at`` only). Live append uses ``_response_to_v2_checkin``.
 - [OK] `_checkin_to_runtime_response(checkin)` - Return the flat response shape expected by existing analytics callers.
 - [OK] `_coerce_v2_checkins_envelope_for_store(existing_data)` - Return a mutable v2 envelope for appending a new check-in, or None if the file must be repaired offline.
 - [OK] `_get_response_log_filename(response_type)` - Get the filename for a response log type.
-- [OK] `_response_to_v2_checkin(response_data)` - Build a canonical v2 check-in record from the current response payload.
-
-``legacy_timestamp``: when True, allow top-level ``timestamp`` (offline repair only).
+- [OK] `_response_to_v2_checkin(response_data)` - Build a v2 check-in row from runtime payload (Discord / internal); v2 fields only.
 - [OK] `checkin_runtime_timestamp(checkin)` - Wall-clock timestamp string for a check-in row (v2 ``submitted_at`` only).
 - [OK] `get_checkins_by_days(user_id, days)` - Get check-ins from the last N calendar days.
 - [OK] `get_recent_chat_interactions(user_id, limit)` - Get recent chat interactions for a user.
@@ -3878,12 +3883,6 @@ Raises:
 - [OK] `get_timestamp_for_sorting(item)` - Convert timestamp to float for consistent sorting
 - [OK] `get_user_info_for_tracking(user_id)` - Get user information for response tracking.
 - [OK] `is_user_checkins_enabled(user_id)` - Check if check-ins are enabled for a user.
-- [OK] `normalize_checkins_envelope_for_repair(existing_data)` - Build a canonical v2 ``checkins.json`` envelope from any on-disk shape the app
-used to accept (bare list, v2 dict, or dict with ``checkins`` only).
-
-Does not append a new check-in row. For manual repair: back up ``checkins.json``, load JSON,
-pass it through this function, validate with ``validate_v2_document('checkins', envelope)``,
-then save with ``save_json_data`` (see ``USER_DATA_MODEL.md`` Section 2.7).
 - [OK] `store_chat_interaction(user_id, user_message, ai_response, context_used)` - Store a chat interaction between user and AI.
 - [OK] `store_user_response(user_id, response_data, response_type)` - Store user response data in appropriate file structure.
 - [OK] `track_user_response(user_id, category, response_data)` - Track a user's response to a message.
@@ -4023,14 +4022,14 @@ Retention is enforced by BackupManager with separate weekly/non-weekly buckets.
 Scans all scheduled reminder jobs and verifies the associated tasks still exist.
 Removes reminders for tasks that have been deleted or completed.
 Runs daily at 03:00.
-- [OK] `cleanup_task_reminders(self, user_id, task_id)` - Clean up all reminders for a specific task.
+- [OK] `cleanup_task_reminders(self, user_id, task_identifier)` - Clean up all reminders for a specific task.
 
-Finds and removes all APScheduler jobs that call handle_task_reminder for the given task_id.
+Finds and removes all APScheduler jobs that call handle_task_reminder for the given task identifier.
 Handles both one-time reminders (schedule_task_reminder_at_datetime) and daily reminders (schedule_task_reminder_at_time).
 
 Args:
     user_id: The user's ID
-    task_id: The task ID to clean up reminders for
+    task_identifier: Canonical task ``id`` (or resolved identifier) to clean up reminders for
 
 Returns:
     bool: True if cleanup succeeded (or no reminders found), False on error
@@ -4046,7 +4045,10 @@ Returns:
     Random time in HH:MM format
 - [OK] `handle_sending_scheduled_message(self, user_id, category, retry_attempts, retry_delay, allow_deferral)` - Handles the sending of scheduled messages with retries.
 This is a one-time job that removes itself after execution.
-- [OK] `handle_task_reminder(self, user_id, task_id, retry_attempts, retry_delay)` - Handles sending task reminders with retries.
+- [OK] `handle_task_reminder(self, user_id, task_identifier, retry_attempts, retry_delay)` - Handles sending task reminders with retries.
+
+``task_identifier`` is the task record's canonical ``id`` (or a value that
+``get_task_by_id`` resolves). Scheduled jobs must pass ``task_identifier=``.
 - [OK] `is_job_for_category(self, job, user_id, category)` - Determines if a job is scheduled for a specific user and category.
 - [OK] `is_time_conflict(self, user_id, schedule_datetime)` - Checks if there is a time conflict with any existing scheduled jobs for the user.
 
@@ -4083,8 +4085,8 @@ This method should be called after a new user is created to add them to the sche
 
 Args:
     user_id: The ID of the newly created user
-- [OK] `schedule_task_reminder_at_datetime(self, user_id, task_id, date_str, time_str)` - Schedule a reminder for a specific task at a specific date and time.
-- [OK] `schedule_task_reminder_at_time(self, user_id, task_id, reminder_time)` - Schedule a reminder for a specific task at the specified time (daily).
+- [OK] `schedule_task_reminder_at_datetime(self, user_id, task_identifier, date_str, time_str)` - Schedule a reminder for a specific task at a specific date and time.
+- [OK] `schedule_task_reminder_at_time(self, user_id, task_identifier, reminder_time)` - Schedule a reminder for a specific task at the specified time (daily).
 - [MISSING] `scheduler_loop()` - No description
 - [OK] `select_task_for_reminder(self, incomplete_tasks)` - Select a task for reminder using priority-based and due date proximity weighting.
 
@@ -4129,14 +4131,14 @@ Retention is enforced by BackupManager with separate weekly/non-weekly buckets.
 Scans all scheduled reminder jobs and verifies the associated tasks still exist.
 Removes reminders for tasks that have been deleted or completed.
 Runs daily at 03:00.
-  - [OK] `SchedulerManager.cleanup_task_reminders(self, user_id, task_id)` - Clean up all reminders for a specific task.
+  - [OK] `SchedulerManager.cleanup_task_reminders(self, user_id, task_identifier)` - Clean up all reminders for a specific task.
 
-Finds and removes all APScheduler jobs that call handle_task_reminder for the given task_id.
+Finds and removes all APScheduler jobs that call handle_task_reminder for the given task identifier.
 Handles both one-time reminders (schedule_task_reminder_at_datetime) and daily reminders (schedule_task_reminder_at_time).
 
 Args:
     user_id: The user's ID
-    task_id: The task ID to clean up reminders for
+    task_identifier: Canonical task ``id`` (or resolved identifier) to clean up reminders for
 
 Returns:
     bool: True if cleanup succeeded (or no reminders found), False on error
@@ -4150,7 +4152,10 @@ Returns:
     Random time in HH:MM format
   - [OK] `SchedulerManager.handle_sending_scheduled_message(self, user_id, category, retry_attempts, retry_delay, allow_deferral)` - Handles the sending of scheduled messages with retries.
 This is a one-time job that removes itself after execution.
-  - [OK] `SchedulerManager.handle_task_reminder(self, user_id, task_id, retry_attempts, retry_delay)` - Handles sending task reminders with retries.
+  - [OK] `SchedulerManager.handle_task_reminder(self, user_id, task_identifier, retry_attempts, retry_delay)` - Handles sending task reminders with retries.
+
+``task_identifier`` is the task record's canonical ``id`` (or a value that
+``get_task_by_id`` resolves). Scheduled jobs must pass ``task_identifier=``.
   - [OK] `SchedulerManager.is_job_for_category(self, job, user_id, category)` - Determines if a job is scheduled for a specific user and category.
   - [OK] `SchedulerManager.is_time_conflict(self, user_id, schedule_datetime)` - Checks if there is a time conflict with any existing scheduled jobs for the user.
 
@@ -4177,8 +4182,8 @@ This method should be called after a new user is created to add them to the sche
 
 Args:
     user_id: The ID of the newly created user
-  - [OK] `SchedulerManager.schedule_task_reminder_at_datetime(self, user_id, task_id, date_str, time_str)` - Schedule a reminder for a specific task at a specific date and time.
-  - [OK] `SchedulerManager.schedule_task_reminder_at_time(self, user_id, task_id, reminder_time)` - Schedule a reminder for a specific task at the specified time (daily).
+  - [OK] `SchedulerManager.schedule_task_reminder_at_datetime(self, user_id, task_identifier, date_str, time_str)` - Schedule a reminder for a specific task at a specific date and time.
+  - [OK] `SchedulerManager.schedule_task_reminder_at_time(self, user_id, task_identifier, reminder_time)` - Schedule a reminder for a specific task at the specified time (daily).
   - [OK] `SchedulerManager.select_task_for_reminder(self, incomplete_tasks)` - Select a task for reminder using priority-based and due date proximity weighting.
 
 Args:
@@ -4210,16 +4215,6 @@ Returns:
     dict: Data in the new format with 'periods' key
 - [MISSING] `_coerce_bool(cls, v)` - No description
 - [MISSING] `_normalize_contact(self)` - No description
-- [OK] `_normalize_days(cls, v)` - Normalize days list for message scheduling.
-
-Ensures the days list is not empty by defaulting to ["ALL"] if the
-input list is empty or None.
-
-Args:
-    v: List of day strings (may be empty)
-
-Returns:
-    List[str]: Normalized days list, defaults to ["ALL"] if empty
 - [OK] `_normalize_discord_username(cls, v)` - Normalize Discord username while tolerating empty or legacy values.
 - [OK] `_normalize_flags(cls, v)` - Normalize feature flag values to "enabled" or "disabled".
 
@@ -4231,16 +4226,6 @@ Args:
 
 Returns:
     Literal["enabled", "disabled"]: Normalized flag value
-- [OK] `_normalize_periods(cls, v)` - Normalize time periods list for message scheduling.
-
-Ensures the time_periods list is not empty by defaulting to ["ALL"] if the
-input list is empty or None.
-
-Args:
-    v: List of time period strings (may be empty)
-
-Returns:
-    List[str]: Normalized time periods list, defaults to ["ALL"] if empty
 - [MISSING] `_valid_days(cls, v)` - No description
 - [MISSING] `_valid_time(cls, v)` - No description
 - [OK] `_validate_categories(cls, v)` - Validate that all categories are in the allowed list.
@@ -4252,7 +4237,6 @@ Empty strings are allowed (Discord ID is optional).
 - [MISSING] `_validate_timezone(cls, v)` - No description
 - [MISSING] `to_dict(self)` - No description
 - [MISSING] `validate_account_dict(data)` - No description
-- [MISSING] `validate_messages_file_dict(data)` - No description
 - [MISSING] `validate_preferences_dict(data)` - No description
 - [MISSING] `validate_schedules_dict(data)` - No description
 **Classes:**
@@ -4289,28 +4273,6 @@ Args:
 
 Returns:
     Literal["enabled", "disabled"]: Normalized flag value
-- [MISSING] `MessageModel` - No description
-  - [OK] `MessageModel._normalize_days(cls, v)` - Normalize days list for message scheduling.
-
-Ensures the days list is not empty by defaulting to ["ALL"] if the
-input list is empty or None.
-
-Args:
-    v: List of day strings (may be empty)
-
-Returns:
-    List[str]: Normalized days list, defaults to ["ALL"] if empty
-  - [OK] `MessageModel._normalize_periods(cls, v)` - Normalize time periods list for message scheduling.
-
-Ensures the time_periods list is not empty by defaulting to ["ALL"] if the
-input list is empty or None.
-
-Args:
-    v: List of time period strings (may be empty)
-
-Returns:
-    List[str]: Normalized time periods list, defaults to ["ALL"] if empty
-- [MISSING] `MessagesFileModel` - No description
 - [MISSING] `PeriodModel` - No description
   - [MISSING] `PeriodModel._valid_days(cls, v)` - No description
   - [MISSING] `PeriodModel._valid_time(cls, v)` - No description
@@ -4955,7 +4917,6 @@ Returns:
 
 #### `core/user_data_v2.py`
 **Functions:**
-- [OK] `_find_obsolete_fields(data, document_type)` - Find obsolete fields on v2 record objects without scanning nested v2 shapes.
 - [OK] `_schema_validation_error(message)` - Build a Pydantic-native validation error without generic exception raises.
 - [OK] `_stable_uuid(value)` - Return value as a UUID, deriving a deterministic UUID when the string is not UUID-shaped.
 - [MISSING] `_validate_optional_timestamp(value, field_name)` - No description
@@ -5301,7 +5262,7 @@ Returns:
 - [OK] `_task_short_id(task)` - Return task short ID from canonical runtime payload.
 - [OK] `add_user_task_tag(user_id, tag)` - Add a new tag to the user's tag list (shared tag system).
 - [OK] `are_tasks_enabled(user_id)` - Check if task management is enabled for a user.
-- [OK] `cleanup_task_reminders(user_id, task_id)` - Clean up all reminders for a specific task.
+- [OK] `cleanup_task_reminders(user_id, task_identifier)` - Clean up all reminders for a specific task (``task_identifier`` is the record's canonical ``id`` or resolved id).
 - [OK] `complete_task(user_id, task_id, completion_data)` - Mark a task as completed.
 - [OK] `create_task(user_id, title, description, due_date, due_time, priority, reminder_periods, tags, quick_reminders, recurrence_pattern, recurrence_interval, repeat_after_completion, category, group)` - Create a new task for a user.
 - [OK] `delete_task(user_id, task_id)` - Delete a task (permanently remove it).

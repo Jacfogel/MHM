@@ -60,8 +60,9 @@ except (AttributeError, ImportError):
 
 logger = get_component_logger("development_tools")
 
+# Inventory must keep these categories non-empty for project-specific legacy detection.
+# (Retired 2026-05-01: user_data_v1_runtime_adapters — over-broad heuristics, see DEPRECATION_INVENTORY removed_inventory.)
 REQUIRED_LEGACY_PATTERN_KEYS: list[str] = [
-    "user_data_v1_runtime_adapters",
     "dashed_short_id_display",
 ]
 

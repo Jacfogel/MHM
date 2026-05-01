@@ -450,18 +450,22 @@ def schedule_task_reminders(
 
 
 @handle_errors("cleaning up task reminders", default_return=False)
-def cleanup_task_reminders(user_id: str, task_id: str) -> bool:
-    """Clean up all reminders for a specific task."""
+def cleanup_task_reminders(user_id: str, task_identifier: str) -> bool:
+    """Clean up all reminders for a specific task (``task_identifier`` is the record's canonical ``id`` or resolved id)."""
     from core.service import get_scheduler_manager
     scheduler_manager = get_scheduler_manager()
     if not scheduler_manager:
-        logger.warning(f"Scheduler manager not available for cleaning up task reminders for task {task_id}, user {user_id}")
+        logger.warning(
+            f"Scheduler manager not available for cleaning up task reminders for task {task_identifier}, user {user_id}"
+        )
         return False
-    result = scheduler_manager.cleanup_task_reminders(user_id, task_id)
+    result = scheduler_manager.cleanup_task_reminders(user_id, task_identifier)
     if result:
-        logger.info(f"Successfully cleaned up reminders for task {task_id}, user {user_id}")
+        logger.info(f"Successfully cleaned up reminders for task {task_identifier}, user {user_id}")
     else:
-        logger.warning(f"Failed to clean up reminders for task {task_id}, user {user_id} - cleanup returned False")
+        logger.warning(
+            f"Failed to clean up reminders for task {task_identifier}, user {user_id} - cleanup returned False"
+        )
     return result
 
 

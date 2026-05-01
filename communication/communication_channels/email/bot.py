@@ -263,7 +263,8 @@ class EmailBot(BaseChannel):
                                     "from": email_from,
                                     "subject": email_subject,
                                     "body": body_text,
-                                    "message_id": email_id.decode(),
+                                    # IMAP message sequence / fetch id (not a user template id)
+                                    "imap_email_id": email_id.decode(),
                                 }
                             )
                             # Track this email as successfully processed

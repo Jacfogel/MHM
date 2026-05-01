@@ -21,7 +21,7 @@ from tests.test_helpers.test_utilities import TestUserFactory
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
 from tasks.task_data_handlers import runtime_task_is_completed
 
-_SCHED_TASK_KW = "".join(("task", "_", "id"))
+_SCHED_TASK_KW = "task_identifier"
 
 
 class TestOrphanedReminderCleanup:

@@ -24,27 +24,6 @@ NotebookStatus = Literal["active", "archived", "deleted"]
 MessageTemplateStatus = Literal["active", "archived", "deleted"]
 DeliveryStatus = Literal["sent", "failed", "skipped"]
 
-FORBIDDEN_V1_FIELD_NAMES_BY_DOCUMENT: dict[str, set[str]] = {
-    "task": {
-        "task_id",
-        "completed",
-        "completed_at",
-        "completion_notes",
-        "due_date",
-        "due_time",
-        "reminder_periods",
-        "quick_reminders",
-        "recurrence_pattern",
-        "recurrence_interval",
-        "repeat_after_completion",
-        "next_due_date",
-        "last_updated",
-    },
-    "notebook": {"body", "archived"},
-    "checkin": {"timestamp"},
-    "message": {"message_id", "message", "days", "time_periods", "timestamp"},
-    "delivery": {"message_id", "message", "delivery_status", "timestamp"},
-}
 
 class SourceModel(BaseModel):
     """Best-known origin of a persisted record."""
@@ -341,49 +320,11 @@ def validate_v2_document(document_type: str, data: dict[str, Any]) -> tuple[dict
     model_cls = model_by_type.get(document_type)
     if model_cls is None:
         return data, [f"Unknown v2 document type: {document_type}"]
-    obsolete = _find_obsolete_fields(data, document_type)
-    if obsolete:
-        return data, [f"Obsolete v1 fields are not allowed in v2 {document_type}: {sorted(obsolete)}"]
     try:
         model = model_cls.model_validate(data)
         return model.model_dump(mode="json"), []
     except Exception as exc:
         return data, [str(exc)]
-
-
-@handle_errors("finding obsolete v1 fields", re_raise=True)
-def _find_obsolete_fields(data: Any, document_type: str) -> set[str]:
-    """Find obsolete fields on v2 record objects without scanning nested v2 shapes."""
-    obsolete_by_type = {
-        "tasks": FORBIDDEN_V1_FIELD_NAMES_BY_DOCUMENT["task"],
-        "notebook": FORBIDDEN_V1_FIELD_NAMES_BY_DOCUMENT["notebook"],
-        "checkins": FORBIDDEN_V1_FIELD_NAMES_BY_DOCUMENT["checkin"],
-        "messages": FORBIDDEN_V1_FIELD_NAMES_BY_DOCUMENT["message"],
-        "deliveries": FORBIDDEN_V1_FIELD_NAMES_BY_DOCUMENT["delivery"],
-    }
-    obsolete = obsolete_by_type.get(document_type, set())
-    found: set[str] = set()
-    collection_key_by_type = {
-        "tasks": "tasks",
-        "notebook": "entries",
-        "checkins": "checkins",
-        "messages": "messages",
-        "deliveries": "deliveries",
-    }
-    collection_key = collection_key_by_type.get(document_type)
-
-    if isinstance(data, dict):
-        found.update(obsolete.intersection(data.keys()))
-        records = data.get(collection_key, []) if collection_key else []
-    elif isinstance(data, list):
-        records = data
-    else:
-        records = []
-
-    for record in records:
-        if isinstance(record, dict):
-            found.update(obsolete.intersection(record.keys()))
-    return found
 
 
 @handle_errors("validating optional timestamp field", re_raise=True)

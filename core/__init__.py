@@ -120,7 +120,6 @@ from .schemas import (
     validate_account_dict,
     validate_preferences_dict,
     validate_schedules_dict,
-    validate_messages_file_dict,
 )
 
 # Schema models exports (public API)
@@ -131,8 +130,6 @@ from .schemas import (
     CategoryScheduleModel,
     FeaturesModel,
     PeriodModel,
-    MessagesFileModel,
-    MessageModel,
     SchedulesModel,
 )
 
@@ -402,7 +399,6 @@ __all__ = [
     "validate_account_dict",
     "validate_preferences_dict",
     "validate_schedules_dict",
-    "validate_messages_file_dict",
     # Schema models (public API)
     "AccountModel",
     "ChannelModel",
@@ -410,8 +406,6 @@ __all__ = [
     "CategoryScheduleModel",
     "FeaturesModel",
     "PeriodModel",
-    "MessagesFileModel",
-    "MessageModel",
     "SchedulesModel",
     # Config additional constants (low usage)
     "CONTEXT_CACHE_TTL",

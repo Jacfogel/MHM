@@ -56,7 +56,6 @@ def ensure_unique_ids(data: Any) -> Any:
             message_id = str(uuid.uuid4())
 
         message["id"] = message_id
-        message.pop("message_id", None)
 
         existing_ids.add(message_id)
     return data

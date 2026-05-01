@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-01 00:16:13
+> **Last Generated**: 2026-05-01 01:30:32
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 94.2% [!] GOOD**
-- **Total Functions**: 1766
-- **Total Methods**: 1245
-- **Documented**: 2835/3011
+- **Total Functions**: 1763
+- **Total Methods**: 1243
+- **Documented**: 2831/3006
 - **Files Scanned**: 125
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -152,9 +152,9 @@ Core System Decision Tree:
 ## [!] **Areas Needing Attention**
 
 ### **High Priority** (Missing Documentation)
-- `core/user_data_v2.py` - 27/32 functions undocumented (16% coverage)
+- `core/user_data_v2.py` - 27/31 functions undocumented (13% coverage)
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
-- `core/schemas.py` - 18/32 functions undocumented (44% coverage)
+- `core/schemas.py` - 17/27 functions undocumented (37% coverage)
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
 - `core/user_data_registry.py` - 11/22 functions undocumented (50% coverage)
 - `core/user_data_write.py` - 10/12 functions undocumented (17% coverage)
@@ -199,7 +199,7 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (38 files, 932 functions)
+- `core/` - System utilities and data management (38 files, 927 functions)
 - `communication/` - Communication channels and message processing (39 files, 867 functions)
 - `ai/` - AI chatbot functionality (7 files, 219 functions)
 - `ui/` - User interface components (29 files, 831 functions)
