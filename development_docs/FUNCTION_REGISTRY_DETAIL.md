@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-01 18:39:54
+> **Last Generated**: 2026-05-01 19:40:14
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 94.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 124
-- **Functions Found**: 1757
-- **Methods Found**: 1238
+- **Functions Found**: 1763
+- **Methods Found**: 1240
 - **Classes Found**: 159
-- **Total Items**: 2995
-- **Functions Documented**: 1641
-- **Methods Documented**: 1189
+- **Total Items**: 3003
+- **Functions Documented**: 1647
+- **Methods Documented**: 1191
 - **Classes Documented**: 122
-- **Total Documented**: 2830
+- **Total Documented**: 2838
 - **Template-Generated**: 4
 - **Last Updated**: 2026-05-01
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (617)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (460)
+### **Communication Functions** (466)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (430)
@@ -928,6 +928,9 @@ Returns:
 **Functions:**
 - [OK] `_apply_entry_ref_mutation(self, user_id, entities, flag)` - Pin/unpin or archive/unarchive by entry_ref; shared helper for pin/archive handlers.
 - [OK] `_build_paginated_list_response(self, entries, header, offset, limit)` - Build a paginated list response for group/tag-style list handlers.
+- [OK] `_build_show_more_payload(intent, entities, offset, limit)` - Build hidden Discord button metadata for the next notebook page.
+- [OK] `_coerce_offset(value)` - Return a non-negative offset for pagination inputs.
+- [OK] `_coerce_positive_int(value, default, maximum)` - Return a bounded positive integer for pagination inputs.
 - [OK] `_format_entry_id(self, entry)` - Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing).
 - [OK] `_format_entry_response(self, entry)` - Formats a single entry for display.
 - [OK] `_format_no_group_hits_message(group)` - Build the user message when listing by group returns no entries.
@@ -957,6 +960,7 @@ Explains substring search, archived exclusion, and next-step commands.
 - [OK] `_handle_set_group(self, user_id, entities)` - Handle setting entry group.
 - [OK] `_handle_show_entry(self, user_id, entities)` - Handle showing an entry.
 - [OK] `_handle_toggle_list_item_done(self, user_id, entities)` - Handle toggling list item done status.
+- [OK] `_show_more_rich_data(intent, entities, offset, limit)` - Return InteractionResponse rich_data for a single Show More button.
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
 - [OK] `get_examples(self)` - Get example commands for notebook.
 - [OK] `get_help(self)` - Get help text for notebook commands.
@@ -1403,7 +1407,7 @@ Returns:
 Returns:
     bool: True if successful, False if failed
 - [OK] `_check_network_health(self)` - Comprehensive network health check with detailed reporting
-- [OK] `_create_action_row(self, suggestions)` - Create Discord action row with validation.
+- [OK] `_create_action_row(self, suggestions, suggestion_payloads)` - Create Discord action row with validation.
 
 Returns:
     discord.ui.View: Created view, None if failed
@@ -1412,6 +1416,8 @@ Returns:
 Returns:
     discord.Embed: Created embed, None if failed
 - [OK] `_get_detailed_connection_status(self)` - Get detailed connection status information
+- [OK] `_get_suggestion_payloads(self, rich_data)` - Extract hidden button payloads from response rich data.
+- [OK] `_has_display_rich_data(self, rich_data)` - Return True when rich_data contains embed-facing fields.
 - [OK] `_has_external_ngrok_tunnel(self)` - Detect an externally running ngrok HTTP tunnel.
 - [OK] `_schedule_ready_tasks(self, bot)` - Schedule non-blocking tasks after Discord ready event.
 - [OK] `_shared__update_connection_status(self, status, error_info)` - Update connection status with detailed error information
@@ -1449,7 +1455,7 @@ Returns:
 Returns:
     bool: True if successful, False if failed
   - [OK] `DiscordBot._check_network_health(self)` - Comprehensive network health check with detailed reporting
-  - [OK] `DiscordBot._create_action_row(self, suggestions)` - Create Discord action row with validation.
+  - [OK] `DiscordBot._create_action_row(self, suggestions, suggestion_payloads)` - Create Discord action row with validation.
 
 Returns:
     discord.ui.View: Created view, None if failed
@@ -1458,6 +1464,8 @@ Returns:
 Returns:
     discord.Embed: Created embed, None if failed
   - [OK] `DiscordBot._get_detailed_connection_status(self)` - Get detailed connection status information
+  - [OK] `DiscordBot._get_suggestion_payloads(self, rich_data)` - Extract hidden button payloads from response rich data.
+  - [OK] `DiscordBot._has_display_rich_data(self, rich_data)` - Return True when rich_data contains embed-facing fields.
   - [OK] `DiscordBot._has_external_ngrok_tunnel(self)` - Detect an externally running ngrok HTTP tunnel.
   - [OK] `DiscordBot._schedule_ready_tasks(self, bot)` - Schedule non-blocking tasks after Discord ready event.
   - [OK] `DiscordBot._shared__update_connection_status(self, status, error_info)` - Update connection status with detailed error information

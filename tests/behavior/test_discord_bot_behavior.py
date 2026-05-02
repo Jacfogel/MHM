@@ -1297,7 +1297,9 @@ class TestDiscordBotIntegration:
         
         class MockButton:
             def __init__(self, *args, **kwargs):
-                pass
+                self.kwargs = kwargs
+                self.custom_id = kwargs.get("custom_id")
+                self.label = kwargs.get("label")
         
         # Mock discord.ui.View to avoid event loop requirement and aiohttp cleanup issues
         with patch(
@@ -1308,6 +1310,44 @@ class TestDiscordBotIntegration:
             assert view is not None, "Should create view"
             assert isinstance(view, MockView), "Should create View instance"
             assert len(view.children) == len(suggestions), f"Should have {len(suggestions)} buttons, got {len(view.children)}"
+
+    @pytest.mark.communication
+    @pytest.mark.notebook
+    def test_create_action_row_stores_hidden_suggestion_payloads(self, test_data_dir):
+        """Test that Discord suggestion buttons can preserve hidden command state."""
+        bot = DiscordBot()
+        suggestions = ["Show More (5 more)"]
+        payloads = [
+            {
+                "intent": "search_entries",
+                "entities": {"query": "project", "offset": 5, "limit": 5},
+            }
+        ]
+
+        class MockView:
+            def __init__(self):
+                self.children = []
+
+            def add_item(self, item):
+                self.children.append(item)
+
+        class MockButton:
+            def __init__(self, *args, **kwargs):
+                self.custom_id = kwargs.get("custom_id")
+                self.label = kwargs.get("label")
+
+        with patch(
+            'communication.communication_channels.discord.bot.discord.ui.View', MockView
+        ), patch('communication.communication_channels.discord.bot.discord.ui.Button', MockButton):
+            view = bot._create_action_row(suggestions, payloads)
+
+        button = view.children[0]
+        assert button.label == "Show More (5 more)"
+        assert bot._suggestion_button_payloads[button.custom_id] == payloads[0]
+        assert not bot._has_display_rich_data({"suggestion_payloads": payloads})
+        assert bot._has_display_rich_data(
+            {"title": "Results", "suggestion_payloads": payloads}
+        )
 
 
 @pytest.mark.behavior

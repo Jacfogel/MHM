@@ -57,6 +57,61 @@ class TestNotebookHandlerPaginationAndFormatting:
         assert "Note 2" in response.message
         assert "Note 3" in response.message
         assert response.suggestions == ["Show More (2 more)"]
+        assert response.rich_data == {
+            "suggestion_payloads": [
+                {
+                    "intent": "search_entries",
+                    "entities": {"query": "note", "offset": 4, "limit": 2},
+                }
+            ]
+        }
+
+    def test_list_recent_adds_show_more_payload(self):
+        handler = NotebookHandler()
+        entries = [_note_entry(f"Recent {i}") for i in range(6)]
+
+        with patch(
+            "communication.command_handlers.notebook_handler.list_recent",
+            return_value=entries,
+        ):
+            response = handler._handle_list_recent(
+                "user-1", {"offset": 0, "limit": 3}
+            )
+
+        assert response.completed is True
+        assert "Recent 0" in response.message
+        assert "Recent 3" not in response.message
+        assert response.suggestions == ["Show More (3 more)"]
+        assert response.rich_data == {
+            "suggestion_payloads": [
+                {
+                    "intent": "list_recent_entries",
+                    "entities": {"offset": 3, "limit": 3},
+                }
+            ]
+        }
+
+    def test_group_pagination_infers_show_more_payload(self):
+        handler = NotebookHandler()
+        entries = [_note_entry(f"Group {i}") for i in range(6)]
+
+        with patch(
+            "communication.command_handlers.notebook_handler.list_by_group",
+            return_value=entries,
+        ):
+            response = handler._handle_list_by_group(
+                "user-1", {"group": "work", "offset": 0, "limit": 3}
+            )
+
+        assert response.suggestions == ["Show More (3 more)"]
+        assert response.rich_data == {
+            "suggestion_payloads": [
+                {
+                    "intent": "list_entries_by_group",
+                    "entities": {"group": "work", "offset": 3, "limit": 3},
+                }
+            ]
+        }
 
     def test_list_by_group_requires_group_name(self):
         handler = NotebookHandler()
@@ -143,4 +198,3 @@ def test_empty_result_hint_messages_are_self_contained():
     assert "work" in g and "!recent" in g
     t = _format_no_tag_hits_message("#urgent")
     assert "#urgent" in t and "!t" in t
-

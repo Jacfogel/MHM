@@ -89,6 +89,8 @@ class DiscordBot(BaseChannel):
         self._sessions_to_cleanup = []
         # Task management for proper cleanup
         self._sync_task = None
+        self._suggestion_button_payloads: dict[str, Any] = {}
+        self._suggestion_button_counter = 0
         # Webhook server for receiving installation events
         self._webhook_server = None
         # Ngrok process for webhook tunneling (auto-launched if enabled)
@@ -1075,25 +1077,68 @@ class DiscordBot(BaseChannel):
                                 )
 
                                 if internal_user_id:
-                                    # Process the button label as a user message
-                                    # Use the label as-is (lowercase) - flow handlers will handle skip/cancel
-                                    button_message = button_label.lower().strip()
-                                    discord_logger.info(
-                                        f"Processing button click as message '{button_message}' for user {internal_user_id}"
+                                    payload = self._suggestion_button_payloads.get(
+                                        custom_id
                                     )
+                                    if isinstance(payload, dict) and payload.get(
+                                        "intent"
+                                    ):
+                                        from communication.command_handlers.interaction_handlers import (
+                                            get_interaction_handler,
+                                        )
+                                        from communication.command_handlers.shared_types import (
+                                            ParsedCommand,
+                                            InteractionResponse,
+                                        )
 
-                                    from communication.message_processing.interaction_manager import (
-                                        handle_user_message,
-                                    )
+                                        intent = str(payload["intent"])
+                                        entities = payload.get("entities", {})
+                                        if not isinstance(entities, dict):
+                                            entities = {}
+                                        handler = get_interaction_handler(intent)
+                                        if handler:
+                                            response = handler.handle(
+                                                internal_user_id,
+                                                ParsedCommand(
+                                                    intent=intent,
+                                                    entities=entities,
+                                                    confidence=1.0,
+                                                    original_message=button_label,
+                                                ),
+                                            )
+                                        else:
+                                            response = InteractionResponse(
+                                                "I could not continue that notebook page. Please try the command again.",
+                                                True,
+                                            )
+                                    else:
+                                        # Process the button label as a user message.
+                                        # Flow handlers handle simple labels like skip/cancel.
+                                        button_message = (
+                                            str(payload)
+                                            if isinstance(payload, str)
+                                            else button_label.lower().strip()
+                                        )
+                                        discord_logger.info(
+                                            f"Processing button click as message '{button_message}' for user {internal_user_id}"
+                                        )
 
-                                    response = handle_user_message(
-                                        internal_user_id, button_message, "discord"
-                                    )
+                                        from communication.message_processing.interaction_manager import (
+                                            handle_user_message,
+                                        )
+
+                                        response = handle_user_message(
+                                            internal_user_id,
+                                            button_message,
+                                            "discord",
+                                        )
 
                                     # Send the response using followup (since we already deferred)
                                     # Create embed if rich_data is provided
                                     embed = None
-                                    if response.rich_data:
+                                    if self._has_display_rich_data(
+                                        response.rich_data
+                                    ):
                                         embed = self._create_discord_embed(
                                             response.message, response.rich_data
                                         )
@@ -1102,7 +1147,10 @@ class DiscordBot(BaseChannel):
                                     view = None
                                     if response.suggestions:
                                         view = self._create_action_row(
-                                            response.suggestions
+                                            response.suggestions,
+                                            self._get_suggestion_payloads(
+                                                response.rich_data
+                                            ),
                                         )
 
                                     # Send response via followup
@@ -1579,7 +1627,7 @@ class DiscordBot(BaseChannel):
 
                 # Create embed if rich_data is provided
                 embed = None
-                if response.rich_data:
+                if self._has_display_rich_data(response.rich_data):
                     embed = self._create_discord_embed(
                         response.message, response.rich_data
                     )
@@ -1587,7 +1635,10 @@ class DiscordBot(BaseChannel):
                 # Create view with buttons if suggestions are provided
                 view = None
                 if response.suggestions:
-                    view = self._create_action_row(response.suggestions)
+                    view = self._create_action_row(
+                        response.suggestions,
+                        self._get_suggestion_payloads(response.rich_data),
+                    )
 
                 # Send response with embed and/or view
                 if embed and view:
@@ -1842,13 +1893,15 @@ class DiscordBot(BaseChannel):
 
         # Create Discord embed if rich data is provided
         embed = None
-        if rich_data:
+        if self._has_display_rich_data(rich_data):
             embed = self._create_discord_embed(message, rich_data)
 
         # Create view with buttons if suggestions are provided
         view = None
         if suggestions:
-            view = self._create_action_row(suggestions)
+            view = self._create_action_row(
+                suggestions, self._get_suggestion_payloads(rich_data)
+            )
 
         # Send to the channel
         if embed and view:
@@ -1922,7 +1975,7 @@ class DiscordBot(BaseChannel):
 
         # Create Discord embed if rich data is provided
         embed = None
-        if rich_data:
+        if self._has_display_rich_data(rich_data):
             embed = self._create_discord_embed(message, rich_data)
 
         # Create view with buttons - prefer custom_view, then suggestions
@@ -1938,7 +1991,9 @@ class DiscordBot(BaseChannel):
             else:
                 view = custom_view
         elif suggestions:
-            view = self._create_action_row(suggestions)
+            view = self._create_action_row(
+                suggestions, self._get_suggestion_payloads(rich_data)
+            )
 
         # Handle special Discord user marker first
         if recipient.startswith("discord_user:"):
@@ -2132,8 +2187,31 @@ class DiscordBot(BaseChannel):
 
         return embed
 
+    @handle_errors("checking Discord display rich data", default_return=False)
+    def _has_display_rich_data(self, rich_data: dict[str, Any] | None) -> bool:
+        """Return True when rich_data contains embed-facing fields."""
+        if not isinstance(rich_data, dict):
+            return False
+        return any(key != "suggestion_payloads" for key in rich_data)
+
+    @handle_errors("getting Discord suggestion payloads", default_return=None)
+    def _get_suggestion_payloads(
+        self, rich_data: dict[str, Any] | None
+    ) -> list[Any] | None:
+        """Extract hidden button payloads from response rich data."""
+        if not isinstance(rich_data, dict):
+            return None
+        payloads = rich_data.get("suggestion_payloads")
+        if isinstance(payloads, list):
+            return payloads
+        return None
+
     @handle_errors("creating Discord action row", default_return=None)
-    def _create_action_row(self, suggestions: list[str]) -> discord.ui.View:
+    def _create_action_row(
+        self,
+        suggestions: list[str],
+        suggestion_payloads: list[Any] | None = None,
+    ) -> discord.ui.View:
         """
         Create Discord action row with validation.
 
@@ -2154,11 +2232,18 @@ class DiscordBot(BaseChannel):
 
         # Limit to 5 buttons (Discord limit)
         for i, suggestion in enumerate(suggestions[:5]):
+            self._suggestion_button_counter += 1
+            custom_id = f"suggestion_{self._suggestion_button_counter}_{i}"
+            if suggestion_payloads and i < len(suggestion_payloads):
+                self._suggestion_button_payloads[custom_id] = suggestion_payloads[i]
+                if len(self._suggestion_button_payloads) > 500:
+                    oldest_key = next(iter(self._suggestion_button_payloads))
+                    self._suggestion_button_payloads.pop(oldest_key, None)
             # Create a button with a unique custom_id
             button = discord.ui.Button(
                 style=discord.ButtonStyle.primary,
                 label=suggestion[:80],  # Discord button label limit
-                custom_id=f"suggestion_{i}_{hash(suggestion) % 10000}",
+                custom_id=custom_id,
             )
             view.add_item(button)
 
