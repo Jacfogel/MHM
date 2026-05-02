@@ -96,6 +96,7 @@ class TestCommandDiscoveryHelp:
         
         # Verify natural language, explicit, and slash commands shown
         assert "Natural:" in message
+        assert "every morning at 8am" in message.lower()
         assert "Explicit:" in message
         assert "Slash:" in message
         
@@ -133,6 +134,8 @@ class TestCommandDiscoveryHelp:
         # Verify category-specific examples provided
         assert "**Task Management Help:**" in message
         assert "create task" in message.lower()
+        assert "recurring tasks" in message.lower()
+        assert "every morning at 8am" in message.lower()
         assert "list tasks" in message.lower()
         assert "complete task" in message.lower()
         assert "delete task" in message.lower()

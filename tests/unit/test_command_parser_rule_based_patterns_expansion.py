@@ -46,6 +46,8 @@ class TestCommandParserTaskPatterns:
             ("create task about planning", "about planning"),
             ("add task to write tests", "write tests"),
             ("new task to submit report", "submit report"),
+            ("remind me to take medication every morning at 8am", "take medication"),
+            ("create task to water plants every 2 weeks", "water plants"),
         ],
     )
     def test_create_task_patterns(self, command_parser, message, expected_title):
@@ -54,6 +56,51 @@ class TestCommandParserTaskPatterns:
         assert result.method == "rule_based"
         assert result.parsed_command.intent == "create_task"
         assert result.parsed_command.entities.get("title") == expected_title
+
+    @pytest.mark.parametrize(
+        "message, expected_title, expected_pattern, expected_interval, expected_due_time",
+        [
+            (
+                "remind me to take medication every morning at 8am",
+                "take medication",
+                "daily",
+                1,
+                "8am",
+            ),
+            (
+                "create task to water plants every 2 weeks",
+                "water plants",
+                "weekly",
+                2,
+                None,
+            ),
+            (
+                "new task to take out trash every Sunday",
+                "take out trash",
+                "weekly",
+                1,
+                None,
+            ),
+        ],
+    )
+    def test_create_task_recurring_natural_language_patterns(
+        self,
+        command_parser,
+        message,
+        expected_title,
+        expected_pattern,
+        expected_interval,
+        expected_due_time,
+    ):
+        result = _rule_parse(command_parser, message)
+
+        assert result.parsed_command.intent == "create_task"
+        entities = result.parsed_command.entities
+        assert entities.get("title") == expected_title
+        assert entities.get("recurrence_pattern") == expected_pattern
+        assert entities.get("recurrence_interval") == expected_interval
+        if expected_due_time is not None:
+            assert entities.get("due_time") == expected_due_time
 
     @pytest.mark.parametrize(
         "message",

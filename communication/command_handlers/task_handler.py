@@ -219,6 +219,9 @@ class TaskManagementHandler(InteractionHandler):
             if parsed_time:
                 valid_due_time = parsed_time
 
+        if recurrence_pattern and valid_due_time and not due_date:
+            due_date = self._default_due_date_for_recurring_time(valid_due_time)
+
         # Validate priority
         if priority not in VALID_PRIORITIES:
             logger.warning(
@@ -293,11 +296,15 @@ class TaskManagementHandler(InteractionHandler):
             if tags:
                 response += f" (tags: {', '.join(tags)})"
             if recurrence_pattern:
-                interval_text = f"every {recurrence_interval} {recurrence_pattern}"
+                singular_recurrence = {
+                    "daily": "day",
+                    "weekly": "week",
+                    "monthly": "month",
+                    "yearly": "year",
+                }.get(recurrence_pattern, recurrence_pattern)
+                interval_text = f"every {recurrence_interval} {singular_recurrence}s"
                 if recurrence_interval == 1:
-                    interval_text = (
-                        f"every {recurrence_pattern[:-2]}"  # Remove 'ly' for singular
-                    )
+                    interval_text = f"every {singular_recurrence}"
                 response += f" (repeats: {interval_text})"
 
             conversation_manager = importlib.import_module(
@@ -386,6 +393,27 @@ class TaskManagementHandler(InteractionHandler):
                 return f"{hour:02d}:{minute:02d}"
 
         return None
+
+    @handle_errors("defaulting due date for recurring task time", default_return=None)
+    def _default_due_date_for_recurring_time(self, due_time: str) -> str | None:
+        """Return today for future recurring times, otherwise tomorrow."""
+        now_dt = now_datetime_full()
+        try:
+            hour_text, minute_text = due_time.split(":", 1)
+            due_hour = int(hour_text)
+            due_minute = int(minute_text)
+        except (TypeError, ValueError):
+            return format_timestamp(now_dt, DATE_ONLY)
+
+        due_today = now_dt.replace(
+            hour=due_hour,
+            minute=due_minute,
+            second=0,
+            microsecond=0,
+        )
+        if due_today <= now_dt:
+            due_today = due_today + timedelta(days=1)
+        return format_timestamp(due_today, DATE_ONLY)
 
     @handle_errors("parsing relative date")
     def _handle_create_task__parse_relative_date(self, date_str: str) -> str:

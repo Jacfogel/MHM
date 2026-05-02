@@ -208,7 +208,17 @@ UI buttons *simulate* those same commands by sending text like:
 
 through `handle_user_message`.
 
-### 6.2. Slash Commands and Prefixes
+### 6.2. Task Creation Examples
+
+Task creation is expected to work from natural Discord messages, not only from explicit command syntax:
+
+- `create task to call mom tomorrow`
+- `remind me to take medication every morning at 8am`
+- `create task to water plants every 2 weeks`
+
+When a task is missing a due date, the task flow asks for one and accepts `Skip` or `Cancel`. When a task has a due date, the reminder follow-up asks whether to add reminder periods and also supports skip/cancel-style exits.
+
+### 6.3. Slash Commands and Prefixes
 
 Where slash commands or prefixed commands are implemented:
 

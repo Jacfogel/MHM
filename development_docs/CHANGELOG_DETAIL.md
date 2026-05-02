@@ -33,6 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-05-02 - Discord Recurring Task UX
+- **Feature**: Added rule-based recurring-task extraction for Discord/natural task creation in [`command_parser.py`](../communication/message_processing/command_parser.py). The parser now recognizes daily/weekly/monthly/yearly phrasing, interval recurrence such as `every 2 weeks`, weekday recurrence such as `every Sunday`, and time phrases such as `at 8am`, while cleaning recurrence metadata out of the stored task title.
+- **Feature**: Updated [`task_handler.py`](../communication/command_handlers/task_handler.py) so recurring tasks with a parsed time but no explicit date get today as the first due date, making them schedulable by the existing reminder follow-up flow. Recurrence response text now says `every day/week/month/year` instead of deriving labels by trimming suffixes.
+- **Documentation**: Added recurring-task examples to task help/commands output and [`DISCORD_GUIDE.md`](../communication/communication_channels/discord/DISCORD_GUIDE.md); updated [`TASKS_PLAN.md`](TASKS_PLAN.md) to close the recurring-task Discord documentation/verification gap.
+- **Validation**: `py_compile` passed for touched communication modules; Ruff passed for touched Python files; focused parser/help/task handler validation passed with `269 passed`.
+
 ### 2026-05-01 - Removed user-data migration and repair script entry points
 - **Feature (notebook Discord pagination)**: Fixed notebook `Show More` buttons so Discord suggestion buttons can carry hidden pagination payloads instead of replaying only the visible button label. `communication/command_handlers/notebook_handler.py` now attaches next-page intent/entities for recent entries, search results, group/tag listings, pinned entries, inbox, and archived entries; recent lists fetch enough entries to page rather than only loading the first page.
 - **UX (notebook search)**: Improved empty notebook search feedback with short guidance about substring matching, archived-entry exclusion, distinctive/shorter keywords, and browse commands (`!recent`, `!inbox`, `!archived`).

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-01 19:40:14
+> **Last Generated**: 2026-05-01 20:29:43
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 94.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 124
-- **Functions Found**: 1763
-- **Methods Found**: 1240
+- **Functions Found**: 1767
+- **Methods Found**: 1244
 - **Classes Found**: 159
-- **Total Items**: 3003
-- **Functions Documented**: 1647
-- **Methods Documented**: 1191
+- **Total Items**: 3011
+- **Functions Documented**: 1651
+- **Methods Documented**: 1195
 - **Classes Documented**: 122
-- **Total Documented**: 2838
+- **Total Documented**: 2846
 - **Template-Generated**: 4
 - **Last Updated**: 2026-05-01
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (617)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (466)
+### **Communication Functions** (470)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (430)
@@ -2051,6 +2051,7 @@ and initializes rule-based intent patterns for common commands.
 - [OK] `_extract_entities_rule_based(self, intent, match, message)` - Extract entities using rule-based patterns
 - [OK] `_extract_history_analytics_entities_rule_based(self, intent, message, entities)` - Extract check-in history and analytics entities.
 - [OK] `_extract_intent_from_ai_response(self, ai_response)` - Extract intent from AI response text
+- [OK] `_extract_recurrence_entities(self, title)` - Extract recurrence fields from natural task text.
 - [OK] `_extract_schedule_entities_rule_based(self, intent, match, message, entities)` - Extract schedule-related entities and return whether intent was handled.
 - [OK] `_extract_task_entities(self, title)` - Extract task-related entities from title
 - [OK] `_extract_task_entities_rule_based(self, intent, match, message, entities)` - Extract task-related entities and return whether intent was handled.
@@ -2059,9 +2060,12 @@ and initializes rule-based intent patterns for common commands.
 - [OK] `_is_valid_intent(self, intent)` - Check if intent is supported by any handler
 - [OK] `_match_message(message_for_match)` - Attempt to match intents against the provided message.
 - [OK] `_match_rule_based_intent(self, intent, message_for_match, original_message)` - Attempt matching all patterns for a specific intent.
+- [OK] `_normalize_task_title(self, title)` - Normalize whitespace and dangling connectors after entity extraction.
 - [OK] `_parse_key_value_format(self, response)` - Parse key-value format (ACTION: ..., TITLE: ..., etc.)
 Returns (intent, entities) tuple
 - [OK] `_parse_time_period(self, time_period)` - Parse a time period string (e.g. 'this week', 'last week', '3 days') into days and period_name.
+- [OK] `_recurrence_unit_to_pattern(self, unit)` - Map a plural natural-language recurrence unit to a task recurrence pattern.
+- [OK] `_remove_task_phrase(self, title, phrase)` - Remove a parsed metadata phrase from a task title.
 - [OK] `_rule_based_parse(self, message)` - Parse using rule-based patterns
 - [OK] `get_enhanced_command_parser()` - Get the global enhanced command parser instance
 - [OK] `get_suggestions(self, partial_message)` - Get command suggestions based on partial input
@@ -2083,6 +2087,7 @@ and initializes rule-based intent patterns for common commands.
   - [OK] `EnhancedCommandParser._extract_entities_rule_based(self, intent, match, message)` - Extract entities using rule-based patterns
   - [OK] `EnhancedCommandParser._extract_history_analytics_entities_rule_based(self, intent, message, entities)` - Extract check-in history and analytics entities.
   - [OK] `EnhancedCommandParser._extract_intent_from_ai_response(self, ai_response)` - Extract intent from AI response text
+  - [OK] `EnhancedCommandParser._extract_recurrence_entities(self, title)` - Extract recurrence fields from natural task text.
   - [OK] `EnhancedCommandParser._extract_schedule_entities_rule_based(self, intent, match, message, entities)` - Extract schedule-related entities and return whether intent was handled.
   - [OK] `EnhancedCommandParser._extract_task_entities(self, title)` - Extract task-related entities from title
   - [OK] `EnhancedCommandParser._extract_task_entities_rule_based(self, intent, match, message, entities)` - Extract task-related entities and return whether intent was handled.
@@ -2090,9 +2095,12 @@ and initializes rule-based intent patterns for common commands.
   - [OK] `EnhancedCommandParser._extract_update_entities(self, update_text)` - Extract update entities from update text
   - [OK] `EnhancedCommandParser._is_valid_intent(self, intent)` - Check if intent is supported by any handler
   - [OK] `EnhancedCommandParser._match_rule_based_intent(self, intent, message_for_match, original_message)` - Attempt matching all patterns for a specific intent.
+  - [OK] `EnhancedCommandParser._normalize_task_title(self, title)` - Normalize whitespace and dangling connectors after entity extraction.
   - [OK] `EnhancedCommandParser._parse_key_value_format(self, response)` - Parse key-value format (ACTION: ..., TITLE: ..., etc.)
 Returns (intent, entities) tuple
   - [OK] `EnhancedCommandParser._parse_time_period(self, time_period)` - Parse a time period string (e.g. 'this week', 'last week', '3 days') into days and period_name.
+  - [OK] `EnhancedCommandParser._recurrence_unit_to_pattern(self, unit)` - Map a plural natural-language recurrence unit to a task recurrence pattern.
+  - [OK] `EnhancedCommandParser._remove_task_phrase(self, title, phrase)` - Remove a parsed metadata phrase from a task title.
   - [OK] `EnhancedCommandParser._rule_based_parse(self, message)` - Parse using rule-based patterns
   - [OK] `EnhancedCommandParser.get_suggestions(self, partial_message)` - Get command suggestions based on partial input
   - [OK] `EnhancedCommandParser.parse(self, message, user_id)` - Parse a user message into a structured command.

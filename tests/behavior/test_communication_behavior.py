@@ -187,7 +187,8 @@ class TestCommunicationManager:
         realistic_mock_channel.is_ready.return_value = True
         
         # Test successful message sending
-        result = comm_manager.send_message_sync('test_channel', 'user123', 'Test message')
+        with patch("communication.core.channel_orchestrator.wait_for_network", return_value=True):
+            result = comm_manager.send_message_sync('test_channel', 'user123', 'Test message')
         
         # The function should return True if the channel sends successfully
         assert result is True
@@ -204,7 +205,8 @@ class TestCommunicationManager:
         realistic_mock_channel.send_message.return_value = False
         realistic_mock_channel.is_ready.return_value = True
         
-        result = comm_manager.send_message_sync('test_channel', 'user123', 'Test message')
+        with patch("communication.core.channel_orchestrator.wait_for_network", return_value=True):
+            result = comm_manager.send_message_sync('test_channel', 'user123', 'Test message')
         
         # Should return False when send fails
         assert result is False

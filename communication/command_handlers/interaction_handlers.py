@@ -78,6 +78,7 @@ class HelpHandler(InteractionHandler):
             return InteractionResponse(
                 "**Task Management Help:**\n"
                 "• Create tasks: 'create task \"Call mom tomorrow\"'\n"
+                "• Recurring tasks: 'remind me to take medication every morning at 8am'\n"
                 "• List tasks: 'list tasks' or 'show my tasks'\n"
                 "• Complete tasks: 'complete task 1' or 'complete \"Call mom\"'\n"
                 "• Delete tasks: 'delete task 2' or 'delete \"Buy groceries\"'\n"
@@ -110,6 +111,7 @@ class HelpHandler(InteractionHandler):
                 "I understand natural language best! Just talk to me naturally.\n\n"
                 "**Tasks**:\n"
                 '• "create a task to..." - Add new task\n'
+                '• "remind me to take medication every morning at 8am" - Add a recurring task\n'
                 '• "show my tasks" - View all tasks\n'
                 '• "complete [task]" - Mark task done\n'
                 "• Or use: /tasks (also !tasks)\n\n"
@@ -151,7 +153,7 @@ class HelpHandler(InteractionHandler):
         # Task commands
         response += "📋 **Task Management:**\n"
         response += (
-            '• Natural: "create a task to...", "show my tasks", "complete [task]"\n'
+            '• Natural: "create a task to...", "remind me to take medication every morning at 8am", "show my tasks", "complete [task]"\n'
         )
         response += "• Explicit: create_task, list_tasks, complete_task, delete_task, update_task, task_stats\n"
         response += "• Slash: /tasks (also !tasks)\n\n"

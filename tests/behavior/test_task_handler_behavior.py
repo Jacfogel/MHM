@@ -243,6 +243,114 @@ class TestTaskHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
+    @pytest.mark.file_io
+    @patch("tasks.create_task")
+    def test_task_handler_create_recurring_task_with_future_time_defaults_due_today(
+        self, mock_create_task, test_data_dir
+    ):
+        """Test that recurring tasks with a future time default to today."""
+        handler = TaskManagementHandler()
+        user_id = "test_user_task_recurring_time"
+        assert self._create_test_user(
+            user_id, test_data_dir=test_data_dir
+        ), "Failed to create test user"
+
+        mock_create_task.return_value = "task_789"
+        parsed_command = ParsedCommand(
+            intent="create_task",
+            entities={
+                "title": "Take medication",
+                "recurrence_pattern": "daily",
+                "recurrence_interval": 1,
+                "due_time": "8am",
+            },
+            confidence=0.9,
+            original_message="remind me to take medication every morning at 8am",
+        )
+
+        test_now_dt = datetime(2026, 1, 20, 7, 0, 0)
+        with (
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=test_now_dt,
+            ),
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=test_now_dt,
+                create=True,
+            ),
+        ):
+            response = handler.handle(user_id, parsed_command)
+
+        assert isinstance(response, InteractionResponse)
+        assert "repeats: every day" in response.message.lower()
+        assert not response.completed
+
+        call_kwargs = (
+            mock_create_task.call_args[1] if mock_create_task.call_args else {}
+        )
+        assert call_kwargs.get("title") == "Take medication"
+        assert call_kwargs.get("recurrence_pattern") == "daily"
+        assert call_kwargs.get("due_date") == "2026-01-20"
+        assert call_kwargs.get("due_time") == "08:00"
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    @pytest.mark.file_io
+    @patch("tasks.create_task")
+    def test_task_handler_create_recurring_task_with_passed_time_defaults_due_tomorrow(
+        self, mock_create_task, test_data_dir
+    ):
+        """Test that recurring tasks with an already-passed time default to tomorrow."""
+        handler = TaskManagementHandler()
+        user_id = "test_user_task_recurring_passed_time"
+        assert self._create_test_user(
+            user_id, test_data_dir=test_data_dir
+        ), "Failed to create test user"
+
+        mock_create_task.return_value = "task_790"
+        parsed_command = ParsedCommand(
+            intent="create_task",
+            entities={
+                "title": "Take medication",
+                "recurrence_pattern": "daily",
+                "recurrence_interval": 1,
+                "due_time": "8am",
+            },
+            confidence=0.9,
+            original_message="remind me to take medication every morning at 8am",
+        )
+
+        test_now_dt = datetime(2026, 1, 20, 9, 0, 0)
+        with (
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=test_now_dt,
+            ),
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=test_now_dt,
+                create=True,
+            ),
+        ):
+            response = handler.handle(user_id, parsed_command)
+
+        assert isinstance(response, InteractionResponse)
+        assert "repeats: every day" in response.message.lower()
+        assert not response.completed
+
+        call_kwargs = (
+            mock_create_task.call_args[1] if mock_create_task.call_args else {}
+        )
+        assert call_kwargs.get("title") == "Take medication"
+        assert call_kwargs.get("recurrence_pattern") == "daily"
+        assert call_kwargs.get("due_date") == "2026-01-21"
+        assert call_kwargs.get("due_time") == "08:00"
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
     def test_task_handler_parse_relative_date_today(self):
         """Test that TaskManagementHandler parses 'today' correctly."""
         handler = TaskManagementHandler()
@@ -899,4 +1007,3 @@ class TestTaskHandlerBehavior:
 
         assert "due" in result.lower(), "Should indicate future date"
         assert tomorrow in result, "Should include the date"
-

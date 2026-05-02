@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Plan for multi-phase task system enhancements (recurrence, templates, intelligence, and advanced workflows)  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-04-29 (v2-native runtime; legacy split-file verification closed)  
+> **Last Updated**: 2026-05-02 (Discord recurring-task natural language + help/docs verified)  
 > **Parent**: [PLANS.md](development_docs/PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -26,11 +26,11 @@
 
 #### **Phase 1: Foundation Improvements (High Impact, Low-Medium Effort)** **PARTIALLY COMPLETE** (since 2025-11-20)
 
-**1. Recurring Tasks System** **COMPLETED** (prior sessions)
-- **Status**: **COMPLETED** *(user has not tried; discoverability gap)*
-- **Note**: Recurring tasks functionality implemented (recurrence_pattern, recurrence_interval, next_due_date, auto-creation, UI components). **Gap**: User does not know how to create or use recurring tasks via Discord; add documentation/discoverability.
-- **Follow-up**: [ ] Document how to create recurring tasks via Discord; [ ] Verify Discord command/flow supports recurrence.
-- **Testing**: `tests/unit/test_recurring_tasks.py` and related task tests exist; verify coverage via `pytest tests/ -k recurring` (last verified 2026-02-28)
+**1. Recurring Tasks System** **COMPLETED** (prior sessions; Discord discoverability verified 2026-05-02)
+- **Status**: **COMPLETED**
+- **Note**: Recurring tasks functionality implemented (recurrence_pattern, recurrence_interval, next_due_date, auto-creation, UI components). Discord natural language now recognizes recurring creation patterns such as `remind me to take medication every morning at 8am`, `create task to water plants every 2 weeks`, and `new task to take out trash every Sunday`; help text and Discord developer docs include recurring examples.
+- **Follow-up**: [x] Document how to create recurring tasks via Discord (2026-05-02); [x] Verify Discord command/flow supports recurrence (2026-05-02).
+- **Testing**: `tests/unit/test_recurring_tasks.py` and related task tests exist; latest focused verification: `pytest tests/behavior/test_task_handler_behavior.py tests/behavior/test_command_discovery_help.py tests/unit/test_command_parser_rule_based_patterns_expansion.py -q` -> 269 passed (2026-05-02).
 
 **2. Task Templates & Quick Actions** [WARNING] **PLANNED**
 - **Why it matters**: Reduces friction for common task creation patterns
@@ -53,6 +53,7 @@
 
 **4. Natural Language Task Creation** [WARNING] **PLANNED** — *prioritize*
 - **Use / fit**: Discord commands extremely important; user adds tasks via Discord only.
+- **Progress (2026-05-02)**: Recurring-task natural language basics added for daily/weekly/monthly/yearly phrases, interval phrases (`every 2 weeks`), weekday recurrence, and time phrases (`at 8am`). Broader natural-language task parsing remains planned.
 - **Why it matters**: Makes task creation more intuitive and faster
 - **Implementation**:
   - [ ] Natural language parsing for task creation

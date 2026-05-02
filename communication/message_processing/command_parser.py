@@ -1212,8 +1212,9 @@ class EnhancedCommandParser:
         if intent == "create_task":
             if match.groups():
                 title = match.group(1).strip()
-                entities["title"] = title
-                entities.update(self._extract_task_entities(title))
+                task_entities = self._extract_task_entities(title)
+                entities["title"] = task_entities.pop("clean_title", title)
+                entities.update(task_entities)
             return True
 
         if intent in ["complete_task", "delete_task", "update_task"]:
@@ -1640,6 +1641,7 @@ class EnhancedCommandParser:
         """Extract task-related entities from title"""
         try:
             entities = {}
+            clean_title = title
 
             # Extract due date - order matters! More specific patterns first
             due_patterns = [
@@ -1683,6 +1685,23 @@ class EnhancedCommandParser:
                     time_str = best_match.group(2).strip()
                     entities["due_time"] = time_str
 
+            recurrence = self._extract_recurrence_entities(title)
+            if recurrence:
+                entities.update(
+                    {
+                        key: value
+                        for key, value in recurrence.items()
+                        if key != "matched_text"
+                    }
+                )
+                matched_text = recurrence.get("matched_text")
+                if isinstance(matched_text, str) and matched_text:
+                    clean_title = self._remove_task_phrase(clean_title, matched_text)
+                if "due_time" in recurrence:
+                    clean_title = self._remove_task_phrase(
+                        clean_title, f"at {recurrence['due_time']}"
+                    )
+
             # Extract priority
             priority_patterns = {
                 "high": [r"urgent", r"asap", r"important", r"critical"],
@@ -1693,12 +1712,92 @@ class EnhancedCommandParser:
                 for pattern in patterns:
                     if re.search(pattern, title, re.IGNORECASE):
                         entities["priority"] = priority
+                        clean_title = re.sub(
+                            pattern, "", clean_title, flags=re.IGNORECASE
+                        )
                         break
 
+            clean_title = self._normalize_task_title(clean_title)
+            if clean_title:
+                entities["clean_title"] = clean_title
             return entities
         except Exception as e:
             logger.error(f"Error extracting task entities: {e}")
             return {}
+
+    @handle_errors("extracting recurrence entities", default_return={})
+    def _extract_recurrence_entities(self, title: str) -> dict[str, Any]:
+        """Extract recurrence fields from natural task text."""
+        title_lower = title.lower()
+        result: dict[str, Any] = {}
+
+        interval_match = re.search(
+            r"\bevery\s+(\d+)\s+(days?|weeks?|months?|years?)\b", title_lower
+        )
+        if interval_match:
+            unit = interval_match.group(2)
+            result["recurrence_pattern"] = self._recurrence_unit_to_pattern(unit)
+            result["recurrence_interval"] = int(interval_match.group(1))
+            result["matched_text"] = interval_match.group(0)
+        else:
+            simple_patterns = [
+                (r"\bevery\s+(?:day|morning|afternoon|evening|night)\b", "daily"),
+                (r"\bdaily\b", "daily"),
+                (r"\bevery\s+week\b", "weekly"),
+                (r"\bweekly\b", "weekly"),
+                (r"\bevery\s+month\b", "monthly"),
+                (r"\bmonthly\b", "monthly"),
+                (r"\bevery\s+year\b", "yearly"),
+                (r"\byearly\b", "yearly"),
+                (
+                    r"\bevery\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b",
+                    "weekly",
+                ),
+            ]
+            for pattern, recurrence_pattern in simple_patterns:
+                match = re.search(pattern, title_lower)
+                if match:
+                    result["recurrence_pattern"] = recurrence_pattern
+                    result["recurrence_interval"] = 1
+                    result["matched_text"] = match.group(0)
+                    if match.groups():
+                        result["due_date"] = match.group(1)
+                    break
+
+        time_match = re.search(
+            r"\bat\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?|noon|midnight)\b",
+            title_lower,
+        )
+        if result and time_match:
+            result["due_time"] = time_match.group(1)
+
+        return result
+
+    @handle_errors("mapping recurrence unit to pattern", default_return=None)
+    def _recurrence_unit_to_pattern(self, unit: str) -> str | None:
+        """Map a plural natural-language recurrence unit to a task recurrence pattern."""
+        unit = unit.lower().rstrip("s")
+        return {
+            "day": "daily",
+            "week": "weekly",
+            "month": "monthly",
+            "year": "yearly",
+        }.get(unit)
+
+    @handle_errors("removing task phrase", default_return="")
+    def _remove_task_phrase(self, title: str, phrase: str) -> str:
+        """Remove a parsed metadata phrase from a task title."""
+        if not phrase:
+            return title
+        return re.sub(re.escape(phrase), "", title, flags=re.IGNORECASE).strip()
+
+    @handle_errors("normalizing task title", default_return="")
+    def _normalize_task_title(self, title: str) -> str:
+        """Normalize whitespace and dangling connectors after entity extraction."""
+        title = re.sub(r"\s+", " ", title).strip()
+        title = re.sub(r"\s+(?:by|on|at|every|repeat(?:s|ing)?|due)$", "", title, flags=re.IGNORECASE)
+        title = re.sub(r"\s+,$", "", title).strip()
+        return title
 
     @handle_errors("extracting task name from context")
     def _extract_task_name_from_context(self, message: str) -> str | None:

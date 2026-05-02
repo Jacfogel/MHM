@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-02 - Discord Recurring Task UX **COMPLETED**
+- **Audit status**: latest generated `AI_STATUS` already showed Tier 3 clean, so the previously noted communication failures were treated as cleared by current evidence.
+- **Tasks Discord UX**: rule-based task parsing now recognizes recurring phrases such as `every morning`, `every 2 weeks`, and `every Sunday`; titles are cleaned before task creation.
+- **Recurring scheduling**: recurring tasks with a time but no explicit date now get today as the first due date, allowing the existing reminder follow-up to proceed.
+- **Docs/tests**: task help + `DISCORD_GUIDE` include recurring examples; focused task parser/help/handler tests passed (`269 passed`) plus Ruff and `py_compile`.
+
 ### 2026-05-01 - Removed v2 migration / repair script CLIs **COMPLETED**
 - **Notebook Discord pagination**: `Show More` buttons now preserve hidden pagination payloads for recent/search/group/tag/pinned/inbox/archived notebook lists. Discord suggestion handling stores payloads and routes structured clicks through the matching handler instead of replaying the visible label.
 - **Notebook search UX**: empty search results now explain substring matching, archived exclusion, shorter/distinctive keyword retry, and browse fallbacks (`!recent`, `!inbox`, `!archived`).
