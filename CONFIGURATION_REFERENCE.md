@@ -110,7 +110,7 @@ If Telegram is being removed, these should remain unused/ignored in code.
 
 - `DISCORD_BOT_TOKEN`
 - `DISCORD_PUBLIC_KEY`
-- `DISCORD_AUTO_NGROK`
+- `DISCORD_AUTO_NGROK` — default in code is `false`; when `true`, the bot spawns ngrok for the webhook port (requires ngrok v3+ authtoken on the machine or the child exits immediately).
 - `DISCORD_WEBHOOK_PORT`
 
 **Breaks if wrong:** Discord bot fails to start, slash command verification fails, webhook cannot bind, or messages do not send.

@@ -2471,20 +2471,20 @@ class DiscordBot(BaseChannel):
             # Start ngrok process
             discord_logger.info(f"Starting ngrok tunnel for port {port}...")
             try:
-                # Windows: use CREATE_NO_WINDOW to hide console
-                # Unix: redirect output to avoid cluttering logs
+                # Capture stderr so exit code 1 (common: missing authtoken) is diagnosable.
+                # If the tunnel stays up, drain stderr in a daemon thread so the pipe cannot fill.
                 if os.name == "nt":  # Windows
                     self._ngrok_process = subprocess.Popen(
-                        ["ngrok", "http", str(port)],
+                        [ngrok_path, "http", str(port)],
                         stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
+                        stderr=subprocess.PIPE,
                         creationflags=subprocess.CREATE_NO_WINDOW,
                     )
                 else:  # Unix/Linux/Mac
                     self._ngrok_process = subprocess.Popen(
-                        ["ngrok", "http", str(port)],
+                        [ngrok_path, "http", str(port)],
                         stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
+                        stderr=subprocess.PIPE,
                     )
 
                 # Give ngrok a moment to start
@@ -2502,9 +2502,44 @@ class DiscordBot(BaseChannel):
                     discord_logger.info(
                         "Check ngrok web interface for public URL to configure in Discord Developer Portal"
                     )
+
+                    def _drain_ngrok_stderr() -> None:
+                        proc = self._ngrok_process
+                        if not proc or proc.stderr is None:
+                            return
+                        try:
+                            while True:
+                                chunk = proc.stderr.read(4096)
+                                if not chunk:
+                                    break
+                        except Exception:
+                            pass
+
+                    threading.Thread(
+                        target=_drain_ngrok_stderr, daemon=True
+                    ).start()
                 else:
+                    exit_code = self._ngrok_process.poll()
+                    err_text = ""
+                    try:
+                        if self._ngrok_process.stderr is not None:
+                            err_raw = self._ngrok_process.stderr.read()
+                            err_text = err_raw.decode(errors="replace").strip()
+                    except Exception:
+                        pass
                     discord_logger.warning(
-                        f"ngrok process exited immediately (exit code: {self._ngrok_process.poll()})"
+                        "ngrok process exited immediately (exit code: %s)",
+                        exit_code,
+                    )
+                    if err_text:
+                        discord_logger.warning(
+                            "ngrok stderr (excerpt): %s",
+                            err_text[:2048],
+                        )
+                    discord_logger.warning(
+                        "ngrok hint: ngrok v3+ needs a one-time authtoken "
+                        "(`ngrok config add-authtoken <token>` from https://dashboard.ngrok.com/). "
+                        "Or run ngrok yourself and set DISCORD_AUTO_NGROK=false."
                     )
                     self._ngrok_process = None
                     self._ngrok_pid = None

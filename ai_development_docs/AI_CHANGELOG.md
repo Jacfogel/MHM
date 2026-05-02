@@ -30,6 +30,9 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-02 - Discord ngrok diagnostics **COMPLETED**
+- Failed auto-ngrok now logs stderr + authtoken / manual-ngrok hints; running tunnel drains stderr in a background thread. DISCORD_GUIDE updated for ngrok v3+; `.env.example` defaults `DISCORD_AUTO_NGROK=false`. Validation: `py_compile` + Ruff on `discord/bot.py`.
+
 ### 2026-05-02 - Development tools decoupled from core.logger **COMPLETED**
 - **Follow-up (same day)**: `get_dev_tools_logger` now supports stdlib printf-style calls (fixes Pyright across dev-tools); `run_development_tools.py` sets `DEV_TOOLS_LOGS_DIR` to `development_tools/reports/logs`; [TODO.md](../TODO.md) path-drift fixes + doc-sync clean; `run_test_coverage.py` guards `logger.error(context)` when `context` is optional. **`core/logger.py`**: removed special-case routing of log files under `development_tools/reports/logs` when `MHM_DEV_TOOLS_RUN=1` (dev-tools file logs are only via `development_tools.shared.logging`).
 - **Log noise / priorities**: Dev-tools file logs default **INFO** (`DEV_TOOLS_LOG_LEVEL`); several former WARNING/ERROR lines re-leveled to DEBUG for expected paths; unknown CLI command is WARNING. Paired logging-guide paths + CHANGELOG link fixed so doc-sync PASS; `status` refreshed `AI_PRIORITIES.md`.

@@ -258,11 +258,13 @@ Discord-related configuration lives in `core.config` and `.env` keys. Key variab
   - Port on which the webhook HTTP server listens (default e.g. 8080).  
   - If exposing this externally (or via ngrok), this port must be reachable from Discord.
 
-- `DISCORD_AUTO_NGROK` (if implemented)  
-  - When `true`, the bot may automatically start an ngrok tunnel for development.  
-  - If used, ensure that:
+- `DISCORD_AUTO_NGROK`  
+  - When `true`, the bot starts an ngrok HTTP tunnel to `DISCORD_WEBHOOK_PORT` for local webhook development.  
+  - Requirements:
     - ngrok is installed and on the PATH.  
-    - The resulting public URL is configured as the interactions/webhook endpoint in the Discord Developer Portal.
+    - **ngrok v3+**: run `ngrok config add-authtoken <token>` once (token from the ngrok dashboard); without it, the process exits immediately with code 1. Check `logs/discord.log` for the captured stderr line.  
+    - Configure the tunnel’s public URL in the Discord Developer Portal if Discord must reach your machine.  
+  - If you already run ngrok manually, set `DISCORD_AUTO_NGROK=false` to avoid duplicate tunnels.
 
 When changing or adding configuration:
 
