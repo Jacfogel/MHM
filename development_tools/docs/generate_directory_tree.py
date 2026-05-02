@@ -26,7 +26,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from development_tools.shared.standard_exclusions import should_exclude_file
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.time_helpers import now_timestamp_full
 
 # Handle both relative and absolute imports
@@ -42,7 +42,7 @@ try:
 except (AttributeError, ImportError):
     pass
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 def _get_line_indent(line: str) -> int | None:

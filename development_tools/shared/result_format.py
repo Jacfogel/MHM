@@ -8,9 +8,9 @@ that assumption and raises if the format is violated.
 """
 
 from typing import Any
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 def normalize_to_standard_format(tool_name: str, data: dict[str, Any]) -> dict[str, Any]:

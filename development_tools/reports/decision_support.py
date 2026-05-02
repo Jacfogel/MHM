@@ -33,12 +33,12 @@ except ImportError:
         categorize_functions,
     )
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
 # Ensure external config is loaded
 config.load_external_config()
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 # Load config values using the new configurable functions
 FUNCTION_DISCOVERY_CONFIG = config.get_analyze_functions_config()

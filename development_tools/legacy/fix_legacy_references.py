@@ -35,7 +35,7 @@ project_root = Path(__file__).resolve().parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
 # Handle both relative and absolute imports
 if __name__ != "__main__" and __package__ and "." in __package__:
@@ -58,7 +58,7 @@ try:
 except (AttributeError, ImportError):
     pass
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 # Inventory must keep these categories non-empty for project-specific legacy detection.
 # (Retired 2026-05-01: user_data_v1_runtime_adapters — over-broad heuristics, see DEPRECATION_INVENTORY removed_inventory.)

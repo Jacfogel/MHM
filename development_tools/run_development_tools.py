@@ -22,6 +22,13 @@ if project_root_str not in sys.path:
 # development-tools logs into test-coverage log directories.
 os.environ["MHM_DEV_TOOLS_RUN"] = "1"
 os.environ["MHM_TESTING"] = "0"
+# Integration tests subprocess this entrypoint; inherited PYTEST_CURRENT_TEST would
+# make create_output_file treat the CLI as an in-test write and block real status files.
+os.environ.pop("PYTEST_CURRENT_TEST", None)
+# Keep dev-tools file logs under development_tools/reports/logs (matches core
+# logger layout during MHM_DEV_TOOLS_RUN; avoids cluttering project logs/).
+_reports_logs = project_root / "development_tools" / "reports" / "logs"
+os.environ.setdefault("DEV_TOOLS_LOGS_DIR", str(_reports_logs.resolve()))
 
 # Now we can import development_tools as a package
 try:
@@ -37,12 +44,12 @@ except ImportError as e:
     print("Python path:", sys.path[:3])  # Show first 3 entries
     raise
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.lock_state import cleanup_lock_paths, evaluate_lock_set
 from development_tools.shared import audit_signal_state
 import contextlib
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 def _remove_path_with_retries(path: Path, retries: int = 10, delay_seconds: float = 0.2) -> None:
@@ -382,7 +389,7 @@ def main(argv=None) -> int:
     commands = COMMAND_REGISTRY
 
     if command_name not in commands:
-        logger.error(f"Unknown command: {command_name}")
+        logger.warning("Unknown command: %s", command_name)
         # User-facing error messages stay as print() for immediate visibility
         print(f"Unknown command: {command_name}")
         print()

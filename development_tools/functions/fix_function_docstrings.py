@@ -31,10 +31,10 @@ except ImportError:
     from development_tools import config
     from development_tools.shared.standard_exclusions import should_exclude_file
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.time_helpers import now_timestamp_filename
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 # Load config at module level
 AUTO_DOC_CONFIG = config.get_fix_function_docstrings_config()

@@ -138,46 +138,9 @@ def _get_log_paths_for_environment():
             "ai_dev_tools_file": str(base_dir / "ai_dev_tools.log"),
         }
 
-    # Explicit dev-tools runs use dev-tools log roots.
-    if os.getenv("MHM_DEV_TOOLS_RUN") == "1" and _is_dev_tools_run():
-        dev_tools_base = Path(
-            os.getenv(
-                "DEV_TOOLS_LOGS_DIR",
-                str(Path("development_tools") / "reports" / "logs"),
-            )
-        )
-        dev_tools_backup = dev_tools_base / "backups"
-        dev_tools_archive = dev_tools_base / "archive"
-        dev_tools_base.mkdir(parents=True, exist_ok=True)
-        dev_tools_backup.mkdir(parents=True, exist_ok=True)
-        dev_tools_archive.mkdir(parents=True, exist_ok=True)
-        dev_tools_main = str(dev_tools_base / "main.log")
-        dev_tools_errors = str(dev_tools_base / "errors.log")
-        dev_tools_file_ops = str(dev_tools_base / "file_ops.log")
-        return {
-            "base_dir": str(dev_tools_base),
-            "backup_dir": str(dev_tools_backup),
-            "archive_dir": str(dev_tools_archive),
-            "main_file": dev_tools_main,
-            # Collapse non-critical component logs to main.log for dev-tools runs.
-            "discord_file": dev_tools_main,
-            "ai_file": dev_tools_main,
-            "user_activity_file": dev_tools_main,
-            "errors_file": dev_tools_errors,
-            "communication_manager_file": dev_tools_main,
-            "email_file": dev_tools_main,
-            "ui_file": dev_tools_main,
-            "file_ops_file": dev_tools_file_ops,
-            "scheduler_file": dev_tools_main,
-            "schedule_utilities_file": dev_tools_main,
-            "analytics_file": dev_tools_main,
-            "message_file": dev_tools_main,
-            "backup_file": dev_tools_main,
-            "checkin_dynamic_file": dev_tools_main,
-            "ai_dev_tools_file": dev_tools_main,
-        }
-
     # Use centralized paths from config - import locally to avoid circular import
+    # (Do not route core logging under development_tools/; dev-tools use
+    # development_tools.shared.logging and set DEV_TOOLS_LOGS_DIR themselves.)
     import core.config as config
 
     return {
@@ -1110,8 +1073,7 @@ def setup_logging():
         encoding="utf-8",
     )
     file_handler.setFormatter(log_formatter)
-    # In dev-tools mode, root file goes to ai_dev_tools.log; use INFO so DEBUG init lines don't flood it
-    file_handler.setLevel(logging.INFO if _is_dev_tools_run() else logging.DEBUG)
+    file_handler.setLevel(logging.DEBUG)
 
     # Set up console handler (respects current verbosity setting)
     console_handler = logging.StreamHandler()

@@ -52,7 +52,7 @@ os.environ.setdefault(
     str(project_root / "development_tools" / "reports" / "logs"),
 )
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 import contextlib
 
 # Import config module (absolute import for portability)
@@ -83,7 +83,7 @@ except ImportError:
 # Load external config on module import (safe to call multiple times)
 config.load_external_config()
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 _DEV_TOOLS_TEST_POSIX_PREFIX = "tests/development_tools/"
 
@@ -4699,7 +4699,8 @@ class CoverageMetricsRegenerator:
             logger.error(
                 f"Pytest crashed with Windows error {return_code_hex} (STATUS_ACCESS_VIOLATION)"
             )
-        logger.error(context)
+        if context:
+            logger.error(context)
         if log_file:
             logger.error(f"Check log for details: {log_file}")
 

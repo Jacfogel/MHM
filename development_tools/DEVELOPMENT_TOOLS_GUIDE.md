@@ -572,18 +572,17 @@ Function-level exclusions (auto-generated code, special methods, test functions)
 
 **Purpose**: Keep `development_tools/` portable and isolated from MHM business logic so the tool suite can run in external repositories without depending on project-specific modules.
 
-**Approved `core.*` imports**: `core.logger` only.
-
-Development-tools modules may import `core.logger` for structured logging. All other `core.*` imports (for example `core.time_utilities`, `core.error_handling`, static `from core.backup_manager import ...`) are not approved and are flagged by the import-boundary checker (`imports/analyze_dev_tools_import_boundaries.py`), which runs in Tier 1 audits.
+**`core.*` imports**: None. All imports from `core.*` inside `development_tools/**` are rejected by the import-boundary checker (`imports/analyze_dev_tools_import_boundaries.py`), which runs in Tier 1 audits.
 
 **Rationale**:
-- `core.logger` is lightweight and acceptable for cross-project tooling.
-- Other `core` modules tie development_tools to MHM-specific behavior. Prefer stdlib or dev-tools-local helpers:
+- Any `core` import couples the tool suite to MHM runtime modules (including transitive imports such as `core.config` inside `core.logger`).
+- Use dev-tools-local helpers instead:
+  - **Logging**: `development_tools.shared.logging` (`get_dev_tools_logger`). `run_development_tools.py` sets `DEV_TOOLS_LOGS_DIR` to `development_tools/reports/logs`, so the default file is `development_tools/reports/logs/ai_dev_tools.log` (handler level **INFO** by default; use `DEV_TOOLS_LOG_LEVEL=DEBUG` for full detail). Other entry points default to `logs/ai_dev_tools.log` under cwd unless you set `LOG_AI_DEV_TOOLS_FILE` or `DEV_TOOLS_LOGS_DIR`.
   - **Timestamps**: `development_tools.shared.time_helpers` (`now_timestamp_full`, `now_timestamp_filename`)
   - **Error handling**: `development_tools.shared.error_helpers` (`handle_errors` decorator)
   - **Backup manager**: Use `importlib.import_module("core.backup_manager")` inside the function that needs it, then access `mod.backup_manager`; treat failures as "backup not available" for host repos without that module.
 
-**Adding new approved imports**: Propose new `core.*` prefixes through review; document rationale and avoid project-specific coupling.
+**Extending boundaries**: If a tool truly needs product code, keep that code outside `development_tools/` or load it via dynamic import with a documented fallback; do not add `core.*` static imports under `development_tools/**`.
 
 **Verification**: `python development_tools/imports/analyze_dev_tools_import_boundaries.py` or `pytest tests/development_tools/test_import_boundary_policy.py`.
 

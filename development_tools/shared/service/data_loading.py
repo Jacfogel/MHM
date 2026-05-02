@@ -12,13 +12,13 @@ from pathlib import Path
 from typing import Any
 from collections.abc import Callable
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.audit_storage_scope import (
     STORAGE_SCOPE_FULL,
     scoped_analysis_detailed_path,
 )
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 # Import utilities for helper functions
 # Note: Uses self._create_standard_format_result method instead of imported function
@@ -119,7 +119,9 @@ class DataLoadingMixin:
         
         # No data found in any source
         if log_source:
-            logger.warning(f"[DATA SOURCE] {tool_name}: no data found in any source (using empty fallback)")
+            logger.debug(
+                f"[DATA SOURCE] {tool_name}: no data found in any source (using empty fallback)"
+            )
         return {}
     
     def _get_canonical_metrics(self) -> dict[str, Any]:

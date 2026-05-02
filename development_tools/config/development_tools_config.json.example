@@ -727,6 +727,7 @@
       "communication.discord.bot",
       "communication.email.bot",
       "core.logger",
+      "development_tools.shared.logging",
       "core.error_handling",
       "core.config",
       "core.scheduler",

@@ -24,7 +24,7 @@ project_root = _dev_tools_dir.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.time_helpers import now_timestamp_full
 
 # Import config for project name
@@ -37,7 +37,7 @@ except ImportError:
 # Load external config on module import
 config.load_external_config()
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 def detect_function_type(

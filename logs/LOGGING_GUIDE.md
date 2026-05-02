@@ -209,10 +209,13 @@ If unset, `core/logger.py` derives sensible defaults under `LOGS_DIR`.
   - `1` (medium): Component loggers WARNING, Test loggers INFO (test execution details without component chatter)  
   - `2` (verbose): Component loggers DEBUG, Test loggers DEBUG (full detail)
 
-### 5.5. Development tools isolation
+### 5.5. Development tools vs application logging
 
 - `MHM_DEV_TOOLS_RUN`  
-  When set to `1`, or when the process entry point is a development-tools script (e.g. `run_development_tools.py`, `run_dev_tools.py`, or any script under `development_tools/`), logging that would normally go to `app.log` is routed to `logs/ai_dev_tools.log` instead. This keeps the main application log untouched when running audits, status, or other dev-tool commands. Subprocesses spawned by the development tools set this variable automatically so that all tool and script output is isolated to `ai_dev_tools.log` (and, when tests are run, to `tests/logs` as configured for test runs).
+  Set to `1` by [`development_tools/run_development_tools.py`](../development_tools/run_development_tools.py) and subprocesses it spawns so `core/logger.py` can **reduce routine INFO** from non-tool components during audits (log **levels**, not alternate **directories**). **`core/logger.py` does not route log files under `development_tools/`**; file paths always come from `core.config` (`LOG_MAIN_FILE`, `LOG_FILE_OPS_FILE`, etc., typically under `logs/`) except in test modes.
+
+- **Development tools file logs**  
+  Python code under `development_tools/` should use `development_tools.shared.logging.get_dev_tools_logger`. [`development_tools/run_development_tools.py`](../development_tools/run_development_tools.py) sets `DEV_TOOLS_LOGS_DIR` to `development_tools/reports/logs` so those messages go to `development_tools/reports/logs/ai_dev_tools.log` (or overrides you set), separate from the application `logs/` tree. Optional: set `DEV_TOOLS_LOG_LEVEL=DEBUG` on the same process to lower the dev-tools file handler threshold when diagnosing.
 
 Other diagnostic and backup environment variables (such as `BACKUP_RETENTION_DAYS` and file-auditor settings) may affect how long logs and backups are kept, but are not logging-exclusive.
 
@@ -308,7 +311,7 @@ When writing tests that assert on logs, use helpers/fixtures in `tests\test_help
 
 To keep production logs readable and avoid debug-level repetition at INFO:
 
-- **Logging init and prompt load**: When the process is a development-tools run or short-lived subprocess (e.g. `run_development_tools.py`, `run_dev_tools.py`), `setup_logging()` and the prompt-manager "Loaded custom system prompt" message log at DEBUG instead of INFO so app.log is not filled by many tool invocations.
+- **Logging init and prompt load**: When the process is a development-tools run or short-lived subprocess (e.g. [`development_tools/run_development_tools.py`](../development_tools/run_development_tools.py), `run_dev_tools.py`), `setup_logging()` and the prompt-manager "Loaded custom system prompt" message log at DEBUG instead of INFO so app.log is not filled by many tool invocations.
 - **Flow state load**: When conversation flow state is loaded and the result is "0 user states", the message is logged at DEBUG; when there are active user states it remains INFO so flow activity is visible.
 - **Scheduler heartbeat**: The periodic "Scheduler running: N total jobs" message is logged at DEBUG. Use DEBUG level in scheduler.log (or temporarily raise scheduler logger level) when diagnosing job counts; normal operation keeps INFO for actual sends and schedule changes.
 

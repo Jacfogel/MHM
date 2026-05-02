@@ -45,9 +45,9 @@ except ImportError:
     HAS_MSVCRT = False
 
 try:
-    from core.logger import get_component_logger
+    from development_tools.shared.logging import get_dev_tools_logger
 
-    logger = get_component_logger("development_tools")
+    logger = get_dev_tools_logger("development_tools")
 except ImportError:
     logger = None
 

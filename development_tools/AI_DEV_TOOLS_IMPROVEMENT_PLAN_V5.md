@@ -665,6 +665,85 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 
 **Deferred backlog (2026-04-16 reset)** — pick up when the active slice is complete or when related code is already in motion: §1.1 opportunistic `test_config.json` migration in analyzer tests; §1.5 numeric cache benchmarks; §3.13–3.15 remaining scripts/gap heuristics; §3.16 helper extraction from `report_generation.py` / `run_test_coverage.py`; §4.1 additional external-tool evaluation; §5.4 TODO-sync workflow polish; §5.5 gap-analysis expansion; §5.6 memory profiler; §7.8–7.13 and §7.15 as separately prioritized work.
 
+### Section 7.x - Dev-tools portability: remove core.logger dependency
+
+- **Scope**: development_tools logging and import-boundary enforcement
+
+- **Problem**: development_tools modules currently import `core.logger`, creating a hard dependency on the MHM runtime and violating the goal of making dev tools project-independent.
+
+- **Why it matters**:  
+  - Prevents dev tools from running against external projects  
+  - Blocks extraction of development_tools into a standalone repo/package  
+  - Import-boundary tooling currently allows this as an exception, hiding the coupling  
+
+---
+
+#### Implementation
+
+- Create:
+  - `development_tools/shared/logging.py`
+- Add a minimal, self-contained logger:
+  - No `core.*` imports
+  - No dependency on `.env` or MHM config
+  - Simple console logging (file logging optional later)
+
+- Replace all instances of:
+  ```python
+  from core.logger import get_component_logger
+with:
+
+from development_tools.shared.logging import get_dev_tools_logger
+
+Update usage patterns:
+
+logger = get_dev_tools_logger("module_name")
+
+#### Import Boundary Enforcement
+Update:
+analyze_dev_tools_import_boundaries
+Changes:
+Remove core.logger from allowed exceptions
+Ensure all core.* imports inside development_tools/ fail analysis
+#### Tests
+Update:
+tests/development_tools/test_analyze_dev_tools_import_boundaries.py
+Changes:
+core.logger import -> FAIL
+development_tools.shared.logging import -> PASS
+Run:
+Full tests/development_tools/ suite
+#### Validation
+audit --full --dev-tools-only shows no import-boundary violations
+No remaining core.* imports in development_tools/
+Dev tools execute without requiring MHM runtime modules
+#### Follow-up
+Continue dev-tools decoupling (next slices):
+- Introduce project-root abstraction consistently across tools
+- Externalize package assumptions via `development_tools_config.json`
+- Reduce hardcoded MHM-specific strings where still present
+
+#### Status
+**Done (2026-05-02)** — `development_tools/shared/logging.py` added; all `development_tools/**/*.py` now use `get_dev_tools_logger`; import-boundary checker rejects any `core.*` import; guides, `.cursor/rules/dev_tools.mdc`, `check_channel_loggers` messaging, and policy tests updated; `tests/development_tools/test_dev_tools_portability_smoke.py` covers minimal fake project + subprocess import check; `python development_tools/run_development_tools.py audit --quick` verified.
+
+#### Historical note (pre-change)
+Previously ~85 modules used `core.logger`; policy allowlisted `core.logger` only. That coupling pulled `core.config` transitively via `core.logger`.
+
+
+### Section 7.x - Dev-tools portability: eliminate remaining implicit MHM assumptions
+
+- Audit and remove remaining:
+  - Hardcoded package names
+  - Direct `core.*` imports
+  - Inconsistent project-root resolution
+  - Config-required assumptions
+
+- Standardize:
+  - All tools must rely on resolved project_root
+  - All package detection must be config-driven
+
+- Validate:
+  - Dev tools run against MHM
+  - Dev tools run against a minimal fake project
 ---
 
 ## 6. Related documents

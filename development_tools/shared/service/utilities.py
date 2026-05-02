@@ -11,10 +11,10 @@ from pathlib import Path
 from typing import Any
 from collections.abc import Sequence
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 import contextlib
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 def format_list_for_display(items: Sequence[str], limit: int = 3) -> str:

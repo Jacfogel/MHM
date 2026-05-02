@@ -37,9 +37,9 @@ else:
     from development_tools.shared.standard_exclusions import should_exclude_file
     from development_tools.shared.constants import PROJECT_DIRECTORIES
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 class SystemSignalsAnalyzer:

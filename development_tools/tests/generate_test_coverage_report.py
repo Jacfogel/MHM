@@ -27,7 +27,7 @@ project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.time_helpers import now_timestamp_full
 
 # Import config module (absolute import for portability)
@@ -44,7 +44,7 @@ config.load_external_config()
 
 from development_tools.shared.standard_exclusions import should_exclude_file
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 class TestCoverageReportGenerator:

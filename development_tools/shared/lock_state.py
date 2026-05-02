@@ -168,3 +168,48 @@ def cleanup_lock_paths(paths: Iterable[Path]) -> int:
         except Exception:
             continue
     return removed
+
+
+def active_audit_coverage_locks_present(project_root: Path) -> bool:
+    """True when audit or coverage lock files exist and evaluate as *active* (cross-process).
+
+    Stale/malformed locks are removed best-effort (same behavior as the file-based
+    portion of ``audit_orchestration._is_audit_in_progress``). Used by that helper
+    and by :func:`create_output_file` so subprocess CLIs still respect locks without
+    relying on ``development_tools.shared.operations`` being imported.
+    """
+    from development_tools.shared.logging import get_dev_tools_logger
+
+    log = get_dev_tools_logger("development_tools.shared.lock_state")
+    try:
+        from development_tools import config
+
+        audit_lock_path = config.get_external_value(
+            "paths.audit_lock_file", ".audit_in_progress.lock"
+        )
+        coverage_lock_path = config.get_external_value(
+            "paths.coverage_lock_file", ".coverage_in_progress.lock"
+        )
+        audit_lock_file = project_root / Path(audit_lock_path)
+        coverage_lock_file = project_root / Path(coverage_lock_path)
+    except (ImportError, AttributeError):
+        audit_lock_file = project_root / ".audit_in_progress.lock"
+        coverage_lock_file = project_root / ".coverage_in_progress.lock"
+    dev_tools_coverage_lock_file = (
+        coverage_lock_file.parent / ".coverage_dev_tools_in_progress.lock"
+    )
+    lock_states = evaluate_lock_set(
+        [audit_lock_file, coverage_lock_file, dev_tools_coverage_lock_file]
+    )
+    cleanup_targets = [
+        entry["path"]
+        for entry in (lock_states["stale"] + lock_states["malformed"])
+        if isinstance(entry.get("path"), Path)
+    ]
+    if cleanup_targets:
+        removed = cleanup_lock_paths(cleanup_targets)
+        log.warning(
+            "Removed %s stale/malformed audit lock file(s) during in-progress check",
+            removed,
+        )
+    return len(lock_states["active"]) > 0

@@ -21,9 +21,9 @@ sys.path.insert(0, str(project_root))
 
 from development_tools.shared.service import AIToolsService
 from development_tools.shared.audit_tiers import get_tier_runnables
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 def measure_tool_execution(

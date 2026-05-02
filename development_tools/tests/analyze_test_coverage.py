@@ -26,7 +26,7 @@ project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
 # Import config module (absolute import for portability)
 try:
@@ -50,7 +50,7 @@ except ImportError:
 # Load external config on module import (safe to call multiple times)
 config.load_external_config()
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 class TestCoverageAnalyzer:

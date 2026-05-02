@@ -40,7 +40,7 @@ from typing import Any
 try:
     from .. import config
     from ..shared.standard_exclusions import should_exclude_file
-    from core.logger import get_component_logger
+    from development_tools.shared.logging import get_dev_tools_logger
 except ImportError:
     # Fallback for when run as script
     # Add project root to path for core module imports
@@ -49,9 +49,9 @@ except ImportError:
         sys.path.insert(0, str(project_root))
     from development_tools import config
     from development_tools.shared.standard_exclusions import should_exclude_file
-    from core.logger import get_component_logger
+    from development_tools.shared.logging import get_dev_tools_logger
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 # Load config at module level
 UNUSED_IMPORTS_CONFIG = config.get_unused_imports_config()

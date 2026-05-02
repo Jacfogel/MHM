@@ -39,7 +39,7 @@ except ImportError:
     from development_tools import config
     from development_tools.shared.standard_exclusions import should_exclude_file
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
 # Load external config on module import
 config.load_external_config()
@@ -49,7 +49,7 @@ AUDIT_EXPORTS_CONFIG = config.get_analyze_package_exports_config()
 EXPORT_PATTERNS = AUDIT_EXPORTS_CONFIG.get("export_patterns", [])
 EXPECTED_EXPORTS = AUDIT_EXPORTS_CONFIG.get("expected_exports", {})
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 class UsageStats(TypedDict):

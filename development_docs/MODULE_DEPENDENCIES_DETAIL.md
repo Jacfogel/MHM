@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-01 23:31:26
+> **Last Generated**: 2026-05-02 03:03:53
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -21,7 +21,7 @@
 - **Standard Library Imports**: 432 (28.2%)
 - **Third-Party Imports**: 234 (15.3%)
 - **Local Imports**: 865 (56.5%)
-- **Last Updated**: 2026-05-01
+- **Last Updated**: 2026-05-02
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -2701,7 +2701,7 @@
 
 **Dependency Changes**:
 - Added: core.time_utilities, core.user_data_v2_base
-- Removed: communication/command_handlers/task_handler.py, core/file_operations.py, tasks/task_data_handlers.py, tasks/task_validation.py
+- Removed: communication/command_handlers/task_handler.py, communication/message_processing/conversation_flow_manager.py, core/file_operations.py, tasks/task_data_handlers.py, tasks/task_validation.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

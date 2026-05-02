@@ -17,7 +17,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -28,7 +28,7 @@ DEFAULT_PROGRESS_FILE = (
 DEFAULT_REPORT_FILE = (
     PROJECT_ROOT / "development_tools" / "tests" / "logs" / "flaky_test_report.md"
 )
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 def extract_failed_tests(stdout_text: str, stderr_text: str) -> set[str]:

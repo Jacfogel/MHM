@@ -13,9 +13,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 # Import audit orchestration helper
 from .audit_orchestration import _is_audit_in_progress
@@ -876,11 +876,11 @@ class ReportGenerationMixin:
 
         if audit_in_progress and not is_legitimate_end_write:
             if not instance_flag:
-                logger.warning(
+                logger.debug(
                     "_generate_ai_status_document() called from NEW instance during audit! This should only happen at the end."
                 )
             else:
-                logger.warning(
+                logger.debug(
                     "_generate_ai_status_document() called during audit! This should only happen at the end."
                 )
             import traceback
@@ -2654,7 +2654,7 @@ class ReportGenerationMixin:
                     if f:
                         lines.append(f"  - {f}")
             lines.append(
-                "- **Action**: Refactor to use only approved imports (`core.logger`); see DEVELOPMENT_TOOLS_GUIDE.md §8.5"
+                "- **Action**: Refactor to remove all `core.*` imports; use `development_tools.shared.logging` for dev-tools logs; see DEVELOPMENT_TOOLS_GUIDE.md §8.5"
             )
         elif import_violations == 0:
             lines.append("- **Status**: CLEAN (no boundary violations detected)")
@@ -3107,11 +3107,11 @@ class ReportGenerationMixin:
 
         if audit_in_progress and not is_legitimate_end_write:
             if not instance_flag:
-                logger.warning(
+                logger.debug(
                     "_generate_ai_priorities_document() called from NEW instance during audit! This should only happen at the end."
                 )
             else:
-                logger.warning(
+                logger.debug(
                     "_generate_ai_priorities_document() called during audit! This should only happen at the end."
                 )
             import traceback
@@ -4615,7 +4615,7 @@ class ReportGenerationMixin:
         if import_violations is not None and import_violations > 0:
             import_bullets: list[str] = [
                 "Review for policy: development_tools/DEVELOPMENT_TOOLS_GUIDE.md §8.5 Import boundary",
-                "Action: Refactor to use only approved imports (core.logger). Replace core.time_utilities with development_tools/shared/time_helpers; core.error_handling with try/except or dev-tools wrapper; core.backup_manager with optional/lazy import.",
+                "Action: Remove core.* imports from development_tools. Use development_tools.shared.logging for logging. Replace core.time_utilities with development_tools/shared/time_helpers; core.error_handling with try/except or dev-tools wrapper; core.backup_manager with optional/lazy import.",
                 "Verify: Run `python development_tools/imports/analyze_dev_tools_import_boundaries.py` after fixes.",
             ]
             add_priority(
@@ -5945,11 +5945,11 @@ class ReportGenerationMixin:
 
         if audit_in_progress and not is_legitimate_end_write:
             if not instance_flag:
-                logger.warning(
+                logger.debug(
                     "_generate_consolidated_report() called from NEW instance during audit! This should only happen at the end."
                 )
             else:
-                logger.warning(
+                logger.debug(
                     "_generate_consolidated_report() called during audit! This should only happen at the end."
                 )
             import traceback
@@ -8460,7 +8460,7 @@ class ReportGenerationMixin:
                         if isinstance(v, dict) and v.get("file"):
                             lines.append(f"  - {v['file']}: {v.get('module', '')}")
                 lines.append(
-                    "- **Action**: Refactor to approved imports only (core.logger); see DEVELOPMENT_TOOLS_GUIDE.md §8.5"
+                    "- **Action**: Remove all core.* imports; use development_tools.shared.logging; see DEVELOPMENT_TOOLS_GUIDE.md §8.5"
                 )
             elif ib_violations == 0:
                 lines.append("- **Status**: CLEAN (no boundary violations detected)")

@@ -6,7 +6,7 @@ Dev-tools-local time helpers for timestamp formatting.
 
 Provides equivalents to core.time_utilities (now_timestamp_full, now_timestamp_filename)
 using stdlib datetime only, so development_tools remains portable and does not
-import from core beyond core.logger.
+import from core (development_tools must stay free of core.*).
 """
 
 from __future__ import annotations

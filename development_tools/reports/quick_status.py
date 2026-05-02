@@ -20,13 +20,13 @@ project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.audit_storage_scope import (
     STORAGE_SCOPE_FULL,
     scoped_analysis_detailed_path,
 )
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 class QuickStatus:
@@ -448,7 +448,7 @@ def main():
     elif command == "json":
         status_checker.print_json_status()
     else:
-        logger.error(f"Unknown command: {command}")
+        logger.warning("Unknown command: %s", command)
         # User-facing error messages stay as print() for immediate visibility
         print(f"Unknown command: {command}")
         print("Use 'concise' or 'json'")

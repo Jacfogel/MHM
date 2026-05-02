@@ -15,7 +15,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.time_helpers import (
     now_timestamp_full,
     now_timestamp_filename,
@@ -28,7 +28,7 @@ from .audit_storage_scope import (
 )
 import contextlib
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 def _get_domain_from_tool_name(tool_name: str, project_root: Path) -> str:

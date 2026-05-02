@@ -24,7 +24,7 @@ Usage:
         # Skip this function
 """
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.error_helpers import handle_errors
 from development_tools.shared.constants import (
     SPECIAL_METHODS,
@@ -34,7 +34,7 @@ from development_tools.shared.constants import (
     GENERATED_NAME_PATTERNS,
 )
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 # Default test keywords (can be overridden via config)
 _DEFAULT_TEST_KEYWORDS = ["test_", "test"]

@@ -61,7 +61,83 @@ Add:
   - `entries_index.json` *(optional; helps “recent” + search speed for JSON)*
 
 > **Note:** Keep your existing `tags.json` for now unless it causes conflicts. The tag **logic** moves to `core/tags.py`, not necessarily the file location yet.
+---
+### Clarify and extract reusable list/query behavior from NotebookHandler
 
+- **Problem**:
+  - `communication/command_handlers/notebook_handler.py` contains reusable list/query behavior that should not be notebook-specific:
+    - pagination
+    - list by tag
+    - list by group
+    - pinned filtering
+    - archived filtering
+    - inbox filtering
+    - tag mutation
+    - group mutation
+  - It also contains channel-specific pagination behavior that should not live in a generic command handler.
+
+- **Why it matters**:
+  - The same concepts will be needed for tasks and future events.
+  - Discord, email, and UI should render pagination differently.
+  - NotebookHandler should not know about Discord-style buttons or hidden payloads.
+
+---
+
+#### Implementation
+
+- Add reusable pagination support:
+  - `core/pagination.py`
+  - Include generic page request/result objects and item slicing helpers.
+
+- Add reusable item organization helpers:
+  - `core/item_filters.py`
+  - `core/item_tags.py`
+  - `core/item_groups.py`
+
+- Move notebook-specific business operations into:
+  - `notebook/notebook_service.py`
+
+- Keep `NotebookHandler` responsible only for:
+  - reading `ParsedCommand`
+  - calling notebook service functions
+  - returning generic `InteractionResponse`
+
+- Move channel-specific pagination rendering to adapters:
+  - Discord renders buttons.
+  - Email renders text instructions.
+  - UI renders page controls.
+
+---
+
+#### Clarify Inbox Semantics
+
+- Define what "inbox" means for notebook entries.
+- Document whether inbox means:
+  - active and unarchived entries with no group
+  - active and unarchived entries with no tags
+  - active and unarchived entries with no group and no tags
+  - something else
+-Determine whether "nbox" has use and value as a concept or whether it should just be removed
+
+- Update:
+  - `NOTES_PLAN.md`
+  - notebook help text
+  - relevant tests
+
+---
+
+#### Validation
+
+- Existing notebook commands behave the same.
+- Pagination tests still pass.
+- No Discord-specific pagination payloads are built inside NotebookHandler.
+- Inbox behavior is documented and covered by tests.
+
+---
+
+#### Status
+
+- Planned
 ---
 
 ## Unified Entry Model (Pydantic)

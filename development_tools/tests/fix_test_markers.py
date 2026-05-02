@@ -24,12 +24,12 @@ except ImportError:
     from development_tools import config
     from development_tools.tests.analyze_test_markers import TestMarkerAnalyzer
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
 # Ensure external config is loaded
 config.load_external_config()
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 def add_markers(dry_run: bool = False, project_root: Path | None = None) -> dict:

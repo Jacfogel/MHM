@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-01 23:31:35
+> **Last Generated**: 2026-05-02 03:04:01
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -344,6 +344,7 @@ C:.
 |   |   |   file_rotation.py
 |   |   |   fix_project_cleanup.py
 |   |   |   lock_state.py
+|   |   |   logging.py
 |   |   |   measure_tool_timings.py
 |   |   |   mtime_cache.py
 |   |   |   output_storage.py
@@ -620,6 +621,7 @@ C:.
 |   |   |   test_deprecation_inventory_policy.py
 |   |   |   test_development_tools_package_init.py
 |   |   |   test_dev_tools_coverage_cache.py
+|   |   |   test_dev_tools_portability_smoke.py
 |   |   |   test_dev_tools_scoped_status_report.py
 |   |   |   test_directory_taxonomy_policy.py
 |   |   |   test_documentation_sync_checker.py

@@ -4,7 +4,7 @@
 """
 Dev-tools-local error handling helpers.
 
-Provides a thin handle_errors-like decorator using only core.logger,
+Provides a thin handle_errors-like decorator using development_tools.shared.logging,
 so development_tools remains portable and does not import from core.error_handling.
 """
 
@@ -14,9 +14,9 @@ import functools
 from collections.abc import Callable
 from typing import Any
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 def handle_errors(

@@ -10,11 +10,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
 from .file_rotation import create_output_file
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 def _as_dict(value: object) -> dict[str, object]:

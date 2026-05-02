@@ -28,7 +28,7 @@ else:
     from development_tools import config
     from development_tools.imports.analyze_module_imports import ModuleImportAnalyzer
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
 # Load external config on module import
 config.load_external_config()
@@ -39,7 +39,7 @@ DEPENDENCY_DOC_PATH = AUDIT_DEPS_CONFIG.get(
     "dependency_doc_path", "development_docs/MODULE_DEPENDENCIES_DETAIL.md"
 )
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 def extract_imports_from_file(file_path: str) -> dict[str, list[str]]:

@@ -15,14 +15,14 @@ import argparse
 from pathlib import Path
 from collections.abc import Iterable
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.standard_exclusions import (
     BASE_EXCLUSION_SHORTLIST,
     GENERATED_FILE_PATTERNS,
     get_exclusions,
 )
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 _HEADER = (

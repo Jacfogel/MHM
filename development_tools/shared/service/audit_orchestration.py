@@ -14,14 +14,19 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 # Import output storage
 from ..output_storage import save_tool_result, get_all_tool_results, load_tool_result
 from ..file_rotation import create_output_file
-from ..lock_state import cleanup_lock_paths, evaluate_lock_set, write_lock_metadata
+from ..lock_state import (
+    active_audit_coverage_locks_present,
+    cleanup_lock_paths,
+    evaluate_lock_set,
+    write_lock_metadata,
+)
 from .. import audit_signal_state
 from ..audit_tiers import (
     get_tier1_groups,
@@ -109,37 +114,7 @@ def _is_audit_in_progress(project_root: Path) -> bool:
     if _AUDIT_IN_PROGRESS_GLOBAL:
         return True
 
-    try:
-        from ... import config
-
-        audit_lock_path = config.get_external_value(
-            "paths.audit_lock_file", ".audit_in_progress.lock"
-        )
-        coverage_lock_path = config.get_external_value(
-            "paths.coverage_lock_file", ".coverage_in_progress.lock"
-        )
-        audit_lock_file = project_root / Path(audit_lock_path)
-        coverage_lock_file = project_root / Path(coverage_lock_path)
-    except (ImportError, AttributeError):
-        audit_lock_file = project_root / ".audit_in_progress.lock"
-        coverage_lock_file = project_root / ".coverage_in_progress.lock"
-    dev_tools_coverage_lock_file = (
-        coverage_lock_file.parent / ".coverage_dev_tools_in_progress.lock"
-    )
-    lock_states = evaluate_lock_set(
-        [audit_lock_file, coverage_lock_file, dev_tools_coverage_lock_file]
-    )
-    cleanup_targets = [
-        entry["path"]
-        for entry in (lock_states["stale"] + lock_states["malformed"])
-        if isinstance(entry.get("path"), Path)
-    ]
-    if cleanup_targets:
-        removed = cleanup_lock_paths(cleanup_targets)
-        logger.warning(
-            f"Removed {removed} stale/malformed audit lock file(s) during in-progress check"
-        )
-    return len(lock_states["active"]) > 0
+    return active_audit_coverage_locks_present(project_root)
 
 
 class AuditOrchestrationMixin:
@@ -565,7 +540,12 @@ class AuditOrchestrationMixin:
                 try:
                     ai_status = self._generate_ai_status_document()
                 except Exception as e:
-                    logger.warning(f"Error generating AI_STATUS document: {e}")
+                    if os.getenv("MHM_TESTING") == "1":
+                        logger.debug(
+                            "Error generating AI_STATUS document: %s", e, exc_info=True
+                        )
+                    else:
+                        logger.warning("Error generating AI_STATUS document: %s", e)
                     ai_status = "# AI Status\n\nError generating status document."
                 ai_status_file = create_output_file(ai_status_path, ai_status, project_root=self.project_root)
                 
@@ -573,15 +553,29 @@ class AuditOrchestrationMixin:
                     ai_priorities = self._generate_ai_priorities_document()
                 except Exception as e:
                     import traceback
-                    logger.warning(f"Error generating AI_PRIORITIES document: {e}")
-                    logger.debug(f"AI_PRIORITIES traceback:\n{traceback.format_exc()}")
+                    if os.getenv("MHM_TESTING") == "1":
+                        logger.debug(
+                            "Error generating AI_PRIORITIES document: %s\n%s",
+                            e,
+                            traceback.format_exc(),
+                        )
+                    else:
+                        logger.warning("Error generating AI_PRIORITIES document: %s", e)
+                        logger.debug(
+                            "AI_PRIORITIES traceback:\n%s", traceback.format_exc()
+                        )
                     ai_priorities = "# AI Priorities\n\nError generating priorities document."
                 ai_priorities_file = create_output_file(ai_priorities_path, ai_priorities, project_root=self.project_root)
                 
                 try:
                     consolidated_report = self._generate_consolidated_report()
                 except Exception as e:
-                    logger.warning(f"Error generating consolidated report: {e}")
+                    if os.getenv("MHM_TESTING") == "1":
+                        logger.debug(
+                            "Error generating consolidated report: %s", e, exc_info=True
+                        )
+                    else:
+                        logger.warning("Error generating consolidated report: %s", e)
                     consolidated_report = "Error generating consolidated report."
                 consolidated_file = create_output_file(consolidated_report_path, consolidated_report, project_root=self.project_root)
                 

@@ -42,7 +42,7 @@ except ImportError:
     from development_tools.shared.standard_exclusions import should_exclude_file
 
 # Import component logger
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
 # Load external config on module import
 config.load_external_config()
@@ -51,7 +51,7 @@ config.load_external_config()
 AUDIT_REGISTRY_CONFIG = config.get_analyze_function_registry_config()
 
 # Set up logging
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 PATHS = ProjectPaths()
 # Get registry path from config (default: development_docs/FUNCTION_REGISTRY_DETAIL.md)

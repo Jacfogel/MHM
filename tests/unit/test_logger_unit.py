@@ -76,17 +76,14 @@ class TestTestingEnvironmentDetection:
             assert not result, "Should return False when not testing"
 
     @pytest.mark.unit
-    def test_dev_tools_log_paths_are_isolated_from_production(self):
-        """Dev-tools mode should route all logs to development_tools/reports/logs."""
+    def test_dev_tools_run_does_not_route_core_logs_under_development_tools(self):
+        """MHM_DEV_TOOLS_RUN must not send core.logger file paths into development_tools/."""
         with patch.dict(os.environ, {"MHM_DEV_TOOLS_RUN": "1"}, clear=False), patch(
             "core.logger._is_testing_environment", return_value=False
         ), patch("core.logger._is_dev_tools_run", return_value=True):
             paths = _get_log_paths_for_environment()
-        base_dir = Path(paths["base_dir"]).as_posix()
-        assert base_dir.endswith("development_tools/reports/logs")
-        assert Path(paths["errors_file"]).as_posix().endswith(
-            "development_tools/reports/logs/errors.log"
-        )
+        base_norm = Path(paths["base_dir"]).as_posix().replace("\\", "/")
+        assert "development_tools/" not in base_norm
 
 
 @pytest.mark.core

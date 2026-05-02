@@ -33,7 +33,7 @@ project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
 # Handle both relative and absolute imports
 if __name__ != "__main__" and __package__ and "." in __package__:
@@ -43,7 +43,7 @@ else:
     from development_tools import config
     from development_tools.shared.constants import DEFAULT_DOCS, PAIRED_DOCS
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 def _resolve_example_marker_scan_paths(paired_docs: dict[str, str]) -> list[str]:

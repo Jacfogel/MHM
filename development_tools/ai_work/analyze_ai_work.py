@@ -40,9 +40,9 @@ except ImportError:
     from development_tools import config
     from development_tools.shared.standard_exclusions import should_exclude_file
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 # Load config at module level
 VALIDATE_AI_WORK_CONFIG = config.get_analyze_ai_work_config()

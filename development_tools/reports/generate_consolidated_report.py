@@ -27,9 +27,9 @@ except ImportError:
     from development_tools.shared.service import AIToolsService
     from development_tools.shared.file_rotation import create_output_file
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 def generate_consolidated_reports(

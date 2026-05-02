@@ -17,7 +17,7 @@ project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
 try:
     from ..shared.tool_metadata import (
@@ -34,7 +34,7 @@ except ImportError:
         TIER_TITLES,
     )
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 TOOL_GUIDE_OVERRIDES: dict[str, dict[str, Any]] = {
     "run_development_tools": {

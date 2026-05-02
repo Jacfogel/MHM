@@ -50,9 +50,9 @@ except ImportError:
     )
 
 try:
-    from core.logger import get_component_logger
+    from development_tools.shared.logging import get_dev_tools_logger
 
-    _bandit_log = get_component_logger("development_tools.static_checks.analyze_bandit")
+    _bandit_log = get_dev_tools_logger("development_tools.static_checks.analyze_bandit")
 except ImportError:
     _bandit_log = None
 

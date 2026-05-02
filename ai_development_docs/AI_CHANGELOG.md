@@ -30,6 +30,15 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-02 - Development tools decoupled from core.logger **COMPLETED**
+- **Follow-up (same day)**: `get_dev_tools_logger` now supports stdlib printf-style calls (fixes Pyright across dev-tools); `run_development_tools.py` sets `DEV_TOOLS_LOGS_DIR` to `development_tools/reports/logs`; [TODO.md](../TODO.md) path-drift fixes + doc-sync clean; `run_test_coverage.py` guards `logger.error(context)` when `context` is optional. **`core/logger.py`**: removed special-case routing of log files under `development_tools/reports/logs` when `MHM_DEV_TOOLS_RUN=1` (dev-tools file logs are only via `development_tools.shared.logging`).
+- **Log noise / priorities**: Dev-tools file logs default **INFO** (`DEV_TOOLS_LOG_LEVEL`); several former WARNING/ERROR lines re-leveled to DEBUG for expected paths; unknown CLI command is WARNING. Paired logging-guide paths + CHANGELOG link fixed so doc-sync PASS; `status` refreshed `AI_PRIORITIES.md`.
+- **Audit vs pytest subprocess**: CLI entry clears inherited `PYTEST_CURRENT_TEST`; lock-based audit detection lives in `lock_state` and gates `create_output_file` for `AI_*` without `shared.operations`; smoke tests skip when project-root audit/coverage locks are active; `file_rotation` uses `.lock_state` import for Pyright.
+- **Portability**: New [`development_tools/shared/logging.py`](../development_tools/shared/logging.py) (`get_dev_tools_logger`); all `development_tools/**/*.py` migrated off `core.logger`; import-boundary checker now flags **any** `core.*` import under `development_tools/`.
+- **Docs/policy**: Updated paired dev-tools guides, `.cursor/rules/dev_tools.mdc`, `check_channel_loggers` product vs dev-tools messaging, and consolidated-report import-boundary action text.
+- **Tests**: `tests/development_tools/test_dev_tools_portability_smoke.py` (minimal fake project + subprocess import check); boundary/policy tests updated; `test_file_rotation` patches `get_dev_tools_logger`.
+- **Validation**: `pytest` on changed/focused dev-tools tests; `python development_tools/run_development_tools.py audit --quick` succeeded.
+
 ### 2026-05-02 - Notebook Pagination and Task Follow-up UX **COMPLETED**
 - **Notebook Discord UX**: `Show More` pagination now preserves hidden payloads for search, inbox, pinned, group, tag, and archived notebook views; pinned/inbox continuation now passes stored entities through handler dispatch.
 - **Notebook search UX**: empty search results now suggest practical recovery paths including `!recent`, `!inbox`, `!archived`, `!t <tag>`, and `!group <name>`.
@@ -167,22 +176,6 @@ Guidelines:
 - **Audit logging/reporting fix**: [`audit_orchestration.py`](../development_tools/shared/service/audit_orchestration.py) now derives static-check cache mode from shard hit/miss counters (`details.shard_run`) so logs show `utilized` / `partially_utilized` when appropriate instead of always `created`.
 - **Parity tests added**: [`test_sharded_static_scan_wiring.py`](../tests/development_tools/test_sharded_static_scan_wiring.py) now includes explicit mixed cached+fresh shard tests for Ruff/Bandit/Pyright and verifies merged totals/hit-miss accounting.
 - **Docs/inventory alignment**: [[HOW_TO_RUN.md](HOW_TO_RUN.md)](../HOW_TO_RUN.md) Section 5.1.5 and tool cache inventory modules/json updated for shard-fragment strategy and Phase 2 follow-up categorization.
-
-### 2026-04-19 - Dev-tools static-check sharding, cache alignment, V5 Section 3.19/Section 3.21 plan **COMPLETED**
-- **Plan**: [`AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md`](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) - backlog **7** + **Section 3.19.2** outline **directory-scoped** static-check caching (not implemented yet); **Section 3.19.1** clarifies sharded Ruff/Bandit **runs** vs **global** cache signature; **Section 3.21** (**open**) tasks investigation of high log `issues=` counts for `analyze_documentation` / `analyze_functions` / `analyze_package_exports` / `analyze_function_registry` vs **AI_PRIORITIES** / **AI_STATUS** / **CONSOLIDATED_REPORT**.
-- **Static checks**: [`analyze_ruff.py`](../development_tools/static_checks/analyze_ruff.py) / [`analyze_bandit.py`](../development_tools/static_checks/analyze_bandit.py) - config-gated shard runs + merged JSON; [`analyze_pip_audit.py`](../development_tools/static_checks/analyze_pip_audit.py) aligned with requirements-lock signature paths; removed optional `MHM_STATIC_SHARD_TRACE` stderr helper from analyzers.
-- **Config / wrappers / inventory**: [`config.py`](../development_tools/config/config.py) `STATIC_ANALYSIS` sharding defaults + [`development_tools_config.json.example`](../development_tools/config/development_tools_config.json.example); [`tool_wrappers.py`](../development_tools/shared/service/tool_wrappers.py) static-check and pip-audit cache behavior; [`tool_cache_inventory.py`](../development_tools/shared/tool_cache_inventory.py) + checked-in inventory JSON; [`tool_metadata.py`](../development_tools/shared/tool_metadata.py) cache-aware tool list; [`audit_orchestration.py`](../development_tools/shared/service/audit_orchestration.py) minor logging.
-- **Coverage cache tests**: [`dev_tools_coverage_cache.py`](../development_tools/tests/dev_tools_coverage_cache.py) / [`test_file_coverage_cache.py`](../development_tools/tests/test_file_coverage_cache.py) share static-check config paths with wrappers.
-- **Tests**: [`test_tool_wrappers_cache_helpers.py`](../tests/development_tools/test_tool_wrappers_cache_helpers.py), [`test_tool_cache_inventory_policy.py`](../tests/development_tools/test_tool_cache_inventory_policy.py), [`test_tool_wrappers_static_analysis.py`](../tests/development_tools/test_tool_wrappers_static_analysis.py).
-- **Docs**: [[HOW_TO_RUN.md](HOW_TO_RUN.md)](../HOW_TO_RUN.md) static-check / cache invalidation notes aligned with shared dependency paths.
-- **Audit**: Regenerated **AI_STATUS** / **AI_PRIORITIES** / **CONSOLIDATED_REPORT** and scope JSON after `audit --full` (typical drift in generated reports).
-
-### 2026-04-17 - V5 roadmap continuation: tests, overlap, portability, audit rebaseline **COMPLETED**
-- **Plan**: [`AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md`](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) - rolling snapshot and Section 4.1 next-slice guidance reconciled to latest audit outputs (coverage-first; doc-sync monitor-only when signals stay CLEAN).
-- **Tests**: [`test_commands_additional_helpers.py`](../tests/development_tools/test_commands_additional_helpers.py) - `run_flaky_detector` / `run_verify_process_cleanup` paths; [`test_tool_wrappers_static_analysis.py`](../tests/development_tools/test_tool_wrappers_static_analysis.py) - pip-audit cache-hit execution state, pyright non-JSON failure.
-- **Overlaps (Section 5.5)**: [`constants.py`](../development_tools/shared/constants.py) `EXPECTED_OVERLAPS` adds **related docs**; [`test_analyze_documentation.py`](../tests/development_tools/test_analyze_documentation.py) regression for numbered **Related Docs** headings.
-- **Portability (Section 7.6)**: [`test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py) - root `.ruff.toml` vs owned `development_tools/config/ruff.toml` core policy alignment.
-- **Audit**: `audit --quick` + `audit --full` rebaseline; generated **AI_STATUS** / **AI_PRIORITIES** / **CONSOLIDATED_REPORT** refreshed (e.g. overall coverage ~70.9%, development_tools ~63.9%); documentation signals CLEAN in this pass.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

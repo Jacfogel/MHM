@@ -11,10 +11,10 @@ import contextlib
 from datetime import datetime
 from pathlib import Path
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.time_helpers import now_timestamp_full
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 def path_looks_like_test_directory(path: Path) -> bool:
@@ -185,9 +185,9 @@ def create_output_file(
         Path object pointing to the created file
     """
     # Initialize logger early for debugging
-    from core.logger import get_component_logger
+    from development_tools.shared.logging import get_dev_tools_logger
 
-    logger = get_component_logger("development_tools")
+    logger = get_dev_tools_logger("development_tools")
 
     # Check if this is a status file or static documentation file write during audit/test (defensive check)
     file_name = (
@@ -489,9 +489,9 @@ def create_output_file(
         if os.environ.get("MHM_TESTING") == "1" or os.environ.get(
             "PYTEST_CURRENT_TEST"
         ):
-            from core.logger import get_component_logger
+            from development_tools.shared.logging import get_dev_tools_logger
 
-            logger = get_component_logger("development_tools")
+            logger = get_dev_tools_logger("development_tools")
             logger.debug(
                 f"Skipping {file_name} generation: Test environment detected and writing to real project. Tests should use temporary directories."
             )
@@ -562,8 +562,10 @@ def create_output_file(
                         write_path_resolved
                     ):
                         # We're in a test but writing to real project - block it
-                        logger.warning(
-                            f"[TEST ISOLATION] Blocking {file_name} write to real project during test. Path: {write_path_resolved}. Use temporary directories."
+                        logger.debug(
+                            "[TEST ISOLATION] Blocking %s write to real project during test. Path: %s. Use temporary directories.",
+                            file_name,
+                            write_path_resolved,
                         )
                         raise RuntimeError(
                             f"Cannot write {file_name} to real project during tests - use temporary directories for test isolation"
@@ -586,90 +588,53 @@ def create_output_file(
                     )
                     pass
 
-        # Check if audit is in progress by looking for the global flag in operations module
+        # Cross-process guard: lock files (audit/coverage) — do not depend on
+        # development_tools.shared.operations being imported in this interpreter.
         try:
-            import sys
+            from .lock_state import active_audit_coverage_locks_present
 
-            if "development_tools.shared.operations" in sys.modules:
-                operations_module = sys.modules["development_tools.shared.operations"]
-                # Check both in-memory flag and file-based lock (for cross-process protection)
-                # Use the helper function if available, otherwise fall back to direct check
-                if hasattr(operations_module, "_is_audit_in_progress"):
-                    # Use helper function that checks both in-memory and file-based lock
-                    # Use project_root parameter if provided, otherwise try to infer from file_path
-                    check_project_root = None
-                    if project_root is not None:
-                        # Use provided project_root parameter (most reliable)
-                        check_project_root = Path(project_root).resolve()
-                    else:
-                        # Try to infer from file_path (fallback)
-                        try:
-                            inferred_root = Path(file_path).resolve()
-                            # Go up to project root (file_path is like project_root/development_tools/AI_STATUS.md)
-                            while (
-                                inferred_root.name != "development_tools"
-                                and inferred_root.parent != inferred_root
-                            ):
-                                inferred_root = inferred_root.parent
-                            if inferred_root.name == "development_tools":
-                                inferred_root = inferred_root.parent
-                            check_project_root = inferred_root
-                        except Exception as e:
-                            from core.logger import get_component_logger
-
-                            debug_logger = get_component_logger("development_tools")
-                            debug_logger.warning(
-                                f"Failed to infer project root from file_path for {file_name}: {e}"
-                            )
-
-                    if check_project_root:
-                        try:
-                            is_in_progress = operations_module._is_audit_in_progress(
-                                check_project_root
-                            )
-                            # Check result logged only if blocking (see warning below)
-                        except Exception as e:
-                            # If check fails, assume not in progress (defensive - don't block if we can't check)
-                            from core.logger import get_component_logger
-
-                            debug_logger = get_component_logger("development_tools")
-                            debug_logger.warning(
-                                f"Failed to check audit status for {file_name}: {e}"
-                            )
-                            is_in_progress = False
-                    else:
-                        # Can't determine project root, assume not in progress (defensive)
-                        is_in_progress = False
-                elif (
-                    hasattr(operations_module, "_AUDIT_IN_PROGRESS_GLOBAL")
-                    and operations_module._AUDIT_IN_PROGRESS_GLOBAL
-                ):
-                    is_in_progress = True
-                else:
-                    is_in_progress = False
-
-                if is_in_progress:
-                    from core.logger import get_component_logger
-
-                    logger = get_component_logger("development_tools")
+            check_project_root = None
+            if project_root is not None:
+                check_project_root = Path(project_root).resolve()
+            else:
+                try:
+                    inferred_root = Path(file_path).resolve()
+                    while (
+                        inferred_root.name != "development_tools"
+                        and inferred_root.parent != inferred_root
+                    ):
+                        inferred_root = inferred_root.parent
+                    if inferred_root.name == "development_tools":
+                        inferred_root = inferred_root.parent
+                    check_project_root = inferred_root
+                except Exception as e:
                     logger.warning(
-                        f"create_output_file() called to write {file_name} during audit! Blocking write to prevent mid-audit status file changes."
+                        "Failed to infer project root from file_path for %s: %s",
+                        file_name,
+                        e,
                     )
-                    import traceback
 
-                    call_stack = "".join(traceback.format_stack())
-                    logger.debug(
-                        f"Call stack for blocked {file_name} write attempt:\n{call_stack}"
-                    )
-                    # Raise exception to prevent the write
-                    raise RuntimeError(
-                        f"Cannot write {file_name} during audit - status files should only be written at the end of audit"
-                    )
+            if check_project_root and active_audit_coverage_locks_present(
+                check_project_root
+            ):
+                logger.warning(
+                    "create_output_file() called to write %s during audit/coverage! "
+                    "Blocking write to prevent mid-audit status file changes.",
+                    file_name,
+                )
+                import traceback
+
+                logger.debug(
+                    "Call stack for blocked %s write attempt:\n%s",
+                    file_name,
+                    "".join(traceback.format_stack()),
+                )
+                raise RuntimeError(
+                    f"Cannot write {file_name} during audit - status files should only be written at the end of audit"
+                )
         except RuntimeError:
-            # Re-raise our blocking exception
             raise
         except Exception:
-            # If check fails, continue (defensive check only - don't block if we can't check)
             pass
 
     # Status files are logged at DEBUG level when actually written (see operations.py for audit context)

@@ -43,13 +43,13 @@ else:
     )
     from development_tools.shared.common import ensure_ascii
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.time_helpers import now_timestamp_full
 
 # Load external config on module import
 config.load_external_config()
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 # Import analysis functions are now in analyze_module_imports.py

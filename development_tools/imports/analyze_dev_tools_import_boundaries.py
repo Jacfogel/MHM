@@ -5,22 +5,16 @@
 """
 Development-tools import boundary checker.
 
-Ensures modules under development_tools/** only import approved core/business modules.
+Ensures modules under development_tools/** do not import core.* (or other business packages).
 """
 
 from __future__ import annotations
 
 import ast
-import sys
 from pathlib import Path
 from typing import Any
 
-# Add project root to path for core module imports
-project_root = Path(__file__).parent.parent.parent
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
-
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
 try:
     from .. import config
@@ -32,12 +26,7 @@ except ImportError:
     )
 
 
-logger = get_component_logger("development_tools")
-
-
-APPROVED_CORE_IMPORT_PREFIXES: tuple[str, ...] = (
-    "core.logger",
-)
+logger = get_dev_tools_logger("development_tools")
 
 
 class DevToolsImportBoundaryChecker:
@@ -72,7 +61,7 @@ class DevToolsImportBoundaryChecker:
             text = file_path.read_text(encoding="utf-8")
             tree = ast.parse(text, filename=str(file_path))
         except Exception as exc:
-            logger.debug(f"Skipping {file_path} due to parse error: {exc}")
+            logger.debug(f"Skipping {file_path} due to parse error: {exc}", exc_info=True)
             return modules
 
         for node in ast.walk(tree):
@@ -84,12 +73,6 @@ class DevToolsImportBoundaryChecker:
                 if node.module:
                     modules.append(node.module)
         return modules
-
-    def _is_approved_core_import(self, module_name: str) -> bool:
-        """True if module_name is in the approved core import allowlist."""
-        if not module_name:
-            return False
-        return module_name.startswith(APPROVED_CORE_IMPORT_PREFIXES)
 
     def _is_dev_tools_file(self, rel_path: str) -> bool:
         return rel_path.startswith("development_tools/")
@@ -105,15 +88,12 @@ class DevToolsImportBoundaryChecker:
 
             imported_modules = self._extract_import_modules(file_path)
             for module_name in imported_modules:
-                # Only care about imports that cross into core.* or other business modules
-                if module_name.startswith("core.") and not self._is_approved_core_import(
-                    module_name
-                ):
+                if module_name.startswith("core."):
                     violations.append(
                         {
                             "file": rel_str,
                             "module": module_name,
-                            "reason": "Non-approved core import inside development_tools",
+                            "reason": "core package import inside development_tools",
                         }
                     )
 
@@ -161,4 +141,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

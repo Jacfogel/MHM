@@ -8,9 +8,9 @@ Other functionality is provided via mixin classes.
 from pathlib import Path
 from typing import Any
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 # Import config
 from ... import config

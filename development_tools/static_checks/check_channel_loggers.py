@@ -52,9 +52,8 @@ def _get_channel_loggers_config():
     ``development_docs/LIST_OF_LISTS.md`` §6–7.
 
     Loads ``config.py`` via importlib (same pattern as ``standard_exclusions``) so this
-    script does not import ``development_tools`` package init (which pulls ``core.logger``
-    and ``core.config``, requiring ``python-dotenv``). GitHub Actions runs this step
-    without ``pip install``.
+    script does not import the full ``development_tools`` package tree. GitHub Actions
+    runs this step without ``pip install``.
     """
     cfg_json = REPO_ROOT / "development_tools" / "config" / "development_tools_config.json"
     module_path = REPO_ROOT / "development_tools" / "config" / "config.py"
@@ -176,10 +175,24 @@ def check_file(path: Path) -> Iterable[str]:
         if isinstance(node, ast.Import):
             for alias in node.names:
                 if alias.name == "logging" and not allow_logging_imports:
-                    issues.append(format_issue(rel_path, node.lineno, "Direct logging import is forbidden; use core.logger"))
+                    issues.append(
+                        format_issue(
+                            rel_path,
+                            node.lineno,
+                            "Direct logging import is forbidden; use core.logger.get_component_logger in product code "
+                            "or development_tools.shared.logging.get_dev_tools_logger under development_tools/",
+                        )
+                    )
         elif isinstance(node, ast.ImportFrom):
             if node.module == "logging" and not allow_logging_imports:
-                issues.append(format_issue(rel_path, node.lineno, "Direct logging import is forbidden; use core.logger"))
+                issues.append(
+                    format_issue(
+                        rel_path,
+                        node.lineno,
+                        "Direct logging import is forbidden; use core.logger.get_component_logger in product code "
+                        "or development_tools.shared.logging.get_dev_tools_logger under development_tools/",
+                    )
+                )
         elif isinstance(node, ast.Call):
             func = node.func
             if isinstance(func, ast.Attribute):
@@ -190,7 +203,14 @@ def check_file(path: Path) -> Iterable[str]:
                     and func.attr == "getLogger"
                     and not allow_logging_imports
                 ):
-                    issues.append(format_issue(rel_path, node.lineno, "Use core.logger.get_component_logger instead of logging.getLogger"))
+                    issues.append(
+                        format_issue(
+                            rel_path,
+                            node.lineno,
+                            "Use core.logger.get_component_logger (product) or development_tools.shared.logging.get_dev_tools_logger "
+                            "(development_tools) instead of logging.getLogger",
+                        )
+                    )
                 # logger.info/debug/etc positional arg enforcement
                 elif func.attr in LOG_METHODS and has_logger_name(func.value) and len(node.args) > 1:
                     issues.append(

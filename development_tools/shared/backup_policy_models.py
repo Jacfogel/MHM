@@ -13,14 +13,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
 try:
     from .. import config
 except ImportError:
     from development_tools import config
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 @dataclass(frozen=True)

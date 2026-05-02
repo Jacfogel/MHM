@@ -12,10 +12,10 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import cast
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.time_helpers import now_timestamp_filename
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 # Import output storage
 from ..output_storage import save_tool_result
@@ -921,7 +921,12 @@ class CommandsMixin:
                 ai_status_file = create_output_file(ai_status_path, ai_status, project_root=self.project_root)
                 logger.info(f"Generated: {ai_status_file}")
             except Exception as e:
-                logger.warning(f"Error generating AI_STATUS document: {e}")
+                if os.getenv("MHM_TESTING") == "1":
+                    logger.debug(
+                        "Error generating AI_STATUS document: %s", e, exc_info=True
+                    )
+                else:
+                    logger.warning("Error generating AI_STATUS document: %s", e)
             
             try:
                 ai_priorities = self._generate_ai_priorities_document()
@@ -929,7 +934,12 @@ class CommandsMixin:
                 ai_priorities_file = create_output_file(ai_priorities_path, ai_priorities, project_root=self.project_root)
                 logger.info(f"Generated: {ai_priorities_file}")
             except Exception as e:
-                logger.warning(f"Error generating AI_PRIORITIES document: {e}")
+                if os.getenv("MHM_TESTING") == "1":
+                    logger.debug(
+                        "Error generating AI_PRIORITIES document: %s", e, exc_info=True
+                    )
+                else:
+                    logger.warning("Error generating AI_PRIORITIES document: %s", e)
             
             try:
                 consolidated_report = self._generate_consolidated_report()
@@ -937,7 +947,12 @@ class CommandsMixin:
                 consolidated_file = create_output_file(consolidated_report_path, consolidated_report, project_root=self.project_root)
                 logger.info(f"Generated: {consolidated_file}")
             except Exception as e:
-                logger.warning(f"Error generating consolidated report: {e}")
+                if os.getenv("MHM_TESTING") == "1":
+                    logger.debug(
+                        "Error generating consolidated report: %s", e, exc_info=True
+                    )
+                else:
+                    logger.warning("Error generating consolidated report: %s", e)
         
         logger.info("=" * 50)
         logger.info("Status snapshot completed!")

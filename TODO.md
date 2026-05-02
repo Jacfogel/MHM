@@ -78,6 +78,191 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
   - [ ] Decide destination for project-maintenance scripts create_project_snapshot and cleanup_windows_tasks (planned location scripts/; tracked runtime ownership, not development_tools/).
   - [ ] Evaluate renaming/refactoring the create_project_snapshot script to match behavior (full restorable backup semantics) and define whether a separate generalized development-tools variant is needed.
 
+### Reduce responsibility creep in core/service.py and channel_orchestrator.py
+
+- **Problem**:
+  - `core/service.py` is handling too many responsibilities:
+    - service lifecycle (startup/shutdown)
+    - communication + scheduler initialization
+    - UI request file handling (test messages, check-ins, reschedule, shutdown)
+    - health checks and logging
+  - `communication/core/channel_orchestrator.py` acts as a large catch-all:
+    - message delivery
+    - scheduling integration
+    - task reminders and check-ins
+    - retry logic
+    - recipient/user resolution
+    - channel coordination
+
+- **Why it matters**:
+  - Makes the system harder to understand and modify
+  - Increases risk of bugs when changing unrelated features
+  - Blocks clean separation between core logic, orchestration, and delivery
+  - Slows future development (everything touches these files)
+
+---
+
+### Tasks
+
+#### 1. Extract service request handling
+
+- Create a new module (planned; not in the repo yet): either **service_requests** or **service_request_handlers** under `core/` (exact `.py` filenames TBD).
+
+- Move all file-based request handling out of `core/service.py`:
+  - test message requests
+  - check-in prompt requests
+  - reschedule requests
+  - shutdown requests
+
+- Replace in `core/service.py` with a simple call:
+
+  ```python
+  service_requests.process_all(self)
+  ```
+
+#### 2. Simplify `core/service.py` responsibilities
+
+Ensure `core/service.py` is limited to:
+
+- initializing components
+- wiring dependencies
+- starting/stopping services
+- running the main loop
+
+Remove:
+
+- direct business logic
+- direct file parsing logic
+- any feature-specific branching
+
+#### 3. Reduce channel_orchestrator scope
+
+Identify and group responsibilities:
+
+- message delivery
+- retry logic
+- task reminders
+- check-ins
+- user/recipient resolution
+
+Extract at least one of the following into dedicated modules:
+
+- communication/delivery/retry_manager.py (if not already isolated enough)
+- communication/delivery/message_dispatcher.py
+- communication/reminders/reminder_dispatcher.py
+
+Ensure `communication/core/channel_orchestrator.py` becomes:
+
+- a thin coordination layer
+- not a logic-heavy module
+
+#### 4. Improve communication_manager contract
+
+Replace `_last_sent_message` pattern with explicit return values:
+
+`result = communication_manager.handle_message_sending(...)`
+
+Ensure service and UI rely on returned data, not shared state.
+
+#### 5. Validation
+
+- All existing tests pass
+- No change in external behavior (UI, Discord, email)
+- Reduced file size and complexity in `core/service.py` and `communication/core/channel_orchestrator.py`
+
+**Outcome**
+
+Clear separation between service lifecycle, request handling, scheduling, and message delivery - easier to extend without touching central files.
+
+### Split core/scheduler.py into focused scheduler modules
+
+- **Problem**:
+  - `core/scheduler.py` handles multiple unrelated background responsibilities:
+    - scheduled message jobs
+    - task reminders
+    - reminder cleanup
+    - weekly backups
+    - log archival
+    - monthly cleanup
+  - This makes scheduler behavior harder to understand, test, and change safely.
+
+- **Goal**:
+  - Keep `SchedulerManager` as the public coordinator for now.
+  - Move grouped responsibilities into smaller modules without changing external behavior.
+
+### Extract test-message preview logic from core/service.py
+
+- Move message preview/content-selection helpers out of `core/service.py`.
+- Add a dedicated **message_preview** module under `core/` for service-side preview resolution (filename TBD).
+- Keep UI code responsible only for requesting and displaying previews.
+- Do not move preview logic into `ui/` unless the UI becomes the only caller.
+- Preserve the current v2-aware message loading behavior.
+---
+
+#### Proposed Structure
+
+- Keep:
+  - `core/scheduler.py`
+    - owns `SchedulerManager`
+    - wires scheduler components together
+    - preserves existing public methods used by `core/service.py`
+
+- Add (planned modules under `core/`; filenames TBD):
+  - **scheduler_task_reminders**
+    - task reminder scheduling
+    - task reminder cleanup
+    - orphaned reminder cleanup
+
+  - **scheduler_maintenance**
+    - weekly backups
+    - log archival
+    - monthly cleanup
+
+  - **scheduler_jobs**
+    - shared job registration helpers
+    - common scheduler job setup patterns
+
+---
+
+#### Implementation Notes
+
+- Do this as a refactor only.
+- Do not change runtime behavior.
+- Preserve existing method names on `SchedulerManager` where other modules call them.
+- Move one responsibility at a time.
+- Keep compatibility wrappers temporarily if needed, but mark them clearly and plan removal.
+
+---
+
+#### Validation
+
+- Existing scheduler tests pass.
+- Existing service startup tests pass.
+- Existing task reminder tests pass.
+- Existing backup / cleanup tests pass.
+- No changes to user-facing behavior.
+
+---
+
+#### Status
+
+- Planned
+
+### Audit and thin communication command handlers
+
+- Identify command handlers that contain domain/business logic.
+- Start with notebook_handler.py and task_handler.py.
+- Move reusable business operations into domain service modules:
+  - notebook/notebook_service.py
+  - tasks/task_service.py
+- Keep communication handlers responsible for:
+  - interpreting ParsedCommand
+  - calling domain services
+  - formatting InteractionResponse
+- Preserve current Discord/email behavior.
+- Add tests for the new domain service layer before thinning handlers.
+
+
 ## Medium Priority
 
 ### User data (versioned schemas)

@@ -163,11 +163,13 @@ def test_append_to_log_rotates_when_large(tmp_path, fr_mod, monkeypatch):
 
 @pytest.mark.unit
 def test_create_output_file_directory_tree_name_logs_warning(tmp_path, fr_mod, monkeypatch):
-    """create_output_file uses get_component_logger inside the function; patch at core.logger."""
+    """create_output_file loads get_dev_tools_logger inside the function; patch at source module."""
     monkeypatch.delenv("DISABLE_LOG_ROTATION", raising=False)
     p = tmp_path / "PREFIX_DIRECTORY_TREE_SUFFIX.md"
     mock_logger = MagicMock()
-    with patch("core.logger.get_component_logger", return_value=mock_logger):
+    with patch(
+        "development_tools.shared.logging.get_dev_tools_logger", return_value=mock_logger
+    ):
         fr_mod.create_output_file(p, "x", rotate=False)
     mock_logger.warning.assert_called()
 

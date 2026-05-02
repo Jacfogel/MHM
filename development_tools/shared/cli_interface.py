@@ -9,9 +9,9 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from collections.abc import Callable, Sequence
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 # Import AIToolsService type for type hints
 from typing import TYPE_CHECKING

@@ -9,11 +9,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Set
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
 from .backup_policy_models import ArtifactRule, BackupPolicy
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 def _pattern_matches(project_root: Path, pattern: str) -> List[Path]:

@@ -11,11 +11,22 @@ from pathlib import Path
 
 from tests.development_tools.conftest import load_development_tools_module
 
+from development_tools.shared.lock_state import active_audit_coverage_locks_present
+
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 RUNNER_SCRIPT = PROJECT_ROOT / "development_tools" / "run_development_tools.py"
 runner = load_development_tools_module("run_development_tools")
+
+
+def _skip_cli_subprocess_if_audit_or_coverage_lock() -> None:
+    """Avoid spawning the real CLI while audit/coverage holds project-root locks."""
+    if active_audit_coverage_locks_present(PROJECT_ROOT):
+        pytest.skip(
+            "Skipping CLI subprocess test while audit/coverage locks are active "
+            "(avoids mid-audit status writes and noisy dev-tools logs)"
+        )
 
 
 class TestCLIRunnerSmokeTests:
@@ -25,11 +36,8 @@ class TestCLIRunnerSmokeTests:
     @pytest.mark.smoke
     def test_status_command_exits_zero(self):
         """Test that 'status' command exits with code 0 and produces output."""
-        # Check if audit is in progress (lock file exists) - skip test if so to prevent mid-audit writes
-        lock_file = PROJECT_ROOT / "development_tools" / ".audit_in_progress.lock"
-        if lock_file.exists():
-            pytest.skip("Skipping status command test during audit to prevent mid-audit status file writes")
-        
+        _skip_cli_subprocess_if_audit_or_coverage_lock()
+
         # Filter deprecation warnings from stderr for comparison
         result = subprocess.run(
             [sys.executable, str(RUNNER_SCRIPT), "status"],
@@ -110,6 +118,8 @@ class TestCLIRunnerSmokeTests:
     @pytest.mark.smoke
     def test_unknown_command_exits_two(self):
         """Test that unknown command exits with code 2 and shows error and available commands."""
+        _skip_cli_subprocess_if_audit_or_coverage_lock()
+
         result = subprocess.run(
             [sys.executable, str(RUNNER_SCRIPT), "unknown_command_that_does_not_exist"],
             cwd=str(PROJECT_ROOT),

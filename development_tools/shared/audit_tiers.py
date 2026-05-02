@@ -11,9 +11,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 # -----------------------------------------------------------------------------
 # Flat tool name lists (for reporting, timing, _get_expected_tools_for_tier)

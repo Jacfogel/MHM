@@ -37,12 +37,12 @@ try:
 except ImportError:
     from development_tools import config
 
-from core.logger import get_component_logger
+from development_tools.shared.logging import get_dev_tools_logger
 
 # Ensure external config is loaded
 config.load_external_config()
 
-logger = get_component_logger("development_tools")
+logger = get_dev_tools_logger("development_tools")
 
 
 class ProjectCleanup:

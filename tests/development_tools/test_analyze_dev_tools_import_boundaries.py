@@ -10,7 +10,7 @@ DevToolsImportBoundaryChecker = boundary_module.DevToolsImportBoundaryChecker
 
 @pytest.mark.unit
 def test_checker_detects_non_approved_core_import(tmp_path):
-    """Checker flags core.* imports except core.logger."""
+    """Checker flags core.config imports."""
     checker = DevToolsImportBoundaryChecker(project_root_path=str(tmp_path))
     # Create a fake dev_tools structure with a file importing core.config
     dev_tools = tmp_path / "development_tools"
@@ -34,8 +34,8 @@ def test_checker_detects_non_approved_core_import(tmp_path):
 
 
 @pytest.mark.unit
-def test_checker_allows_core_logger(tmp_path):
-    """Checker allows core.logger (approved prefix)."""
+def test_checker_flags_core_logger(tmp_path):
+    """Checker flags core.logger (no core imports allowed in development_tools)."""
     checker = DevToolsImportBoundaryChecker(project_root_path=str(tmp_path))
     dev_tools = tmp_path / "development_tools"
     dev_tools.mkdir()
@@ -43,14 +43,14 @@ def test_checker_allows_core_logger(tmp_path):
     (tmp_path / "core" / "__init__.py").write_text("", encoding="utf-8")
     (tmp_path / "core" / "logger.py").write_text("", encoding="utf-8")
 
-    good_file = dev_tools / "good_import.py"
-    good_file.write_text("from core.logger import get_component_logger\n", encoding="utf-8")
+    bad_file = dev_tools / "bad_import.py"
+    bad_file.write_text("from core.logger import get_component_logger\n", encoding="utf-8")
 
     result = checker.analyze()
 
-    # core.logger is approved; no violations for it
-    for v in result["details"]["violations"]:
-        assert v["module"] != "core.logger"
+    assert result["summary"]["total_issues"] >= 1
+    violations = result["details"]["violations"]
+    assert any(v["module"] == "core.logger" for v in violations)
 
 
 @pytest.mark.unit
@@ -63,16 +63,6 @@ def test_extract_import_modules_handles_syntax_error(tmp_path):
     modules = checker._extract_import_modules(bad_syntax)
 
     assert modules == []
-
-
-@pytest.mark.unit
-def test_is_approved_core_import():
-    """Approved prefix check works correctly."""
-    checker = DevToolsImportBoundaryChecker()
-    assert checker._is_approved_core_import("core.logger") is True
-    assert checker._is_approved_core_import("core.logger.thing") is True
-    assert checker._is_approved_core_import("core.config") is False
-    assert checker._is_approved_core_import("") is False
 
 
 @pytest.mark.unit
