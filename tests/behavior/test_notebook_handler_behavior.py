@@ -37,6 +37,62 @@ class TestNotebookHandlerBehavior:
         """Create a test user with proper account setup."""
         return TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
+    def _create_paginated_notes(
+        self,
+        user_id: str,
+        *,
+        count: int = 6,
+        title_prefix: str = "Page Note",
+        description: str = "pagination needle",
+        group: str | None = None,
+        tags: list[str] | None = None,
+        pinned: bool = False,
+        archived: bool = False,
+    ) -> None:
+        """Create enough notebook entries to exercise Show More pagination."""
+        from notebook.notebook_data_manager import archive_entry, create_note, pin_entry
+
+        for index in range(count):
+            entry = create_note(
+                user_id,
+                title=f"{title_prefix} {index}",
+                description=description,
+                group=group,
+                tags=tags or [],
+            )
+            assert entry is not None, "Expected test note creation to succeed"
+            if pinned:
+                assert pin_entry(
+                    user_id, str(entry.id), True
+                ), "Expected pinning to succeed"
+            if archived:
+                assert archive_entry(
+                    user_id, str(entry.id), True
+                ), "Expected archiving to succeed"
+
+    def _assert_show_more_payload(
+        self,
+        response: InteractionResponse,
+        *,
+        intent: str,
+        expected_entities: dict[str, object] | None = None,
+        next_offset: int = 2,
+        limit: int = 2,
+    ) -> dict[str, object]:
+        """Assert a notebook response includes a next-page button payload."""
+        assert response.completed
+        assert response.suggestions == ["Show More (2 more)"]
+        payloads = (response.rich_data or {}).get("suggestion_payloads")
+        assert isinstance(payloads, list) and len(payloads) == 1
+        payload = payloads[0]
+        assert payload["intent"] == intent
+        entities = payload["entities"]
+        assert entities["offset"] == next_offset
+        assert entities["limit"] == limit
+        for key, value in (expected_entities or {}).items():
+            assert entities[key] == value
+        return payload
+
     def test_notebook_handler_can_handle_intents(self):
         """Test that NotebookHandler can handle all expected intents."""
         handler = NotebookHandler()
@@ -600,6 +656,113 @@ class TestNotebookHandlerBehavior:
         assert (
             "project" in response.message.lower() or "alpha" in response.message.lower()
         ), "Should find matching entry"
+
+    @pytest.mark.file_io
+    @pytest.mark.parametrize(
+        ("intent", "entities", "expected_entities", "setup_kwargs"),
+        [
+            (
+                "search_entries",
+                {"query": "needle", "limit": 2},
+                {"query": "needle"},
+                {"description": "pagination needle"},
+            ),
+            ("list_inbox_entries", {"limit": 2}, {}, {}),
+            ("list_pinned_entries", {"limit": 2}, {}, {"pinned": True}),
+            (
+                "list_entries_by_group",
+                {"group": "alpha", "limit": 2},
+                {"group": "alpha"},
+                {"group": "alpha"},
+            ),
+            (
+                "list_entries_by_tag",
+                {"tag": "alpha", "limit": 2},
+                {"tag": "alpha"},
+                {"tags": ["alpha"]},
+            ),
+            (
+                "list_archived_entries",
+                {"limit": 2},
+                {},
+                {"archived": True},
+            ),
+        ],
+    )
+    def test_paginated_notebook_views_include_show_more_payload(
+        self,
+        test_data_dir,
+        intent,
+        entities,
+        expected_entities,
+        setup_kwargs,
+    ):
+        """Show More buttons preserve the intent and entities needed for page 2."""
+        handler = NotebookHandler()
+        user_id = f"test_notebook_pagination_{intent}_{uuid.uuid4().hex[:8]}"
+        assert self._create_test_user(
+            user_id, test_data_dir=test_data_dir
+        ), "Failed to create test user"
+        self._create_paginated_notes(user_id, **setup_kwargs)
+
+        response = handler.handle(
+            user_id,
+            ParsedCommand(
+                intent=intent,
+                entities=entities,
+                confidence=1.0,
+                original_message=f"!{intent}",
+            ),
+        )
+
+        payload = self._assert_show_more_payload(
+            response,
+            intent=intent,
+            expected_entities=expected_entities,
+            next_offset=2,
+            limit=2,
+        )
+
+        next_response = handler.handle(
+            user_id,
+            ParsedCommand(
+                intent=str(payload["intent"]),
+                entities=(
+                    payload["entities"] if isinstance(payload["entities"], dict) else {}
+                ),
+                confidence=1.0,
+                original_message="Show More (2 more)",
+            ),
+        )
+        assert next_response.completed
+        assert "more" in next_response.message.lower()
+
+    @pytest.mark.file_io
+    def test_search_entries_no_results_gives_recovery_guidance(self, test_data_dir):
+        """Empty search results explain practical next steps."""
+        handler = NotebookHandler()
+        user_id = "test_user_search_no_results"
+        assert self._create_test_user(
+            user_id, test_data_dir=test_data_dir
+        ), "Failed to create test user"
+
+        response = handler.handle(
+            user_id,
+            ParsedCommand(
+                intent="search_entries",
+                entities={"query": "missing-keyword"},
+                confidence=1.0,
+                original_message="!search missing-keyword",
+            ),
+        )
+
+        assert response.completed
+        message = response.message.lower()
+        assert "no entries found" in message
+        assert "!recent" in message
+        assert "!archived" in message
+        assert "!t <tag>" in message
+        assert "!group <name>" in message
 
     # ===== FLOW STATE TESTS =====
 

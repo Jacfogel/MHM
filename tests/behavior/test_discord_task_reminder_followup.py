@@ -10,7 +10,11 @@ from unittest.mock import patch, MagicMock
 from communication.message_processing.interaction_manager import InteractionManager
 from tasks import load_active_tasks
 from tasks.task_data_handlers import runtime_task_scheduled_reminder_periods
-from communication.message_processing.conversation_flow_manager import conversation_manager, FLOW_TASK_REMINDER
+from communication.message_processing.conversation_flow_manager import (
+    conversation_manager,
+    FLOW_TASK_PRIORITY,
+    FLOW_TASK_REMINDER,
+)
 from tests.test_helpers.test_utilities import TestUserFactory
 
 
@@ -38,11 +42,11 @@ class TestDiscordTaskReminderFollowup:
         message = "create task to call dentist tomorrow"
         response = manager.handle_message(user_id, message, channel_type="discord")
         
-        # Assert - Should ask about reminders
+        # Assert - Should ask about priority before reminders
         assert not response.completed, "Response should indicate flow is not completed"
-        assert "reminder" in response.message.lower(), "Should mention reminders"
+        assert "priority" in response.message.lower(), "Should mention priority"
         assert user_id in conversation_manager.user_states, "User should be in flow state"
-        assert conversation_manager.user_states[user_id]['flow'] == FLOW_TASK_REMINDER, "Should be in TASK_REMINDER flow"
+        assert conversation_manager.user_states[user_id]['flow'] == FLOW_TASK_PRIORITY, "Should be in TASK_PRIORITY flow"
         
         # Verify task was created
         tasks = load_active_tasks(user_id)
@@ -71,17 +75,23 @@ class TestDiscordTaskReminderFollowup:
         message1 = "create task to buy groceries tomorrow at 2pm"
         response1 = manager.handle_message(user_id, message1, channel_type="discord")
         
-        assert not response1.completed, "Should ask about reminders"
+        assert not response1.completed, "Should ask about priority"
         assert user_id in conversation_manager.user_states, "Should be in flow"
-        
-        # Step 2: Set reminders
-        message2 = "30 minutes to an hour before"
-        response2 = manager.handle_message(user_id, message2, channel_type="discord")
+
+        # Step 2: Skip priority, moving into reminder setup
+        response2 = manager.handle_message(user_id, "skip", channel_type="discord")
+        assert not response2.completed, "Should ask about reminders"
+        assert "reminder" in response2.message.lower(), "Should mention reminders"
+        assert conversation_manager.user_states[user_id]['flow'] == FLOW_TASK_REMINDER
+
+        # Step 3: Set reminders
+        message3 = "30 minutes to an hour before"
+        response3 = manager.handle_message(user_id, message3, channel_type="discord")
         
         # Assert
-        assert response2.completed, "Flow should be completed"
+        assert response3.completed, "Flow should be completed"
         assert user_id not in conversation_manager.user_states, "Flow should be cleared"
-        assert "reminder" in response2.message.lower() or "set" in response2.message.lower(), "Should confirm reminders set"
+        assert "reminder" in response3.message.lower() or "set" in response3.message.lower(), "Should confirm reminders set"
         
         # Verify task has scheduled reminder periods (canonical reminders[])
         tasks = load_active_tasks(user_id)
@@ -110,18 +120,22 @@ class TestDiscordTaskReminderFollowup:
         message1 = "create task to water plants tomorrow"
         response1 = manager.handle_message(user_id, message1, channel_type="discord")
         
-        assert not response1.completed, "Should ask about reminders"
+        assert not response1.completed, "Should ask about priority"
         
-        # Step 2: Decline reminders
-        message2 = "no reminders"
-        response2 = manager.handle_message(user_id, message2, channel_type="discord")
+        # Step 2: Skip priority, moving into reminder setup
+        response2 = manager.handle_message(user_id, "skip", channel_type="discord")
+        assert not response2.completed, "Should ask about reminders"
+        assert conversation_manager.user_states[user_id]['flow'] == FLOW_TASK_REMINDER
+
+        # Step 3: Decline reminders
+        message3 = "no reminders"
+        response3 = manager.handle_message(user_id, message3, channel_type="discord")
         
         # Assert
-        assert response2.completed, "Flow should be completed"
-        assert "no reminders" in response2.message.lower() or "got it" in response2.message.lower(), "Should acknowledge no reminders"
+        assert response3.completed, "Flow should be completed"
+        assert "no reminders" in response3.message.lower() or "got it" in response3.message.lower(), "Should acknowledge no reminders"
         
         # Verify task exists but has no reminder periods
         tasks = load_active_tasks(user_id)
         task = tasks[-1]
         assert 'reminder_periods' not in task or not task.get('reminder_periods'), "Task should have no reminder periods"
-

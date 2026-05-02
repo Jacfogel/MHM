@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-01 20:29:44
+> **Last Generated**: 2026-05-01 23:31:26
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 122
-- **Total Imports Found**: 1528
+- **Total Imports Found**: 1531
 - **Dependencies Documented**: 122 (100% coverage)
-- **Standard Library Imports**: 432 (28.3%)
+- **Standard Library Imports**: 432 (28.2%)
 - **Third-Party Imports**: 234 (15.3%)
-- **Local Imports**: 862 (56.4%)
+- **Local Imports**: 865 (56.5%)
 - **Last Updated**: 2026-05-01
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 432 imports (28.3%)
+- **Standard Library**: 432 imports (28.2%)
 - **Third-Party**: 234 imports (15.3%)
-- **Local**: 862 imports (56.4%)
+- **Local**: 865 imports (56.5%)
 
 ## Module Dependencies by Directory
 
@@ -1128,6 +1128,7 @@
     - `notebook.notebook_data_manager (create_list, create_note)`
     - `tasks (get_task_by_id, update_task)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_due_time)` (NEW)
+    - `tasks.task_schemas (VALID_PRIORITIES)` (NEW)
   - **Standard Library**:
     - `contextlib (suppress)`
     - `datetime (datetime, timedelta)`
@@ -1145,7 +1146,7 @@
   - `core/service.py`
 
 **Dependency Changes**:
-- Added: core, core.checkin_dynamic_manager, core.config, core.error_handling, core.logger, core.response_tracking, core.tags, core.time_utilities, core.user_data_v2_base, tasks, tasks.task_data_handlers
+- Added: core, core.checkin_dynamic_manager, core.config, core.error_handling, core.logger, core.response_tracking, core.tags, core.time_utilities, core.user_data_v2_base, tasks, tasks.task_data_handlers, tasks.task_schemas
 - Removed: communication/command_handlers/checkin_handler.py, communication/command_handlers/notebook_handler.py, communication/core/channel_orchestrator.py, communication/message_processing/interaction_manager.py, core/service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2693,6 +2694,7 @@
     - `pydantic (BaseModel, ConfigDict, Field, field_validator, model_validator)`
 - **Used by**: 
   - `communication/command_handlers/task_handler.py`
+  - `communication/message_processing/conversation_flow_manager.py`
   - `core/file_operations.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_validation.py`

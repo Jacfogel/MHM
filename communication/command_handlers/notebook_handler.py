@@ -132,6 +132,7 @@ def _format_no_search_hits_message(query: str) -> str:
         "Archived entries are not included - try !archived if something might be archived.",
         "",
         "Try one distinctive word from the title or body, a shorter keyword, or browse with !recent / !inbox.",
+        "For tags or groups, use !t <tag> or !group <name> instead of search.",
     ]
     return "\n".join(lines)
 
@@ -263,9 +264,9 @@ class NotebookHandler(InteractionHandler):
         elif intent == "list_entries_by_group":
             return self._handle_list_by_group(user_id, entities)
         elif intent == "list_pinned_entries":
-            return self._handle_list_pinned(user_id)
+            return self._handle_list_pinned(user_id, entities)
         elif intent == "list_inbox_entries":
-            return self._handle_list_inbox(user_id)
+            return self._handle_list_inbox(user_id, entities)
         elif intent == "list_entries_by_tag":
             return self._handle_list_by_tag(user_id, entities)
         elif intent == "list_archived_entries":

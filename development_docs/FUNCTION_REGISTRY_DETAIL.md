@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-01 20:29:43
+> **Last Generated**: 2026-05-01 23:31:24
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 94.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 124
-- **Functions Found**: 1767
-- **Methods Found**: 1244
+- **Functions Found**: 1771
+- **Methods Found**: 1248
 - **Classes Found**: 159
-- **Total Items**: 3011
-- **Functions Documented**: 1651
-- **Methods Documented**: 1195
+- **Total Items**: 3019
+- **Functions Documented**: 1655
+- **Methods Documented**: 1199
 - **Classes Documented**: 122
-- **Total Documented**: 2846
+- **Total Documented**: 2854
 - **Template-Generated**: 4
 - **Last Updated**: 2026-05-01
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (617)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (470)
+### **Communication Functions** (474)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (430)
@@ -1085,6 +1085,7 @@ Output examples:
 #### `communication/command_handlers/task_handler.py`
 **Functions:**
 - [OK] `_add_one_calendar_month(dt)` - Advance *dt* by one calendar month, clamping the day to the target month's last day.
+- [OK] `_default_due_date_for_recurring_time(self, due_time)` - Return today for future recurring times, otherwise tomorrow.
 - [OK] `_find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, canonical id, or short_id.
 
 Shared method to eliminate code duplication. Used by complete, delete, and update handlers.
@@ -1126,6 +1127,7 @@ Returns:
 - [OK] `handle_list_tasks(self, user_id, entities)` - Public entry point for /tasks (list tasks).
 **Classes:**
 - [OK] `TaskManagementHandler` - Handler for task management interactions
+  - [OK] `TaskManagementHandler._default_due_date_for_recurring_time(self, due_time)` - Return today for future recurring times, otherwise tomorrow.
   - [OK] `TaskManagementHandler._find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, canonical id, or short_id.
 
 Shared method to eliminate code duplication. Used by complete, delete, and update handlers.
@@ -2117,6 +2119,7 @@ Returns:
 - [OK] `_cache_expired_checkin_order(self, user_id, user_state)` - Cache the question order for a same-day restart after expiration.
 - [OK] `_clear_flow_state(self, user_id, mark_completion)` - Clear user flow state and optionally mark completion timestamp.
 - [OK] `_complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
+- [OK] `_continue_after_task_priority(self, user_id, task_id, ask_reminders)` - Advance from optional priority setup to reminders when useful.
 - [OK] `_date_str(dt)` - Return YYYY-MM-DD without sprinkling strftime format strings.
 - [OK] `_expire_inactive_checkins(self, user_id)` - Remove stale check-in flows that have been idle beyond the allowed window.
 - [OK] `_generate_completion_message(self, user_id, data)` - Generate a personalized completion message based on responses
@@ -2137,6 +2140,7 @@ Examples:
 - [OK] `_handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
 - [OK] `_handle_note_body_flow(self, user_id, user_state, message_text)` - Handle continuation of note body flow.
 - [OK] `_handle_task_due_date_flow(self, user_id, user_state, message_text)` - Handle continuation of task due date/time flow.
+- [OK] `_handle_task_priority_flow(self, user_id, user_state, message_text)` - Handle optional priority follow-up after task creation.
 - [OK] `_handle_task_reminder_followup(self, user_id, user_state, message_text)` - Handle user's response to reminder period question after task creation.
 
 Parses natural language responses like:
@@ -2221,8 +2225,9 @@ Returns:
     tuple[str, bool]: Response message and completion status (always True for this flow)
 - [MISSING] `start_profile_flow(self, user_id)` - No description
 - [MISSING] `start_schedule_flow(self, user_id)` - No description
-- [OK] `start_task_due_date_flow(self, user_id, task_id)` - Start a task due date/time flow.
+- [OK] `start_task_due_date_flow(self, user_id, task_id, ask_priority)` - Start a task due date/time flow.
 Called by task handler after creating a task without a due date.
+- [OK] `start_task_priority_flow(self, user_id, task_id, ask_reminders)` - Start a priority follow-up after task creation.
 - [OK] `start_task_reminder_followup(self, user_id, task_id)` - Start a task reminder follow-up flow.
 Called by task handler after creating a task with a due date.
 - [OK] `start_tasks_flow(self, user_id)` - Starter for a future tasks multi-step flow (placeholder).
@@ -2234,6 +2239,7 @@ Called by task handler after creating a task with a due date.
   - [OK] `ConversationManager._cache_expired_checkin_order(self, user_id, user_state)` - Cache the question order for a same-day restart after expiration.
   - [OK] `ConversationManager._clear_flow_state(self, user_id, mark_completion)` - Clear user flow state and optionally mark completion timestamp.
   - [OK] `ConversationManager._complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
+  - [OK] `ConversationManager._continue_after_task_priority(self, user_id, task_id, ask_reminders)` - Advance from optional priority setup to reminders when useful.
   - [OK] `ConversationManager._expire_inactive_checkins(self, user_id)` - Remove stale check-in flows that have been idle beyond the allowed window.
   - [OK] `ConversationManager._generate_completion_message(self, user_id, data)` - Generate a personalized completion message based on responses
   - [OK] `ConversationManager._generate_context_aware_reminder_suggestions(self, user_id, task_id)` - Generate reminder period suggestions based on task's due date/time.
@@ -2253,6 +2259,7 @@ Examples:
   - [OK] `ConversationManager._handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
   - [OK] `ConversationManager._handle_note_body_flow(self, user_id, user_state, message_text)` - Handle continuation of note body flow.
   - [OK] `ConversationManager._handle_task_due_date_flow(self, user_id, user_state, message_text)` - Handle continuation of task due date/time flow.
+  - [OK] `ConversationManager._handle_task_priority_flow(self, user_id, user_state, message_text)` - Handle optional priority follow-up after task creation.
   - [OK] `ConversationManager._handle_task_reminder_followup(self, user_id, user_state, message_text)` - Handle user's response to reminder period question after task creation.
 
 Parses natural language responses like:
@@ -2337,8 +2344,9 @@ Returns:
     tuple[str, bool]: Response message and completion status (always True for this flow)
   - [MISSING] `ConversationManager.start_profile_flow(self, user_id)` - No description
   - [MISSING] `ConversationManager.start_schedule_flow(self, user_id)` - No description
-  - [OK] `ConversationManager.start_task_due_date_flow(self, user_id, task_id)` - Start a task due date/time flow.
+  - [OK] `ConversationManager.start_task_due_date_flow(self, user_id, task_id, ask_priority)` - Start a task due date/time flow.
 Called by task handler after creating a task without a due date.
+  - [OK] `ConversationManager.start_task_priority_flow(self, user_id, task_id, ask_reminders)` - Start a priority follow-up after task creation.
   - [OK] `ConversationManager.start_task_reminder_followup(self, user_id, task_id)` - Start a task reminder follow-up flow.
 Called by task handler after creating a task with a due date.
   - [OK] `ConversationManager.start_tasks_flow(self, user_id)` - Starter for a future tasks multi-step flow (placeholder).

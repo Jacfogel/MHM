@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-02 - Notebook Pagination and Task Follow-up UX **COMPLETED**
+- **Notebook Discord UX**: `Show More` pagination now preserves hidden payloads for search, inbox, pinned, group, tag, and archived notebook views; pinned/inbox continuation now passes stored entities through handler dispatch.
+- **Notebook search UX**: empty search results now suggest practical recovery paths including `!recent`, `!inbox`, `!archived`, `!t <tag>`, and `!group <name>`.
+- **Task creation flow**: Discord task creation now includes an optional priority follow-up before reminder setup when priority was not supplied, with `Skip` and `Skip All` exits.
+- **Audit cleanup/tests**: docs registry regenerated; Pyright warnings fixed (`0 errors, 0 warnings` after escalated rerun); focused Discord/task/notebook behavior suites passed (`75 passed`) plus Ruff and `py_compile`.
+
 ### 2026-05-02 - Discord Recurring Task UX **COMPLETED**
 - **Audit status**: latest generated `AI_STATUS` already showed Tier 3 clean, so the previously noted communication failures were treated as cleared by current evidence.
 - **Tasks Discord UX**: rule-based task parsing now recognizes recurring phrases such as `every morning`, `every 2 weeks`, and `every Sunday`; titles are cleaned before task creation.

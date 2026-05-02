@@ -13,6 +13,7 @@ import uuid
 from communication.message_processing.conversation_flow_manager import (
     conversation_manager,
     FLOW_TASK_REMINDER,
+    FLOW_TASK_PRIORITY,
 )
 from communication.command_handlers.task_handler import TaskManagementHandler
 from tasks import create_task, get_task_by_id
@@ -51,6 +52,7 @@ class TestTaskReminderFollowupBehavior:
             "due_date": format_timestamp(
                 (now_datetime_full() + timedelta(days=2)), DATE_ONLY
             ),
+            "priority": "high",
         }
         response = handler._handle_create_task(user_id, entities)
 
@@ -71,6 +73,82 @@ class TestTaskReminderFollowupBehavior:
         task = get_task_by_id(user_id, task_id)
         assert task is not None, "Task should exist"
         assert task["title"] == "Test reminder task", "Task should have correct title"
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    def test_task_creation_without_priority_starts_priority_flow(self, test_data_dir):
+        """Task creation asks priority before reminders when priority was not supplied."""
+        user_id = "test_priority_followup_start"
+        TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        conversation_manager.user_states.pop(user_id, None)
+        handler = TaskManagementHandler()
+
+        response = handler._handle_create_task(
+            user_id,
+            {
+                "title": "Priority follow-up task",
+                "due_date": format_timestamp(
+                    (now_datetime_full() + timedelta(days=2)), DATE_ONLY
+                ),
+            },
+        )
+
+        assert not response.completed
+        assert "priority" in response.message.lower()
+        assert "Skip All" in response.suggestions
+        assert conversation_manager.user_states[user_id]["flow"] == FLOW_TASK_PRIORITY
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    def test_priority_flow_sets_priority_then_starts_reminder_flow(self, test_data_dir):
+        """Priority follow-up saves priority and then continues to reminder setup."""
+        user_id = "test_priority_then_reminder"
+        TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        due_date = format_timestamp(
+            (now_datetime_full() + timedelta(days=2)), DATE_ONLY
+        )
+        task_id = create_task(user_id=user_id, title="Priority task", due_date=due_date)
+        conversation_manager.start_task_priority_flow(
+            user_id, task_id, ask_reminders=True
+        )
+
+        reply, completed = conversation_manager._handle_task_priority_flow(
+            user_id, conversation_manager.user_states[user_id], "critical"
+        )
+
+        assert not completed
+        assert "reminder" in reply.lower()
+        assert conversation_manager.user_states[user_id]["flow"] == FLOW_TASK_REMINDER
+        task = get_task_by_id(user_id, task_id)
+        assert task["priority"] == "critical"
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    def test_due_date_skip_can_continue_to_priority_flow(self, test_data_dir):
+        """Skipping due date still allows optional priority setup unless user skips all."""
+        user_id = "test_due_date_skip_priority"
+        TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        task_id = create_task(user_id=user_id, title="No due priority task")
+        conversation_manager.start_task_due_date_flow(
+            user_id, task_id, ask_priority=True
+        )
+
+        reply, completed = conversation_manager._handle_task_due_date_flow(
+            user_id, conversation_manager.user_states[user_id], "skip"
+        )
+
+        assert not completed
+        assert "priority" in reply.lower()
+        assert conversation_manager.user_states[user_id]["flow"] == FLOW_TASK_PRIORITY
 
     @pytest.mark.behavior
     @pytest.mark.communication

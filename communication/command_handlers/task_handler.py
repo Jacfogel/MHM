@@ -159,7 +159,9 @@ class TaskManagementHandler(InteractionHandler):
         due_time = entities.get(
             "due_time"
         )  # Extract time if present (e.g., "Friday at noon")
-        priority = entities.get("priority", "medium")
+        raw_priority = entities.get("priority")
+        priority_was_provided = raw_priority in VALID_PRIORITIES
+        priority = raw_priority or "medium"
         tags = entities.get("tags", [])
         recurrence_pattern = entities.get("recurrence_pattern")
         recurrence_interval = entities.get("recurrence_interval", 1)
@@ -321,10 +323,25 @@ class TaskManagementHandler(InteractionHandler):
                 logger.debug(
                     f"Task {task_id} has no valid due date (valid_due_date={valid_due_date}), starting due date flow"
                 )
-                conversation_manager.start_task_due_date_flow(user_id, task_id)
+                conversation_manager.start_task_due_date_flow(
+                    user_id, task_id, ask_priority=not priority_was_provided
+                )
                 response += "\n\nWhat would you like to add as the due date and/or time for this task? [Skip] [Cancel]"
                 return InteractionResponse(
-                    response, completed=False, suggestions=["Skip", "Cancel"]
+                    response, completed=False, suggestions=["Skip", "Skip All", "Cancel"]
+                )
+            elif not priority_was_provided:
+                logger.debug(
+                    f"Task {task_id} has no explicit priority, starting priority flow"
+                )
+                conversation_manager.start_task_priority_flow(
+                    user_id, task_id, ask_reminders=True
+                )
+                response += "\n\nWhat priority should this task have? [Low] [Medium] [High] [Critical] [Skip] [Skip All]"
+                return InteractionResponse(
+                    response,
+                    completed=False,
+                    suggestions=["Low", "Medium", "High", "Critical", "Skip", "Skip All"],
                 )
             else:
                 # Task has valid due date - ask about reminder periods with context-aware options

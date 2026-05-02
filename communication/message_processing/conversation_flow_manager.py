@@ -55,6 +55,7 @@ FLOW_TASK_REMINDER = 2
 FLOW_NOTE_BODY = 3
 FLOW_LIST_ITEMS = 4
 FLOW_TASK_DUE_DATE = 5
+FLOW_TASK_PRIORITY = 6
 
 
 # We'll define states for check-in - now dynamic based on user preferences
@@ -465,6 +466,8 @@ class ConversationManager:
             return self._handle_list_items_flow(user_id, user_state, message_text)
         elif flow == FLOW_TASK_DUE_DATE:
             return self._handle_task_due_date_flow(user_id, user_state, message_text)
+        elif flow == FLOW_TASK_PRIORITY:
+            return self._handle_task_priority_flow(user_id, user_state, message_text)
         else:
             # Unknown flow - reset to default contextual chat
             self._clear_flow_state(user_id, mark_completion=True)
@@ -1790,7 +1793,9 @@ class ConversationManager:
         }
 
     @handle_errors("starting task due date flow", default_return=None)
-    def start_task_due_date_flow(self, user_id: str, task_id: str) -> None:
+    def start_task_due_date_flow(
+        self, user_id: str, task_id: str, ask_priority: bool = False
+    ) -> None:
         """
         Start a task due date/time flow.
         Called by task handler after creating a task without a due date.
@@ -1798,7 +1803,7 @@ class ConversationManager:
         self.user_states[user_id] = {
             "flow": FLOW_TASK_DUE_DATE,
             "state": 0,
-            "data": {"task_identifier": task_id},
+            "data": {"task_identifier": task_id, "ask_priority": ask_priority},
             "started_at": now_timestamp_full(),
         }
         self._save_user_states()
@@ -1820,6 +1825,121 @@ class ConversationManager:
         logger.debug(
             f"Started task reminder follow-up flow for user {user_id}, task {task_id}"
         )
+
+    @handle_errors("starting task priority flow", default_return=None)
+    def start_task_priority_flow(
+        self, user_id: str, task_id: str, ask_reminders: bool = True
+    ) -> None:
+        """Start a priority follow-up after task creation."""
+        self.user_states[user_id] = {
+            "flow": FLOW_TASK_PRIORITY,
+            "state": 0,
+            "data": {"task_identifier": task_id, "ask_reminders": ask_reminders},
+            "started_at": now_timestamp_full(),
+        }
+        self._save_user_states()
+        logger.debug(f"Started task priority flow for user {user_id}, task {task_id}")
+
+    @handle_errors(
+        "continuing after task priority flow",
+        default_return=(
+            "Task details saved. You can update reminders later from the task list.",
+            True,
+        ),
+    )
+    def _continue_after_task_priority(
+        self, user_id: str, task_id: str, ask_reminders: bool
+    ) -> tuple[str, bool]:
+        """Advance from optional priority setup to reminders when useful."""
+        from tasks import get_task_by_id
+
+        task = get_task_by_id(user_id, task_id)
+        if ask_reminders and task and runtime_task_due_date(task):
+            self.start_task_reminder_followup(user_id, task_id)
+            return (
+                "Would you like to set custom reminder periods for this task?",
+                False,
+            )
+
+        self._clear_flow_state(user_id, mark_completion=True)
+        return (
+            "Task setup finished. You can update priority, due date, or reminders later from the task list.",
+            True,
+        )
+
+    @handle_errors(
+        "handling task priority flow",
+        default_return=(
+            "I'm having trouble with the priority setup. Your task was created successfully.",
+            True,
+        ),
+    )
+    def _handle_task_priority_flow(
+        self, user_id: str, user_state: dict, message_text: str
+    ) -> tuple[str, bool]:
+        """Handle optional priority follow-up after task creation."""
+        from tasks import update_task
+        from tasks.task_schemas import VALID_PRIORITIES
+
+        task_id = self._get_task_flow_identifier(user_state)
+        ask_reminders = bool(user_state.get("data", {}).get("ask_reminders", True))
+        if not task_id:
+            self._clear_flow_state(user_id, mark_completion=True)
+            return (
+                "I couldn't find the task to update. The task was created successfully.",
+                True,
+            )
+
+        started_at_str = user_state.get("started_at")
+        if started_at_str:
+            started_at = parse_timestamp_full(started_at_str)
+            if started_at is not None and (
+                now_datetime_full() - started_at
+            ) > timedelta(minutes=10):
+                self._clear_flow_state(user_id, mark_completion=True)
+                return (
+                    "Priority setup expired. Task was created with normal priority.",
+                    True,
+                )
+
+        message_lower = message_text.lower().strip()
+        skip_all_keywords = ["skip all", "!skip all", "/skip all"]
+        skip_keywords = ["skip", "!skip", "/skip", "medium", "normal", "none"]
+        cancel_keywords = ["cancel", "!cancel", "/cancel"]
+
+        if any(message_lower == keyword for keyword in skip_all_keywords):
+            self._clear_flow_state(user_id, mark_completion=True)
+            return (
+                "Task setup finished. You can update priority, due date, or reminders later from the task list.",
+                True,
+            )
+
+        if any(message_lower == keyword for keyword in cancel_keywords):
+            return self._continue_after_task_priority(user_id, task_id, ask_reminders)
+
+        if any(message_lower == keyword for keyword in skip_keywords):
+            return self._continue_after_task_priority(user_id, task_id, ask_reminders)
+
+        priority = message_lower
+        if priority not in VALID_PRIORITIES:
+            return (
+                "I'm not sure which priority you want. Choose low, medium, high, or critical. You can also say skip or skip all.",
+                False,
+            )
+
+        if not update_task(user_id, task_id, {"priority": priority}):
+            self._clear_flow_state(user_id, mark_completion=True)
+            return (
+                "I had trouble saving the priority. The task was created successfully.",
+                True,
+            )
+
+        followup, completed = self._continue_after_task_priority(
+            user_id, task_id, ask_reminders
+        )
+        if completed:
+            return (f"Priority set to {priority}. {followup}", True)
+        return (f"Priority set to {priority}.\n\n{followup}", False)
 
     @handle_errors(
         "generating context-aware reminder suggestions", default_return=["Skip"]
@@ -1955,8 +2075,16 @@ class ConversationManager:
                 )
 
         # Check for skip/cancel commands
+        skip_all_keywords = ["skip all", "!skip all", "/skip all"]
         skip_keywords = ["skip", "!skip", "/skip"]
         cancel_keywords = ["cancel", "!cancel", "/cancel"]
+
+        if any(message_lower == keyword for keyword in skip_all_keywords):
+            self._clear_flow_state(user_id, mark_completion=True)
+            return (
+                "Task setup finished. You can update due date, priority, or reminders later from the task list.",
+                True,
+            )
 
         # Handle cancel - abort due date setting
         if any(
@@ -1976,6 +2104,13 @@ class ConversationManager:
             for keyword in skip_keywords
         ):
             task_id = self._get_task_flow_identifier(user_state)
+            ask_priority = bool(user_state.get("data", {}).get("ask_priority", False))
+            if ask_priority and task_id:
+                self.start_task_priority_flow(user_id, task_id, ask_reminders=False)
+                return (
+                    "Task created without a due date.\n\nWhat priority should this task have? [Low] [Medium] [High] [Critical] [Skip] [Skip All]",
+                    False,
+                )
             self._clear_flow_state(user_id, mark_completion=True)
             return (
                 "✅ Task created without a due date. You can add one later by updating the task.",
@@ -2034,16 +2169,21 @@ class ConversationManager:
                     True,
                 )
 
-            # Clear flow
-            self._clear_flow_state(user_id, mark_completion=True)
+            due_text = parsed_date
+            if parsed_time:
+                due_text += f" at {parsed_time}"
+
+            ask_priority = bool(user_state.get("data", {}).get("ask_priority", False))
+            if ask_priority:
+                self.start_task_priority_flow(user_id, task_id, ask_reminders=True)
+                return (
+                    f"Due date set: {due_text}\n\nWhat priority should this task have? [Low] [Medium] [High] [Critical] [Skip] [Skip All]",
+                    False,
+                )
 
             # Now ask about reminder periods with context-aware options
             self.start_task_reminder_followup(user_id, task_id)
             self._generate_context_aware_reminder_suggestions(user_id, task_id)
-
-            due_text = parsed_date
-            if parsed_time:
-                due_text += f" at {parsed_time}"
 
             response = f"✅ Due date set: {due_text}\n\nWould you like to set custom reminder periods for this task?"
             return (response, False)  # Not completed - reminder flow is active
