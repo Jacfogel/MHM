@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from core import get_all_user_ids
-from core.schedule_management import get_schedule_time_periods
+from core.schedule_runtime import get_schedule_time_periods
 from core.service_utilities import load_and_localize_datetime
 from core.time_utilities import (
     now_timestamp_filename,
@@ -1330,7 +1330,7 @@ class SchedulerManager:
         """
         try:
             from tasks import load_active_tasks, are_tasks_enabled
-            from core.schedule_management import get_schedule_time_periods
+            from core.schedule_runtime import get_schedule_time_periods
 
             # Check if tasks are enabled for this user
             if not are_tasks_enabled(user_id):

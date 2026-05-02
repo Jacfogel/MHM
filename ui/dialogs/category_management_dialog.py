@@ -11,7 +11,7 @@ from core.logger import get_component_logger
 from core import update_user_preferences, update_user_account
 from core import get_user_data
 from core.error_handling import handle_errors
-from core.schedule_management import clear_schedule_periods_cache
+from core.schedule_runtime import clear_schedule_periods_cache
 
 logger = get_component_logger("ui")
 dialog_logger = logger

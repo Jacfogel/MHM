@@ -5,18 +5,27 @@ Defines Entry and ListItem models with validation, following MHM patterns.
 """
 
 from __future__ import annotations
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID, uuid4
 from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
 
 from core.tags import normalize_tags, validate_tag
 from core.logger import get_component_logger
 from core.time_utilities import now_timestamp_full
+from core.user_data_v2_base import (
+    SCHEMA_VERSION,
+    BaseItemModel,
+    validate_optional_v2_timestamp,
+    v2_schema_validation_error,
+)
 
 logger = get_component_logger("notebook_schemas")
 
 
+# Aligns with the notebook subset of ``ItemKind`` in ``core.user_data_v2_base``.
 EntryKind = Literal["note", "list", "journal_entry"]
+
+NotebookStatus = Literal["active", "archived", "deleted"]
 
 
 class ListItem(BaseModel):
@@ -126,3 +135,37 @@ class Entry(BaseModel):
         if self.kind == "list" and (self.items is None or len(self.items) == 0):
             raise ValueError("Entry kind 'list' must have 'items'.")
         return self
+
+
+class NotebookV2Model(BaseItemModel):
+    """v2 JSON shape for notebook/entries.json (string ids, list items as dicts)."""
+
+    kind: Literal["note", "list", "journal_entry"]
+    status: NotebookStatus = "active"
+    pinned: bool = False
+    submitted_at: str | None = None
+    items: list[dict[str, Any]] | None = None
+
+    @field_validator("submitted_at")
+    @classmethod
+    def validate_submitted_at(cls, value: str | None) -> str | None:
+        validate_optional_v2_timestamp(value, "submitted_at")
+        return value
+
+    @model_validator(mode="after")
+    def validate_kind_details(self) -> NotebookV2Model:
+        if self.kind == "journal_entry" and not self.submitted_at:
+            raise v2_schema_validation_error("journal_entry records require submitted_at")
+        if self.kind == "list" and not self.items:
+            raise v2_schema_validation_error("list records require items")
+        if self.kind != "list" and self.items is not None:
+            raise v2_schema_validation_error("only list records may include items")
+        return self
+
+
+class NotebookCollectionV2Model(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: Literal[2] = SCHEMA_VERSION
+    updated_at: str
+    entries: list[NotebookV2Model] = Field(default_factory=list)

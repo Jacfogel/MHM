@@ -1,7 +1,10 @@
 """
-Schedule defaults and migration: create_default_schedule_periods,
-migrate_legacy_schedules_structure, ensure_category_has_default_schedule,
-ensure_all_categories_have_schedules.
+Schedule **document** defaults and migration: shapes written into ``schedules.json``.
+
+``create_default_schedule_periods``, ``migrate_legacy_schedules_structure``,
+``ensure_category_has_default_schedule``, ``ensure_all_categories_have_schedules``.
+
+For runtime period activation and caches, see ``schedule_runtime``.
 """
 
 from typing import Any

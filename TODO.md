@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-04-29 (v2-native user-data runtime and check-in persistence aligned with USER_DATA_MODEL Section 2.7)
+> **Last Updated**: 2026-05-01 (TODO: plan for v2-envelope profile JSON; `core/schemas.py` docstring alignment)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -79,6 +79,18 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
   - [ ] Evaluate renaming/refactoring the create_project_snapshot script to match behavior (full restorable backup semantics) and define whether a separate generalized development-tools variant is needed.
 
 ## Medium Priority
+
+### User data (versioned schemas)
+
+**Plan: versioned v2-style schemas for profile JSON (account, preferences, schedules, context)**
+- *What it means*: Today `account.json`, `preferences.json`, `schedules.json`, and `user_context.json` are validated mainly through tolerant `core/schemas.py` (and related helpers) on the normal load/save path, while tasks, notebook, check-ins, message templates, and deliveries use strict `schema_version` v2 envelopes. **This task is planning only:** produce a written plan (for example a new subsection in [PLANS.md](development_docs/PLANS.md) or an appendix in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md)) for how to introduce versioned v2 envelopes for those remaining files (migration steps, backward compatibility, whether `validate_v2_document` grows a dispatcher or profile types live beside envelopes, test and rollback strategy) **without implementing the migration yet.**
+- *Why it helps*: One clear mental model for on-disk contracts, easier tooling and audits, and explicit migration boundaries instead of indefinite tolerant-only profile shapes.
+- *Estimated effort*: Small for the **plan document**; Large for a future execution pass (separate tasks after the plan exists).
+- *Created*: 2026-05-01
+- *Subtasks*:
+  - [ ] Draft the plan doc (scope each file, target envelope shape, compatibility with existing `core/schemas.py` consumers).
+  - [ ] List open questions (e.g. `user_context.json` not in `core/schemas.py` today; schedules vs `schedule_document_defaults`; single vs split modules).
+  - [ ] After review, split follow-up implementation tasks (not part of this item).
 
 ### Documentation
 

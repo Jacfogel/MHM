@@ -1044,7 +1044,7 @@ class TestUserFactory:
                 return False
 
             # Ensure user index is updated (race condition fix for parallel execution)
-            from core.user_data_manager import update_user_index
+            from core.user_data_operations import update_user_index
             import time
 
             max_retries = 3
@@ -1194,7 +1194,7 @@ class TestUserFactory:
                 time.sleep(0.1)  # Brief delay to ensure directory is created
 
             # Ensure user index is updated (race condition fix for parallel execution)
-            from core.user_data_manager import update_user_index
+            from core.user_data_operations import update_user_index
             import time
 
             max_retries = 3

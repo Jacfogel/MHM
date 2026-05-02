@@ -22,9 +22,9 @@
 |---|-----|---|--------------------|---------|
 | 1 | 0.954 | 3 | message_formatter.py — format_message (MessageFormatter, Text, Email) | Intentional polymorphism |
 | 2 | 0.920 | 3 | rich_formatter.py — get_color_for_type (RichFormatter, Discord, Email) | Intentional polymorphism |
-| 3 | 0.840 | 9 | user_data_manager.py — backup_user_data, get_user_data_summary, get_user_summary, +6 | Class + module API + helpers; optional refactor for _get_user_data_summary__* |
-| 4 | 0.840 | 5 | user_data_manager.py — _get_user_data_summary__process_* (enabled, orphaned, message, log, core) | Same-class helpers; optional shared structure |
-| 5 | 0.840 | 2 | user_data_manager.py — update_user_index (class + module) | Intentional API pattern |
+| 3 | 0.840 | 9 | user_data_operations.py — backup_user_data, get_user_data_summary, get_user_summary, +6 | Class + module API + helpers; optional refactor for _get_user_data_summary__* |
+| 4 | 0.840 | 5 | user_data_operations.py — _get_user_data_summary__process_* (enabled, orphaned, message, log, core) | Same-class helpers; optional shared structure |
+| 5 | 0.840 | 2 | user_data_operations.py — update_user_index (class + module) | Intentional API pattern |
 | 6 | 0.833 | 2 | notebook_handler.py — _handle_list_by_group, _handle_list_by_tag | Similar handlers; optional shared helper |
 | 7 | 0.820 | 3 | user_data_updates.py — update_user_account, update_user_context, update_user_schedules | Parallel updaters; optional shared helper |
 | 8 | 0.820 | 2 | tags.py — add_user_tag, remove_user_tag | Pair ops; optional shared helper |
@@ -33,11 +33,11 @@
 | 11 | 0.787 | 2 | cache_manager.py — ResponseCache.clear, ContextCache.clear | Same pattern (clear cache); intentional |
 | 12 | 0.760 | 2 | channel_orchestrator.py — send_message, send_message_sync | Intentional async vs sync entry points |
 | 13 | 0.760 | 2 | message_editor_dialog.py — edit_message_by_row, delete_message_by_row | Different ops (edit vs delete); similar structure |
-| 14 | 0.760 | 2 | user_data_manager.py — delete_user_completely (class + module) | Intentional API pattern |
+| 14 | 0.760 | 2 | user_data_operations.py — delete_user_completely (class + module) | Intentional API pattern |
 | 15 | 0.752 | 3 | file_operations.py — _create_user_files__preferences_file, __schedules_file, __account_file | Parallel file creators; optional shared helper |
-| 16 | 0.752 | 2 | user_data_manager.py — _get_user_data_summary__add_schedule_details, __add_sent_messages_details | Same-class helpers; optional shared structure |
+| 16 | 0.752 | 2 | user_data_operations.py — _get_user_data_summary__add_schedule_details, __add_sent_messages_details | Same-class helpers; optional shared structure |
 | 17 | 0.740 | 2 | notebook_handler.py — _handle_pin_entry, _handle_archive_entry | Similar handlers; optional shared helper |
-| 18 | 0.739 | 5 | user_data_manager.py — _get_user_data_summary__add_* (file_info, message_file_info, missing_message_file_info, special_file_details, +1) | Same-class helpers; optional shared structure |
+| 18 | 0.739 | 5 | user_data_operations.py — _get_user_data_summary__add_* (file_info, message_file_info, missing_message_file_info, special_file_details, +1) | Same-class helpers; optional shared structure |
 | 19 | 0.725 | 2 | user_data_write.py — _save_user_data__validate_input, __validate_data | Validation helpers; optional merge |
 | 20 | 0.720 | 4 | user_data_registry.py — _get_user_data__load_preferences, __load_schedules, __load_context, __load_account | Parallel loaders; refactored to shared loader pattern |
 | 21 | 0.720 | 2 | command_parser.py — _extract_intent_from_ai_response, _extract_entities_from_ai_response | Extraction helpers; optional shared helper |
@@ -75,7 +75,7 @@ Abstract base plus channel-specific implementations (Discord colour int, Email H
 
 ---
 
-## Groups 3–5, 14, 16, 18: user_data_manager.py — class + module and _get_user_data_summary__* helpers
+## Groups 3–5, 14, 16, 18: user_data_operations.py — class + module and _get_user_data_summary__* helpers
 
 **Pattern**: Module-level functions (backup_user_data, get_user_data_summary, delete_user_completely, update_user_index, etc.) are the public API; they validate inputs and call `UserDataManager().method()`. Class holds implementation. **Do not merge** class and module-level; this is intentional.
 

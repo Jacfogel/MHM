@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-01 01:30:42
+> **Last Generated**: 2026-05-01 18:40:03
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -163,7 +163,8 @@ C:.
 |   |   network_probe.py
 |   |   response_tracking.py
 |   |   scheduler.py
-|   |   schedule_management.py
+|   |   schedule_document_defaults.py
+|   |   schedule_runtime.py
 |   |   schedule_utilities.py
 |   |   schemas.py
 |   |   service.py
@@ -172,14 +173,12 @@ C:.
 |   |   time_format_constants.py
 |   |   time_utilities.py
 |   |   ui_management.py
-|   |   user_data_manager.py
 |   |   USER_DATA_MODEL.md
+|   |   user_data_operations.py
 |   |   user_data_presets.py
 |   |   user_data_read.py
 |   |   user_data_registry.py
-|   |   user_data_schedule_defaults.py
-|   |   user_data_updates.py
-|   |   user_data_v2.py
+|   |   user_data_v2_base.py
 |   |   user_data_validation.py
 |   |   user_data_write.py
 |   |   user_item_storage.py

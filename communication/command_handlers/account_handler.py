@@ -11,7 +11,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core import get_user_id_by_identifier, create_new_user
 from core import get_user_data, get_all_user_ids, update_user_account
-from core.user_data_manager import update_user_index
+from core.user_data_operations import update_user_index
 from communication.command_handlers.base_handler import InteractionHandler
 from communication.command_handlers.shared_types import (
     InteractionResponse,

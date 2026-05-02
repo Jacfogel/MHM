@@ -438,7 +438,7 @@ class TestUserManagementCoverageExpansion:
             
             with patch('core.user_data_registry.ensure_user_directory'), \
                  patch('core.user_data_registry.save_json_data') as mock_save, \
-                 patch('core.user_data_manager.update_user_index'):
+                 patch('core.user_data_operations.update_user_index'):
                 result = _save_user_data__save_context(self.test_user_id, test_context)
         
         # Assert
@@ -535,7 +535,7 @@ class TestUserManagementCoverageExpansion:
         }
         
         # Act
-        with patch('core.user_data_updates.save_user_data') as mock_save:
+        with patch('core.user_data_write.save_user_data') as mock_save:
             mock_save.return_value = {"schedules": True}
             result = update_user_schedules(self.test_user_id, test_schedules)
         
@@ -707,7 +707,7 @@ class TestUserManagementCoverageExpansion:
              patch('core.user_data_registry.ensure_user_directory'), \
              patch('core.user_data_registry.save_json_data') as mock_save, \
              patch('core.user_data_registry.validate_account_dict') as mock_validate, \
-             patch('core.user_data_manager.update_user_index'):
+             patch('core.user_data_operations.update_user_index'):
             mock_validate.return_value = (test_account, [])
             result = _save_user_data__save_account(self.test_user_id, test_account)
         
@@ -785,7 +785,7 @@ class TestUserManagementIntegration:
                  patch('core.user_data_registry.save_json_data') as mock_save, \
                  patch('core.user_data_registry.validate_account_dict') as mock_validate_account, \
                  patch('core.user_data_registry.validate_preferences_dict') as mock_validate_prefs, \
-                 patch('core.user_data_manager.update_user_index'):
+                 patch('core.user_data_operations.update_user_index'):
                 mock_validate_account.return_value = (test_account, [])
                 mock_validate_prefs.return_value = (test_preferences, [])
 
@@ -883,7 +883,7 @@ class TestUserManagementIntegration:
                  patch('core.user_data_registry.save_json_data') as mock_save, \
                  patch('core.user_data_registry.load_json_data', return_value=test_account), \
                  patch('core.user_data_registry.validate_account_dict') as mock_validate, \
-                 patch('core.user_data_manager.update_user_index'):  # Mock the side effect
+                 patch('core.user_data_operations.update_user_index'):  # Mock the side effect
                 mock_validate.return_value = (test_account, [])
 
                 # Perform multiple operations
@@ -1007,7 +1007,7 @@ class TestUserDataManagerCoverageExpansion:
     @pytest.fixture
     def user_data_manager(self):
         """Create UserDataManager instance for testing."""
-        from core.user_data_manager import UserDataManager
+        from core.user_data_operations import UserDataManager
         return UserDataManager()
     
     @pytest.mark.behavior
@@ -1022,7 +1022,7 @@ class TestUserDataManagerCoverageExpansion:
     def test_update_message_references_real_behavior(self, user_data_manager, test_path_factory):
         """Test updating message references in user profile."""
         # Mock get_user_info_for_data_manager to return test data
-        with patch('core.user_data_manager.get_user_info_for_data_manager', return_value={
+        with patch('core.user_data_operations.get_user_info_for_data_manager', return_value={
             "internal_username": self.user_id,
             "enabled_features": ["messages"],
             "message_files": []
@@ -1038,7 +1038,7 @@ class TestUserDataManagerCoverageExpansion:
     def test_export_user_data_real_behavior(self, user_data_manager, test_path_factory):
         """Test exporting user data to JSON format."""
         # Mock get_user_data to return test data
-        with patch('core.user_data_manager.get_user_data', return_value={
+        with patch('core.user_data_operations.get_user_data', return_value={
             "account": {"internal_username": self.user_id},
             "preferences": {"timezone": "UTC"},
             "messages": [{"id": "msg1", "content": "Test"}]
@@ -1057,7 +1057,7 @@ class TestUserDataManagerCoverageExpansion:
     def test_get_user_data_summary_real_behavior(self, user_data_manager, test_path_factory):
         """Test getting user data summary."""
         # Mock get_user_data to return test data
-        with patch('core.user_data_manager.get_user_data', return_value={
+        with patch('core.user_data_operations.get_user_data', return_value={
             "account": {"internal_username": self.user_id, "enabled_features": ["messages", "tasks"]},
             "preferences": {"timezone": "UTC", "language": "en"},
             "messages": [{"id": "msg1"}, {"id": "msg2"}],
@@ -1078,8 +1078,8 @@ class TestUserDataManagerCoverageExpansion:
         """Test updating user index."""
         # Mock get_all_user_ids to return test users
         # Note: update_user_index now uses safe_json_write from file_locking.py
-        with patch('core.user_data_manager.get_all_user_ids', return_value=[self.user_id, "user2"]), \
-        patch('core.user_data_manager.get_user_data_summary') as mock_summary, \
+        with patch('core.user_data_operations.get_all_user_ids', return_value=[self.user_id, "user2"]), \
+        patch('core.user_data_operations.get_user_data_summary') as mock_summary, \
         patch('core.file_locking.safe_json_write') as mock_save:
 
             mock_summary.return_value = {
@@ -1101,7 +1101,7 @@ class TestUserDataManagerCoverageExpansion:
     def test_export_user_data_error_handling_real_behavior(self, user_data_manager, test_path_factory):
         """Test export user data error handling."""
         # Mock get_user_data to raise exception
-        with patch('core.user_data_manager.get_user_data', side_effect=Exception("Test error")):
+        with patch('core.user_data_operations.get_user_data', side_effect=Exception("Test error")):
             
             result = user_data_manager.export_user_data(self.user_id, "json")
             
@@ -1114,7 +1114,7 @@ class TestUserDataManagerCoverageExpansion:
     def test_update_message_references_no_user_real_behavior(self, user_data_manager, test_path_factory):
         """Test update message references when user doesn't exist."""
         # Mock get_user_info_for_data_manager to return None
-        with patch('core.user_data_manager.get_user_info_for_data_manager', return_value=None):
+        with patch('core.user_data_operations.get_user_info_for_data_manager', return_value=None):
             
             result = user_data_manager.update_message_references(self.user_id)
             
@@ -1125,7 +1125,7 @@ class TestUserDataManagerCoverageExpansion:
     def test_get_user_data_summary_no_data_real_behavior(self, user_data_manager, test_path_factory):
         """Test get user data summary when user has no data."""
         # Mock get_user_data to return minimal data
-        with patch('core.user_data_manager.get_user_data', return_value={
+        with patch('core.user_data_operations.get_user_data', return_value={
             "account": {"internal_username": self.user_id}
         }):
             
@@ -1140,7 +1140,7 @@ class TestUserDataManagerCoverageExpansion:
     def test_update_user_index_error_handling_real_behavior(self, user_data_manager, test_path_factory):
         """Test update user index error handling."""
         # Mock get_all_user_ids to raise exception
-        with patch('core.user_data_manager.get_all_user_ids', side_effect=Exception("Test error")):
+        with patch('core.user_data_operations.get_all_user_ids', side_effect=Exception("Test error")):
             
             result = user_data_manager.update_user_index(self.user_id)
             

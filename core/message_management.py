@@ -19,7 +19,8 @@ from core.time_utilities import (
     now_timestamp_full,
     parse_timestamp_full,
 )
-from core.user_data_v2 import SCHEMA_VERSION, MessageTemplateV2Model, generate_short_id
+from core.user_data_v2_envelopes import MessageTemplateV2Model
+from core.user_data_v2_base import SCHEMA_VERSION, generate_short_id
 import contextlib
 import importlib
 
@@ -306,7 +307,7 @@ def add_message(user_id, category, message_data, index=None):
     save_json_data(data, str(file_path))
 
     try:
-        importlib.import_module("core.user_data_manager").update_user_index(user_id)
+        importlib.import_module("core.user_data_operations").update_user_index(user_id)
     except Exception as e:
         logger.warning(
             f"Failed to update user index after message addition for user {user_id}: {e}"
@@ -363,7 +364,7 @@ def edit_message(user_id, category, message_id, updated_data):
     save_json_data(data, str(file_path))
 
     try:
-        importlib.import_module("core.user_data_manager").update_user_index(user_id)
+        importlib.import_module("core.user_data_operations").update_user_index(user_id)
     except Exception as e:
         logger.warning(
             f"Failed to update user index after message edit for user {user_id}: {e}"
@@ -465,7 +466,7 @@ def delete_message(user_id, category, message_id):
     save_json_data(data, str(file_path))
 
     try:
-        importlib.import_module("core.user_data_manager").update_user_index(user_id)
+        importlib.import_module("core.user_data_operations").update_user_index(user_id)
     except Exception as e:
         logger.warning(
             f"Failed to update user index after message deletion for user {user_id}: {e}"

@@ -72,7 +72,7 @@ class TestAccountHandlerBehavior:
         discord_user_id = "111222333444555666"
         existing_user_id = get_user_id_by_identifier(discord_user_id)
         if existing_user_id:
-            from core.user_data_manager import delete_user_completely, rebuild_user_index
+            from core.user_data_operations import delete_user_completely, rebuild_user_index
             delete_user_completely(existing_user_id, create_backup=False)
             rebuild_user_index()  # Rebuild index to ensure user is removed
             # Wait a moment for file system to sync
@@ -122,7 +122,7 @@ class TestAccountHandlerBehavior:
         discord_user_id = "999888777666555444"
         existing_user_id = get_user_id_by_identifier(discord_user_id)
         if existing_user_id:
-            from core.user_data_manager import delete_user_completely
+            from core.user_data_operations import delete_user_completely
             delete_user_completely(existing_user_id, create_backup=False)
         
         parsed_command = ParsedCommand(
@@ -171,7 +171,7 @@ class TestAccountHandlerBehavior:
         discord_user_id = "888777666555444333"
         existing_user_id = get_user_id_by_identifier(discord_user_id)
         if existing_user_id:
-            from core.user_data_manager import delete_user_completely
+            from core.user_data_operations import delete_user_completely
             delete_user_completely(existing_user_id, create_backup=False)
         
         # Create account without feature selection parameters
@@ -247,7 +247,7 @@ class TestAccountHandlerBehavior:
         TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
         
         # Rebuild user index to ensure user is discoverable
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         rebuild_user_index()
         import time
         time.sleep(0.1)  # Brief delay for index to be written
@@ -278,7 +278,7 @@ class TestAccountHandlerBehavior:
         TestUserFactory.create_discord_user(discord_user_id, test_data_dir=test_data_dir)
         
         # Ensure user index is updated (race condition fix)
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         rebuild_user_index()
         
         # Retry lookup in case of race conditions
@@ -320,7 +320,7 @@ class TestAccountHandlerBehavior:
         new_user_id = f"check-status-none-{uuid.uuid4().hex[:12]}"
         existing_user_id = get_user_id_by_identifier(new_user_id)
         if existing_user_id:
-            from core.user_data_manager import delete_user_completely, rebuild_user_index
+            from core.user_data_operations import delete_user_completely, rebuild_user_index
             delete_user_completely(existing_user_id, create_backup=False)
             rebuild_user_index()  # Rebuild index to ensure user is removed
         
@@ -396,7 +396,7 @@ class TestAccountHandlerBehavior:
         assert create_success is True, "Test user should be created"
 
         # Rebuild user index to ensure user is discoverable
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         rebuild_user_index()
         import time
         time.sleep(0.1)  # Brief delay for index to be written
@@ -450,7 +450,7 @@ class TestAccountHandlerBehavior:
         TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
         
         # Rebuild user index to ensure user is discoverable
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         rebuild_user_index()
         import time
         time.sleep(0.1)  # Brief delay for index to be written
@@ -559,7 +559,7 @@ class TestAccountHandlerBehavior:
         assert create_success is True, "Test user should be created"
         
         # Rebuild user index to ensure user is discoverable
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         rebuild_user_index()
         import time
         time.sleep(0.1)  # Brief delay for index to be written
@@ -584,7 +584,7 @@ class TestAccountHandlerBehavior:
         assert create_success is True, "Test user should be created"
         
         # Rebuild user index to ensure user is discoverable
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         rebuild_user_index()
         import time
         time.sleep(0.1)  # Brief delay for index to be written
@@ -702,7 +702,7 @@ class TestAccountHandlerBehavior:
         assert create_success is True, "Test user should be created"
 
         # Rebuild user index to ensure user is discoverable
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         rebuild_user_index()
         import time
         time.sleep(0.1)  # Brief delay for index to be written
@@ -755,7 +755,7 @@ class TestAccountHandlerBehavior:
         assert create_success is True, "Test user should be created"
 
         # Rebuild user index to ensure user is discoverable
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         rebuild_user_index()
         import time
         time.sleep(0.1)  # Brief delay for index to be written
@@ -812,7 +812,7 @@ class TestAccountHandlerBehavior:
         assert create_success is True, "Test user should be created"
 
         # Rebuild user index to ensure user is discoverable
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         rebuild_user_index()
         import time
         time.sleep(0.1)  # Brief delay for index to be written
@@ -855,7 +855,7 @@ class TestAccountHandlerBehavior:
         TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
 
         # Rebuild user index to ensure user is discoverable
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         rebuild_user_index()
         import time
         time.sleep(0.1)  # Brief delay for index to be written

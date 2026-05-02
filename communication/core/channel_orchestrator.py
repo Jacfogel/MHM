@@ -18,7 +18,7 @@ from communication.core.retry_manager import RetryManager
 from communication.core.channel_monitor import ChannelMonitor
 from core import get_user_data
 from core.message_management import store_sent_message
-from core.schedule_management import (
+from core.schedule_runtime import (
     get_current_time_periods_with_validation,
     get_current_day_names,
 )

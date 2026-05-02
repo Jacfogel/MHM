@@ -8,6 +8,7 @@ Uses core.user_data_validation.is_valid_user_id and core.time_utilities.
 from typing import Any
 
 from core.logger import get_component_logger
+from tasks.task_schemas import TaskCollectionV2Model
 from core.error_handling import handle_errors
 from core.time_utilities import parse_date_only
 
@@ -64,3 +65,13 @@ def validate_update_field(field: str, value: Any) -> tuple[bool, str | None]:
         if not is_valid_task_title(value):
             return False, "Title cannot be empty"
     return True, None
+
+
+# error_handling_exclude: This validation API returns Pydantic errors as data.
+def validate_tasks_v2_document(data: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
+    """Validate a v2 tasks file envelope and return normalized data plus validation errors."""
+    try:
+        model = TaskCollectionV2Model.model_validate(data)
+        return model.model_dump(mode="json"), []
+    except Exception as exc:
+        return data, [str(exc)]

@@ -1093,7 +1093,7 @@ class AccountCreatorDialog(QDialog):
     def _validate_and_accept__update_user_index(self, user_id: str):
         """Update user index for the new user."""
         try:
-            from core.user_data_manager import update_user_index
+            from core.user_data_operations import update_user_index
             from core import get_user_id_by_identifier
             from core import get_user_data
             import time

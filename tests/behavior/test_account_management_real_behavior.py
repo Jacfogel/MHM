@@ -126,7 +126,7 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
         
         # Get the UUID for the basic user (serial execution ensures index is updated)
         from tests.test_helpers.test_utilities import TestUserFactory
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         
         # Rebuild index to ensure user is discoverable
         rebuild_user_index()
@@ -248,7 +248,7 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
         
         # Get the UUID for the basic user (serial execution ensures index is updated)
         from tests.test_helpers.test_utilities import TestUserFactory
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         
         # Rebuild index to ensure user is discoverable
         rebuild_user_index()
@@ -466,7 +466,7 @@ def test_schedule_period_management_real_behavior(test_data_dir):
             from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis
             
             # Get the UUID for the basic user (serial execution ensures index is updated)
-            from core.user_data_manager import rebuild_user_index
+            from core.user_data_operations import rebuild_user_index
             
             rebuild_user_index()
             basic_user_id = (
@@ -591,7 +591,7 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             from core import get_user_id_by_identifier
 
             # Get the UUID for the basic user (serial execution ensures index is updated)
-            from core.user_data_manager import rebuild_user_index
+            from core.user_data_operations import rebuild_user_index
             
             rebuild_user_index()
             basic_user_id = (

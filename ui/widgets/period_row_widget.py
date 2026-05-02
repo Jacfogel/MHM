@@ -21,7 +21,7 @@ logger = get_component_logger("ui")
 widget_logger = logger
 
 # Import core functionality
-from core.schedule_management import (
+from core.schedule_runtime import (
     get_period_data__time_24h_to_12h_display,
     get_period_data__time_12h_display_to_24h,
 )

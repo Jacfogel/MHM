@@ -924,7 +924,7 @@ class TestAccountManagementRealBehavior:
     @pytest.mark.ui
     def test_user_index_integration_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test user index integration with real file operations."""
-        from core.user_data_manager import update_user_index, rebuild_user_index
+        from core.user_data_operations import update_user_index, rebuild_user_index
         from tests.test_helpers.test_support.test_helpers import wait_until
         import uuid
 
@@ -1215,7 +1215,7 @@ class TestAccountCreationErrorHandling:
         from pathlib import Path
         from core.file_locking import safe_json_read
         from core.config import get_user_data_dir, get_user_file_path
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
 
         user_id = f"test-invalid-data-{uuid.uuid4().hex[:8]}"
 
@@ -1571,7 +1571,7 @@ class TestAccountCreationIntegration:
     ):
         """REAL BEHAVIOR TEST: Test creating multiple users with same features."""
         from core import save_user_data, get_user_data, clear_user_caches
-        from core.user_data_manager import update_user_index, rebuild_user_index
+        from core.user_data_operations import update_user_index, rebuild_user_index
         from tests.test_helpers.test_support.test_helpers import wait_until
         import uuid
 
@@ -2260,7 +2260,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
     @pytest.mark.behavior
     def test_create_account_updates_user_index(self, dialog, test_data_dir):
         """Test that create_account updates the user index."""
-        from core.user_data_manager import build_user_index
+        from core.user_data_operations import build_user_index
         import uuid
 
         # Arrange: Prepare account data with unique username

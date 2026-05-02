@@ -821,7 +821,7 @@ error_handler = ErrorHandler()
 def _default_new_checkins_file_payload() -> dict[str, Any]:
     """
     Empty v2 envelope when recovery creates ``checkins.json``.
-    ``schema_version`` must stay aligned with ``core.user_data_v2.SCHEMA_VERSION``.
+    ``schema_version`` must stay aligned with ``core.user_data_v2_base.SCHEMA_VERSION``.
     """
     return {
         "schema_version": 2,

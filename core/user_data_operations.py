@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-User Data Manager - Enhanced utilities for user-centric operations
-Provides tools for message references, backup, export, and indexing
+User data operations — backup, export, indexing, analytics summaries, and admin utilities.
+
+For ``get_user_data`` / ``save_user_data`` see ``user_data_read`` / ``user_data_write``.
 """
 
 import importlib
@@ -25,7 +26,8 @@ from core import get_all_user_ids
 from core.error_handling import handle_errors
 from core.time_utilities import now_timestamp_filename, now_timestamp_full
 from core.response_tracking import checkin_runtime_timestamp
-from core.user_data_v2 import SCHEMA_VERSION, validate_v2_document
+from core.user_data_v2_envelopes import validate_v2_document
+from core.user_data_v2_base import SCHEMA_VERSION
 from core.message_management import get_recent_messages
 
 logger = get_component_logger("main")

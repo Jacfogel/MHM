@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-01 01:30:40
+> **Last Generated**: 2026-05-01 18:40:01
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 123
-- **Total Imports**: 1527
+- **Files Scanned**: 122
+- **Total Imports**: 1526
 - **Standard Library**: 432 (28.3%)
-- **Third-Party**: 233 (15.3%)
-- **Local Imports**: 862 (56.5%)
+- **Third-Party**: 234 (15.3%)
+- **Local Imports**: 860 (56.4%)
 
 ## Dependency Decision Trees
 
@@ -27,7 +27,7 @@ Core System Dependencies:
   - core/logger.py <- standard library (contextlib, glob, gzip, json), error_handling, config
 - Data Management
   - core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+2 more)
-  - core/user_data_manager.py <- standard library (collections.abc, importlib, json, os), logger, config, file_operations, core, error_handling (+5 more)
+  - core/user_data_operations.py <- standard library (collections.abc, importlib, json, os), logger, config, file_operations, core, error_handling (+6 more)
   - core/user_data_presets.py <- standard library (json, pathlib), third-party (pytz), logger, error_handling
 - Error Handling
   - core/error_handling.py <- standard library (asyncio, collections.abc, contextlib, functools), network_probe, time_utilities
@@ -38,7 +38,7 @@ AI System Dependencies:
   - ai/cache_manager.py <- standard library (dataclasses, hashlib, threading, time), logger, error_handling, config
   - ai/chatbot.py <- standard library (asyncio, collections, datetime, json), third-party (psutil, requests), logger, config, response_tracking, core, context_manager (+8 more)
 - Command Processing
-  - communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_data_manager, base_handler (+2 more)
+  - communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_data_operations, base_handler (+2 more)
   - communication/command_handlers/analytics_handler.py <- standard library (collections, typing), logger, error_handling, base_handler, shared_types, response_tracking (+5 more)
   - communication/command_handlers/base_handler.py <- standard library (abc), shared_types, logger, error_handling, user_data_validation
 - Communication Integration
@@ -105,12 +105,12 @@ External libraries provide channel and UI support.
 
 ### Data Flow
 - file_operations.py: core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+2 more)
-- user_data_manager.py: core/user_data_manager.py <- standard library (collections.abc, importlib, json, os), logger, config, file_operations, core, error_handling (+5 more)
+- user_data_operations.py: core/user_data_operations.py <- standard library (collections.abc, importlib, json, os), logger, config, file_operations, core, error_handling (+6 more)
 - user_data_presets.py: core/user_data_presets.py <- standard library (json, pathlib), third-party (pytz), logger, error_handling
 
 ### Communication Flow
 - __init__: communication/__init__.py <- third-party (command_handlers.analytics_handler, command_handlers.base_handler, command_handlers.checkin_handler), retry_manager, channel_orchestrator, factory, channel_monitor
-- account_handler: communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_data_manager, base_handler (+2 more)
+- account_handler: communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_data_operations, base_handler (+2 more)
 - analytics_handler: communication/command_handlers/analytics_handler.py <- standard library (collections, typing), logger, error_handling, base_handler, shared_types, response_tracking (+5 more)
 
 

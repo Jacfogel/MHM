@@ -7,12 +7,13 @@ and can be used independently for validation checks.
 """
 
 import re
+from typing import Any
 from uuid import UUID
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.user_data_validation import is_valid_string_length, is_valid_category_name
-from notebook.notebook_schemas import EntryKind
+from notebook.notebook_schemas import EntryKind, NotebookCollectionV2Model
 
 logger = get_component_logger("notebook_validation")
 
@@ -356,3 +357,13 @@ def validate_entry_content(
         return False, "Note or journal entries must have at least a title or description"
 
     return True, None
+
+
+# error_handling_exclude: This validation API returns Pydantic errors as data.
+def validate_notebook_v2_document(data: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
+    """Validate a v2 notebook/entries.json envelope and return normalized data plus errors."""
+    try:
+        model = NotebookCollectionV2Model.model_validate(data)
+        return model.model_dump(mode="json"), []
+    except Exception as exc:
+        return data, [str(exc)]

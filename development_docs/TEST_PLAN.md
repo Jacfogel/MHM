@@ -312,7 +312,7 @@ Baseline for burn-down: **90 markers / 14 product files** (verify with `rg '@pyt
 - [ ] `tests/behavior/test_user_data_flow_architecture.py`
 
 ### Wave C (9+ marker files)
-- [ ] `tests/unit/test_user_data_manager.py`
+- [ ] `tests/unit/test_user_data_operations.py`
 - [ ] `tests/behavior/test_account_handler_behavior.py`
 
 Per-file conversion checklist:
@@ -339,7 +339,7 @@ Status: **IN PROGRESS** (since 2026-02-22)
 - [ ] `tests/behavior/test_user_data_flow_architecture.py::TestProcessingOrder::test_processing_order_deterministic_regardless_of_input_order` (monitor mitigation)
 - [ ] `tests/development_tools/test_fix_project_cleanup.py::TestProjectCleanup::test_cleanup_test_temp_dirs_no_directory`
 - [ ] `tests/behavior/test_webhook_handler_behavior.py::TestWebhookHandlerBehavior::test_handle_webhook_event_routes_application_deauthorized`
-- [ ] `tests/unit/test_schedule_management.py::TestScheduleManagement::test_schedule_period_lifecycle`
+- [ ] `tests/unit/test_schedule_runtime.py::TestScheduleManagement::test_schedule_period_lifecycle`
 - [ ] `tests/ui/test_task_management_dialog.py::TestTaskManagementDialogRealBehavior::test_save_task_settings_persists_after_reload`
 - [ ] `tests/behavior/test_checkin_handler_behavior.py::TestCheckinHandlerBehavior::test_checkin_handler_start_checkin_conversation_manager_error`
 - [ ] `tests/unit/test_config.py::TestConfigValidation::test_validate_core_paths_missing_directory`

@@ -9,7 +9,7 @@ from ui.widgets.task_settings_widget import TaskSettingsWidget
 from PySide6.QtCore import Signal
 
 # Import core functionality
-from core.schedule_management import set_schedule_periods, clear_schedule_periods_cache
+from core.schedule_runtime import set_schedule_periods, clear_schedule_periods_cache
 from core import update_user_account
 from core import get_user_data
 from core.error_handling import handle_errors

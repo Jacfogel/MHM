@@ -1352,7 +1352,7 @@ class TestTaskReminderSchedulingCoverage:
 
         with (
             patch(
-                "core.schedule_management.get_schedule_time_periods"
+                "core.schedule_runtime.get_schedule_time_periods"
             ) as mock_get_periods,
             patch("tasks.load_active_tasks") as mock_load_tasks,
             patch("tasks.are_tasks_enabled") as mock_tasks_enabled,

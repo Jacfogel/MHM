@@ -6,7 +6,7 @@ Focuses on real behavior, side effects, and actual system changes.
 import pytest
 import time
 from unittest.mock import patch, Mock
-from core.schedule_management import (
+from core.schedule_runtime import (
     get_schedule_time_periods,
     set_schedule_period_active,
     is_schedule_period_active,
@@ -53,11 +53,11 @@ class TestScheduleManagementBehavior:
         }
         
         # Act
-        with patch('core.schedule_management.get_user_data', return_value=schedule_data):
+        with patch('core.schedule_runtime.get_user_data', return_value=schedule_data):
             result = get_schedule_time_periods(user_id, category)
         
         # Assert - Verify cache was created
-        from core.schedule_management import _schedule_periods_cache
+        from core.schedule_runtime import _schedule_periods_cache
         cache_key = f"{user_id}_{category}"
         assert cache_key in _schedule_periods_cache, "Cache entry should be created"
         assert _schedule_periods_cache[cache_key][0] == result, "Cache should contain result"
@@ -92,7 +92,7 @@ class TestScheduleManagementBehavior:
         
         # Act - Mock the update_user_schedules function that's actually called
         with patch(
-            'core.schedule_management.get_user_data', return_value=initial_schedule
+            'core.schedule_runtime.get_user_data', return_value=initial_schedule
         ), patch('core.update_user_schedules') as mock_update:
             result = set_schedule_period_active(user_id, category, period_name, True)
         
@@ -114,7 +114,7 @@ class TestScheduleManagementBehavior:
         category = "messages"
         
         # Populate cache first
-        from core.schedule_management import _schedule_periods_cache
+        from core.schedule_runtime import _schedule_periods_cache
         _schedule_periods_cache[f"{user_id}_{category}"] = ({"test": "data"}, time.time())
         _schedule_periods_cache["other_user_messages"] = ({"other": "data"}, time.time())
         
@@ -203,7 +203,7 @@ class TestScheduleManagementBehavior:
         
         # Act - Complete workflow: check initial state, activate, verify
         with patch(
-            'core.schedule_management.get_user_data', return_value=initial_schedule
+            'core.schedule_runtime.get_user_data', return_value=initial_schedule
         ), patch('core.update_user_schedules') as mock_update:
             mock_update.return_value = True
             # Check initial state
@@ -256,7 +256,7 @@ class TestScheduleManagementBehavior:
         assert "Morning" in periods2 or "ALL" in periods2, f"Updated periods should contain Morning or ALL, got: {list(periods2.keys())}"
         
         # Verify cache was cleared and repopulated
-        from core.schedule_management import _schedule_periods_cache
+        from core.schedule_runtime import _schedule_periods_cache
         cache_key = f"{user_id}_{category}"
         assert cache_key in _schedule_periods_cache, "Cache should be repopulated"
 
@@ -330,7 +330,7 @@ class TestScheduleManagementBehavior:
         
         # Act - Mock the update_user_schedules function that's actually called
         with patch(
-            'core.schedule_management.get_user_data', return_value=initial_schedule
+            'core.schedule_runtime.get_user_data', return_value=initial_schedule
         ), patch('core.update_user_schedules') as mock_update:
             result = set_schedule_days(user_id, category, new_days)
         
@@ -374,9 +374,9 @@ class TestScheduleManagementBehavior:
         
         # Act - Complete CRUD workflow with UserContext mocking
         with patch(
-            'core.schedule_management.UserContext', return_value=mock_user_context
+            'core.schedule_runtime.UserContext', return_value=mock_user_context
         ), patch(
-            'core.schedule_management.get_user_data', return_value=user_data
+            'core.schedule_runtime.get_user_data', return_value=user_data
         ), patch('core.update_user_schedules') as mock_update:
             # Create
             add_schedule_period(category, period_name, "08:00", "12:00")
@@ -402,7 +402,7 @@ class TestScheduleManagementBehavior:
             }
 
             with patch(
-                'core.schedule_management.get_user_data',
+                'core.schedule_runtime.get_user_data',
                 return_value=updated_user_data,
             ):
                 edit_schedule_period(category, period_name, "09:00", "13:00")
@@ -427,7 +427,7 @@ class TestScheduleManagementBehavior:
         mock_user_context.get_user_id.return_value = None
         
         # Act - Test operations with invalid UserContext
-        with patch('core.schedule_management.UserContext', return_value=mock_user_context):
+        with patch('core.schedule_runtime.UserContext', return_value=mock_user_context):
             create_result = add_schedule_period(category, period_name, "08:00", "12:00")
             update_result = edit_schedule_period(category, period_name, "09:00", "13:00")
             delete_result = delete_schedule_period(category, period_name)
@@ -473,9 +473,9 @@ class TestScheduleManagementBehavior:
         
         # Act - Test adding duplicate period
         with patch(
-            'core.schedule_management.UserContext', return_value=mock_user_context
+            'core.schedule_runtime.UserContext', return_value=mock_user_context
         ), patch(
-            'core.schedule_management.get_user_data', return_value=existing_schedule
+            'core.schedule_runtime.get_user_data', return_value=existing_schedule
         ):
             # The function doesn't actually raise ValueError, it returns None
             result = add_schedule_period(category, period_name, "09:00", "13:00")
@@ -500,7 +500,7 @@ class TestScheduleManagementBehavior:
         
         # Act - Test operations with scheduler manager
         with patch(
-            'core.schedule_management.UserContext', return_value=mock_user_context
+            'core.schedule_runtime.UserContext', return_value=mock_user_context
         ), patch('core.update_user_schedules'):
             # Test add with scheduler
             add_schedule_period(category, period_name, "08:00", "12:00", mock_scheduler)
@@ -540,9 +540,9 @@ class TestScheduleManagementBehavior:
         
         # Act - Test with realistic user data
         with patch(
-            'core.schedule_management.UserContext', return_value=mock_user_context
+            'core.schedule_runtime.UserContext', return_value=mock_user_context
         ), patch(
-            'core.schedule_management.get_user_data', return_value=user_data
+            'core.schedule_runtime.get_user_data', return_value=user_data
         ), patch('core.update_user_schedules') as mock_update:
             # Create a period
             create_result = add_schedule_period(category, period_name, "08:00", "12:00")
@@ -571,7 +571,7 @@ class TestScheduleManagementBehavior:
         
         # Test edge cases
         with patch(
-            'core.schedule_management.UserContext', return_value=mock_user_context
+            'core.schedule_runtime.UserContext', return_value=mock_user_context
         ), patch('core.update_user_schedules'):
             # Test with empty periods
             result = set_schedule_periods(user_id, category, {})

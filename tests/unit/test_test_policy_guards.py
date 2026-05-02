@@ -58,7 +58,7 @@ NO_PARALLEL_REASON_ALLOWED_FILES = {
     "tests/integration/test_account_lifecycle.py",
     "tests/integration/test_user_creation.py",
     "tests/ui/test_ui_app_qt_main.py",
-    "tests/unit/test_user_data_manager.py",
+    "tests/unit/test_user_data_operations.py",
     "tests/unit/test_user_management.py",
 }
 

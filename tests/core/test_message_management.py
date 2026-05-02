@@ -13,7 +13,7 @@ from core.message_management import (
     get_message_categories,
     store_sent_message,
 )
-from core.user_data_v2 import SCHEMA_VERSION
+from core.user_data_v2_base import SCHEMA_VERSION
 
 pytestmark = [pytest.mark.core]
 

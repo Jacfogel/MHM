@@ -6,7 +6,7 @@
 > **Style**: Technical, detailed, reference-oriented  
 > **Pair**: [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md)
 > This document is paired with [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) and any changes must consider both docs.
-> **Last Updated**: 2025-11-19
+> **Last Updated**: 2026-05-01
 
 See [README.md](README.md) for navigation and project overview.  
 See section 2. "Virtual Environment Best Practices" in [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) and section 1. "Quick Start (Recommended)" in [HOW_TO_RUN.md](HOW_TO_RUN.md) for environment setup and running the app.
@@ -117,6 +117,8 @@ Each user has a dedicated directory under `data/users/{user_id}/`. Typical conte
 
 - Additional JSON files and subdirectories (for example `checkins.json`,
   `chat_interactions.json`, and other feature-specific artefacts) as features evolve.
+
+**Module map and naming** - For a one-line-per-file guide to `core/` user-data and schedule modules (including `user_data_v2_envelopes`, `user_data_operations`, `schedule_runtime`, `schedule_document_defaults`) and a short explanation of tolerant profile validation versus strict v2 envelopes, see Section 0 in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md).
 
 Important rules:
 

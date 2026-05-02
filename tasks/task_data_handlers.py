@@ -16,9 +16,9 @@ from core.user_item_storage import (
     save_user_json_file,
 )
 
-from tasks.task_schemas import TASKS_V2_FILENAME
 from core.time_utilities import now_timestamp_full, parse_timestamp_full
-from core.user_data_v2 import SCHEMA_VERSION, TaskV2Model, generate_short_id
+from core.user_data_v2_base import SCHEMA_VERSION, generate_short_id
+from tasks.task_schemas import TASKS_V2_FILENAME, TaskV2Model
 
 logger = get_component_logger("tasks")
 
@@ -26,6 +26,7 @@ TASKS_SUBDIR = "tasks"
 
 # Default structure for task file (used when creating or when load returns wrong type)
 TASKS_V2_DEFAULT: dict = {"schema_version": SCHEMA_VERSION, "updated_at": "", "tasks": []}
+
 
 @handle_errors("creating task directory structure", default_return=False)
 def ensure_task_directory(user_id: str) -> bool:

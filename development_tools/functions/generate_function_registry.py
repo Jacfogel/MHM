@@ -410,7 +410,7 @@ def generate_ai_function_registry_content(actual_functions: dict[str, dict]) -> 
 
     _fallback_user_data = [
         ("core/user_data_read.py", "Primary data access"),
-        ("core/user_data_manager.py", "Data management"),
+        ("core/user_data_operations.py", "Data management"),
         ("user/user_context.py", "User context management"),
     ]
     _fallback_ai = [

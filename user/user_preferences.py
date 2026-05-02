@@ -15,7 +15,7 @@
 # See development_docs/PLANS.md "User Context & Preferences Integration Investigation" for details.
 
 from core import get_user_data, update_user_preferences
-from core.schedule_management import (
+from core.schedule_runtime import (
     set_schedule_period_active,
     is_schedule_period_active,
 )
@@ -108,7 +108,7 @@ class UserPreferences:
     def set_schedule_period_active(
         user_id: str, category: str, period_name: str, is_active: bool
     ) -> bool:
-        """Wrapper for :func:`core.schedule_management.set_schedule_period_active`."""
+        """Wrapper for :func:`core.schedule_runtime.set_schedule_period_active`."""
         return set_schedule_period_active(
             user_id, category, period_name, active=is_active
         )
@@ -118,5 +118,5 @@ class UserPreferences:
     def is_schedule_period_active(
         user_id: str, category: str, period_name: str
     ) -> bool:
-        """Wrapper for :func:`core.schedule_management.is_schedule_period_active`."""
+        """Wrapper for :func:`core.schedule_runtime.is_schedule_period_active`."""
         return is_schedule_period_active(user_id, category, period_name)

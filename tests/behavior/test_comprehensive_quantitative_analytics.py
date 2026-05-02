@@ -9,7 +9,7 @@ import os
 import uuid
 
 from core.checkin_analytics import CheckinAnalytics
-from core.user_data_v2 import SCHEMA_VERSION
+from core.user_data_v2_base import SCHEMA_VERSION
 from core import (
     get_user_data,
     save_user_data,

@@ -142,7 +142,7 @@ def load_period_widgets_for_category(
         List of created widgets
     """
     try:
-        from core.schedule_management import get_schedule_time_periods
+        from core.schedule_runtime import get_schedule_time_periods
 
         # Clear existing widgets
         clear_period_widgets_from_layout(layout, widget_list)

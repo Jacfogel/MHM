@@ -440,7 +440,7 @@ class TestUserDataHandlersConvenienceFunctions:
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         
         # Mock save_user_data to raise an error
-        with patch('core.user_data_updates.save_user_data', side_effect=Exception("Test error")):
+        with patch('core.user_data_write.save_user_data', side_effect=Exception("Test error")):
             result = update_user_account(user_id, {"test": "value"})
             # Should return False on error, not raise exception
             assert result is False, "Should return False on error"
@@ -520,7 +520,7 @@ class TestUserDataHandlersConvenienceFunctions:
         
         # Mock backup creation to verify it's called
         # UserDataManager is imported inside the function, so patch the import location
-        with patch('core.user_data_manager.UserDataManager') as mock_manager_class:
+        with patch('core.user_data_operations.UserDataManager') as mock_manager_class:
             mock_manager = Mock()
             mock_manager_class.return_value = mock_manager
             mock_manager.backup_user_data.return_value = "backup_path.zip"
@@ -543,7 +543,7 @@ class TestUserDataHandlersConvenienceFunctions:
         
         # Mock index update to verify it's called
         # update_user_index is imported inside the function, so patch the import location
-        with patch('core.user_data_manager.update_user_index'):
+        with patch('core.user_data_operations.update_user_index'):
             result = save_user_data_transaction(user_id, data_updates, auto_create=True)
             
             # If transaction succeeded, index should be updated

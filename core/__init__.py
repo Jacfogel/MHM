@@ -41,7 +41,7 @@ from .error_handling import (
 from .user_data_read import get_user_data, clear_user_caches
 from .user_data_write import save_user_data, save_user_data_transaction
 from .user_management import get_all_user_ids, create_new_user
-from .user_data_updates import (
+from .user_data_write import (
     update_user_account,
     update_user_preferences,
     update_user_schedules,
@@ -111,7 +111,7 @@ from .ui_management import (
 )
 
 # User data handlers additional exports (medium usage)
-from .user_data_schedule_defaults import ensure_all_categories_have_schedules
+from .schedule_document_defaults import ensure_all_categories_have_schedules
 from .user_lookup import get_user_id_by_identifier
 from .user_data_presets import get_timezone_options, get_predefined_options
 
@@ -202,7 +202,7 @@ from .file_auditor import (
 )
 
 # Schedule utilities exports (public API)
-# Note: schedule_utilities may have dependencies on schedule_management
+# Note: schedule_utilities may have dependencies on schedule_runtime
 from .schedule_utilities import (
     get_active_schedules,
     is_schedule_active,
@@ -240,17 +240,17 @@ from .config import get_user_data_dir, get_user_file_path
 # Dynamic check-in manager exports (high usage)
 from .checkin_dynamic_manager import dynamic_checkin_manager
 
-# Schedule management exports - lazy import due to circular dependencies (medium usage)
-# Note: schedule_management has circular dependencies with user package
+# Schedule runtime exports - lazy import due to circular dependencies (medium usage)
+# Note: schedule_runtime has circular dependencies with user package
 # Functions available: get_schedule_time_periods, set_schedule_periods (high usage),
 # clear_schedule_periods_cache (medium usage), add_schedule_period (low usage)
 # Note: add_schedule_period has circular dependencies, documented as lazy import
 
-# User data manager exports (high usage)
-# Note: user_data_manager may have circular dependencies
+# User data operations exports (high usage)
+# Note: user_data_operations may have circular dependencies
 # Attempting direct import - if this causes circular import errors, this will be
 # documented as lazy import in comments
-from .user_data_manager import (
+from .user_data_operations import (
     update_user_index,
     rebuild_user_index,
     UserDataManager,
@@ -273,7 +273,7 @@ from .user_data_registry import (
     get_available_data_types,
     get_data_type_info,
 )
-from .user_data_schedule_defaults import (
+from .schedule_document_defaults import (
     create_default_schedule_periods,
     migrate_legacy_schedules_structure,
     ensure_category_has_default_schedule,
@@ -289,10 +289,10 @@ from .user_data_schedule_defaults import (
 # ensure_all_categories_have_schedules, get_user_id_by_identifier (medium usage)
 # Other functions: clear_user_caches (use: from core.user_data_read import clear_user_caches)
 
-# User data manager exports - lazy import to avoid circular dependencies
-# Note: user_data_manager may have circular dependencies
+# User data operations exports - lazy import to avoid circular dependencies
+# Note: user_data_operations may have circular dependencies
 # Functions available via direct import: update_user_index (high usage)
-# Other functions: rebuild_user_index (use: from core.user_data_manager import rebuild_user_index)
+# Other functions: rebuild_user_index (use: from core.user_data_operations import rebuild_user_index)
 
 
 # Scheduler exports - lazy import due to circular dependencies (medium usage)
@@ -306,7 +306,7 @@ def __getattr__(name: str):
 
         return SchedulerManager
     elif name == "add_schedule_period":
-        from .schedule_management import add_schedule_period
+        from .schedule_runtime import add_schedule_period
 
         return add_schedule_period
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
@@ -480,10 +480,10 @@ __all__ = [
     "get_user_file_path",
     # Dynamic check-in manager (high usage)
     "dynamic_checkin_manager",
-    # Schedule management (high usage) - lazy import due to circular dependencies
+    # Schedule runtime (high usage) - lazy import due to circular dependencies
     # Note: get_schedule_time_periods, set_schedule_periods not in __all__ due to circular dependencies
-    # Use: from core.schedule_management import get_schedule_time_periods, set_schedule_periods
-    # User data manager (high usage and public API)
+    # Use: from core.schedule_runtime import get_schedule_time_periods, set_schedule_periods
+    # User data operations (high usage and public API)
     "update_user_index",
     "rebuild_user_index",
     "UserDataManager",

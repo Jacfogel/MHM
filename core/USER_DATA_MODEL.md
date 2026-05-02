@@ -8,10 +8,53 @@
 This document defines the expected on-disk layout for per-user persisted state.
 
 Key implementation references:
-- `core/user_data_registry.py`, `core/user_data_read.py`, `core/user_data_write.py` (centralized loader/saver API for top-level user files)
+- `core/user_data_registry.py`, `core/user_data_read.py`, `core/user_data_write.py` (centralized loader/saver API for top-level user files; section updates live in `user_data_write.py`)
 - `core/user_item_storage.py` (shared helpers for user-scoped subdir JSON: notebook, tasks, future events)
-- `core/schemas.py` (schema validation and normalization rules)
+- `core/schemas.py` (tolerant account/preferences/schedules validation on the read/save path)
+- `core/user_data_v2_base.py` / `core/user_data_v2_envelopes.py` (strict v2 primitives and envelopes for versioned JSON files)
 - `core/config.py` (root path configuration: `BASE_DATA_DIR`, `USER_INFO_DIR_PATH`)
+
+---
+
+## 0. User data and schedule module map
+
+One line per core module (plus related packages). **Read here first** when you are lost in filenames.
+
+| Module | Read this path when you need... |
+|--------|-------------------------------|
+| `core/file_operations.py` | Generic JSON load/save, user file path helpers, creating default user files on disk. |
+| `core/user_item_storage.py` | Paths and load/save for user **subdirs** (`notebook/`, `tasks/`) without domain rules. |
+| `core/user_data_registry.py` | Loader table, caches, default load/save for `account`, `preferences`, `context`, `schedules`. |
+| `core/user_data_read.py` | `get_user_data`, cache clearing, ID helpers on the read path. |
+| `core/user_data_write.py` | `save_user_data`, transactions, and **centralised** `update_user_*` helpers (single save pipeline). |
+| `core/user_data_validation.py` | Primitive checks (email, phone, time formats) and rules used by handlers. |
+| `core/schemas.py` | **Tolerant** Pydantic models for account/preferences/schedules JSON (coerce/normalize; `extra` may allow/ignore). |
+| `core/user_data_v2_base.py` | **Strict** shared v2 item layer: `SCHEMA_VERSION`, `BaseItemModel`, `generate_short_id` (dependency **leaf**: no `tasks/` or `notebook/` imports). |
+| `core/user_data_v2_envelopes.py` | **Strict** v2 **envelopes** for check-ins, message templates, deliveries; `validate_v2_document` orchestration. |
+| `tasks/task_schemas.py`, `tasks/task_validation.py` | Task v2 disk models and `validate_tasks_v2_document`. |
+| `notebook/notebook_schemas.py`, `notebook/notebook_validation.py` | Notebook v2 disk models and `validate_notebook_v2_document`. |
+| `core/message_management.py` | User message **categories**, template files, deliveries, archive behaviour. |
+| `core/schedule_runtime.py` | **Runtime** schedule periods (active windows, caches, manipulation against live `get_user_data`). |
+| `core/schedule_document_defaults.py` | **On-disk** default period shapes and migrations for `schedules.json`. |
+| `core/schedule_utilities.py` | Small shared schedule helpers (active period lists) without user I/O. |
+| `core/user_data_operations.py` | **Ops/admin**: `UserDataManager` class - backup, export, user index, analytics summaries (not the hot read/write path). |
+| `core/user_management.py` | User **lifecycle**: list users, create user, categories. |
+| `core/user_data_presets.py` | Static preset options (e.g. form dropdowns). |
+| `core/tags.py` | Shared tag normalization used by notebook and elsewhere. |
+| `core/response_tracking.py` | Check-in and chat interaction persistence and queries. |
+| `core/checkin_dynamic_manager.py` | Bundled default check-in **prompt** JSON from `resources/`, not per-user `checkins.json`. |
+
+### 0.0. "Leaf" and two validation styles
+
+**Leaf module** (informal graph term): a module near the bottom of the import graph that does **not** pull in heavier neighbours-so other modules can safely import it first. Example: `user_data_v2_base` must stay free of `tasks` and `notebook` imports so `notebook_schemas` and `user_data_v2_envelopes` can share `BaseItemModel` without circular imports.
+
+**Two validation layers (intentional):**
+
+1. **`schemas.py` (+ `user_data_validation.py`)** - **tolerant / ergonomic** validation for the **top-level user profile files** (`account.json`, `preferences.json`, `schedules.json`) on the normal `get_user_data` / `save_user_data` path. Unknown keys may be ignored or coerced; the goal is smooth upgrades and hand-edited JSON survival.
+
+2. **`user_data_v2_base` + `user_data_v2_envelopes` + domain validators** - **strict** validation for **versioned v2 documents** (`tasks.json`, `entries.json`, `checkins.json`, message template files, `sent_messages.json`): Pydantic `extra="forbid"`, canonical timestamps, `validate_v2_document` for tooling and recovery.
+
+Same project, **different contracts**: profile JSON tolerates drift; v2 envelopes reject unknown keys by design. Unifying them into one strict layer would break long-standing account file shapes; unifying into one loose layer would weaken on-disk guarantees for tasks and notebook data.
 
 ---
 
@@ -40,7 +83,7 @@ Example (typical user directory):
 
 ## 2. Canonical files and their roles
 
-### 2.1. Top-level JSON files
+### 2.0. Top-level JSON files
 
 - `account.json`  
   User identity and feature enablement flags (for example, automated messages, check-ins, task management).  
@@ -66,7 +109,7 @@ Example (typical user directory):
 - `checkins.json`  
   Check-in history, responses, and state.
 
-### 2.2. Messages subtree
+### 2.1. Messages subtree
 
 - `messages/motivational.json`  
   Category message definitions / templates (category-specific; the file names may vary by category list).
@@ -78,21 +121,24 @@ Example (typical user directory):
   Tracking for messages sent (used to prevent spam/repeats and to support analytics).  
   **Retention**: Historical v1 `messages[]` records older than **365 days** (UTC cutoff; see `core.message_management.archive_old_messages`) are moved into `messages/archives/sent_messages_archive_<timestamp>.json` when scheduled cleanup runs. Current v2 `deliveries[]` retention/archiving still needs a v2-native cleanup pass; existing archive files may remain in the historical v1 archive format.
 
-### 2.3. Notebook subtree
+### 2.2. Notebook subtree
 
 - `notebook/entries.json`  
   Notebook entry storage.
 
-### 2.4. Tasks subtree
+### 2.3. Tasks subtree
 
 - `tasks/tasks.json`
 
 This file is the canonical v2 task collection. Active/completed state lives in each task's `status` and `completion`, not in separate files. Historical v1 files (`tasks/active_tasks.json`, `tasks/completed_tasks.json`, `tasks/task_schedules.json`) were replaced for migrated users and should not be recreated for migrated data. Access via `tasks.task_data_handlers` (which uses `core.user_item_storage`). To add a new item type (e.g. events), use the same pattern: `ensure_user_subdir`, `load_user_json_file`, `save_user_json_file` from `core.user_item_storage`, and `is_valid_user_id` from `core.user_data_validation` (non-empty string, max length 100, alphanumeric plus `_` and `-` only, aligned with command-handler validation).
 
-### 2.5. Canonical v2 item model
+### 2.4. Canonical v2 item model
 
-Canonical JSON structures for v2 user data live in `core.user_data_v2`.
-`validate_v2_document` validates against Pydantic models with `extra="forbid"`, so
+Shared v2 item primitives live in `core.user_data_v2_base`. Task and notebook/journal
+persistence models (`TaskV2Model`, `TaskCollectionV2Model`, `NotebookV2Model`,
+`NotebookCollectionV2Model`) live in `tasks.task_schemas` and `notebook.notebook_schemas`.
+Check-in, message template, and delivery models remain in `core.user_data_v2_envelopes`.
+`core.user_data_v2_envelopes.validate_v2_document` validates against Pydantic models with `extra="forbid"`, so
 any field that is not part of the v2 schema (including old v1-only keys) is rejected
 with a normal validation error-there is no separate v1 key denylist.
 
@@ -119,7 +165,7 @@ For `kind: "task"` records in `tasks/tasks.json`:
 
 **Short IDs (no dash)**
 
-Persisted `short_id` values use `core.user_data_v2.generate_short_id` (prefix + hex fragment, **no hyphen**), e.g. tasks `t...`, notes `n...`, lists `l...`, journal entries `j...`. User-facing confirmations and entry references should use this canonical form; dashed `n-...` / `kind[0]-uuid6` display is obsolete.
+Persisted `short_id` values use `core.user_data_v2_base.generate_short_id` (prefix + hex fragment, **no hyphen**), e.g. tasks `t...`, notes `n...`, lists `l...`, journal entries `j...`. User-facing confirmations and entry references should use this canonical form; dashed `n-...` / `kind[0]-uuid6` display is obsolete.
 
 Canonical v2 files:
 
@@ -129,13 +175,13 @@ Canonical v2 files:
 - `messages/<category>.json`: versioned message template collection with `messages[]`, `text`, `active`, and nested `schedule`.
 - `messages/sent_messages.json`: versioned delivery collection with `deliveries[]`, distinct from reusable templates.
 
-**Migration tooling:** There is **no** shipped migration or verification CLI under `scripts/` for user data. The tree is v2-native. Recover stale trees from backups or project history; validate in code with `core.user_data_v2.validate_v2_document` (or hand-fix using Section 2.6). Do not expect an in-repo one-click migrator.
+**Migration tooling:** There is **no** shipped migration or verification CLI under `scripts/` for user data. The tree is v2-native. Recover stale trees from backups or project history; validate in code with `core.user_data_v2_envelopes.validate_v2_document` (or hand-fix using Section 2.6). Do not expect an in-repo one-click migrator.
 
-### 2.6. Schema validation (v2)
+### 2.5. Schema validation (v2)
 
-`core.user_data_v2.validate_v2_document` runs the appropriate collection model (`TaskCollectionV2Model`, `NotebookCollectionV2Model`, etc.). Unknown or misspelled keys fail validation like any other schema error. For allowed fields and shapes, use Section 2.5 and 2.7.
+`core.user_data_v2_envelopes.validate_v2_document` dispatches to domain validators for tasks and notebook files (`tasks.task_validation.validate_tasks_v2_document`, `notebook.notebook_validation.validate_notebook_v2_document`) and runs collection models for check-ins, templates, and deliveries. Unknown or misspelled keys fail validation like any other schema error. For allowed fields and shapes, use Section 2.5 and 2.7.
 
-### 2.7. Runtime contract (v2-native)
+### 2.6. Runtime contract (v2-native)
 
 On-disk user data and bundled message resources are **v2**. Runtime code treats v2 shapes as canonical: tasks in `tasks/tasks.json`, notebook entries with `description` / `journal_entry`, check-ins in `checkins.json` with `responses` and `submitted_at`, templates with `id`/`text`/`schedule`, and deliveries with `deliveries[]` (`message_template_id`, `sent_text`, `sent_at`, `status`). Check-in **writes** and **reads** require the v2 envelope (`schema_version: 2`, `checkins[]`). Legacy bare arrays or other non-v2 shapes are skipped on read and rejected on append (see logs). There is no in-repo check-in repair helper: restore `checkins.json` from backup or hand-edit JSON to this section's shape, run `validate_v2_document('checkins', data)`, then `core.file_operations.save_json_data`. New users get an empty v2 file from `core.file_operations._create_user_files__checkins_file`. Missing or corrupted `checkins.json` recreated by centralized recovery (`core.error_handling` file-not-found / JSON-decode strategies) uses that same empty v2 envelope, not a bare list. Broader legacy cleanup tracking (unrelated v1 terms, docs, and dev-tools mirrors) remains in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` and [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md).
 
@@ -143,7 +189,7 @@ On-disk user data and bundled message resources are **v2**. Runtime code treats 
 
 ## 3. Access rules (developer contract)
 
-### 3.1. Code must use centralized handlers
+### 3.0. Code must use centralized handlers
 
 All reads/writes of user data should go through `core/user_data_registry.py`, `core/user_data_read.py`, and `core/user_data_write.py` (and their internal helpers), not ad-hoc `json.load`/`json.dump` in random modules.
 
@@ -153,7 +199,7 @@ Rationale:
 - Centralizes path computation and directory creation
 - Makes future migrations possible without hunting down dozens of call sites
 
-### 3.2. Validation and tolerance
+### 3.1. Validation and tolerance
 
 `core/schemas.py` is designed to be tolerant of existing on-disk shapes:
 - Unknown fields should generally be ignored (`extra="ignore"`) where configured.

@@ -299,7 +299,7 @@ def get_user_data(
                         data = normalized
                         try:
                             _ensure_sched = importlib.import_module(
-                                "core.user_data_schedule_defaults"
+                                "core.schedule_document_defaults"
                             ).ensure_all_categories_have_schedules
                             prefs = get_user_data(user_id, "preferences").get(
                                 "preferences", {}

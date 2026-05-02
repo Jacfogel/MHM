@@ -1,7 +1,8 @@
-# schedule_management.py
+# schedule_runtime.py
 """
-Schedule management utilities for MHM.
-Contains functions for schedule time periods, period activation, validation, and manipulation.
+Schedule **runtime** utilities: active periods, validation, and manipulation against live user data.
+
+For default period shapes on the schedules document, see ``schedule_document_defaults``.
 """
 
 import time
@@ -688,7 +689,7 @@ def set_schedule_days(user_id, category, days):
 
 
 @handle_errors("getting user info for schedule management", default_return=None)
-def get_user_info_for_schedule_management(user_id: str) -> dict[str, Any] | None:
+def get_user_info_for_schedule_runtime(user_id: str) -> dict[str, Any] | None:
     """Get user info for schedule management operations."""
     try:
         from core import get_user_data

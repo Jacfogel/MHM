@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-01 01:30:32
+> **Last Generated**: 2026-05-01 18:39:54
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 94.2% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 125
-- **Functions Found**: 1763
-- **Methods Found**: 1243
-- **Classes Found**: 168
-- **Total Items**: 3006
-- **Functions Documented**: 1642
+### **Function Documentation Coverage: 94.5% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 124
+- **Functions Found**: 1757
+- **Methods Found**: 1238
+- **Classes Found**: 159
+- **Total Items**: 2995
+- **Functions Documented**: 1641
 - **Methods Documented**: 1189
 - **Classes Documented**: 122
-- **Total Documented**: 2831
+- **Total Documented**: 2830
 - **Template-Generated**: 4
 - **Last Updated**: 2026-05-01
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (629)
+### **Core System Functions** (617)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (460)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (33)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (49)
+### **Task Management Functions** (55)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -2971,7 +2971,7 @@ Args:
     user_id: ID of the user performing the operation
     category: Category of the operation
 - [OK] `_default_new_checkins_file_payload()` - Empty v2 envelope when recovery creates ``checkins.json``.
-``schema_version`` must stay aligned with ``core.user_data_v2.SCHEMA_VERSION``.
+``schema_version`` must stay aligned with ``core.user_data_v2_base.SCHEMA_VERSION``.
 - [OK] `_get_default_data(self, file_path, context)` - Get appropriate default data based on file type.
 - [OK] `_get_default_data(self, file_path, context)` - Get appropriate default data based on file type.
 - [OK] `_get_user_friendly_message(self, error, context)` - Convert technical error to user-friendly message.
@@ -3870,9 +3870,9 @@ Raises:
 
 #### `core/response_tracking.py`
 **Functions:**
-- [OK] `_build_v2_checkin_from_response_payload(response_data)` - Build a canonical v2 check-in dict from a runtime payload (``submitted_at`` / ``sent_at`` only). Live append uses ``_response_to_v2_checkin``.
+- [OK] `_build_v2_checkin_from_response_payload(response_data)` - Build a canonical v2 check-in dict from a runtime payload (``submitted_at`` / ``sent_at`` only).
 - [OK] `_checkin_to_runtime_response(checkin)` - Return the flat response shape expected by existing analytics callers.
-- [OK] `_coerce_v2_checkins_envelope_for_store(existing_data)` - Return a mutable v2 envelope for appending a new check-in, or None if the file must be repaired offline.
+- [OK] `_coerce_v2_checkins_envelope_for_store(existing_data)` - Return a mutable v2 envelope for appending a new check-in, or None if on-disk data is not v2.
 - [OK] `_get_response_log_filename(response_type)` - Get the filename for a response log type.
 - [OK] `_response_to_v2_checkin(response_data)` - Build a v2 check-in row from runtime payload (Discord / internal); v2 fields only.
 - [OK] `checkin_runtime_timestamp(checkin)` - Wall-clock timestamp string for a check-in row (v2 ``submitted_at`` only).
@@ -3887,7 +3887,14 @@ Raises:
 - [OK] `store_user_response(user_id, response_data, response_type)` - Store user response data in appropriate file structure.
 - [OK] `track_user_response(user_id, category, response_data)` - Track a user's response to a message.
 
-#### `core/schedule_management.py`
+#### `core/schedule_document_defaults.py`
+**Functions:**
+- [OK] `create_default_schedule_periods(category)` - Create default schedule periods for a new category.
+- [OK] `ensure_all_categories_have_schedules(user_id, suppress_logging)` - Ensure all categories in user preferences have corresponding schedules.
+- [OK] `ensure_category_has_default_schedule(user_id, category)` - Ensure a category has default schedule periods if it doesn't exist.
+- [OK] `migrate_legacy_schedules_structure(schedules_data)` - Migrate legacy schedules structure to new format.
+
+#### `core/schedule_runtime.py`
 **Functions:**
 - [MISSING] `add_schedule_period(category, period_name, start_time, end_time, scheduler_manager)` - No description
 - [OK] `clear_schedule_periods_cache(user_id, category)` - Clear the schedule periods cache for a specific user/category or all.
@@ -3939,7 +3946,7 @@ Args:
 Returns:
     list: List of days for the schedule, defaults to all days of the week
 - [OK] `get_schedule_time_periods(user_id, category)` - Get schedule time periods for a specific user and category (new format).
-- [OK] `get_user_info_for_schedule_management(user_id)` - Get user info for schedule management operations.
+- [OK] `get_user_info_for_schedule_runtime(user_id)` - Get user info for schedule management operations.
 - [OK] `is_schedule_period_active(user_id, category, period_name)` - Check if a schedule period is currently active.
 
 Args:
@@ -4665,7 +4672,7 @@ Args:
     deleted_periods: List to append deleted data dict (period_name, start_time, end_time, active, days).
     guard_fn: If provided, callable(row_widget) returning True to abort removal (e.g. show message and return).
 
-#### `core/user_data_manager.py`
+#### `core/user_data_operations.py`
 **Functions:**
 - [OK] `__init__(self)` - Initialize the UserDataManager.
 
@@ -4898,73 +4905,21 @@ Returns:
 - [OK] `register_data_loader(data_type, loader_func, file_type, default_fields, metadata_fields, description)` - Register a new data loader for the centralized system.
 - [OK] `register_default_loaders()` - Ensure required loaders are registered (idempotent).
 
-#### `core/user_data_schedule_defaults.py`
+#### `core/user_data_v2_base.py`
 **Functions:**
-- [OK] `create_default_schedule_periods(category)` - Create default schedule periods for a new category.
-- [OK] `ensure_all_categories_have_schedules(user_id, suppress_logging)` - Ensure all categories in user preferences have corresponding schedules.
-- [OK] `ensure_category_has_default_schedule(user_id, category)` - Ensure a category has default schedule periods if it doesn't exist.
-- [OK] `migrate_legacy_schedules_structure(schedules_data)` - Migrate legacy schedules structure to new format.
-
-#### `core/user_data_updates.py`
-**Functions:**
-- [OK] `_update_user_section(user_id, section_key, data)` - Save a single user-data section and return whether that section was saved.
-- [OK] `_validate_user_id_and_dict(user_id, data, dict_name)` - Validate user_id and that data is a dict. Log and return False if invalid.
-- [MISSING] `update_channel_preferences(user_id, updates)` - No description
-- [MISSING] `update_user_account(user_id, updates)` - No description
-- [MISSING] `update_user_context(user_id, updates)` - No description
-- [MISSING] `update_user_preferences(user_id, updates)` - No description
-- [MISSING] `update_user_schedules(user_id, schedules_data)` - No description
-
-#### `core/user_data_v2.py`
-**Functions:**
-- [OK] `_schema_validation_error(message)` - Build a Pydantic-native validation error without generic exception raises.
 - [OK] `_stable_uuid(value)` - Return value as a UUID, deriving a deterministic UUID when the string is not UUID-shaped.
-- [MISSING] `_validate_optional_timestamp(value, field_name)` - No description
 - [OK] `generate_short_id(record_id, kind, length)` - Generate a mobile-friendly no-dash short ID from a UUID-like value.
 - [MISSING] `normalize_string_list(cls, value)` - No description
-- [MISSING] `validate_completed_at(cls, value)` - No description
-- [MISSING] `validate_completion_status(self)` - No description
-- [MISSING] `validate_date(cls, value)` - No description
-- [MISSING] `validate_kind_details(self)` - No description
-- [MISSING] `validate_next_due_date(cls, value)` - No description
-- [MISSING] `validate_optional_timestamp(cls, value)` - No description
+- [OK] `v2_schema_validation_error(message)` - Build a Pydantic-native validation error without generic exception raises.
+- [MISSING] `validate_optional_timestamp_fields(cls, value)` - No description
+- [MISSING] `validate_optional_v2_timestamp(value, field_name)` - No description
 - [MISSING] `validate_required_timestamp(cls, value)` - No description
-- [MISSING] `validate_sent_at(cls, value)` - No description
-- [MISSING] `validate_submitted_at(cls, value)` - No description
-- [MISSING] `validate_time(cls, value)` - No description
-- [MISSING] `validate_timestamp(cls, value)` - No description
-- [MISSING] `validate_timestamp(cls, value)` - No description
-- [OK] `validate_v2_document(document_type, data)` - Validate a v2 document and return normalized data plus validation errors.
 **Classes:**
 - [OK] `BaseItemModel` - Shared item fields for v2 task, notebook, list, and journal records.
   - [MISSING] `BaseItemModel.normalize_string_list(cls, value)` - No description
-  - [MISSING] `BaseItemModel.validate_optional_timestamp(cls, value)` - No description
+  - [MISSING] `BaseItemModel.validate_optional_timestamp_fields(cls, value)` - No description
   - [MISSING] `BaseItemModel.validate_required_timestamp(cls, value)` - No description
-- [MISSING] `CheckinCollectionV2Model` - No description
-- [MISSING] `CheckinV2Model` - No description
-  - [MISSING] `CheckinV2Model.validate_timestamp(cls, value)` - No description
-- [MISSING] `CompletionModel` - No description
-  - [MISSING] `CompletionModel.validate_completed_at(cls, value)` - No description
-- [MISSING] `DueModel` - No description
-  - [MISSING] `DueModel.validate_date(cls, value)` - No description
-  - [MISSING] `DueModel.validate_time(cls, value)` - No description
-- [MISSING] `MessageDeliveryCollectionV2Model` - No description
-- [MISSING] `MessageDeliveryV2Model` - No description
-  - [MISSING] `MessageDeliveryV2Model.validate_sent_at(cls, value)` - No description
-- [MISSING] `MessageTemplateCollectionV2Model` - No description
-- [MISSING] `MessageTemplateV2Model` - No description
-  - [MISSING] `MessageTemplateV2Model.validate_timestamp(cls, value)` - No description
-- [MISSING] `NotebookCollectionV2Model` - No description
-- [MISSING] `NotebookV2Model` - No description
-  - [MISSING] `NotebookV2Model.validate_kind_details(self)` - No description
-  - [MISSING] `NotebookV2Model.validate_submitted_at(cls, value)` - No description
-- [MISSING] `RecurrenceModel` - No description
-  - [MISSING] `RecurrenceModel.validate_next_due_date(cls, value)` - No description
-- [MISSING] `ScheduleModel` - No description
 - [OK] `SourceModel` - Best-known origin of a persisted record.
-- [MISSING] `TaskCollectionV2Model` - No description
-- [MISSING] `TaskV2Model` - No description
-  - [MISSING] `TaskV2Model.validate_completion_status(self)` - No description
 
 #### `core/user_data_validation.py`
 **Functions:**
@@ -5036,8 +4991,15 @@ Returns:
 - [MISSING] `_save_user_data__validate_data(user_id, data_updates, valid_types, validate_data, is_new_user)` - No description
 - [MISSING] `_save_user_data__validate_input(user_id, data_updates)` - No description
 - [MISSING] `_save_user_data__write_all_types(user_id, merged_data, valid_types)` - No description
+- [OK] `_update_user_section(user_id, section_key, data)` - Save a single user-data section and return whether that section was saved.
+- [OK] `_validate_user_id_and_dict(user_id, data, dict_name)` - Validate user_id and that data is a dict. Log and return False if invalid.
 - [OK] `save_user_data(user_id, data_updates, auto_create, update_index, create_backup, validate_data)` - Save user data with two-phase approach: merge/validate in Phase 1, write in Phase 2.
 - [OK] `save_user_data_transaction(user_id, data_updates, auto_create)` - Atomic wrapper for user data updates.
+- [MISSING] `update_channel_preferences(user_id, updates)` - No description
+- [MISSING] `update_user_account(user_id, updates)` - No description
+- [MISSING] `update_user_context(user_id, updates)` - No description
+- [MISSING] `update_user_preferences(user_id, updates)` - No description
+- [MISSING] `update_user_schedules(user_id, schedules_data)` - No description
 
 #### `core/user_item_storage.py`
 **Functions:**
@@ -5276,14 +5238,31 @@ Returns:
 - [OK] `update_task(user_id, task_id, updates)` - Update an existing task.
 
 #### `tasks/task_schemas.py`
+**Functions:**
+- [MISSING] `validate_completed_at(cls, value)` - No description
+- [MISSING] `validate_completion_status(self)` - No description
+- [MISSING] `validate_date(cls, value)` - No description
+- [MISSING] `validate_next_due_date(cls, value)` - No description
+- [MISSING] `validate_time(cls, value)` - No description
 **Classes:**
+- [MISSING] `CompletionModel` - No description
+  - [MISSING] `CompletionModel.validate_completed_at(cls, value)` - No description
+- [MISSING] `DueModel` - No description
+  - [MISSING] `DueModel.validate_date(cls, value)` - No description
+  - [MISSING] `DueModel.validate_time(cls, value)` - No description
+- [MISSING] `RecurrenceModel` - No description
+  - [MISSING] `RecurrenceModel.validate_next_due_date(cls, value)` - No description
+- [MISSING] `TaskCollectionV2Model` - No description
 - [OK] `TaskManagementError` - Custom exception for task management errors.
+- [MISSING] `TaskV2Model` - No description
+  - [MISSING] `TaskV2Model.validate_completion_status(self)` - No description
 
 #### `tasks/task_validation.py`
 **Functions:**
 - [OK] `is_valid_due_date(value)` - Return True if value is None or a parseable date-only string (YYYY-MM-DD).
 - [OK] `is_valid_priority(priority)` - Return True if priority is one of VALID_PRIORITIES (case-insensitive).
 - [OK] `is_valid_task_title(title)` - Return True if title is a non-empty string after strip.
+- [OK] `validate_tasks_v2_document(data)` - Validate a v2 tasks file envelope and return normalized data plus validation errors.
 - [OK] `validate_update_field(field, value)` - Validate a single update field/value for update_task.
 
 Returns:
@@ -6865,12 +6844,12 @@ Args:
     user_id: The user's unique identifier
 - [OK] `get_all_preferences(self)` - Get all preferences.
 - [OK] `get_preference(self, key)` - Get a preference value.
-- [OK] `is_schedule_period_active(user_id, category, period_name)` - Wrapper for :func:`core.schedule_management.is_schedule_period_active`.
+- [OK] `is_schedule_period_active(user_id, category, period_name)` - Wrapper for :func:`core.schedule_runtime.is_schedule_period_active`.
 - [OK] `load_preferences(self)` - Load user preferences using the new user management functions.
 - [OK] `remove_preference(self, key)` - Remove a preference.
 - [OK] `save_preferences(self)` - Save user preferences using the new user management functions.
 - [OK] `set_preference(self, key, value)` - Set a preference and save it.
-- [OK] `set_schedule_period_active(user_id, category, period_name, is_active)` - Wrapper for :func:`core.schedule_management.set_schedule_period_active`.
+- [OK] `set_schedule_period_active(user_id, category, period_name, is_active)` - Wrapper for :func:`core.schedule_runtime.set_schedule_period_active`.
 - [OK] `update_preference(self, key, value)` - Update a preference (alias for set_preference for consistency).
 **Classes:**
 - [OK] `UserPreferences` - Manages user preferences and settings.
@@ -6894,11 +6873,11 @@ Args:
     user_id: The user's unique identifier
   - [OK] `UserPreferences.get_all_preferences(self)` - Get all preferences.
   - [OK] `UserPreferences.get_preference(self, key)` - Get a preference value.
-  - [OK] `UserPreferences.is_schedule_period_active(user_id, category, period_name)` - Wrapper for :func:`core.schedule_management.is_schedule_period_active`.
+  - [OK] `UserPreferences.is_schedule_period_active(user_id, category, period_name)` - Wrapper for :func:`core.schedule_runtime.is_schedule_period_active`.
   - [OK] `UserPreferences.load_preferences(self)` - Load user preferences using the new user management functions.
   - [OK] `UserPreferences.remove_preference(self, key)` - Remove a preference.
   - [OK] `UserPreferences.save_preferences(self)` - Save user preferences using the new user management functions.
   - [OK] `UserPreferences.set_preference(self, key, value)` - Set a preference and save it.
-  - [OK] `UserPreferences.set_schedule_period_active(user_id, category, period_name, is_active)` - Wrapper for :func:`core.schedule_management.set_schedule_period_active`.
+  - [OK] `UserPreferences.set_schedule_period_active(user_id, category, period_name, is_active)` - Wrapper for :func:`core.schedule_runtime.set_schedule_period_active`.
   - [OK] `UserPreferences.update_preference(self, key, value)` - Update a preference (alias for set_preference for consistency).
 

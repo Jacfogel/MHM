@@ -75,8 +75,9 @@ in [ARCHITECTURE.md](ARCHITECTURE.md).
 ## 2. User Data Model
 
 Per-user persisted state layout, guarantees, and access rules are defined in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md).
-This document describes only architectural relationships and AI-relevant constraints.
+**Section 0** is the **user data and schedule module map** (one line per core module, tolerant vs strict validation, and what a dependency **leaf** means). This document describes only architectural relationships and AI-relevant constraints.
 
+**Stable filenames (2026-05 rename pass)** - v2 envelopes and `validate_v2_document`: `core/user_data_v2_envelopes.py`. Admin/backup/index operations (`UserDataManager`): `core/user_data_operations.py`. Live schedule windows against loaded user data: `core/schedule_runtime.py`. Default on-disk schedule period shapes: `core/schedule_document_defaults.py`. Central `update_user_*` section writers: `core/user_data_write.py` only (there is no separate `user_data_updates` module).
 
 ## 3. Data Handling Patterns
 

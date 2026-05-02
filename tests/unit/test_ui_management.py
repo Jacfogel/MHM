@@ -228,7 +228,7 @@ class TestUIManagement:
             'Afternoon': {'start_time': '13:00', 'end_time': '17:00', 'active': True, 'days': ['Tuesday']}
         }
         
-        with patch('core.schedule_management.get_schedule_time_periods', return_value=periods), \
+        with patch('core.schedule_runtime.get_schedule_time_periods', return_value=periods), \
              patch('core.ui_management.clear_period_widgets_from_layout'), \
              patch('core.ui_management.add_period_widget_to_layout', side_effect=[mock_period_widget, mock_period_widget]):
             
@@ -245,7 +245,7 @@ class TestUIManagement:
         """Test loading widgets with no periods."""
         user_id = "test-user"
         
-        with patch('core.schedule_management.get_schedule_time_periods', return_value={}), \
+        with patch('core.schedule_runtime.get_schedule_time_periods', return_value={}), \
              patch('core.ui_management.clear_period_widgets_from_layout'):
             
             result = load_period_widgets_for_category(
@@ -259,7 +259,7 @@ class TestUIManagement:
         """Test loading widgets with None periods."""
         user_id = "test-user"
         
-        with patch('core.schedule_management.get_schedule_time_periods', return_value=None), \
+        with patch('core.schedule_runtime.get_schedule_time_periods', return_value=None), \
              patch('core.ui_management.clear_period_widgets_from_layout'):
             
             result = load_period_widgets_for_category(
@@ -273,7 +273,7 @@ class TestUIManagement:
         """Test error handling in load_period_widgets_for_category."""
         user_id = "test-user"
         
-        with patch('core.schedule_management.get_schedule_time_periods', side_effect=Exception("Error")):
+        with patch('core.schedule_runtime.get_schedule_time_periods', side_effect=Exception("Error")):
             result = load_period_widgets_for_category(
                 mock_layout, user_id, 'work',
                 parent_widget=None, widget_list=None, delete_callback=None

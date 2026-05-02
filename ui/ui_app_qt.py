@@ -568,7 +568,7 @@ class MHMManagerUI(QMainWindow):
     @handle_errors("updating user index on startup", default_return=None)
     def update_user_index_on_startup(self):
         """Automatically update the user index when the admin panel starts"""
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
 
         logger.info("Admin Panel: Updating user index on startup...")
 

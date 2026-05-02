@@ -14,7 +14,7 @@ from core.time_utilities import (
     now_datetime_full,
     parse_timestamp_full,
 )
-from core.user_data_v2 import SCHEMA_VERSION
+from core.user_data_v2_base import SCHEMA_VERSION
 
 
 logger = get_component_logger("user_activity")

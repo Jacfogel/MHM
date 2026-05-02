@@ -750,7 +750,7 @@ class MHMService:
         """Get the actual message content that will be sent."""
         try:
             # Use the same logic as _send_predefined_message to get the message
-            from core.schedule_management import (
+            from core.schedule_runtime import (
                 get_current_time_periods_with_validation,
                 get_current_day_names,
             )

@@ -174,7 +174,7 @@ class TestUserCreationScenarios:
         
         # Get the UUID for the user
         from core import get_user_id_by_identifier
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         from tests.test_helpers.test_utilities import TestUserFactory as TUF
         
         # Rebuild index to ensure user is discoverable (modifies user_index.json)
@@ -391,7 +391,7 @@ class TestUserCreationIntegration:
         actual_user_id = get_user_id_by_identifier(user_id) or TUF.get_test_user_id_by_internal_username(user_id, test_data_dir) or user_id
         
         # Ensure user index is updated (race condition fix)
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         rebuild_user_index()
         
         # Retry to get actual_user_id if not found
@@ -530,7 +530,7 @@ class TestUserCreationIntegration:
             assert success is True, "Failed to create test user"
         
         # Rebuild index once after all users are created (optimization: single rebuild)
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         from core import get_user_id_by_identifier
         from tests.test_helpers.test_utilities import TestUserFactory as TUF
         from core.config import get_user_data_dir, get_user_file_path
@@ -748,7 +748,7 @@ class TestUserCreationIntegration:
         actual_user_id = get_user_id_by_identifier(user_id) or TUF.get_test_user_id_by_internal_username(user_id, test_data_dir) or user_id
         
         # Ensure user index is updated (race condition fix)
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         rebuild_user_index()
         
         # Retry to get actual_user_id if not found

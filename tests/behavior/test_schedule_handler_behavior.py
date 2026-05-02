@@ -86,7 +86,7 @@ class TestScheduleHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.scheduler
     @pytest.mark.file_io
-    @patch("core.schedule_management.get_schedule_time_periods")
+    @patch("core.schedule_runtime.get_schedule_time_periods")
     @patch("core.get_user_categories")
     def test_schedule_handler_show_schedule_all_categories(
         self, mock_get_categories, mock_get_periods, test_data_dir
@@ -149,7 +149,7 @@ class TestScheduleHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.scheduler
     @pytest.mark.file_io
-    @patch("core.schedule_management.get_schedule_time_periods")
+    @patch("core.schedule_runtime.get_schedule_time_periods")
     @patch("core.get_user_categories")
     def test_schedule_handler_show_schedule_specific_category(
         self, mock_get_categories, mock_get_periods, test_data_dir
@@ -199,7 +199,7 @@ class TestScheduleHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.scheduler
     @pytest.mark.file_io
-    @patch("core.schedule_management.get_schedule_time_periods")
+    @patch("core.schedule_runtime.get_schedule_time_periods")
     @patch("core.get_user_categories")
     def test_schedule_handler_show_schedule_no_periods(
         self, mock_get_categories, mock_get_periods, test_data_dir
@@ -242,8 +242,8 @@ class TestScheduleHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.scheduler
     @pytest.mark.file_io
-    @patch("core.schedule_management.set_schedule_periods")
-    @patch("core.schedule_management.get_schedule_time_periods")
+    @patch("core.schedule_runtime.set_schedule_periods")
+    @patch("core.schedule_runtime.get_schedule_time_periods")
     def test_schedule_handler_update_schedule_enable(
         self, mock_get_periods, mock_set_periods, test_data_dir
     ):
@@ -314,8 +314,8 @@ class TestScheduleHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.scheduler
     @pytest.mark.file_io
-    @patch("core.schedule_management.set_schedule_periods")
-    @patch("core.schedule_management.get_schedule_time_periods")
+    @patch("core.schedule_runtime.set_schedule_periods")
+    @patch("core.schedule_runtime.get_schedule_time_periods")
     def test_schedule_handler_update_schedule_disable(
         self, mock_get_periods, mock_set_periods, test_data_dir
     ):
@@ -420,7 +420,7 @@ class TestScheduleHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.scheduler
     @pytest.mark.file_io
-    @patch("core.schedule_management.get_schedule_time_periods")
+    @patch("core.schedule_runtime.get_schedule_time_periods")
     @patch("core.get_user_categories")
     def test_schedule_handler_schedule_status(
         self, mock_get_categories, mock_get_periods, test_data_dir
@@ -480,8 +480,8 @@ class TestScheduleHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.scheduler
     @pytest.mark.file_io
-    @patch("core.schedule_management.set_schedule_periods")
-    @patch("core.schedule_management.get_schedule_time_periods")
+    @patch("core.schedule_runtime.set_schedule_periods")
+    @patch("core.schedule_runtime.get_schedule_time_periods")
     def test_schedule_handler_add_schedule_period_success(
         self, mock_get_periods, mock_set_periods, test_data_dir
     ):
@@ -709,8 +709,8 @@ class TestScheduleHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.scheduler
     @pytest.mark.file_io
-    @patch("core.schedule_management.set_schedule_periods")
-    @patch("core.schedule_management.get_schedule_time_periods")
+    @patch("core.schedule_runtime.set_schedule_periods")
+    @patch("core.schedule_runtime.get_schedule_time_periods")
     def test_schedule_handler_edit_schedule_period_success(
         self, mock_get_periods, mock_set_periods, test_data_dir
     ):
@@ -787,7 +787,7 @@ class TestScheduleHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.scheduler
     @pytest.mark.file_io
-    @patch("core.schedule_management.get_schedule_time_periods")
+    @patch("core.schedule_runtime.get_schedule_time_periods")
     def test_schedule_handler_edit_schedule_period_not_found(
         self, mock_get_periods, test_data_dir
     ):
@@ -870,8 +870,8 @@ class TestScheduleHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.scheduler
     @pytest.mark.file_io
-    @patch("core.schedule_management.set_schedule_periods")
-    @patch("core.schedule_management.get_schedule_time_periods")
+    @patch("core.schedule_runtime.set_schedule_periods")
+    @patch("core.schedule_runtime.get_schedule_time_periods")
     def test_schedule_handler_edit_schedule_period_no_changes(
         self, mock_get_periods, mock_set_periods, test_data_dir
     ):

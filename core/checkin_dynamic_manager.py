@@ -97,9 +97,7 @@ class DynamicCheckinManager:
         return questions
 
     @handle_errors("getting question text", default_return="")
-    def get_question_text(
-        self, question_key: str, user_id: str | None = None
-    ) -> str:
+    def get_question_text(self, question_key: str, user_id: str | None = None) -> str:
         """Get the question text for a specific question."""
         question_def = self.get_question_definition(question_key, user_id)
         if question_def:
@@ -354,6 +352,10 @@ class DynamicCheckinManager:
             "eighteen": 18,
             "nineteen": 19,
             "twenty": 20,
+            "twenty one": 21,
+            "twenty two": 22,
+            "twenty three": 23,
+            "twenty four": 24,
         }
 
         # Handle simple written numbers

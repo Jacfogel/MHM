@@ -17,7 +17,7 @@ from tests.conftest import (
     test_logger,
 )
 from core.time_utilities import now_timestamp_full
-from core.user_data_v2 import SCHEMA_VERSION
+from core.user_data_v2_base import SCHEMA_VERSION
 from tests.test_helpers.test_support.conftest_cleanup_impl import _is_transient_test_data_dir_name
 import contextlib
 
@@ -665,7 +665,7 @@ def mock_user_data(mock_config, test_data_dir, request):
     # Ensure user is discoverable via identifier lookups
     # Use file locking-aware update and retry if needed
     try:
-        from core.user_data_manager import update_user_index
+        from core.user_data_operations import update_user_index
 
         # Retry update_user_index in case of race conditions in parallel execution
         max_retries = 3
@@ -830,7 +830,7 @@ def update_user_index_for_test(test_data_dir):
 
     def _update_index(user_id):
         try:
-            from core.user_data_manager import update_user_index
+            from core.user_data_operations import update_user_index
 
             success = update_user_index(user_id)
             if success:

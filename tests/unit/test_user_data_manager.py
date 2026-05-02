@@ -18,7 +18,7 @@ import json
 import zipfile
 import shutil
 
-from core.user_data_manager import (
+from core.user_data_operations import (
 
     UserDataManager,
     update_message_references,
@@ -47,8 +47,8 @@ class TestUserDataManagerInitialization:
     def test_manager_initialization(self, test_data_dir):
         """Test: UserDataManager initializes correctly"""
         # Arrange: Set up test environment
-        with patch('core.user_data_manager.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_manager.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
+        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('core.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
             
             # Act: Create manager
             manager = UserDataManager()
@@ -60,7 +60,7 @@ class TestUserDataManagerInitialization:
             assert os.path.exists(manager.backup_dir), "Backup directory should exist"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
+    @pytest.mark.no_parallel  # shared backups dir under patched BASE_DATA_DIR
     def test_manager_initialization_creates_backup_dir(self, test_data_dir):
         """Test: UserDataManager creates backup directory if it doesn't exist"""
         # Arrange: Set up test environment
@@ -84,8 +84,8 @@ class TestUserDataManagerInitialization:
                         with contextlib.suppress(PermissionError):
                             shutil.rmtree(backup_dir)
         
-        with patch('core.user_data_manager.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_manager.get_backups_dir', return_value=backup_dir):
+        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('core.user_data_operations.get_backups_dir', return_value=backup_dir):
             
             # Act: Create manager
             UserDataManager()
@@ -101,8 +101,8 @@ class TestUserDataManagerMessageReferences:
     @pytest.fixture
     def manager(self, test_data_dir):
         """Create user data manager for testing."""
-        with patch('core.user_data_manager.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_manager.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
+        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('core.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
             return UserDataManager()
     
     @pytest.fixture
@@ -123,7 +123,7 @@ class TestUserDataManagerMessageReferences:
         return actual_user_id
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
+    @pytest.mark.no_parallel  # shared user message files
     def test_update_message_references_success(self, manager, test_user, test_data_dir):
         """Test: update_message_references updates references successfully"""
         # Arrange: User is created in fixture and this test runs serially because it touches shared files.
@@ -199,8 +199,8 @@ class TestUserDataManagerBackup:
     @pytest.fixture
     def manager(self, test_data_dir):
         """Create user data manager for testing."""
-        with patch('core.user_data_manager.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_manager.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
+        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('core.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
             return UserDataManager()
     
     @pytest.fixture
@@ -279,8 +279,8 @@ class TestUserDataManagerExport:
     @pytest.fixture
     def manager(self, test_data_dir):
         """Create user data manager for testing."""
-        with patch('core.user_data_manager.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_manager.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
+        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('core.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
             return UserDataManager()
     
     @pytest.fixture
@@ -343,8 +343,8 @@ class TestUserDataManagerIndex:
     @pytest.fixture
     def manager(self, test_data_dir):
         """Create user data manager for testing."""
-        with patch('core.user_data_manager.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_manager.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
+        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('core.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
             return UserDataManager()
     
     @pytest.fixture
@@ -355,7 +355,7 @@ class TestUserDataManagerIndex:
         so serial execution ensures data is available without retry logic.
         """
         from core import get_user_id_by_identifier
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         from core import get_user_data
         
         user_id = "test_index_user"
@@ -378,7 +378,7 @@ class TestUserDataManagerIndex:
         return actual_user_id
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
+    @pytest.mark.no_parallel  # shared user_index.json
     def test_update_user_index_success(self, manager, test_user, test_data_dir):
         """Test: update_user_index updates index successfully
         
@@ -386,7 +386,7 @@ class TestUserDataManagerIndex:
         """
         # Arrange: User is created in fixture
         from core import get_user_data
-        from core.user_data_manager import rebuild_user_index
+        from core.user_data_operations import rebuild_user_index
         
         # Verify user account exists (serial execution ensures data is available)
         # If account doesn't exist, try to ensure it's created
@@ -442,7 +442,7 @@ class TestUserDataManagerIndex:
         assert not result, "Should return False for invalid user_id"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
+    @pytest.mark.no_parallel  # shared user_index.json
     def test_remove_from_index_success(self, manager, test_user, test_data_dir):
         """Test: remove_from_index removes user from index successfully"""
         # Arrange: User is created in fixture, update index first
@@ -467,7 +467,7 @@ class TestUserDataManagerIndex:
         assert not result, "Should return False for invalid user_id"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
+    @pytest.mark.no_parallel  # shared user_index.json
     def test_rebuild_full_index_success(self, manager, test_data_dir):
         """Test: rebuild_full_index rebuilds index successfully"""
         # Arrange: Create test users
@@ -496,8 +496,8 @@ class TestUserDataManagerSearch:
     @pytest.fixture
     def manager(self, test_data_dir):
         """Create user data manager for testing."""
-        with patch('core.user_data_manager.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_manager.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
+        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('core.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
             return UserDataManager()
     
     @pytest.fixture
@@ -569,8 +569,8 @@ class TestUserDataManagerSummary:
     @pytest.fixture
     def manager(self, test_data_dir):
         """Create user data manager for testing."""
-        with patch('core.user_data_manager.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_manager.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
+        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('core.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
             return UserDataManager()
     
     @pytest.fixture
@@ -633,7 +633,7 @@ class TestUserDataManagerConvenienceFunctions:
         return actual_user_id or user_id
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
+    @pytest.mark.no_parallel  # shared user message files
     def test_update_message_references_function(self, test_user, test_data_dir):
         """Test: update_message_references convenience function works
         
@@ -688,7 +688,7 @@ class TestUserDataManagerConvenienceFunctions:
         assert isinstance(summary, dict), "Should return dict"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
+    @pytest.mark.no_parallel  # shared user_index.json
     def test_update_user_index_function(self, test_user, test_data_dir):
         """Test: update_user_index convenience function works"""
         # Arrange: User is created in fixture
@@ -700,7 +700,7 @@ class TestUserDataManagerConvenienceFunctions:
         assert result, "Should return True on success"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
+    @pytest.mark.no_parallel  # shared user_index.json
     def test_rebuild_user_index_function(self, test_data_dir):
         """Test: rebuild_user_index convenience function works"""
         # Arrange: Create test users
@@ -714,7 +714,7 @@ class TestUserDataManagerConvenienceFunctions:
         assert result, "Should return True on success"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
+    @pytest.mark.no_parallel  # shared user data files
     def test_get_user_info_for_data_manager_function(self, test_user, test_data_dir):
         """Test: get_user_info_for_data_manager convenience function works
         
@@ -756,7 +756,7 @@ class TestUserDataManagerConvenienceFunctions:
         assert isinstance(index_data, dict), "Should return dict"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
+    @pytest.mark.no_parallel  # shared user data files
     def test_get_user_summary_function(self, test_user, test_data_dir):
         """Test: get_user_summary convenience function works
         
@@ -785,7 +785,7 @@ class TestUserDataManagerConvenienceFunctions:
         assert isinstance(summaries, list), "Should return list"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
+    @pytest.mark.no_parallel  # shared user data files
     def test_get_user_analytics_summary_function(self, test_user, test_data_dir):
         """Test: get_user_analytics_summary convenience function works"""
         # Arrange: User is created in fixture
@@ -805,8 +805,8 @@ class TestUserDataManagerDeleteUser:
     @pytest.fixture
     def manager(self, test_data_dir):
         """Create user data manager for testing."""
-        with patch('core.user_data_manager.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_manager.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
+        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('core.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
             return UserDataManager()
     
     @pytest.fixture
@@ -823,7 +823,7 @@ class TestUserDataManagerDeleteUser:
         return actual_user_id
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
+    @pytest.mark.no_parallel  # shared user tree under test_data_dir
     def test_delete_user_completely_with_backup(self, manager, test_user, test_data_dir):
         """Test: delete_user_completely deletes user with backup"""
         # Arrange: User is created in fixture
@@ -835,7 +835,7 @@ class TestUserDataManagerDeleteUser:
         assert result, "Should return True on success"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel
+    @pytest.mark.no_parallel  # shared user tree under test_data_dir
     def test_delete_user_completely_without_backup(self, manager, test_user, test_data_dir):
         """Test: delete_user_completely deletes user without backup"""
         # Arrange: User is created in fixture

@@ -84,7 +84,7 @@ class ScheduleManagementHandler(InteractionHandler):
         category = entities.get("category", "all")
 
         try:
-            from core.schedule_management import get_schedule_time_periods
+            from core.schedule_runtime import get_schedule_time_periods
             from core import get_user_categories
 
             if category == "all":
@@ -228,7 +228,7 @@ class ScheduleManagementHandler(InteractionHandler):
             )
 
         try:
-            from core.schedule_management import (
+            from core.schedule_runtime import (
                 get_schedule_time_periods,
                 set_schedule_periods,
             )
@@ -278,7 +278,7 @@ class ScheduleManagementHandler(InteractionHandler):
     ) -> InteractionResponse:
         """Show status of schedules"""
         try:
-            from core.schedule_management import get_schedule_time_periods
+            from core.schedule_runtime import get_schedule_time_periods
             from core import get_user_categories
 
             categories = get_user_categories(user_id)
@@ -343,7 +343,7 @@ class ScheduleManagementHandler(InteractionHandler):
         category = str(category)
 
         try:
-            from core.schedule_management import (
+            from core.schedule_runtime import (
                 get_schedule_time_periods,
                 set_schedule_periods,
             )
@@ -443,7 +443,7 @@ class ScheduleManagementHandler(InteractionHandler):
             )
 
         try:
-            from core.schedule_management import (
+            from core.schedule_runtime import (
                 get_schedule_time_periods,
                 set_schedule_periods,
             )

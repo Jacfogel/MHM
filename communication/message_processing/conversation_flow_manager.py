@@ -42,7 +42,7 @@ from core.time_utilities import (
     now_datetime_full,
 )
 from tasks.task_data_handlers import runtime_task_due_date, runtime_task_due_time
-from core.user_data_v2 import generate_short_id
+from core.user_data_v2_base import generate_short_id
 
 # Route conversation orchestration to communication_manager component log
 logger = get_component_logger("communication_manager")

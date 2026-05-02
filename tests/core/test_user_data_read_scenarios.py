@@ -13,7 +13,7 @@ import uuid
 import pytest
 
 from core.file_operations import load_json_data
-from core.user_data_manager import update_user_index
+from core.user_data_operations import update_user_index
 from core.user_data_read import (
     clear_user_caches,
     ensure_unique_ids,

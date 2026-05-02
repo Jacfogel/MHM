@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 import pytest
 
-from core.user_data_v2 import SCHEMA_VERSION
+from core.user_data_v2_base import SCHEMA_VERSION
 from tasks import (
 
     create_task,

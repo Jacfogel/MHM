@@ -655,7 +655,7 @@ class TestMHMManagerUI:
         with patch('ui.ui_app_qt.Ui_ui_app_mainwindow') as mock_ui:
             with patch('ui.ui_app_qt.QTimer') as mock_timer:
                 with patch('ui.ui_app_qt.Path') as mock_path:
-                    with patch('core.user_data_manager.rebuild_user_index') as mock_rebuild:
+                    with patch('core.user_data_operations.rebuild_user_index') as mock_rebuild:
                         mock_ui_instance = Mock()
                         mock_ui.return_value = mock_ui_instance
                         mock_timer_instance = Mock()

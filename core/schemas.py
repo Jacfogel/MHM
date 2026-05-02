@@ -1,5 +1,8 @@
 """
-Pydantic models and helpers for user data: account, preferences, schedules, and messages.
+Pydantic models and helpers for top-level user profile JSON: account, preferences, and schedules.
+
+Per-user message templates, check-ins, tasks, notebook files, and sent-message logs use the
+strict versioned v2 path (`user_data_v2_envelopes` and domain validators), not this module.
 
 Design goals:
 - Be tolerant of existing on-disk shapes (no breaking changes).

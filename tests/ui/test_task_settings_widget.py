@@ -410,7 +410,7 @@ class TestTaskSettingsWidgetRecurringSettings:
         
         # get_user_data is not imported in task_settings_widget, so we need to patch it where it's used
         with patch('core.user_data_read.get_user_data') as mock_get_data:
-            with patch('core.user_data_updates.update_user_preferences'):
+            with patch('core.user_data_write.update_user_preferences'):
                 mock_get_data.return_value = {
                     'preferences': {
                         'task_settings': {}

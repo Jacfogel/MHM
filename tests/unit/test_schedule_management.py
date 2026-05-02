@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import patch
 import uuid
 
-from core.schedule_management import (
+from core.schedule_runtime import (
 
     add_schedule_period,
     edit_schedule_period,
@@ -60,8 +60,8 @@ class TestScheduleManagement:
         category = f"motivational_{uuid.uuid4().hex[:8]}"
         clear_schedule_periods_cache(user_id, category)
 
-        with patch("core.schedule_management.UserContext") as MockUserContext, \
-             patch("core.schedule_management.create_reschedule_request") as mock_reschedule:
+        with patch("core.schedule_runtime.UserContext") as MockUserContext, \
+             patch("core.schedule_runtime.create_reschedule_request") as mock_reschedule:
             mock_ctx = MockUserContext.return_value
             mock_ctx.get_user_id.return_value = user_id
             mock_ctx.get_internal_username.return_value = "tester"

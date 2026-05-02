@@ -487,7 +487,7 @@ class TestNoNestedSaves:
         
         # Act: Update preferences with categories (should trigger cross-file invariant)
         # Mock update_user_account to verify it's NOT called
-        with patch('core.user_data_updates.update_user_account') as mock_update_account:
+        with patch('core.user_data_write.update_user_account') as mock_update_account:
             result = update_user_preferences(user_id, {'categories': ['motivational', 'health']})
             
             # Assert: update_user_account should NOT be called (no nested saves)
@@ -535,7 +535,7 @@ class TestNoNestedSaves:
         
         # Act: Save preferences with categories
         # Mock update_user_account to verify it's NOT called
-        with patch('core.user_data_updates.update_user_account') as mock_update_account:
+        with patch('core.user_data_write.update_user_account') as mock_update_account:
             preferences_data = TestUserDataFactory.create_preferences_data(
                 user_id=user_id,
                 categories=['motivational']

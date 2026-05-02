@@ -45,11 +45,11 @@ class TestServiceMessageContentHelpers:
     def test_get_message_content_selects_non_recent_specific_period_message(self, service):
         with (
             patch(
-                "core.schedule_management.get_current_time_periods_with_validation",
+                "core.schedule_runtime.get_current_time_periods_with_validation",
                 return_value=(["ALL", "morning"], ["ALL", "morning"]),
             ),
             patch(
-                "core.schedule_management.get_current_day_names",
+                "core.schedule_runtime.get_current_day_names",
                 return_value=["MONDAY"],
             ),
             patch(
@@ -88,11 +88,11 @@ class TestServiceMessageContentHelpers:
     def test_get_message_content_returns_none_when_no_messages_match(self, service):
         with (
             patch(
-                "core.schedule_management.get_current_time_periods_with_validation",
+                "core.schedule_runtime.get_current_time_periods_with_validation",
                 return_value=(["morning"], ["morning"]),
             ),
             patch(
-                "core.schedule_management.get_current_day_names",
+                "core.schedule_runtime.get_current_day_names",
                 return_value=["MONDAY"],
             ),
             patch(
