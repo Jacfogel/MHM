@@ -17,3 +17,27 @@ def register_system_daily_jobs(scheduler_manager) -> None:
     logger.info(
         "Scheduled full daily scheduler job at 01:00 (includes checkins, task reminders, cleanup, and backup check)"
     )
+
+
+@handle_errors("registering full daily maintenance schedule jobs")
+def register_full_daily_maintenance_jobs(scheduler_manager) -> None:
+    """Register maintenance jobs refreshed during the full daily scheduler run."""
+    register_system_daily_jobs(scheduler_manager)
+
+    schedule.every().day.at("03:00").do(
+        scheduler_manager.cleanup_orphaned_task_reminders
+    )
+    logger.info("Scheduled daily orphaned task reminder cleanup at 03:00")
+
+    try:
+        from core.auto_cleanup import (
+            cleanup_data_directory,
+            cleanup_tests_data_directory,
+        )
+
+        schedule.every().day.at("04:00").do(cleanup_data_directory)
+        logger.info("Scheduled daily data directory cleanup at 04:00")
+        schedule.every().day.at("04:05").do(cleanup_tests_data_directory)
+        logger.info("Scheduled daily tests data directory cleanup at 04:05")
+    except Exception as e:
+        logger.warning(f"Failed to schedule data directory cleanup: {e}")

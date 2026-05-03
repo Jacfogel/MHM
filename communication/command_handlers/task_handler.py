@@ -54,13 +54,13 @@ handlers_logger = logger
 @handle_errors("resolving task identifier", default_return="")
 def _task_identifier(task: dict[str, Any]) -> str:
     """Return canonical task identifier for command routing."""
-    return str(task.get("id") or "")
+    return _task_service().task_identifier(task)
 
 
 @handle_errors("resolving task short identifier", default_return="")
 def _task_short_identifier(task: dict[str, Any]) -> str:
     """Return canonical short_id for task matching/display."""
-    return str(task.get("short_id") or "")
+    return _task_service().task_short_identifier(task)
 
 
 @handle_errors("advancing date by one calendar month", re_raise=True)
@@ -1192,143 +1192,19 @@ class TaskManagementHandler(InteractionHandler):
         Returns:
             Task dictionary if found, None otherwise
         """
-        if not identifier or not tasks:
-            return None
-
-        # Try canonical id or short_id first
-        for task in tasks:
-            if _task_identifier(task) == identifier or _task_short_identifier(task) == identifier:
-                return task
-
-        # Try as number
-        try:
-            task_num = int(identifier)
-            if 1 <= task_num <= len(tasks):
-                return tasks[task_num - 1]
-        except ValueError:
-            pass
-
-        # Try as name with improved matching
-        identifier_lower = identifier.lower().strip()
-
-        # First try exact match
-        for task in tasks:
-            if identifier_lower == task["title"].lower():
-                return task
-
-        # Then try contains match
-        for task in tasks:
-            if identifier_lower in task["title"].lower():
-                return task
-
-        # Then try word-based matching for common task patterns
-        identifier_words = set(identifier_lower.split())
-        for task in tasks:
-            task_words = set(task["title"].lower().split())
-            # Check if any identifier words match task words
-            if identifier_words & task_words:  # Set intersection
-                return task
-
-        # Finally try fuzzy matching for common variations
-        common_variations = {
-            "teeth": ["brush", "brushing", "tooth", "dental"],
-            "hair": ["wash", "washing", "shampoo"],
-            "dishes": ["wash", "washing", "clean", "cleaning"],
-            "laundry": ["wash", "washing", "clothes"],
-            "exercise": ["workout", "gym", "run", "running", "walk", "walking"],
-            "medication": ["meds", "medicine", "pill", "pills"],
-            "appointment": ["doctor", "dentist", "meeting", "call"],
-        }
-
-        for task in tasks:
-            task_lower = task["title"].lower()
-            for variation_key, variations in common_variations.items():
-                if (
-                    identifier_lower in variations or identifier_lower == variation_key
-                ) and any(var in task_lower for var in variations + [variation_key]):
-                    return task
-
-        return None
+        return _task_service().find_task_by_identifier(tasks, identifier)
 
     @handle_errors("getting task candidates", default_return=[])
     def _get_task_candidates(self, tasks: list[dict], identifier: str) -> list[dict]:
         """Return candidate tasks matching identifier by id, number, or name."""
-        # Exact id or short_id
-        for t in tasks:
-            if identifier == _task_identifier(t) or identifier == _task_short_identifier(t):
-                return [t]
-        # Number
-        try:
-            n = int(identifier)
-            if 1 <= n <= len(tasks):
-                return [tasks[n - 1]]
-        except ValueError:
-            # Invalid number format - continue to name-based matching
-            pass
-        # Name-based
-        ident = str(identifier).lower().strip()
-        exact = [t for t in tasks if t.get("title", "").lower() == ident]
-        if exact:
-            return exact
-        contains = [t for t in tasks if ident in t.get("title", "").lower()]
-        if contains:
-            return contains
-        words = set(ident.split())
-        word_hits = [
-            t for t in tasks if words & set(t.get("title", "").lower().split())
-        ]
-        if word_hits:
-            return word_hits
-        return []
+        return _task_service().get_task_candidates(tasks, identifier)
 
     @handle_errors("finding most urgent task", default_return=None)
     def _handle_complete_task__find_most_urgent_task(
         self, tasks: list[dict]
     ) -> dict | None:
         """Find the most urgent task based on priority and due date"""
-        if not tasks:
-            return None
-
-        # Internal scheduler/UI state: always use canonical DATE_ONLY formatting.
-        today = format_timestamp(now_datetime_full(), DATE_ONLY)
-
-        # Priority order: overdue > critical > high > medium > low
-        priority_order = {"critical": 5, "high": 4, "medium": 3, "low": 2}
-
-        most_urgent = None
-        highest_score = -1
-
-        for task in tasks:
-            score = 0
-
-            # Check if overdue (highest priority)
-            due_date = runtime_task_due_date(task)
-            if due_date and due_date < today:
-                score += 1000  # Overdue tasks get highest priority
-
-            # Add priority score
-            priority = task.get("priority", "medium")
-            score += priority_order.get(priority, 0)
-            # Add due date proximity bonus (closer = higher score)
-            if due_date:
-                # Persisted internal state: tasks store due_date as DATE_ONLY (YYYY-MM-DD).
-                # Use strict parsing so invalid values are safely ignored.
-                due_dt = parse_date_only(due_date)
-                today_dt = parse_date_only(today)
-                if due_dt and today_dt:
-                    days_until_due = (due_dt - today_dt).days
-                    if days_until_due <= 0:  # Due today or overdue
-                        score += 50
-                    elif days_until_due <= 1:  # Due tomorrow
-                        score += 30
-                    elif days_until_due <= 3:  # Due this week
-                        score += 10
-
-            if score > highest_score:
-                highest_score = score
-                most_urgent = task
-
-        return most_urgent
+        return _task_service().find_most_urgent_task(tasks)
 
     @handle_errors("getting help")
     def get_help(self) -> str:

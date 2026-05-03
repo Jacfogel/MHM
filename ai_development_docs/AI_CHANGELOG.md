@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-03 - Refactor continuation phases 1-4 **COMPLETED**
+- `service_requests` owns request-file processing via `ServiceRequestContext`; `service.py` is now closer to lifecycle/wiring-only and delegates request handling.
+- Scheduler logic moved out of `SchedulerManager`: task reminders in `scheduler_task_reminders`, maintenance in `scheduler_maintenance`, common job registration in `scheduler_jobs`.
+- Message preview/content resolution now lives in `core/message_preview`; the remaining `MHMService` preview wrapper was removed.
+- `notebook_service` now has structured notebook use cases/results and `notebook_handler` calls it; `task_service` owns reusable task matching/urgency helpers used by `task_handler`.
+- Plans/TODO updated: phases 1-4 complete, phases 5-9 remain; low-priority architecture follow-ups track possible `scheduler/`, `storage/`, `messages/`, and `checkins/` packages. Validation: Ruff clean and focused service/scheduler/notebook/task suites passed.
+
 ### 2026-05-02 - Scheduler split + notebook/task service facades **COMPLETED**
 - `scheduler_maintenance`, `scheduler_task_reminders`, `scheduler_jobs` wired from `SchedulerManager`; resilient per-file test-message flag cleanup in `service_requests`.
 - `notebook_service` / `task_service` added; handlers use them (lazy `_task_service()` in task handler). Tests updated for dispatcher/service_requests patch paths.

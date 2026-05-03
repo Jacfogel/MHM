@@ -32,6 +32,85 @@
 
 ## [ACTIVE] **Current Active Plans**
 
+### **MHM Refactor Continuation Plan** **IN PROGRESS**
+
+**Status**: IN PROGRESS (since 2026-05-03) | **Priority**: High  
+**Last Updated**: 2026-05-03
+
+**Objective**: Finish the refactors already opened by moving real responsibility into the new service, scheduler, preview, dispatcher, and pagination modules without changing runtime behavior.
+
+**Phase 1 - Finish service request extraction** **COMPLETED 2026-05-03**
+- [x] Add `ServiceRequestContext` in `core/service_requests.py`.
+- [x] Make `core/service.py` pass explicit request context into request-file processing.
+- [x] Remove private `MHMService` method calls from `core/service_requests.py`.
+- [x] Keep `core/service.py` focused on lifecycle/wiring with compatibility delegates for existing tests.
+- [x] Validate focused service request and service behavior tests.
+
+**Phase 2 - Finish scheduler module split** **COMPLETED 2026-05-03**
+- [x] Inventory `SchedulerManager` methods and classify lifecycle, task reminders, maintenance, message scheduling, backup/log cleanup, and internal helpers.
+- [x] Move task reminder scheduling, reminder delivery, selection weighting, job removal, orphan cleanup, and completed-task cleanup into `core/scheduler_task_reminders.py`.
+- [x] Move weekly backup, log archival, and stale wake-task cleanup into `core/scheduler_maintenance.py`.
+- [x] Move repeated system/maintenance job registration into `core/scheduler_jobs.py`.
+- [x] Keep transitional public wrappers on `SchedulerManager` until tests are stable.
+- [x] Validate scheduler, task reminder, and orphan cleanup tests.
+
+**Phase 3 - Make message preview extraction real** **COMPLETED 2026-05-03**
+- [x] Audit `core/service.py` for remaining preview, test-message, schedule-match, and template-selection helpers.
+- [x] Keep preview/content resolution in `core/message_preview.py` and remove the remaining `MHMService` preview wrapper.
+- [x] Preserve v2-aware message loading and avoid direct legacy field access.
+- [x] Keep UI request creation/display separate from core preview resolution.
+
+**Phase 4 - Turn service modules into real service layers** **COMPLETED 2026-05-03**
+- [x] Move notebook use cases into `notebook/notebook_service.py` with structured results.
+- [x] Thin `communication/command_handlers/notebook_handler.py` so it parses commands, calls the service, and formats responses.
+- [x] Move reusable task matching and urgency use cases into `tasks/task_service.py`.
+- [x] Avoid a generic item framework until notebook/task service responsibilities are stable.
+
+**Phase 5 - Extract reusable pagination** **PLANNED**
+- [ ] Add `core/pagination.py` with `PageRequest`, `PageResult`, coercion, limit capping, slicing, `has_more`, and `next_offset`.
+- [ ] Replace notebook-local pagination helpers with the reusable core pagination helper.
+- [ ] Keep pagination channel-agnostic: no Discord buttons, hidden payloads, rich data, embeds, email formatting, or UI controls.
+- [ ] Cover invalid limit, invalid offset, capped limit, empty results, exact final page, and no-more-results cases.
+
+**Phase 6 - Move channel-specific pagination rendering out of handlers** **PLANNED**
+- [ ] Define one generic pagination metadata shape for domains/actions/params/limit/offset/next offset.
+- [ ] Move Discord button labels, custom IDs, hidden payload handling, and Show More rendering to the Discord layer.
+- [ ] Keep email and UI pagination future-ready without Discord assumptions in core handlers.
+- [ ] Document and test generic pagination metadata.
+
+**Phase 7 - Clarify inbox semantics** **PLANNED**
+- [ ] Define inbox as active, unarchived notebook entries with no group unless implementation findings require a different definition.
+- [ ] Update `development_docs/NOTES_PLAN.md` and command behavior docs where applicable.
+- [ ] Update notebook help text with clear inbox wording.
+- [ ] Add tests for active ungrouped, grouped active, archived, and pinned ungrouped entries.
+
+**Phase 8 - Continue channel_orchestrator thinning** **PLANNED**
+- [ ] Make `MessageSendResult` the standard send contract for regular sends and reminders.
+- [ ] Move regular message selection/dispatch details into `communication/delivery/message_dispatcher.py`.
+- [ ] Move task reminder and check-in reminder dispatch into `communication/reminders/reminder_dispatcher.py`.
+- [ ] Keep schedule eligibility separate from sending once dispatcher responsibilities are stable.
+
+**Phase 9 - Revisit scheduler/service/channel dependency direction** **DEFERRED**
+- [ ] Wait until service request extraction, scheduler split, message preview extraction, and dispatcher result contracts are stable.
+- [ ] Introduce a smaller delivery interface if it still reduces coupling.
+- [ ] Make scheduler tests easier to fake without giving scheduler full communication manager access.
+- [ ] Preserve simple startup wiring.
+
+**Recommended Work Order**
+1. Add reusable pagination.
+2. Move Discord pagination rendering out of `NotebookHandler`.
+3. Continue `channel_orchestrator` thinning with `MessageSendResult`.
+4. Revisit deeper dependency direction after the earlier phases are stable.
+
+**Guardrails**
+- Do not rewrite the whole communication system.
+- Do not remove `CommunicationManager` singleton yet.
+- Do not redesign scheduler dependency injection yet.
+- Do not move preview logic into `ui/` while service still resolves previews.
+- Do not create a generic item framework too early.
+- Do not extract dev tools further in this refactor batch.
+- Do not remove compatibility wrappers before tests are stable.
+
 ### **Flow/Check-in Scheduled Send Stability Follow-up** **IN PROGRESS**
 
 **Status**: IN PROGRESS (since 2026-02-22) | **Priority**: High

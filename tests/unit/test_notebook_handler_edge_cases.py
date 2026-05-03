@@ -58,8 +58,8 @@ class TestNotebookHandlerEdgeCases:
         list_entry = _entry("Groceries", kind="list")
 
         with patch(
-            "communication.command_handlers.notebook_handler.toggle_list_item_done",
-            return_value=list_entry,
+            "communication.command_handlers.notebook_handler.set_list_item_done",
+            return_value=type("Result", (), {"entry": list_entry})(),
         ):
             response = handler._handle_toggle_list_item_done(
                 "user-1",
@@ -91,8 +91,8 @@ class TestNotebookHandlerEdgeCases:
         handler = NotebookHandler()
 
         with patch(
-            "communication.command_handlers.notebook_handler.list_archived",
-            return_value=[],
+            "communication.command_handlers.notebook_handler.list_archived_entries",
+            return_value=type("Result", (), {"entries": []})(),
         ):
             response = handler._handle_list_archived("user-1", None)
 
@@ -104,12 +104,11 @@ class TestNotebookHandlerEdgeCases:
         entries = [_entry(f"Inbox {idx}") for idx in range(6)]
 
         with patch(
-            "communication.command_handlers.notebook_handler.list_inbox",
-            return_value=entries,
+            "communication.command_handlers.notebook_handler.list_inbox_entries",
+            return_value=type("Result", (), {"entries": entries})(),
         ):
             response = handler._handle_list_inbox("user-1", {"offset": 0, "limit": 3})
 
         assert response.completed is True
         assert "Inbox (6 entries)" in response.message
         assert response.suggestions == ["Show More (3 more)"]
-

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-02 19:34:02
+> **Last Generated**: 2026-05-03 16:59:48
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 133
-- **Total Imports Found**: 1573
+- **Total Imports Found**: 1577
 - **Dependencies Documented**: 133 (100% coverage)
-- **Standard Library Imports**: 442 (28.1%)
+- **Standard Library Imports**: 445 (28.2%)
 - **Third-Party Imports**: 236 (15.0%)
-- **Local Imports**: 895 (56.9%)
-- **Last Updated**: 2026-05-02
+- **Local Imports**: 896 (56.8%)
+- **Last Updated**: 2026-05-03
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 442 imports (28.1%)
+- **Standard Library**: 445 imports (28.2%)
 - **Third-Party**: 236 imports (15.0%)
-- **Local**: 895 imports (56.9%)
+- **Local**: 896 imports (56.8%)
 
 ## Module Dependencies by Directory
 
@@ -414,7 +414,7 @@
     - `core.tags (parse_tags_from_text)` (NEW)
     - `core.time_utilities (now_timestamp_full)` (NEW)
     - `notebook.notebook_schemas (Entry)`
-    - `notebook.notebook_service (add_list_item, add_tags, append_to_entry_body, archive_entry, create_journal, create_list, create_note, get_entry, list_archived, list_by_group, list_by_tag, list_inbox, list_pinned, list_recent, pin_entry, remove_list_item, remove_tags, search_entries, set_entry_body, set_group, toggle_list_item_done)` (NEW)
+    - `notebook.notebook_service (add_entry_tags, add_item_to_list, append_entry_body, archive_notebook_entry, create_journal_from_command, create_list_from_command, create_note_from_command, create_quick_note_from_command, delete_list_item, get_entry, list_archived_entries, list_entries_by_group, list_entries_by_tag, list_inbox_entries, list_pinned_entries, list_recent_entries, pin_notebook_entry, remove_entry_tags, replace_entry_body, search_entries_for_display, set_entry_group, set_list_item_done)` (NEW)
     - `notebook.notebook_validation (format_short_id)`
   - **Standard Library**:
     - `collections.abc (Callable)`
@@ -1391,13 +1391,13 @@
     - `sys`
     - `time`
 - **Used by**: 
-  - `core/scheduler.py`
+  - `core/scheduler_jobs.py`
   - `core/service.py`
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
 - Added: core, core.config, core.error_handling, core.logger, core.message_management, core.time_utilities
-- Removed: core/scheduler.py, core/service.py, ui/ui_app_qt.py
+- Removed: core/scheduler_jobs.py, core/service.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Automatic cache cleanup and maintenance
@@ -2008,8 +2008,7 @@
     - `__future__ (annotations)`
     - `random`
     - `typing (Any)`
-- **Used by**: 
-  - `core/service.py`
+- **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
 - Added: core.error_handling, core.message_management, core.schedule_runtime
@@ -2118,6 +2117,7 @@
   - `communication/delivery/message_dispatcher.py`
   - `core/message_preview.py`
   - `core/scheduler.py`
+  - `core/scheduler_task_reminders.py`
   - `core/ui_management.py`
   - `ui/dialogs/category_management_dialog.py`
   - `ui/dialogs/checkin_management_dialog.py`
@@ -2128,7 +2128,7 @@
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.logger, core.service_utilities, core.time_utilities
-- Removed: communication/command_handlers/schedule_handler.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, core/message_preview.py, core/scheduler.py, core/ui_management.py, ui/dialogs/category_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_management_dialog.py, ui/widgets/period_row_widget.py, user/user_preferences.py
+- Removed: communication/command_handlers/schedule_handler.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, core/message_preview.py, core/scheduler.py, core/scheduler_task_reminders.py, core/ui_management.py, ui/dialogs/category_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_management_dialog.py, ui/widgets/period_row_widget.py, user/user_preferences.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Schedule management and time period handling
@@ -2162,15 +2162,13 @@
   - **Local**:
     - `communication.core.channel_orchestrator (CommunicationManager)`
     - `core (get_all_user_ids, get_user_data, scheduler_jobs, scheduler_maintenance, scheduler_task_reminders)` (NEW)
-    - `core.auto_cleanup (cleanup_data_directory, cleanup_tests_data_directory)` (NEW)
     - `core.config (BASE_DATA_DIR, get_user_data_dir)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, suppress_noisy_logging)` (NEW)
     - `core.schedule_runtime (get_schedule_time_periods)` (NEW)
     - `core.service_utilities (load_and_localize_datetime)` (NEW)
-    - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIMESTAMP_MINUTE, TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, parse_date_only, parse_time_only_minute, parse_timestamp_minute)` (NEW)
-    - `tasks (are_tasks_enabled, get_task_by_id, load_active_tasks, update_task)` (NEW)
-    - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_is_completed)` (NEW)
+    - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIMESTAMP_MINUTE, TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, parse_time_only_minute)` (NEW)
+    - `tasks (are_tasks_enabled)` (NEW)
     - `user.user_context (UserContext)`
   - **Standard Library**:
     - `calendar`
@@ -2189,7 +2187,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: core, core.auto_cleanup, core.config, core.error_handling, core.logger, core.schedule_runtime, core.service_utilities, core.time_utilities, tasks, tasks.task_data_handlers
+- Added: core, core.config, core.error_handling, core.logger, core.schedule_runtime, core.service_utilities, core.time_utilities, tasks
 - Removed: core/service.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2200,6 +2198,7 @@
 - **Purpose**: Task scheduling and job management
 - **Dependencies**: 
   - **Local**:
+    - `core.auto_cleanup (cleanup_data_directory, cleanup_tests_data_directory)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
   - **Third-party**:
@@ -2207,7 +2206,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger
+- Added: core.auto_cleanup, core.error_handling, core.logger
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2217,14 +2216,17 @@
 - **Purpose**: Task scheduling and job management
 - **Dependencies**: 
   - **Local**:
+    - `core (get_all_user_ids)` (NEW)
     - `core.backup_manager (backup_manager)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (cleanup_old_archives, compress_old_logs, get_component_logger)` (NEW)
     - `core.time_utilities (now_datetime_full, now_timestamp_filename, parse_timestamp_full)` (NEW)
+  - **Standard Library**:
+    - `subprocess`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core.backup_manager, core.error_handling, core.logger, core.time_utilities
+- Added: core, core.backup_manager, core.error_handling, core.logger, core.time_utilities
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2237,17 +2239,23 @@
     - `core (get_all_user_ids)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `tasks (get_task_by_id)` (NEW)
-    - `tasks.task_data_handlers (runtime_task_is_completed)` (NEW)
+    - `core.schedule_runtime (get_schedule_time_periods)` (NEW)
+    - `core.time_utilities (TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, parse_date_only, parse_time_only_minute, parse_timestamp_minute)` (NEW)
+    - `tasks (are_tasks_enabled, get_task_by_id, load_active_tasks, update_task)` (NEW)
+    - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_is_completed)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
+    - `datetime (datetime, timedelta)`
+    - `random`
+    - `time`
     - `typing (Any)`
   - **Third-party**:
+    - `pytz`
     - `schedule`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger, tasks, tasks.task_data_handlers
+- Added: core, core.error_handling, core.logger, core.schedule_runtime, core.time_utilities, tasks, tasks.task_data_handlers
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2292,7 +2300,6 @@
     - `core.file_auditor (start_auditor, stop_auditor)` (NEW)
     - `core.file_operations (verify_file_access)` (NEW)
     - `core.logger (force_restart_logging, get_component_logger, setup_logging)` (NEW)
-    - `core.message_preview (get_predefined_message_preview_text)` (NEW)
     - `core.scheduler (SchedulerManager)` (NEW)
     - `core.service_requests` (NEW)
     - `core.service_utilities (get_flags_dir)` (NEW)
@@ -2313,7 +2320,7 @@
   - `ui/dialogs/account_creator_dialog.py`
 
 **Dependency Changes**:
-- Added: core, core.auto_cleanup, core.config, core.error_handling, core.file_auditor, core.file_operations, core.logger, core.message_preview, core.scheduler, core.service_requests, core.service_utilities, core.time_utilities
+- Added: core, core.auto_cleanup, core.config, core.error_handling, core.file_auditor, core.file_operations, core.logger, core.scheduler, core.service_requests, core.service_utilities, core.time_utilities
 - Removed: tasks/task_data_manager.py, ui/dialogs/account_creator_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2331,7 +2338,9 @@
     - `core.time_utilities (now_timestamp_full)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
+    - `collections.abc (Callable)`
     - `contextlib`
+    - `dataclasses (dataclass)`
     - `json`
     - `os`
     - `pathlib (Path)`
@@ -2341,7 +2350,7 @@
 
 **Dependency Changes**:
 - Added: communication.message_processing.conversation_flow_manager, core, core.error_handling, core.logger, core.time_utilities
-- Removed: core/service.py
+- Removed: collections.abc, core/service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2461,6 +2470,7 @@
   - `core/schedule_utilities.py`
   - `core/scheduler.py`
   - `core/scheduler_maintenance.py`
+  - `core/scheduler_task_reminders.py`
   - `core/service.py`
   - `core/service_requests.py`
   - `core/service_utilities.py`
@@ -2473,6 +2483,7 @@
   - `tasks/task_data_handlers.py`
   - `tasks/task_data_manager.py`
   - `tasks/task_schemas.py`
+  - `tasks/task_service.py`
   - `tasks/task_validation.py`
   - `ui/dialogs/message_editor_dialog.py`
   - `ui/dialogs/process_watcher_dialog.py`
@@ -2484,7 +2495,7 @@
 
 **Dependency Changes**:
 - Added: core.time_format_constants
-- Removed: ai/chatbot.py, ai/context_builder.py, ai/conversation_history.py, collections.abc, communication/command_handlers/analytics_handler.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/task_handler.py, communication/core/channel_monitor.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, core/auto_cleanup.py, core/backup_manager.py, core/checkin_analytics.py, core/error_handling.py, core/file_operations.py, core/message_management.py, core/response_tracking.py, core/schedule_runtime.py, core/schedule_utilities.py, core/scheduler.py, core/scheduler_maintenance.py, core/service.py, core/service_requests.py, core/service_utilities.py, core/tags.py, core/user_data_operations.py, core/user_data_registry.py, core/user_data_v2_base.py, core/user_data_validation.py, core/user_management.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_schemas.py, tasks/task_validation.py, ui/dialogs/message_editor_dialog.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/user_profile_dialog.py, ui/generate_ui_files.py, ui/ui_app_qt.py, user/context_manager.py
+- Removed: ai/chatbot.py, ai/context_builder.py, ai/conversation_history.py, collections.abc, communication/command_handlers/analytics_handler.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/task_handler.py, communication/core/channel_monitor.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, core/auto_cleanup.py, core/backup_manager.py, core/checkin_analytics.py, core/error_handling.py, core/file_operations.py, core/message_management.py, core/response_tracking.py, core/schedule_runtime.py, core/schedule_utilities.py, core/scheduler.py, core/scheduler_maintenance.py, core/scheduler_task_reminders.py, core/service.py, core/service_requests.py, core/service_utilities.py, core/tags.py, core/user_data_operations.py, core/user_data_registry.py, core/user_data_v2_base.py, core/user_data_validation.py, core/user_management.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_schemas.py, tasks/task_validation.py, ui/dialogs/message_editor_dialog.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/user_profile_dialog.py, ui/generate_ui_files.py, ui/ui_app_qt.py, user/context_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2860,16 +2871,16 @@
   - `communication/core/channel_orchestrator.py`
   - `communication/message_processing/conversation_flow_manager.py`
   - `communication/message_processing/interaction_manager.py`
-  - `core/scheduler.py`
   - `core/scheduler_task_reminders.py`
   - `tasks/task_data_manager.py`
+  - `tasks/task_service.py`
   - `ui/dialogs/task_crud_dialog.py`
   - `ui/dialogs/task_edit_dialog.py`
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger, core.time_utilities, core.user_data_v2_base, core.user_data_validation, core.user_item_storage
-- Removed: ai/chatbot.py, communication/command_handlers/task_handler.py, communication/core/channel_orchestrator.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, core/scheduler.py, core/scheduler_task_reminders.py, tasks/task_data_manager.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py, ui/ui_app_qt.py
+- Removed: ai/chatbot.py, communication/command_handlers/task_handler.py, communication/core/channel_orchestrator.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, core/scheduler_task_reminders.py, tasks/task_data_manager.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2932,14 +2943,16 @@
 - **Dependencies**: 
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.time_utilities (DATE_ONLY, format_timestamp, now_datetime_full, parse_date_only)` (NEW)
     - `tasks` (NEW)
+    - `tasks.task_data_handlers (runtime_task_due_date)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
     - `typing (Any)`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core.error_handling, tasks
+- Added: core.error_handling, core.time_utilities, tasks, tasks.task_data_handlers
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

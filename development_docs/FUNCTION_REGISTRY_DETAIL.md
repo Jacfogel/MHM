@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-02 19:34:01
+> **Last Generated**: 2026-05-03 16:59:46
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 92.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 135
-- **Functions Found**: 1829
-- **Methods Found**: 1263
-- **Classes Found**: 162
-- **Total Items**: 3092
-- **Functions Documented**: 1666
-- **Methods Documented**: 1194
+- **Functions Found**: 1854
+- **Methods Found**: 1265
+- **Classes Found**: 163
+- **Total Items**: 3119
+- **Functions Documented**: 1690
+- **Methods Documented**: 1196
 - **Classes Documented**: 124
-- **Total Documented**: 2860
+- **Total Documented**: 2886
 - **Template-Generated**: 18
-- **Last Updated**: 2026-05-02
+- **Last Updated**: 2026-05-03
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (647)
+### **Core System Functions** (667)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (492)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (33)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (65)
+### **Task Management Functions** (70)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -4275,17 +4275,38 @@ Args:
 
 #### `core/scheduler_jobs.py`
 **Functions:**
+- [OK] `register_full_daily_maintenance_jobs(scheduler_manager)` - Register maintenance jobs refreshed during the full daily scheduler run.
 - [OK] `register_system_daily_jobs(scheduler_manager)` - Register 02:00 log archival and 01:00 full daily scheduler jobs on the global ``schedule`` queue.
 
 #### `core/scheduler_maintenance.py`
 **Functions:**
 - [MISSING] `_is_weekly_backup_entry(backup_entry)` - No description
 - [MISSING] `check_and_perform_weekly_backup()` - No description
+- [OK] `cleanup_scheduler_wake_tasks()` - Delete stale Windows wake tasks created by scheduler jobs.
 - [MISSING] `perform_daily_log_archival()` - No description
 
 #### `core/scheduler_task_reminders.py`
 **Functions:**
+- [OK] `calculate_due_date_weight(task, today)` - Calculate due-date proximity reminder selection weight for a task.
+- [OK] `calculate_priority_weight(task)` - Calculate priority-based reminder selection weight for a task.
+- [OK] `calculate_task_weights(incomplete_tasks, today)` - Calculate combined priority and due-date weights for reminder candidates.
 - [MISSING] `cleanup_orphaned_task_reminders(scheduler_manager)` - No description
+- [OK] `cleanup_task_reminders(scheduler_manager, user_id, task_identifier)` - Remove scheduled reminder jobs for a specific task.
+- [OK] `get_random_time_within_task_period(start_time, end_time)` - Generate a random HH:MM time within a task reminder period.
+- [OK] `handle_task_reminder(scheduler_manager, user_id, task_identifier, retry_attempts, retry_delay)` - Send a task reminder with retries through the scheduler communication manager.
+
+``task_identifier`` is the task record's canonical ``id`` or another value
+accepted by ``tasks.get_task_by_id``.
+- [OK] `handle_task_selection_edge_cases(incomplete_tasks)` - Handle trivial task-selection cases before weighted selection.
+- [OK] `schedule_all_task_reminders(scheduler_manager, user_id)` - Schedule one active task reminder per configured task reminder period.
+
+For each active period, one incomplete task is selected with weighted
+priority/due-date logic and scheduled at a random time within that period.
+- [OK] `schedule_task_reminder_at_datetime(scheduler_manager, user_id, task_identifier, date_str, time_str)` - Schedule a one-time reminder for one task at a specific date and time.
+- [OK] `schedule_task_reminder_at_time(scheduler_manager, user_id, task_identifier, reminder_time)` - Schedule a daily reminder for one task at an HH:MM time.
+- [OK] `select_task_by_weight(scheduler_manager, task_weights, incomplete_tasks)` - Select a reminder candidate using weighted random selection.
+- [OK] `select_task_for_reminder(scheduler_manager, incomplete_tasks)` - Select a task for reminder using priority and due-date weighting.
+- [OK] `task_selection_key(task, index)` - Build a stable key for tracking reminder selection state.
 
 #### `core/schemas.py`
 **Functions:**
@@ -4386,7 +4407,6 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
 - [OK] `_check_reschedule_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
 - [OK] `_check_test_message_requests__discover_request_files(self, base_dir)` - Discover all test message request files in the base directory.
 - [OK] `_check_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
-- [OK] `_check_test_message_requests__get_message_content(self, user_id, category)` - Get the actual message content that will be sent.
 - [OK] `_check_test_message_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
 - [OK] `_check_test_message_requests__parse_request_file(self, request_file)` - Parse and validate a test message request file.
 - [OK] `_check_test_message_requests__process_valid_request(self, request_data)` - Process a valid test message request.
@@ -4401,6 +4421,8 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
 - [OK] `_has_any_request_files(self, base_dir)` - Quick check if any request files exist (optimization to avoid full scan when not needed).
 - [OK] `_log_discord_connectivity_health(self)` - Log connectivity diagnostics for Discord channel health.
 - [OK] `_log_hourly_service_status(self, loop_minutes)` - Log periodic service metrics and channel-health diagnostics.
+- [OK] `_request_shutdown(self)` - Mark the service loop for shutdown after a request-file signal.
+- [OK] `_service_request_context_for_base(self, base_dir)` - Build a request context rooted at a specific request-file directory.
 - [OK] `_write_checkin_response(self, user_id, first_question)` - Write the first check-in question to a response file for the UI to read.
 - [OK] `check_and_fix_logging(self)` - Check if logging is working and restart if needed
 - [OK] `check_checkin_prompt_requests(self)` - Check for and process check-in prompt request files from admin panel
@@ -4432,6 +4454,7 @@ Args:
 
 Initializes communication channels, scheduler, and begins the main service loop.
 Sets up signal handlers for graceful shutdown.
+- [OK] `to_service_request_context(self)` - Build the request-file context used by service request helpers.
 - [OK] `validate_configuration(self)` - Validate all configuration settings before starting the service.
 **Classes:**
 - [OK] `InitializationError` - Custom exception for initialization errors.
@@ -4453,7 +4476,6 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
   - [OK] `MHMService._check_reschedule_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
   - [OK] `MHMService._check_test_message_requests__discover_request_files(self, base_dir)` - Discover all test message request files in the base directory.
   - [OK] `MHMService._check_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
-  - [OK] `MHMService._check_test_message_requests__get_message_content(self, user_id, category)` - Get the actual message content that will be sent.
   - [OK] `MHMService._check_test_message_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
   - [OK] `MHMService._check_test_message_requests__parse_request_file(self, request_file)` - Parse and validate a test message request file.
   - [OK] `MHMService._check_test_message_requests__process_valid_request(self, request_data)` - Process a valid test message request.
@@ -4468,6 +4490,8 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
   - [OK] `MHMService._has_any_request_files(self, base_dir)` - Quick check if any request files exist (optimization to avoid full scan when not needed).
   - [OK] `MHMService._log_discord_connectivity_health(self)` - Log connectivity diagnostics for Discord channel health.
   - [OK] `MHMService._log_hourly_service_status(self, loop_minutes)` - Log periodic service metrics and channel-health diagnostics.
+  - [OK] `MHMService._request_shutdown(self)` - Mark the service loop for shutdown after a request-file signal.
+  - [OK] `MHMService._service_request_context_for_base(self, base_dir)` - Build a request context rooted at a specific request-file directory.
   - [OK] `MHMService._write_checkin_response(self, user_id, first_question)` - Write the first check-in question to a response file for the UI to read.
   - [OK] `MHMService.check_and_fix_logging(self)` - Check if logging is working and restart if needed
   - [OK] `MHMService.check_checkin_prompt_requests(self)` - Check for and process check-in prompt request files from admin panel
@@ -4494,17 +4518,19 @@ Args:
 
 Initializes communication channels, scheduler, and begins the main service loop.
 Sets up signal handlers for graceful shutdown.
+  - [OK] `MHMService.to_service_request_context(self)` - Build the request-file context used by service request helpers.
   - [OK] `MHMService.validate_configuration(self)` - Validate all configuration settings before starting the service.
 
 #### `core/service_requests.py`
 **Functions:**
-- [MISSING] `check_checkin_prompt_requests(service)` - No description
-- [MISSING] `check_reschedule_requests(service)` - No description
-- [MISSING] `check_task_reminder_requests(service)` - No description
-- [OK] `check_test_message_requests(service)` - TEST: Check Message Requests
+- [OK] `_as_context(context_or_service)` - Normalize legacy service instances and explicit contexts to one shape.
+- [MISSING] `check_checkin_prompt_requests(context)` - No description
+- [MISSING] `check_reschedule_requests(context)` - No description
+- [MISSING] `check_task_reminder_requests(context)` - No description
+- [OK] `check_test_message_requests(context)` - TEST: Check Message Requests
 - [MISSING] `cleanup_request_file_after_process(request_file, filename, request_type_label)` - No description
-- [MISSING] `cleanup_reschedule_requests(service)` - No description
-- [OK] `cleanup_test_message_requests(service)` - TEST: Cleanup Message Requests
+- [MISSING] `cleanup_reschedule_requests(context)` - No description
+- [OK] `cleanup_test_message_requests(context)` - TEST: Cleanup Message Requests
 - [MISSING] `discover_reschedule_request_files(base_dir)` - No description
 - [OK] `discover_test_message_request_files(base_dir)` - TEST: Discover Message Request Files
 - [MISSING] `get_checkin_first_question(user_id)` - No description
@@ -4515,16 +4541,20 @@ Sets up signal handlers for graceful shutdown.
 - [OK] `is_test_message_request_filename(filename)` - TEST: Is Message Request Filename
 - [MISSING] `parse_reschedule_request_file(request_file)` - No description
 - [OK] `parse_test_message_request_file(request_file)` - TEST: Parse Message Request File
-- [OK] `process_all(service)` - Process pending UI/headless request flags (non-shutdown).
-- [OK] `process_pending_file_requests(service)` - Process request-flag files when any ``.flag`` exists under the repo root.
-- [OK] `process_shutdown_request(service, shutdown_file)` - Return True when shutdown was requested and the main loop should stop.
-- [MISSING] `process_valid_reschedule_request(service, request_data)` - No description
-- [OK] `process_valid_test_message_request(service, request_data)` - TEST: Process Valid Message Request
+- [OK] `process_all(context)` - Backward-compatible alias for pending UI/headless request flags.
+- [OK] `process_all_requests(context)` - Process pending UI/headless request flags (non-shutdown).
+- [OK] `process_pending_file_requests(context)` - Process request-flag files when any ``.flag`` exists under the repo root.
+- [OK] `process_shutdown_request(context, shutdown_file)` - Return True when shutdown was requested and the main loop should stop.
+- [MISSING] `process_valid_reschedule_request(context, request_data)` - No description
+- [OK] `process_valid_test_message_request(context, request_data)` - TEST: Process Valid Message Request
 - [OK] `remove_single_test_message_request_file(request_file, filename)` - TEST: Remove Single Message Request File
-- [MISSING] `validate_reschedule_request_data(service, request_data, filename)` - No description
+- [MISSING] `validate_reschedule_request_data(context, request_data, filename)` - No description
 - [OK] `validate_test_message_request_data(request_data, filename)` - TEST: Validate Message Request Data
 - [MISSING] `write_checkin_response(user_id, first_question)` - No description
+- [MISSING] `write_request_failure_response(base_dir, request_filename, request_type, error)` - No description
 - [OK] `write_test_message_response(user_id, category, message)` - TEST: Write Message Response
+**Classes:**
+- [MISSING] `ServiceRequestContext` - No description
 
 #### `core/service_utilities.py`
 **Functions:**
@@ -5366,11 +5396,16 @@ Returns:
 - [MISSING] `complete_task(user_id, task_id)` - No description
 - [MISSING] `create_task(user_id)` - No description
 - [MISSING] `delete_task(user_id, task_id)` - No description
+- [OK] `find_most_urgent_task(tasks)` - Find the most urgent task based on overdue status, priority, and due date.
+- [OK] `find_task_by_identifier(tasks, identifier)` - Find a task by number, name, canonical id, or short_id.
+- [OK] `get_task_candidates(tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
 - [MISSING] `get_tasks_due_soon(user_id)` - No description
 - [MISSING] `get_user_task_stats(user_id)` - No description
 - [MISSING] `load_active_tasks(user_id)` - No description
 - [MISSING] `load_completed_tasks(user_id)` - No description
 - [MISSING] `restore_task(user_id, task_id)` - No description
+- [OK] `task_identifier(task)` - Return canonical task id for matching and mutations.
+- [OK] `task_short_identifier(task)` - Return canonical task short_id for matching and display.
 - [MISSING] `update_task(user_id, task_id, updates)` - No description
 
 #### `tasks/task_validation.py`

@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-05-01 (TODO: plan for v2-envelope profile JSON; `core/schemas.py` docstring alignment)
+> **Last Updated**: 2026-05-03 (session closeout: remove completed TODO item; keep outstanding architecture considerations)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -55,16 +55,6 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
 **Use / fit** (2026-02-28 user-priority Q&A): Headless + email admin status fixes shipped 2026-04-02. AI items deferred until system overhaul. Script ownership, sent_messages high priority. Ruff outside tests > inside. Duplicate lists and backup audit moved to dev tools. Performance monitoring includes RAM/caching.
 
 ## High Priority
-
-### Schedule Data Model Follow-up
-
-**Assess schedule period normalization after item migration**
-- *What it means*: Decide whether `schedules.json` should be flattened into a versioned list of schedule periods.
-- *Why it helps*: A flatter schedule model would map better to SQLite, but this should not distract from task/note/check-in/message migration.
-- *Estimated effort*: Medium
-- *Created*: 2026-04-26
-- *Status*: Completed on 2026-04-28 and documented in paired changelogs ([CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md), [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)).
-- *Decision*: Keep nested `schedules.json` short-term; if flattened later, canonical fields are `id`, `scope`, `scope_value`, `day`, `start_time`, `end_time`, `enabled`, `source`, `created_at`, `updated_at`.
 
 ### Quality & Operations (high priority within medium)
 
@@ -344,6 +334,26 @@ Clear separation between service lifecycle, request handling, scheduling, and me
 - *Estimated effort*: Medium
 
 ## Low Priority
+
+### Architecture
+
+**Consider a top-level scheduler package**
+- *What it means*: After the scheduler split stabilizes, decide whether `core/scheduler.py`, `core/scheduler_jobs.py`, `core/scheduler_maintenance.py`, and `core/scheduler_task_reminders.py` should move into a dedicated `scheduler/` package.
+- *Why it helps*: Keeps scheduling mechanics separate from broad core infrastructure without moving scheduler-specific code into task/domain packages.
+- *Estimated effort*: Medium
+- *Created*: 2026-05-03
+
+**Consider a top-level storage package**
+- *What it means*: Decide whether persistence infrastructure currently in `core/user_data_*` and related storage helpers should eventually move into a dedicated `storage/` package. Do not use `data/` for code because `data/` is the literal runtime data directory.
+- *Why it helps*: Separates data persistence mechanics from core runtime wiring and user-domain concepts.
+- *Estimated effort*: Medium
+- *Created*: 2026-05-03
+
+**Consider first-class automated message and check-in domain packages**
+- *What it means*: Decide whether automated message logic and check-in logic should move out of `core/` into clearer domain packages, such as `messages/` and `checkins/`, after the current scheduler/service/channel refactors stabilize. These packages should follow the existing `notebook/` and `tasks/` pattern where practical: `*_data_handlers.py`, `*_data_manager.py`, `*_schemas.py`, `*_service.py`, and `*_validation.py`, plus domain-specific modules where they are justified.
+- *Why it helps*: Makes messages, check-ins, tasks, and notebook entries equally visible as application domains instead of burying message/check-in behavior under broad core modules.
+- *Estimated effort*: Medium/Large
+- *Created*: 2026-05-03
 
 ### Deferred (AI overhaul)
 

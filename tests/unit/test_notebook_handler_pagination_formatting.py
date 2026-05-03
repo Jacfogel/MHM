@@ -26,8 +26,8 @@ class TestNotebookHandlerPaginationAndFormatting:
         handler = NotebookHandler()
 
         with patch(
-            "communication.command_handlers.notebook_handler.search_entries",
-            return_value=[],
+            "communication.command_handlers.notebook_handler.search_entries_for_display",
+            return_value=type("Result", (), {"entries": []})(),
         ):
             response = handler._handle_search_entries(
                 "user-1",
@@ -44,8 +44,8 @@ class TestNotebookHandlerPaginationAndFormatting:
         entries = [_note_entry(f"Note {i}") for i in range(6)]
 
         with patch(
-            "communication.command_handlers.notebook_handler.search_entries",
-            return_value=entries,
+            "communication.command_handlers.notebook_handler.search_entries_for_display",
+            return_value=type("Result", (), {"entries": entries})(),
         ):
             response = handler._handle_search_entries(
                 "user-1",
@@ -71,8 +71,8 @@ class TestNotebookHandlerPaginationAndFormatting:
         entries = [_note_entry(f"Recent {i}") for i in range(6)]
 
         with patch(
-            "communication.command_handlers.notebook_handler.list_recent",
-            return_value=entries,
+            "communication.command_handlers.notebook_handler.list_recent_entries",
+            return_value=type("Result", (), {"entries": entries})(),
         ):
             response = handler._handle_list_recent(
                 "user-1", {"offset": 0, "limit": 3}
@@ -96,8 +96,8 @@ class TestNotebookHandlerPaginationAndFormatting:
         entries = [_note_entry(f"Group {i}") for i in range(6)]
 
         with patch(
-            "communication.command_handlers.notebook_handler.list_by_group",
-            return_value=entries,
+            "communication.command_handlers.notebook_handler.list_entries_by_group",
+            return_value=type("Result", (), {"entries": entries})(),
         ):
             response = handler._handle_list_by_group(
                 "user-1", {"group": "work", "offset": 0, "limit": 3}
@@ -126,8 +126,8 @@ class TestNotebookHandlerPaginationAndFormatting:
         entries = [_note_entry(f"Pinned {i}") for i in range(7)]
 
         with patch(
-            "communication.command_handlers.notebook_handler.list_pinned",
-            return_value=entries,
+            "communication.command_handlers.notebook_handler.list_pinned_entries",
+            return_value=type("Result", (), {"entries": entries})(),
         ):
             response = handler._handle_list_pinned("user-1", None)
 

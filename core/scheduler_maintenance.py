@@ -12,6 +12,63 @@ from core.time_utilities import (
 logger = get_component_logger("scheduler")
 
 
+@handle_errors("cleaning up scheduler wake tasks")
+def cleanup_scheduler_wake_tasks() -> None:
+    """Delete stale Windows wake tasks created by scheduler jobs."""
+    import subprocess
+
+    from core import get_all_user_ids
+
+    logger.info("Starting system task cleanup for all users...")
+
+    try:
+        result = subprocess.run(
+            ["schtasks", "/query", "/fo", "LIST", "/v"],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            logger.debug(f"Could not query system tasks: {result.stderr}")
+            logger.info("System task cleanup completed (no tasks to clean).")
+            return
+
+        tasks = result.stdout.splitlines()
+        tasks_deleted = 0
+        user_ids = get_all_user_ids()
+
+        for line in tasks:
+            if line.startswith("TaskName:"):
+                task_name = line.split(":")[1].strip()
+                if "Wake_" in task_name and any(
+                    user_id in task_name for user_id in user_ids
+                ):
+                    logger.info(f"Deleting old system task: {task_name}")
+                    try:
+                        del_result = subprocess.run(
+                            ["schtasks", "/delete", "/tn", task_name, "/f"],
+                            capture_output=True,
+                            text=True,
+                            check=False,
+                        )
+                        if del_result.returncode == 0:
+                            tasks_deleted += 1
+                            logger.debug(f"Successfully deleted task: {task_name}")
+                        else:
+                            logger.debug(
+                                f"Task {task_name} may already be deleted: {del_result.stderr}"
+                            )
+                    except Exception as del_error:
+                        logger.debug(f"Error deleting task {task_name}: {del_error}")
+
+        logger.info(f"System task cleanup completed: {tasks_deleted} tasks deleted.")
+        if tasks_deleted > 0:
+            logger.debug(f"Deleted {tasks_deleted} old system tasks")
+
+    except Exception as query_error:
+        logger.debug(f"Error querying system tasks for cleanup: {query_error}")
+        logger.info("System task cleanup skipped (query failed).")
+
+
 @handle_errors("performing daily log archival")
 def perform_daily_log_archival() -> None:
     try:

@@ -83,21 +83,20 @@ class TestServiceCheckinRequestHelpers:
                 "core.get_user_data",
                 return_value={"preferences": {"channel": {"type": "discord"}}},
             ),
-            patch.object(
-                service,
-                "_get_checkin_first_question",
+            patch(
+                "core.service_requests.get_checkin_first_question",
                 return_value="What is one win from today?",
             ),
-            patch.object(service, "_write_checkin_response") as mock_write_response,
         ):
             service.check_checkin_prompt_requests()
 
         service.communication_manager._send_checkin_prompt.assert_called_once_with(
             "user-1", "discord", "discord_user:user-1"
         )
-        mock_write_response.assert_called_once_with(
-            "user-1", "What is one win from today?"
-        )
+        response_path = base_dir / "checkin_prompt_response_user-1.flag"
+        assert response_path.exists()
+        response_payload = json.loads(response_path.read_text(encoding="utf-8"))
+        assert response_payload["first_question"] == "What is one win from today?"
         assert not request_path.exists()
 
     def test_check_checkin_prompt_requests_skips_without_recipient(
@@ -155,8 +154,9 @@ class TestServiceTaskAndMessageRequestHelpers:
         assert not request_path.exists()
 
     def test_process_valid_test_message_request_writes_response_for_matching_message(
-        self, service
+        self, service, test_path_factory
     ):
+        base_dir = Path(test_path_factory)
         service.communication_manager.handle_message_sending.return_value = (
             MessageSendResult.sent(
                 "user-1", "motivational", sent_text="Keep going!"
@@ -169,16 +169,19 @@ class TestServiceTaskAndMessageRequestHelpers:
         }
 
         with patch.object(
-            service, "_check_test_message_requests__write_response"
-        ) as mock_write_response:
+            service,
+            "_check_test_message_requests__get_base_directory",
+            return_value=str(base_dir),
+        ):
             service._check_test_message_requests__process_valid_request(request_data)
 
         service.communication_manager.handle_message_sending.assert_called_once_with(
             "user-1", "motivational"
         )
-        mock_write_response.assert_called_once_with(
-            "user-1", "motivational", "Keep going!"
-        )
+        response_path = base_dir / "test_message_response_user-1_motivational.flag"
+        assert response_path.exists()
+        response_payload = json.loads(response_path.read_text(encoding="utf-8"))
+        assert response_payload["message"] == "Keep going!"
 
     def test_process_valid_test_message_request_skips_response_on_mismatch(self, service):
         service.communication_manager.handle_message_sending.return_value = (

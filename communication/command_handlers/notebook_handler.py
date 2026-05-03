@@ -21,27 +21,28 @@ from communication.command_handlers.shared_types import (
     ParsedCommand,
 )
 from notebook.notebook_service import (
+    add_entry_tags,
+    add_item_to_list,
     get_entry,
-    list_recent,
-    append_to_entry_body,
-    set_entry_body,
-    add_tags,
-    remove_tags,
-    search_entries,
-    pin_entry,
-    archive_entry,
-    add_list_item,
-    toggle_list_item_done,
-    remove_list_item,
-    set_group,
-    list_by_group,
-    list_pinned,
-    list_inbox,
-    list_by_tag,
-    list_archived,
-    create_note,
-    create_list,
-    create_journal,
+    append_entry_body,
+    archive_notebook_entry,
+    create_journal_from_command,
+    create_list_from_command,
+    create_note_from_command,
+    create_quick_note_from_command,
+    delete_list_item,
+    list_archived_entries,
+    list_entries_by_group,
+    list_entries_by_tag,
+    list_inbox_entries,
+    list_pinned_entries,
+    list_recent_entries,
+    pin_notebook_entry,
+    remove_entry_tags,
+    replace_entry_body,
+    search_entries_for_display,
+    set_entry_group,
+    set_list_item_done,
 )
 from notebook.notebook_schemas import Entry
 from notebook.notebook_validation import format_short_id
@@ -331,23 +332,16 @@ class NotebookHandler(InteractionHandler):
                 suggestions=["Skip", "Cancel"],
             )
 
-        # If no title but description exists, use description as title (for simple notes like "!n My quick thought")
-        if not title and description:
-            title = description
-            description = None
-
-        # Parse tags from description if present
-        if description:
-            description, parsed_tags = parse_tags_from_text(description)
-            tags.extend(parsed_tags)
-        elif title:
-            # Also parse tags from title if body is None
-            title, parsed_tags = parse_tags_from_text(title)
-            tags.extend(parsed_tags)
-
-        entry = create_note(
-            user_id, title=title, description=description, tags=tags, group=group
+        result = create_note_from_command(
+            user_id,
+            {
+                "title": title,
+                "description": description,
+                "tags": tags,
+                "group": group,
+            },
         )
+        entry = result.entry if result else None
 
         if entry:
             short_id = self._format_entry_id(entry)
@@ -368,24 +362,8 @@ class NotebookHandler(InteractionHandler):
     ) -> InteractionResponse:
         """Handle quick note creation - no body text required, automatically grouped as 'Quick Notes'."""
 
-        title = entities.get("title")
-        tags = entities.get("tags", [])
-        # Quick notes are always in "Quick Notes" group
-        group = "Quick Notes"
-
-        # If no title provided, use a default
-        if not title or not title.strip():
-            # Use timestamp as default title for quick notes
-            timestamp = now_timestamp_full()
-            title = f"Quick Note - {timestamp}"
-
-        # Parse tags from title if present
-        if title:
-            title, parsed_tags = parse_tags_from_text(title)
-            tags.extend(parsed_tags)
-
-        # Create note with title only, no body, always in "Quick Notes" group
-        entry = create_note(user_id, title=title, description=None, tags=tags, group=group)
+        result = create_quick_note_from_command(user_id, entities)
+        entry = result.entry if result else None
 
         if entry:
             short_id = self._format_entry_id(entry)
@@ -438,8 +416,11 @@ class NotebookHandler(InteractionHandler):
                 suggestions=["End List", "Cancel"],
             )
 
-        # Items provided, create list immediately
-        entry = create_list(user_id, title=title, tags=tags, group=group, items=items)
+        result = create_list_from_command(
+            user_id,
+            {"title": title, "tags": tags, "group": group, "items": items},
+        )
+        entry = result.entry if result else None
 
         if entry:
             short_id = self._format_entry_id(entry)
@@ -459,14 +440,8 @@ class NotebookHandler(InteractionHandler):
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle journal entry creation."""
-        title = entities.get("title")
-        description = entities.get("description")
-        tags = entities.get("tags", [])
-        group = entities.get("group")
-
-        entry = create_journal(
-            user_id, title=title, description=description, tags=tags, group=group
-        )
+        result = create_journal_from_command(user_id, entities)
+        entry = result.entry if result else None
 
         if entry:
             short_id = self._format_entry_id(entry)
@@ -492,11 +467,10 @@ class NotebookHandler(InteractionHandler):
         )
         offset = _coerce_offset(entities.get("offset", 0))
 
-        entries = list_recent(user_id, n=MAX_NOTEBOOK_RESULTS)
-
-        # Filter to notes only if requested
-        if notes_only:
-            entries = [e for e in entries if e.kind == "note"]
+        result = list_recent_entries(
+            user_id, notes_only=notes_only, limit=MAX_NOTEBOOK_RESULTS
+        )
+        entries = result.entries
 
         if not entries:
             return InteractionResponse(
@@ -574,7 +548,8 @@ class NotebookHandler(InteractionHandler):
         if not text:
             return InteractionResponse("What would you like to add?", False)
 
-        entry = append_to_entry_body(user_id, entry_ref, text)
+        result = append_entry_body(user_id, entry_ref, text)
+        entry = result.entry if result else None
 
         if entry:
             short_id = self._format_entry_id(entry)
@@ -599,7 +574,8 @@ class NotebookHandler(InteractionHandler):
         if not text:
             return InteractionResponse("What should the new content be?", False)
 
-        entry = set_entry_body(user_id, entry_ref, text)
+        result = replace_entry_body(user_id, entry_ref, text)
+        entry = result.entry if result else None
 
         if entry:
             short_id = self._format_entry_id(entry)
@@ -624,7 +600,8 @@ class NotebookHandler(InteractionHandler):
         if not tags:
             return InteractionResponse("Which tags would you like to add?", False)
 
-        entry = add_tags(user_id, entry_ref, tags)
+        result = add_entry_tags(user_id, entry_ref, tags)
+        entry = result.entry if result else None
 
         if entry:
             short_id = self._format_entry_id(entry)
@@ -648,7 +625,8 @@ class NotebookHandler(InteractionHandler):
         if not tags:
             return InteractionResponse("Which tags would you like to remove?", False)
 
-        entry = remove_tags(user_id, entry_ref, tags)
+        result = remove_entry_tags(user_id, entry_ref, tags)
+        entry = result.entry if result else None
 
         if entry:
             short_id = self._format_entry_id(entry)
@@ -674,9 +652,8 @@ class NotebookHandler(InteractionHandler):
         if not query:
             return InteractionResponse("What would you like to search for?", False)
 
-        entries = search_entries(
-            user_id, query, limit=100
-        )  # Get all matches, paginate in handler
+        result = search_entries_for_display(user_id, query, limit=100)
+        entries = result.entries
 
         if not entries:
             return InteractionResponse(_format_no_search_hits_message(query), True)
@@ -725,7 +702,7 @@ class NotebookHandler(InteractionHandler):
         flag: bool,
         *,
         missing_ref_message: str,
-        mutator: Callable[[str, Any, bool], Entry | None],
+        mutator: Callable[[str, Any, bool], Any],
         active_label: str,
         inactive_label: str,
         failure_message: str,
@@ -735,7 +712,8 @@ class NotebookHandler(InteractionHandler):
         if not entry_ref:
             return InteractionResponse(missing_ref_message, False)
 
-        entry = mutator(user_id, entry_ref, flag)
+        result = mutator(user_id, entry_ref, flag)
+        entry = getattr(result, "entry", result)
         if entry:
             action = active_label if flag else inactive_label
             short_id = self._format_entry_id(entry)
@@ -761,7 +739,7 @@ class NotebookHandler(InteractionHandler):
             entities,
             pinned,
             missing_ref_message="Which entry would you like to pin/unpin?",
-            mutator=pin_entry,
+            mutator=pin_notebook_entry,
             active_label="pinned",
             inactive_label="unpinned",
             failure_message="❌ Failed to pin/unpin. Entry not found.",
@@ -785,7 +763,7 @@ class NotebookHandler(InteractionHandler):
             missing_ref_message=(
                 "Which entry would you like to archive/unarchive?"
             ),
-            mutator=archive_entry,
+            mutator=archive_notebook_entry,
             active_label="archived",
             inactive_label="unarchived",
             failure_message="❌ Failed to archive/unarchive. Entry not found.",
@@ -805,7 +783,8 @@ class NotebookHandler(InteractionHandler):
         if not item_text:
             return InteractionResponse("What item would you like to add?", False)
 
-        entry = add_list_item(user_id, entry_ref, item_text)
+        result = add_item_to_list(user_id, entry_ref, item_text)
+        entry = result.entry if result else None
 
         if entry:
             short_id = self._format_entry_id(entry)
@@ -836,7 +815,8 @@ class NotebookHandler(InteractionHandler):
         except (ValueError, TypeError):
             return InteractionResponse("Invalid item number.", True)
 
-        entry = toggle_list_item_done(user_id, entry_ref, item_index, done)
+        result = set_list_item_done(user_id, entry_ref, item_index, done)
+        entry = result.entry if result else None
 
         if entry:
             short_id = self._format_entry_id(entry)
@@ -868,7 +848,8 @@ class NotebookHandler(InteractionHandler):
         except (ValueError, TypeError):
             return InteractionResponse("Invalid item number.", True)
 
-        entry = remove_list_item(user_id, entry_ref, item_index)
+        result = delete_list_item(user_id, entry_ref, item_index)
+        entry = result.entry if result else None
 
         if entry:
             short_id = self._format_entry_id(entry)
@@ -895,7 +876,8 @@ class NotebookHandler(InteractionHandler):
         if not group:
             return InteractionResponse("What group name?", False)
 
-        entry = set_group(user_id, entry_ref, group)
+        result = set_entry_group(user_id, entry_ref, group)
+        entry = result.entry if result else None
 
         if entry:
             short_id = self._format_entry_id(entry)
@@ -977,9 +959,8 @@ class NotebookHandler(InteractionHandler):
         if not group:
             return InteractionResponse("Which group?", False)
 
-        entries = list_by_group(
-            user_id, group, limit=100
-        )  # Get all matches, paginate in handler
+        result = list_entries_by_group(user_id, group, limit=100)
+        entries = result.entries
 
         if not entries:
             return InteractionResponse(_format_no_group_hits_message(group), True)
@@ -1000,7 +981,8 @@ class NotebookHandler(InteractionHandler):
             entities.get("limit", DEFAULT_PAGE_SIZE), DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
         )
 
-        entries = list_pinned(user_id, limit=100)  # Get up to 100, paginate in handler
+        result = list_pinned_entries(user_id, limit=100)
+        entries = result.entries
 
         if not entries:
             return InteractionResponse("No pinned entries found.", True)
@@ -1046,7 +1028,8 @@ class NotebookHandler(InteractionHandler):
             entities.get("limit", DEFAULT_PAGE_SIZE), DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
         )
 
-        entries = list_inbox(user_id, limit=100)  # Get up to 100, paginate in handler
+        result = list_inbox_entries(user_id, limit=100)
+        entries = result.entries
 
         if not entries:
             return InteractionResponse("Inbox is empty.", True)
@@ -1095,9 +1078,8 @@ class NotebookHandler(InteractionHandler):
         if not tag:
             return InteractionResponse("Which tag?", False)
 
-        entries = list_by_tag(
-            user_id, tag, limit=100
-        )  # Get all matches, paginate in handler
+        result = list_entries_by_tag(user_id, tag, limit=100)
+        entries = result.entries
 
         if not entries:
             return InteractionResponse(_format_no_tag_hits_message(tag), True)
@@ -1118,9 +1100,8 @@ class NotebookHandler(InteractionHandler):
             entities.get("limit", DEFAULT_PAGE_SIZE), DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
         )
 
-        entries = list_archived(
-            user_id, limit=100
-        )  # Get all matches, paginate in handler
+        result = list_archived_entries(user_id, limit=100)
+        entries = result.entries
 
         if not entries:
             return InteractionResponse("No archived entries found.", True)

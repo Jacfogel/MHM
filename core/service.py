@@ -4,6 +4,7 @@ import signal
 import time
 import os
 import atexit
+from pathlib import Path
 
 # Set up logging FIRST before any other imports
 from core.logger import setup_logging, get_component_logger
@@ -41,7 +42,6 @@ from core import get_user_data
 from core.error_handling import handle_errors, FileOperationError
 import contextlib
 
-from core.message_preview import get_predefined_message_preview_text
 import core.service_requests as service_requests
 
 
@@ -65,6 +65,31 @@ class MHMService:
         self.startup_time = None  # Track when service started
         # Register atexit handler as backup shutdown method
         atexit.register(self.emergency_shutdown)
+
+    @handle_errors("building service request context")
+    def to_service_request_context(self) -> service_requests.ServiceRequestContext:
+        """Build the request-file context used by service request helpers."""
+        return self._service_request_context_for_base(
+            self._check_test_message_requests__get_base_directory()
+        )
+
+    @handle_errors("building service request context for base directory")
+    def _service_request_context_for_base(
+        self, base_dir: str | Path
+    ) -> service_requests.ServiceRequestContext:
+        """Build a request context rooted at a specific request-file directory."""
+        return service_requests.ServiceRequestContext(
+            base_dir=Path(base_dir),
+            communication_manager=self.communication_manager,
+            scheduler_manager=self.scheduler_manager,
+            shutdown_callback=self._request_shutdown,
+            startup_time=self.startup_time,
+        )
+
+    @handle_errors("requesting service shutdown")
+    def _request_shutdown(self) -> None:
+        """Mark the service loop for shutdown after a request-file signal."""
+        self.running = False
 
     @handle_errors("validating configuration")
     def validate_configuration(self):
@@ -432,11 +457,15 @@ class MHMService:
                     break
 
                 # Check for shutdown request file every iteration
-                if service_requests.process_shutdown_request(self, shutdown_file):
+                if service_requests.process_shutdown_request(
+                    self.to_service_request_context(), shutdown_file
+                ):
                     break
 
                 # Check for request files (optimized: only scan if .flag files exist)
-                service_requests.process_all(self)
+                service_requests.process_all_requests(
+                    self.to_service_request_context()
+                )
 
                 time.sleep(2)  # Sleep for 2 seconds
 
@@ -586,14 +615,9 @@ class MHMService:
     @handle_errors("processing test message request", default_return=None)
     def _check_test_message_requests__process_valid_request(self, request_data):
         """Process a valid test message request."""
-        service_requests.process_valid_test_message_request(self, request_data)
-
-    @handle_errors("getting message content for test message", default_return=None)
-    def _check_test_message_requests__get_message_content(
-        self, user_id: str, category: str
-    ) -> str:
-        """Get the actual message content that will be sent."""
-        return get_predefined_message_preview_text(user_id, category)
+        service_requests.process_valid_test_message_request(
+            self.to_service_request_context(), request_data
+        )
 
     @handle_errors("writing test message response", default_return=None)
     def _check_test_message_requests__write_response(
@@ -637,27 +661,14 @@ class MHMService:
     @handle_errors("checking test message requests", default_return=None)
     def check_test_message_requests(self):
         """Check for and process test message request files from admin panel"""
-        base_dir = self._check_test_message_requests__get_base_directory()
-        request_files = self._check_test_message_requests__discover_request_files(
-            base_dir
-        )
-        for request_file in request_files:
-            filename = os.path.basename(request_file)
-            request_data = self._check_test_message_requests__parse_request_file(
-                request_file
-            )
-            if self._check_test_message_requests__validate_request_data(
-                request_data, filename
-            ):
-                self._check_test_message_requests__process_valid_request(request_data)
-            self._cleanup_request_file_after_process(
-                request_file, filename, "test message"
-            )
+        service_requests.check_test_message_requests(self.to_service_request_context())
 
     @handle_errors("checking check-in prompt requests")
     def check_checkin_prompt_requests(self):
         """Check for and process check-in prompt request files from admin panel"""
-        service_requests.check_checkin_prompt_requests(self)
+        service_requests.check_checkin_prompt_requests(
+            self.to_service_request_context()
+        )
 
     @handle_errors("getting check-in first question", default_return=None)
     def _get_checkin_first_question(self, user_id: str) -> str:
@@ -676,7 +687,7 @@ class MHMService:
     @handle_errors("checking task reminder requests")
     def check_task_reminder_requests(self):
         """Check for and process task reminder request files from admin panel"""
-        service_requests.check_task_reminder_requests(self)
+        service_requests.check_task_reminder_requests(self.to_service_request_context())
 
     @handle_errors("getting base directory for cleanup", default_return="")
     def _cleanup_test_message_requests__get_base_directory(self):
@@ -702,7 +713,11 @@ class MHMService:
     @handle_errors("cleaning up test message requests")
     def cleanup_test_message_requests(self):
         """Clean up any remaining test message request files"""
-        service_requests.cleanup_test_message_requests(self)
+        service_requests.cleanup_test_message_requests(
+            self._service_request_context_for_base(
+                self._cleanup_test_message_requests__get_base_directory()
+            )
+        )
 
     @handle_errors("getting base directory for reschedule requests", default_return="")
     def _check_reschedule_requests__get_base_directory(self):
@@ -731,13 +746,15 @@ class MHMService:
     def _check_reschedule_requests__validate_request_data(self, request_data, filename):
         """Validate request data and check if it should be processed."""
         return service_requests.validate_reschedule_request_data(
-            self, request_data, filename
+            self.to_service_request_context(), request_data, filename
         )
 
     @handle_errors("processing reschedule request", default_return=None)
     def _check_reschedule_requests__process_valid_request(self, request_data):
         """Process a valid reschedule request."""
-        service_requests.process_valid_reschedule_request(self, request_data)
+        service_requests.process_valid_reschedule_request(
+            self.to_service_request_context(), request_data
+        )
 
     @handle_errors(
         "cleaning up problematic reschedule request file",
@@ -755,27 +772,20 @@ class MHMService:
     @handle_errors("checking reschedule requests", default_return=None)
     def check_reschedule_requests(self):
         """Check for and process reschedule request files from UI"""
-        base_dir = self._check_reschedule_requests__get_base_directory()
-        request_files = self._check_reschedule_requests__discover_request_files(
-            base_dir
+        service_requests.check_reschedule_requests(
+            self._service_request_context_for_base(
+                self._check_reschedule_requests__get_base_directory()
+            )
         )
-        for request_file in request_files:
-            filename = os.path.basename(request_file)
-            request_data = self._check_reschedule_requests__parse_request_file(
-                request_file
-            )
-            if self._check_reschedule_requests__validate_request_data(
-                request_data, filename
-            ):
-                self._check_reschedule_requests__process_valid_request(request_data)
-            self._cleanup_request_file_after_process(
-                request_file, filename, "reschedule"
-            )
 
     @handle_errors("cleaning up reschedule requests")
     def cleanup_reschedule_requests(self):
         """Clean up any remaining reschedule request files"""
-        service_requests.cleanup_reschedule_requests(self)
+        service_requests.cleanup_reschedule_requests(
+            self._service_request_context_for_base(
+                self._check_reschedule_requests__get_base_directory()
+            )
+        )
 
     @handle_errors("shutting down service")
     def shutdown(self):

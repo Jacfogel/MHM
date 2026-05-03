@@ -1,10 +1,11 @@
-"""Additional unit coverage for core.service message request helper utilities."""
+"""Additional unit coverage for service request and message preview helpers."""
 
 from pathlib import Path
-from unittest.mock import patch, call
+from unittest.mock import Mock, patch
 
 import pytest
 
+from core.message_preview import get_predefined_message_preview_text
 from core.service import MHMService
 
 
@@ -27,12 +28,16 @@ class TestServiceMessageContentHelpers:
         assert ok is False
         mock_logger.warning.assert_called_once()
 
-    def test_has_any_request_files_returns_false_for_empty_directory(self, service, test_path_factory):
+    def test_has_any_request_files_returns_false_for_empty_directory(
+        self, service, test_path_factory
+    ):
         base_dir = str(test_path_factory)
 
         assert service._has_any_request_files(base_dir) is False
 
-    def test_has_any_request_files_returns_true_when_flag_exists(self, service, test_path_factory):
+    def test_has_any_request_files_returns_true_when_flag_exists(
+        self, service, test_path_factory
+    ):
         base_dir = Path(test_path_factory)
         (base_dir / "test_message_request_demo.flag").write_text("{}", encoding="utf-8")
 
@@ -45,7 +50,7 @@ class TestServiceMessageContentHelpers:
         ):
             assert service._has_any_request_files("C:/does-not-matter") is True
 
-    def test_get_message_content_selects_non_recent_specific_period_message(self, service):
+    def test_message_preview_selects_non_recent_specific_period_message(self):
         with (
             patch(
                 "core.message_preview.get_current_time_periods_with_validation",
@@ -82,13 +87,11 @@ class TestServiceMessageContentHelpers:
             patch("random.random", return_value=0.2),
             patch("random.choice", side_effect=lambda items: items[0]),
         ):
-            content = service._check_test_message_requests__get_message_content(
-                "user-1", "motivational"
-            )
+            content = get_predefined_message_preview_text("user-1", "motivational")
 
         assert content == "fresh message"
 
-    def test_get_message_content_returns_none_when_no_messages_match(self, service):
+    def test_message_preview_returns_none_when_no_messages_match(self):
         with (
             patch(
                 "core.message_preview.get_current_time_periods_with_validation",
@@ -104,9 +107,7 @@ class TestServiceMessageContentHelpers:
             ),
             patch("core.config.get_user_data_dir", return_value="C:/tmp/user-1"),
         ):
-            content = service._check_test_message_requests__get_message_content(
-                "user-1", "motivational"
-            )
+            content = get_predefined_message_preview_text("user-1", "motivational")
 
         assert content is None
 
@@ -125,7 +126,9 @@ class TestServiceMessageContentHelpers:
         assert len(files) == 1
         assert files[0].endswith("test_message_request_a.flag")
 
-    def test_parse_request_file_defaults_source_to_unknown(self, service, test_path_factory):
+    def test_parse_request_file_defaults_source_to_unknown(
+        self, service, test_path_factory
+    ):
         base_dir = Path(test_path_factory)
         request_path = base_dir / "test_message_request_parse.flag"
         request_path.write_text(
@@ -149,79 +152,56 @@ class TestServiceMessageContentHelpers:
 
         assert not request_path.exists()
 
-    def test_check_test_message_requests_processes_valid_request_and_cleans_up(self, service):
-        with (
-            patch.object(service, "_check_test_message_requests__get_base_directory", return_value="C:/tmp"),
-            patch.object(
-                service,
-                "_check_test_message_requests__discover_request_files",
-                return_value=["C:/tmp/test_message_request_1.flag"],
-            ),
-            patch.object(
-                service,
-                "_check_test_message_requests__parse_request_file",
-                return_value={"user_id": "u1", "category": "motivational", "source": "ui"},
-            ),
-            patch.object(
-                service,
-                "_check_test_message_requests__validate_request_data",
-                return_value=True,
-            ),
-            patch.object(service, "_check_test_message_requests__process_valid_request") as mock_process,
-            patch.object(service, "_cleanup_request_file_after_process") as mock_cleanup,
+    def test_check_test_message_requests_processes_valid_request_and_cleans_up(
+        self, service, test_path_factory
+    ):
+        base_dir = Path(test_path_factory)
+        request_path = base_dir / "test_message_request_1.flag"
+        request_path.write_text(
+            '{"user_id": "u1", "category": "motivational", "source": "ui"}',
+            encoding="utf-8",
+        )
+        service.communication_manager = Mock()
+
+        with patch.object(
+            service,
+            "_check_test_message_requests__get_base_directory",
+            return_value=str(base_dir),
         ):
             service.check_test_message_requests()
 
-        mock_process.assert_called_once_with(
-            {"user_id": "u1", "category": "motivational", "source": "ui"}
+        service.communication_manager.handle_message_sending.assert_called_once_with(
+            "u1", "motivational"
         )
-        mock_cleanup.assert_called_once_with(
-            "C:/tmp/test_message_request_1.flag",
-            "test_message_request_1.flag",
-            "test message",
-        )
+        assert not request_path.exists()
 
-    def test_check_test_message_requests_skips_invalid_but_still_cleans_up(self, service):
-        with (
-            patch.object(service, "_check_test_message_requests__get_base_directory", return_value="C:/tmp"),
-            patch.object(
-                service,
-                "_check_test_message_requests__discover_request_files",
-                return_value=[
-                    "C:/tmp/test_message_request_1.flag",
-                    "C:/tmp/test_message_request_2.flag",
-                ],
-            ),
-            patch.object(
-                service,
-                "_check_test_message_requests__parse_request_file",
-                side_effect=[
-                    {"user_id": None, "category": "motivational", "source": "ui"},
-                    {"user_id": "u2", "category": "health", "source": "ui"},
-                ],
-            ),
-            patch.object(
-                service,
-                "_check_test_message_requests__validate_request_data",
-                side_effect=[False, True],
-            ),
-            patch.object(service, "_check_test_message_requests__process_valid_request") as mock_process,
-            patch.object(service, "_cleanup_request_file_after_process") as mock_cleanup,
+    def test_check_test_message_requests_skips_invalid_but_still_cleans_up(
+        self, service, test_path_factory
+    ):
+        base_dir = Path(test_path_factory)
+        invalid_path = base_dir / "test_message_request_1.flag"
+        valid_path = base_dir / "test_message_request_2.flag"
+        invalid_path.write_text(
+            '{"user_id": null, "category": "motivational", "source": "ui"}',
+            encoding="utf-8",
+        )
+        valid_path.write_text(
+            '{"user_id": "u2", "category": "health", "source": "ui"}',
+            encoding="utf-8",
+        )
+        service.communication_manager = Mock()
+
+        with patch.object(
+            service,
+            "_check_test_message_requests__get_base_directory",
+            return_value=str(base_dir),
         ):
             service.check_test_message_requests()
 
-        mock_process.assert_called_once_with(
-            {"user_id": "u2", "category": "health", "source": "ui"}
+        service.communication_manager.handle_message_sending.assert_called_once_with(
+            "u2", "health"
         )
-        assert mock_cleanup.call_args_list == [
-            call(
-                "C:/tmp/test_message_request_1.flag",
-                "test_message_request_1.flag",
-                "test message",
-            ),
-            call(
-                "C:/tmp/test_message_request_2.flag",
-                "test_message_request_2.flag",
-                "test message",
-            ),
-        ]
+        assert not invalid_path.exists()
+        assert not valid_path.exists()
+        error_path = base_dir / "test_message_request_1_response_error.flag"
+        assert error_path.exists()
