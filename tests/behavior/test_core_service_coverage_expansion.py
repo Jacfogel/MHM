@@ -678,7 +678,7 @@ class TestCoreServiceCoverageExpansion:
                 "core.service.MHMService._cleanup_test_message_requests__get_base_directory",
                 return_value=str(temp_base_dir),
             ),
-            patch("core.service.os.remove", side_effect=mock_remove_permission_error),
+            patch("core.service_requests.os.remove", side_effect=mock_remove_permission_error),
         ):
 
             service.cleanup_test_message_requests()
@@ -718,9 +718,9 @@ class TestCoreServiceCoverageExpansion:
                 return_value=str(temp_base_dir),
             ),
             patch(
-                "core.service.os.remove", side_effect=mock_remove_with_partial_failure
+                "core.service_requests.os.remove", side_effect=mock_remove_with_partial_failure
             ),
-            patch("core.service.logger") as mock_logger,
+            patch("core.service_requests.logger") as mock_logger,
         ):
 
             service.cleanup_test_message_requests()
@@ -760,7 +760,7 @@ class TestCoreServiceCoverageExpansion:
                 "pathlib.Path.iterdir",
                 side_effect=PermissionError("Cannot access directory"),
             ),
-            patch("core.service.logger"),
+            patch("core.service_requests.logger"),
             contextlib.suppress(PermissionError),
         ):
 
@@ -842,10 +842,10 @@ class TestCoreServiceCoverageExpansion:
                 return_value=str(temp_base_dir),
             ),
             patch(
-                "core.service.os.remove",
+                "core.service_requests.os.remove",
                 side_effect=mock_remove_with_disappearing_files,
             ),
-            patch("core.service.logger") as mock_logger,
+            patch("core.service_requests.logger") as mock_logger,
         ):
 
             service.cleanup_test_message_requests()
@@ -895,7 +895,7 @@ class TestCoreServiceCoverageExpansion:
                 "core.service.MHMService._cleanup_test_message_requests__get_base_directory",
                 return_value=str(temp_base_dir),
             ),
-            patch("core.service.os.remove", side_effect=mock_remove_file_in_use),
+            patch("core.service_requests.os.remove", side_effect=mock_remove_file_in_use),
         ):
 
             service.cleanup_test_message_requests()
@@ -916,8 +916,8 @@ class TestCoreServiceCoverageExpansion:
         """REAL BEHAVIOR TEST: Test successful file removal by helper function."""
         # [OK] VERIFY REAL BEHAVIOR: Mock successful file removal
         with (
-            patch("core.service.os.remove") as mock_remove,
-            patch("core.service.logger") as mock_logger,
+            patch("core.service_requests.os.remove") as mock_remove,
+            patch("core.service_requests.logger") as mock_logger,
         ):
 
             # Test the helper function directly
@@ -948,7 +948,7 @@ class TestCoreServiceCoverageExpansion:
         """REAL BEHAVIOR TEST: Test file removal with permission error by helper function."""
         # [OK] VERIFY REAL BEHAVIOR: Mock permission error
         with patch(
-            "core.service.os.remove", side_effect=PermissionError("Permission denied")
+            "core.service_requests.os.remove", side_effect=PermissionError("Permission denied")
         ) as mock_remove:
 
             # Test the helper function directly
@@ -977,7 +977,7 @@ class TestCoreServiceCoverageExpansion:
         """REAL BEHAVIOR TEST: Test file removal with file not found error by helper function."""
         # [OK] VERIFY REAL BEHAVIOR: Mock file not found error
         with patch(
-            "core.service.os.remove", side_effect=FileNotFoundError("File not found")
+            "core.service_requests.os.remove", side_effect=FileNotFoundError("File not found")
         ) as mock_remove:
 
             # Test the helper function directly
@@ -1006,7 +1006,7 @@ class TestCoreServiceCoverageExpansion:
         """REAL BEHAVIOR TEST: Test file removal with generic error by helper function."""
         # [OK] VERIFY REAL BEHAVIOR: Mock generic error
         with patch(
-            "core.service.os.remove", side_effect=OSError("Device or resource busy")
+            "core.service_requests.os.remove", side_effect=OSError("Device or resource busy")
         ) as mock_remove:
 
             # Test the helper function directly
@@ -1635,8 +1635,8 @@ class TestCoreServiceCoverageExpansion:
         error = Exception("Test error")
 
         with (
-            patch("core.service.logger") as mock_logger,
-            patch("core.service.os.remove") as mock_remove,
+            patch("core.service_requests.logger") as mock_logger,
+            patch("core.service_requests.os.remove") as mock_remove,
         ):
 
             service._check_reschedule_requests__handle_processing_error(
@@ -1665,8 +1665,8 @@ class TestCoreServiceCoverageExpansion:
         cleanup_error = Exception("Cleanup failed")
 
         with (
-            patch("core.service.logger") as mock_logger,
-            patch("core.service.os.remove", side_effect=cleanup_error),
+            patch("core.service_requests.logger") as mock_logger,
+            patch("core.service_requests.os.remove", side_effect=cleanup_error),
             patch(
                 "core.error_handling.error_handler.handle_error"
             ) as mock_handle_error,
@@ -1694,8 +1694,8 @@ class TestCoreServiceCoverageExpansion:
         error = Exception("Test error")
 
         with (
-            patch("core.service.logger") as mock_logger,
-            patch("core.service.os.remove") as mock_remove,
+            patch("core.service_requests.logger") as mock_logger,
+            patch("core.service_requests.os.remove") as mock_remove,
         ):
 
             service._check_test_message_requests__handle_processing_error(
@@ -1724,8 +1724,8 @@ class TestCoreServiceCoverageExpansion:
         cleanup_error = Exception("Cleanup failed")
 
         with (
-            patch("core.service.logger") as mock_logger,
-            patch("core.service.os.remove", side_effect=cleanup_error),
+            patch("core.service_requests.logger") as mock_logger,
+            patch("core.service_requests.os.remove", side_effect=cleanup_error),
             patch(
                 "core.error_handling.error_handler.handle_error"
             ) as mock_handle_error,
@@ -1757,8 +1757,8 @@ class TestCoreServiceCoverageExpansion:
         filename = "reschedule_request_user1.flag"
 
         with (
-            patch("core.service.logger") as mock_logger,
-            patch("core.service.os.remove"),
+            patch("core.service_requests.logger") as mock_logger,
+            patch("core.service_requests.os.remove"),
         ):
 
             result = service._check_reschedule_requests__validate_request_data(
@@ -1782,7 +1782,7 @@ class TestCoreServiceCoverageExpansion:
         }
         filename = "reschedule_request_user1.flag"
 
-        with patch("core.service.logger") as mock_logger:
+        with patch("core.service_requests.logger") as mock_logger:
             result = service._check_reschedule_requests__validate_request_data(
                 request_data, filename
             )

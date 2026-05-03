@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-02 03:04:01
+> **Last Generated**: 2026-05-02 19:34:09
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -24,6 +24,7 @@ C:.
 |   README.md
 |   requirements.txt
 |   run_headless_service.py
+|   test_message_response_user-1_motivational.flag
 |   TODO.md
 |   
 +---.cursor
@@ -133,8 +134,13 @@ C:.
 |   |   |   channel_monitor.py
 |   |   |   channel_orchestrator.py
 |   |   |   factory.py
+|   |   |   message_send_result.py
 |   |   |   retry_manager.py
 |   |   |   welcome_manager.py
+|   |   |   __init__.py
+|   |   |   
+|   +---delivery
+|   |   |   message_dispatcher.py
 |   |   |   __init__.py
 |   |   |   
 |   +---message_processing
@@ -143,6 +149,10 @@ C:.
 |   |   |   intent_validation.py
 |   |   |   interaction_manager.py
 |   |   |   message_router.py
+|   |   |   __init__.py
+|   |   |   
+|   +---reminders
+|   |   |   reminder_dispatcher.py
 |   |   |   __init__.py
 |   |   |   
 +---core
@@ -160,14 +170,19 @@ C:.
 |   |   logger.py
 |   |   message_analytics.py
 |   |   message_management.py
+|   |   message_preview.py
 |   |   network_probe.py
 |   |   response_tracking.py
 |   |   scheduler.py
+|   |   scheduler_jobs.py
+|   |   scheduler_maintenance.py
+|   |   scheduler_task_reminders.py
 |   |   schedule_document_defaults.py
 |   |   schedule_runtime.py
 |   |   schedule_utilities.py
 |   |   schemas.py
 |   |   service.py
+|   |   service_requests.py
 |   |   service_utilities.py
 |   |   tags.py
 |   |   time_format_constants.py
@@ -407,6 +422,7 @@ C:.
 |   |   notebook_data_handlers.py
 |   |   notebook_data_manager.py
 |   |   notebook_schemas.py
+|   |   notebook_service.py
 |   |   notebook_validation.py
 |   |   __init__.py
 |   |   
@@ -434,6 +450,7 @@ C:.
 |   |   task_data_handlers.py
 |   |   task_data_manager.py
 |   |   task_schemas.py
+|   |   task_service.py
 |   |   task_validation.py
 |   |   __init__.py
 |   |   
@@ -816,6 +833,7 @@ C:.
 |   |   |   test_notebook_handler_edge_cases.py
 |   |   |   test_notebook_handler_pagination_formatting.py
 |   |   |   test_notebook_list_v2_round_trip.py
+|   |   |   test_notebook_service.py
 |   |   |   test_notebook_validation.py
 |   |   |   test_notebook_validation_error_handling.py
 |   |   |   test_no_prints_policy.py
@@ -832,6 +850,7 @@ C:.
 |   |   |   test_tags.py
 |   |   |   test_tags_expansion.py
 |   |   |   test_tags_gap_coverage.py
+|   |   |   test_task_service.py
 |   |   |   test_task_short_ids.py
 |   |   |   test_test_policy_guards.py
 |   |   |   test_ui_management.py

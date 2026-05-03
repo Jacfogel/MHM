@@ -19,7 +19,6 @@ import pytest
 import os
 import json
 import time
-from pathlib import Path
 from unittest.mock import Mock, patch
 import signal
 
@@ -329,17 +328,16 @@ class TestMHMService:
         # Mock communication manager
         service.communication_manager = Mock()
         
-        # Mock file listing to return our test file
-        with patch('core.service.os.listdir', return_value=['test_message_request_user1_motivational.flag']), \
-             patch('core.service.os.path.dirname', return_value=temp_base_dir), \
-             patch('core.service.os.path.join', return_value=request_file), \
-             patch('core.service.os.remove') as mock_remove:
-            
+        with patch.object(
+            service,
+            "_check_test_message_requests__get_base_directory",
+            return_value=temp_base_dir,
+        ), patch("core.service.os.remove") as mock_remove:
             service.check_test_message_requests()
-            
-            # Verify real behavior - communication manager was called with real data
-            service.communication_manager.handle_message_sending.assert_called_once_with('user1', 'motivational')
-            # Verify file removal was called
+
+            service.communication_manager.handle_message_sending.assert_called_once_with(
+                "user1", "motivational"
+            )
             mock_remove.assert_called_once_with(request_file)
 
     @pytest.mark.behavior
@@ -401,17 +399,16 @@ class TestMHMService:
         service.scheduler_manager = Mock()
         service.startup_time = time.time() - 10  # Service started 10 seconds ago
         
-        # Mock file listing to return our test file
-        with patch('core.service.os.listdir', return_value=['reschedule_request_user1.flag']), \
-             patch('core.service.os.path.dirname', return_value=temp_base_dir), \
-             patch('core.service.os.path.join', return_value=request_file), \
-             patch('core.service.os.remove') as mock_remove:
-            
+        with patch.object(
+            service,
+            "_check_reschedule_requests__get_base_directory",
+            return_value=temp_base_dir,
+        ), patch("core.service.os.remove") as mock_remove:
             service.check_reschedule_requests()
-            
-            # Verify real behavior - scheduler manager was called with real data
-            service.scheduler_manager.reset_and_reschedule_daily_messages.assert_called_once_with('motivational', 'user1')
-            # Verify file removal was called
+
+            service.scheduler_manager.reset_and_reschedule_daily_messages.assert_called_once_with(
+                "motivational", "user1"
+            )
             mock_remove.assert_called_once_with(request_file)
 
     @pytest.mark.behavior
@@ -436,34 +433,20 @@ class TestMHMService:
         for file_path in created_files:
             assert os.path.exists(file_path)
         
-        # The cleanup_reschedule_requests function uses Path(__file__).parent.parent directly
-        # We need to patch Path(__file__) to return our temp directory
-        import core.service
-        original_file = core.service.__file__
-        
-        # Create a mock Path that returns our temp directory for __file__
-        # We need to make it work with Path(__file__).parent.parent
-        mock_parent = Mock()
-        mock_parent.parent = Path(temp_base_dir)
-        mock_file_path = Mock()
-        mock_file_path.parent = mock_parent
-        
-        # Patch Path to return our mock when called with __file__
-        def path_side_effect(path_arg):
-            if path_arg == original_file:
-                return mock_file_path
-            return Path(path_arg)
-        
-        with patch('core.service.Path', side_effect=path_side_effect):
-            # Run cleanup - this will use Path.iterdir() and Path.unlink()
+        with patch.object(
+            service,
+            "_check_reschedule_requests__get_base_directory",
+            return_value=temp_base_dir,
+        ):
             service.cleanup_reschedule_requests()
-            
-            # Verify real behavior - only reschedule request files were removed
-            # Check that reschedule request files are gone
-            assert not os.path.exists(os.path.join(temp_base_dir, 'reschedule_request_user1.flag'))
-            assert not os.path.exists(os.path.join(temp_base_dir, 'reschedule_request_user2.flag'))
-            # But other files should still exist
-            assert os.path.exists(os.path.join(temp_base_dir, 'other_file.txt'))
+
+            assert not os.path.exists(
+                os.path.join(temp_base_dir, "reschedule_request_user1.flag")
+            )
+            assert not os.path.exists(
+                os.path.join(temp_base_dir, "reschedule_request_user2.flag")
+            )
+            assert os.path.exists(os.path.join(temp_base_dir, "other_file.txt"))
 
     @pytest.mark.behavior
     @pytest.mark.regression
@@ -640,37 +623,16 @@ class TestMHMService:
         # Mock communication manager
         service.communication_manager = Mock()
         
-        # Mock file listing to return our test file
-        with patch('core.service.os.listdir', return_value=['test_message_request_user1_motivational.flag']), \
-             patch('core.service.os.path.dirname', return_value=temp_base_dir), \
-             patch('core.service.os.path.join') as mock_join, \
-             patch('core.service.os.remove') as mock_remove:
-            
-            # Mock os.path.join to return our test file path
-            def mock_join_side_effect(*args):
-                """
-                Mock side effect for os.path.join that returns test file path.
-                
-                Returns the test request file path when the specific filename
-                is requested, otherwise delegates to the real os.path.join.
-                
-                Args:
-                    *args: Path components to join
-                    
-                Returns:
-                    str: Joined path, or test file path for specific filename
-                """
-                if args[-1] == 'test_message_request_user1_motivational.flag':
-                    return request_file
-                return os.path.join(*args)
-            mock_join.side_effect = mock_join_side_effect
-            
+        with patch.object(
+            service,
+            "_check_test_message_requests__get_base_directory",
+            return_value=temp_base_dir,
+        ), patch("core.service.os.remove") as mock_remove:
             service.check_test_message_requests()
-            
-            # Verify real behavior - communication manager was called with real data
-            service.communication_manager.handle_message_sending.assert_called_once_with('user1', 'motivational')
-            
-            # Verify file removal was called
+
+            service.communication_manager.handle_message_sending.assert_called_once_with(
+                "user1", "motivational"
+            )
             mock_remove.assert_called_once_with(request_file)
 
     # ============================================================================
@@ -702,38 +664,18 @@ class TestMHMService:
         # Mock communication manager
         service.communication_manager = Mock()
         
-        # Mock file listing to return our test file
-        with patch('core.service.os.listdir', return_value=['test_message_request_user1_motivational.flag']), \
-             patch('core.service.os.path.dirname', return_value=temp_base_dir), \
-             patch('core.service.os.path.join') as mock_join:
-            
-            # Mock os.path.join to return our test file path
-            def mock_join_side_effect(*args):
-                """
-                Mock side effect for os.path.join that returns test file path.
-                
-                Returns the test request file path when the specific filename
-                is requested, otherwise delegates to the real os.path.join.
-                
-                Args:
-                    *args: Path components to join
-                    
-                Returns:
-                    str: Joined path, or test file path for specific filename
-                """
-                if args[-1] == 'test_message_request_user1_motivational.flag':
-                    return request_file
-                return os.path.join(*args)
-            mock_join.side_effect = mock_join_side_effect
-            
-            # Process the request
+        with patch.object(
+            service,
+            "_check_test_message_requests__get_base_directory",
+            return_value=temp_base_dir,
+        ):
             service.check_test_message_requests()
-            
-            # Verify file was actually removed (real side effect)
+
             assert not os.path.exists(request_file)
-            
-            # Verify communication manager was called
-            service.communication_manager.handle_message_sending.assert_called_once_with('user1', 'motivational')
+
+            service.communication_manager.handle_message_sending.assert_called_once_with(
+                "user1", "motivational"
+            )
 
     @pytest.mark.behavior
     @pytest.mark.file_io
@@ -757,17 +699,16 @@ class TestMHMService:
         for file_path in created_files:
             assert os.path.exists(file_path)
         
-        # Mock file listing to return our test files
-        with patch('core.service.os.listdir', return_value=files_to_create), \
-             patch('core.service.os.path.dirname', return_value=temp_base_dir):
-            
-            # Run cleanup - this will use real os.path.join and os.remove
+        with patch.object(
+            service,
+            "_cleanup_test_message_requests__get_base_directory",
+            return_value=temp_base_dir,
+        ):
             service.cleanup_test_message_requests()
-            
-            # Verify only test message request files were removed (real side effects)
-            assert not os.path.exists(created_files[0])  # test_message_request_user1_motivational.flag
-            assert not os.path.exists(created_files[1])  # test_message_request_user2_health.flag
-            assert os.path.exists(created_files[2])      # other_file.txt (should remain)
+
+            assert not os.path.exists(created_files[0])
+            assert not os.path.exists(created_files[1])
+            assert os.path.exists(created_files[2])
 
     @pytest.mark.behavior
     @pytest.mark.critical

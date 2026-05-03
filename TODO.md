@@ -104,23 +104,7 @@ Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_I
 
 ### Tasks
 
-#### 1. Extract service request handling
-
-- Create a new module (planned; not in the repo yet): either **service_requests** or **service_request_handlers** under `core/` (exact `.py` filenames TBD).
-
-- Move all file-based request handling out of `core/service.py`:
-  - test message requests
-  - check-in prompt requests
-  - reschedule requests
-  - shutdown requests
-
-- Replace in `core/service.py` with a simple call:
-
-  ```python
-  service_requests.process_all(self)
-  ```
-
-#### 2. Simplify `core/service.py` responsibilities
+#### 1. Simplify `core/service.py` responsibilities
 
 Ensure `core/service.py` is limited to:
 
@@ -135,7 +119,7 @@ Remove:
 - direct file parsing logic
 - any feature-specific branching
 
-#### 3. Reduce channel_orchestrator scope
+#### 2. Reduce channel_orchestrator scope
 
 Identify and group responsibilities:
 
@@ -156,7 +140,7 @@ Ensure `communication/core/channel_orchestrator.py` becomes:
 - a thin coordination layer
 - not a logic-heavy module
 
-#### 4. Improve communication_manager contract
+#### 3. Improve communication_manager contract
 
 Replace `_last_sent_message` pattern with explicit return values:
 
@@ -164,7 +148,7 @@ Replace `_last_sent_message` pattern with explicit return values:
 
 Ensure service and UI rely on returned data, not shared state.
 
-#### 5. Validation
+#### 4. Validation
 
 - All existing tests pass
 - No change in external behavior (UI, Discord, email)
@@ -246,15 +230,14 @@ Clear separation between service lifecycle, request handling, scheduling, and me
 
 #### Status
 
-- Planned
+- [ ] Larger scheduler splits (e.g. moving more task-reminder scheduling bodies out of `core/scheduler.py`) remain optional follow-ups. (Initial split shipped **2026-05-02**; see paired changelogs.)
+- Intentional thin delegators: suppress duplicate-tool pairs by giving **both** functions the same `# not_duplicate: <group_id>` (or `# duplicate_functions_intentional:`) comment within a few lines above `def` - see `development_tools/functions/analyze_duplicate_functions.py` module docstring. Single-function exclusion: `# duplicate_functions_exclude`.
 
 ### Audit and thin communication command handlers
 
 - Identify command handlers that contain domain/business logic.
 - Start with notebook_handler.py and task_handler.py.
-- Move reusable business operations into domain service modules:
-  - notebook/notebook_service.py
-  - tasks/task_service.py
+- **Facades shipped:** `notebook/notebook_service.py` and `tasks/task_service.py` (handlers import them; task handler uses lazy `_task_service()`). Further thinning of handler bodies is optional follow-up; see CHANGELOG **2026-05-02**.
 - Keep communication handlers responsible for:
   - interpreting ParsedCommand
   - calling domain services

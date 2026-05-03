@@ -4,7 +4,6 @@ import signal
 import time
 import os
 import atexit
-from pathlib import Path
 
 # Set up logging FIRST before any other imports
 from core.logger import setup_logging, get_component_logger
@@ -31,11 +30,7 @@ from communication.core.channel_orchestrator import CommunicationManager
 from core.config import LOG_MAIN_FILE, USER_INFO_DIR_PATH, get_user_data_dir
 from core.scheduler import SchedulerManager
 from core.service_utilities import get_flags_dir
-from core.time_utilities import (
-    now_timestamp_full,
-    parse_timestamp_full,
-    now_datetime_full,
-)
+from core.time_utilities import parse_timestamp_full, now_datetime_full
 from core.file_operations import verify_file_access
 from core import get_all_user_ids
 from core import get_user_data
@@ -45,44 +40,9 @@ from core import get_user_data
 
 from core.error_handling import handle_errors, FileOperationError
 import contextlib
-from typing import Any
 
-
-@handle_errors(
-    "extracting schedule lists from message template for test preview",
-    default_return=(["ALL"], ["ALL"]),
-)
-def _message_template_schedule_lists(msg: dict[str, Any]) -> tuple[list[str], list[str]]:
-    """Return day names and time periods from a v2 template ``schedule`` (or ALL defaults)."""
-    raw_schedule = msg.get("schedule")
-    sched: dict[str, Any] = raw_schedule if isinstance(raw_schedule, dict) else {}
-    days = sched.get("days") or ["ALL"]
-    periods = sched.get("periods") or ["ALL"]
-    if not isinstance(days, list):
-        days = ["ALL"]
-    if not isinstance(periods, list):
-        periods = ["ALL"]
-    dlist = [d for d in days if isinstance(d, str)] or ["ALL"]
-    plist = [p for p in periods if isinstance(p, str)] or ["ALL"]
-    return dlist, plist
-
-
-@handle_errors(
-    "matching message template schedule to current window",
-    default_return=False,
-)
-def _message_schedule_matches_current_window(
-    day_names: list[str],
-    time_periods: list[str],
-    current_days: list[str],
-    matching_periods: list[str],
-) -> bool:
-    """True if template schedule overlaps current day/period (ALL matches any)."""
-    day_ok = "ALL" in day_names or any(d in day_names for d in current_days)
-    period_ok = "ALL" in time_periods or any(
-        p in time_periods for p in matching_periods
-    )
-    return day_ok and period_ok
+from core.message_preview import get_predefined_message_preview_text
+import core.service_requests as service_requests
 
 
 class InitializationError(Exception):
@@ -472,11 +432,11 @@ class MHMService:
                     break
 
                 # Check for shutdown request file every iteration
-                if self._process_shutdown_request(shutdown_file):
+                if service_requests.process_shutdown_request(self, shutdown_file):
                     break
 
                 # Check for request files (optimized: only scan if .flag files exist)
-                self._poll_request_files_if_needed()
+                service_requests.process_all(self)
 
                 time.sleep(2)  # Sleep for 2 seconds
 
@@ -499,56 +459,6 @@ class MHMService:
 
         # Clean up any remaining reschedule request files
         self.cleanup_reschedule_requests()
-
-    @handle_errors("processing shutdown request", default_return=False)
-    def _process_shutdown_request(self, shutdown_file: Path) -> bool:
-        """Return True when a shutdown request was detected and loop should stop."""
-        if not os.path.exists(shutdown_file):
-            return False
-
-        try:
-            file_mtime = os.path.getmtime(shutdown_file)
-            if self.startup_time and file_mtime < self.startup_time:
-                logger.debug(
-                    "Ignoring old shutdown request file (created before service startup)"
-                )
-                try:
-                    os.remove(shutdown_file)
-                    logger.debug("Removed old shutdown request file")
-                except Exception as e:
-                    logger.warning(f"Could not remove old shutdown file: {e}")
-                return False
-        except Exception as e:
-            logger.warning(f"Error checking shutdown file timestamp: {e}")
-            logger.info("Shutdown request file detected - initiating graceful shutdown")
-            self.running = False
-            return True
-
-        logger.info("Shutdown request file detected - initiating graceful shutdown")
-        try:
-            with open(shutdown_file, encoding="utf-8") as f:
-                content = f.read().strip()
-            if content.startswith("SHUTDOWN_REQUESTED_BY_UI_"):
-                logger.info("Shutdown requested by UI")
-            elif content.startswith("HEADLESS_SHUTDOWN_REQUESTED_"):
-                logger.info("Shutdown requested by headless service manager")
-            else:
-                logger.info(f"Shutdown request details: {content}")
-        except Exception as e:
-            logger.warning(f"Could not read shutdown file: {e}")
-        self.running = False
-        return True
-
-    @handle_errors("polling service request files", default_return=None)
-    def _poll_request_files_if_needed(self) -> None:
-        """Process request-flag files only when present to keep loop overhead low."""
-        base_dir = self._check_test_message_requests__get_base_directory()
-        if not self._has_any_request_files(base_dir):
-            return
-        self.check_test_message_requests()
-        self.check_checkin_prompt_requests()
-        self.check_task_reminder_requests()
-        self.check_reschedule_requests()
 
     @handle_errors("collecting service status metrics", default_return=[])
     def _collect_service_status_metrics(self, loop_minutes: int) -> list[str]:
@@ -649,30 +559,12 @@ class MHMService:
     @handle_errors("checking if request files exist", default_return=False)
     def _has_any_request_files(self, base_dir):
         """Quick check if any request files exist (optimization to avoid full scan when not needed)."""
-        try:
-            base_path = Path(base_dir)
-            # Quick check: just see if directory has any .flag files
-            # This is much faster than iterating all files
-            for file_path in base_path.iterdir():
-                if file_path.is_file() and file_path.name.endswith(".flag"):
-                    return True
-            return False
-        except Exception:
-            return True  # If we can't check, assume files might exist and do full scan
+        return service_requests.has_any_request_files(base_dir)
 
     @handle_errors("discovering test message request files", default_return=[])
     def _check_test_message_requests__discover_request_files(self, base_dir):
         """Discover all test message request files in the base directory."""
-        base_path = Path(base_dir)
-        request_files = []
-        for file_path in base_path.iterdir():
-            if (
-                file_path.is_file()
-                and file_path.name.startswith("test_message_request_")
-                and file_path.name.endswith(".flag")
-            ):
-                request_files.append(str(file_path))
-        return request_files
+        return service_requests.discover_test_message_request_files(base_dir)
 
     @handle_errors(
         "parsing test message request file",
@@ -680,190 +572,42 @@ class MHMService:
     )
     def _check_test_message_requests__parse_request_file(self, request_file):
         """Parse and validate a test message request file."""
-        import json
-
-        with open(request_file) as f:
-            request_data = json.load(f)
-
-        user_id = request_data.get("user_id")
-        category = request_data.get("category")
-        source = request_data.get("source", "unknown")
-
-        return {"user_id": user_id, "category": category, "source": source}
+        return service_requests.parse_test_message_request_file(request_file)
 
     @handle_errors("validating test message request data", default_return=False)
     def _check_test_message_requests__validate_request_data(
         self, request_data, filename
     ):
         """Validate request data and check if it should be processed."""
-        user_id = request_data["user_id"]
-        category = request_data["category"]
-
-        if not user_id or not category:
-            logger.warning(
-                f"Invalid test message request in {filename}: missing user_id or category"
-            )
-            return False
-
-        return True
+        return service_requests.validate_test_message_request_data(
+            request_data, filename
+        )
 
     @handle_errors("processing test message request", default_return=None)
     def _check_test_message_requests__process_valid_request(self, request_data):
         """Process a valid test message request."""
-        user_id = request_data["user_id"]
-        category = request_data["category"]
-        source = request_data["source"]
-
-        logger.info(
-            f"Processing test message request from {source}: user={user_id}, category={category}"
-        )
-
-        # Use the communication manager to send the message
-        if self.communication_manager:
-            self.communication_manager.handle_message_sending(user_id, category)
-            logger.info(
-                f"Test message sent successfully for {user_id}, category={category}"
-            )
-
-            # Get the actual message that was sent from the communication manager
-            actual_message = getattr(
-                self.communication_manager, "_last_sent_message", {}
-            ).get("message")
-            if (
-                actual_message
-                and self.communication_manager._last_sent_message.get("user_id")
-                == user_id
-                and self.communication_manager._last_sent_message.get("category")
-                == category
-            ):
-                # Write response file with actual message content for UI to read
-                self._check_test_message_requests__write_response(
-                    user_id, category, actual_message
-                )
-        else:
-            logger.error("Communication manager not available for test message")
+        service_requests.process_valid_test_message_request(self, request_data)
 
     @handle_errors("getting message content for test message", default_return=None)
     def _check_test_message_requests__get_message_content(
         self, user_id: str, category: str
     ) -> str:
         """Get the actual message content that will be sent."""
-        try:
-            # Use the same logic as _send_predefined_message to get the message
-            from core.schedule_runtime import (
-                get_current_time_periods_with_validation,
-                get_current_day_names,
-            )
-            from core.message_management import get_recent_messages, load_user_messages
-
-            matching_periods, valid_periods = get_current_time_periods_with_validation(
-                user_id, category
-            )
-
-            # Remove 'ALL' from matching_periods if there are other periods
-            if "ALL" in matching_periods and len(matching_periods) > 1:
-                matching_periods = [p for p in matching_periods if p != "ALL"]
-            if not matching_periods and "ALL" in valid_periods:
-                matching_periods = ["ALL"]
-
-            # Load runtime-normalized messages (v2-aware).
-            messages = load_user_messages(user_id, category)
-
-            if messages:
-                current_days = get_current_day_names()
-
-                all_messages: list[dict[str, Any]] = []
-                for msg in messages:
-                    day_names, time_periods = _message_template_schedule_lists(msg)
-                    if _message_schedule_matches_current_window(
-                        day_names,
-                        time_periods,
-                        current_days,
-                        matching_periods,
-                    ):
-                        all_messages.append(msg)
-
-                if all_messages:
-                    # Apply deduplication
-                    recent_messages = get_recent_messages(
-                        user_id, category=category, limit=50, days_back=60
-                    )
-                    recent_content = {
-                        msg.get("sent_text", "").strip().lower()
-                        for msg in recent_messages
-                        if msg.get("sent_text")
-                    }
-
-                    available_messages = []
-                    for msg in all_messages:
-                        message_content = msg.get("text", "").strip()
-                        if (
-                            message_content
-                            and message_content.lower() not in recent_content
-                        ):
-                            available_messages.append(msg)
-
-                    if not available_messages:
-                        available_messages = all_messages
-
-                    # Use weighted selection (same as CommunicationManager._select_weighted_message)
-                    if available_messages:
-                        import random
-
-                        specific_period_messages = []
-                        all_period_messages = []
-
-                        for msg in available_messages:
-                            _, plist = _message_template_schedule_lists(msg)
-                            time_periods = plist
-                            has_specific_periods = any(
-                                period != "ALL" for period in time_periods
-                            )
-                            if has_specific_periods:
-                                specific_period_messages.append(msg)
-                            else:
-                                all_period_messages.append(msg)
-
-                        # Weighted selection: 70% chance for specific periods, 30% chance for 'ALL' periods
-                        if specific_period_messages and random.random() < 0.7:
-                            selected_msg = random.choice(specific_period_messages)
-                        elif all_period_messages:
-                            selected_msg = random.choice(all_period_messages)
-                        else:
-                            selected_msg = random.choice(available_messages)
-
-                        return selected_msg.get("text", "")
-        except Exception as e:
-            logger.debug(f"Could not get message content: {e}")
-        return None
+        return get_predefined_message_preview_text(user_id, category)
 
     @handle_errors("writing test message response", default_return=None)
     def _check_test_message_requests__write_response(
         self, user_id: str, category: str, message: str
     ):
         """Write the actual message content to a response file for the UI to read."""
-        try:
-            import json
+        service_requests.write_test_message_response(
+            user_id,
+            category,
+            message,
+            base_dir=self._check_test_message_requests__get_base_directory(),
+        )
 
-            base_dir = self._check_test_message_requests__get_base_directory()
-            response_file = (
-                Path(base_dir) / f"test_message_response_{user_id}_{category}.flag"
-            )
-
-            response_data = {
-                "user_id": user_id,
-                "category": category,
-                "message": message,
-                "timestamp": now_timestamp_full(),
-            }
-
-            with open(response_file, "w") as f:
-                json.dump(response_data, f, indent=2)
-
-            logger.debug(f"Wrote test message response file: {response_file}")
-        except Exception as e:
-            logger.debug(f"Could not write response file: {e}")
-
+    # not_duplicate: cleanup_request_file_delegate
     @handle_errors(
         "cleaning up request file after process",
         user_friendly=False,
@@ -873,8 +617,9 @@ class MHMService:
         self, request_file, filename, request_type_label: str
     ):
         """Remove a processed request file and log. Shared by test message and reschedule request flows."""
-        os.remove(request_file)
-        logger.info(f"Processed {request_type_label} request: {filename}")
+        service_requests.cleanup_request_file_after_process(
+            request_file, filename, request_type_label
+        )
 
     @handle_errors(
         "cleaning up problematic test message request file",
@@ -885,10 +630,9 @@ class MHMService:
         self, request_file, filename, error
     ):
         """Handle errors during request processing."""
-        logger.error(f"Error processing test message request {filename}: {error}")
-        # Try to remove the problematic file
-        os.remove(request_file)
-        logger.debug(f"Removed problematic request file: {filename}")
+        service_requests.handle_test_message_request_processing_error(
+            request_file, filename, error
+        )
 
     @handle_errors("checking test message requests", default_return=None)
     def check_test_message_requests(self):
@@ -897,21 +641,15 @@ class MHMService:
         request_files = self._check_test_message_requests__discover_request_files(
             base_dir
         )
-
         for request_file in request_files:
             filename = os.path.basename(request_file)
-
-            # Parse and validate the request
             request_data = self._check_test_message_requests__parse_request_file(
                 request_file
             )
-
             if self._check_test_message_requests__validate_request_data(
                 request_data, filename
             ):
                 self._check_test_message_requests__process_valid_request(request_data)
-
-            # Clean up the request file
             self._cleanup_request_file_after_process(
                 request_file, filename, "test message"
             )
@@ -919,161 +657,26 @@ class MHMService:
     @handle_errors("checking check-in prompt requests")
     def check_checkin_prompt_requests(self):
         """Check for and process check-in prompt request files from admin panel"""
-        base_dir = self._check_test_message_requests__get_base_directory()
-        base_path = Path(base_dir)
-
-        for file_path in base_path.iterdir():
-            if (
-                file_path.is_file()
-                and file_path.name.startswith("checkin_prompt_request_")
-                and file_path.name.endswith(".flag")
-            ):
-                filename = os.path.basename(file_path)
-                try:
-                    import json
-
-                    with open(file_path) as f:
-                        request_data = json.load(f)
-
-                    user_id = request_data.get("user_id")
-                    if user_id and self.communication_manager:
-                        # Get user preferences to determine messaging service and recipient
-                        from core import get_user_data
-
-                        prefs_result = get_user_data(
-                            user_id, "preferences", normalize_on_read=True
-                        )
-                        preferences = prefs_result.get("preferences")
-
-                        if preferences:
-                            messaging_service = preferences.get("channel", {}).get(
-                                "type"
-                            )
-                            if messaging_service:
-                                recipient = self.communication_manager._get_recipient_for_service(
-                                    user_id, messaging_service, preferences
-                                )
-                                if recipient:
-                                    # Get first question before sending (for response file)
-                                    first_question = self._get_checkin_first_question(
-                                        user_id
-                                    )
-
-                                    self.communication_manager._send_checkin_prompt(
-                                        user_id, messaging_service, recipient
-                                    )
-                                    logger.info(
-                                        f"Check-in prompt sent successfully for {user_id}"
-                                    )
-
-                                    # Write response file with first question for UI
-                                    if first_question:
-                                        self._write_checkin_response(
-                                            user_id, first_question
-                                        )
-
-                    # Clean up the request file
-                    os.remove(file_path)
-                    logger.info(f"Processed check-in prompt request: {filename}")
-                except Exception as e:
-                    logger.error(
-                        f"Error processing check-in prompt request {filename}: {e}"
-                    )
-                    with contextlib.suppress(Exception):
-                        os.remove(file_path)
+        service_requests.check_checkin_prompt_requests(self)
 
     @handle_errors("getting check-in first question", default_return=None)
     def _get_checkin_first_question(self, user_id: str) -> str:
         """Get the first question that will be asked in the check-in."""
-        try:
-            from communication.message_processing.conversation_flow_manager import (
-                conversation_manager,
-            )
-            from core import get_user_data
-
-            # Get enabled questions
-            prefs_result = get_user_data(user_id, "preferences")
-            checkin_prefs = prefs_result.get("preferences", {}).get(
-                "checkin_settings", {}
-            )
-            enabled_questions = checkin_prefs.get("questions", {})
-
-            # Get question order (same logic as service will use)
-            question_order = (
-                conversation_manager._select_checkin_questions_with_weighting(
-                    user_id, enabled_questions
-                )
-            )
-            if question_order:
-                first_question_key = question_order[0]
-                first_question = conversation_manager._get_question_text(
-                    first_question_key, {}
-                )
-                return first_question
-        except Exception as e:
-            logger.debug(f"Could not get check-in first question: {e}")
-        return None
+        return service_requests.get_checkin_first_question(user_id)
 
     @handle_errors("writing check-in response", default_return=None)
     def _write_checkin_response(self, user_id: str, first_question: str):
         """Write the first check-in question to a response file for the UI to read."""
-        try:
-            import json
-
-            base_dir = self._check_test_message_requests__get_base_directory()
-            response_file = Path(base_dir) / f"checkin_prompt_response_{user_id}.flag"
-
-            response_data = {
-                "user_id": user_id,
-                "first_question": first_question,
-                "timestamp": now_timestamp_full(),
-            }
-
-            with open(response_file, "w") as f:
-                json.dump(response_data, f, indent=2)
-
-            logger.debug(f"Wrote check-in prompt response file: {response_file}")
-        except Exception as e:
-            logger.debug(f"Could not write check-in response file: {e}")
+        service_requests.write_checkin_response(
+            user_id,
+            first_question,
+            base_dir=self._check_test_message_requests__get_base_directory(),
+        )
 
     @handle_errors("checking task reminder requests")
     def check_task_reminder_requests(self):
         """Check for and process task reminder request files from admin panel"""
-        base_dir = self._check_test_message_requests__get_base_directory()
-        base_path = Path(base_dir)
-
-        for file_path in base_path.iterdir():
-            if (
-                file_path.is_file()
-                and file_path.name.startswith("task_reminder_request_")
-                and file_path.name.endswith(".flag")
-            ):
-                filename = os.path.basename(file_path)
-                try:
-                    import json
-
-                    with open(file_path) as f:
-                        request_data = json.load(f)
-
-                    user_id = request_data.get("user_id")
-                    task_identifier = request_data.get("task_identifier")
-                    if user_id and task_identifier and self.communication_manager:
-                        self.communication_manager.handle_task_reminder(
-                            user_id, task_identifier
-                        )
-                        logger.info(
-                            f"Task reminder sent successfully for {user_id}, task {task_identifier}"
-                        )
-
-                    # Clean up the request file
-                    os.remove(file_path)
-                    logger.info(f"Processed task reminder request: {filename}")
-                except Exception as e:
-                    logger.error(
-                        f"Error processing task reminder request {filename}: {e}"
-                    )
-                    with contextlib.suppress(Exception):
-                        os.remove(file_path)
+        service_requests.check_task_reminder_requests(self)
 
     @handle_errors("getting base directory for cleanup", default_return="")
     def _cleanup_test_message_requests__get_base_directory(self):
@@ -1083,9 +686,7 @@ class MHMService:
     @handle_errors("checking if file is test message request", default_return=False)
     def _cleanup_test_message_requests__is_test_message_request_file(self, filename):
         """Check if a filename matches the test message request file pattern."""
-        return filename.startswith("test_message_request_") and filename.endswith(
-            ".flag"
-        )
+        return service_requests.is_test_message_request_filename(filename)
 
     @handle_errors(
         "removing test message request file", user_friendly=False, default_return=False
@@ -1094,26 +695,14 @@ class MHMService:
         self, request_file, filename
     ):
         """Remove a single test message request file with proper error handling."""
-        os.remove(request_file)
-        logger.info(f"Cleanup: Removed test message request file: {filename}")
-        return True
+        return service_requests.remove_single_test_message_request_file(
+            request_file, filename
+        )
 
     @handle_errors("cleaning up test message requests")
     def cleanup_test_message_requests(self):
         """Clean up any remaining test message request files"""
-        base_dir = self._cleanup_test_message_requests__get_base_directory()
-        base_path = Path(base_dir)
-
-        for file_path in base_path.iterdir():
-            if (
-                file_path.is_file()
-                and self._cleanup_test_message_requests__is_test_message_request_file(
-                    file_path.name
-                )
-            ):
-                self._cleanup_test_message_requests__remove_request_file(
-                    str(file_path), file_path.name
-                )
+        service_requests.cleanup_test_message_requests(self)
 
     @handle_errors("getting base directory for reschedule requests", default_return="")
     def _check_reschedule_requests__get_base_directory(self):
@@ -1123,16 +712,7 @@ class MHMService:
     @handle_errors("discovering reschedule request files", default_return=[])
     def _check_reschedule_requests__discover_request_files(self, base_dir):
         """Discover all reschedule request files in the base directory."""
-        base_path = Path(base_dir)
-        request_files = []
-        for file_path in base_path.iterdir():
-            if (
-                file_path.is_file()
-                and file_path.name.startswith("reschedule_request_")
-                and file_path.name.endswith(".flag")
-            ):
-                request_files.append(str(file_path))
-        return request_files
+        return service_requests.discover_reschedule_request_files(base_dir)
 
     @handle_errors(
         "parsing reschedule request file",
@@ -1145,64 +725,19 @@ class MHMService:
     )
     def _check_reschedule_requests__parse_request_file(self, request_file):
         """Parse and validate a reschedule request file."""
-        import json
-
-        with open(request_file) as f:
-            request_data = json.load(f)
-
-        user_id = request_data.get("user_id")
-        category = request_data.get("category")
-        source = request_data.get("source", "unknown")
-        request_timestamp = request_data.get("timestamp", 0)
-
-        return {
-            "user_id": user_id,
-            "category": category,
-            "source": source,
-            "timestamp": request_timestamp,
-        }
+        return service_requests.parse_reschedule_request_file(request_file)
 
     @handle_errors("validating reschedule request data", default_return=False)
     def _check_reschedule_requests__validate_request_data(self, request_data, filename):
         """Validate request data and check if it should be processed."""
-        user_id = request_data["user_id"]
-        category = request_data["category"]
-        request_timestamp = request_data["timestamp"]
-
-        # Skip old requests that were created before service startup
-        if self.startup_time and request_timestamp < self.startup_time:
-            logger.debug(
-                f"Ignoring old reschedule request from before service startup: {filename}"
-            )
-            return False
-
-        if not user_id or not category:
-            logger.warning(
-                f"Invalid reschedule request in {filename}: missing user_id or category"
-            )
-            return False
-
-        return True
+        return service_requests.validate_reschedule_request_data(
+            self, request_data, filename
+        )
 
     @handle_errors("processing reschedule request", default_return=None)
     def _check_reschedule_requests__process_valid_request(self, request_data):
         """Process a valid reschedule request."""
-        user_id = request_data["user_id"]
-        category = request_data["category"]
-        source = request_data["source"]
-
-        logger.info(
-            f"Processing reschedule request from {source}: user={user_id}, category={category}"
-        )
-
-        if self.scheduler_manager:
-            # Reset and reschedule for this user/category
-            self.scheduler_manager.reset_and_reschedule_daily_messages(
-                category, user_id
-            )
-            logger.info(f"Reschedule completed for {user_id}, category={category}")
-        else:
-            logger.error("Scheduler manager not available for reschedule")
+        service_requests.process_valid_reschedule_request(self, request_data)
 
     @handle_errors(
         "cleaning up problematic reschedule request file",
@@ -1213,10 +748,9 @@ class MHMService:
         self, request_file, filename, error
     ):
         """Handle errors during request processing."""
-        logger.error(f"Error processing reschedule request {filename}: {error}")
-        # Try to remove the problematic file
-        os.remove(request_file)
-        logger.debug(f"Removed problematic request file: {filename}")
+        service_requests.handle_reschedule_request_processing_error(
+            request_file, filename, error
+        )
 
     @handle_errors("checking reschedule requests", default_return=None)
     def check_reschedule_requests(self):
@@ -1225,21 +759,15 @@ class MHMService:
         request_files = self._check_reschedule_requests__discover_request_files(
             base_dir
         )
-
         for request_file in request_files:
             filename = os.path.basename(request_file)
-
-            # Parse and validate the request
             request_data = self._check_reschedule_requests__parse_request_file(
                 request_file
             )
-
             if self._check_reschedule_requests__validate_request_data(
                 request_data, filename
             ):
                 self._check_reschedule_requests__process_valid_request(request_data)
-
-            # Clean up the request file
             self._cleanup_request_file_after_process(
                 request_file, filename, "reschedule"
             )
@@ -1247,23 +775,7 @@ class MHMService:
     @handle_errors("cleaning up reschedule requests")
     def cleanup_reschedule_requests(self):
         """Clean up any remaining reschedule request files"""
-        base_dir = Path(__file__).parent.parent
-
-        for file_path in base_dir.iterdir():
-            if (
-                file_path.is_file()
-                and file_path.name.startswith("reschedule_request_")
-                and file_path.name.endswith(".flag")
-            ):
-                try:
-                    file_path.unlink()
-                    logger.info(
-                        f"Cleanup: Removed reschedule request file: {file_path.name}"
-                    )
-                except Exception as e:
-                    logger.warning(
-                        f"Could not remove reschedule request file {file_path.name}: {e}"
-                    )
+        service_requests.cleanup_reschedule_requests(self)
 
     @handle_errors("shutting down service")
     def shutdown(self):

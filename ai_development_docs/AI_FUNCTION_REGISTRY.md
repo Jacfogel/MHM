@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-02 03:03:52
+> **Last Generated**: 2026-05-02 19:34:01
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 94.5% [!] GOOD**
-- **Total Functions**: 1771
-- **Total Methods**: 1248
-- **Documented**: 2854/3019
-- **Files Scanned**: 124
+### **Documentation Coverage: 92.5% [!] GOOD**
+- **Total Functions**: 1829
+- **Total Methods**: 1263
+- **Documented**: 2860/3092
+- **Files Scanned**: 135
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -40,7 +40,7 @@ AI Operations Decision Tree:
 ### **[COMM] Need Communication/Channels?**
 ```
 Communication Decision Tree:
-+-- `communication/core/channel_orchestrator.py` - Main communication (92/94 functions)
++-- `communication/core/channel_orchestrator.py` - Main communication (71/92 functions)
 +-- `communication/communication_channels/base/base_channel.py` - Channel base class (14 functions)
 `-- `communication/core/factory.py` - Channel creation (8 functions)```
 
@@ -54,9 +54,9 @@ UI Operations Decision Tree:
 ### **[CORE] Need Core System Operations?**
 ```
 Core System Decision Tree:
-+-- `core/service.py` - Main service (98 functions)
++-- `core/service.py` - Main service (92 functions)
 +-- `core/config.py` - Configuration (19 functions)
-`-- `core/scheduler.py` - Scheduling (82/83 functions)```
+`-- `core/scheduler.py` - Scheduling (81/82 functions)```
 
 ## [PATTERNS] **Key Function Patterns**
 
@@ -152,16 +152,16 @@ Core System Decision Tree:
 ## [!] **Areas Needing Attention**
 
 ### **High Priority** (Missing Documentation)
+- `communication/core/channel_orchestrator.py` - 21/92 functions undocumented (77% coverage)
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
 - `core/schemas.py` - 17/27 functions undocumented (37% coverage)
+- `communication/delivery/message_dispatcher.py` - 15/17 functions undocumented (12% coverage)
 - `core/user_data_write.py` - 15/19 functions undocumented (21% coverage)
+- `core/service_requests.py` - 13/27 functions undocumented (52% coverage)
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
 - `core/user_data_registry.py` - 11/22 functions undocumented (50% coverage)
 - `tasks/task_schemas.py` - 10/10 functions undocumented (0% coverage)
-- `core/user_data_v2_base.py` - 7/10 functions undocumented (30% coverage)
-- `ui/dialogs/channel_management_dialog.py` - 7/11 functions undocumented (36% coverage)
-- `ui/widgets/channel_selection_widget.py` - 6/16 functions undocumented (62% coverage)
-- `tasks/task_data_handlers.py` - 6/22 functions undocumented (73% coverage)
+- `tasks/task_service.py` - 10/10 functions undocumented (0% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
@@ -176,11 +176,10 @@ Core System Decision Tree:
 1. **User Message**: `communication/message_processing/interaction_manager.py::handle_message()`
 2. **AI Response**: `ai/chatbot.py::generate_response()`
 3. **Main Entry**: `run_headless_service.py::main()`
-4. **User Data Save**: `communication/message_processing/conversation_flow_manager.py::_save_user_states()`
-5. **Command Parsing**: `communication/message_processing/command_parser.py::get_enhanced_command_parser()`
-6. **Error Handling**: `core/error_handling.py::handle_errors()`
-7. **Scheduling**: `core/scheduler.py::run_full_scheduler_standalone()`
-8. **Configuration**: `communication/core/channel_orchestrator.py::get_configured_channels()`
+4. **Command Parsing**: `communication/message_processing/command_parser.py::get_enhanced_command_parser()`
+5. **Error Handling**: `core/error_handling.py::handle_errors()`
+6. **Scheduling**: `core/scheduler.py::run_full_scheduler_standalone()`
+7. **Configuration**: `communication/core/channel_orchestrator.py::get_configured_channels()`
 
 
 ### **Complexity Metrics**
@@ -199,11 +198,11 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (37 files, 905 functions)
-- `communication/` - Communication channels and message processing (39 files, 891 functions)
+- `core/` - System utilities and data management (42 files, 933 functions)
+- `communication/` - Communication channels and message processing (44 files, 926 functions)
 - `ai/` - AI chatbot functionality (7 files, 219 functions)
 - `ui/` - User interface components (29 files, 831 functions)
 - `user/` - User context and preferences (4 files, 65 functions)
-- `tasks/` - Task management system (5 files, 60 functions)
+- `tasks/` - Task management system (6 files, 70 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**

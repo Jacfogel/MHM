@@ -2504,6 +2504,7 @@ class DiscordBot(BaseChannel):
                     )
 
                     def _drain_ngrok_stderr() -> None:
+                        """Read ngrok stderr in a loop so a full pipe cannot block the child process."""
                         proc = self._ngrok_process
                         if not proc or proc.stderr is None:
                             return
@@ -2528,13 +2529,11 @@ class DiscordBot(BaseChannel):
                     except Exception:
                         pass
                     discord_logger.warning(
-                        "ngrok process exited immediately (exit code: %s)",
-                        exit_code,
+                        f"ngrok process exited immediately (exit code: {exit_code})"
                     )
                     if err_text:
                         discord_logger.warning(
-                            "ngrok stderr (excerpt): %s",
-                            err_text[:2048],
+                            f"ngrok stderr (excerpt): {err_text[:2048]}"
                         )
                     discord_logger.warning(
                         "ngrok hint: ngrok v3+ needs a one-time authtoken "

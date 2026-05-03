@@ -1,0 +1,498 @@
+# File-flag request handling for the headless service (test messages, check-ins, reminders, reschedule).
+
+from __future__ import annotations
+
+import contextlib
+import json
+import os
+from pathlib import Path
+from typing import Any
+
+from core.error_handling import handle_errors
+from core.logger import get_component_logger
+from core.time_utilities import now_timestamp_full
+
+logger = get_component_logger("main")
+
+
+@handle_errors(
+    "resolving repo base directory",
+    user_friendly=False,
+    re_raise=True,
+)
+def get_repo_base_directory() -> str:
+    """Project root (parent of ``core/``)."""
+    return str(Path(__file__).resolve().parent.parent)
+
+
+@handle_errors("polling service request files", default_return=None)
+def process_pending_file_requests(service: Any) -> None:
+    """Process request-flag files when any ``.flag`` exists under the repo root."""
+    base_dir = service._check_test_message_requests__get_base_directory()
+    if not has_any_request_files(base_dir):
+        return
+    check_test_message_requests(service)
+    check_checkin_prompt_requests(service)
+    check_task_reminder_requests(service)
+    check_reschedule_requests(service)
+
+
+@handle_errors("processing shutdown request file", default_return=False)
+def process_shutdown_request(service: Any, shutdown_file: Path) -> bool:
+    """Return True when shutdown was requested and the main loop should stop."""
+    if not os.path.exists(shutdown_file):
+        return False
+
+    try:
+        file_mtime = os.path.getmtime(shutdown_file)
+        if service.startup_time and file_mtime < service.startup_time:
+            logger.debug(
+                "Ignoring old shutdown request file (created before service startup)"
+            )
+            try:
+                os.remove(shutdown_file)
+                logger.debug("Removed old shutdown request file")
+            except Exception as e:
+                logger.warning(f"Could not remove old shutdown file: {e}")
+            return False
+    except Exception as e:
+        logger.warning(f"Error checking shutdown file timestamp: {e}")
+        logger.info("Shutdown request file detected - initiating graceful shutdown")
+        service.running = False
+        return True
+
+    logger.info("Shutdown request file detected - initiating graceful shutdown")
+    try:
+        with open(shutdown_file, encoding="utf-8") as f:
+            content = f.read().strip()
+        if content.startswith("SHUTDOWN_REQUESTED_BY_UI_"):
+            logger.info("Shutdown requested by UI")
+        elif content.startswith("HEADLESS_SHUTDOWN_REQUESTED_"):
+            logger.info("Shutdown requested by headless service manager")
+        else:
+            logger.info(f"Shutdown request details: {content}")
+    except Exception as e:
+        logger.warning(f"Could not read shutdown file: {e}")
+    service.running = False
+    return True
+
+
+@handle_errors("checking if request files exist", default_return=False)
+def has_any_request_files(base_dir: str) -> bool:
+    try:
+        base_path = Path(base_dir)
+        for file_path in base_path.iterdir():
+            if file_path.is_file() and file_path.name.endswith(".flag"):
+                return True
+        return False
+    except Exception:
+        return True
+
+
+@handle_errors("discovering test message request files", default_return=[])
+def discover_test_message_request_files(base_dir: str) -> list[str]:
+    base_path = Path(base_dir)
+    request_files = []
+    for file_path in base_path.iterdir():
+        if (
+            file_path.is_file()
+            and file_path.name.startswith("test_message_request_")
+            and file_path.name.endswith(".flag")
+        ):
+            request_files.append(str(file_path))
+    return request_files
+
+
+@handle_errors(
+    "parsing test message request file",
+    default_return={"user_id": None, "category": None, "source": "unknown"},
+)
+def parse_test_message_request_file(request_file: str) -> dict[str, Any]:
+    with open(request_file, encoding="utf-8") as f:
+        request_data = json.load(f)
+    user_id = request_data.get("user_id")
+    category = request_data.get("category")
+    source = request_data.get("source", "unknown")
+    return {"user_id": user_id, "category": category, "source": source}
+
+
+@handle_errors("validating test message request data", default_return=False)
+def validate_test_message_request_data(request_data: dict, filename: str) -> bool:
+    user_id = request_data["user_id"]
+    category = request_data["category"]
+    if not user_id or not category:
+        logger.warning(
+            f"Invalid test message request in {filename}: missing user_id or category"
+        )
+        return False
+    return True
+
+
+@handle_errors("processing test message request", default_return=None)
+def process_valid_test_message_request(service: Any, request_data: dict) -> None:
+    user_id = request_data["user_id"]
+    category = request_data["category"]
+    source = request_data["source"]
+    logger.info(
+        f"Processing test message request from {source}: user={user_id}, category={category}"
+    )
+    if service.communication_manager:
+        send_result = service.communication_manager.handle_message_sending(
+            user_id, category
+        )
+        logger.info(
+            f"Test message sent successfully for {user_id}, category={category}"
+        )
+        actual_message = send_result.sent_text
+        if actual_message and send_result.matches_request(user_id, category):
+            service._check_test_message_requests__write_response(
+                user_id, category, actual_message
+            )
+    else:
+        logger.error("Communication manager not available for test message")
+
+
+@handle_errors("writing test message response", default_return=None)
+def write_test_message_response(
+    user_id: str,
+    category: str,
+    message: str,
+    *,
+    base_dir: str | None = None,
+) -> None:
+    try:
+        root = base_dir if base_dir is not None else get_repo_base_directory()
+        response_file = Path(root) / f"test_message_response_{user_id}_{category}.flag"
+        response_data = {
+            "user_id": user_id,
+            "category": category,
+            "message": message,
+            "timestamp": now_timestamp_full(),
+        }
+        with open(response_file, "w", encoding="utf-8") as f:
+            json.dump(response_data, f, indent=2)
+        logger.debug(f"Wrote test message response file: {response_file}")
+    except Exception as e:
+        logger.debug(f"Could not write response file: {e}")
+
+
+# not_duplicate: cleanup_request_file_delegate
+@handle_errors(
+    "cleaning up request file after process",
+    user_friendly=False,
+    default_return=None,
+)
+def cleanup_request_file_after_process(
+    request_file: str, filename: str, request_type_label: str
+) -> None:
+    os.remove(request_file)
+    logger.info(f"Processed {request_type_label} request: {filename}")
+
+
+@handle_errors("checking test message requests", default_return=None)
+def check_test_message_requests(service: Any) -> None:
+    base_dir = service._check_test_message_requests__get_base_directory()
+    request_files = discover_test_message_request_files(base_dir)
+    for request_file in request_files:
+        filename = os.path.basename(request_file)
+        request_data = parse_test_message_request_file(request_file)
+        if validate_test_message_request_data(request_data, filename):
+            process_valid_test_message_request(service, request_data)
+        cleanup_request_file_after_process(request_file, filename, "test message")
+
+
+@handle_errors("getting check-in first question", default_return=None)
+def get_checkin_first_question(user_id: str) -> str | None:
+    try:
+        from communication.message_processing.conversation_flow_manager import (
+            conversation_manager,
+        )
+        from core import get_user_data
+
+        prefs_result = get_user_data(user_id, "preferences")
+        checkin_prefs = prefs_result.get("preferences", {}).get("checkin_settings", {})
+        enabled_questions = checkin_prefs.get("questions", {})
+        question_order = conversation_manager._select_checkin_questions_with_weighting(
+            user_id, enabled_questions
+        )
+        if question_order:
+            first_question_key = question_order[0]
+            return conversation_manager._get_question_text(first_question_key, {})
+    except Exception as e:
+        logger.debug(f"Could not get check-in first question: {e}")
+    return None
+
+
+@handle_errors("writing check-in response", default_return=None)
+def write_checkin_response(
+    user_id: str, first_question: str, *, base_dir: str | None = None
+) -> None:
+    try:
+        root = base_dir if base_dir is not None else get_repo_base_directory()
+        response_file = Path(root) / f"checkin_prompt_response_{user_id}.flag"
+        response_data = {
+            "user_id": user_id,
+            "first_question": first_question,
+            "timestamp": now_timestamp_full(),
+        }
+        with open(response_file, "w", encoding="utf-8") as f:
+            json.dump(response_data, f, indent=2)
+        logger.debug(f"Wrote check-in prompt response file: {response_file}")
+    except Exception as e:
+        logger.debug(f"Could not write check-in response file: {e}")
+
+
+@handle_errors("checking check-in prompt requests")
+def check_checkin_prompt_requests(service: Any) -> None:
+    base_dir = service._check_test_message_requests__get_base_directory()
+    base_path = Path(base_dir)
+    for file_path in base_path.iterdir():
+        if (
+            file_path.is_file()
+            and file_path.name.startswith("checkin_prompt_request_")
+            and file_path.name.endswith(".flag")
+        ):
+            filename = os.path.basename(file_path)
+            try:
+                with open(file_path, encoding="utf-8") as f:
+                    request_data = json.load(f)
+                user_id = request_data.get("user_id")
+                if user_id and service.communication_manager:
+                    from core import get_user_data
+
+                    prefs_result = get_user_data(
+                        user_id, "preferences", normalize_on_read=True
+                    )
+                    preferences = prefs_result.get("preferences")
+                    if preferences:
+                        messaging_service = preferences.get("channel", {}).get("type")
+                        if messaging_service:
+                            recipient = service.communication_manager._get_recipient_for_service(
+                                user_id, messaging_service, preferences
+                            )
+                            if recipient:
+                                first_question = service._get_checkin_first_question(
+                                    user_id
+                                )
+                                service.communication_manager._send_checkin_prompt(
+                                    user_id, messaging_service, recipient
+                                )
+                                logger.info(
+                                    f"Check-in prompt sent successfully for {user_id}"
+                                )
+                                if first_question:
+                                    service._write_checkin_response(
+                                        user_id, first_question
+                                    )
+                os.remove(file_path)
+                logger.info(f"Processed check-in prompt request: {filename}")
+            except Exception as e:
+                logger.error(
+                    f"Error processing check-in prompt request {filename}: {e}"
+                )
+                with contextlib.suppress(Exception):
+                    os.remove(file_path)
+
+
+@handle_errors("checking task reminder requests")
+def check_task_reminder_requests(service: Any) -> None:
+    base_dir = service._check_test_message_requests__get_base_directory()
+    base_path = Path(base_dir)
+    for file_path in base_path.iterdir():
+        if (
+            file_path.is_file()
+            and file_path.name.startswith("task_reminder_request_")
+            and file_path.name.endswith(".flag")
+        ):
+            filename = os.path.basename(file_path)
+            try:
+                with open(file_path, encoding="utf-8") as f:
+                    request_data = json.load(f)
+                user_id = request_data.get("user_id")
+                task_identifier = request_data.get("task_identifier")
+                if user_id and task_identifier and service.communication_manager:
+                    service.communication_manager.handle_task_reminder(
+                        user_id, task_identifier
+                    )
+                    logger.info(
+                        f"Task reminder sent successfully for {user_id}, task {task_identifier}"
+                    )
+                os.remove(file_path)
+                logger.info(f"Processed task reminder request: {filename}")
+            except Exception as e:
+                logger.error(
+                    f"Error processing task reminder request {filename}: {e}"
+                )
+                with contextlib.suppress(Exception):
+                    os.remove(file_path)
+
+
+@handle_errors(
+    "checking test message request filename pattern",
+    user_friendly=False,
+    re_raise=True,
+)
+def is_test_message_request_filename(filename: str) -> bool:
+    return filename.startswith("test_message_request_") and filename.endswith(".flag")
+
+
+@handle_errors("cleaning up test message requests")
+def cleanup_test_message_requests(service: Any) -> None:
+    base_dir = service._cleanup_test_message_requests__get_base_directory()
+    base_path = Path(base_dir)
+    for file_path in base_path.iterdir():
+        if file_path.is_file() and is_test_message_request_filename(file_path.name):
+            try:
+                os.remove(str(file_path))
+                logger.info(
+                    f"Cleanup: Removed test message request file: {file_path.name}"
+                )
+            except OSError as e:
+                logger.warning(
+                    f"Could not remove test message request file {file_path.name}: {e}"
+                )
+
+
+@handle_errors("discovering reschedule request files", default_return=[])
+def discover_reschedule_request_files(base_dir: str) -> list[str]:
+    base_path = Path(base_dir)
+    request_files = []
+    for file_path in base_path.iterdir():
+        if (
+            file_path.is_file()
+            and file_path.name.startswith("reschedule_request_")
+            and file_path.name.endswith(".flag")
+        ):
+            request_files.append(str(file_path))
+    return request_files
+
+
+@handle_errors(
+    "parsing reschedule request file",
+    default_return={
+        "user_id": None,
+        "category": None,
+        "source": "unknown",
+        "timestamp": 0,
+    },
+)
+def parse_reschedule_request_file(request_file: str) -> dict[str, Any]:
+    with open(request_file, encoding="utf-8") as f:
+        request_data = json.load(f)
+    return {
+        "user_id": request_data.get("user_id"),
+        "category": request_data.get("category"),
+        "source": request_data.get("source", "unknown"),
+        "timestamp": request_data.get("timestamp", 0),
+    }
+
+
+@handle_errors("validating reschedule request data", default_return=False)
+def validate_reschedule_request_data(
+    service: Any, request_data: dict, filename: str
+) -> bool:
+    user_id = request_data["user_id"]
+    category = request_data["category"]
+    request_timestamp = request_data["timestamp"]
+    if service.startup_time and request_timestamp < service.startup_time:
+        logger.debug(
+            f"Ignoring old reschedule request from before service startup: {filename}"
+        )
+        return False
+    if not user_id or not category:
+        logger.warning(
+            f"Invalid reschedule request in {filename}: missing user_id or category"
+        )
+        return False
+    return True
+
+
+@handle_errors("processing reschedule request", default_return=None)
+def process_valid_reschedule_request(service: Any, request_data: dict) -> None:
+    user_id = request_data["user_id"]
+    category = request_data["category"]
+    source = request_data["source"]
+    logger.info(
+        f"Processing reschedule request from {source}: user={user_id}, category={category}"
+    )
+    if service.scheduler_manager:
+        service.scheduler_manager.reset_and_reschedule_daily_messages(
+            category, user_id
+        )
+        logger.info(f"Reschedule completed for {user_id}, category={category}")
+    else:
+        logger.error("Scheduler manager not available for reschedule")
+
+
+@handle_errors("checking reschedule requests", default_return=None)
+def check_reschedule_requests(service: Any) -> None:
+    base_dir = service._check_reschedule_requests__get_base_directory()
+    for request_file in discover_reschedule_request_files(base_dir):
+        filename = os.path.basename(request_file)
+        request_data = parse_reschedule_request_file(request_file)
+        if validate_reschedule_request_data(service, request_data, filename):
+            process_valid_reschedule_request(service, request_data)
+        cleanup_request_file_after_process(request_file, filename, "reschedule")
+
+
+@handle_errors("cleaning up reschedule requests")
+def cleanup_reschedule_requests(service: Any) -> None:
+    base_path = Path(service._check_reschedule_requests__get_base_directory())
+    for file_path in base_path.iterdir():
+        if (
+            file_path.is_file()
+            and file_path.name.startswith("reschedule_request_")
+            and file_path.name.endswith(".flag")
+        ):
+            try:
+                file_path.unlink()
+                logger.info(
+                    f"Cleanup: Removed reschedule request file: {file_path.name}"
+                )
+            except Exception as e:
+                logger.warning(
+                    f"Could not remove reschedule request file {file_path.name}: {e}"
+                )
+
+
+@handle_errors("processing all service request flags", default_return=None)
+def process_all(service: Any) -> None:
+    """Process pending UI/headless request flags (non-shutdown)."""
+    process_pending_file_requests(service)
+
+
+@handle_errors(
+    "removing test message request file", user_friendly=False, default_return=False
+)
+def remove_single_test_message_request_file(
+    request_file: str, filename: str
+) -> bool:
+    os.remove(request_file)
+    logger.info(f"Cleanup: Removed test message request file: {filename}")
+    return True
+
+
+@handle_errors(
+    "cleaning up problematic test message request file",
+    user_friendly=False,
+    default_return=None,
+)
+def handle_test_message_request_processing_error(
+    request_file: str, filename: str, error: BaseException
+) -> None:
+    logger.error(f"Error processing test message request {filename}: {error}")
+    os.remove(request_file)
+    logger.debug(f"Removed problematic request file: {filename}")
+
+
+@handle_errors(
+    "cleaning up problematic reschedule request file",
+    user_friendly=False,
+    default_return=None,
+)
+def handle_reschedule_request_processing_error(
+    request_file: str, filename: str, error: BaseException
+) -> None:
+    logger.error(f"Error processing reschedule request {filename}: {error}")
+    os.remove(request_file)
+    logger.debug(f"Removed problematic request file: {filename}")

@@ -16,12 +16,12 @@ from communication.communication_channels.base.base_channel import (
 from communication.core.factory import ChannelFactory
 from communication.core.retry_manager import RetryManager
 from communication.core.channel_monitor import ChannelMonitor
+from communication.core.message_send_result import MessageSendResult
+from communication.delivery.message_dispatcher import PredefinedMessageDispatcher
+from communication.reminders.reminder_dispatcher import CheckinReminderDispatcher
 from core import get_user_data
 from core.message_management import store_sent_message
-from core.schedule_runtime import (
-    get_current_time_periods_with_validation,
-    get_current_day_names,
-)
+from core.schedule_runtime import get_current_time_periods_with_validation
 from core.config import EMAIL_SMTP_SERVER, DISCORD_BOT_TOKEN
 from core.network_probe import wait_for_network
 import contextlib
@@ -83,6 +83,8 @@ class CommunicationManager:
         # Pass send_message_sync as callback for retry manager
         self.retry_manager = RetryManager(send_callback=self.send_message_sync)
         self.channel_monitor = ChannelMonitor()
+        self.predefined_dispatcher = PredefinedMessageDispatcher(self)
+        self.checkin_dispatcher = CheckinReminderDispatcher(self)
 
         # Set up event loop for async operations
         self.__init____setup_event_loop()
@@ -1272,14 +1274,17 @@ class CommunicationManager:
         logger.info(f"Total messages received: {len(all_messages)}")
         return all_messages
 
-    @handle_errors("handling message sending", default_return="failed")
+    @handle_errors(
+        "handling message sending",
+        default_return=MessageSendResult.failed(),
+    )
     def handle_message_sending(
         self,
         user_id: str,
         category: str,
         is_scheduled_trigger: bool = False,
         allow_deferral: bool = True,
-    ) -> str:
+    ) -> MessageSendResult:
         """
         Handle sending messages for a user and category with improved recipient resolution.
         Now uses scheduled check-ins instead of random replacement.
@@ -1292,7 +1297,7 @@ class CommunicationManager:
 
         if not user_id:
             logger.error("User ID is not provided.")
-            return "failed"
+            return MessageSendResult.failed(category=category)
 
         # Scheduled sends should defer if user is mid-flow or just completed one.
         if is_scheduled_trigger and allow_deferral:
@@ -1305,19 +1310,19 @@ class CommunicationManager:
                 logger.info(
                     f"Deferring scheduled message for user {user_id}, category {category}, reason={block_reason}"
                 )
-                return "deferred"
+                return MessageSendResult.deferred(user_id, category)
 
         # Get user preferences
         prefs_result = get_user_data(user_id, "preferences", normalize_on_read=True)
         preferences = prefs_result.get("preferences")
         if not preferences:
             logger.error(f"User preferences not found for user {user_id}.")
-            return "failed"
+            return MessageSendResult.failed(user_id, category)
 
         messaging_service = preferences.get("channel", {}).get("type")
         if not messaging_service:
             logger.error(f"No messaging service configured for user {user_id}")
-            return "failed"
+            return MessageSendResult.failed(user_id, category)
 
         # Get the appropriate recipient ID for the messaging service
         recipient = self._get_recipient_for_service(
@@ -1327,12 +1332,12 @@ class CommunicationManager:
             logger.error(
                 f"No valid recipient found for user {user_id} with service {messaging_service}"
             )
-            return "failed"
+            return MessageSendResult.failed(user_id, category)
 
         # Handle check-in category specially
         if category == "checkin":
             self._handle_scheduled_checkin(user_id, messaging_service, recipient)
-            return "sent"
+            return MessageSendResult.sent(user_id, category)
 
         # Handle AI-generated messages and track if message was actually sent
         message_sent = False
@@ -1346,14 +1351,6 @@ class CommunicationManager:
                 user_id, category, messaging_service, recipient
             )
 
-        # Store sent message content for response file (if this is a test message request)
-        if sent_message_content:
-            self._last_sent_message = {
-                "user_id": user_id,
-                "category": category,
-                "message": sent_message_content,
-            }
-
         # CRITICAL: Only expire check-in flows if a message was actually sent and delivered
         # Don't expire flows for failed sends or when no message was available to send
         if message_sent:
@@ -1362,12 +1359,13 @@ class CommunicationManager:
                 self._expire_checkin_flow_if_needed(user_id, category)
 
             # Message sending completion already logged above with full details
-            return "sent"
-        else:
-            logger.debug(
-                f"No message sent for user {user_id}, category {category} - preserving any active check-in flow"
+            return MessageSendResult.sent(
+                user_id, category, sent_text=sent_message_content
             )
-            return "skipped"
+        logger.debug(
+            f"No message sent for user {user_id}, category {category} - preserving any active check-in flow"
+        )
+        return MessageSendResult.skipped(user_id, category)
 
     @handle_errors(
         "expiring check-in flow if needed", user_friendly=False, default_return=None
@@ -1452,36 +1450,9 @@ class CommunicationManager:
 
     @handle_errors("determining if check-in prompt should be sent", default_return=True)
     def _should_send_checkin_prompt(self, user_id: str, checkin_prefs: dict) -> bool:
-        """
-        Determine if it's time to send a check-in prompt based on user preferences.
-        For check-ins, we respect the schedule-based approach - if the scheduler
-        triggered this function, it means it's time for a check-in during the
-        scheduled period.
-        """
-        try:
-            frequency = checkin_prefs.get("frequency", "daily")
-
-            # If frequency is set to "none" or "manual", never auto-prompt
-            if frequency in ["none", "manual"]:
-                logger.debug(
-                    f"User {user_id} has check-in frequency set to '{frequency}', skipping auto-prompt"
-                )
-                return False
-
-            # For check-ins, we trust the scheduler to determine timing
-            # The scheduler only calls this during the scheduled time period
-            # So if we get here, it's time for a check-in
-            logger.debug(
-                f"Check-in scheduled for user {user_id} during scheduled time period"
-            )
-            return True
-
-        except Exception as e:
-            logger.error(
-                f"Error determining if check-in prompt should be sent for user {user_id}: {e}"
-            )
-            # Default to sending check-in if there's an error
-            return True
+        return self.checkin_dispatcher.should_send_checkin_prompt(
+            user_id, checkin_prefs
+        )
 
     @handle_errors(
         "handling scheduled check-in", user_friendly=False, default_return=None
@@ -1489,119 +1460,17 @@ class CommunicationManager:
     def _handle_scheduled_checkin(
         self, user_id: str, messaging_service: str, recipient: str
     ):
-        """
-        Handle scheduled check-in messages based on user preferences and frequency.
-        """
-        prefs_result = get_user_data(user_id, "preferences", normalize_on_read=True)
-        preferences = prefs_result.get("preferences")
-        if not preferences:
-            logger.error(f"User preferences not found for user {user_id}")
-            return
-
-        # Check if check-ins are enabled in account features
-        # Get user account data
-        user_data_result = get_user_data(user_id, "account", normalize_on_read=True)
-        account_data = user_data_result.get("account")
-        if (
-            not account_data
-            or account_data.get("features", {}).get("checkins") != "enabled"
-        ):
-            logger.debug(f"Check-ins disabled for user {user_id}")
-            return
-
-        checkin_prefs = preferences.get("checkin_settings", {})
-
-        # Check frequency and last check-in time
-        frequency = checkin_prefs.get("frequency", "daily")
-
-        # If frequency is "none", don't send scheduled check-ins
-        if frequency == "none":
-            logger.debug(
-                f"Check-in frequency set to 'none' for user {user_id}, skipping scheduled check-in"
-            )
-            return
-
-        # Check if it's time for a check-in based on frequency
-        if self._should_send_checkin_prompt(user_id, checkin_prefs):
-            self._send_checkin_prompt(user_id, messaging_service, recipient)
-            logger.info(f"Sent scheduled check-in prompt to user {user_id}")
-        else:
-            logger.debug(f"Check-in not due yet for user {user_id}")
+        self.checkin_dispatcher.handle_scheduled_checkin(
+            user_id, messaging_service, recipient
+        )
 
     @handle_errors("sending check-in prompt", default_return=None)
     def _send_checkin_prompt(
         self, user_id: str, messaging_service: str, recipient: str
     ):
-        """
-        Send a check-in prompt message to start the check-in flow.
-        """
-        try:
-            # Initialize the dynamic check-in flow properly
-            from communication.message_processing.conversation_flow_manager import (
-                conversation_manager,
-            )
-
-            # Initialize flow without logging start yet; log only after successful send
-            reply_text, completed = conversation_manager._start_dynamic_checkin(user_id)
-
-            # Create custom view for check-in buttons (Discord only)
-            # Note: Views are created lazily within the Discord async context to avoid event loop errors
-            custom_view = None
-            if messaging_service == "discord":
-                try:
-                    # Import here to avoid circular dependencies
-                    from communication.communication_channels.discord.checkin_view import (
-                        get_checkin_view,
-                    )
-
-                    # Try to create view, but handle event loop errors gracefully
-                    import asyncio
-
-                    try:
-                        # Check if we're in an async context
-                        asyncio.get_running_loop()
-                        # We're in async context, safe to create view
-                        custom_view = get_checkin_view(user_id)
-                    except RuntimeError:
-                        # No running event loop - view will be created lazily in Discord thread
-                        # Pass a factory function instead
-                        @handle_errors("creating check-in view", default_return=None)
-                        def create_view():
-                            return get_checkin_view(user_id)
-
-                        custom_view = create_view
-                except Exception as e:
-                    logger.warning(f"Could not create check-in view for Discord: {e}")
-
-            # Send the initial message to the user with retry support
-            success = self.send_message_sync(
-                messaging_service,
-                recipient,
-                reply_text,
-                user_id=user_id,
-                category="checkin",
-                view=custom_view,
-            )
-
-            if success:
-                logger.info(
-                    f"Successfully sent check-in prompt to user {user_id} and initialized flow"
-                )
-                # Now record the check-in start in user activity
-                try:
-                    user_logger = get_component_logger("user_activity")
-                    user_logger.info(
-                        "User check-in started", user_id=user_id, checkin_type="daily"
-                    )
-                except Exception:
-                    pass
-            else:
-                logger.warning(f"Failed to send check-in prompt to user {user_id}")
-                # Preserve conversation state so we can retry sending when channel recovers
-
-        except Exception as e:
-            logger.error(f"Error sending check-in prompt to user {user_id}: {e}")
-            # Preserve conversation state to allow retry after recovery
+        self.checkin_dispatcher.send_checkin_prompt(
+            user_id, messaging_service, recipient
+        )
 
     @handle_errors("sending AI-generated message", default_return=(False, None))
     def _send_ai_generated_message(
@@ -1675,32 +1544,17 @@ class CommunicationManager:
     def _normalize_message_selection_periods(
         self, matching_periods: list[str], valid_periods: list[str]
     ) -> list[str]:
-        """Normalize matching periods for message selection."""
-        normalized_periods = matching_periods[:]
-        if "ALL" in normalized_periods and len(normalized_periods) > 1:
-            normalized_periods = [p for p in normalized_periods if p != "ALL"]
-            logger.debug(
-                f"MESSAGE_SELECTION: Removed 'ALL' from matching_periods, now: {normalized_periods}"
-            )
-        if not normalized_periods and "ALL" in valid_periods:
-            normalized_periods = ["ALL"]
-            logger.debug("MESSAGE_SELECTION: Using 'ALL' as fallback period")
-        return normalized_periods
+        return self.predefined_dispatcher.normalize_message_selection_periods(
+            matching_periods, valid_periods
+        )
 
     @handle_errors("loading predefined messages library", default_return=None)
     def _load_predefined_messages_library(
         self, user_id: str, category: str
     ) -> dict | None:
-        """Load messages in runtime shape for selection."""
-        from core.message_management import load_user_messages
-
-        messages = load_user_messages(user_id, category)
-        if not messages:
-            logger.error(
-                f"MESSAGE_SELECTION_ERROR: No messages found for category {category} and user {user_id}."
-            )
-            return None
-        return {"messages": messages}
+        return self.predefined_dispatcher.load_predefined_messages_library(
+            user_id, category
+        )
 
     @handle_errors("filtering messages by day and period", default_return=[])
     def _filter_messages_by_day_and_period(
@@ -1709,58 +1563,19 @@ class CommunicationManager:
         current_days: list[str],
         matching_periods: list[str],
     ) -> list[dict]:
-        """Filter messages by active day and matching period."""
-        @handle_errors("extracting message schedule fields", default_return=(["ALL"], ["ALL"]))
-        def _schedule_fields(msg: dict[str, Any]) -> tuple[list[str], list[str]]:
-            """Return (days, periods) for filtering from v2 ``schedule``."""
-            schedule = msg.get("schedule")
-            if not isinstance(schedule, dict):
-                return ["ALL"], ["ALL"]
-            days = schedule.get("days")
-            periods = schedule.get("periods")
-            days_list = [d for d in (days or ["ALL"]) if isinstance(d, str)] or ["ALL"]
-            periods_list = [p for p in (periods or ["ALL"]) if isinstance(p, str)] or ["ALL"]
-            return days_list, periods_list
-
-        return [
-            msg
-            for msg in messages
-            if (
-                lambda days, periods: any(day in days for day in current_days)
-                and any(period in periods for period in matching_periods)
-            )(*_schedule_fields(msg))
-        ]
+        return self.predefined_dispatcher.filter_messages_by_day_and_period(
+            messages, current_days, matching_periods
+        )
 
     @handle_errors("deduplicating candidate messages", default_return=[])
     def _deduplicate_candidate_messages(
         self, user_id: str, category: str, all_messages: list[dict]
     ) -> list[dict]:
-        """Filter recent duplicates; fallback to all candidates if needed."""
-        from core.message_management import get_recent_messages
-
-        recent_messages = get_recent_messages(
-            user_id, category=category, limit=50, days_back=60
+        return self.predefined_dispatcher.deduplicate_candidate_messages(
+            user_id, category, all_messages
         )
-        recent_content = {
-            msg.get("sent_text", "").strip().lower()
-            for msg in recent_messages
-            if msg.get("sent_text")
-        }
 
-        available_messages = []
-        for msg in all_messages:
-            message_content = msg.get("text", "").strip()
-            if message_content and message_content.lower() not in recent_content:
-                available_messages.append(msg)
-
-        if not available_messages:
-            logger.info(
-                f"No messages available after deduplication for user {user_id}, category {category}. All time-period messages were sent recently."
-            )
-            return all_messages
-
-        return available_messages
-
+    # not_duplicate: orch_predefined_dispatcher_thin
     @handle_errors("sending and storing predefined message", default_return=(False, None))
     def _send_and_store_predefined_message(
         self,
@@ -1771,133 +1586,23 @@ class CommunicationManager:
         message_to_send: dict,
         matching_periods: list[str],
     ) -> tuple[bool, str | None]:
-        """Send selected message and store tracking information."""
-        from core.message_management import store_sent_message
-
-        success = self.send_message_sync(
-            messaging_service,
-            recipient,
-            str(message_to_send.get("text") or ""),
-            user_id=user_id,
-            category=category,
-        )
-
-        current_time_period = matching_periods[0] if matching_periods else None
-        selected_message_content = str(message_to_send.get("text") or "")
-        selected_message_id = str(message_to_send.get("id") or "")
-        message_preview = (
-            selected_message_content[:50] + "..."
-            if len(selected_message_content) > 50
-            else selected_message_content
-        )
-
-        store_sent_message(
+        return self.predefined_dispatcher.send_and_store_predefined_message(
             user_id,
             category,
-            selected_message_id,
-            selected_message_content,
-            time_period=current_time_period,
+            messaging_service,
+            recipient,
+            message_to_send,
+            matching_periods,
         )
 
-        if success:
-            logger.info(
-                f"Message sent successfully via {messaging_service} to {recipient} | User: {user_id}, Category: {category}, Period: {current_time_period} | Content: '{message_preview}'"
-            )
-            return True, selected_message_content
-
-        logger.warning(
-            f"Message send returned False but may have still been delivered for user {user_id}, category {category} | Period: {current_time_period} | Content: '{message_preview}'"
-        )
-        return True, selected_message_content
-
+    # not_duplicate: orch_predefined_dispatcher_thin
     @handle_errors("sending predefined message", default_return=(False, None))
     def _send_predefined_message(
         self, user_id: str, category: str, messaging_service: str, recipient: str
     ) -> tuple[bool, str | None]:
-        """
-        Send a pre-defined message from the user's message library with deduplication.
-
-        Returns:
-            tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
-        """
-        try:
-            matching_periods, valid_periods = get_current_time_periods_with_validation(
-                user_id, category
-            )
-            logger.debug(
-                f"MESSAGE_SELECTION: User {user_id}, category {category} | Matching periods: {matching_periods}, Valid periods: {valid_periods}"
-            )
-            matching_periods = self._normalize_message_selection_periods(
-                matching_periods, valid_periods
-            )
-
-            data = self._load_predefined_messages_library(user_id, category)
-            if not data:
-                return False, None
-
-            # Get current day for filtering
-            current_days = get_current_day_names()
-            logger.debug(f"MESSAGE_SELECTION: Current days: {current_days}")
-            logger.debug(
-                f"MESSAGE_SELECTION: Total messages in library: {len(data['messages'])}"
-            )
-
-            all_messages = self._filter_messages_by_day_and_period(
-                data["messages"], current_days, matching_periods
-            )
-
-            if not all_messages:
-                logger.warning(
-                    f"MESSAGE_SELECTION_NO_MATCH: No messages found for user {user_id}, category {category} | Current days: {current_days}, Matching periods: {matching_periods}, Total messages: {len(data['messages'])}"
-                )
-                # Sample first 3 messages to show what we're looking for
-                sample_messages = data["messages"][:3]
-                for i, msg in enumerate(sample_messages):
-                    sch = msg.get("schedule") if isinstance(msg.get("schedule"), dict) else {}
-                    logger.debug(
-                        f"MESSAGE_SELECTION_SAMPLE_{i}: days={sch.get('days')}, periods={sch.get('periods')}, text_preview='{str(msg.get('text', ''))[:50]}'"
-                    )
-                return False, None
-
-            available_messages = self._deduplicate_candidate_messages(
-                user_id, category, all_messages
-            )
-            if not available_messages:
-                available_messages = all_messages
-                logger.info(
-                    f"Using fallback: selecting from all {len(available_messages)} time-period messages"
-                )
-
-            # Select a message using weighted selection (prioritizes specific time periods over 'ALL')
-            message_to_send = self._select_weighted_message(
-                available_messages, matching_periods
-            )
-            logger.debug(
-                f"Selected message for user {user_id}, category {category} from {len(available_messages)} available messages"
-            )
-
-            try:
-                return self._send_and_store_predefined_message(
-                    user_id,
-                    category,
-                    messaging_service,
-                    recipient,
-                    message_to_send,
-                    matching_periods,
-                )
-
-            except Exception as send_error:
-                logger.error(
-                    f"Exception during message send for user {user_id}, category {category}: {send_error}"
-                )
-                # Don't store the message if there was an exception
-                return False, None
-
-        except Exception as e:
-            logger.error(
-                f"Error in predefined message handling for user {user_id}, category {category}: {e}"
-            )
-            return False, None
+        return self.predefined_dispatcher.send_predefined_message(
+            user_id, category, messaging_service, recipient
+        )
 
     # NEW METHODS: More specific channel management methods
     @handle_errors("getting active channels", default_return=[])
@@ -2141,73 +1846,6 @@ class CommunicationManager:
 
     @handle_errors("selecting weighted message", default_return="")
     def _select_weighted_message(self, available_messages, matching_periods):
-        """
-        Select weighted message with validation.
-
-        Returns:
-            str: Selected message, empty string if failed
-        """
-        # Validate available_messages
-        if not available_messages or not isinstance(available_messages, list):
-            logger.error(f"Invalid available_messages: {available_messages}")
-            return ""
-
-        # Validate matching_periods
-        if not matching_periods or not isinstance(matching_periods, list):
-            logger.error(f"Invalid matching_periods: {matching_periods}")
-            return ""
-        """
-        Select a message using a weighting system that prioritizes
-        messages with specific time periods over 'ALL' time periods.
-        
-        Args:
-            available_messages: List of available messages
-            matching_periods: List of current matching time periods
-            
-        Returns:
-            Selected message
-        """
-        import random
-
-        if not available_messages:
-            return None
-
-        # Separate messages into two groups:
-        # 1. Messages with specific time periods (higher priority)
-        # 2. Messages with only 'ALL' time periods (lower priority)
-
-        specific_period_messages = []
-        all_period_messages = []
-
-        for msg in available_messages:
-            sched = msg.get("schedule") if isinstance(msg.get("schedule"), dict) else {}
-            time_periods = sched.get("periods") or ["ALL"]
-            if not isinstance(time_periods, list):
-                time_periods = ["ALL"]
-            # Check if message has any specific time periods (not just 'ALL')
-            has_specific_periods = any(period != "ALL" for period in time_periods)
-
-            if has_specific_periods:
-                specific_period_messages.append(msg)
-            else:
-                all_period_messages.append(msg)
-
-        # Weighted selection: 70% chance for specific periods, 30% chance for 'ALL' periods
-        if specific_period_messages and random.random() < 0.7:
-            # Select from specific period messages
-            selected_message = random.choice(specific_period_messages)
-            logger.debug(
-                "Selected message with specific time periods (weighted selection)"
-            )
-        elif all_period_messages:
-            # Select from 'ALL' period messages
-            selected_message = random.choice(all_period_messages)
-            logger.debug(
-                "Selected message with 'ALL' time periods (weighted selection)"
-            )
-        else:
-            # Fallback to any available message
-            selected_message = random.choice(available_messages)
-            logger.debug("Selected message (fallback selection)")
-
-        return selected_message
+        return self.predefined_dispatcher.select_weighted_message(
+            available_messages, matching_periods
+        )

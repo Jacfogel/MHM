@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-02 03:03:52
+> **Last Generated**: 2026-05-02 19:34:01
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,17 +14,17 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 94.5% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 124
-- **Functions Found**: 1771
-- **Methods Found**: 1248
-- **Classes Found**: 159
-- **Total Items**: 3019
-- **Functions Documented**: 1655
-- **Methods Documented**: 1199
-- **Classes Documented**: 122
-- **Total Documented**: 2854
-- **Template-Generated**: 4
+### **Function Documentation Coverage: 92.5% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 135
+- **Functions Found**: 1829
+- **Methods Found**: 1263
+- **Classes Found**: 162
+- **Total Items**: 3092
+- **Functions Documented**: 1666
+- **Methods Documented**: 1194
+- **Classes Documented**: 124
+- **Total Documented**: 2860
+- **Template-Generated**: 18
 - **Last Updated**: 2026-05-02
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (617)
+### **Core System Functions** (647)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (474)
+### **Communication Functions** (492)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (430)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (33)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (55)
+### **Task Management Functions** (65)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -1097,7 +1097,6 @@ Args:
 Returns:
     Task dictionary if found, None otherwise
 - [OK] `_get_task_candidates(self, tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
-- [MISSING] `_get_tasks()` - No description
 - [OK] `_handle_complete_task(self, user_id, entities)` - Handle task completion
 - [OK] `_handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date
 - [OK] `_handle_create_task(self, user_id, entities)` - Handle task creation
@@ -1119,6 +1118,7 @@ Returns:
 - [OK] `_handle_update_task(self, user_id, entities)` - Handle task updates
 - [OK] `_parse_time_string(self, time_str)` - Parse time string to HH:MM format
 - [OK] `_task_identifier(task)` - Return canonical task identifier for command routing.
+- [OK] `_task_service()` - Return the cached ``tasks.task_service`` module (lazy import for circular-import safety).
 - [OK] `_task_short_identifier(task)` - Return canonical short_id for task matching/display.
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
 - [OK] `get_examples(self)` - Get example commands for task management.
@@ -1417,6 +1417,7 @@ Returns:
 
 Returns:
     discord.Embed: Created embed, None if failed
+- [OK] `_drain_ngrok_stderr()` - Read ngrok stderr in a loop so a full pipe cannot block the child process.
 - [OK] `_get_detailed_connection_status(self)` - Get detailed connection status information
 - [OK] `_get_suggestion_payloads(self, rich_data)` - Extract hidden button payloads from response rich data.
 - [OK] `_has_display_rich_data(self, rich_data)` - Return True when rich_data contains embed-facing fields.
@@ -1764,45 +1765,34 @@ Verifies that the logging system is functional and attempts to restart it if iss
 
 Returns:
     str: Task reminder message, default if failed
-- [OK] `_deduplicate_candidate_messages(self, user_id, category, all_messages)` - Filter recent duplicates; fallback to all candidates if needed.
+- [MISSING] `_deduplicate_candidate_messages(self, user_id, category, all_messages)` - No description
 - [OK] `_email_polling_loop(self)` - Background thread that periodically polls for incoming emails and processes them
 - [OK] `_expire_checkin_flow_if_needed(self, user_id, category)` - Expire check-in flow if this is a non-scheduled message.
-- [OK] `_filter_messages_by_day_and_period(self, messages, current_days, matching_periods)` - Filter messages by active day and matching period.
+- [MISSING] `_filter_messages_by_day_and_period(self, messages, current_days, matching_periods)` - No description
 - [OK] `_get_default_channel_configs(self)` - Get default channel configurations
 - [OK] `_get_recipient_for_service(self, user_id, messaging_service, preferences)` - Get recipient for service with validation.
 
 Returns:
     Optional[str]: Recipient ID, None if failed
-- [OK] `_handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - Handle scheduled check-in messages based on user preferences and frequency.
+- [MISSING] `_handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - No description
 - [OK] `_initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
-- [OK] `_load_predefined_messages_library(self, user_id, category)` - Load messages in runtime shape for selection.
-- [OK] `_normalize_message_selection_periods(self, matching_periods, valid_periods)` - Normalize matching periods for message selection.
+- [MISSING] `_load_predefined_messages_library(self, user_id, category)` - No description
+- [MISSING] `_normalize_message_selection_periods(self, matching_periods, valid_periods)` - No description
 - [OK] `_process_incoming_email(self, email_msg)` - Process an incoming email message and send response
-- [OK] `_schedule_fields(msg)` - Return (days, periods) for filtering from v2 ``schedule``.
-- [OK] `_select_weighted_message(self, available_messages, matching_periods)` - Select weighted message with validation.
-
-Returns:
-    str: Selected message, empty string if failed
+- [MISSING] `_select_weighted_message(self, available_messages, matching_periods)` - No description
 - [OK] `_send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using contextual AI.
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
-- [OK] `_send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - Send selected message and store tracking information.
-- [OK] `_send_checkin_prompt(self, user_id, messaging_service, recipient)` - Send a check-in prompt message to start the check-in flow.
+- [MISSING] `_send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - No description
+- [MISSING] `_send_checkin_prompt(self, user_id, messaging_service, recipient)` - No description
 - [OK] `_send_email_response(self, recipient_email, response_text, subject)` - Send an email response to a user
-- [OK] `_send_predefined_message(self, user_id, category, messaging_service, recipient)` - Send a pre-defined message from the user's message library with deduplication.
-
-Returns:
-    tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
-- [OK] `_should_send_checkin_prompt(self, user_id, checkin_prefs)` - Determine if it's time to send a check-in prompt based on user preferences.
-For check-ins, we respect the schedule-based approach - if the scheduler
-triggered this function, it means it's time for a check-in during the
-scheduled period.
+- [MISSING] `_send_predefined_message(self, user_id, category, messaging_service, recipient)` - No description
+- [MISSING] `_should_send_checkin_prompt(self, user_id, checkin_prefs)` - No description
 - [OK] `_shutdown_sync(self)` - Synchronous shutdown method for all channels.
 
 Stops all communication channels and cleans up resources.
 - [OK] `_start_sync(self)` - Synchronous method to start all configured channels
-- [MISSING] `create_view()` - No description
 - [MISSING] `create_view()` - No description
 - [OK] `get_active_channels(self)` - Get active channels with validation.
 
@@ -1868,39 +1858,30 @@ Verifies that the logging system is functional and attempts to restart it if iss
 
 Returns:
     str: Task reminder message, default if failed
-  - [OK] `CommunicationManager._deduplicate_candidate_messages(self, user_id, category, all_messages)` - Filter recent duplicates; fallback to all candidates if needed.
+  - [MISSING] `CommunicationManager._deduplicate_candidate_messages(self, user_id, category, all_messages)` - No description
   - [OK] `CommunicationManager._email_polling_loop(self)` - Background thread that periodically polls for incoming emails and processes them
   - [OK] `CommunicationManager._expire_checkin_flow_if_needed(self, user_id, category)` - Expire check-in flow if this is a non-scheduled message.
-  - [OK] `CommunicationManager._filter_messages_by_day_and_period(self, messages, current_days, matching_periods)` - Filter messages by active day and matching period.
+  - [MISSING] `CommunicationManager._filter_messages_by_day_and_period(self, messages, current_days, matching_periods)` - No description
   - [OK] `CommunicationManager._get_default_channel_configs(self)` - Get default channel configurations
   - [OK] `CommunicationManager._get_recipient_for_service(self, user_id, messaging_service, preferences)` - Get recipient for service with validation.
 
 Returns:
     Optional[str]: Recipient ID, None if failed
-  - [OK] `CommunicationManager._handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - Handle scheduled check-in messages based on user preferences and frequency.
+  - [MISSING] `CommunicationManager._handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - No description
   - [OK] `CommunicationManager._initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
-  - [OK] `CommunicationManager._load_predefined_messages_library(self, user_id, category)` - Load messages in runtime shape for selection.
-  - [OK] `CommunicationManager._normalize_message_selection_periods(self, matching_periods, valid_periods)` - Normalize matching periods for message selection.
+  - [MISSING] `CommunicationManager._load_predefined_messages_library(self, user_id, category)` - No description
+  - [MISSING] `CommunicationManager._normalize_message_selection_periods(self, matching_periods, valid_periods)` - No description
   - [OK] `CommunicationManager._process_incoming_email(self, email_msg)` - Process an incoming email message and send response
-  - [OK] `CommunicationManager._select_weighted_message(self, available_messages, matching_periods)` - Select weighted message with validation.
-
-Returns:
-    str: Selected message, empty string if failed
+  - [MISSING] `CommunicationManager._select_weighted_message(self, available_messages, matching_periods)` - No description
   - [OK] `CommunicationManager._send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using contextual AI.
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
-  - [OK] `CommunicationManager._send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - Send selected message and store tracking information.
-  - [OK] `CommunicationManager._send_checkin_prompt(self, user_id, messaging_service, recipient)` - Send a check-in prompt message to start the check-in flow.
+  - [MISSING] `CommunicationManager._send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - No description
+  - [MISSING] `CommunicationManager._send_checkin_prompt(self, user_id, messaging_service, recipient)` - No description
   - [OK] `CommunicationManager._send_email_response(self, recipient_email, response_text, subject)` - Send an email response to a user
-  - [OK] `CommunicationManager._send_predefined_message(self, user_id, category, messaging_service, recipient)` - Send a pre-defined message from the user's message library with deduplication.
-
-Returns:
-    tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
-  - [OK] `CommunicationManager._should_send_checkin_prompt(self, user_id, checkin_prefs)` - Determine if it's time to send a check-in prompt based on user preferences.
-For check-ins, we respect the schedule-based approach - if the scheduler
-triggered this function, it means it's time for a check-in during the
-scheduled period.
+  - [MISSING] `CommunicationManager._send_predefined_message(self, user_id, category, messaging_service, recipient)` - No description
+  - [MISSING] `CommunicationManager._should_send_checkin_prompt(self, user_id, checkin_prefs)` - No description
   - [OK] `CommunicationManager._shutdown_sync(self)` - Synchronous shutdown method for all channels.
 
 Stops all communication channels and cleans up resources.
@@ -1967,6 +1948,21 @@ Returns:
   - [OK] `ChannelFactory._initialize_registry(cls)` - Initialize the channel registry from configuration
   - [OK] `ChannelFactory.create_channel(cls, name, config)` - Create a channel instance
   - [OK] `ChannelFactory.get_registered_channels(cls)` - Get list of registered channel types
+
+#### `communication/core/message_send_result.py`
+**Functions:**
+- [OK] `deferred(cls, user_id, category)` - Result when a scheduled send is deferred (e.g. user mid-conversation flow).
+- [OK] `failed(cls, user_id, category)` - Result when sending failed or prerequisites were missing.
+- [OK] `matches_request(self, user_id, category)` - True if this result applies to the given test-send request identity.
+- [OK] `sent(cls, user_id, category, sent_text)` - Result when a message was accepted for delivery (content may be None for some paths).
+- [OK] `skipped(cls, user_id, category)` - Result when no message was sent but the run completed without transport error.
+**Classes:**
+- [OK] `MessageSendResult` - Outcome of ``CommunicationManager.handle_message_sending``.
+  - [OK] `MessageSendResult.deferred(cls, user_id, category)` - Result when a scheduled send is deferred (e.g. user mid-conversation flow).
+  - [OK] `MessageSendResult.failed(cls, user_id, category)` - Result when sending failed or prerequisites were missing.
+  - [OK] `MessageSendResult.matches_request(self, user_id, category)` - True if this result applies to the given test-send request identity.
+  - [OK] `MessageSendResult.sent(cls, user_id, category, sent_text)` - Result when a message was accepted for delivery (content may be None for some paths).
+  - [OK] `MessageSendResult.skipped(cls, user_id, category)` - Result when no message was sent but the run completed without transport error.
 
 #### `communication/core/retry_manager.py`
 **Functions:**
@@ -2037,6 +2033,30 @@ Args:
 Returns:
     bool: True if successful
 - [OK] `welcome_tracking_json_path()` - Path to welcome-tracking JSON under the current BASE_DATA_DIR (tests may patch BASE_DATA_DIR).
+
+#### `communication/delivery/__init__.py`
+
+#### `communication/delivery/message_dispatcher.py`
+**Functions:**
+- [OK] `__init__(self, communication_manager)` - Special Python method
+- [MISSING] `_schedule_fields(msg)` - No description
+- [MISSING] `deduplicate_candidate_messages(self, user_id, category, all_messages)` - No description
+- [MISSING] `filter_messages_by_day_and_period(self, messages, current_days, matching_periods)` - No description
+- [MISSING] `load_predefined_messages_library(self, user_id, category)` - No description
+- [MISSING] `normalize_message_selection_periods(self, matching_periods, valid_periods)` - No description
+- [MISSING] `select_weighted_message(self, available_messages, matching_periods)` - No description
+- [MISSING] `send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - No description
+- [MISSING] `send_predefined_message(self, user_id, category, messaging_service, recipient)` - No description
+**Classes:**
+- [OK] `PredefinedMessageDispatcher` - Loads, filters, selects, and sends predefined category messages.
+  - [OK] `PredefinedMessageDispatcher.__init__(self, communication_manager)` - Special Python method
+  - [MISSING] `PredefinedMessageDispatcher.deduplicate_candidate_messages(self, user_id, category, all_messages)` - No description
+  - [MISSING] `PredefinedMessageDispatcher.filter_messages_by_day_and_period(self, messages, current_days, matching_periods)` - No description
+  - [MISSING] `PredefinedMessageDispatcher.load_predefined_messages_library(self, user_id, category)` - No description
+  - [MISSING] `PredefinedMessageDispatcher.normalize_message_selection_periods(self, matching_periods, valid_periods)` - No description
+  - [MISSING] `PredefinedMessageDispatcher.select_weighted_message(self, available_messages, matching_periods)` - No description
+  - [MISSING] `PredefinedMessageDispatcher.send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - No description
+  - [MISSING] `PredefinedMessageDispatcher.send_predefined_message(self, user_id, category, messaging_service, recipient)` - No description
 
 #### `communication/message_processing/__init__.py`
 
@@ -2523,6 +2543,22 @@ Returns:
     RoutingResult with message type and routing information
 - [OK] `MessageType` - Types of messages that can be routed
 - [OK] `RoutingResult` - Result of message routing
+
+#### `communication/reminders/__init__.py`
+
+#### `communication/reminders/reminder_dispatcher.py`
+**Functions:**
+- [OK] `__init__(self, communication_manager)` - Special Python method
+- [MISSING] `create_view()` - No description
+- [MISSING] `handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - No description
+- [MISSING] `send_checkin_prompt(self, user_id, messaging_service, recipient)` - No description
+- [MISSING] `should_send_checkin_prompt(self, user_id, checkin_prefs)` - No description
+**Classes:**
+- [MISSING] `CheckinReminderDispatcher` - No description
+  - [OK] `CheckinReminderDispatcher.__init__(self, communication_manager)` - Special Python method
+  - [MISSING] `CheckinReminderDispatcher.handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - No description
+  - [MISSING] `CheckinReminderDispatcher.send_checkin_prompt(self, user_id, messaging_service, recipient)` - No description
+  - [MISSING] `CheckinReminderDispatcher.should_send_checkin_prompt(self, user_id, checkin_prefs)` - No description
 
 ### `core/` - Core System Modules
 
@@ -3888,6 +3924,12 @@ Args:
 Raises:
     ValidationError: If message ID is not found or category is invalid
 
+#### `core/message_preview.py`
+**Functions:**
+- [OK] `get_predefined_message_preview_text(user_id, category)` - Return the text that would be chosen for a predefined-category send (mirrors orchestrator weighting).
+- [OK] `message_schedule_matches_current_window(day_names, time_periods, current_days, matching_periods)` - True if template schedule overlaps current day/period (ALL matches any).
+- [OK] `message_template_schedule_lists(msg)` - Return day names and time periods from a v2 template ``schedule`` (or ALL defaults).
+
 #### `core/network_probe.py`
 **Functions:**
 - [OK] `wait_for_network(timeout)` - Wait for the network to be available, retrying every 5 seconds up to a timeout.
@@ -4031,7 +4073,6 @@ Returns:
 
 Args:
     communication_manager: The communication manager for sending messages
-- [OK] `_is_weekly_backup_entry(backup_entry)` - Return True when a backup metadata entry represents a weekly backup.
 - [OK] `_remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
 This makes user message jobs effectively one-time jobs.
 - [OK] `_schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay)` - Schedule a one-time retry for deferred scheduled sends.
@@ -4232,6 +4273,20 @@ Args:
     wake_ahead_minutes: Minutes before schedule_time to wake the computer (default: 4)
   - [OK] `SchedulerManager.stop_scheduler(self)` - Stops the scheduler thread.
 
+#### `core/scheduler_jobs.py`
+**Functions:**
+- [OK] `register_system_daily_jobs(scheduler_manager)` - Register 02:00 log archival and 01:00 full daily scheduler jobs on the global ``schedule`` queue.
+
+#### `core/scheduler_maintenance.py`
+**Functions:**
+- [MISSING] `_is_weekly_backup_entry(backup_entry)` - No description
+- [MISSING] `check_and_perform_weekly_backup()` - No description
+- [MISSING] `perform_daily_log_archival()` - No description
+
+#### `core/scheduler_task_reminders.py`
+**Functions:**
+- [MISSING] `cleanup_orphaned_task_reminders(scheduler_manager)` - No description
+
 #### `core/schemas.py`
 **Functions:**
 - [OK] `_accept_legacy_shape(cls, data)` - Accept legacy schedule data format where periods are at top-level.
@@ -4346,10 +4401,6 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
 - [OK] `_has_any_request_files(self, base_dir)` - Quick check if any request files exist (optimization to avoid full scan when not needed).
 - [OK] `_log_discord_connectivity_health(self)` - Log connectivity diagnostics for Discord channel health.
 - [OK] `_log_hourly_service_status(self, loop_minutes)` - Log periodic service metrics and channel-health diagnostics.
-- [OK] `_message_schedule_matches_current_window(day_names, time_periods, current_days, matching_periods)` - True if template schedule overlaps current day/period (ALL matches any).
-- [OK] `_message_template_schedule_lists(msg)` - Return day names and time periods from a v2 template ``schedule`` (or ALL defaults).
-- [OK] `_poll_request_files_if_needed(self)` - Process request-flag files only when present to keep loop overhead low.
-- [OK] `_process_shutdown_request(self, shutdown_file)` - Return True when a shutdown request was detected and loop should stop.
 - [OK] `_write_checkin_response(self, user_id, first_question)` - Write the first check-in question to a response file for the UI to read.
 - [OK] `check_and_fix_logging(self)` - Check if logging is working and restart if needed
 - [OK] `check_checkin_prompt_requests(self)` - Check for and process check-in prompt request files from admin panel
@@ -4417,8 +4468,6 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
   - [OK] `MHMService._has_any_request_files(self, base_dir)` - Quick check if any request files exist (optimization to avoid full scan when not needed).
   - [OK] `MHMService._log_discord_connectivity_health(self)` - Log connectivity diagnostics for Discord channel health.
   - [OK] `MHMService._log_hourly_service_status(self, loop_minutes)` - Log periodic service metrics and channel-health diagnostics.
-  - [OK] `MHMService._poll_request_files_if_needed(self)` - Process request-flag files only when present to keep loop overhead low.
-  - [OK] `MHMService._process_shutdown_request(self, shutdown_file)` - Return True when a shutdown request was detected and loop should stop.
   - [OK] `MHMService._write_checkin_response(self, user_id, first_question)` - Write the first check-in question to a response file for the UI to read.
   - [OK] `MHMService.check_and_fix_logging(self)` - Check if logging is working and restart if needed
   - [OK] `MHMService.check_checkin_prompt_requests(self)` - Check for and process check-in prompt request files from admin panel
@@ -4446,6 +4495,36 @@ Args:
 Initializes communication channels, scheduler, and begins the main service loop.
 Sets up signal handlers for graceful shutdown.
   - [OK] `MHMService.validate_configuration(self)` - Validate all configuration settings before starting the service.
+
+#### `core/service_requests.py`
+**Functions:**
+- [MISSING] `check_checkin_prompt_requests(service)` - No description
+- [MISSING] `check_reschedule_requests(service)` - No description
+- [MISSING] `check_task_reminder_requests(service)` - No description
+- [OK] `check_test_message_requests(service)` - TEST: Check Message Requests
+- [MISSING] `cleanup_request_file_after_process(request_file, filename, request_type_label)` - No description
+- [MISSING] `cleanup_reschedule_requests(service)` - No description
+- [OK] `cleanup_test_message_requests(service)` - TEST: Cleanup Message Requests
+- [MISSING] `discover_reschedule_request_files(base_dir)` - No description
+- [OK] `discover_test_message_request_files(base_dir)` - TEST: Discover Message Request Files
+- [MISSING] `get_checkin_first_question(user_id)` - No description
+- [OK] `get_repo_base_directory()` - Project root (parent of ``core/``).
+- [MISSING] `handle_reschedule_request_processing_error(request_file, filename, error)` - No description
+- [OK] `handle_test_message_request_processing_error(request_file, filename, error)` - TEST: Handle Message Request Processing Error
+- [MISSING] `has_any_request_files(base_dir)` - No description
+- [OK] `is_test_message_request_filename(filename)` - TEST: Is Message Request Filename
+- [MISSING] `parse_reschedule_request_file(request_file)` - No description
+- [OK] `parse_test_message_request_file(request_file)` - TEST: Parse Message Request File
+- [OK] `process_all(service)` - Process pending UI/headless request flags (non-shutdown).
+- [OK] `process_pending_file_requests(service)` - Process request-flag files when any ``.flag`` exists under the repo root.
+- [OK] `process_shutdown_request(service, shutdown_file)` - Return True when shutdown was requested and the main loop should stop.
+- [MISSING] `process_valid_reschedule_request(service, request_data)` - No description
+- [OK] `process_valid_test_message_request(service, request_data)` - TEST: Process Valid Message Request
+- [OK] `remove_single_test_message_request_file(request_file, filename)` - TEST: Remove Single Message Request File
+- [MISSING] `validate_reschedule_request_data(service, request_data, filename)` - No description
+- [OK] `validate_test_message_request_data(request_data, filename)` - TEST: Validate Message Request Data
+- [MISSING] `write_checkin_response(user_id, first_question)` - No description
+- [OK] `write_test_message_response(user_id, category, message)` - TEST: Write Message Response
 
 #### `core/service_utilities.py`
 **Functions:**
@@ -5280,6 +5359,19 @@ Returns:
 - [OK] `TaskManagementError` - Custom exception for task management errors.
 - [MISSING] `TaskV2Model` - No description
   - [MISSING] `TaskV2Model.validate_completion_status(self)` - No description
+
+#### `tasks/task_service.py`
+**Functions:**
+- [MISSING] `_tasks()` - No description
+- [MISSING] `complete_task(user_id, task_id)` - No description
+- [MISSING] `create_task(user_id)` - No description
+- [MISSING] `delete_task(user_id, task_id)` - No description
+- [MISSING] `get_tasks_due_soon(user_id)` - No description
+- [MISSING] `get_user_task_stats(user_id)` - No description
+- [MISSING] `load_active_tasks(user_id)` - No description
+- [MISSING] `load_completed_tasks(user_id)` - No description
+- [MISSING] `restore_task(user_id, task_id)` - No description
+- [MISSING] `update_task(user_id, task_id, updates)` - No description
 
 #### `tasks/task_validation.py`
 **Functions:**

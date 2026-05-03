@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from communication.core.message_send_result import MessageSendResult
 from core.service import MHMService
 
 
@@ -156,11 +157,11 @@ class TestServiceTaskAndMessageRequestHelpers:
     def test_process_valid_test_message_request_writes_response_for_matching_message(
         self, service
     ):
-        service.communication_manager._last_sent_message = {
-            "user_id": "user-1",
-            "category": "motivational",
-            "message": "Keep going!",
-        }
+        service.communication_manager.handle_message_sending.return_value = (
+            MessageSendResult.sent(
+                "user-1", "motivational", sent_text="Keep going!"
+            )
+        )
         request_data = {
             "user_id": "user-1",
             "category": "motivational",
@@ -180,11 +181,11 @@ class TestServiceTaskAndMessageRequestHelpers:
         )
 
     def test_process_valid_test_message_request_skips_response_on_mismatch(self, service):
-        service.communication_manager._last_sent_message = {
-            "user_id": "different-user",
-            "category": "motivational",
-            "message": "Keep going!",
-        }
+        service.communication_manager.handle_message_sending.return_value = (
+            MessageSendResult.sent(
+                "different-user", "motivational", sent_text="Keep going!"
+            )
+        )
         request_data = {
             "user_id": "user-1",
             "category": "motivational",

@@ -20,7 +20,7 @@ from communication.command_handlers.shared_types import (
     InteractionResponse,
     ParsedCommand,
 )
-from notebook.notebook_data_manager import (
+from notebook.notebook_service import (
     get_entry,
     list_recent,
     append_to_entry_body,

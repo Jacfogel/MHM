@@ -24,6 +24,7 @@ from core.time_utilities import (
     parse_timestamp_minute,
     now_datetime_full,
 )
+from communication.core.message_send_result import MessageSendResult
 
 
 @pytest.fixture
@@ -31,7 +32,9 @@ def mock_communication_manager():
     """Create a mock communication manager."""
     mock_cm = Mock()
     mock_cm.send_message = Mock(return_value=True)
-    mock_cm.handle_message_sending = Mock(return_value="sent")
+    mock_cm.handle_message_sending = Mock(
+        return_value=MessageSendResult.sent("mock_user", "mock_category")
+    )
     mock_cm.handle_task_reminder = Mock(return_value=True)
     return mock_cm
 
@@ -720,7 +723,7 @@ class TestMessageHandling:
         # Make the first call fail, second call succeed
         scheduler_manager.communication_manager.handle_message_sending.side_effect = [
             Exception("Network error"),  # First call fails
-            "sent",  # Second call succeeds
+            MessageSendResult.sent(user_id, category),  # Second call succeeds
         ]
 
         with patch("time.sleep") as mock_sleep:  # Don't actually sleep during tests
@@ -745,7 +748,7 @@ class TestMessageHandling:
         user_id = "test-user"
         category = "motivational"
         scheduler_manager.communication_manager.handle_message_sending.return_value = (
-            "deferred"
+            MessageSendResult.deferred(user_id, category)
         )
 
         with (

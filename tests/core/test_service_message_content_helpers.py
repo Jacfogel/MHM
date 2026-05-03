@@ -18,7 +18,7 @@ def service():
 @pytest.mark.messages
 class TestServiceMessageContentHelpers:
     def test_validate_test_message_request_data_rejects_missing_fields(self, service):
-        with patch("core.service.logger") as mock_logger:
+        with patch("core.service_requests.logger") as mock_logger:
             ok = service._check_test_message_requests__validate_request_data(
                 {"user_id": None, "category": "motivational", "source": "ui"},
                 "test_message_request_1.flag",
@@ -39,21 +39,24 @@ class TestServiceMessageContentHelpers:
         assert service._has_any_request_files(str(base_dir)) is True
 
     def test_has_any_request_files_returns_true_when_scan_errors(self, service):
-        with patch("core.service.Path.iterdir", side_effect=Exception("scan failed")):
+        with patch(
+            "core.service_requests.Path.iterdir",
+            side_effect=Exception("scan failed"),
+        ):
             assert service._has_any_request_files("C:/does-not-matter") is True
 
     def test_get_message_content_selects_non_recent_specific_period_message(self, service):
         with (
             patch(
-                "core.schedule_runtime.get_current_time_periods_with_validation",
+                "core.message_preview.get_current_time_periods_with_validation",
                 return_value=(["ALL", "morning"], ["ALL", "morning"]),
             ),
             patch(
-                "core.schedule_runtime.get_current_day_names",
+                "core.message_preview.get_current_day_names",
                 return_value=["MONDAY"],
             ),
             patch(
-                "core.message_management.load_user_messages",
+                "core.message_preview.load_user_messages",
                 return_value=[
                     {
                         "text": "recent message",
@@ -72,7 +75,7 @@ class TestServiceMessageContentHelpers:
                 ],
             ),
             patch(
-                "core.message_management.get_recent_messages",
+                "core.message_preview.get_recent_messages",
                 return_value=[{"sent_text": "recent message"}],
             ),
             patch("core.config.get_user_data_dir", return_value="C:/tmp/user-1"),
@@ -88,15 +91,15 @@ class TestServiceMessageContentHelpers:
     def test_get_message_content_returns_none_when_no_messages_match(self, service):
         with (
             patch(
-                "core.schedule_runtime.get_current_time_periods_with_validation",
+                "core.message_preview.get_current_time_periods_with_validation",
                 return_value=(["morning"], ["morning"]),
             ),
             patch(
-                "core.schedule_runtime.get_current_day_names",
+                "core.message_preview.get_current_day_names",
                 return_value=["MONDAY"],
             ),
             patch(
-                "core.message_management.load_user_messages",
+                "core.message_preview.load_user_messages",
                 return_value=[],
             ),
             patch("core.config.get_user_data_dir", return_value="C:/tmp/user-1"),

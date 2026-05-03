@@ -15,7 +15,6 @@ from core import get_all_user_ids
 from core.schedule_runtime import get_schedule_time_periods
 from core.service_utilities import load_and_localize_datetime
 from core.time_utilities import (
-    now_timestamp_filename,
     now_datetime_full,
     TIMESTAMP_FULL,
     DATE_ONLY,
@@ -24,14 +23,15 @@ from core.time_utilities import (
     format_timestamp,
     parse_date_only,
     parse_time_only_minute,
-    parse_timestamp_full,
     parse_timestamp_minute,
 )
 from core.logger import get_component_logger
 from user.user_context import UserContext
 from core.error_handling import handle_errors
 from core import get_user_data
-from core.backup_manager import backup_manager
+from core import scheduler_jobs
+from core import scheduler_maintenance
+from core import scheduler_task_reminders
 from tasks.task_data_handlers import runtime_task_is_completed
 
 # Suppress debug logging from the schedule library to reduce log spam
@@ -73,16 +73,7 @@ class SchedulerManager:
             # Clear all accumulated jobs first to prevent job accumulation
             self.clear_all_accumulated_jobs()
 
-            # Schedule daily log archival at 02:00
-            schedule.every().day.at("02:00").do(self.perform_daily_log_archival)
-            logger.info("Scheduled new daily job for log archival at 02:00")
-
-            # Schedule a single full daily scheduler job at 01:00 to handle complete system initialization
-            # This ensures checkins, task reminders, full cleanup, and weekly backups (if needed) happen daily
-            schedule.every().day.at("01:00").do(self.run_full_daily_scheduler)
-            logger.info(
-                "Scheduled full daily scheduler job at 01:00 (includes checkins, task reminders, cleanup, and backup check)"
-            )
+            scheduler_jobs.register_system_daily_jobs(self)
 
             # Schedule messages for all users immediately on startup (one-time only)
             self.schedule_all_users_immediately()
@@ -965,7 +956,7 @@ class SchedulerManager:
                     is_scheduled_trigger=True,
                     allow_deferral=allow_deferral,
                 )
-                if send_status == "sent":
+                if send_status.status == "sent":
                     logger.info(
                         f"Message sent successfully for user {user_id}, category {category}."
                     )
@@ -973,7 +964,7 @@ class SchedulerManager:
                     self._remove_user_message_job(user_id, category)
                     return  # Exit after successful execution
 
-                if send_status == "deferred":
+                if send_status.status == "deferred":
                     logger.info(
                         f"Deferred scheduled message for user {user_id}, category {category}; scheduling one-time retry in 10 minutes."
                     )
@@ -986,7 +977,7 @@ class SchedulerManager:
                     )
                     return
 
-                if send_status == "skipped":
+                if send_status.status == "skipped":
                     logger.info(
                         f"Skipping scheduled message for user {user_id}, category {category}: no eligible message content."
                     )
@@ -1880,7 +1871,11 @@ class SchedulerManager:
             )
             return False
 
-    @handle_errors("cleaning up orphaned task reminders")
+    @handle_errors(
+        "running orphaned task reminder cleanup scheduler job",
+        user_friendly=False,
+        default_return=None,
+    )
     def cleanup_orphaned_task_reminders(self):
         """
         Periodic cleanup job to remove reminders for tasks that no longer exist.
@@ -1889,111 +1884,25 @@ class SchedulerManager:
         Removes reminders for tasks that have been deleted or completed.
         Runs daily at 03:00.
         """
-        try:
-            logger.info("Starting periodic cleanup of orphaned task reminders")
+        scheduler_task_reminders.cleanup_orphaned_task_reminders(self)
 
-            # Get all active users (we'll need to scan their tasks)
-            from core import get_all_user_ids
-
-            get_all_user_ids()
-
-            orphaned_count = 0
-            total_checked = 0
-
-            # Find all task reminder jobs
-            jobs_to_check = []
-            for job in schedule.jobs:
-                try:
-                    # Check if this is a task reminder job
-                    job_func = job.job_func
-                    if not job_func:
-                        continue
-                    if (
-                        hasattr(job_func, "func")
-                        and job_func.func == self.handle_task_reminder
-                    ) and hasattr(job_func, "keywords"):
-                        kwargs = job_func.keywords
-                        user_id = kwargs.get("user_id")
-                        task_identifier = kwargs.get("task_identifier")
-                        if user_id and task_identifier:
-                            jobs_to_check.append((job, user_id, task_identifier))
-                            total_checked += 1
-                except Exception as e:
-                    logger.debug(f"Could not inspect job for orphaned cleanup: {e}")
-                    continue
-
-            # Check each job's task still exists
-            from tasks import get_task_by_id
-
-            for job, user_id, task_identifier in jobs_to_check:
-                try:
-                    task = get_task_by_id(user_id, task_identifier)
-                    if not task:
-                        # Task doesn't exist - remove the reminder job
-                        try:
-                            schedule.jobs.remove(job)
-                            orphaned_count += 1
-                            logger.info(
-                                f"Removed orphaned reminder for non-existent task {task_identifier}, user {user_id}"
-                            )
-                        except ValueError:
-                            # Job was already removed
-                            pass
-                    elif runtime_task_is_completed(task):
-                        # Task is completed - remove the reminder job
-                        try:
-                            schedule.jobs.remove(job)
-                            orphaned_count += 1
-                            logger.info(
-                                f"Removed reminder for completed task {task_identifier}, user {user_id}"
-                            )
-                        except ValueError:
-                            # Job was already removed
-                            pass
-                except Exception as e:
-                    logger.debug(
-                        f"Error checking task {task_identifier} for user {user_id}: {e}"
-                    )
-                    continue
-
-            logger.info(
-                f"Orphaned reminder cleanup complete: checked {total_checked} reminders, removed {orphaned_count} orphaned reminders"
-            )
-
-        except Exception as e:
-            logger.error(
-                f"Error during orphaned task reminder cleanup: {e}", exc_info=True
-            )
-
-    @handle_errors("performing daily log archival")
+    @handle_errors(
+        "running daily log archival scheduler job",
+        user_friendly=False,
+        default_return=None,
+    )
     def perform_daily_log_archival(self):
         """
         Perform daily log archival to compress old logs and clean up archives.
         This runs automatically at 02:00 daily via the scheduler.
         """
-        try:
-            from core.logger import compress_old_logs, cleanup_old_archives
+        scheduler_maintenance.perform_daily_log_archival()
 
-            logger.info("Starting daily log archival process")
-
-            # Compress logs older than 7 days
-            compressed_count = compress_old_logs()
-            logger.info(
-                f"Daily log archival: compressed {compressed_count} old log files"
-            )
-
-            # Clean up archives older than 30 days
-            cleaned_count = cleanup_old_archives()
-            logger.info(
-                f"Daily log archival: cleaned {cleaned_count} old archive files"
-            )
-
-            logger.info("Daily log archival process completed successfully")
-
-        except Exception as e:
-            logger.error(f"Error during daily log archival: {e}")
-
-    @handle_errors("checking and performing weekly backup")
+    @handle_errors(
+        "running weekly backup check scheduler job",
+        user_friendly=False,
+        default_return=None,
+    )
     def check_and_perform_weekly_backup(self):
         """
         Check if a weekly backup is needed and perform it if so.
@@ -2003,100 +1912,7 @@ class SchedulerManager:
         - Last weekly backup is 7+ days old
         Retention is enforced by BackupManager with separate weekly/non-weekly buckets.
         """
-        try:
-            # Get list of existing backups
-            backups = backup_manager.list_backups()
-
-            @handle_errors(
-                "checking weekly backup entry during scheduler backup check",
-                default_return=False,
-            )
-            def _is_weekly_backup_entry(backup_entry: dict) -> bool:
-                """Return True when a backup metadata entry represents a weekly backup."""
-                if not isinstance(backup_entry, dict):
-                    return False
-                backup_name = str(backup_entry.get("backup_name") or "")
-                file_name = str(backup_entry.get("file_name") or "")
-                return backup_name.startswith("weekly_backup_") or file_name.startswith(
-                    "weekly_backup_"
-                )
-
-            weekly_backups = [b for b in backups if _is_weekly_backup_entry(b)]
-
-            # Check if weekly backup is needed based on latest weekly artifact.
-            needs_backup = False
-            if not weekly_backups:
-                logger.info("No weekly backups found - creating weekly backup")
-                needs_backup = True
-            else:
-                # list_backups() is sorted newest-first.
-                last_backup = weekly_backups[0]
-
-                created_at_str = last_backup.get("created_at") or ""
-                last_backup_time = parse_timestamp_full(created_at_str)
-                if last_backup_time is None:
-                    logger.warning(
-                        f"Latest weekly backup has invalid created_at timestamp '{created_at_str}' - creating a new backup for safety"
-                    )
-                    needs_backup = True
-                else:
-                    days_since_backup = (now_datetime_full() - last_backup_time).days
-
-                    if days_since_backup >= 7:
-                        logger.info(
-                            f"Last weekly backup was {days_since_backup} days ago - creating new weekly backup"
-                        )
-                        needs_backup = True
-                    else:
-                        logger.debug(
-                            f"Weekly backup not needed - latest weekly backup was {days_since_backup} days ago"
-                        )
-
-            # Create backup if needed
-            if needs_backup:
-                logger.info("Starting weekly backup process")
-
-                backup_path = backup_manager.create_backup(
-                    backup_name=f"weekly_backup_{now_timestamp_filename()}",
-                    include_users=True,
-                    include_config=True,
-                    include_logs=False,
-                )
-
-                if backup_path:
-                    logger.info(f"Weekly backup completed successfully: {backup_path}")
-
-                    # Check backup health
-                    backups = backup_manager.list_backups()
-                    latest_weekly = [
-                        b for b in backups if _is_weekly_backup_entry(b)
-                    ]
-                    if latest_weekly:
-                        latest_backup = latest_weekly[0]
-                        latest_created_at_str = latest_backup.get("created_at") or ""
-                        backup_time = parse_timestamp_full(latest_created_at_str)
-
-                        if backup_time is None:
-                            logger.warning(
-                                f"Backup health: Latest weekly backup has invalid created_at '{latest_created_at_str}'"
-                            )
-                        else:
-                            days_old = (now_datetime_full() - backup_time).days
-                            backup_size_mb = latest_backup.get("file_size", 0) / (
-                                1024 * 1024
-                            )
-                            logger.info(
-                                f"Backup health: Latest weekly backup is {days_old} days old, size: {backup_size_mb:.2f} MB"
-                            )
-                    else:
-                        logger.warning(
-                            "No weekly backups found after creation - backup health check failed"
-                        )
-                else:
-                    logger.error("Weekly backup failed - no backup path returned")
-
-        except Exception as e:
-            logger.error(f"Error during weekly backup check: {e}")
+        scheduler_maintenance.check_and_perform_weekly_backup()
 
 
 # Standalone functions for admin UI access

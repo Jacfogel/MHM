@@ -263,7 +263,7 @@ Discord-related configuration lives in `core.config` and `.env` keys. Key variab
   - Requirements:
     - ngrok is installed and on the PATH.  
     - **ngrok v3+**: run `ngrok config add-authtoken <token>` once (token from the ngrok dashboard); without it, the process exits immediately with code 1. Check `logs/discord.log` for the captured stderr line.  
-    - Configure the tunnel’s public URL in the Discord Developer Portal if Discord must reach your machine.  
+    - Configure the tunnel's public URL in the Discord Developer Portal if Discord must reach your machine.  
   - If you already run ngrok manually, set `DISCORD_AUTO_NGROK=false` to avoid duplicate tunnels.
 
 When changing or adding configuration:

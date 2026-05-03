@@ -590,7 +590,7 @@ class TestChannelOrchestratorHelpers:
             status = self.manager.handle_message_sending(
                 user_id, "motivational", is_scheduled_trigger=True, allow_deferral=True
             )
-        assert status == "deferred"
+        assert status.status == "deferred"
 
     def test_handle_message_sending_defers_when_cooldown_active(self):
         """Scheduled sends should defer during post-flow cooldown."""
@@ -602,7 +602,7 @@ class TestChannelOrchestratorHelpers:
             status = self.manager.handle_message_sending(
                 user_id, "motivational", is_scheduled_trigger=True, allow_deferral=True
             )
-        assert status == "deferred"
+        assert status.status == "deferred"
 
     def test_handle_message_sending_non_scheduled_path_preserved(self):
         """Non-scheduled sends should still send and report sent status."""
@@ -624,5 +624,5 @@ class TestChannelOrchestratorHelpers:
                 user_id, "motivational", is_scheduled_trigger=False
             )
 
-        assert status == "sent"
+        assert status.status == "sent"
         mock_expire.assert_called_once_with(user_id, "motivational")
