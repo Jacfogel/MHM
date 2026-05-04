@@ -1143,14 +1143,17 @@ class DiscordBot(BaseChannel):
                                             response.message, response.rich_data
                                         )
 
-                                    # Create view with buttons if suggestions are provided
+                                    # Create view with buttons if suggestions or pagination metadata are provided
                                     view = None
-                                    if response.suggestions:
+                                    button_labels, button_payloads = (
+                                        self._get_action_row_inputs(
+                                            response.suggestions, response.rich_data
+                                        )
+                                    )
+                                    if button_labels:
                                         view = self._create_action_row(
-                                            response.suggestions,
-                                            self._get_suggestion_payloads(
-                                                response.rich_data
-                                            ),
+                                            button_labels,
+                                            button_payloads,
                                         )
 
                                     # Send response via followup
@@ -1632,12 +1635,15 @@ class DiscordBot(BaseChannel):
                         response.message, response.rich_data
                     )
 
-                # Create view with buttons if suggestions are provided
+                # Create view with buttons if suggestions or pagination metadata are provided
                 view = None
-                if response.suggestions:
+                button_labels, button_payloads = self._get_action_row_inputs(
+                    response.suggestions, response.rich_data
+                )
+                if button_labels:
                     view = self._create_action_row(
-                        response.suggestions,
-                        self._get_suggestion_payloads(response.rich_data),
+                        button_labels,
+                        button_payloads,
                     )
 
                 # Send response with embed and/or view
@@ -1896,12 +1902,13 @@ class DiscordBot(BaseChannel):
         if self._has_display_rich_data(rich_data):
             embed = self._create_discord_embed(message, rich_data)
 
-        # Create view with buttons if suggestions are provided
+        # Create view with buttons if suggestions or pagination metadata are provided
         view = None
-        if suggestions:
-            view = self._create_action_row(
-                suggestions, self._get_suggestion_payloads(rich_data)
-            )
+        button_labels, button_payloads = self._get_action_row_inputs(
+            suggestions, rich_data
+        )
+        if button_labels:
+            view = self._create_action_row(button_labels, button_payloads)
 
         # Send to the channel
         if embed and view:
@@ -1990,10 +1997,12 @@ class DiscordBot(BaseChannel):
                     view = None
             else:
                 view = custom_view
-        elif suggestions:
-            view = self._create_action_row(
-                suggestions, self._get_suggestion_payloads(rich_data)
+        else:
+            button_labels, button_payloads = self._get_action_row_inputs(
+                suggestions, rich_data
             )
+            if button_labels:
+                view = self._create_action_row(button_labels, button_payloads)
 
         # Handle special Discord user marker first
         if recipient.startswith("discord_user:"):
@@ -2192,7 +2201,8 @@ class DiscordBot(BaseChannel):
         """Return True when rich_data contains embed-facing fields."""
         if not isinstance(rich_data, dict):
             return False
-        return any(key != "suggestion_payloads" for key in rich_data)
+        metadata_only_keys = {"suggestion_payloads", "pagination_actions"}
+        return any(key not in metadata_only_keys for key in rich_data)
 
     @handle_errors("getting Discord suggestion payloads", default_return=None)
     def _get_suggestion_payloads(
@@ -2205,6 +2215,80 @@ class DiscordBot(BaseChannel):
         if isinstance(payloads, list):
             return payloads
         return None
+
+    @handle_errors("getting Discord pagination actions", default_return=[])
+    def _get_pagination_actions(self, rich_data: dict[str, Any] | None) -> list[Any]:
+        """Extract channel-neutral pagination actions from response rich data."""
+        if not isinstance(rich_data, dict):
+            return []
+        actions = rich_data.get("pagination_actions")
+        if isinstance(actions, list):
+            return actions
+        return []
+
+    @handle_errors("reading pagination action field", default_return=None)
+    def _pagination_action_value(
+        self, action: Any, field: str, default: Any = None
+    ) -> Any:
+        """Read a pagination action field from a dataclass or dictionary."""
+        if isinstance(action, dict):
+            return action.get(field, default)
+        return getattr(action, field, default)
+
+    @handle_errors("converting pagination action to Discord button", default_return=None)
+    def _pagination_action_button_data(
+        self, action: Any
+    ) -> tuple[str, dict[str, Any]] | None:
+        """Convert generic pagination metadata into a Discord label and hidden payload."""
+        action_name = self._pagination_action_value(action, "action")
+        if not action_name:
+            return None
+
+        params = self._pagination_action_value(action, "params", {})
+        if not isinstance(params, dict):
+            params = {}
+        limit = int(self._pagination_action_value(action, "limit", 0) or 0)
+        next_offset = int(
+            self._pagination_action_value(action, "next_offset", 0) or 0
+        )
+        remaining_count = int(
+            self._pagination_action_value(action, "remaining_count", 0) or 0
+        )
+        button_count = min(limit, remaining_count) if limit > 0 else remaining_count
+        if button_count < 1:
+            return None
+
+        entities = dict(params)
+        entities["offset"] = next_offset
+        entities["limit"] = limit
+        payload = {"intent": str(action_name), "entities": entities}
+        return f"Show More ({button_count} more)", payload
+
+    @handle_errors("building Discord action row inputs", default_return=([], None))
+    def _get_action_row_inputs(
+        self,
+        suggestions: list[str] | None,
+        rich_data: dict[str, Any] | None,
+    ) -> tuple[list[str], list[Any] | None]:
+        """Combine handler suggestions with Discord-rendered pagination buttons."""
+        labels = list(suggestions or [])
+        suggestion_payloads = self._get_suggestion_payloads(rich_data) or []
+        payloads: list[Any] = [
+            suggestion_payloads[index] if index < len(suggestion_payloads) else None
+            for index, _label in enumerate(labels)
+        ]
+
+        for action in self._get_pagination_actions(rich_data):
+            button_data = self._pagination_action_button_data(action)
+            if button_data is None:
+                continue
+            label, payload = button_data
+            labels.append(label)
+            payloads.append(payload)
+
+        if not labels:
+            return [], None
+        return labels[:5], payloads[:5]
 
     @handle_errors("creating Discord action row", default_return=None)
     def _create_action_row(
@@ -2234,7 +2318,11 @@ class DiscordBot(BaseChannel):
         for i, suggestion in enumerate(suggestions[:5]):
             self._suggestion_button_counter += 1
             custom_id = f"suggestion_{self._suggestion_button_counter}_{i}"
-            if suggestion_payloads and i < len(suggestion_payloads):
+            if (
+                suggestion_payloads
+                and i < len(suggestion_payloads)
+                and suggestion_payloads[i] is not None
+            ):
                 self._suggestion_button_payloads[custom_id] = suggestion_payloads[i]
                 if len(self._suggestion_button_payloads) > 500:
                     oldest_key = next(iter(self._suggestion_button_payloads))

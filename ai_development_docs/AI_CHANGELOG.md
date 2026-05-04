@@ -35,7 +35,9 @@ Guidelines:
 - Scheduler logic moved out of `SchedulerManager`: task reminders in `scheduler_task_reminders`, maintenance in `scheduler_maintenance`, common job registration in `scheduler_jobs`.
 - Message preview/content resolution now lives in `core/message_preview`; the remaining `MHMService` preview wrapper was removed.
 - `notebook_service` now has structured notebook use cases/results and `notebook_handler` calls it; `task_service` owns reusable task matching/urgency helpers used by `task_handler`.
-- Plans/TODO updated: phases 1-4 complete, phases 5-9 remain; low-priority architecture follow-ups track possible `scheduler/`, `storage/`, `messages/`, and `checkins/` packages. Validation: Ruff clean and focused service/scheduler/notebook/task suites passed.
+- **Phase 6 pagination rendering**: `notebook_handler` now emits generic `PaginationAction` metadata; Discord owns Show More labels, button custom IDs, and hidden continuation payloads.
+- Plans/TODO updated: phases 1-6 complete, phases 7-9 remain; low-priority architecture follow-ups track possible `scheduler/`, `storage/`, `messages/`, and `checkins/` packages. Validation: Ruff clean and focused service/scheduler/notebook/task suites passed.
+- **Priority sweep**: pagination/notebook helper error handling, pagination `core` domain markers, changelog link conversion, task-urgency test clock patching, and `service_requests` cleanup duplicate hygiene are addressed. Targeted pagination/task/service tests, error-handling analyzer, marker analyzer, `docs`, and `doc-sync` passed.
 
 ### 2026-05-02 - Scheduler split + notebook/task service facades **COMPLETED**
 - `scheduler_maintenance`, `scheduler_task_reminders`, `scheduler_jobs` wired from `SchedulerManager`; resilient per-file test-message flag cleanup in `service_requests`.

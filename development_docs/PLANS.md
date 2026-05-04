@@ -66,31 +66,27 @@
 - [x] Move reusable task matching and urgency use cases into `tasks/task_service.py`.
 - [x] Avoid a generic item framework until notebook/task service responsibilities are stable.
 
-**Phase 5 - Extract reusable pagination** **PLANNED**
-- [ ] Add `core/pagination.py` with `PageRequest`, `PageResult`, coercion, limit capping, slicing, `has_more`, and `next_offset`.
-- [ ] Replace notebook-local pagination helpers with the reusable core pagination helper.
-- [ ] Keep pagination channel-agnostic: no Discord buttons, hidden payloads, rich data, embeds, email formatting, or UI controls.
-- [ ] Cover invalid limit, invalid offset, capped limit, empty results, exact final page, and no-more-results cases.
+**Phase 5 - Extract reusable pagination** **DONE**
+- [x] Add `core/pagination.py` with `PageRequest`, `PageResult`, coercion, limit capping, slicing, `has_more`, and `next_offset`.
+- [x] Replace notebook-local pagination helpers with the reusable core pagination helper.
+- [x] Keep pagination channel-agnostic: no Discord buttons, hidden payloads, rich data, embeds, email formatting, or UI controls.
+- [x] Cover invalid limit, invalid offset, capped limit, empty results, exact final page, and no-more-results cases.
 
-**Phase 6 - Move channel-specific pagination rendering out of handlers** **PLANNED**
-- [ ] Define one generic pagination metadata shape for domains/actions/params/limit/offset/next offset.
-- [ ] Move Discord button labels, custom IDs, hidden payload handling, and Show More rendering to the Discord layer.
-- [ ] Keep email and UI pagination future-ready without Discord assumptions in core handlers.
-- [ ] Document and test generic pagination metadata.
+**Phase 6 - Move channel-specific pagination rendering out of handlers** **COMPLETED 2026-05-04**
+- [x] Define one generic pagination metadata shape for domains/actions/params/limit/offset/next offset.
+- [x] Move Discord button labels, custom IDs, hidden payload handling, and Show More rendering to the Discord layer.
+- [x] Keep email and UI pagination future-ready without Discord assumptions in core handlers.
+- [x] Document and test generic pagination metadata.
 
-**Phase 7 - Clarify inbox semantics** **PLANNED**
-- [ ] Define inbox as active, unarchived notebook entries with no group unless implementation findings require a different definition.
-- [ ] Update `development_docs/NOTES_PLAN.md` and command behavior docs where applicable.
-- [ ] Update notebook help text with clear inbox wording.
-- [ ] Add tests for active ungrouped, grouped active, archived, and pinned ungrouped entries.
-
-**Phase 8 - Continue channel_orchestrator thinning** **PLANNED**
+**Phase 7 - Continue channel_orchestrator thinning** **PLANNED**
 - [ ] Make `MessageSendResult` the standard send contract for regular sends and reminders.
+- [ ] Consider whether message selection/dispatch, task reminders and checkin prompts belong in communication or whether they belong in their own dedicated top level directories like tasks/ which already exists and checkins/ and automated_messages/ which are planned
 - [ ] Move regular message selection/dispatch details into `communication/delivery/message_dispatcher.py`.
-- [ ] Move task reminder and check-in reminder dispatch into `communication/reminders/reminder_dispatcher.py`.
+- [ ] Move task reminders dispatch into `communication/reminders/reminder_dispatcher.py`.
+- [ ] Move check-in prompts into it's own module too 
 - [ ] Keep schedule eligibility separate from sending once dispatcher responsibilities are stable.
 
-**Phase 9 - Revisit scheduler/service/channel dependency direction** **DEFERRED**
+**Phase 8 - Revisit scheduler/service/channel dependency direction** **DEFERRED**
 - [ ] Wait until service request extraction, scheduler split, message preview extraction, and dispatcher result contracts are stable.
 - [ ] Introduce a smaller delivery interface if it still reduces coupling.
 - [ ] Make scheduler tests easier to fake without giving scheduler full communication manager access.
@@ -110,6 +106,27 @@
 - Do not create a generic item framework too early.
 - Do not extract dev tools further in this refactor batch.
 - Do not remove compatibility wrappers before tests are stable.
+
+### **Migrate User-Owned Runtime JSON State to Approved Storage Helpers** - Move direct per-user JSON reads/writes to centralized user-data or user-item storage helpers.
+- *What it means*: Prioritize `conversation_states.json` and `welcome_tracking.json`, then review tags/messages/admin utilities for safer access patterns.
+- *Why it helps*: Makes user state handling consistent, validated, test-safe, and easier to refactor later.
+- *Estimated effort*: Large
+- *Suggested home*: PLANS.md
+- *Created*: 2026-05-03
+
+### **Classify Direct JSON Access Sites** - Audit current direct JSON usage and classify each site as user-owned runtime state, resource/default data, service flag file, cache/report output, or legitimate low-level storage.
+- *What it means*: Review modules such as `communication/message_processing/conversation_flow_manager.py`, `communication/core/welcome_manager.py`, `core/message_management.py`, `core/service_requests.py`, `core/tags.py`, `core/user_data_operations.py`, `core/user_data_presets.py`, `core/auto_cleanup.py`, `core/headless_service.py`, and `core/service_utilities.py`.
+- *Why it helps*: Avoids blindly refactoring legitimate JSON access while identifying the real user-data bypasses.
+- *Estimated effort*: Medium
+- *Suggested home*: PLANS.md
+- *Created*: 2026-05-03
+
+### **Review Soft Channel Boundary Knowledge in Core** - Audit Discord/UI references in core modules and separate acceptable persisted/config knowledge from true channel adapter leakage.
+- *What it means*: Review `core/config.py`, `core/logger.py`, `core/schemas.py`, `core/user_lookup.py`, `core/headless_service.py`, `core/service_utilities.py`, and `core/scheduler.py`; only refactor cases where core performs channel/UI behavior rather than storing configuration or identifiers.
+- *Why it helps*: Prevents over-refactoring while keeping channel-specific behavior at the edges.
+- *Estimated effort*: Medium
+- *Suggested home*: PLANS.md
+- *Created*: 2026-05-03
 
 ### **Flow/Check-in Scheduled Send Stability Follow-up** **IN PROGRESS**
 

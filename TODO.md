@@ -235,6 +235,26 @@ Clear separation between service lifecycle, request handling, scheduling, and me
 - Preserve current Discord/email behavior.
 - Add tests for the new domain service layer before thinning handlers.
 
+### **Resolve Existing Time Utility Policy Violations** - Replace or justify current direct datetime formatting/parsing calls found outside `core/time_utilities.py`.
+- *What it means*: Review current hits in `core/message_management.py`, `core/scheduler.py`, `core/logger.py`, and `communication/core/welcome_manager.py`; add canonical helpers where needed, especially for UTC-aware timestamps.
+- *Why it helps*: Brings production code in line with the documented datetime policy.
+- *Estimated effort*: Medium
+- *Suggested home*: TODO.md or PLANS.md
+- *Created*: 2026-05-03
+
+### **Clarify `core/service_utilities.py` Responsibility** - Update or refactor `core/service_utilities.py` so its purpose matches its actual role.
+- *What it means*: Remove stale "datetime handling" wording, decide whether `InvalidTimeFormatError` and `load_and_localize_datetime()` still belong there, and consider renaming/splitting UI request-file helpers into a clearer service request module.
+- *Why it helps*: Reduces legacy drift and makes the module easier to understand.
+- *Estimated effort*: Small/Medium
+- *Suggested home*: TODO.md
+- *Created*: 2026-05-03
+
+### **Remove `core/ui_management.py` UI Widget Dependency** - Fix the confirmed boundary leak where `core/ui_management.py` imports from `ui.widgets.period_row_widget`.
+- *What it means*: Move UI-specific period-row behavior into `ui/`, and keep only channel/UI-neutral data preparation or validation in `core/`.
+- *Why it helps*: Restores the intended architecture boundary between core logic and UI adapter code.
+- *Estimated effort*: Medium
+- *Suggested home*: TODO.md
+- *Created*: 2026-05-03
 
 ## Medium Priority
 

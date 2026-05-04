@@ -6,6 +6,7 @@ from typing import cast
 
 import pytest
 
+from communication.command_handlers.shared_types import PaginationAction
 from communication.command_handlers.notebook_handler import NotebookHandler
 from notebook.notebook_schemas import Entry, EntryKind
 
@@ -111,4 +112,15 @@ class TestNotebookHandlerEdgeCases:
 
         assert response.completed is True
         assert "Inbox (6 entries)" in response.message
-        assert response.suggestions == ["Show More (3 more)"]
+        assert response.suggestions is None
+        actions = (response.rich_data or {}).get("pagination_actions")
+        assert isinstance(actions, list) and len(actions) == 1
+        action = actions[0]
+        assert isinstance(action, PaginationAction)
+        assert action.domain == "notebook"
+        assert action.action == "list_inbox_entries"
+        assert action.params == {}
+        assert action.limit == 3
+        assert action.offset == 0
+        assert action.next_offset == 3
+        assert action.remaining_count == 3

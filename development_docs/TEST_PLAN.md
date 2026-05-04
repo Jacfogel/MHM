@@ -410,7 +410,27 @@ Acceptance:
 - [x] Single SIGINT ignored; double-tap stops run; no tests commented out for this issue.
 
 ---
+**Add Time API Boundary Policy Tests** - Add static policy tests that flag direct `datetime.now()`, `strftime()`, and `strptime()` usage outside `core/time_utilities.py`.
+- *What it means*: Create tests that scan runtime source files and fail when modules bypass the canonical time utilities, with a small temporary allowlist for known exceptions.
+- *Why it helps*: Prevents timestamp drift, inconsistent persisted formats, and non-deterministic tests.
+- *Estimated effort*: Medium
+- *Suggested home*: TEST_PLAN.md
+- *Created*: 2026-05-03
 
+**Add User-Data JSON Access Policy Tests** - Add tests that flag ad-hoc per-user `json.load()` / `json.dump()` usage outside approved storage helpers.
+- *What it means*: Scan source files for direct JSON file access involving `data/users`, user-scoped paths, or per-user runtime state; allow approved low-level modules such as `core/user_data_read.py`, `core/user_data_write.py`, `core/user_data_registry.py`, and `core/user_item_storage.py`.
+- *Why it helps*: Prevents accidental bypass of validation, normalization, backup, cache, and invariant checks.
+- *Estimated effort*: Medium
+- *Suggested home*: TEST_PLAN.md
+- *Created*: 2026-05-03
+
+**Add Core Boundary Policy Test for UI Imports** - Add a static policy test that fails when `core/` imports `ui.*`.
+- *What it means*: Scan `core/**/*.py` imports and block UI dependencies, with no allowlist unless a temporary exception is explicitly documented.
+- *Why it helps*: Keeps core business logic independent from the PySide6/admin UI layer.
+- *Estimated effort*: Small
+- *Suggested home*: TEST_PLAN.md
+- *Created*: 2026-05-03
+---
 **Stabilize intermittent `test_tool_wrappers_cache_helpers` failure**
 - *What it means*: Investigate and fix the intermittent failure in `tests/development_tools/test_tool_wrappers_cache_helpers.py` observed during full Tier 3/dev-tools coverage runs.
 - *Why it helps*: Keeps development-tools coverage runs reliable and prevents false audit failures from test flakiness.

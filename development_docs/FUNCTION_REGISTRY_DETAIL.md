@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-03 16:59:46
+> **Last Generated**: 2026-05-04 00:20:53
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 92.5% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 135
-- **Functions Found**: 1854
-- **Methods Found**: 1265
-- **Classes Found**: 163
-- **Total Items**: 3119
-- **Functions Documented**: 1690
-- **Methods Documented**: 1196
-- **Classes Documented**: 124
-- **Total Documented**: 2886
+### **Function Documentation Coverage: 92.6% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 136
+- **Functions Found**: 1862
+- **Methods Found**: 1271
+- **Classes Found**: 166
+- **Total Items**: 3133
+- **Functions Documented**: 1698
+- **Methods Documented**: 1202
+- **Classes Documented**: 127
+- **Total Documented**: 2900
 - **Template-Generated**: 18
-- **Last Updated**: 2026-05-03
+- **Last Updated**: 2026-05-04
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (667)
+### **Core System Functions** (673)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (492)
+### **Communication Functions** (494)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (430)
@@ -928,9 +928,6 @@ Returns:
 **Functions:**
 - [OK] `_apply_entry_ref_mutation(self, user_id, entities, flag)` - Pin/unpin or archive/unarchive by entry_ref; shared helper for pin/archive handlers.
 - [OK] `_build_paginated_list_response(self, entries, header, offset, limit)` - Build a paginated list response for group/tag-style list handlers.
-- [OK] `_build_show_more_payload(intent, entities, offset, limit)` - Build hidden Discord button metadata for the next notebook page.
-- [OK] `_coerce_offset(value)` - Return a non-negative offset for pagination inputs.
-- [OK] `_coerce_positive_int(value, default, maximum)` - Return a bounded positive integer for pagination inputs.
 - [OK] `_format_entry_id(self, entry)` - Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing).
 - [OK] `_format_entry_response(self, entry)` - Formats a single entry for display.
 - [OK] `_format_no_group_hits_message(group)` - Build the user message when listing by group returns no entries.
@@ -960,7 +957,8 @@ Explains substring search, archived exclusion, and next-step commands.
 - [OK] `_handle_set_group(self, user_id, entities)` - Handle setting entry group.
 - [OK] `_handle_show_entry(self, user_id, entities)` - Handle showing an entry.
 - [OK] `_handle_toggle_list_item_done(self, user_id, entities)` - Handle toggling list item done status.
-- [OK] `_show_more_rich_data(intent, entities, offset, limit)` - Return InteractionResponse rich_data for a single Show More button.
+- [OK] `_page_request(entities)` - Build a notebook page request from command entities.
+- [OK] `_pagination_action_rich_data(action, params, page)` - Return channel-neutral metadata for rendering a next-page action.
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
 - [OK] `get_examples(self)` - Get example commands for notebook.
 - [OK] `get_help(self)` - Get help text for notebook commands.
@@ -1080,6 +1078,7 @@ Output examples:
 #### `communication/command_handlers/shared_types.py`
 **Classes:**
 - [OK] `InteractionResponse` - Response from an interaction handler
+- [OK] `PaginationAction` - Channel-neutral metadata for requesting the next page of results.
 - [OK] `ParsedCommand` - Parsed command with intent and entities
 
 #### `communication/command_handlers/task_handler.py`
@@ -1418,10 +1417,14 @@ Returns:
 Returns:
     discord.Embed: Created embed, None if failed
 - [OK] `_drain_ngrok_stderr()` - Read ngrok stderr in a loop so a full pipe cannot block the child process.
+- [OK] `_get_action_row_inputs(self, suggestions, rich_data)` - Combine handler suggestions with Discord-rendered pagination buttons.
 - [OK] `_get_detailed_connection_status(self)` - Get detailed connection status information
+- [OK] `_get_pagination_actions(self, rich_data)` - Extract channel-neutral pagination actions from response rich data.
 - [OK] `_get_suggestion_payloads(self, rich_data)` - Extract hidden button payloads from response rich data.
 - [OK] `_has_display_rich_data(self, rich_data)` - Return True when rich_data contains embed-facing fields.
 - [OK] `_has_external_ngrok_tunnel(self)` - Detect an externally running ngrok HTTP tunnel.
+- [OK] `_pagination_action_button_data(self, action)` - Convert generic pagination metadata into a Discord label and hidden payload.
+- [OK] `_pagination_action_value(self, action, field, default)` - Read a pagination action field from a dataclass or dictionary.
 - [OK] `_schedule_ready_tasks(self, bot)` - Schedule non-blocking tasks after Discord ready event.
 - [OK] `_shared__update_connection_status(self, status, error_info)` - Update connection status with detailed error information
 - [OK] `_should_attempt_reconnection(self)` - Determine if reconnection should be attempted based on various factors
@@ -1466,10 +1469,14 @@ Returns:
 
 Returns:
     discord.Embed: Created embed, None if failed
+  - [OK] `DiscordBot._get_action_row_inputs(self, suggestions, rich_data)` - Combine handler suggestions with Discord-rendered pagination buttons.
   - [OK] `DiscordBot._get_detailed_connection_status(self)` - Get detailed connection status information
+  - [OK] `DiscordBot._get_pagination_actions(self, rich_data)` - Extract channel-neutral pagination actions from response rich data.
   - [OK] `DiscordBot._get_suggestion_payloads(self, rich_data)` - Extract hidden button payloads from response rich data.
   - [OK] `DiscordBot._has_display_rich_data(self, rich_data)` - Return True when rich_data contains embed-facing fields.
   - [OK] `DiscordBot._has_external_ngrok_tunnel(self)` - Detect an externally running ngrok HTTP tunnel.
+  - [OK] `DiscordBot._pagination_action_button_data(self, action)` - Convert generic pagination metadata into a Discord label and hidden payload.
+  - [OK] `DiscordBot._pagination_action_value(self, action, field, default)` - Read a pagination action field from a dataclass or dictionary.
   - [OK] `DiscordBot._schedule_ready_tasks(self, bot)` - Schedule non-blocking tasks after Discord ready event.
   - [OK] `DiscordBot._shared__update_connection_status(self, status, error_info)` - Update connection status with detailed error information
   - [OK] `DiscordBot._should_attempt_reconnection(self)` - Determine if reconnection should be attempted based on various factors
@@ -3934,6 +3941,19 @@ Raises:
 **Functions:**
 - [OK] `wait_for_network(timeout)` - Wait for the network to be available, retrying every 5 seconds up to a timeout.
 
+#### `core/pagination.py`
+**Functions:**
+- [OK] `coerce_limit(value, default, maximum)` - Return a bounded positive integer for pagination limits.
+- [OK] `coerce_offset(value)` - Return a non-negative integer for pagination offsets.
+- [OK] `from_values(cls)` - Build a request from untrusted pagination inputs.
+- [OK] `paginate_items(items, request)` - Apply a normalized page request to a sequence.
+- [OK] `remaining_count(self)` - Number of items after this page.
+**Classes:**
+- [OK] `PageRequest` - Normalized pagination request.
+  - [OK] `PageRequest.from_values(cls)` - Build a request from untrusted pagination inputs.
+- [OK] `PageResult` - Result of applying a page request to a sequence.
+  - [OK] `PageResult.remaining_count(self)` - Number of items after this page.
+
 #### `core/response_tracking.py`
 **Functions:**
 - [OK] `_build_v2_checkin_from_response_payload(response_data)` - Build a canonical v2 check-in dict from a runtime payload (``submitted_at`` / ``sent_at`` only).
@@ -4524,6 +4544,7 @@ Sets up signal handlers for graceful shutdown.
 #### `core/service_requests.py`
 **Functions:**
 - [OK] `_as_context(context_or_service)` - Normalize legacy service instances and explicit contexts to one shape.
+- [OK] `_cleanup_matching_request_files(base_path, predicate, label)` - Remove request files matching a predicate while continuing after per-file failures.
 - [MISSING] `check_checkin_prompt_requests(context)` - No description
 - [MISSING] `check_reschedule_requests(context)` - No description
 - [MISSING] `check_task_reminder_requests(context)` - No description

@@ -11,11 +11,36 @@ from communication.command_handlers.notebook_handler import (
     _format_no_search_hits_message,
     _format_no_tag_hits_message,
 )
+from communication.command_handlers.shared_types import PaginationAction
 from notebook.notebook_schemas import Entry, ListItem
 
 
 def _note_entry(title: str) -> Entry:
     return Entry(kind="note", id=uuid4(), title=title, description="body")
+
+
+def _assert_pagination_action(
+    response,
+    *,
+    action: str,
+    params: dict[str, object],
+    limit: int,
+    offset: int,
+    next_offset: int,
+    remaining_count: int,
+) -> None:
+    assert response.suggestions is None
+    actions = (response.rich_data or {}).get("pagination_actions")
+    assert isinstance(actions, list) and len(actions) == 1
+    pagination_action = actions[0]
+    assert isinstance(pagination_action, PaginationAction)
+    assert pagination_action.domain == "notebook"
+    assert pagination_action.action == action
+    assert pagination_action.params == params
+    assert pagination_action.limit == limit
+    assert pagination_action.offset == offset
+    assert pagination_action.next_offset == next_offset
+    assert pagination_action.remaining_count == remaining_count
 
 
 @pytest.mark.unit
@@ -56,15 +81,15 @@ class TestNotebookHandlerPaginationAndFormatting:
         assert "Found 6 entries" in response.message
         assert "Note 2" in response.message
         assert "Note 3" in response.message
-        assert response.suggestions == ["Show More (2 more)"]
-        assert response.rich_data == {
-            "suggestion_payloads": [
-                {
-                    "intent": "search_entries",
-                    "entities": {"query": "note", "offset": 4, "limit": 2},
-                }
-            ]
-        }
+        _assert_pagination_action(
+            response,
+            action="search_entries",
+            params={"query": "note"},
+            limit=2,
+            offset=2,
+            next_offset=4,
+            remaining_count=2,
+        )
 
     def test_list_recent_adds_show_more_payload(self):
         handler = NotebookHandler()
@@ -81,15 +106,15 @@ class TestNotebookHandlerPaginationAndFormatting:
         assert response.completed is True
         assert "Recent 0" in response.message
         assert "Recent 3" not in response.message
-        assert response.suggestions == ["Show More (3 more)"]
-        assert response.rich_data == {
-            "suggestion_payloads": [
-                {
-                    "intent": "list_recent_entries",
-                    "entities": {"offset": 3, "limit": 3},
-                }
-            ]
-        }
+        _assert_pagination_action(
+            response,
+            action="list_recent_entries",
+            params={},
+            limit=3,
+            offset=0,
+            next_offset=3,
+            remaining_count=3,
+        )
 
     def test_group_pagination_infers_show_more_payload(self):
         handler = NotebookHandler()
@@ -103,15 +128,15 @@ class TestNotebookHandlerPaginationAndFormatting:
                 "user-1", {"group": "work", "offset": 0, "limit": 3}
             )
 
-        assert response.suggestions == ["Show More (3 more)"]
-        assert response.rich_data == {
-            "suggestion_payloads": [
-                {
-                    "intent": "list_entries_by_group",
-                    "entities": {"group": "work", "offset": 3, "limit": 3},
-                }
-            ]
-        }
+        _assert_pagination_action(
+            response,
+            action="list_entries_by_group",
+            params={"group": "work"},
+            limit=3,
+            offset=0,
+            next_offset=3,
+            remaining_count=3,
+        )
 
     def test_list_by_group_requires_group_name(self):
         handler = NotebookHandler()
@@ -133,7 +158,15 @@ class TestNotebookHandlerPaginationAndFormatting:
 
         assert response.completed is True
         assert "Pinned entries (7)" in response.message
-        assert response.suggestions == ["Show More (2 more)"]
+        _assert_pagination_action(
+            response,
+            action="list_pinned_entries",
+            params={},
+            limit=5,
+            offset=0,
+            next_offset=5,
+            remaining_count=2,
+        )
 
     def test_format_entry_id_falls_back_when_short_id_is_missing(self):
         handler = NotebookHandler()

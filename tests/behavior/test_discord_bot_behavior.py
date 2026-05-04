@@ -15,6 +15,7 @@ import core.config
 
 from communication.communication_channels.discord.bot import DiscordBot, DiscordConnectionStatus
 from communication.communication_channels.base.base_channel import ChannelStatus, ChannelType
+from communication.command_handlers.shared_types import PaginationAction
 import contextlib
 
 
@@ -1348,6 +1349,52 @@ class TestDiscordBotIntegration:
         assert bot._has_display_rich_data(
             {"title": "Results", "suggestion_payloads": payloads}
         )
+
+    @pytest.mark.communication
+    @pytest.mark.notebook
+    def test_create_action_row_renders_pagination_actions(self, test_data_dir):
+        """Discord renders generic pagination metadata into Show More buttons."""
+        bot = DiscordBot()
+        rich_data = {
+            "pagination_actions": [
+                PaginationAction(
+                    domain="notebook",
+                    action="search_entries",
+                    params={"query": "project"},
+                    limit=5,
+                    offset=0,
+                    next_offset=5,
+                    remaining_count=7,
+                )
+            ]
+        }
+
+        class MockView:
+            def __init__(self):
+                self.children = []
+
+            def add_item(self, item):
+                self.children.append(item)
+
+        class MockButton:
+            def __init__(self, *args, **kwargs):
+                self.custom_id = kwargs.get("custom_id")
+                self.label = kwargs.get("label")
+
+        labels, payloads = bot._get_action_row_inputs(None, rich_data)
+        with patch(
+            'communication.communication_channels.discord.bot.discord.ui.View', MockView
+        ), patch('communication.communication_channels.discord.bot.discord.ui.Button', MockButton):
+            view = bot._create_action_row(labels, payloads)
+
+        button = view.children[0]
+        assert button.label == "Show More (5 more)"
+        assert bot._suggestion_button_payloads[button.custom_id] == {
+            "intent": "search_entries",
+            "entities": {"query": "project", "offset": 5, "limit": 5},
+        }
+        assert not bot._has_display_rich_data(rich_data)
+        assert bot._has_display_rich_data({"title": "Results", **rich_data})
 
 
 @pytest.mark.behavior

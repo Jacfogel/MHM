@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-03 16:59:46
+> **Last Generated**: 2026-05-04 00:20:53
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 92.5% [!] GOOD**
-- **Total Functions**: 1854
-- **Total Methods**: 1265
-- **Documented**: 2886/3119
-- **Files Scanned**: 135
+### **Documentation Coverage: 92.6% [!] GOOD**
+- **Total Functions**: 1862
+- **Total Methods**: 1271
+- **Documented**: 2900/3133
+- **Files Scanned**: 136
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -157,7 +157,7 @@ Core System Decision Tree:
 - `core/schemas.py` - 17/27 functions undocumented (37% coverage)
 - `communication/delivery/message_dispatcher.py` - 15/17 functions undocumented (12% coverage)
 - `core/user_data_write.py` - 15/19 functions undocumented (21% coverage)
-- `core/service_requests.py` - 14/30 functions undocumented (53% coverage)
+- `core/service_requests.py` - 14/31 functions undocumented (55% coverage)
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
 - `core/user_data_registry.py` - 11/22 functions undocumented (50% coverage)
 - `tasks/task_schemas.py` - 10/10 functions undocumented (0% coverage)
@@ -188,7 +188,7 @@ Most complex functions (may need refactoring):
 2. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2960
 3. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2788
 4. [OK] `run_tests.py::main()` - Complexity: 2691
-5. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2497
+5. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2506
 
 
 ### **Pattern Recognition**
@@ -198,8 +198,8 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (42 files, 955 functions)
-- `communication/` - Communication channels and message processing (44 files, 926 functions)
+- `core/` - System utilities and data management (43 files, 963 functions)
+- `communication/` - Communication channels and message processing (44 files, 932 functions)
 - `ai/` - AI chatbot functionality (7 files, 219 functions)
 - `ui/` - User interface components (29 files, 831 functions)
 - `user/` - User context and preferences (4 files, 65 functions)

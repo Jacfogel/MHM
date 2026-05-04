@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-03 16:59:58
+> **Last Generated**: 2026-05-04 00:21:05
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -172,6 +172,7 @@ C:.
 |   |   message_management.py
 |   |   message_preview.py
 |   |   network_probe.py
+|   |   pagination.py
 |   |   response_tracking.py
 |   |   scheduler.py
 |   |   scheduler_jobs.py
@@ -837,6 +838,7 @@ C:.
 |   |   |   test_notebook_validation.py
 |   |   |   test_notebook_validation_error_handling.py
 |   |   |   test_no_prints_policy.py
+|   |   |   test_pagination.py
 |   |   |   test_profile_handler.py
 |   |   |   test_profile_handler_gap_coverage.py
 |   |   |   test_prompt_manager.py

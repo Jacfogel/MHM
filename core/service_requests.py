@@ -416,21 +416,34 @@ def is_test_message_request_filename(filename: str) -> bool:
     return filename.startswith("test_message_request_") and filename.endswith(".flag")
 
 
+@handle_errors("cleaning up matching service request files", default_return=None)
+def _cleanup_matching_request_files(
+    base_path: Path,
+    predicate: Callable[[Path], bool],
+    label: str,
+) -> None:
+    """Remove request files matching a predicate while continuing after per-file failures."""
+    for file_path in base_path.iterdir():
+        if not predicate(file_path):
+            continue
+        try:
+            os.remove(str(file_path))
+            logger.info(f"Cleanup: Removed {label} request file: {file_path.name}")
+        except OSError as e:
+            logger.warning(
+                f"Could not remove {label} request file {file_path.name}: {e}"
+            )
+
+
+# not_duplicate: service_request_cleanup_entrypoints
 @handle_errors("cleaning up test message requests")
 def cleanup_test_message_requests(context: ServiceRequestContext) -> None:
     context = _as_context(context)
-    base_path = context.base_dir
-    for file_path in base_path.iterdir():
-        if file_path.is_file() and is_test_message_request_filename(file_path.name):
-            try:
-                os.remove(str(file_path))
-                logger.info(
-                    f"Cleanup: Removed test message request file: {file_path.name}"
-                )
-            except OSError as e:
-                logger.warning(
-                    f"Could not remove test message request file {file_path.name}: {e}"
-                )
+    _cleanup_matching_request_files(
+        context.base_dir,
+        lambda path: path.is_file() and is_test_message_request_filename(path.name),
+        "test message",
+    )
 
 
 @handle_errors("discovering reschedule request files", default_return=[])
@@ -527,25 +540,17 @@ def check_reschedule_requests(context: ServiceRequestContext) -> None:
         cleanup_request_file_after_process(request_file, filename, "reschedule")
 
 
+# not_duplicate: service_request_cleanup_entrypoints
 @handle_errors("cleaning up reschedule requests")
 def cleanup_reschedule_requests(context: ServiceRequestContext) -> None:
     context = _as_context(context)
-    base_path = context.base_dir
-    for file_path in base_path.iterdir():
-        if (
-            file_path.is_file()
-            and file_path.name.startswith("reschedule_request_")
-            and file_path.name.endswith(".flag")
-        ):
-            try:
-                file_path.unlink()
-                logger.info(
-                    f"Cleanup: Removed reschedule request file: {file_path.name}"
-                )
-            except Exception as e:
-                logger.warning(
-                    f"Could not remove reschedule request file {file_path.name}: {e}"
-                )
+    _cleanup_matching_request_files(
+        context.base_dir,
+        lambda path: path.is_file()
+        and path.name.startswith("reschedule_request_")
+        and path.name.endswith(".flag"),
+        "reschedule",
+    )
 
 
 @handle_errors("processing all service request flags", default_return=None)

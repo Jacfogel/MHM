@@ -516,6 +516,11 @@ class TestTaskManagementHandlerHelpers:
                 return_value=TEST_NOW_DT,
                 create=True,
             ),
+            patch(
+                "tasks.task_service.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
         ):
             yesterday = format_timestamp(TEST_NOW_DT - timedelta(days=1), DATE_ONLY)
             tomorrow = format_timestamp(TEST_NOW_DT + timedelta(days=1), DATE_ONLY)
@@ -552,6 +557,11 @@ class TestTaskManagementHandlerHelpers:
                 return_value=TEST_NOW_DT,
                 create=True,
             ),
+            patch(
+                "tasks.task_service.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
         ):
             tomorrow = format_timestamp(TEST_NOW_DT + timedelta(days=1), DATE_ONLY)
 
@@ -584,6 +594,11 @@ class TestTaskManagementHandlerHelpers:
             ),
             patch(
                 "core.time_utilities.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+            patch(
+                "tasks.task_service.now_datetime_full",
                 return_value=TEST_NOW_DT,
                 create=True,
             ),

@@ -15,6 +15,19 @@ class InteractionResponse:
     error: str | None = None
 
 
+@dataclass(frozen=True)
+class PaginationAction:
+    """Channel-neutral metadata for requesting the next page of results."""
+
+    domain: str
+    action: str
+    params: dict[str, Any]
+    limit: int
+    offset: int
+    next_offset: int
+    remaining_count: int
+
+
 @dataclass
 class ParsedCommand:
     """Parsed command with intent and entities"""

@@ -12,12 +12,14 @@ from typing import Any
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
+from core.pagination import PageRequest, paginate_items
 from core.time_utilities import now_timestamp_full
 from core.tags import parse_tags_from_text
 
 from communication.command_handlers.base_handler import InteractionHandler
 from communication.command_handlers.shared_types import (
     InteractionResponse,
+    PaginationAction,
     ParsedCommand,
 )
 from notebook.notebook_service import (
@@ -55,61 +57,46 @@ MAX_PAGE_SIZE = 25
 MAX_NOTEBOOK_RESULTS = 100
 
 
-def _coerce_positive_int(value: Any, default: int, maximum: int | None = None) -> int:
-    """Return a bounded positive integer for pagination inputs."""
-    try:
-        parsed = int(value)
-    except (TypeError, ValueError):
-        return default
-    if parsed < 1:
-        return default
-    if maximum is not None:
-        return min(parsed, maximum)
-    return parsed
-
-
-def _coerce_offset(value: Any) -> int:
-    """Return a non-negative offset for pagination inputs."""
-    try:
-        parsed = int(value)
-    except (TypeError, ValueError):
-        return 0
-    return max(parsed, 0)
+@handle_errors(
+    "building notebook page request",
+    default_return=PageRequest(limit=DEFAULT_PAGE_SIZE, offset=0),
+    user_friendly=False,
+)
+def _page_request(entities: dict[str, Any]) -> PageRequest:
+    """Build a notebook page request from command entities."""
+    return PageRequest.from_values(
+        limit=entities.get("limit", DEFAULT_PAGE_SIZE),
+        offset=entities.get("offset", 0),
+        default_limit=DEFAULT_PAGE_SIZE,
+        max_limit=MAX_PAGE_SIZE,
+    )
 
 
 @handle_errors(
-    "building notebook show-more payload",
-    default_return={"intent": "", "entities": {}},
+    "building notebook pagination metadata",
+    default_return={"pagination_actions": []},
     user_friendly=False,
 )
-def _build_show_more_payload(
-    intent: str,
-    entities: dict[str, Any],
-    offset: int,
-    limit: int,
+def _pagination_action_rich_data(
+    action: str,
+    params: dict[str, Any],
+    page: Any,
 ) -> dict[str, Any]:
-    """Build hidden Discord button metadata for the next notebook page."""
-    next_entities = dict(entities)
-    next_entities["offset"] = offset + limit
-    next_entities["limit"] = limit
-    return {"intent": intent, "entities": next_entities}
-
-
-@handle_errors(
-    "building notebook show-more rich data",
-    default_return={"suggestion_payloads": []},
-    user_friendly=False,
-)
-def _show_more_rich_data(
-    intent: str,
-    entities: dict[str, Any],
-    offset: int,
-    limit: int,
-) -> dict[str, Any]:
-    """Return InteractionResponse rich_data for a single Show More button."""
+    """Return channel-neutral metadata for rendering a next-page action."""
+    action_params = {
+        key: value for key, value in params.items() if key not in {"offset", "limit"}
+    }
     return {
-        "suggestion_payloads": [
-            _build_show_more_payload(intent, entities, offset, limit)
+        "pagination_actions": [
+            PaginationAction(
+                domain="notebook",
+                action=action,
+                params=action_params,
+                limit=page.limit,
+                offset=page.offset,
+                next_offset=page.next_offset or page.offset + page.limit,
+                remaining_count=page.remaining_count,
+            )
         ]
     }
 
@@ -462,10 +449,7 @@ class NotebookHandler(InteractionHandler):
         self, user_id: str, entities: dict[str, Any], notes_only: bool = False
     ) -> InteractionResponse:
         """Handle listing recent entries."""
-        limit = _coerce_positive_int(
-            entities.get("limit", DEFAULT_PAGE_SIZE), DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
-        )
-        offset = _coerce_offset(entities.get("offset", 0))
+        page_request = _page_request(entities)
 
         result = list_recent_entries(
             user_id, notes_only=notes_only, limit=MAX_NOTEBOOK_RESULTS
@@ -482,14 +466,12 @@ class NotebookHandler(InteractionHandler):
                 True,
             )
 
-        total = len(entries)
-        paginated = entries[offset : offset + limit]
-        has_more = offset + limit < total
+        page = paginate_items(entries, page_request)
 
         response_parts = [
             f"📝 Recent {'notes' if notes_only else 'entries'} ({len(entries)}):"
         ]
-        for entry in paginated:
+        for entry in page.items:
             short_id = self._format_entry_id(entry)
             title = entry.title or "Untitled"
             kind_icon = {"note": "📄", "list": "📋", "journal_entry": "📔"}.get(
@@ -497,20 +479,17 @@ class NotebookHandler(InteractionHandler):
             )
             response_parts.append(f"{kind_icon} {title} ({short_id})")
 
-        suggestions = None
         rich_data = None
-        if has_more:
-            remaining = total - (offset + limit)
+        if page.has_more:
+            remaining = page.remaining_count
             response_parts.append(f"\n... and {remaining} more")
-            suggestions = [f"Show More ({min(limit, remaining)} more)"]
             intent = "list_recent_notes" if notes_only else "list_recent_entries"
-            rich_data = _show_more_rich_data(intent, entities, offset, limit)
+            rich_data = _pagination_action_rich_data(intent, entities, page)
 
         return InteractionResponse(
             "\n".join(response_parts),
             True,
             rich_data=rich_data,
-            suggestions=suggestions,
         )
 
     @handle_errors("handling show entry")
@@ -644,10 +623,7 @@ class NotebookHandler(InteractionHandler):
     ) -> InteractionResponse:
         """Handle searching entries."""
         query = entities.get("query")
-        offset = _coerce_offset(entities.get("offset", 0))
-        limit = _coerce_positive_int(
-            entities.get("limit", DEFAULT_PAGE_SIZE), DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
-        )
+        page_request = _page_request(entities)
 
         if not query:
             return InteractionResponse("What would you like to search for?", False)
@@ -658,34 +634,26 @@ class NotebookHandler(InteractionHandler):
         if not entries:
             return InteractionResponse(_format_no_search_hits_message(query), True)
 
-        total = len(entries)
-        paginated = entries[offset : offset + limit]
-        has_more = offset + limit < total
+        page = paginate_items(entries, page_request)
 
-        response_parts = [f"🔍 Found {total} entries:"]
-        for entry in paginated:
+        response_parts = [f"🔍 Found {page.total} entries:"]
+        for entry in page.items:
             short_id = self._format_entry_id(entry)
             title = entry.title or "Untitled"
             response_parts.append(f"• {title} ({short_id})")
 
-        if has_more:
-            remaining = total - (offset + limit)
+        if page.has_more:
+            remaining = page.remaining_count
             response_parts.append(f"\n... and {remaining} more")
 
-        suggestions = []
         rich_data = None
-        if has_more:
-            # Add "Show More" button with pagination info
-            suggestions.append(f"Show More ({min(limit, remaining)} more)")
-            rich_data = _show_more_rich_data(
-                "search_entries", entities, offset, limit
-            )
+        if page.has_more:
+            rich_data = _pagination_action_rich_data("search_entries", entities, page)
 
         return InteractionResponse(
             "\n".join(response_parts),
             True,
             rich_data=rich_data,
-            suggestions=suggestions if suggestions else None,
         )
 
     @handle_errors(
@@ -905,24 +873,20 @@ class NotebookHandler(InteractionHandler):
         show_more_entities: dict[str, Any] | None = None,
     ) -> InteractionResponse:
         """Build a paginated list response for group/tag-style list handlers."""
-        total = len(entries)
-        paginated = entries[offset : offset + limit]
-        has_more = offset + limit < total
+        page = paginate_items(entries, PageRequest(limit=limit, offset=offset))
 
         response_parts = [header]
-        for entry in paginated:
+        for entry in page.items:
             short_id = self._format_entry_id(entry)
             response_parts.append(f"• {entry.title or 'Untitled'} ({short_id})")
 
-        if has_more:
-            remaining = total - (offset + limit)
+        if page.has_more:
+            remaining = page.remaining_count
             response_parts.append(f"\n... and {remaining} more")
 
-        suggestions = []
         rich_data = None
-        if has_more:
-            remaining = total - (offset + limit)
-            suggestions.append(f"Show More ({min(limit, remaining)} more)")
+        if page.has_more:
+            remaining = page.remaining_count
             if show_more_intent is None:
                 if "Group '" in header:
                     group = header.split("Group '", 1)[1].split("'", 1)[0]
@@ -933,15 +897,14 @@ class NotebookHandler(InteractionHandler):
                     show_more_intent = "list_entries_by_tag"
                     show_more_entities = {"tag": tag}
             if show_more_intent is not None:
-                rich_data = _show_more_rich_data(
-                    show_more_intent, show_more_entities or {}, offset, limit
+                rich_data = _pagination_action_rich_data(
+                    show_more_intent, show_more_entities or {}, page
                 )
 
         return InteractionResponse(
             "\n".join(response_parts),
             True,
             rich_data=rich_data,
-            suggestions=suggestions if suggestions else None,
         )
 
     # not_duplicate: handle_list_by_group_tag
@@ -951,10 +914,7 @@ class NotebookHandler(InteractionHandler):
     ) -> InteractionResponse:
         """Handle listing entries by group."""
         group = entities.get("group")
-        offset = _coerce_offset(entities.get("offset", 0))
-        limit = _coerce_positive_int(
-            entities.get("limit", DEFAULT_PAGE_SIZE), DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
-        )
+        page_request = _page_request(entities)
 
         if not group:
             return InteractionResponse("Which group?", False)
@@ -966,7 +926,10 @@ class NotebookHandler(InteractionHandler):
             return InteractionResponse(_format_no_group_hits_message(group), True)
 
         return self._build_paginated_list_response(
-            entries, f"📁 Group '{group}' ({len(entries)} entries):", offset, limit
+            entries,
+            f"📁 Group '{group}' ({len(entries)} entries):",
+            page_request.offset,
+            page_request.limit,
         )
 
     @handle_errors("handling list pinned")
@@ -976,10 +939,7 @@ class NotebookHandler(InteractionHandler):
         """Handle listing pinned entries."""
         if entities is None:
             entities = {}
-        offset = _coerce_offset(entities.get("offset", 0))
-        limit = _coerce_positive_int(
-            entities.get("limit", DEFAULT_PAGE_SIZE), DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
-        )
+        page_request = _page_request(entities)
 
         result = list_pinned_entries(user_id, limit=100)
         entries = result.entries
@@ -987,33 +947,27 @@ class NotebookHandler(InteractionHandler):
         if not entries:
             return InteractionResponse("No pinned entries found.", True)
 
-        total = len(entries)
-        paginated = entries[offset : offset + limit]
-        has_more = offset + limit < total
+        page = paginate_items(entries, page_request)
 
-        response_parts = [f"📌 Pinned entries ({total}):"]
-        for entry in paginated:
+        response_parts = [f"📌 Pinned entries ({page.total}):"]
+        for entry in page.items:
             short_id = self._format_entry_id(entry)
             response_parts.append(f"• {entry.title or 'Untitled'} ({short_id})")
 
-        if has_more:
-            remaining = total - (offset + limit)
+        if page.has_more:
+            remaining = page.remaining_count
             response_parts.append(f"\n... and {remaining} more")
 
-        suggestions = []
         rich_data = None
-        if has_more:
-            remaining = total - (offset + limit)
-            suggestions.append(f"Show More ({min(limit, remaining)} more)")
-            rich_data = _show_more_rich_data(
-                "list_pinned_entries", entities, offset, limit
+        if page.has_more:
+            rich_data = _pagination_action_rich_data(
+                "list_pinned_entries", entities, page
             )
 
         return InteractionResponse(
             "\n".join(response_parts),
             True,
             rich_data=rich_data,
-            suggestions=suggestions if suggestions else None,
         )
 
     @handle_errors("handling list inbox")
@@ -1023,10 +977,7 @@ class NotebookHandler(InteractionHandler):
         """Handle listing inbox entries."""
         if entities is None:
             entities = {}
-        offset = _coerce_offset(entities.get("offset", 0))
-        limit = _coerce_positive_int(
-            entities.get("limit", DEFAULT_PAGE_SIZE), DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
-        )
+        page_request = _page_request(entities)
 
         result = list_inbox_entries(user_id, limit=100)
         entries = result.entries
@@ -1034,33 +985,27 @@ class NotebookHandler(InteractionHandler):
         if not entries:
             return InteractionResponse("Inbox is empty.", True)
 
-        total = len(entries)
-        paginated = entries[offset : offset + limit]
-        has_more = offset + limit < total
+        page = paginate_items(entries, page_request)
 
-        response_parts = [f"📥 Inbox ({total} entries):"]
-        for entry in paginated:
+        response_parts = [f"📥 Inbox ({page.total} entries):"]
+        for entry in page.items:
             short_id = self._format_entry_id(entry)
             response_parts.append(f"• {entry.title or 'Untitled'} ({short_id})")
 
-        if has_more:
-            remaining = total - (offset + limit)
+        if page.has_more:
+            remaining = page.remaining_count
             response_parts.append(f"\n... and {remaining} more")
 
-        suggestions = []
         rich_data = None
-        if has_more:
-            remaining = total - (offset + limit)
-            suggestions.append(f"Show More ({min(limit, remaining)} more)")
-            rich_data = _show_more_rich_data(
-                "list_inbox_entries", entities, offset, limit
+        if page.has_more:
+            rich_data = _pagination_action_rich_data(
+                "list_inbox_entries", entities, page
             )
 
         return InteractionResponse(
             "\n".join(response_parts),
             True,
             rich_data=rich_data,
-            suggestions=suggestions if suggestions else None,
         )
 
     # not_duplicate: handle_list_by_group_tag
@@ -1070,10 +1015,7 @@ class NotebookHandler(InteractionHandler):
     ) -> InteractionResponse:
         """Handle listing entries by tag."""
         tag = entities.get("tag")
-        offset = _coerce_offset(entities.get("offset", 0))
-        limit = _coerce_positive_int(
-            entities.get("limit", DEFAULT_PAGE_SIZE), DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
-        )
+        page_request = _page_request(entities)
 
         if not tag:
             return InteractionResponse("Which tag?", False)
@@ -1085,7 +1027,10 @@ class NotebookHandler(InteractionHandler):
             return InteractionResponse(_format_no_tag_hits_message(tag), True)
 
         return self._build_paginated_list_response(
-            entries, f"🏷️ Tag '{tag}' ({len(entries)} entries):", offset, limit
+            entries,
+            f"🏷️ Tag '{tag}' ({len(entries)} entries):",
+            page_request.offset,
+            page_request.limit,
         )
 
     @handle_errors("handling list archived")
@@ -1095,10 +1040,7 @@ class NotebookHandler(InteractionHandler):
         """Handle listing archived entries."""
         if entities is None:
             entities = {}
-        offset = _coerce_offset(entities.get("offset", 0))
-        limit = _coerce_positive_int(
-            entities.get("limit", DEFAULT_PAGE_SIZE), DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
-        )
+        page_request = _page_request(entities)
 
         result = list_archived_entries(user_id, limit=100)
         entries = result.entries
@@ -1106,12 +1048,10 @@ class NotebookHandler(InteractionHandler):
         if not entries:
             return InteractionResponse("No archived entries found.", True)
 
-        total = len(entries)
-        paginated = entries[offset : offset + limit]
-        has_more = offset + limit < total
+        page = paginate_items(entries, page_request)
 
-        response_parts = [f"🗄️ Archived entries ({total}):"]
-        for entry in paginated:
+        response_parts = [f"🗄️ Archived entries ({page.total}):"]
+        for entry in page.items:
             short_id = self._format_entry_id(entry)
             kind_icon = {"note": "📄", "list": "📋", "journal_entry": "📔"}.get(
                 entry.kind, "📝"
@@ -1120,24 +1060,20 @@ class NotebookHandler(InteractionHandler):
                 f"{kind_icon} {entry.title or 'Untitled'} ({short_id})"
             )
 
-        if has_more:
-            remaining = total - (offset + limit)
+        if page.has_more:
+            remaining = page.remaining_count
             response_parts.append(f"\n... and {remaining} more")
 
-        suggestions = []
         rich_data = None
-        if has_more:
-            remaining = total - (offset + limit)
-            suggestions.append(f"Show More ({min(limit, remaining)} more)")
-            rich_data = _show_more_rich_data(
-                "list_archived_entries", entities, offset, limit
+        if page.has_more:
+            rich_data = _pagination_action_rich_data(
+                "list_archived_entries", entities, page
             )
 
         return InteractionResponse(
             "\n".join(response_parts),
             True,
             rich_data=rich_data,
-            suggestions=suggestions if suggestions else None,
         )
 
     # Helper methods

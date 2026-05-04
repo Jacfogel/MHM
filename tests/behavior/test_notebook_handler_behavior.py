@@ -15,6 +15,7 @@ from core.user_data_v2_base import generate_short_id
 from communication.command_handlers.notebook_handler import NotebookHandler
 from communication.command_handlers.shared_types import (
     InteractionResponse,
+    PaginationAction,
     ParsedCommand,
 )
 from communication.message_processing.interaction_manager import InteractionManager
@@ -70,7 +71,7 @@ class TestNotebookHandlerBehavior:
                     user_id, str(entry.id), True
                 ), "Expected archiving to succeed"
 
-    def _assert_show_more_payload(
+    def _assert_pagination_action(
         self,
         response: InteractionResponse,
         *,
@@ -78,20 +79,24 @@ class TestNotebookHandlerBehavior:
         expected_entities: dict[str, object] | None = None,
         next_offset: int = 2,
         limit: int = 2,
-    ) -> dict[str, object]:
-        """Assert a notebook response includes a next-page button payload."""
+    ) -> PaginationAction:
+        """Assert a notebook response includes channel-neutral pagination metadata."""
         assert response.completed
-        assert response.suggestions == ["Show More (2 more)"]
-        payloads = (response.rich_data or {}).get("suggestion_payloads")
-        assert isinstance(payloads, list) and len(payloads) == 1
-        payload = payloads[0]
-        assert payload["intent"] == intent
-        entities = payload["entities"]
-        assert entities["offset"] == next_offset
-        assert entities["limit"] == limit
+        assert response.suggestions is None
+        actions = (response.rich_data or {}).get("pagination_actions")
+        assert isinstance(actions, list) and len(actions) == 1
+        action = actions[0]
+        assert isinstance(action, PaginationAction)
+        assert action.domain == "notebook"
+        assert action.action == intent
+        assert action.offset == 0
+        assert action.next_offset == next_offset
+        assert action.limit == limit
         for key, value in (expected_entities or {}).items():
-            assert entities[key] == value
-        return payload
+            assert action.params[key] == value
+        assert "offset" not in action.params
+        assert "limit" not in action.params
+        return action
 
     def test_notebook_handler_can_handle_intents(self):
         """Test that NotebookHandler can handle all expected intents."""
@@ -689,7 +694,7 @@ class TestNotebookHandlerBehavior:
             ),
         ],
     )
-    def test_paginated_notebook_views_include_show_more_payload(
+    def test_paginated_notebook_views_include_pagination_action(
         self,
         test_data_dir,
         intent,
@@ -697,7 +702,7 @@ class TestNotebookHandlerBehavior:
         expected_entities,
         setup_kwargs,
     ):
-        """Show More buttons preserve the intent and entities needed for page 2."""
+        """Notebook handlers expose channel-neutral metadata needed for page 2."""
         handler = NotebookHandler()
         user_id = f"test_notebook_pagination_{intent}_{uuid.uuid4().hex[:8]}"
         assert self._create_test_user(
@@ -715,7 +720,7 @@ class TestNotebookHandlerBehavior:
             ),
         )
 
-        payload = self._assert_show_more_payload(
+        action = self._assert_pagination_action(
             response,
             intent=intent,
             expected_entities=expected_entities,
@@ -726,9 +731,9 @@ class TestNotebookHandlerBehavior:
         next_response = handler.handle(
             user_id,
             ParsedCommand(
-                intent=str(payload["intent"]),
+                intent=action.action,
                 entities=(
-                    payload["entities"] if isinstance(payload["entities"], dict) else {}
+                    action.params | {"offset": action.next_offset, "limit": action.limit}
                 ),
                 confidence=1.0,
                 original_message="Show More (2 more)",
