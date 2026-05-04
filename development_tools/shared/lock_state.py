@@ -64,6 +64,8 @@ def is_pid_alive(pid: Any) -> bool:
         return False
     except OSError:
         return False
+    except SystemError:
+        return False
 
 
 def evaluate_lock(path: Path, now_ts: float | None = None) -> dict[str, Any]:

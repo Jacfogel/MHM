@@ -490,6 +490,7 @@ class UserDataManager:
             if os.path.exists(file_path):
                 adder(file_path, file_type, summary)
 
+    # not_duplicate: get_user_data_summary_core_file_info
     @handle_errors("adding core file info to user data summary")
     def _get_user_data_summary__add_core_file_info(
         self, file_path: str, file_type: str, summary: dict[str, Any]
@@ -500,7 +501,7 @@ class UserDataManager:
             file_path, file_type, summary
         )
 
-    # not_duplicate: get_user_data_summary_process_core_log
+    # not_duplicate: get_user_data_summary_process_phases
     @handle_errors("processing core files for user data summary")
     def _get_user_data_summary__process_core_files(
         self, user_id: str, summary: dict[str, Any]
@@ -518,6 +519,7 @@ class UserDataManager:
         except Exception as e:
             logger.error(f"Error processing core files for user data summary: {e}")
 
+    # not_duplicate: get_user_data_summary_core_file_info
     @handle_errors("adding file info to user data summary")
     def _get_user_data_summary__add_file_info(
         self, file_path: str, file_type: str, summary: dict[str, Any]
@@ -586,7 +588,7 @@ class UserDataManager:
                 f"Error adding {log_label} to user data summary: {e}"
             )
 
-    # not_duplicate: get_user_data_summary_process_message
+    # not_duplicate: get_user_data_summary_process_phases
     @handle_errors("processing message files for user data summary")
     def _get_user_data_summary__process_message_files(
         self, user_id: str, summary: dict[str, Any]
@@ -640,7 +642,7 @@ class UserDataManager:
                 f"Error ensuring message files during validation for user {user_id}: {e}"
             )
 
-    # not_duplicate: get_user_data_summary_process_message
+    # not_duplicate: get_user_data_summary_process_phases
     @handle_errors("processing enabled message files for user data summary")
     def _get_user_data_summary__process_enabled_message_files(
         self, user_id: str, categories: list[str], summary: dict[str, Any]
@@ -665,7 +667,7 @@ class UserDataManager:
                 f"Error processing enabled message files for user data summary: {e}"
             )
 
-    # not_duplicate: get_user_data_summary_process_message
+    # not_duplicate: get_user_data_summary_process_phases
     @handle_errors("processing orphaned message files for user data summary")
     def _get_user_data_summary__process_orphaned_message_files(
         self,
@@ -739,7 +741,7 @@ class UserDataManager:
                 f"Error adding missing message file info to user data summary: {e}"
             )
 
-    # not_duplicate: get_user_data_summary_process_core_log
+    # not_duplicate: get_user_data_summary_process_phases
     @handle_errors("processing log files for user data summary")
     def _get_user_data_summary__process_log_files(
         self, user_id: str, summary: dict[str, Any]

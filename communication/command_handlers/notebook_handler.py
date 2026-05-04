@@ -101,6 +101,7 @@ def _pagination_action_rich_data(
     }
 
 
+# not_duplicate: notebook_empty_result_messages
 @handle_errors(
     "formatting empty notebook search message",
     default_return=(
@@ -125,6 +126,7 @@ def _format_no_search_hits_message(query: str) -> str:
     return "\n".join(lines)
 
 
+# not_duplicate: notebook_empty_result_messages
 @handle_errors(
     "formatting empty notebook group message",
     default_return="No entries in that group. Try !recent or check spelling.",
@@ -141,6 +143,7 @@ def _format_no_group_hits_message(group: str) -> str:
     return "\n".join(lines)
 
 
+# not_duplicate: notebook_empty_result_messages
 @handle_errors(
     "formatting empty notebook tag message",
     default_return="No entries with that tag. Try !recent or !t with another tag.",
@@ -691,6 +694,7 @@ class NotebookHandler(InteractionHandler):
             )
         return InteractionResponse(failure_message, True)
 
+    # not_duplicate: notebook_pin_archive_entry_wrappers
     @handle_errors(
         "handling pin entry",
         default_return=InteractionResponse(
@@ -713,6 +717,7 @@ class NotebookHandler(InteractionHandler):
             failure_message="❌ Failed to pin/unpin. Entry not found.",
         )
 
+    # not_duplicate: notebook_pin_archive_entry_wrappers
     @handle_errors(
         "handling archive entry",
         default_return=InteractionResponse(

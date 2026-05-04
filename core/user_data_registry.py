@@ -264,6 +264,7 @@ def _account_normalize_after_load(data: dict[str, Any]) -> dict[str, Any]:
     return data
 
 
+# not_duplicate: user_data_loader_adapters
 @handle_errors("loading user account data", default_return=None)
 def _get_user_data__load_account(
     user_id: str, auto_create: bool = True
@@ -318,6 +319,7 @@ def _preferences_default_data(user_id: str) -> dict[str, Any] | None:
     }
 
 
+# not_duplicate: user_data_loader_adapters
 @handle_errors("loading user preferences data", default_return=None)
 def _get_user_data__load_preferences(
     user_id: str, auto_create: bool = True
@@ -385,6 +387,7 @@ def _context_default_data(user_id: str) -> dict[str, Any] | None:
     }
 
 
+# not_duplicate: user_data_loader_adapters
 @handle_errors("loading user context data", default_return=None)
 def _get_user_data__load_context(
     user_id: str, auto_create: bool = True
@@ -431,6 +434,7 @@ def _schedules_default_data(user_id: str) -> dict[str, Any] | None:
     return {}
 
 
+# not_duplicate: user_data_loader_adapters
 @handle_errors("loading user schedules data", default_return=None)
 def _get_user_data__load_schedules(
     user_id: str, auto_create: bool = True

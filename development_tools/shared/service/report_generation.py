@@ -29,6 +29,14 @@ class ReportGenerationMixin:
         """True when reports are written for DEV_TOOLS_*.md (dev-tools-only audit)."""
         return bool(getattr(self, "dev_tools_only_mode", False))
 
+    def _scoped_tool_result_path(self, domain: str, tool_name: str) -> str:
+        """Return the repo-relative scoped JSON result path used by tool storage."""
+        scope = "dev_tools" if self._is_dev_tools_scoped_report() else "full"
+        return (
+            f"development_tools/{domain}/jsons/scopes/{scope}/"
+            f"{tool_name}_results.json"
+        )
+
     def _path_is_under_development_tools_dir(self, path_str: str) -> bool:
         """True if ``path_str`` resolves under ``project_root/development_tools``."""
         if not path_str or not isinstance(path_str, str):
@@ -3756,32 +3764,32 @@ class ReportGenerationMixin:
                 "Triage documentation example-marker hints": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md (section 3.6)",
             }
             details_defaults: dict[str, str] = {
-                "Stabilize documentation drift": "development_tools/docs/jsons/analyze_documentation_sync_results.json",
-                "Add docstrings to missing functions": "development_tools/functions/jsons/analyze_functions_results.json",
+                "Stabilize documentation drift": self._scoped_tool_result_path("docs", "analyze_documentation_sync"),
+                "Add docstrings to missing functions": self._scoped_tool_result_path("functions", "analyze_functions"),
                 "Update function registry": "development_docs/FUNCTION_REGISTRY_DETAIL.md",
-                "Add error handling to missing functions": "development_tools/error_handling/jsons/analyze_error_handling_results.json",
-                "Modernize error handling (Phase 1 + Phase 2)": "development_tools/error_handling/jsons/analyze_error_handling_results.json",
+                "Add error handling to missing functions": self._scoped_tool_result_path("error_handling", "analyze_error_handling"),
+                "Modernize error handling (Phase 1 + Phase 2)": self._scoped_tool_result_path("error_handling", "analyze_error_handling"),
                 "Raise coverage for domains below target": "development_docs/TEST_COVERAGE_REPORT.md",
-                "Raise development tools coverage": "development_tools/tests/jsons/generate_dev_tools_coverage_results.json",
+                "Raise development tools coverage": self._scoped_tool_result_path("tests", "generate_dev_tools_coverage"),
                 "Reduce dependency pattern risk": "development_tools/CONSOLIDATED_REPORT.md",
-                "Fix development tools import boundary violations": "development_tools/imports/jsons/analyze_dev_tools_import_boundaries_results.json",
+                "Fix development tools import boundary violations": self._scoped_tool_result_path("imports", "analyze_dev_tools_import_boundaries"),
                 "Remove legacy compatibility code (after full call-site migration)": "development_docs/LEGACY_REFERENCE_REPORT.md (exact locations)",
-                "Update tools to use centralized config": "development_tools/ai_work/jsons/analyze_ai_work_results.json",
-                "Add docstrings to handler classes": "development_tools/functions/jsons/analyze_function_patterns_results.json",
-                "Add pytest category markers to tests": "development_tools/tests/jsons/analyze_test_markers_results.json",
-                "Add pytest domain-attribution markers to tests": "development_tools/tests/jsons/analyze_test_markers_results.json",
-                "Review orphaned pytest worker processes (Windows)": "development_tools/tests/jsons/verify_process_cleanup_results.json",
+                "Update tools to use centralized config": self._scoped_tool_result_path("ai_work", "analyze_ai_work"),
+                "Add docstrings to handler classes": self._scoped_tool_result_path("functions", "analyze_function_patterns"),
+                "Add pytest category markers to tests": self._scoped_tool_result_path("tests", "analyze_test_markers"),
+                "Add pytest domain-attribution markers to tests": self._scoped_tool_result_path("tests", "analyze_test_markers"),
+                "Review orphaned pytest worker processes (Windows)": self._scoped_tool_result_path("tests", "verify_process_cleanup"),
                 "Remove obvious unused imports": "development_docs/UNUSED_IMPORTS_REPORT.md",
-                "Investigate possible duplicate functions/methods": "development_tools/functions/jsons/analyze_duplicate_functions_results.json",
-                "Consider refactoring large or high-complexity modules": "development_tools/functions/jsons/analyze_module_refactor_candidates_results.json",
-                "Refactor high-complexity functions": "development_tools/functions/jsons/analyze_functions_results.json",
+                "Investigate possible duplicate functions/methods": self._scoped_tool_result_path("functions", "analyze_duplicate_functions"),
+                "Consider refactoring large or high-complexity modules": self._scoped_tool_result_path("functions", "analyze_module_refactor_candidates"),
+                "Refactor high-complexity functions": self._scoped_tool_result_path("functions", "analyze_functions"),
                 "Address Ruff findings": "development_tools/CONSOLIDATED_REPORT.md",
                 "Address Pyright findings": "development_tools/CONSOLIDATED_REPORT.md",
                 "Investigate and correct test failures/errors": "stdout files in development_tools/tests/logs",
                 "Investigate backup health failures": "development_tools/reports/jsons/backup_health_report.json",
-                "Consolidate documentation files": "development_tools/docs/jsons/analyze_documentation_results.json",
-                "Review documentation overlaps": "development_tools/docs/jsons/analyze_documentation_results.json",
-                "Triage documentation example-marker hints": "development_tools/docs/jsons/analyze_documentation_sync_results.json (details.example_marker_findings)",
+                "Consolidate documentation files": self._scoped_tool_result_path("docs", "analyze_documentation"),
+                "Review documentation overlaps": self._scoped_tool_result_path("docs", "analyze_documentation"),
+                "Triage documentation example-marker hints": f"{self._scoped_tool_result_path('docs', 'analyze_documentation_sync')} (details.example_marker_findings)",
             }
 
             normalized_bullets: list[str] = []
@@ -4291,7 +4299,7 @@ class ReportGenerationMixin:
                             f"Top target modules: {self._format_list_for_display(highlights, limit=3)}"
                         )
                     dev_bullets.append(
-                        "Review for details: development_tools/tests/jsons/generate_dev_tools_coverage_results.json"
+                        f"Review for details: {self._scoped_tool_result_path('tests', 'generate_dev_tools_coverage')}"
                     )
                     if dev_tools_insights.get("html"):
                         dev_bullets.append(
@@ -4827,7 +4835,7 @@ class ReportGenerationMixin:
                     "Command: `python development_tools/tests/fix_test_markers.py`"
                 )
                 test_markers_bullets.append(
-                    "Review for details: `development_tools/tests/jsons/analyze_test_markers_results.json`"
+                    f"Review for details: `{self._scoped_tool_result_path('tests', 'analyze_test_markers')}`"
                 )
                 add_priority(
                     tier=3,
@@ -4856,7 +4864,7 @@ class ReportGenerationMixin:
                     "(read-only); fixes are manual or incremental rollout per TEST_PLAN.md §4.4"
                 )
                 domain_bullets.append(
-                    "Review for details: `development_tools/tests/jsons/analyze_test_markers_results.json`"
+                    f"Review for details: `{self._scoped_tool_result_path('tests', 'analyze_test_markers')}`"
                 )
                 add_priority(
                     tier=3,
@@ -5053,7 +5061,7 @@ class ReportGenerationMixin:
                         f"Group {idx} ({func_count} funcs, max score {max_score}): {', '.join(func_items)}"
                     )
                 duplicate_bullets.append(
-                    "Review for details: development_tools/functions/jsons/analyze_duplicate_functions_results.json"
+                    f"Review for details: {self._scoped_tool_result_path('functions', 'analyze_duplicate_functions')}"
                 )
                 dup_capped_priority = isinstance(details, dict) and details.get(
                     "groups_capped", False
@@ -5116,7 +5124,7 @@ class ReportGenerationMixin:
                             f"  {idx}. {file_key} (lines={line_count}, functions={funcs}, total_function_complexity={total_comp})"
                         )
                 refactor_bullets.append(
-                    "Review for details: development_tools/functions/jsons/analyze_module_refactor_candidates_results.json"
+                    f"Review for details: {self._scoped_tool_result_path('functions', 'analyze_module_refactor_candidates')}"
                 )
                 add_priority(
                     tier=2,
@@ -5229,7 +5237,7 @@ class ReportGenerationMixin:
                 "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md, ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
             )
             # Insert details after top results (after index 1 if we have "Highest complexity")
-            details_line = "Review for details: development_tools/functions/jsons/analyze_functions_results.json"
+            details_line = f"Review for details: {self._scoped_tool_result_path('functions', 'analyze_functions')}"
             complexity_bullets.insert(1, details_line)
             if len(complexity_bullets) > 2 and not complexity_bullets[2].startswith("Review for details:"):
                 # We have "Highest complexity" at index 2; move details to after it
@@ -5276,7 +5284,7 @@ class ReportGenerationMixin:
                 0,
                 "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md, ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
             )
-            details_line_high = "Review for details: development_tools/functions/jsons/analyze_functions_results.json"
+            details_line_high = f"Review for details: {self._scoped_tool_result_path('functions', 'analyze_functions')}"
             high_complexity_bullets.insert(1, details_line_high)
             if len(high_complexity_bullets) > 2 and not high_complexity_bullets[2].startswith("Review for details:"):
                 high_complexity_bullets.pop(1)
@@ -5606,7 +5614,7 @@ class ReportGenerationMixin:
                 )
             # Order matches other priorities: auto guidance first, content, details, action last.
             em_bullets: list[str] = em_file_bullets + [
-                "Review for details: development_tools/docs/jsons/analyze_documentation_sync_results.json (details.example_marker_findings)",
+                f"Review for details: {self._scoped_tool_result_path('docs', 'analyze_documentation_sync')} (details.example_marker_findings)",
                 "Action: Add [OK]/[AVOID]/[GOOD]/[BAD]/[EXAMPLE] next to path references in Example sections where they are intentional examples, or move neutral citations out of Example headings.",
             ]
 
@@ -8306,7 +8314,7 @@ class ReportGenerationMixin:
                         f"   - **Top 3 candidates**: {', '.join(top_refactor)}"
                     )
                 lines.append(
-                    "   - **Full list**: development_tools/functions/jsons/analyze_module_refactor_candidates_results.json"
+                    f"   - **Full list**: {self._scoped_tool_result_path('functions', 'analyze_module_refactor_candidates')}"
                 )
 
         lines.append("")

@@ -130,9 +130,21 @@ class _StubService:
         return self.unused_imports_report_result
 
     def run_analyze_duplicate_functions(
-        self, *, min_overall=None, min_name=None, consider_body_similarity=False
+        self,
+        *,
+        min_overall=None,
+        min_name=None,
+        consider_body_similarity=False,
+        body_for_near_miss_only=False,
     ):
-        self.duplicate_function_calls.append((min_overall, min_name))
+        self.duplicate_function_calls.append(
+            (
+                min_overall,
+                min_name,
+                consider_body_similarity,
+                body_for_near_miss_only,
+            )
+        )
         return {"success": True}
 
     def generate_directory_trees(self):
@@ -328,12 +340,20 @@ def test_duplicate_functions_command_wires_flags(cli_module):
 
     code = cli_module._duplicate_functions_command(
         service,
-        ["--include-all", "--min-overall", "0.8", "--min-name", "0.6"],
+        [
+            "--include-all",
+            "--consider-body-similarity",
+            "--body-for-near-miss",
+            "--min-overall",
+            "0.8",
+            "--min-name",
+            "0.6",
+        ],
     )
 
     assert code == 0
     assert service.exclusion_calls == [(True, True)]
-    assert service.duplicate_function_calls == [(0.8, 0.6)]
+    assert service.duplicate_function_calls == [(0.8, 0.6, True, True)]
 
 
 @pytest.mark.unit

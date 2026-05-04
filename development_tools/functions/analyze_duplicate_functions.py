@@ -26,7 +26,7 @@ helper) or other cases that are not actionable duplicates.
 Not duplication: To suppress reporting of a specific intentional group
 (e.g. polymorphism, same API pattern), add the same comment to every
 function in that group, including a group id after a colon so the tool
-knows which pairs to suppress. Only pairs where both functions have the
+knows which group to suppress. Only groups where every function has the
 same group id are omitted; future duplicates without the comment still
 appear. Example (all three methods get the same id):
   # not_duplicate: format_message
@@ -124,7 +124,7 @@ class FunctionRecord:
     imports_used: tuple[str, ...]
     name_tokens: tuple[str, ...]
     excluded: bool = False  # True if # duplicate_functions_exclude (or variant) in function
-    intentional_group_id: str | None = None  # If set, pair is omitted only when both sides have same id
+    intentional_group_id: str | None = None  # If set, group is omitted only when every member has same id
     body_node_sequence: tuple[str, ...] | None = None  # AST node-type sequence when body similarity enabled
 
 
@@ -205,7 +205,7 @@ def _function_has_exclude_comment(content: str, node: FunctionNode) -> bool:
     if not content:
         return False
     lines = content.split("\n")
-    start_lineno = getattr(node, "lineno", 1) or 1
+    start_lineno = _function_marker_start_lineno(node)
     end_lineno = getattr(node, "end_lineno", start_lineno) or start_lineno
     context_start = max(0, start_lineno - 4)
     snippet = "\n".join(lines[context_start:end_lineno]).lower()
@@ -220,7 +220,7 @@ def _get_intentional_group_id(content: str, node: FunctionNode) -> str | None:
     if not content:
         return None
     lines = content.split("\n")
-    start_lineno = getattr(node, "lineno", 1) or 1
+    start_lineno = _function_marker_start_lineno(node)
     end_lineno = getattr(node, "end_lineno", start_lineno) or start_lineno
     # Include enough lines before def so comment above decorator(s) is found
     context_start = max(0, start_lineno - 8)
@@ -243,6 +243,16 @@ def _get_intentional_group_id(content: str, node: FunctionNode) -> str | None:
     ):
         return ""
     return None
+
+
+def _function_marker_start_lineno(node: FunctionNode) -> int:
+    """Return the first line where function-level marker comments may be attached."""
+    candidates = [getattr(node, "lineno", 1) or 1]
+    for decorator in getattr(node, "decorator_list", []) or []:
+        lineno = getattr(decorator, "lineno", None)
+        if isinstance(lineno, int) and lineno > 0:
+            candidates.append(lineno)
+    return min(candidates)
 
 
 def _deserialize_intentional_group_id(raw: Any) -> str | None:
@@ -712,17 +722,15 @@ def _analyze_duplicates(
         candidate_pairs = candidate_pairs.union(body_pairs)
 
     record_by_id = {idx: record for idx, record in enumerate(records)}
+    intentional_group_by_key = {
+        _pair_key(_record_summary(record)): getattr(record, "intentional_group_id", None)
+        for record in records
+    }
 
     pair_results: list[PairResult] = []
-    pairs_filtered_intentional = 0
     for a_id, b_id in candidate_pairs:
         a = record_by_id[a_id]
         b = record_by_id[b_id]
-        a_gid = getattr(a, "intentional_group_id", None)
-        b_gid = getattr(b, "intentional_group_id", None)
-        if a_gid is not None and b_gid is not None and a_gid == b_gid:
-            pairs_filtered_intentional += 1
-            continue
         if body_for_near_miss_only:
             overall_base, scores_base = _compute_similarity(a, b, weights_no_body)
             passes_normal = (
@@ -761,6 +769,13 @@ def _analyze_duplicates(
     groups_before_filter = len(all_groups)
     multi_function_groups = [g for g in all_groups if len(g.get("functions", [])) >= 2]
     groups_filtered_single_function = groups_before_filter - len(multi_function_groups)
+    groups_before_intentional_filter = len(multi_function_groups)
+    multi_function_groups = [
+        group
+        for group in multi_function_groups
+        if not _group_has_matching_intentional_marker(group, intentional_group_by_key)
+    ]
+    groups_filtered_intentional = groups_before_intentional_filter - len(multi_function_groups)
     groups = multi_function_groups[:max_groups]
 
     files_affected = {
@@ -776,6 +791,7 @@ def _analyze_duplicates(
         "functions_excluded": functions_excluded,
         "records_deduplicated": records_deduplicated,
         "groups_filtered_single_function": groups_filtered_single_function,
+        "groups_filtered_intentional": groups_filtered_intentional,
         "cache": cache_stats or {},
         "pairs_considered": len(candidate_pairs),
         "pairs_reported": len(pair_results),
@@ -793,8 +809,6 @@ def _analyze_duplicates(
         "top_pairs": pair_results[:max_pairs],
         "duplicate_groups": groups,
     }
-    if pairs_filtered_intentional > 0:
-        details["pairs_filtered_intentional"] = pairs_filtered_intentional
     if consider_body_similarity or body_for_near_miss_only:
         details["consider_body_similarity_used"] = consider_body_similarity
         if body_for_near_miss_only:
@@ -926,6 +940,22 @@ def _group_pairs(
     if max_groups is not None and max_groups > 0:
         return grouped[:max_groups]
     return grouped
+
+
+def _group_has_matching_intentional_marker(
+    group: GroupSummary, intentional_group_by_key: dict[str, str | None]
+) -> bool:
+    """Return True only when every function in ``group`` has the same intentional marker."""
+    functions = group.get("functions", [])
+    if not functions:
+        return False
+    group_ids = [
+        intentional_group_by_key.get(_pair_key(function))
+        for function in functions
+    ]
+    if any(group_id is None for group_id in group_ids):
+        return False
+    return len(set(group_ids)) == 1
 
 
 def _pair_key(summary: FunctionSummary) -> str:

@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-04 - Duplicate audit freshness and marker triage **COMPLETED**
+- `AI_PRIORITIES.md` / `CONSOLIDATED_REPORT.md` now point duplicate, module-refactor, and function-complexity detail links at scoped current JSON under `development_tools/functions/jsons/scopes/full/`.
+- `analyze_duplicate_functions` now suppresses intentional groups only when every member has the same `# not_duplicate` / intentional marker; decorated-function markers are detected correctly.
+- Added `duplicate-functions --body-for-near-miss` so standalone duplicate runs can mirror full-audit near-miss body similarity mode.
+- Marked reviewed intentional duplicate groups across user-data, notebook, cleanup, task-service facade, loader, save-validation, and AI-response extraction helpers. Current generated priority report shows 2 remaining duplicate candidate groups.
+- Validation: focused duplicate analyzer, CLI flag, audit storage scope tests, and `py_compile` passed. Consolidated-report test selection timed out during teardown after printing passing tests, so it was not counted as a clean full pass.
+
 ### 2026-05-03 - Refactor continuation phases 1-4 **COMPLETED**
 - `service_requests` owns request-file processing via `ServiceRequestContext`; `service.py` is now closer to lifecycle/wiring-only and delegates request handling.
 - Scheduler logic moved out of `SchedulerManager`: task reminders in `scheduler_task_reminders`, maintenance in `scheduler_maintenance`, common job registration in `scheduler_jobs`.

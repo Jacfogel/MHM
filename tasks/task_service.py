@@ -73,6 +73,7 @@ def task_short_identifier(task: dict[str, Any]) -> str:
     return str(task.get("short_id") or "")
 
 
+# not_duplicate: task_identifier_service_facade
 @handle_errors("task service: find task by identifier", default_return=None)
 def find_task_by_identifier(
     tasks: list[dict[str, Any]], identifier: str

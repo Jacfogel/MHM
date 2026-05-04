@@ -221,6 +221,7 @@ def _perform_cleanup__log_discovery_results(pycache_dirs, pyc_files):
     return total_size
 
 
+# not_duplicate: cleanup_cache_remove_orchestrator
 @handle_errors("removing cache files", default_return=(0, 0))
 def _perform_cleanup__remove_cache_files(pycache_dirs, pyc_files):
     """Remove all discovered cache directories and files."""
@@ -248,6 +249,7 @@ def _perform_cleanup__remove_cache_directories(pycache_dirs):
     return removed_dirs
 
 
+# not_duplicate: cleanup_cache_remove_orchestrator
 @handle_errors("removing cache files list", default_return=0)
 def _perform_cleanup__remove_cache_files_list(pyc_files):
     """Remove all standalone .pyc files."""

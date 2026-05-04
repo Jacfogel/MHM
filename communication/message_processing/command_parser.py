@@ -1860,6 +1860,7 @@ class EnhancedCommandParser:
             logger.error(f"Error extracting update entities: {e}")
             return {}
 
+    # not_duplicate: ai_response_extraction_helpers
     @handle_errors("extracting intent from AI response")
     def _extract_intent_from_ai_response(self, ai_response: str) -> str | None:
         """Extract intent from AI response text"""
@@ -1892,6 +1893,7 @@ class EnhancedCommandParser:
             logger.error(f"Error extracting intent from AI response: {e}")
             return None
 
+    # not_duplicate: ai_response_extraction_helpers
     @handle_errors("extracting entities from AI response")
     def _extract_entities_from_ai_response(self, ai_response: str) -> dict[str, Any]:
         """Extract entities from AI response text"""

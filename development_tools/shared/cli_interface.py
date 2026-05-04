@@ -408,6 +408,11 @@ def _duplicate_functions_command(service: "AIToolsService", argv: Sequence[str])
         help="Include body/structural similarity (AST); increases runtime.",
     )
     parser.add_argument(
+        "--body-for-near-miss",
+        action="store_true",
+        help="Match full-audit near-miss behavior: run body similarity only for lower name-token candidates.",
+    )
+    parser.add_argument(
         "--min-overall",
         type=float,
         default=None,
@@ -435,6 +440,7 @@ def _duplicate_functions_command(service: "AIToolsService", argv: Sequence[str])
         min_overall=ns.min_overall,
         min_name=ns.min_name,
         consider_body_similarity=ns.consider_body_similarity,
+        body_for_near_miss_only=ns.body_for_near_miss,
     )
     success = result.get("success", False) if isinstance(result, dict) else bool(result)
     return 0 if success else 1

@@ -51,6 +51,18 @@ def test_get_intentional_group_id_extracts_id_or_empty(dupes_module):
     node = dupes_module.ast.parse(content).body[0]
     assert dupes_module._get_intentional_group_id(content, node) == "format_message"
 
+    decorated = (
+        "# not_duplicate: decorated_group\n"
+        "@handle_errors(\n"
+        "    'decorated function',\n"
+        "    default_return=None,\n"
+        ")\n"
+        "def decorated():\n"
+        "    pass\n"
+    )
+    node = dupes_module.ast.parse(decorated).body[0]
+    assert dupes_module._get_intentional_group_id(decorated, node) == "decorated_group"
+
     content_no_colon = "# not_duplicate\n\ndef clear():\n    pass\n"
     node = dupes_module.ast.parse(content_no_colon).body[0]
     assert dupes_module._get_intentional_group_id(content_no_colon, node) == ""
@@ -61,8 +73,8 @@ def test_get_intentional_group_id_extracts_id_or_empty(dupes_module):
 
 
 @pytest.mark.unit
-def test_analyze_duplicates_filters_pairs_only_when_both_same_intentional_group(dupes_module):
-    """Pairs are omitted only when both functions have the same intentional_group_id."""
+def test_analyze_duplicates_filters_group_only_when_all_members_share_intentional_group(dupes_module):
+    """A duplicate group is omitted only when every function has the same intentional_group_id."""
     record = dupes_module.FunctionRecord
     gid = "format_message"
     records = [
@@ -104,9 +116,9 @@ def test_analyze_duplicates_filters_pairs_only_when_both_same_intentional_group(
     with patch.object(dupes_module.config, "get_project_root", return_value="/proj"):
         result = dupes_module._analyze_duplicates(records, config, cache_stats={})
     details = result.get("details", {})
-    assert details.get("pairs_filtered_intentional") == 1
+    assert details.get("groups_filtered_intentional") == 1
     assert len(details.get("duplicate_groups", [])) == 0
-    assert details.get("pairs_reported") == 0
+    assert details.get("pairs_reported") == 1
 
 
 @pytest.mark.unit
@@ -152,8 +164,70 @@ def test_analyze_duplicates_reports_pair_when_only_one_has_intentional_group(dup
     with patch.object(dupes_module.config, "get_project_root", return_value="/proj"):
         result = dupes_module._analyze_duplicates(records, config, cache_stats={})
     details = result.get("details", {})
-    assert details.get("pairs_filtered_intentional", 0) == 0
+    assert details.get("groups_filtered_intentional", 0) == 0
     assert details.get("pairs_reported") == 1
+
+
+@pytest.mark.unit
+def test_analyze_duplicates_reports_mixed_intentional_group(dupes_module):
+    """A group with any unmarked or differently marked member remains reportable."""
+    record = dupes_module.FunctionRecord
+    gid = "format_message"
+    records = [
+        record(
+            name="format_message",
+            full_name="MessageFormatter.format_message",
+            class_name="MessageFormatter",
+            file_path="message_formatter.py",
+            line=1,
+            args=("message",),
+            locals_used=(),
+            imports_used=(),
+            name_tokens=("format", "message"),
+            intentional_group_id=gid,
+        ),
+        record(
+            name="format_message",
+            full_name="TextMessageFormatter.format_message",
+            class_name="TextMessageFormatter",
+            file_path="message_formatter.py",
+            line=2,
+            args=("message",),
+            locals_used=(),
+            imports_used=(),
+            name_tokens=("format", "message"),
+            intentional_group_id=gid,
+        ),
+        record(
+            name="format_message",
+            full_name="EmailMessageFormatter.format_message",
+            class_name="EmailMessageFormatter",
+            file_path="message_formatter.py",
+            line=3,
+            args=("message",),
+            locals_used=(),
+            imports_used=(),
+            name_tokens=("format", "message"),
+            intentional_group_id=None,
+        ),
+    ]
+    config = {
+        "weights": {"name": 1.0, "args": 0.0, "locals": 0.0, "imports": 0.0},
+        "min_name_similarity": 0.5,
+        "min_overall_similarity": 0.5,
+        "max_pairs": 50,
+        "max_groups": 25,
+        "max_candidate_pairs": 20000,
+        "max_token_group_size": 200,
+        "stop_name_tokens": [],
+    }
+    with patch.object(dupes_module.config, "get_project_root", return_value="/proj"):
+        result = dupes_module._analyze_duplicates(records, config, cache_stats={})
+    details = result.get("details", {})
+    groups = details.get("duplicate_groups", [])
+    assert details.get("groups_filtered_intentional", 0) == 0
+    assert len(groups) == 1
+    assert len(groups[0].get("functions", [])) == 3
 
 
 @pytest.mark.unit
