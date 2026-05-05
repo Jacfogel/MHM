@@ -13,6 +13,7 @@ from typing import Any
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 from core.time_utilities import now_timestamp_full
+from core.delivery import ServiceRequestDeliveryPort
 
 logger = get_component_logger("main")
 
@@ -20,10 +21,45 @@ logger = get_component_logger("main")
 @dataclass
 class ServiceRequestContext:
     base_dir: Path
-    communication_manager: Any
+    communication_manager: ServiceRequestDeliveryPort | Any
     scheduler_manager: Any | None
     shutdown_callback: Callable[[], None]
     startup_time: float | None = None
+
+
+@handle_errors("resolving service request recipient", default_return=None)
+def _get_recipient_for_service(
+    delivery: Any, user_id: str, messaging_service: str, preferences: dict
+) -> str | None:
+    """Resolve a recipient through the public delivery port with legacy fallback."""
+    resolver = getattr(delivery, "get_recipient_for_service", None)
+    if callable(resolver) and hasattr(type(delivery), "get_recipient_for_service"):
+        return resolver(user_id, messaging_service, preferences)
+
+    legacy_resolver = getattr(delivery, "_get_recipient_for_service", None)
+    if callable(legacy_resolver):
+        return legacy_resolver(user_id, messaging_service, preferences)
+
+    logger.error("Delivery interface cannot resolve recipients")
+    return None
+
+
+@handle_errors("sending service request check-in prompt", default_return=None)
+def _send_checkin_prompt(
+    delivery: Any, user_id: str, messaging_service: str, recipient: str
+) -> None:
+    """Send a check-in prompt through the public delivery port with legacy fallback."""
+    sender = getattr(delivery, "send_checkin_prompt", None)
+    if callable(sender) and hasattr(type(delivery), "send_checkin_prompt"):
+        sender(user_id, messaging_service, recipient)
+        return
+
+    legacy_sender = getattr(delivery, "_send_checkin_prompt", None)
+    if callable(legacy_sender):
+        legacy_sender(user_id, messaging_service, recipient)
+        return
+
+    logger.error("Delivery interface cannot send check-in prompts")
 
 
 @handle_errors("normalizing service request context")
@@ -335,12 +371,14 @@ def check_checkin_prompt_requests(context: ServiceRequestContext) -> None:
                     if preferences:
                         messaging_service = preferences.get("channel", {}).get("type")
                         if messaging_service:
-                            recipient = context.communication_manager._get_recipient_for_service(
+                            recipient = _get_recipient_for_service(
+                                context.communication_manager,
                                 user_id, messaging_service, preferences
                             )
                             if recipient:
                                 first_question = get_checkin_first_question(user_id)
-                                context.communication_manager._send_checkin_prompt(
+                                _send_checkin_prompt(
+                                    context.communication_manager,
                                     user_id, messaging_service, recipient
                                 )
                                 logger.info(

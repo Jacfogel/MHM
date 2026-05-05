@@ -18,7 +18,8 @@ from communication.core.retry_manager import RetryManager
 from communication.core.channel_monitor import ChannelMonitor
 from communication.core.message_send_result import MessageSendResult
 from communication.delivery.message_dispatcher import PredefinedMessageDispatcher
-from communication.reminders.reminder_dispatcher import CheckinReminderDispatcher
+from communication.reminders.checkin_prompt_dispatcher import CheckinPromptDispatcher
+from communication.reminders.reminder_dispatcher import TaskReminderDispatcher
 from core import get_user_data
 from core.message_management import store_sent_message
 from core.schedule_runtime import get_current_time_periods_with_validation
@@ -84,7 +85,8 @@ class CommunicationManager:
         self.retry_manager = RetryManager(send_callback=self.send_message_sync)
         self.channel_monitor = ChannelMonitor()
         self.predefined_dispatcher = PredefinedMessageDispatcher(self)
-        self.checkin_dispatcher = CheckinReminderDispatcher(self)
+        self.checkin_dispatcher = CheckinPromptDispatcher(self)
+        self.task_reminder_dispatcher = TaskReminderDispatcher(self)
 
         # Set up event loop for async operations
         self.__init____setup_event_loop()
@@ -1448,6 +1450,15 @@ class CommunicationManager:
             logger.error(f"Unknown messaging service: {messaging_service}")
             return None
 
+    @handle_errors("getting recipient for service", default_return=None)
+    def get_recipient_for_service(
+        self, user_id: str, messaging_service: str, preferences: dict
+    ) -> str | None:
+        """Public delivery-port wrapper for resolving channel recipients."""
+        return self._get_recipient_for_service(
+            user_id, messaging_service, preferences
+        )
+
     @handle_errors("determining if check-in prompt should be sent", default_return=True)
     def _should_send_checkin_prompt(self, user_id: str, checkin_prefs: dict) -> bool:
         return self.checkin_dispatcher.should_send_checkin_prompt(
@@ -1471,6 +1482,13 @@ class CommunicationManager:
         self.checkin_dispatcher.send_checkin_prompt(
             user_id, messaging_service, recipient
         )
+
+    @handle_errors("sending check-in prompt", default_return=None)
+    def send_checkin_prompt(
+        self, user_id: str, messaging_service: str, recipient: str
+    ):
+        """Public delivery-port wrapper for scheduled check-in prompts."""
+        self._send_checkin_prompt(user_id, messaging_service, recipient)
 
     @handle_errors("sending AI-generated message", default_return=(False, None))
     def _send_ai_generated_message(
@@ -1642,135 +1660,22 @@ class CommunicationManager:
 
         return ChannelFactory.get_registered_channels()
 
-    @handle_errors("handling task reminder", default_return=None)
-    def handle_task_reminder(self, user_id: str, task_identifier: str):
+    @handle_errors("handling task reminder", default_return=MessageSendResult.failed())
+    def handle_task_reminder(
+        self, user_id: str, task_identifier: str
+    ) -> MessageSendResult:
         """
-        Handle task reminder with validation.
+        Handle sending task reminders for a user.
 
         ``task_identifier`` matches the task record's canonical ``id`` (or another
         value ``get_task_by_id`` accepts), not the legacy JSON key ``task_id``.
 
         Returns:
-            None: Always returns None
+            MessageSendResult: Standard send outcome for reminder dispatch.
         """
-        # Validate user_id
-        if not user_id or not isinstance(user_id, str):
-            logger.error(f"Invalid user_id: {user_id}")
-            return None
-
-        if not user_id.strip():
-            logger.error("Empty user_id provided")
-            return None
-
-        # Validate task_identifier
-        if not task_identifier or not isinstance(task_identifier, str):
-            logger.error(f"Invalid task_identifier: {task_identifier}")
-            return None
-
-        if not task_identifier.strip():
-            logger.error("Empty task_identifier provided")
-            return None
-        """
-        Handle sending task reminders for a user.
-        """
-        logger.debug(
-            f"Handling task reminder for user_id: {user_id}, task_identifier: {task_identifier}"
+        return self.task_reminder_dispatcher.handle_task_reminder(
+            user_id, task_identifier
         )
-
-        if not user_id or not task_identifier:
-            logger.error("User ID and task identifier are required for task reminder.")
-            return
-
-        # Import task management functions
-        from tasks import get_task_by_id, are_tasks_enabled
-
-        # Check if tasks are enabled for this user
-        if not are_tasks_enabled(user_id):
-            logger.debug(f"Tasks not enabled for user {user_id}")
-            return
-
-        # Get the task details
-        task = get_task_by_id(user_id, task_identifier)
-        if not task:
-            logger.error(f"Task {task_identifier} not found for user {user_id}")
-            return
-
-        # Check if task is still active
-        from tasks.task_data_handlers import runtime_task_is_completed
-
-        if runtime_task_is_completed(task):
-            logger.debug(f"Task {task_identifier} is already completed, skipping reminder")
-            return
-
-        # Get user preferences
-        prefs_result = get_user_data(user_id, "preferences")
-        preferences = prefs_result.get("preferences")
-        if not preferences:
-            logger.error(f"User preferences not found for user {user_id}.")
-            return
-
-        messaging_service = preferences.get("channel", {}).get("type")
-        if not messaging_service:
-            logger.error(f"No messaging service configured for user {user_id}")
-            return
-
-        # Get the appropriate recipient ID for the messaging service
-        recipient = self._get_recipient_for_service(
-            user_id, messaging_service, preferences
-        )
-        if not recipient:
-            logger.error(
-                f"No valid recipient found for user {user_id} with service {messaging_service}"
-            )
-            return
-
-        # Create the task reminder message
-        reminder_message = self._create_task_reminder_message(task)
-
-        # Create custom view for task reminder buttons (Discord only)
-        # Note: Views are created lazily within the Discord async context to avoid event loop errors
-        custom_view = None
-        if messaging_service == "discord":
-            try:
-                from communication.communication_channels.discord.task_reminder_view import (
-                    get_task_reminder_view,
-                )
-
-                task_title = task.get("title", "Untitled Task")
-                # Try to create view, but handle event loop errors gracefully
-                import asyncio
-
-                try:
-                    # Check if we're in an async context
-                    asyncio.get_running_loop()
-                    # We're in async context, safe to create view
-                    custom_view = get_task_reminder_view(user_id, task_identifier, task_title)
-                except RuntimeError:
-                    # No running event loop - view will be created lazily in Discord thread
-                    # Pass a factory function instead
-                    @handle_errors("creating task reminder view", default_return=None)
-                    def create_view():
-                        return get_task_reminder_view(user_id, task_identifier, task_title)
-
-                    custom_view = create_view
-            except Exception as e:
-                logger.warning(f"Could not create task reminder view for Discord: {e}")
-
-        # Send the reminder
-        success = self.send_message_sync(
-            messaging_service, recipient, reminder_message, view=custom_view
-        )
-
-        if success:
-            logger.info(
-                f"Task reminder sent successfully for user {user_id}, task {task_identifier}"
-            )
-            # Track the last task reminder for this user
-            self._last_task_reminders[user_id] = task_identifier
-        else:
-            logger.error(
-                f"Failed to send task reminder for user {user_id}, task {task_identifier}"
-            )
 
     @handle_errors("getting last task reminder", default_return=None)
     def get_last_task_reminder(self, user_id: str) -> str | None:
@@ -1802,47 +1707,12 @@ class CommunicationManager:
     @handle_errors("creating task reminder message", default_return="Task reminder")
     def _create_task_reminder_message(self, task: dict) -> str:
         """
-        Create task reminder message with validation.
+        Create a formatted task reminder message.
 
         Returns:
             str: Task reminder message, default if failed
         """
-        # Validate task
-        if not task or not isinstance(task, dict):
-            logger.error(f"Invalid task: {task}")
-            return "Task reminder"
-        """
-        Create a formatted task reminder message.
-        """
-        from tasks.task_data_handlers import runtime_task_due_date
-
-        title = task.get("title", "Untitled Task")
-        description = task.get("description", "")
-        due_date = runtime_task_due_date(task) or ""
-        priority = task.get("priority", "medium")
-        # Tasks now use tags instead of categories
-
-        # Create priority emoji
-        priority_emoji = {
-            "low": "🟢",
-            "medium": "🟡",
-            "high": "🔴",
-            "critical": "🚨",
-        }.get(priority, "🟡")
-
-        # Build the message
-        message = f"💡 **Task Reminder:** {priority_emoji}\n\n"
-        message += f"**{title}**\n"
-
-        if description:
-            message += f"{description}\n\n"
-
-        if due_date:
-            message += f"📅 **Due:** {due_date}\n"
-
-        message += f"⚡ **Priority:** {priority.title()}"
-
-        return message
+        return self.task_reminder_dispatcher.create_task_reminder_message(task)
 
     @handle_errors("selecting weighted message", default_return="")
     def _select_weighted_message(self, available_messages, matching_periods):

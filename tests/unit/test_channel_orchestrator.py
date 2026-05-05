@@ -8,6 +8,7 @@ helper methods and utility functions.
 import pytest
 from unittest.mock import Mock, patch
 from communication.core.channel_orchestrator import CommunicationManager
+from communication.core.message_send_result import MessageSendResult
 
 
 @pytest.mark.unit
@@ -379,19 +380,24 @@ class TestChannelOrchestratorHelpers:
         """Test handle_task_reminder with invalid input."""
         # Test None user_id
         result = self.manager.handle_task_reminder(None, "task_1")
-        assert result is None, "Should return None for None user_id"
+        assert isinstance(result, MessageSendResult)
+        assert result.status == "failed", "Should fail for None user_id"
+        assert result.category == "task_reminders"
         
         # Test empty user_id
         result = self.manager.handle_task_reminder("", "task_1")
-        assert result is None, "Should return None for empty user_id"
+        assert result.status == "failed", "Should fail for empty user_id"
+        assert result.category == "task_reminders"
         
         # Test None task_id
         result = self.manager.handle_task_reminder("user_1", None)
-        assert result is None, "Should return None for None task_id"
+        assert result.status == "failed", "Should fail for None task_id"
+        assert result.category == "task_reminders"
         
         # Test empty task_id
         result = self.manager.handle_task_reminder("user_1", "")
-        assert result is None, "Should return None for empty task_id"
+        assert result.status == "failed", "Should fail for empty task_id"
+        assert result.category == "task_reminders"
 
     def test_handle_task_reminder_tracks_last_reminder_on_success(self):
         """Test successful task reminder send updates last reminder tracking."""

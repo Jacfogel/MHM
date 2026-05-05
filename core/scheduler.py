@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from core import get_all_user_ids
+from core.delivery import SchedulerDeliveryPort
 from core.schedule_runtime import get_schedule_time_periods
 from core.service_utilities import load_and_localize_datetime
 from core.time_utilities import (
@@ -42,14 +43,16 @@ scheduler_logger = logger
 
 class SchedulerManager:
     @handle_errors("initializing scheduler manager")
-    def __init__(self, communication_manager):
+    def __init__(self, delivery: SchedulerDeliveryPort):
         """
-        Initialize the SchedulerManager with communication manager.
+        Initialize the SchedulerManager with the delivery surface it needs.
 
         Args:
-            communication_manager: The communication manager for sending messages
+            delivery: Object that can send scheduled messages and task reminders.
         """
-        self.communication_manager = communication_manager
+        self.delivery = delivery
+        # Backward-compatible alias for older tests and integration helpers.
+        self.communication_manager = delivery
         self.scheduler_thread = None
         self.running = False
         self._stop_event = (
@@ -913,15 +916,15 @@ class SchedulerManager:
         Handles the sending of scheduled messages with retries.
         This is a one-time job that removes itself after execution.
         """
-        if self.communication_manager is None:
-            logger.error("Communication manager is not initialized.")
+        if self.delivery is None:
+            logger.error("Delivery interface is not initialized.")
             return
 
         attempt = 0
         while attempt < retry_attempts:
             try:
                 # Try to send the message
-                send_status = self.communication_manager.handle_message_sending(
+                send_status = self.delivery.handle_message_sending(
                     user_id=user_id,
                     category=category,
                     is_scheduled_trigger=True,

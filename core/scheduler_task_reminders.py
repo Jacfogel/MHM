@@ -39,8 +39,13 @@ def handle_task_reminder(
     ``task_identifier`` is the task record's canonical ``id`` or another value
     accepted by ``tasks.get_task_by_id``.
     """
-    if scheduler_manager.communication_manager is None:
-        logger.error("Communication manager is not initialized.")
+    delivery = getattr(
+        scheduler_manager,
+        "delivery",
+        getattr(scheduler_manager, "communication_manager", None),
+    )
+    if delivery is None:
+        logger.error("Delivery interface is not initialized.")
         return
 
     attempt = 0
@@ -59,9 +64,7 @@ def handle_task_reminder(
                 )
                 return
 
-            scheduler_manager.communication_manager.handle_task_reminder(
-                user_id, task_identifier
-            )
+            delivery.handle_task_reminder(user_id, task_identifier)
             update_task(user_id, task_identifier, {"reminder_sent": True})
 
             logger.info(

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-04 00:20:53
+> **Last Generated**: 2026-05-05 00:49:48
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 92.6% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 136
-- **Functions Found**: 1862
-- **Methods Found**: 1271
-- **Classes Found**: 166
-- **Total Items**: 3133
-- **Functions Documented**: 1698
-- **Methods Documented**: 1202
-- **Classes Documented**: 127
-- **Total Documented**: 2900
-- **Template-Generated**: 18
-- **Last Updated**: 2026-05-04
+### **Function Documentation Coverage: 92.9% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 138
+- **Functions Found**: 1875
+- **Methods Found**: 1282
+- **Classes Found**: 170
+- **Total Items**: 3157
+- **Functions Documented**: 1716
+- **Methods Documented**: 1216
+- **Classes Documented**: 132
+- **Total Documented**: 2932
+- **Template-Generated**: 20
+- **Last Updated**: 2026-05-05
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (673)
+### **Core System Functions** (680)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (494)
+### **Communication Functions** (500)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (430)
@@ -1768,7 +1768,7 @@ to avoid circular dependencies with error handling infrastructure.
 - [OK] `_check_logging_health(self)` - Check if logging is still working and recover if needed.
 
 Verifies that the logging system is functional and attempts to restart it if issues are detected.
-- [OK] `_create_task_reminder_message(self, task)` - Create task reminder message with validation.
+- [OK] `_create_task_reminder_message(self, task)` - Create a formatted task reminder message.
 
 Returns:
     str: Task reminder message, default if failed
@@ -1800,7 +1800,6 @@ Returns:
 
 Stops all communication channels and cleans up resources.
 - [OK] `_start_sync(self)` - Synchronous method to start all configured channels
-- [MISSING] `create_view()` - No description
 - [OK] `get_active_channels(self)` - Get active channels with validation.
 
 Returns:
@@ -1814,19 +1813,20 @@ Returns:
 
 Returns:
     Optional[str]: Last task reminder, None if failed
+- [OK] `get_recipient_for_service(self, user_id, messaging_service, preferences)` - Public delivery-port wrapper for resolving channel recipients.
 - [OK] `get_registered_channels(self)` - Get registered channels with validation.
 
 Returns:
     List[str]: List of registered channels, empty list if failed
 - [OK] `handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral)` - Handle sending messages for a user and category with improved recipient resolution.
 Now uses scheduled check-ins instead of random replacement.
-- [OK] `handle_task_reminder(self, user_id, task_identifier)` - Handle task reminder with validation.
+- [OK] `handle_task_reminder(self, user_id, task_identifier)` - Handle sending task reminders for a user.
 
 ``task_identifier`` matches the task record's canonical ``id`` (or another
 value ``get_task_by_id`` accepts), not the legacy JSON key ``task_id``.
 
 Returns:
-    None: Always returns None
+    MessageSendResult: Standard send outcome for reminder dispatch.
 - [OK] `initialize_channels_from_config(self, channel_configs)` - Initialize channels from configuration with validation.
 
 Returns:
@@ -1834,6 +1834,7 @@ Returns:
 - [OK] `run_event_loop()` - Run the event loop in a separate thread for async operations.
 
 This nested function is used to manage the event loop for async channel operations.
+- [OK] `send_checkin_prompt(self, user_id, messaging_service, recipient)` - Public delivery-port wrapper for scheduled check-in prompts.
 - [OK] `send_message_sync(self, channel_name, recipient, message)` - Synchronous wrapper with logging health check
 - [OK] `send_message_sync__queue_failed_message(self, user_id, category, message, recipient, channel_name)` - Queue a failed message for retry
 - [OK] `send_message_sync__run_async_sync(self, coro)` - Run async function synchronously using our managed loop
@@ -1861,7 +1862,7 @@ Returns:
   - [OK] `CommunicationManager._check_logging_health(self)` - Check if logging is still working and recover if needed.
 
 Verifies that the logging system is functional and attempts to restart it if issues are detected.
-  - [OK] `CommunicationManager._create_task_reminder_message(self, task)` - Create task reminder message with validation.
+  - [OK] `CommunicationManager._create_task_reminder_message(self, task)` - Create a formatted task reminder message.
 
 Returns:
     str: Task reminder message, default if failed
@@ -1906,23 +1907,25 @@ Returns:
 
 Returns:
     Optional[str]: Last task reminder, None if failed
+  - [OK] `CommunicationManager.get_recipient_for_service(self, user_id, messaging_service, preferences)` - Public delivery-port wrapper for resolving channel recipients.
   - [OK] `CommunicationManager.get_registered_channels(self)` - Get registered channels with validation.
 
 Returns:
     List[str]: List of registered channels, empty list if failed
   - [OK] `CommunicationManager.handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral)` - Handle sending messages for a user and category with improved recipient resolution.
 Now uses scheduled check-ins instead of random replacement.
-  - [OK] `CommunicationManager.handle_task_reminder(self, user_id, task_identifier)` - Handle task reminder with validation.
+  - [OK] `CommunicationManager.handle_task_reminder(self, user_id, task_identifier)` - Handle sending task reminders for a user.
 
 ``task_identifier`` matches the task record's canonical ``id`` (or another
 value ``get_task_by_id`` accepts), not the legacy JSON key ``task_id``.
 
 Returns:
-    None: Always returns None
+    MessageSendResult: Standard send outcome for reminder dispatch.
   - [OK] `CommunicationManager.initialize_channels_from_config(self, channel_configs)` - Initialize channels from configuration with validation.
 
 Returns:
     bool: True if successful, False if failed
+  - [OK] `CommunicationManager.send_checkin_prompt(self, user_id, messaging_service, recipient)` - Public delivery-port wrapper for scheduled check-in prompts.
   - [OK] `CommunicationManager.send_message_sync(self, channel_name, recipient, message)` - Synchronous wrapper with logging health check
   - [OK] `CommunicationManager.send_message_sync__queue_failed_message(self, user_id, category, message, recipient, channel_name)` - Queue a failed message for retry
   - [OK] `CommunicationManager.send_message_sync__run_async_sync(self, coro)` - Run async function synchronously using our managed loop
@@ -2553,19 +2556,39 @@ Returns:
 
 #### `communication/reminders/__init__.py`
 
+#### `communication/reminders/checkin_prompt_dispatcher.py`
+**Functions:**
+- [OK] `__init__(self, communication_manager)` - Special Python method
+- [OK] `create_view()` - Create the Discord check-in view inside the channel loop.
+- [OK] `handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - Validate check-in feature settings and send the scheduled prompt when due.
+- [OK] `send_checkin_prompt(self, user_id, messaging_service, recipient)` - Start the dynamic check-in flow and send its prompt through the channel.
+- [OK] `should_send_checkin_prompt(self, user_id, checkin_prefs)` - Return True when the user's check-in settings allow an automatic prompt.
+**Classes:**
+- [OK] `CheckinPromptDispatcher` - Handles scheduled check-in prompt eligibility and delivery.
+  - [OK] `CheckinPromptDispatcher.__init__(self, communication_manager)` - Special Python method
+  - [OK] `CheckinPromptDispatcher.handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - Validate check-in feature settings and send the scheduled prompt when due.
+  - [OK] `CheckinPromptDispatcher.send_checkin_prompt(self, user_id, messaging_service, recipient)` - Start the dynamic check-in flow and send its prompt through the channel.
+  - [OK] `CheckinPromptDispatcher.should_send_checkin_prompt(self, user_id, checkin_prefs)` - Return True when the user's check-in settings allow an automatic prompt.
+
 #### `communication/reminders/reminder_dispatcher.py`
 **Functions:**
 - [OK] `__init__(self, communication_manager)` - Special Python method
-- [MISSING] `create_view()` - No description
-- [MISSING] `handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - No description
-- [MISSING] `send_checkin_prompt(self, user_id, messaging_service, recipient)` - No description
-- [MISSING] `should_send_checkin_prompt(self, user_id, checkin_prefs)` - No description
+- [OK] `create_task_reminder_message(self, task)` - Create a formatted task reminder message.
+- [OK] `create_task_reminder_view(self, user_id, task_identifier, task, messaging_service)` - Create a channel-specific interactive reminder view when supported.
+- [OK] `create_view()` - Create the Discord task reminder view inside the channel loop.
+- [OK] `handle_task_reminder(self, user_id, task_identifier)` - Send a reminder for a task and return the standard send contract.
+
+``task_identifier`` matches the task record's canonical ``id`` or another
+value ``get_task_by_id`` accepts.
 **Classes:**
-- [MISSING] `CheckinReminderDispatcher` - No description
-  - [OK] `CheckinReminderDispatcher.__init__(self, communication_manager)` - Special Python method
-  - [MISSING] `CheckinReminderDispatcher.handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - No description
-  - [MISSING] `CheckinReminderDispatcher.send_checkin_prompt(self, user_id, messaging_service, recipient)` - No description
-  - [MISSING] `CheckinReminderDispatcher.should_send_checkin_prompt(self, user_id, checkin_prefs)` - No description
+- [OK] `TaskReminderDispatcher` - Loads task reminder context, formats the reminder, and sends it.
+  - [OK] `TaskReminderDispatcher.__init__(self, communication_manager)` - Special Python method
+  - [OK] `TaskReminderDispatcher.create_task_reminder_message(self, task)` - Create a formatted task reminder message.
+  - [OK] `TaskReminderDispatcher.create_task_reminder_view(self, user_id, task_identifier, task, messaging_service)` - Create a channel-specific interactive reminder view when supported.
+  - [OK] `TaskReminderDispatcher.handle_task_reminder(self, user_id, task_identifier)` - Send a reminder for a task and return the standard send contract.
+
+``task_identifier`` matches the task record's canonical ``id`` or another
+value ``get_task_by_id`` accepts.
 
 ### `core/` - Core System Modules
 
@@ -2999,6 +3022,23 @@ Raises:
 **Classes:**
 - [OK] `ConfigValidationError` - Custom exception for configuration validation errors with detailed information.
   - [OK] `ConfigValidationError.__init__(self, message, missing_configs, warnings)` - Initialize the object.
+
+#### `core/delivery.py`
+**Functions:**
+- [OK] `get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve the channel recipient for a user.
+- [OK] `handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral)` - Send a scheduled or manual category message.
+- [OK] `handle_task_reminder(self, user_id, task_identifier)` - Send a task reminder.
+- [OK] `matches_request(self, user_id, category)` - Return True when this result belongs to a request identity.
+- [OK] `send_checkin_prompt(self, user_id, messaging_service, recipient)` - Send a check-in prompt for a user.
+**Classes:**
+- [OK] `MessageSendOutcome` - Result shape returned by delivery sends.
+  - [OK] `MessageSendOutcome.matches_request(self, user_id, category)` - Return True when this result belongs to a request identity.
+- [OK] `SchedulerDeliveryPort` - Delivery operations the scheduler needs.
+  - [OK] `SchedulerDeliveryPort.handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral)` - Send a scheduled or manual category message.
+  - [OK] `SchedulerDeliveryPort.handle_task_reminder(self, user_id, task_identifier)` - Send a task reminder.
+- [OK] `ServiceRequestDeliveryPort` - Delivery operations needed by file-flag service requests.
+  - [OK] `ServiceRequestDeliveryPort.get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve the channel recipient for a user.
+  - [OK] `ServiceRequestDeliveryPort.send_checkin_prompt(self, user_id, messaging_service, recipient)` - Send a check-in prompt for a user.
 
 #### `core/error_handling.py`
 **Functions:**
@@ -4089,10 +4129,10 @@ Returns:
 
 #### `core/scheduler.py`
 **Functions:**
-- [OK] `__init__(self, communication_manager)` - Initialize the SchedulerManager with communication manager.
+- [OK] `__init__(self, delivery)` - Initialize the SchedulerManager with the delivery surface it needs.
 
 Args:
-    communication_manager: The communication manager for sending messages
+    delivery: Object that can send scheduled messages and task reminders.
 - [OK] `_remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
 This makes user message jobs effectively one-time jobs.
 - [OK] `_schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay)` - Schedule a one-time retry for deferred scheduled sends.
@@ -4198,10 +4238,10 @@ Args:
 - [OK] `stop_scheduler(self)` - Stops the scheduler thread.
 **Classes:**
 - [MISSING] `SchedulerManager` - No description
-  - [OK] `SchedulerManager.__init__(self, communication_manager)` - Initialize the SchedulerManager with communication manager.
+  - [OK] `SchedulerManager.__init__(self, delivery)` - Initialize the SchedulerManager with the delivery surface it needs.
 
 Args:
-    communication_manager: The communication manager for sending messages
+    delivery: Object that can send scheduled messages and task reminders.
   - [OK] `SchedulerManager._remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
 This makes user message jobs effectively one-time jobs.
   - [OK] `SchedulerManager._schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay)` - Schedule a one-time retry for deferred scheduled sends.
@@ -4545,6 +4585,8 @@ Sets up signal handlers for graceful shutdown.
 **Functions:**
 - [OK] `_as_context(context_or_service)` - Normalize legacy service instances and explicit contexts to one shape.
 - [OK] `_cleanup_matching_request_files(base_path, predicate, label)` - Remove request files matching a predicate while continuing after per-file failures.
+- [OK] `_get_recipient_for_service(delivery, user_id, messaging_service, preferences)` - Resolve a recipient through the public delivery port with legacy fallback.
+- [OK] `_send_checkin_prompt(delivery, user_id, messaging_service, recipient)` - Send a check-in prompt through the public delivery port with legacy fallback.
 - [MISSING] `check_checkin_prompt_requests(context)` - No description
 - [MISSING] `check_reschedule_requests(context)` - No description
 - [MISSING] `check_task_reminder_requests(context)` - No description

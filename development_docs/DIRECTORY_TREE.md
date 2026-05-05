@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-04 00:21:05
+> **Last Generated**: 2026-05-05 00:49:58
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -24,7 +24,6 @@ C:.
 |   README.md
 |   requirements.txt
 |   run_headless_service.py
-|   test_message_response_user-1_motivational.flag
 |   TODO.md
 |   
 +---.cursor
@@ -152,6 +151,7 @@ C:.
 |   |   |   __init__.py
 |   |   |   
 |   +---reminders
+|   |   |   checkin_prompt_dispatcher.py
 |   |   |   reminder_dispatcher.py
 |   |   |   __init__.py
 |   |   |   
@@ -161,6 +161,7 @@ C:.
 |   |   checkin_analytics.py
 |   |   checkin_dynamic_manager.py
 |   |   config.py
+|   |   delivery.py
 |   |   error_handling.py
 |   |   ERROR_HANDLING_GUIDE.md
 |   |   file_auditor.py
@@ -208,7 +209,6 @@ C:.
 |   |   BACKUP_GUIDE.md
 |   |   CHANGELOG_DETAIL.md
 |   |   DIRECTORY_TREE.md
-|   |   DUPLICATE_FUNCTIONS_INVESTIGATION.md
 |   |   FUNCTION_REGISTRY_DETAIL.md
 |   |   LEGACY_REFERENCE_REPORT.md
 |   |   LIST_OF_LISTS.md
@@ -845,6 +845,7 @@ C:.
 |   |   |   test_recurring_tasks.py
 |   |   |   test_rich_formatter.py
 |   |   |   test_run_tests_interrupts.py
+|   |   |   test_scheduler_delivery_port.py
 |   |   |   test_schedule_management.py
 |   |   |   test_schemas_validation.py
 |   |   |   test_schema_validation_helpers.py

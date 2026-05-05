@@ -1,136 +1,192 @@
-# Scheduled check-in prompt flow (delegates send to CommunicationManager).
+# Task reminder dispatch flow (delegates transport to CommunicationManager).
 
 from __future__ import annotations
 
 from typing import Any
 
-from core import get_user_data
+from communication.core.message_send_result import MessageSendResult
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 
 logger = get_component_logger("channel_orchestrator")
 
+TASK_REMINDER_CATEGORY = "task_reminders"
 
-class CheckinReminderDispatcher:
-    @handle_errors("initializing check-in reminder dispatcher", user_friendly=False, re_raise=True)
+
+class TaskReminderDispatcher:
+    """Loads task reminder context, formats the reminder, and sends it."""
+
+    @handle_errors(
+        "initializing task reminder dispatcher", user_friendly=False, re_raise=True
+    )
     def __init__(self, communication_manager: Any) -> None:
         self._cm = communication_manager
 
-    @handle_errors("determining if check-in prompt should be sent", default_return=True)
-    def should_send_checkin_prompt(self, user_id: str, checkin_prefs: dict) -> bool:
-        try:
-            frequency = checkin_prefs.get("frequency", "daily")
+    @handle_errors("handling task reminder", default_return=MessageSendResult.failed())
+    def handle_task_reminder(
+        self, user_id: str, task_identifier: str
+    ) -> MessageSendResult:
+        """
+        Send a reminder for a task and return the standard send contract.
 
-            if frequency in ["none", "manual"]:
-                logger.debug(
-                    f"User {user_id} has check-in frequency set to '{frequency}', skipping auto-prompt"
-                )
-                return False
+        ``task_identifier`` matches the task record's canonical ``id`` or another
+        value ``get_task_by_id`` accepts.
+        """
+        if not user_id or not isinstance(user_id, str):
+            logger.error(f"Invalid user_id: {user_id}")
+            return MessageSendResult.failed(category=TASK_REMINDER_CATEGORY)
 
+        if not user_id.strip():
+            logger.error("Empty user_id provided")
+            return MessageSendResult.failed(user_id, TASK_REMINDER_CATEGORY)
+
+        if not task_identifier or not isinstance(task_identifier, str):
+            logger.error(f"Invalid task_identifier: {task_identifier}")
+            return MessageSendResult.failed(user_id, TASK_REMINDER_CATEGORY)
+
+        if not task_identifier.strip():
+            logger.error("Empty task_identifier provided")
+            return MessageSendResult.failed(user_id, TASK_REMINDER_CATEGORY)
+
+        logger.debug(
+            f"Handling task reminder for user_id: {user_id}, task_identifier: {task_identifier}"
+        )
+
+        from tasks import are_tasks_enabled, get_task_by_id
+
+        if not are_tasks_enabled(user_id):
+            logger.debug(f"Tasks not enabled for user {user_id}")
+            return MessageSendResult.skipped(user_id, TASK_REMINDER_CATEGORY)
+
+        task = get_task_by_id(user_id, task_identifier)
+        if not task:
+            logger.error(f"Task {task_identifier} not found for user {user_id}")
+            return MessageSendResult.failed(user_id, TASK_REMINDER_CATEGORY)
+
+        from tasks.task_data_handlers import runtime_task_is_completed
+
+        if runtime_task_is_completed(task):
             logger.debug(
-                f"Check-in scheduled for user {user_id} during scheduled time period"
+                f"Task {task_identifier} is already completed, skipping reminder"
             )
-            return True
+            return MessageSendResult.skipped(user_id, TASK_REMINDER_CATEGORY)
 
-        except Exception as e:
-            logger.error(
-                f"Error determining if check-in prompt should be sent for user {user_id}: {e}"
-            )
-            return True
+        from communication.core import channel_orchestrator as _orch
 
-    @handle_errors(
-        "handling scheduled check-in", user_friendly=False, default_return=None
-    )
-    def handle_scheduled_checkin(
-        self, user_id: str, messaging_service: str, recipient: str
-    ):
-        prefs_result = get_user_data(user_id, "preferences", normalize_on_read=True)
+        prefs_result = _orch.get_user_data(user_id, "preferences")
         preferences = prefs_result.get("preferences")
         if not preferences:
-            logger.error(f"User preferences not found for user {user_id}")
-            return
+            logger.error(f"User preferences not found for user {user_id}.")
+            return MessageSendResult.failed(user_id, TASK_REMINDER_CATEGORY)
 
-        user_data_result = get_user_data(user_id, "account", normalize_on_read=True)
-        account_data = user_data_result.get("account")
-        if (
-            not account_data
-            or account_data.get("features", {}).get("checkins") != "enabled"
-        ):
-            logger.debug(f"Check-ins disabled for user {user_id}")
-            return
+        messaging_service = preferences.get("channel", {}).get("type")
+        if not messaging_service:
+            logger.error(f"No messaging service configured for user {user_id}")
+            return MessageSendResult.failed(user_id, TASK_REMINDER_CATEGORY)
 
-        checkin_prefs = preferences.get("checkin_settings", {})
-        frequency = checkin_prefs.get("frequency", "daily")
-
-        if frequency == "none":
-            logger.debug(
-                f"Check-in frequency set to 'none' for user {user_id}, skipping scheduled check-in"
+        recipient = self._cm._get_recipient_for_service(
+            user_id, messaging_service, preferences
+        )
+        if not recipient:
+            logger.error(
+                f"No valid recipient found for user {user_id} with service {messaging_service}"
             )
-            return
+            return MessageSendResult.failed(user_id, TASK_REMINDER_CATEGORY)
 
-        if self.should_send_checkin_prompt(user_id, checkin_prefs):
-            self._cm._send_checkin_prompt(user_id, messaging_service, recipient)
-            logger.info(f"Sent scheduled check-in prompt to user {user_id}")
-        else:
-            logger.debug(f"Check-in not due yet for user {user_id}")
+        reminder_message = self.create_task_reminder_message(task)
+        custom_view = self.create_task_reminder_view(
+            user_id, task_identifier, task, messaging_service
+        )
 
-    @handle_errors("sending check-in prompt", default_return=None)
-    def send_checkin_prompt(
-        self, user_id: str, messaging_service: str, recipient: str
+        success = self._cm.send_message_sync(
+            messaging_service,
+            recipient,
+            reminder_message,
+            user_id=user_id,
+            category=TASK_REMINDER_CATEGORY,
+            view=custom_view,
+        )
+
+        if success:
+            logger.info(
+                f"Task reminder sent successfully for user {user_id}, task {task_identifier}"
+            )
+            self._cm._last_task_reminders[user_id] = task_identifier
+            return MessageSendResult.sent(
+                user_id, TASK_REMINDER_CATEGORY, sent_text=reminder_message
+            )
+
+        logger.error(
+            f"Failed to send task reminder for user {user_id}, task {task_identifier}"
+        )
+        return MessageSendResult.failed(user_id, TASK_REMINDER_CATEGORY)
+
+    @handle_errors("creating task reminder view", default_return=None)
+    def create_task_reminder_view(
+        self,
+        user_id: str,
+        task_identifier: str,
+        task: dict,
+        messaging_service: str,
     ):
+        """Create a channel-specific interactive reminder view when supported."""
+        if messaging_service != "discord":
+            return None
+
         try:
-            from communication.message_processing.conversation_flow_manager import (
-                conversation_manager,
+            from communication.communication_channels.discord.task_reminder_view import (
+                get_task_reminder_view,
             )
 
-            reply_text, completed = conversation_manager._start_dynamic_checkin(user_id)
+            task_title = task.get("title", "Untitled Task")
 
-            custom_view = None
-            if messaging_service == "discord":
-                try:
-                    from communication.communication_channels.discord.checkin_view import (
-                        get_checkin_view,
-                    )
+            import asyncio
 
-                    import asyncio
+            try:
+                asyncio.get_running_loop()
+                return get_task_reminder_view(user_id, task_identifier, task_title)
+            except RuntimeError:
 
-                    try:
-                        asyncio.get_running_loop()
-                        custom_view = get_checkin_view(user_id)
-                    except RuntimeError:
+                @handle_errors("creating task reminder view", default_return=None)
+                def create_view():
+                    """Create the Discord task reminder view inside the channel loop."""
+                    return get_task_reminder_view(user_id, task_identifier, task_title)
 
-                        @handle_errors("creating check-in view", default_return=None)
-                        def create_view():
-                            return get_checkin_view(user_id)
-
-                        custom_view = create_view
-                except Exception as e:
-                    logger.warning(f"Could not create check-in view for Discord: {e}")
-
-            success = self._cm.send_message_sync(
-                messaging_service,
-                recipient,
-                reply_text,
-                user_id=user_id,
-                category="checkin",
-                view=custom_view,
-            )
-
-            if success:
-                logger.info(
-                    f"Successfully sent check-in prompt to user {user_id} and initialized flow"
-                )
-                try:
-                    from communication.core import channel_orchestrator as _orch
-
-                    user_logger = _orch.get_component_logger("user_activity")
-                    user_logger.info(
-                        "User check-in started", user_id=user_id, checkin_type="daily"
-                    )
-                except Exception:
-                    pass
-            else:
-                logger.warning(f"Failed to send check-in prompt to user {user_id}")
-
+                return create_view
         except Exception as e:
-            logger.error(f"Error sending check-in prompt to user {user_id}: {e}")
+            logger.warning(f"Could not create task reminder view for Discord: {e}")
+            return None
+
+    @handle_errors("creating task reminder message", default_return="Task reminder")
+    def create_task_reminder_message(self, task: dict) -> str:
+        """Create a formatted task reminder message."""
+        if not task or not isinstance(task, dict):
+            logger.error(f"Invalid task: {task}")
+            return "Task reminder"
+
+        from tasks.task_data_handlers import runtime_task_due_date
+
+        title = task.get("title", "Untitled Task")
+        description = task.get("description", "")
+        due_date = runtime_task_due_date(task) or ""
+        priority = task.get("priority", "medium")
+
+        priority_emoji = {
+            "low": "🟢",
+            "medium": "🟡",
+            "high": "🔴",
+            "critical": "🚨",
+        }.get(priority, "🟡")
+
+        message = f"💡 **Task Reminder:** {priority_emoji}\n\n"
+        message += f"**{title}**\n"
+
+        if description:
+            message += f"{description}\n\n"
+
+        if due_date:
+            message += f"📅 **Due:** {due_date}\n"
+
+        message += f"⚡ **Priority:** {priority.title()}"
+
+        return message

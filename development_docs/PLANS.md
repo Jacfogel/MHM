@@ -78,19 +78,19 @@
 - [x] Keep email and UI pagination future-ready without Discord assumptions in core handlers.
 - [x] Document and test generic pagination metadata.
 
-**Phase 7 - Continue channel_orchestrator thinning** **PLANNED**
-- [ ] Make `MessageSendResult` the standard send contract for regular sends and reminders.
-- [ ] Consider whether message selection/dispatch, task reminders and checkin prompts belong in communication or whether they belong in their own dedicated top level directories like tasks/ which already exists and checkins/ and automated_messages/ which are planned
-- [ ] Move regular message selection/dispatch details into `communication/delivery/message_dispatcher.py`.
-- [ ] Move task reminders dispatch into `communication/reminders/reminder_dispatcher.py`.
-- [ ] Move check-in prompts into it's own module too 
-- [ ] Keep schedule eligibility separate from sending once dispatcher responsibilities are stable.
+**Phase 7 - Continue channel_orchestrator thinning** **COMPLETED 2026-05-05**
+- [x] Make `MessageSendResult` the standard send contract for regular sends and reminders. (2026-05-05)
+- [x] Consider whether message selection/dispatch, task reminders and checkin prompts belong in communication or whether they belong in their own dedicated top level directories like tasks/ which already exists and checkins/ and automated_messages/ which are planned. Kept dispatch under `communication` for now because it depends on channel recipient resolution, send views, and transport tracking. (2026-05-05)
+- [x] Move regular message selection/dispatch details into `communication/delivery/message_dispatcher.py`. (2026-05-05)
+- [x] Move task reminders dispatch into `communication/reminders/reminder_dispatcher.py`. (2026-05-05)
+- [x] Move check-in prompts into its own module too. (2026-05-05)
+- [x] Keep schedule eligibility separate from sending once dispatcher responsibilities are stable. (2026-05-05)
 
-**Phase 8 - Revisit scheduler/service/channel dependency direction** **DEFERRED**
-- [ ] Wait until service request extraction, scheduler split, message preview extraction, and dispatcher result contracts are stable.
-- [ ] Introduce a smaller delivery interface if it still reduces coupling.
-- [ ] Make scheduler tests easier to fake without giving scheduler full communication manager access.
-- [ ] Preserve simple startup wiring.
+**Phase 8 - Revisit scheduler/service/channel dependency direction** **COMPLETED 2026-05-05**
+- [x] Wait until service request extraction, scheduler split, message preview extraction, and dispatcher result contracts are stable. (2026-05-05)
+- [x] Introduce a smaller delivery interface if it still reduces coupling. (2026-05-05)
+- [x] Make scheduler tests easier to fake without giving scheduler full communication manager access. (2026-05-05)
+- [x] Preserve simple startup wiring. (2026-05-05)
 
 **Recommended Work Order**
 1. Add reusable pagination.
