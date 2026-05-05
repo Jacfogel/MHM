@@ -8,6 +8,7 @@ import threading
 import random
 import subprocess
 import os  # Needed for test mocking (os.path.exists)
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -39,6 +40,27 @@ suppress_noisy_logging()
 
 logger = get_component_logger("scheduler")
 scheduler_logger = logger
+_scheduler_delivery_factory: Callable[[], SchedulerDeliveryPort] | None = None
+
+
+@handle_errors("configuring scheduler delivery factory", default_return=None)
+def set_scheduler_delivery_factory(
+    factory: Callable[[], SchedulerDeliveryPort] | None,
+) -> None:
+    """Configure the delivery factory used by standalone scheduler entry points."""
+    global _scheduler_delivery_factory
+    _scheduler_delivery_factory = factory
+
+
+@handle_errors("building standalone scheduler manager", default_return=None)
+def _create_standalone_scheduler_manager() -> "SchedulerManager | None":
+    """Build a scheduler for standalone entry points using the configured delivery port."""
+    if _scheduler_delivery_factory is None:
+        logger.error(
+            "Scheduler delivery factory is not configured; standalone scheduler action cannot run"
+        )
+        return None
+    return SchedulerManager(_scheduler_delivery_factory())
 
 
 class SchedulerManager:
@@ -51,8 +73,6 @@ class SchedulerManager:
             delivery: Object that can send scheduled messages and task reminders.
         """
         self.delivery = delivery
-        # Backward-compatible alias for older tests and integration helpers.
-        self.communication_manager = delivery
         self.scheduler_thread = None
         self.running = False
         self._stop_event = (
@@ -1362,11 +1382,9 @@ def run_full_scheduler_standalone():
     Standalone function to run the full scheduler for all users.
     This can be called from the admin UI without needing a scheduler instance.
     """
-    from communication.core.channel_orchestrator import CommunicationManager
-
-    # Create communication manager and scheduler manager
-    communication_manager = CommunicationManager()
-    scheduler_manager = SchedulerManager(communication_manager)
+    scheduler_manager = _create_standalone_scheduler_manager()
+    if scheduler_manager is None:
+        return False
 
     # Run the full scheduler
     logger.info("Standalone: Running full scheduler for all users")
@@ -1382,11 +1400,9 @@ def run_user_scheduler_standalone(user_id):
     Standalone function to run scheduler for a specific user.
     This can be called from the admin UI without needing a scheduler instance.
     """
-    from communication.core.channel_orchestrator import CommunicationManager
-
-    # Create communication manager and scheduler manager
-    communication_manager = CommunicationManager()
-    scheduler_manager = SchedulerManager(communication_manager)
+    scheduler_manager = _create_standalone_scheduler_manager()
+    if scheduler_manager is None:
+        return False
 
     # Run scheduler for the specific user
     logger.info(f"Standalone: Running scheduler for user {user_id}")
@@ -1402,11 +1418,9 @@ def run_category_scheduler_standalone(user_id, category):
     Standalone function to run scheduler for a specific user and category.
     This can be called from the admin UI without needing a scheduler instance.
     """
-    from communication.core.channel_orchestrator import CommunicationManager
-
-    # Create communication manager and scheduler manager
-    communication_manager = CommunicationManager()
-    scheduler_manager = SchedulerManager(communication_manager)
+    scheduler_manager = _create_standalone_scheduler_manager()
+    if scheduler_manager is None:
+        return False
 
     # Run scheduler for the specific user and category
     logger.info(
@@ -1449,11 +1463,9 @@ def clear_all_accumulated_jobs_standalone():
     Standalone function to clear all accumulated scheduler jobs.
     This can be called from the admin UI or service to fix job accumulation issues.
     """
-    from communication.core.channel_orchestrator import CommunicationManager
-
-    # Create communication manager and scheduler manager
-    communication_manager = CommunicationManager()
-    scheduler_manager = SchedulerManager(communication_manager)
+    scheduler_manager = _create_standalone_scheduler_manager()
+    if scheduler_manager is None:
+        return False
 
     # Clear all accumulated jobs
     scheduler_manager.clear_all_accumulated_jobs()
@@ -1480,11 +1492,9 @@ def process_user_schedules(user_id: str):
 @handle_errors("processing category schedule", default_return=None)
 def process_category_schedule(user_id: str, category: str):
     """Process schedule for a specific user and category."""
-    # Create a scheduler instance to process this category
-    from communication.core.channel_orchestrator import CommunicationManager
-
-    communication_manager = CommunicationManager()
-    scheduler_manager = SchedulerManager(communication_manager)
+    scheduler_manager = _create_standalone_scheduler_manager()
+    if scheduler_manager is None:
+        return
 
     # Schedule messages for this category
     scheduler_manager.schedule_daily_message_job(user_id, category)

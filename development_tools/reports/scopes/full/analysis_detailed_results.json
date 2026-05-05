@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-05-05 01:11:50",
+  "last_generated": "2026-05-05 02:27:14",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-05-05T01:11:50.739630",
+  "timestamp": "2026-05-05T02:27:14.574593",
   "successful": [
     "analyze_ai_work",
     "analyze_config",
@@ -55,7 +55,7 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-05-05T01:01:27"
+      "timestamp": "2026-05-05T02:16:27"
     },
     "analyze_config": {
       "success": true,
@@ -123,7 +123,7 @@
           }
         }
       },
-      "timestamp": "2026-05-05T01:01:27"
+      "timestamp": "2026-05-05T02:16:27"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -141,7 +141,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-05-05T01:01:39"
+      "timestamp": "2026-05-05T02:16:41"
     },
     "analyze_documentation": {
       "success": true,
@@ -372,7 +372,7 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 33675,
+              "content_length": 33117,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
               "section_count": 21,
               "sections": [
@@ -381,11 +381,11 @@
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2026-05-05 - Dispatcher contracts and scheduler delivery port **COMPLETED**",
                 "2026-05-04 - Duplicate audit freshness and marker triage **COMPLETED**",
                 "2026-05-03 - Refactor continuation phases 1-4 **COMPLETED**",
                 "2026-05-02 - Scheduler split + notebook/task service facades **COMPLETED**",
-                "2026-05-02 - Discord ngrok diagnostics **COMPLETED**",
-                "2026-05-02 - Development tools decoupled from core.logger **COMPLETED**"
+                "2026-05-02 - Discord ngrok diagnostics **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -574,9 +574,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 546695,
+              "content_length": 549673,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 168,
+              "section_count": 169,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -584,10 +584,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-05-05 - Dispatcher contracts and scheduler delivery port",
                 "2026-05-04 - Duplicate audit report freshness and intentional-group triage",
                 "2026-05-03 - Refactor continuation phases 1-4",
-                "2026-05-02 - Scheduler modules, service request cleanup, notebook/task facades",
-                "2026-05-02 - Discord ngrok failure diagnostics"
+                "2026-05-02 - Scheduler modules, service request cleanup, notebook/task facades"
               ]
             },
             "development_docs/PLANS.md": {
@@ -781,8 +781,7 @@
             {
               "file": "ai_development_docs/AI_CHANGELOG.md",
               "matches": [
-                "TODO",
-                "todo"
+                "TODO"
               ]
             },
             {
@@ -844,7 +843,7 @@
           "total_issues": 12
         }
       },
-      "timestamp": "2026-05-05T01:01:27"
+      "timestamp": "2026-05-05T02:16:28"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -923,7 +922,7 @@
           "example_marker_findings": {}
         }
       },
-      "timestamp": "2026-05-05T01:01:44"
+      "timestamp": "2026-05-05T02:16:46"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -938,7 +937,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-05-05T01:01:39"
+      "timestamp": "2026-05-05T02:16:41"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -953,7 +952,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-05-05T01:01:41"
+      "timestamp": "2026-05-05T02:16:44"
     },
     "analyze_path_drift": {
       "success": true,
@@ -966,7 +965,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-05-05T01:01:38"
+      "timestamp": "2026-05-05T02:16:40"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -981,7 +980,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-05-05T01:01:44"
+      "timestamp": "2026-05-05T02:16:46"
     },
     "analyze_error_handling": {
       "success": true,
@@ -991,34 +990,34 @@
           "files_affected": 0
         },
         "details": {
-          "total_functions": 1768,
+          "total_functions": 1770,
           "functions_with_try_except": 587,
-          "functions_with_error_handling": 1768,
-          "functions_with_decorators": 1748,
+          "functions_with_error_handling": 1770,
+          "functions_with_decorators": 1750,
           "functions_missing_error_handling": 0,
           "analyze_error_handling": 100.0,
           "error_patterns": {
-            "handle_errors_decorator": 1710,
+            "handle_errors_decorator": 1712,
             "try_except": 712,
             "handle_ai_error": 15,
-            "handle_network_error": 5,
             "handle_communication_error": 4,
+            "handle_network_error": 5,
             "DataError": 15,
             "ConfigurationError": 4,
-            "ValidationError": 25,
+            "ValidationError": 27,
             "handle_configuration_error": 4,
             "error_handler_usage": 8,
             "handle_validation_error": 2,
-            "MHMError": 2,
-            "FileOperationError": 8,
-            "handle_file_error": 3,
             "safe_file_operation": 1,
+            "AIError": 2,
+            "handle_file_error": 3,
+            "MHMError": 2,
             "CommunicationError": 2,
-            "AIError": 2
+            "FileOperationError": 8
           },
           "missing_error_handling": [],
           "error_handling_quality": {
-            "excellent": 1748,
+            "excellent": 1750,
             "good": 20
           },
           "recommendations": [],
@@ -1062,7 +1061,7 @@
           ]
         }
       },
-      "timestamp": "2026-05-05T01:01:33"
+      "timestamp": "2026-05-05T02:16:35"
     },
     "analyze_duplicate_functions": {
       "success": true,
@@ -1072,7 +1071,7 @@
           "files_affected": 2
         },
         "details": {
-          "total_functions": 1846,
+          "total_functions": 1848,
           "functions_excluded": 9,
           "records_deduplicated": 0,
           "groups_filtered_single_function": 10,
@@ -1193,23 +1192,23 @@
               "locals_similarity": 1.0,
               "imports_similarity": 1.0,
               "a": {
-                "name": "_get_user_id_by_identifier__by_discord_user_id",
-                "full_name": "_get_user_id_by_identifier__by_discord_user_id",
+                "name": "_get_user_id_by_identifier__by_phone",
+                "full_name": "_get_user_id_by_identifier__by_phone",
                 "class": null,
                 "file": "core/user_lookup.py",
-                "line": 111,
+                "line": 73,
                 "args": [
-                  "discord_user_id"
+                  "phone"
                 ]
               },
               "b": {
-                "name": "_get_user_id_by_identifier__by_discord_user_id",
-                "full_name": "_get_user_id_by_identifier__by_discord_user_id",
+                "name": "_get_user_id_by_identifier__by_phone",
+                "full_name": "_get_user_id_by_identifier__by_phone",
                 "class": null,
                 "file": "core/user_lookup.py",
-                "line": 111,
+                "line": 73,
                 "args": [
-                  "discord_user_id"
+                  "phone"
                 ]
               },
               "body_similarity": 1.0
@@ -1257,23 +1256,23 @@
               "locals_similarity": 1.0,
               "imports_similarity": 1.0,
               "a": {
-                "name": "_get_user_id_by_identifier__by_internal_username",
-                "full_name": "_get_user_id_by_identifier__by_internal_username",
+                "name": "_get_user_id_by_identifier__by_discord_user_id",
+                "full_name": "_get_user_id_by_identifier__by_discord_user_id",
                 "class": null,
                 "file": "core/user_lookup.py",
-                "line": 18,
+                "line": 111,
                 "args": [
-                  "internal_username"
+                  "discord_user_id"
                 ]
               },
               "b": {
-                "name": "_get_user_id_by_identifier__by_internal_username",
-                "full_name": "_get_user_id_by_identifier__by_internal_username",
+                "name": "_get_user_id_by_identifier__by_discord_user_id",
+                "full_name": "_get_user_id_by_identifier__by_discord_user_id",
                 "class": null,
                 "file": "core/user_lookup.py",
-                "line": 18,
+                "line": 111,
                 "args": [
-                  "internal_username"
+                  "discord_user_id"
                 ]
               },
               "body_similarity": 1.0
@@ -1313,23 +1312,23 @@
               "locals_similarity": 1.0,
               "imports_similarity": 1.0,
               "a": {
-                "name": "_get_user_id_by_identifier__by_phone",
-                "full_name": "_get_user_id_by_identifier__by_phone",
+                "name": "_get_user_id_by_identifier__by_internal_username",
+                "full_name": "_get_user_id_by_identifier__by_internal_username",
                 "class": null,
                 "file": "core/user_lookup.py",
-                "line": 73,
+                "line": 18,
                 "args": [
-                  "phone"
+                  "internal_username"
                 ]
               },
               "b": {
-                "name": "_get_user_id_by_identifier__by_phone",
-                "full_name": "_get_user_id_by_identifier__by_phone",
+                "name": "_get_user_id_by_identifier__by_internal_username",
+                "full_name": "_get_user_id_by_identifier__by_internal_username",
                 "class": null,
                 "file": "core/user_lookup.py",
-                "line": 73,
+                "line": 18,
                 "args": [
-                  "phone"
+                  "internal_username"
                 ]
               },
               "body_similarity": 1.0
@@ -1358,64 +1357,6 @@
                 "line": 195,
                 "args": [
                   "content_type"
-                ]
-              },
-              "body_similarity": 1.0
-            },
-            {
-              "overall_similarity": 0.84,
-              "name_similarity": 1.0,
-              "args_similarity": 1.0,
-              "locals_similarity": 0.0,
-              "imports_similarity": 1.0,
-              "a": {
-                "name": "backup_user_data",
-                "full_name": "UserDataManager.backup_user_data",
-                "class": "UserDataManager",
-                "file": "core/user_data_operations.py",
-                "line": 202,
-                "args": [
-                  "user_id",
-                  "include_messages"
-                ]
-              },
-              "b": {
-                "name": "backup_user_data",
-                "full_name": "backup_user_data",
-                "class": null,
-                "file": "core/user_data_operations.py",
-                "line": 1270,
-                "args": [
-                  "user_id",
-                  "include_messages"
-                ]
-              },
-              "body_similarity": 1.0
-            },
-            {
-              "overall_similarity": 0.84,
-              "name_similarity": 1.0,
-              "args_similarity": 1.0,
-              "locals_similarity": 0.0,
-              "imports_similarity": 1.0,
-              "a": {
-                "name": "_cleanup_test_message_requests__is_test_message_request_file",
-                "full_name": "MHMService._cleanup_test_message_requests__is_test_message_request_file",
-                "class": "MHMService",
-                "file": "core/service.py",
-                "line": 698,
-                "args": [
-                  "filename"
-                ]
-              },
-              "b": {
-                "name": "_cleanup_test_message_requests__is_test_message_request_file",
-                "full_name": "MHMService._cleanup_test_message_requests__is_test_message_request_file",
-                "class": "MHMService",
-                "file": "core/service.py",
-                "line": 698,
-                "args": [
-                  "filename"
                 ]
               },
               "body_similarity": 1.0
@@ -1477,6 +1418,64 @@
                   "categories",
                   "message_files",
                   "summary"
+                ]
+              },
+              "body_similarity": 1.0
+            },
+            {
+              "overall_similarity": 0.84,
+              "name_similarity": 1.0,
+              "args_similarity": 1.0,
+              "locals_similarity": 0.0,
+              "imports_similarity": 1.0,
+              "a": {
+                "name": "backup_user_data",
+                "full_name": "UserDataManager.backup_user_data",
+                "class": "UserDataManager",
+                "file": "core/user_data_operations.py",
+                "line": 202,
+                "args": [
+                  "user_id",
+                  "include_messages"
+                ]
+              },
+              "b": {
+                "name": "backup_user_data",
+                "full_name": "backup_user_data",
+                "class": null,
+                "file": "core/user_data_operations.py",
+                "line": 1270,
+                "args": [
+                  "user_id",
+                  "include_messages"
+                ]
+              },
+              "body_similarity": 1.0
+            },
+            {
+              "overall_similarity": 0.84,
+              "name_similarity": 1.0,
+              "args_similarity": 1.0,
+              "locals_similarity": 0.0,
+              "imports_similarity": 1.0,
+              "a": {
+                "name": "_cleanup_test_message_requests__is_test_message_request_file",
+                "full_name": "MHMService._cleanup_test_message_requests__is_test_message_request_file",
+                "class": "MHMService",
+                "file": "core/service.py",
+                "line": 699,
+                "args": [
+                  "filename"
+                ]
+              },
+              "b": {
+                "name": "_cleanup_test_message_requests__is_test_message_request_file",
+                "full_name": "MHMService._cleanup_test_message_requests__is_test_message_request_file",
+                "class": "MHMService",
+                "file": "core/service.py",
+                "line": 699,
+                "args": [
+                  "filename"
                 ]
               },
               "body_similarity": 1.0
@@ -1640,7 +1639,7 @@
                 "full_name": "cleanup_test_message_requests",
                 "class": null,
                 "file": "core/service_requests.py",
-                "line": 478,
+                "line": 464,
                 "args": [
                   "context"
                 ]
@@ -1650,7 +1649,7 @@
                 "full_name": "cleanup_reschedule_requests",
                 "class": null,
                 "file": "core/service_requests.py",
-                "line": 583,
+                "line": 569,
                 "args": [
                   "context"
                 ]
@@ -1848,6 +1847,36 @@
               "locals_similarity": 0.0,
               "imports_similarity": 1.0,
               "a": {
+                "name": "_get_user_data_summary__process_message_files",
+                "full_name": "UserDataManager._get_user_data_summary__process_message_files",
+                "class": "UserDataManager",
+                "file": "core/user_data_operations.py",
+                "line": 593,
+                "args": [
+                  "user_id",
+                  "summary"
+                ]
+              },
+              "b": {
+                "name": "_get_user_data_summary__process_log_files",
+                "full_name": "UserDataManager._get_user_data_summary__process_log_files",
+                "class": "UserDataManager",
+                "file": "core/user_data_operations.py",
+                "line": 746,
+                "args": [
+                  "user_id",
+                  "summary"
+                ]
+              },
+              "body_similarity": 1.0
+            },
+            {
+              "overall_similarity": 0.75,
+              "name_similarity": 0.75,
+              "args_similarity": 1.0,
+              "locals_similarity": 0.0,
+              "imports_similarity": 1.0,
+              "a": {
                 "name": "_get_user_data_summary__process_core_files",
                 "full_name": "UserDataManager._get_user_data_summary__process_core_files",
                 "class": "UserDataManager",
@@ -1900,47 +1929,17 @@
               "body_similarity": 1.0
             },
             {
-              "overall_similarity": 0.75,
-              "name_similarity": 0.75,
-              "args_similarity": 1.0,
-              "locals_similarity": 0.0,
-              "imports_similarity": 1.0,
-              "a": {
-                "name": "_get_user_data_summary__process_message_files",
-                "full_name": "UserDataManager._get_user_data_summary__process_message_files",
-                "class": "UserDataManager",
-                "file": "core/user_data_operations.py",
-                "line": 593,
-                "args": [
-                  "user_id",
-                  "summary"
-                ]
-              },
-              "b": {
-                "name": "_get_user_data_summary__process_log_files",
-                "full_name": "UserDataManager._get_user_data_summary__process_log_files",
-                "class": "UserDataManager",
-                "file": "core/user_data_operations.py",
-                "line": 746,
-                "args": [
-                  "user_id",
-                  "summary"
-                ]
-              },
-              "body_similarity": 1.0
-            },
-            {
-              "overall_similarity": 0.743,
+              "overall_similarity": 0.742,
               "name_similarity": 1.0,
               "args_similarity": 1.0,
               "locals_similarity": 0.0,
-              "imports_similarity": 0.191,
+              "imports_similarity": 0.184,
               "a": {
                 "name": "_cleanup_request_file_after_process",
                 "full_name": "MHMService._cleanup_request_file_after_process",
                 "class": "MHMService",
                 "file": "core/service.py",
-                "line": 640,
+                "line": 641,
                 "args": [
                   "request_file",
                   "filename",
@@ -1952,7 +1951,7 @@
                 "full_name": "cleanup_request_file_after_process",
                 "class": null,
                 "file": "core/service_requests.py",
-                "line": 281,
+                "line": 265,
                 "args": [
                   "request_file",
                   "filename",
@@ -2127,6 +2126,36 @@
             {
               "overall_similarity": 0.72,
               "name_similarity": 0.667,
+              "args_similarity": 1.0,
+              "locals_similarity": 0.0,
+              "imports_similarity": 1.0,
+              "a": {
+                "name": "_get_user_data__load_account",
+                "full_name": "_get_user_data__load_account",
+                "class": null,
+                "file": "core/user_data_registry.py",
+                "line": 269,
+                "args": [
+                  "user_id",
+                  "auto_create"
+                ]
+              },
+              "b": {
+                "name": "_get_user_data__load_context",
+                "full_name": "_get_user_data__load_context",
+                "class": null,
+                "file": "core/user_data_registry.py",
+                "line": 392,
+                "args": [
+                  "user_id",
+                  "auto_create"
+                ]
+              },
+              "body_similarity": 1.0
+            },
+            {
+              "overall_similarity": 0.72,
+              "name_similarity": 0.667,
               "args_similarity": 0.0,
               "locals_similarity": 1.0,
               "imports_similarity": 1.0,
@@ -2154,27 +2183,55 @@
             },
             {
               "overall_similarity": 0.72,
+              "name_similarity": 1.0,
+              "args_similarity": 1.0,
+              "locals_similarity": 0.0,
+              "imports_similarity": 1.0,
+              "a": {
+                "name": "get_user_data_summary",
+                "full_name": "UserDataManager.get_user_data_summary",
+                "class": "UserDataManager",
+                "file": "core/user_data_operations.py",
+                "line": 412,
+                "args": [
+                  "user_id"
+                ]
+              },
+              "b": {
+                "name": "get_user_data_summary",
+                "full_name": "get_user_data_summary",
+                "class": null,
+                "file": "core/user_data_operations.py",
+                "line": 1396,
+                "args": [
+                  "user_id"
+                ]
+              },
+              "body_similarity": 0.4
+            },
+            {
+              "overall_similarity": 0.72,
               "name_similarity": 0.667,
               "args_similarity": 1.0,
               "locals_similarity": 0.0,
               "imports_similarity": 1.0,
               "a": {
-                "name": "_get_user_data__load_account",
-                "full_name": "_get_user_data__load_account",
+                "name": "_get_user_data__load_context",
+                "full_name": "_get_user_data__load_context",
                 "class": null,
                 "file": "core/user_data_registry.py",
-                "line": 269,
+                "line": 392,
                 "args": [
                   "user_id",
                   "auto_create"
                 ]
               },
               "b": {
-                "name": "_get_user_data__load_preferences",
-                "full_name": "_get_user_data__load_preferences",
+                "name": "_get_user_data__load_schedules",
+                "full_name": "_get_user_data__load_schedules",
                 "class": null,
                 "file": "core/user_data_registry.py",
-                "line": 324,
+                "line": 439,
                 "args": [
                   "user_id",
                   "auto_create"
@@ -2225,54 +2282,22 @@
               "locals_similarity": 0.0,
               "imports_similarity": 1.0,
               "a": {
-                "name": "_get_user_data_summary__add_file_info",
-                "full_name": "UserDataManager._get_user_data_summary__add_file_info",
-                "class": "UserDataManager",
-                "file": "core/user_data_operations.py",
-                "line": 524,
-                "args": [
-                  "file_path",
-                  "file_type",
-                  "summary"
-                ]
-              },
-              "b": {
-                "name": "_get_user_data_summary__add_special_file_details",
-                "full_name": "UserDataManager._get_user_data_summary__add_special_file_details",
-                "class": "UserDataManager",
-                "file": "core/user_data_operations.py",
-                "line": 539,
-                "args": [
-                  "file_path",
-                  "file_type",
-                  "summary"
-                ]
-              },
-              "body_similarity": 1.0
-            },
-            {
-              "overall_similarity": 0.72,
-              "name_similarity": 0.667,
-              "args_similarity": 1.0,
-              "locals_similarity": 0.0,
-              "imports_similarity": 1.0,
-              "a": {
-                "name": "_get_user_data__load_preferences",
-                "full_name": "_get_user_data__load_preferences",
+                "name": "_get_user_data__load_account",
+                "full_name": "_get_user_data__load_account",
                 "class": null,
                 "file": "core/user_data_registry.py",
-                "line": 324,
+                "line": 269,
                 "args": [
                   "user_id",
                   "auto_create"
                 ]
               },
               "b": {
-                "name": "_get_user_data__load_schedules",
-                "full_name": "_get_user_data__load_schedules",
+                "name": "_get_user_data__load_preferences",
+                "full_name": "_get_user_data__load_preferences",
                 "class": null,
                 "file": "core/user_data_registry.py",
-                "line": 439,
+                "line": 324,
                 "args": [
                   "user_id",
                   "auto_create"
@@ -2310,98 +2335,6 @@
             },
             {
               "overall_similarity": 0.72,
-              "name_similarity": 0.875,
-              "args_similarity": 0.2,
-              "locals_similarity": 0.333,
-              "imports_similarity": 1.0,
-              "a": {
-                "name": "_get_user_data_summary__add_file_info",
-                "full_name": "UserDataManager._get_user_data_summary__add_file_info",
-                "class": "UserDataManager",
-                "file": "core/user_data_operations.py",
-                "line": 524,
-                "args": [
-                  "file_path",
-                  "file_type",
-                  "summary"
-                ]
-              },
-              "b": {
-                "name": "_get_user_data_summary__add_log_file_info",
-                "full_name": "UserDataManager._get_user_data_summary__add_log_file_info",
-                "class": "UserDataManager",
-                "file": "core/user_data_operations.py",
-                "line": 761,
-                "args": [
-                  "log_file",
-                  "log_type",
-                  "summary"
-                ]
-              },
-              "body_similarity": 1.0
-            },
-            {
-              "overall_similarity": 0.72,
-              "name_similarity": 0.667,
-              "args_similarity": 1.0,
-              "locals_similarity": 0.0,
-              "imports_similarity": 1.0,
-              "a": {
-                "name": "_get_user_data__load_account",
-                "full_name": "_get_user_data__load_account",
-                "class": null,
-                "file": "core/user_data_registry.py",
-                "line": 269,
-                "args": [
-                  "user_id",
-                  "auto_create"
-                ]
-              },
-              "b": {
-                "name": "_get_user_data__load_schedules",
-                "full_name": "_get_user_data__load_schedules",
-                "class": null,
-                "file": "core/user_data_registry.py",
-                "line": 439,
-                "args": [
-                  "user_id",
-                  "auto_create"
-                ]
-              },
-              "body_similarity": 1.0
-            },
-            {
-              "overall_similarity": 0.72,
-              "name_similarity": 0.667,
-              "args_similarity": 1.0,
-              "locals_similarity": 0.0,
-              "imports_similarity": 1.0,
-              "a": {
-                "name": "_get_user_data__load_context",
-                "full_name": "_get_user_data__load_context",
-                "class": null,
-                "file": "core/user_data_registry.py",
-                "line": 392,
-                "args": [
-                  "user_id",
-                  "auto_create"
-                ]
-              },
-              "b": {
-                "name": "_get_user_data__load_schedules",
-                "full_name": "_get_user_data__load_schedules",
-                "class": null,
-                "file": "core/user_data_registry.py",
-                "line": 439,
-                "args": [
-                  "user_id",
-                  "auto_create"
-                ]
-              },
-              "body_similarity": 1.0
-            },
-            {
-              "overall_similarity": 0.72,
               "name_similarity": 0.667,
               "args_similarity": 1.0,
               "locals_similarity": 0.0,
@@ -2418,11 +2351,11 @@
                 ]
               },
               "b": {
-                "name": "_get_user_data__load_context",
-                "full_name": "_get_user_data__load_context",
+                "name": "_get_user_data__load_schedules",
+                "full_name": "_get_user_data__load_schedules",
                 "class": null,
                 "file": "core/user_data_registry.py",
-                "line": 392,
+                "line": 439,
                 "args": [
                   "user_id",
                   "auto_create"
@@ -2473,11 +2406,11 @@
               "locals_similarity": 0.0,
               "imports_similarity": 1.0,
               "a": {
-                "name": "_get_user_data__load_account",
-                "full_name": "_get_user_data__load_account",
+                "name": "_get_user_data__load_preferences",
+                "full_name": "_get_user_data__load_preferences",
                 "class": null,
                 "file": "core/user_data_registry.py",
-                "line": 269,
+                "line": 324,
                 "args": [
                   "user_id",
                   "auto_create"
@@ -2498,31 +2431,65 @@
             },
             {
               "overall_similarity": 0.72,
-              "name_similarity": 1.0,
+              "name_similarity": 0.667,
               "args_similarity": 1.0,
               "locals_similarity": 0.0,
               "imports_similarity": 1.0,
               "a": {
-                "name": "get_user_data_summary",
-                "full_name": "UserDataManager.get_user_data_summary",
-                "class": "UserDataManager",
-                "file": "core/user_data_operations.py",
-                "line": 412,
+                "name": "_get_user_data__load_account",
+                "full_name": "_get_user_data__load_account",
+                "class": null,
+                "file": "core/user_data_registry.py",
+                "line": 269,
                 "args": [
-                  "user_id"
+                  "user_id",
+                  "auto_create"
                 ]
               },
               "b": {
-                "name": "get_user_data_summary",
-                "full_name": "get_user_data_summary",
+                "name": "_get_user_data__load_schedules",
+                "full_name": "_get_user_data__load_schedules",
                 "class": null,
-                "file": "core/user_data_operations.py",
-                "line": 1396,
+                "file": "core/user_data_registry.py",
+                "line": 439,
                 "args": [
-                  "user_id"
+                  "user_id",
+                  "auto_create"
                 ]
               },
-              "body_similarity": 0.4
+              "body_similarity": 1.0
+            },
+            {
+              "overall_similarity": 0.72,
+              "name_similarity": 0.667,
+              "args_similarity": 1.0,
+              "locals_similarity": 0.0,
+              "imports_similarity": 1.0,
+              "a": {
+                "name": "_get_user_data_summary__add_file_info",
+                "full_name": "UserDataManager._get_user_data_summary__add_file_info",
+                "class": "UserDataManager",
+                "file": "core/user_data_operations.py",
+                "line": 524,
+                "args": [
+                  "file_path",
+                  "file_type",
+                  "summary"
+                ]
+              },
+              "b": {
+                "name": "_get_user_data_summary__add_special_file_details",
+                "full_name": "UserDataManager._get_user_data_summary__add_special_file_details",
+                "class": "UserDataManager",
+                "file": "core/user_data_operations.py",
+                "line": 539,
+                "args": [
+                  "file_path",
+                  "file_type",
+                  "summary"
+                ]
+              },
+              "body_similarity": 1.0
             },
             {
               "overall_similarity": 0.72,
@@ -2576,6 +2543,38 @@
                 "line": 1898,
                 "args": [
                   "ai_response"
+                ]
+              },
+              "body_similarity": 1.0
+            },
+            {
+              "overall_similarity": 0.72,
+              "name_similarity": 0.875,
+              "args_similarity": 0.2,
+              "locals_similarity": 0.333,
+              "imports_similarity": 1.0,
+              "a": {
+                "name": "_get_user_data_summary__add_file_info",
+                "full_name": "UserDataManager._get_user_data_summary__add_file_info",
+                "class": "UserDataManager",
+                "file": "core/user_data_operations.py",
+                "line": 524,
+                "args": [
+                  "file_path",
+                  "file_type",
+                  "summary"
+                ]
+              },
+              "b": {
+                "name": "_get_user_data_summary__add_log_file_info",
+                "full_name": "UserDataManager._get_user_data_summary__add_log_file_info",
+                "class": "UserDataManager",
+                "file": "core/user_data_operations.py",
+                "line": 761,
+                "args": [
+                  "log_file",
+                  "log_type",
+                  "summary"
                 ]
               },
               "body_similarity": 1.0
@@ -2926,7 +2925,7 @@
           "body_similarity_min_name_threshold": 0.35
         }
       },
-      "timestamp": "2026-05-05T01:01:34"
+      "timestamp": "2026-05-05T02:16:36"
     },
     "analyze_functions": {
       "success": true,
@@ -2936,7 +2935,7 @@
           "files_affected": 91
         },
         "details": {
-          "total_functions": 1734,
+          "total_functions": 1736,
           "moderate_complexity": 222,
           "high_complexity": 176,
           "critical_complexity": 152,
@@ -3126,12 +3125,12 @@
               "complexity": 185
             }
           ],
-          "handlers": 856,
+          "handlers": 858,
           "tests": 69,
           "utilities": 0
         }
       },
-      "timestamp": "2026-05-05T01:01:32"
+      "timestamp": "2026-05-05T02:16:33"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -5298,6 +5297,11 @@
             },
             {
               "file": "core/scheduler.py",
+              "function": "_create_standalone_scheduler_manager",
+              "has_doc": true
+            },
+            {
+              "file": "core/scheduler.py",
               "function": "run_full_scheduler_standalone",
               "has_doc": true
             },
@@ -5359,7 +5363,7 @@
           ]
         }
       },
-      "timestamp": "2026-05-05T01:01:30"
+      "timestamp": "2026-05-05T02:16:31"
     },
     "analyze_function_registry": {
       "success": true,
@@ -6442,6 +6446,12 @@
                 "name": "load_task_data"
               },
               {
+                "complexity": 488,
+                "file": "core/service.py",
+                "has_docstring": true,
+                "name": "start"
+              },
+              {
                 "complexity": 486,
                 "file": "core/user_data_operations.py",
                 "has_docstring": true,
@@ -6464,12 +6474,6 @@
                 "file": "communication/command_handlers/notebook_handler.py",
                 "has_docstring": true,
                 "name": "handle"
-              },
-              {
-                "complexity": 478,
-                "file": "core/service.py",
-                "has_docstring": true,
-                "name": "start"
               },
               {
                 "complexity": 475,
@@ -7246,7 +7250,7 @@
                 "name": "_build_base_command_definitions"
               }
             ],
-            "high_complexity_total": 1257,
+            "high_complexity_total": 1255,
             "undocumented_handlers": [
               {
                 "file": "communication/command_handlers/profile_handler.py",
@@ -7973,8 +7977,8 @@
           "totals": {
             "classes_found": 170,
             "files_scanned": 136,
-            "functions_documented": 1804,
-            "functions_found": 1828
+            "functions_documented": 1806,
+            "functions_found": 1830
           }
         },
         "summary": {
@@ -7982,7 +7986,7 @@
           "total_issues": 47
         }
       },
-      "timestamp": "2026-05-05T01:01:36"
+      "timestamp": "2026-05-05T02:16:38"
     },
     "analyze_module_refactor_candidates": {
       "success": true,
@@ -7996,10 +8000,10 @@
           "refactor_candidates": [
             {
               "file": "ui/ui_app_qt.py",
-              "lines": 2913,
+              "lines": 2918,
               "function_count": 71,
               "class_count": 2,
-              "total_function_complexity": 11702,
+              "total_function_complexity": 11711,
               "high_complexity_count": 24,
               "critical_complexity_count": 17,
               "reasons": [
@@ -8104,10 +8108,10 @@
             },
             {
               "file": "core/scheduler.py",
-              "lines": 1492,
-              "function_count": 45,
+              "lines": 1502,
+              "function_count": 47,
               "class_count": 1,
-              "total_function_complexity": 6036,
+              "total_function_complexity": 6082,
               "high_complexity_count": 6,
               "critical_complexity_count": 12,
               "reasons": [
@@ -8236,10 +8240,10 @@
             },
             {
               "file": "core/service.py",
-              "lines": 890,
+              "lines": 891,
               "function_count": 49,
               "class_count": 2,
-              "total_function_complexity": 3068,
+              "total_function_complexity": 3078,
               "high_complexity_count": 5,
               "critical_complexity_count": 3,
               "reasons": [
@@ -8331,18 +8335,6 @@
               ]
             },
             {
-              "file": "core/service_requests.py",
-              "lines": 640,
-              "function_count": 33,
-              "class_count": 1,
-              "total_function_complexity": 3006,
-              "high_complexity_count": 8,
-              "critical_complexity_count": 3,
-              "reasons": [
-                "exceeds size/complexity thresholds"
-              ]
-            },
-            {
               "file": "communication/command_handlers/schedule_handler.py",
               "lines": 629,
               "function_count": 11,
@@ -8350,6 +8342,18 @@
               "total_function_complexity": 2510,
               "high_complexity_count": 2,
               "critical_complexity_count": 5,
+              "reasons": [
+                "exceeds size/complexity thresholds"
+              ]
+            },
+            {
+              "file": "core/service_requests.py",
+              "lines": 626,
+              "function_count": 33,
+              "class_count": 1,
+              "total_function_complexity": 2846,
+              "high_complexity_count": 8,
+              "critical_complexity_count": 3,
               "reasons": [
                 "exceeds size/complexity thresholds"
               ]
@@ -8392,10 +8396,10 @@
             },
             {
               "file": "core/scheduler_task_reminders.py",
-              "lines": 594,
+              "lines": 590,
               "function_count": 14,
               "class_count": 0,
-              "total_function_complexity": 2849,
+              "total_function_complexity": 2843,
               "high_complexity_count": 3,
               "critical_complexity_count": 8,
               "reasons": [
@@ -8740,10 +8744,10 @@
             },
             {
               "file": "communication/delivery/message_dispatcher.py",
-              "lines": 284,
+              "lines": 283,
               "function_count": 9,
               "class_count": 1,
-              "total_function_complexity": 1648,
+              "total_function_complexity": 1669,
               "high_complexity_count": 3,
               "critical_complexity_count": 4,
               "reasons": [
@@ -8772,24 +8776,24 @@
           }
         }
       },
-      "timestamp": "2026-05-05T01:01:34"
+      "timestamp": "2026-05-05T02:16:35"
     },
     "analyze_package_exports": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 274,
+          "total_issues": 275,
           "files_affected": 4
         },
         "details": {
-          "total_missing_exports": 273,
+          "total_missing_exports": 274,
           "total_unnecessary_exports": 1,
           "packages_with_missing": 4,
           "packages": {
             "core": {
               "package": "core",
               "current_exports_count": 157,
-              "should_export_count": 365,
+              "should_export_count": 366,
               "already_exported": [
                 "AIError",
                 "AccountModel",
@@ -9140,6 +9144,7 @@
                 "set_schedule_days",
                 "set_schedule_period_active",
                 "set_schedule_periods",
+                "set_scheduler_delivery_factory",
                 "store_user_response",
                 "task_selection_key",
                 "track_user_response",
@@ -9852,12 +9857,13 @@
                   "module_path": "core.response_tracking"
                 },
                 "ValidationError": {
-                  "import_count": 6,
+                  "import_count": 7,
                   "import_locations": [
                     "core/checkin_analytics.py",
                     "core/message_management.py",
                     "core/schedule_runtime.py",
                     "core/schemas.py",
+                    "core/service_requests.py",
                     "core/tags.py",
                     "core/user_data_validation.py"
                   ],
@@ -10261,6 +10267,17 @@
                   "module_path": "core.user_data_read"
                 },
                 "SchedulerManager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/service.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.scheduler"
+                },
+                "set_scheduler_delivery_factory": {
                   "import_count": 2,
                   "import_locations": [
                     "core/service.py",
@@ -11809,12 +11826,13 @@
                   "module_path": "core.response_tracking"
                 },
                 "ValidationError": {
-                  "import_count": 6,
+                  "import_count": 7,
                   "import_locations": [
                     "core/checkin_analytics.py",
                     "core/message_management.py",
                     "core/schedule_runtime.py",
                     "core/schemas.py",
+                    "core/service_requests.py",
                     "core/tags.py",
                     "core/user_data_validation.py"
                   ],
@@ -12388,6 +12406,17 @@
                   "module_path": "core.config"
                 },
                 "SchedulerManager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/service.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.scheduler"
+                },
+                "set_scheduler_delivery_factory": {
                   "import_count": 2,
                   "import_locations": [
                     "core/service.py",
@@ -14112,6 +14141,7 @@
                 "set_schedule_days",
                 "set_schedule_period_active",
                 "set_schedule_periods",
+                "set_scheduler_delivery_factory",
                 "set_verbose_mode",
                 "setup_logging",
                 "setup_third_party_error_logging",
@@ -14335,14 +14365,10 @@
               "potentially_unnecessary": [],
               "cross_module_usage": {
                 "CommunicationManager": {
-                  "import_count": 10,
+                  "import_count": 6,
                   "import_locations": [
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
                     "core/service.py",
+                    "ui/ui_app_qt.py",
                     "ui/ui_app_qt.py",
                     "ui/ui_app_qt.py",
                     "ui/ui_app_qt.py",
@@ -14769,14 +14795,10 @@
               },
               "import_usage_details": {
                 "CommunicationManager": {
-                  "import_count": 10,
+                  "import_count": 6,
                   "import_locations": [
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
-                    "core/scheduler.py",
                     "core/service.py",
+                    "ui/ui_app_qt.py",
                     "ui/ui_app_qt.py",
                     "ui/ui_app_qt.py",
                     "ui/ui_app_qt.py",
@@ -16216,131 +16238,6 @@
                 "set_selected_categories"
               ]
             },
-            "ai": {
-              "package": "ai",
-              "current_exports_count": 22,
-              "should_export_count": 22,
-              "already_exported": [
-                "AIChatBotSingleton",
-                "CacheEntry",
-                "ContextAnalysis",
-                "ContextBuilder",
-                "ContextCache",
-                "ContextData",
-                "ConversationHistory",
-                "ConversationMessage",
-                "ConversationSession",
-                "LMStudioManager",
-                "PromptManager",
-                "PromptTemplate",
-                "ResponseCache",
-                "ensure_lm_studio_ready",
-                "get_ai_chatbot",
-                "get_context_builder",
-                "get_context_cache",
-                "get_conversation_history",
-                "get_lm_studio_manager",
-                "get_prompt_manager",
-                "get_response_cache",
-                "is_lm_studio_ready"
-              ],
-              "missing_exports": [],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "get_ai_chatbot": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "communication/message_processing/command_parser.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.chatbot"
-                }
-              },
-              "import_usage_details": {
-                "get_prompt_manager": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/chatbot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.prompt_manager"
-                },
-                "get_response_cache": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/chatbot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.cache_manager"
-                },
-                "is_lm_studio_ready": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/chatbot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.lm_studio_manager"
-                },
-                "get_ai_chatbot": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "communication/message_processing/command_parser.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.chatbot"
-                }
-              },
-              "package_api_items": [
-                "AIChatBotSingleton",
-                "CacheEntry",
-                "ContextAnalysis",
-                "ContextBuilder",
-                "ContextCache",
-                "ContextData",
-                "ConversationHistory",
-                "ConversationMessage",
-                "ConversationSession",
-                "LMStudioManager",
-                "PromptManager",
-                "PromptTemplate",
-                "ResponseCache",
-                "ensure_lm_studio_ready",
-                "get_ai_chatbot",
-                "get_context_builder",
-                "get_context_cache",
-                "get_conversation_history",
-                "get_lm_studio_manager",
-                "get_prompt_manager",
-                "get_response_cache",
-                "is_lm_studio_ready"
-              ],
-              "registry_items": [
-                "__init__",
-                "__new__",
-                "__post_init__",
-                "_build_contextual_summary",
-                "_cleanup_lru",
-                "_load_custom_prompt",
-                "add_prompt_template",
-                "ensure_lm_studio_ready"
-              ]
-            },
             "tasks": {
               "package": "tasks",
               "current_exports_count": 20,
@@ -16744,6 +16641,131 @@
                 "validate_date"
               ]
             },
+            "ai": {
+              "package": "ai",
+              "current_exports_count": 22,
+              "should_export_count": 22,
+              "already_exported": [
+                "AIChatBotSingleton",
+                "CacheEntry",
+                "ContextAnalysis",
+                "ContextBuilder",
+                "ContextCache",
+                "ContextData",
+                "ConversationHistory",
+                "ConversationMessage",
+                "ConversationSession",
+                "LMStudioManager",
+                "PromptManager",
+                "PromptTemplate",
+                "ResponseCache",
+                "ensure_lm_studio_ready",
+                "get_ai_chatbot",
+                "get_context_builder",
+                "get_context_cache",
+                "get_conversation_history",
+                "get_lm_studio_manager",
+                "get_prompt_manager",
+                "get_response_cache",
+                "is_lm_studio_ready"
+              ],
+              "missing_exports": [],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "get_ai_chatbot": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/message_processing/command_parser.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.chatbot"
+                }
+              },
+              "import_usage_details": {
+                "get_prompt_manager": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/chatbot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.prompt_manager"
+                },
+                "get_response_cache": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/chatbot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.cache_manager"
+                },
+                "is_lm_studio_ready": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/chatbot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.lm_studio_manager"
+                },
+                "get_ai_chatbot": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/message_processing/command_parser.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.chatbot"
+                }
+              },
+              "package_api_items": [
+                "AIChatBotSingleton",
+                "CacheEntry",
+                "ContextAnalysis",
+                "ContextBuilder",
+                "ContextCache",
+                "ContextData",
+                "ConversationHistory",
+                "ConversationMessage",
+                "ConversationSession",
+                "LMStudioManager",
+                "PromptManager",
+                "PromptTemplate",
+                "ResponseCache",
+                "ensure_lm_studio_ready",
+                "get_ai_chatbot",
+                "get_context_builder",
+                "get_context_cache",
+                "get_conversation_history",
+                "get_lm_studio_manager",
+                "get_prompt_manager",
+                "get_response_cache",
+                "is_lm_studio_ready"
+              ],
+              "registry_items": [
+                "__init__",
+                "__new__",
+                "__post_init__",
+                "_build_contextual_summary",
+                "_cleanup_lru",
+                "_load_custom_prompt",
+                "add_prompt_template",
+                "ensure_lm_studio_ready"
+              ]
+            },
             "user": {
               "package": "user",
               "current_exports_count": 4,
@@ -16825,7 +16847,7 @@
           }
         }
       },
-      "timestamp": "2026-05-05T01:01:34"
+      "timestamp": "2026-05-05T02:16:35"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -17041,7 +17063,7 @@
             },
             {
               "file": "core/scheduler.py",
-              "local_imports": 20,
+              "local_imports": 15,
               "third_party_imports": 2,
               "modules": [
                 "core",
@@ -17057,12 +17079,7 @@
                 "core",
                 "core",
                 "core.logger",
-                "communication.core.channel_orchestrator",
-                "communication.core.channel_orchestrator",
-                "communication.core.channel_orchestrator",
                 "tasks",
-                "communication.core.channel_orchestrator",
-                "communication.core.channel_orchestrator",
                 "core.config"
               ]
             },
@@ -17187,10 +17204,10 @@
               "local_imports": 7,
               "third_party_imports": 0,
               "modules": [
+                "core.delivery",
                 "core.error_handling",
                 "core.logger",
                 "core.time_utilities",
-                "core.delivery",
                 "communication.message_processing.conversation_flow_manager",
                 "core",
                 "core"
@@ -18154,7 +18171,7 @@
             },
             {
               "file": "ui/ui_app_qt.py",
-              "local_imports": 46,
+              "local_imports": 47,
               "third_party_imports": 5,
               "modules": [
                 "core.launch_env",
@@ -18170,6 +18187,7 @@
                 "core.config",
                 "ui.generated.admin_panel_pyqt",
                 "core.user_data_operations",
+                "communication.core.channel_orchestrator",
                 "core.scheduler",
                 "core.scheduler",
                 "core.scheduler",
@@ -19617,7 +19635,7 @@
             },
             {
               "file": "core/scheduler.py",
-              "import_count": 20,
+              "import_count": 15,
               "modules": [
                 "core",
                 "core.delivery",
@@ -19632,12 +19650,7 @@
                 "core",
                 "core",
                 "core.logger",
-                "communication.core.channel_orchestrator",
-                "communication.core.channel_orchestrator",
-                "communication.core.channel_orchestrator",
                 "tasks",
-                "communication.core.channel_orchestrator",
-                "communication.core.channel_orchestrator",
                 "core.config"
               ]
             },
@@ -19716,10 +19729,10 @@
               "file": "core/service_requests.py",
               "import_count": 7,
               "modules": [
+                "core.delivery",
                 "core.error_handling",
                 "core.logger",
                 "core.time_utilities",
-                "core.delivery",
                 "communication.message_processing.conversation_flow_manager",
                 "core",
                 "core"
@@ -19896,7 +19909,7 @@
             },
             {
               "file": "ui/ui_app_qt.py",
-              "import_count": 46,
+              "import_count": 47,
               "modules": [
                 "core.launch_env",
                 "core.time_utilities",
@@ -19911,6 +19924,7 @@
                 "core.config",
                 "ui.generated.admin_panel_pyqt",
                 "core.user_data_operations",
+                "communication.core.channel_orchestrator",
                 "core.scheduler",
                 "core.scheduler",
                 "core.scheduler",
@@ -20169,7 +20183,7 @@
           ]
         }
       },
-      "timestamp": "2026-05-05T01:01:38"
+      "timestamp": "2026-05-05T02:16:40"
     },
     "analyze_dev_tools_import_boundaries": {
       "success": true,
@@ -20186,7 +20200,7 @@
           }
         }
       },
-      "timestamp": "2026-05-05T01:01:28"
+      "timestamp": "2026-05-05T02:16:29"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -20197,7 +20211,7 @@
         },
         "details": {}
       },
-      "timestamp": "2026-05-05T01:01:39"
+      "timestamp": "2026-05-05T02:16:41"
     },
     "analyze_module_imports": {
       "success": true,
@@ -26848,6 +26862,13 @@
                   ]
                 },
                 {
+                  "module": "collections.abc",
+                  "as_name": null,
+                  "imported_items": [
+                    "Callable"
+                  ]
+                },
+                {
                   "module": "datetime",
                   "as_name": null,
                   "imported_items": [
@@ -26978,45 +26999,10 @@
                   ]
                 },
                 {
-                  "module": "communication.core.channel_orchestrator",
-                  "as_name": null,
-                  "imported_items": [
-                    "CommunicationManager"
-                  ]
-                },
-                {
-                  "module": "communication.core.channel_orchestrator",
-                  "as_name": null,
-                  "imported_items": [
-                    "CommunicationManager"
-                  ]
-                },
-                {
-                  "module": "communication.core.channel_orchestrator",
-                  "as_name": null,
-                  "imported_items": [
-                    "CommunicationManager"
-                  ]
-                },
-                {
                   "module": "tasks",
                   "as_name": null,
                   "imported_items": [
                     "are_tasks_enabled"
-                  ]
-                },
-                {
-                  "module": "communication.core.channel_orchestrator",
-                  "as_name": null,
-                  "imported_items": [
-                    "CommunicationManager"
-                  ]
-                },
-                {
-                  "module": "communication.core.channel_orchestrator",
-                  "as_name": null,
-                  "imported_items": [
-                    "CommunicationManager"
                   ]
                 },
                 {
@@ -27029,7 +27015,7 @@
                 }
               ]
             },
-            "total_imports": 30
+            "total_imports": 26
           },
           "core/scheduler_jobs.py": {
             "imports": {
@@ -27698,7 +27684,8 @@
                   "module": "core.scheduler",
                   "as_name": null,
                   "imported_items": [
-                    "SchedulerManager"
+                    "SchedulerManager",
+                    "set_scheduler_delivery_factory"
                   ]
                 },
                 {
@@ -27869,9 +27856,17 @@
               "third_party": [],
               "local": [
                 {
+                  "module": "core.delivery",
+                  "as_name": null,
+                  "imported_items": [
+                    "ServiceRequestDeliveryPort"
+                  ]
+                },
+                {
                   "module": "core.error_handling",
                   "as_name": null,
                   "imported_items": [
+                    "ValidationError",
                     "handle_errors"
                   ]
                 },
@@ -27887,13 +27882,6 @@
                   "as_name": null,
                   "imported_items": [
                     "now_timestamp_full"
-                  ]
-                },
-                {
-                  "module": "core.delivery",
-                  "as_name": null,
-                  "imported_items": [
-                    "ServiceRequestDeliveryPort"
                   ]
                 },
                 {
@@ -30515,10 +30503,18 @@
                   ]
                 },
                 {
+                  "module": "communication.core.channel_orchestrator",
+                  "as_name": null,
+                  "imported_items": [
+                    "CommunicationManager"
+                  ]
+                },
+                {
                   "module": "core.scheduler",
                   "as_name": null,
                   "imported_items": [
-                    "run_full_scheduler_standalone"
+                    "run_full_scheduler_standalone",
+                    "set_scheduler_delivery_factory"
                   ]
                 },
                 {
@@ -30764,7 +30760,7 @@
                 }
               ]
             },
-            "total_imports": 68
+            "total_imports": 69
           },
           "ui/__init__.py": {
             "imports": {
@@ -33443,7 +33439,7 @@
           }
         }
       },
-      "timestamp": "2026-05-05T01:01:38"
+      "timestamp": "2026-05-05T02:16:40"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -33481,12 +33477,12 @@
             "backend": "ruff",
             "scan_mode": "cold_scan",
             "timings": {
-              "discovery_seconds": 1.7117,
-              "detection_seconds": 1.0754,
-              "categorization_seconds": 0.006,
-              "total_seconds": 2.9296
+              "discovery_seconds": 1.9955,
+              "detection_seconds": 1.0861,
+              "categorization_seconds": 0.0061,
+              "total_seconds": 3.2212
             },
-            "files_per_second": 208.9,
+            "files_per_second": 189.99,
             "cache_hits": 0,
             "cache_misses": 612,
             "changed_files": 612,
@@ -33531,7 +33527,7 @@
           "hit_rate": 0.0
         }
       },
-      "timestamp": "2026-05-05T01:01:37"
+      "timestamp": "2026-05-05T02:16:39"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -33562,18 +33558,18 @@
           "cache": {
             "cache_mode": "cold_scan",
             "hits": 0,
-            "misses": 610,
-            "total_cache_checks": 610,
+            "misses": 612,
+            "total_cache_checks": 612,
             "hit_rate": 0.0
           }
         }
       },
-      "timestamp": "2026-05-05T01:01:50"
+      "timestamp": "2026-05-05T02:16:53"
     },
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-05-05T01:11:50",
+        "generated_at": "2026-05-05T02:27:14",
         "project_root": "C:\\Users\\Julie\\projects\\MHM\\MHM",
         "summary": {
           "status": "PASS",
@@ -33618,7 +33614,7 @@
               "name": "weekly_backup_recent_enough",
               "success": true,
               "details": {
-                "recent_cutoff": "2026-04-21T01:11:50",
+                "recent_cutoff": "2026-04-21T02:27:14",
                 "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-05-01_01-00-03",
                 "latest_weekly_created_at": "2026-05-01 01:00:03"
               }
@@ -33629,7 +33625,7 @@
               "details": {
                 "latest_backup_path": "data\\backups\\weekly_backup_2026-05-01_01-00-03",
                 "latest_created_at": "2026-05-01 01:00:03",
-                "recent_cutoff": "2026-04-21T01:11:50"
+                "recent_cutoff": "2026-04-21T02:27:14"
               }
             },
             {
@@ -33684,7 +33680,7 @@
             "name": "weekly_backup_recent_enough",
             "success": true,
             "details": {
-              "recent_cutoff": "2026-04-21T01:11:50",
+              "recent_cutoff": "2026-04-21T02:27:14",
               "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-05-01_01-00-03",
               "latest_weekly_created_at": "2026-05-01 01:00:03"
             }
@@ -33695,7 +33691,7 @@
             "details": {
               "latest_backup_path": "data\\backups\\weekly_backup_2026-05-01_01-00-03",
               "latest_created_at": "2026-05-01 01:00:03",
-              "recent_cutoff": "2026-04-21T01:11:50"
+              "recent_cutoff": "2026-04-21T02:27:14"
             }
           },
           {
@@ -33718,7 +33714,7 @@
           }
         ]
       },
-      "timestamp": "2026-05-05T01:11:50"
+      "timestamp": "2026-05-05T02:27:14"
     },
     "analyze_system_signals": {
       "success": true,
@@ -33729,7 +33725,7 @@
           "status": "ISSUES"
         },
         "details": {
-          "timestamp": "2026-05-05T01:01:26.894323",
+          "timestamp": "2026-05-05T02:16:27.634313",
           "system_health": {
             "overall_status": "ISSUES",
             "core_files": {
@@ -33771,16 +33767,16 @@
           },
           "recent_activity": {
             "recent_changes": [
-              "core/user_data_operations.py",
-              "tasks/task_service.py",
-              "development_tools/shared/cli_interface.py",
+              "core/service.py",
+              "tests/core/test_python_interpreter_selection.py",
+              "communication/reminders/checkin_prompt_dispatcher.py",
+              "tests/development_tools/test_generate_module_dependencies.py",
+              "tests/unit/test_channel_orchestrator.py",
+              "communication/reminders/__init__.py",
+              "tests/core/test_service_request_helpers.py",
               "core/service_requests.py",
-              "core/auto_cleanup.py",
-              "communication/command_handlers/task_handler.py",
-              "development_tools/shared/lock_state.py",
-              "core/delivery.py",
-              "tests/development_tools/test_analyze_duplicate_functions.py",
-              "communication/message_processing/command_parser.py"
+              "communication/reminders/reminder_dispatcher.py",
+              "ui/ui_app_qt.py"
             ],
             "git_status": "Modified",
             "last_commit": null,
@@ -33796,7 +33792,7 @@
               "discord.log": "0.0MB",
               "email.log": "0.0MB",
               "errors.log": "0.0MB",
-              "file_ops.log": "0.0MB",
+              "file_ops.log": "0.1MB",
               "message.log": "0.0MB",
               "scheduler.log": "0.0MB",
               "ui.log": "0.0MB",
@@ -33807,7 +33803,7 @@
           }
         }
       },
-      "timestamp": "2026-05-05T01:01:27"
+      "timestamp": "2026-05-05T02:16:27"
     },
     "decision_support": {
       "success": true,
@@ -33817,7 +33813,7 @@
           "files_affected": 0
         },
         "details": {
-          "total_functions": 1734,
+          "total_functions": 1736,
           "moderate_complexity": 222,
           "high_complexity": 176,
           "critical_complexity": 152,
@@ -33972,27 +33968,27 @@
           ]
         }
       },
-      "timestamp": "2026-05-05T01:01:30"
+      "timestamp": "2026-05-05T02:16:31"
     },
     "analyze_test_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 16640,
+          "total_issues": 16645,
           "files_affected": 0
         },
         "details": {
           "overall": {
             "coverage": 71.0,
-            "statements": 57453,
-            "covered": 40813,
-            "missed": 16640,
-            "generated": "2026-05-05T01:11:38.770398"
+            "statements": 57451,
+            "covered": 40806,
+            "missed": 16645,
+            "generated": "2026-05-05T02:27:02.833907"
           },
           "primary_overall": {
-            "coverage": 78.5,
-            "statements": 23075,
-            "covered": 18106,
+            "coverage": 78.4,
+            "statements": 23071,
+            "covered": 18097,
             "domains": [
               "ai",
               "communication",
@@ -34004,27 +34000,27 @@
             {
               "module": "development_tools",
               "coverage": 63.5,
-              "missed": 9462
+              "missed": 9459
             },
             {
               "module": "ui",
               "coverage": 69.4,
-              "missed": 2064
+              "missed": 2067
             },
             {
               "module": "communication",
-              "coverage": 77.4,
-              "missed": 2226
-            },
-            {
-              "module": "core",
-              "coverage": 78.9,
-              "missed": 2361
+              "coverage": 77.3,
+              "missed": 2229
             },
             {
               "module": "ai",
+              "coverage": 78.4,
+              "missed": 380
+            },
+            {
+              "module": "core",
               "coverage": 79.0,
-              "missed": 369
+              "missed": 2352
             },
             {
               "module": "tasks",
@@ -34076,13 +34072,13 @@
               "classification": "passed",
               "classification_reason": "pytest_passed",
               "actionable_context": "Track completed successfully.",
-              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-05-05_01-01-46.log",
+              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-05-05_02-16-48.log",
               "return_code_hex": "0x00000000",
               "return_code": 0,
-              "passed_count": 5540,
+              "passed_count": 5547,
               "failed_count": 0,
               "error_count": 0,
-              "skipped_count": 3,
+              "skipped_count": 0,
               "failed_node_ids": []
             },
             "no_parallel": {
@@ -34090,7 +34086,7 @@
               "classification": "passed",
               "classification_reason": "pytest_passed",
               "actionable_context": "Track completed successfully.",
-              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_no_parallel_stdout_2026-05-05_01-09-43.log",
+              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_no_parallel_stdout_2026-05-05_02-24-46.log",
               "return_code_hex": "0x00000000",
               "return_code": 0,
               "passed_count": 125,
@@ -34105,7 +34101,7 @@
               "classification": "passed",
               "classification_reason": "no_dev_tools_failures_unified_run",
               "actionable_context": "No failures reported under tests/development_tools/ in the unified Tier 3 run.",
-              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-05-05_01-01-46.log",
+              "log_file": "C:/Users/Julie/projects/MHM/MHM/development_tools/tests/logs/pytest_parallel_stdout_2026-05-05_02-16-48.log",
               "return_code_hex": "0x00000000",
               "return_code": 0,
               "passed_count": 0,
@@ -34122,7 +34118,7 @@
           "source": "run_test_coverage"
         }
       },
-      "timestamp": "2026-05-05T01:11:45"
+      "timestamp": "2026-05-05T02:27:09"
     },
     "analyze_test_markers": {
       "success": true,
@@ -34146,28 +34142,28 @@
             "user_management"
           ],
           "domain_attribution_summary": {
-            "domain_enforced_test_functions": 3771,
-            "domain_marked_test_functions": 3771,
+            "domain_enforced_test_functions": 3775,
+            "domain_marked_test_functions": 3775,
             "domain_unmarked_test_functions": 0,
             "missing_domain_test_count": 0,
             "missing_domain_file_count": 0
           }
         }
       },
-      "timestamp": "2026-05-05T01:11:47"
+      "timestamp": "2026-05-05T02:27:11"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 9462,
+          "total_issues": 9459,
           "files_affected": 0
         },
         "details": {
           "overall": {
             "overall_coverage": 63.5,
             "total_statements": 25921,
-            "total_missed": 9462
+            "total_missed": 9459
           },
           "modules": {
             "development_tools\\__init__.py": {
@@ -34402,7 +34398,6 @@
                 "453",
                 "454",
                 "455",
-                "507",
                 "517",
                 "527",
                 "535",
@@ -34412,6 +34407,7 @@
                 "539",
                 "559",
                 "569",
+                "600",
                 "616",
                 "617",
                 "618",
@@ -36885,7 +36881,7 @@
             },
             "development_tools\\imports\\analyze_module_dependencies.py": {
               "statements": 222,
-              "missed": 41,
+              "missed": 39,
               "coverage": 82,
               "missing_lines": [
                 "18",
@@ -36898,9 +36894,6 @@
                 "174",
                 "175",
                 "176",
-                "195",
-                "198",
-                "199",
                 "201",
                 "202",
                 "204",
@@ -36914,7 +36907,8 @@
                 "218",
                 "220",
                 "222",
-                "224",
+                "225",
+                "226",
                 "296",
                 "298",
                 "300",
@@ -36930,12 +36924,12 @@
                 "428",
                 "429"
               ],
-              "covered": 181
+              "covered": 183
             },
             "development_tools\\imports\\analyze_module_imports.py": {
               "statements": 310,
-              "missed": 125,
-              "coverage": 60,
+              "missed": 126,
+              "coverage": 59,
               "missing_lines": [
                 "17",
                 "26",
@@ -36956,6 +36950,11 @@
                 "174",
                 "200",
                 "207",
+                "218",
+                "220",
+                "226",
+                "227",
+                "228",
                 "240",
                 "250",
                 "252",
@@ -36967,9 +36966,6 @@
                 "273",
                 "274",
                 "275",
-                "289",
-                "290",
-                "291",
                 "315",
                 "325",
                 "326",
@@ -37057,13 +37053,12 @@
                 "471",
                 "476",
                 "481",
-                "485",
                 "487",
                 "489",
                 "491",
                 "557"
               ],
-              "covered": 185
+              "covered": 184
             },
             "development_tools\\imports\\analyze_unused_imports.py": {
               "statements": 601,
@@ -38093,12 +38088,10 @@
             },
             "development_tools\\shared\\audit_signal_state.py": {
               "statements": 39,
-              "missed": 1,
-              "coverage": 97,
-              "missing_lines": [
-                "47"
-              ],
-              "covered": 38
+              "missed": 0,
+              "coverage": 100,
+              "missing_lines": [],
+              "covered": 39
             },
             "development_tools\\shared\\audit_storage_scope.py": {
               "statements": 47,
@@ -38227,7 +38220,7 @@
             },
             "development_tools\\shared\\cli_interface.py": {
               "statements": 365,
-              "missed": 144,
+              "missed": 143,
               "coverage": 61,
               "missing_lines": [
                 "20",
@@ -38273,7 +38266,6 @@
                 "210",
                 "211",
                 "212",
-                "218",
                 "226",
                 "227",
                 "228",
@@ -38375,7 +38367,7 @@
                 "732",
                 "733"
               ],
-              "covered": 221
+              "covered": 222
             },
             "development_tools\\shared\\common.py": {
               "statements": 108,
@@ -44439,7 +44431,7 @@
           "html_dir": null
         }
       },
-      "timestamp": "2026-05-05T01:11:45"
+      "timestamp": "2026-05-05T02:27:09"
     },
     "verify_process_cleanup": {
       "success": true,
@@ -44455,7 +44447,7 @@
           "orphaned_processes": []
         }
       },
-      "timestamp": "2026-05-05T01:03:28"
+      "timestamp": "2026-05-05T02:18:29"
     },
     "analyze_ruff": {
       "success": true,
@@ -44481,7 +44473,7 @@
           }
         }
       },
-      "timestamp": "2026-05-05T01:11:50.739630"
+      "timestamp": "2026-05-05T02:27:14.574593"
     },
     "analyze_pyright": {
       "success": true,
@@ -44512,7 +44504,7 @@
           }
         }
       },
-      "timestamp": "2026-05-05T01:11:50.739630"
+      "timestamp": "2026-05-05T02:27:14.574593"
     },
     "analyze_bandit": {
       "success": true,
@@ -44543,7 +44535,7 @@
           }
         }
       },
-      "timestamp": "2026-05-05T01:11:50.739630"
+      "timestamp": "2026-05-05T02:27:14.574593"
     },
     "analyze_pip_audit": {
       "success": true,
@@ -44570,10 +44562,10 @@
           "vulnerable_packages_with_fix": 0,
           "vulnerable_packages_without_fix": 1,
           "pip_audit_execution_state": "executed_subprocess",
-          "pip_audit_subprocess_seconds": 8.5203
+          "pip_audit_subprocess_seconds": 7.6138
         }
       },
-      "timestamp": "2026-05-05T01:11:50.739630"
+      "timestamp": "2026-05-05T02:27:14.574593"
     }
   }
 }

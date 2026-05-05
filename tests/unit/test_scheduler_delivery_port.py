@@ -1,7 +1,13 @@
 import pytest
 
 from communication.core.message_send_result import MessageSendResult
-from core.scheduler import SchedulerManager
+from core.scheduler import (
+    SchedulerManager,
+    clear_all_accumulated_jobs_standalone,
+    run_category_scheduler_standalone,
+    run_user_scheduler_standalone,
+    set_scheduler_delivery_factory,
+)
 
 
 class SlimDelivery:
@@ -61,3 +67,52 @@ def test_scheduler_handles_scheduled_message_with_slim_delivery(monkeypatch):
         }
     ]
     assert removed_jobs == [("user-1", "motivational")]
+
+
+@pytest.mark.unit
+@pytest.mark.core
+def test_scheduler_exposes_delivery_without_communication_manager_alias():
+    scheduler = SchedulerManager(SlimDelivery())
+
+    assert isinstance(scheduler.delivery, SlimDelivery)
+    assert not hasattr(scheduler, "communication_manager")
+
+
+@pytest.mark.unit
+@pytest.mark.core
+def test_standalone_scheduler_helpers_use_configured_delivery_factory(monkeypatch):
+    delivery = SlimDelivery()
+    created_schedulers = []
+
+    def fake_factory():
+        return delivery
+
+    def track_schedule_new_user(self, user_id):
+        created_schedulers.append(("user", self.delivery, user_id))
+
+    def track_schedule_category(self, user_id, category):
+        created_schedulers.append(("category", self.delivery, user_id, category))
+
+    monkeypatch.setattr(SchedulerManager, "schedule_new_user", track_schedule_new_user)
+    monkeypatch.setattr(
+        SchedulerManager, "schedule_daily_message_job", track_schedule_category
+    )
+    set_scheduler_delivery_factory(fake_factory)
+    try:
+        assert run_user_scheduler_standalone("user-1") is True
+        assert run_category_scheduler_standalone("user-1", "motivational") is True
+    finally:
+        set_scheduler_delivery_factory(None)
+
+    assert created_schedulers == [
+        ("user", delivery, "user-1"),
+        ("category", delivery, "user-1", "motivational"),
+    ]
+
+
+@pytest.mark.unit
+@pytest.mark.core
+def test_standalone_scheduler_helper_fails_without_delivery_factory():
+    set_scheduler_delivery_factory(None)
+
+    assert clear_all_accumulated_jobs_standalone() is False

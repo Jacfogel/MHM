@@ -47,7 +47,6 @@ def test_resolve_python_interpreter_falls_back_to_sys_executable(tmp_path):
     assert resolved == sys.executable
 
 
-@pytest.mark.skipif(os.name == 'nt', reason="PATH expectations differ on Windows")
 @pytest.mark.unit
 @pytest.mark.core
 def test_prepare_launch_environment_includes_posix_bin(tmp_path):

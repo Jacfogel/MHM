@@ -11,8 +11,6 @@ from pathlib import Path
 
 from tests.development_tools.conftest import load_development_tools_module
 
-from development_tools.shared.lock_state import active_audit_coverage_locks_present
-
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -20,47 +18,30 @@ RUNNER_SCRIPT = PROJECT_ROOT / "development_tools" / "run_development_tools.py"
 runner = load_development_tools_module("run_development_tools")
 
 
-def _skip_cli_subprocess_if_audit_or_coverage_lock() -> None:
-    """Avoid spawning the real CLI while audit/coverage holds project-root locks."""
-    if active_audit_coverage_locks_present(PROJECT_ROOT):
-        pytest.skip(
-            "Skipping CLI subprocess test while audit/coverage locks are active "
-            "(avoids mid-audit status writes and noisy dev-tools logs)"
-        )
-
-
 class TestCLIRunnerSmokeTests:
     """Smoke tests for the CLI runner."""
 
     @pytest.mark.integration
     @pytest.mark.smoke
-    def test_status_command_exits_zero(self):
+    def test_status_command_exits_zero(self, monkeypatch):
         """Test that 'status' command exits with code 0 and produces output."""
-        _skip_cli_subprocess_if_audit_or_coverage_lock()
+        mock_service = type(
+            "_MockService",
+            (),
+            {"run_status": lambda self: None},
+        )()
+        monkeypatch.setattr(
+            runner,
+            "AIToolsService",
+            lambda project_root=None, config_path=None: mock_service,
+        )
+        monkeypatch.setattr(
+            runner,
+            "_cleanup_transient_runtime_artifacts",
+            lambda *_args, **_kwargs: None,
+        )
 
-        # Filter deprecation warnings from stderr for comparison
-        result = subprocess.run(
-            [sys.executable, str(RUNNER_SCRIPT), "status"],
-            cwd=str(PROJECT_ROOT),
-            capture_output=True,
-            text=True,
-            timeout=60  # Increased timeout to handle slow file system operations
-        )
-        
-        # Filter out deprecation warnings from stderr for the assertion message
-        stderr_lines = result.stderr.split('\n')
-        filtered_stderr = [line for line in stderr_lines 
-                          if 'DeprecationWarning' not in line]
-        filtered_stderr_text = '\n'.join(filtered_stderr)
-        
-        # Status command should exit with 0 (deprecation warnings are expected but shouldn't cause failure)
-        assert result.returncode == 0, (
-            f"status command failed with exit code {result.returncode}\n"
-            f"stdout: {result.stdout}\n"
-            f"stderr (filtered): {filtered_stderr_text}\n"
-            f"full stderr: {result.stderr}"
-        )
-        # Command should complete successfully (output may go to logs, not stdout/stderr)
+        assert runner.main(["status"]) == 0
 
     @pytest.mark.integration
     @pytest.mark.smoke
@@ -116,22 +97,16 @@ class TestCLIRunnerSmokeTests:
 
     @pytest.mark.integration
     @pytest.mark.smoke
-    def test_unknown_command_exits_two(self):
+    def test_unknown_command_exits_two(self, capsys):
         """Test that unknown command exits with code 2 and shows error and available commands."""
-        _skip_cli_subprocess_if_audit_or_coverage_lock()
+        result = runner.main(["unknown_command_that_does_not_exist"])
+        captured = capsys.readouterr()
 
-        result = subprocess.run(
-            [sys.executable, str(RUNNER_SCRIPT), "unknown_command_that_does_not_exist"],
-            cwd=str(PROJECT_ROOT),
-            capture_output=True,
-            text=True,
-            timeout=30
-        )
-        assert result.returncode == 2, f"Unknown command should exit with code 2, got {result.returncode}\nstdout: {result.stdout}\nstderr: {result.stderr}"
+        assert result == 2
         # Should show error message
-        assert "unknown" in result.stdout.lower() or "unknown" in result.stderr.lower() or len(result.stdout) > 0
+        assert "unknown" in captured.out.lower() or "unknown" in captured.err.lower()
         # Should show available commands
-        assert "command" in result.stdout.lower() or len(result.stdout) > 0
+        assert "command" in captured.out.lower()
 
     @pytest.mark.integration
     def test_runner_script_exists(self):

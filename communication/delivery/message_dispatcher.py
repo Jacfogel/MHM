@@ -78,8 +78,8 @@ class PredefinedMessageDispatcher:
             msg
             for msg in messages
             if (
-                lambda days, periods: any(day in days for day in current_days)
-                and any(period in periods for period in matching_periods)
+                lambda days, periods: ("ALL" in days or any(day in days for day in current_days))
+                and ("ALL" in periods or any(period in periods for period in matching_periods))
             )(*_schedule_fields(msg))
         ]
 
@@ -137,24 +137,23 @@ class PredefinedMessageDispatcher:
             else selected_message_content
         )
 
-        store_sent_message(
-            user_id,
-            category,
-            selected_message_id,
-            selected_message_content,
-            time_period=current_time_period,
-        )
-
         if success:
+            store_sent_message(
+                user_id,
+                category,
+                selected_message_id,
+                selected_message_content,
+                time_period=current_time_period,
+            )
             logger.info(
                 f"Message sent successfully via {messaging_service} to {recipient} | User: {user_id}, Category: {category}, Period: {current_time_period} | Content: '{message_preview}'"
             )
             return True, selected_message_content
 
-        logger.warning(
-            f"Message send returned False but may have still been delivered for user {user_id}, category {category} | Period: {current_time_period} | Content: '{message_preview}'"
+        logger.error(
+            f"Message send failed via {messaging_service} to {recipient} | User: {user_id}, Category: {category}, Period: {current_time_period} | Content: '{message_preview}'"
         )
-        return True, selected_message_content
+        return False, None
 
     @handle_errors("selecting weighted message", default_return="")
     def select_weighted_message(self, available_messages, matching_periods):

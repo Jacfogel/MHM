@@ -43,7 +43,7 @@ class TestSchedulerManager:
         """Test SchedulerManager initialization."""
         scheduler = SchedulerManager(mock_communication_manager)
 
-        assert scheduler.communication_manager == mock_communication_manager
+        assert scheduler.delivery == mock_communication_manager
         assert scheduler.scheduler_thread is None
         assert scheduler.running is False
         assert scheduler._stop_event is not None
@@ -349,7 +349,7 @@ class TestSchedulerIntegration:
         scheduler = SchedulerManager(mock_communication_manager)
 
         # Test initialization
-        assert scheduler.communication_manager == mock_communication_manager
+        assert scheduler.delivery == mock_communication_manager
         assert scheduler.scheduler_thread is None
 
         # Test stopping when not running (should not raise)

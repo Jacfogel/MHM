@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-05 00:49:48
+> **Last Generated**: 2026-05-05 01:57:43
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 92.9% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 138
-- **Functions Found**: 1875
+- **Functions Found**: 1877
 - **Methods Found**: 1282
 - **Classes Found**: 170
-- **Total Items**: 3157
-- **Functions Documented**: 1716
+- **Total Items**: 3159
+- **Functions Documented**: 1718
 - **Methods Documented**: 1216
 - **Classes Documented**: 132
-- **Total Documented**: 2932
+- **Total Documented**: 2934
 - **Template-Generated**: 20
 - **Last Updated**: 2026-05-05
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (680)
+### **Core System Functions** (682)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (500)
@@ -4133,6 +4133,7 @@ Returns:
 
 Args:
     delivery: Object that can send scheduled messages and task reminders.
+- [OK] `_create_standalone_scheduler_manager()` - Build a scheduler for standalone entry points using the configured delivery port.
 - [OK] `_remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
 This makes user message jobs effectively one-time jobs.
 - [OK] `_schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay)` - Schedule a one-time retry for deferred scheduled sends.
@@ -4227,6 +4228,7 @@ Args:
 
 Returns:
     Selected task dictionary
+- [OK] `set_scheduler_delivery_factory(factory)` - Configure the delivery factory used by standalone scheduler entry points.
 - [OK] `set_wake_timer(self, schedule_time, user_id, category, period, wake_ahead_minutes)` - Set a Windows scheduled task to wake the computer before a scheduled message.
 
 Args:
@@ -4583,10 +4585,10 @@ Sets up signal handlers for graceful shutdown.
 
 #### `core/service_requests.py`
 **Functions:**
-- [OK] `_as_context(context_or_service)` - Normalize legacy service instances and explicit contexts to one shape.
+- [OK] `_as_context(context_or_service)` - Normalize explicit contexts and context-capable service wrappers to one shape.
 - [OK] `_cleanup_matching_request_files(base_path, predicate, label)` - Remove request files matching a predicate while continuing after per-file failures.
-- [OK] `_get_recipient_for_service(delivery, user_id, messaging_service, preferences)` - Resolve a recipient through the public delivery port with legacy fallback.
-- [OK] `_send_checkin_prompt(delivery, user_id, messaging_service, recipient)` - Send a check-in prompt through the public delivery port with legacy fallback.
+- [OK] `_get_recipient_for_service(delivery, user_id, messaging_service, preferences)` - Resolve a recipient through the public delivery port.
+- [OK] `_send_checkin_prompt(delivery, user_id, messaging_service, recipient)` - Send a check-in prompt through the public delivery port.
 - [MISSING] `check_checkin_prompt_requests(context)` - No description
 - [MISSING] `check_reschedule_requests(context)` - No description
 - [MISSING] `check_task_reminder_requests(context)` - No description

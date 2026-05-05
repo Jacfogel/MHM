@@ -10,10 +10,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from core.error_handling import handle_errors
+from core.delivery import ServiceRequestDeliveryPort
+from core.error_handling import ValidationError, handle_errors
 from core.logger import get_component_logger
 from core.time_utilities import now_timestamp_full
-from core.delivery import ServiceRequestDeliveryPort
 
 logger = get_component_logger("main")
 
@@ -21,7 +21,7 @@ logger = get_component_logger("main")
 @dataclass
 class ServiceRequestContext:
     base_dir: Path
-    communication_manager: ServiceRequestDeliveryPort | Any
+    delivery: ServiceRequestDeliveryPort | None
     scheduler_manager: Any | None
     shutdown_callback: Callable[[], None]
     startup_time: float | None = None
@@ -29,53 +29,37 @@ class ServiceRequestContext:
 
 @handle_errors("resolving service request recipient", default_return=None)
 def _get_recipient_for_service(
-    delivery: Any, user_id: str, messaging_service: str, preferences: dict
+    delivery: ServiceRequestDeliveryPort,
+    user_id: str,
+    messaging_service: str,
+    preferences: dict,
 ) -> str | None:
-    """Resolve a recipient through the public delivery port with legacy fallback."""
-    resolver = getattr(delivery, "get_recipient_for_service", None)
-    if callable(resolver) and hasattr(type(delivery), "get_recipient_for_service"):
-        return resolver(user_id, messaging_service, preferences)
-
-    legacy_resolver = getattr(delivery, "_get_recipient_for_service", None)
-    if callable(legacy_resolver):
-        return legacy_resolver(user_id, messaging_service, preferences)
-
-    logger.error("Delivery interface cannot resolve recipients")
-    return None
+    """Resolve a recipient through the public delivery port."""
+    return delivery.get_recipient_for_service(user_id, messaging_service, preferences)
 
 
 @handle_errors("sending service request check-in prompt", default_return=None)
 def _send_checkin_prompt(
-    delivery: Any, user_id: str, messaging_service: str, recipient: str
+    delivery: ServiceRequestDeliveryPort,
+    user_id: str,
+    messaging_service: str,
+    recipient: str,
 ) -> None:
-    """Send a check-in prompt through the public delivery port with legacy fallback."""
-    sender = getattr(delivery, "send_checkin_prompt", None)
-    if callable(sender) and hasattr(type(delivery), "send_checkin_prompt"):
-        sender(user_id, messaging_service, recipient)
-        return
-
-    legacy_sender = getattr(delivery, "_send_checkin_prompt", None)
-    if callable(legacy_sender):
-        legacy_sender(user_id, messaging_service, recipient)
-        return
-
-    logger.error("Delivery interface cannot send check-in prompts")
+    """Send a check-in prompt through the public delivery port."""
+    delivery.send_checkin_prompt(user_id, messaging_service, recipient)
 
 
 @handle_errors("normalizing service request context")
 def _as_context(context_or_service: Any) -> ServiceRequestContext:
-    """Normalize legacy service instances and explicit contexts to one shape."""
+    """Normalize explicit contexts and context-capable service wrappers to one shape."""
     if isinstance(context_or_service, ServiceRequestContext):
         return context_or_service
     context_factory = getattr(context_or_service, "to_service_request_context", None)
     if callable(context_factory):
         return context_factory()
-    return ServiceRequestContext(
-        base_dir=Path(get_repo_base_directory()),
-        communication_manager=getattr(context_or_service, "communication_manager", None),
-        scheduler_manager=getattr(context_or_service, "scheduler_manager", None),
-        shutdown_callback=lambda: setattr(context_or_service, "running", False),
-        startup_time=getattr(context_or_service, "startup_time", None),
+    raise ValidationError(
+        "service request helpers require ServiceRequestContext or an object "
+        "with to_service_request_context()"
     )
 
 
@@ -207,8 +191,8 @@ def process_valid_test_message_request(
     logger.info(
         f"Processing test message request from {source}: user={user_id}, category={category}"
     )
-    if context.communication_manager:
-        send_result = context.communication_manager.handle_message_sending(
+    if context.delivery:
+        send_result = context.delivery.handle_message_sending(
             user_id, category
         )
         logger.info(
@@ -223,7 +207,7 @@ def process_valid_test_message_request(
                 base_dir=str(context.base_dir),
             )
     else:
-        logger.error("Communication manager not available for test message")
+        logger.error("Delivery interface not available for test message")
 
 
 @handle_errors("writing test message response", default_return=None)
@@ -361,7 +345,7 @@ def check_checkin_prompt_requests(context: ServiceRequestContext) -> None:
                 with open(file_path, encoding="utf-8") as f:
                     request_data = json.load(f)
                 user_id = request_data.get("user_id")
-                if user_id and context.communication_manager:
+                if user_id and context.delivery:
                     from core import get_user_data
 
                     prefs_result = get_user_data(
@@ -372,13 +356,15 @@ def check_checkin_prompt_requests(context: ServiceRequestContext) -> None:
                         messaging_service = preferences.get("channel", {}).get("type")
                         if messaging_service:
                             recipient = _get_recipient_for_service(
-                                context.communication_manager,
-                                user_id, messaging_service, preferences
+                                context.delivery,
+                                user_id,
+                                messaging_service,
+                                preferences,
                             )
                             if recipient:
                                 first_question = get_checkin_first_question(user_id)
                                 _send_checkin_prompt(
-                                    context.communication_manager,
+                                    context.delivery,
                                     user_id, messaging_service, recipient
                                 )
                                 logger.info(
@@ -422,8 +408,8 @@ def check_task_reminder_requests(context: ServiceRequestContext) -> None:
                     request_data = json.load(f)
                 user_id = request_data.get("user_id")
                 task_identifier = request_data.get("task_identifier")
-                if user_id and task_identifier and context.communication_manager:
-                    context.communication_manager.handle_task_reminder(
+                if user_id and task_identifier and context.delivery:
+                    context.delivery.handle_task_reminder(
                         user_id, task_identifier
                     )
                     logger.info(

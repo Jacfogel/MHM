@@ -39,11 +39,7 @@ def handle_task_reminder(
     ``task_identifier`` is the task record's canonical ``id`` or another value
     accepted by ``tasks.get_task_by_id``.
     """
-    delivery = getattr(
-        scheduler_manager,
-        "delivery",
-        getattr(scheduler_manager, "communication_manager", None),
-    )
+    delivery = getattr(scheduler_manager, "delivery", None)
     if delivery is None:
         logger.error("Delivery interface is not initialized.")
         return

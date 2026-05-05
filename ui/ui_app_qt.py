@@ -1021,9 +1021,14 @@ class MHMManagerUI(QMainWindow):
     @handle_errors("running full scheduler", default_return=None)
     def run_full_scheduler(self):
         """Run the full scheduler for all users"""
-        from core.scheduler import run_full_scheduler_standalone
+        from communication.core.channel_orchestrator import CommunicationManager
+        from core.scheduler import (
+            run_full_scheduler_standalone,
+            set_scheduler_delivery_factory,
+        )
 
         logger.info("UI: Running full scheduler for all users")
+        set_scheduler_delivery_factory(CommunicationManager)
         success = run_full_scheduler_standalone()
 
         if success:

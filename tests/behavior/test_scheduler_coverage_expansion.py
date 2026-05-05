@@ -16,6 +16,7 @@ from core.scheduler import (
     schedule_all_task_reminders,
     process_user_schedules,
     process_category_schedule,
+    set_scheduler_delivery_factory,
 )
 from core.time_utilities import (
     DATE_ONLY,
@@ -59,7 +60,7 @@ class TestSchedulerManagerLifecycle:
         scheduler = SchedulerManager(mock_communication_manager)
 
         # Test real behavior: verify all attributes are properly initialized
-        assert scheduler.communication_manager == mock_communication_manager
+        assert scheduler.delivery == mock_communication_manager
         assert scheduler.scheduler_thread is None
         assert scheduler.running is False
         assert scheduler._stop_event is not None
@@ -706,7 +707,7 @@ class TestMessageHandling:
         scheduler_manager.handle_sending_scheduled_message(user_id, category)
 
         # Verify side effect: communication manager should be called
-        scheduler_manager.communication_manager.handle_message_sending.assert_called_once_with(
+        scheduler_manager.delivery.handle_message_sending.assert_called_once_with(
             user_id=user_id,
             category=category,
             is_scheduled_trigger=True,
@@ -721,7 +722,7 @@ class TestMessageHandling:
         category = "motivational"
 
         # Make the first call fail, second call succeed
-        scheduler_manager.communication_manager.handle_message_sending.side_effect = [
+        scheduler_manager.delivery.handle_message_sending.side_effect = [
             Exception("Network error"),  # First call fails
             MessageSendResult.sent(user_id, category),  # Second call succeeds
         ]
@@ -734,7 +735,7 @@ class TestMessageHandling:
 
             # Verify side effects
             assert (
-                scheduler_manager.communication_manager.handle_message_sending.call_count
+                scheduler_manager.delivery.handle_message_sending.call_count
                 == 2
             )
             mock_sleep.assert_called_once_with(1)
@@ -747,7 +748,7 @@ class TestMessageHandling:
         """Deferred scheduled sends should schedule a one-time retry without recursion."""
         user_id = "test-user"
         category = "motivational"
-        scheduler_manager.communication_manager.handle_message_sending.return_value = (
+        scheduler_manager.delivery.handle_message_sending.return_value = (
             MessageSendResult.deferred(user_id, category)
         )
 
@@ -811,7 +812,7 @@ class TestMessageHandling:
 
                 # Verify side effects
                 mock_get_task.assert_called_once_with(user_id, task_id)
-                scheduler_manager.communication_manager.handle_task_reminder.assert_called_once_with(
+                scheduler_manager.delivery.handle_task_reminder.assert_called_once_with(
                     user_id, task_id
                 )
                 mock_update_task.assert_called_once_with(
@@ -838,7 +839,7 @@ class TestMessageHandling:
 
                 # Verify side effects
                 mock_get_task.assert_called_once_with(user_id, task_id)
-                scheduler_manager.communication_manager.handle_task_reminder.assert_not_called()
+                scheduler_manager.delivery.handle_task_reminder.assert_not_called()
                 mock_update_task.assert_not_called()
 @pytest.mark.tasks
 
@@ -998,26 +999,23 @@ class TestStandaloneFunctions:
         """Test processing schedule for a specific category."""
         user_id = "test-user"
         category = "motivational"
+        mock_delivery = Mock()
 
-        with patch(
-            "communication.core.channel_orchestrator.CommunicationManager"
-        ) as mock_comm_manager:
-            mock_comm_instance = Mock()
-            mock_comm_manager.return_value = mock_comm_instance
-
-            with patch("core.scheduler.SchedulerManager") as mock_scheduler_manager:
-                mock_scheduler_instance = Mock()
-                mock_scheduler_manager.return_value = mock_scheduler_instance
-
+        with patch("core.scheduler.SchedulerManager") as mock_scheduler_manager:
+            mock_scheduler_instance = Mock()
+            mock_scheduler_manager.return_value = mock_scheduler_instance
+            set_scheduler_delivery_factory(lambda: mock_delivery)
+            try:
                 # Test real behavior: function should create scheduler and schedule messages
                 process_category_schedule(user_id, category)
+            finally:
+                set_scheduler_delivery_factory(None)
 
-                # Verify side effects
-                mock_comm_manager.assert_called_once()
-                mock_scheduler_manager.assert_called_once_with(mock_comm_instance)
-                mock_scheduler_instance.schedule_daily_message_job.assert_called_once_with(
-                    user_id, category
-                )
+            # Verify side effects
+            mock_scheduler_manager.assert_called_once_with(mock_delivery)
+            mock_scheduler_instance.schedule_daily_message_job.assert_called_once_with(
+                user_id, category
+            )
 
     @pytest.mark.behavior
     @pytest.mark.scheduler
@@ -1055,7 +1053,7 @@ class TestErrorHandling:
         scheduler = SchedulerManager(None)
 
         # Verify initialization still works
-        assert scheduler.communication_manager is None
+        assert scheduler.delivery is None
         assert scheduler.scheduler_thread is None
         assert scheduler.running is False
 
@@ -1065,7 +1063,7 @@ class TestErrorHandling:
         self, scheduler_manager
     ):
         """Test message sending with no communication manager."""
-        scheduler_manager.communication_manager = None
+        scheduler_manager.delivery = None
 
         # Test real behavior: function should handle missing communication manager
         scheduler_manager.handle_sending_scheduled_message("test-user", "motivational")
@@ -1076,7 +1074,7 @@ class TestErrorHandling:
     @pytest.mark.scheduler
     def test_handle_task_reminder_no_communication_manager(self, scheduler_manager):
         """Test task reminder with no communication manager."""
-        scheduler_manager.communication_manager = None
+        scheduler_manager.delivery = None
 
         # Test real behavior: function should handle missing communication manager
         scheduler_manager.handle_task_reminder("test-user", "task-1")

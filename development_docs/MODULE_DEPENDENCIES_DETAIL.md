@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-05 00:49:49
+> **Last Generated**: 2026-05-05 01:57:45
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 136
-- **Total Imports Found**: 1594
+- **Total Imports Found**: 1591
 - **Dependencies Documented**: 136 (100% coverage)
-- **Standard Library Imports**: 452 (28.4%)
+- **Standard Library Imports**: 453 (28.5%)
 - **Third-Party Imports**: 236 (14.8%)
-- **Local Imports**: 906 (56.8%)
+- **Local Imports**: 902 (56.7%)
 - **Last Updated**: 2026-05-05
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 452 imports (28.4%)
+- **Standard Library**: 453 imports (28.5%)
 - **Third-Party**: 236 imports (14.8%)
-- **Local**: 906 imports (56.8%)
+- **Local**: 902 imports (56.7%)
 
 ## Module Dependencies by Directory
 
@@ -983,7 +983,6 @@
     - `uuid`
 - **Used by**: 
   - `communication/command_handlers/account_handler.py`
-  - `core/scheduler.py`
   - `core/service.py`
   - `ui/ui_app_qt.py`
 
@@ -1030,7 +1029,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling
-- Removed: communication/core/channel_orchestrator.py, communication/reminders/reminder_dispatcher.py, core/delivery.py
+- Removed: communication/core/channel_orchestrator.py, communication/reminders/reminder_dispatcher.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2226,7 +2225,6 @@
 - **Purpose**: Task scheduling and job management
 - **Dependencies**: 
   - **Local**:
-    - `communication.core.channel_orchestrator (CommunicationManager)`
     - `core (get_all_user_ids, get_user_data, scheduler_jobs, scheduler_maintenance, scheduler_task_reminders)` (NEW)
     - `core.config (BASE_DATA_DIR, get_user_data_dir)` (NEW)
     - `core.delivery (SchedulerDeliveryPort)` (NEW)
@@ -2239,6 +2237,7 @@
     - `user.user_context (UserContext)`
   - **Standard Library**:
     - `calendar`
+    - `collections.abc (Callable)`
     - `datetime (datetime, timedelta)`
     - `os`
     - `random`
@@ -2255,7 +2254,7 @@
 
 **Dependency Changes**:
 - Added: core, core.config, core.delivery, core.error_handling, core.logger, core.schedule_runtime, core.service_utilities, core.time_utilities, tasks
-- Removed: core/service.py, ui/ui_app_qt.py
+- Removed: communication.core.channel_orchestrator, core/service.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Task scheduling and job management
@@ -2367,7 +2366,7 @@
     - `core.file_auditor (start_auditor, stop_auditor)` (NEW)
     - `core.file_operations (verify_file_access)` (NEW)
     - `core.logger (force_restart_logging, get_component_logger, setup_logging)` (NEW)
-    - `core.scheduler (SchedulerManager)` (NEW)
+    - `core.scheduler (SchedulerManager, set_scheduler_delivery_factory)` (NEW)
     - `core.service_requests` (NEW)
     - `core.service_utilities (get_flags_dir)` (NEW)
     - `core.time_utilities (now_datetime_full, parse_timestamp_full)` (NEW)
@@ -2401,7 +2400,7 @@
     - `communication.message_processing.conversation_flow_manager (conversation_manager)` (NEW)
     - `core (get_user_data)` (NEW)
     - `core.delivery (ServiceRequestDeliveryPort)` (NEW)
-    - `core.error_handling (handle_errors)` (NEW)
+    - `core.error_handling (ValidationError, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.time_utilities (now_timestamp_full)` (NEW)
   - **Standard Library**:
@@ -3526,7 +3525,7 @@
     - `core.error_handling (DataError, handle_errors)` (NEW)
     - `core.launch_env (prepare_launch_environment, resolve_python_interpreter)` (NEW)
     - `core.logger (get_component_logger, setup_logging, toggle_verbose_logging)` (NEW)
-    - `core.scheduler (SchedulerManager, run_category_scheduler_standalone, run_full_scheduler_standalone, run_user_scheduler_standalone)` (NEW)
+    - `core.scheduler (SchedulerManager, run_category_scheduler_standalone, run_full_scheduler_standalone, run_user_scheduler_standalone, set_scheduler_delivery_factory)` (NEW)
     - `core.service_utilities (get_flags_dir)` (NEW)
     - `core.time_utilities (now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
     - `core.user_data_operations (rebuild_user_index)` (NEW)

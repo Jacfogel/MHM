@@ -62,6 +62,21 @@ class TestChannelOrchestratorMessageSelectionHelpers:
         result = self.manager._filter_messages_by_day_and_period(messages, ["MONDAY"], ["morning"])
         assert result == [messages[0]]
 
+    def test_filter_messages_treats_all_days_and_periods_as_wildcards(self):
+        messages = [
+            _runtime_template("all", ["ALL"], ["ALL"], "all"),
+            _runtime_template("all-day", ["ALL"], ["morning"], "all-day"),
+            _runtime_template("all-period", ["MONDAY"], ["ALL"], "all-period"),
+            _runtime_template("wrong-day", ["TUESDAY"], ["morning"], "wrong-day"),
+            _runtime_template("wrong-period", ["MONDAY"], ["evening"], "wrong-period"),
+        ]
+
+        result = self.manager._filter_messages_by_day_and_period(
+            messages, ["MONDAY"], ["morning"]
+        )
+
+        assert result == messages[:3]
+
     def test_deduplicate_candidate_messages_filters_recent_duplicates(self):
         all_messages = [
             _runtime_template("Hello there", ["ALL"], ["ALL"], "a"),
@@ -85,7 +100,7 @@ class TestChannelOrchestratorMessageSelectionHelpers:
 
         assert result == all_messages
 
-    def test_send_and_store_predefined_message_treats_send_false_as_success(self):
+    def test_send_and_store_predefined_message_does_not_store_failed_send(self):
         message = {"id": "m1", "text": "Hello world"}
         with (
             patch.object(self.manager, "send_message_sync", return_value=False),
@@ -97,9 +112,9 @@ class TestChannelOrchestratorMessageSelectionHelpers:
                 "u1", "motivation", "email", "u@example.com", message, ["morning"]
             )
 
-        assert success is True
-        assert content == "Hello world"
-        mock_store.assert_called_once()
+        assert success is False
+        assert content is None
+        mock_store.assert_not_called()
 
     def test_send_predefined_message_returns_false_when_library_missing(self):
         with (

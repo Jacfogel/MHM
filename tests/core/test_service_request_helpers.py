@@ -69,7 +69,7 @@ class TestServiceCheckinRequestHelpers:
         request_path = base_dir / "checkin_prompt_request_user-1.flag"
         request_path.write_text(json.dumps({"user_id": "user-1"}), encoding="utf-8")
 
-        service.communication_manager._get_recipient_for_service.return_value = (
+        service.communication_manager.get_recipient_for_service.return_value = (
             "discord_user:user-1"
         )
 
@@ -90,7 +90,7 @@ class TestServiceCheckinRequestHelpers:
         ):
             service.check_checkin_prompt_requests()
 
-        service.communication_manager._send_checkin_prompt.assert_called_once_with(
+        service.communication_manager.send_checkin_prompt.assert_called_once_with(
             "user-1", "discord", "discord_user:user-1"
         )
         response_path = base_dir / "checkin_prompt_response_user-1.flag"
@@ -106,7 +106,7 @@ class TestServiceCheckinRequestHelpers:
         request_path = base_dir / "checkin_prompt_request_user-2.flag"
         request_path.write_text(json.dumps({"user_id": "user-2"}), encoding="utf-8")
 
-        service.communication_manager._get_recipient_for_service.return_value = None
+        service.communication_manager.get_recipient_for_service.return_value = None
 
         with (
             patch.object(
@@ -122,7 +122,7 @@ class TestServiceCheckinRequestHelpers:
         ):
             service.check_checkin_prompt_requests()
 
-        service.communication_manager._send_checkin_prompt.assert_not_called()
+        service.communication_manager.send_checkin_prompt.assert_not_called()
         mock_write_response.assert_not_called()
         assert not request_path.exists()
 

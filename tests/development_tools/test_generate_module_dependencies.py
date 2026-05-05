@@ -116,64 +116,26 @@ class TestDependencyAnalysis:
             assert 'total_imports' in data
     
     @pytest.mark.unit
-    def test_find_reverse_dependencies(self, demo_project_root, monkeypatch):
+    def test_find_reverse_dependencies(self):
         """Test that reverse dependencies are found correctly."""
-        import development_tools.config as config_module
-        from development_tools.shared import standard_exclusions
-        
-        def mock_get_project_root():
-            return demo_project_root
-        
-        def mock_get_scan_directories():
-            return ['.']
-        
-        # Mock should_exclude_file to not exclude demo project files
-        original_should_exclude = standard_exclusions.should_exclude_file
+        all_modules = {
+            "demo_module.py": {
+                "imports": {"local": [], "standard_library": [], "third_party": []},
+                "total_imports": 0,
+            },
+            "demo_module2.py": {
+                "imports": {
+                    "local": [{"module": "demo_module", "imported_items": []}],
+                    "standard_library": [],
+                    "third_party": [],
+                },
+                "total_imports": 1,
+            },
+        }
 
-        def mock_should_exclude_file(file_path, tool_type, context='production'):
-            if 'development_tools_demo' in file_path:
-                return False
-            return original_should_exclude(file_path, tool_type, context)
-        
-        monkeypatch.setattr(config_module, 'get_project_root', mock_get_project_root)
-        monkeypatch.setattr(config_module, 'get_scan_directories', mock_get_scan_directories)
-        monkeypatch.setattr(standard_exclusions, 'should_exclude_file', mock_should_exclude_file)
-        
-        all_modules = scan_all_python_files()
-        
-        # Find reverse dependencies for demo_module
-        # Note: demo_module may be classified as third_party if it doesn't match
-        # LOCAL_MODULE_PREFIXES, so we check that the import exists somewhere
-        demo_module2_data = all_modules.get('demo_module2.py', {})
-        if not demo_module2_data:
-            pytest.skip("demo_module2.py not found in scan results (may be excluded)")
-        
-        imports = demo_module2_data.get('imports', {})
-        
-        # Verify demo_module2 imports from demo_module (may be in local or third_party)
-        all_imports = imports.get('local', []) + imports.get('third_party', [])
-        [imp for imp in all_imports if imp['module'] == 'demo_module']
-        
-        # The import might not be found if demo_module is classified differently
-        # or if the scan didn't pick it up. This is acceptable - the test verifies
-        # that find_reverse_dependencies works correctly regardless.
-        
-        # Now test reverse dependencies - it only checks local imports
-        # So we need to verify the function works with local imports
-        # For this test, we'll verify the function works correctly when given a local import
         reverse_deps = find_reverse_dependencies('demo_module.py', all_modules)
-        
-        # The function only checks local imports, so if demo_module is third_party,
-        # it won't be found. This is expected behavior - the test verifies the function works
-        # as designed (checking only local imports for reverse dependencies)
-        assert isinstance(reverse_deps, list)
-        
-        # If the import was found in local imports, verify reverse dependency was found
-        local_imports = imports.get('local', [])
-        demo_module_in_local = any(imp['module'] == 'demo_module' for imp in local_imports)
-        if demo_module_in_local:
-            assert 'demo_module2.py' in reverse_deps, \
-                "If demo_module is in local imports, demo_module2.py should be in reverse dependencies"
+
+        assert reverse_deps == ["demo_module2.py"]
 
 
 class TestContentGeneration:
@@ -494,39 +456,20 @@ class TestModulePurposeInference:
     """Test module purpose inference."""
     
     @pytest.mark.unit
-    def test_infer_module_purpose(self, demo_project_root, monkeypatch):
+    def test_infer_module_purpose(self):
         """Test that module purpose inference works."""
-        import development_tools.config as config_module
-        from development_tools.shared import standard_exclusions
-        
-        def mock_get_project_root():
-            return demo_project_root
-        
-        def mock_get_scan_directories():
-            return ['.']
-        
-        # Mock should_exclude_file to not exclude demo project files
-        original_should_exclude = standard_exclusions.should_exclude_file
+        all_modules = {
+            "demo_module2.py": {
+                "imports": {
+                    "local": [{"module": "core.config", "imported_items": []}],
+                    "standard_library": [],
+                    "third_party": [],
+                },
+                "total_imports": 1,
+            }
+        }
+        data = all_modules["demo_module2.py"]
 
-        def mock_should_exclude_file(file_path, tool_type, context='production'):
-            if 'development_tools_demo' in file_path:
-                return False
-            return original_should_exclude(file_path, tool_type, context)
-        
-        monkeypatch.setattr(config_module, 'get_project_root', mock_get_project_root)
-        monkeypatch.setattr(config_module, 'get_scan_directories', mock_get_scan_directories)
-        monkeypatch.setattr(standard_exclusions, 'should_exclude_file', mock_should_exclude_file)
-        
-        all_modules = scan_all_python_files()
-        
-        # Test with demo_module2 which imports from demo_module
-        if 'demo_module2.py' in all_modules:
-            data = all_modules['demo_module2.py']
-            purpose = infer_module_purpose('demo_module2.py', data, all_modules)
-            
-            # Should infer some purpose
-            assert len(purpose) > 0
-            assert isinstance(purpose, str)
-        else:
-            pytest.skip("demo_module2.py not found in scan results (may be excluded)")
+        purpose = infer_module_purpose("demo_module2.py", data, all_modules)
 
+        assert purpose == "Core system module with heavy core dependencies"
