@@ -8,10 +8,42 @@ ensure_qt_runtime()
 
 
 import pytest
+from pathlib import Path
 from unittest.mock import patch, Mock
 
 # Import the main UI application
-from ui.ui_app_qt import ServiceManager
+from ui.ui_app_qt import (
+    ServiceManager,
+    _merge_rotated_channel_log_lines,
+    _tail_file_lines,
+)
+
+
+@pytest.mark.ui
+@pytest.mark.unit
+def test_tail_file_lines_and_rotated_log_merge(tmp_path: Path):
+    primary = tmp_path / "discord.log"
+    backup_dir = tmp_path / "backup"
+    backup_dir.mkdir()
+    older = backup_dir / "discord.log.2026-05-01"
+    newer = backup_dir / "discord.log.2026-05-02"
+    ignored = backup_dir / "email.log.2026-05-02"
+    primary.write_text("p1\np2\np3\n", encoding="utf-8")
+    older.write_text("o1\no2\n", encoding="utf-8")
+    newer.write_text("n1\nn2\n", encoding="utf-8")
+    ignored.write_text("bad\n", encoding="utf-8")
+
+    import os
+    import time
+
+    os.utime(older, (time.time() - 10, time.time() - 10))
+    os.utime(newer, (time.time() - 5, time.time() - 5))
+
+    assert _tail_file_lines(tmp_path / "missing.log", 2) == []
+    assert _tail_file_lines(primary, 2) == ["p2\n", "p3\n"]
+    assert _merge_rotated_channel_log_lines(
+        primary, backup_dir, max_lines_per_file=1
+    ) == ["o2\n", "n2\n", "p3\n"]
 
 
 @pytest.mark.ui

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import time
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -271,3 +271,237 @@ def test_load_cached_result_if_available_dict_exception_and_non_dict(
     ):
         assert service._load_cached_result_if_available("analyze_ruff", "static_checks") is None
 
+
+@pytest.mark.unit
+def test_get_audit_related_lock_paths_uses_config_overrides(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    import development_tools as dt_pkg
+
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    def _fake_external_value(key: str, default: str) -> str:
+        if key == "paths.audit_lock_file":
+            return "locks/custom_audit.lock"
+        if key == "paths.coverage_lock_file":
+            return "locks/custom_coverage.lock"
+        return default
+
+    monkeypatch.setattr(
+        dt_pkg.config,
+        "get_external_value",
+        _fake_external_value,
+    )
+
+    paths = service._get_audit_related_lock_paths()
+
+    assert paths[0] == temp_project_copy / "locks" / "custom_audit.lock"
+    assert paths[1] == temp_project_copy / "locks" / "custom_coverage.lock"
+    assert paths[2] == temp_project_copy / "locks" / ".coverage_dev_tools_in_progress.lock"
+
+
+@pytest.mark.unit
+def test_get_existing_audit_related_locks_cleans_stale_and_returns_active(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    active = temp_project_copy / "active.lock"
+    stale = temp_project_copy / "stale.lock"
+    malformed = temp_project_copy / "bad.lock"
+
+    monkeypatch.setattr(
+        service,
+        "_get_audit_related_lock_paths",
+        lambda: [active, stale, malformed],
+    )
+    monkeypatch.setitem(
+        service._get_existing_audit_related_locks.__func__.__globals__,
+        "evaluate_lock_set",
+        lambda _paths: {
+            "active": [{"path": active}],
+            "stale": [{"path": stale}],
+            "malformed": [{"path": malformed}],
+        },
+    )
+    cleaned: list[Path] = []
+    monkeypatch.setitem(
+        service._get_existing_audit_related_locks.__func__.__globals__,
+        "cleanup_lock_paths",
+        lambda paths: cleaned.extend(paths) or len(paths),
+    )
+
+    assert service._get_existing_audit_related_locks() == [active]
+    assert cleaned == [stale, malformed]
+
+
+@pytest.mark.unit
+def test_run_docs_blocks_when_audit_locks_exist(temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    lock_path = temp_project_copy / "development_tools" / ".audit_in_progress.lock"
+    monkeypatch.setattr(service, "_get_existing_audit_related_locks", lambda: [lock_path])
+    run_script = MagicMock()
+    monkeypatch.setattr(service, "run_script", run_script)
+
+    assert service.run_docs() is False
+    run_script.assert_not_called()
+
+
+@pytest.mark.unit
+def test_run_docs_collects_script_and_subcheck_failures(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    monkeypatch.setattr(service, "_get_existing_audit_related_locks", lambda: [])
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda name, *args, **kwargs: {
+            "success": name != "generate_module_dependencies",
+            "error": f"{name} failed",
+            "output": "",
+        },
+    )
+    monkeypatch.setattr(service, "generate_directory_trees", lambda: None)
+    monkeypatch.setattr(service, "_run_doc_sync_check", lambda: False)
+
+    assert service.run_docs() is False
+
+
+@pytest.mark.unit
+def test_run_validate_parses_output_and_saves_result(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    payload = {"summary": {"total_issues": 0}, "details": {"ok": True}}
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_a, **_k: {"success": True, "output": json.dumps(payload), "error": ""},
+    )
+    saved: list[tuple[str, str, dict]] = []
+    monkeypatch.setitem(
+        service.run_validate.__func__.__globals__,
+        "save_tool_result",
+        lambda tool, domain, data, **_kwargs: saved.append((tool, domain, data)),
+    )
+
+    assert service.run_validate() is True
+    assert service.validation_results["success"] is True
+    assert saved == [("analyze_ai_work", "ai_work", payload)]
+
+
+@pytest.mark.unit
+def test_run_validate_failure_returns_false(temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_a, **_k: {"success": False, "output": "", "error": "boom"},
+    )
+
+    assert service.run_validate() is False
+
+
+@pytest.mark.unit
+def test_run_config_handles_json_suffix_and_save_failure(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    payload = {"summary": {"total_issues": 2}, "details": {"config_valid": False}}
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_a, **_k: {
+            "success": True,
+            "output": "human preface\n" + json.dumps(payload),
+            "error": "",
+        },
+    )
+    monkeypatch.setitem(
+        service.run_config.__func__.__globals__,
+        "save_tool_result",
+        lambda *_a, **_k: (_ for _ in ()).throw(RuntimeError("save failed")),
+    )
+
+    assert service.run_config() is True
+
+
+@pytest.mark.unit
+def test_run_analyze_config_returns_parsed_data_and_updates_cache(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.results_cache = {}
+    payload = {"summary": {"total_issues": 0}, "details": {"config_valid": True}}
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_a, **_k: {"success": True, "output": json.dumps(payload), "error": ""},
+    )
+    saved: list[dict] = []
+    monkeypatch.setitem(
+        service.run_analyze_config.__func__.__globals__,
+        "save_tool_result",
+        lambda _tool, _domain, data, **_kwargs: saved.append(data),
+    )
+
+    result = service.run_analyze_config()
+
+    assert result["success"] is True
+    assert result["data"] == payload
+    assert service.results_cache["analyze_config"] == payload
+    assert saved == [payload]
+
+
+@pytest.mark.unit
+def test_run_analyze_config_invalid_json_preserves_script_success(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_a, **_k: {"success": True, "output": "not-json", "error": ""},
+    )
+
+    result = service.run_analyze_config()
+
+    assert result["success"] is True
+    assert "data" not in result
+
+
+@pytest.mark.unit
+def test_run_workflow_stops_on_trigger_or_audit_failure(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    monkeypatch.setattr(service, "check_trigger_requirements", lambda _task: False)
+    assert service.run_workflow("docs") is False
+
+    monkeypatch.setattr(service, "check_trigger_requirements", lambda _task: True)
+    monkeypatch.setattr(
+        service,
+        "run_audit_first",
+        lambda _task: {"success": False, "error": "audit failed"},
+    )
+    assert service.run_workflow("docs") is False
+
+
+@pytest.mark.unit
+def test_run_workflow_executes_task_and_validation(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    monkeypatch.setattr(service, "check_trigger_requirements", lambda _task: True)
+    monkeypatch.setattr(service, "run_audit_first", lambda _task: {"success": True})
+    monkeypatch.setattr(service, "execute_task", lambda _task, _data: True)
+    monkeypatch.setattr(
+        service,
+        "validate_work",
+        lambda _task, data: {"success": True, "seen": data},
+    )
+    shown: list[dict] = []
+    monkeypatch.setattr(service, "show_validation_report", lambda result: shown.append(result))
+
+    assert service.run_workflow("docs", {"x": 1}) is True
+    assert shown == [{"success": True, "seen": {"x": 1}}]

@@ -77,7 +77,7 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
   - *Why it helps*: Avoids another broad dependency-injection rewrite unless it clearly reduces coupling.
   - *Estimated effort*: Medium
   - *Created*: 2026-05-05
-- [ ] Review whether retry management should become its own `communication/delivery/retry_manager.py` module.
+- [ ] Review whether retry management should remain in [retry_manager.py](communication/core/retry_manager.py) or move to a dedicated delivery module.
   - *What it means*: Message dispatch is extracted, but retry/backoff behavior may still be worth isolating if it grows or blocks tests.
   - *Why it helps*: Keeps delivery dispatch focused without splitting stable code too early.
   - *Estimated effort*: Small/Medium
@@ -245,6 +245,9 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 - *Estimated effort*: Medium/Large
 - *Created*: 2026-05-03
 
+**Investigate reoccuring logs\ai_dev_tools.log**
+- Development tools are supposed to be independant of the main project and so should not be writing logs in the main project log folder
+ 
 ### Deferred (AI overhaul)
 
 **AI Chatbot Actionability Sprint** - *Deferred (AI overhaul)*

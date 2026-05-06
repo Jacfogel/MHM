@@ -335,3 +335,193 @@ def test_top_test_marker_files_bullet_formats(temp_project_copy: Path) -> None:
     assert "a.py" in line
     # Overflow hint is appended then passed through _format_list_for_display, which may truncate.
     assert "+1" in line
+
+
+@pytest.mark.unit
+def test_static_analysis_snapshot_defaults_and_normalizes(temp_project_copy: Path) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+    payloads = {
+        "analyze_ruff": {
+            "summary": {"total_issues": "3", "files_affected": "2", "status": "WARN"},
+            "details": {"tool_available": True, "rule_counts": {"F401": 3}},
+        },
+        "analyze_pyright": {
+            "summary": "bad",
+            "details": "bad",
+        },
+        "analyze_bandit": None,
+        "analyze_pip_audit": {
+            "summary": {"total_issues": "x", "files_affected": 1},
+            "details": {"tool_available": False},
+        },
+    }
+
+    service._load_tool_data = lambda tool, *_args, **_kwargs: payloads.get(tool)
+
+    snapshot = service._get_static_analysis_snapshot()
+
+    assert snapshot["analyze_ruff"]["available"] is True
+    assert snapshot["analyze_ruff"]["summary"]["total_issues"] == 3
+    assert snapshot["analyze_pyright"]["summary"]["total_issues"] == 0
+    assert snapshot["analyze_bandit"]["available"] is False
+    assert snapshot["analyze_pip_audit"]["available"] is False
+
+
+@pytest.mark.unit
+def test_decision_and_system_signal_details_normalize_or_default(temp_project_copy: Path) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    decision = service._get_decision_support_details(
+        {"summary": {"total_issues": 1}, "details": {"critical_complexity": 2}}
+    )
+    signals = service._get_system_signals_details(
+        {"summary": {"total_issues": 0}, "details": {"status": "ok"}}
+    )
+
+    assert isinstance(decision, dict)
+    assert isinstance(signals, dict)
+    assert service._get_decision_support_details(["bad"]) == {}
+    assert service._get_system_signals_details({"summary": []}) == {}
+
+
+@pytest.mark.unit
+def test_get_tier3_test_outcome_merges_dev_tools_cached_track(
+    temp_project_copy: Path,
+) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+    payloads = {
+        "analyze_test_coverage": {
+            "details": {
+                "tier3_test_outcome": {
+                    "state": "test_failures",
+                    "parallel": {"classification": "failed"},
+                }
+            }
+        },
+        "generate_dev_tools_coverage": {
+            "details": {
+                "dev_tools_test_outcome": {
+                    "state": "passed",
+                    "classification": "passed",
+                }
+            }
+        },
+    }
+    service._load_tool_data = lambda tool, *_args, **_kwargs: payloads.get(tool, {})
+
+    outcome = service._get_tier3_test_outcome()
+
+    assert outcome["parallel"]["classification"] == "failed"
+    assert outcome["development_tools"]["classification"] == "passed"
+
+
+@pytest.mark.unit
+def test_append_tier3_test_outcome_lines_respects_actionable_and_skipped_tracks(
+    temp_project_copy: Path,
+) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.tier3_test_outcome = {
+        "state": "clean",
+        "parallel": {
+            "classification": "skipped",
+            "classification_reason": "not_run_this_audit_scope",
+        },
+        "no_parallel": {"classification": "passed", "passed_count": 4, "return_code": 0},
+        "development_tools": {
+            "classification": "failed",
+            "classification_reason": "pytest_failed",
+            "failed_count": 1,
+            "return_code": 1,
+            "log_file": "development_tools/tests/logs/pytest_dev_tools_stdout_x.log",
+            "actionable_context": "Inspect dev tools log.",
+        },
+        "failed_node_ids": ["tests/dev/test_a.py::TestA::test_one"],
+    }
+
+    clean_lines: list[str] = []
+    service._append_tier3_test_outcome_lines(clean_lines, actionable_only=True)
+    assert clean_lines
+    assert not any(line.startswith("- **Parallel Track**") for line in clean_lines)
+    assert any("Development Tools Track" in line for line in clean_lines)
+    assert any("tests/dev/test_a.py::TestA::test_one" in line for line in clean_lines)
+
+    service.tier3_test_outcome = {
+        "state": "clean",
+        "parallel": {"classification": "passed"},
+        "no_parallel": {"classification": "skipped"},
+        "development_tools": {"classification": "skipped"},
+    }
+    omitted: list[str] = []
+    service._append_tier3_test_outcome_lines(omitted, actionable_only=True)
+    assert omitted == []
+
+
+@pytest.mark.unit
+def test_recent_tier3_log_files_selects_latest_per_track(temp_project_copy: Path) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+    logs = temp_project_copy / "development_tools" / "tests" / "logs"
+    logs.mkdir(parents=True)
+    older = logs / "pytest_parallel_stdout_old.log"
+    newer = logs / "pytest_parallel_stdout_new.log"
+    no_parallel = logs / "pytest_no_parallel_stdout_one.log"
+    older.write_text("old", encoding="utf-8")
+    newer.write_text("new", encoding="utf-8")
+    no_parallel.write_text("np", encoding="utf-8")
+    import os
+    import time
+
+    os.utime(older, (time.time() - 10, time.time() - 10))
+    os.utime(newer, (time.time(), time.time()))
+
+    selected = service._get_recent_tier3_log_files(
+        include_parallel=True,
+        include_no_parallel=True,
+        include_dev_tools=False,
+    )
+
+    assert "development_tools/tests/logs/pytest_parallel_stdout_new.log" in selected
+    assert "development_tools/tests/logs/pytest_no_parallel_stdout_one.log" in selected
+    assert all("old" not in item for item in selected)
+
+
+@pytest.mark.unit
+def test_verify_process_cleanup_lines_cover_platform_and_candidates(
+    temp_project_copy: Path,
+) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    assert "No data" in service._lines_for_verify_process_cleanup_status_snapshot(None)[0]
+    assert "N/A" in service._lines_for_verify_process_cleanup_status_snapshot(
+        {"details": {"platform": "linux"}, "summary": {}}
+    )[0]
+    warn = service._lines_for_verify_process_cleanup_status_snapshot(
+        {
+            "details": {"platform": "win32"},
+            "summary": {"total_issues": 2, "status": "WARN"},
+        }
+    )
+    assert "WARN" in warn[0]
+
+    json_path = (
+        temp_project_copy
+        / "development_tools"
+        / "tests"
+        / "jsons"
+        / "verify_process_cleanup_results.json"
+    )
+    json_path.parent.mkdir(parents=True, exist_ok=True)
+    json_path.write_text("{}", encoding="utf-8")
+    section = service._lines_for_verify_process_cleanup_consolidated_section(
+        {
+            "details": {
+                "platform": "win32",
+                "orphaned_processes_found": True,
+                "orphaned_processes": [{"pid": 123, "is_pytest": True}],
+            },
+            "summary": {"total_issues": 1, "status": "WARN"},
+        }
+    )
+    joined = "\n".join(section)
+    assert "candidate count=1" in joined
+    assert "PID 123" in joined
+    assert "verify_process_cleanup_results.json" in joined

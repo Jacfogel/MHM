@@ -30,11 +30,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-06 - Coverage and static audit cleanup **COMPLETED**
+- Added focused coverage for development-tools command/report/tool-wrapper branches, scheduler maintenance jobs, Discord bot helpers, schedule-editor headless helpers, and UI log-tail merging.
+- Cleared follow-up audit items by fixing missing test markers, resolving doc-sync path/link drift, removing the Ruff/Pyright test-fixture conflict, and adding a `pip>=26.1` tooling floor for pip-audit findings on pip itself.
+- Validation: focused dev-tools/core/unit/communication/UI batches passed, marker analysis and doc-sync passed, Ruff/Pyright passed, and direct pip-audit passed after upgrading the venv pip to 26.1.1. A cache-cleared full audit was killed with exit 137, so it is not counted as a clean full-audit validation.
+
 ### 2026-05-05 - Dispatcher contracts and scheduler delivery port **COMPLETED**
 - `channel_orchestrator` was thinned further: predefined message dispatch, task reminder dispatch, and check-in prompt sending now live in dedicated dispatcher modules with `MessageSendResult` as the regular/reminder send contract.
 - Added `core.delivery` protocol interfaces so scheduler/service request code can depend on a small delivery surface instead of a full `CommunicationManager`; scheduler compatibility aliases and direct standalone `CommunicationManager` construction were removed after tests moved to delivery ports.
 - Fixed dispatcher wildcard schedule matching / failed-send storage behavior, removed avoidable parallel-audit skips from CLI/dependency/interpreter tests, and replaced the remaining generic service-request `TypeError` with `ValidationError`.
-- Cleared follow-up audit items by regenerating function/module docs and refreshing generated AI status/priority reports; the completed refactor plan was removed from active `PLANS.md` tracking and `TODO.md` keeps only deferred architecture follow-ups.
+- Cleared follow-up audit items by regenerating function/module docs and refreshing generated AI status/priority reports; the completed refactor plan was removed from active `PLANS.md` tracking and [TODO.md](../TODO.md) keeps only deferred architecture follow-ups.
 - Validation: Ruff, `py_compile`, focused scheduler/service/reminder/orchestrator/dispatcher/dev-tools tests, docs regeneration, standard audit, and cached full audit passed. The refreshed parallel test run reports no skip count.
 
 ### 2026-05-04 - Duplicate audit freshness and marker triage **COMPLETED**

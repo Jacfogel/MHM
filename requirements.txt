@@ -38,6 +38,7 @@ ruff>=0.1.0  # Linting and unused-imports (development_tools audit; preferred ov
 pylint>=2.17.0  # For code linting (fallback when ruff unavailable)
 pyright>=1.1.380  # For static type checking
 bandit[toml]>=1.7.0  # Security lint; TOML for [tool.bandit] in pyproject.toml (audit --full Tier 3)
+pip>=26.1  # Installer security floor for pip-audit findings on pip itself
 pip-audit>=2.6.0  # Dependency vulnerability scan (development_tools audit --full Tier 3)
 
 # Note: The following are part of Python's standard library and don't need to be installed:
