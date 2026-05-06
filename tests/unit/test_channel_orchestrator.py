@@ -632,3 +632,28 @@ class TestChannelOrchestratorHelpers:
 
         assert status.status == "sent"
         mock_expire.assert_called_once_with(user_id, "motivational")
+
+    def test_should_ignore_inbound_sender_for_mailer_daemon(self):
+        """System/bounce sender addresses should be blocked from autoresponses."""
+        assert self.manager._should_ignore_inbound_sender("mailer-daemon@googlemail.com")
+
+    def test_should_ignore_inbound_sender_for_normal_user(self):
+        """Normal user addresses should not be blocked."""
+        assert not self.manager._should_ignore_inbound_sender("person@example.com")
+
+    def test_process_incoming_email_ignores_blocked_sender(self):
+        """Blocked senders should exit before user lookup or any response send."""
+        email_msg = {
+            "from": "mailer-daemon@googlemail.com",
+            "subject": "delivery report",
+            "body": "bounce body",
+        }
+
+        with (
+            patch("core.get_user_id_by_identifier") as mock_get_user_id,
+            patch.object(self.manager, "_send_email_response") as mock_send_response,
+        ):
+            self.manager._process_incoming_email(email_msg)
+
+        mock_get_user_id.assert_not_called()
+        mock_send_response.assert_not_called()

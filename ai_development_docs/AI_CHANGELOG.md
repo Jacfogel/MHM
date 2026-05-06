@@ -32,6 +32,8 @@ Guidelines:
 
 ### 2026-05-06 - Coverage and static audit cleanup **COMPLETED**
 - Added focused coverage for development-tools command/report/tool-wrapper branches, scheduler maintenance jobs, Discord bot helpers, schedule-editor headless helpers, and UI log-tail merging.
+- Email inbound safety: `channel_orchestrator` now ignores system/bounce sender addresses (`mailer-daemon`, `postmaster`, `no-reply`/`noreply`, `bounce`) before user lookup/response handling to prevent bounce-loop auto replies.
+- Added focused unit tests for inbound sender filtering and blocked-sender early-return behavior (no user lookup, no `_send_email_response` call).
 - Cleared follow-up audit items by fixing missing test markers, resolving doc-sync path/link drift, removing the Ruff/Pyright test-fixture conflict, and adding a `pip>=26.1` tooling floor for pip-audit findings on pip itself.
 - Validation: focused dev-tools/core/unit/communication/UI batches passed, marker analysis and doc-sync passed, Ruff/Pyright passed, and direct pip-audit passed after upgrading the venv pip to 26.1.1. A cache-cleared full audit was killed with exit 137, so it is not counted as a clean full-audit validation.
 

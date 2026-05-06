@@ -366,6 +366,12 @@ class CommunicationManager:
 
             sender_email = email_match.group(0)
 
+            if self._should_ignore_inbound_sender(sender_email):
+                logger.info(
+                    f"Ignoring inbound email from non-user/system sender: {sender_email}"
+                )
+                return
+
             # Map email to user ID
             from core import get_user_id_by_identifier
 
@@ -402,6 +408,32 @@ class CommunicationManager:
 
         except Exception as e:
             logger.error(f"Error processing incoming email: {e}", exc_info=True)
+
+    @handle_errors(
+        "checking whether inbound sender should be ignored",
+        user_friendly=False,
+        default_return=False,
+    )
+    def _should_ignore_inbound_sender(self, sender_email: str) -> bool:
+        """Return True for known non-user/system senders that should never get replies."""
+        if not sender_email or not isinstance(sender_email, str):
+            return False
+
+        normalized = sender_email.strip().lower()
+        if "@" not in normalized:
+            return False
+
+        local_part = normalized.split("@", 1)[0]
+        blocked_keywords = (
+            "mailer-daemon",
+            "postmaster",
+            "no-reply",
+            "noreply",
+            "donotreply",
+            "do-not-reply",
+            "bounce",
+        )
+        return any(keyword in local_part for keyword in blocked_keywords)
 
     @handle_errors("sending email response", default_return=None)
     def _send_email_response(
