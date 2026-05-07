@@ -101,6 +101,7 @@ class DiscordBot(BaseChannel):
         self.logger = discord_logger
 
     @property
+    # not_duplicate: channel_type_properties
     @handle_errors("getting Discord channel type", default_return=ChannelType.ASYNC)
     def channel_type(self) -> ChannelType:
         """

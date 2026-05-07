@@ -579,6 +579,7 @@ class MHMService:
         self._log_discord_connectivity_health()
 
     @handle_errors("checking test message requests")
+    # not_duplicate: service_request_base_dir_accessors
     @handle_errors(
         "getting base directory for test message requests", default_return=""
     )
@@ -613,6 +614,7 @@ class MHMService:
             request_data, filename
         )
 
+    # not_duplicate: service_request_processing_delegates
     @handle_errors("processing test message request", default_return=None)
     def _check_test_message_requests__process_valid_request(self, request_data):
         """Process a valid test message request."""
@@ -659,6 +661,7 @@ class MHMService:
             request_file, filename, error
         )
 
+    # not_duplicate: service_request_processing_delegates
     @handle_errors("checking test message requests", default_return=None)
     def check_test_message_requests(self):
         """Check for and process test message request files from admin panel"""
@@ -690,6 +693,7 @@ class MHMService:
         """Check for and process task reminder request files from admin panel"""
         service_requests.check_task_reminder_requests(self.to_service_request_context())
 
+    # not_duplicate: service_request_base_dir_accessors
     @handle_errors("getting base directory for cleanup", default_return="")
     def _cleanup_test_message_requests__get_base_directory(self):
         """Get the base directory for test message request files."""

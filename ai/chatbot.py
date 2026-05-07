@@ -66,6 +66,7 @@ class AIChatBotSingleton:
 
     _instance = None
 
+    # not_duplicate: singleton_new_methods
     @handle_errors("creating AI chatbot instance", default_return=None)
     def __new__(cls):
         """Create a new instance."""

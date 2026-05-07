@@ -128,6 +128,7 @@ class CommandRegistry(ABC):
         pass
 
     @abstractmethod
+    # not_duplicate: platform_unregister_hooks
     @handle_errors("unregistering from platform", default_return=False)
     def unregister_from_platform(self, command_name: str) -> bool:
         """Unregister command from the specific platform"""
@@ -174,6 +175,7 @@ class DiscordCommandRegistry(CommandRegistry):
         logger.debug(f"Registered Discord command '{command_def.name}'")
         return True
 
+    # not_duplicate: platform_unregister_hooks
     @handle_errors("unregistering from Discord platform", default_return=False)
     def unregister_from_platform(self, command_name: str) -> bool:
         """Unregister command from Discord"""
@@ -201,6 +203,7 @@ class EmailCommandRegistry(CommandRegistry):
         logger.debug(f"Email command '{command_def.name}' available for parsing")
         return True
 
+    # not_duplicate: platform_unregister_hooks
     @handle_errors("unregistering from email platform")
     def unregister_from_platform(self, command_name: str) -> bool:
         """Unregister command from email system"""

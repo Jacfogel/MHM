@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-07 - Duplicate-function cleanup without legacy shims **COMPLETED**
+- Cleared the full-scope duplicate-function priority: `duplicate-functions --body-for-near-miss` now reports 0 issues and 0 groups.
+- Refactored real duplication in user lookup, cache cleanup/removal, UI/service request helpers, process watcher selection, backup restore, and LM Studio readiness while avoiding new legacy compatibility bridges.
+- Removed unnecessary private user-lookup shim functions after review; remaining thin entry points are existing UI/API/tested hooks, not legacy adapters.
+- Validation: `py_compile`, service request helper tests, duplicate-analyzer tests, and the legacy scan passed.
+
 ### 2026-05-06 - Facade/shim cleanup and signal tuning **COMPLETED**
 - Removed verified-dead compatibility/facade surfaces: chatbot fallback bridge, factory config wrappers, scheduler task-selection delegates, service request aliases, and unused UI/preference aliases.
 - Cleaned stale legacy audit noise by removing the broad `user_data_v1_runtime_adapters` scan bucket and moving the chatbot fallback bridge to removed inventory history.

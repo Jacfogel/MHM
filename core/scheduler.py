@@ -1172,6 +1172,7 @@ class SchedulerManager:
             f"In-memory scheduler cleanup completed for user {user_id}, category {category}. Removed {jobs_removed} jobs (from {initial_job_count} to {final_job_count} total jobs)."
         )
 
+    # not_duplicate: scheduler_standalone_delegates
     @handle_errors("clearing all accumulated jobs")
     def clear_all_accumulated_jobs(self):
         """Clears all accumulated scheduler jobs and reschedules only the necessary ones."""
@@ -1411,6 +1412,7 @@ def schedule_all_task_reminders(user_id):
 # No special cleanup function needed - they're handled by the main scheduler cleanup
 
 
+# not_duplicate: scheduler_standalone_delegates
 @handle_errors("clearing all accumulated jobs standalone", default_return=False)
 def clear_all_accumulated_jobs_standalone():
     """

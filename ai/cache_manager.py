@@ -15,6 +15,20 @@ cache_logger = get_component_logger("ai_cache")
 logger = cache_logger
 
 
+def _expired_keys_from_items(
+    items,
+    ttl: int,
+    timestamp_getter,
+) -> list[str]:
+    """Return cache keys whose stored timestamp is outside the configured TTL."""
+    current_time = time.time()
+    return [
+        key
+        for key, value in items
+        if current_time - timestamp_getter(value) >= ttl
+    ]
+
+
 @dataclass
 class CacheEntry:
     """Entry in the response cache"""
@@ -132,7 +146,7 @@ class ResponseCache:
 
         logger.debug(f"Cleaned up {items_to_remove} LRU cache entries")
 
-    # not_duplicate: cache_clear
+    # not_duplicate: cache_lifecycle_methods
     @handle_errors("clearing cache")
     def clear(self):
         """Clear all cached responses"""
@@ -141,18 +155,14 @@ class ResponseCache:
             self.access_times.clear()
         logger.info("Response cache cleared")
 
-    # not_duplicate: cache_clear_expired
+    # not_duplicate: cache_lifecycle_methods
     @handle_errors("clearing expired entries")
     def clear_expired(self):
         """Remove all expired entries from the cache"""
-        current_time = time.time()
-        expired_keys = []
-
         with self._lock:
-            for key, entry in self.cache.items():
-                if current_time - entry.timestamp >= self.ttl:
-                    expired_keys.append(key)
-
+            expired_keys = _expired_keys_from_items(
+                self.cache.items(), self.ttl, lambda entry: entry.timestamp
+            )
             for key in expired_keys:
                 self._remove_entry(key)
 
@@ -199,16 +209,18 @@ class ResponseCache:
                 if entry.prompt_type == prompt_type
             }
 
+    def _matching_entry_keys(self, predicate) -> list[str]:
+        """Collect response-cache keys matching a CacheEntry predicate."""
+        return [key for key, entry in self.cache.items() if predicate(entry)]
+
+    # not_duplicate: response_cache_removal_filters
     @handle_errors("removing cache entries by type")
     def remove_entries_by_type(self, prompt_type: str) -> int:
         """Remove all cache entries for a specific prompt type"""
-        keys_to_remove = []
-
         with self._lock:
-            for key, entry in self.cache.items():
-                if entry.prompt_type == prompt_type:
-                    keys_to_remove.append(key)
-
+            keys_to_remove = self._matching_entry_keys(
+                lambda entry: entry.prompt_type == prompt_type
+            )
             for key in keys_to_remove:
                 self._remove_entry(key)
 
@@ -217,16 +229,14 @@ class ResponseCache:
         )
         return len(keys_to_remove)
 
+    # not_duplicate: response_cache_removal_filters
     @handle_errors("removing user cache entries")
     def remove_user_entries(self, user_id: str) -> int:
         """Remove all cache entries for a specific user"""
-        keys_to_remove = []
-
         with self._lock:
-            for key, entry in self.cache.items():
-                if entry.user_id == user_id:
-                    keys_to_remove.append(key)
-
+            keys_to_remove = self._matching_entry_keys(
+                lambda entry: entry.user_id == user_id
+            )
             for key in keys_to_remove:
                 self._remove_entry(key)
 
@@ -268,25 +278,21 @@ class ContextCache:
         with self._lock:
             self.cache[user_id] = (context, current_time)
 
-    # not_duplicate: cache_clear
+    # not_duplicate: cache_lifecycle_methods
     @handle_errors("clearing context cache")
     def clear(self):
         """Clear all cached contexts"""
         with self._lock:
             self.cache.clear()
 
-    # not_duplicate: cache_clear_expired
+    # not_duplicate: cache_lifecycle_methods
     @handle_errors("clearing expired context cache")
     def clear_expired(self):
         """Remove all expired contexts"""
-        current_time = time.time()
-        expired_keys = []
-
         with self._lock:
-            for user_id, (_context, timestamp) in self.cache.items():
-                if current_time - timestamp >= self.ttl:
-                    expired_keys.append(user_id)
-
+            expired_keys = _expired_keys_from_items(
+                self.cache.items(), self.ttl, lambda cached_context: cached_context[1]
+            )
             for user_id in expired_keys:
                 del self.cache[user_id]
 

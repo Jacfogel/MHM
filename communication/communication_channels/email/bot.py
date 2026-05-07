@@ -60,6 +60,7 @@ class EmailBot(BaseChannel):
         super().__init__(config)
 
     @property
+    # not_duplicate: channel_type_properties
     @handle_errors("getting email channel type", default_return=ChannelType.SYNC)
     def channel_type(self) -> ChannelType:
         """
@@ -98,6 +99,7 @@ class EmailBot(BaseChannel):
         logger.info("EmailBot initialized successfully.")
         return True
 
+    # not_duplicate: email_connection_tests
     @handle_errors("testing SMTP connection")
     def initialize__test_smtp_connection(self):
         """Test SMTP connection synchronously"""
@@ -109,6 +111,7 @@ class EmailBot(BaseChannel):
         with smtplib.SMTP_SSL(smtp_server, 465, timeout=10) as server:
             server.login(smtp_user, smtp_password)
 
+    # not_duplicate: email_connection_tests
     @handle_errors("testing IMAP connection")
     def initialize__test_imap_connection(self):
         """Test IMAP connection synchronously"""

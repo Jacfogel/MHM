@@ -1662,6 +1662,45 @@ class MHMManagerUI(QMainWindow):
                 self, "Error", f"Failed to open user analytics: {str(e)}"
             )
 
+    @handle_errors("preparing selected user category editor", default_return=None)
+    def _prepare_current_user_category_editor(self, editor_label: str):
+        """Validate the current user/category and load user context for an editor."""
+        if not self.current_user:
+            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
+            return None
+
+        current_index = self.ui.comboBox_user_categories.currentIndex()
+        if current_index <= 0:
+            QMessageBox.warning(
+                self,
+                "No Category Selected",
+                "Please select a category from the dropdown first.",
+            )
+            return None
+
+        selected_category = self.ui.comboBox_user_categories.itemData(current_index)
+        logger.info(
+            f"Admin Panel: Opening {editor_label} editor for user {self.current_user}, category {selected_category}"
+        )
+
+        UserContext().get_user_id()
+        UserContext().set_user_id(self.current_user)
+
+        user_data_result = get_user_data(self.current_user, "account")
+        user_account = user_data_result.get("account")
+        context_result = get_user_data(self.current_user, "context")
+        user_context = context_result.get("context")
+        if user_account:
+            UserContext().set_internal_username(
+                user_account.get("internal_username", "")
+            )
+            if user_context:
+                UserContext().set_preferred_name(user_context.get("preferred_name", ""))
+            UserContext().load_user_data(self.current_user)
+
+        return selected_category
+
+    # not_duplicate: user_category_editor_actions
     @handle_errors("editing user messages", default_return=None)
     def edit_user_messages(self):
         """
@@ -1675,45 +1714,9 @@ class MHMManagerUI(QMainWindow):
             logger.error("No current user selected")
             return None
         """Open message editing interface for selected user"""
-        if not self.current_user:
-            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
+        selected_category = self._prepare_current_user_category_editor("message")
+        if not selected_category:
             return
-
-        # Check if a category is selected
-        current_index = self.ui.comboBox_user_categories.currentIndex()
-        if (
-            current_index <= 0
-        ):  # No category selected or "Select a category..." selected
-            QMessageBox.warning(
-                self,
-                "No Category Selected",
-                "Please select a category from the dropdown first.",
-            )
-            return
-
-        selected_category = self.ui.comboBox_user_categories.itemData(current_index)
-        logger.info(
-            f"Admin Panel: Opening message editor for user {self.current_user}, category {selected_category}"
-        )
-
-        # Temporarily set the user context for editing
-        UserContext().get_user_id()
-        UserContext().set_user_id(self.current_user)
-
-        # Load the user's full data to get internal_username and other details
-        user_data_result = get_user_data(self.current_user, "account")
-        user_account = user_data_result.get("account")
-        # Get user context
-        context_result = get_user_data(self.current_user, "context")
-        user_context = context_result.get("context")
-        if user_account:
-            UserContext().set_internal_username(
-                user_account.get("internal_username", "")
-            )
-            if user_context:
-                UserContext().set_preferred_name(user_context.get("preferred_name", ""))
-            # Load the full user data into UserContext
-            UserContext().load_user_data(self.current_user)
 
         # Open the message editor directly with the selected category
         self.open_message_editor(None, selected_category)
@@ -1754,6 +1757,7 @@ class MHMManagerUI(QMainWindow):
                 self, "Error", f"Failed to open message editor: {str(e)}"
             )
 
+    # not_duplicate: user_category_editor_actions
     @handle_errors("editing user schedules", default_return=None)
     def edit_user_schedules(self):
         """
@@ -1767,45 +1771,9 @@ class MHMManagerUI(QMainWindow):
             logger.error("No current user selected")
             return None
         """Open schedule editing interface for selected user"""
-        if not self.current_user:
-            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
+        selected_category = self._prepare_current_user_category_editor("schedule")
+        if not selected_category:
             return
-
-        # Check if a category is selected
-        current_index = self.ui.comboBox_user_categories.currentIndex()
-        if (
-            current_index <= 0
-        ):  # No category selected or "Select a category..." selected
-            QMessageBox.warning(
-                self,
-                "No Category Selected",
-                "Please select a category from the dropdown first.",
-            )
-            return
-
-        selected_category = self.ui.comboBox_user_categories.itemData(current_index)
-        logger.info(
-            f"Admin Panel: Opening schedule editor for user {self.current_user}, category {selected_category}"
-        )
-
-        # Temporarily set the user context for editing
-        UserContext().get_user_id()
-        UserContext().set_user_id(self.current_user)
-
-        # Load the user's full data to get internal_username and other details
-        user_data_result = get_user_data(self.current_user, "account")
-        user_account = user_data_result.get("account")
-        # Get user context
-        context_result = get_user_data(self.current_user, "context")
-        user_context = context_result.get("context")
-        if user_account:
-            UserContext().set_internal_username(
-                user_account.get("internal_username", "")
-            )
-            if user_context:
-                UserContext().set_preferred_name(user_context.get("preferred_name", ""))
-            # Load the full user data into UserContext
-            UserContext().load_user_data(self.current_user)
 
         # Open the schedule editor directly with the selected category
         self.open_schedule_editor(None, selected_category)

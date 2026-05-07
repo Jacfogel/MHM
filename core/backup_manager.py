@@ -656,26 +656,27 @@ class BackupManager:
     def _restore_user_data_from_directory(self, backup_root: Path) -> None:
         """Restore user data from directory backup."""
         base_dir = Path(core.config.BASE_DATA_DIR)
-        base_dir.mkdir(parents=True, exist_ok=True)
         user_info_path = Path(core.config.USER_INFO_DIR_PATH)
         if user_info_path.exists():
             shutil.rmtree(user_info_path, ignore_errors=True)
-        source = backup_root / "users"
-        if source.exists() and source.is_dir():
-            target = base_dir / "users"
-            if target.exists():
-                shutil.rmtree(target, ignore_errors=True)
-            shutil.copytree(source, target)
+        self._restore_backup_subdirectory(backup_root, "users", base_dir)
 
     @handle_errors("restoring config files from directory")
     def _restore_config_files_from_directory(self, backup_root: Path) -> None:
         """Restore config files from directory backup."""
         base_dir = Path(core.config.BASE_DATA_DIR)
+        self._restore_backup_subdirectory(backup_root, "config", base_dir)
+
+    @handle_errors("restoring backup subdirectory")
+    def _restore_backup_subdirectory(
+        self, backup_root: Path, subdirectory: str, base_dir: Path
+    ) -> None:
+        """Restore one top-level backup subdirectory into the data directory."""
         base_dir.mkdir(parents=True, exist_ok=True)
-        source = backup_root / "config"
+        source = backup_root / subdirectory
         if not source.exists() or not source.is_dir():
             return
-        target = base_dir / "config"
+        target = base_dir / subdirectory
         if target.exists():
             shutil.rmtree(target, ignore_errors=True)
         shutil.copytree(source, target)

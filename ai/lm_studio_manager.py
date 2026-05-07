@@ -226,5 +226,4 @@ def is_lm_studio_ready() -> bool:
 @handle_errors("ensuring LM Studio is ready", default_return=False)
 def ensure_lm_studio_ready() -> bool:
     """Ensure LM Studio is ready, attempting automatic model loading if needed"""
-    manager = get_lm_studio_manager()
-    return manager.is_ready()
+    return is_lm_studio_ready()

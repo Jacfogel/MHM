@@ -50,6 +50,7 @@ class CommunicationManager:
     _instance = None
     _lock = threading.Lock()
 
+    # not_duplicate: singleton_new_methods
     @handle_errors("creating channel orchestrator instance", default_return=None)
     def __new__(cls, *args, **kwargs):
         """Ensure that only one instance of the CommunicationManager exists (Singleton pattern)."""

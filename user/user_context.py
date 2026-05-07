@@ -14,6 +14,7 @@ class UserContext:
     _instance = None
     _lock = threading.Lock()
 
+    # not_duplicate: singleton_new_methods
     def __new__(cls):
         """Create a new instance."""
         with cls._lock:

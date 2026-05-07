@@ -210,6 +210,7 @@ def process_valid_test_message_request(
         logger.error("Delivery interface not available for test message")
 
 
+# not_duplicate: service_response_writers
 @handle_errors("writing test message response", default_return=None)
 def write_test_message_response(
     user_id: str,
@@ -221,17 +222,24 @@ def write_test_message_response(
     try:
         root = base_dir if base_dir is not None else get_repo_base_directory()
         response_file = Path(root) / f"test_message_response_{user_id}_{category}.flag"
-        response_data = {
-            "user_id": user_id,
-            "category": category,
-            "message": message,
-            "timestamp": now_timestamp_full(),
-        }
-        with open(response_file, "w", encoding="utf-8") as f:
-            json.dump(response_data, f, indent=2)
+        _write_response_file(
+            response_file,
+            {
+                "user_id": user_id,
+                "category": category,
+                "message": message,
+                "timestamp": now_timestamp_full(),
+            },
+        )
         logger.debug(f"Wrote test message response file: {response_file}")
     except Exception as e:
         logger.debug(f"Could not write response file: {e}")
+
+
+def _write_response_file(response_file: Path, response_data: dict[str, Any]) -> None:
+    """Write a service response flag file as indented JSON."""
+    with open(response_file, "w", encoding="utf-8") as f:
+        json.dump(response_data, f, indent=2)
 
 
 @handle_errors("writing service request failure response", default_return=None)
@@ -311,6 +319,7 @@ def get_checkin_first_question(user_id: str) -> str | None:
     return None
 
 
+# not_duplicate: service_response_writers
 @handle_errors("writing check-in response", default_return=None)
 def write_checkin_response(
     user_id: str, first_question: str, *, base_dir: str | None = None
@@ -318,13 +327,14 @@ def write_checkin_response(
     try:
         root = base_dir if base_dir is not None else get_repo_base_directory()
         response_file = Path(root) / f"checkin_prompt_response_{user_id}.flag"
-        response_data = {
-            "user_id": user_id,
-            "first_question": first_question,
-            "timestamp": now_timestamp_full(),
-        }
-        with open(response_file, "w", encoding="utf-8") as f:
-            json.dump(response_data, f, indent=2)
+        _write_response_file(
+            response_file,
+            {
+                "user_id": user_id,
+                "first_question": first_question,
+                "timestamp": now_timestamp_full(),
+            },
+        )
         logger.debug(f"Wrote check-in prompt response file: {response_file}")
     except Exception as e:
         logger.debug(f"Could not write check-in response file: {e}")

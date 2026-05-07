@@ -304,6 +304,7 @@ def perform_cleanup(root_path="."):
     return True
 
 
+# not_duplicate: cleanup_retention_jobs
 @handle_errors("cleaning up old backup files", default_return=False)
 def cleanup_old_backup_files():
     """
@@ -422,6 +423,7 @@ def cleanup_old_backup_files():
         return False
 
 
+# not_duplicate: cleanup_retention_jobs
 @handle_errors("cleaning up old request files", default_return=False)
 def cleanup_old_request_files():
     """

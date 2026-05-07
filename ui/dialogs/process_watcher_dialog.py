@@ -413,39 +413,38 @@ class ProcessWatcherDialog(QDialog):
         except Exception as e:
             logger.error(f"Error handling process selection: {e}")
 
+    # not_duplicate: process_table_selection_adapters
     @handle_errors("updating process details from all processes")
     def update_process_details_from_all(self):
         """Update process details from all processes table."""
-        try:
-            current_row = self.all_processes_table.currentRow()
-            if current_row < 0:
-                return
+        self._update_process_details_from_table(
+            self.all_processes_table, "all processes"
+        )
 
-            pid_item = self.all_processes_table.item(current_row, 0)
-            if not pid_item:
-                return
-
-            pid = int(pid_item.text())
-            self.show_process_details(pid)
-        except Exception as e:
-            logger.error(f"Error updating process details from all processes: {e}")
-
+    # not_duplicate: process_table_selection_adapters
     @handle_errors("updating process details from MHM processes")
     def update_process_details_from_mhm(self):
         """Update process details from MHM processes table."""
+        self._update_process_details_from_table(
+            self.mhm_processes_table, "MHM processes"
+        )
+
+    @handle_errors("updating process details from table")
+    def _update_process_details_from_table(self, table, table_label: str):
+        """Update the detail pane from the selected row in a process table."""
         try:
-            current_row = self.mhm_processes_table.currentRow()
+            current_row = table.currentRow()
             if current_row < 0:
                 return
 
-            pid_item = self.mhm_processes_table.item(current_row, 0)
+            pid_item = table.item(current_row, 0)
             if not pid_item:
                 return
 
             pid = int(pid_item.text())
             self.show_process_details(pid)
         except Exception as e:
-            logger.error(f"Error updating process details from MHM processes: {e}")
+            logger.error(f"Error updating process details from {table_label}: {e}")
 
     @handle_errors("showing process details")
     def show_process_details(self, pid):
