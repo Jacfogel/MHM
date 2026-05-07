@@ -165,16 +165,6 @@ class TestUserPreferences:
         # Should return None for invalid key
         assert result is None
     
-    def test_update_preference_real_behavior(self, mock_user_data_dir, user_id):
-        """Test update_preference calls set_preference."""
-        prefs = UserPreferences(user_id)
-        prefs.preferences = {}
-        
-        with patch.object(prefs, 'set_preference') as mock_set:
-            prefs.update_preference('theme', 'dark')
-            
-            mock_set.assert_called_once_with('theme', 'dark')
-    
     def test_remove_preference_existing_real_behavior(self, mock_user_data_dir, user_id):
         """Test removing an existing preference."""
         prefs = UserPreferences(user_id)

@@ -7,18 +7,6 @@ factory_logger = get_component_logger('communication_manager')
 logger = factory_logger
 
 
-@handle_errors("getting available channels", default_return=[])
-def get_available_channels() -> list[str]:
-    """Compatibility wrapper so tests can patch either module or core.config path."""
-    return core.config.get_available_channels()
-
-
-@handle_errors("getting channel class mapping", default_return={})
-def get_channel_class_mapping() -> dict[str, str]:
-    """Compatibility wrapper so tests can patch either module or core.config path."""
-    return core.config.get_channel_class_mapping()
-
-
 class ChannelFactory:
     """Factory for creating communication channels using config-based discovery"""
     
@@ -34,8 +22,8 @@ class ChannelFactory:
 
         try:
             # Use configured channels for auto-registration
-            available_channels = get_available_channels()
-            channel_mapping = get_channel_class_mapping()
+            available_channels = core.config.get_available_channels()
+            channel_mapping = core.config.get_channel_class_mapping()
 
             for channel_name in available_channels:
                 if channel_name in channel_mapping:

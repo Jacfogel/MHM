@@ -533,11 +533,6 @@ class UserProfileSettingsWidget(QWidget):
             logger.error(f"Error ensuring required fields: {e}")
             raise
 
-    @handle_errors("getting settings", default_return={})
-    def get_settings(self):
-        """Get the current user profile settings."""
-        return self.get_personalization_data()
-
     @handle_errors("setting settings", default_return=False)
     def set_settings(self, settings):
         """Set the user profile settings."""

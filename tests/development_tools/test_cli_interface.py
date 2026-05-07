@@ -31,7 +31,7 @@ class _StubService:
         self.unused_imports_result = {"success": True}
         self.unused_imports_report_result = {"success": True}
         self.duplicate_function_calls = []
-        self.facade_shim_calls = 0
+        self.facade_shim_calls = []
         self.trees_calls = 0
         self.help_calls = 0
         self.backup_inventory_calls = 0
@@ -148,8 +148,8 @@ class _StubService:
         )
         return {"success": True}
 
-    def run_analyze_facade_shims(self):
-        self.facade_shim_calls += 1
+    def run_analyze_facade_shims(self, include_low_signal: bool = False):
+        self.facade_shim_calls.append(include_low_signal)
         return {"success": True}
 
     def generate_directory_trees(self):
@@ -365,11 +365,13 @@ def test_duplicate_functions_command_wires_flags(cli_module):
 def test_facade_shims_command_wires_flags(cli_module):
     service = _StubService()
 
-    code = cli_module._facade_shims_command(service, ["--include-all"])
+    code = cli_module._facade_shims_command(
+        service, ["--include-all", "--include-low-signal"]
+    )
 
     assert code == 0
     assert service.exclusion_calls == [(True, True)]
-    assert service.facade_shim_calls == 1
+    assert service.facade_shim_calls == [True]
 
 
 @pytest.mark.unit

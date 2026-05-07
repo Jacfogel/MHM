@@ -583,12 +583,6 @@ def process_all_requests(context: ServiceRequestContext) -> None:
     process_pending_file_requests(context)
 
 
-@handle_errors("processing all service request flags", default_return=None)
-def process_all(context: ServiceRequestContext) -> None:
-    """Backward-compatible alias for pending UI/headless request flags."""
-    process_all_requests(context)
-
-
 @handle_errors(
     "removing test message request file", user_friendly=False, default_return=False
 )

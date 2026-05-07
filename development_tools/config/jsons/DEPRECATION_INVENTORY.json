@@ -51,19 +51,6 @@
       "_parse_timestamp\\(",
       "LEGACY COMPATIBILITY: Parsed non-.*message timestamp"
     ],
-    "user_data_v1_runtime_adapters": [
-      "active_tasks\\.json",
-      "completed_tasks\\.json",
-      "task_schedules\\.json",
-      "[\"']task_id[\"']",
-      "[\"']completed_tasks[\"']",
-      "\\.get\\([\"']body[\"']",
-      "[\"']kind[\"']\\s*:\\s*[\"']journal[\"']",
-      "\\.get\\([\"']archived[\"']",
-      "[\"']message_id[\"']",
-      "[\"']delivery_status[\"']",
-      "\\.get\\([\"']timestamp[\"']"
-    ],
     "dashed_short_id_display": [
       "kind\\[0\\]-",
       "entry\\.kind\\[0\\]-",
@@ -71,16 +58,6 @@
     ]
   },
   "active_or_candidate_inventory": [
-    {
-      "id": "ai_chatbot_legacy_fallback_response",
-      "status": "active_bridge",
-      "search_terms": [
-        "_get_fallback_response",
-        "Legacy fallback method for backwards compatibility"
-      ],
-      "exit_criteria": "All callers use _get_contextual_fallback or the current response-generation path directly; remove _get_fallback_response and its compatibility wording after tests confirm fallback behavior still works.",
-      "notes": "Detected during facade/shim review on 2026-05-06. This is an explicit legacy fallback bridge in ai/chatbot.py and should be tracked by legacy tooling rather than treated only as a facade/shim candidate."
-    },
     {
       "id": "root_ruff_compat_mirror",
       "status": "active_bridge",
@@ -90,6 +67,11 @@
     }
   ],
   "removed_inventory": [
+    {
+      "id": "ai_chatbot_legacy_fallback_response",
+      "removed_at": "2026-05-06",
+      "note": "Removed unused _get_fallback_response bridge from ai/chatbot.py after search showed no active callers; current fallback path is _get_contextual_fallback."
+    },
     {
       "id": "legacy_timestamp_parsing",
       "removed_at": "2026-03-23",

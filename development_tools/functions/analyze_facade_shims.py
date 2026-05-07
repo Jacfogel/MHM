@@ -45,7 +45,7 @@ class FacadeShimFinding(TypedDict):
 
 
 _FACADE_WORD_RE = re.compile(
-    r"\b(facade|shim|compat(?:ibility)?|legacy|deprecated|bridge|adapter|alias)\b",
+    r"(?:^|[_\W])(facade|shim|compat(?:ibility)?|legacy|deprecated|bridge|adapter|alias)(?:[_\W]|$)",
     re.IGNORECASE,
 )
 
@@ -127,13 +127,23 @@ def _confidence(signals: list[str]) -> float:
 
 
 class _FacadeShimCollector(ast.NodeVisitor):
-    def __init__(self, file_path: Path, root: Path, content: str, term_to_id: dict[str, str]) -> None:
+    def __init__(
+        self,
+        file_path: Path,
+        root: Path,
+        content: str,
+        term_to_id: dict[str, str],
+        *,
+        include_low_signal: bool = False,
+    ) -> None:
         self.file_path = file_path
         self.root = root
         self.content = content
         self.term_to_id = term_to_id
+        self.include_low_signal = include_low_signal
         self.import_aliases: dict[str, str] = {}
         self.findings: list[FacadeShimFinding] = []
+        self.low_signal_findings: list[FacadeShimFinding] = []
         self.scope_depth = 0
 
     def _add(
@@ -145,24 +155,27 @@ class _FacadeShimCollector(ast.NodeVisitor):
         signals: list[str],
         target: str | None = None,
         inventory_id: str | None = None,
+        low_signal: bool = False,
     ) -> None:
         line = int(getattr(node, "lineno", 0) or 0)
-        self.findings.append(
-            {
-                "file": _normalize_path(self.file_path, self.root),
-                "line": line,
-                "symbol": symbol,
-                "kind": kind,
-                "confidence": _confidence(signals),
-                "signals": sorted(set(signals)),
-                "target": target,
-                "inventory_id": inventory_id,
-                "recommendation": (
-                    "Review whether this compatibility surface is still required; "
-                    "if retained, track it in the deprecation inventory."
-                ),
-            }
-        )
+        finding: FacadeShimFinding = {
+            "file": _normalize_path(self.file_path, self.root),
+            "line": line,
+            "symbol": symbol,
+            "kind": kind,
+            "confidence": _confidence(signals),
+            "signals": sorted(set(signals)),
+            "target": target,
+            "inventory_id": inventory_id,
+            "recommendation": (
+                "Review whether this compatibility surface is still required; "
+                "if retained, track it in the deprecation inventory."
+            ),
+        }
+        if low_signal and not self.include_low_signal:
+            self.low_signal_findings.append(finding)
+        else:
+            self.findings.append(finding)
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         module = node.module or ""
@@ -178,15 +191,17 @@ class _FacadeShimCollector(ast.NodeVisitor):
             inventory_id = _inventory_id_for_text(f"{local} {target}", self.term_to_id)
             if inventory_id:
                 signals.append("deprecation_inventory_term")
-            if signals:
-                self._add(
-                    node=node,
-                    symbol=local,
-                    kind="re_export_alias",
-                    signals=signals,
-                    target=target,
-                    inventory_id=inventory_id,
-                )
+        if signals:
+            low_signal = signals == ["import_alias"]
+            self._add(
+                node=node,
+                symbol=local,
+                kind="re_export_alias",
+                signals=signals,
+                target=target,
+                inventory_id=inventory_id,
+                low_signal=low_signal,
+            )
 
     def visit_Assign(self, node: ast.Assign) -> None:
         if self.scope_depth > 0:
@@ -235,6 +250,11 @@ class _FacadeShimCollector(ast.NodeVisitor):
         if inventory_id:
             signals.append("deprecation_inventory_term")
         if signals:
+            strong_signals = {
+                "deprecation_inventory_term",
+                "facade_shim_name_or_doc",
+            }
+            low_signal = target is not None and not (strong_signals & set(signals))
             self._add(
                 node=node,
                 symbol=node.name,
@@ -242,6 +262,7 @@ class _FacadeShimCollector(ast.NodeVisitor):
                 signals=signals,
                 target=target,
                 inventory_id=inventory_id,
+                low_signal=low_signal,
             )
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
@@ -252,7 +273,11 @@ class _FacadeShimCollector(ast.NodeVisitor):
             self.scope_depth -= 1
 
 
-def analyze_project(include_tests: bool = False, include_dev_tools: bool = False) -> dict[str, Any]:
+def analyze_project(
+    include_tests: bool = False,
+    include_dev_tools: bool = False,
+    include_low_signal: bool = False,
+) -> dict[str, Any]:
     root = Path(config.get_project_root()).resolve()
     scan_dirs = list(config.get_scan_directories())
     if include_tests and "tests" not in scan_dirs:
@@ -263,6 +288,7 @@ def analyze_project(include_tests: bool = False, include_dev_tools: bool = False
     _entries, term_to_id = _load_inventory(root)
 
     findings: list[FacadeShimFinding] = []
+    low_signal_count = 0
     for scan_dir in scan_dirs:
         dir_path = root / scan_dir
         if not dir_path.exists():
@@ -279,9 +305,16 @@ def analyze_project(include_tests: bool = False, include_dev_tools: bool = False
                 continue
             if has_devtools_ignore_marker(content, "facade-shims"):
                 continue
-            collector = _FacadeShimCollector(py_file, root, content, term_to_id)
+            collector = _FacadeShimCollector(
+                py_file,
+                root,
+                content,
+                term_to_id,
+                include_low_signal=include_low_signal,
+            )
             collector.visit(tree)
             findings.extend(collector.findings)
+            low_signal_count += len(collector.low_signal_findings)
 
     findings.sort(key=lambda item: (item["file"], item["line"], item["symbol"]))
     files_affected = {finding["file"] for finding in findings}
@@ -293,6 +326,13 @@ def analyze_project(include_tests: bool = False, include_dev_tools: bool = False
         "details": {
             "findings": findings,
             "inventory_terms_loaded": len(term_to_id),
+            "low_signal_candidates_filtered": low_signal_count,
+            "low_signal_filter": (
+                "Plain one-line delegating wrappers and generic import aliases "
+                "are filtered unless they also have facade/shim/compatibility naming, "
+                "compatibility documentation, or active deprecation-inventory terms. "
+                "Use --include-low-signal for the exhaustive advisory list."
+            ),
         },
     }
 
@@ -305,12 +345,21 @@ def main() -> int:
     parser.add_argument(
         "--include-dev-tools", action="store_true", help="Include development_tools."
     )
+    parser.add_argument(
+        "--include-low-signal",
+        action="store_true",
+        help=(
+            "Include plain thin wrappers and generic import aliases that lack "
+            "compatibility naming, docs, or active deprecation-inventory terms."
+        ),
+    )
     parser.add_argument("--json", action="store_true", help="Output JSON.")
     args = parser.parse_args()
 
     result = analyze_project(
         include_tests=args.include_tests,
         include_dev_tools=args.include_dev_tools,
+        include_low_signal=args.include_low_signal,
     )
     if args.json:
         print(json.dumps(result, indent=2))
@@ -320,6 +369,9 @@ def main() -> int:
         print("=======================")
         print(f"Candidates found: {summary['total_issues']}")
         print(f"Files affected: {summary['files_affected']}")
+        filtered = result.get("details", {}).get("low_signal_candidates_filtered", 0)
+        if filtered:
+            print(f"Low-signal candidates filtered: {filtered}")
     return 0
 
 

@@ -1217,52 +1217,6 @@ class SchedulerManager:
         """
         scheduler_task_reminders.schedule_all_task_reminders(self, user_id)
 
-    @handle_errors("selecting task for reminder with priority and due date weighting")
-    def _select_task_for_reminder__handle_edge_cases(self, incomplete_tasks):
-        """Handle edge cases for task selection."""
-        return scheduler_task_reminders.handle_task_selection_edge_cases(
-            incomplete_tasks
-        )
-
-    @handle_errors("calculating priority weight for task reminder")
-    def _select_task_for_reminder__calculate_priority_weight(self, task):
-        """Calculate priority-based weight for a task."""
-        return scheduler_task_reminders.calculate_priority_weight(task)
-
-    @handle_errors(
-        "calculating due date weight for reminder selection",
-        default_return=1.0,
-        user_friendly=False,
-    )
-    def _select_task_for_reminder__calculate_due_date_weight(self, task, today):
-        """Calculate due date proximity weight for a task."""
-        return scheduler_task_reminders.calculate_due_date_weight(task, today)
-
-    @handle_errors("calculating task weights for reminder selection")
-    def _select_task_for_reminder__calculate_task_weights(
-        self, incomplete_tasks, today
-    ):
-        """Calculate weights for all tasks."""
-        return scheduler_task_reminders.calculate_task_weights(
-            incomplete_tasks, today
-        )
-
-    @handle_errors("building task key for reminder selection", default_return="")
-    def _select_task_for_reminder__task_key(
-        self, task: dict[str, Any], index: int
-    ) -> str:
-        """Build a stable key for tracking reminder selection state."""
-        return scheduler_task_reminders.task_selection_key(task, index)
-
-    @handle_errors("selecting task by weight for reminder", default_return=None)
-    def _select_task_for_reminder__select_task_by_weight(
-        self, task_weights, incomplete_tasks
-    ):
-        """Select a task based on calculated weights using weighted random selection."""
-        return scheduler_task_reminders.select_task_by_weight(
-            self, task_weights, incomplete_tasks
-        )
-
     @handle_errors("selecting task for reminder", default_return=None)
     def select_task_for_reminder(
         self, incomplete_tasks: list[dict[str, Any]]

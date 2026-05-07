@@ -472,7 +472,7 @@ class ToolWrappersMixin:
             result["error"] = ""
         return result
 
-    def run_analyze_facade_shims(self) -> dict:
+    def run_analyze_facade_shims(self, include_low_signal: bool = False) -> dict:
         """Run analyze_facade_shims with structured JSON handling."""
         logger.debug("Analyzing facade/shim candidates...")
         args = ["--json"]
@@ -480,6 +480,8 @@ class ToolWrappersMixin:
             args.append("--include-tests")
         if self.exclusion_config.get("include_dev_tools", False):
             args.append("--include-dev-tools")
+        if include_low_signal:
+            args.append("--include-low-signal")
         result = self.run_script("analyze_facade_shims", *args)
         output = result.get("output", "")
         data = None

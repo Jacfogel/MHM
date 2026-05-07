@@ -83,11 +83,6 @@ class UserPreferences:
         """Get a preference value."""
         return self.preferences.get(key)
 
-    @handle_errors("updating preference")
-    def update_preference(self, key, value):
-        """Update a preference (alias for set_preference for consistency)."""
-        self.set_preference(key, value)
-
     @handle_errors("removing preference")
     def remove_preference(self, key):
         """Remove a preference."""

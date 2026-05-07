@@ -695,11 +695,6 @@ class MHMService:
         """Get the base directory for test message request files."""
         return os.path.dirname(os.path.dirname(__file__))
 
-    @handle_errors("checking if file is test message request", default_return=False)
-    def _cleanup_test_message_requests__is_test_message_request_file(self, filename):
-        """Check if a filename matches the test message request file pattern."""
-        return service_requests.is_test_message_request_filename(filename)
-
     @handle_errors(
         "removing test message request file", user_friendly=False, default_return=False
     )
@@ -725,36 +720,11 @@ class MHMService:
         """Get the base directory for reschedule request files."""
         return os.path.dirname(os.path.dirname(__file__))
 
-    @handle_errors("discovering reschedule request files", default_return=[])
-    def _check_reschedule_requests__discover_request_files(self, base_dir):
-        """Discover all reschedule request files in the base directory."""
-        return service_requests.discover_reschedule_request_files(base_dir)
-
-    @handle_errors(
-        "parsing reschedule request file",
-        default_return={
-            "user_id": None,
-            "category": None,
-            "source": "unknown",
-            "timestamp": 0,
-        },
-    )
-    def _check_reschedule_requests__parse_request_file(self, request_file):
-        """Parse and validate a reschedule request file."""
-        return service_requests.parse_reschedule_request_file(request_file)
-
     @handle_errors("validating reschedule request data", default_return=False)
     def _check_reschedule_requests__validate_request_data(self, request_data, filename):
         """Validate request data and check if it should be processed."""
         return service_requests.validate_reschedule_request_data(
             self.to_service_request_context(), request_data, filename
-        )
-
-    @handle_errors("processing reschedule request", default_return=None)
-    def _check_reschedule_requests__process_valid_request(self, request_data):
-        """Process a valid reschedule request."""
-        service_requests.process_valid_reschedule_request(
-            self.to_service_request_context(), request_data
         )
 
     @handle_errors(

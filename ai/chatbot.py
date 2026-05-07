@@ -605,14 +605,6 @@ class AIChatBotSingleton:
             )
 
     @handle_errors(
-        "getting fallback response",
-        default_return="I'd like to help with that! While my AI capabilities may be limited, I can offer encouragement and general wellness tips.",
-    )
-    def _get_fallback_response(self, user_prompt: str) -> str:
-        """Legacy fallback method for backwards compatibility."""
-        return self._get_contextual_fallback(user_prompt)
-
-    @handle_errors(
         "getting fallback personalized message",
         default_return="Wishing you a wonderful day! Remember that every small step toward your wellbeing matters.",
     )

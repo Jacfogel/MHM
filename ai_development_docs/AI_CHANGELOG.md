@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-06 - Facade/shim cleanup and signal tuning **COMPLETED**
+- Removed verified-dead compatibility/facade surfaces: chatbot fallback bridge, factory config wrappers, scheduler task-selection delegates, service request aliases, and unused UI/preference aliases.
+- Cleaned stale legacy audit noise by removing the broad `user_data_v1_runtime_adapters` scan bucket and moving the chatbot fallback bridge to removed inventory history.
+- Tightened `analyze_facade_shims` so default audit output focuses on named/documented compatibility surfaces or active deprecation-inventory hits; plain low-signal thin wrappers are still available with `--include-low-signal`.
+- Refreshed generated audit outputs; current facade/shim priority count is 8 default candidates, with 174 low-signal candidates filtered. Validation: focused product/dev-tools tests passed; standard audit passed. A full audit timed out after saving tightened facade JSON, so it is not counted as clean full-audit validation.
+
 ### 2026-05-06 - Dev-tools facade/shim analyzer and markers **COMPLETED**
 - Added advisory `facade-shims` tooling for facade, shim, re-export, alias, compatibility bridge, and deprecation-inventory candidates; registered it in CLI, service wrappers, tool metadata, Tier 2+ audit execution, cache inventory, scoped JSON storage, and AI status/priority/consolidated report output.
 - Standardized code-level tool suppressions through `# devtools: ignore[...]` and `# devtools: intentional[...]`; duplicate-function legacy markers still work, and legacy-reference scanning now honors `ignore[legacy-references]`.
@@ -159,20 +165,6 @@ Guidelines:
 - **Security/deps + docs tooling**: Re-ran `pip_audit` (still one unresolved advisory on `pip` / `CVE-2026-3219`, no fix version), regenerated docs (`run_development_tools.py docs`), and completed link/doc sync cleanup (`doc-fix --convert-links`, `doc-sync`).
 - **Notebook validation cleanup**: Removed legacy `journal` kind acceptance from notebook validation/prefix maps and simplified schema normalization logging for remaining alias behavior.
 - **Legacy verification and tracking**: Re-ran targeted `--verify` checks for task and notebook legacy terms, updated migration planning docs ([TODO.md](TODO.md), `TASKS_PLAN.md`, `NOTES_PLAN.md`), and refreshed deprecation inventory notes/search terms for the current removal scope.
-
-### 2026-04-27 - User data v2 native runtime adoption **COMPLETED**
-- **Task/notebook runtime cleanup**: removed task split-file fallback behavior in runtime handlers, shifted task manager logic to canonical v2 task identity/state fields, and aligned notebook runtime/tests to `journal_entry`/v2-first entry semantics.
-- **Message runtime v2-first**: template CRUD now normalizes to v2 template fields (`id`, `text`, `schedule`) and sent-message persistence/archiving now treats `deliveries[]` (`message_template_id`, `sent_text`, `status`, `sent_at`) as the primary storage path.
-- **Check-in runtime v2-first**: analytics and command rendering now prefer nested `responses` access through shared helpers instead of relying on flat top-level check-in fields.
-- **Module split + migration CLI**: task/notebook schema ownership was pushed toward domain modules (`tasks/task_schemas.py`, `notebook/notebook_schemas.py`), and `scripts/migrate_user_data_v2.py` now imports migration orchestration from `scripts.user_data_migration`.
-- **Validation**: `tests/unit/test_user_data_v2_migration.py` passes (12/12) after the runtime/test fixture updates and touched files are lint-clean.
-- **Legacy bridge compliance**: Remaining compatibility shims are now explicitly marked/logged as `LEGACY COMPATIBILITY`, and the deprecation inventory entry for `user_data_v1_runtime_adapters` was updated with current bridge scope plus removal criteria.
-- **Coverage logging**: Parallel Tier 3 runs classify pytest failures using on-disk coverage data (`.coverage_parallel` and/or shards) when the term-missing table is missing from the log, avoiding misleading `Coverage analysis failed` ERROR lines before combine.
-- **Task runtime**: `tasks.task_data_handlers` now writes canonical v2 task records directly for migrated/new `tasks/tasks.json` files and no longer uses bulk migration helpers on normal task saves.
-- **Notebook runtime**: notebook persistence now writes schema-version-2 entries directly and carries v2 fields (`description`, `status`, `short_id`, source/link/lifecycle metadata) through the runtime model while temporary `body`/`archived` compatibility remains explicit.
-- **Migration split**: one-time migration transforms, report helpers, backup orchestration, and user-root writes moved to `scripts.user_data_migration`, keeping migration tooling out of `core/`.
-- **Quality follow-up**: Closed remaining same-session priorities by switching helper timestamp/priority normalization to decorator-first error handling, updating task cleanup integration tests to canonical `tasks.json`, and resolving Pyright warnings to zero.
-- **Validation**: Focused v2/task/notebook/message/integration regressions pass, full `pyright` is clean, and `audit --full` completes successfully with updated priorities.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

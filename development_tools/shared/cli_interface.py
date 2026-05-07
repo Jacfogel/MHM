@@ -462,6 +462,11 @@ def _facade_shims_command(service: "AIToolsService", argv: Sequence[str]) -> int
         action="store_true",
         help="Include tests and dev tools (equivalent to --include-tests --include-dev-tools).",
     )
+    parser.add_argument(
+        "--include-low-signal",
+        action="store_true",
+        help="Include plain thin wrappers and generic import aliases filtered by default.",
+    )
 
     if any(arg in ("-h", "--help") for arg in argv):
         _print_command_help(parser)
@@ -472,7 +477,9 @@ def _facade_shims_command(service: "AIToolsService", argv: Sequence[str]) -> int
         include_tests=ns.include_tests or ns.include_all,
         include_dev_tools=ns.include_dev_tools or ns.include_all,
     )
-    result = service.run_analyze_facade_shims()
+    result = service.run_analyze_facade_shims(
+        include_low_signal=ns.include_low_signal
+    )
     success = result.get("success", False) if isinstance(result, dict) else bool(result)
     return 0 if success else 1
 
@@ -912,7 +919,7 @@ COMMAND_REGISTRY = OrderedDict(
             CommandRegistration(
                 "facade-shims",
                 _facade_shims_command,
-                "Detect facade, shim, alias, and compatibility bridge candidates.",
+                "Detect named/documented facade, shim, alias, and compatibility bridge candidates.",
             ),
         ),
         (

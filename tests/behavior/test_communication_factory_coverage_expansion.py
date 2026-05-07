@@ -39,8 +39,8 @@ class TestCommunicationFactoryCoverageExpansion:
         ChannelFactory._initialized = False
         ChannelFactory._channel_registry.clear()
         
-        with patch('communication.core.factory.get_available_channels') as mock_channels, patch(
-            'communication.core.factory.get_channel_class_mapping'
+        with patch.object(core.config, 'get_available_channels') as mock_channels, patch.object(
+            core.config, 'get_channel_class_mapping'
         ) as mock_mapping:
             mock_channels.return_value = ['test_channel']
             mock_mapping.return_value = {'test_channel': 'invalid.module.Class'}
@@ -57,8 +57,8 @@ class TestCommunicationFactoryCoverageExpansion:
         ChannelFactory._initialized = False
         ChannelFactory._channel_registry.clear()
         
-        with patch('communication.core.factory.get_available_channels') as mock_channels, patch(
-            'communication.core.factory.get_channel_class_mapping'
+        with patch.object(core.config, 'get_available_channels') as mock_channels, patch.object(
+            core.config, 'get_channel_class_mapping'
         ) as mock_mapping, patch('importlib.import_module') as mock_import:
             mock_channels.return_value = ['test_channel']
             mock_mapping.return_value = {'test_channel': 'tests.test_helpers.test_utilities.TestUserFactory'}
@@ -101,8 +101,8 @@ class TestCommunicationFactoryCoverageExpansion:
         ChannelFactory._initialized = False
         ChannelFactory._channel_registry.clear()
         
-        with patch('communication.core.factory.get_available_channels') as mock_channels, patch(
-            'communication.core.factory.get_channel_class_mapping'
+        with patch.object(core.config, 'get_available_channels') as mock_channels, patch.object(
+            core.config, 'get_channel_class_mapping'
         ) as mock_mapping:
             mock_channels.return_value = ['known_channel']
             mock_mapping.return_value = {'known_channel': 'tests.test_helpers.test_utilities.TestUserFactory'}
@@ -221,7 +221,7 @@ class TestCommunicationFactoryCoverageExpansion:
         ChannelFactory._initialized = False
         ChannelFactory._channel_registry.clear()
         
-        with patch('communication.core.factory.get_available_channels', side_effect=Exception("Config error")):
+        with patch.object(core.config, 'get_available_channels', side_effect=Exception("Config error")):
             # Act
             ChannelFactory._initialize_registry()
             
@@ -259,8 +259,8 @@ class TestCommunicationFactoryCoverageExpansion:
             async def health_check(self):
                 return True
         
-        with patch('communication.core.factory.get_available_channels') as mock_channels, patch(
-            'communication.core.factory.get_channel_class_mapping'
+        with patch.object(core.config, 'get_available_channels') as mock_channels, patch.object(
+            core.config, 'get_channel_class_mapping'
         ) as mock_mapping, patch('importlib.import_module') as mock_import:
             mock_channels.return_value = ['error_channel']
             mock_mapping.return_value = {'error_channel': 'tests.test_helpers.test_utilities.TestUserFactory'}
@@ -322,8 +322,8 @@ class TestCommunicationFactoryCoverageExpansion:
         ChannelFactory._initialized = False
         ChannelFactory._channel_registry.clear()
         
-        with patch('communication.core.factory.get_available_channels') as mock_channels, patch(
-            'communication.core.factory.get_channel_class_mapping'
+        with patch.object(core.config, 'get_available_channels') as mock_channels, patch.object(
+            core.config, 'get_channel_class_mapping'
         ) as mock_mapping:
             mock_channels.return_value = ['dynamic_channel']
             mock_mapping.return_value = {'dynamic_channel': 'communication.communication_channels.discord.bot.DiscordBot'}
@@ -361,10 +361,10 @@ class TestCommunicationFactoryCoverageExpansion:
         ChannelFactory._initialized = False
         ChannelFactory._channel_registry.clear()
         
-        with patch('communication.core.factory.logger') as mock_logger, patch(
-            'communication.core.factory.get_available_channels'
-        ) as mock_channels, patch(
-            'communication.core.factory.get_channel_class_mapping'
+        with patch('communication.core.factory.logger') as mock_logger, patch.object(
+            core.config, 'get_available_channels'
+        ) as mock_channels, patch.object(
+            core.config, 'get_channel_class_mapping'
         ) as mock_mapping:
             mock_channels.return_value = ['logging_channel']
             mock_mapping.return_value = {'logging_channel': 'tests.test_helpers.test_utilities.TestUserFactory'}
