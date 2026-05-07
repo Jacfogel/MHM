@@ -158,6 +158,8 @@ pyright-report.json
 # Ad-hoc Bandit JSON dumps (e.g. `bandit -r ... -f json -o br.json`); not project config
 /br.json
 development_tools/**/jsons/
+!development_tools/config/jsons/
+!development_tools/config/jsons/DEPRECATION_INVENTORY.json
 development_tools/config/development_tools_config.json
 development_tools/tests/coverage_html/
 development_tools/tests/.coverage*

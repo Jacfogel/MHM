@@ -1,10 +1,12 @@
 {
+  "schema_version": 1,
+  "description": "Tier membership from audit_tiers.get_expected_tools_for_tier; non-audit entries are script-registry keys missing from tier unions.",
   "audit_tools": {
     "analyze_ai_work": {
       "in_tier1_quick": true,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/ai_work"
       ]
@@ -12,8 +14,8 @@
     "analyze_backup_health": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": false,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/shared"
       ]
@@ -21,8 +23,8 @@
     "analyze_bandit": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": false,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "AI_STATUS Static Analysis",
         "jsons/static_checks"
@@ -31,8 +33,8 @@
     "analyze_config": {
       "in_tier1_quick": true,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/config"
       ]
@@ -40,8 +42,8 @@
     "analyze_dependency_patterns": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/imports"
       ]
@@ -49,8 +51,8 @@
     "analyze_dev_tools_import_boundaries": {
       "in_tier1_quick": true,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/imports"
       ]
@@ -58,8 +60,8 @@
     "analyze_documentation": {
       "in_tier1_quick": true,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "CONSOLIDATED_REPORT",
         "jsons/docs"
@@ -68,8 +70,8 @@
     "analyze_documentation_sync": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "CONSOLIDATED_REPORT",
         "jsons/docs"
@@ -78,8 +80,8 @@
     "analyze_duplicate_functions": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/functions",
         "AI_PRIORITIES"
@@ -88,17 +90,29 @@
     "analyze_error_handling": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/error_handling"
+      ]
+    },
+    "analyze_facade_shims": {
+      "in_tier1_quick": false,
+      "in_tier2_standard_expanded": true,
+      "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
+      "report_surface_hints": [
+        "jsons/functions",
+        "AI_PRIORITIES",
+        "AI_STATUS",
+        "CONSOLIDATED_REPORT"
       ]
     },
     "analyze_function_patterns": {
       "in_tier1_quick": true,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/functions"
       ]
@@ -106,8 +120,8 @@
     "analyze_function_registry": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/functions"
       ]
@@ -115,8 +129,8 @@
     "analyze_functions": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/functions"
       ]
@@ -124,8 +138,8 @@
     "analyze_legacy_references": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": false,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/legacy"
       ]
@@ -133,8 +147,8 @@
     "analyze_module_dependencies": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/imports"
       ]
@@ -142,8 +156,8 @@
     "analyze_module_imports": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/imports"
       ]
@@ -151,8 +165,8 @@
     "analyze_module_refactor_candidates": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/functions",
         "AI_PRIORITIES"
@@ -161,8 +175,8 @@
     "analyze_package_exports": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/functions"
       ]
@@ -170,8 +184,8 @@
     "analyze_pip_audit": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": false,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "AI_STATUS Static Analysis",
         "jsons/static_checks"
@@ -180,8 +194,8 @@
     "analyze_pyright": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": false,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "AI_STATUS Static Analysis",
         "jsons/static_checks"
@@ -190,8 +204,8 @@
     "analyze_ruff": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": false,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "AI_STATUS Static Analysis",
         "jsons/static_checks"
@@ -200,8 +214,8 @@
     "analyze_system_signals": {
       "in_tier1_quick": true,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "AI_STATUS System Signals",
         "CONSOLIDATED_REPORT"
@@ -210,8 +224,8 @@
     "analyze_test_markers": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": false,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "AI_STATUS Test Markers"
       ]
@@ -219,8 +233,8 @@
     "analyze_unused_imports": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/imports"
       ]
@@ -228,8 +242,8 @@
     "decision_support": {
       "in_tier1_quick": true,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/reports",
         "AI_PRIORITIES"
@@ -238,8 +252,8 @@
     "generate_dev_tools_coverage": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": false,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": false,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "AI_STATUS Development Tools Coverage",
         "coverage_dev_tools.json"
@@ -248,8 +262,8 @@
     "generate_legacy_reference_report": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": false,
-      "in_tier3_dev_tools_only_audit": false,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": false,
       "report_surface_hints": [
         "development_docs/LEGACY_REFERENCE_REPORT.md"
       ]
@@ -257,8 +271,8 @@
     "generate_test_coverage_report": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": false,
-      "in_tier3_dev_tools_only_audit": false,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": false,
       "report_surface_hints": [
         "development_docs/TEST_COVERAGE_REPORT.md"
       ]
@@ -266,8 +280,8 @@
     "generate_unused_imports_report": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": true,
-      "in_tier3_dev_tools_only_audit": false,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": false,
       "report_surface_hints": [
         "development_docs/UNUSED_IMPORTS_REPORT.md"
       ]
@@ -275,8 +289,8 @@
     "quick_status": {
       "in_tier1_quick": true,
       "in_tier2_standard_expanded": false,
-      "in_tier3_dev_tools_only_audit": false,
       "in_tier3_full_repo_audit": false,
+      "in_tier3_dev_tools_only_audit": false,
       "report_surface_hints": [
         "jsons/reports"
       ]
@@ -284,8 +298,8 @@
     "run_test_coverage": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": false,
-      "in_tier3_dev_tools_only_audit": false,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": false,
       "report_surface_hints": [
         "AI_STATUS Test Coverage",
         "TEST_COVERAGE_REPORT",
@@ -295,135 +309,133 @@
     "verify_process_cleanup": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": false,
-      "in_tier3_dev_tools_only_audit": true,
       "in_tier3_full_repo_audit": true,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "AI_STATUS Pytest process cleanup"
       ]
     }
   },
-  "description": "Tier membership from audit_tiers.get_expected_tools_for_tier; non-audit entries are script-registry keys missing from tier unions.",
-  "schema_version": 1,
   "script_registry_tools_not_in_audit_matrix": [
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "analyze_ascii_compliance"
+      "tool": "analyze_ascii_compliance",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "analyze_heading_numbering"
+      "tool": "analyze_heading_numbering",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "analyze_missing_addresses"
+      "tool": "analyze_missing_addresses",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "analyze_path_drift"
+      "tool": "analyze_path_drift",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "analyze_test_coverage"
+      "tool": "analyze_test_coverage",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "analyze_unconverted_links"
+      "tool": "analyze_unconverted_links",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "cleanup_project"
+      "tool": "cleanup_project",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "common"
+      "tool": "common",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "config"
+      "tool": "config",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "constants"
+      "tool": "constants",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "export_code_snapshot"
+      "tool": "export_code_snapshot",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "export_docs_snapshot"
+      "tool": "export_docs_snapshot",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "file_rotation"
+      "tool": "file_rotation",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "fix_documentation"
+      "tool": "fix_documentation",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "fix_documentation_addresses"
+      "tool": "fix_documentation_addresses",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "fix_documentation_ascii"
+      "tool": "fix_documentation_ascii",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "fix_documentation_headings"
+      "tool": "fix_documentation_headings",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "fix_documentation_links"
+      "tool": "fix_documentation_links",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "not_in_tier_lists_review_if_new",
-      "tool": "fix_function_docstrings"
+      "tool": "fix_function_docstrings",
+      "reason": "not_in_tier_lists_review_if_new"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "fix_legacy_references"
+      "tool": "fix_legacy_references",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "manual_docs_cli",
-      "tool": "fix_version_sync"
+      "tool": "fix_version_sync",
+      "reason": "manual_docs_cli"
     },
     {
-      "reason": "manual_cli_nested_pytest",
-      "tool": "flaky_detector"
+      "tool": "flaky_detector",
+      "reason": "manual_cli_nested_pytest"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "generate_consolidated_report"
+      "tool": "generate_consolidated_report",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "generate_directory_tree"
+      "tool": "generate_directory_tree",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "generate_error_handling_report"
+      "tool": "generate_error_handling_report",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "generate_function_registry"
+      "tool": "generate_function_registry",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "generate_module_dependencies"
+      "tool": "generate_module_dependencies",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "operations"
+      "tool": "operations",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "standard_exclusions"
+      "tool": "standard_exclusions",
+      "reason": "core_script_not_in_tier_lists"
     },
     {
-      "reason": "core_script_not_in_tier_lists",
-      "tool": "tool_guide"
+      "tool": "tool_guide",
+      "reason": "core_script_not_in_tier_lists"
     }
   ]
 }

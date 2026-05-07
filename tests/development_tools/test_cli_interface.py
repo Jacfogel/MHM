@@ -31,6 +31,7 @@ class _StubService:
         self.unused_imports_result = {"success": True}
         self.unused_imports_report_result = {"success": True}
         self.duplicate_function_calls = []
+        self.facade_shim_calls = 0
         self.trees_calls = 0
         self.help_calls = 0
         self.backup_inventory_calls = 0
@@ -145,6 +146,10 @@ class _StubService:
                 body_for_near_miss_only,
             )
         )
+        return {"success": True}
+
+    def run_analyze_facade_shims(self):
+        self.facade_shim_calls += 1
         return {"success": True}
 
     def generate_directory_trees(self):
@@ -357,6 +362,17 @@ def test_duplicate_functions_command_wires_flags(cli_module):
 
 
 @pytest.mark.unit
+def test_facade_shims_command_wires_flags(cli_module):
+    service = _StubService()
+
+    code = cli_module._facade_shims_command(service, ["--include-all"])
+
+    assert code == 0
+    assert service.exclusion_calls == [(True, True)]
+    assert service.facade_shim_calls == 1
+
+
+@pytest.mark.unit
 def test_backup_subcommands_wire_to_service(cli_module):
     service = _StubService()
 
@@ -398,3 +414,4 @@ def test_list_commands_contains_expected_aliases(cli_module):
     assert "clean-up" in names
     assert "flaky-detector" in names
     assert "verify-process-cleanup" in names
+    assert "facade-shims" in names

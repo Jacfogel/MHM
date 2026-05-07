@@ -61,9 +61,17 @@ from development_tools.shared.logging import get_dev_tools_logger
 try:
     from .. import config
     from ..shared.standard_exclusions import should_exclude_file
+    from ..shared.exclusion_utilities import (
+        get_devtools_intentional_marker,
+        has_devtools_ignore_marker,
+    )
 except ImportError:
     from development_tools import config
     from development_tools.shared.standard_exclusions import should_exclude_file
+    from development_tools.shared.exclusion_utilities import (
+        get_devtools_intentional_marker,
+        has_devtools_ignore_marker,
+    )
 
 config.load_external_config()
 
@@ -87,6 +95,8 @@ class _PairResultRequired(TypedDict):
     overall_similarity: float
     name_similarity: float
     args_similarity: float
+    argument_name_similarity: float
+    argument_shape_similarity: float
     locals_similarity: float
     imports_similarity: float
     a: FunctionSummary
@@ -123,6 +133,7 @@ class FunctionRecord:
     locals_used: tuple[str, ...]
     imports_used: tuple[str, ...]
     name_tokens: tuple[str, ...]
+    arg_signature: tuple[str, ...] = ()
     excluded: bool = False  # True if # duplicate_functions_exclude (or variant) in function
     intentional_group_id: str | None = None  # If set, group is omitted only when every member has same id
     body_node_sequence: tuple[str, ...] | None = None  # AST node-type sequence when body similarity enabled
@@ -202,47 +213,12 @@ class _LocalNameCollector(ast.NodeVisitor):
 
 def _function_has_exclude_comment(content: str, node: FunctionNode) -> bool:
     """Return True if the function (or a few lines before it) contains duplicate_functions_exclude."""
-    if not content:
-        return False
-    lines = content.split("\n")
-    start_lineno = _function_marker_start_lineno(node)
-    end_lineno = getattr(node, "end_lineno", start_lineno) or start_lineno
-    context_start = max(0, start_lineno - 4)
-    snippet = "\n".join(lines[context_start:end_lineno]).lower()
-    return (
-        "# duplicate_functions_exclude" in snippet
-        or "# duplicate functions exclude" in snippet
-    )
+    return has_devtools_ignore_marker(content, "duplicate-functions", node)
 
 
 def _get_intentional_group_id(content: str, node: FunctionNode) -> str | None:
     """If the function (or a few lines before it) has an intentional/not_duplicate marker with a group id after a colon, return that id (normalized). Otherwise None."""
-    if not content:
-        return None
-    lines = content.split("\n")
-    start_lineno = _function_marker_start_lineno(node)
-    end_lineno = getattr(node, "end_lineno", start_lineno) or start_lineno
-    # Include enough lines before def so comment above decorator(s) is found
-    context_start = max(0, start_lineno - 8)
-    snippet_lower = "\n".join(lines[context_start:end_lineno]).lower()
-    markers = (
-        "# duplicate_functions_intentional:",
-        "# not_duplicate:",
-        "# duplicate functions intentional:",
-    )
-    for marker in markers:
-        idx = snippet_lower.find(marker)
-        if idx >= 0:
-            rest = snippet_lower[idx + len(marker) :].split("\n")[0].strip()
-            group_id = rest.split("#")[0].strip()
-            return group_id if group_id else ""
-    if (
-        "# duplicate_functions_intentional" in snippet_lower
-        or "# not_duplicate" in snippet_lower
-        or "# duplicate functions intentional" in snippet_lower
-    ):
-        return ""
-    return None
+    return get_devtools_intentional_marker(content, "duplicate-functions", node)
 
 
 def _function_marker_start_lineno(node: FunctionNode) -> int:
@@ -269,6 +245,44 @@ def _body_node_sequence(node: FunctionNode) -> tuple[str, ...]:
     return tuple(type(stmt).__name__ for stmt in node.body)
 
 
+def _argument_signature(node: FunctionNode) -> tuple[str, ...]:
+    """Return a compact shape signature for positional/keyword/variadic arguments."""
+    args = node.args
+    positional = list(args.posonlyargs) + list(args.args)
+    positional_no_self = [
+        arg for arg in positional if arg.arg and arg.arg not in ("self", "cls")
+    ]
+    required_positional = max(0, len(positional_no_self) - len(args.defaults))
+    optional_positional = min(len(positional_no_self), len(args.defaults))
+    required_kwonly = sum(1 for default in args.kw_defaults if default is None)
+    optional_kwonly = len(args.kwonlyargs) - required_kwonly
+    return (
+        f"pos:{len(positional_no_self)}",
+        f"pos_required:{required_positional}",
+        f"pos_optional:{optional_positional}",
+        f"kwonly:{len(args.kwonlyargs)}",
+        f"kw_required:{required_kwonly}",
+        f"kw_optional:{optional_kwonly}",
+        f"vararg:{bool(args.vararg)}",
+        f"kwarg:{bool(args.kwarg)}",
+    )
+
+
+def _argument_name_tokens(args: Iterable[str]) -> tuple[str, ...]:
+    tokens: list[str] = []
+    for arg in args:
+        tokens.extend(_tokenize_name(arg))
+    return tuple(tokens)
+
+
+def _argument_similarity(a: FunctionRecord, b: FunctionRecord) -> tuple[float, float, float]:
+    """Return combined, name-token, and shape argument similarity."""
+    name_score = _jaccard(_argument_name_tokens(a.args), _argument_name_tokens(b.args))
+    shape_score = _jaccard(a.arg_signature, b.arg_signature)
+    combined = (name_score + shape_score) / 2 if a.args or b.args else shape_score
+    return combined, name_score, shape_score
+
+
 class _FunctionCollector(ast.NodeVisitor):
     def __init__(
         self,
@@ -293,11 +307,16 @@ class _FunctionCollector(ast.NodeVisitor):
         class_name = self.class_stack[-1] if self.class_stack else None
         full_name = f"{class_name}.{node.name}" if class_name else node.name
 
-        args = [
+        arg_names = [
             arg.arg
             for arg in node.args.args
             if arg.arg and arg.arg not in ("self", "cls")
         ]
+        arg_names.extend(arg.arg for arg in node.args.kwonlyargs if arg.arg)
+        if node.args.vararg and node.args.vararg.arg:
+            arg_names.append(node.args.vararg.arg)
+        if node.args.kwarg and node.args.kwarg.arg:
+            arg_names.append(node.args.kwarg.arg)
         locals_collector = _LocalNameCollector()
         for stmt in node.body:
             locals_collector.visit(stmt)
@@ -321,10 +340,11 @@ class _FunctionCollector(ast.NodeVisitor):
             class_name=class_name,
             file_path=self.file_path,
             line=getattr(node, "lineno", 0),
-            args=tuple(arg.lower() for arg in args),
+            args=tuple(arg.lower() for arg in arg_names),
             locals_used=tuple(locals_used),
             imports_used=self.imports_used,
             name_tokens=tuple(name_tokens),
+            arg_signature=_argument_signature(node),
             excluded=excluded,
             intentional_group_id=intentional_group_id,
             body_node_sequence=body_seq,
@@ -371,6 +391,7 @@ def _serialize_records(
             "file_path": record.file_path,
             "line": record.line,
             "args": list(record.args),
+            "arg_signature": list(record.arg_signature),
             "locals_used": list(record.locals_used),
             "imports_used": list(record.imports_used),
             "name_tokens": list(record.name_tokens),
@@ -395,6 +416,10 @@ def _deserialize_records(data: list[dict[str, Any]]) -> list[FunctionRecord]:
         line = int(line_raw) if isinstance(line_raw, (int, float)) else 0
         args_raw = item.get("args", [])
         args_seq = args_raw if isinstance(args_raw, (list, tuple)) else []
+        arg_signature_raw = item.get("arg_signature", [])
+        arg_signature_seq = (
+            arg_signature_raw if isinstance(arg_signature_raw, (list, tuple)) else []
+        )
         locals_raw = item.get("locals_used", [])
         locals_seq = locals_raw if isinstance(locals_raw, (list, tuple)) else []
         imports_raw = item.get("imports_used", [])
@@ -416,6 +441,7 @@ def _deserialize_records(data: list[dict[str, Any]]) -> list[FunctionRecord]:
                 locals_used=tuple(str(name).lower() for name in locals_seq),
                 imports_used=tuple(str(name) for name in imports_seq),
                 name_tokens=tuple(str(token) for token in tokens_seq),
+                arg_signature=tuple(str(token) for token in arg_signature_seq),
                 excluded=bool(item.get("excluded", False)),
                 intentional_group_id=_deserialize_intentional_group_id(item.get("intentional_group_id")),
                 body_node_sequence=body_seq,
@@ -606,6 +632,34 @@ def _build_body_candidate_pairs(
     return pairs
 
 
+def _build_argument_candidate_pairs(
+    records: list[FunctionRecord],
+    min_argument_similarity: float,
+    max_pairs: int,
+) -> set[tuple[int, int]]:
+    """Build extra candidate pairs whose argument signatures are strongly similar."""
+    eligible = [
+        idx
+        for idx, record in enumerate(records)
+        if not getattr(record, "excluded", False)
+        and (record.args or record.arg_signature)
+    ]
+    pairs: set[tuple[int, int]] = set()
+    for i in range(len(eligible)):
+        a_id = eligible[i]
+        for j in range(i + 1, len(eligible)):
+            b_id = eligible[j]
+            combined, _name_score, _shape_score = _argument_similarity(
+                records[a_id], records[b_id]
+            )
+            if combined < min_argument_similarity:
+                continue
+            pairs.add((min(a_id, b_id), max(a_id, b_id)))
+            if len(pairs) >= max_pairs:
+                return pairs
+    return pairs
+
+
 def _record_identity(
     record: FunctionRecord, project_root: Path | None = None
 ) -> tuple[str, int, str]:
@@ -642,12 +696,14 @@ def _compute_similarity(
     a: FunctionRecord, b: FunctionRecord, weights: dict[str, float]
 ) -> tuple[float, dict[str, float]]:
     name_score = _jaccard(a.name_tokens, b.name_tokens)
-    args_score = _jaccard(a.args, b.args)
+    args_score, argument_name_score, argument_shape_score = _argument_similarity(a, b)
     locals_score = _jaccard(a.locals_used, b.locals_used)
     imports_score = _jaccard(a.imports_used, b.imports_used)
     scores: dict[str, float] = {
         "name": name_score,
         "args": args_score,
+        "argument_name": argument_name_score,
+        "argument_shape": argument_shape_score,
         "locals": locals_score,
         "imports": imports_score,
     }
@@ -691,6 +747,11 @@ def _analyze_duplicates(
     )
     max_body_candidate_pairs = int(config_values.get("max_body_candidate_pairs", 5000))
     body_similarity_scope = str(config_values.get("body_similarity_scope", "same_file"))
+    consider_argument_similarity_candidates = bool(
+        config_values.get("consider_argument_similarity_candidates", True)
+    )
+    min_argument_similarity = float(config_values.get("min_argument_similarity", 0.75))
+    max_argument_candidate_pairs = int(config_values.get("max_argument_candidate_pairs", 5000))
     weights = dict(weights or {})
     body_weight = float(weights.get("body", 0.0))
     if (consider_body_similarity or body_for_near_miss_only) and body_weight == 0.0:
@@ -713,6 +774,16 @@ def _analyze_duplicates(
         max_token_group_size=max_token_group_size,
         max_candidate_pairs=max_candidate_pairs,
     )
+    argument_pairs: set[tuple[int, int]] = set()
+    argument_pairs_count = 0
+    if consider_argument_similarity_candidates:
+        argument_pairs = _build_argument_candidate_pairs(
+            records,
+            min_argument_similarity=min_argument_similarity,
+            max_pairs=max_argument_candidate_pairs,
+        )
+        argument_pairs_count = len(argument_pairs)
+        candidate_pairs = candidate_pairs.union(argument_pairs)
     body_pairs_count = 0
     if consider_body_similarity and not body_for_near_miss_only:
         body_pairs = _build_body_candidate_pairs(
@@ -752,7 +823,12 @@ def _analyze_duplicates(
         else:
             overall, scores = _compute_similarity(a, b, weights)
             use_body_score = "body" in scores and body_weight > 0
-            if not use_body_score and scores["name"] < min_name_similarity:
+            is_argument_candidate = (min(a_id, b_id), max(a_id, b_id)) in argument_pairs
+            if (
+                not use_body_score
+                and not is_argument_candidate
+                and scores["name"] < min_name_similarity
+            ):
                 continue
             if overall < min_overall_similarity:
                 continue
@@ -805,6 +881,10 @@ def _analyze_duplicates(
         "max_groups": max_groups,
         "skipped_token_groups": skipped_tokens,
         "candidate_pair_cap_reached": max_reached,
+        "argument_candidate_pairs_considered": argument_pairs_count,
+        "consider_argument_similarity_candidates": consider_argument_similarity_candidates,
+        "min_argument_similarity": min_argument_similarity,
+        "max_argument_candidate_pairs": max_argument_candidate_pairs,
         "groups_capped": len(multi_function_groups) > max_groups and max_groups > 0,
         "top_pairs": pair_results[:max_pairs],
         "duplicate_groups": groups,
@@ -843,6 +923,8 @@ def _make_pair_result_item(
         "overall_similarity": round(overall, 3),
         "name_similarity": round(scores["name"], 3),
         "args_similarity": round(scores["args"], 3),
+        "argument_name_similarity": round(scores.get("argument_name", 0.0), 3),
+        "argument_shape_similarity": round(scores.get("argument_shape", 0.0), 3),
         "locals_similarity": round(scores["locals"], 3),
         "imports_similarity": round(scores["imports"], 3),
         "a": _record_summary(a),

@@ -286,6 +286,74 @@ class TestDeprecationInventoryIntegration:
         assert any("inventory_token.py" in file_path for file_path in files)
 
     @pytest.mark.unit
+    def test_analyzer_flags_backwards_compatibility_docstring(self, tmp_path):
+        """Explicit backwards-compatibility docstrings should be legacy findings."""
+        inventory_path = (
+            tmp_path
+            / "development_tools"
+            / "config"
+            / "jsons"
+            / "DEPRECATION_INVENTORY.json"
+        )
+        inventory_path.parent.mkdir(parents=True, exist_ok=True)
+        inventory_path.write_text(
+            """
+{
+  "legacy_scan_patterns": {
+    "legacy_inventory_tracking": ["(?i)backwards? compatibility"]
+  },
+  "active_or_candidate_inventory": [
+    {
+      "id": "legacy_fallback_bridge",
+      "status": "active_bridge",
+      "search_terms": ["_get_fallback_response"]
+    }
+  ],
+  "removed_inventory": []
+}
+            """.strip(),
+            encoding="utf-8",
+        )
+
+        source_file = tmp_path / "ai" / "chatbot.py"
+        source_file.parent.mkdir(parents=True, exist_ok=True)
+        source_file.write_text(
+            '''
+class Bot:
+    def _get_fallback_response(self, user_prompt: str) -> str:
+        """Legacy fallback method for backwards compatibility."""
+        return self._get_contextual_fallback(user_prompt)
+            '''.strip(),
+            encoding="utf-8",
+        )
+
+        legacy_cleanup = {
+            "deprecation_inventory_file": "development_tools/config/jsons/DEPRECATION_INVENTORY.json"
+        }
+        config_mod = analyzer_module.config
+        orig_get = config_mod.get_external_value
+        with patch.object(config_mod, "get_external_value") as mock_get:
+            mock_get.side_effect = (
+                lambda key, default=None: legacy_cleanup
+                if key == "legacy_cleanup"
+                else orig_get(key, default)
+            )
+            analyzer = LegacyReferenceAnalyzer(str(tmp_path), use_cache=False)
+            findings = analyzer.scan_for_legacy_references()
+
+        tracking_matches = findings.get("legacy_inventory_tracking", [])
+        inventory_matches = findings.get("deprecation_inventory_terms", [])
+
+        assert any(
+            "ai/chatbot.py" in file_path.replace("\\", "/")
+            for file_path, _, _ in tracking_matches
+        )
+        assert any(
+            "ai/chatbot.py" in file_path.replace("\\", "/")
+            for file_path, _, _ in inventory_matches
+        )
+
+    @pytest.mark.unit
     def test_report_mentions_missing_inventory(self, demo_project_root):
         """Report should include deprecation inventory status block."""
         analyzer = LegacyReferenceAnalyzer(str(demo_project_root), use_cache=False)

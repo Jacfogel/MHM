@@ -358,6 +358,117 @@ def test_compute_similarity_applies_weights(dupes_module):
 
 
 @pytest.mark.unit
+def test_argument_signature_captures_keyword_and_variadic_args(dupes_module):
+    """_argument_signature should include keyword-only and variadic argument shape."""
+    code = (
+        "def configure(name, count=1, *items, enabled, mode='x', **options):\n"
+        "    return None\n"
+    )
+    node = dupes_module.ast.parse(code).body[0]
+
+    signature = dupes_module._argument_signature(node)
+
+    assert "pos:2" in signature
+    assert "pos_required:1" in signature
+    assert "pos_optional:1" in signature
+    assert "kwonly:2" in signature
+    assert "kw_required:1" in signature
+    assert "kw_optional:1" in signature
+    assert "vararg:True" in signature
+    assert "kwarg:True" in signature
+
+
+@pytest.mark.unit
+def test_argument_candidate_pairs_expand_dissimilar_names(dupes_module):
+    """Argument-similar functions should be candidates even when names do not overlap."""
+    record = dupes_module.FunctionRecord
+    a = record(
+        name="alpha",
+        full_name="alpha",
+        class_name=None,
+        file_path="a.py",
+        line=1,
+        args=("user_id", "enabled"),
+        locals_used=(),
+        imports_used=(),
+        name_tokens=("alpha",),
+        arg_signature=("pos:2", "pos_required:2", "kwonly:0"),
+    )
+    b = record(
+        name="omega",
+        full_name="omega",
+        class_name=None,
+        file_path="b.py",
+        line=2,
+        args=("user_id", "enabled"),
+        locals_used=(),
+        imports_used=(),
+        name_tokens=("omega",),
+        arg_signature=("pos:2", "pos_required:2", "kwonly:0"),
+    )
+
+    pairs = dupes_module._build_argument_candidate_pairs(
+        [a, b],
+        min_argument_similarity=0.75,
+        max_pairs=10,
+    )
+
+    assert pairs == {(0, 1)}
+
+
+@pytest.mark.unit
+def test_analyze_duplicates_reports_argument_similarity_scores(dupes_module):
+    """Pair examples should keep args_similarity and add argument detail scores."""
+    record = dupes_module.FunctionRecord
+    records = [
+        record(
+            name="alpha",
+            full_name="alpha",
+            class_name=None,
+            file_path="a.py",
+            line=1,
+            args=("user_id", "enabled"),
+            locals_used=(),
+            imports_used=(),
+            name_tokens=("alpha",),
+            arg_signature=("pos:2", "pos_required:2", "kwonly:0"),
+        ),
+        record(
+            name="omega",
+            full_name="omega",
+            class_name=None,
+            file_path="b.py",
+            line=2,
+            args=("user_id", "enabled"),
+            locals_used=(),
+            imports_used=(),
+            name_tokens=("omega",),
+            arg_signature=("pos:2", "pos_required:2", "kwonly:0"),
+        ),
+    ]
+    config = {
+        "weights": {"name": 0.0, "args": 1.0, "locals": 0.0, "imports": 0.0},
+        "min_name_similarity": 0.9,
+        "min_overall_similarity": 0.75,
+        "max_pairs": 50,
+        "max_groups": 25,
+        "max_candidate_pairs": 20000,
+        "max_token_group_size": 200,
+        "stop_name_tokens": [],
+        "consider_argument_similarity_candidates": True,
+        "min_argument_similarity": 0.75,
+        "max_argument_candidate_pairs": 10,
+    }
+    with patch.object(dupes_module.config, "get_project_root", return_value="/proj"):
+        result = dupes_module._analyze_duplicates(records, config, cache_stats={})
+
+    pair = result["details"]["top_pairs"][0]
+    assert pair["args_similarity"] == 1.0
+    assert pair["argument_name_similarity"] == 1.0
+    assert pair["argument_shape_similarity"] == 1.0
+
+
+@pytest.mark.unit
 def test_group_pairs_respects_max_groups(dupes_module):
     """_group_pairs should sort by max similarity and honor max_groups."""
     pair_results = [

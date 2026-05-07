@@ -121,6 +121,7 @@ Coverage worker config (`coverage` section):
 - `flaky-detector` - runs repeated parallel pytest passes to identify intermittent failures/flaky tests. **Not** part of `audit --full` (nested pytest would fight the coverage run); invoke manually when investigating flakes.
 - `verify-process-cleanup` - checks for potential orphaned pytest/python worker processes (included in Tier 3 full audit).
 - `duplicate-functions` - detects possible duplicate or similar functions (analysis only).
+- `facade-shims` - detects facade, shim, alias, re-export, and compatibility bridge candidates (analysis only).
 - `module-refactor-candidates` - identifies large or high-complexity modules as refactoring candidates (analysis only).
 - `workflow` - executes an audit-first workflow task.
 - `export-code` - Exports Python source files from a specified directory into a single Markdown snapshot for LLM context (portable, project-root-relative paths).
@@ -341,6 +342,7 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 | generate_error_handling_report.py | supporting | stable | Generates error handling reports from analysis results. |
 | analyze_functions.py | core | stable | AST discovery utility supporting registries and audits. Configurable scan roots and filters via external config. Enhanced with function/class discovery logic from generate_function_registry.py. |
 | analyze_duplicate_functions.py | supporting | partial | Flags possible duplicate/similar functions and methods using weighted similarity scoring. |
+| analyze_facade_shims.py | supporting | advisory | Flags facade, shim, alias, re-export, and compatibility bridge candidates. |
 | analyze_module_refactor_candidates.py | supporting | partial | Identifies large or high-complexity modules as candidates for refactoring into smaller modules. |
 | analyze_function_patterns.py | core | stable | Analyzes function patterns (handlers, managers, factories, etc.) for AI consumption. |
 | generate_function_registry.py | core | stable | Builds the authoritative function registry via AST parsing. 
@@ -373,9 +375,11 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 - Follow the audit-first workflow (see [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)) before touching documentation or infrastructure
 - Keep the standard exclusions + config aligned so `.ruff_cache`, `mhm.egg-info`, `scripts`, `tests/ai/results`, and `tests/coverage_html` are skipped by the majority of analyzer runs.
 - **Duplicate function analysis** (`development_tools/functions/analyze_duplicate_functions.py`):
-  - **Exclusion**: To stop the analyzer from reporting a function as part of a duplicate group (e.g. intentional thin wrappers that delegate to a shared helper), add inside the function: `# duplicate_functions_exclude` or `# duplicate functions exclude` (optionally with a reason after a colon). Excluded functions are not paired with any other and do not appear in duplicate groups.
-  - **Not duplication**: To suppress reporting of a specific intentional group, add the same comment (with a group id after a colon) to **every** function in that group: `# duplicate_functions_intentional: <group_id>` or `# not_duplicate: <group_id>` (e.g. `# not_duplicate: format_message`). Only pairs where **both** functions have the same group id are omitted; future duplicates without the comment still appear. See the tool docstring for details.
-  - **Settings** (from `analyze_duplicate_functions` config): `use_mtime_cache` (reuse cached per-file signatures when mtimes match); `min_name_similarity` (minimum name-token overlap for a candidate pair); `min_overall_similarity` (minimum weighted similarity to report); `max_pairs` / `max_groups` (cap reported output); `max_candidate_pairs` / `max_token_group_size` (safety limits); `stop_name_tokens`; `weights` (name/args/locals/imports).
+  - **Exclusion**: Prefer `# devtools: ignore[duplicate-functions]: <reason>` near the function. Legacy aliases still work: `# duplicate_functions_exclude` and `# duplicate functions exclude`.
+  - **Not duplication**: Prefer `# devtools: intentional[duplicate-functions]: <group_id>` on every function in the intentional group. Legacy aliases still work: `# duplicate_functions_intentional: <group_id>` and `# not_duplicate: <group_id>`.
+  - **Argument signals**: The analyzer records argument names plus positional/keyword-only/variadic/default shape. `args_similarity` remains the compatibility score; `argument_name_similarity` and `argument_shape_similarity` are included in pair examples for diagnosis.
+  - **Settings** (from `analyze_duplicate_functions` config): `use_mtime_cache`, `min_name_similarity`, `min_overall_similarity`, `max_pairs` / `max_groups`, `max_candidate_pairs` / `max_token_group_size`, `consider_argument_similarity_candidates`, `min_argument_similarity`, `max_argument_candidate_pairs`, `stop_name_tokens`, and `weights` (name/args/locals/imports/body).
+- **Facade/shim analysis** (`development_tools/functions/analyze_facade_shims.py`): Advisory-only detector for thin delegating wrappers, import re-export aliases, module aliases, compatibility markers, and active deprecation-inventory terms. Run with `python development_tools/run_development_tools.py facade-shims`; add `--include-tests`, `--include-dev-tools`, or `--include-all` when needed. Suppress intentional candidates with `# devtools: ignore[facade-shims]: <reason>`.
 - **Module refactor candidates** (`development_tools/functions/analyze_module_refactor_candidates.py`): Identifies modules (Python files) that exceed configurable thresholds for lines of code, function/class count, total complexity, or count of high/critical complexity functions. Use to prioritize splitting large or complex modules. Reports all candidates; AI_PRIORITIES and consolidated report show top 3 with a pointer to the full JSON. Candidates are **sorted by lines of code** (largest first), then by total complexity as tiebreaker; high-complexity *functions* are covered by the dedicated analyze_functions tool. **Complexity** here means AST node count (per function, summed for the module)-same as analyze_functions-a rough proxy for structural size, not cyclomatic complexity. **Settings** (from `analyze_module_refactor_candidates` config): `max_lines_per_module`, `max_functions_per_module`, `max_total_complexity_per_module`, `high_plus_critical_threshold`. High/critical thresholds align with `analyze_functions`.
 - **Caching Infrastructure**:
 - **File-based caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The utility handles cache loading, saving, and validation automatically. Currently used by: `imports/analyze_unused_imports.py`, `imports/analyze_module_imports.py`, `functions/analyze_functions.py`, `error_handling/analyze_error_handling.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`, `legacy/analyze_legacy_references.py` (compatibility scan), `docs/analyze_heading_numbering.py`, `docs/analyze_path_drift.py`, `docs/analyze_unconverted_links.py`, `tests/analyze_test_coverage.py` (coverage analysis caching). Cache keys are namespaced by tool/domain/config-signature/tool-hash, payload includes tool hash/tool mtimes, and run-status metadata supports failure-aware invalidation.
@@ -568,7 +572,18 @@ if should_exclude_file(file_path, tool_type='analysis', context='production'):
 
 Function-level exclusions (auto-generated code, special methods, test functions) are in `shared/exclusion_utilities.py`. See that module and tests in `tests/development_tools/test_standard_exclusions.py`, `tests/development_tools/test_exclusion_utilities.py` for details.
 
-### 8.5. Import boundary (portability)
+### 8.5. Code-Level Tool Markers
+
+Tool-specific code markers are parsed by `shared/exclusion_utilities.py`. Prefer canonical `devtools:` markers so suppression intent is consistent across analyzers:
+
+- `# devtools: ignore[duplicate-functions]: <reason>`
+- `# devtools: ignore[facade-shims]: <reason>`
+- `# devtools: ignore[legacy-references]: <reason>`
+- `# devtools: intentional[duplicate-functions]: <group_id>`
+
+Markers may sit immediately above decorators or inside the function/class body. Legacy duplicate-function markers remain supported for existing code but should not be added in new suppressions.
+
+### 8.6. Import boundary (portability)
 
 **Purpose**: Keep `development_tools/` portable and isolated from MHM business logic so the tool suite can run in external repositories without depending on project-specific modules.
 

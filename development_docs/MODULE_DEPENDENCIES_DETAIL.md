@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-05 01:57:45
+> **Last Generated**: 2026-05-06 15:28:37
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -21,7 +21,7 @@
 - **Standard Library Imports**: 453 (28.5%)
 - **Third-Party Imports**: 236 (14.8%)
 - **Local Imports**: 902 (56.7%)
-- **Last Updated**: 2026-05-05
+- **Last Updated**: 2026-05-06
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -988,7 +988,7 @@
 
 **Dependency Changes**:
 - Added: communication.core.message_send_result, communication.delivery.message_dispatcher, communication.reminders.checkin_prompt_dispatcher, communication.reminders.reminder_dispatcher, core, core.config, core.error_handling, core.logger, core.message_management, core.network_probe, core.schedule_runtime
-- Removed: communication/command_handlers/account_handler.py, core/scheduler.py, core/service.py, ui/ui_app_qt.py
+- Removed: communication/command_handlers/account_handler.py, core/service.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2254,7 +2254,7 @@
 
 **Dependency Changes**:
 - Added: core, core.config, core.delivery, core.error_handling, core.logger, core.schedule_runtime, core.service_utilities, core.time_utilities, tasks
-- Removed: communication.core.channel_orchestrator, core/service.py, ui/ui_app_qt.py
+- Removed: collections.abc, core/service.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Task scheduling and job management

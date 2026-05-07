@@ -24,6 +24,11 @@ Usage:
         # Skip this function
 """
 
+import ast
+import re
+from dataclasses import dataclass
+from typing import Literal
+
 from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.error_helpers import handle_errors
 from development_tools.shared.constants import (
@@ -38,6 +43,163 @@ logger = get_dev_tools_logger("development_tools")
 
 # Default test keywords (can be overridden via config)
 _DEFAULT_TEST_KEYWORDS = ["test_", "test"]
+
+
+MarkerAction = Literal["ignore", "intentional"]
+MarkerNode = ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef
+
+
+@dataclass(frozen=True)
+class DevtoolsMarker:
+    """Parsed code-level development-tools marker."""
+
+    action: MarkerAction
+    tool: str
+    value: str
+    line: int
+    raw: str
+
+
+_DEVTOOLS_MARKER_RE = re.compile(
+    r"#\s*devtools:\s*(ignore|intentional)\[([^\]]+)\]\s*(?::\s*(.*))?$",
+    re.IGNORECASE,
+)
+
+
+def _normalize_marker_tool(tool_name: str) -> str:
+    return tool_name.strip().lower().replace("_", "-").replace(" ", "-")
+
+
+def _function_marker_start_lineno(node: MarkerNode) -> int:
+    """Return the first line where node-level marker comments may be attached."""
+    candidates = [getattr(node, "lineno", 1) or 1]
+    for decorator in getattr(node, "decorator_list", []) or []:
+        lineno = getattr(decorator, "lineno", None)
+        if isinstance(lineno, int) and lineno > 0:
+            candidates.append(lineno)
+    return min(candidates)
+
+
+def _marker_window(
+    content: str,
+    node: MarkerNode | None = None,
+    *,
+    context_before: int = 8,
+) -> tuple[int, list[str]]:
+    lines = content.splitlines()
+    if node is None:
+        return 1, lines[:20]
+
+    start_lineno = _function_marker_start_lineno(node)
+    end_lineno = getattr(node, "end_lineno", start_lineno) or start_lineno
+    context_start = max(1, start_lineno - context_before)
+    return context_start, lines[context_start - 1 : end_lineno]
+
+
+def parse_devtools_markers(
+    content: str,
+    tool_name: str | None = None,
+    node: MarkerNode | None = None,
+    *,
+    include_legacy_aliases: bool = True,
+) -> list[DevtoolsMarker]:
+    """Parse canonical ``# devtools: ...`` markers near a module/function/class.
+
+    Canonical forms:
+    - ``# devtools: ignore[duplicate-functions]: reason``
+    - ``# devtools: intentional[duplicate-functions]: group_id``
+
+    Existing duplicate-function aliases are also parsed when
+    ``include_legacy_aliases`` is true.
+    """
+    if not content:
+        return []
+
+    requested_tool = _normalize_marker_tool(tool_name) if tool_name else None
+    start_line, window_lines = _marker_window(content, node)
+    markers: list[DevtoolsMarker] = []
+
+    for offset, line in enumerate(window_lines):
+        line_no = start_line + offset
+        match = _DEVTOOLS_MARKER_RE.search(line)
+        if match:
+            action = match.group(1).lower()
+            marker_tool = _normalize_marker_tool(match.group(2))
+            value = (match.group(3) or "").strip()
+            if requested_tool is None or marker_tool == requested_tool:
+                markers.append(
+                    DevtoolsMarker(
+                        action=action,  # type: ignore[arg-type]
+                        tool=marker_tool,
+                        value=value,
+                        line=line_no,
+                        raw=line.strip(),
+                    )
+                )
+            continue
+
+        if not include_legacy_aliases:
+            continue
+        if requested_tool not in (None, "duplicate-functions"):
+            continue
+
+        lower = line.lower()
+        if "# duplicate_functions_exclude" in lower or "# duplicate functions exclude" in lower:
+            value = ""
+            if ":" in line:
+                value = line.split(":", 1)[1].strip()
+            markers.append(
+                DevtoolsMarker(
+                    action="ignore",
+                    tool="duplicate-functions",
+                    value=value,
+                    line=line_no,
+                    raw=line.strip(),
+                )
+            )
+        for alias in (
+            "# duplicate_functions_intentional",
+            "# not_duplicate",
+            "# duplicate functions intentional",
+        ):
+            if alias in lower:
+                value = ""
+                marker_index = lower.find(alias)
+                tail = line[marker_index + len(alias) :]
+                if tail.lstrip().startswith(":"):
+                    value = tail.split(":", 1)[1].split("#", 1)[0].strip().lower()
+                markers.append(
+                    DevtoolsMarker(
+                        action="intentional",
+                        tool="duplicate-functions",
+                        value=value,
+                        line=line_no,
+                        raw=line.strip(),
+                    )
+                )
+                break
+
+    return markers
+
+
+def has_devtools_ignore_marker(
+    content: str, tool_name: str, node: MarkerNode | None = None
+) -> bool:
+    """Return True when a matching canonical or legacy ignore marker exists."""
+    return any(
+        marker.action == "ignore"
+        for marker in parse_devtools_markers(content, tool_name, node)
+    )
+
+
+def get_devtools_intentional_marker(
+    content: str, tool_name: str, node: MarkerNode | None = None
+) -> str | None:
+    """Return the first matching intentional marker value, or None if absent."""
+    for marker in parse_devtools_markers(content, tool_name, node):
+        if marker.action == "intentional":
+            return marker.value
+    return None
 
 
 def _get_test_keywords():

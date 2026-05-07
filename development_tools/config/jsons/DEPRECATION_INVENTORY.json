@@ -1,0 +1,215 @@
+{
+  "_comment": "Canonical inventory for deprecated/removed/to-retire terms. Update status and search_terms when migrating or removing. See AI_LEGACY_COMPATIBILITY_GUIDE.md.",
+  "legacy_scan_patterns": {
+    "old_bot_directory": [
+      "bot/",
+      "from\\s+bot\\.",
+      "import\\s+bot\\."
+    ],
+    "old_import_paths": [
+      "from\\s+bot\\.communication",
+      "from\\s+bot\\.discord",
+      "from\\s+bot\\.email",
+      "import\\s+bot\\.communication",
+      "import\\s+bot\\.discord",
+      "import\\s+bot\\.email"
+    ],
+    "historical_references": [
+      "bot/communication",
+      "bot/discord",
+      "bot/email"
+    ],
+    "deprecated_functions": [
+      "LegacyChannelWrapper",
+      "_create_legacy_channel_access\\("
+    ],
+    "legacy_compatibility_markers": [
+      "# LEGACY COMPATIBILITY:"
+    ],
+    "legacy_inventory_tracking": [
+      "(?i)backwards? compatibility",
+      "(?i)compatibility methods",
+      "(?i)legacy channels",
+      "(?i)legacy communication manager",
+      "(?i)legacy conversion",
+      "(?i)legacy extraction",
+      "(?i)legacy module",
+      "(?i)legacy path",
+      "(?i)legacy schedule format",
+      "(?i)legacy schedule keys",
+      "(?i)legacy versions",
+      "(?i)periods wrapper format",
+      "migrate_legacy_schedule_keys"
+    ],
+    "task_handler_legacy_imports": [
+      "from communication.command_handlers.interaction_handlers import TaskManagementHandler"
+    ],
+    "legacy_parameters": [
+      "all_cleanup="
+    ],
+    "legacy_timestamp_parsing": [
+      "_parse_timestamp\\(",
+      "LEGACY COMPATIBILITY: Parsed non-.*message timestamp"
+    ],
+    "user_data_v1_runtime_adapters": [
+      "active_tasks\\.json",
+      "completed_tasks\\.json",
+      "task_schedules\\.json",
+      "[\"']task_id[\"']",
+      "[\"']completed_tasks[\"']",
+      "\\.get\\([\"']body[\"']",
+      "[\"']kind[\"']\\s*:\\s*[\"']journal[\"']",
+      "\\.get\\([\"']archived[\"']",
+      "[\"']message_id[\"']",
+      "[\"']delivery_status[\"']",
+      "\\.get\\([\"']timestamp[\"']"
+    ],
+    "dashed_short_id_display": [
+      "kind\\[0\\]-",
+      "entry\\.kind\\[0\\]-",
+      "[nlj]-[0-9a-f]{6,8}"
+    ]
+  },
+  "active_or_candidate_inventory": [
+    {
+      "id": "ai_chatbot_legacy_fallback_response",
+      "status": "active_bridge",
+      "search_terms": [
+        "_get_fallback_response",
+        "Legacy fallback method for backwards compatibility"
+      ],
+      "exit_criteria": "All callers use _get_contextual_fallback or the current response-generation path directly; remove _get_fallback_response and its compatibility wording after tests confirm fallback behavior still works.",
+      "notes": "Detected during facade/shim review on 2026-05-06. This is an explicit legacy fallback bridge in ai/chatbot.py and should be tracked by legacy tooling rather than treated only as a facade/shim candidate."
+    },
+    {
+      "id": "root_ruff_compat_mirror",
+      "status": "active_bridge",
+      "search_terms": [],
+      "exit_criteria": "Portability acceptance criteria met; root .ruff.toml deprecated or documented.",
+      "notes": "2026-03-28: search_terms emptied while bridge remains — LEGACY_REFERENCE_REPORT uses inventory metadata only for this entry; grep-style hits duplicated module docstrings/CLI help and implied remediation work when none is required (V5 Phase 1). Re-add discrete terms only if a second mirror implementation must be detected. Bridge module: development_tools/config/sync_ruff_toml.py. Prior: 2026-03-26 phrase-only terms; 2026-03-27 logger migration."
+    }
+  ],
+  "removed_inventory": [
+    {
+      "id": "legacy_timestamp_parsing",
+      "removed_at": "2026-03-23",
+      "note": "Moved to core/time_utilities.parse_timestamp_for_normalization; no longer legacy bridge."
+    },
+    {
+      "id": "backup_zip_compat_bridge",
+      "removed_at": "2026-03-23",
+      "note": "Zip read/restore/validate removed from backup_manager; directory-only backups."
+    },
+    {
+      "id": "tier3_coverage_outcome_compat_bridge",
+      "removed_at": "2026-03-23",
+      "note": "Removed synthesis of coverage_outcome when missing; payloads without it are invalidated. 2026-03-24: removed details.coverage_outcome cache fallback in _extract_cached_main_coverage_state; state-only track payloads (missing classification) invalidate run_test_coverage_results.json."
+    },
+    {
+      "id": "legacy_flat_tool_json_and_unscoped_aggregate_read_bridges",
+      "removed_at": "2026-04-06",
+      "note": "Removed read fallbacks: flat development_tools/<domain>/jsons/*_results.json and dot-caches; unscoped analysis_detailed_results.json and reports/jsons/tool_timings.json loads in orchestration/timings. Loaders use jsons/scopes/** and reports/scopes/** only (V5 §7.16). legacy_flat_jsons_dir() retained for cleanup; --clear-cache still deletes orphan unscoped files."
+    },
+    {
+      "id": "scripts_flaky_detector_path",
+      "removed_at": "2026-04-09",
+      "note": "Historical scripts/flaky_detector.py path retired after migration to tracked development_tools/tests/flaky_detector.py and CLI command flaky-detector (V5 §3.12)."
+    },
+    {
+      "id": "scripts_verify_process_cleanup_path",
+      "removed_at": "2026-04-09",
+      "note": "Historical scripts/testing/verify_process_cleanup.py path retired after migration to tracked development_tools/tests/verify_process_cleanup.py and CLI command verify-process-cleanup (V5 §3.13)."
+    },
+    {
+      "id": "scripts_cleanup_project_path",
+      "removed_at": "2026-04-09",
+      "note": "Canonical cleanup owner remains development_tools/shared/fix_project_cleanup.py; historical scripts/cleanup_project.py path treated as retired for current tracked tree."
+    },
+    {
+      "id": "root_bandit_ini_file",
+      "removed_at": "2026-04-10",
+      "note": "Root .bandit (INI) removed; Bandit config lives in pyproject.toml [tool.bandit]; analyze_bandit.py passes -c pyproject.toml. Requirements use bandit[toml]."
+    },
+    {
+      "id": "root_pyrightconfig_json",
+      "removed_at": "2026-04-10",
+      "note": "Root pyrightconfig.json (JSONC) removed; Pyright baseline is [tool.pyright] in pyproject.toml; static_analysis.pyright_project_path default is pyproject.toml; development_tools/config/pyrightconfig.json retained for owned --project audits."
+    },
+    {
+      "id": "user_data_v1_runtime_adapters",
+      "removed_at": "2026-04-29",
+      "note": "Runtime and persistence are v2-native for tasks, notebook, check-ins, templates, and deliveries; v1-shaped task merges, flat check-in answer fallbacks, message/delivery alias normalization, and flow-state task_id bridges removed or reduced to one-time key normalization on load. 2026-05-01: legacy_scan_patterns.user_data_v1_runtime_adapters removed entirely (see removed_inventory legacy_scan_patterns_user_data_v1_runtime_adapters); that bucket was heuristic noise, not v1 detection."
+    },
+    {
+      "id": "dashed_short_id_display",
+      "removed_at": "2026-04-29",
+      "note": "Notebook flow confirmations and entry references use canonical no-dash short IDs via generate_short_id / format_short_id; obsolete kind[0]-uuid6 and n-hex dashed forms removed. is_valid_entry_reference rejects dashed nlj-hex patterns."
+    },
+    {
+      "id": "message_editor_runtime_flat_template_fields",
+      "removed_at": "2026-04-30",
+      "note": "Message editor dialog reads/writes v2 template fields only (text, schedule.days/periods, id). Removed UI fallbacks for top-level message/message_id/days/time_periods and legacy-shaped save payloads. core.message_management._message_template_to_runtime no longer falls back to message_id for id. On-disk migration and _message_template_default_to_v2 still accept legacy shapes when loading unmigrated JSON."
+    },
+    {
+      "id": "scripts_user_data_migration_module",
+      "removed_at": "2026-04-30",
+      "note": "Removed scripts/user_data_migration.py (migrate_user_data_root, per-domain migrate_* helpers). v1→v2 transforms are no longer shipped; use backups and core.user_data_v2_envelopes.validate_v2_document. 2026-05-01: scripts/migrate_user_data_v2.py stub also deleted. 2026-05-01: redundant FORBIDDEN_V1_FIELD_NAMES_BY_DOCUMENT pre-scan removed; validate_v2_document uses Pydantic extra=forbid only."
+    },
+    {
+      "id": "schemas_validate_messages_file_dict",
+      "removed_at": "2026-05-01",
+      "note": "Removed core.schemas.validate_messages_file_dict, MessageModel, and MessagesFileModel (v1 flat template shape). Message template files are validated via core.user_data_v2_envelopes / runtime v2 paths only."
+    },
+    {
+      "id": "scripts_migrate_sent_messages_timestamps",
+      "removed_at": "2026-05-01",
+      "note": "scripts/migrate_sent_messages_timestamps.py deleted (was exit-1 stub from 2026-04-30). v1 sent_messages messages[] paths unsupported; v2 deliveries[] is canonical."
+    },
+    {
+      "id": "scripts_migrate_user_data_v2",
+      "removed_at": "2026-05-01",
+      "note": "scripts/migrate_user_data_v2.py deleted (formerly stderr notice + exit 1 after user_data_migration removal). No in-repo user-data migration CLI."
+    },
+    {
+      "id": "scripts_repair_checkins_offline",
+      "removed_at": "2026-05-01",
+      "note": "scripts/repair_checkins_offline.py deleted. Bad checkins.json: restore from backup or hand-edit to v2 + validate_v2_document + save_json_data (USER_DATA_MODEL.md §2.7). 2026-05-01: normalize_checkins_envelope_for_repair removed from core (no shipped repair path)."
+    },
+    {
+      "id": "response_tracking_normalize_checkins_envelope_for_repair",
+      "removed_at": "2026-05-01",
+      "note": "Removed core.response_tracking.normalize_checkins_envelope_for_repair and _prepare_dict_for_checkin_repair_builder; tests/unit/test_normalize_checkins_repair.py deleted. Use backup, hand-edit to v2, validate_v2_document."
+    },
+    {
+      "id": "legacy_scan_patterns_user_data_v1_runtime_adapters",
+      "removed_at": "2026-05-01",
+      "note": "Removed legacy_scan_patterns.user_data_v1_runtime_adapters from this file. Patterns (.get timestamp/body, task_id literals, split task filenames, etc.) produced pervasive false positives on v2/email/dev-tools code. fix_legacy_references.REQUIRED_LEGACY_PATTERN_KEYS updated; LEGACY_REFERENCE_REPORT no longer emits a User Data V1 Runtime Adapters section from this bucket."
+    },
+    {
+      "id": "scripts_verify_user_data_v2",
+      "removed_at": "2026-05-01",
+      "note": "scripts/verify_user_data_v2.py deleted. Validate on-disk JSON via validate_v2_document in code, tests, or development_tools audits."
+    },
+    {
+      "id": "core_user_data_module_renames_and_updates_merge_2026_05_01",
+      "removed_at": "2026-05-01",
+      "note": "Renamed modules: core/user_data_v2.py -> user_data_v2_envelopes.py; user_data_manager.py -> user_data_operations.py; schedule_management.py -> schedule_runtime.py; user_data_schedule_defaults.py -> schedule_document_defaults.py. Removed core/user_data_updates.py (update_user_* merged into user_data_write.py). get_user_info_for_schedule_management -> get_user_info_for_schedule_runtime. Module-level singleton in user_data_operations remains named user_data_manager for API stability."
+    }
+  ],
+  "global_sweep_keywords": [
+    "deprecated",
+    "legacy",
+    "retire",
+    "obsolete",
+    "compatibility bridge",
+    "compatibility fallback",
+    "backwards compatibility",
+    "compat",
+    "compatability",
+    "legacy fallback",
+    "legacy compatibility",
+    "shim",
+    "shimmed",
+    "facade"
+  ]
+}

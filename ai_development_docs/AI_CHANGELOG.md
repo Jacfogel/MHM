@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-06 - Dev-tools facade/shim analyzer and markers **COMPLETED**
+- Added advisory `facade-shims` tooling for facade, shim, re-export, alias, compatibility bridge, and deprecation-inventory candidates; registered it in CLI, service wrappers, tool metadata, Tier 2+ audit execution, cache inventory, scoped JSON storage, and AI status/priority/consolidated report output.
+- Standardized code-level tool suppressions through `# devtools: ignore[...]` and `# devtools: intentional[...]`; duplicate-function legacy markers still work, and legacy-reference scanning now honors `ignore[legacy-references]`.
+- Aligned the clear `_get_fallback_response` compatibility bridge with the legacy workflow: inventory now tracks it, `backwards compatibility` wording is detected, the canonical inventory file is no longer ignored, and legacy analyzer cache invalidates on inventory changes.
+- Extended duplicate-function analysis with argument signature capture, argument-name/shape similarity fields, and capped argument-similarity candidate expansion.
+- V5 Sections 7.11-7.13 are marked complete; paired development-tools guides document the new command/markers/scoring. Generated docs/reports were refreshed so the function registry gap is zero and Ruff findings are cleared.
+- Validation: focused dev-tools tests, report-surfacing checks, policy checks, `py_compile`, `ruff check .`, `docs`, standard `audit`, and `audit --quick` passed.
+
 ### 2026-05-06 - Coverage and static audit cleanup **COMPLETED**
 - Added focused coverage for development-tools command/report/tool-wrapper branches, scheduler maintenance jobs, Discord bot helpers, schedule-editor headless helpers, and UI log-tail merging.
 - Email inbound safety: `channel_orchestrator` now ignores system/bounce sender addresses (`mailer-daemon`, `postmaster`, `no-reply`/`noreply`, `bounce`) before user lookup/response handling to prevent bounce-loop auto replies.
@@ -165,18 +173,6 @@ Guidelines:
 - **Migration split**: one-time migration transforms, report helpers, backup orchestration, and user-root writes moved to `scripts.user_data_migration`, keeping migration tooling out of `core/`.
 - **Quality follow-up**: Closed remaining same-session priorities by switching helper timestamp/priority normalization to decorator-first error handling, updating task cleanup integration tests to canonical `tasks.json`, and resolving Pyright warnings to zero.
 - **Validation**: Focused v2/task/notebook/message/integration regressions pass, full `pyright` is clean, and `audit --full` completes successfully with updated priorities.
-
-### 2026-04-26 - User data v2 migration foundation **COMPLETED**
-- **Schema + tooling**: Added canonical v2 models in [`core/user_data_v2.py`](../core/user_data_v2.py), one-time migration helpers in `scripts.user_data_migration`, plus an intentionally untracked `scripts/migrate_user_data_v2.py` utility for dry-run/write migration with backups and reports.
-- **Docs + planning**: Documented the v2 contract and migration field mapping in [[USER_DATA_MODEL.md](core/USER_DATA_MODEL.md)](../core/USER_DATA_MODEL.md), retired the temporary standalone migration inventory, and updated [TODO.md](TODO.md), `TASKS_PLAN.md`, and `NOTES_PLAN.md` with completed migration status plus remaining v2-native cleanup work.
-- **Runtime + tests**: Added v2 runtime read/write support for migrated task, notebook, check-in, message-template, and delivery files, with focused tests in [`test_user_data_v2_migration.py`](../tests/unit/test_user_data_v2_migration.py); targeted v2/task/notebook/message/check-in pytest runs pass.
-- **Local migration**: Migrated four local user directories after clean dry-runs, moved migration backups under `data/backups`, removed replaced v1 task split files, made persisted migration reports opt-in, migrated default-message resources to v2, and validated all written v2 documents.
-- **Legacy tracking**: Added v1 user-data runtime adapter cleanup to the deprecation inventory so remaining compatibility paths follow `AI_LEGACY_COMPATIBILITY_GUIDE.md`.
-
-### 2026-04-26 - V5 dev-tools continuation slice **COMPLETED**
-- **Coverage + reliability tests**: Added focused tests for dev-tools coverage helpers, audit cache/timing metadata, and module-dependency generation in [`test_commands_coverage_helpers.py`](../tests/development_tools/test_commands_coverage_helpers.py), [`test_audit_orchestration_helpers.py`](../tests/development_tools/test_audit_orchestration_helpers.py), and [`test_generate_module_dependencies.py`](../tests/development_tools/test_generate_module_dependencies.py).
-- **Audit signal quality**: Recorded current `pip 26.0.1` / `CVE-2026-3219` pip-audit finding as monitor-only (no fixed version reported); tuned documentation consolidation recommendations so expected paired docs and specialized testing guides are not false-positive overlap debt.
-- **Validation and handoff**: `doc-sync` and `audit --full` completed successfully after focused dev-tools pytest validation; latest generated status shows overall coverage 72.2%, development-tools coverage 66.9%, no documentation overlaps, and the known pip-audit watch item as the only static-analysis finding.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

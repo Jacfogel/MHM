@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-05 01:57:54
+> **Last Generated**: 2026-05-06 15:28:45
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -290,6 +290,7 @@ C:.
     (JSON files created by development tools)
 |   +---functions
 |   |   |   analyze_duplicate_functions.py
+|   |   |   analyze_facade_shims.py
 |   |   |   analyze_functions.py
 |   |   |   analyze_function_patterns.py
 |   |   |   analyze_function_registry.py
@@ -570,6 +571,7 @@ C:.
 |   |   |   test_file_auditor_gap_coverage.py
 |   |   |   test_message_management.py
 |   |   |   test_python_interpreter_selection.py
+|   |   |   test_scheduler_maintenance.py
 |   |   |   test_schedule_utilities.py
 |   |   |   test_service_message_content_helpers.py
 |   |   |   test_service_request_helpers.py
@@ -590,6 +592,7 @@ C:.
 |   |   |   test_analyze_documentation.py
 |   |   |   test_analyze_duplicate_functions.py
 |   |   |   test_analyze_error_handling.py
+|   |   |   test_analyze_facade_shims.py
 |   |   |   test_analyze_functions.py
 |   |   |   test_analyze_function_patterns.py
 |   |   |   test_analyze_function_registry.py
@@ -813,6 +816,7 @@ C:.
 |   |   |   test_conversation_flow_reminder_helpers.py
 |   |   |   test_dialog_helpers.py
 |   |   |   test_discord_api_client.py
+|   |   |   test_discord_bot_helpers.py
 |   |   |   test_discord_event_handler.py
 |   |   |   test_email_bot_body_extraction.py
 |   |   |   test_email_bot_gap_coverage.py
@@ -846,6 +850,7 @@ C:.
 |   |   |   test_rich_formatter.py
 |   |   |   test_run_tests_interrupts.py
 |   |   |   test_scheduler_delivery_port.py
+|   |   |   test_schedule_editor_dialog_helpers.py
 |   |   |   test_schedule_management.py
 |   |   |   test_schemas_validation.py
 |   |   |   test_schema_validation_helpers.py

@@ -108,6 +108,36 @@ def test_run_analyze_module_refactor_candidates_includes_cli_flags(
 
 
 @pytest.mark.unit
+def test_run_analyze_facade_shims_saves_scoped_result(temp_project_copy, monkeypatch):
+    """Facade/shim wrapper should parse JSON and save through scoped output storage."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    saved: list[tuple[str, str, dict]] = []
+
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_args, **_kwargs: {
+            "success": True,
+            "output": '{"summary":{"total_issues":1,"files_affected":1},"details":{"findings":[]}}',
+            "error": "",
+            "returncode": 0,
+        },
+        raising=True,
+    )
+    monkeypatch.setitem(
+        service.run_analyze_facade_shims.__func__.__globals__,
+        "save_tool_result",
+        lambda tool, domain, data, **_kwargs: saved.append((tool, domain, data)),
+    )
+
+    result = service.run_analyze_facade_shims()
+
+    assert result["issues_found"] is True
+    assert saved and saved[0][0] == "analyze_facade_shims"
+    assert saved[0][1] == "functions"
+
+
+@pytest.mark.unit
 def test_run_decision_support_saves_error_when_no_json_data(temp_project_copy, monkeypatch):
     """Wrapper should emit a standard error payload when decision support returns no JSON."""
     service = AIToolsService(project_root=str(temp_project_copy))

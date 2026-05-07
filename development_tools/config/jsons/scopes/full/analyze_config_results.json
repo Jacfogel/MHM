@@ -1,0 +1,74 @@
+{
+  "generated_by": "analyze_config - Development Tools",
+  "last_generated": "2026-05-06 22:45:49",
+  "timestamp": "2026-05-06T22:45:49",
+  "tool_name": "analyze_config",
+  "domain": "config",
+  "source": "python development_tools/config/analyze_config.py",
+  "note": "This file is auto-generated. Do not edit manually.",
+  "audit_storage_scope": "full",
+  "data": {
+    "summary": {
+      "total_issues": 0,
+      "files_affected": 0
+    },
+    "details": {
+      "tools_analysis": {
+        "run_development_tools.py": {
+          "imports_config": true,
+          "uses_config_functions": false,
+          "hardcoded_values": [],
+          "config_functions_used": [],
+          "issues": [],
+          "is_wrapper_script": false,
+          "is_entry_point_script": true
+        },
+        "run_dev_tools.py": {
+          "imports_config": true,
+          "uses_config_functions": false,
+          "hardcoded_values": [],
+          "config_functions_used": [],
+          "issues": [],
+          "is_wrapper_script": true,
+          "is_entry_point_script": false
+        },
+        "__init__.py": {
+          "imports_config": true,
+          "uses_config_functions": false,
+          "hardcoded_values": [],
+          "config_functions_used": [],
+          "issues": [],
+          "is_wrapper_script": false,
+          "is_entry_point_script": false
+        }
+      },
+      "validation": {
+        "scan_directories_exist": [
+          "ai",
+          "communication",
+          "core",
+          "tasks",
+          "tests",
+          "ui",
+          "user"
+        ],
+        "missing_directories": [],
+        "config_structure_valid": true,
+        "issues": []
+      },
+      "completeness": {
+        "sections_complete": true,
+        "missing_fields": [],
+        "recommendations": []
+      },
+      "recommendations": [],
+      "summary": {
+        "tools_using_config": 3,
+        "total_tools": 3,
+        "config_valid": true,
+        "config_complete": true,
+        "total_recommendations": 0
+      }
+    }
+  }
+}

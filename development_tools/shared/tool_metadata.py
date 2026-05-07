@@ -294,6 +294,13 @@ _TOOLS: dict[str, ToolInfo] = {
         trust="partial",
         description="Flags possible duplicate/similar functions and methods using weighted similarity.",
     ),
+    "analyze_facade_shims": ToolInfo(
+        name="analyze_facade_shims",
+        path="development_tools/functions/analyze_facade_shims.py",
+        tier="supporting",
+        trust="advisory",
+        description="Flags facade, shim, alias, re-export, and compatibility bridge candidates.",
+    ),
     "analyze_module_refactor_candidates": ToolInfo(
         name="analyze_module_refactor_candidates",
         path="development_tools/functions/analyze_module_refactor_candidates.py",
@@ -500,6 +507,7 @@ COMMAND_GROUPS = OrderedDict(
                 "flaky-detector",
                 "verify-process-cleanup",
                 "duplicate-functions",
+                "facade-shims",
                 "module-refactor-candidates",
                 "workflow",
                 "trees",

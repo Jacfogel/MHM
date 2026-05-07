@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-05 01:57:43
+> **Last Generated**: 2026-05-06 15:28:36
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 92.9% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 138
-- **Functions Found**: 1877
-- **Methods Found**: 1282
+- **Functions Found**: 1878
+- **Methods Found**: 1283
 - **Classes Found**: 170
-- **Total Items**: 3159
-- **Functions Documented**: 1718
-- **Methods Documented**: 1216
+- **Total Items**: 3161
+- **Functions Documented**: 1719
+- **Methods Documented**: 1217
 - **Classes Documented**: 132
-- **Total Documented**: 2934
+- **Total Documented**: 2936
 - **Template-Generated**: 20
-- **Last Updated**: 2026-05-05
+- **Last Updated**: 2026-05-06
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (682)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (500)
+### **Communication Functions** (501)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (430)
@@ -1795,6 +1795,7 @@ Returns:
 - [MISSING] `_send_checkin_prompt(self, user_id, messaging_service, recipient)` - No description
 - [OK] `_send_email_response(self, recipient_email, response_text, subject)` - Send an email response to a user
 - [MISSING] `_send_predefined_message(self, user_id, category, messaging_service, recipient)` - No description
+- [OK] `_should_ignore_inbound_sender(self, sender_email)` - Return True for known non-user/system senders that should never get replies.
 - [MISSING] `_should_send_checkin_prompt(self, user_id, checkin_prefs)` - No description
 - [OK] `_shutdown_sync(self)` - Synchronous shutdown method for all channels.
 
@@ -1889,6 +1890,7 @@ Returns:
   - [MISSING] `CommunicationManager._send_checkin_prompt(self, user_id, messaging_service, recipient)` - No description
   - [OK] `CommunicationManager._send_email_response(self, recipient_email, response_text, subject)` - Send an email response to a user
   - [MISSING] `CommunicationManager._send_predefined_message(self, user_id, category, messaging_service, recipient)` - No description
+  - [OK] `CommunicationManager._should_ignore_inbound_sender(self, sender_email)` - Return True for known non-user/system senders that should never get replies.
   - [MISSING] `CommunicationManager._should_send_checkin_prompt(self, user_id, checkin_prefs)` - No description
   - [OK] `CommunicationManager._shutdown_sync(self)` - Synchronous shutdown method for all channels.
 

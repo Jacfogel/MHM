@@ -1093,6 +1093,9 @@ ANALYZE_DUPLICATE_FUNCTIONS = {
     "body_similarity_min_name_threshold": 0.35,  # lower than min_name_similarity; near-miss pairs get body check
     "max_body_candidate_pairs": 5000,
     "body_similarity_scope": "same_file",  # same_file | same_module | hash_bucket
+    "consider_argument_similarity_candidates": True,
+    "min_argument_similarity": 0.75,
+    "max_argument_candidate_pairs": 5000,
     "stop_name_tokens": [
         "get",
         "set",

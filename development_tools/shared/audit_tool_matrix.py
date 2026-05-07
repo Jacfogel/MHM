@@ -48,8 +48,15 @@ def _default_report_surface_hints(tool_name: str, domain: str | None) -> list[st
         hints.insert(0, "AI_STATUS Static Analysis")
     elif tool_name.startswith("analyze_") and domain in {"reports", "docs"}:
         hints.insert(0, "CONSOLIDATED_REPORT")
-    if tool_name in {"decision_support", "analyze_duplicate_functions", "analyze_module_refactor_candidates"}:
+    if tool_name in {
+        "decision_support",
+        "analyze_duplicate_functions",
+        "analyze_facade_shims",
+        "analyze_module_refactor_candidates",
+    }:
         hints.append("AI_PRIORITIES")
+    if tool_name == "analyze_facade_shims":
+        hints.extend(["AI_STATUS", "CONSOLIDATED_REPORT"])
     return hints or ["jsons or generated markdown"]
 
 

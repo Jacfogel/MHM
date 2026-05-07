@@ -446,6 +446,37 @@ def _duplicate_functions_command(service: "AIToolsService", argv: Sequence[str])
     return 0 if success else 1
 
 
+def _facade_shims_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Handle facade-shims command (analysis only)."""
+    parser = argparse.ArgumentParser(prog="facade-shims", add_help=False)
+    parser.add_argument(
+        "--include-tests", action="store_true", help="Include test files in analysis."
+    )
+    parser.add_argument(
+        "--include-dev-tools",
+        action="store_true",
+        help="Include development_tools in analysis.",
+    )
+    parser.add_argument(
+        "--include-all",
+        action="store_true",
+        help="Include tests and dev tools (equivalent to --include-tests --include-dev-tools).",
+    )
+
+    if any(arg in ("-h", "--help") for arg in argv):
+        _print_command_help(parser)
+        return 0
+
+    ns = parser.parse_args(list(argv))
+    service.set_exclusion_config(
+        include_tests=ns.include_tests or ns.include_all,
+        include_dev_tools=ns.include_dev_tools or ns.include_all,
+    )
+    result = service.run_analyze_facade_shims()
+    success = result.get("success", False) if isinstance(result, dict) else bool(result)
+    return 0 if success else 1
+
+
 def _module_refactor_candidates_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     """Handle module-refactor-candidates command (analysis only)."""
     parser = argparse.ArgumentParser(
@@ -874,6 +905,14 @@ COMMAND_REGISTRY = OrderedDict(
                 "duplicate-functions",
                 _duplicate_functions_command,
                 "Detect possible duplicate or similar functions (analysis only).",
+            ),
+        ),
+        (
+            "facade-shims",
+            CommandRegistration(
+                "facade-shims",
+                _facade_shims_command,
+                "Detect facade, shim, alias, and compatibility bridge candidates.",
             ),
         ),
         (

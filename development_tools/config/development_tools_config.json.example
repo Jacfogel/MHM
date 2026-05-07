@@ -923,6 +923,9 @@
     "max_groups": 50,
     "max_candidate_pairs": 20000,
     "max_token_group_size": 200,
+    "consider_argument_similarity_candidates": true,
+    "min_argument_similarity": 0.75,
+    "max_argument_candidate_pairs": 5000,
     "stop_name_tokens": [
       "get",
       "set",

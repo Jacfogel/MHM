@@ -575,15 +575,15 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 
 #### 7.11 Tool: detect facades, shims, etc.
 
-- Placeholder — align with deprecation inventory and legacy guide when prioritized.
+- Done (2026-05-06) — added advisory `facade-shims` / `analyze_facade_shims.py` for thin wrappers, aliases, re-exports, compatibility markers, and deprecation-inventory terms. Registered in metadata, audit tier 2+, audit matrix, cache inventory, CLI, and scoped JSON output.
 
 #### 7.12 Standardize exclusion marking systems across tools
 
-- Unify how tools mark code exempt from compliance flags; document in [AI_DEVELOPMENT_TOOLS_GUIDE.md](AI_DEVELOPMENT_TOOLS_GUIDE.md) and [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) (project-relative paths — not machine-specific).
+- Done (2026-05-06) — `shared/exclusion_utilities.py` now parses canonical `# devtools: ignore[...]` / `# devtools: intentional[...]` markers. Existing duplicate-function aliases remain backward-compatible. Documented in [AI_DEVELOPMENT_TOOLS_GUIDE.md](AI_DEVELOPMENT_TOOLS_GUIDE.md) and [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
 
 #### 7.13 Duplicate function detector: argument similarity and related signals
 
-- Extend beyond current name/body work when prioritized.
+- Done (2026-05-06) — duplicate-function analysis now records richer argument signatures, emits argument name/shape similarity fields, and can expand candidate pairs by high argument similarity with conservative config caps.
 
 #### 7.15 Separate test coverage from full audit
 

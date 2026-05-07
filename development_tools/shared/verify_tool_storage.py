@@ -48,6 +48,7 @@ EXPECTED_TOOLS = {
     "analyze_dependency_patterns": "imports",
     "analyze_function_patterns": "functions",
     "analyze_package_exports": "functions",
+    "analyze_facade_shims": "functions",
     # Tier 3
     "analyze_test_coverage": "tests",
     "generate_dev_tools_coverage": "tests",

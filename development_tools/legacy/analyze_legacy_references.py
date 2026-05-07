@@ -28,6 +28,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from development_tools.shared.logging import get_dev_tools_logger
+from development_tools.shared.exclusion_utilities import parse_devtools_markers
 
 # Handle both relative and absolute imports
 if __name__ != "__main__" and __package__ and "." in __package__:
@@ -151,7 +152,10 @@ class LegacyReferenceAnalyzer:
                     use_cache=True,
                     tool_name="analyze_legacy_references",
                     domain="legacy",
-                    tool_paths=[Path(__file__)],
+                    tool_paths=[
+                        Path(__file__),
+                        self.deprecation_inventory_path,
+                    ],
                 )
             except ImportError:
                 logger.warning("MtimeFileCache not available, caching disabled")
@@ -381,12 +385,23 @@ class LegacyReferenceAnalyzer:
     ) -> dict[str, list[dict[str, Any]]]:
         """Analyze file content for legacy patterns."""
         findings = defaultdict(list)
+        ignored_lines = {
+            marker.line
+            for marker in parse_devtools_markers(
+                content,
+                "legacy-references",
+                include_legacy_aliases=False,
+            )
+            if marker.action == "ignore"
+        }
 
         for pattern_type, patterns in self.legacy_patterns.items():
             for pattern in patterns:
                 matches = re.finditer(pattern, content, re.MULTILINE)
                 for match in matches:
                     line_num = content[: match.start()].count("\n") + 1
+                    if line_num in ignored_lines or (line_num - 1) in ignored_lines:
+                        continue
                     line_content = content.split("\n")[line_num - 1].strip()
 
                     findings[pattern_type].append(

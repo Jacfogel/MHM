@@ -15,6 +15,9 @@ is_generated_file = exclusion_utilities.is_generated_file
 is_generated_function = exclusion_utilities.is_generated_function
 is_special_python_method = exclusion_utilities.is_special_python_method
 is_test_function = exclusion_utilities.is_test_function
+parse_devtools_markers = exclusion_utilities.parse_devtools_markers
+has_devtools_ignore_marker = exclusion_utilities.has_devtools_ignore_marker
+get_devtools_intentional_marker = exclusion_utilities.get_devtools_intentional_marker
 
 
 class TestGeneratedCode:
@@ -149,6 +152,66 @@ class TestTestFunction:
         """Test that test functions in normal files are still detected."""
         # Function name takes precedence
         assert is_test_function("test_helper", file_path="core/service.py")
+
+
+class TestDevtoolsMarkers:
+    """Test shared code-level devtools marker parsing."""
+
+    @pytest.mark.unit
+    def test_canonical_ignore_marker(self):
+        content = "# devtools: ignore[facade-shims]: planned bridge\n\ndef bridge():\n    pass\n"
+        node = exclusion_utilities.ast.parse(content).body[0]
+
+        markers = parse_devtools_markers(content, "facade-shims", node)
+
+        assert len(markers) == 1
+        assert markers[0].action == "ignore"
+        assert markers[0].value == "planned bridge"
+        assert has_devtools_ignore_marker(content, "facade-shims", node)
+
+    @pytest.mark.unit
+    def test_canonical_intentional_marker(self):
+        content = (
+            "# devtools: intentional[duplicate-functions]: formatter_group\n"
+            "def format_message():\n"
+            "    pass\n"
+        )
+        node = exclusion_utilities.ast.parse(content).body[0]
+
+        assert (
+            get_devtools_intentional_marker(content, "duplicate-functions", node)
+            == "formatter_group"
+        )
+
+    @pytest.mark.unit
+    def test_decorator_adjacent_marker(self):
+        content = (
+            "# devtools: ignore[duplicate-functions]: decorator wrapper\n"
+            "@decorator\n"
+            "def wrapped():\n"
+            "    pass\n"
+        )
+        node = exclusion_utilities.ast.parse(content).body[0]
+
+        assert has_devtools_ignore_marker(content, "duplicate-functions", node)
+
+    @pytest.mark.unit
+    def test_duplicate_legacy_aliases(self):
+        content = "# not_duplicate: old_group\n\ndef old():\n    pass\n"
+        node = exclusion_utilities.ast.parse(content).body[0]
+
+        assert get_devtools_intentional_marker(content, "duplicate-functions", node) == "old_group"
+
+        excluded = "# duplicate_functions_exclude: thin wrapper\n\ndef old2():\n    pass\n"
+        node = exclusion_utilities.ast.parse(excluded).body[0]
+        assert has_devtools_ignore_marker(excluded, "duplicate-functions", node)
+
+    @pytest.mark.unit
+    def test_unrelated_comment_ignored(self):
+        content = "# ignore this manually\n\ndef normal():\n    pass\n"
+        node = exclusion_utilities.ast.parse(content).body[0]
+
+        assert parse_devtools_markers(content, "facade-shims", node) == []
 
 
 if __name__ == "__main__":

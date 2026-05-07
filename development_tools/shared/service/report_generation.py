@@ -2746,6 +2746,22 @@ class ReportGenerationMixin:
             lines.append("- **Potential Duplicate Groups**: 0")
 
         lines.append("")
+        lines.append("## Facade/Shim Candidates")
+        facade_data = self._load_tool_data("analyze_facade_shims", "functions")
+        facade_summary = (
+            facade_data.get("summary", {}) if isinstance(facade_data, dict) else {}
+        )
+        facade_count = to_int(facade_summary.get("total_issues")) or 0
+        facade_files = to_int(facade_summary.get("files_affected")) or 0
+        if facade_count > 0:
+            lines.append(
+                f"- **Facade/Shim Candidates**: {facade_count} advisory candidate(s) "
+                f"across {facade_files} files"
+            )
+        else:
+            lines.append("- **Facade/Shim Candidates**: 0")
+
+        lines.append("")
         lines.append("## Module Refactor Candidates")
         refactor_data = self._load_tool_data(
             "analyze_module_refactor_candidates", "functions"
@@ -3255,6 +3271,9 @@ class ReportGenerationMixin:
         )
         duplicate_functions_data = self._load_tool_data(
             "analyze_duplicate_functions", "functions"
+        )
+        facade_shims_data = self._load_tool_data(
+            "analyze_facade_shims", "functions"
         )
         module_refactor_candidates_data = self._load_tool_data(
             "analyze_module_refactor_candidates", "functions"
@@ -5077,6 +5096,50 @@ class ReportGenerationMixin:
                     validate=True,
                     data_source="analyze_duplicate_functions",
                     count=dup_groups,
+                    expected_min=None,
+                )
+
+        # Facade/shim candidates priority
+        if facade_shims_data and isinstance(facade_shims_data, dict):
+            facade_summary = facade_shims_data.get("summary", {})
+            facade_details = facade_shims_data.get("details", {})
+            facade_count = to_int(facade_summary.get("total_issues")) or 0
+            facade_files = to_int(facade_summary.get("files_affected")) or 0
+            findings = (
+                facade_details.get("findings", [])
+                if isinstance(facade_details, dict)
+                else []
+            )
+            if facade_count > 0 and isinstance(findings, list):
+                facade_bullets = [
+                    "Review for guidance: ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+                    "Top facade/shim candidates:",
+                ]
+                for idx, finding in enumerate(findings[:3], start=1):
+                    if not isinstance(finding, dict):
+                        continue
+                    symbol = finding.get("symbol", "?")
+                    target = finding.get("target")
+                    target_text = f" -> {target}" if target else ""
+                    facade_bullets.append(
+                        f"  {idx}. {symbol}{target_text} "
+                        f"({finding.get('kind', 'candidate')}, "
+                        f"{finding.get('file', '?')}:{finding.get('line', '?')})"
+                    )
+                facade_bullets.append(
+                    f"Review for details: {self._scoped_tool_result_path('functions', 'analyze_facade_shims')}"
+                )
+                add_priority(
+                    tier=3,
+                    title="Review facade/shim compatibility candidates",
+                    reason=(
+                        f"{facade_count} advisory facade/shim candidate(s) "
+                        f"across {facade_files} files."
+                    ),
+                    bullets=facade_bullets,
+                    validate=True,
+                    data_source="analyze_facade_shims",
+                    count=facade_count,
                     expected_min=None,
                 )
 
@@ -8280,6 +8343,40 @@ class ReportGenerationMixin:
                 body_pairs = duplicate_details.get("body_candidate_pairs_considered", 0)
                 lines.append(
                     f"   - **Body/structural similarity**: enabled ({body_pairs} body candidate pairs considered)"
+                )
+
+        lines.append("")
+        # Facade/Shim Candidates
+        facade_data_cr = self._load_tool_data("analyze_facade_shims", "functions")
+        facade_summary_cr = (
+            facade_data_cr.get("summary", {})
+            if isinstance(facade_data_cr, dict)
+            else {}
+        )
+        facade_details_cr = (
+            facade_data_cr.get("details", {})
+            if isinstance(facade_data_cr, dict)
+            else {}
+        )
+        facade_count_cr = to_int(facade_summary_cr.get("total_issues")) or 0
+        facade_files_cr = to_int(facade_summary_cr.get("files_affected")) or 0
+        lines.append(
+            f"- **Facade/Shim Candidates**: {facade_count_cr} advisory candidate(s) across {facade_files_cr} files"
+        )
+        if facade_count_cr > 0 and isinstance(facade_details_cr, dict):
+            findings_cr = facade_details_cr.get("findings", [])
+            if isinstance(findings_cr, list) and findings_cr:
+                top_facades = [
+                    f"{f.get('symbol', '?')} ({f.get('kind', 'candidate')}, {f.get('file', '?')}:{f.get('line', '?')})"
+                    for f in findings_cr[:3]
+                    if isinstance(f, dict)
+                ]
+                if top_facades:
+                    lines.append(
+                        f"   - **Top candidates**: {', '.join(top_facades)}"
+                    )
+                lines.append(
+                    f"   - **Full list**: {self._scoped_tool_result_path('functions', 'analyze_facade_shims')}"
                 )
 
         lines.append("")

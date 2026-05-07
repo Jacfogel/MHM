@@ -45,6 +45,13 @@
       "invalidation": "Full re-analysis each audit unless covered by a specialized cache above"
     },
     {
+      "tool": "analyze_facade_shims",
+      "strategy": "per_run_json_overwrite",
+      "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/functions/*.json",
+      "invalidation": "Full re-analysis each audit unless covered by a specialized cache above"
+    },
+    {
       "tool": "analyze_function_registry",
       "strategy": "per_run_json_overwrite",
       "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",

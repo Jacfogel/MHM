@@ -54,6 +54,48 @@ def test_quick_wins_include_top_offenders_and_fix_commands(temp_project_copy):
 
 
 @pytest.mark.unit
+def test_facade_shims_contribute_to_status_priority_and_consolidated_reports(
+    temp_project_copy,
+):
+    """Facade/shim findings should be visible in all generated audit reports."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    facade_payload = {
+        "summary": {"total_issues": 2, "files_affected": 1},
+        "details": {
+            "findings": [
+                {
+                    "file": "core/facade.py",
+                    "line": 10,
+                    "symbol": "old_task",
+                    "kind": "thin_wrapper",
+                    "target": "new_task",
+                }
+            ]
+        },
+    }
+    payloads = {"analyze_facade_shims": facade_payload}
+
+    def fake_load(tool_name, domain=None, log_source=True):
+        return payloads.get(tool_name, {})
+
+    service._load_tool_data = fake_load
+    service._load_coverage_summary = lambda: {}
+    service._load_dev_tools_coverage = lambda: None
+
+    status_doc = service._generate_ai_status_document()
+    priorities_doc = service._generate_ai_priorities_document()
+    consolidated_doc = service._generate_consolidated_report()
+
+    assert "Facade/Shim Candidates" in status_doc
+    assert "2 advisory candidate(s) across 1 files" in status_doc
+    assert "Review facade/shim compatibility candidates" in priorities_doc
+    assert "old_task -> new_task" in priorities_doc
+    assert "Facade/Shim Candidates" in consolidated_doc
+    assert "old_task (thin_wrapper, core/facade.py:10)" in consolidated_doc
+
+
+@pytest.mark.unit
 def test_ai_priorities_hides_tier3_test_outcome_when_clean(temp_project_copy):
     """AI_PRIORITIES should omit Tier 3 test outcome section when there is no action needed."""
     service = AIToolsService(project_root=str(temp_project_copy))

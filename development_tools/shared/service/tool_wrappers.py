@@ -472,6 +472,39 @@ class ToolWrappersMixin:
             result["error"] = ""
         return result
 
+    def run_analyze_facade_shims(self) -> dict:
+        """Run analyze_facade_shims with structured JSON handling."""
+        logger.debug("Analyzing facade/shim candidates...")
+        args = ["--json"]
+        if self.exclusion_config.get("include_tests", False):
+            args.append("--include-tests")
+        if self.exclusion_config.get("include_dev_tools", False):
+            args.append("--include-dev-tools")
+        result = self.run_script("analyze_facade_shims", *args)
+        output = result.get("output", "")
+        data = None
+        if output:
+            try:
+                data = json.loads(output)
+            except json.JSONDecodeError:
+                data = None
+        if data is not None:
+            result["data"] = data
+            try:
+                save_tool_result(
+                    "analyze_facade_shims",
+                    "functions",
+                    data,
+                    project_root=self.project_root,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_facade_shims result: {e}")
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            result["success"] = True
+            result["error"] = ""
+        return result
+
     def run_analyze_module_refactor_candidates(
         self, include_tests: bool = False, include_dev_tools: bool = False
     ) -> dict:
