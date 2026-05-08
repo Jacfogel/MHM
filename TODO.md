@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-05-05 (session closeout: remove completed refactor tasks; keep deferred architecture follow-ups)
+> **Last Updated**: 2026-05-07 (session closeout: remove completed dev-tools logging follow-up)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -245,9 +245,6 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 - *Estimated effort*: Medium/Large
 - *Created*: 2026-05-03
 
-**Investigate reoccuring logs\ai_dev_tools.log**
-- Development tools are supposed to be independant of the main project and so should not be writing logs in the main project log folder
- 
 ### Deferred (AI overhaul)
 
 **AI Chatbot Actionability Sprint** - *Deferred (AI overhaul)*

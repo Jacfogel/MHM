@@ -55,6 +55,24 @@ class TestCommandRouting:
         )
 
     @pytest.mark.integration
+    def test_audit_success_after_ignored_sigint_returns_zero(self, monkeypatch, tmp_path):
+        mock_service = MagicMock()
+
+        def _run_audit(**_kwargs):
+            runner.audit_signal_state.handle_audit_sigint(2, None)
+            return True
+
+        mock_service.run_audit.side_effect = _run_audit
+        monkeypatch.setattr(
+            runner,
+            "AIToolsService",
+            lambda project_root=None, config_path=None: mock_service,
+        )
+
+        assert runner.main(["--project-root", str(tmp_path), "audit", "--full"]) == 0
+        assert not runner.audit_signal_state.audit_sigint_requested()
+
+    @pytest.mark.integration
     def test_docs_command_invokes_service(self, monkeypatch):
         mock_service = MagicMock()
         mock_service.run_docs.return_value = True

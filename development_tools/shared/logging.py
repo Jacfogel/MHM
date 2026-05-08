@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any
 
@@ -41,8 +42,17 @@ def _resolve_log_file_path() -> Path:
     explicit = os.getenv("LOG_AI_DEV_TOOLS_FILE", "").strip()
     if explicit:
         return Path(explicit).resolve()
-    base = Path(os.getenv("DEV_TOOLS_LOGS_DIR", "logs")).resolve()
+    default_base = Path(__file__).resolve().parents[2] / "development_tools" / "reports" / "logs"
+    base = Path(os.getenv("DEV_TOOLS_LOGS_DIR", str(default_base))).resolve()
     return (base / "ai_dev_tools.log").resolve()
+
+
+def _resolve_int_env(name: str, fallback: int) -> int:
+    try:
+        value = int(os.getenv(name, "").strip())
+    except (TypeError, ValueError):
+        return fallback
+    return value if value >= 0 else fallback
 
 
 def _setup_devtools_parent_logger() -> None:
@@ -57,7 +67,23 @@ def _setup_devtools_parent_logger() -> None:
     parent.propagate = False
     log_path = _resolve_log_file_path()
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    handler = logging.FileHandler(log_path, encoding="utf-8")
+    backup_dir = log_path.parent / "backups"
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    max_bytes = _resolve_int_env(
+        "DEV_TOOLS_LOG_MAX_BYTES",
+        1 * 1024 * 1024,
+    )
+    backup_count = _resolve_int_env(
+        "DEV_TOOLS_LOG_BACKUP_COUNT",
+        _resolve_int_env("LOG_BACKUP_COUNT", 7),
+    )
+    handler = RotatingFileHandler(
+        log_path,
+        maxBytes=max_bytes,
+        backupCount=backup_count,
+        encoding="utf-8",
+    )
+    handler.namer = lambda default_name: str(backup_dir / Path(default_name).name)
     # INFO default: keeps routine audit/tool chatter out of ai_dev_tools.log; override
     # with DEV_TOOLS_LOG_LEVEL=DEBUG (or WARNING, etc.) when diagnosing.
     _lvl = os.getenv("DEV_TOOLS_LOG_LEVEL", "INFO").upper()
@@ -141,11 +167,13 @@ def get_dev_tools_logger(component_name: str) -> DevToolsLogger | _DummyDevTools
     logger (matching prior get_component_logger test behavior).
 
     Otherwise attaches a shared file handler under the ``devtools`` hierarchy
-    (default directory: ``logs`` under cwd, or ``development_tools/reports/logs``
-    when ``run_development_tools.py`` sets ``DEV_TOOLS_LOGS_DIR``; override with
-    ``LOG_AI_DEV_TOOLS_FILE`` or ``DEV_TOOLS_LOGS_DIR``). The file handler's
-    threshold defaults to **INFO**; set ``DEV_TOOLS_LOG_LEVEL=DEBUG`` (or
-    ``WARNING``, etc.) for a different cutoff.
+    (default directory: ``development_tools/reports/logs`` under the repository
+    root; override with ``LOG_AI_DEV_TOOLS_FILE`` or ``DEV_TOOLS_LOGS_DIR``).
+    The rotating file handler's threshold defaults to **INFO**; set
+    ``DEV_TOOLS_LOG_LEVEL=DEBUG`` (or ``WARNING``, etc.) for a different cutoff.
+    Rotation defaults to 1 MB and can be overridden with
+    ``DEV_TOOLS_LOG_MAX_BYTES``. Retention defaults to ``LOG_BACKUP_COUNT``
+    compatible values and can be overridden with ``DEV_TOOLS_LOG_BACKUP_COUNT``.
     """
     name = _normalize_component_name(component_name)
     if _is_testing() and not _test_verbose_logs():

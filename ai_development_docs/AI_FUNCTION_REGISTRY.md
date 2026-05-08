@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-06 15:28:36
+> **Last Generated**: 2026-05-07 21:56:29
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 92.9% [!] GOOD**
-- **Total Functions**: 1878
-- **Total Methods**: 1283
-- **Documented**: 2936/3161
+### **Documentation Coverage: 93.0% [!] GOOD**
+- **Total Functions**: 1865
+- **Total Methods**: 1274
+- **Documented**: 2918/3139
 - **Files Scanned**: 138
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -25,13 +25,13 @@ User Data Operations Decision Tree:
 +-- `core/user_data_operations.py` - Data management (67 functions)
 +-- `core/user_data_validation.py` - Validation (9/12 functions)
 +-- `user/user_context.py` - User context management (20 functions)
-+-- `user/user_preferences.py` - User preferences (20 functions)
++-- `user/user_preferences.py` - User preferences (18 functions)
 `-- `core/user_data_read.py` - Account operations (5 functions)```
 
 ### **[AI] Need AI/Chatbot Functionality?**
 ```
 AI Operations Decision Tree:
-+-- `ai/chatbot.py` - Main AI implementation (85 functions)
++-- `ai/chatbot.py` - Main AI implementation (83 functions)
 +-- `user/context_manager.py` - Context for AI (24 functions)
 +-- `communication/message_processing/command_parser.py` - Natural language parsing (51 functions)
 +-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
@@ -42,21 +42,21 @@ AI Operations Decision Tree:
 Communication Decision Tree:
 +-- `communication/core/channel_orchestrator.py` - Main communication (77/97 functions)
 +-- `communication/communication_channels/base/base_channel.py` - Channel base class (14 functions)
-`-- `communication/core/factory.py` - Channel creation (8 functions)```
+`-- `communication/core/factory.py` - Channel creation (6 functions)```
 
 ### **[UI] Need UI/User Interface?**
 ```
 UI Operations Decision Tree:
-+-- `ui/ui_app_qt.py` - Main admin interface (134/136 functions)
++-- `ui/ui_app_qt.py` - Main admin interface (136/138 functions)
 +-- `ui/dialogs/task_crud_dialog.py` - Task CRUD (28 functions)
 `-- `ui/widgets/task_settings_widget.py` - Task settings (34/37 functions)```
 
 ### **[CORE] Need Core System Operations?**
 ```
 Core System Decision Tree:
-+-- `core/service.py` - Main service (96 functions)
++-- `core/service.py` - Main service (88 functions)
 +-- `core/config.py` - Configuration (19 functions)
-`-- `core/scheduler.py` - Scheduling (83/84 functions)```
+`-- `core/scheduler.py` - Scheduling (71/72 functions)```
 
 ## [PATTERNS] **Key Function Patterns**
 
@@ -167,6 +167,7 @@ Core System Decision Tree:
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
 - `core/user_data_validation.py` - 3/12 functions undocumented (75% coverage)
+- `core/user_lookup.py` - 1/3 functions undocumented (67% coverage)
 
 
 
@@ -198,11 +199,11 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (44 files, 977 functions)
-- `communication/` - Communication channels and message processing (45 files, 946 functions)
-- `ai/` - AI chatbot functionality (7 files, 219 functions)
-- `ui/` - User interface components (29 files, 831 functions)
-- `user/` - User context and preferences (4 files, 65 functions)
+- `core/` - System utilities and data management (44 files, 956 functions)
+- `communication/` - Communication channels and message processing (45 files, 944 functions)
+- `ai/` - AI chatbot functionality (7 files, 220 functions)
+- `ui/` - User interface components (29 files, 833 functions)
+- `user/` - User context and preferences (4 files, 63 functions)
 - `tasks/` - Task management system (6 files, 75 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**

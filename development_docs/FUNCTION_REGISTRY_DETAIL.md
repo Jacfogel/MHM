@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-06 15:28:36
+> **Last Generated**: 2026-05-07 21:56:29
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 92.9% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 93.0% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 138
-- **Functions Found**: 1878
-- **Methods Found**: 1283
+- **Functions Found**: 1865
+- **Methods Found**: 1274
 - **Classes Found**: 170
-- **Total Items**: 3161
-- **Functions Documented**: 1719
-- **Methods Documented**: 1217
+- **Total Items**: 3139
+- **Functions Documented**: 1710
+- **Methods Documented**: 1208
 - **Classes Documented**: 132
-- **Total Documented**: 2936
+- **Total Documented**: 2918
 - **Template-Generated**: 20
-- **Last Updated**: 2026-05-06
+- **Last Updated**: 2026-05-07
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,16 +39,16 @@
 
 ## Function Categories
 
-### **Core System Functions** (682)
+### **Core System Functions** (670)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (501)
+### **Communication Functions** (499)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (430)
+### **User Interface Functions** (431)
 UI dialogs, widgets, and user interaction functions.
 
-### **User Management Functions** (33)
+### **User Management Functions** (32)
 User context, preferences, and data management functions.
 
 ### **Task Management Functions** (70)
@@ -68,7 +68,9 @@ Test functions and testing utilities.
 - [OK] `__init__(self, max_size, ttl)` - Initialize the response cache
 - [OK] `__init__(self, ttl)` - Initialize the context cache
 - [OK] `_cleanup_lru(self)` - Remove least recently used items
+- [OK] `_expired_keys_from_items(items, ttl, timestamp_getter)` - Return cache keys whose stored timestamp is outside the configured TTL.
 - [OK] `_generate_key(self, prompt, user_id, prompt_type)` - Generate cache key from prompt, user context, and prompt type
+- [OK] `_matching_entry_keys(self, predicate)` - Collect response-cache keys matching a CacheEntry predicate.
 - [OK] `_remove_entry(self, key)` - Remove an entry from the cache
 - [OK] `clear(self)` - Clear all cached responses
 - [OK] `clear(self)` - Clear all cached contexts
@@ -96,6 +98,7 @@ Test functions and testing utilities.
   - [OK] `ResponseCache.__init__(self, max_size, ttl)` - Initialize the response cache
   - [OK] `ResponseCache._cleanup_lru(self)` - Remove least recently used items
   - [OK] `ResponseCache._generate_key(self, prompt, user_id, prompt_type)` - Generate cache key from prompt, user context, and prompt type
+  - [OK] `ResponseCache._matching_entry_keys(self, predicate)` - Collect response-cache keys matching a CacheEntry predicate.
   - [OK] `ResponseCache._remove_entry(self, key)` - Remove an entry from the cache
   - [OK] `ResponseCache.clear(self)` - Clear all cached responses
   - [OK] `ResponseCache.clear_expired(self)` - Remove all expired entries from the cache
@@ -135,7 +138,6 @@ Returns clean structured format for parser.
 - [OK] `_get_contextual_fallback(self, user_prompt, user_id)` - Provide contextually aware fallback responses based on user data and prompt analysis.
 Now actually analyzes user's check-in data for meaningful responses.
 - [OK] `_get_fallback_personalized_message(self, user_id)` - Provide fallback personalized messages when AI model is not available.
-- [OK] `_get_fallback_response(self, user_prompt)` - Legacy fallback method for backwards compatibility.
 - [OK] `_has_command_keyword(self, prompt_lower)` - Return True when prompt appears command-oriented.
 - [OK] `_is_data_analysis_question(self, user_prompt)` - Detect prompts that should bypass contextual cache for fresh data.
 - [OK] `_is_natural_language_task_request(self, prompt_lower)` - Detect natural-language task intents that likely need clarification.
@@ -199,7 +201,6 @@ Returns clean structured format for parser.
   - [OK] `AIChatBotSingleton._get_contextual_fallback(self, user_prompt, user_id)` - Provide contextually aware fallback responses based on user data and prompt analysis.
 Now actually analyzes user's check-in data for meaningful responses.
   - [OK] `AIChatBotSingleton._get_fallback_personalized_message(self, user_id)` - Provide fallback personalized messages when AI model is not available.
-  - [OK] `AIChatBotSingleton._get_fallback_response(self, user_prompt)` - Legacy fallback method for backwards compatibility.
   - [OK] `AIChatBotSingleton._has_command_keyword(self, prompt_lower)` - Return True when prompt appears command-oriented.
   - [OK] `AIChatBotSingleton._is_data_analysis_question(self, user_prompt)` - Detect prompts that should bypass contextual cache for fresh data.
   - [OK] `AIChatBotSingleton._is_natural_language_task_request(self, prompt_lower)` - Detect natural-language task intents that likely need clarification.
@@ -1952,8 +1953,6 @@ Returns:
 **Functions:**
 - [OK] `_initialize_registry(cls)` - Initialize the channel registry from configuration
 - [OK] `create_channel(cls, name, config)` - Create a channel instance
-- [OK] `get_available_channels()` - Compatibility wrapper so tests can patch either module or core.config path.
-- [OK] `get_channel_class_mapping()` - Compatibility wrapper so tests can patch either module or core.config path.
 - [OK] `get_registered_channels(cls)` - Get list of registered channel types
 **Classes:**
 - [OK] `ChannelFactory` - Factory for creating communication channels using config-based discovery
@@ -2658,6 +2657,7 @@ Sets up backup directory, maximum backup count, and ensures backup directory exi
 - [OK] `_get_backup_info(self, backup_path)` - Get information about a specific backup.
 - [OK] `_is_directory_backup_path(self, file_path)` - Return True when path is a backup directory with manifest.
 - [OK] `_is_weekly_backup_artifact(self, file_path)` - Return True when backup artifact name indicates weekly cadence.
+- [OK] `_restore_backup_subdirectory(self, backup_root, subdirectory, base_dir)` - Restore one top-level backup subdirectory into the data directory.
 - [OK] `_restore_config_files_from_directory(self, backup_root)` - Restore config files from directory backup.
 - [OK] `_restore_user_data_from_directory(self, backup_root)` - Restore user data from directory backup.
 - [OK] `_validate_backup__check_file_exists(self, backup_path, errors)` - Check if the backup file exists and add error if not.
@@ -2725,6 +2725,7 @@ Sets up backup directory, maximum backup count, and ensures backup directory exi
   - [OK] `BackupManager._get_backup_info(self, backup_path)` - Get information about a specific backup.
   - [OK] `BackupManager._is_directory_backup_path(self, file_path)` - Return True when path is a backup directory with manifest.
   - [OK] `BackupManager._is_weekly_backup_artifact(self, file_path)` - Return True when backup artifact name indicates weekly cadence.
+  - [OK] `BackupManager._restore_backup_subdirectory(self, backup_root, subdirectory, base_dir)` - Restore one top-level backup subdirectory into the data directory.
   - [OK] `BackupManager._restore_config_files_from_directory(self, backup_root)` - Restore config files from directory backup.
   - [OK] `BackupManager._restore_user_data_from_directory(self, backup_root)` - Restore user data from directory backup.
   - [OK] `BackupManager._validate_backup__check_file_exists(self, backup_path, errors)` - Check if the backup file exists and add error if not.
@@ -4139,12 +4140,6 @@ Args:
 - [OK] `_remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
 This makes user message jobs effectively one-time jobs.
 - [OK] `_schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay)` - Schedule a one-time retry for deferred scheduled sends.
-- [OK] `_select_task_for_reminder__calculate_due_date_weight(self, task, today)` - Calculate due date proximity weight for a task.
-- [OK] `_select_task_for_reminder__calculate_priority_weight(self, task)` - Calculate priority-based weight for a task.
-- [OK] `_select_task_for_reminder__calculate_task_weights(self, incomplete_tasks, today)` - Calculate weights for all tasks.
-- [OK] `_select_task_for_reminder__handle_edge_cases(self, incomplete_tasks)` - Handle edge cases for task selection.
-- [OK] `_select_task_for_reminder__select_task_by_weight(self, task_weights, incomplete_tasks)` - Select a task based on calculated weights using weighted random selection.
-- [OK] `_select_task_for_reminder__task_key(self, task, index)` - Build a stable key for tracking reminder selection state.
 - [OK] `check_and_perform_weekly_backup(self)` - Check if a weekly backup is needed and perform it if so.
 Runs during the daily scheduler job at 01:00 (before log archival at 02:00).
 Creates a backup if:
@@ -4249,12 +4244,6 @@ Args:
   - [OK] `SchedulerManager._remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
 This makes user message jobs effectively one-time jobs.
   - [OK] `SchedulerManager._schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay)` - Schedule a one-time retry for deferred scheduled sends.
-  - [OK] `SchedulerManager._select_task_for_reminder__calculate_due_date_weight(self, task, today)` - Calculate due date proximity weight for a task.
-  - [OK] `SchedulerManager._select_task_for_reminder__calculate_priority_weight(self, task)` - Calculate priority-based weight for a task.
-  - [OK] `SchedulerManager._select_task_for_reminder__calculate_task_weights(self, incomplete_tasks, today)` - Calculate weights for all tasks.
-  - [OK] `SchedulerManager._select_task_for_reminder__handle_edge_cases(self, incomplete_tasks)` - Handle edge cases for task selection.
-  - [OK] `SchedulerManager._select_task_for_reminder__select_task_by_weight(self, task_weights, incomplete_tasks)` - Select a task based on calculated weights using weighted random selection.
-  - [OK] `SchedulerManager._select_task_for_reminder__task_key(self, task, index)` - Build a stable key for tracking reminder selection state.
   - [OK] `SchedulerManager.check_and_perform_weekly_backup(self)` - Check if a weekly backup is needed and perform it if so.
 Runs during the daily scheduler job at 01:00 (before log archival at 02:00).
 Creates a backup if:
@@ -4463,11 +4452,8 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
 - [OK] `_check_and_fix_logging__read_recent_log_content(self)` - Read the last 1000 characters from the log file to check for recent activity.
 - [OK] `_check_and_fix_logging__test_logging_functionality(self, test_message)` - Test if logging functionality works by writing a test message and flushing handlers.
 - [OK] `_check_and_fix_logging__verify_test_message_present(self, recent_content, test_message, test_timestamp)` - Check if our test message or recent timestamp patterns are present in log content.
-- [OK] `_check_reschedule_requests__discover_request_files(self, base_dir)` - Discover all reschedule request files in the base directory.
 - [OK] `_check_reschedule_requests__get_base_directory(self)` - Get the base directory for reschedule request files.
 - [OK] `_check_reschedule_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
-- [OK] `_check_reschedule_requests__parse_request_file(self, request_file)` - Parse and validate a reschedule request file.
-- [OK] `_check_reschedule_requests__process_valid_request(self, request_data)` - Process a valid reschedule request.
 - [OK] `_check_reschedule_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
 - [OK] `_check_test_message_requests__discover_request_files(self, base_dir)` - Discover all test message request files in the base directory.
 - [OK] `_check_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
@@ -4478,7 +4464,6 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
 - [OK] `_check_test_message_requests__write_response(self, user_id, category, message)` - Write the actual message content to a response file for the UI to read.
 - [OK] `_cleanup_request_file_after_process(self, request_file, filename, request_type_label)` - Remove a processed request file and log. Shared by test message and reschedule request flows.
 - [OK] `_cleanup_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
-- [OK] `_cleanup_test_message_requests__is_test_message_request_file(self, filename)` - Check if a filename matches the test message request file pattern.
 - [OK] `_cleanup_test_message_requests__remove_request_file(self, request_file, filename)` - Remove a single test message request file with proper error handling.
 - [OK] `_collect_service_status_metrics(self, loop_minutes)` - Collect coarse health metrics for periodic service logs.
 - [OK] `_get_checkin_first_question(self, user_id)` - Get the first question that will be asked in the check-in.
@@ -4532,11 +4517,8 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
   - [OK] `MHMService._check_and_fix_logging__read_recent_log_content(self)` - Read the last 1000 characters from the log file to check for recent activity.
   - [OK] `MHMService._check_and_fix_logging__test_logging_functionality(self, test_message)` - Test if logging functionality works by writing a test message and flushing handlers.
   - [OK] `MHMService._check_and_fix_logging__verify_test_message_present(self, recent_content, test_message, test_timestamp)` - Check if our test message or recent timestamp patterns are present in log content.
-  - [OK] `MHMService._check_reschedule_requests__discover_request_files(self, base_dir)` - Discover all reschedule request files in the base directory.
   - [OK] `MHMService._check_reschedule_requests__get_base_directory(self)` - Get the base directory for reschedule request files.
   - [OK] `MHMService._check_reschedule_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
-  - [OK] `MHMService._check_reschedule_requests__parse_request_file(self, request_file)` - Parse and validate a reschedule request file.
-  - [OK] `MHMService._check_reschedule_requests__process_valid_request(self, request_data)` - Process a valid reschedule request.
   - [OK] `MHMService._check_reschedule_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
   - [OK] `MHMService._check_test_message_requests__discover_request_files(self, base_dir)` - Discover all test message request files in the base directory.
   - [OK] `MHMService._check_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
@@ -4547,7 +4529,6 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
   - [OK] `MHMService._check_test_message_requests__write_response(self, user_id, category, message)` - Write the actual message content to a response file for the UI to read.
   - [OK] `MHMService._cleanup_request_file_after_process(self, request_file, filename, request_type_label)` - Remove a processed request file and log. Shared by test message and reschedule request flows.
   - [OK] `MHMService._cleanup_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
-  - [OK] `MHMService._cleanup_test_message_requests__is_test_message_request_file(self, filename)` - Check if a filename matches the test message request file pattern.
   - [OK] `MHMService._cleanup_test_message_requests__remove_request_file(self, request_file, filename)` - Remove a single test message request file with proper error handling.
   - [OK] `MHMService._collect_service_status_metrics(self, loop_minutes)` - Collect coarse health metrics for periodic service logs.
   - [OK] `MHMService._get_checkin_first_question(self, user_id)` - Get the first question that will be asked in the check-in.
@@ -4591,6 +4572,7 @@ Sets up signal handlers for graceful shutdown.
 - [OK] `_cleanup_matching_request_files(base_path, predicate, label)` - Remove request files matching a predicate while continuing after per-file failures.
 - [OK] `_get_recipient_for_service(delivery, user_id, messaging_service, preferences)` - Resolve a recipient through the public delivery port.
 - [OK] `_send_checkin_prompt(delivery, user_id, messaging_service, recipient)` - Send a check-in prompt through the public delivery port.
+- [OK] `_write_response_file(response_file, response_data)` - Write a service response flag file as indented JSON.
 - [MISSING] `check_checkin_prompt_requests(context)` - No description
 - [MISSING] `check_reschedule_requests(context)` - No description
 - [MISSING] `check_task_reminder_requests(context)` - No description
@@ -4608,7 +4590,6 @@ Sets up signal handlers for graceful shutdown.
 - [OK] `is_test_message_request_filename(filename)` - TEST: Is Message Request Filename
 - [MISSING] `parse_reschedule_request_file(request_file)` - No description
 - [OK] `parse_test_message_request_file(request_file)` - TEST: Parse Message Request File
-- [OK] `process_all(context)` - Backward-compatible alias for pending UI/headless request flags.
 - [OK] `process_all_requests(context)` - Process pending UI/headless request flags (non-shutdown).
 - [OK] `process_pending_file_requests(context)` - Process request-flag files when any ``.flag`` exists under the repo root.
 - [OK] `process_shutdown_request(context, shutdown_file)` - Return True when shutdown was requested and the main loop should stop.
@@ -5245,10 +5226,7 @@ Returns:
 #### `core/user_lookup.py`
 **Functions:**
 - [MISSING] `_get_user_id_by_identifier__by_chat_id(chat_id)` - No description
-- [MISSING] `_get_user_id_by_identifier__by_discord_user_id(discord_user_id)` - No description
-- [MISSING] `_get_user_id_by_identifier__by_email(email)` - No description
-- [MISSING] `_get_user_id_by_identifier__by_internal_username(internal_username)` - No description
-- [MISSING] `_get_user_id_by_identifier__by_phone(phone)` - No description
+- [OK] `_scan_user_accounts_for_field(field_name, value, label)` - Fallback directory scan for account fields not found in user_index.json.
 - [OK] `get_user_id_by_identifier(identifier)` - Get user ID by any identifier (internal_username, email, discord_user_id, phone).
 
 #### `core/user_management.py`
@@ -5753,6 +5731,7 @@ Returns:
 
 Args:
     parent: Parent widget for the dialog
+- [OK] `_update_process_details_from_table(self, table, table_label)` - Update the detail pane from the selected row in a process table.
 - [OK] `closeEvent(self, event)` - Handle dialog close event.
 - [OK] `on_process_selected(self)` - Handle process selection change.
 - [OK] `refresh_processes(self)` - Refresh the process information.
@@ -5773,6 +5752,7 @@ Args:
 
 Args:
     parent: Parent widget for the dialog
+  - [OK] `ProcessWatcherDialog._update_process_details_from_table(self, table, table_label)` - Update the detail pane from the selected row in a process table.
   - [OK] `ProcessWatcherDialog.closeEvent(self, event)` - Handle dialog close event.
   - [OK] `ProcessWatcherDialog.on_process_selected(self)` - Handle process selection change.
   - [OK] `ProcessWatcherDialog.refresh_processes(self)` - Refresh the process information.
@@ -6156,6 +6136,7 @@ Rotated files use ``{primary.name}.{date_suffix}`` under ``backup_dir`` (see
 ``BackupDirectoryRotatingFileHandler``). Order is oldest backup → newest →
 primary so the combined sequence is roughly chronological.
 - [OK] `_populate_active_users_in_combo_box(self)` - Populate user combo box from active user metadata.
+- [OK] `_prepare_current_user_category_editor(self, editor_label)` - Validate the current user/category and load user context for an editor.
 - [OK] `_refresh_user_list_fallback(self, original_error)` - Fallback user list refresh using minimal account/context reads.
 - [OK] `_reselect_user_if_present(self, current_user_id)` - Reselect prior active user if still present in combo list.
 - [OK] `_reset_user_combo_box(self)` - Clear user combo and add placeholder entry.
@@ -6322,6 +6303,7 @@ Channels cannot run without the service, so we check service status first.
   - [OK] `MHMManagerUI._check_ngrok_status(self)` - Check if ngrok tunnel is running and return PID
   - [OK] `MHMManagerUI._collect_active_users_for_combo(self)` - Load active users and normalized display metadata.
   - [OK] `MHMManagerUI._populate_active_users_in_combo_box(self)` - Populate user combo box from active user metadata.
+  - [OK] `MHMManagerUI._prepare_current_user_category_editor(self, editor_label)` - Validate the current user/category and load user context for an editor.
   - [OK] `MHMManagerUI._refresh_user_list_fallback(self, original_error)` - Fallback user list refresh using minimal account/context reads.
   - [OK] `MHMManagerUI._reselect_user_if_present(self, current_user_id)` - Reselect prior active user if still present in combo list.
   - [OK] `MHMManagerUI._reset_user_combo_box(self)` - Clear user combo and add placeholder entry.
@@ -6854,7 +6836,6 @@ Args:
 - [OK] `_get_personalization_data__extract_loved_ones(self, data)` - Extract loved ones data from text field with structured parsing.
 - [OK] `_get_personalization_data__extract_notes(self, data)` - Extract notes for AI from text field.
 - [OK] `get_personalization_data(self)` - Get all personalization data from the form, preserving existing data structure.
-- [OK] `get_settings(self)` - Get the current user profile settings.
 - [OK] `load_existing_data(self)` - Load existing personalization data into the form.
 - [OK] `populate_timezones(self)` - Populate the timezone combo box with options and enable selection.
 - [OK] `set_checkbox_group(self, group_name, values)` - Set checkboxes for a specific group based on values.
@@ -6870,7 +6851,6 @@ Args:
   - [OK] `UserProfileSettingsWidget._get_personalization_data__extract_loved_ones(self, data)` - Extract loved ones data from text field with structured parsing.
   - [OK] `UserProfileSettingsWidget._get_personalization_data__extract_notes(self, data)` - Extract notes for AI from text field.
   - [OK] `UserProfileSettingsWidget.get_personalization_data(self)` - Get all personalization data from the form, preserving existing data structure.
-  - [OK] `UserProfileSettingsWidget.get_settings(self)` - Get the current user profile settings.
   - [OK] `UserProfileSettingsWidget.load_existing_data(self)` - Load existing personalization data into the form.
   - [OK] `UserProfileSettingsWidget.populate_timezones(self)` - Populate the timezone combo box with options and enable selection.
   - [OK] `UserProfileSettingsWidget.set_checkbox_group(self, group_name, values)` - Set checkboxes for a specific group based on values.
@@ -7068,7 +7048,6 @@ Args:
 - [OK] `save_preferences(self)` - Save user preferences using the new user management functions.
 - [OK] `set_preference(self, key, value)` - Set a preference and save it.
 - [OK] `set_schedule_period_active(user_id, category, period_name, is_active)` - Wrapper for :func:`core.schedule_runtime.set_schedule_period_active`.
-- [OK] `update_preference(self, key, value)` - Update a preference (alias for set_preference for consistency).
 **Classes:**
 - [OK] `UserPreferences` - Manages user preferences and settings.
 
@@ -7097,5 +7076,4 @@ Args:
   - [OK] `UserPreferences.save_preferences(self)` - Save user preferences using the new user management functions.
   - [OK] `UserPreferences.set_preference(self, key, value)` - Set a preference and save it.
   - [OK] `UserPreferences.set_schedule_period_active(user_id, category, period_name, is_active)` - Wrapper for :func:`core.schedule_runtime.set_schedule_period_active`.
-  - [OK] `UserPreferences.update_preference(self, key, value)` - Update a preference (alias for set_preference for consistency).
 

@@ -592,7 +592,7 @@ Markers may sit immediately above decorators or inside the function/class body. 
 **Rationale**:
 - Any `core` import couples the tool suite to MHM runtime modules (including transitive imports such as `core.config` inside `core.logger`).
 - Use dev-tools-local helpers instead:
-  - **Logging**: `development_tools.shared.logging` (`get_dev_tools_logger`). `run_development_tools.py` sets `DEV_TOOLS_LOGS_DIR` to `development_tools/reports/logs`, so the default file is `development_tools/reports/logs/ai_dev_tools.log` (handler level **INFO** by default; use `DEV_TOOLS_LOG_LEVEL=DEBUG` for full detail). Other entry points default to `logs/ai_dev_tools.log` under cwd unless you set `LOG_AI_DEV_TOOLS_FILE` or `DEV_TOOLS_LOGS_DIR`.
+  - **Logging**: `development_tools.shared.logging` (`get_dev_tools_logger`). The default file is `development_tools/reports/logs/ai_dev_tools.log` for all dev-tools entry points (handler level **INFO** by default; use `DEV_TOOLS_LOG_LEVEL=DEBUG` for full detail). The log rotates at 1 MB by default, with rotated copies kept under `development_tools/reports/logs/backups/`. Override with `LOG_AI_DEV_TOOLS_FILE`, `DEV_TOOLS_LOGS_DIR`, or `DEV_TOOLS_LOG_MAX_BYTES` only for isolated runs.
   - **Timestamps**: `development_tools.shared.time_helpers` (`now_timestamp_full`, `now_timestamp_filename`)
   - **Error handling**: `development_tools.shared.error_helpers` (`handle_errors` decorator)
   - **Backup manager**: Use `importlib.import_module("core.backup_manager")` inside the function that needs it, then access `mod.backup_manager`; treat failures as "backup not available" for host repos without that module.

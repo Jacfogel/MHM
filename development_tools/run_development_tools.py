@@ -4,6 +4,8 @@
 """Command-line interface for AI development tools."""
 
 import argparse
+import logging
+import contextlib
 import os
 import shutil
 import signal
@@ -47,7 +49,6 @@ except ImportError as e:
 from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.lock_state import cleanup_lock_paths, evaluate_lock_set
 from development_tools.shared import audit_signal_state
-import contextlib
 
 logger = get_dev_tools_logger("development_tools")
 
@@ -319,6 +320,7 @@ def _print_available_commands() -> None:
 
 
 def main(argv=None) -> int:
+    invoked_from_cli = argv is None
     # Parse known args first to extract global flags
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--project-root", type=str, default=None)
@@ -397,6 +399,9 @@ def main(argv=None) -> int:
         return 2
 
     service = None
+    previous_sigint_handler = None
+    installed_audit_sigint_handler = False
+    final_exit_code = 1
     try:
         if command_name in {"audit", "full-audit"}:
             has_active_locks, removed = _preflight_handle_stale_audit_locks(
@@ -421,12 +426,17 @@ def main(argv=None) -> int:
         if command_name in {"audit", "full-audit"}:
             audit_signal_state.reset_audit_sigint_state()
             if hasattr(signal, "SIGINT"):
+                previous_sigint_handler = signal.getsignal(signal.SIGINT)
                 signal.signal(signal.SIGINT, audit_signal_state.handle_audit_sigint)
+                installed_audit_sigint_handler = True
         exit_code = command.handler(service, remaining_args)
         # If user pressed second Ctrl+C (stop audit), treat as failure even if handler returned 0
         if command_name in {"audit", "full-audit"} and exit_code == 0 and audit_signal_state.audit_sigint_requested():
             logger.warning("Audit completed but user had requested stop (second Ctrl+C); returning failure.")
             return 1
+        if command_name in {"audit", "full-audit"} and exit_code == 0:
+            audit_signal_state.reset_audit_sigint_state()
+        final_exit_code = exit_code
         return exit_code
     except KeyboardInterrupt:
         internal_flag = (
@@ -469,8 +479,28 @@ def main(argv=None) -> int:
         print(f"Error executing command '{command_name}': {e}")
         return 1
     finally:
+        keep_audit_handler_until_process_exit = (
+            invoked_from_cli
+            and command_name in {"audit", "full-audit"}
+            and final_exit_code == 0
+        )
+        if (
+            installed_audit_sigint_handler
+            and hasattr(signal, "SIGINT")
+            and not keep_audit_handler_until_process_exit
+        ):
+            with contextlib.suppress(Exception):
+                signal.signal(signal.SIGINT, previous_sigint_handler)
         _cleanup_transient_runtime_artifacts(project_root_path)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    _exit_code = main()
+    if _exit_code == 0 and any(arg in {"audit", "full-audit"} for arg in sys.argv[1:]):
+        logging.shutdown()
+        with contextlib.suppress(Exception):
+            sys.stdout.flush()
+        with contextlib.suppress(Exception):
+            sys.stderr.flush()
+        os._exit(0)
+    sys.exit(_exit_code)

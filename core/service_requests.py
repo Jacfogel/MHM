@@ -236,6 +236,11 @@ def write_test_message_response(
         logger.debug(f"Could not write response file: {e}")
 
 
+@handle_errors(
+    "writing service response file",
+    user_friendly=False,
+    re_raise=True,
+)
 def _write_response_file(response_file: Path, response_data: dict[str, Any]) -> None:
     """Write a service response flag file as indented JSON."""
     with open(response_file, "w", encoding="utf-8") as f:

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-06 15:28:45
+> **Last Generated**: 2026-05-07 21:56:37
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -695,6 +695,7 @@ C:.
 |   |   |   test_service_utilities.py
 |   |   |   test_sharded_static_analysis.py
 |   |   |   test_sharded_static_scan_wiring.py
+|   |   |   test_shared_logging.py
 |   |   |   test_standard_exclusions.py
 |   |   |   test_static_analysis_tools.py
 |   |   |   test_status_file_timing.py

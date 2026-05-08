@@ -90,7 +90,7 @@ Do not introduce new logging environment variables without updating:
 - Section 5. Configuration (Environment Variables) in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md)
 - The constants in `core/config.py`
 
-**Development tools vs core logging**: Python under `development_tools/` should use `development_tools.shared.logging.get_dev_tools_logger` (default file under `development_tools/reports/logs/` when launched via [`development_tools/run_development_tools.py`](../development_tools/run_development_tools.py), which sets `DEV_TOOLS_LOGS_DIR`). **`core/logger.py` does not route file handlers into `development_tools/`**; it always resolves paths from `core.config` (normal `logs/` layout) except in pytest/test modes. `MHM_DEV_TOOLS_RUN=1` may still raise component log **levels** during audits to reduce INFO noise, but log **paths** stay on the standard app tree.
+**Development tools vs core logging**: Python under `development_tools/` should use `development_tools.shared.logging.get_dev_tools_logger` (default file under `development_tools/reports/logs/`, with rotated copies under `development_tools/reports/logs/backups/`). The dev-tools log rotates at 1 MB by default; override with `DEV_TOOLS_LOG_MAX_BYTES` for isolated runs. **`core/logger.py` does not route file handlers into `development_tools/`**; it always resolves paths from `core.config` (normal `logs/` layout) except in pytest/test modes. `MHM_DEV_TOOLS_RUN=1` may still raise component log **levels** during audits to reduce INFO noise, but log **paths** stay on the standard app tree.
 
 ## 6. Log Rotation, Backups, and Archival
 

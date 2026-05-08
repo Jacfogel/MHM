@@ -15,6 +15,7 @@ cache_logger = get_component_logger("ai_cache")
 logger = cache_logger
 
 
+@handle_errors("collecting expired cache keys", default_return=[])
 def _expired_keys_from_items(
     items,
     ttl: int,
@@ -209,6 +210,7 @@ class ResponseCache:
                 if entry.prompt_type == prompt_type
             }
 
+    @handle_errors("collecting matching response cache keys", default_return=[])
     def _matching_entry_keys(self, predicate) -> list[str]:
         """Collect response-cache keys matching a CacheEntry predicate."""
         return [key for key, entry in self.cache.items() if predicate(entry)]

@@ -14,6 +14,7 @@ from core.user_data_read import get_user_data
 logger = get_component_logger("main")
 
 
+@handle_errors("scanning user accounts for field", default_return=None)
 def _scan_user_accounts_for_field(
     field_name: str, value: str, label: str, *, compare_as_string: bool = False
 ) -> str | None:
