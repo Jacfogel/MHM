@@ -4,7 +4,7 @@
 > **Audience**: Developers and maintainers  
 > **Purpose**: Describe logging architecture, behavior, and maintenance tasks for MHM  
 > **Style**: Technical, example-driven, detailed  
-> **Pair**: [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md)  
+> **Pair**: [AI_LOGGING_GUIDE.md](../ai_development_docs/AI_LOGGING_GUIDE.md)  
 
 This document describes how logging works in MHM and how to use it safely when developing or debugging.
 
@@ -144,7 +144,7 @@ when test logging is enabled (see `TEST_VERBOSE_LOGS` below).
 
 ## 5. Configuration (Environment Variables)
 
-> **Note:** Configuration semantics (env vars, defaults, failure modes) are canonically defined in [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md). Avoid duplicating per-setting definitions here.
+> **Note:** Configuration semantics (env vars, defaults, failure modes) are canonically defined in [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md). Avoid duplicating per-setting definitions here.
 
 
 Logging is configured via environment variables loaded in `core/config.py`. From your `.env`:
@@ -235,7 +235,7 @@ Rotation is implemented by `BackupDirectoryRotatingFileHandler` in `core/logger.
 - **Backups** (`logs/backups/`): Recently rotated log files, one per rotation date per component (e.g. `app.log.2026-02-06`). The filename date is the calendar date of the log period that was rotated out. Low-activity logs (e.g. `message.log`, `ai.log`, `user_activity.log`) rotate less often, so they appear in backups only when they have grown enough and passed a midnight.
 - **Archive** (`logs/archive/`): Compressed older backups (e.g. `app.log.2026-01-30.gz`). Files are moved here after 7 days in backups; archives older than 30 days are deleted.
 
-For full backup/archive semantics, retention, and restore procedures, see [AI_BACKUP_GUIDE.md](../ai_development_docs/AI_BACKUP_GUIDE.md) and [BACKUP_GUIDE.md](development_docs/BACKUP_GUIDE.md) Section 1.
+For full backup/archive semantics, retention, and restore procedures, see [AI_BACKUP_GUIDE.md](../ai_development_docs/AI_BACKUP_GUIDE.md) and [BACKUP_GUIDE.md](../development_docs/BACKUP_GUIDE.md) Section 1.
 
 ---
 
@@ -301,7 +301,7 @@ Use `DEBUG` for detailed diagnostics; remove or tone down once issues are resolv
 
 ### 9.5. Align logging with error handling
 
-Most error paths should flow through the centralized error handling system; for category guidance, see section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
+Most error paths should flow through the centralized error handling system; for category guidance, see section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md).
 
 ### 9.6. Respect test settings
 

@@ -147,7 +147,7 @@
 - Full-repo status (not produced by this run): [AI_STATUS.md](AI_STATUS.md)
 - Scoped priorities from this run: [DEV_TOOLS_PRIORITIES.md](DEV_TOOLS_PRIORITIES.md)
 - Full-repo priorities: [AI_PRIORITIES.md](AI_PRIORITIES.md)
-- Detailed JSON results: [analysis_detailed_results.json](reports/scopes/dev_tools/analysis_detailed_results.json)
+- Detailed JSON results: [analysis_detailed_results.json](reports/scopes/full/analysis_detailed_results.json)
 - Legacy reference report: [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md)
 - Test coverage report: [TEST_COVERAGE_REPORT.md](../development_docs/TEST_COVERAGE_REPORT.md)
 - Unused imports detail: [UNUSED_IMPORTS_REPORT.md](../development_docs/UNUSED_IMPORTS_REPORT.md)

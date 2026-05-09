@@ -6,7 +6,7 @@
 > **Owner**: Human developer + AI collaborators  
 > **Created**: 2026-02-22  
 > **Last Updated**: 2026-04-20 (domain attribution markers backlog §4.4)
-> **Parent**: [PLANS.md](development_docs/PLANS.md)  
+> **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
 **Use / fit**: Tests are validation checks that we haven't broken things—every bit helps (beginner + AI coding). Priorities: stability over speed; higher coverage; avoid production-log pollution and tests executing real operations; minimize manual testing. Full audits run often; fast runs matter.
@@ -65,7 +65,7 @@ Signals currently present in logs and/or recent outputs:
 
 ### Completed in this session
 
-- Fixed parallel test race in [test_logger_behavior.py](tests/behavior/test_logger_behavior.py): replaced shared `tests/data/logs` teardown fixtures with per-test `tmp_path` log fixture.
+- Fixed parallel test race in [test_logger_behavior.py](../tests/behavior/test_logger_behavior.py): replaced shared `tests/data/logs` teardown fixtures with per-test `tmp_path` log fixture.
 - Hardened `test_checkin_view` parallel isolation for Discord button-handler tests:
   - File: `tests/unit/test_checkin_view.py`
   - Replaced fixed IDs with per-test unique `user_id` / `discord_user_id` values.
@@ -87,7 +87,7 @@ Signals currently present in logs and/or recent outputs:
   - `tests/development_tools/test_test_file_coverage_cache.py::test_save_cache_backfills_missing_excluded_test_dirs`
   - prevents save failures when older/partial instances are missing `excluded_test_dirs`.
 - Cleared documentation/test-hygiene quick wins from priorities:
-  - Converted remaining unconverted references to `[AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)` links in `ai_development_docs/AI_CHANGELOG.md` and `development_docs/PLANS.md`.
+  - Converted remaining unconverted references to `[AI_TESTING_GUIDE.md](../ai_development_docs/AI_TESTING_GUIDE.md)` links in `ai_development_docs/AI_CHANGELOG.md` and `development_docs/PLANS.md`.
   - Removed the last obvious unused import (`uuid`) from `tests/conftest.py`; `UNUSED_IMPORTS_REPORT.md` now reports `Obvious Unused: 0`.
 - Hardened test-file cache test discovery against ACL/path traversal errors:
   - Replaced brittle `rglob`-only paths with ACL-tolerant walker in `development_tools/tests/test_file_coverage_cache.py`.

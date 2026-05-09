@@ -1693,6 +1693,7 @@ class CommunicationManager:
 
         return ChannelFactory.get_registered_channels()
 
+    # devtools: ignore[facade-shims]: required SchedulerDeliveryPort implementation delegates to owned dispatcher
     @handle_errors("handling task reminder", default_return=MessageSendResult.failed())
     def handle_task_reminder(
         self, user_id: str, task_identifier: str

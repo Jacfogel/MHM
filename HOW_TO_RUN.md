@@ -156,7 +156,7 @@ Ruff, Pyright, and Bandit use **per-shard fragment caches** on disk (see [`devel
 
 #### 5.1.6. Completion log lines (`issues=`)
 
-Lines like `Completed analyze_functions: PASS issues=493` in [`development_tools/reports/logs/main.log`](development_tools/reports/logs/main.log) mean the tool **finished successfully** (`PASS`); **`issues=`** is the tool's **`total_issues`** summary field (often a **metric total**, not "493 test failures"). Use [development_tools/AI_STATUS.md](development_tools/AI_STATUS.md), [development_tools/AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md), and [development_tools/CONSOLIDATED_REPORT.md](development_tools/CONSOLIDATED_REPORT.md) for actionable next steps. Per-tool semantics: [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 3.21.
+Lines like `Completed analyze_functions: PASS issues=493` in [`development_tools/reports/logs/ai_dev_tools.log`](development_tools/reports/logs/ai_dev_tools.log) mean the tool **finished successfully** (`PASS`); **`issues=`** is the tool's **`total_issues`** summary field (often a **metric total**, not "493 test failures"). Use [development_tools/AI_STATUS.md](development_tools/AI_STATUS.md), [development_tools/AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md), and [development_tools/CONSOLIDATED_REPORT.md](development_tools/CONSOLIDATED_REPORT.md) for actionable next steps. Per-tool semantics: [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 3.21.
 
 - **Never install dependencies globally** - this can cause conflicts
 - **If you see (.venv) in your terminal prompt**, you're using the virtual environment correctly

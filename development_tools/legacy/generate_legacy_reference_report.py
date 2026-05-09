@@ -256,13 +256,13 @@ class LegacyReferenceReportGenerator:
 
         report_lines.append("## Recommended Follow-Up")
         report_lines.append(
-            "- Additional guidance: [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md)"
+            "- Additional guidance: [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md)"
         )
         report_lines.append(
             "1. Identify active legacy compatibility behavior and migrate all callers/dependencies to current implementations before deleting markers."
         )
         report_lines.append(
-            "2. Add or update regression tests that prove migrated flows work without legacy compatibility code paths. See [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) for additional guidance."
+            "2. Add or update regression tests that prove migrated flows work without legacy compatibility code paths. See [AI_TESTING_GUIDE.md](../ai_development_docs/AI_TESTING_GUIDE.md) for additional guidance."
         )
         report_lines.append(
             "3. Only after migration is verified, remove legacy markers/comments/docs evidence and rerun `python development_tools/run_development_tools.py legacy --clean --dry-run` until this report returns zero issues."

@@ -5,7 +5,7 @@
 > **Purpose**: Plan for multi-phase task system enhancements (recurrence, templates, intelligence, and advanced workflows)  
 > **Style**: Actionable, checklist-focused, progress-tracked  
 > **Last Updated**: 2026-05-02 (Discord recurring-task natural language + help/docs verified)  
-> **Parent**: [PLANS.md](development_docs/PLANS.md)  
+> **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
 **Use / fit**: Discord is the primary task interface; user doesn't use tasks much yet but wants them to work well. Discord commands and natural-language task creation are extremely important. Prioritize: recurring-task discoverability, templates, interactive follow-up with skip/flow-timeout, notes & attachments. Defer AI-based suggestions until AI overhaul.

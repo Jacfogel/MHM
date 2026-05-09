@@ -93,6 +93,7 @@ class CommandRegistry(ABC):
             logger.error(f"Failed to unregister command '{command_name}': {e}")
             return False
 
+    # devtools: ignore[facade-shims]: canonical registry lookup; alias support is core behavior
     @handle_errors("getting command")
     def get_command(self, command_name: str) -> CommandDefinition | None:
         """Get a command by name or alias"""

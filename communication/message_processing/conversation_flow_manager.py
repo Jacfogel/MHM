@@ -156,6 +156,7 @@ class ConversationManager:
             )
             self.user_states = {}
 
+    # devtools: ignore[facade-shims]: persisted state migration for active user flow files
     @handle_errors("normalizing legacy flow task keys", default_return=None)
     def _normalize_loaded_flow_task_identifiers(self) -> None:
         """Move persisted legacy task key flow data to ``task_identifier`` and save once."""

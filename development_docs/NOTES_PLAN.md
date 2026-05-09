@@ -5,7 +5,7 @@
 > **Purpose**: Implementation plan for notebook feature  
 > **Style**: Actionable, checklist-focused, roadmap-oriented  
 > **Last Updated**: 2026-04-29 (Notebook v2 persisted + v2-native runtime aligned with USER_DATA_MODEL)
-> **Parent**: [PLANS.md](development_docs/PLANS.md)  
+> **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
 **Use / fit**: Notebook is intended as a primary daily tool but not yet there. Focus: get "Show More" pagination working first, then improve search feedback; edit sessions medium; AI extraction and slash-command discovery deferred until AI/command-parsing overhaul. User priority order for known issues: search feedback > Show More > help system > group ambiguity > bulk ops > journal visual distinction.

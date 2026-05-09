@@ -12,24 +12,24 @@
 
 ## Immediate Focus Ranked
 1. **Stabilize documentation drift**  -  3 documentation paths are out of sync.
-   - Review for guidance: [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) (doc-sync), [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md)
-   - Top offenders: [TODO.md](TODO.md)
+   - Review for guidance: [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) (doc-sync), [AI_DOCUMENTATION_GUIDE.md](../ai_development_docs/AI_DOCUMENTATION_GUIDE.md)
+   - Top offenders: [TODO.md](../TODO.md)
    - Action: Fix broken paths in top offender files, then run `python development_tools/run_development_tools.py doc-sync`
    - Why this matters: Broken paths in documentation reduce trust and make navigation difficult
-   - Review for details: [analyze_documentation_sync_results.json](development_tools/docs/jsons/analyze_documentation_sync_results.json)
+   - Review for details: [analyze_documentation_sync_results.json](docs/jsons/scopes/full/analyze_documentation_sync_results.json)
 2. **Review pip-audit dependency vulnerabilities**  -  pip-audit reports 1 vulnerability finding(s) across 1 package(s).
-   - Review for guidance: [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
+   - Review for guidance: [AI_DEVELOPMENT_WORKFLOW.md](../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
    - pip-audit reports 1 vulnerability finding(s) across 1 package(s).
    - Action: Run `python -m pip_audit --format json`; no advisory fix version is currently published, so monitor for an updated package release and avoid installing untrusted archives.
    - No fixed version is currently reported for 1 vulnerable package(s).
    - Why this matters: Known CVEs in dependencies are a supply-chain risk.
-   - Review for details: [CONSOLIDATED_REPORT.md](development_tools/CONSOLIDATED_REPORT.md)
+   - Review for details: [CONSOLIDATED_REPORT.md](CONSOLIDATED_REPORT.md)
 3. **Address Pyright findings**  -  Pyright reports 7 error(s), 1 warning(s).
-   - Review for guidance: [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
+   - Review for guidance: [AI_DEVELOPMENT_WORKFLOW.md](../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
    - Pyright findings: 7 error(s), 1 warning(s).
    - Action: Run `python -m pyright` to inspect full diagnostics before fixes.
    - Why this matters: Type regressions reduce reliability and increase defect risk.
-   - Review for details: [CONSOLIDATED_REPORT.md](development_tools/CONSOLIDATED_REPORT.md)
+   - Review for details: [CONSOLIDATED_REPORT.md](CONSOLIDATED_REPORT.md)
 
 ## Quick Wins
 - No immediate quick wins identified. Re-run doc-sync after tackling focus items.

@@ -5,7 +5,7 @@
 > **Purpose**: Quick reference for Discord bot manual testing  
 > **Style**: Command-focused, concise examples
 
-This guide provides quick test commands for Discord bot features. For detailed testing procedures, see [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md).
+This guide provides quick test commands for Discord bot features. For detailed testing procedures, see [MANUAL_TESTING_GUIDE.md](MANUAL_TESTING_GUIDE.md).
 
 ---
 
@@ -392,4 +392,4 @@ find work tasks
 
 ---
 
-**Note**: This guide focuses on Discord-specific manual testing. For general testing procedures, see [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
+**Note**: This guide focuses on Discord-specific manual testing. For general testing procedures, see [TESTING_GUIDE.md](TESTING_GUIDE.md).

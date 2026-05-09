@@ -114,7 +114,7 @@ Tests are organized by real-world features and workflows to encourage integratio
   - `development_tools/legacy/fix_legacy_references.py` - 10 tests for legacy reference pattern detection and cleanup
   - `development_tools/tests/run_test_coverage.py` - 10 tests for coverage regeneration and reporting
 - Tests use a synthetic fixture project at `tests/fixtures/development_tools_demo/` for isolated testing.
-- For detailed guidance on development tools testing, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
+- For detailed guidance on development tools testing, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
 - Examples:
   - Configuration validation.
   - File exclusion patterns.
@@ -356,7 +356,7 @@ Typical options:
 
 Prefer `python run_tests.py` over calling pytest directly when you want "normal" local or CI runs.
 
-**Stopping a run:** On Windows, spurious Ctrl+C (SIGINT) events can occur during test runs. The runner ignores a single SIGINT; to stop the run intentionally, press **Ctrl+C twice within 2 seconds**. See [TEST_PLAN.md](development_docs/TEST_PLAN.md) Section 5.6.1 for details.
+**Stopping a run:** On Windows, spurious Ctrl+C (SIGINT) events can occur during test runs. The runner ignores a single SIGINT; to stop the run intentionally, press **Ctrl+C twice within 2 seconds**. See [TEST_PLAN.md](../development_docs/TEST_PLAN.md) Section 5.6.1 for details.
 
 **Running from an external terminal:** Open Windows Terminal or PowerShell, go to the project directory, activate the venv, then run the same commands (e.g. `python run_tests.py --full`). Example:
 
@@ -720,7 +720,7 @@ Manual testing is especially important when:
 
 The canonical manual testing checklists live in:
 
-- [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md)
+- [MANUAL_TESTING_GUIDE.md](MANUAL_TESTING_GUIDE.md)
 
 That guide provides:
 
@@ -736,7 +736,7 @@ That guide provides:
 
 For Discord-specific manual flows-especially task reminder follow-up flows-use:
 
-- [MANUAL_DISCORD_TEST_GUIDE.md](tests/MANUAL_DISCORD_TEST_GUIDE.md)
+- [MANUAL_DISCORD_TEST_GUIDE.md](MANUAL_DISCORD_TEST_GUIDE.md)
   - Section 1. "Prerequisites".
   - Section 2. "Task Reminder Follow-up Flow Testing".
   - Section 7. "Quick Test Checklist".
@@ -751,7 +751,7 @@ Run these tests when:
 
 For AI conversation behavior, routing, and functionality tests, use:
 
-- [SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md)
+- [SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md](ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md)
   - Section 1. "Quick Start".
   - Section 2. "Test Suite Structure".
   - Section 6. "Test Features".
@@ -769,7 +769,7 @@ Run these tests when:
 
 For development tools testing (analysis tools, CLI runners, infrastructure), use:
 
-- [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md)
+- [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](DEVELOPMENT_TOOLS_TESTING_GUIDE.md)
   - Section 1. "Quick Start".
   - Section 4. "Test Fixtures and Isolation".
   - Section 5. "Critical Safety Rules".

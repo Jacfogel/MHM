@@ -28,14 +28,14 @@ python development_tools/run_development_tools.py legacy
 
 **Canonical inventory:** `development_tools/config/jsons/DEPRECATION_INVENTORY.json` is the required source of truth for deprecated/removed/to-retire terms and sweep patterns.
 
-For the full audit workflow that also produces [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md), use [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), especially section 2 "Fast Mode vs Full Mode" and section 3 "Generated Outputs".
+For the full audit workflow that also produces [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md), use [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), especially section 2 "Fast Mode vs Full Mode" and section 3 "Generated Outputs".
 
 ## 1. Standards
 
 Use this guide only after you understand the general documentation and development rules:
 
-- Documentation and pairing rules: see section 3 "Documentation Synchronization Checklist" in [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md).
-- Development workflow and safety: see section 1 "Safety First" and section 3 "Standard Development Cycle" in [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md).
+- Documentation and pairing rules: see section 3 "Documentation Synchronization Checklist" in [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md).
+- Development workflow and safety: see section 1 "Safety First" and section 3 "Standard Development Cycle" in [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md).
 
 **When adding legacy compatibility code (temporary compatibility only):**
 
@@ -90,7 +90,7 @@ Use the legacy cleanup tool as a structured workflow rather than ad hoc search.
 4. **Remove & Test** - only after verification is clean
 
    - Remove the legacy code and `LEGACY COMPATIBILITY` markers.
-   - Run the standard test suite (see section 4 "Test Layout and Discovery" in [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)).
+   - Run the standard test suite (see section 4 "Test Layout and Discovery" in [AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md)).
    - Start the service and confirm normal behavior.
    - Update changelogs or relevant docs to record the removal.
    - Update `development_tools/config/jsons/DEPRECATION_INVENTORY.json` (change status to `removed` or `retire_candidate`, and keep search terms current).
@@ -111,7 +111,7 @@ Before you delete a legacy item:
 
 ## 4. Tools
 
-These tools underlie this guide. For detailed behavior and additional commands, see [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) (section 1 "Main Entry Point", section 3 "Generated Outputs", and section 4 "Key Scripts").
+These tools underlie this guide. For detailed behavior and additional commands, see [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) (section 1 "Main Entry Point", section 3 "Generated Outputs", and section 4 "Key Scripts").
 
 - `development_tools/legacy/fix_legacy_references.py`:
   - `--scan`: scan for all legacy patterns.
@@ -121,7 +121,7 @@ These tools underlie this guide. For detailed behavior and additional commands, 
 
 - `development_tools/run_development_tools.py`:
   - `legacy`: integrated legacy scan, and in some modes, report regeneration.
-  - `audit` / `audit --full`: broader audits that also generate [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md) and related outputs.
+  - `audit` / `audit --full`: broader audits that also generate [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md) and related outputs.
 
 For **read-only fallbacks** on pre-scope-migration audit JSON paths (flat `jsons/`, unscoped reports aggregates, timing merge), see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 7.16 (backlog: retire those bridges with search-and-close).
 

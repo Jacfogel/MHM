@@ -52,6 +52,7 @@ def create_default_schedule_periods(category: str | None = None) -> dict[str, An
     }
 
 
+# devtools: ignore[facade-shims]: active schedules.json migration used before default insertion
 @handle_errors("migrating legacy schedules structure", default_return={})
 def migrate_legacy_schedules_structure(
     schedules_data: dict[str, Any],

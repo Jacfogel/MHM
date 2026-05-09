@@ -17,7 +17,9 @@ Usage:
 
 import re
 import argparse
+import os
 import sys
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 from collections import defaultdict
@@ -84,22 +86,68 @@ except (AttributeError, ImportError):
 
 logger = get_dev_tools_logger("development_tools")
 
-# Default legacy doc files if config has none (project-specific list lives in config)
-_DEFAULT_LEGACY_DOCUMENTATION_FILES = (
-    "development_docs/LEGACY_REFERENCE_REPORT.md",
-    "development_docs/CHANGELOG_DETAIL.md",
-    "ai_development_docs/AI_CHANGELOG.md",
-)
+MARKDOWN_LINK_PATTERN = re.compile(r"(!?\[[^\]]+\]\()([^)]+)(\))")
 
+
+def is_external_or_anchor_href(href: str) -> bool:
+    """Return True for hrefs that should not resolve to local files."""
+    lower = href.lower()
+    return lower.startswith(
+        (
+            "http:",
+            "https:",
+            "mailto:",
+            "tel:",
+            "app://",
+            "plugin://",
+            "#",
+        )
+    )
+
+
+def split_href_path_suffix(href: str) -> tuple[str, str]:
+    """Split an href into local path and anchor/query suffix."""
+    for separator in ("#", "?"):
+        if separator in href:
+            href_path, suffix = href.split(separator, 1)
+            return href_path, f"{separator}{suffix}"
+    return href, ""
+
+
+def iter_markdown_files_for_link_targets(project_root: Path) -> Iterator[tuple[Path, str]]:
+    """Yield Markdown files eligible for local link target checks."""
+    for md_file in project_root.rglob("*.md"):
+        try:
+            rel_path = str(md_file.relative_to(project_root)).replace("\\", "/")
+        except ValueError:
+            continue
+        if should_exclude_file(rel_path, tool_type="documentation", context="development"):
+            continue
+        if md_file.name.startswith("."):
+            continue
+        yield md_file, rel_path
+
+
+def iter_markdown_link_hrefs(content: str) -> Iterator[tuple[int, str]]:
+    """Yield Markdown link hrefs with 1-based line numbers, excluding code blocks."""
+    in_code_block = False
+    for line_num, line in enumerate(content.splitlines(), start=1):
+        if line.strip().startswith("```"):
+            in_code_block = not in_code_block
+            continue
+        if in_code_block:
+            continue
+        for match in MARKDOWN_LINK_PATTERN.finditer(line):
+            href = match.group(2).strip()
+            if href:
+                yield line_num, href
 
 def _get_legacy_documentation_files() -> frozenset[str]:
     """Load legacy documentation file paths from config (path_drift.legacy_documentation_files).
     Returns a frozenset with both / and \\ so comparison works on all platforms.
     """
-    path_drift_cfg = config.get_external_value("path_drift", {}) or {}
-    paths = path_drift_cfg.get("legacy_documentation_files", _DEFAULT_LEGACY_DOCUMENTATION_FILES)
-    if not paths:
-        paths = _DEFAULT_LEGACY_DOCUMENTATION_FILES
+    path_drift_cfg = config.get_path_drift_config()
+    paths = path_drift_cfg.get("legacy_documentation_files", [])
     result: set[str] = set()
     for p in paths:
         p_str = str(p).strip()
@@ -189,31 +237,15 @@ class PathDriftAnalyzer:
 
         Skips:
         - Files with "PLAN" in the name (historical context files)
-        - Files in .cursor/plans/ directory
-        - Files in archive directories
-        - Test fixture files (intentional test data, not real documentation issues)
 
         Note: Example sections within files are excluded via _is_in_example_context(),
-        not by excluding entire files.
+        not by excluding entire files. Directory and fixture exclusions are handled
+        by shared.standard_exclusions before this method is called.
         """
         doc_file_lower = doc_file.lower()
-        doc_file_path = Path(doc_file)
 
         # Skip files with "PLAN" in the name (historical context)
-        if "plan" in doc_file_lower:
-            return True
-
-        # Skip .cursor/ directory files (plans, rules, etc.)
-        if ".cursor" in doc_file_path.parts:
-            return True
-
-        # Skip archive directories
-        if "archive" in doc_file_path.parts:
-            return True
-
-        # Skip test fixture files (intentional test data, not real documentation issues)
-        # These are in tests/fixtures/ or tests/fixtures/development_tools_demo/
-        return bool("tests" in doc_file_path.parts and "fixtures" in doc_file_path.parts)
+        return "plan" in doc_file_lower
 
     def _should_skip_path(self, path: str, doc_file: str) -> bool:
         """Enhanced path filtering to reduce false positives."""
@@ -804,6 +836,45 @@ class PathDriftAnalyzer:
 
         return drift_issues
 
+    def check_markdown_link_targets(self) -> dict[str, list[str]]:
+        """Check whether local markdown link hrefs are clickable from their source file."""
+        link_issues: dict[str, list[str]] = defaultdict(list)
+
+        for md_file, rel_path in iter_markdown_files_for_link_targets(self.project_root):
+            try:
+                content = md_file.read_text(encoding="utf-8")
+            except Exception as e:
+                if logger:
+                    logger.warning(f"Error reading {md_file}: {e}")
+                continue
+
+            source_dir = md_file.parent
+            for line_num, raw_href in iter_markdown_link_hrefs(content):
+                href = raw_href.strip("<>")
+                if is_external_or_anchor_href(href):
+                    continue
+                href_path, _href_suffix = split_href_path_suffix(href)
+                href_path = href_path.strip()
+                if not href_path or href_path.startswith("/"):
+                    continue
+
+                relative_target = (source_dir / href_path).resolve()
+                if relative_target.exists():
+                    continue
+
+                repo_target = (self.project_root / href_path).resolve()
+                if repo_target.exists():
+                    suggested = Path(os.path.relpath(repo_target, source_dir)).as_posix()
+                    link_issues[rel_path].append(
+                        f"Line {line_num}: Repo-relative markdown href `{raw_href}` is not clickable from this file; use `{suggested}`"
+                    )
+                else:
+                    link_issues[rel_path].append(
+                        f"Line {line_num}: Missing markdown link target `{raw_href}`"
+                    )
+
+        return link_issues
+
     def run_analysis(self) -> dict[str, Any]:
         """
         Run path drift analysis and return results in standard format.
@@ -812,6 +883,7 @@ class PathDriftAnalyzer:
             Dictionary with standard format: 'summary', 'files', and 'details' keys
         """
         drift_issues = self.check_path_drift()
+        markdown_link_issues = self.check_markdown_link_targets()
 
         # Convert to structured format
         files = {}
@@ -828,7 +900,11 @@ class PathDriftAnalyzer:
             "details": {
                 "detailed_issues": dict(
                     drift_issues
-                )  # Keep detailed issues for reference
+                ),  # Keep detailed issues for reference
+                "markdown_link_target_issues": sum(
+                    len(issues) for issues in markdown_link_issues.values()
+                ),
+                "markdown_link_target_files": dict(markdown_link_issues),
             },
         }
 
@@ -858,6 +934,9 @@ def main():
     files = structured_results.get("files", {})
     details = structured_results.get("details", {})
     results = details.get("detailed_issues", {})
+    markdown_link_target_issues = int(
+        details.get("markdown_link_target_issues", 0) or 0
+    )
 
     if results:
         print("\nPath Drift Issues:")
@@ -869,6 +948,10 @@ def main():
             print(f"     {doc_file}: {issue_count} issues")
     else:
         print("\nNo path drift issues found!")
+    if markdown_link_target_issues:
+        print(
+            f"\nMarkdown link target hints: {markdown_link_target_issues} local link(s) may not be clickable from their source document."
+        )
 
     return 0 if not results else 1
 

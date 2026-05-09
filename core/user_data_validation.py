@@ -678,6 +678,7 @@ def validate_new_user_data(
 # ---------------------------------------------------------------------------
 
 
+# devtools: ignore[facade-shims]: current context/personalization validator retained after module migration
 @handle_errors(
     "validating personalization data", default_return=(False, ["Validation failed"])
 )

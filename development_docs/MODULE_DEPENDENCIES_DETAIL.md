@@ -8,7 +8,7 @@
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
 > **Status**: **ACTIVE** - Hybrid auto-generated and manually enhanced  
 
-> **See [README.md](README.md) for complete navigation and project overview**
+> **See [README.md](../README.md) for complete navigation and project overview**
 > **See [ARCHITECTURE.md](../ARCHITECTURE.md) for system architecture and design**
 > **See [TODO.md](../TODO.md) for current documentation priorities**
 

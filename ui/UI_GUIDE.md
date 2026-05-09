@@ -7,8 +7,8 @@
 
 This document is internal to the MHM project.
 
-See [README.md](README.md), section 1 **"Navigation"** and section 7 **"Project Structure"** for documentation index and directory layout.  
-See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md), section 1 **"Safety First"** and section 3 **"Development Process"** before changing UI code.
+See [README.md](../README.md), section 1 **"Navigation"** and section 7 **"Project Structure"** for documentation index and directory layout.  
+See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md), section 1 **"Safety First"** and section 3 **"Development Process"** before changing UI code.
 
 ---
 
@@ -47,8 +47,8 @@ If you ever use `pyside6-uic` directly (for debugging), **re-run** `python ui/ge
 4. **Test**:
    - Verify basic layout and behavior in the PySide6 UI.
    - Confirm integration with service processes and communication channels, as described in:
-     - [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md), section 4 **"Testing Strategy"**  
-     - [TESTING_GUIDE.md](tests/TESTING_GUIDE.md), section 6 **"Running Tests"**
+     - [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md), section 4 **"Testing Strategy"**  
+     - [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md), section 6 **"Running Tests"**
 
 ---
 
@@ -153,8 +153,8 @@ Core UI layout:
 
 Where relevant, follow the error-handling and logging patterns described in:
 
-- [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md), section 2 **"Architecture Overview"**  
-- [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md), section 3 **"Component Loggers and Layout"**
+- [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md), section 2 **"Architecture Overview"**  
+- [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md), section 3 **"Component Loggers and Layout"**
 
 ---
 

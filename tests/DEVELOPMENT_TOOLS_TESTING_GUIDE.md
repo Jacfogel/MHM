@@ -4,8 +4,8 @@
 > **Audience**: Developers and AI assistants working on development tools  
 > **Purpose**: Quick reference for running and understanding development tools tests  
 > **Style**: Technical, concise, actionable  
-> **Parent**: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)  
-> This document is subordinate to [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) and should be kept consistent with its standards and terminology.
+> **Parent**: [TESTING_GUIDE.md](TESTING_GUIDE.md)  
+> This document is subordinate to [TESTING_GUIDE.md](TESTING_GUIDE.md) and should be kept consistent with its standards and terminology.
 
 This guide describes how to run and interpret the **development tools tests**.  
 Use it when you change development tools behavior (analysis, reporting, CLI routing, or tool execution) or when investigating issues with the development tools infrastructure.
@@ -251,5 +251,5 @@ Notes:
 
 ---
 
-**Note**: For detailed test plan information and test structure, see [TESTING_GUIDE.md](tests/TESTING_GUIDE.md), especially section 2.3 "Development tools tests" and section 3 "Fixtures, Utilities, and Safety".
+**Note**: For detailed test plan information and test structure, see [TESTING_GUIDE.md](TESTING_GUIDE.md), especially section 2.3 "Development tools tests" and section 3 "Fixtures, Utilities, and Safety".
 

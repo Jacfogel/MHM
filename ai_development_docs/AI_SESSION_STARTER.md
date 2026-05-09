@@ -119,7 +119,7 @@ Use this as a routing table for common request types.
 ### 4.3. "Help me understand the system"
 
 - Use [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) as the primary overview.  
-- Use [README.md](README.md) and [HOW_TO_RUN.md](HOW_TO_RUN.md) for a human-readable overview of goals and run modes.  
+- Use [README.md](../README.md) and [HOW_TO_RUN.md](../HOW_TO_RUN.md) for a human-readable overview of goals and run modes.  
 - For channel-specific behavior (Discord, email, etc.), look for channel guides under `communication/communication_channels/`.
 
 
@@ -129,7 +129,7 @@ Use this as a routing table for common request types.
 
 #### 1.1. Documentation appears incomplete
 1. Run `python development_tools/run_development_tools.py audit` to refresh metrics.
-2. Review [AI_STATUS.md](development_tools/AI_STATUS.md) and [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md) to highlight specific gaps.
+2. Review [AI_STATUS.md](../development_tools/AI_STATUS.md) and [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) to highlight specific gaps.
 3. Draft a remediation plan and confirm next steps with the user before editing docs.
 
 #### 1.2. Code change introduced failures
@@ -164,12 +164,12 @@ Use this as a routing table for common request types.
 
 #### 3.2. Data flow patterns
 
-User data persistence guarantees and access rules are defined in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md).
+User data persistence guarantees and access rules are defined in [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md).
 
 - User data: `data/users/{user_id}/` -> helper APIs -> UI / communication surfaces.
 - Messages: `resources/default_messages/` -> per-user `messages/` directories.
 - Configuration: `.env` -> `core/config.py` -> runtime consumers.
-- Backups: see BACKUP_GUIDE.md for operational behavior and [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md) for retention/diagnostic settings.
+- Backups: see BACKUP_GUIDE.md for operational behavior and [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md) for retention/diagnostic settings.
 
 #### 3.3. Common issues to watch
 - Access data only through helper APIs; avoid direct file edits.
@@ -184,9 +184,9 @@ User data persistence guarantees and access rules are defined in [USER_DATA_MODE
 - Work is logged in both changelog tracks with clear follow-up actions.
 
 ### 5.5. Further Reading
-- [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md), [ARCHITECTURE.md](ARCHITECTURE.md), [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for deeper background.
-- [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) for AI subsystem architecture, modes, and runtime behavior.
-- [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md), [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) for focused playbooks.
+- [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md), [ARCHITECTURE.md](../ARCHITECTURE.md), [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) for deeper background.
+- [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md) for AI subsystem architecture, modes, and runtime behavior.
+- [AI_LOGGING_GUIDE.md](AI_LOGGING_GUIDE.md), [AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md), [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md) for focused playbooks.
 
 ---
 

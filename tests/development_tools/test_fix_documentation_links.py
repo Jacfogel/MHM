@@ -95,10 +95,12 @@ See the file at `tests/target.md` for more information.
             assert isinstance(new_content, str), "File should still be readable"
     
     @pytest.mark.unit
-    def test_fix_convert_links_skips_generated(self, temp_project_copy):
+    def test_fix_convert_links_skips_generated(self, tmp_path):
         """Test that generated files are skipped."""
+        project_dir = tmp_path / "project"
+        project_dir.mkdir()
         # Create a generated file
-        generated_file = temp_project_copy / "generated.md"
+        generated_file = project_dir / "generated.md"
         generated_file.write_text("""**Generated**: This file is auto-generated.
 
 # Generated Documentation
@@ -107,7 +109,7 @@ See `tests/example.md` for reference.
 """)
         
         with patch('development_tools.docs.fix_documentation_links.DEFAULT_DOCS', ['generated.md']):
-            fixer = DocumentationLinkFixer(project_root=str(temp_project_copy))
+            fixer = DocumentationLinkFixer(project_root=str(project_dir))
             result = fixer.fix_convert_links(dry_run=False)
             
             assert isinstance(result, dict), "Result should be a dictionary"
@@ -164,20 +166,24 @@ import sys
             assert result['errors'] == 0, "Should not have errors"
     
     @pytest.mark.unit
-    def test_fix_convert_links_skips_existing_links(self, temp_project_copy):
-        """Test that already-converted links are skipped."""
+    def test_fix_convert_links_skips_existing_links(self, tmp_path):
+        """Test that already-converted links are skipped when already clickable."""
+        project_dir = tmp_path / "project"
+        project_dir.mkdir()
         # Create a file with proper markdown link
-        doc_file = temp_project_copy / "test_doc.md"
-        target_file = temp_project_copy / "target.md"
+        docs_dir = project_dir / "docs"
+        docs_dir.mkdir()
+        doc_file = docs_dir / "test_doc.md"
+        target_file = project_dir / "target.md"
         target_file.write_text("# Target")
         
         doc_file.write_text("""# Test Documentation
 
-See [the target file](tests/target.md) for more information.
+See [the target file](../target.md) for more information.
 """)
         
-        with patch('development_tools.docs.fix_documentation_links.DEFAULT_DOCS', ['test_doc.md']):
-            fixer = DocumentationLinkFixer(project_root=str(temp_project_copy))
+        with patch('development_tools.docs.fix_documentation_links.DEFAULT_DOCS', ['docs/test_doc.md']):
+            fixer = DocumentationLinkFixer(project_root=str(project_dir))
             result = fixer.fix_convert_links(dry_run=False)
             
             assert isinstance(result, dict), "Result should be a dictionary"
@@ -186,14 +192,68 @@ See [the target file](tests/target.md) for more information.
             
             # Check that link wasn't modified
             new_content = doc_file.read_text()
-            assert "[the target file](tests/target.md)" in new_content, \
+            assert "[the target file](../target.md)" in new_content, \
                 "Already-converted link should remain"
+
+    @pytest.mark.unit
+    def test_fix_convert_links_normalizes_repo_relative_markdown_href(
+        self, tmp_path
+    ):
+        """Repo-relative markdown hrefs should be rewritten relative to the source file."""
+        project_dir = tmp_path / "project"
+        project_dir.mkdir()
+        docs_dir = project_dir / "development_docs"
+        docs_dir.mkdir()
+        doc_file = docs_dir / "GUIDE.md"
+        target_file = project_dir / "README.md"
+        target_file.write_text("# Root", encoding="utf-8")
+        doc_file.write_text(
+            "# Guide\n\nSee [README.md](README.md#overview).\n",
+            encoding="utf-8",
+        )
+
+        with patch("development_tools.docs.fix_documentation_links.DEFAULT_DOCS", []):
+            fixer = DocumentationLinkFixer(project_root=str(project_dir))
+            result = fixer.fix_convert_links(dry_run=False)
+
+        assert result["errors"] == 0
+        assert result["changes_made"] == 1
+        assert result["breakdown"]["markdown_link_target_fixes"] == 1
+        assert "[README.md](../README.md#overview)" in doc_file.read_text(
+            encoding="utf-8"
+        )
+
+    @pytest.mark.unit
+    def test_fix_convert_links_dry_run_does_not_write_markdown_href_fix(
+        self, tmp_path
+    ):
+        """Dry run should report markdown href fixes without writing them."""
+        project_dir = tmp_path / "project"
+        project_dir.mkdir()
+        docs_dir = project_dir / "development_docs"
+        docs_dir.mkdir()
+        doc_file = docs_dir / "GUIDE.md"
+        (project_dir / "README.md").write_text("# Root", encoding="utf-8")
+        doc_file.write_text(
+            "# Guide\n\nSee [README.md](README.md).\n",
+            encoding="utf-8",
+        )
+
+        with patch("development_tools.docs.fix_documentation_links.DEFAULT_DOCS", []):
+            fixer = DocumentationLinkFixer(project_root=str(project_dir))
+            result = fixer.fix_convert_links(dry_run=True)
+
+        assert result["files_updated"] == 0
+        assert result["changes_made"] == 1
+        assert "[README.md](README.md)" in doc_file.read_text(encoding="utf-8")
     
     @pytest.mark.unit
-    def test_fix_convert_links_nonexistent_file(self, temp_project_copy):
+    def test_fix_convert_links_nonexistent_file(self, tmp_path):
         """Test handling of non-existent files."""
+        project_dir = tmp_path / "project"
+        project_dir.mkdir()
         with patch('development_tools.docs.fix_documentation_links.DEFAULT_DOCS', ['nonexistent.md']):
-            fixer = DocumentationLinkFixer(project_root=str(temp_project_copy))
+            fixer = DocumentationLinkFixer(project_root=str(project_dir))
             result = fixer.fix_convert_links(dry_run=False)
             
             assert isinstance(result, dict), "Result should be a dictionary"
@@ -285,4 +345,3 @@ class TestFixDocumentationLinksMain:
                 result = main()
             
             assert result == 1, "Should exit with error code when errors occur"
-

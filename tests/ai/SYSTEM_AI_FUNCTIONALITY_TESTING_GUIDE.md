@@ -4,12 +4,12 @@
 > **Audience**: Developers and AI assistants working on MHM AI functionality  
 > **Purpose**: Quick reference for running and understanding **automated** AI functionality tests  
 > **Style**: Technical, concise, actionable  
-> **Parent**: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)  
-> This document is subordinate to [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) and should be kept consistent with its standards and terminology.
+> **Parent**: [TESTING_GUIDE.md](../TESTING_GUIDE.md)  
+> This document is subordinate to [TESTING_GUIDE.md](../TESTING_GUIDE.md) and should be kept consistent with its standards and terminology.
 
 This guide describes how to run and interpret the **AI functionality test suite**.
 
-Use it when you change AI-related behavior (prompts, context building, caching, routing, integrations), or when manual AI behavior testing (see section 7 of [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md)) indicates regressions.
+Use it when you change AI-related behavior (prompts, context building, caching, routing, integrations), or when manual AI behavior testing (see section 7 of [MANUAL_TESTING_GUIDE.md](../MANUAL_TESTING_GUIDE.md)) indicates regressions.
 
 ---
 
@@ -27,7 +27,7 @@ Notes:
 - Default `python run_tests.py` does not run the full AI functionality suite from this guide.
 
 **Test Results Location**:
-- [ai_functionality_test_results_latest.md](tests/ai/results/ai_functionality_test_results_latest.md)
+- [ai_functionality_test_results_latest.md](results/ai_functionality_test_results_latest.md)
 
 ---
 
@@ -125,5 +125,5 @@ The test suite covers categories such as:
 
 ## 10. Where to Track Active Work
 
-- Active work items should be tracked in [TODO.md](TODO.md) and [PLANS.md](development_docs/PLANS.md).
+- Active work items should be tracked in [TODO.md](../../TODO.md) and [PLANS.md](../../development_docs/PLANS.md).
 - This doc should stay focused on *running and interpreting* the AI functionality test suite (not long-term planning).

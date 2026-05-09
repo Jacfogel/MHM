@@ -6,11 +6,11 @@
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
 > **Last Updated**: 2026-05-05 (session note: MHM refactor continuation plan completed; deferred follow-ups moved to TODO.md)
-> **Children**: [TEST_PLAN.md](development_docs\TEST_PLAN.md), [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) (V4 history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)).  
+> **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) (V4 history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)).  
 
 ---
 
-**Note**: [TODO.md](TODO.md) is the canonical list for standalone tasks. Larger, scoped efforts live here or in subordinate dedicated plan files such as [TEST_PLAN.md](development_docs\TEST_PLAN.md), [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md).  
+**Note**: [TODO.md](../TODO.md) is the canonical list for standalone tasks. Larger, scoped efforts live here or in subordinate dedicated plan files such as [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md).  
 
 ## [IN PROGRESS] **Plan Maintenance**
 
@@ -20,7 +20,7 @@
 3. **Remove fully completed plans** - document them in CHANGELOG files instead.
 4. **Keep reference information** current and useful.
 5. **Remove outdated information** to maintain relevance.
-6. **Dating convention**: New items and status changes get dates. See [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md) for the full dating standard.
+6. **Dating convention**: New items and status changes get dates. See [AI_DOCUMENTATION_GUIDE.md](../ai_development_docs/AI_DOCUMENTATION_GUIDE.md) for the full dating standard.
 
 ### **Success Criteria**
 - **Actionable**: Each item is a specific, testable action
@@ -85,9 +85,9 @@
 
 **Use / fit**: Validation helps (beginner + AI coding). Focus on **noisy/unclear logs when something fails** over cryptic user-facing errors. Coverage at 100%; continue improving clarity and log quality.
 
-**Done**: 100% coverage; Phase 1/2 tooling in `analyze_error_handling.py`; current Phase 1 and Phase 2 backlog reduced to zero candidates/issues in latest quick-audit cycle. Metrics in [AI_STATUS.md](development_tools/AI_STATUS.md).
+**Done**: 100% coverage; Phase 1/2 tooling in `analyze_error_handling.py`; current Phase 1 and Phase 2 backlog reduced to zero candidates/issues in latest quick-audit cycle. Metrics in [AI_STATUS.md](../development_tools/AI_STATUS.md).
 
-**Remaining**: Phase 3 (enhance user/log messages), Phase 4 (recovery strategies), Phase 5 (context payloads), Phase 6 (direct `handle_error` calls). Emphasize clearer, less noisy logs. See [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md).
+**Remaining**: Phase 3 (enhance user/log messages), Phase 4 (recovery strategies), Phase 5 (context payloads), Phase 6 (direct `handle_error` calls). Emphasize clearer, less noisy logs. See [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md).
 
 ### **Discord App/Bot Capabilities Exploration** **PLANNING**
 
@@ -121,7 +121,7 @@
 ### **Account Management System Improvements** **ARCHIVED (MOSTLY COMPLETE)**
 
 **Status**: **ARCHIVED** (2026-02-28)  
-**Outcome**: Core account creation and feature enablement complete. Remaining work (e2e linking, edge cases) tracked in [TODO.md](TODO.md) if needed. Full details in changelog history (2025-11-13 through 2025-11-20).
+**Outcome**: Core account creation and feature enablement complete. Remaining work (e2e linking, edge cases) tracked in [TODO.md](../TODO.md) if needed. Full details in changelog history (2025-11-13 through 2025-11-20).
 
 ### **Mood-Aware Support Calibration** **PLANNING**
 
@@ -306,14 +306,14 @@
   - [ ] Implement context-aware response generation
   - [ ] Test personalization depth and accuracy
   - [ ] Validate adaptive personality effectiveness
-- [ ] **Smart Home Integration Planning** [WARNING] **LONG-TERM/FUTURE** - Not applicable for current single-user personal assistant; mentioned in [PROJECT_VISION.md](PROJECT_VISION.md) Phase 3 but not a current priority
+- [ ] **Smart Home Integration Planning** [WARNING] **LONG-TERM/FUTURE** - Not applicable for current single-user personal assistant; mentioned in [PROJECT_VISION.md](../PROJECT_VISION.md) Phase 3 but not a current priority
   - [ ] Research smart home APIs and protocols
   - [ ] Design integration architecture for future implementation
   - [ ] Document requirements and constraints
   - [ ] Create integration roadmap and timeline
   - [ ] Test integration feasibility with sample APIs
   - [ ] Validate integration architecture design
-  - **Note**: This is a future consideration from [PROJECT_VISION.md](PROJECT_VISION.md) Phase 3. With only 1-2 users and focus on core mental health assistant features, smart home integration is not currently applicable or prioritized.
+  - **Note**: This is a future consideration from [PROJECT_VISION.md](../PROJECT_VISION.md) Phase 3. With only 1-2 users and focus on core mental health assistant features, smart home integration is not currently applicable or prioritized.
 
 ---
 
@@ -332,7 +332,7 @@
 - [x] **Main UI Application**: 21 behavior tests complete
 
 **Remaining Work**:
-- [ ] **Testing & Validation Strategy** is tracked in [TEST_PLAN.md](development_docs/TEST_PLAN.md) (UI and integration testing backlog).
+- [ ] **Testing & Validation Strategy** is tracked in [TEST_PLAN.md](TEST_PLAN.md) (UI and integration testing backlog).
 - [ ] **UI Quality Improvements**
   - [ ] Fix Dialog Integration (main window updates after dialog changes)
   - [ ] Add Data Validation across all forms
@@ -343,7 +343,7 @@
 
 ### **Testing Strategy Plan**
 
-Moved to [TEST_PLAN.md](development_docs/TEST_PLAN.md) as part of testing roadmap consolidation.
+Moved to [TEST_PLAN.md](TEST_PLAN.md) as part of testing roadmap consolidation.
 
 ---
 

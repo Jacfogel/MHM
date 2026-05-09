@@ -136,3 +136,65 @@ This file intentionally references old paths:
             # Compatibility paths should be filtered out
             assert 'old_module.py' not in issue_text or 'old_directory' not in issue_text, \
                 f"Compatibility paths should be filtered: {issues}"
+
+    def test_markdown_link_target_hints_repo_relative_link_in_nested_doc(self, tmp_path):
+        """Repo-relative markdown links in nested docs should be flagged as not clickable."""
+        project_dir = tmp_path / "test_project"
+        project_dir.mkdir()
+
+        root_doc = project_dir / "README.md"
+        root_doc.write_text("# Root\n", encoding="utf-8")
+        ai_docs_dir = project_dir / "ai_development_docs"
+        ai_docs_dir.mkdir()
+        nested_doc = ai_docs_dir / "AI_GUIDE.md"
+        nested_doc.write_text(
+            "# AI Guide\n\nSee [README.md](README.md).\n",
+            encoding="utf-8",
+        )
+
+        analyzer = PathDriftAnalyzer(project_root=str(project_dir), use_cache=False)
+        results = analyzer.check_markdown_link_targets()
+
+        doc_key = "ai_development_docs/AI_GUIDE.md"
+        assert doc_key in results
+        assert "not clickable" in results[doc_key][0]
+        assert "`../README.md`" in results[doc_key][0]
+
+    def test_markdown_link_target_hints_accepts_correct_relative_link(self, tmp_path):
+        """Correct relative markdown links should not be flagged."""
+        project_dir = tmp_path / "test_project"
+        project_dir.mkdir()
+
+        root_doc = project_dir / "README.md"
+        root_doc.write_text("# Root\n", encoding="utf-8")
+        ai_docs_dir = project_dir / "ai_development_docs"
+        ai_docs_dir.mkdir()
+        nested_doc = ai_docs_dir / "AI_GUIDE.md"
+        nested_doc.write_text(
+            "# AI Guide\n\nSee [README.md](../README.md).\n",
+            encoding="utf-8",
+        )
+
+        analyzer = PathDriftAnalyzer(project_root=str(project_dir), use_cache=False)
+        results = analyzer.check_markdown_link_targets()
+
+        assert results == {}
+
+    def test_run_analysis_surfaces_markdown_link_target_hints(self, tmp_path):
+        """Markdown link target hints should be exposed in standard analysis details."""
+        project_dir = tmp_path / "test_project"
+        project_dir.mkdir()
+        (project_dir / "README.md").write_text("# Root\n", encoding="utf-8")
+        docs_dir = project_dir / "development_docs"
+        docs_dir.mkdir()
+        (docs_dir / "GUIDE.md").write_text(
+            "# Guide\n\nSee [README.md](README.md).\n",
+            encoding="utf-8",
+        )
+
+        analyzer = PathDriftAnalyzer(project_root=str(project_dir), use_cache=False)
+        result = analyzer.run_analysis()
+
+        assert result["summary"]["total_issues"] == 0
+        assert result["details"]["markdown_link_target_issues"] == 1
+        assert "development_docs/GUIDE.md" in result["details"]["markdown_link_target_files"]

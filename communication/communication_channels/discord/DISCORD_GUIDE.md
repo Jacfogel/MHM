@@ -7,9 +7,9 @@
 
 This guide describes how the Discord channel is wired into the MHM communication layer: bot lifecycle, event handling, UI views, webhook-based onboarding, configuration, and how it interacts with the channel-agnostic message-processing core.
 
-For overall communication architecture, see section 2. "Architecture Layers" in [COMMUNICATION_GUIDE.md](communication/COMMUNICATION_GUIDE.md).  
-For system-wide architecture, see section 2. "High-Level Architecture" in [ARCHITECTURE.md](ARCHITECTURE.md).  
-For error-handling and logging patterns, see section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) and section 2. "Logging Architecture" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
+For overall communication architecture, see section 2. "Architecture Layers" in [COMMUNICATION_GUIDE.md](../../COMMUNICATION_GUIDE.md).  
+For system-wide architecture, see section 2. "High-Level Architecture" in [ARCHITECTURE.md](../../../ARCHITECTURE.md).  
+For error-handling and logging patterns, see section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](../../../core/ERROR_HANDLING_GUIDE.md) and section 2. "Logging Architecture" in [LOGGING_GUIDE.md](../../../logs/LOGGING_GUIDE.md).
 
 ---
 
@@ -80,7 +80,7 @@ The Discord event handler also tracks:
 - `on_disconnect` - Logs disconnects and runs any registered cleanup. :contentReference[oaicite:11]{index=11}  
 - `on_error` - Logs Discord-level errors; inner exceptions should still be managed via the shared error-handling system. :contentReference[oaicite:12]{index=12}  
 
-When modifying shutdown behavior, follow the patterns in section 2. "Architecture Overview" and section 3. "Usage Patterns" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
+When modifying shutdown behavior, follow the patterns in section 2. "Architecture Overview" and section 3. "Usage Patterns" in [ERROR_HANDLING_GUIDE.md](../../../core/ERROR_HANDLING_GUIDE.md).
 
 ---
 
@@ -229,14 +229,14 @@ Where slash commands or prefixed commands are implemented:
 Any changes to command behavior should be reflected in:
 
 - The core interaction handlers.  
-- Relevant tests in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) (sections 2 and 6).  
+- Relevant tests in [TESTING_GUIDE.md](../../../tests/TESTING_GUIDE.md) (sections 2 and 6).  
 - This section if the mapping strategy changes.
 
 ---
 
 ## 7. Configuration and Environment Variables
 
-> **Note:** Configuration semantics (env vars, defaults, failure modes) are canonically defined in [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md). Avoid duplicating per-setting definitions here.
+> **Note:** Configuration semantics (env vars, defaults, failure modes) are canonically defined in [CONFIGURATION_REFERENCE.md](../../../CONFIGURATION_REFERENCE.md). Avoid duplicating per-setting definitions here.
 
 
 Discord-related configuration lives in `core.config` and `.env` keys. Key variables include:
@@ -289,7 +289,7 @@ Use log levels consistently:
 - `error` for failed operations that impact a specific user or event.  
 - `debug` for diagnostic details.
 
-See section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) for detailed behavior.
+See section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../../../logs/LOGGING_GUIDE.md) for detailed behavior.
 
 ### 8.2. Error Handling
 
@@ -314,8 +314,8 @@ When modifying the Discord channel:
 
 - **Manual tests**
   - Use the manual testing guides for channel-specific flows:
-    - Section 8. "Manual and Channel-Specific Testing Overview" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).  
-    - [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md) and related Discord-specific sections.
+    - Section 8. "Manual and Channel-Specific Testing Overview" in [TESTING_GUIDE.md](../../../tests/TESTING_GUIDE.md).  
+    - [MANUAL_TESTING_GUIDE.md](../../../tests/MANUAL_TESTING_GUIDE.md) and related Discord-specific sections.
 
 - **Webhook onboarding**
   - Manually verify that:

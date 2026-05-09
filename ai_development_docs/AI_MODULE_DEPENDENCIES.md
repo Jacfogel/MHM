@@ -153,4 +153,4 @@ External libraries provide channel and UI support.
 - `ui/` - User interface (depends on core, limited communication dependencies)
 - `user/` - User context (depends on core)
 
-> **For complete dependency details, see [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md)**
+> **For complete dependency details, see [MODULE_DEPENDENCIES_DETAIL.md](../development_docs/MODULE_DEPENDENCIES_DETAIL.md)**

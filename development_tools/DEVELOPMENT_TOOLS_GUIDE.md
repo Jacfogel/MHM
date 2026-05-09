@@ -17,7 +17,7 @@ Use this guide when you need:
 
 The machine-readable metadata lives in `development_tools/shared/tool_metadata.py` and is surfaced to AI collaborators through the paired guide.
 
-**Note on Tool Relationships**: These development tools are complementary to other quality tools (Pyright for type checking, ruff/bandit for security/style). They focus on project-specific analysis (error handling patterns, documentation sync, legacy reference tracking) that no existing tools provide. See [TODO.md](TODO.md) for evaluation tasks for complementary tools.
+**Note on Tool Relationships**: These development tools are complementary to other quality tools (Pyright for type checking, ruff/bandit for security/style). They focus on project-specific analysis (error handling patterns, documentation sync, legacy reference tracking) that no existing tools provide. See [TODO.md](../TODO.md) for evaluation tasks for complementary tools.
 
 ---
 
@@ -93,7 +93,7 @@ python development_tools/run_development_tools.py config
 - `full-audit` - alias command for `audit --full`.
 - `audit --full --strict` - Full audit with fail-fast exit semantics for Tier 3 test failures/crashes.
 - `docs` - regenerates registries, dependency maps, and doc-signals.
-[EXAMPLE] - `doc-sync` - verifies paired doc headings, path drift, ASCII compliance, and **advisory example-marker hints** (same aggregated run as tiered `audit` doc-sync). Example-marker paths are **`DEFAULT_DOCS`** from [`shared/constants.py`](shared/constants.py) (merged [`development_tools_config.json`](config/development_tools_config.json) via `get_constants_config()`: `paired_docs`, `fix_version_sync.ai_docs` / `docs`, `default_docs_extra`), not paired endpoints only; per-file exclusions still apply (e.g. historical-preserve / changelog policy in the checker). Persisted JSON includes `example_marker_findings` / `example_marker_hint_count` under `details`.
+[EXAMPLE] - `doc-sync` - verifies paired doc headings, path drift, ASCII compliance, and **advisory example-marker plus markdown-link-target hints** (same aggregated run as tiered `audit` doc-sync). Example-marker paths are **`DEFAULT_DOCS`** from [`shared/constants.py`](shared/constants.py) (merged [`development_tools_config.json`](config/development_tools_config.json) via `get_constants_config()`: `paired_docs`, `fix_version_sync.ai_docs` / `docs`, `default_docs_extra`), not paired endpoints only; per-file exclusions still apply (e.g. historical-preserve / changelog policy in the checker). Persisted JSON includes `example_marker_findings` / `example_marker_hint_count` and `markdown_link_target_issues` under `details`; markdown-link-target hints flag local markdown hrefs that are missing or exist from the repo root but are not clickable from the source `.md` file. Run `doc-fix --convert-links` to rewrite auto-fixable repo-relative hrefs before reviewing remaining missing targets.
 [EXAMPLE] - Standalone (review only): `python development_tools/docs/analyze_documentation_sync.py --json --check-example-markers` - same advisory scan to stdout (V5 Section 3.0).
 - `doc-fix` - fixes documentation issues (addresses, ASCII, headings, links). Alias: `--full` == `--all`.
 - `config` - prints configuration validation report with tool analysis and recommendations.
@@ -239,7 +239,7 @@ Pipeline artifacts:
 - **AI_STATUS.md**: High-level summary including Function Docstring Coverage (with missing count) and Registry Gaps (separate metrics)
 - **AI_PRIORITIES.md**: Actionable priorities with prioritized example lists (functions and handler classes) using ",... +N" format when there are more items
 - **CONSOLIDATED_REPORT.md**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
-- Human-facing: [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md), [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md), [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md), [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)
+- Human-facing: [FUNCTION_REGISTRY_DETAIL.md](../development_docs/FUNCTION_REGISTRY_DETAIL.md), [MODULE_DEPENDENCIES_DETAIL.md](../development_docs/MODULE_DEPENDENCIES_DETAIL.md), [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md), [UNUSED_IMPORTS_REPORT.md](../development_docs/UNUSED_IMPORTS_REPORT.md)
 - Coverage: `development_tools/tests/jsons/coverage.json`, `development_tools/tests/jsons/coverage_dev_tools.json`, `development_tools/tests/coverage_html/`, `development_tools/reports/archive/coverage_artifacts/<timestamp>/`
 - Cached snapshots: `status` loads data from `reports/analysis_detailed_results.json` (complexity, validation, system signals); confirm timestamps before trusting
 
@@ -268,7 +268,7 @@ Pipeline artifacts:
 - When present, **`issues=N`** copies **`data.summary.total_issues`** from the tool payload (same schema as the JSON block above). For many tools that number is a **metric total** (e.g. functions counted in complexity bands, documentation rows flagged), not a count of subprocess failures.
 - For **per-tool meanings** (documentation inventory vs function complexity vs package exports vs registry gaps) and how those counts surface in **AI_STATUS** / **AI_PRIORITIES** / **CONSOLIDATED_REPORT**, see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 3.21.
 
-**When to run each command**: See "Standard Audit Recipe" section in [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) for guidance on day-to-day checks (`audit`), pre-merge/pre-release checks (`audit --full`), and documentation work (`doc-sync`, `docs`).
+**When to run each command**: See "Standard Audit Recipe" section in [AI_DEVELOPMENT_WORKFLOW.md](../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) for guidance on day-to-day checks (`audit`), pre-merge/pre-release checks (`audit --full`), and documentation work (`doc-sync`, `docs`).
 
 Ensure directories listed in `development_tools/shared/constants.py` remain accurate so reports resolve predictably.
 
@@ -372,7 +372,7 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 
 ## 5. Operating Standards and Maintenance
 
-- Follow the audit-first workflow (see [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)) before touching documentation or infrastructure
+- Follow the audit-first workflow (see [AI_DEVELOPMENT_WORKFLOW.md](../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)) before touching documentation or infrastructure
 - Keep the standard exclusions + config aligned so `.ruff_cache`, `mhm.egg-info`, `scripts`, `tests/ai/results`, and `tests/coverage_html` are skipped by the majority of analyzer runs.
 - **Duplicate function analysis** (`development_tools/functions/analyze_duplicate_functions.py`):
   - **Exclusion**: Prefer `# devtools: ignore[duplicate-functions]: <reason>` near the function. Legacy aliases still work: `# duplicate_functions_exclude` and `# duplicate functions exclude`.
@@ -402,12 +402,12 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) if scope or gaps change
 - Maintain directory integrity (`development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) so automation can locate artifacts; keep generated reports under the paths enumerated in `shared/constants.py`.
 - Use the shared test locations: `tests/development_tools/` for suites and `tests/fixtures/development_tools_demo/` for synthetic inputs.
-- For detailed testing guidance, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
+- For detailed testing guidance, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](../tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
 - Context-specific behavior:
 - `development_tools/config/config.py` defines production / development / testing contexts; commands must honor the active context.
 - Never hardcode project paths - always resolve via `shared/common.py` helpers.
 - Run `python development_tools/run_development_tools.py doc-sync` after documentation edits to ensure heading parity and ASCII compliance.
-- Treat experimental tools (`docs/fix_version_sync.py`, `functions/fix_function_docstrings.py`, etc.) as opt-in: dry-run first, capture logs, and record findings in [TODO.md](TODO.md) or the improvement plan.
+- Treat experimental tools (`docs/fix_version_sync.py`, `functions/fix_function_docstrings.py`, etc.) as opt-in: dry-run first, capture logs, and record findings in [TODO.md](../TODO.md) or the improvement plan.
 - Keep file organization portable (mirroring `development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) to support eventual extraction of the suite. The baseline structure should remain:
 - Use config-driven backup policy workflows (`backup inventory`, `backup retention`, `backup drill`, `backup verify`) so project-specific backup paths stay declared in `development_tools/config/development_tools_config.json` rather than hardcoded in tool logic.
 
@@ -498,7 +498,7 @@ All generated JSON files must include standardized metadata fields at the root l
 
 **Note:** Some JSON files are generated by external tools (e.g., `coverage.json` and `coverage_dev_tools.json` by pytest/coverage, located in `development_tools/tests/jsons/`) and may not follow this internal metadata standard. Only files generated by the development tools suite should include this metadata.
 
-For documentation-specific metadata standards, see section 5.1 in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md).
+For documentation-specific metadata standards, see section 5.1 in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md).
 
 ---
 

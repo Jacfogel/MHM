@@ -74,6 +74,7 @@ _DEFAULT_BASE_EXCLUSIONS = [
     # IDE and editor files
     ".vscode",
     ".idea",
+    ".cursor",
     "*.swp",
     "*.swo",
     "*~",
@@ -283,6 +284,11 @@ def should_exclude_file(
         or "pytest_tmp_" in normalized_path
     ):
         # These are pytest worker/temp directories and should not be scanned by audit tools.
+        return True
+
+    if normalized_path == ".cursor" or normalized_path.startswith(".cursor/"):
+        # Cursor stores local IDE plans/rules in Markdown-like files. They are not
+        # project documentation and can have editor-managed permissions.
         return True
 
     # Check generated files patterns (ui/generated/*, etc.)

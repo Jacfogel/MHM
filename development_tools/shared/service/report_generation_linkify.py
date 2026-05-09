@@ -10,6 +10,14 @@ _REVIEW_PATH_LINK = re.compile(
 )
 
 
+def _href_from_dev_tools_report(path: str) -> str:
+    """Return an href relative to generated ``development_tools/*.md`` reports."""
+    normalized = path.replace("\\", "/")
+    if normalized.startswith("development_tools/"):
+        return normalized.removeprefix("development_tools/")
+    return f"../{normalized}"
+
+
 def linkify_review_paths_bullet(text: str) -> str:
     """Turn repo-relative paths in Review for guidance/details lines into markdown links."""
     stripped = text.strip()
@@ -32,7 +40,8 @@ def linkify_review_paths_bullet(text: str) -> str:
         if m:
             path, suffix = m.group(1), m.group(2) or ""
             label = Path(path).name
-            out.append(f"[{label}]({path}){suffix}")
+            href = _href_from_dev_tools_report(path)
+            out.append(f"[{label}]({href}){suffix}")
         else:
             out.append(part)
     return f"{prefix} {''.join(out)}".rstrip()

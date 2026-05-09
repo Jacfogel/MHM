@@ -180,6 +180,7 @@ class AccountModel(BaseModel):
             )
             return ""
 
+    # devtools: ignore[facade-shims]: accepts current and historical Discord username formats
     @field_validator("discord_username")
     @classmethod
     def _normalize_discord_username(cls, v: str) -> str:
@@ -387,6 +388,7 @@ class CategoryScheduleModel(BaseModel):
 
     periods: dict[str, PeriodModel]
 
+    # devtools: ignore[facade-shims]: validates schedules files that still load in top-level period shape
     @model_validator(mode="before")
     @classmethod
     def _accept_legacy_shape(cls, data: Any):

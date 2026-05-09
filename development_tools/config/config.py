@@ -84,6 +84,19 @@ def get_external_value(key: str, default: Any) -> Any:
     return _get_external_value(key, default)
 
 
+def get_loaded_config_file_path() -> Path | None:
+    """Return the resolved path of the currently loaded external config file.
+
+    Returns ``None`` when no external config has been loaded (or the load
+    failed). Tools that emit project-specific warnings (e.g.,
+    ``LegacyReferenceFixer.required_pattern_keys``) use this to gate the
+    warning so it only fires when running against the project the config
+    actually belongs to (avoids spurious warnings when the same tool runs
+    against test fixtures or other unrelated projects).
+    """
+    return _config_file_path
+
+
 def _get_default_project_root() -> Path:
     """Get default project root based on current working directory."""
     if os.path.basename(os.getcwd()) == "development_tools":

@@ -60,11 +60,11 @@ except (AttributeError, ImportError):
 
 logger = get_dev_tools_logger("development_tools")
 
-# Inventory must keep these categories non-empty for project-specific legacy detection.
-# (Retired 2026-05-01: user_data_v1_runtime_adapters — over-broad heuristics, see DEPRECATION_INVENTORY removed_inventory.)
-REQUIRED_LEGACY_PATTERN_KEYS: list[str] = [
-    "dashed_short_id_display",
-]
+# Project-specific required pattern keys are loaded from external config:
+# legacy_cleanup.required_pattern_keys in development_tools_config.json.
+# Generic dev_tools defaults to empty (no required keys) so the tool is portable.
+# When a project lists keys here, the fixer warns once if any are absent from the
+# resolved patterns (inventory + config merge), which signals an inventory drift.
 
 
 class LegacyReferenceFixer:
@@ -98,17 +98,57 @@ class LegacyReferenceFixer:
                 # Generic defaults (projects should provide their own via config)
                 self.replacement_mappings = {}
 
-        # Validate required pattern keys against resolved categories (inventory + config).
-        _resolver = LegacyReferenceAnalyzer(
-            project_root=str(self.project_root), use_cache=False
+        # Validate project-specific required pattern keys against resolved
+        # categories (inventory + config). Keys come from external config so the
+        # generic dev_tools tool stays portable; missing keys produce a one-time
+        # warning to surface inventory drift in the owning project.
+        #
+        # Gate the check so it only runs when we are operating on the same
+        # project the external config was loaded from. Tests and CI sometimes
+        # instantiate this fixer against fixture/demo projects (which lack the
+        # main project's deprecation inventory); without this gate those runs
+        # spuriously logged "missing required specific pattern key" against an
+        # unrelated project's inventory and surfaced inside ``ai_dev_tools.log``
+        # during ``audit --full``.
+        required_pattern_keys_raw = legacy_config.get("required_pattern_keys", [])
+        required_pattern_keys: list[str] = (
+            [str(k) for k in required_pattern_keys_raw if isinstance(k, str) and k]
+            if isinstance(required_pattern_keys_raw, list)
+            else []
         )
-        configured_patterns = _resolver.legacy_patterns
-        for pattern_key in REQUIRED_LEGACY_PATTERN_KEYS:
-            if pattern_key not in configured_patterns:
-                logger.warning(
-                    "Legacy cleanup missing required specific pattern key after "
-                    f"inventory/config merge: {pattern_key}"
-                )
+        if required_pattern_keys and self._project_matches_loaded_config():
+            _resolver = LegacyReferenceAnalyzer(
+                project_root=str(self.project_root), use_cache=False
+            )
+            configured_patterns = _resolver.legacy_patterns
+            for pattern_key in required_pattern_keys:
+                if pattern_key not in configured_patterns:
+                    logger.warning(
+                        "Legacy cleanup missing required specific pattern key after "
+                        f"inventory/config merge: {pattern_key}"
+                    )
+
+    def _project_matches_loaded_config(self) -> bool:
+        """Return True when ``self.project_root`` owns the loaded external config.
+
+        ``required_pattern_keys`` is project-specific data sourced from the
+        owning project's ``development_tools_config.json``. When this fixer is
+        instantiated against a different project (e.g., a test fixture / demo
+        project), the keys would be checked against the wrong inventory and
+        produce noisy warnings. Compare the resolved config file location to
+        the configured project root and only proceed when they line up.
+        """
+        try:
+            loaded_path = config.get_loaded_config_file_path()
+        except AttributeError:
+            return True
+        if loaded_path is None:
+            return False
+        try:
+            loaded_path.resolve().relative_to(self.project_root)
+            return True
+        except ValueError:
+            return False
 
     def cleanup_legacy_references(
         self,

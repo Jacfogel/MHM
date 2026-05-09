@@ -172,6 +172,7 @@ class InteractionManager:
             CommandDefinition("uncomplete", "Uncomplete a task", mapped_message=None),
         ]
 
+    # devtools: ignore[facade-shims]: analytics aliases are intentional command vocabulary
     @handle_errors("building analytics alias command definitions", default_return=[])
     def _build_analytics_alias_commands(self) -> list[CommandDefinition]:
         """Return analytics command aliases mapped to canonical prompts."""

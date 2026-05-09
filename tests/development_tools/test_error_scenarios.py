@@ -8,7 +8,6 @@ and other edge cases.
 import json
 import os
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -225,15 +224,22 @@ class TestNetworkAndExternalErrorHandling:
     """Test handling of network and external system errors."""
 
     @pytest.mark.unit
-    def test_coverage_handles_pytest_failure(self, demo_project_root):
-        """Coverage metrics should report pytest failures without crashing."""
+    def test_coverage_handles_pytest_failure(self, tmp_path):
+        """Coverage outcome normalization should report pytest failures without a nested run."""
         coverage = load_development_tools_module("run_test_coverage")
-        regenerator = coverage.CoverageMetricsRegenerator(str(demo_project_root))
+        regenerator = coverage.CoverageMetricsRegenerator(
+            str(tmp_path),
+            use_domain_cache=False,
+        )
 
-        # Patch subprocess.run globally - all modules import from the same subprocess module
-        # The module uses subprocess.run() which will use the patched version
-        with patch('subprocess.run') as mock_run:
-            mock_run.return_value = MagicMock(returncode=1, stdout="", stderr="pytest failed")
+        result = regenerator._build_track_outcome(
+            return_code=1,
+            parsed_results={"total_tests": 0},
+            output="pytest failed",
+            track_name="parallel",
+            log_file=tmp_path / "pytest.log",
+        )
 
-            result = regenerator.run_coverage_analysis()
-            assert isinstance(result, dict)
+        assert result["classification"] == "crashed"
+        assert result["classification_reason"] == "nonzero_without_tests"
+        assert "crash/infra issue" in result["actionable_context"]

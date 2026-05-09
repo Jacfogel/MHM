@@ -29,7 +29,7 @@ High-level rules:
 
 Where to look:
 
-- Directory layout and key modules -> section 4. "Key Modules and Responsibilities" in [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md).
+- Directory layout and key modules -> section 4. "Key Modules and Responsibilities" in [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md).
 
 Common component names (mapped in `core/logger.py`):
 
@@ -52,13 +52,13 @@ Core behavior:
 
 Routing:
 
-- For how log levels interact with error categories and logging, see section 4. "Error Categories and Severity" and section 5.2. "Log messages" in [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md).
+- For how log levels interact with error categories and logging, see section 4. "Error Categories and Severity" and section 5.2. "Log messages" in [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md).
 
 ---
 
 ## 4. Component Log Files and Layout
 
-- Directory overview -> section 1. "Directory Overview" in [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md).
+- Directory overview -> section 1. "Directory Overview" in [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md).
 
 Key patterns:
 
@@ -77,7 +77,7 @@ When adding a new component:
 
 ## 5. Configuration (Environment Variables)
 
-Logging configuration semantics (env vars, defaults, failure modes) are defined in [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md) (see Section 3 Logging and Section 10 Testing settings).
+Logging configuration semantics (env vars, defaults, failure modes) are defined in [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md) (see Section 3 Logging and Section 10 Testing settings).
 
 Where behavior is configured:
 
@@ -86,7 +86,7 @@ Where behavior is configured:
 
 Do not introduce new logging environment variables without updating:
 
-- [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md)
+- [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md)
 - Section 5. Configuration (Environment Variables) in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md)
 - The constants in `core/config.py`
 
@@ -100,7 +100,7 @@ Core behavior is implemented by `BackupDirectoryRotatingFileHandler` and helpers
 - Rotated files are moved into `LOG_BACKUP_DIR` (e.g. `logs/backups/`) with a date suffix.  
 - Backups older than 7 days are compressed and moved to `LOG_ARCHIVE_DIR` (e.g. `logs/archive/`) as `.gz`; archives older than 30 days are removed.
 
-**Backup vs archive**: See section 6.1 in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) and [AI_BACKUP_GUIDE.md](ai_development_docs/AI_BACKUP_GUIDE.md) for how backup filenames relate to content and when files move to archive.
+**Backup vs archive**: See section 6.1 in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) and [AI_BACKUP_GUIDE.md](AI_BACKUP_GUIDE.md) for how backup filenames relate to content and when files move to archive.
 
 Where to look:
 
@@ -127,7 +127,7 @@ AI rules:
 - Never introduce a legacy path without:  
   - A migration plan, and  
   - A `LEGACY COMPATIBILITY` comment block as defined in section 7 of [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).  
-- Coordinate with the error-handling patterns in [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) when legacy behavior impacts error reporting.
+- Coordinate with the error-handling patterns in [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md) when legacy behavior impacts error reporting.
 
 ---
 
@@ -153,15 +153,15 @@ High-level rules:
 - Always use component loggers (via `get_component_logger`) in new code.  
 - Log structured context (key-value pairs) instead of concatenated strings where useful.  
 - Never log secrets, tokens, or PHI/PII.  
-- Make log messages line up with error categories from section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).  
+- Make log messages line up with error categories from section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md).  
 - Respect testing flags (`MHM_TESTING`, `TEST_VERBOSE_LOGS`) and don't force real log paths during tests.  
 - **Noise reduction**: Tools/short-lived processes log init and prompt load at DEBUG; FLOW_STATE_LOAD with 0 user states and scheduler heartbeat are at DEBUG. See section 9.7 in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).
 
 Cross-doc routing:
 
-- Error-handling patterns -> [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md).  
-- Testing and log assertions -> [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md).  
-- General development workflow -> [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md).
+- Error-handling patterns -> [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md).  
+- Testing and log assertions -> [AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md).  
+- General development workflow -> [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md).
 
 ---
 

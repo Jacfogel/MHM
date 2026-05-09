@@ -2499,6 +2499,12 @@ class CommandsMixin:
             "details": {
                 "paired_doc_issues": summary.get("paired_doc_issues", 0),
                 "path_drift_issues": summary.get("path_drift_issues", 0),
+                "markdown_link_target_issues": summary.get(
+                    "markdown_link_target_issues", 0
+                ),
+                "markdown_link_target_files": summary.get(
+                    "markdown_link_target_files", {}
+                ),
                 "ascii_issues": summary.get("ascii_issues", 0),
                 "heading_numbering_issues": summary.get("heading_numbering_issues", 0),
                 "missing_address_issues": summary.get("missing_address_issues", 0),

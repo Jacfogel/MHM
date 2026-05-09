@@ -228,121 +228,133 @@ class TestCoverageSummary:
 
 
 class TestCoverageAnalysis:
-    """Test coverage analysis execution."""
-    
-    @pytest.mark.unit
-    @pytest.mark.slow
-    def test_run_coverage_analysis_executes_pytest(self, demo_project_root, temp_coverage_dir):
-        """Test that coverage analysis runs pytest correctly."""
-        regenerator = CoverageMetricsRegenerator(
-            str(demo_project_root),
-            parallel=False  # Disable parallel for simpler testing
-        )
-        
-        # Mock subprocess to avoid actually running pytest
-        with patch('subprocess.run') as mock_run:
-            # Create mock result
-            mock_result = Mock()
-            mock_result.returncode = 0
-            mock_result.stdout = """TOTAL                        100     20    80%
-"""
-            mock_result.stderr = ""
-            mock_run.return_value = mock_result
-            
-            # Mock file operations
-            # finalize_coverage_outputs moved to TestCoverageReportGenerator during Batch 3 decomposition
-            with patch.object(regenerator.report_generator, 'finalize_coverage_outputs'):
-                results = regenerator.run_coverage_analysis()
-                
-                # Should return results structure
-                assert isinstance(results, dict)
-                assert 'modules' in results or 'overall' in results
+    """Test coverage analysis execution.
+
+    These tests exercise the per-track outcome construction directly via
+    ``_build_track_outcome`` and ``_classify_coverage_outcome`` rather than
+    invoking ``run_coverage_analysis()``. The full method orchestrates pytest
+    subprocesses and emits routine ``logger.warning`` calls (e.g., "Pytest
+    completed very quickly with minimal output") that surface in the parent
+    audit's ``ai_dev_tools.log`` when ``run_test_coverage`` runs the test
+    suite during ``audit --full``. Testing the smaller building blocks keeps
+    the behavior coverage we care about (result shape, parallel/no_parallel
+    independence) without polluting the audit log with mocked-pytest noise.
+    """
 
     @pytest.mark.unit
-    @pytest.mark.slow
+    def test_track_outcome_returns_canonical_structure(self, demo_project_root):
+        """`_build_track_outcome` returns the canonical fields used by report generation."""
+        regenerator = CoverageMetricsRegenerator(
+            str(demo_project_root),
+            parallel=False,
+            use_domain_cache=False,
+        )
+
+        parsed = {
+            "random_seed": None,
+            "maxfail_reached": False,
+            "warnings_count": 0,
+            "passed_count": 10,
+            "failed_count": 0,
+            "error_count": 0,
+            "skipped_count": 0,
+            "test_summary": "10 passed",
+            "failed_tests": [],
+            "error_tests": [],
+            "total_tests": 10,
+        }
+
+        outcome = regenerator._build_track_outcome(
+            return_code=0,
+            parsed_results=parsed,
+            output="10 passed in 1.00s",
+            track_name="parallel",
+            log_file=None,
+        )
+
+        assert outcome["state"] == "passed"
+        assert outcome["classification"] == "passed"
+        assert outcome["passed_count"] == 10
+        assert outcome["failed_count"] == 0
+        assert outcome["error_count"] == 0
+        assert outcome["failed_node_ids"] == []
+        for key in (
+            "state",
+            "classification",
+            "classification_reason",
+            "actionable_context",
+            "log_file",
+            "return_code_hex",
+            "return_code",
+            "passed_count",
+            "failed_count",
+            "error_count",
+            "skipped_count",
+            "failed_node_ids",
+        ):
+            assert key in outcome, f"Missing canonical key {key!r}"
+
+    @pytest.mark.unit
     def test_parallel_outcome_uses_parallel_results_only(self, demo_project_root):
-        """Parallel outcome should not inherit no_parallel failure counts."""
+        """Parallel outcome should not inherit no_parallel failure counts.
+
+        Builds parallel and no_parallel outcomes from independent parsed
+        results and verifies their failure counts/node IDs stay separate.
+        Avoids invoking ``run_coverage_analysis()`` so the noisy
+        "Pytest completed very quickly" / "No_parallel failed tests" warnings
+        do not surface in ``ai_dev_tools.log`` during ``audit --full``.
+        """
         regenerator = CoverageMetricsRegenerator(
             str(demo_project_root),
             parallel=True,
+            use_domain_cache=False,
         )
 
-        parse_call_count = {"count": 0}
+        parallel_parsed = {
+            "passed_count": 10,
+            "failed_count": 0,
+            "error_count": 0,
+            "skipped_count": 0,
+            "failed_tests": [],
+            "error_tests": [],
+            "total_tests": 10,
+        }
+        no_parallel_parsed = {
+            "passed_count": 5,
+            "failed_count": 1,
+            "error_count": 0,
+            "skipped_count": 0,
+            "failed_tests": ["tests/example/test_no_parallel.py::test_one"],
+            "error_tests": [],
+            "total_tests": 6,
+        }
 
-        def fake_parse(_stdout):
-            parse_call_count["count"] += 1
-            if parse_call_count["count"] == 1:
-                return {
-                    "random_seed": None,
-                    "maxfail_reached": False,
-                    "warnings_count": 0,
-                    "passed_count": 10,
-                    "failed_count": 0,
-                    "error_count": 0,
-                    "skipped_count": 0,
-                    "test_summary": "10 passed",
-                    "failed_tests": [],
-                    "error_tests": [],
-                    "total_tests": 10,
-                }
-            return {
-                "random_seed": None,
-                "maxfail_reached": False,
-                "warnings_count": 0,
-                "passed_count": 5,
-                "failed_count": 1,
-                "error_count": 0,
-                "skipped_count": 0,
-                "test_summary": "1 failed, 5 passed",
-                "failed_tests": ["tests/example/test_no_parallel.py::test_one"],
-                "error_tests": [],
-                "total_tests": 6,
-            }
+        parallel_outcome = regenerator._build_track_outcome(
+            return_code=0,
+            parsed_results=parallel_parsed,
+            output="10 passed in 1.00s",
+            track_name="parallel",
+            log_file=None,
+        )
+        no_parallel_outcome = regenerator._build_track_outcome(
+            return_code=1,
+            parsed_results=no_parallel_parsed,
+            output="1 failed, 5 passed in 1.00s",
+            track_name="no_parallel",
+            log_file=None,
+        )
 
-        subprocess_call_count = {"count": 0}
+        assert parallel_outcome["failed_count"] == 0
+        assert parallel_outcome["failed_node_ids"] == []
+        assert no_parallel_outcome["failed_count"] == 1
+        assert no_parallel_outcome["failed_node_ids"] == [
+            "tests/example/test_no_parallel.py::test_one"
+        ]
 
-        def fake_subprocess_run(*args, **kwargs):
-            subprocess_call_count["count"] += 1
-            result = Mock()
-            stdout_handle = kwargs.get("stdout")
-            if subprocess_call_count["count"] == 1:
-                result.returncode = 0
-                stdout_text = "10 passed in 1.00s\n"
-            else:
-                result.returncode = 1
-                stdout_text = "1 failed, 5 passed in 1.00s\n"
-            if stdout_handle and hasattr(stdout_handle, "write"):
-                stdout_handle.write(stdout_text)
-                stdout_handle.flush()
-            result.stdout = stdout_text
-            result.stderr = ""
-            return result
-
-        with patch("subprocess.run", side_effect=fake_subprocess_run):
-            with patch.object(
-                regenerator.report_generator, "finalize_coverage_outputs"
-            ):
-                with patch.object(
-                    regenerator,
-                    "_wait_for_parallel_coverage_artifacts",
-                    return_value={
-                        "waited_seconds": 0.0,
-                        "parallel_shards": [],
-                        "project_root_shards": [],
-                    },
-                ):
-                    with patch.object(
-                        regenerator,
-                        "_parse_pytest_test_results",
-                        side_effect=fake_parse,
-                    ):
-                        results = regenerator.run_coverage_analysis()
-
-        coverage_outcome = results.get("coverage_outcome", {})
-        parallel_outcome = coverage_outcome.get("parallel", {})
-        no_parallel_outcome = coverage_outcome.get("no_parallel", {})
-        assert parallel_outcome.get("failed_count") == 0
-        assert no_parallel_outcome.get("failed_count") == 1
+        aggregate_state = regenerator._classify_coverage_outcome(
+            parallel_outcome, no_parallel_outcome, coverage_collected=True
+        )
+        assert aggregate_state == "test_failures"
 
 
 class TestCoverageArtifacts:
@@ -375,7 +387,6 @@ directory = htmlcov
     @pytest.mark.unit
     def test_cleanup_coverage_shards(self, demo_project_root, temp_coverage_dir):
         """Test that coverage shard files are cleaned up."""
-        from unittest.mock import patch
         from subprocess import CompletedProcess
         
         regenerator = CoverageMetricsRegenerator(str(demo_project_root))

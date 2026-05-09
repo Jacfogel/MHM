@@ -1,7 +1,7 @@
 # AI Architecture - Quick Reference
 
 > **File**: `ai_development_docs/AI_ARCHITECTURE.md`  
-> **Pair**: [ARCHITECTURE.md](ARCHITECTURE.md)  
+> **Pair**: [ARCHITECTURE.md](../ARCHITECTURE.md)  
 > **Audience**: AI collaborators and tools  
 > **Purpose**: Routing & constraints for architecture changes  
 > **Style**: Minimal, routing-first  
@@ -10,40 +10,40 @@
 
 
 Use this file as a router. Decide what you are changing, then jump to the right modules and
-sections in [ARCHITECTURE.md](ARCHITECTURE.md) and other detailed guides.
+sections in [ARCHITECTURE.md](../ARCHITECTURE.md) and other detailed guides.
 
 Typical questions and starting points:
 
 - User data access or schema changes  
   -> `core/user_data_registry.py`, `core/user_data_read.py`, `core/user_data_write.py`, `core/user_data_validation.py`  
   -> Details: see section 2. User Data Model and section 3. Data Handling Patterns in
-     [ARCHITECTURE.md](ARCHITECTURE.md).
+     [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 - UI layout, dialogs, or widgets  
   -> `ui/ui_app_qt.py`, `ui/dialogs/`, `ui/widgets/`  
-  -> Details: see section 5. UI Architecture and Naming Conventions in [ARCHITECTURE.md](ARCHITECTURE.md).
+  -> Details: see section 5. UI Architecture and Naming Conventions in [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 - Scheduling or reminder logic  
   -> `core/service.py`, `tasks/`  
-  -> Details: see section 4. Key Modules and Responsibilities in [ARCHITECTURE.md](ARCHITECTURE.md).
+  -> Details: see section 4. Key Modules and Responsibilities in [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 - Channel behavior (Discord, email, etc.)  
   -> `communication/` modules  
   -> Details: see section 4. Key Modules and Responsibilities and section 6.
-     Channel-Agnostic Architecture in [ARCHITECTURE.md](ARCHITECTURE.md), plus section 2.
-     Channel Layers and Boundaries in [COMMUNICATION_GUIDE.md](communication/COMMUNICATION_GUIDE.md).
+     Channel-Agnostic Architecture in [ARCHITECTURE.md](../ARCHITECTURE.md), plus section 2.
+     Channel Layers and Boundaries in [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md).
 
 - Configuration and environment variables  
   -> `.env`, `.env.example`, `core/config.py`  
   -> Details: see configuration notes in section 4. Key Modules and Responsibilities in
-     [ARCHITECTURE.md](ARCHITECTURE.md), section 2.4. "Configuration and .env" in
-     [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md), and section 1.4. "Configure Environment (Optional)"
-     in [HOW_TO_RUN.md](HOW_TO_RUN.md).
+     [ARCHITECTURE.md](../ARCHITECTURE.md), section 2.4. "Configuration and .env" in
+     [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md), and section 1.4. "Configure Environment (Optional)"
+     in [HOW_TO_RUN.md](../HOW_TO_RUN.md).
 
 - Logging and error handling  
   -> `core/logger.py`, `core/error_handling.py`, `logs/`  
-  -> Details: see section 2. Logging Architecture in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) and
-     section 2. Architecture Overview in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
+  -> Details: see section 2. Logging Architecture in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) and
+     section 2. Architecture Overview in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md).
 
 ---
 
@@ -62,19 +62,19 @@ Top-level routing only; do not duplicate full descriptions here.
 - `development_docs/` - human references (changelog, dependencies, plans).  
 - `tasks/` - reminder and task definitions.  
 - `tests/` - tests, fixtures, `tests/data/`, `tests/logs/`. See section 2. Test Layout and Discovery
-  in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).  
-- `logs/` - runtime logs. See section 2. Logging Architecture in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).  
+  in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md).  
+- `logs/` - runtime logs. See section 2. Logging Architecture in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).  
 - `styles/` - QSS themes.  
 - `user/` - instance-level preferences and settings.
 
 If you introduce or remove top-level directories, update this list and the matching section
-in [ARCHITECTURE.md](ARCHITECTURE.md).
+in [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 ---
 
 ## 2. User Data Model
 
-Per-user persisted state layout, guarantees, and access rules are defined in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md).
+Per-user persisted state layout, guarantees, and access rules are defined in [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md).
 **Section 0** is the **user data and schedule module map** (one line per core module, tolerant vs strict validation, and what a dependency **leaf** means). This document describes only architectural relationships and AI-relevant constraints.
 
 **Stable filenames (2026-05 rename pass)** - v2 envelopes and `validate_v2_document`: `core/user_data_v2_envelopes.py`. Admin/backup/index operations (`UserDataManager`): `core/user_data_operations.py`. Live schedule windows against loaded user data: `core/schedule_runtime.py`. Default on-disk schedule period shapes: `core/schedule_document_defaults.py`. Central `update_user_*` section writers: `core/user_data_write.py` only (there is no separate `user_data_updates` module).
@@ -96,9 +96,9 @@ Preserve these patterns when generating or editing code:
   - Per-user instances: `data/users/{user_id}/messages/`.
 
 - Legacy and migration  
-  - Use explicit legacy compatibility branches and the logging pattern from section 7. "Legacy Compatibility Logging Standard" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
+  - Use explicit legacy compatibility branches and the logging pattern from section 7. "Legacy Compatibility Logging Standard" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).
 
-If you need full rationale or examples, see section 3. Data Handling Patterns in [ARCHITECTURE.md](ARCHITECTURE.md).
+If you need full rationale or examples, see section 3. Data Handling Patterns in [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 ---
 
@@ -115,19 +115,19 @@ Use this list to anchor AI changes to the right modules.
   background service.  
 - `core/service.py` - background service implementation and lifecycle.  
 - `core/config.py` - configuration loader and validator (reads `.env` via python-dotenv).
-  See section 2.4. "Configuration and .env" in [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) and
-  section 1.4. "Configure Environment (Optional)" in [HOW_TO_RUN.md](HOW_TO_RUN.md).  
+  See section 2.4. "Configuration and .env" in [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) and
+  section 1.4. "Configure Environment (Optional)" in [HOW_TO_RUN.md](../HOW_TO_RUN.md).  
 - `core/logger.py` - logging configuration and component loggers. See section 2.
-  Logging Architecture in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).  
+  Logging Architecture in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).  
 - `core/error_handling.py` - shared error handling decorators and integration with logging and
-  basic metrics. See section 2. Architecture Overview in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).  
+  basic metrics. See section 2. Architecture Overview in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md).  
 - `core/user_data_registry.py`, `core/user_data_read.py`, `core/user_data_write.py`, `core/user_data_validation.py` - user data entry points.  
 - `communication/` - channel orchestrators and adapters that turn service events into messages on
   Discord, email, etc.  
 - `tasks/` - task and reminder definitions used by schedulers.  
 - `ui/ui_app_qt.py` - UI shell that wires dialogs to the service.
 
-For more detailed descriptions, see section 4. Key Modules and Responsibilities in [ARCHITECTURE.md](ARCHITECTURE.md).
+For more detailed descriptions, see section 4. Key Modules and Responsibilities in [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 ---
 
@@ -143,10 +143,10 @@ AI rules:
 
 - Do not edit generated code. Change behavior in dialogs, widgets, or `ui/ui_app_qt.py`.  
 - Keep names aligned across design, generated, and implementation files.  
-- For a new dialog or widget, follow the existing naming patterns and update [ARCHITECTURE.md](ARCHITECTURE.md)
+- For a new dialog or widget, follow the existing naming patterns and update [ARCHITECTURE.md](../ARCHITECTURE.md)
   only if conventions change.
 
-Details and examples live in section 5. UI Architecture and Naming Conventions in [ARCHITECTURE.md](ARCHITECTURE.md).
+Details and examples live in section 5. UI Architecture and Naming Conventions in [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 ---
 
@@ -161,9 +161,9 @@ When adding or modifying channel behavior:
 
 Reference material:
 
-- Section 6. Channel-Agnostic Architecture in [ARCHITECTURE.md](ARCHITECTURE.md).  
+- Section 6. Channel-Agnostic Architecture in [ARCHITECTURE.md](../ARCHITECTURE.md).  
 - Section 1. Core Principle and section 2. Channel Layers and Boundaries in
-  [COMMUNICATION_GUIDE.md](communication/COMMUNICATION_GUIDE.md).
+  [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md).
 
 ---
 
@@ -171,9 +171,9 @@ Reference material:
 
 - Use `run_mhm.py` for UI workflows and `run_headless_service.py` for headless workflows.  
 - Use logs under `logs/` and error handling in `core/error_handling.py` to debug issues.
-  See section 2. Logging Architecture in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) and section 2.
-  Architecture Overview in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).  
+  See section 2. Logging Architecture in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) and section 2.
+  Architecture Overview in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md).  
 - Keep `ai_*` docs in sync with their human counterparts at the H2 level (use the documentation
   sync checker).  
-- For any non-trivial refactor, read the relevant section in [ARCHITECTURE.md](ARCHITECTURE.md) before editing
-  code. For overall documentation workflow, see section 2. "Standards and Templates" in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md).
+- For any non-trivial refactor, read the relevant section in [ARCHITECTURE.md](../ARCHITECTURE.md) before editing
+  code. For overall documentation workflow, see section 2. "Standards and Templates" in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md).

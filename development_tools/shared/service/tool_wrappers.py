@@ -927,6 +927,12 @@ class ToolWrappersMixin:
             "details": {
                 "paired_doc_issues": details.get("paired_doc_issues", 0),
                 "path_drift_issues": details.get("path_drift_issues", 0),
+                "markdown_link_target_issues": details.get(
+                    "markdown_link_target_issues", 0
+                ),
+                "markdown_link_target_files": details.get(
+                    "markdown_link_target_files", {}
+                ),
                 "ascii_compliance_issues": details.get("ascii_issues", 0),
                 "heading_numbering_issues": details.get(
                     "heading_numbering_issues", 0
@@ -1006,6 +1012,48 @@ class ToolWrappersMixin:
                             "\nExample marker scan: no advisory hints "
                             "(or no paired files scanned)."
                         )
+                    link_target_count = int(
+                        data["details"].get("markdown_link_target_issues", 0) or 0
+                    )
+                    path_drift_details = data["details"].get("path_drift", {})
+                    raw_link_target_files = data["details"].get(
+                        "markdown_link_target_files", {}
+                    )
+                    link_target_files = (
+                        raw_link_target_files
+                        if isinstance(raw_link_target_files, dict)
+                        else {}
+                    )
+                    if isinstance(path_drift_details, dict):
+                        nested_details = path_drift_details.get("details", {})
+                        if isinstance(nested_details, dict):
+                            raw_files = nested_details.get(
+                                "markdown_link_target_files", {}
+                            )
+                            if isinstance(raw_files, dict) and not link_target_files:
+                                link_target_files = raw_files
+                    if link_target_count:
+                        print("\nMARKDOWN LINK TARGET HINTS (advisory):")
+                        print(
+                            "   "
+                            f"{link_target_count} local markdown link(s) may not be "
+                            "clickable from their source document."
+                        )
+                        print(
+                            "   Run `python development_tools/run_development_tools.py "
+                            "doc-fix --convert-links` to rewrite repo-relative hrefs "
+                            "where the target exists."
+                        )
+                        for fn, line_list in sorted(link_target_files.items())[:20]:
+                            print(f"   {fn}:")
+                            for line in line_list[:5]:
+                                print(f"     - {line}")
+                            if len(line_list) > 5:
+                                print(f"     ... +{len(line_list) - 5} more")
+                        if len(link_target_files) > 20:
+                            print(f"   ... +{len(link_target_files) - 20} more files")
+                    else:
+                        print("\nMarkdown link target scan: no advisory hints.")
                     output = output_buffer.getvalue()
                 finally:
                     sys.stdout = original_stdout

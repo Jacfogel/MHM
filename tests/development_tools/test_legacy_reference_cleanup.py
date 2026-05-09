@@ -237,6 +237,14 @@ class TestReportGeneration:
         assert '# Legacy Reference Cleanup Report' in report
         assert '## Summary' in report or 'Summary' in report
         assert '## Deprecation Inventory' in report
+        assert (
+            "[AI_LEGACY_COMPATIBILITY_GUIDE.md]"
+            "(../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md)"
+        ) in report
+        assert (
+            "[AI_TESTING_GUIDE.md]"
+            "(../ai_development_docs/AI_TESTING_GUIDE.md)"
+        ) in report
 
 
 class TestDeprecationInventoryIntegration:

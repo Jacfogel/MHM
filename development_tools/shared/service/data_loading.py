@@ -978,6 +978,8 @@ class DataLoadingMixin:
             'missing_address_issues': 0,
             'unconverted_link_issues': 0,
             'path_drift_files': [],
+            'markdown_link_target_issues': 0,
+            'markdown_link_target_files': {},
             'example_marker_hint_count': 0,
         }
         # Aggregate paired docs
@@ -995,6 +997,14 @@ class DataLoadingMixin:
             files = path_drift.get('files', {})
             if isinstance(files, dict):
                 summary['path_drift_files'] = list(files.keys())[:10]
+            details = path_drift.get('details', {})
+            if isinstance(details, dict):
+                summary['markdown_link_target_issues'] = details.get(
+                    'markdown_link_target_issues', 0
+                )
+                markdown_link_files = details.get('markdown_link_target_files', {})
+                if isinstance(markdown_link_files, dict):
+                    summary['markdown_link_target_files'] = markdown_link_files
         # Aggregate ASCII compliance
         ascii_compliance = all_results.get('ascii_compliance', {})
         if isinstance(ascii_compliance, dict):

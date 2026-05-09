@@ -1669,6 +1669,9 @@ class ReportGenerationMixin:
                 "path_drift_issues": get_doc_sync_field(
                     self.docs_sync_summary, "path_drift_issues", 0
                 ),
+                "markdown_link_target_issues": get_doc_sync_field(
+                    self.docs_sync_summary, "markdown_link_target_issues", 0
+                ),
                 "paired_doc_issues": get_doc_sync_field(
                     self.docs_sync_summary, "paired_doc_issues", 0
                 ),
@@ -1704,6 +1707,9 @@ class ReportGenerationMixin:
                     "status": get_doc_sync_field(doc_sync_result, "status", "UNKNOWN"),
                     "path_drift_issues": get_doc_sync_field(
                         doc_sync_result, "path_drift_issues", 0
+                    ),
+                    "markdown_link_target_issues": get_doc_sync_field(
+                        doc_sync_result, "markdown_link_target_issues", 0
                     ),
                     "paired_doc_issues": get_doc_sync_field(
                         doc_sync_result, "paired_doc_issues", 0
@@ -1824,6 +1830,19 @@ class ReportGenerationMixin:
             else:
                 # If neither path_drift nor path_validation ran, show unknown
                 lines.append("- **Path Drift**: Unknown (run `audit` to check)")
+
+            markdown_link_target_issues = (
+                get_doc_sync_field(
+                    doc_sync_summary_for_signals,
+                    "markdown_link_target_issues",
+                    0,
+                )
+                or 0
+            )
+            if markdown_link_target_issues > 0:
+                lines.append(
+                    f"- **Markdown Link Targets**: WARN ({markdown_link_target_issues} local links may not be clickable)"
+                )
 
             if paired is not None:
                 status_label = "SYNCHRONIZED" if paired == 0 else "NEEDS ATTENTION"
@@ -5918,6 +5937,26 @@ class ReportGenerationMixin:
             unconverted_links_data,
             "python development_tools/run_development_tools.py doc-fix --convert-links",
         )
+        doc_sync_for_link_targets = (
+            getattr(self, "docs_sync_summary", None) or doc_sync_data or {}
+        )
+        link_target_details = (
+            doc_sync_for_link_targets.get("details", {})
+            if isinstance(doc_sync_for_link_targets, dict)
+            else {}
+        )
+        markdown_link_target_issues = (
+            to_int(link_target_details.get("markdown_link_target_issues")) or 0
+        )
+        if markdown_link_target_issues > 0:
+            quick_wins.append(
+                "Markdown link targets: "
+                f"{markdown_link_target_issues} advisory local link target hint(s). "
+                "Run `python development_tools/run_development_tools.py doc-fix --convert-links` for auto-fixable repo-relative hrefs. "
+                "Review `development_tools/docs/jsons/scopes/full/analyze_path_drift_results.json` "
+                "under `details.markdown_link_target_files` for remaining missing targets or generated-doc fixes. "
+                "Verify: `python development_tools/run_development_tools.py doc-sync`."
+            )
 
         # Unused imports (obvious) are surfaced in Immediate Focus Ranked; omit from Quick Wins to avoid duplication.
 
@@ -6472,6 +6511,18 @@ class ReportGenerationMixin:
             lines.append(
                 f"- **Documentation path drift**: {path_drift} issues need sync"
             )
+        markdown_link_target_issues = None
+        if doc_sync_summary and isinstance(doc_sync_summary, dict):
+            if "summary" in doc_sync_summary and isinstance(
+                doc_sync_summary.get("summary"), dict
+            ):
+                markdown_link_target_issues = doc_sync_summary.get("details", {}).get(
+                    "markdown_link_target_issues", 0
+                )
+        if markdown_link_target_issues:
+            lines.append(
+                f"- **Markdown link targets**: {markdown_link_target_issues} local link(s) may not be clickable"
+            )
 
         # Get legacy_issues - check standard format first
         legacy_issues = None
@@ -6542,6 +6593,9 @@ class ReportGenerationMixin:
                 "path_drift_issues": docs_sync_summary_details.get(
                     "path_drift_issues", 0
                 ),
+                "markdown_link_target_issues": docs_sync_summary_details.get(
+                    "markdown_link_target_issues", 0
+                ),
                 "paired_doc_issues": docs_sync_summary_details.get(
                     "paired_doc_issues", 0
                 ),
@@ -6585,6 +6639,9 @@ class ReportGenerationMixin:
                 doc_sync_summary_for_signals = {
                     "status": summary.get("status", "UNKNOWN"),
                     "path_drift_issues": details.get("path_drift_issues", 0),
+                    "markdown_link_target_issues": details.get(
+                        "markdown_link_target_issues", 0
+                    ),
                     "paired_doc_issues": details.get("paired_doc_issues", 0),
                     "ascii_issues": details.get("ascii_issues", 0),
                     "path_drift_files": details.get("path_drift_files", []),
@@ -6730,6 +6787,21 @@ class ReportGenerationMixin:
             else:
                 lines.append("**Path Drift** CLEAN")
                 lines.append("  - 0 problem files")
+
+            markdown_link_targets = (
+                get_doc_sync_field(
+                    effective_summary, "markdown_link_target_issues", 0
+                )
+                or 0
+            )
+            if markdown_link_targets > 0:
+                lines.append("**Markdown Link Targets** WARN")
+                lines.append(
+                    f"  - {markdown_link_targets} local link(s) may not be clickable from their source document"
+                )
+            else:
+                lines.append("**Markdown Link Targets** CLEAN")
+                lines.append("  - 0 local link target hints")
 
             # Paired Docs
             paired = get_doc_sync_field(effective_summary, "paired_doc_issues", 0) or 0

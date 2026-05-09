@@ -153,12 +153,6 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
   - [ ] Create script or tool to help identify and update references automatically (or extend development tools)
   - [ ] Update documentation standards to require section numbers in references
 
-**Investigate markdown link issues**
-- *What it means*: Some markdown links work in the editor while others don't, even with the same format. Need to investigate why relative paths work for some files but not others.
-- *Why it helps*: Ensures all report links are clickable and functional in the editor
-- *Estimated effort*: Small
-- *User priority*: Medium.
-
 ### User Experience Improvements
 
 **Investigate Check-in Settings UI Issues**
@@ -293,9 +287,6 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 - *Why it helps*: Helps identify and fix performance problems proactively
 - *Estimated effort*: Medium
 
-**Testing Roadmap Consolidation**
-- See [TEST_PLAN.md](development_docs/TEST_PLAN.md) for all testing program tasks (source of truth).
-
 **Investigate naive vs timezone-aware datetime usage in scheduler & task reminders**
 Context: During the datetime canonicalization audit, a potential split was identified between:
 - **Timezone-aware datetimes** (e.g., `pytz.localize(...)`) used in parts of `core/scheduler.py`, and  
@@ -339,13 +330,3 @@ Deliverables
 Priority
 - Medium  
 - Blocker only if a real bug or undefined behavior is confirmed
-
-**Possible Duplicate Lists** - *Tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) section 7.8*
-- *What it means*: Investigate documentation and code for duplicate or partially duplicated lists (docs, constants, commands, files, etc.). Establish canonical locations; code should pull dynamically, docs should point to canonical source.
-- *Why it helps*: Reduces drift and improves accuracy.
-
-**Audit MHM project for duplicate, outdated, unnecessary backups and archive copies** - *Tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) section 7.9*
-- *What it means*: Implement structured regular local backups with compression and rotation.
-
-*Note*: Review RAM usage and caching-rolled into **Add Performance Monitoring** (above).
-

@@ -87,7 +87,7 @@ def generate_module_dependencies_content(
     )
     content.append("")
     content.append(
-        "> **See [README.md](README.md) for complete navigation and project overview**"
+        "> **See [README.md](../README.md) for complete navigation and project overview**"
     )
     content.append(
         "> **See [ARCHITECTURE.md](../ARCHITECTURE.md) for system architecture and design**"
@@ -664,7 +664,7 @@ def generate_ai_module_dependencies_content(actual_imports: dict[str, dict]) -> 
             "",
             pattern_analyzer.generate_quick_reference(actual_imports, patterns),
             "",
-            "> **For complete dependency details, see [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md)**",
+            "> **For complete dependency details, see [MODULE_DEPENDENCIES_DETAIL.md](../development_docs/MODULE_DEPENDENCIES_DETAIL.md)**",
         ]
     )
 

@@ -452,6 +452,8 @@
   },
   "legacy_cleanup": {
     "deprecation_inventory_file": "development_tools/config/jsons/DEPRECATION_INVENTORY.json",
+    "_comment_required_pattern_keys": "Project-specific guard: pattern keys here must remain present in `DEPRECATION_INVENTORY.json` `legacy_scan_patterns` (or be re-added via `legacy_patterns`). `fix_legacy_references` warns once per missing key to flag inventory drift. Default is empty so the generic dev_tools tool stays portable; projects opt in by listing keys here.",
+    "required_pattern_keys": [],
     "deprecation_inventory_sync_guard": {
       "enabled": true,
       "trigger_keywords": [
