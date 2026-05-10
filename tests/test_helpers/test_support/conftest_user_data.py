@@ -124,11 +124,13 @@ def shim_get_user_data_to_invoke_loaders():
     the expected structure. This preserves production behavior when everything is
     wired correctly, but guards against import-order timing in tests.
     """
+    import core as core_module
     import core.user_data_registry as um
     import core.user_data_read as read_module
 
     # get_user_data lives in user_data_read
     original_get_user_data = getattr(read_module, "get_user_data", None)
+    original_core_get_user_data = getattr(core_module, "get_user_data", None)
     if original_get_user_data is None:
         yield
         return
@@ -277,13 +279,17 @@ def shim_get_user_data_to_invoke_loaders():
 
         return result
 
-    # Patch in place for the duration of the test (get_user_data lives in user_data_read)
+    # Patch both the implementation module and the core package re-export so
+    # tests using ``from core import get_user_data`` get the same shim.
     read_module.get_user_data = wrapped_get_user_data
+    core_module.get_user_data = wrapped_get_user_data
     try:
         yield
     finally:
         with contextlib.suppress(Exception):
             read_module.get_user_data = original_get_user_data
+        with contextlib.suppress(Exception):
+            core_module.get_user_data = original_core_get_user_data
 
 
 @pytest.fixture(scope="session", autouse=True)

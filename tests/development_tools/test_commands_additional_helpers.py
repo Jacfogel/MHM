@@ -505,3 +505,352 @@ def test_run_workflow_executes_task_and_validation(
 
     assert service.run_workflow("docs", {"x": 1}) is True
     assert shown == [{"success": True, "seen": {"x": 1}}]
+
+
+@pytest.mark.unit
+def test_run_version_sync_records_success_and_failure(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    calls: list[tuple[object, ...]] = []
+
+    def _success(*args: object, **_kwargs: object) -> dict:
+        calls.append(args)
+        return {"success": True, "output": "ok"}
+
+    monkeypatch.setattr(service, "run_script", _success)
+
+    assert service.run_version_sync("todo") is True
+    assert service.fix_version_sync_results == {"success": True, "output": "ok"}
+    assert calls[-1] == ("fix_version_sync", "sync", "--scope", "todo")
+
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_args, **_kwargs: {"success": False, "error": "bad scope"},
+    )
+
+    assert service.run_version_sync("bad") is False
+
+
+@pytest.mark.unit
+def test_run_documentation_sync_persists_only_on_success(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    persisted: list[bool] = []
+
+    monkeypatch.setattr(service, "_run_doc_sync_check", lambda: True)
+    monkeypatch.setattr(
+        service,
+        "_persist_documentation_sync_aggregate_json",
+        lambda: persisted.append(True),
+        raising=False,
+    )
+
+    assert service.run_documentation_sync() is True
+    assert persisted == [True]
+
+    monkeypatch.setattr(service, "_run_doc_sync_check", lambda: False)
+
+    assert service.run_documentation_sync() is False
+    assert persisted == [True]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("fix_type", "expected_flag"),
+    [
+        ("all", "--all"),
+        ("ascii", "--fix-ascii"),
+        ("fix-ascii", "--fix-ascii"),
+        ("number-headings", "--number-headings"),
+        ("add-addresses", "--add-addresses"),
+        ("convert-links", "--convert-links"),
+    ],
+)
+def test_run_documentation_fix_builds_expected_args(
+    temp_project_copy: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    fix_type: str,
+    expected_flag: str,
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    captured: dict[str, tuple[object, ...]] = {}
+
+    def _fake_run_script(*args: object, **_kwargs: object) -> dict:
+        captured["args"] = args
+        return {"success": True}
+
+    monkeypatch.setattr(service, "run_script", _fake_run_script)
+
+    assert service.run_documentation_fix(fix_type, dry_run=True) is True
+    assert captured["args"][0] == "fix_documentation"
+    assert "--dry-run" in captured["args"]
+    assert expected_flag in captured["args"]
+
+
+@pytest.mark.unit
+def test_run_documentation_fix_reports_returncode_when_error_is_empty(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_args, **_kwargs: {
+            "success": False,
+            "error": "",
+            "returncode": 7,
+            "output": "details",
+        },
+    )
+
+    assert service.run_documentation_fix("unknown") is False
+
+
+@pytest.mark.unit
+def test_run_dev_tools_coverage_reuses_fresh_cache(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.tier3_test_outcome = {"parallel": {"classification": "passed"}}
+    cached_payload = {
+        "overall": {"total_missed": 5},
+        "details": {"dev_tools_test_outcome": {"classification": "passed"}},
+    }
+
+    monkeypatch.setattr(service, "_is_coverage_file_fresh", lambda *_a, **_k: True)
+    monkeypatch.setattr(
+        service,
+        "_load_cached_result_if_available",
+        lambda *_a, **_k: cached_payload,
+    )
+    run_script = MagicMock()
+    monkeypatch.setattr(service, "run_script", run_script)
+
+    result = service.run_dev_tools_coverage()
+
+    assert result["success"] is True
+    assert result["cache_metadata"]["cache_mode"] == "cache_only"
+    assert result["data"]["summary"]["total_issues"] == 5
+    assert service.tier3_test_outcome["development_tools"]["from_cache"] is True
+    run_script.assert_not_called()
+
+
+@pytest.mark.unit
+def test_run_dev_tools_coverage_ignores_failed_cached_state(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.tier3_test_outcome = {}
+    cached_payload = {
+        "summary": {"total_issues": 1},
+        "details": {"dev_tools_test_outcome": {"classification": "failed"}},
+    }
+    lock_file = temp_project_copy / "development_tools" / ".coverage_dev_tools_in_progress.lock"
+    lock_file.parent.mkdir(parents=True, exist_ok=True)
+
+    monkeypatch.setattr(service, "_is_coverage_file_fresh", lambda *_a, **_k: True)
+    monkeypatch.setattr(
+        service,
+        "_load_cached_result_if_available",
+        lambda *_a, **_k: cached_payload,
+    )
+    monkeypatch.setitem(
+        service.run_dev_tools_coverage.__func__.__globals__,
+        "write_lock_metadata",
+        lambda path, **_kwargs: Path(path).write_text("{}", encoding="utf-8") or True,
+    )
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_a, **_k: {
+            "success": False,
+            "output": "",
+            "error": "pytest failed",
+            "returncode": 1,
+        },
+    )
+
+    result = service.run_dev_tools_coverage()
+
+    assert result["success"] is False
+    assert "pytest failed" in result["error"]
+    assert service.tier3_test_outcome["development_tools"]["classification"] == "failed"
+    assert not lock_file.exists()
+
+
+@pytest.mark.unit
+def test_run_coverage_regeneration_reuses_fresh_cache(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.tier3_test_outcome = {
+        "development_tools": {"classification": "skipped", "state": "skipped"}
+    }
+    cached_result = {
+        "summary": {"total_issues": 0},
+        "details": {
+            "tier3_test_outcome": {
+                "parallel": {"classification": "passed"},
+                "no_parallel": {"classification": "passed"},
+            }
+        },
+    }
+    cached_summary = {"overall": {"missed": 12}}
+
+    monkeypatch.setattr(service, "_is_coverage_file_fresh", lambda *_a, **_k: True)
+    monkeypatch.setattr(
+        service,
+        "_load_cached_result_if_available",
+        lambda *_a, **_k: cached_result,
+    )
+    monkeypatch.setattr(service, "_load_coverage_summary", lambda: cached_summary)
+    run_script = MagicMock()
+    monkeypatch.setattr(service, "run_script", run_script)
+
+    assert service.run_coverage_regeneration() is True
+    assert service._tool_cache_metadata["run_test_coverage"]["cache_mode"] == "cache_only"
+    assert service.tier3_test_outcome["state"] == "clean"
+    assert service.tier3_test_outcome["development_tools"]["classification"] == "skipped"
+    run_script.assert_not_called()
+
+
+@pytest.mark.unit
+def test_run_coverage_regeneration_does_not_reuse_failed_cached_state(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.tier3_test_outcome = {}
+    cached_result = {
+        "details": {
+            "tier3_test_outcome": {
+                "parallel": {"classification": "failed"},
+                "no_parallel": {"classification": "passed"},
+            }
+        }
+    }
+    lock_file = temp_project_copy / "development_tools" / ".coverage_in_progress.lock"
+    lock_file.parent.mkdir(parents=True, exist_ok=True)
+
+    monkeypatch.setattr(service, "_is_coverage_file_fresh", lambda *_a, **_k: True)
+    monkeypatch.setattr(
+        service,
+        "_load_cached_result_if_available",
+        lambda *_a, **_k: cached_result,
+    )
+    monkeypatch.setattr(service, "_load_coverage_summary", lambda: {"overall": {"missed": 0}})
+    monkeypatch.setitem(
+        service.run_coverage_regeneration.__func__.__globals__,
+        "write_lock_metadata",
+        lambda path, **_kwargs: Path(path).write_text("{}", encoding="utf-8") or True,
+    )
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_a, **_k: {
+            "success": False,
+            "output": "",
+            "error": "coverage crashed",
+            "returncode": 2,
+        },
+    )
+
+    assert service.run_coverage_regeneration() is False
+    assert service.tier3_test_outcome["state"] == "coverage_failed"
+    assert not lock_file.exists()
+
+
+@pytest.mark.unit
+def test_run_analyze_system_signals_parses_prefixed_json_and_saves(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    payload = {"summary": {"total_issues": 0}, "details": {"health": "ok"}}
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_a, **_k: {
+            "success": True,
+            "output": "preface\n" + json.dumps(payload) + "\ntrailing text",
+        },
+    )
+    saved: list[dict] = []
+    monkeypatch.setitem(
+        service.run_analyze_system_signals.__func__.__globals__,
+        "save_tool_result",
+        lambda _tool, _domain, data, **_kwargs: saved.append(data),
+    )
+
+    assert service.run_analyze_system_signals() is True
+    assert service.system_signals == payload
+    assert saved == [payload]
+
+
+@pytest.mark.unit
+def test_run_analyze_system_signals_rejects_nonstandard_json_and_empty_output(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_a, **_k: {"success": True, "output": json.dumps({"summary": {}})},
+    )
+
+    assert service.run_analyze_system_signals() is False
+
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_a, **_k: {"success": True, "output": ""},
+    )
+
+    assert service.run_analyze_system_signals() is False
+
+
+@pytest.mark.unit
+def test_run_test_markers_normalizes_missing_items_and_handles_no_output(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    payload = {
+        "summary": {"total_issues": None, "files_affected": None},
+        "details": {
+            "missing": [{"file": "tests/a.py"}],
+            "missing_domain": [["tests/b.py", "test_b"]],
+        }
+    }
+    saved: list[dict] = []
+    captured: dict[str, tuple[object, ...]] = {}
+
+    def _run_script(*args: object, **_kwargs: object) -> dict:
+        captured["args"] = args
+        return {"success": False, "output": json.dumps(payload), "returncode": 1}
+
+    monkeypatch.setattr(service, "run_script", _run_script)
+    monkeypatch.setitem(
+        service.run_test_markers.__func__.__globals__,
+        "save_tool_result",
+        lambda _tool, _domain, data, **_kwargs: saved.append(data),
+    )
+
+    result = service.run_test_markers(action="fix", dry_run=True)
+
+    assert result["success"] is True
+    assert "--fix" in captured["args"]
+    assert "--dry-run" in captured["args"]
+    assert result["data"]["summary"]["total_issues"] == 2
+    assert result["data"]["summary"]["files_affected"] == 2
+    assert saved[-1]["summary"]["total_issues"] == 2
+
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_a, **_k: {"success": False, "output": "", "returncode": 3},
+    )
+
+    failed = service.run_test_markers(action="unknown")
+    assert failed["success"] is False
+    assert "No output received" in failed["error"]
