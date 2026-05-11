@@ -31,6 +31,15 @@ def _root_tool_pyright() -> dict:
     return sec
 
 
+def _optional_nonnegative_int_env(name: str) -> int | None:
+    """Return an optional non-negative integer env value used by e2e parity gates."""
+    raw = os.environ.get(name)
+    if raw is None:
+        return None
+    assert raw.isdecimal(), f"{name} must be a non-negative integer when set"
+    return int(raw)
+
+
 @pytest.mark.unit
 def test_dev_tools_pyrightconfig_exists_and_is_json() -> None:
     path = project_root / "development_tools" / "config" / "pyrightconfig.json"
@@ -160,11 +169,12 @@ def test_dev_tools_pyrightconfig_excludes_tests_data_and_temp() -> None:
 
 @pytest.mark.unit
 def test_optional_pyright_error_delta_env_documented_in_e2e() -> None:
-    """V5 §7.6: e2e test documents PYRIGHT_ERROR_COUNT_MAX_DELTA for optional parity enforcement."""
+    """V5 §7.6: e2e test documents optional parity enforcement env vars."""
     src = (project_root / "tests" / "development_tools" / "test_pyright_config_paths.py").read_text(
         encoding="utf-8"
     )
     assert "PYRIGHT_ERROR_COUNT_MAX_DELTA" in src
+    assert "PYRIGHT_WARNING_COUNT_MAX_DELTA" in src
 
 
 @pytest.mark.unit
@@ -227,10 +237,49 @@ def test_static_check_cache_dependencies_cover_dual_config_files() -> None:
 def test_pyright_parity_remains_structural_unless_delta_env_set() -> None:
     """Default policy should not require numeric diagnostic parity in normal unit runs."""
     assert os.environ.get("PYRIGHT_ERROR_COUNT_MAX_DELTA") is None
+    assert os.environ.get("PYRIGHT_WARNING_COUNT_MAX_DELTA") is None
     src = (project_root / "tests" / "development_tools" / "test_pyright_config_paths.py").read_text(
         encoding="utf-8"
     )
-    assert "if max_delta is not None" in src
+    assert "_assert_summary_delta_within_env(" in src
+
+
+@pytest.mark.unit
+def test_optional_pyright_delta_env_parser_accepts_nonnegative_int(monkeypatch) -> None:
+    monkeypatch.setenv("PYRIGHT_ERROR_COUNT_MAX_DELTA", "0")
+    assert _optional_nonnegative_int_env("PYRIGHT_ERROR_COUNT_MAX_DELTA") == 0
+
+    monkeypatch.setenv("PYRIGHT_ERROR_COUNT_MAX_DELTA", "12")
+    assert _optional_nonnegative_int_env("PYRIGHT_ERROR_COUNT_MAX_DELTA") == 12
+
+
+@pytest.mark.unit
+def test_optional_pyright_delta_env_parser_rejects_invalid_values(monkeypatch) -> None:
+    monkeypatch.setenv("PYRIGHT_ERROR_COUNT_MAX_DELTA", "-1")
+    with pytest.raises(AssertionError, match="PYRIGHT_ERROR_COUNT_MAX_DELTA"):
+        _optional_nonnegative_int_env("PYRIGHT_ERROR_COUNT_MAX_DELTA")
+
+    monkeypatch.setenv("PYRIGHT_ERROR_COUNT_MAX_DELTA", "two")
+    with pytest.raises(AssertionError, match="PYRIGHT_ERROR_COUNT_MAX_DELTA"):
+        _optional_nonnegative_int_env("PYRIGHT_ERROR_COUNT_MAX_DELTA")
+
+
+def _assert_summary_delta_within_env(
+    owned_summary: dict[str, object],
+    root_summary: dict[str, object],
+    *,
+    summary_key: str,
+    env_name: str,
+) -> None:
+    max_delta = _optional_nonnegative_int_env(env_name)
+    if max_delta is None:
+        return
+    owned_count = int(owned_summary.get(summary_key, 0))  # type: ignore[arg-type]
+    root_count = int(root_summary.get(summary_key, 0))  # type: ignore[arg-type]
+    delta = abs(owned_count - root_count)
+    assert delta <= max_delta, (
+        f"Owned vs root Pyright {summary_key} delta {delta} exceeds {env_name}={max_delta}"
+    )
 
 
 @pytest.mark.integration
@@ -278,11 +327,16 @@ def test_e2e_pyright_outputjson_parses_for_owned_and_root_projects() -> None:
     assert isinstance(owned_payload["summary"], dict)
     assert isinstance(root_payload["summary"], dict)
 
-    # Optional numeric parity (V5 §7.6): set PYRIGHT_ERROR_COUNT_MAX_DELTA to enforce |delta errors| cap.
-    max_delta = os.environ.get("PYRIGHT_ERROR_COUNT_MAX_DELTA")
-    if max_delta is not None:
-        oe = int(owned_payload["summary"].get("errorCount", 0))  # type: ignore[arg-type]
-        re = int(root_payload["summary"].get("errorCount", 0))  # type: ignore[arg-type]
-        assert abs(oe - re) <= int(max_delta), (
-            f"Owned vs root Pyright errorCount delta {abs(oe - re)} exceeds PYRIGHT_ERROR_COUNT_MAX_DELTA={max_delta}"
-        )
+    # Optional numeric parity (V5 §7.6): set either env var to enforce diagnostic-count caps.
+    _assert_summary_delta_within_env(
+        owned_payload["summary"],  # type: ignore[arg-type]
+        root_payload["summary"],  # type: ignore[arg-type]
+        summary_key="errorCount",
+        env_name="PYRIGHT_ERROR_COUNT_MAX_DELTA",
+    )
+    _assert_summary_delta_within_env(
+        owned_payload["summary"],  # type: ignore[arg-type]
+        root_payload["summary"],  # type: ignore[arg-type]
+        summary_key="warningCount",
+        env_name="PYRIGHT_WARNING_COUNT_MAX_DELTA",
+    )

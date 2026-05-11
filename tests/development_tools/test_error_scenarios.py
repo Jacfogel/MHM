@@ -8,6 +8,7 @@ and other edge cases.
 import json
 import os
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -19,7 +20,7 @@ class TestFileCorruptionHandling:
     """Test handling of corrupted or malformed source files."""
 
     @pytest.mark.unit
-    def test_function_registry_handles_syntax_errors(self, demo_project_root):
+    def test_analyze_functions_handles_syntax_errors(self, demo_project_root):
         """extract_functions_from_file should handle syntax errors gracefully."""
         # extract_functions_from_file was moved to analyze_functions.py during Batch 3 decomposition
         analyze_functions = load_development_tools_module("analyze_functions")
@@ -28,8 +29,11 @@ class TestFileCorruptionHandling:
         bad_file.write_text("def broken_function(\n    # Missing closing paren\n")
 
         try:
-            functions = analyze_functions.extract_functions_from_file(str(bad_file))
+            with patch.object(analyze_functions, "logger") as mock_logger:
+                functions = analyze_functions.extract_functions_from_file(str(bad_file))
             assert isinstance(functions, list)
+            mock_logger.error.assert_not_called()
+            mock_logger.debug.assert_called_once()
         finally:
             if bad_file.exists():
                 bad_file.unlink()

@@ -48,6 +48,7 @@ def test_sync_todo_with_changelog_classifies_manual_and_auto_cleanable(monkeypat
     assert result.get("auto_clean_lines_removed") == 0
     assert "auto-cleanable checklist items: 2" in result["dry_run_report"]
     assert "manual-review items: 2" in result["dry_run_report"]
+    assert "manual-review items require changelog confirmation" in result["dry_run_report"]
 
     titles = [entry["title"] for entry in result["entries"]]
     assert "**Complete migration plan**" not in titles
@@ -76,6 +77,7 @@ def test_sync_todo_with_changelog_returns_zero_summary_when_clean(monkeypatch, t
     assert result["summary"]["auto_cleanable_count"] == 0
     assert result["summary"]["manual_review_count"] == 0
     assert "completed entries detected: 0" in result["dry_run_report"]
+    assert "manual-review items require changelog confirmation" in result["dry_run_report"]
     assert result.get("apply_performed") is False
 
 

@@ -132,7 +132,7 @@ Coverage worker config (`coverage` section):
 - `help` - shows detailed help information.
 
 **Experimental Commands** (high-risk, run only with approval):
-[EXAMPLE] - `version-sync` - wraps `development_tools/docs/fix_version_sync.py` (via `AIToolsService.run_version_sync`). Subcommands live on the script: `python development_tools/docs/fix_version_sync.py --help` (`show`, `status`, `sync`, `trim`, `check`, `validate`, `sync-todo`). For TODO cleanup: `sync-todo --dry-run` prints analysis only; `sync-todo --apply` removes completed `- [x]` checklist lines classified as auto-cleanable (not both flags). Default scope is documentation metadata; prefer dry runs and capture logs before syncing dates or versions.
+[EXAMPLE] - `version-sync` - wraps `development_tools/docs/fix_version_sync.py` (via `AIToolsService.run_version_sync`). Subcommands live on the script: `python development_tools/docs/fix_version_sync.py --help` (`show`, `status`, `sync`, `trim`, `check`, `validate`, `sync-todo`). For TODO cleanup: `sync-todo --dry-run` prints analysis only and flags manual-review items that need changelog confirmation; `sync-todo --apply` removes completed `- [x]` checklist lines classified as auto-cleanable (not both flags). Default scope is documentation metadata; prefer dry runs and capture logs before syncing dates or versions.
 
 ### 2.4. Seeing all type-check issues (Pyright)
 
@@ -632,7 +632,7 @@ Markers may sit immediately above decorators or inside the function/class body. 
 
 - **Structural**: Owned Pyright JSON loads; root `pyproject.toml` contains `[tool.pyright]`; both exclude `tests/data` (and related temp/fixture paths). Policy tests enforce this.
 - **Runtime**: `python -m pyright --outputjson --project <config>` succeeds for both configs when Pyright is installed (optional `pytest -m e2e` smoke in [`tests/development_tools/test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py), excluded from default runs).
-- **Diagnostic counts**: Root vs owned `errorCount`/`warningCount` may differ because include/exclude scopes differ. Optional: set `PYRIGHT_ERROR_COUNT_MAX_DELTA` when running the e2e Pyright test in `tests/development_tools/test_pyright_config_paths.py` to enforce a maximum `errorCount` delta between runs (unset keeps comparison advisory only).
+- **Diagnostic counts**: Root vs owned `errorCount`/`warningCount` may differ because include/exclude scopes differ. Optional: set `PYRIGHT_ERROR_COUNT_MAX_DELTA` and/or `PYRIGHT_WARNING_COUNT_MAX_DELTA` when running the e2e Pyright test in `tests/development_tools/test_pyright_config_paths.py` to enforce maximum diagnostic-count deltas between runs (unset keeps comparison advisory only).
 
 **AI_PRIORITIES default guidance (tool-suite themes)**
 
@@ -675,7 +675,7 @@ When `AI_PRIORITIES.md` is generated, items that lack explicit "Review for guida
 - **vulture**: Optional dead-code scan; overlaps unused-imports and function-registry tools-evaluate noise vs signal before Tier integration.
 - **pre-commit**: Optional host-repo hygiene; policy tests under `tests/development_tools/` remain the authoritative CLI/exclusion checks for this repository.
 
-- **TODO sync**: `python development_tools/docs/fix_version_sync.py sync-todo --dry-run` prints the dry-run summary to stdout (no file edits). **`sync-todo --apply`** removes auto-cleanable completed checklist lines (`- [x]` / `- [X]` only); do not combine `--apply` with `--dry-run`.
+- **TODO sync**: `python development_tools/docs/fix_version_sync.py sync-todo --dry-run` prints the dry-run summary to stdout (no file edits) and calls out manual-review items that need changelog confirmation before removal. **`sync-todo --apply`** removes auto-cleanable completed checklist lines (`- [x]` / `- [X]` only); do not combine `--apply` with `--dry-run`.
 
 - **Example markers (advisory, V5 Section 3.0)**: Tiered `audit` and `doc-sync` run this scan over **`DEFAULT_DOCS`** (config-derived approved doc list; see Command Summary `doc-sync` bullet). Hints appear in **AI_STATUS** (summary line), **CONSOLIDATED_REPORT** (detail), **AI_PRIORITIES** (Tier 4 when hints > 0), and `development_tools/docs/jsons/scopes/full/analyze_documentation_sync_results.json`. Heuristics: broad example-style `##` headings (e.g. "Command Examples"), short marker proximity window, repo-style backtick paths, citation-line skips, changelog-class docs excluded via shared historical-preserve patterns; marker tokens per AI_DOCUMENTATION_GUIDE Section 3.6. Standalone: `python development_tools/docs/analyze_documentation_sync.py --json --check-example-markers`.
 

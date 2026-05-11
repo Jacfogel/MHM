@@ -79,6 +79,26 @@ CRITICAL_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get(
 )
 
 
+def _is_expected_parse_error_fixture(file_path: str) -> bool:
+    """Return True for fixture paths that intentionally contain invalid Python."""
+    normalized = str(file_path).replace("\\", "/")
+    return (
+        "/tests/fixtures/" in normalized
+        or normalized.startswith("tests/fixtures/")
+        or "/tests/data/" in normalized
+        or normalized.startswith("tests/data/")
+    )
+
+
+def _log_parse_error(file_path: str, error: Exception, *, exc_info: bool = False) -> None:
+    """Log parse failures without turning intentional fixtures into audit ERROR noise."""
+    message = f"Error parsing {file_path}: {error}"
+    if isinstance(error, SyntaxError) and _is_expected_parse_error_fixture(file_path):
+        logger.debug(message)
+        return
+    logger.error(message, exc_info=exc_info)
+
+
 # Note: is_generated_function, is_special_python_method, and is_test_function
 # are imported from shared.exclusion_utilities for consistency across tools.
 
@@ -282,8 +302,7 @@ def extract_functions(file_path: str) -> list[dict]:
                     }
                 )
     except Exception as e:
-        # Log errors to help debug test failures
-        logger.error(f"Error parsing {file_path}: {e}", exc_info=True)
+        _log_parse_error(file_path, e, exc_info=True)
     return functions
 
 
@@ -387,7 +406,7 @@ def extract_functions_from_file(file_path: str) -> list[dict]:
 
     except Exception as e:
         # Only log errors for non-excluded files (excluded files are skipped above)
-        logger.error(f"Error parsing {file_path}: {e}")
+        _log_parse_error(file_path, e)
 
     return functions
 
@@ -482,7 +501,7 @@ def extract_classes_from_file(file_path: str) -> list[dict]:
 
     except Exception as e:
         # Only log errors for non-excluded files (excluded files are skipped above)
-        logger.error(f"Error parsing {file_path}: {e}")
+        _log_parse_error(file_path, e)
 
     return classes
 

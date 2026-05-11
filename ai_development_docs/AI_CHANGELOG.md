@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-11 - Dev-tools backlog and audit log cleanup **COMPLETED**
+- Cleaned the active development-tools TODO block to remove completed migration/scoping/history items and keep only real follow-ups: Pyright parity, optional external-tool expansion, low-priority gap tools, and opportunistic `test_config.json` fixture migration.
+- Extended Pyright parity policy tests with optional `PYRIGHT_WARNING_COUNT_MAX_DELTA` support, non-negative tolerance validation, and matching guide/V5 plan updates.
+- Improved TODO sync dry-run output so manual-review items explicitly require changelog confirmation before removal; `sync-todo --apply` remains limited to auto-cleanable checked checklist lines.
+- Fixed full-audit log noise from the intentional bad-syntax fixture: expected fixture parse failures now log at DEBUG instead of ERROR, and the stale function-registry test name was corrected.
+- Validation: focused Pyright, TODO-sync, error-scenario, and analyze-functions tests passed; `py_compile` and `doc-sync` passed.
+
 ### 2026-05-11 - Soft channel-boundary core review **COMPLETED**
 - Audited Discord/UI references in `core/config.py`, `core/logger.py`, `core/schemas.py`, `core/user_lookup.py`, `core/headless_service.py`, `core/service_utilities.py`, and `core/scheduler.py`.
 - Classified Discord references in config, logging, schemas, and lookup as acceptable persisted/config/diagnostic knowledge; no Discord adapter behavior was found in these core modules.

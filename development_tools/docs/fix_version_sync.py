@@ -391,6 +391,7 @@ def _build_todo_sync_dry_run_report(
         f" (lines: {auto_line_text})\n"
         f"- manual-review items: {len(manual_review_entries)}"
         f" (lines: {manual_line_text})\n"
+        "- manual-review items require changelog confirmation before removal\n"
         "- no automatic cleanup was performed"
     )
 

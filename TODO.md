@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-05-07 (session closeout: remove completed dev-tools logging follow-up)
+> **Last Updated**: 2026-05-11 (development-tools backlog status cleanup)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -39,20 +39,14 @@ When adding new tasks, follow this format:
 
 **Parallel product work (from audits)**: After each `audit --full`, use [`development_tools/AI_PRIORITIES.md`](development_tools/AI_PRIORITIES.md) for coverage, duplicates, coupling, and complexity (V5 Section 5.6); this is separate from dev-tools suite implementation in [`AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md`](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md).
 
-**Development tools backlog (scheduled review order, 2026-03-26)**  
-- Portability / Section 7.6: full Pyright diagnostic parity tests when tolerance rules exist (policy tests today: `tests/development_tools/test_pyright_config_paths.py`).  
-- Section 3.12 flaky detector: migrated to tracked `development_tools/tests/flaky_detector.py` with CLI command `flaky-detector`; continue follow-up hardening/tests as needed.  
-- Section 3.13-Section 3.14: migrated `scripts/testing/verify_process_cleanup.py` to tracked `development_tools/tests/verify_process_cleanup.py`; `scripts/cleanup_project.py` remains historical while `development_tools/shared/fix_project_cleanup.py` is canonical.  
-- Section 4.1: external tools evaluation (bandit, pip-audit, radon, pre-commit) per paired guides Section 10.  
-- Section 5.x: low-priority gap tools (unused-imports fixer, doc overlap, TODO sync auto-clean, memory profiler).  
+**Development tools backlog (active follow-ups only, reviewed 2026-05-11)**  
+- **Portability / Section 7.6**: full Pyright diagnostic parity remains partial; structural policy tests exist in `tests/development_tools/test_pyright_config_paths.py`, while diagnostic-count parity is optional via `PYRIGHT_ERROR_COUNT_MAX_DELTA` / `PYRIGHT_WARNING_COUNT_MAX_DELTA`.  
+- **Section 4.1 external tools**: Bandit and pip-audit are integrated and currently clean; remaining evaluation is optional/manual expansion for Radon, pydeps, vulture, deeper Ruff usage, and pre-commit.  
+- **Section 5.x low-priority gap tools**: unused-imports analyzer/report exist but fixer/categorization remains open; documentation overlap is tuned but reopenable on new noise; TODO sync has dry-run/apply/manual-review guidance, with broader workflow polish optional; memory profiler integration is pending.  
+- **Section 1.1 `test_config.json` fixture migration**: adopt `tests/development_tools/test_config.json` when touching analyzer tests; full migration remains low priority.  
 Detail: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md).
 
-**Deferred (Phase C - no blocking)**  
-- **Section 2.8 `--dev-tools-only` report scoping**: generators still project-wide; DEV_TOOLS_* mirrors until scope-aware builders exist.  
-- **Section 1.1 `test_config.json` fixture migration**: adopt when touching analyzer tests; full pass is low priority.  
-Pointers: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) (Section 5.1 / Section 5.2); [tests/development_tools/test_config.json](tests/development_tools/test_config.json).
-
-**Use / fit** (2026-02-28 user-priority Q&A): Headless + email admin status fixes shipped 2026-04-02. AI items deferred until system overhaul. Script ownership, sent_messages high priority. Ruff outside tests > inside. Duplicate lists and backup audit moved to dev tools. Performance monitoring includes RAM/caching.
+**Use / fit** (2026-05-11 status): AI items remain deferred until system overhaul. Project-specific script ownership remains high/medium. Performance monitoring still includes RAM/caching. Duplicate-list and backup-audit ideas live in dev-tools V5 Sections 7.8/7.9. Completed dev-tools migrations, `--dev-tools-only` report scoping, headless/email admin status, and `sent_messages` fixes are tracked in changelogs rather than active TODOs.
 
 ## High Priority
 

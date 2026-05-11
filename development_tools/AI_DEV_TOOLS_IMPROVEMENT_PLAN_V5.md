@@ -540,7 +540,7 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
   - Root `.ruff.toml` = compatibility mirror; `development_tools/config/ruff.toml` = owned path for wrappers.
 - **Next steps before single baseline**:
   - Align dev-tools Pyright so `analyze_pyright` matches root diagnostic baseline (no artificial drops from scope drift).
-  - Regression tests: both Pyright paths; fail if error/warning deltas exceed agreed tolerance without explicit exclusions. **Partial (2026-03-27)**: optional enforcement in `tests/development_tools/test_pyright_config_paths.py` e2e — set env `PYRIGHT_ERROR_COUNT_MAX_DELTA` to a non-negative integer when running the e2e Pyright test; unset by default (scopes differ). **2026-03-28**: owned [`pyrightconfig.json`](config/pyrightconfig.json) adds `venvPath` / `venv` so `pyright --project` resolves the repo `.venv` from the owned config path. **2026-04-10**: root baseline moved to [`pyproject.toml`](../pyproject.toml) `[tool.pyright]` (removed root `pyrightconfig.json`). **2026-04-26**: policy tests assert root JSON is not reintroduced, static-check cache invalidation includes both root/owned Pyright/Ruff config paths, and diagnostic-count parity remains optional unless `PYRIGHT_ERROR_COUNT_MAX_DELTA` is explicitly set.
+  - Regression tests: both Pyright paths; fail if error/warning deltas exceed agreed tolerance without explicit exclusions. **Partial (2026-03-27)**: optional enforcement in `tests/development_tools/test_pyright_config_paths.py` e2e — set env `PYRIGHT_ERROR_COUNT_MAX_DELTA` to a non-negative integer when running the e2e Pyright test; unset by default (scopes differ). **2026-03-28**: owned [`pyrightconfig.json`](config/pyrightconfig.json) adds `venvPath` / `venv` so `pyright --project` resolves the repo `.venv` from the owned config path. **2026-04-10**: root baseline moved to [`pyproject.toml`](../pyproject.toml) `[tool.pyright]` (removed root `pyrightconfig.json`). **2026-04-26**: policy tests assert root JSON is not reintroduced, static-check cache invalidation includes both root/owned Pyright/Ruff config paths, and diagnostic-count parity remains optional unless `PYRIGHT_ERROR_COUNT_MAX_DELTA` is explicitly set. **2026-05-11**: optional parity gating also covers `warningCount` through `PYRIGHT_WARNING_COUNT_MAX_DELTA`, and invalid tolerance values fail fast in the policy test helper.
   - Decide: keep root `.ruff.toml` permanently as mirror vs deprecate after portability criteria met.
   - If deprecating root configs: migration + fallback documented in both guides before removal.
   - **2026-04-16 priority**: keep this in the active backlog, but behind coverage work and report-semantic cleanup unless a portability regression appears in a fresh audit.
@@ -656,6 +656,15 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
   - Matrix artifact checked in (JSON + human-readable summary).
   - At least one policy test guards against silent drift between tool metadata/orchestration/report inclusion.
 
+#### 7.22 during audit --full all tests marked no_parallel seem to run regardless of cached domain test coverage
+  - no_parallel tests should be run by domain like other tests
+
+#### 7.23 development tools tests take a particularly long time, we've investigated this before so there should be a script or tool or something or it, but it's been a while and it's ballooned again, so a new investigation is appropriate
+
+#### 7.24 disparity between number of tests run duing audit --full and run_tests.py
+  - audit --full runs 5764 tests and skips a further 20
+  - run_tests.py runs 4274 tests and skips a further 20
+  - investigate difference and likely close gap
 ---
 
 ### 5.8 Monitoring and deferred test work (no active V4 tasks)
