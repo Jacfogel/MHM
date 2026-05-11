@@ -2088,6 +2088,9 @@ class CoverageMetricsRegenerator:
                     )
 
                 # Create command for no_parallel tests (serial execution, no parallel flags)
+                no_parallel_test_args = self._build_no_parallel_test_args(
+                    test_filter_args
+                )
                 no_parallel_cmd = [
                     sys.executable,
                     "-m",
@@ -2106,7 +2109,7 @@ class CoverageMetricsRegenerator:
                     # Ignore temp directories to prevent collecting tests from temp files
                     "--ignore=tests/data/pytest-tmp-*",
                     "--ignore=tests/data/pytest-of-*",
-                    "tests/",
+                    *no_parallel_test_args,
                 ]
 
                 # Use separate coverage data file for no_parallel tests
@@ -4471,6 +4474,7 @@ class CoverageMetricsRegenerator:
             "failed_count": 0,
             "error_count": 0,
             "skipped_count": 0,
+            "deselected_count": 0,
             "warnings_count": 0,
             "total_tests": 0,
             "maxfail_reached": False,
@@ -4533,6 +4537,8 @@ class CoverageMetricsRegenerator:
                     results["passed_count"] = count
                 elif label == "skipped":
                     results["skipped_count"] = count
+                elif label == "deselected":
+                    results["deselected_count"] = count
                 elif label == "warnings":
                     results["warnings_count"] = count
                 # deselected is not counted in total, but we note it
@@ -4878,6 +4884,7 @@ class CoverageMetricsRegenerator:
         error_count = int(parsed_results.get("error_count", 0) or 0)
         passed_count = int(parsed_results.get("passed_count", 0) or 0)
         skipped_count = int(parsed_results.get("skipped_count", 0) or 0)
+        deselected_count = int(parsed_results.get("deselected_count", 0) or 0)
         return_code_hex = self._format_return_code_hex(return_code)
         normalized_log_file = str(log_file).replace("\\", "/") if log_file else None
 
@@ -4922,6 +4929,18 @@ class CoverageMetricsRegenerator:
             actionable_context = (
                 f"{track_name} produced no return code and no parsed output (likely intentionally skipped)."
             )
+        elif (
+            track_name == "no_parallel"
+            and return_code == 5
+            and total_tests == 0
+            and not failed_node_ids
+        ):
+            state = "skipped"
+            classification = "skipped"
+            classification_reason = "zero_no_parallel_tests_collected"
+            actionable_context = (
+                "No no_parallel tests matched this scoped run."
+            )
         elif return_code not in (0, None) and total_tests == 0 and not failed_node_ids:
             state = "crashed"
             classification = "crashed"
@@ -4963,8 +4982,15 @@ class CoverageMetricsRegenerator:
             "failed_count": failed_count,
             "error_count": error_count,
             "skipped_count": skipped_count,
+            "deselected_count": deselected_count,
             "failed_node_ids": failed_node_ids,
         }
+
+    def _build_no_parallel_test_args(self, test_filter_args: list[str]) -> list[str]:
+        """Return the pytest path arguments for the serial no_parallel phase."""
+        if test_filter_args:
+            return list(test_filter_args)
+        return [self.test_directory]
 
     def _classify_coverage_outcome(
         self,

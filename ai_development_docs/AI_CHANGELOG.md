@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-11 - Audit/run_tests suite parity and no_parallel cache scope **COMPLETED**
+- `audit --full` coverage now runs serial `no_parallel` tests only for the same domain-filtered file set as the parallel phase; scoped runs with no matching serial tests are classified as skipped, not crashed.
+- `run_tests.py --mode all` now includes `tests/ai/` but still intentionally leaves development-tools tests to `run_tests.py --full`, which keeps the two-phase product/AI plus development-tools execution shape.
+- Dev-tools test investigation refreshed: current collection is 1479 selected dev-tools tests, and the existing profiling command is `python run_tests.py --mode development_tools --durations-all`.
+- Validation: focused coverage-runner helper tests, `py_compile`, and collection-only parity checks passed.
+
 ### 2026-05-11 - Dev-tools backlog and audit log cleanup **COMPLETED**
 - Cleaned the active development-tools TODO block to remove completed migration/scoping/history items and keep only real follow-ups: Pyright parity, optional external-tool expansion, low-priority gap tools, and opportunistic `test_config.json` fixture migration.
 - Extended Pyright parity policy tests with optional `PYRIGHT_WARNING_COUNT_MAX_DELTA` support, non-negative tolerance validation, and matching guide/V5 plan updates.

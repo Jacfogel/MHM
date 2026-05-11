@@ -460,7 +460,7 @@ def test_append_tier3_test_outcome_lines_respects_actionable_and_skipped_tracks(
 def test_recent_tier3_log_files_selects_latest_per_track(temp_project_copy: Path) -> None:
     service = AIToolsService(project_root=str(temp_project_copy))
     logs = temp_project_copy / "development_tools" / "tests" / "logs"
-    logs.mkdir(parents=True)
+    logs.mkdir(parents=True, exist_ok=True)
     older = logs / "pytest_parallel_stdout_old.log"
     newer = logs / "pytest_parallel_stdout_new.log"
     no_parallel = logs / "pytest_no_parallel_stdout_one.log"

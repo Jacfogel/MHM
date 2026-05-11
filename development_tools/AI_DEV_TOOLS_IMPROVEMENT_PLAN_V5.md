@@ -658,13 +658,16 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 
 #### 7.22 during audit --full all tests marked no_parallel seem to run regardless of cached domain test coverage
   - no_parallel tests should be run by domain like other tests
+  - **Done 2026-05-11**: `run_test_coverage.py` now passes the same domain-filtered test path list to the serial `no_parallel` phase that the parallel phase receives. If no `no_parallel` tests match a scoped run, pytest exit 5 is classified as a skipped serial track instead of a crash.
 
 #### 7.23 development tools tests take a particularly long time, we've investigated this before so there should be a script or tool or something or it, but it's been a while and it's ballooned again, so a new investigation is appropriate
+  - **2026-05-11 investigation**: `pytest --collect-only -q -m "not e2e" tests/development_tools/` currently selects **1479** dev-tools tests (1 deselected), up from the latest dev-tools coverage log's **1405 passed in 366.93s** on 2026-05-02. Existing profiling path remains `python run_tests.py --mode development_tools --durations-all`; the latest dev-tools coverage log's slowest entries are setup-heavy (~6s each) across audit orchestration, quick-wins/report generation, tool wrapper branch-path, project cleanup, and coverage-regeneration tests.
 
 #### 7.24 disparity between number of tests run duing audit --full and run_tests.py
   - audit --full runs 5764 tests and skips a further 20
   - run_tests.py runs 4274 tests and skips a further 20
   - investigate difference and likely close gap
+  - **Done 2026-05-11**: `run_tests.py --mode all` now includes `tests/ai/` but intentionally excludes `tests/development_tools/` for the plain default runner. `run_tests.py --mode all --full` is the audit-parity path and keeps the two-phase product/AI + development-tools split. Collection-only verification showed the full path matches audit-style selection at **5803/5804 selected**; plain `run_tests.py` remains smaller by design.
 ---
 
 ### 5.8 Monitoring and deferred test work (no active V4 tasks)

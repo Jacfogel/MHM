@@ -292,6 +292,39 @@ def test_parse_pytest_test_results_simple_format(tmp_path: Path):
     stdout = "145 passed, 3439 deselected"
     results = regenerator._parse_pytest_test_results(stdout)
     assert results["passed_count"] == 145
+    assert results["deselected_count"] == 3439
+
+
+@pytest.mark.unit
+def test_build_no_parallel_test_args_uses_domain_filtered_paths(tmp_path: Path):
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=True)
+
+    assert regenerator._build_no_parallel_test_args(
+        ["tests/unit/test_core.py", "tests/core/test_file_auditor.py"]
+    ) == ["tests/unit/test_core.py", "tests/core/test_file_auditor.py"]
+
+
+@pytest.mark.unit
+def test_build_no_parallel_test_args_falls_back_to_test_directory(tmp_path: Path):
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=True)
+
+    assert regenerator._build_no_parallel_test_args([]) == [regenerator.test_directory]
+
+
+@pytest.mark.unit
+def test_no_parallel_exit_five_with_zero_tests_is_skipped(tmp_path: Path):
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=True)
+
+    outcome = regenerator._build_track_outcome(
+        return_code=5,
+        parsed_results={"total_tests": 0, "deselected_count": 2},
+        output="2 deselected",
+        track_name="no_parallel",
+    )
+
+    assert outcome["classification"] == "skipped"
+    assert outcome["classification_reason"] == "zero_no_parallel_tests_collected"
+    assert outcome["deselected_count"] == 2
 
 
 @pytest.mark.unit

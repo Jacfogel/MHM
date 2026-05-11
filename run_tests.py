@@ -2991,7 +2991,7 @@ def main():
     parser.add_argument(
         "--full",
         action="store_true",
-        help="For --mode all, run core then development_tools as two phases (like audit --full; excludes tests/ai/ etc.)",
+        help="For --mode all, also run development_tools as a second phase (like audit --full).",
     )
     parser.add_argument(
         "--no-parallel",
@@ -3294,7 +3294,7 @@ def main():
     # Track marker filters for later use in no_parallel test run
     mode_marker_filter = None
 
-    # When --full with mode all, run core and development_tools as two separate phases (like audit).
+    # When --full with mode all, run product/AI and development_tools as separate phases (like audit).
     full_phase_paths: list[tuple[str, list[str]]] | None = None
 
     # Add test selection based on mode
@@ -3354,9 +3354,9 @@ def main():
         description = "Development Tools Tests"
 
     elif args.mode == "all":
-        # "all" defaults to core suites; --full runs core and development_tools as two phases (like audit).
+        # Plain "all" intentionally excludes development_tools; --full adds it as a second phase.
         if args.full:
-            _core_paths = [
+            _product_paths = [
                 "tests/unit/",
                 "tests/integration/",
                 "tests/behavior/",
@@ -3364,14 +3364,15 @@ def main():
                 "tests/core/",
                 "tests/communication/",
                 "tests/notebook/",
+                "tests/ai/",
             ]
             _devtools_paths = ["tests/development_tools/"]
             full_phase_paths = [
-                ("Core", _core_paths),
+                ("Product", _product_paths),
                 ("Development Tools", _devtools_paths),
             ]
             selected_test_paths = []  # No paths in cmd; two-phase run adds paths per phase
-            description = "Full Test Suite (core + development_tools, two phases)"
+            description = "Full Test Suite (product/AI + development_tools, two phases)"
         else:
             selected_test_paths = [
                 "tests/unit/",
@@ -3381,8 +3382,9 @@ def main():
                 "tests/core/",
                 "tests/communication/",
                 "tests/notebook/",
+                "tests/ai/",
             ]
-            description = "All Tests (Unit, Integration, Behavior, UI, Core, Communication, Notebook)"
+            description = "All Tests (Unit, Integration, Behavior, UI, Core, Communication, Notebook, AI)"
         if not full_phase_paths:
             cmd.extend(selected_test_paths)
 
@@ -3485,7 +3487,7 @@ def main():
     try:
         # Run the tests (two phases when --full, else single run)
         if full_phase_paths:
-            # Run core and development_tools as separate phases (like audit --full).
+            # Run product/AI and development_tools as separate phases (like audit --full).
             success = True
             base_cmd = list(cmd)
             agg_parallel = {

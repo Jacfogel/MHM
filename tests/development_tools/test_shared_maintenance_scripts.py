@@ -106,6 +106,11 @@ def test_run_timing_analysis_with_mocked_service(monkeypatch, tmp_path):
     report_calls = []
 
     class _FakeService:
+        def __getattr__(self, name):
+            if name.startswith("run_"):
+                return lambda *args, **kwargs: {"success": True}
+            raise AttributeError(name)
+
         def run_analyze_functions(self):
             return {"success": True}
 
