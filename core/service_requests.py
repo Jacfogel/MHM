@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import contextlib
-import json
 import os
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -11,8 +10,9 @@ from pathlib import Path
 from typing import Any
 
 from core.delivery import ServiceRequestDeliveryPort
-from core.error_handling import ValidationError, handle_errors
+from core.error_handling import FileOperationError, ValidationError, handle_errors
 from core.logger import get_component_logger
+from core.service_flag_storage import read_service_flag_json, write_service_flag_json
 from core.time_utilities import now_timestamp_full
 
 logger = get_component_logger("main")
@@ -160,8 +160,10 @@ def discover_test_message_request_files(base_dir: str) -> list[str]:
     default_return={"user_id": None, "category": None, "source": "unknown"},
 )
 def parse_test_message_request_file(request_file: str) -> dict[str, Any]:
-    with open(request_file, encoding="utf-8") as f:
-        request_data = json.load(f)
+    request_data = read_service_flag_json(
+        request_file,
+        {"user_id": None, "category": None, "source": "unknown"},
+    )
     user_id = request_data.get("user_id")
     category = request_data.get("category")
     source = request_data.get("source", "unknown")
@@ -243,8 +245,8 @@ def write_test_message_response(
 )
 def _write_response_file(response_file: Path, response_data: dict[str, Any]) -> None:
     """Write a service response flag file as indented JSON."""
-    with open(response_file, "w", encoding="utf-8") as f:
-        json.dump(response_data, f, indent=2)
+    if not write_service_flag_json(response_file, response_data, indent=2):
+        raise FileOperationError(f"Failed to write service response file: {response_file}")
 
 
 @handle_errors("writing service request failure response", default_return=None)
@@ -264,8 +266,7 @@ def write_request_failure_response(
         "error": error,
         "timestamp": now_timestamp_full(),
     }
-    with open(response_file, "w", encoding="utf-8") as f:
-        json.dump(response_data, f, indent=2)
+    _write_response_file(response_file, response_data)
     logger.debug(f"Wrote service request failure response file: {response_file}")
 
 
@@ -357,8 +358,7 @@ def check_checkin_prompt_requests(context: ServiceRequestContext) -> None:
         ):
             filename = os.path.basename(file_path)
             try:
-                with open(file_path, encoding="utf-8") as f:
-                    request_data = json.load(f)
+                request_data = read_service_flag_json(file_path)
                 user_id = request_data.get("user_id")
                 if user_id and context.delivery:
                     from core import get_user_data
@@ -419,8 +419,7 @@ def check_task_reminder_requests(context: ServiceRequestContext) -> None:
         ):
             filename = os.path.basename(file_path)
             try:
-                with open(file_path, encoding="utf-8") as f:
-                    request_data = json.load(f)
+                request_data = read_service_flag_json(file_path)
                 user_id = request_data.get("user_id")
                 task_identifier = request_data.get("task_identifier")
                 if user_id and task_identifier and context.delivery:
@@ -509,8 +508,10 @@ def discover_reschedule_request_files(base_dir: str) -> list[str]:
     },
 )
 def parse_reschedule_request_file(request_file: str) -> dict[str, Any]:
-    with open(request_file, encoding="utf-8") as f:
-        request_data = json.load(f)
+    request_data = read_service_flag_json(
+        request_file,
+        {"user_id": None, "category": None, "source": "unknown", "timestamp": 0},
+    )
     return {
         "user_id": request_data.get("user_id"),
         "category": request_data.get("category"),

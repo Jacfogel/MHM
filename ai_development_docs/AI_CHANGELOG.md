@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-11 - Runtime JSON storage cleanup **COMPLETED**
+- Added `core/runtime_state_storage.py` and routed `conversation_states.json` / `welcome_tracking.json` through it, removing the direct runtime-state JSON reads/writes while preserving file locations and test isolation.
+- Added `core/service_flag_storage.py` and consolidated JSON `.flag` request/response I/O across service request, service utility, and headless-service paths; shutdown flags remain plain text.
+- `backup_manager` now reads `user_index.json` under `file_lock`; generated docs/reports were refreshed, and the module-dependency generator no longer emits trailing-space dependency headings.
+- Removed the completed JSON storage classification/migration/service-flag cleanup work from active `PLANS.md`. Validation: focused storage/service tests, `py_compile`, `docs`, `audit --quick`, error-handling analysis, and `git diff --check` passed; full audit timed out and is not counted as clean.
+
 ### 2026-05-09 - Markdown link target audit and fixer **COMPLETED**
 - Extended path-drift/doc-sync so local markdown links are checked from the source document directory, not only from the repo root, and `doc-fix --convert-links` rewrites auto-fixable repo-root-relative markdown hrefs to source-relative hrefs across documentation.
 - Cleared the remaining advisory hints in `CHANGELOG_DETAIL.md` (backticked truly removed files, pointed `DUPLICATE_FUNCTIONS_INVESTIGATION.md` at the archive copy, updated four V5-relocated JSON references to their `scopes/full/` paths, noted the `core/user_data_v2.py` split). `doc-sync` is now down from 762 to 0 markdown-link-target hints.

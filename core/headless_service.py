@@ -13,6 +13,7 @@ from pathlib import Path
 from core.launch_env import prepare_launch_environment, resolve_python_interpreter
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
+from core.service_flag_storage import write_service_flag_json
 from core.service_utilities import (
     get_service_processes,
     get_flags_dir,
@@ -280,10 +281,8 @@ class HeadlessServiceManager:
                 "timestamp": time.time(),
             }
 
-            with open(str(request_file), "w") as f:
-                import json
-
-                json.dump(request_data, f)
+            if not write_service_flag_json(request_file, request_data, indent=None):
+                return False
 
             logger.info(
                 f"Created test message request for user {user_id}, category {category}"
@@ -309,10 +308,8 @@ class HeadlessServiceManager:
                 "timestamp": time.time(),
             }
 
-            with open(str(request_file), "w") as f:
-                import json
-
-                json.dump(request_data, f)
+            if not write_service_flag_json(request_file, request_data, indent=None):
+                return False
 
             logger.info(
                 f"Created reschedule request for user {user_id}, category {category}"

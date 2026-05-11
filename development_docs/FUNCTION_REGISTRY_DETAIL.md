@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-07 21:56:29
+> **Last Generated**: 2026-05-11 00:45:52
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 93.0% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 138
-- **Functions Found**: 1865
+- **Files Scanned**: 140
+- **Functions Found**: 1871
 - **Methods Found**: 1274
 - **Classes Found**: 170
-- **Total Items**: 3139
-- **Functions Documented**: 1710
+- **Total Items**: 3145
+- **Functions Documented**: 1716
 - **Methods Documented**: 1208
 - **Classes Documented**: 132
-- **Total Documented**: 2918
+- **Total Documented**: 2924
 - **Template-Generated**: 20
-- **Last Updated**: 2026-05-07
+- **Last Updated**: 2026-05-11
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (670)
+### **Core System Functions** (676)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (499)
@@ -4016,6 +4016,16 @@ Raises:
 - [OK] `store_user_response(user_id, response_data, response_type)` - Store user response data in appropriate file structure.
 - [OK] `track_user_response(user_id, category, response_data)` - Track a user's response to a message.
 
+#### `core/runtime_state_storage.py`
+**Functions:**
+- [OK] `_fresh_default(default_data)` - Return an independent default dict for callers that mutate loaded state.
+- [OK] `get_runtime_state_path(file_name_or_path, base_dir)` - Resolve a runtime-state JSON path.
+
+Plain filenames are placed under BASE_DATA_DIR. Explicit paths are accepted
+for tests and callers that isolate a specific file.
+- [OK] `load_runtime_state_json(file_name_or_path)` - Load a runtime-state JSON dict through the centralized JSON helper.
+- [OK] `save_runtime_state_json(file_name_or_path, data)` - Save a runtime-state JSON dict through the centralized JSON helper.
+
 #### `core/schedule_document_defaults.py`
 **Functions:**
 - [OK] `create_default_schedule_periods(category)` - Create default schedule periods for a new category.
@@ -4565,6 +4575,11 @@ Initializes communication channels, scheduler, and begins the main service loop.
 Sets up signal handlers for graceful shutdown.
   - [OK] `MHMService.to_service_request_context(self)` - Build the request-file context used by service request helpers.
   - [OK] `MHMService.validate_configuration(self)` - Validate all configuration settings before starting the service.
+
+#### `core/service_flag_storage.py`
+**Functions:**
+- [OK] `read_service_flag_json(flag_file, default_data)` - Read a JSON service flag file and return a dict payload.
+- [OK] `write_service_flag_json(flag_file, data)` - Write a JSON service flag file and optionally record file-auditor metadata.
 
 #### `core/service_requests.py`
 **Functions:**

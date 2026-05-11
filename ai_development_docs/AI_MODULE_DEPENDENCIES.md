@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-07 21:56:36
+> **Last Generated**: 2026-05-11 00:45:59
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 136
-- **Total Imports**: 1583
-- **Standard Library**: 453 (28.6%)
-- **Third-Party**: 236 (14.9%)
-- **Local Imports**: 894 (56.5%)
+- **Files Scanned**: 138
+- **Total Imports**: 1595
+- **Standard Library**: 453 (28.4%)
+- **Third-Party**: 236 (14.8%)
+- **Local Imports**: 906 (56.8%)
 
 ## Dependency Decision Trees
 
@@ -55,7 +55,7 @@ Communication Dependencies:
   - communication/communication_channels/discord/account_flow_handler.py <- standard library (contextlib), third-party (discord), logger, error_handling, shared_types, account_handler, user_data_presets
   - communication/communication_channels/discord/api_client.py <- standard library (asyncio, dataclasses, time, typing), third-party (discord), logger, error_handling
 - Conversation Flow
-  - communication/message_processing/conversation_flow_manager.py <- standard library (contextlib, datetime, importlib, json), chatbot, logger, core, response_tracking, error_handling (+15 more)
+  - communication/message_processing/conversation_flow_manager.py <- standard library (contextlib, datetime, importlib, random), chatbot, logger, core, response_tracking, error_handling (+16 more)
   - communication/communication_channels/discord/account_flow_handler.py <- standard library (contextlib), third-party (discord), logger, error_handling, shared_types, account_handler, user_data_presets
 
 ### Need UI Dependencies?
@@ -118,7 +118,7 @@ External libraries provide channel and UI support.
 
 ### High Coupling
 - `ui/ui_app_qt.py` -> 47 local dependencies (heavy coupling)
-- `communication/message_processing/conversation_flow_manager.py` -> 35 local dependencies (heavy coupling)
+- `communication/message_processing/conversation_flow_manager.py` -> 36 local dependencies (heavy coupling)
 - `communication/command_handlers/analytics_handler.py` -> 34 local dependencies (heavy coupling)
 - `communication/core/channel_orchestrator.py` -> 28 local dependencies (heavy coupling)
 - `ui/dialogs/account_creator_dialog.py` -> 23 local dependencies (heavy coupling)

@@ -323,7 +323,7 @@ def generate_module_section(
     third_party_deps = deduplicate_imports(third_party_deps_raw)
 
     if local_deps or std_lib_deps or third_party_deps:
-        content.append("- **Dependencies**: ")
+        content.append("- **Dependencies**:")
 
         # Local dependencies
         if local_deps:
@@ -358,7 +358,7 @@ def generate_module_section(
 
     # Reverse dependencies (automated)
     if reverse_deps:
-        content.append("- **Used by**: ")
+        content.append("- **Used by**:")
         for user in reverse_deps:
             content.append(ensure_ascii(f"  - `{user}`"))
     else:

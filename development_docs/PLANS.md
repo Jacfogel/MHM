@@ -5,7 +5,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-05-05 (session note: MHM refactor continuation plan completed; deferred follow-ups moved to TODO.md)
+> **Last Updated**: 2026-05-11 (session note: completed runtime JSON storage work removed from active plans)
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) (V4 history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)).  
 
 ---
@@ -32,21 +32,7 @@
 
 ## [ACTIVE] **Current Active Plans**
 
-**Recently completed**: The MHM Refactor Continuation Plan was completed on 2026-05-05 and removed from active planning per the plan-maintenance rule. See [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) and [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) for the session record. Deferred architecture follow-ups are tracked in [TODO.md](../TODO.md).
-
-### **Migrate User-Owned Runtime JSON State to Approved Storage Helpers** - Move direct per-user JSON reads/writes to centralized user-data or user-item storage helpers.
-- *What it means*: Prioritize `conversation_states.json` and `welcome_tracking.json`, then review tags/messages/admin utilities for safer access patterns.
-- *Why it helps*: Makes user state handling consistent, validated, test-safe, and easier to refactor later.
-- *Estimated effort*: Large
-- *Suggested home*: PLANS.md
-- *Created*: 2026-05-03
-
-### **Classify Direct JSON Access Sites** - Audit current direct JSON usage and classify each site as user-owned runtime state, resource/default data, service flag file, cache/report output, or legitimate low-level storage.
-- *What it means*: Review modules such as `communication/message_processing/conversation_flow_manager.py`, `communication/core/welcome_manager.py`, `core/message_management.py`, `core/service_requests.py`, `core/tags.py`, `core/user_data_operations.py`, `core/user_data_presets.py`, `core/auto_cleanup.py`, `core/headless_service.py`, and `core/service_utilities.py`.
-- *Why it helps*: Avoids blindly refactoring legitimate JSON access while identifying the real user-data bypasses.
-- *Estimated effort*: Medium
-- *Suggested home*: PLANS.md
-- *Created*: 2026-05-03
+**Recently completed**: The MHM Refactor Continuation Plan was completed on 2026-05-05 and removed from active planning per the plan-maintenance rule. Runtime JSON storage classification, migration, and service flag cleanup were completed on 2026-05-11 and removed from active planning. See [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) and [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) for session records. Deferred architecture follow-ups are tracked in [TODO.md](../TODO.md).
 
 ### **Review Soft Channel Boundary Knowledge in Core** - Audit Discord/UI references in core modules and separate acceptable persisted/config knowledge from true channel adapter leakage.
 - *What it means*: Review `core/config.py`, `core/logger.py`, `core/schemas.py`, `core/user_lookup.py`, `core/headless_service.py`, `core/service_utilities.py`, and `core/scheduler.py`; only refactor cases where core performs channel/UI behavior rather than storing configuration or identifiers.

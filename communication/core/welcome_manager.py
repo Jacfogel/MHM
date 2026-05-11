@@ -4,12 +4,16 @@ Channel-Agnostic Welcome Manager
 Handles welcome messages and onboarding tracking across all channels.
 """
 
-import json
 from pathlib import Path
 from typing import Any
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.config import BASE_DATA_DIR
+from core.runtime_state_storage import (
+    get_runtime_state_path,
+    load_runtime_state_json,
+    save_runtime_state_json,
+)
 
 logger = get_component_logger("communication_manager")
 
@@ -17,7 +21,7 @@ logger = get_component_logger("communication_manager")
 @handle_errors("resolving welcome tracking path", re_raise=True)
 def welcome_tracking_json_path() -> Path:
     """Path to welcome-tracking JSON under the current BASE_DATA_DIR (tests may patch BASE_DATA_DIR)."""
-    return Path(BASE_DATA_DIR) / "welcome_tracking.json"
+    return get_runtime_state_path("welcome_tracking.json", base_dir=BASE_DATA_DIR)
 
 
 # Import-time snapshot for legacy readers; I/O uses welcome_tracking_json_path().
@@ -28,21 +32,14 @@ WELCOME_TRACKING_FILE = welcome_tracking_json_path()
 def _load_welcome_tracking() -> dict[str, dict[str, Any]]:
     """Load the welcome tracking data."""
     path = welcome_tracking_json_path()
-    if not path.exists():
-        return {}
-
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
+    return load_runtime_state_json(path)
 
 
 @handle_errors("saving welcome tracking data", default_return=False)
 def _save_welcome_tracking(tracking_data: dict[str, dict[str, Any]]) -> bool:
     """Save the welcome tracking data."""
     path = welcome_tracking_json_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(tracking_data, f, indent=2)
-    return True
+    return save_runtime_state_json(path, tracking_data)
 
 
 @handle_errors("checking if user has been welcomed", default_return=False)

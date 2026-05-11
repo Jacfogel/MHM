@@ -17,9 +17,7 @@ Usage:
 """
 
 import importlib
-import json
 from typing import Any
-from pathlib import Path
 from contextlib import suppress
 from datetime import datetime, timedelta
 from ai.chatbot import get_ai_chatbot
@@ -40,6 +38,11 @@ from core.time_utilities import (
     DATE_ONLY,
     now_timestamp_full,
     now_datetime_full,
+)
+from core.runtime_state_storage import (
+    get_runtime_state_path,
+    load_runtime_state_json,
+    save_runtime_state_json,
 )
 from tasks.task_data_handlers import runtime_task_due_date, runtime_task_due_time
 from core.user_data_v2_base import generate_short_id
@@ -120,8 +123,9 @@ class ConversationManager:
         # Use BASE_DATA_DIR from config to respect test environment
         from core.config import BASE_DATA_DIR
 
-        # Prefer Path for safe, directory-agnostic file handling
-        self._state_file = (Path(BASE_DATA_DIR) / "conversation_states.json").resolve()
+        self._state_file = get_runtime_state_path(
+            "conversation_states.json", base_dir=BASE_DATA_DIR
+        ).resolve()
 
         self._load_user_states()
         self._expire_inactive_checkins()
@@ -130,8 +134,7 @@ class ConversationManager:
     def _load_user_states(self) -> None:
         """Load user states from disk with comprehensive logging"""
         if self._state_file.exists():
-            with open(self._state_file, encoding="utf-8") as f:
-                self.user_states = json.load(f)
+            self.user_states = load_runtime_state_json(self._state_file)
 
             # When no user states, log at DEBUG to reduce burst noise; INFO when there is state to track
             count = len(self.user_states)
@@ -181,11 +184,7 @@ class ConversationManager:
     @handle_errors("saving user states to disk", default_return=None)
     def _save_user_states(self) -> None:
         """Save user states to disk with comprehensive logging and error handling"""
-        # Ensure data directory exists
-        self._state_file.parent.mkdir(parents=True, exist_ok=True)
-
-        with open(self._state_file, "w", encoding="utf-8") as f:
-            json.dump(self.user_states, f, indent=2)
+        save_runtime_state_json(self._state_file, self.user_states)
 
         logger.debug(
             f"FLOW_STATE_SAVE: Saved {len(self.user_states)} user states to disk | File: {str(self._state_file)}"

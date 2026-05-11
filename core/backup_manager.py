@@ -807,7 +807,11 @@ def _validate_system_state__validate_user_index() -> bool:
     if not user_index_path.exists():
         return True  # Missing index is not an error, just means no users yet
 
-    with open(user_index_path) as f:
+    from core.file_locking import file_lock
+
+    with file_lock(str(user_index_path), timeout=10.0), open(
+        user_index_path, encoding="utf-8"
+    ) as f:
         user_index = json.load(f)
 
     # Validate user index structure

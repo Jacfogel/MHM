@@ -5,7 +5,6 @@ Contains functions for service management, network operations, and datetime hand
 """
 
 import os
-import json
 import time
 import psutil
 from pathlib import Path
@@ -18,12 +17,9 @@ from core.time_utilities import (
     parse_timestamp_minute,
 )
 
-try:
-    from core.file_auditor import record_created as _record_created
-except Exception:
-    _record_created = None
 from core.config import SCHEDULER_INTERVAL
 from core.error_handling import handle_errors
+from core.service_flag_storage import write_service_flag_json
 import contextlib
 
 logger = get_component_logger("main")
@@ -167,23 +163,21 @@ def create_reschedule_request(user_id: str, category: str) -> bool:
     base_dir = get_flags_dir()
     request_file = Path(base_dir) / filename
 
-    with open(str(request_file), "w", encoding="utf-8") as f:
-        json.dump(request_data, f, indent=2)
+    created = write_service_flag_json(
+        request_file,
+        request_data,
+        indent=2,
+        audit_reason="create_reschedule_request",
+        audit_extra={
+            "user_id": user_id,
+            "category": category,
+            "source": request_data["source"],
+        },
+    )
+    if not created:
+        return False
 
     logger.info(f"Created reschedule request: {filename}")
-    try:
-        if _record_created:
-            _record_created(
-                str(request_file),
-                reason="create_reschedule_request",
-                extra={
-                    "user_id": user_id,
-                    "category": category,
-                    "source": request_data["source"],
-                },
-            )
-    except Exception:
-        pass
 
     return True
 
