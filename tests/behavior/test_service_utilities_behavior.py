@@ -131,7 +131,7 @@ class TestServiceUtilitiesBehavior:
         data = json.loads(new_file.read_text(encoding="utf-8"))
         assert data["user_id"] == user_id
         assert data["category"] == category
-        assert data["source"] == "ui_schedule_editor"
+        assert data["source"] == "schedule_runtime"
         assert data["requested_at_readable"]
         assert data["requested_at_iso"]
 

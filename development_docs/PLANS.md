@@ -5,7 +5,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-05-11 (session note: completed runtime JSON storage work removed from active plans)
+> **Last Updated**: 2026-05-11 (session note: completed runtime JSON storage and soft channel-boundary review work removed from active plans)
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) (V4 history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)).  
 
 ---
@@ -32,14 +32,7 @@
 
 ## [ACTIVE] **Current Active Plans**
 
-**Recently completed**: The MHM Refactor Continuation Plan was completed on 2026-05-05 and removed from active planning per the plan-maintenance rule. Runtime JSON storage classification, migration, and service flag cleanup were completed on 2026-05-11 and removed from active planning. See [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) and [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) for session records. Deferred architecture follow-ups are tracked in [TODO.md](../TODO.md).
-
-### **Review Soft Channel Boundary Knowledge in Core** - Audit Discord/UI references in core modules and separate acceptable persisted/config knowledge from true channel adapter leakage.
-- *What it means*: Review `core/config.py`, `core/logger.py`, `core/schemas.py`, `core/user_lookup.py`, `core/headless_service.py`, `core/service_utilities.py`, and `core/scheduler.py`; only refactor cases where core performs channel/UI behavior rather than storing configuration or identifiers.
-- *Why it helps*: Prevents over-refactoring while keeping channel-specific behavior at the edges.
-- *Estimated effort*: Medium
-- *Suggested home*: PLANS.md
-- *Created*: 2026-05-03
+**Recently completed**: The MHM Refactor Continuation Plan was completed on 2026-05-05 and removed from active planning per the plan-maintenance rule. Runtime JSON storage classification, migration, service flag cleanup, and the soft channel-boundary review were completed on 2026-05-11 and removed from active planning. See [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) and [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) for session records. Deferred architecture follow-ups are tracked in [TODO.md](../TODO.md).
 
 ### **Flow/Check-in Scheduled Send Stability Follow-up** **IN PROGRESS**
 

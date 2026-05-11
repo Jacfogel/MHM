@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-11 - Soft channel-boundary core review **COMPLETED**
+- Audited Discord/UI references in `core/config.py`, `core/logger.py`, `core/schemas.py`, `core/user_lookup.py`, `core/headless_service.py`, `core/service_utilities.py`, and `core/scheduler.py`.
+- Classified Discord references in config, logging, schemas, and lookup as acceptable persisted/config/diagnostic knowledge; no Discord adapter behavior was found in these core modules.
+- Removed the one misleading UI-specific source string from core reschedule request creation by making `create_reschedule_request()` use neutral `schedule_runtime` metadata by default.
+- Reworded the new diagnostic-source docstring to avoid a false facade/shim compatibility signal; refreshed `facade-shims` and status outputs so `AI_PRIORITIES.md` no longer lists the advisory.
+- Removed the completed plan item from active `PLANS.md`.
+
 ### 2026-05-11 - Runtime JSON storage cleanup **COMPLETED**
 - Added `core/runtime_state_storage.py` and routed `conversation_states.json` / `welcome_tracking.json` through it, removing the direct runtime-state JSON reads/writes while preserving file locations and test isolation.
 - Added `core/service_flag_storage.py` and consolidated JSON `.flag` request/response I/O across service request, service utility, and headless-service paths; shutdown flags remain plain text.
@@ -122,18 +129,6 @@ Guidelines:
 - **Docs/policy**: Updated paired dev-tools guides, `.cursor/rules/dev_tools.mdc`, `check_channel_loggers` product vs dev-tools messaging, and consolidated-report import-boundary action text.
 - **Tests**: `tests/development_tools/test_dev_tools_portability_smoke.py` (minimal fake project + subprocess import check); boundary/policy tests updated; `test_file_rotation` patches `get_dev_tools_logger`.
 - **Validation**: `pytest` on changed/focused dev-tools tests; `python development_tools/run_development_tools.py audit --quick` succeeded.
-
-### 2026-05-02 - Notebook Pagination and Task Follow-up UX **COMPLETED**
-- **Notebook Discord UX**: `Show More` pagination now preserves hidden payloads for search, inbox, pinned, group, tag, and archived notebook views; pinned/inbox continuation now passes stored entities through handler dispatch.
-- **Notebook search UX**: empty search results now suggest practical recovery paths including `!recent`, `!inbox`, `!archived`, `!t <tag>`, and `!group <name>`.
-- **Task creation flow**: Discord task creation now includes an optional priority follow-up before reminder setup when priority was not supplied, with `Skip` and `Skip All` exits.
-- **Audit cleanup/tests**: docs registry regenerated; Pyright warnings fixed (`0 errors, 0 warnings` after escalated rerun); focused Discord/task/notebook behavior suites passed (`75 passed`) plus Ruff and `py_compile`.
-
-### 2026-05-02 - Discord Recurring Task UX **COMPLETED**
-- **Audit status**: latest generated `AI_STATUS` already showed Tier 3 clean, so the previously noted communication failures were treated as cleared by current evidence.
-- **Tasks Discord UX**: rule-based task parsing now recognizes recurring phrases such as `every morning`, `every 2 weeks`, and `every Sunday`; titles are cleaned before task creation.
-- **Recurring scheduling**: recurring tasks with a time but no explicit date now get today as the first due date, allowing the existing reminder follow-up to proceed.
-- **Docs/tests**: task help + `DISCORD_GUIDE` include recurring examples; focused task parser/help/handler tests passed (`269 passed`) plus Ruff and `py_compile`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

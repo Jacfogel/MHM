@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-05-11 - Soft channel-boundary core review
+- **Audit**: Reviewed `core/config.py`, `core/logger.py`, `core/schemas.py`, `core/user_lookup.py`, `core/headless_service.py`, `core/service_utilities.py`, and `core/scheduler.py` for Discord/UI references. Discord occurrences in config, logger routing, account schemas, and identifier lookup are persisted/config/diagnostic knowledge rather than adapter behavior. UI occurrences in service process management are service ownership markers, not widget/dialog behavior.
+- **Fix (source metadata)**: [`core/service_utilities.py`](../core/service_utilities.py) no longer stamps reschedule request flags with the UI-specific source `ui_schedule_editor` by default. `create_reschedule_request()` now accepts explicit source metadata and defaults to neutral `schedule_runtime`, matching its core schedule-runtime callers.
+- **Tooling cleanup**: Reworded the new diagnostic-source docstring to avoid a false `facade-shims` compatibility signal. Regenerated the facade-shims result and status documents; `AI_PRIORITIES.md` no longer lists `create_reschedule_request` as an advisory facade/shim candidate.
+- **Planning cleanup**: Removed the completed soft channel-boundary review from active [`PLANS.md`](PLANS.md).
+- **Validation**: Focused service-utilities behavior coverage was updated for the neutral reschedule source metadata.
+
 ### 2026-05-11 - Runtime JSON storage and service flag cleanup
 - **Feature (runtime-state storage)**: Added [`core/runtime_state_storage.py`](../core/runtime_state_storage.py) as the centralized helper for app-level runtime JSON under `BASE_DATA_DIR`. `communication/message_processing/conversation_flow_manager.py` now routes `conversation_states.json` through the helper, and `communication/core/welcome_manager.py` now routes `welcome_tracking.json` through the helper while preserving the existing file locations and test isolation behavior.
 - **Cleanup (direct JSON audit)**: Classified direct JSON access sites across communication/core modules and confirmed only `conversation_states.json` and `welcome_tracking.json` were user-owned runtime-state bypasses. Resource/default JSON, backup/cache metadata, service flags, and low-level storage helpers remain intentionally separate.

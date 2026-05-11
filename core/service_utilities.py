@@ -118,13 +118,17 @@ def get_flags_dir() -> Path:
 
 
 @handle_errors("creating reschedule request", default_return=False)
-def create_reschedule_request(user_id: str, category: str) -> bool:
+def create_reschedule_request(
+    user_id: str, category: str, source: str = "schedule_runtime"
+) -> bool:
     """
     Create a reschedule request file that the service will pick up.
 
     Args:
         user_id: The user ID
         category: The category to reschedule
+        source: Logical source requesting the reschedule. This is diagnostic
+            metadata for the service request, not channel behavior.
 
     Returns:
         bool: True if request was created successfully
@@ -150,7 +154,7 @@ def create_reschedule_request(user_id: str, category: str) -> bool:
         "category": category,
         "requested_at_readable": requested_at_readable,
         "requested_at_iso": requested_at_iso,
-        "source": "ui_schedule_editor",
+        "source": source,
     }
 
     # Create unique filename:
