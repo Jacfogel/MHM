@@ -1,7 +1,8 @@
 """
 UI Management Test Coverage Expansion
 
-This module provides comprehensive test coverage for core/ui_management.py.
+This module provides comprehensive test coverage for period row UI helpers and
+the UI-neutral period naming helpers.
 Focuses on real behavior testing to verify actual side effects and system changes.
 
 Coverage Areas:
@@ -30,12 +31,14 @@ pytest.importorskip(
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
 from core.ui_management import (
+    period_name_for_display,
+    period_name_for_storage,
+)
+from ui.period_row_management import (
     clear_period_widgets_from_layout,
     add_period_widget_to_layout,
     load_period_widgets_for_category,
     collect_period_data_from_widgets,
-    period_name_for_display,
-    period_name_for_storage
 )
 
 
@@ -129,7 +132,7 @@ class TestUIManagement:
         """Test adding period widget to layout successfully."""
         period_data = {'start_time': '09:00', 'end_time': '12:00', 'active': True, 'days': ['Monday']}
         
-        with patch('ui.widgets.period_row_widget.PeriodRowWidget', return_value=mock_period_widget):
+        with patch('ui.period_row_management.PeriodRowWidget', return_value=mock_period_widget):
             result = add_period_widget_to_layout(
                 mock_layout, 'Morning', period_data, 'work', 
                 parent_widget=None, widget_list=None, delete_callback=None
@@ -143,7 +146,7 @@ class TestUIManagement:
         period_data = {'start_time': '09:00', 'end_time': '12:00', 'active': True, 'days': ['Monday']}
         widget_list = []
         
-        with patch('ui.widgets.period_row_widget.PeriodRowWidget', return_value=mock_period_widget):
+        with patch('ui.period_row_management.PeriodRowWidget', return_value=mock_period_widget):
             result = add_period_widget_to_layout(
                 mock_layout, 'Morning', period_data, 'work',
                 parent_widget=None, widget_list=widget_list, delete_callback=None
@@ -158,7 +161,7 @@ class TestUIManagement:
         period_data = {'start_time': '09:00', 'end_time': '12:00', 'active': True, 'days': ['Monday']}
         delete_callback = Mock()
         
-        with patch('ui.widgets.period_row_widget.PeriodRowWidget', return_value=mock_period_widget):
+        with patch('ui.period_row_management.PeriodRowWidget', return_value=mock_period_widget):
             add_period_widget_to_layout(
                 mock_layout, 'Morning', period_data, 'work',
                 parent_widget=None, widget_list=None, delete_callback=delete_callback
@@ -171,7 +174,7 @@ class TestUIManagement:
         """Test that ALL period is skipped for tasks category."""
         period_data = {'start_time': '09:00', 'end_time': '12:00', 'active': True, 'days': ['Monday']}
         
-        with patch('ui.widgets.period_row_widget.PeriodRowWidget') as mock_widget_class:
+        with patch('ui.period_row_management.PeriodRowWidget') as mock_widget_class:
             result = add_period_widget_to_layout(
                 mock_layout, 'ALL', period_data, 'tasks',
                 parent_widget=None, widget_list=None, delete_callback=None
@@ -184,7 +187,7 @@ class TestUIManagement:
         """Test that ALL period is skipped for checkin category."""
         period_data = {'start_time': '09:00', 'end_time': '12:00', 'active': True, 'days': ['Monday']}
         
-        with patch('ui.widgets.period_row_widget.PeriodRowWidget') as mock_widget_class:
+        with patch('ui.period_row_management.PeriodRowWidget') as mock_widget_class:
             result = add_period_widget_to_layout(
                 mock_layout, 'ALL', period_data, 'checkin',
                 parent_widget=None, widget_list=None, delete_callback=None
@@ -197,7 +200,7 @@ class TestUIManagement:
         """Test that ALL period is NOT skipped for schedule categories."""
         period_data = {'start_time': '09:00', 'end_time': '12:00', 'active': True, 'days': ['Monday']}
         
-        with patch('ui.widgets.period_row_widget.PeriodRowWidget', return_value=mock_period_widget):
+        with patch('ui.period_row_management.PeriodRowWidget', return_value=mock_period_widget):
             result = add_period_widget_to_layout(
                 mock_layout, 'ALL', period_data, 'work',  # Schedule category
                 parent_widget=None, widget_list=None, delete_callback=None
@@ -211,7 +214,7 @@ class TestUIManagement:
         """Test error handling when widget creation fails."""
         period_data = {'start_time': '09:00', 'end_time': '12:00', 'active': True, 'days': ['Monday']}
         
-        with patch('ui.widgets.period_row_widget.PeriodRowWidget', side_effect=Exception("Widget creation error")):
+        with patch('ui.period_row_management.PeriodRowWidget', side_effect=Exception("Widget creation error")):
             result = add_period_widget_to_layout(
                 mock_layout, 'Morning', period_data, 'work',
                 parent_widget=None, widget_list=None, delete_callback=None
@@ -229,8 +232,8 @@ class TestUIManagement:
         }
         
         with patch('core.schedule_runtime.get_schedule_time_periods', return_value=periods), \
-             patch('core.ui_management.clear_period_widgets_from_layout'), \
-             patch('core.ui_management.add_period_widget_to_layout', side_effect=[mock_period_widget, mock_period_widget]):
+             patch('ui.period_row_management.clear_period_widgets_from_layout'), \
+             patch('ui.period_row_management.add_period_widget_to_layout', side_effect=[mock_period_widget, mock_period_widget]):
             
             result = load_period_widgets_for_category(
                 mock_layout, user_id, 'work',
@@ -246,7 +249,7 @@ class TestUIManagement:
         user_id = "test-user"
         
         with patch('core.schedule_runtime.get_schedule_time_periods', return_value={}), \
-             patch('core.ui_management.clear_period_widgets_from_layout'):
+             patch('ui.period_row_management.clear_period_widgets_from_layout'):
             
             result = load_period_widgets_for_category(
                 mock_layout, user_id, 'work',
@@ -260,7 +263,7 @@ class TestUIManagement:
         user_id = "test-user"
         
         with patch('core.schedule_runtime.get_schedule_time_periods', return_value=None), \
-             patch('core.ui_management.clear_period_widgets_from_layout'):
+             patch('ui.period_row_management.clear_period_widgets_from_layout'):
             
             result = load_period_widgets_for_category(
                 mock_layout, user_id, 'work',
@@ -403,4 +406,3 @@ class TestUIManagement:
         # Storage name should be converted (in this case, same as display since no special conversion)
         # But the function should call period_name_for_storage
         assert 'Morning Period' in result or 'Morning' in result
-

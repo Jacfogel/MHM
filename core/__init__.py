@@ -104,12 +104,6 @@ from .config import (
     get_available_channels,
 )
 
-# UI management exports (medium usage)
-from .ui_management import (
-    collect_period_data_from_widgets,
-    load_period_widgets_for_category,
-)
-
 # User data handlers additional exports (medium usage)
 from .schedule_document_defaults import ensure_all_categories_have_schedules
 from .user_lookup import get_user_id_by_identifier
@@ -382,9 +376,6 @@ __all__ = [
     "LM_STUDIO_MODEL",
     "SCHEDULER_INTERVAL",
     "get_available_channels",
-    # UI management (medium usage)
-    "collect_period_data_from_widgets",
-    "load_period_widgets_for_category",
     # User management additional (medium usage)
     "ensure_all_categories_have_schedules",
     "get_user_id_by_identifier",

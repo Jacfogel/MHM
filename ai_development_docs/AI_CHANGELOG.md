@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-12 - Core UI Widget Boundary Cleanup **COMPLETED**
+- Moved PeriodRowWidget creation/layout/removal/data collection helpers from `core.ui_management` into new `ui.period_row_management`.
+- Kept `core.ui_management` limited to UI-neutral period naming and numbering helpers, and removed the package-level core exports for widget helpers.
+- Updated task/check-in/schedule editor callers and focused tests; removed the completed TODO item.
+- Validation: focused UI/helper tests passed and static search confirms `core/ui_management.py` no longer imports `ui` or Qt.
+
 ### 2026-05-11 - Command-handler service thinning and dependency audit cleanup **COMPLETED**
 - Moved task, check-in, and profile command-domain decisions into service helpers while keeping communication handlers responsible for ParsedCommand routing and InteractionResponse formatting.
 - Preserved current handler patch boundaries/Discord behavior, added service-focused tests, fixed the profile show regression, and marked the task stats facade duplicate as intentional with the supported analyzer marker.
@@ -119,22 +125,6 @@ Guidelines:
 - Fixed dispatcher wildcard schedule matching / failed-send storage behavior, removed avoidable parallel-audit skips from CLI/dependency/interpreter tests, and replaced the remaining generic service-request `TypeError` with `ValidationError`.
 - Cleared follow-up audit items by regenerating function/module docs and refreshing generated AI status/priority reports; the completed refactor plan was removed from active `PLANS.md` tracking and [TODO.md](../TODO.md) keeps only deferred architecture follow-ups.
 - Validation: Ruff, `py_compile`, focused scheduler/service/reminder/orchestrator/dispatcher/dev-tools tests, docs regeneration, standard audit, and cached full audit passed. The refreshed parallel test run reports no skip count.
-
-### 2026-05-04 - Duplicate audit freshness and marker triage **COMPLETED**
-- `AI_PRIORITIES.md` / `CONSOLIDATED_REPORT.md` now point duplicate, module-refactor, and function-complexity detail links at scoped current JSON under `development_tools/functions/jsons/scopes/full/`.
-- `analyze_duplicate_functions` now suppresses intentional groups only when every member has the same `# not_duplicate` / intentional marker; decorated-function markers are detected correctly.
-- Added `duplicate-functions --body-for-near-miss` so standalone duplicate runs can mirror full-audit near-miss body similarity mode.
-- Marked reviewed intentional duplicate groups across user-data, notebook, cleanup, task-service facade, loader, save-validation, and AI-response extraction helpers. Current generated priority report shows 2 remaining duplicate candidate groups.
-- Validation: focused duplicate analyzer, CLI flag, audit storage scope tests, and `py_compile` passed. Consolidated-report test selection timed out during teardown after printing passing tests, so it was not counted as a clean full pass.
-
-### 2026-05-03 - Refactor continuation phases 1-4 **COMPLETED**
-- `service_requests` owns request-file processing via `ServiceRequestContext`; `service.py` is now closer to lifecycle/wiring-only and delegates request handling.
-- Scheduler logic moved out of `SchedulerManager`: task reminders in `scheduler_task_reminders`, maintenance in `scheduler_maintenance`, common job registration in `scheduler_jobs`.
-- Message preview/content resolution now lives in `core/message_preview`; the remaining `MHMService` preview wrapper was removed.
-- `notebook_service` now has structured notebook use cases/results and `notebook_handler` calls it; `task_service` owns reusable task matching/urgency helpers used by `task_handler`.
-- **Phase 6 pagination rendering**: `notebook_handler` now emits generic `PaginationAction` metadata; Discord owns Show More labels, button custom IDs, and hidden continuation payloads.
-- Plans/TODO updated: phases 1-6 complete, phases 7-9 remain; low-priority architecture follow-ups track possible `scheduler/`, `storage/`, `messages/`, and `checkins/` packages. Validation: Ruff clean and focused service/scheduler/notebook/task suites passed.
-- **Priority sweep**: pagination/notebook helper error handling, pagination `core` domain markers, changelog link conversion, task-urgency test clock patching, and `service_requests` cleanup duplicate hygiene are addressed. Targeted pagination/task/service tests, error-handling analyzer, marker analyzer, `docs`, and `doc-sync` passed.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

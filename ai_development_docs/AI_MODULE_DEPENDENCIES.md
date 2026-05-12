@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-11 22:08:03
+> **Last Generated**: 2026-05-12 00:15:06
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 140
-- **Total Imports**: 1606
-- **Standard Library**: 459 (28.6%)
-- **Third-Party**: 236 (14.7%)
-- **Local Imports**: 911 (56.7%)
+- **Files Scanned**: 141
+- **Total Imports**: 1610
+- **Standard Library**: 461 (28.6%)
+- **Third-Party**: 235 (14.6%)
+- **Local Imports**: 914 (56.8%)
 
 ## Dependency Decision Trees
 
@@ -69,7 +69,7 @@ UI Dependencies:
 - Widgets
   - ui/widgets/category_selection_widget.py <- third-party (PySide6.QtWidgets), category_selection_widget_pyqt, user_data_validation, error_handling, logger
   - ui/widgets/channel_selection_widget.py <- third-party (PySide6.QtWidgets), channel_selection_widget_pyqt, core, logger, error_handling
-  - ui/widgets/checkin_settings_widget.py <- standard library (re), third-party (PySide6.QtCore, PySide6.QtWidgets), checkin_settings_widget_pyqt, ui_management, core, error_handling, logger (+1 more)
+  - ui/widgets/checkin_settings_widget.py <- standard library (re), third-party (PySide6.QtCore, PySide6.QtWidgets), checkin_settings_widget_pyqt, ui_management, period_row_management, core, error_handling (+2 more)
 
 
 ## Key Dependency Patterns
@@ -83,6 +83,7 @@ Communication and AI modules depend on core system modules.
 ### UI -> Core
 UI modules rely on core configuration and data access.
 - `ui/generate_ui_files.py` -> core.error_handling, core.time_utilities
+- `ui/period_row_management.py` -> core.error_handling, core.logger, core.ui_management
 - `ui/ui_app_qt.py` -> core.launch_env, core.time_utilities, core.logger
 
 ### Communication -> Communication

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-11 22:07:53
+> **Last Generated**: 2026-05-12 00:14:59
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,7 +15,7 @@
 ## Overview
 
 ### **Function Documentation Coverage: 93.0% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 142
+- **Files Scanned**: 143
 - **Functions Found**: 1888
 - **Methods Found**: 1274
 - **Classes Found**: 175
@@ -25,7 +25,7 @@
 - **Classes Documented**: 137
 - **Total Documented**: 2941
 - **Template-Generated**: 20
-- **Last Updated**: 2026-05-11
+- **Last Updated**: 2026-05-12
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,13 +39,13 @@
 
 ## Function Categories
 
-### **Core System Functions** (679)
+### **Core System Functions** (673)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (499)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (431)
+### **User Interface Functions** (437)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (35)
@@ -4791,69 +4791,15 @@ Prefer parse_timestamp_full / parse_timestamp_minute for critical state.
 **Functions:**
 - [OK] `_number_after_prefix(name, prefix)` - Extract integer after prefix in name, or None.
 - [OK] `_number_from_regex(name, pattern)` - Extract first capture group as int from name using regex, or None.
-- [OK] `add_period_row_to_layout(layout, period_widgets, period_name, period_data, parent_widget, delete_callback, after_add_callback)` - Create a period row widget, connect delete, add to layout and list.
+- [OK] `find_lowest_available_period_number(period_items, number_from_item)` - Return the smallest integer >= 2 not used in period names.
 
 Args:
-    layout: QVBoxLayout to add the widget to.
-    period_widgets: List to append the new widget to.
-    period_name: Display name for the period.
-    period_data: Dict with start_time, end_time, active, days.
-    parent_widget: Parent for the PeriodRowWidget.
-    delete_callback: Callback for delete_requested signal.
-    after_add_callback: Optional callback(widget) after adding (e.g. for sort).
-
-Returns:
-    The created PeriodRowWidget or None on failure.
-- [OK] `add_period_widget_to_layout(layout, period_name, period_data, category, parent_widget, widget_list, delete_callback)` - Add a period widget to a layout with proper display formatting.
-
-Args:
-    layout: The QVBoxLayout to add the widget to
-    period_name: The period name
-    period_data: The period data dictionary
-    category: The category (tasks, checkin, or schedule category)
-    parent_widget: The parent widget for the period widget
-    widget_list: Optional list to track widgets
-    delete_callback: Optional callback for delete signal
-
-Returns:
-    The created PeriodRowWidget or None if failed
-- [OK] `clear_period_widgets_from_layout(layout, widget_list)` - Clear all period widgets from a layout.
-
-Args:
-    layout: The QVBoxLayout to clear
-    widget_list: Optional list to track widgets (will be cleared if provided)
-
-Returns:
-    None
-- [OK] `collect_period_data_from_widgets(widget_list, category)` - Collect period data from a list of period widgets.
-
-Args:
-    widget_list: List of PeriodRowWidget instances
-    category: The category (tasks, checkin, or schedule category)
-
-Returns:
-    Dictionary of period data with storage-formatted names, each with only 'active', 'days', 'start_time', 'end_time'.
-- [OK] `find_lowest_available_period_number(period_widgets, number_from_widget)` - Return the smallest integer >= 2 not used in period names.
-
-Args:
-    period_widgets: List of period row widgets (e.g. PeriodRowWidget).
-    number_from_widget: Callable that takes a widget and returns the
+    period_items: List of period-like objects.
+    number_from_item: Callable that takes an item and returns the
         number extracted from its name if it matches the pattern, else None.
 
 Returns:
     Lowest available number (>= 2).
-- [OK] `load_period_widgets_for_category(layout, user_id, category, parent_widget, widget_list, delete_callback)` - Load and display period widgets for a specific category.
-
-Args:
-    layout: The QVBoxLayout to add widgets to
-    user_id: The user ID
-    category: The category (tasks, checkin, or schedule category)
-    parent_widget: The parent widget for period widgets
-    widget_list: Optional list to track widgets
-    delete_callback: Optional callback for delete signal
-
-Returns:
-    List of created widgets
 - [OK] `period_name_for_display(period_name, category)` - Convert period name to display format using existing logic.
 
 Args:
@@ -4870,14 +4816,6 @@ Args:
 
 Returns:
     Storage-formatted period name (preserve original case)
-- [OK] `remove_period_row_from_layout(row_widget, layout, period_widgets, deleted_periods, guard_fn)` - Remove a period row from layout and list, store data for undo.
-
-Args:
-    row_widget: The period row widget to remove.
-    layout: Layout to remove the widget from.
-    period_widgets: List to remove the widget from.
-    deleted_periods: List to append deleted data dict (period_name, start_time, end_time, active, days).
-    guard_fn: If provided, callable(row_widget) returning True to abort removal (e.g. show message and return).
 
 #### `core/user_data_operations.py`
 **Functions:**
@@ -6147,6 +6085,15 @@ Args:
 Returns:
     bool: True if successful, False otherwise
 - [OK] `main()` - Main function.
+
+#### `ui/period_row_management.py`
+**Functions:**
+- [OK] `add_period_row_to_layout(layout, period_widgets, period_name, period_data, parent_widget, delete_callback, after_add_callback)` - Create a period row widget, connect delete, add to layout and list.
+- [OK] `add_period_widget_to_layout(layout, period_name, period_data, category, parent_widget, widget_list, delete_callback)` - Add a PeriodRowWidget to a layout with display-name normalization.
+- [OK] `clear_period_widgets_from_layout(layout, widget_list)` - Clear all period widgets from a layout.
+- [OK] `collect_period_data_from_widgets(widget_list, category)` - Collect period data from PeriodRowWidget-like objects.
+- [OK] `load_period_widgets_for_category(layout, user_id, category, parent_widget, widget_list, delete_callback)` - Load and display period widgets for a specific category.
+- [OK] `remove_period_row_from_layout(row_widget, layout, period_widgets, deleted_periods, guard_fn)` - Remove a period row from layout and list, storing data for undo.
 
 #### `ui/ui_app_qt.py`
 **Functions:**

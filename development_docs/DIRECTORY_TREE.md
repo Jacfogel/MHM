@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-11 22:08:05
+> **Last Generated**: 2026-05-12 00:15:07
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -884,6 +884,7 @@ C:.
 |   |   |   
 +---ui
 |   |   generate_ui_files.py
+|   |   period_row_management.py
 |   |   ui_app_qt.py
 |   |   UI_GUIDE.md
 |   |   __init__.py

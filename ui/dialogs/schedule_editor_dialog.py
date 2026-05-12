@@ -24,13 +24,15 @@ dialog_logger = logger
 # Import core functionality
 from core.schedule_runtime import clear_schedule_periods_cache, set_schedule_periods
 from core.ui_management import (
+    find_lowest_available_period_number,
+    _number_from_regex,
+)
+from ui.period_row_management import (
     load_period_widgets_for_category,
     collect_period_data_from_widgets,
-    find_lowest_available_period_number,
     add_period_row_to_layout,
     remove_period_row_from_layout,
-    _number_from_regex,
-    _DEFAULT_PERIOD_DATA,
+    DEFAULT_PERIOD_DATA,
 )
 from core.error_handling import handle_errors
 from core.user_data_validation import _shared__title_case, validate_schedule_periods
@@ -153,7 +155,7 @@ class ScheduleEditorDialog(QDialog):
     @handle_errors("adding new period", default_return=None)
     def add_new_period(self, period_name=None, period_data=None):
         """Add a new period row using the PeriodRowWidget."""
-        # duplicate_functions_exclude: thin wrapper; delegates to core.ui_management
+        # duplicate_functions_exclude: thin wrapper; delegates to UI helper
         if period_name is None:
             category_display = self.category.replace("_", " ").title()
             if len(self.period_widgets) == 0:
@@ -161,7 +163,7 @@ class ScheduleEditorDialog(QDialog):
             else:
                 period_name = f"{category_display} Message {self.find_lowest_available_period_number()}"
         if period_data is None:
-            period_data = dict(_DEFAULT_PERIOD_DATA)
+            period_data = dict(DEFAULT_PERIOD_DATA)
         return add_period_row_to_layout(
             self.periods_layout,
             self.period_widgets,
@@ -215,7 +217,7 @@ class ScheduleEditorDialog(QDialog):
     def find_lowest_available_period_number(self):
         """Find the lowest available number for new period names."""
 
-        # duplicate_functions_exclude: thin wrapper; delegates to core.ui_management
+        # duplicate_functions_exclude: thin wrapper; delegates to shared helper
         def number_from_widget(w):
             # error_handling_exclude: nested helper; caller find_lowest_available_period_number is decorated
             name = w.get_period_name()
@@ -229,7 +231,7 @@ class ScheduleEditorDialog(QDialog):
     def remove_period_row(self, row_widget):
         """Remove a period row and store it for undo."""
 
-        # duplicate_functions_exclude: thin wrapper; delegates to core.ui_management
+        # duplicate_functions_exclude: thin wrapper; delegates to UI helper
         def guard(rw):
             # error_handling_exclude: nested guard; caller remove_period_row is decorated
             if isinstance(rw, PeriodRowWidget):

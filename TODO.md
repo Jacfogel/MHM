@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-05-11 (communication command-handler thinning complete)
+> **Last Updated**: 2026-05-12 (core/ui_management widget dependency removed)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -86,13 +86,6 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 - *What it means*: Remove stale "datetime handling" wording, decide whether `InvalidTimeFormatError` and `load_and_localize_datetime()` still belong there, and consider renaming/splitting UI request-file helpers into a clearer service request module.
 - *Why it helps*: Reduces legacy drift and makes the module easier to understand.
 - *Estimated effort*: Small/Medium
-- *Suggested home*: TODO.md
-- *Created*: 2026-05-03
-
-### **Remove `core/ui_management.py` UI Widget Dependency** - Fix the confirmed boundary leak where `core/ui_management.py` imports from `ui.widgets.period_row_widget`.
-- *What it means*: Move UI-specific period-row behavior into `ui/`, and keep only channel/UI-neutral data preparation or validation in `core/`.
-- *Why it helps*: Restores the intended architecture boundary between core logic and UI adapter code.
-- *Estimated effort*: Medium
 - *Suggested home*: TODO.md
 - *Created*: 2026-05-03
 

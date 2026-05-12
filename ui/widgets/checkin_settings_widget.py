@@ -20,21 +20,21 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from ui.generated.checkin_settings_widget_pyqt import Ui_Form_checkin_settings
 
-# Import core functionality
 from core.ui_management import (
+    find_lowest_available_period_number,
+    _number_after_prefix,
+)
+from ui.period_row_management import (
     load_period_widgets_for_category,
     collect_period_data_from_widgets,
-    find_lowest_available_period_number,
     add_period_row_to_layout,
     remove_period_row_from_layout,
-    _number_after_prefix,
-    _DEFAULT_PERIOD_DATA,
+    DEFAULT_PERIOD_DATA,
 )
 from core import get_user_data
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger
 
-# Import our period row widget
 setup_logging()
 logger = get_component_logger("ui")
 widget_logger = logger
@@ -678,7 +678,7 @@ class CheckinSettingsWidget(QWidget):
     def find_lowest_available_period_number(self):
         """Find the lowest available integer (2+) that's not currently used in period names."""
 
-        # duplicate_functions_exclude: thin wrapper; delegates to core.ui_management
+        # duplicate_functions_exclude: thin wrapper; delegates to shared helper
         def number_from_widget(w):
             # error_handling_exclude: nested helper; caller find_lowest_available_period_number is decorated
             name = w.get_period_data().get("name", "")
@@ -691,7 +691,7 @@ class CheckinSettingsWidget(QWidget):
     @handle_errors("adding new check-in period")
     def add_new_period(self, checked=None, period_name=None, period_data=None):
         """Add a new time period using the PeriodRowWidget."""
-        # duplicate_functions_exclude: thin wrapper; delegates to core.ui_management
+        # duplicate_functions_exclude: thin wrapper; delegates to UI helper
         logger.info(
             f"CheckinSettingsWidget: add_new_period called with period_name={period_name}, period_data={period_data}"
         )
@@ -708,12 +708,12 @@ class CheckinSettingsWidget(QWidget):
             )
             period_name = str(period_name)
         if period_data is None:
-            period_data = dict(_DEFAULT_PERIOD_DATA)
+            period_data = dict(DEFAULT_PERIOD_DATA)
         if not isinstance(period_data, dict):
             logger.warning(
                 f"CheckinSettingsWidget: period_data is not a dict: {period_data} (type: {type(period_data)})"
             )
-            period_data = dict(_DEFAULT_PERIOD_DATA)
+            period_data = dict(DEFAULT_PERIOD_DATA)
         layout = self.ui.verticalLayout_scrollAreaWidgetContents_checkin_time_periods
         return add_period_row_to_layout(
             layout,
@@ -728,7 +728,7 @@ class CheckinSettingsWidget(QWidget):
     def remove_period_row(self, row_widget):
         """Remove a period row and store it for undo."""
 
-        # duplicate_functions_exclude: thin wrapper; delegates to core.ui_management
+        # duplicate_functions_exclude: thin wrapper; delegates to UI helper
         def guard(_row_widget):
             """Return True to abort removal (e.g. when only one period remains)."""
             # error_handling_exclude: nested guard; caller remove_period_row is decorated
