@@ -110,18 +110,21 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 
 **Where to look:**
 - Location: `c:\Users\Julie\projects\MHM\Archive\`
-- Script: `scripts/create_project_snapshot.py`
 
 **Key rules:**
-- Manual backups only (no automation)
-- Use `create_project_snapshot.py` for creating snapshots
-- No cleanup policy (manual management)
+- Manual artifact storage only (no automation)
+- Use tracked backup tooling for restorable recovery artifacts
+- Use tracked export tooling for LLM-readable code/docs snapshots
+- No cleanup policy for the external Archive (manual management)
 
 **AI usage:**
-- Use snapshot script for creating project snapshots
+- Recovery backup: `backup_manager.create_backup(include_code=True)` when code should be included
+- Code context bundle: `python development_tools/run_development_tools.py export-code --root . --include-tests --include-dev-tools`
+- Docs context bundle: `python development_tools/run_development_tools.py export-docs`
+- The former `scripts/create_project_snapshot.py` utility is retired; do not recreate or reference it
 - Don't automate external Archive - it's for manual use
 
-**Restore:** See BACKUP_GUIDE.md section 5.3 for restore procedures.
+**Restore:** See BACKUP_GUIDE.md section 5.3 for restore guidance.
 
 ---
 
@@ -182,7 +185,8 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 - Isolated restore (drill): `backup_manager.restore_backup_to_path(path, destination, restore_users=True, restore_config=False)`
 - Validate: `backup_manager.validate_backup(path)`
 - Rotate file: `create_output_file(path, content, rotate=True, max_versions=7)`
-- Create snapshot: `create_project_snapshot(include_user_data=False, compress=True)`
+- Export code context: `python development_tools/run_development_tools.py export-code --root . --include-tests --include-dev-tools`
+- Export docs context: `python development_tools/run_development_tools.py export-docs`
 - Inventory report: `python development_tools/run_development_tools.py backup inventory`
 - Retention dry-run: `python development_tools/run_development_tools.py backup retention --dry-run`
 - Retention apply: `python development_tools/run_development_tools.py backup retention --apply`

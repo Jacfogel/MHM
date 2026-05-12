@@ -324,57 +324,48 @@ This guide covers both how the systems work and how to restore from backups.
 ### 5.1. Location
 
 - **Path**: `c:\Users\Julie\projects\MHM\Archive\`
-- **Script**: `scripts/create_project_snapshot.py`
-- **Status**: Manual backups only, no automation
+- **Status**: Manual artifact storage only, no automation
 
 ### 5.2. How It Works
 
 **Purpose:**
-- Long-term project snapshots
-- Manual backups before major changes
-- Historical project versions
+- Long-term manually saved artifacts
+- Markdown code/documentation context bundles for AI review
+- Copies of runtime backup directories when an extra off-repo copy is useful
 
-**Creating Snapshots:**
-```python
-from scripts.create_project_snapshot import create_project_snapshot
-snapshot_path = create_project_snapshot(
-    archive_dir="c:/Users/Julie/projects/MHM/Archive",
-    include_user_data=False,
-    compress=True
-)
-```
+**Canonical tooling:**
+- Restorable runtime backup: `backup_manager.create_backup(include_code=True)` or `python development_tools/run_development_tools.py backup <inventory|retention|drill|verify>`
+- Code context bundle: `python development_tools/run_development_tools.py export-code --root . --include-tests --include-dev-tools --out "c:\Users\Julie\projects\MHM\Archive"`
+- Documentation context bundle: `python development_tools/run_development_tools.py export-docs --out "c:\Users\Julie\projects\MHM\Archive"`
 
-**Snapshot Contents:**
-- Project code (Python files, config, documentation)
-- Optional: User data
-- Optional: ZIP compression
+The former `scripts/create_project_snapshot.py` utility is retired. It mixed restorable-backup semantics with AI-context export semantics while living under ignored `scripts/`; use the tracked backup manager for recovery artifacts and the tracked export commands for LLM-readable snapshots.
 
-### 5.3. Restoring from Project Snapshots
+### 5.3. Restoring from Manual Artifacts
 
 **Prerequisites:**
-- Snapshot ZIP file from external Archive directory
+- Backup directory or exported artifact from external Archive directory
 - Access to project directory
-- Enough disk space for the snapshot
+- Enough disk space for the restore target
 
 **Procedure:**
 
-1. **Locate the snapshot:**
+1. **Locate the artifact:**
    - Navigate to `c:\Users\Julie\projects\MHM\Archive\`
-   - Find the snapshot file: `mhm_snapshot_YYYYMMDD_HHMMSS.zip`
+   - For recovery, prefer a `BackupManager` directory containing `manifest.json`
+   - For AI/code review, use `code_snapshot_*.md` or `docs_snapshot_*.md`
 
-2. **Extract the snapshot:**
+2. **Restore from a backup directory when recovery is needed:**
    ```powershell
-   Expand-Archive -Path "c:\Users\Julie\projects\MHM\Archive\mhm_snapshot_YYYYMMDD_HHMMSS.zip" -DestinationPath ".\restore_temp"
+   python development_tools/run_development_tools.py backup drill --backup-path "c:\Users\Julie\projects\MHM\Archive\<backup_name>"
    ```
 
-3. **Review snapshot contents:**
-   - Check `snapshot_manifest.json` to see what's included
-   - Verify code directories and files are present
+3. **Review contents before copying anything back:**
+   - Check `manifest.json` for backup contents
+   - Treat Markdown exports as read-only context, not restore payloads
 
 4. **Restore specific components:**
-   - **Code only**: Copy `code/` directory contents to project root
-   - **Documentation**: Copy `ai_development_docs/` and `development_docs/` from snapshot
-   - **User data** (if included): Copy `data/` directory
+   - **Runtime user/config data**: Use `backup_manager.restore_backup(...)` or the backup drill workflow first
+   - **Code/docs**: Prefer Git history; only copy files manually after review
 
 5. **Verify restoration:**
    - Run tests: `python run_tests.py`

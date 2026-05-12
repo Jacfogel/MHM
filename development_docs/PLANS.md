@@ -32,7 +32,7 @@
 
 ## [ACTIVE] **Current Active Plans**
 
-**Recently completed**: The MHM Refactor Continuation Plan was completed on 2026-05-05 and removed from active planning per the plan-maintenance rule. Runtime JSON storage classification, migration, service flag cleanup, and the soft channel-boundary review were completed on 2026-05-11 and removed from active planning. See [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) and [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) for session records. Deferred architecture follow-ups are tracked in [TODO.md](../TODO.md).
+**Recently completed**: The MHM Refactor Continuation Plan was completed on 2026-05-05 and removed from active planning per the plan-maintenance rule. Runtime JSON storage classification, migration, service flag cleanup, the soft channel-boundary review, and the Backup Reliability and Restore Confidence Plan were completed on 2026-05-11 and removed from active planning. See [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) and [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) for session records. Deferred architecture follow-ups are tracked in [TODO.md](../TODO.md).
 
 ### **Flow/Check-in Scheduled Send Stability Follow-up** **IN PROGRESS**
 
@@ -46,17 +46,6 @@
 - [ ] Live Discord manual validation (active-flow deferral, 10-min cooldown, retry)
 - [ ] Monitor logs for legacy warnings in check-in flow paths
 - [ ] Monitor `MESSAGE_SELECTION` diagnostics
-
-### **Backup Reliability and Restore Confidence Plan** **IN PROGRESS**
-
-**Status**: IN PROGRESS (since 2026-02-16) | **Priority**: High
-
-**Use / fit**: Important for peace of mind and occasional rollbacks; user dislikes redoing work and makes mistakes (beginner). Migration of `user_data_cli.py` not used; decision: defer migration, document as optional tool only.
-
-**Done**: Inventory, restore drill, ownership map, runbooks. Weekly gating + retention buckets restored; guides synced. See CHANGELOG_DETAIL 2026-02-25.
-
-**Remaining**:
-- [ ] Document decision: `user_data_cli.py` remains optional; no migration to admin tooling (user does not use it)
 
 ### **Error Handling Quality Improvement Plan** **IN PROGRESS**
 

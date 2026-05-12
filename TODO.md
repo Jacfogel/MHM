@@ -50,18 +50,6 @@ Detail: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMP
 
 ## High Priority
 
-### Quality & Operations (high priority within medium)
-
-**Script Ownership and Retirement Decisions (project-specific, not development-tools portability)**
-- *What it means*: Resolve ownership for persistent project scripts currently under untracked `scripts/`, retire obsolete ones, and migrate any still-needed functionality into tracked runtime locations.
-- *Why it helps*: Prevents drift between docs and reality, reduces maintenance risk, and keeps `development_tools/` project-agnostic.
-- *Estimated effort*: Medium
-- *User priority*: High/medium.
-- *Subtasks*:
-  - [ ] Decide destination for the user_data_cli script (planned location scripts/utilities/; migrate to tracked runtime ownership such as core/ or user/ or app-tools, or retire if superseded).
-  - [ ] Decide destination for project-maintenance scripts create_project_snapshot and cleanup_windows_tasks (planned location scripts/; tracked runtime ownership, not development_tools/).
-  - [ ] Evaluate renaming/refactoring the create_project_snapshot script to match behavior (full restorable backup semantics) and define whether a separate generalized development-tools variant is needed.
-
 ### Post-refactor architecture cleanup follow-ups
 
 The May 2026 service/scheduler/dispatcher refactor moved request handling, preview resolution, task reminders, maintenance jobs, message dispatch, check-in prompt dispatch, and delivery-port wiring out of the largest coordinator paths. Keep only the remaining deferred cleanup here.

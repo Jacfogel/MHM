@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-11 - Ignored project script retirements **COMPLETED**
+- Retired ignored `scripts/cleanup_windows_tasks.py`; tracked scheduler cleanup in `core.scheduler_maintenance.cleanup_scheduler_wake_tasks` is the owner now.
+- Retired ignored `scripts/create_project_snapshot.py`; use `backup_manager.create_backup(include_code=True)` for restorable backups and `export-code` / `export-docs` for AI-readable snapshots.
+- Retired ignored `scripts/utilities/user_data_cli.py` instead of migrating it; tracked `core.user_data_operations` remains the canonical user-data owner.
+- Updated backup docs, PLANS, and TODO so active guidance no longer points at ignored project scripts; the backup reliability plan is complete.
+
 ### 2026-05-11 - Audit/run_tests suite parity and no_parallel cache scope **COMPLETED**
 - `audit --full` coverage now runs serial `no_parallel` tests only for the same domain-filtered file set as the parallel phase; scoped runs with no matching serial tests are classified as skipped, not crashed.
 - `run_tests.py --mode all` now includes `tests/ai/` but still intentionally leaves development-tools tests to `run_tests.py --full`, which keeps the two-phase product/AI plus development-tools execution shape.
