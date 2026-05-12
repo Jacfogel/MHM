@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-11 00:46:01
+> **Last Generated**: 2026-05-11 22:08:05
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -160,6 +160,7 @@ C:.
 |   |   backup_manager.py
 |   |   checkin_analytics.py
 |   |   checkin_dynamic_manager.py
+|   |   checkin_service.py
 |   |   config.py
 |   |   delivery.py
 |   |   error_handling.py
@@ -805,6 +806,7 @@ C:.
 |   |   |   test_checkin_analytics_conversion.py
 |   |   |   test_checkin_management_dialog.py
 |   |   |   test_checkin_runtime_timestamp.py
+|   |   |   test_checkin_service.py
 |   |   |   test_checkin_view.py
 |   |   |   test_cleanup.py
 |   |   |   test_command_parser_helpers.py
@@ -848,6 +850,7 @@ C:.
 |   |   |   test_pagination.py
 |   |   |   test_profile_handler.py
 |   |   |   test_profile_handler_gap_coverage.py
+|   |   |   test_profile_service.py
 |   |   |   test_prompt_manager.py
 |   |   |   test_recurring_tasks.py
 |   |   |   test_rich_formatter.py
@@ -926,6 +929,7 @@ C:.
 |   |   |   
 +---user
 |   |   context_manager.py
+|   |   profile_service.py
 |   |   user_context.py
 |   |   user_preferences.py
 |   |   __init__.py

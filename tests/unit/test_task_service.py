@@ -1,6 +1,7 @@
 """Delegation tests for tasks.task_service facade."""
 
 from unittest.mock import patch
+from datetime import datetime
 
 import pytest
 
@@ -54,3 +55,89 @@ def test_task_service_find_most_urgent_task_prefers_overdue():
     high = {"id": "high", "title": "High", "priority": "high"}
 
     assert task_service.find_most_urgent_task([high, overdue]) == overdue
+
+
+@pytest.mark.unit
+@pytest.mark.tasks
+def test_task_service_parse_time_string_normalizes_common_inputs():
+    from tasks import task_service
+
+    assert task_service.parse_time_string("noon") == "12:00"
+    assert task_service.parse_time_string("12am") == "00:00"
+    assert task_service.parse_time_string("2:30pm") == "14:30"
+
+
+@pytest.mark.unit
+@pytest.mark.tasks
+def test_task_service_parse_relative_date_uses_canonical_clock():
+    from tasks import task_service
+
+    fixed_now = datetime(2026, 5, 11, 9, 0)
+    with patch("tasks.task_service.now_datetime_full", return_value=fixed_now):
+        assert task_service.parse_relative_date("today") == "2026-05-11"
+        assert task_service.parse_relative_date("tomorrow") == "2026-05-12"
+        assert task_service.parse_relative_date("next week") == "2026-05-18"
+
+
+@pytest.mark.unit
+@pytest.mark.tasks
+def test_task_service_prepare_create_task_data_applies_defaults_and_due_time():
+    from tasks import task_service
+
+    prefs = {
+        "preferences": {
+            "task_settings": {
+                "recurring_settings": {
+                    "default_recurrence_pattern": "weekly",
+                    "default_recurrence_interval": 2,
+                    "default_repeat_after_completion": False,
+                }
+            }
+        }
+    }
+    entities = {"title": "Review", "due_date": "tomorrow at 2pm"}
+
+    with patch("tasks.task_service.get_user_data", return_value=prefs), patch(
+        "tasks.task_service.now_datetime_full",
+        return_value=datetime(2026, 5, 11, 9, 0),
+    ):
+        prepared = task_service.prepare_create_task_data("u1", entities)
+
+    assert prepared.task_data == {
+        "title": "Review",
+        "description": "",
+        "due_date": "2026-05-12",
+        "due_time": "14:00",
+        "priority": "medium",
+        "tags": [],
+        "recurrence_pattern": "weekly",
+        "recurrence_interval": 2,
+        "repeat_after_completion": False,
+    }
+    assert prepared.priority_was_provided is False
+
+
+@pytest.mark.unit
+@pytest.mark.tasks
+def test_task_service_filter_and_sort_tasks():
+    from tasks import task_service
+
+    tasks = [
+        {"id": "1", "title": "Low", "priority": "low", "due": {"date": "2026-05-13"}, "tags": ["home"]},
+        {"id": "2", "title": "High", "priority": "high", "due": {"date": "2026-05-12"}, "tags": ["work"]},
+        {"id": "3", "title": "Medium", "priority": "medium", "due": {"date": "2026-05-11"}, "tags": ["work"]},
+    ]
+
+    filtered = task_service.filter_tasks("u1", tasks, None, "medium", None)
+    assert [task["id"] for task in filtered] == ["3"]
+    assert [task["id"] for task in task_service.sort_tasks_by_priority_and_due_date(tasks)] == ["2", "3", "1"]
+
+
+@pytest.mark.unit
+@pytest.mark.tasks
+def test_task_service_completed_task_candidates_support_partial_title():
+    from tasks import task_service
+
+    tasks = [{"id": "task-1", "short_id": "t1", "title": "Brush teeth"}]
+
+    assert task_service.get_completed_task_candidates(tasks, "brush") == tasks

@@ -6,6 +6,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core import get_user_data, save_user_data
 from core.response_tracking import get_recent_checkins
+from user.profile_service import apply_profile_updates, load_profile_sections
 
 from communication.command_handlers.base_handler import InteractionHandler
 
@@ -80,16 +81,10 @@ class ProfileHandler(InteractionHandler):
     @handle_errors("handling show profile")
     def _handle_show_profile(self, user_id: str) -> InteractionResponse:
         """Handle showing user profile with comprehensive personalization data"""
-        # Load user data
-        account_result = get_user_data(user_id, "account")
-        context_result = get_user_data(user_id, "context")
-        preferences_result = get_user_data(user_id, "preferences")
-
-        account_data = account_result.get("account", {}) if account_result else {}
-        context_data = context_result.get("context", {}) if context_result else {}
-        preferences_data = (
-            preferences_result.get("preferences", {}) if preferences_result else {}
-        )
+        sections = load_profile_sections(user_id, get_data=get_user_data)
+        account_data = sections.account
+        context_data = sections.context
+        preferences_data = sections.preferences
 
         # Create plain-text message via formatter (clean, readable)
         response = self._format_profile_text(
@@ -206,154 +201,40 @@ class ProfileHandler(InteractionHandler):
                 ],
             )
 
-        # Load current context data
-        context_result = get_user_data(user_id, "context")
-        context_data = context_result.get("context", {}) if context_result else {}
-
-        # Initialize custom_fields if not present
-        if "custom_fields" not in context_data:
-            context_data["custom_fields"] = {}
-
-        # Apply updates
-        updates = []
-
-        # Basic info updates
-        if "name" in entities:
-            context_data["preferred_name"] = entities["name"]
-            updates.append("name")
-
-        if "gender_identity" in entities:
-            # Handle both string and list formats
-            gender_identity = entities["gender_identity"]
-            if isinstance(gender_identity, str):
-                # Convert comma-separated string to list
-                gender_identity = [
-                    g.strip() for g in gender_identity.split(",") if g.strip()
-                ]
-            context_data["gender_identity"] = gender_identity
-            updates.append("gender identity")
-
-        if "date_of_birth" in entities:
-            context_data["date_of_birth"] = entities["date_of_birth"]
-            updates.append("date of birth")
-
-        # Health & Medical updates
-        if "health_conditions" in entities:
-            health_conditions = entities["health_conditions"]
-            if isinstance(health_conditions, str):
-                health_conditions = [
-                    h.strip() for h in health_conditions.split(",") if h.strip()
-                ]
-            context_data["custom_fields"]["health_conditions"] = health_conditions
-            updates.append("health conditions")
-
-        if "medications" in entities:
-            medications = entities["medications"]
-            if isinstance(medications, str):
-                medications = [m.strip() for m in medications.split(",") if m.strip()]
-            context_data["custom_fields"]["medications_treatments"] = medications
-            updates.append("medications")
-
-        if "allergies" in entities:
-            allergies = entities["allergies"]
-            if isinstance(allergies, str):
-                allergies = [a.strip() for a in allergies.split(",") if a.strip()]
-            context_data["custom_fields"]["allergies_sensitivities"] = allergies
-            updates.append("allergies")
-
-        # Personal info updates
-        if "interests" in entities:
-            interests = entities["interests"]
-            if isinstance(interests, str):
-                interests = [i.strip() for i in interests.split(",") if i.strip()]
-            context_data["interests"] = interests
-            updates.append("interests")
-
-        if "goals" in entities:
-            goals = entities["goals"]
-            if isinstance(goals, str):
-                goals = [g.strip() for g in goals.split(",") if g.strip()]
-            context_data["goals"] = goals
-            updates.append("goals")
-
-        # Support network updates
-        if "loved_ones" in entities:
-            # Handle loved ones as a list of dictionaries or string format
-            loved_ones = entities["loved_ones"]
-            if isinstance(loved_ones, str):
-                # Parse simple format: "Name - Type - Relationship1,Relationship2"
-                loved_ones_list = []
-                for line in loved_ones.split("\n"):
-                    parts = [p.strip() for p in line.split("-")]
-                    if len(parts) >= 1:
-                        name = parts[0]
-                        person_type = parts[1] if len(parts) > 1 else ""
-                        relationships = []
-                        if len(parts) > 2:
-                            relationships = [
-                                r.strip() for r in parts[2].split(",") if r.strip()
-                            ]
-                        loved_ones_list.append(
-                            {
-                                "name": name,
-                                "type": person_type,
-                                "relationships": relationships,
-                            }
-                        )
-                context_data["loved_ones"] = loved_ones_list
-            else:
-                context_data["loved_ones"] = loved_ones
-            updates.append("support network")
-
-        if "notes_for_ai" in entities:
-            notes = entities["notes_for_ai"]
-            if isinstance(notes, str):
-                notes = [notes]  # Store as list
-            context_data["notes_for_ai"] = notes
-            updates.append("notes for AI")
-
-        # Email update (stored in account data)
-        if "email" in entities:
-            account_result = get_user_data(user_id, "account")
-            account_data = account_result.get("account", {}) if account_result else {}
-            account_data["email"] = entities["email"]
-            # Save account data separately since it's stored in a different data type
-            if save_user_data(user_id, "account", account_data):
-                updates.append("email")
-            else:
-                return InteractionResponse(
-                    "❌ Failed to update email. Please try again.", True
-                )
-
-        # Save updates
-        if updates:
-            if save_user_data(user_id, "context", context_data):
-                response = f"✅ Profile updated: {', '.join(updates)}"
-                return InteractionResponse(
-                    response,
-                    True,
-                    suggestions=[
-                        "Show my profile",
-                        "Add more health conditions",
-                        "Update goals",
-                        "Show profile stats",
-                    ],
-                )
-            else:
-                return InteractionResponse(
-                    "❌ Failed to update profile. Please try again.", True
-                )
-        else:
+        result = apply_profile_updates(
+            user_id, entities, get_data=get_user_data, save_data=save_user_data
+        )
+        if result.failed_field == "email":
             return InteractionResponse(
-                "No valid updates found. Please specify what you'd like to update.",
-                completed=False,
+                "âŒ Failed to update email. Please try again.", True
+            )
+        if not result.success:
+            return InteractionResponse(
+                "âŒ Failed to update profile. Please try again.", True
+            )
+        if result.updates:
+            response = f"âœ… Profile updated: {', '.join(result.updates)}"
+            return InteractionResponse(
+                response,
+                True,
                 suggestions=[
-                    "Update my name",
-                    "Add health conditions",
-                    "Update interests",
-                    "Add goals",
+                    "Show my profile",
+                    "Add more health conditions",
+                    "Update goals",
+                    "Show profile stats",
                 ],
             )
+
+        return InteractionResponse(
+            "No valid updates found. Please specify what you'd like to update.",
+            completed=False,
+            suggestions=[
+                "Update my name",
+                "Add health conditions",
+                "Update interests",
+                "Add goals",
+            ],
+        )
 
     @handle_errors("handling profile statistics")
     def _handle_profile_stats(self, user_id: str) -> InteractionResponse:

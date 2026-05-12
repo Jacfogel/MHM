@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-11 00:45:53
+> **Last Generated**: 2026-05-11 22:07:55
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,12 +15,12 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 138
-- **Total Imports Found**: 1595
-- **Dependencies Documented**: 138 (100% coverage)
-- **Standard Library Imports**: 453 (28.4%)
-- **Third-Party Imports**: 236 (14.8%)
-- **Local Imports**: 906 (56.8%)
+- **Files Scanned**: 140
+- **Total Imports Found**: 1606
+- **Dependencies Documented**: 140 (100% coverage)
+- **Standard Library Imports**: 459 (28.6%)
+- **Third-Party Imports**: 236 (14.7%)
+- **Local Imports**: 911 (56.7%)
 - **Last Updated**: 2026-05-11
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 453 imports (28.4%)
-- **Third-Party**: 236 imports (14.8%)
-- **Local**: 906 imports (56.8%)
+- **Standard Library**: 459 imports (28.6%)
+- **Third-Party**: 236 imports (14.7%)
+- **Local**: 911 imports (56.7%)
 
 ## Module Dependencies by Directory
 
@@ -350,18 +350,17 @@
     - `communication.command_handlers.base_handler (InteractionHandler)`
     - `communication.command_handlers.shared_types (InteractionResponse, ParsedCommand)`
     - `communication.message_processing.conversation_flow_manager (conversation_manager)`
+    - `core.checkin_service (checkin_display_date, get_checkin_start_status, get_recent_checkin_summary)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.response_tracking (checkin_runtime_timestamp, get_recent_checkins, is_user_checkins_enabled)` (NEW)
-    - `core.time_utilities (parse_timestamp_full)` (NEW)
   - **Standard Library**:
-    - `datetime (date)`
     - `typing (Any)`
 - **Used by**:
   - `communication/command_handlers/interaction_handlers.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.response_tracking, core.time_utilities
+- Added: core.checkin_service, core.error_handling, core.logger, core.response_tracking
 - Removed: communication/command_handlers/interaction_handlers.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -442,6 +441,7 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.response_tracking (get_recent_checkins)` (NEW)
     - `tasks` (NEW)
+    - `user.profile_service (apply_profile_updates, load_profile_sections)` (NEW)
   - **Standard Library**:
     - `typing (Any)`
 - **Used by**:
@@ -449,7 +449,7 @@
   - `communication/message_processing/conversation_flow_manager.py`
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger, core.response_tracking, tasks
+- Added: core, core.error_handling, core.logger, core.response_tracking, tasks, user.profile_service
 - Removed: communication/command_handlers/interaction_handlers.py, communication/message_processing/conversation_flow_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -512,19 +512,15 @@
 - **Purpose**: Communication channel implementation for task_handler
 - **Dependencies**:
   - **Local**:
-    - `core (get_user_data)` (NEW)
     - `core.checkin_analytics (CheckinAnalytics)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.time_utilities (DATE_ONLY, format_timestamp, now_datetime_full, parse_date_only)` (NEW)
+    - `core.time_utilities (now_datetime_full)` (NEW)
     - `tasks (task_service)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_recurrence_interval, runtime_task_recurrence_pattern)` (NEW)
-    - `tasks.task_schemas (VALID_PRIORITIES)` (NEW)
   - **Standard Library**:
-    - `calendar`
-    - `datetime (datetime, timedelta)`
+    - `datetime`
     - `importlib`
-    - `re`
     - `typing (Any)`
   - **Third-party**:
     - `base_handler (InteractionHandler, InteractionResponse, ParsedCommand)`
@@ -534,7 +530,7 @@
   - `communication/message_processing/interaction_manager.py`
 
 **Dependency Changes**:
-- Added: core, core.checkin_analytics, core.error_handling, core.logger, core.time_utilities, tasks, tasks.task_data_handlers, tasks.task_schemas
+- Added: core.checkin_analytics, core.error_handling, core.logger, core.time_utilities, tasks, tasks.task_data_handlers
 - Removed: communication/command_handlers/interaction_handlers.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -1512,6 +1508,28 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `core/checkin_service.py`
+- **Purpose**: Main service orchestration and management
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.response_tracking (checkin_runtime_timestamp, get_recent_checkins, is_user_checkins_enabled)` (NEW)
+    - `core.time_utilities (parse_timestamp_full)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `dataclasses (dataclass)`
+    - `datetime (date)`
+    - `typing (Any)`
+- **Used by**:
+  - `communication/command_handlers/checkin_handler.py`
+
+**Dependency Changes**:
+- Added: core.error_handling, core.response_tracking, core.time_utilities
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `core/config.py`
 - **Purpose**: Configuration management and validation
 - **Dependencies**:
@@ -1653,6 +1671,7 @@
   - `core/backup_manager.py`
   - `core/checkin_analytics.py`
   - `core/checkin_dynamic_manager.py`
+  - `core/checkin_service.py`
   - `core/config.py`
   - `core/file_auditor.py`
   - `core/file_locking.py`
@@ -1721,6 +1740,7 @@
   - `ui/widgets/task_settings_widget.py`
   - `ui/widgets/user_profile_settings_widget.py`
   - `user/context_manager.py`
+  - `user/profile_service.py`
   - `user/user_context.py`
   - `user/user_preferences.py`
 
@@ -2132,6 +2152,7 @@
   - `communication/message_processing/conversation_flow_manager.py`
   - `communication/message_processing/interaction_manager.py`
   - `core/checkin_analytics.py`
+  - `core/checkin_service.py`
   - `core/user_data_operations.py`
   - `ui/dialogs/user_analytics_dialog.py`
   - `user/context_manager.py`
@@ -2573,7 +2594,6 @@
   - `ai/context_builder.py`
   - `ai/conversation_history.py`
   - `communication/command_handlers/analytics_handler.py`
-  - `communication/command_handlers/checkin_handler.py`
   - `communication/command_handlers/notebook_handler.py`
   - `communication/command_handlers/task_handler.py`
   - `communication/core/channel_monitor.py`
@@ -2584,6 +2604,7 @@
   - `core/auto_cleanup.py`
   - `core/backup_manager.py`
   - `core/checkin_analytics.py`
+  - `core/checkin_service.py`
   - `core/error_handling.py`
   - `core/file_operations.py`
   - `core/message_management.py`
@@ -3046,10 +3067,10 @@
   - **Third-party**:
     - `pydantic (BaseModel, ConfigDict, Field, field_validator, model_validator)`
 - **Used by**:
-  - `communication/command_handlers/task_handler.py`
   - `communication/message_processing/conversation_flow_manager.py`
   - `core/file_operations.py`
   - `tasks/task_data_handlers.py`
+  - `tasks/task_service.py`
   - `tasks/task_validation.py`
 
 **Dependency Changes**:
@@ -3064,17 +3085,23 @@
 - **Purpose**: Task management and scheduling
 - **Dependencies**:
   - **Local**:
+    - `core (get_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.time_utilities (DATE_ONLY, format_timestamp, now_datetime_full, parse_date_only)` (NEW)
     - `tasks` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date)` (NEW)
+    - `tasks.task_schemas (VALID_PRIORITIES)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
+    - `calendar`
+    - `dataclasses (dataclass)`
+    - `datetime (datetime, timedelta)`
+    - `re`
     - `typing (Any)`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core.error_handling, core.time_utilities, tasks, tasks.task_data_handlers
+- Added: core, core.error_handling, core.time_utilities, tasks, tasks.task_data_handlers, tasks.task_schemas
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -3894,6 +3921,26 @@
 **Dependency Changes**:
 - Added: core, core.error_handling, core.logger, core.message_management, core.response_tracking, core.schedule_utilities, core.time_utilities
 - Removed: ai/chatbot.py, ai/context_builder.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `user/profile_service.py`
+- **Purpose**: User data module for profile_service
+- **Dependencies**:
+  - **Local**:
+    - `core (get_user_data, save_user_data)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `dataclasses (dataclass)`
+    - `typing (Any)`
+- **Used by**:
+  - `communication/command_handlers/profile_handler.py`
+
+**Dependency Changes**:
+- Added: core, core.error_handling
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

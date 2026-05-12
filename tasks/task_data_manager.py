@@ -504,6 +504,7 @@ def remove_user_task_tag(user_id: str, tag: str) -> bool:
     return remove_user_tag(user_id, tag)
 
 
+# duplicate_functions_intentional: task_stats_facade
 @handle_errors("getting user task statistics", default_return={"active_count": 0, "completed_count": 0, "total_count": 0})
 def get_user_task_stats(user_id: str) -> dict[str, int]:
     """Get task statistics for a user."""

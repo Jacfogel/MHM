@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-05-11 (development-tools backlog status cleanup)
+> **Last Updated**: 2026-05-11 (communication command-handler thinning complete)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -74,18 +74,6 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 
 - [ ] Larger scheduler splits (e.g. moving more task-reminder scheduling bodies out of `core/scheduler.py`) remain optional follow-ups. (Initial split shipped **2026-05-02**; see paired changelogs.)
 - Intentional thin delegators: suppress duplicate-tool pairs by giving **both** functions the same `# not_duplicate: <group_id>` (or `# duplicate_functions_intentional:`) comment within a few lines above `def` - see `development_tools/functions/analyze_duplicate_functions.py` module docstring. Single-function exclusion: `# duplicate_functions_exclude`.
-
-### Audit and thin communication command handlers
-
-- Identify command handlers that contain domain/business logic.
-- Start with notebook_handler.py and task_handler.py.
-- **Facades shipped:** `notebook/notebook_service.py` and `tasks/task_service.py` (handlers import them; task handler uses lazy `_task_service()`). Further thinning of handler bodies is optional follow-up; see CHANGELOG **2026-05-02**.
-- Keep communication handlers responsible for:
-  - interpreting ParsedCommand
-  - calling domain services
-  - formatting InteractionResponse
-- Preserve current Discord/email behavior.
-- Add tests for the new domain service layer before thinning handlers.
 
 ### **Resolve Existing Time Utility Policy Violations** - Replace or justify current direct datetime formatting/parsing calls found outside `core/time_utilities.py`.
 - *What it means*: Review current hits in `core/message_management.py`, `core/scheduler.py`, `core/logger.py`, and `communication/core/welcome_manager.py`; add canonical helpers where needed, especially for UTC-aware timestamps.

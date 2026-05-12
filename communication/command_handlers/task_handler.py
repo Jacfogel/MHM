@@ -7,21 +7,13 @@ This module handles all task-related interactions including creating,
 listing, completing, deleting, updating, and getting statistics for tasks.
 """
 
-import calendar
 import importlib
-import re
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.time_utilities import (
-    DATE_ONLY,
-    format_timestamp,
-    parse_date_only,
-    now_datetime_full,
-)
-
+from core.time_utilities import now_datetime_full
 from .base_handler import InteractionHandler, InteractionResponse, ParsedCommand
 
 from tasks.task_data_handlers import (
@@ -29,7 +21,6 @@ from tasks.task_data_handlers import (
     runtime_task_recurrence_interval,
     runtime_task_recurrence_pattern,
 )
-from tasks.task_schemas import VALID_PRIORITIES
 
 # Lazy import: ``from tasks import task_service`` would run ``tasks/__init__.py`` at module load
 # and can worsen circular-import issues during core.service bootstrap.
@@ -66,13 +57,7 @@ def _task_short_identifier(task: dict[str, Any]) -> str:
 @handle_errors("advancing date by one calendar month", re_raise=True)
 def _add_one_calendar_month(dt: datetime) -> datetime:
     """Advance *dt* by one calendar month, clamping the day to the target month's last day."""
-    if dt.month == 12:
-        year, month = dt.year + 1, 1
-    else:
-        year, month = dt.year, dt.month + 1
-    last_day = calendar.monthrange(year, month)[1]
-    safe_day = min(dt.day, last_day)
-    return dt.replace(year=year, month=month, day=safe_day)
+    return _task_service().add_one_calendar_month(dt)
 
 # Pending confirmations (simple in-memory store)
 PENDING_DELETIONS: dict[str, str] = {}
@@ -161,136 +146,17 @@ class TaskManagementHandler(InteractionHandler):
                 ],
             )
 
-        # Extract other task properties
-        description = entities.get("description", "")
-        due_date = entities.get("due_date")
-        due_time = entities.get(
-            "due_time"
-        )  # Extract time if present (e.g., "Friday at noon")
-        raw_priority = entities.get("priority")
-        priority_was_provided = raw_priority in VALID_PRIORITIES
-        priority = raw_priority or "medium"
-        tags = entities.get("tags", [])
-        recurrence_pattern = entities.get("recurrence_pattern")
-        recurrence_interval = entities.get("recurrence_interval", 1)
-
-        # If no recurrence pattern specified, check user's default settings
-        if not recurrence_pattern:
-            try:
-                from core import get_user_data
-
-                user_data = get_user_data(user_id, "preferences")
-                preferences = user_data.get("preferences", {})
-                task_settings = preferences.get("task_settings", {})
-                recurring_settings = task_settings.get("recurring_settings", {})
-
-                # Use default pattern if available
-                default_pattern = recurring_settings.get("default_recurrence_pattern")
-                if default_pattern:
-                    recurrence_pattern = default_pattern
-                    recurrence_interval = recurring_settings.get(
-                        "default_recurrence_interval", 1
-                    )
-            except Exception:
-                # If there's an error loading preferences, continue without defaults
-                pass
-
-        # Convert relative dates to proper dates and extract time
-        valid_due_time = None
-        if due_date:
-            # If due_date contains time info (e.g., "Friday at noon"), parse it
-            # Extract time from patterns like "next Tuesday at 11:00", "Friday at noon", "at 11:00"
-            time_match = re.search(
-                r"(?:next\s+)?(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?|noon|midnight)",
-                due_date.lower(),
-            )
-            if not time_match:
-                # Also check for standalone "at [time]" pattern
-                time_match = re.search(
-                    r"at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?|noon|midnight)",
-                    due_date.lower(),
-                )
-
-            if time_match:
-                time_str = time_match.group(1)
-                # Parse time to HH:MM format
-                parsed_time = self._parse_time_string(time_str)
-                if parsed_time:
-                    valid_due_time = parsed_time
-                # Remove time from due_date string for date parsing
-                due_date = re.sub(r"\s+at\s+.*", "", due_date, flags=re.IGNORECASE)
-
-            # Parse the date
-            due_date = self._handle_create_task__parse_relative_date(due_date)
-
-        # If due_time was extracted separately, use it
-        if due_time and not valid_due_time:
-            parsed_time = self._parse_time_string(due_time)
-            if parsed_time:
-                valid_due_time = parsed_time
-
-        if recurrence_pattern and valid_due_time and not due_date:
-            due_date = self._default_due_date_for_recurring_time(valid_due_time)
-
-        # Validate priority
-        if priority not in VALID_PRIORITIES:
-            logger.warning(
-                f"Invalid priority '{priority}' provided, defaulting to 'medium'"
-            )
-            priority = "medium"
-
-        # Validate recurrence pattern
-        valid_patterns = ["daily", "weekly", "monthly", "yearly"]
-        if recurrence_pattern and recurrence_pattern not in valid_patterns:
-            logger.warning(
-                f"Invalid recurrence_pattern '{recurrence_pattern}' provided, ignoring"
-            )
-            recurrence_pattern = None  # Validate due_date format if provided (due_date was already parsed above)
-        valid_due_date = None
-        if (
-            due_date and due_date.strip()
-        ):  # Check for None, empty string, or whitespace-only
-            # Strict parse (external input) via core.time_utilities
-            if parse_date_only(due_date) is not None:
-                valid_due_date = due_date
-            else:
-                # Still invalid after parsing - treat as no due date
-                logger.warning(
-                    f"Could not parse due_date '{due_date}' to valid date format, treating as no due date"
-                )
-                valid_due_date = None
-
-        # Create the task with enhanced properties
-        task_data = {
-            "title": title,
-            "description": description,
-            "due_date": valid_due_date,
-            "due_time": (
-                valid_due_time if valid_due_date else None
-            ),  # Only set time if we have a valid date
-            "priority": priority,
-            "tags": tags,
-        }
-
-        # Add recurring task fields if specified
-        if recurrence_pattern:
-            task_data["recurrence_pattern"] = recurrence_pattern
-            task_data["recurrence_interval"] = recurrence_interval
-
-            # Use default repeat_after_completion setting if available
-            try:
-                from core import get_user_data
-
-                user_data = get_user_data(user_id, "preferences")
-                preferences = user_data.get("preferences", {})
-                task_settings = preferences.get("task_settings", {})
-                recurring_settings = task_settings.get("recurring_settings", {})
-                task_data["repeat_after_completion"] = recurring_settings.get(
-                    "default_repeat_after_completion", True
-                )
-            except Exception:
-                # Default to True if there's an error loading preferences
-                task_data["repeat_after_completion"] = True
+        prepared = _task_service().prepare_create_task_data(
+            user_id, entities, now_dt=now_datetime_full()
+        )
+        task_data = prepared.task_data
+        valid_due_date = prepared.valid_due_date
+        valid_due_time = prepared.valid_due_time
+        priority = prepared.priority
+        priority_was_provided = prepared.priority_was_provided
+        tags = prepared.tags
+        recurrence_pattern = prepared.recurrence_pattern
+        recurrence_interval = prepared.recurrence_interval
 
         task_id = _task_service().create_task(user_id=user_id, **task_data)
 
@@ -376,165 +242,19 @@ class TaskManagementHandler(InteractionHandler):
     @handle_errors("parsing time string", default_return=None)
     def _parse_time_string(self, time_str: str) -> str | None:
         """Parse time string to HH:MM format"""
-        import re
-
-        time_str_lower = time_str.lower().strip()
-
-        # Handle "noon" and "midnight"
-        if time_str_lower == "noon":
-            return "12:00"
-        elif time_str_lower == "midnight":
-            return "00:00"
-
-        # Pattern for time like "10am", "10:30am", "2pm", "14:00"
-        time_patterns = [
-            r"(\d{1,2}):(\d{2})\s*(am|pm)?",  # "10:30am" or "14:30"
-            r"(\d{1,2})\s*(am|pm)",  # "10am" or "2pm"
-        ]
-
-        for pattern in time_patterns:
-            match = re.search(pattern, time_str_lower)
-            if match:
-                groups = match.groups()
-                hour = int(groups[0])
-                minute = (
-                    int(groups[1])
-                    if len(groups) > 1 and groups[1] and groups[1].isdigit()
-                    else 0
-                )
-
-                # Check for AM/PM
-                if len(groups) > 2 and groups[-1]:
-                    am_pm = groups[-1].lower()
-                    if am_pm == "pm" and hour != 12:
-                        hour += 12
-                    elif am_pm == "am" and hour == 12:
-                        hour = 0
-                elif hour < 12 and "pm" in time_str_lower:
-                    hour += 12
-                elif hour == 12 and "am" in time_str_lower:
-                    hour = 0
-
-                return f"{hour:02d}:{minute:02d}"
-
-        return None
+        return _task_service().parse_time_string(time_str)
 
     @handle_errors("defaulting due date for recurring task time", default_return=None)
     def _default_due_date_for_recurring_time(self, due_time: str) -> str | None:
         """Return today for future recurring times, otherwise tomorrow."""
-        now_dt = now_datetime_full()
-        try:
-            hour_text, minute_text = due_time.split(":", 1)
-            due_hour = int(hour_text)
-            due_minute = int(minute_text)
-        except (TypeError, ValueError):
-            return format_timestamp(now_dt, DATE_ONLY)
-
-        due_today = now_dt.replace(
-            hour=due_hour,
-            minute=due_minute,
-            second=0,
-            microsecond=0,
+        return _task_service().default_due_date_for_recurring_time(
+            due_time, now_dt=now_datetime_full()
         )
-        if due_today <= now_dt:
-            due_today = due_today + timedelta(days=1)
-        return format_timestamp(due_today, DATE_ONLY)
 
     @handle_errors("parsing relative date")
     def _handle_create_task__parse_relative_date(self, date_str: str) -> str:
         """Convert relative date strings to proper dates"""
-        import re
-
-        date_str_lower = date_str.lower().strip()
-
-        # Internal in-memory datetime arithmetic: use canonical now + strict parse.
-        now_dt = now_datetime_full()
-
-        if date_str_lower == "today":
-            return format_timestamp(now_dt, DATE_ONLY)
-        elif date_str_lower == "tomorrow":
-            return format_timestamp(now_dt + timedelta(days=1), DATE_ONLY)
-        elif date_str_lower == "next week":
-            return format_timestamp(now_dt + timedelta(days=7), DATE_ONLY)
-        elif date_str_lower == "next month":
-            next_month = _add_one_calendar_month(now_dt)
-            return format_timestamp(next_month, DATE_ONLY)
-        elif date_str_lower.startswith("in "):
-            # Parse "in X hours", "in X days", or "in X weeks"
-            hours_match = re.search(r"in\s+(\d+)\s+hours?", date_str_lower)
-            if hours_match:
-                hours = int(hours_match.group(1))
-                target_datetime = now_dt + timedelta(hours=hours)
-                return format_timestamp(target_datetime, DATE_ONLY)
-            days_match = re.search(r"in\s+(\d+)\s+days?", date_str_lower)
-            if days_match:
-                days = int(days_match.group(1))
-                return format_timestamp(now_dt + timedelta(days=days), DATE_ONLY)
-            weeks_match = re.search(r"in\s+(\d+)\s+weeks?", date_str_lower)
-            if weeks_match:
-                weeks = int(weeks_match.group(1))
-                return format_timestamp(now_dt + timedelta(weeks=weeks), DATE_ONLY)
-        elif date_str_lower.startswith("next "):
-            # Parse "next Tuesday", "next Monday", etc.
-            days_of_week = [
-                "monday",
-                "tuesday",
-                "wednesday",
-                "thursday",
-                "friday",
-                "saturday",
-                "sunday",
-            ]
-            day_match = re.search(
-                r"next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)",
-                date_str_lower,
-            )
-            if day_match:
-                day_name = day_match.group(1).lower()
-                day_index = days_of_week.index(day_name)
-                # Find next occurrence of this day (always next week since "next" is specified)
-                days_ahead = (day_index - now_dt.weekday()) % 7
-                if days_ahead == 0:  # Today is that day, use next week
-                    days_ahead = 7
-                else:
-                    # Add 7 to get next week's occurrence (since "next" means next week, not this week)
-                    days_ahead += 7
-                return format_timestamp(now_dt + timedelta(days=days_ahead), DATE_ONLY)
-            # If "next" doesn't match a day, try other "next" patterns
-            elif "next week" in date_str_lower:
-                return format_timestamp(now_dt + timedelta(days=7), DATE_ONLY)
-            elif "next month" in date_str_lower:
-                next_month = _add_one_calendar_month(now_dt)
-                return format_timestamp(next_month, DATE_ONLY)
-        elif re.match(
-            r"(monday|tuesday|wednesday|thursday|friday|saturday|sunday)",
-            date_str_lower,
-        ):
-            # Parse day of week (e.g., "Friday", "Friday at noon") - without "next"
-            days_of_week = [
-                "monday",
-                "tuesday",
-                "wednesday",
-                "thursday",
-                "friday",
-                "saturday",
-                "sunday",
-            ]
-            day_match = re.search(
-                r"(monday|tuesday|wednesday|thursday|friday|saturday|sunday)",
-                date_str_lower,
-            )
-            if day_match:
-                day_name = day_match.group(1).lower()
-                day_index = days_of_week.index(day_name)
-                # Find next occurrence of this day
-                days_ahead = (day_index - now_dt.weekday()) % 7
-                if days_ahead == 0:  # Today is that day, use next week
-                    days_ahead = 7
-                return (now_dt + timedelta(days=days_ahead)).date().isoformat()
-
-        # Return as-is if it's already a proper date or unknown format
-        return date_str
+        return _task_service().parse_relative_date(date_str, now_dt=now_datetime_full())
 
     @handle_errors("handling task listing")
     def _handle_list_tasks(
@@ -596,38 +316,14 @@ class TaskManagementHandler(InteractionHandler):
         self, user_id, tasks, filter_type, priority_filter, tag_filter
     ):
         """Apply filters to tasks and return filtered list."""
-        filtered_tasks = tasks.copy()
-
-        # Apply filter type
-        if filter_type == "due_soon":
-            filtered_tasks = _task_service().get_tasks_due_soon(user_id, days_ahead=7)
-        elif filter_type == "overdue":
-            today = format_timestamp(now_datetime_full(), DATE_ONLY)
-            filtered_tasks = [
-                task
-                for task in filtered_tasks
-                if (d := runtime_task_due_date(task)) and d < today
-            ]
-        elif filter_type == "high_priority":
-            filtered_tasks = [
-                task for task in filtered_tasks if task.get("priority") == "high"
-            ]
-
-        # Apply priority filter
-        if priority_filter and priority_filter in VALID_PRIORITIES:
-            filtered_tasks = [
-                task
-                for task in filtered_tasks
-                if task.get("priority") == priority_filter
-            ]
-
-        # Apply tag filter
-        if tag_filter:
-            filtered_tasks = [
-                task for task in filtered_tasks if tag_filter in task.get("tags", [])
-            ]
-
-        return filtered_tasks
+        return _task_service().filter_tasks(
+            user_id,
+            tasks,
+            filter_type,
+            priority_filter,
+            tag_filter,
+            now_dt=now_datetime_full(),
+        )
 
     @handle_errors("handling no tasks response")
     def _handle_list_tasks__no_tasks_response(
@@ -652,14 +348,7 @@ class TaskManagementHandler(InteractionHandler):
     @handle_errors("sorting tasks")
     def _handle_list_tasks__sort_tasks(self, tasks):
         """Sort tasks by priority and due date."""
-        priority_order = {"high": 0, "medium": 1, "low": 2}
-        return sorted(
-            tasks,
-            key=lambda x: (
-                priority_order.get(x.get("priority", "medium"), 1),
-                runtime_task_due_date(x) or "9999-12-31",
-            ),
-        )
+        return _task_service().sort_tasks_by_priority_and_due_date(tasks)
 
     @handle_errors("formatting task list")
     def _handle_list_tasks__format_list(self, tasks):
@@ -706,16 +395,9 @@ class TaskManagementHandler(InteractionHandler):
     @handle_errors("formatting due date")
     def _handle_list_tasks__format_due_date(self, due_date):
         """Format due date with urgency indicator."""
-        if not due_date:
-            return ""
-
-        today = format_timestamp(now_datetime_full(), DATE_ONLY)
-        if due_date < today:
-            return f" (OVERDUE: {due_date})"
-        elif due_date == today:
-            return f" (due TODAY: {due_date})"
-        else:
-            return f" (due: {due_date})"
+        return _task_service().format_due_date_status(
+            due_date, now_dt=now_datetime_full()
+        )
 
     @handle_errors("building filter info")
     def _handle_list_tasks__build_filter_info(
@@ -775,36 +457,9 @@ class TaskManagementHandler(InteractionHandler):
     @handle_errors("getting suggestion")
     def _handle_list_tasks__get_suggestion(self, tasks):
         """Get contextual show suggestion based on task analysis."""
-        # Scheduler/UI state comparisons: use canonical now + strict parse.
-        now_dt = now_datetime_full()
-
-        today = format_timestamp(now_dt, DATE_ONLY)
-
-        # Check for overdue tasks first
-        overdue_count = sum(
-            1
-            for task in tasks
-            if (d := runtime_task_due_date(task)) and d < today
+        return _task_service().get_contextual_task_suggestion(
+            tasks, now_dt=now_datetime_full()
         )
-        if overdue_count > 0:
-            return f"Show {overdue_count} overdue tasks"
-
-        # Check for high priority tasks
-        high_priority_count = sum(1 for task in tasks if task.get("priority") == "high")
-        if high_priority_count > 0:
-            return f"Show {high_priority_count} high priority tasks"
-
-        # Check for tasks due soon (within 3 days)
-        soon_cutoff = format_timestamp(now_dt + timedelta(days=3), DATE_ONLY)
-        due_soon_count = sum(
-            1
-            for task in tasks
-            if (d := runtime_task_due_date(task)) and d <= soon_cutoff
-        )
-        if due_soon_count > 0:
-            return f"Show {due_soon_count} tasks due soon"
-
-        return None
 
     @handle_errors("creating rich data")
     def _handle_list_tasks__create_rich_data(self, filter_info, tasks):
@@ -937,27 +592,9 @@ class TaskManagementHandler(InteractionHandler):
                 completed=False,
             )
         completed_tasks = _task_service().load_completed_tasks(user_id)
-        candidates = [
-            t
-            for t in completed_tasks
-            if str(task_identifier).strip().lower()
-            in (
-                _task_identifier(t).lower(),
-                _task_short_identifier(t).lower(),
-                (t.get("title") or "").lower(),
-            )
-            or (
-                str(task_identifier).isdigit()
-                and _task_identifier(t) == str(task_identifier)
-            )
-        ]
-        if not candidates:
-            by_title = [
-                t
-                for t in completed_tasks
-                if task_identifier.lower() in (t.get("title") or "").lower()
-            ]
-            candidates = by_title if by_title else []
+        candidates = _task_service().get_completed_task_candidates(
+            completed_tasks, task_identifier
+        )
         task = candidates[0] if candidates else None
         if not task:
             return InteractionResponse(

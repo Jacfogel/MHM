@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-11 00:45:52
+> **Last Generated**: 2026-05-11 22:07:53
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,10 +11,10 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 93.0% [!] GOOD**
-- **Total Functions**: 1871
+- **Total Functions**: 1888
 - **Total Methods**: 1274
-- **Documented**: 2924/3145
-- **Files Scanned**: 140
+- **Documented**: 2941/3162
+- **Files Scanned**: 142
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -161,7 +161,7 @@ Core System Decision Tree:
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
 - `core/user_data_registry.py` - 11/22 functions undocumented (50% coverage)
 - `tasks/task_schemas.py` - 10/10 functions undocumented (0% coverage)
-- `tasks/task_service.py` - 10/15 functions undocumented (33% coverage)
+- `tasks/task_service.py` - 10/26 functions undocumented (62% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
@@ -188,7 +188,7 @@ Most complex functions (may need refactoring):
 1. [OK] `run_tests.py::run_command()` - Complexity: 3211
 2. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2960
 3. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2788
-4. [OK] `run_tests.py::main()` - Complexity: 2691
+4. [OK] `run_tests.py::main()` - Complexity: 2693
 5. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2506
 
 
@@ -199,11 +199,11 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (46 files, 962 functions)
+- `core/` - System utilities and data management (47 files, 965 functions)
 - `communication/` - Communication channels and message processing (45 files, 944 functions)
 - `ai/` - AI chatbot functionality (7 files, 220 functions)
 - `ui/` - User interface components (29 files, 833 functions)
-- `user/` - User context and preferences (4 files, 63 functions)
-- `tasks/` - Task management system (6 files, 75 functions)
+- `user/` - User context and preferences (5 files, 66 functions)
+- `tasks/` - Task management system (6 files, 86 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**

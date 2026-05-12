@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-11 00:45:52
+> **Last Generated**: 2026-05-11 22:07:53
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,15 +15,15 @@
 ## Overview
 
 ### **Function Documentation Coverage: 93.0% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 140
-- **Functions Found**: 1871
+- **Files Scanned**: 142
+- **Functions Found**: 1888
 - **Methods Found**: 1274
-- **Classes Found**: 170
-- **Total Items**: 3145
-- **Functions Documented**: 1716
+- **Classes Found**: 175
+- **Total Items**: 3162
+- **Functions Documented**: 1733
 - **Methods Documented**: 1208
-- **Classes Documented**: 132
-- **Total Documented**: 2924
+- **Classes Documented**: 137
+- **Total Documented**: 2941
 - **Template-Generated**: 20
 - **Last Updated**: 2026-05-11
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (676)
+### **Core System Functions** (679)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (499)
@@ -48,10 +48,10 @@ Bot implementations, channel management, and communication utilities.
 ### **User Interface Functions** (431)
 UI dialogs, widgets, and user interaction functions.
 
-### **User Management Functions** (32)
+### **User Management Functions** (35)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (70)
+### **Task Management Functions** (81)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -2972,6 +2972,15 @@ Checks custom questions first (if user_id provided), then predefined questions.
   - [OK] `DynamicCheckinManager.save_custom_question(self, user_id, question_key, question_def)` - Save a custom question to user preferences.
   - [OK] `DynamicCheckinManager.validate_answer(self, question_key, answer, user_id)` - Validate an answer for a specific question.
 
+#### `core/checkin_service.py`
+**Functions:**
+- [OK] `checkin_display_date(checkin)` - Return a stable display date for a check-in.
+- [OK] `get_checkin_start_status(user_id)` - Return whether a user can start a new check-in right now.
+- [OK] `get_recent_checkin_summary(user_id)` - Return recent check-ins if check-ins are enabled for the user.
+**Classes:**
+- [OK] `CheckinStartStatus` - Preflight status for starting a check-in.
+- [OK] `RecentCheckinSummary` - Recent check-in data normalized for command display.
+
 #### `core/config.py`
 **Functions:**
 - [OK] `__init__(self, message, missing_configs, warnings)` - Initialize the object.
@@ -4625,11 +4634,13 @@ Sets up signal handlers for graceful shutdown.
 
 Args:
     interval: Time interval in seconds between allowed operations
-- [OK] `create_reschedule_request(user_id, category)` - Create a reschedule request file that the service will pick up.
+- [OK] `create_reschedule_request(user_id, category, source)` - Create a reschedule request file that the service will pick up.
 
 Args:
     user_id: The user ID
     category: The category to reschedule
+    source: Logical source requesting the reschedule. This is diagnostic
+        metadata for the service request, not channel behavior.
 
 Returns:
     bool: True if request was created successfully
@@ -5453,20 +5464,33 @@ Returns:
 #### `tasks/task_service.py`
 **Functions:**
 - [MISSING] `_tasks()` - No description
+- [OK] `add_one_calendar_month(dt)` - Advance *dt* by one calendar month, clamping the day if necessary.
 - [MISSING] `complete_task(user_id, task_id)` - No description
 - [MISSING] `create_task(user_id)` - No description
+- [OK] `default_due_date_for_recurring_time(due_time, now_dt)` - Return today for future recurring times, otherwise tomorrow.
 - [MISSING] `delete_task(user_id, task_id)` - No description
+- [OK] `filter_tasks(user_id, tasks, filter_type, priority_filter, tag_filter, now_dt)` - Apply command task-list filters.
 - [OK] `find_most_urgent_task(tasks)` - Find the most urgent task based on overdue status, priority, and due date.
 - [OK] `find_task_by_identifier(tasks, identifier)` - Find a task by number, name, canonical id, or short_id.
+- [OK] `format_due_date_status(due_date, now_dt)` - Format due-date status for command display.
+- [OK] `get_completed_task_candidates(tasks, identifier)` - Return completed-task candidates matching id, short_id, number, or title.
+- [OK] `get_contextual_task_suggestion(tasks, now_dt)` - Return a state-based suggestion for a task list.
+- [OK] `get_recurring_task_defaults(user_id)` - Return recurring-task preference defaults for command task creation.
 - [OK] `get_task_candidates(tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
 - [MISSING] `get_tasks_due_soon(user_id)` - No description
 - [MISSING] `get_user_task_stats(user_id)` - No description
 - [MISSING] `load_active_tasks(user_id)` - No description
 - [MISSING] `load_completed_tasks(user_id)` - No description
+- [OK] `parse_relative_date(date_str, now_dt)` - Convert relative task due-date strings to YYYY-MM-DD where possible.
+- [OK] `parse_time_string(time_str)` - Parse user-facing time text into HH:MM format.
+- [OK] `prepare_create_task_data(user_id, entities, now_dt)` - Normalize ParsedCommand entities into task creation fields.
 - [MISSING] `restore_task(user_id, task_id)` - No description
+- [OK] `sort_tasks_by_priority_and_due_date(tasks)` - Sort active tasks by priority, then due date.
 - [OK] `task_identifier(task)` - Return canonical task id for matching and mutations.
 - [OK] `task_short_identifier(task)` - Return canonical task short_id for matching and display.
 - [MISSING] `update_task(user_id, task_id, updates)` - No description
+**Classes:**
+- [OK] `PreparedTaskCreateData` - Normalized task fields for command-driven task creation.
 
 #### `tasks/task_validation.py`
 **Functions:**
@@ -6969,6 +6993,15 @@ Args:
 
 Returns:
     Dict containing all relevant user context for current user
+
+#### `user/profile_service.py`
+**Functions:**
+- [OK] `_list_from_command_value(value)` - Normalize a comma-separated command value to a list.
+- [OK] `apply_profile_updates(user_id, entities)` - Apply ParsedCommand profile updates to account/context storage.
+- [OK] `load_profile_sections(user_id)` - Load account, context, and preferences sections for profile display.
+**Classes:**
+- [OK] `ProfileSections` - Loaded profile data sections.
+- [OK] `ProfileUpdateResult` - Result of applying profile updates.
 
 #### `user/user_context.py`
 **Functions:**

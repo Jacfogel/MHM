@@ -12,7 +12,7 @@ PyNaCl>=1.6.2  # For Discord webhook signature verification (ed25519); pip-audit
 
 # AI/ML dependencies  
 requests>=2.33.0  # For LM Studio HTTP API calls (pip-audit floor)
-urllib3>=2.6.3  # Transitive; explicit floor for CVE fixes
+urllib3>=2.7.0  # Transitive; explicit floor for CVE fixes
 pydantic>=2.7.0  # For JSON schema validation and parsing
 
 # UI dependencies

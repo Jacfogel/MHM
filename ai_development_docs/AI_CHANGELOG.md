@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-11 - Command-handler service thinning and dependency audit cleanup **COMPLETED**
+- Moved task, check-in, and profile command-domain decisions into service helpers while keeping communication handlers responsible for ParsedCommand routing and InteractionResponse formatting.
+- Preserved current handler patch boundaries/Discord behavior, added service-focused tests, fixed the profile show regression, and marked the task stats facade duplicate as intentional with the supported analyzer marker.
+- Raised `urllib3` to `>=2.7.0` and upgraded the local venv; direct `pip-audit --format json` reports no known vulnerabilities.
+- Validation: focused profile/task/check-in tests, marker analysis, duplicate analysis, `py_compile`, `doc-fix --convert-links`, `doc-sync`, direct pip-audit, and standard audit passed. Cache-cleared full audit was killed with exit 137, so it is not counted as clean full-audit validation.
+
 ### 2026-05-11 - Ignored project script retirements **COMPLETED**
 - Retired ignored `scripts/cleanup_windows_tasks.py`; tracked scheduler cleanup in `core.scheduler_maintenance.cleanup_scheduler_wake_tasks` is the owner now.
 - Retired ignored `scripts/create_project_snapshot.py`; use `backup_manager.create_backup(include_code=True)` for restorable backups and `export-code` / `export-docs` for AI-readable snapshots.
@@ -129,25 +135,6 @@ Guidelines:
 - **Phase 6 pagination rendering**: `notebook_handler` now emits generic `PaginationAction` metadata; Discord owns Show More labels, button custom IDs, and hidden continuation payloads.
 - Plans/TODO updated: phases 1-6 complete, phases 7-9 remain; low-priority architecture follow-ups track possible `scheduler/`, `storage/`, `messages/`, and `checkins/` packages. Validation: Ruff clean and focused service/scheduler/notebook/task suites passed.
 - **Priority sweep**: pagination/notebook helper error handling, pagination `core` domain markers, changelog link conversion, task-urgency test clock patching, and `service_requests` cleanup duplicate hygiene are addressed. Targeted pagination/task/service tests, error-handling analyzer, marker analyzer, `docs`, and `doc-sync` passed.
-
-### 2026-05-02 - Scheduler split + notebook/task service facades **COMPLETED**
-- `scheduler_maintenance`, `scheduler_task_reminders`, `scheduler_jobs` wired from `SchedulerManager`; resilient per-file test-message flag cleanup in `service_requests`.
-- `notebook_service` / `task_service` added; handlers use them (lazy `_task_service()` in task handler). Tests updated for dispatcher/service_requests patch paths.
-- Discord ngrok exit logs use f-strings (static logging check).
-- **Sweep**: unused-import Ruff fixes; docstrings/`handle_errors` on send-result + small facades; pytest domain markers on new service tests; TODO cleanup; `docs` / `doc-fix` / `doc-sync` run.
-- **Duplicate tool**: `# not_duplicate: ...` on paired thin delegators (orchestrator predefined sends; service vs `service_requests` request-file cleanup). **Error handling**: `@handle_errors` on `SchedulerManager` maintenance delegators; `get_repo_base_directory` / `is_test_message_request_filename` in `service_requests`. TODO links how to mark intentional duplicates (`analyze_duplicate_functions.py` docstring).
-
-### 2026-05-02 - Discord ngrok diagnostics **COMPLETED**
-- Failed auto-ngrok now logs stderr + authtoken / manual-ngrok hints; running tunnel drains stderr in a background thread. DISCORD_GUIDE updated for ngrok v3+; `.env.example` defaults `DISCORD_AUTO_NGROK=false`. Validation: `py_compile` + Ruff on `discord/bot.py`.
-
-### 2026-05-02 - Development tools decoupled from core.logger **COMPLETED**
-- **Follow-up (same day)**: `get_dev_tools_logger` now supports stdlib printf-style calls (fixes Pyright across dev-tools); `run_development_tools.py` sets `DEV_TOOLS_LOGS_DIR` to `development_tools/reports/logs`; [TODO.md](../TODO.md) path-drift fixes + doc-sync clean; `run_test_coverage.py` guards `logger.error(context)` when `context` is optional. **`core/logger.py`**: removed special-case routing of log files under `development_tools/reports/logs` when `MHM_DEV_TOOLS_RUN=1` (dev-tools file logs are only via `development_tools.shared.logging`).
-- **Log noise / priorities**: Dev-tools file logs default **INFO** (`DEV_TOOLS_LOG_LEVEL`); several former WARNING/ERROR lines re-leveled to DEBUG for expected paths; unknown CLI command is WARNING. Paired logging-guide paths + CHANGELOG link fixed so doc-sync PASS; `status` refreshed `AI_PRIORITIES.md`.
-- **Audit vs pytest subprocess**: CLI entry clears inherited `PYTEST_CURRENT_TEST`; lock-based audit detection lives in `lock_state` and gates `create_output_file` for `AI_*` without `shared.operations`; smoke tests skip when project-root audit/coverage locks are active; `file_rotation` uses `.lock_state` import for Pyright.
-- **Portability**: New [`development_tools/shared/logging.py`](../development_tools/shared/logging.py) (`get_dev_tools_logger`); all `development_tools/**/*.py` migrated off `core.logger`; import-boundary checker now flags **any** `core.*` import under `development_tools/`.
-- **Docs/policy**: Updated paired dev-tools guides, `.cursor/rules/dev_tools.mdc`, `check_channel_loggers` product vs dev-tools messaging, and consolidated-report import-boundary action text.
-- **Tests**: `tests/development_tools/test_dev_tools_portability_smoke.py` (minimal fake project + subprocess import check); boundary/policy tests updated; `test_file_rotation` patches `get_dev_tools_logger`.
-- **Validation**: `pytest` on changed/focused dev-tools tests; `python development_tools/run_development_tools.py audit --quick` succeeded.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -4,13 +4,16 @@ from typing import Any
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
+from core.checkin_service import (
+    checkin_display_date,
+    get_checkin_start_status,
+    get_recent_checkin_summary,
+)
 from core.response_tracking import (
     checkin_runtime_timestamp,
     get_recent_checkins,
     is_user_checkins_enabled,
 )
-from core.time_utilities import parse_timestamp_full
-from datetime import date
 from communication.command_handlers.base_handler import InteractionHandler
 from communication.command_handlers.shared_types import (
     InteractionResponse,
@@ -64,28 +67,24 @@ class CheckinHandler(InteractionHandler):
     )
     def _handle_start_checkin(self, user_id: str) -> InteractionResponse:
         """Handle starting a check-in by delegating to conversation manager"""
-        if not is_user_checkins_enabled(user_id):
+        status = get_checkin_start_status(
+            user_id,
+            is_enabled=is_user_checkins_enabled,
+            load_recent=get_recent_checkins,
+            runtime_timestamp=checkin_runtime_timestamp,
+        )
+        if not status.enabled:
             return InteractionResponse(
                 "Check-ins are not enabled for your account. Please contact an administrator to enable check-ins.",
                 True,
             )
 
-        # Check if they've already done a check-in today
-        today = date.today()
-
-        recent_checkins = get_recent_checkins(user_id, limit=1)
-        if recent_checkins:
-            last_checkin = recent_checkins[0]
-            last_checkin_timestamp = checkin_runtime_timestamp(last_checkin)
-
-            # Parse the timestamp to check if it's from today
-            last_checkin_dt = parse_timestamp_full(last_checkin_timestamp)
-            if last_checkin_dt is not None and last_checkin_dt.date() == today:
-                return InteractionResponse(
-                    f"You've already completed a check-in today at {last_checkin_timestamp}. "
-                    "You can start a new check-in tomorrow!",
-                    True,
-                )
+        if status.already_completed_today:
+            return InteractionResponse(
+                f"You've already completed a check-in today at {status.last_checkin_timestamp}. "
+                "You can start a new check-in tomorrow!",
+                True,
+            )
 
         # Delegate to conversation manager for proper check-in flow (modern API)
         from communication.message_processing.conversation_flow_manager import (
@@ -127,13 +126,18 @@ class CheckinHandler(InteractionHandler):
     )
     def _handle_checkin_status(self, user_id: str) -> InteractionResponse:
         """Handle check-in status request"""
-        if not is_user_checkins_enabled(user_id):
+        summary = get_recent_checkin_summary(
+            user_id,
+            limit=7,
+            is_enabled=is_user_checkins_enabled,
+            load_recent=get_recent_checkins,
+        )
+        if not summary.enabled:
             return InteractionResponse(
                 "Check-ins are not enabled for your account.", True
             )
 
-        # Get recent check-ins
-        recent_checkins = get_recent_checkins(user_id, limit=7)
+        recent_checkins = summary.entries
 
         if not recent_checkins:
             return InteractionResponse(
@@ -143,11 +147,7 @@ class CheckinHandler(InteractionHandler):
         # Format status
         response = "**Recent Check-ins:**\n"
         for checkin in recent_checkins[:5]:  # Show last 5
-            date = checkin.get("date")
-            if not date:
-                timestamp = checkin_runtime_timestamp(checkin)
-                parsed_dt = parse_timestamp_full(timestamp) if timestamp else None
-                date = parsed_dt.date().isoformat() if parsed_dt else "Unknown date"
+            date = checkin_display_date(checkin)
             responses = checkin.get("responses") if isinstance(checkin.get("responses"), dict) else {}
             mood = responses.get("mood", checkin.get("mood", "No mood recorded"))
             energy = responses.get("energy", checkin.get("energy", "No energy recorded"))
