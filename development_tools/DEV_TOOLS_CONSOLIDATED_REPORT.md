@@ -58,7 +58,7 @@
 ## Pytest process cleanup (Windows)
 - **Summary**: status=PASS, `orphaned_processes_found`=False, candidate count=0 (heuristic on python.exe command lines).
 - **Note**: Primary detection uses Windows command-line inspection via CIM; the fallback path is less informative when command lines are unavailable.
-- **Machine-readable**: [verify_process_cleanup_results.json](tests/jsons/scopes/full/verify_process_cleanup_results.json)
+- **Machine-readable**: `verify_process_cleanup_results.json`
 
 ## Unused Imports
 - **Unused Imports**: CLEAN (no unused imports detected)
@@ -147,7 +147,7 @@
 - Full-repo status (not produced by this run): [AI_STATUS.md](AI_STATUS.md)
 - Scoped priorities from this run: [DEV_TOOLS_PRIORITIES.md](DEV_TOOLS_PRIORITIES.md)
 - Full-repo priorities: [AI_PRIORITIES.md](AI_PRIORITIES.md)
-- Detailed JSON results: [analysis_detailed_results.json](reports/scopes/full/analysis_detailed_results.json)
+- Detailed JSON results: `analysis_detailed_results.json`
 - Legacy reference report: [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md)
 - Test coverage report: [TEST_COVERAGE_REPORT.md](../development_docs/TEST_COVERAGE_REPORT.md)
 - Unused imports detail: [UNUSED_IMPORTS_REPORT.md](../development_docs/UNUSED_IMPORTS_REPORT.md)

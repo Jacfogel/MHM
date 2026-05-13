@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-05-12 (core/ui_management widget dependency removed)
+> **Last Updated**: 2026-05-12 (time utility policy violations resolved)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -74,13 +74,6 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 
 - [ ] Larger scheduler splits (e.g. moving more task-reminder scheduling bodies out of `core/scheduler.py`) remain optional follow-ups. (Initial split shipped **2026-05-02**; see paired changelogs.)
 - Intentional thin delegators: suppress duplicate-tool pairs by giving **both** functions the same `# not_duplicate: <group_id>` (or `# duplicate_functions_intentional:`) comment within a few lines above `def` - see `development_tools/functions/analyze_duplicate_functions.py` module docstring. Single-function exclusion: `# duplicate_functions_exclude`.
-
-### **Resolve Existing Time Utility Policy Violations** - Replace or justify current direct datetime formatting/parsing calls found outside `core/time_utilities.py`.
-- *What it means*: Review current hits in `core/message_management.py`, `core/scheduler.py`, `core/logger.py`, and `communication/core/welcome_manager.py`; add canonical helpers where needed, especially for UTC-aware timestamps.
-- *Why it helps*: Brings production code in line with the documented datetime policy.
-- *Estimated effort*: Medium
-- *Suggested home*: TODO.md or PLANS.md
-- *Created*: 2026-05-03
 
 ### **Clarify `core/service_utilities.py` Responsibility** - Update or refactor `core/service_utilities.py` so its purpose matches its actual role.
 - *What it means*: Remove stale "datetime handling" wording, decide whether `InvalidTimeFormatError` and `load_and_localize_datetime()` still belong there, and consider renaming/splitting UI request-file helpers into a clearer service request module.

@@ -133,7 +133,7 @@ Pick the **smallest** command that answers your question; full Tier 3 can exceed
 
 #### 5.1.2. Where full-audit time goes (baseline snapshot)
 
-After a full Tier 3 run, see [development_tools/reports/scopes/full/jsons/tool_timings.json](development_tools/reports/scopes/full/jsons/tool_timings.json) for per-tool seconds. A representative snapshot (2026-04-17): **`run_test_coverage` ~473s** (~76% of summed tool durations); next largest single tools **`analyze_pyright` ~47s**, **`analyze_bandit` ~20s**, **`analyze_documentation_sync` ~12s**, **`analyze_pip_audit` ~8.6s**, **`analyze_legacy_references` ~7.6s**. Re-run `audit --full` to refresh; numbers are machine-specific.
+After a full Tier 3 run, see `development_tools/reports/scopes/full/jsons/tool_timings.json` for per-tool seconds. A representative snapshot (2026-04-17): **`run_test_coverage` ~473s** (~76% of summed tool durations); next largest single tools **`analyze_pyright` ~47s**, **`analyze_bandit` ~20s**, **`analyze_documentation_sync` ~12s**, **`analyze_pip_audit` ~8.6s**, **`analyze_legacy_references` ~7.6s**. Re-run `audit --full` to refresh; numbers are machine-specific.
 
 #### 5.1.3. Coverage domain cache (warm vs cold)
 
@@ -148,7 +148,7 @@ The first command is a **cold** run (no domain/test-file cache). The second omit
 
 #### 5.1.4. Pytest parallel workers
 
-`run_test_coverage` defaults to **parallel** pytest (`pytest-xdist`) with `--workers` defaulting to **`auto`**. Override only if you are diagnosing flakes or hardware limits, e.g. `python development_tools/tests/run_test_coverage.py --workers 6`. Re-check [development_tools/reports/scopes/full/jsons/tool_timings.json](development_tools/reports/scopes/full/jsons/tool_timings.json) after changes.
+`run_test_coverage` defaults to **parallel** pytest (`pytest-xdist`) with `--workers` defaulting to **`auto`**. Override only if you are diagnosing flakes or hardware limits, e.g. `python development_tools/tests/run_test_coverage.py --workers 6`. Re-check `development_tools/reports/scopes/full/jsons/tool_timings.json` after changes.
 
 #### 5.1.5. Static checks (Ruff, Pyright, Bandit) and cache
 

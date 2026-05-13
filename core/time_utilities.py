@@ -18,13 +18,15 @@ from __future__ import annotations
 
 import functools
 import logging
-from datetime import datetime
+import time as time_module
+from datetime import datetime, timezone
 from typing import Literal, TypeVar, cast
 from collections.abc import Callable, Iterable
 
 from core.time_format_constants import (
     DATE_ONLY,
     EXTERNAL_TIMESTAMP_VARIANTS,
+    TIME_COMPACT_HOUR_MINUTE,
     TIME_ONLY_MINUTE,
     TIMESTAMP_FILENAME,
     TIMESTAMP_FULL,
@@ -110,6 +112,18 @@ def now_datetime_minute() -> datetime:
     return dt
 
 
+@_guard("building canonical UTC datetime", datetime.min.replace(tzinfo=timezone.utc))
+def now_datetime_utc() -> datetime:
+    """Current timezone-aware UTC datetime with second precision."""
+    return datetime.now(timezone.utc).replace(microsecond=0)
+
+
+@_guard("getting canonical UTC ISO timestamp", "")
+def now_timestamp_utc_iso() -> str:
+    """Current timezone-aware UTC timestamp in ISO 8601 form."""
+    return now_datetime_utc().isoformat()
+
+
 # ---------------------------------------------------------------------------
 # Formatting helpers
 # ---------------------------------------------------------------------------
@@ -132,6 +146,20 @@ def format_timestamp_milliseconds(dt: datetime | None) -> str:
     if dt is None:
         return ""
     return dt.strftime(TIMESTAMP_WITH_MICROSECONDS)[:-3]
+
+
+@_guard("formatting compact hour-minute timestamp", "")
+def format_time_compact_hour_minute(dt: datetime | None) -> str:
+    """Format a datetime as HHMM for compact identifiers."""
+    if dt is None:
+        return ""
+    return dt.strftime(TIME_COMPACT_HOUR_MINUTE)
+
+
+@_guard("formatting time tuple", "")
+def format_time_tuple(time_tuple, fmt: str) -> str:
+    """Format a time tuple using a provided format string."""
+    return time_module.strftime(fmt, time_tuple)
 
 
 # ---------------------------------------------------------------------------

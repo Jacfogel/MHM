@@ -16,7 +16,7 @@
    - Top offenders: [TODO.md](../TODO.md)
    - Action: Fix broken paths in top offender files, then run `python development_tools/run_development_tools.py doc-sync`
    - Why this matters: Broken paths in documentation reduce trust and make navigation difficult
-   - Review for details: [analyze_documentation_sync_results.json](docs/jsons/scopes/full/analyze_documentation_sync_results.json)
+   - Review for details: `analyze_documentation_sync_results.json`
 2. **Review pip-audit dependency vulnerabilities**  -  pip-audit reports 1 vulnerability finding(s) across 1 package(s).
    - Review for guidance: [AI_DEVELOPMENT_WORKFLOW.md](../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
    - pip-audit reports 1 vulnerability finding(s) across 1 package(s).

@@ -21,16 +21,7 @@ pytestmark = [pytest.mark.core]
 
 def _patch_message_mgmt_utc_now(monkeypatch, fixed_now: datetime) -> None:
     """Make archive_old_messages use a fixed UTC 'now' (cutoff math)."""
-
-    class _PatchedDatetime:
-        min = datetime.min
-        max = datetime.max
-
-        @staticmethod
-        def now(tz=None):
-            return fixed_now
-
-    monkeypatch.setattr("core.message_management.datetime", _PatchedDatetime)
+    monkeypatch.setattr("core.message_management.now_datetime_utc", lambda: fixed_now)
 
 
 @pytest.mark.unit

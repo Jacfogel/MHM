@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-12 00:14:59
+> **Last Generated**: 2026-05-12 16:12:10
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 93.0% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 143
-- **Functions Found**: 1888
+- **Functions Found**: 1892
 - **Methods Found**: 1274
 - **Classes Found**: 175
-- **Total Items**: 3162
-- **Functions Documented**: 1733
+- **Total Items**: 3166
+- **Functions Documented**: 1737
 - **Methods Documented**: 1208
 - **Classes Documented**: 137
-- **Total Documented**: 2941
+- **Total Documented**: 2945
 - **Template-Generated**: 20
 - **Last Updated**: 2026-05-12
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (673)
+### **Core System Functions** (677)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (499)
@@ -4759,6 +4759,8 @@ Raises ValidationError if invalid.
 **Functions:**
 - [OK] `_guard(operation, default_return)` - Log failures and return default_return (mirrors handle_errors defaults for time ops).
 - [OK] `decorator(func)` - Wrap ``func`` so failures are logged and ``default_return`` is used.
+- [OK] `format_time_compact_hour_minute(dt)` - Format a datetime as HHMM for compact identifiers.
+- [OK] `format_time_tuple(time_tuple, fmt)` - Format a time tuple using a provided format string.
 - [OK] `format_timestamp(dt, fmt)` - Format a datetime using a provided format string. Returns "" for None.
 - [OK] `format_timestamp_milliseconds(dt)` - Debug-only: format to milliseconds (3 decimals).
 Example output: "2026-01-18 12:34:56.789"
@@ -4769,9 +4771,11 @@ datetime object (arithmetic/comparisons) rather than a formatted string.
 - [OK] `now_datetime_minute()` - Current local-naive datetime rounded to minute precision matching TIMESTAMP_MINUTE.
 
 Use for scheduler/UI state where minute precision is the canonical persisted shape.
+- [OK] `now_datetime_utc()` - Current timezone-aware UTC datetime with second precision.
 - [OK] `now_timestamp_filename()` - Current local timestamp formatted with TIMESTAMP_FILENAME.
 - [OK] `now_timestamp_full()` - Current local timestamp formatted with TIMESTAMP_FULL.
 - [OK] `now_timestamp_minute()` - Current local timestamp formatted with TIMESTAMP_MINUTE.
+- [OK] `now_timestamp_utc_iso()` - Current timezone-aware UTC timestamp in ISO 8601 form.
 - [OK] `parse_date_and_time_minute(date_str, time_str)` - Parse a DATE_ONLY + TIME_ONLY_MINUTE combination into a datetime.
 Returns None on invalid input.
 - [OK] `parse_date_only(value)` - Parse DATE_ONLY (date at 00:00). Returns None on invalid input.

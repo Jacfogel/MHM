@@ -23,6 +23,7 @@ from core.time_utilities import (
     TIME_ONLY_MINUTE,
     TIMESTAMP_MINUTE,
     format_timestamp,
+    format_time_compact_hour_minute,
     parse_time_only_minute,
 )
 from core.logger import get_component_logger
@@ -478,7 +479,7 @@ class SchedulerManager:
         # Schedule a message for each active period
         scheduled_count = 0
 
-        # Avoid hardcoded strftime("%A") format strings.
+        # Avoid hardcoded weekday format strings.
         # Use weekday index + calendar for a stable day-name.
         today_name = calendar.day_name[now_datetime_full().weekday()]
 
@@ -1106,7 +1107,7 @@ class SchedulerManager:
         # Adjust the schedule_time to wake the computer a few minutes earlier
         wake_time = schedule_time - timedelta(minutes=wake_ahead_minutes)
         # Task name must not contain : \ / * ? " < > | (Windows restriction; colon was causing 0x80070057)
-        time_part_name = wake_time.strftime("%H%M")  # HHMM, no colon
+        time_part_name = format_time_compact_hour_minute(wake_time)
         raw_name = f"Wake_{user_id}_{category}_{period}_{time_part_name}"
         invalid_chars = r'\/*?"<>|:' + "'"
         for char in invalid_chars:

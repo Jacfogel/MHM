@@ -9003,9 +9003,7 @@ class ReportGenerationMixin:
             lines.append(
                 f"- Current AI priorities: [AI_PRIORITIES.md]({self._markdown_href_from_dev_tools_report(self.project_root / ai_priorities_path)})"
             )
-        lines.append(
-            f"- Detailed JSON results: [analysis_detailed_results.json]({self._markdown_href_from_dev_tools_report(self._get_results_file_path())})"
-        )
+        lines.append("- Detailed JSON results: `analysis_detailed_results.json`")
 
         legacy_report = (
             self.project_root / "development_docs" / "LEGACY_REFERENCE_REPORT.md"

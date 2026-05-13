@@ -15,6 +15,7 @@ from core.config import DEFAULT_MESSAGES_DIR_PATH, get_user_data_dir
 from core.file_operations import load_json_data, save_json_data, determine_file_path
 from core.error_handling import ValidationError, handle_errors
 from core.time_utilities import (
+    now_datetime_utc,
     now_timestamp_filename,
     now_timestamp_full,
     parse_timestamp_full,
@@ -543,11 +544,7 @@ def get_recent_messages(
 
         # Filter by days_back if specified
         if days_back:
-            # NOTE: This is timezone-aware UTC state used for retention filtering.
-            # core.time_utilities currently provides local-naive "now" helpers only,
-            # so this usage does not map cleanly without adding new helpers.
-            # Keep as-is for correctness.
-            cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_back)
+            cutoff_date = now_datetime_utc() - timedelta(days=days_back)
             filtered_messages = [
                 msg
                 for msg in filtered_messages
@@ -671,7 +668,7 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
             if not deliveries:
                 logger.debug(f"No deliveries to archive for user {user_id}")
                 return True
-            cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_to_keep)
+            cutoff_date = now_datetime_utc() - timedelta(days=days_to_keep)
             active_deliveries = []
             archived_deliveries = []
             for delivery in deliveries:
@@ -721,7 +718,7 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
 
 @handle_errors(
     "parsing message timestamp",
-    # IMPORTANT: avoid datetime.now() here (it would be evaluated at import time).
+    # IMPORTANT: avoid dynamic current-time calls here (they would be evaluated at import time).
     # Use the same "invalid timestamp" sentinel the function already returns.
     default_return=datetime.min.replace(tzinfo=timezone.utc),
 )

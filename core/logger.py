@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 from core.error_handling import handle_errors
+from core.time_utilities import format_time_tuple
 import contextlib
 
 
@@ -570,7 +571,7 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
         # Period-end date: at midnight use previous calendar day so backup name matches content.
         period_end_time = current_time - 1
         time_tuple = time.localtime(period_end_time)
-        date_suffix = time.strftime(self.suffix, time_tuple)
+        date_suffix = format_time_tuple(time_tuple, self.suffix)
         dfn = self.rotation_filename(self.baseFilename + "." + date_suffix)
         backup_name = f"{Path(self.baseFilename).name}.{date_suffix}"
         backup_path = str(Path(self.backup_dir) / backup_name)
