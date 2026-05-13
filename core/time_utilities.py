@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import functools
 import logging
+import pytz
 import time as time_module
 from datetime import datetime, timezone
 from typing import Literal, TypeVar, cast
@@ -37,6 +38,14 @@ from core.time_format_constants import (
 _time_logger = logging.getLogger("mhm.time_utilities")
 
 F = TypeVar("F", bound=Callable[..., object])
+
+
+class InvalidTimeFormatError(Exception):
+    """
+    Exception raised when a scheduler timestamp or timezone cannot be parsed.
+    """
+
+    pass
 
 
 def _guard(operation: str, default_return: object) -> Callable[[F], F]:
@@ -185,6 +194,36 @@ def parse_timestamp_minute(value: str) -> datetime | None:
         return datetime.strptime(value, TIMESTAMP_MINUTE)
     except (ValueError, TypeError):
         return None
+
+
+@_guard("loading and localizing datetime", None)
+def load_and_localize_datetime(
+    datetime_str: str, timezone_str: str = "America/Regina"
+) -> datetime | None:
+    """
+    Parse a canonical minute timestamp and localize it to a timezone.
+
+    This helper is scheduler-facing: callers pass the persisted
+    ``TIMESTAMP_MINUTE`` shape and receive a timezone-aware datetime, or None
+    when the timestamp/timezone is invalid.
+    """
+    try:
+        tz = pytz.timezone(timezone_str)
+    except pytz.exceptions.UnknownTimeZoneError as e:
+        raise InvalidTimeFormatError(f"Unknown timezone '{timezone_str}': {e}") from e
+
+    naive_datetime = parse_timestamp_minute(datetime_str)
+    if naive_datetime is None:
+        raise InvalidTimeFormatError(
+            f"Invalid datetime format '{datetime_str}' (expected '{TIMESTAMP_MINUTE}')"
+        )
+
+    aware_datetime = tz.localize(naive_datetime)
+    _time_logger.debug(
+        f"Localized datetime {datetime_str!r} to timezone {timezone_str!r}: "
+        f"{aware_datetime!r}"
+    )
+    return aware_datetime
 
 
 def parse_date_only(value: str) -> datetime | None:

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-12 16:12:10
+> **Last Generated**: 2026-05-13 01:45:28
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -25,7 +25,7 @@
 - **Classes Documented**: 137
 - **Total Documented**: 2945
 - **Template-Generated**: 20
-- **Last Updated**: 2026-05-12
+- **Last Updated**: 2026-05-13
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -4604,6 +4604,16 @@ Sets up signal handlers for graceful shutdown.
 - [MISSING] `cleanup_request_file_after_process(request_file, filename, request_type_label)` - No description
 - [MISSING] `cleanup_reschedule_requests(context)` - No description
 - [OK] `cleanup_test_message_requests(context)` - TEST: Cleanup Message Requests
+- [OK] `create_reschedule_request(user_id, category, source)` - Create a reschedule request flag that the running service will process.
+
+Args:
+    user_id: User whose schedule should be recalculated.
+    category: Message category to reschedule.
+    source: Diagnostic source metadata for the request.
+
+Returns:
+    True when the request file was written. False when the service is not
+    currently running or the write fails.
 - [MISSING] `discover_reschedule_request_files(base_dir)` - No description
 - [OK] `discover_test_message_request_files(base_dir)` - TEST: Discover Message Request Files
 - [MISSING] `get_checkin_first_question(user_id)` - No description
@@ -4634,41 +4644,17 @@ Sets up signal handlers for graceful shutdown.
 
 Args:
     interval: Time interval in seconds between allowed operations
-- [OK] `create_reschedule_request(user_id, category, source)` - Create a reschedule request file that the service will pick up.
-
-Args:
-    user_id: The user ID
-    category: The category to reschedule
-    source: Logical source requesting the reschedule. This is diagnostic
-        metadata for the service request, not channel behavior.
-
-Returns:
-    bool: True if request was created successfully
 - [OK] `get_flags_dir()` - Get the directory for service flag files.
 - [OK] `get_service_processes()` - Get detailed information about all MHM service processes
 - [OK] `is_headless_service_running()` - Check if a headless MHM service is currently running
 - [OK] `is_service_running()` - Check if the MHM service is currently running
 - [OK] `is_ui_service_running()` - Check if a UI-managed MHM service is currently running
-- [OK] `load_and_localize_datetime(datetime_str, timezone_str)` - Load and localize a datetime string to a specific timezone.
-
-Args:
-    datetime_str: Datetime string in format "YYYY-MM-DD HH:MM"
-    timezone_str: Timezone string (default: 'America/Regina')
-
-Returns:
-    datetime: Timezone-aware datetime object
-
-Raises:
-    InvalidTimeFormatError: If datetime_str format is invalid
 - [OK] `should_run(self)` - Check if enough time has passed since the last run to allow another execution.
 
 IMPORTANT:
 - Uses monotonic time (safe for measuring intervals).
 - Does NOT update last_run when returning False.
 **Classes:**
-- [OK] `InvalidTimeFormatError` - Exception raised when time format is invalid.
-
-Used for time parsing and validation operations.
 - [OK] `Throttler` - A utility class for throttling operations based on time intervals.
 
 Prevents operations from running too frequently by tracking the last execution time.
@@ -4764,6 +4750,11 @@ Raises ValidationError if invalid.
 - [OK] `format_timestamp(dt, fmt)` - Format a datetime using a provided format string. Returns "" for None.
 - [OK] `format_timestamp_milliseconds(dt)` - Debug-only: format to milliseconds (3 decimals).
 Example output: "2026-01-18 12:34:56.789"
+- [OK] `load_and_localize_datetime(datetime_str, timezone_str)` - Parse a canonical minute timestamp and localize it to a timezone.
+
+This helper is scheduler-facing: callers pass the persisted
+``TIMESTAMP_MINUTE`` shape and receive a timezone-aware datetime, or None
+when the timestamp/timezone is invalid.
 - [OK] `now_datetime_full()` - Current local-naive datetime with second precision matching TIMESTAMP_FULL.
 
 This is the canonical replacement for datetime.now() in places that need a
@@ -4790,6 +4781,8 @@ Prefer parse_timestamp_full / parse_timestamp_minute for critical state.
 - [OK] `parse_timestamp_full(value)` - Parse TIMESTAMP_FULL. Returns None on invalid input.
 - [OK] `parse_timestamp_minute(value)` - Parse TIMESTAMP_MINUTE. Returns None on invalid input.
 - [OK] `wrapper()` - Run the wrapped time helper; log and return the guard default on failure.
+**Classes:**
+- [OK] `InvalidTimeFormatError` - Exception raised when a scheduler timestamp or timezone cannot be parsed.
 
 #### `core/ui_management.py`
 **Functions:**

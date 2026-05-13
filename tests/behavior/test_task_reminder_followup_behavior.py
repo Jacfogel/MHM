@@ -26,6 +26,8 @@ from core.time_utilities import (
     now_datetime_full,
 )
 
+pytestmark = pytest.mark.no_parallel
+
 
 class TestTaskReminderFollowupBehavior:
     """Test task reminder follow-up flow real behavior and side effects."""

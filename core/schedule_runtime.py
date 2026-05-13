@@ -12,7 +12,7 @@ from typing import Any
 from core.logger import get_component_logger
 from core import get_user_data
 
-from core.service_utilities import create_reschedule_request
+from core.service_requests import create_reschedule_request
 from core.time_utilities import (
     TIME_ONLY_MINUTE,
     format_timestamp,

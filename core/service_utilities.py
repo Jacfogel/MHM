@@ -1,25 +1,19 @@
 # service_utilities.py
 """
 Service utilities for MHM.
-Contains functions for service management, network operations, and datetime handling.
+Contains service process inspection, service flag path helpers, and throttling.
+
+Request flag processing lives in ``core.service_requests``. Scheduler timestamp
+parsing/localization lives in ``core.time_utilities``.
 """
 
 import os
-import time
 import psutil
 from pathlib import Path
-import pytz
 from core.logger import get_component_logger
-from core.time_utilities import (
-    now_timestamp_full,
-    now_timestamp_filename,
-    TIMESTAMP_MINUTE,
-    parse_timestamp_minute,
-)
 
 from core.config import SCHEDULER_INTERVAL
 from core.error_handling import handle_errors
-from core.service_flag_storage import write_service_flag_json
 import contextlib
 
 logger = get_component_logger("main")
@@ -88,16 +82,6 @@ class Throttler:
         return False
 
 
-class InvalidTimeFormatError(Exception):
-    """
-    Exception raised when time format is invalid.
-
-    Used for time parsing and validation operations.
-    """
-
-    pass
-
-
 # Global throttler instance
 throttler = Throttler(SCHEDULER_INTERVAL)
 
@@ -115,75 +99,6 @@ def get_flags_dir() -> Path:
         flags_dir.mkdir(parents=True, exist_ok=True)
 
     return flags_dir
-
-
-@handle_errors("creating reschedule request", default_return=False)
-def create_reschedule_request(
-    user_id: str, category: str, source: str = "schedule_runtime"
-) -> bool:
-    """
-    Create a reschedule request file that the service will pick up.
-
-    Args:
-        user_id: The user ID
-        category: The category to reschedule
-        source: Logical source requesting the reschedule. This is diagnostic
-            metadata for the service request, not channel behavior.
-
-    Returns:
-        bool: True if request was created successfully
-    """
-    # First check if service is running - if not, no need to reschedule
-    # The service will pick up changes on next startup.
-    service_running = is_service_running()
-    if not service_running:
-        logger.debug(
-            "Service not running - schedule changes will be picked up on next startup"
-        )
-        return False
-
-    # Canonical readable timestamp for JSON (preferred where humans might read it)
-    requested_at_readable = now_timestamp_full()
-
-    # Use a canonical timestamp for ISO; avoid timezone loading here to keep
-    # side effects minimal (notably during tests with mocked file I/O).
-    requested_at_iso = requested_at_readable
-
-    request_data = {
-        "user_id": user_id,
-        "category": category,
-        "requested_at_readable": requested_at_readable,
-        "requested_at_iso": requested_at_iso,
-        "source": source,
-    }
-
-    # Create unique filename:
-    # - Human-readable base (Windows-safe)
-    # - Millisecond suffix for uniqueness (not a "policy timestamp", just an ID component)
-    ms_suffix = int(time.time() * 1000) % 1000
-    filename_timestamp = f"{now_timestamp_filename()}_{ms_suffix:03d}"
-    filename = f"reschedule_request_{user_id}_{category}_{filename_timestamp}.flag"
-
-    base_dir = get_flags_dir()
-    request_file = Path(base_dir) / filename
-
-    created = write_service_flag_json(
-        request_file,
-        request_data,
-        indent=2,
-        audit_reason="create_reschedule_request",
-        audit_extra={
-            "user_id": user_id,
-            "category": category,
-            "source": request_data["source"],
-        },
-    )
-    if not created:
-        return False
-
-    logger.info(f"Created reschedule request: {filename}")
-
-    return True
 
 
 @handle_errors("checking if service is running", default_return=False)
@@ -295,39 +210,3 @@ def is_ui_service_running():
     """Check if a UI-managed MHM service is currently running"""
     processes = get_service_processes()
     return any(proc["is_ui_managed"] for proc in processes)
-
-
-@handle_errors("loading and localizing datetime")
-def load_and_localize_datetime(datetime_str, timezone_str="America/Regina"):
-    """
-    Load and localize a datetime string to a specific timezone.
-
-    Args:
-        datetime_str: Datetime string in format "YYYY-MM-DD HH:MM"
-        timezone_str: Timezone string (default: 'America/Regina')
-
-    Returns:
-        datetime: Timezone-aware datetime object
-
-    Raises:
-        InvalidTimeFormatError: If datetime_str format is invalid
-    """
-    try:
-        tz = pytz.timezone(timezone_str)
-
-        # Strict parse: scheduler/UI minute timestamp shape.
-        # parse_timestamp_minute() returns None on invalid input (it does not raise).
-        naive_datetime = parse_timestamp_minute(datetime_str)
-        if naive_datetime is None:
-            raise InvalidTimeFormatError(
-                f"Invalid datetime format '{datetime_str}' (expected '{TIMESTAMP_MINUTE}')"
-            )
-
-        aware_datetime = tz.localize(naive_datetime)
-        logger.debug(
-            f"Localized datetime '{datetime_str}' to timezone '{timezone_str}': '{aware_datetime}'"
-        )
-        return aware_datetime
-
-    except pytz.exceptions.UnknownTimeZoneError as e:
-        raise InvalidTimeFormatError(f"Unknown timezone '{timezone_str}': {e}") from e

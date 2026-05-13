@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,7 +14,7 @@ from core.delivery import ServiceRequestDeliveryPort
 from core.error_handling import FileOperationError, ValidationError, handle_errors
 from core.logger import get_component_logger
 from core.service_flag_storage import read_service_flag_json, write_service_flag_json
-from core.time_utilities import now_timestamp_full
+from core.time_utilities import now_timestamp_filename, now_timestamp_full
 
 logger = get_component_logger("main")
 
@@ -71,6 +72,59 @@ def _as_context(context_or_service: Any) -> ServiceRequestContext:
 def get_repo_base_directory() -> str:
     """Project root (parent of ``core/``)."""
     return str(Path(__file__).resolve().parent.parent)
+
+
+@handle_errors("creating reschedule request", default_return=False)
+def create_reschedule_request(
+    user_id: str, category: str, source: str = "schedule_runtime"
+) -> bool:
+    """
+    Create a reschedule request flag that the running service will process.
+
+    Args:
+        user_id: User whose schedule should be recalculated.
+        category: Message category to reschedule.
+        source: Diagnostic source metadata for the request.
+
+    Returns:
+        True when the request file was written. False when the service is not
+        currently running or the write fails.
+    """
+    from core.service_utilities import get_flags_dir, is_service_running
+
+    if not is_service_running():
+        logger.debug(
+            "Service not running - schedule changes will be picked up on next startup"
+        )
+        return False
+
+    requested_at_readable = now_timestamp_full()
+    request_data = {
+        "user_id": user_id,
+        "category": category,
+        "timestamp": time.time(),
+        "requested_at_readable": requested_at_readable,
+        "requested_at_iso": requested_at_readable,
+        "source": source,
+    }
+
+    ms_suffix = int(time.time() * 1000) % 1000
+    filename_timestamp = f"{now_timestamp_filename()}_{ms_suffix:03d}"
+    filename = f"reschedule_request_{user_id}_{category}_{filename_timestamp}.flag"
+    request_file = Path(get_flags_dir()) / filename
+
+    created = write_service_flag_json(
+        request_file,
+        request_data,
+        indent=2,
+        audit_reason="create_reschedule_request",
+        audit_extra={"user_id": user_id, "category": category, "source": source},
+    )
+    if not created:
+        return False
+
+    logger.info(f"Created reschedule request: {filename}")
+    return True
 
 
 @handle_errors("polling service request files", default_return=None)

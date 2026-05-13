@@ -15,7 +15,6 @@ from typing import Any
 from core import get_all_user_ids
 from core.delivery import SchedulerDeliveryPort
 from core.schedule_runtime import get_schedule_time_periods
-from core.service_utilities import load_and_localize_datetime
 from core.time_utilities import (
     now_datetime_full,
     TIMESTAMP_FULL,
@@ -24,6 +23,7 @@ from core.time_utilities import (
     TIMESTAMP_MINUTE,
     format_timestamp,
     format_time_compact_hour_minute,
+    load_and_localize_datetime,
     parse_time_only_minute,
 )
 from core.logger import get_component_logger
@@ -560,6 +560,13 @@ class SchedulerManager:
                 schedule_datetime = load_and_localize_datetime(
                     datetime_str, "America/Regina"
                 )
+                if schedule_datetime is None:
+                    logger.error(
+                        f"Could not localize schedule time for user {user_id}, "
+                        f"category {category}, period {period_name}: {datetime_str}"
+                    )
+                    retry_count += 1
+                    continue
                 now = pytz.timezone("America/Regina").localize(now_datetime_full())
 
                 logger.info(
@@ -717,6 +724,13 @@ class SchedulerManager:
                 schedule_datetime = load_and_localize_datetime(
                     random_time_str, "America/Regina"
                 )
+                if schedule_datetime is None:
+                    logger.error(
+                        f"Could not localize schedule time for user {user_id}, "
+                        f"category {category}: {random_time_str}"
+                    )
+                    retry_count += 1
+                    continue
                 now = pytz.timezone("America/Regina").localize(now_datetime_full())
 
                 logger.info(

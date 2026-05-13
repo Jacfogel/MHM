@@ -46,7 +46,7 @@ Central exception hierarchy:
 - `ValidationError` for user or data validation problems.  
 - `RecoveryError` when a recovery strategy itself fails.
 
-Where practical, modules should raise one of these types instead of bare `Exception`. Some modules (for example `service_utilities.py`) still expose local exceptions such as `InvalidTimeFormatError`; these are acceptable where strongly tied to a single domain, but new shared exceptions should prefer the `MHMError` tree.
+Where practical, modules should raise one of these types instead of bare `Exception`. Some modules (for example `time_utilities.py`) still expose local exceptions such as `InvalidTimeFormatError`; these are acceptable where strongly tied to a single domain, but new shared exceptions should prefer the `MHMError` tree.
 
 **Exception Categorization Decision Tree:**
 - **User input validation issues** -> `ValidationError`
@@ -146,7 +146,7 @@ Use `@handle_errors` on **entry points** where an unhandled exception should nev
 - Scheduler jobs and background loops in `scheduler.py`.
 - Shared scheduling utilities (for example `get_active_schedules` in `schedule_utilities.py`).
 - User data load/save operations and channel-preference changes in `user_data_registry.py`, `user_data_read.py`, and `user_data_write.py`.
-- Service and network utilities in `service_utilities.py` (for example throttler checks, service status, network wait loops).
+- Service and network utilities in `service_utilities.py` and `network_probe.py` (for example throttler checks, service status, network wait loops).
 - Logging utilities in `logger.py` that are needed early during startup.
 
 General pattern:
@@ -174,7 +174,7 @@ Keep direct handler usage centralized in a small number of helpers rather than s
 
 - **User data handlers**: Wrap public read/write operations with `@handle_errors` and include enough context (user ID, data types) for troubleshooting. Prefer `FileOperationError` or `DataError` when propagating failures.
 - **File operations**: Use `FileOperationError` for file system issues and rely on the recovery strategies to handle missing or corrupted files where safe.
-- **Service utilities**: Keep service management and time parsing robust by wrapping operations that touch the OS, processes, or the network with `@handle_errors`. Local exceptions like `InvalidTimeFormatError` should be reserved for explicit validation failures and not used as general error signals.
+- **Service utilities**: Keep service management robust by wrapping operations that touch the OS or processes with `@handle_errors`. Scheduler time parsing belongs in `time_utilities.py`; local exceptions like `InvalidTimeFormatError` should be reserved for explicit validation failures and not used as general error signals.
 
 ---
 

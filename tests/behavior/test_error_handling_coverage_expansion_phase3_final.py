@@ -5,6 +5,7 @@ Final version that works with the actual implementation
 
 import pytest
 import json
+from unittest.mock import patch
 from core.error_handling import (
     MHMError, DataError, FileOperationError, ConfigurationError,
     ErrorRecoveryStrategy, FileNotFoundRecovery, JSONDecodeRecovery,
@@ -619,7 +620,8 @@ class TestErrorHandlingCoverageExpansionPhase3Final:
         error = TimeoutError("timeout error")
         context = {"test": "context"}
         
-        result = handler.handle_error(error, context, "test operation")
+        with patch("core.error_handling.wait_for_network", return_value=True):
+            result = handler.handle_error(error, context, "test operation")
         assert result is True  # Network recovery should succeed for TimeoutError
 
     def test_error_handler_with_connection_error(self, tmp_path):
@@ -629,7 +631,8 @@ class TestErrorHandlingCoverageExpansionPhase3Final:
         error = ConnectionError("connection error")
         context = {"test": "context"}
         
-        result = handler.handle_error(error, context, "test operation")
+        with patch("core.error_handling.wait_for_network", return_value=True):
+            result = handler.handle_error(error, context, "test operation")
         assert result is True  # Network recovery should succeed for ConnectionError
 
     def test_error_handler_with_import_error(self, tmp_path):

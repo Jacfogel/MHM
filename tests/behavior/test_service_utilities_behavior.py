@@ -8,17 +8,20 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock, mock_open
 from core.network_probe import wait_for_network
+from core.service_requests import create_reschedule_request
 from core.service_utilities import (
     Throttler,
-    create_reschedule_request,
     get_flags_dir,
     get_service_processes,
     is_headless_service_running,
     is_service_running,
     is_ui_service_running,
+)
+from core.time_utilities import (
+    TIMESTAMP_MINUTE,
+    format_timestamp,
     load_and_localize_datetime,
 )
-from core.time_utilities import TIMESTAMP_MINUTE, format_timestamp
 from core.user_data_validation import _shared__title_case
 
 

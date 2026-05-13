@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-12 16:12:11
+> **Last Generated**: 2026-05-13 01:45:30
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -19,9 +19,9 @@
 - **Total Imports Found**: 1611
 - **Dependencies Documented**: 141 (100% coverage)
 - **Standard Library Imports**: 461 (28.6%)
-- **Third-Party Imports**: 235 (14.6%)
-- **Local Imports**: 915 (56.8%)
-- **Last Updated**: 2026-05-12
+- **Third-Party Imports**: 237 (14.7%)
+- **Local Imports**: 913 (56.7%)
+- **Last Updated**: 2026-05-13
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -30,8 +30,8 @@
 ## Import Statistics
 
 - **Standard Library**: 461 imports (28.6%)
-- **Third-Party**: 235 imports (14.6%)
-- **Local**: 915 imports (56.8%)
+- **Third-Party**: 237 imports (14.7%)
+- **Local**: 913 imports (56.7%)
 
 ## Module Dependencies by Directory
 
@@ -1376,7 +1376,9 @@
     - `scheduler (SchedulerManager)`
     - `schemas (AccountModel, CategoryScheduleModel, ChannelModel, FeaturesModel, PeriodModel, PreferencesModel, SchedulesModel, validate_account_dict, validate_preferences_dict, validate_schedules_dict)`
     - `service (InitializationError, MHMService)`
-    - `service_utilities (InvalidTimeFormatError, Throttler, create_reschedule_request, get_service_processes, is_headless_service_running, is_service_running, is_ui_service_running, load_and_localize_datetime)`
+    - `service_requests (create_reschedule_request)`
+    - `service_utilities (Throttler, get_service_processes, is_headless_service_running, is_service_running, is_ui_service_running)`
+    - `time_utilities (InvalidTimeFormatError, load_and_localize_datetime)`
     - `user_data_operations (UserDataManager, backup_user_data, build_user_index, delete_user_completely, export_user_data, get_all_user_summaries, get_user_analytics_summary, get_user_data_summary, get_user_info_for_data_manager, get_user_summary, rebuild_user_index, update_message_references, update_user_index)`
     - `user_data_presets (get_predefined_options, get_timezone_options)`
     - `user_data_read (clear_user_caches, get_user_data)`
@@ -2219,7 +2221,7 @@
     - `core (get_user_data, update_user_schedules)` (NEW)
     - `core.error_handling (ValidationError, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.service_utilities (create_reschedule_request)` (NEW)
+    - `core.service_requests (create_reschedule_request)` (NEW)
     - `core.time_utilities (TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, parse_time_only_minute)` (NEW)
     - `user.user_context (UserContext)`
   - **Standard Library**:
@@ -2245,7 +2247,7 @@
   - `user/user_preferences.py`
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger, core.service_utilities, core.time_utilities
+- Added: core, core.error_handling, core.logger, core.service_requests, core.time_utilities
 - Removed: communication/command_handlers/schedule_handler.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, core/message_preview.py, core/scheduler.py, core/scheduler_task_reminders.py, ui/dialogs/category_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_management_dialog.py, ui/period_row_management.py, ui/widgets/period_row_widget.py, user/user_preferences.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2284,8 +2286,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, suppress_noisy_logging)` (NEW)
     - `core.schedule_runtime (get_schedule_time_periods)` (NEW)
-    - `core.service_utilities (load_and_localize_datetime)` (NEW)
-    - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIMESTAMP_MINUTE, TIME_ONLY_MINUTE, format_time_compact_hour_minute, format_timestamp, now_datetime_full, parse_time_only_minute)` (NEW)
+    - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIMESTAMP_MINUTE, TIME_ONLY_MINUTE, format_time_compact_hour_minute, format_timestamp, load_and_localize_datetime, now_datetime_full, parse_time_only_minute)` (NEW)
     - `tasks (are_tasks_enabled)` (NEW)
     - `user.user_context (UserContext)`
   - **Standard Library**:
@@ -2306,7 +2307,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: core, core.config, core.delivery, core.error_handling, core.logger, core.schedule_runtime, core.service_utilities, core.time_utilities, tasks
+- Added: core, core.config, core.delivery, core.error_handling, core.logger, core.schedule_runtime, core.time_utilities, tasks
 - Removed: collections.abc, core/service.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2461,7 +2462,6 @@
 - **Used by**:
   - `core/headless_service.py`
   - `core/service_requests.py`
-  - `core/service_utilities.py`
 
 **Dependency Changes**:
 - Added: core.error_handling, core.file_auditor, core.logger
@@ -2481,7 +2481,8 @@
     - `core.error_handling (FileOperationError, ValidationError, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.service_flag_storage (read_service_flag_json, write_service_flag_json)` (NEW)
-    - `core.time_utilities (now_timestamp_full)` (NEW)
+    - `core.service_utilities (get_flags_dir, is_service_running)` (NEW)
+    - `core.time_utilities (now_timestamp_filename, now_timestamp_full)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
     - `collections.abc (Callable)`
@@ -2489,12 +2490,14 @@
     - `dataclasses (dataclass)`
     - `os`
     - `pathlib (Path)`
+    - `time`
     - `typing (Any)`
 - **Used by**:
+  - `core/schedule_runtime.py`
   - `core/service.py`
 
 **Dependency Changes**:
-- Added: communication.message_processing.conversation_flow_manager, core, core.delivery, core.error_handling, core.logger, core.service_flag_storage, core.time_utilities
+- Added: communication.message_processing.conversation_flow_manager, core, core.delivery, core.error_handling, core.logger, core.service_flag_storage, core.service_utilities, core.time_utilities
 - Removed: collections.abc, core/service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2508,8 +2511,6 @@
     - `core.config (SCHEDULER_INTERVAL)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.service_flag_storage (write_service_flag_json)` (NEW)
-    - `core.time_utilities (TIMESTAMP_MINUTE, now_timestamp_filename, now_timestamp_full, parse_timestamp_minute)` (NEW)
   - **Standard Library**:
     - `contextlib`
     - `os`
@@ -2517,17 +2518,15 @@
     - `time`
   - **Third-party**:
     - `psutil`
-    - `pytz`
 - **Used by**:
   - `core/headless_service.py`
-  - `core/schedule_runtime.py`
-  - `core/scheduler.py`
   - `core/service.py`
+  - `core/service_requests.py`
   - `ui/dialogs/process_watcher_dialog.py`
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.logger, core.service_flag_storage, core.time_utilities
+- Added: core.config, core.error_handling, core.logger
 - Removed: core/headless_service.py, core/schedule_runtime.py, core/scheduler.py, core/service.py, ui/dialogs/process_watcher_dialog.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2591,6 +2590,8 @@
     - `logging`
     - `time`
     - `typing (Literal, TypeVar, cast)`
+  - **Third-party**:
+    - `pytz`
 - **Used by**:
   - `ai/chatbot.py`
   - `ai/context_builder.py`
@@ -2619,7 +2620,6 @@
   - `core/scheduler_task_reminders.py`
   - `core/service.py`
   - `core/service_requests.py`
-  - `core/service_utilities.py`
   - `core/tags.py`
   - `core/user_data_operations.py`
   - `core/user_data_registry.py`
@@ -2641,7 +2641,7 @@
 
 **Dependency Changes**:
 - Added: core.time_format_constants
-- Removed: ai/chatbot.py, ai/context_builder.py, ai/conversation_history.py, collections.abc, communication/command_handlers/analytics_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/task_handler.py, communication/core/channel_monitor.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, core/auto_cleanup.py, core/backup_manager.py, core/checkin_analytics.py, core/checkin_service.py, core/error_handling.py, core/file_operations.py, core/message_management.py, core/response_tracking.py, core/schedule_runtime.py, core/schedule_utilities.py, core/scheduler.py, core/scheduler_maintenance.py, core/scheduler_task_reminders.py, core/service.py, core/service_requests.py, core/service_utilities.py, core/tags.py, core/user_data_operations.py, core/user_data_registry.py, core/user_data_v2_base.py, core/user_data_validation.py, core/user_management.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_schemas.py, tasks/task_service.py, tasks/task_validation.py, ui/dialogs/message_editor_dialog.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/user_profile_dialog.py, ui/generate_ui_files.py, ui/ui_app_qt.py, user/context_manager.py
+- Removed: ai/chatbot.py, ai/context_builder.py, ai/conversation_history.py, collections.abc, communication/command_handlers/analytics_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/task_handler.py, communication/core/channel_monitor.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, core/auto_cleanup.py, core/backup_manager.py, core/checkin_analytics.py, core/checkin_service.py, core/error_handling.py, core/file_operations.py, core/logger.py, core/message_management.py, core/response_tracking.py, core/schedule_runtime.py, core/schedule_utilities.py, core/scheduler.py, core/scheduler_maintenance.py, core/scheduler_task_reminders.py, core/service.py, core/service_requests.py, core/service_utilities.py, core/tags.py, core/user_data_operations.py, core/user_data_registry.py, core/user_data_v2_base.py, core/user_data_validation.py, core/user_management.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_schemas.py, tasks/task_service.py, tasks/task_validation.py, ui/dialogs/message_editor_dialog.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/user_profile_dialog.py, ui/generate_ui_files.py, ui/ui_app_qt.py, user/context_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

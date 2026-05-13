@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-12 16:12:10
+> **Last Generated**: 2026-05-13 01:45:28
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -157,7 +157,7 @@ Core System Decision Tree:
 - `core/schemas.py` - 17/27 functions undocumented (37% coverage)
 - `communication/delivery/message_dispatcher.py` - 15/17 functions undocumented (12% coverage)
 - `core/user_data_write.py` - 15/19 functions undocumented (21% coverage)
-- `core/service_requests.py` - 14/33 functions undocumented (58% coverage)
+- `core/service_requests.py` - 14/34 functions undocumented (59% coverage)
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
 - `core/user_data_registry.py` - 11/22 functions undocumented (50% coverage)
 - `tasks/task_schemas.py` - 10/10 functions undocumented (0% coverage)

@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-13 - Service Utilities Responsibility Cleanup **COMPLETED**
+- Moved scheduler timestamp localization ownership to `core.time_utilities` and reschedule request flag creation to `core.service_requests`.
+- Migrated callers/tests to the new owners and removed the temporary `core.service_utilities` compatibility bridges; legacy/facade scans are clean.
+- Removed the completed TODO item, updated error-handling guidance, and regenerated generated docs/reports through development tools.
+
 ### 2026-05-12 - Time Utility Policy Cleanup **COMPLETED**
 - Added canonical helpers for UTC-aware now, UTC ISO timestamps, compact HHMM formatting, and `time.struct_time` formatting in `core.time_utilities`.
 - Replaced direct datetime/formatting calls in message retention, scheduler wake task naming, log rollover suffixes, and welcome tracking ISO timestamps.
@@ -116,13 +121,6 @@ Guidelines:
 - Extended duplicate-function analysis with argument signature capture, argument-name/shape similarity fields, and capped argument-similarity candidate expansion.
 - V5 Sections 7.11-7.13 are marked complete; paired development-tools guides document the new command/markers/scoring. Generated docs/reports were refreshed so the function registry gap is zero and Ruff findings are cleared.
 - Validation: focused dev-tools tests, report-surfacing checks, policy checks, `py_compile`, `ruff check .`, `docs`, standard `audit`, and `audit --quick` passed.
-
-### 2026-05-06 - Coverage and static audit cleanup **COMPLETED**
-- Added focused coverage for development-tools command/report/tool-wrapper branches, scheduler maintenance jobs, Discord bot helpers, schedule-editor headless helpers, and UI log-tail merging.
-- Email inbound safety: `channel_orchestrator` now ignores system/bounce sender addresses (`mailer-daemon`, `postmaster`, `no-reply`/`noreply`, `bounce`) before user lookup/response handling to prevent bounce-loop auto replies.
-- Added focused unit tests for inbound sender filtering and blocked-sender early-return behavior (no user lookup, no `_send_email_response` call).
-- Cleared follow-up audit items by fixing missing test markers, resolving doc-sync path/link drift, removing the Ruff/Pyright test-fixture conflict, and adding a `pip>=26.1` tooling floor for pip-audit findings on pip itself.
-- Validation: focused dev-tools/core/unit/communication/UI batches passed, marker analysis and doc-sync passed, Ruff/Pyright passed, and direct pip-audit passed after upgrading the venv pip to 26.1.1. A cache-cleared full audit was killed with exit 137, so it is not counted as a clean full-audit validation.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
