@@ -117,11 +117,7 @@ def _recompute_coverage_totals_from_files(files: dict[str, Any]) -> dict[str, An
         num_statements += int(summary.get("num_statements", 0) or 0)
         missing_lines += int(summary.get("missing_lines", 0) or 0)
         covered_lines += int(summary.get("covered_lines", 0) or 0)
-    pct = (
-        round((covered_lines / num_statements * 100), 2)
-        if num_statements
-        else 0.0
-    )
+    pct = round((covered_lines / num_statements * 100), 2) if num_statements else 0.0
     return {
         "covered_lines": covered_lines,
         "num_statements": num_statements,
@@ -292,18 +288,24 @@ class CoverageMetricsRegenerator:
         resolved_core_modules: list[str] = []
         try:
             from development_tools import config as dev_tools_config
-            from development_tools.shared.constants import CORE_MODULES as _FALLBACK_CORE
+            from development_tools.shared.constants import (
+                CORE_MODULES as _FALLBACK_CORE,
+            )
 
             constants_cfg = dev_tools_config.get_constants_config() or {}
             configured = constants_cfg.get("core_modules")
             if isinstance(configured, (list, tuple)):
-                resolved_core_modules = [str(m).strip() for m in configured if str(m).strip()]
+                resolved_core_modules = [
+                    str(m).strip() for m in configured if str(m).strip()
+                ]
             if not resolved_core_modules:
                 resolved_core_modules = list(_FALLBACK_CORE)
         except Exception:
             # Absolute fallback: keep behavior consistent (may be empty).
             try:
-                from development_tools.shared.constants import CORE_MODULES as _FALLBACK_CORE2
+                from development_tools.shared.constants import (
+                    CORE_MODULES as _FALLBACK_CORE2,
+                )
 
                 resolved_core_modules = list(_FALLBACK_CORE2)
             except Exception:
@@ -899,7 +901,9 @@ class CoverageMetricsRegenerator:
             "project_root_shards": discovered["project_root_shards"],
         }
 
-    def run_coverage_analysis(self) -> dict[str, dict[str, Any]]:  # pyright: ignore[reportGeneralTypeIssues]
+    def run_coverage_analysis(  # pyright: ignore[reportGeneralTypeIssues]
+        self,
+    ) -> dict[str, dict[str, Any]]:
         """Run pytest coverage analysis and extract metrics."""
         if logger:
             logger.debug("Running pytest coverage analysis...")
@@ -1347,11 +1351,11 @@ class CoverageMetricsRegenerator:
             # Get timeout from config, with sensible defaults
             # Coverage collection adds overhead, so tests take longer than normal runs
             # Normal test runs take ~5 minutes, with coverage they may take 7-10 minutes
-            # Default: 12 minutes (720 seconds) to allow for coverage overhead and system variations
-            # Configurable via development_tools_config.json: {"coverage": {"pytest_timeout": 720}}
+            # Default: 15 minutes (900 seconds) to allow for coverage overhead and system variations
+            # Configurable via development_tools_config.json: {"coverage": {"pytest_timeout": 900}}
             pytest_timeout = coverage_config_data.get(
-                "pytest_timeout", 720
-            )  # 12 minutes default
+                "pytest_timeout", 900
+            )  # 15 minutes default
             if logger:
                 logger.info(f"Pytest timeout set to {pytest_timeout // 60} minutes")
 
@@ -1886,9 +1890,7 @@ class CoverageMetricsRegenerator:
                             self.test_file_cache.cache_data["source_files_mtime"] = {}
                         for (
                             domain
-                        ) in (
-                            self.test_file_cache.domain_mapper.SOURCE_TO_TEST_MAPPING
-                        ):
+                        ) in self.test_file_cache.domain_mapper.SOURCE_TO_TEST_MAPPING:
                             current_mtimes = (
                                 self.test_file_cache.get_source_file_mtimes(domain)
                             )
@@ -2066,7 +2068,9 @@ class CoverageMetricsRegenerator:
                     if test_results["random_seed"]:
                         logger.info(f"Random seed used: {test_results['random_seed']}")
 
-            parallel_test_results = dict(test_results) if isinstance(test_results, dict) else {}
+            parallel_test_results = (
+                dict(test_results) if isinstance(test_results, dict) else {}
+            )
 
             # If parallel execution was enabled, also run no_parallel tests separately in serial mode
             no_parallel_test_results = {
@@ -2223,10 +2227,7 @@ class CoverageMetricsRegenerator:
                 # Read from log file if stdout is empty (can happen with quiet mode)
                 no_parallel_output = no_parallel_result.stdout or ""
                 no_parallel_return_code = no_parallel_result.returncode
-                if (
-                    logger
-                    and self._is_interrupt_return_code(no_parallel_return_code)
-                ):
+                if logger and self._is_interrupt_return_code(no_parallel_return_code):
                     logger.warning(
                         "No_parallel pytest subprocess terminated with interrupt signature "
                         f"(returncode={no_parallel_return_code}, hex={self._format_return_code_hex(no_parallel_return_code) or 'n/a'})."
@@ -3328,9 +3329,9 @@ class CoverageMetricsRegenerator:
                                             overall_coverage.get("total_statements", 0)
                                             or 0
                                         )
-                                        recovered_coverage_collected = bool(
-                                            coverage_data
-                                        ) or total_statements > 0
+                                        recovered_coverage_collected = (
+                                            bool(coverage_data) or total_statements > 0
+                                        )
                                         if (
                                             recovered_coverage_collected
                                             and not coverage_collected
@@ -3528,16 +3529,11 @@ class CoverageMetricsRegenerator:
                         # Ensure coverage data file exists for finalize (e.g. if combine block was skipped)
                         if not self.coverage_data_file.exists():
                             _root_cov = self.project_root / ".coverage"
-                            if (
-                                _root_cov.exists()
-                                and _root_cov.stat().st_size > 0
-                            ):
+                            if _root_cov.exists() and _root_cov.stat().st_size > 0:
                                 self.coverage_data_file.parent.mkdir(
                                     parents=True, exist_ok=True
                                 )
-                                shutil.copy2(
-                                    _root_cov, self.coverage_data_file
-                                )
+                                shutil.copy2(_root_cov, self.coverage_data_file)
                                 if logger:
                                     logger.info(
                                         "Using project root .coverage as coverage data (copied for report generation)"
@@ -3981,18 +3977,18 @@ class CoverageMetricsRegenerator:
 
             cmd.extend(
                 [
-                "--cov=development_tools",
-                "--cov-report=term-missing",
-                f"--cov-report=json:{coverage_output_abs}",
-                f"--cov-config={dev_cov_config}",
-                "--tb=line",
-                "-q",
-                "--maxfail=10",  # Allow more failures before stopping (some tests may be flaky)
-                "--continue-on-collection-errors",  # Continue even if collection fails
-                # Ignore temp directories to prevent collecting tests from temp files
-                "--ignore=tests/data/pytest-tmp-*",
-                "--ignore=tests/data/pytest-of-*",
-                "tests/development_tools/",
+                    "--cov=development_tools",
+                    "--cov-report=term-missing",
+                    f"--cov-report=json:{coverage_output_abs}",
+                    f"--cov-config={dev_cov_config}",
+                    "--tb=line",
+                    "-q",
+                    "--maxfail=10",  # Allow more failures before stopping (some tests may be flaky)
+                    "--continue-on-collection-errors",  # Continue even if collection fails
+                    # Ignore temp directories to prevent collecting tests from temp files
+                    "--ignore=tests/data/pytest-tmp-*",
+                    "--ignore=tests/data/pytest-of-*",
+                    "tests/development_tools/",
                 ]
             )
 
@@ -4039,7 +4035,7 @@ class CoverageMetricsRegenerator:
                     text=True,
                     cwd=self.project_root,
                     env=env,
-                    timeout=720,  # 12 minutes timeout
+                    timeout=900,  # 15 minutes timeout
                 )
                 # Ensure stdout is not None
                 if result.stdout is None:
@@ -4074,18 +4070,16 @@ class CoverageMetricsRegenerator:
                 )
             except subprocess.TimeoutExpired:
                 if logger:
-                    logger.error(
-                        "Dev tools coverage pytest timed out after 12 minutes"
-                    )
+                    logger.error("Dev tools coverage pytest timed out after 15 minutes")
                 with open(
                     dev_tools_stdout_log, "w", encoding="utf-8", errors="replace"
                 ) as log_file:
-                    log_file.write("ERROR: pytest timed out after 12 minutes\n")
+                    log_file.write("ERROR: pytest timed out after 15 minutes\n")
 
                 # Create a fake result object for error handling
                 class FakeResult:
                     returncode = 1
-                    stdout = "ERROR: pytest timed out after 12 minutes\n"
+                    stdout = "ERROR: pytest timed out after 15 minutes\n"
                     stderr = ""
 
                 result = FakeResult()
@@ -4208,9 +4202,7 @@ class CoverageMetricsRegenerator:
                 not overall_coverage.get("overall_coverage")
                 and not coverage_output.exists()
             ) and logger:
-                logger.warning(
-                    f"Coverage JSON file not created at {coverage_output}"
-                )
+                logger.warning(f"Coverage JSON file not created at {coverage_output}")
                 logger.info(f"Pytest return code: {result.returncode}")
                 if result.stdout:
                     # Look for coverage summary in stdout
@@ -4439,7 +4431,9 @@ class CoverageMetricsRegenerator:
                     if self._remove_tree_with_retries(entry):
                         removed += 1
                     else:
-                        failed_paths.append((entry, "directory still exists after retries"))
+                        failed_paths.append(
+                            (entry, "directory still exists after retries")
+                        )
                 except Exception as exc:
                     failed_paths.append((entry, str(exc)))
         if removed > 0 and logger:
@@ -4746,7 +4740,11 @@ class CoverageMetricsRegenerator:
         failed_node_ids = merge_failed(
             self._dev_tools_test_path_predicate,
             parallel_test_results if isinstance(parallel_test_results, dict) else {},
-            no_parallel_test_results if isinstance(no_parallel_test_results, dict) else {},
+            (
+                no_parallel_test_results
+                if isinstance(no_parallel_test_results, dict)
+                else {}
+            ),
         )
         par_rc = parallel_outcome.get("return_code")
         np_rc = no_parallel_outcome.get("return_code")
@@ -4786,7 +4784,9 @@ class CoverageMetricsRegenerator:
                 parsed_results={"total_tests": 0},
                 output="",
                 track_name="development_tools",
-                log_file=Path(log_par) if log_par else (Path(log_np) if log_np else None),
+                log_file=(
+                    Path(log_par) if log_par else (Path(log_np) if log_np else None)
+                ),
             )
         if p_st == "crashed" or n_st == "crashed":
             rc = par_rc if par_rc not in (None, 0) else np_rc
@@ -4795,7 +4795,9 @@ class CoverageMetricsRegenerator:
                 parsed_results={"total_tests": 0},
                 output="",
                 track_name="development_tools",
-                log_file=Path(log_par) if log_par else (Path(log_np) if log_np else None),
+                log_file=(
+                    Path(log_par) if log_par else (Path(log_np) if log_np else None)
+                ),
             )
         return {
             "state": "passed",
@@ -4806,9 +4808,7 @@ class CoverageMetricsRegenerator:
             ),
             "log_file": log_par or log_np,
             "return_code_hex": parallel_outcome.get("return_code_hex"),
-            "return_code": (
-                par_rc if par_rc is not None else np_rc
-            ),
+            "return_code": (par_rc if par_rc is not None else np_rc),
             "passed_count": 0,
             "failed_count": 0,
             "error_count": 0,
@@ -4816,7 +4816,9 @@ class CoverageMetricsRegenerator:
             "failed_node_ids": [],
         }
 
-    def _write_dev_tools_coverage_json_from_main(self, main_coverage_path: Path) -> None:
+    def _write_dev_tools_coverage_json_from_main(
+        self, main_coverage_path: Path
+    ) -> None:
         """Write coverage_dev_tools.json as a subset of unified main coverage.json."""
         root = self.project_root.resolve()
         try:
@@ -4853,7 +4855,9 @@ class CoverageMetricsRegenerator:
             meta = dict(meta)
             meta["dev_tools_subset_from"] = "unified_main_coverage.json"
             subset["_metadata"] = meta
-        out_path = root / "development_tools" / "tests" / "jsons" / "coverage_dev_tools.json"
+        out_path = (
+            root / "development_tools" / "tests" / "jsons" / "coverage_dev_tools.json"
+        )
         out_path.parent.mkdir(parents=True, exist_ok=True)
         try:
             with out_path.open("w", encoding="utf-8") as handle:
@@ -4896,9 +4900,7 @@ class CoverageMetricsRegenerator:
             state = "infra_cleanup_error"
             classification = "infra_cleanup_error"
             classification_reason = "cleanup_dead_symlinks_permission_error"
-            actionable_context = (
-                "Pytest teardown cleanup permission issue detected. Review temp-dir cleanup permissions and retry."
-            )
+            actionable_context = "Pytest teardown cleanup permission issue detected. Review temp-dir cleanup permissions and retry."
         elif self._is_interrupt_return_code(return_code):
             state = "crashed"
             classification = "crashed"
@@ -4911,9 +4913,7 @@ class CoverageMetricsRegenerator:
             state = "crashed"
             classification = "crashed"
             classification_reason = "xdist_worker_crash_output"
-            actionable_context = (
-                "xdist worker crash markers detected in pytest output. Inspect worker crash details in track log."
-            )
+            actionable_context = "xdist worker crash markers detected in pytest output. Inspect worker crash details in track log."
         elif self._is_windows_crash_return_code(return_code):
             state = "crashed"
             classification = "crashed"
@@ -4926,9 +4926,7 @@ class CoverageMetricsRegenerator:
             state = "skipped"
             classification = "skipped"
             classification_reason = "no_output_no_return_code"
-            actionable_context = (
-                f"{track_name} produced no return code and no parsed output (likely intentionally skipped)."
-            )
+            actionable_context = f"{track_name} produced no return code and no parsed output (likely intentionally skipped)."
         elif (
             track_name == "no_parallel"
             and return_code == 5
@@ -4938,16 +4936,12 @@ class CoverageMetricsRegenerator:
             state = "skipped"
             classification = "skipped"
             classification_reason = "zero_no_parallel_tests_collected"
-            actionable_context = (
-                "No no_parallel tests matched this scoped run."
-            )
+            actionable_context = "No no_parallel tests matched this scoped run."
         elif return_code not in (0, None) and total_tests == 0 and not failed_node_ids:
             state = "crashed"
             classification = "crashed"
             classification_reason = "nonzero_without_tests"
-            actionable_context = (
-                "Non-zero exit with zero parsed tests indicates subprocess crash/infra issue before pytest summary."
-            )
+            actionable_context = "Non-zero exit with zero parsed tests indicates subprocess crash/infra issue before pytest summary."
         elif failed_count > 0 or error_count > 0 or failed_node_ids:
             state = "failed"
             classification = "failed"
@@ -5076,12 +5070,17 @@ class CoverageMetricsRegenerator:
                     except Exception as e:
                         if logger:
                             error_text = str(e).lower()
-                            if "winerror 32" in error_text or "being used by another process" in error_text:
+                            if (
+                                "winerror 32" in error_text
+                                or "being used by another process" in error_text
+                            ):
                                 logger.debug(
                                     f"Skipped archiving locked log file {file_path.name}: {e}"
                                 )
                             else:
-                                logger.warning(f"Failed to archive {file_path.name}: {e}")
+                                logger.warning(
+                                    f"Failed to archive {file_path.name}: {e}"
+                                )
 
             # Step 2: Ensure archive has at most max_versions-1 files (since 1 is in main)
             max_archived = max_versions - 1  # Keep 7 archived files when max_versions=8
@@ -5319,7 +5318,11 @@ def main():
         output_payload = results
         if args.dev_tools_only and isinstance(results, dict):
             # Emit standard format payload for dev-tools coverage output files.
-            overall = results.get("overall", {}) if isinstance(results.get("overall"), dict) else {}
+            overall = (
+                results.get("overall", {})
+                if isinstance(results.get("overall"), dict)
+                else {}
+            )
             total_missed = int(overall.get("total_missed", 0) or 0)
             output_payload = {
                 "summary": {

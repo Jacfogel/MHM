@@ -159,7 +159,7 @@ class AccountModel(BaseModel):
 
                 # Validate format using centralized validation function
                 _is_valid_discord_id = importlib.import_module(
-                    "core.user_data_validation"
+                    "storage.user_data_validation"
                 ).is_valid_discord_id
 
                 if normalized and not _is_valid_discord_id(normalized):
@@ -218,7 +218,7 @@ class AccountModel(BaseModel):
         except Exception as e:
             logger.warning(f"Timezone validation error for '{vv}': {e}")
             pass
-        # Unknown timezone → return empty to avoid misleading data
+        # Unknown timezone â†’ return empty to avoid misleading data
         logger.warning(
             f"Unknown timezone provided: '{vv}' - normalized to empty string"
         )

@@ -35,7 +35,7 @@ from ui.period_row_management import (
     DEFAULT_PERIOD_DATA,
 )
 from core.error_handling import handle_errors
-from core.user_data_validation import _shared__title_case, validate_schedule_periods
+from storage.user_data_validation import _shared__title_case, validate_schedule_periods
 from core.time_utilities import now_timestamp_filename, now_timestamp_full
 
 # Import our new period row widget
@@ -352,9 +352,9 @@ class ScheduleEditorDialog(QDialog):
                 "Save Failed",
                 "Unable to save your schedule changes.\n\n"
                 "Please check that:\n"
-                "• All required fields are filled in\n"
-                "• Your user data files are accessible\n"
-                "• You have permission to modify files\n\n"
+                "â€¢ All required fields are filled in\n"
+                "â€¢ Your user data files are accessible\n"
+                "â€¢ You have permission to modify files\n\n"
                 "If the problem persists, try closing and reopening the dialog.",
             )
             return False

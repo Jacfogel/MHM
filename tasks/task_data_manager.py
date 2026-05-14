@@ -27,7 +27,7 @@ from tasks.task_data_handlers import (
     save_completed_tasks,
 )
 from tasks.task_validation import is_valid_task_title, is_valid_priority, validate_update_field
-from core.user_data_v2_base import generate_short_id
+from storage.user_data_v2_base import generate_short_id
 
 logger = get_component_logger("tasks")
 

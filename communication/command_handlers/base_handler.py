@@ -14,7 +14,7 @@ from communication.command_handlers.shared_types import (
 )
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.user_data_validation import is_valid_user_id
+from storage.user_data_validation import is_valid_user_id
 
 # Route handler logs to communication component
 handler_logger = get_component_logger("command_handlers")

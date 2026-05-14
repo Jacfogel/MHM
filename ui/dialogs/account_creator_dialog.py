@@ -19,7 +19,7 @@ logger = get_component_logger("ui")
 dialog_logger = logger
 
 # Import core functionality
-from core.user_data_validation import validate_schedule_periods
+from storage.user_data_validation import validate_schedule_periods
 from core import get_user_id_by_identifier
 from core.error_handling import handle_errors
 
@@ -470,7 +470,7 @@ class AccountCreatorDialog(QDialog):
         """Update the profile button to show if profile has been configured."""
         profile_button = self.ui.pushButton_profile
         if profile_button and self.personalization_data:
-            profile_button.setText("Profile Configured ✓")
+            profile_button.setText("Profile Configured âœ“")
             profile_button.setStyleSheet(
                 """
                 QPushButton {
@@ -568,7 +568,7 @@ class AccountCreatorDialog(QDialog):
 
                 # Validate contact info format based on service type
                 if selected_service == "Email":
-                    from core.user_data_validation import is_valid_email
+                    from storage.user_data_validation import is_valid_email
 
                     if not is_valid_email(contact_value):
                         logger.warning(
@@ -584,7 +584,7 @@ class AccountCreatorDialog(QDialog):
                 phone = phone.text().strip() if phone else ""
                 discord_id = self.channel_widget.ui.lineEdit_discordID.text().strip()
 
-                from core.user_data_validation import is_valid_email, is_valid_phone
+                from storage.user_data_validation import is_valid_email, is_valid_phone
 
                 # Validate email if provided
                 if email and not is_valid_email(email):
@@ -604,7 +604,7 @@ class AccountCreatorDialog(QDialog):
                     )
 
                 # Validate Discord ID if provided
-                from core.user_data_validation import is_valid_discord_id
+                from storage.user_data_validation import is_valid_discord_id
 
                 if discord_id and not is_valid_discord_id(discord_id):
                     logger.warning(
@@ -821,9 +821,9 @@ class AccountCreatorDialog(QDialog):
                     "Account Creation Failed",
                     "Unable to create the account.\n\n"
                     "Please check that:\n"
-                    "• All required fields are filled in\n"
-                    "• The username is not already taken\n"
-                    "• You have permission to create user accounts\n\n"
+                    "â€¢ All required fields are filled in\n"
+                    "â€¢ The username is not already taken\n"
+                    "â€¢ You have permission to create user accounts\n\n"
                     "Try again with different information if needed.",
                 )
         except Exception as e:
@@ -832,9 +832,9 @@ class AccountCreatorDialog(QDialog):
                 "Account Creation Error",
                 "An unexpected error occurred while creating the account.\n\n"
                 "Please try:\n"
-                "• Checking that all fields are valid\n"
-                "• Using a different username\n"
-                "• Closing and reopening the dialog\n\n"
+                "â€¢ Checking that all fields are valid\n"
+                "â€¢ Using a different username\n"
+                "â€¢ Closing and reopening the dialog\n\n"
                 "If the problem continues, check the logs for details.",
             )
 
@@ -1093,7 +1093,7 @@ class AccountCreatorDialog(QDialog):
     def _validate_and_accept__update_user_index(self, user_id: str):
         """Update user index for the new user."""
         try:
-            from core.user_data_operations import update_user_index
+            from storage.user_data_operations import update_user_index
             from core import get_user_id_by_identifier
             from core import get_user_data
             import time

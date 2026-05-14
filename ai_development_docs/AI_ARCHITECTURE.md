@@ -15,7 +15,7 @@ sections in [ARCHITECTURE.md](../ARCHITECTURE.md) and other detailed guides.
 Typical questions and starting points:
 
 - User data access or schema changes  
-  -> `core/user_data_registry.py`, `core/user_data_read.py`, `core/user_data_write.py`, `core/user_data_validation.py`  
+  -> `storage/user_data_registry.py`, `storage/user_data_read.py`, `storage/user_data_write.py`, `storage/user_data_validation.py`
   -> Details: see section 2. User Data Model and section 3. Data Handling Patterns in
      [ARCHITECTURE.md](../ARCHITECTURE.md).
 
@@ -51,7 +51,8 @@ Typical questions and starting points:
 
 Top-level routing only; do not duplicate full descriptions here.
 
-- `core/` - core logic, config, logging, error handling, service, schedulers, user data helpers.  
+- `core/` - core logic, config, logging, error handling, service, and runtime wiring.
+- `storage/` - persistence infrastructure for user data, item JSON files, runtime state JSON, and service flag JSON.
 - `communication/` - channel orchestrators and adapters (Discord, email, etc.).  
 - `ui/` - PySide6 admin app (designs, generated code, dialogs, widgets, `ui/ui_app_qt.py`).  
 - `data/` - per-user runtime data under `data/users/{user_id}/` (use handlers, not raw file IO).  
@@ -79,18 +80,18 @@ in [ARCHITECTURE.md](../ARCHITECTURE.md).
 Per-user persisted state layout, guarantees, and access rules are defined in [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md).
 **Section 0** is the **user data and schedule module map** (one line per core module, tolerant vs strict validation, and what a dependency **leaf** means). This document describes only architectural relationships and AI-relevant constraints.
 
-**Stable filenames (2026-05 rename pass)** - v2 envelopes and `validate_v2_document`: `core/user_data_v2_envelopes.py`. Admin/backup/index operations (`UserDataManager`): `core/user_data_operations.py`. Live schedule windows against loaded user data: `core/schedule_runtime.py`. Default on-disk schedule period shapes: `core/schedule_document_defaults.py`. Central `update_user_*` section writers: `core/user_data_write.py` only (there is no separate `user_data_updates` module).
+**Stable filenames (2026-05 storage move)** - v2 envelopes and `validate_v2_document`: `storage/user_data_v2_envelopes.py`. Admin/backup/index operations (`UserDataManager`): `storage/user_data_operations.py`. Live schedule windows against loaded user data: `core/schedule_runtime.py`. Default on-disk schedule period shapes: `core/schedule_document_defaults.py`. Central `update_user_*` section writers: `storage/user_data_write.py` only (there is no separate `user_data_updates` module). Old `core.user_data_*` module paths are temporary compatibility bridges only.
 
 ## 3. Data Handling Patterns
 
 Preserve these patterns when generating or editing code:
 
 - Centralized access  
-  - Use helpers in `core/user_data_read.py`, `core/user_data_write.py`, and related `core.user_data_*` / `core.user_management` modules.  
+  - Use helpers in `storage/user_data_read.py`, `storage/user_data_write.py`, and related `storage.user_data_*` / `core.user_management` modules.
   - Avoid direct `open()` on `data/users/...` in feature code.
 
 - Validate before writing  
-  - Use validators or models from `core/user_data_validation.py`.  
+  - Use validators or models from `storage/user_data_validation.py`.
   - Log clear errors on invalid data.
 
 - Template versus instance  
@@ -123,7 +124,7 @@ Use this list to anchor AI changes to the right modules.
   Logging Architecture in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).  
 - `core/error_handling.py` - shared error handling decorators and integration with logging and
   basic metrics. See section 2. Architecture Overview in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md).  
-- `core/user_data_registry.py`, `core/user_data_read.py`, `core/user_data_write.py`, `core/user_data_validation.py` - user data entry points.  
+- `storage/user_data_registry.py`, `storage/user_data_read.py`, `storage/user_data_write.py`, `storage/user_data_validation.py` - user data entry points.
 - `communication/` - channel orchestrators and adapters that turn service events into messages on
   Discord, email, etc.  
 - `tasks/` - task and reminder definitions used by schedulers.  

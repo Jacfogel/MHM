@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-13 19:52:54
+> **Last Generated**: 2026-05-14 00:39:18
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,23 +10,23 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 93.0% [!] GOOD**
-- **Total Functions**: 1892
-- **Total Methods**: 1274
-- **Documented**: 2945/3166
-- **Files Scanned**: 144
+### **Documentation Coverage: 93.9% [!] GOOD**
+- **Total Functions**: 1776
+- **Total Methods**: 1244
+- **Documented**: 2835/3020
+- **Files Scanned**: 145
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
 ### **[USER DATA] Need to Handle User Data?**
 ```
 User Data Operations Decision Tree:
-+-- `core/user_data_read.py` - Primary data access (5 functions)
-+-- `core/user_data_operations.py` - Data management (67 functions)
-+-- `core/user_data_validation.py` - Validation (9/12 functions)
++-- `core/user_data_read.py` - Primary data access
++-- `core/user_data_operations.py` - Data management
++-- `core/user_data_validation.py` - Validation
 +-- `user/user_context.py` - User context management (20 functions)
 +-- `user/user_preferences.py` - User preferences (18 functions)
-`-- `core/user_data_read.py` - Account operations (5 functions)```
+`-- `core/user_data_read.py` - Account operations```
 
 ### **[AI] Need AI/Chatbot Functionality?**
 ```
@@ -141,8 +141,8 @@ Core System Decision Tree:
 - [OK] `core/service.py::__init__()` - Initialization
 
 ### **Data Access Patterns**
-- **User Data**: `core/user_data_read.py` - User data operations (5 functions)
-- **Validation**: `core/user_data_validation.py` - Data validation (9/12 functions)
+- **User Data**: `core/user_data_read.py` - User data operations
+- **Validation**: `core/user_data_validation.py` - Data validation
 - **File Operations**: `core/file_operations.py` - File I/O (16 functions)
 
 ### **Communication Patterns**
@@ -156,17 +156,16 @@ Core System Decision Tree:
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
 - `core/schemas.py` - 17/27 functions undocumented (37% coverage)
 - `communication/delivery/message_dispatcher.py` - 15/17 functions undocumented (12% coverage)
-- `core/user_data_write.py` - 15/19 functions undocumented (21% coverage)
 - `core/service_requests.py` - 14/34 functions undocumented (59% coverage)
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
-- `core/user_data_registry.py` - 11/22 functions undocumented (50% coverage)
 - `tasks/task_schemas.py` - 10/10 functions undocumented (0% coverage)
 - `tasks/task_service.py` - 10/26 functions undocumented (62% coverage)
+- `ui/dialogs/channel_management_dialog.py` - 7/11 functions undocumented (36% coverage)
+- `ui/widgets/channel_selection_widget.py` - 6/16 functions undocumented (62% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
-- `core/user_data_validation.py` - 3/12 functions undocumented (75% coverage)
 - `core/user_lookup.py` - 1/3 functions undocumented (67% coverage)
 
 
@@ -198,7 +197,7 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (43 files, 871 functions)
+- `core/` - System utilities and data management (44 files, 725 functions)
 - `scheduler/` -  (5 files, 92 functions)
 - `communication/` - Communication channels and message processing (45 files, 944 functions)
 - `ai/` - AI chatbot functionality (7 files, 220 functions)

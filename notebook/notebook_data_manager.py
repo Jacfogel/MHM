@@ -27,7 +27,7 @@ from notebook.notebook_validation import (
     validate_entry_content,
     MAX_BODY_LENGTH,
 )
-from core.user_data_validation import is_valid_string_length
+from storage.user_data_validation import is_valid_string_length
 
 
 logger = get_component_logger("notebook_data_manager")

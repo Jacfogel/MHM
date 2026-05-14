@@ -39,13 +39,13 @@ from core.time_utilities import (
     now_timestamp_full,
     now_datetime_full,
 )
-from core.runtime_state_storage import (
+from storage.runtime_state_storage import (
     get_runtime_state_path,
     load_runtime_state_json,
     save_runtime_state_json,
 )
 from tasks.task_data_handlers import runtime_task_due_date, runtime_task_due_time
-from core.user_data_v2_base import generate_short_id
+from storage.user_data_v2_base import generate_short_id
 
 # Route conversation orchestration to communication_manager component log
 logger = get_component_logger("communication_manager")
@@ -721,7 +721,7 @@ class ConversationManager:
         first_question_key = question_order[0]
         first_question_text = self._get_question_text(first_question_key, {}, user_id)
         intro = (
-            "🌟 Check-in Time! 🌟\n\n"
+            "ðŸŒŸ Check-in Time! ðŸŒŸ\n\n"
             "Hi! It's time for your check-in. This helps me understand how you're doing and provide better support.\n\n"
             f"Let's start: {first_question_text}"
         )
@@ -735,7 +735,7 @@ class ConversationManager:
 
     @handle_errors(
         "getting personalized welcome",
-        default_return="🌟 Hello! Let's take a moment to check in on how you're feeling today.\n\nI have some quick questions for you today. Type /cancel anytime to skip.",
+        default_return="ðŸŒŸ Hello! Let's take a moment to check in on how you're feeling today.\n\nI have some quick questions for you today. Type /cancel anytime to skip.",
     )
     def _get_personalized_welcome(self, user_id: str, question_count: int) -> str:
         """Generate a personalized welcome message based on user history"""
@@ -748,14 +748,14 @@ class ConversationManager:
             avg_mood = sum(recent_moods) / len(recent_moods) if recent_moods else 3
 
             if avg_mood >= 4:
-                welcome = "🌟 Great to see you again! I've noticed you've been feeling pretty good lately."
+                welcome = "ðŸŒŸ Great to see you again! I've noticed you've been feeling pretty good lately."
             elif avg_mood <= 2:
-                welcome = "🌟 Hi there! I'm here to support you. Let's check in on how you're doing today."
+                welcome = "ðŸŒŸ Hi there! I'm here to support you. Let's check in on how you're doing today."
             else:
-                welcome = "🌟 Hello! Let's take a moment to check in on how you're feeling today."
+                welcome = "ðŸŒŸ Hello! Let's take a moment to check in on how you're feeling today."
         else:
             welcome = (
-                "🌟 Welcome to your first check-in! Let's get to know how you're doing."
+                "ðŸŒŸ Welcome to your first check-in! Let's get to know how you're doing."
             )
 
         return f"{welcome}\n\nI have {question_count} quick questions for you today. Type /cancel anytime to skip."
@@ -1032,12 +1032,12 @@ class ConversationManager:
         if message_lower in ["/help", "!help", "/commands", "!commands"]:
             return (
                 "You're currently in a check-in. Here are your options:\n"
-                "• Continue answering the questions\n"
-                "• Type `/cancel` to cancel the check-in\n"
-                "• Type `/clear` to clear stuck flows\n"
-                "• Type `/tasks` to see your tasks\n"
-                "• Type `/profile` to see your profile\n"
-                "• Type `/status` to see your status",
+                "â€¢ Continue answering the questions\n"
+                "â€¢ Type `/cancel` to cancel the check-in\n"
+                "â€¢ Type `/clear` to clear stuck flows\n"
+                "â€¢ Type `/tasks` to see your tasks\n"
+                "â€¢ Type `/profile` to see your profile\n"
+                "â€¢ Type `/status` to see your status",
                 False,
             )
 
@@ -1126,12 +1126,12 @@ class ConversationManager:
 
     @handle_errors(
         "generating completion message",
-        default_return="✅ Check-in complete! Thanks for taking the time. See you next time! 🌟",
+        default_return="âœ… Check-in complete! Thanks for taking the time. See you next time! ðŸŒŸ",
     )
     def _generate_completion_message(self, user_id: str, data: dict) -> str:
         """Generate a personalized completion message based on responses"""
         # Base completion message
-        message = "✅ Check-in complete! Thanks for taking the time.\n\n"
+        message = "âœ… Check-in complete! Thanks for taking the time.\n\n"
 
         # Add personalized insights
         insights = []
@@ -1140,19 +1140,19 @@ class ConversationManager:
         mood = data.get("mood")
         if mood is not None:
             if mood >= 4:
-                insights.append("🌟 Great mood today!")
+                insights.append("ðŸŒŸ Great mood today!")
             elif mood <= 2:
                 insights.append(
-                    "💙 I hope tomorrow is better. Remember, it's okay to not be okay."
+                    "ðŸ’™ I hope tomorrow is better. Remember, it's okay to not be okay."
                 )
             else:
-                insights.append("😊 Solid mood today!")
+                insights.append("ðŸ˜Š Solid mood today!")
 
         # Energy insights
         energy = data.get("energy")
         if energy is not None and energy <= 2:
             insights.append(
-                "⚡ Low energy - maybe try a short walk or some gentle stretching?"
+                "âš¡ Low energy - maybe try a short walk or some gentle stretching?"
             )
 
         # Sleep insights
@@ -1164,19 +1164,19 @@ class ConversationManager:
                 sleep_hours = float(total_sleep_hours)
         sleep_quality = data.get("sleep_quality")
         if isinstance(sleep_hours, (int, float)) and sleep_hours < 6:
-            insights.append("😴 You might need more sleep tonight.")
+            insights.append("ðŸ˜´ You might need more sleep tonight.")
         elif sleep_quality is not None and sleep_quality <= 2:
             insights.append(
-                "😴 Sleep quality could be better - consider a bedtime routine."
+                "ðŸ˜´ Sleep quality could be better - consider a bedtime routine."
             )
 
         # Add insights
         if insights:
-            message += "💭 " + " ".join(insights) + "\n\n"
+            message += "ðŸ’­ " + " ".join(insights) + "\n\n"
 
         # Encouragement
         message += (
-            "You're doing great by checking in with yourself. See you next time! 🌟"
+            "You're doing great by checking in with yourself. See you next time! ðŸŒŸ"
         )
 
         return message
@@ -1417,7 +1417,7 @@ class ConversationManager:
                 ) > timedelta(minutes=10):
                     self._clear_flow_state(user_id, mark_completion=True)
                     return (
-                        "⏱️ Reminder flow expired. Task was created successfully. You can add reminders later by updating the task.",
+                        "â±ï¸ Reminder flow expired. Task was created successfully. You can add reminders later by updating the task.",
                         True,
                     )
 
@@ -1571,7 +1571,7 @@ class ConversationManager:
                         ]
                     )
                     return (
-                        f"✅ Reminder periods set for this task: {periods_text}",
+                        f"âœ… Reminder periods set for this task: {periods_text}",
                         True,
                     )
                 except Exception as update_error:
@@ -2070,7 +2070,7 @@ class ConversationManager:
             ) > timedelta(minutes=10):
                 self._clear_flow_state(user_id, mark_completion=True)
                 return (
-                    "⏱️ Due date flow expired. Task was created without a due date. You can add one later by updating the task.",
+                    "â±ï¸ Due date flow expired. Task was created without a due date. You can add one later by updating the task.",
                     True,
                 )
 
@@ -2094,7 +2094,7 @@ class ConversationManager:
             task_id = self._get_task_flow_identifier(user_state)
             self._clear_flow_state(user_id, mark_completion=True)
             return (
-                "❌ Due date setting cancelled. Task was created without a due date.",
+                "âŒ Due date setting cancelled. Task was created without a due date.",
                 True,
             )
 
@@ -2113,7 +2113,7 @@ class ConversationManager:
                 )
             self._clear_flow_state(user_id, mark_completion=True)
             return (
-                "✅ Task created without a due date. You can add one later by updating the task.",
+                "âœ… Task created without a due date. You can add one later by updating the task.",
                 True,
             )
 
@@ -2138,7 +2138,7 @@ class ConversationManager:
         task_id = self._get_task_flow_identifier(user_state)
         if not task_id:
             self._clear_flow_state(user_id, mark_completion=True)
-            return ("❌ Could not find task. Please try creating the task again.", True)
+            return ("âŒ Could not find task. Please try creating the task again.", True)
 
         # Parse date/time from message
         parsed_date, parsed_time = self._parse_date_time_from_text(message_text)
@@ -2165,7 +2165,7 @@ class ConversationManager:
             if not update_result:
                 self._clear_flow_state(user_id, mark_completion=True)
                 return (
-                    "❌ Failed to update task with due date. The task was created successfully. You can add a due date later by updating the task.",
+                    "âŒ Failed to update task with due date. The task was created successfully. You can add a due date later by updating the task.",
                     True,
                 )
 
@@ -2185,13 +2185,13 @@ class ConversationManager:
             self.start_task_reminder_followup(user_id, task_id)
             self._generate_context_aware_reminder_suggestions(user_id, task_id)
 
-            response = f"✅ Due date set: {due_text}\n\nWould you like to set custom reminder periods for this task?"
+            response = f"âœ… Due date set: {due_text}\n\nWould you like to set custom reminder periods for this task?"
             return (response, False)  # Not completed - reminder flow is active
         except Exception as e:
             logger.error(f"Error updating task with due date: {e}", exc_info=True)
             self._clear_flow_state(user_id, mark_completion=True)
             return (
-                "❌ Failed to update task with due date. The task was created successfully. You can add a due date later by updating the task.",
+                "âŒ Failed to update task with due date. The task was created successfully. You can add a due date later by updating the task.",
                 True,
             )
 
@@ -2379,7 +2379,7 @@ class ConversationManager:
                 # Flow expired
                 self._clear_flow_state(user_id, mark_completion=True)
                 return (
-                    "⏱️ Note flow expired. Please start over with `!n <title>`",
+                    "â±ï¸ Note flow expired. Please start over with `!n <title>`",
                     True,
                 )
 
@@ -2399,7 +2399,7 @@ class ConversationManager:
             # Clear flow state
             self._clear_flow_state(user_id, mark_completion=True)
 
-            return (f"❌ Note creation cancelled. '{title}' was not saved.", True)
+            return (f"âŒ Note creation cancelled. '{title}' was not saved.", True)
 
         # Handle skip - create note without body
         if any(
@@ -2427,11 +2427,11 @@ class ConversationManager:
                     str(entry.id), str(entry.kind), length=6
                 )
                 return (
-                    f"✅ Note created: '{title}' ({display_short})",
+                    f"âœ… Note created: '{title}' ({display_short})",
                     True,
                 )
             else:
-                return ("❌ Failed to create note. Please try again.", True)
+                return ("âŒ Failed to create note. Please try again.", True)
 
         # Check if message is clearly unrelated to note body flow (commands or unrelated content)
         unrelated_patterns = [
@@ -2477,12 +2477,12 @@ class ConversationManager:
             display_short = entry.short_id or generate_short_id(
                 str(entry.id), str(entry.kind), length=6
             )
-            response = f"✅ Note created: '{title}' ({display_short})"
+            response = f"âœ… Note created: '{title}' ({display_short})"
             if entry.tags:
                 response += f"\nTags: {', '.join(entry.tags)}"
             return (response, True)
         else:
-            return ("❌ Failed to create note. Please try again.", True)
+            return ("âŒ Failed to create note. Please try again.", True)
 
     @handle_errors(
         "handling list items flow",
@@ -2541,11 +2541,11 @@ class ConversationManager:
                     str(entry.id), str(entry.kind), length=6
                 )
                 return (
-                    f"✅ List created: '{title}' ({display_short}) with {len(item_strings)} items",
+                    f"âœ… List created: '{title}' ({display_short}) with {len(item_strings)} items",
                     True,
                 )
             else:
-                return ("❌ Failed to create list. Please try again.", True)
+                return ("âŒ Failed to create list. Please try again.", True)
 
         # Check for timeout first (10 minutes)
         started_at_str = user_state.get("started_at")
@@ -2559,7 +2559,7 @@ class ConversationManager:
                 # Flow expired
                 self._clear_flow_state(user_id, mark_completion=True)
                 return (
-                    "⏱️ List flow expired. Please start over with `!l <title>`",
+                    "â±ï¸ List flow expired. Please start over with `!l <title>`",
                     True,
                 )
 
@@ -2607,7 +2607,7 @@ class ConversationManager:
 
         item_count = len(existing_items)
         return (
-            f"📋 Added {len(items)} item(s). Total: {item_count} items.\n\nAdd more items, or type `!end`, `/end`, or 'end' to finish the list.",
+            f"ðŸ“‹ Added {len(items)} item(s). Total: {item_count} items.\n\nAdd more items, or type `!end`, `/end`, or 'end' to finish the list.",
             False,
         )
 

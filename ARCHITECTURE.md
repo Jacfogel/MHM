@@ -125,11 +125,11 @@ Each user has a dedicated directory under `data/users/{user_id}/`. Typical conte
 - Additional JSON files and subdirectories (for example `checkins.json`,
   `chat_interactions.json`, and other feature-specific artefacts) as features evolve.
 
-**Module map and naming** - For a one-line-per-file guide to `core/` user-data and schedule modules (including `user_data_v2_envelopes`, `user_data_operations`, `schedule_runtime`, `schedule_document_defaults`) and a short explanation of tolerant profile validation versus strict v2 envelopes, see Section 0 in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md).
+**Module map and naming** - For a one-line-per-file guide to `storage/` user-data modules and related schedule modules (including `user_data_v2_envelopes`, `user_data_operations`, `schedule_runtime`, `schedule_document_defaults`) and a short explanation of tolerant profile validation versus strict v2 envelopes, see Section 0 in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md).
 
 Important rules:
 
-1. All user data access goes through helpers in `core/user_data_registry.py`, `core/user_data_read.py`, and `core/user_data_write.py`.  
+1. All user data access goes through helpers in `storage/user_data_registry.py`, `storage/user_data_read.py`, and `storage/user_data_write.py`.
    Feature code should not open JSON files in `data/users/` directly. This keeps validation,
    backups, and migration logic centralized.
 
@@ -145,7 +145,7 @@ Important rules:
    Describe what they are for, how they are written, and which module owns them.
 
 For more validation and schema details, see the relevant models and helpers in
-`core/user_data_validation.py` and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
+`storage/user_data_validation.py` and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 ### 2.1. User Data Flow Diagram
 
@@ -234,11 +234,11 @@ Use this diagram when reasoning about where to add validation, backups, or legac
 Data handling in MHM is designed around safety and clarity.
 
 - Centralized user data access  
-  - Use `get_user_data()` and related helpers in `core/user_data_read.py` and `core/user_data_write.py`.  
+  - Use `get_user_data()` and related helpers in `storage/user_data_read.py` and `storage/user_data_write.py`.
   - Keep raw file access inside these helpers or tightly related modules.
 
 - Validation before write  
-  - Use validation functions or models in `core/user_data_validation.py`.  
+  - Use validation functions or models in `storage/user_data_validation.py`.
   - Reject or correct invalid data early and log clear errors.
 
 - Backups on risky operations  
@@ -306,7 +306,7 @@ listing of every file.
   applicable, to basic metrics. For the broader design and patterns, see section 2.
   Architecture Overview in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
 
-- `core/user_data_registry.py`, `core/user_data_read.py`, `core/user_data_write.py`, and `core/user_data_validation.py`  
+- `storage/user_data_registry.py`, `storage/user_data_read.py`, `storage/user_data_write.py`, and `storage/user_data_validation.py`
   Read and write user data in a safe and consistent way, with validation and optional
   migration paths. See section 2. User Data Model and section 3. Data Handling Patterns
   in this file.

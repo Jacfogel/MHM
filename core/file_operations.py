@@ -655,7 +655,7 @@ def _create_user_files__sent_messages_file(user_id):
 def _create_user_files__task_files(user_id):
     """Create canonical v2 tasks.json if tasks are enabled (no v1 split files)."""
     try:
-        from core.user_data_v2_base import SCHEMA_VERSION
+        from storage.user_data_v2_base import SCHEMA_VERSION
         from tasks.task_schemas import TASKS_V2_FILENAME
 
         user_dir = Path(get_user_data_dir(user_id))
@@ -685,7 +685,7 @@ def _create_user_files__task_files(user_id):
 @handle_errors("creating checkins file", default_return=None)
 def _create_user_files__checkins_file(user_id):
     """Create checkins.json only if checkins are enabled."""
-    from core.user_data_v2_base import SCHEMA_VERSION
+    from storage.user_data_v2_base import SCHEMA_VERSION
 
     checkins_file = get_user_file_path(user_id, "checkins")
     if not os.path.exists(checkins_file):
@@ -739,7 +739,7 @@ def _create_user_files__message_files(user_id, categories):
 def _create_user_files__update_user_references(user_id):
     """Auto-update message references and user index."""
     try:
-        importlib.import_module("core.user_data_operations").update_message_references(
+        importlib.import_module("storage.user_data_operations").update_message_references(
             user_id
         )
         # Skip user index update during initial file creation to avoid circular dependency

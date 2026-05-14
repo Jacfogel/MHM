@@ -9,7 +9,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 
 from core.user_management import get_all_user_ids
-from core.user_data_read import get_user_data
+from storage.user_data_read import get_user_data
 
 logger = get_component_logger("main")
 

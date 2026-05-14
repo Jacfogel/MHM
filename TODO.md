@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-05-13 (scheduler package move completed)
+> **Last Updated**: 2026-05-14 (storage package move completed)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -169,14 +169,6 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 ## Low Priority
 
 ### Architecture
-
-**Move persistence infrastructure to a top-level storage package**
-- *Decision*: Proceed, but as a separate refactor after the scheduler package move. This has a larger blast radius because user-data helpers are tied into `core` exports, validation, user management, runtime paths, and tests.
-- *What it means*: Move persistence infrastructure currently in `core/user_data_*` and related storage helpers into a dedicated `storage/` package. Candidate modules include user-data read/write/validation/registry/operations/presets/v2 envelope helpers, `user_item_storage`, `runtime_state_storage`, and `service_flag_storage`. Do not use `data/` for code because `data/` is the literal runtime data directory.
-- *Why it helps*: Separates data persistence mechanics from core runtime wiring and user-domain concepts.
-- *Execution guidance*: Do not bundle with scheduler or domain package moves. Keep file locations and on-disk JSON contracts stable unless a separate migration plan explicitly says otherwise. If old `core.user_data_*` import paths need temporary bridges, follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) and track bridge removal through the deprecation inventory and legacy tools.
-- *Estimated effort*: Medium
-- *Created*: 2026-05-03
 
 **Create first-class automated message and check-in domain packages**
 - *Decision*: Proceed in principle, but do this last and start with a short design pass. Message and check-in logic are real application domains, but they touch scheduler behavior, communication handlers, UI dialogs, analytics, schemas, response tracking, and persistence.

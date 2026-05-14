@@ -5,7 +5,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-05-11 (session note: completed runtime JSON storage and soft channel-boundary review work removed from active plans)
+> **Last Updated**: 2026-05-14 (session note: completed storage package move removed from active TODOs)
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) (V4 history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)).  
 
 ---
@@ -32,7 +32,7 @@
 
 ## [ACTIVE] **Current Active Plans**
 
-**Recently completed**: The MHM Refactor Continuation Plan was completed on 2026-05-05 and removed from active planning per the plan-maintenance rule. Runtime JSON storage classification, migration, service flag cleanup, the soft channel-boundary review, and the Backup Reliability and Restore Confidence Plan were completed on 2026-05-11 and removed from active planning. See [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) and [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) for session records. Deferred architecture follow-ups are tracked in [TODO.md](../TODO.md).
+**Recently completed**: The MHM Refactor Continuation Plan was completed on 2026-05-05 and removed from active planning per the plan-maintenance rule. Runtime JSON storage classification, migration, service flag cleanup, the soft channel-boundary review, and the Backup Reliability and Restore Confidence Plan were completed on 2026-05-11 and removed from active planning. The top-level storage package move completed on 2026-05-14 and was removed from [TODO.md](../TODO.md). See [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) and [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) for session records. Deferred architecture follow-ups are tracked in [TODO.md](../TODO.md).
 
 ### **Flow/Check-in Scheduled Send Stability Follow-up** **IN PROGRESS**
 

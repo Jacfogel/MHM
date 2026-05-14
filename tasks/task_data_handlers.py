@@ -1,15 +1,15 @@
 """
 Task data handlers: directory setup and load/save of active and completed task JSON.
 
-Uses core.user_item_storage for paths and I/O. No business logic.
+Uses storage.user_item_storage for paths and I/O. No business logic.
 """
 
 from typing import Any, cast
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.user_data_validation import is_valid_user_id
-from core.user_item_storage import (
+from storage.user_data_validation import is_valid_user_id
+from storage.user_item_storage import (
     ensure_user_subdir,
     get_user_subdir_path,
     load_user_json_file,
@@ -17,7 +17,7 @@ from core.user_item_storage import (
 )
 
 from core.time_utilities import now_timestamp_full, parse_timestamp_full
-from core.user_data_v2_base import SCHEMA_VERSION, generate_short_id
+from storage.user_data_v2_base import SCHEMA_VERSION, generate_short_id
 from tasks.task_schemas import TASKS_V2_FILENAME, TaskV2Model
 
 logger = get_component_logger("tasks")

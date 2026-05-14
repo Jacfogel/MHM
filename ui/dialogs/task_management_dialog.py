@@ -14,7 +14,7 @@ from core import update_user_account
 from core import get_user_data
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger
-from core.user_data_validation import validate_schedule_periods
+from storage.user_data_validation import validate_schedule_periods
 from tasks import setup_default_task_tags
 
 setup_logging()

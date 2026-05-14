@@ -55,9 +55,33 @@
       "kind\\[0\\]-",
       "entry\\.kind\\[0\\]-",
       "[nlj]-[0-9a-f]{6,8}"
+    ],
+    "core_storage_module_bridges": [
+      "from\\s+core\\.(user_data_(read|write|registry|operations|presets|validation|v2_base|v2_envelopes)|user_item_storage|runtime_state_storage|service_flag_storage)\\s+import",
+      "import\\s+core\\.(user_data_(read|write|registry|operations|presets|validation|v2_base|v2_envelopes)|user_item_storage|runtime_state_storage|service_flag_storage)",
+      "import_module\\([\"']core\\.(user_data_(read|write|registry|operations|presets|validation|v2_base|v2_envelopes)|user_item_storage|runtime_state_storage|service_flag_storage)[\"']\\)"
     ]
   },
   "active_or_candidate_inventory": [
+    {
+      "id": "core_storage_module_import_bridges",
+      "status": "active_bridge",
+      "search_terms": [
+        "core.user_data_read",
+        "core.user_data_write",
+        "core.user_data_registry",
+        "core.user_data_operations",
+        "core.user_data_presets",
+        "core.user_data_validation",
+        "core.user_data_v2_base",
+        "core.user_data_v2_envelopes",
+        "core.user_item_storage",
+        "core.runtime_state_storage",
+        "core.service_flag_storage"
+      ],
+      "exit_criteria": "Run legacy find/verify for each core storage module path, update active tests and callers to storage.*, then remove the core bridge files and this inventory entry when no active code/config references remain.",
+      "notes": "2026-05-13: storage implementations moved to top-level storage package. Thin core module bridges remain only for temporary import compatibility and old monkeypatch paths."
+    },
     {
       "id": "root_ruff_compat_mirror",
       "status": "active_bridge",

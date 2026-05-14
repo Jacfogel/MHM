@@ -12,8 +12,8 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.time_utilities import now_timestamp_full
 
-from core.user_data_read import get_user_data
-from core.user_data_write import save_user_data
+from storage.user_data_read import get_user_data
+from storage.user_data_write import save_user_data
 from core.schedule_document_defaults import ensure_category_has_default_schedule
 
 logger = get_component_logger("main")
@@ -172,7 +172,7 @@ def create_new_user(user_data: dict[str, Any]) -> str | None:
         ensure_category_has_default_schedule(user_id, category)
 
     try:
-        importlib.import_module("core.user_data_operations").update_user_index(user_id)
+        importlib.import_module("storage.user_data_operations").update_user_index(user_id)
     except Exception as e:
         logger.warning(f"Failed to update user index for new user {user_id}: {e}")
 

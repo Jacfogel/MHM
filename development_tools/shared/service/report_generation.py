@@ -3889,9 +3889,15 @@ class ReportGenerationMixin:
         if path_drift_count and path_drift_count > 0:
             drift_details: list[str] = []
             if path_drift_files:
+                priority_links = []
+                for path in path_drift_files:
+                    normalized_path = str(path).replace("\\", "/")
+                    if not normalized_path.startswith(("../", "development_tools/")):
+                        normalized_path = "../" + normalized_path
+                    priority_links.append(normalized_path)
                 drift_details.append(
                     "Top offenders: "
-                    f"{self._format_repo_paths_as_markdown_links(path_drift_files, limit=3)}"
+                    f"{self._format_repo_paths_as_markdown_links(priority_links, limit=3)}"
                 )
             if paired_doc_issues:
                 drift_details.append(

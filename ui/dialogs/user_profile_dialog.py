@@ -43,7 +43,7 @@ dialog_logger = logger
 
 # Import core functionality
 from core import get_predefined_options
-from core.user_data_validation import validate_personalization_data
+from storage.user_data_validation import validate_personalization_data
 from core.error_handling import handle_errors
 from core.time_utilities import now_timestamp_full
 
@@ -218,7 +218,7 @@ class UserProfileDialog(QDialog):
         entry.setPlaceholderText(f"Enter custom {field_type}")
         field_layout.addWidget(entry)
 
-        delete_button = QPushButton("×")
+        delete_button = QPushButton("Ã—")
         delete_button.setMaximumWidth(30)
         delete_button.clicked.connect(lambda: self.remove_custom_field(field_frame))
         field_layout.addWidget(delete_button)
@@ -535,9 +535,9 @@ class UserProfileDialog(QDialog):
                 "Save Failed",
                 "Unable to save your personalization changes.\n\n"
                 "Please check that:\n"
-                "• All required fields are filled in\n"
-                "• Your user data files are accessible\n"
-                "• You have permission to modify files\n\n"
+                "â€¢ All required fields are filled in\n"
+                "â€¢ Your user data files are accessible\n"
+                "â€¢ You have permission to modify files\n\n"
                 "If the problem persists, try closing and reopening the dialog.",
             )
 

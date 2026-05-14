@@ -19,7 +19,7 @@ from core.schedule_runtime import set_schedule_periods, clear_schedule_periods_c
 from core import update_user_preferences, update_user_account
 from core import get_user_data
 from core.error_handling import handle_errors
-from core.user_data_validation import validate_schedule_periods
+from storage.user_data_validation import validate_schedule_periods
 
 # Import widget
 from ui.widgets.checkin_settings_widget import CheckinSettingsWidget

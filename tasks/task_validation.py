@@ -2,7 +2,7 @@
 Validation helpers for task data and inputs.
 
 Used by task_data_manager (and optionally task_data_handlers).
-Uses core.user_data_validation.is_valid_user_id and core.time_utilities.
+Uses storage.user_data_validation.is_valid_user_id and core.time_utilities.
 """
 
 from typing import Any

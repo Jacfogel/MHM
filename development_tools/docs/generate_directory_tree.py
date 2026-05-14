@@ -143,6 +143,7 @@ class DirectoryTreeGenerator:
         path_stack: list[str] = []
 
         for line in lines:
+            line = line.rstrip()
             indent = _get_line_indent(line)
 
             if skip_exclusion_indent is not None:

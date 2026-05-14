@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-14 - Storage Package Move **COMPLETED**
+- Moved persistence implementations from `core/` into the new top-level `storage/` package while preserving existing on-disk JSON locations and schemas.
+- Kept temporary `core.*` storage bridge modules only for legacy public import paths, backed by `core._storage_bridge` and tracked in the deprecation inventory with explicit removal criteria.
+- Updated active callers, `core.__init__` lazy exports, package discovery, and architecture/user-data docs so `storage` is the persistence owner.
+- Follow-up hygiene is clean: Ruff PASS, Pyright 0/0, unused imports 0, doc-sync PASS, Tier 2 audit PASS. Tier 3 full coverage remains a separate orchestration follow-up because broader runs still expose intermittent Windows pytest temp-root/setup behavior.
+
 ### 2026-05-13 - Scheduler Package Move **COMPLETED**
 - Moved scheduler runtime modules from `core/` into the new top-level `scheduler/` package: `manager`, `jobs`, `maintenance`, and `task_reminders`.
 - Updated production imports, tests, and UI scheduler entry points to use `scheduler.manager` directly; no `core.*` compatibility bridge was kept.

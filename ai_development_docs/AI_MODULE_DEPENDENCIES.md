@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-13 19:53:02
+> **Last Generated**: 2026-05-14 00:39:29
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 142
-- **Total Imports**: 1612
-- **Standard Library**: 461 (28.6%)
-- **Third-Party**: 236 (14.6%)
-- **Local Imports**: 915 (56.8%)
+- **Files Scanned**: 143
+- **Total Imports**: 1471
+- **Standard Library**: 421 (28.6%)
+- **Third-Party**: 237 (16.1%)
+- **Local Imports**: 813 (55.3%)
 
 ## Dependency Decision Trees
 
@@ -26,9 +26,9 @@ Core System Dependencies:
   - core/config.py <- standard library (contextlib, logging, os, pathlib), third-party (dotenv), error_handling
   - core/logger.py <- standard library (contextlib, glob, gzip, json), error_handling, time_utilities, config
 - Data Management
-  - core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+2 more)
-  - core/user_data_operations.py <- standard library (collections.abc, importlib, json, os), logger, config, file_operations, core, error_handling (+6 more)
-  - core/user_data_presets.py <- standard library (json, pathlib), third-party (pytz), logger, error_handling
+  - core/file_operations.py <- standard library (importlib, json, os, pathlib), third-party (storage.user_data_v2_base), logger, config, error_handling, time_utilities, file_auditor (+1 more)
+  - core/user_data_operations.py <- third-party (storage.user_data_operations), _storage_bridge
+  - core/user_data_presets.py <- third-party (storage.user_data_presets), _storage_bridge
 - Error Handling
   - core/error_handling.py <- standard library (asyncio, collections.abc, contextlib, functools), network_probe, time_utilities
 
@@ -38,9 +38,9 @@ AI System Dependencies:
   - ai/cache_manager.py <- standard library (dataclasses, hashlib, threading, time), logger, error_handling, config
   - ai/chatbot.py <- standard library (asyncio, collections, datetime, json), third-party (psutil, requests), logger, config, response_tracking, core, context_manager (+8 more)
 - Command Processing
-  - communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_data_operations, base_handler (+2 more)
+  - communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), third-party (storage.user_data_operations), logger, error_handling, core, base_handler, shared_types (+1 more)
   - communication/command_handlers/analytics_handler.py <- standard library (collections, typing), logger, error_handling, base_handler, shared_types, response_tracking (+5 more)
-  - communication/command_handlers/base_handler.py <- standard library (abc), shared_types, logger, error_handling, user_data_validation
+  - communication/command_handlers/base_handler.py <- standard library (abc), third-party (storage.user_data_validation), shared_types, logger, error_handling
 - Communication Integration
   - communication/communication_channels/__init__.py <- none
   - communication/core/channel_monitor.py <- standard library (threading, time, typing), time_utilities, logger, error_handling, base_channel
@@ -48,26 +48,26 @@ AI System Dependencies:
 ### Need Communication Channel Coverage?
 Communication Dependencies:
 - Channel Infrastructure
-  - communication/command_handlers/base_handler.py <- standard library (abc), shared_types, logger, error_handling, user_data_validation
+  - communication/command_handlers/base_handler.py <- standard library (abc), third-party (storage.user_data_validation), shared_types, logger, error_handling
   - communication/core/factory.py <- standard library (importlib), base_channel, logger, error_handling, config
   - communication/communication_channels/base/base_channel.py <- standard library (abc, dataclasses, enum, typing), logger, error_handling
 - Specific Channels
-  - communication/communication_channels/discord/account_flow_handler.py <- standard library (contextlib), third-party (discord), logger, error_handling, shared_types, account_handler, user_data_presets
+  - communication/communication_channels/discord/account_flow_handler.py <- standard library (contextlib), third-party (discord, storage.user_data_presets), logger, error_handling, shared_types, account_handler
   - communication/communication_channels/discord/api_client.py <- standard library (asyncio, dataclasses, time, typing), third-party (discord), logger, error_handling
 - Conversation Flow
-  - communication/message_processing/conversation_flow_manager.py <- standard library (contextlib, datetime, importlib, random), chatbot, logger, core, response_tracking, error_handling (+16 more)
-  - communication/communication_channels/discord/account_flow_handler.py <- standard library (contextlib), third-party (discord), logger, error_handling, shared_types, account_handler, user_data_presets
+  - communication/message_processing/conversation_flow_manager.py <- standard library (contextlib, datetime, importlib, random), third-party (storage.runtime_state_storage, storage.user_data_v2_base), chatbot, logger, core, response_tracking, error_handling (+14 more)
+  - communication/communication_channels/discord/account_flow_handler.py <- standard library (contextlib), third-party (discord, storage.user_data_presets), logger, error_handling, shared_types, account_handler
 
 ### Need UI Dependencies?
 UI Dependencies:
 - Main Application
-  - ui/ui_app_qt.py <- standard library (contextlib, json, os, pathlib), third-party (PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets), launch_env, time_utilities, logger, config, error_handling (+22 more)
+  - ui/ui_app_qt.py <- standard library (contextlib, json, os, pathlib), third-party (PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets), launch_env, time_utilities, logger, config, error_handling (+20 more)
 - Dialogs
-  - ui/dialogs/account_creator_dialog.py <- standard library (contextlib, pathlib, time, typing), third-party (PySide6.QtCore, PySide6.QtWidgets), logger, user_data_validation, core, error_handling, dialog_helpers (+11 more)
+  - ui/dialogs/account_creator_dialog.py <- standard library (contextlib, pathlib, time, typing), third-party (PySide6.QtCore, PySide6.QtWidgets, storage.user_data_operations), logger, core, error_handling, dialog_helpers, category_selection_widget (+9 more)
   - ui/dialogs/admin_panel.py <- third-party (PySide6.QtCore, PySide6.QtWidgets), logger, error_handling
   - ui/dialogs/category_management_dialog.py <- third-party (PySide6.QtCore, PySide6.QtWidgets), category_management_dialog_pyqt, category_selection_widget, logger, core, error_handling (+1 more)
 - Widgets
-  - ui/widgets/category_selection_widget.py <- third-party (PySide6.QtWidgets), category_selection_widget_pyqt, user_data_validation, error_handling, logger
+  - ui/widgets/category_selection_widget.py <- third-party (PySide6.QtWidgets, storage.user_data_validation), category_selection_widget_pyqt, error_handling, logger
   - ui/widgets/channel_selection_widget.py <- third-party (PySide6.QtWidgets), channel_selection_widget_pyqt, core, logger, error_handling
   - ui/widgets/checkin_settings_widget.py <- standard library (re), third-party (PySide6.QtCore, PySide6.QtWidgets), checkin_settings_widget_pyqt, ui_management, period_row_management, core, error_handling (+2 more)
 
@@ -96,7 +96,7 @@ External libraries provide channel and UI support.
 - `ai/lm_studio_manager.py` -> requests
 - `ai/__init__.py` -> chatbot, cache_manager
 - `communication/__init__.py` -> communication_channels.base.base_channel, message_processing.command_parser
-- `communication/command_handlers/task_handler.py` -> base_handler
+- `communication/command_handlers/account_handler.py` -> storage.user_data_operations
 
 
 ## Critical Dependencies for AI Context
@@ -105,31 +105,31 @@ External libraries provide channel and UI support.
 - `run_headless_service.py` -> standard library (sys), headless_service, logger, error_handling (main application entry)
 
 ### Data Flow
-- file_operations.py: core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+2 more)
-- user_data_operations.py: core/user_data_operations.py <- standard library (collections.abc, importlib, json, os), logger, config, file_operations, core, error_handling (+6 more)
-- user_data_presets.py: core/user_data_presets.py <- standard library (json, pathlib), third-party (pytz), logger, error_handling
+- file_operations.py: core/file_operations.py <- standard library (importlib, json, os, pathlib), third-party (storage.user_data_v2_base), logger, config, error_handling, time_utilities, file_auditor (+1 more)
+- user_data_operations.py: core/user_data_operations.py <- third-party (storage.user_data_operations), _storage_bridge
+- user_data_presets.py: core/user_data_presets.py <- third-party (storage.user_data_presets), _storage_bridge
 
 ### Communication Flow
 - __init__: communication/__init__.py <- third-party (command_handlers.analytics_handler, command_handlers.base_handler, command_handlers.checkin_handler), retry_manager, channel_orchestrator, factory, channel_monitor
-- account_handler: communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_data_operations, base_handler (+2 more)
+- account_handler: communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), third-party (storage.user_data_operations), logger, error_handling, core, base_handler, shared_types (+1 more)
 - analytics_handler: communication/command_handlers/analytics_handler.py <- standard library (collections, typing), logger, error_handling, base_handler, shared_types, response_tracking (+5 more)
 
 
 ## Dependency Risk Areas
 
 ### High Coupling
-- `ui/ui_app_qt.py` -> 47 local dependencies (heavy coupling)
-- `communication/message_processing/conversation_flow_manager.py` -> 36 local dependencies (heavy coupling)
+- `ui/ui_app_qt.py` -> 45 local dependencies (heavy coupling)
 - `communication/command_handlers/analytics_handler.py` -> 34 local dependencies (heavy coupling)
+- `communication/message_processing/conversation_flow_manager.py` -> 34 local dependencies (heavy coupling)
 - `communication/core/channel_orchestrator.py` -> 28 local dependencies (heavy coupling)
-- `ui/dialogs/account_creator_dialog.py` -> 23 local dependencies (heavy coupling)
+- `communication/command_handlers/interaction_handlers.py` -> 22 local dependencies (heavy coupling)
 
 ### Third-Party Risks
 - `ui/ui_app_qt.py` -> PySide6.QtWidgets (31 modules use this)
 - `ui/ui_app_qt.py` -> PySide6.QtCore (19 modules use this)
+- `communication/command_handlers/base_handler.py` -> storage.user_data_validation (14 modules use this)
 - `communication/communication_channels/base/command_registry.py` -> discord (11 modules use this)
-- `ai/chatbot.py` -> psutil (7 modules use this)
-- `core/schemas.py` -> pytz (5 modules use this)
+- `communication/message_processing/conversation_flow_manager.py` -> storage.user_data_v2_base (9 modules use this)
 
 
 ## Quick Reference for AI

@@ -12,11 +12,11 @@ from typing import Any
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 
-from core.user_data_registry import (
+from storage.user_data_registry import (
     _get_user_data__load_schedules,
     _save_user_data__save_schedules,
 )
-from core.user_data_read import get_user_data
+from storage.user_data_read import get_user_data
 
 logger = get_component_logger("main")
 

@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, ConfigDict, field_validator, model_valida
 from core.tags import normalize_tags, validate_tag
 from core.logger import get_component_logger
 from core.time_utilities import now_timestamp_full
-from core.user_data_v2_base import (
+from storage.user_data_v2_base import (
     SCHEMA_VERSION,
     BaseItemModel,
     validate_optional_v2_timestamp,
@@ -22,7 +22,7 @@ from core.user_data_v2_base import (
 logger = get_component_logger("notebook_schemas")
 
 
-# Aligns with the notebook subset of ``ItemKind`` in ``core.user_data_v2_base``.
+# Aligns with the notebook subset of ``ItemKind`` in ``storage.user_data_v2_base``.
 EntryKind = Literal["note", "list", "journal_entry"]
 
 NotebookStatus = Literal["active", "archived", "deleted"]

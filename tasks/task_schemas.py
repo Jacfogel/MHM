@@ -11,7 +11,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from core.time_utilities import parse_date_only, parse_time_only_minute
-from core.user_data_v2_base import (
+from storage.user_data_v2_base import (
     SCHEMA_VERSION,
     BaseItemModel,
     v2_schema_validation_error,

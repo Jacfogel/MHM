@@ -13,7 +13,7 @@ from typing import Any
 from core.delivery import ServiceRequestDeliveryPort
 from core.error_handling import FileOperationError, ValidationError, handle_errors
 from core.logger import get_component_logger
-from core.service_flag_storage import read_service_flag_json, write_service_flag_json
+from storage.service_flag_storage import read_service_flag_json, write_service_flag_json
 from core.time_utilities import now_timestamp_filename, now_timestamp_full
 
 logger = get_component_logger("main")

@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QWidget
 from ui.generated.category_selection_widget_pyqt import (
     Ui_Form_category_selection_widget,
 )
-from core.user_data_validation import _shared__title_case
+from storage.user_data_validation import _shared__title_case
 from core.error_handling import handle_errors
 
 # Set up logging

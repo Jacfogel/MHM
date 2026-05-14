@@ -51,7 +51,7 @@ from core.service_utilities import get_flags_dir
 from user.user_context import UserContext
 from core import get_all_user_ids
 from core import get_user_data
-from core.user_data_validation import _shared__title_case
+from storage.user_data_validation import _shared__title_case
 import core.config
 
 # Import generated UI for main window
@@ -88,7 +88,7 @@ def _merge_rotated_channel_log_lines(
     Merge recent lines from the primary channel log and TimedRotating backups.
 
     Rotated files use ``{primary.name}.{date_suffix}`` under ``backup_dir`` (see
-    ``BackupDirectoryRotatingFileHandler``). Order is oldest backup → newest →
+    ``BackupDirectoryRotatingFileHandler``). Order is oldest backup â†’ newest â†’
     primary so the combined sequence is roughly chronological.
     """
     merged: list[str] = []
@@ -121,12 +121,12 @@ class ServiceManager:
         if not result["valid"]:
             error_message = "Configuration validation failed:\n\n"
             for error in result["errors"]:
-                error_message += f"• {error}\n"
+                error_message += f"â€¢ {error}\n"
 
             if result["warnings"]:
                 error_message += "\nWarnings:\n"
                 for warning in result["warnings"]:
-                    error_message += f"• {warning}\n"
+                    error_message += f"â€¢ {warning}\n"
 
             QMessageBox.critical(None, "Configuration Error", error_message)
             return False
@@ -152,7 +152,7 @@ class ServiceManager:
         if critical_warnings:
             warning_message = "Configuration warnings:\n\n"
             for warning in critical_warnings:
-                warning_message += f"• {warning}\n"
+                warning_message += f"â€¢ {warning}\n"
             warning_message += (
                 "\nThe service will start, but you may want to address these warnings."
             )
@@ -568,7 +568,7 @@ class MHMManagerUI(QMainWindow):
     @handle_errors("updating user index on startup", default_return=None)
     def update_user_index_on_startup(self):
         """Automatically update the user index when the admin panel starts"""
-        from core.user_data_operations import rebuild_user_index
+        from storage.user_data_operations import rebuild_user_index
 
         logger.info("Admin Panel: Updating user index on startup...")
 
@@ -961,7 +961,7 @@ class MHMManagerUI(QMainWindow):
                 logger.debug(f"Error checking Email logs: {e}")
                 return True
 
-            # Match Discord: service up + email configured but no parseable log lines → assume running
+            # Match Discord: service up + email configured but no parseable log lines â†’ assume running
             return True
         except Exception as e:
             logger.debug(f"Error checking Email status: {e}")
@@ -2384,9 +2384,9 @@ Days since cleanup: {status['days_since']}
 Next cleanup: {status['next_cleanup']}
 
 Current cache files found:
-• {len(pycache_dirs)} __pycache__ directories
-• {len(pyc_files)} standalone .pyc files
-• Total size: {current_size / 1024:.1f} KB ({current_size / (1024 * 1024):.2f} MB)"""
+â€¢ {len(pycache_dirs)} __pycache__ directories
+â€¢ {len(pyc_files)} standalone .pyc files
+â€¢ Total size: {current_size / 1024:.1f} KB ({current_size / (1024 * 1024):.2f} MB)"""
 
         status_text.setPlainText(status_content)
         layout.addWidget(status_text)
@@ -2469,10 +2469,10 @@ Current cache files found:
         summary_text = result["summary"]
         if result["valid"]:
             summary_color = "green"
-            summary_icon = "✓"
+            summary_icon = "âœ“"
         else:
             summary_color = "red"
-            summary_icon = "✗"
+            summary_icon = "âœ—"
 
         summary_label = QLabel(f"{summary_icon} {summary_text}")
         summary_label.setFont(QFont("Arial", 12, QFont.Weight.Bold))
@@ -2756,7 +2756,7 @@ For detailed setup instructions, see the ui/UI_GUIDE.md file.
         # Check service status
         is_running, pid = self.service_manager.is_service_running()
         text_widget.append(
-            f"✓ Service Status: {'Running' if is_running else 'Stopped'}"
+            f"âœ“ Service Status: {'Running' if is_running else 'Stopped'}"
         )
         if is_running:
             text_widget.append(f" (PID: {pid})")
@@ -2779,11 +2779,11 @@ For detailed setup instructions, see the ui/UI_GUIDE.md file.
                         latency = discord_status.get("latency", "unknown")
                         guild_count = discord_status.get("guild_count", "unknown")
                         text_widget.append(
-                            f"✓ Discord Status: Connected (Latency: {latency}s, Guilds: {guild_count})\n"
+                            f"âœ“ Discord Status: Connected (Latency: {latency}s, Guilds: {guild_count})\n"
                         )
                     else:
                         text_widget.append(
-                            f"⚠ Discord Status: {connection_status.title()}\n"
+                            f"âš  Discord Status: {connection_status.title()}\n"
                         )
 
                         # Show detailed error information
@@ -2805,13 +2805,13 @@ For detailed setup instructions, see the ui/UI_GUIDE.md file.
 
         # Check user count
         user_ids = get_all_user_ids()
-        text_widget.append(f"✓ Total Users: {len(user_ids)}\n")
+        text_widget.append(f"âœ“ Total Users: {len(user_ids)}\n")
 
         # Check data directories
         required_dirs = [core.config.BASE_DATA_DIR, core.config.USER_INFO_DIR_PATH]
         for dir_path in required_dirs:
             exists = os.path.exists(dir_path)
-            status = "✓" if exists else "✗"
+            status = "âœ“" if exists else "âœ—"
             text_widget.append(
                 f"{status} Directory {dir_path}: {'Exists' if exists else 'Missing'}\n"
             )
@@ -2831,9 +2831,9 @@ For detailed setup instructions, see the ui/UI_GUIDE.md file.
                             orphaned_files += 1
 
             if orphaned_files == 0:
-                text_widget.append("✓ No orphaned message files found\n")
+                text_widget.append("âœ“ No orphaned message files found\n")
             else:
-                text_widget.append(f"⚠ Found {orphaned_files} orphaned message files\n")
+                text_widget.append(f"âš  Found {orphaned_files} orphaned message files\n")
 
         text_widget.append("\nHealth check complete.\n")
 

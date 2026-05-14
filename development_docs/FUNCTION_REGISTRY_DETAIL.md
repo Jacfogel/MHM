@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-13 19:52:54
+> **Last Generated**: 2026-05-14 00:39:18
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 93.0% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 144
-- **Functions Found**: 1892
-- **Methods Found**: 1274
-- **Classes Found**: 175
-- **Total Items**: 3166
-- **Functions Documented**: 1737
-- **Methods Documented**: 1208
-- **Classes Documented**: 137
-- **Total Documented**: 2945
+### **Function Documentation Coverage: 93.9% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 145
+- **Functions Found**: 1776
+- **Methods Found**: 1244
+- **Classes Found**: 172
+- **Total Items**: 3020
+- **Functions Documented**: 1654
+- **Methods Documented**: 1181
+- **Classes Documented**: 134
+- **Total Documented**: 2835
 - **Template-Generated**: 20
-- **Last Updated**: 2026-05-13
+- **Last Updated**: 2026-05-14
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (616)
+### **Core System Functions** (500)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (499)
@@ -2595,7 +2595,12 @@ value ``get_task_by_id`` accepts.
 
 #### `core/__init__.py`
 **Functions:**
-- [OK] `__getattr__(name)` - Lazy import handler for items with circular dependencies
+- [OK] `__getattr__(name)` - Lazy import handler for package-level facade exports.
+
+#### `core/_storage_bridge.py`
+**Functions:**
+- [OK] `_log_bridge_import(legacy_name, storage_name)` - Log bridge use without depending on logging availability.
+- [OK] `bridge_storage_module(legacy_name, storage_name)` - Alias a legacy ``core`` storage module name to its ``storage`` module.
 
 #### `core/auto_cleanup.py`
 **Functions:**
@@ -3090,7 +3095,7 @@ Args:
     user_id: ID of the user performing the operation
     category: Category of the operation
 - [OK] `_default_new_checkins_file_payload()` - Empty v2 envelope when recovery creates ``checkins.json``.
-``schema_version`` must stay aligned with ``core.user_data_v2_base.SCHEMA_VERSION``.
+``schema_version`` must stay aligned with ``storage.user_data_v2_base.SCHEMA_VERSION``.
 - [OK] `_get_default_data(self, file_path, context)` - Get appropriate default data based on file type.
 - [OK] `_get_default_data(self, file_path, context)` - Get appropriate default data based on file type.
 - [OK] `_get_user_friendly_message(self, error, context)` - Convert technical error to user-friendly message.
@@ -4026,14 +4031,6 @@ Raises:
 - [OK] `track_user_response(user_id, category, response_data)` - Track a user's response to a message.
 
 #### `core/runtime_state_storage.py`
-**Functions:**
-- [OK] `_fresh_default(default_data)` - Return an independent default dict for callers that mutate loaded state.
-- [OK] `get_runtime_state_path(file_name_or_path, base_dir)` - Resolve a runtime-state JSON path.
-
-Plain filenames are placed under BASE_DATA_DIR. Explicit paths are accepted
-for tests and callers that isolate a specific file.
-- [OK] `load_runtime_state_json(file_name_or_path)` - Load a runtime-state JSON dict through the centralized JSON helper.
-- [OK] `save_runtime_state_json(file_name_or_path, data)` - Save a runtime-state JSON dict through the centralized JSON helper.
 
 #### `core/schedule_document_defaults.py`
 **Functions:**
@@ -4355,9 +4352,6 @@ Sets up signal handlers for graceful shutdown.
   - [OK] `MHMService.validate_configuration(self)` - Validate all configuration settings before starting the service.
 
 #### `core/service_flag_storage.py`
-**Functions:**
-- [OK] `read_service_flag_json(flag_file, default_data)` - Read a JSON service flag file and return a dict payload.
-- [OK] `write_service_flag_json(flag_file, data)` - Write a JSON service flag file and optionally record file-auditor metadata.
 
 #### `core/service_requests.py`
 **Functions:**
@@ -4584,374 +4578,20 @@ Returns:
     Storage-formatted period name (preserve original case)
 
 #### `core/user_data_operations.py`
-**Functions:**
-- [OK] `__init__(self)` - Initialize the UserDataManager.
-
-Sets up backup directory and index file path for user data management operations.
-- [OK] `_get_last_interaction(self, user_id)` - Get the timestamp of the user's last interaction with the system.
-
-Args:
-    user_id: The user's ID
-
-Returns:
-    str: ISO format timestamp of last interaction, or default if none found
-- [OK] `_get_user_categories(user_id)` - Resolve categories without a static import (breaks user_management cycle in tooling).
-- [OK] `_get_user_data_summary__add_core_file_info(self, file_path, file_type, summary)` - Add file info and special details for a single core file (used by process_core_files).
-- [OK] `_get_user_data_summary__add_file_info(self, file_path, file_type, summary)` - Add basic file information to the summary.
-- [OK] `_get_user_data_summary__add_json_file_detail(self, file_path, summary, file_type, detail_key, extractor, log_label)` - Load JSON from path and set summary["files"][file_type][detail_key] = extractor(data). Used for schedules (periods) and sent_messages (count).
-- [OK] `_get_user_data_summary__add_log_file_info(self, log_file, log_type, summary)` - Add log file information to the summary.
-- [OK] `_get_user_data_summary__add_message_file_info(self, file_path, category, summary, orphaned)` - Add message file information to the summary.
-- [OK] `_get_user_data_summary__add_missing_message_file_info(self, file_path, category, summary, user_id)` - Add information for missing message files.
-- [OK] `_get_user_data_summary__add_special_file_details(self, file_path, file_type, summary)` - Add special details for specific file types (schedules, sent_messages).
-- [OK] `_get_user_data_summary__ensure_message_files(self, user_id, categories)` - Ensure message files exist for all user categories.
-- [OK] `_get_user_data_summary__initialize_summary(self, user_id)` - Initialize the summary structure with default values.
-- [OK] `_get_user_data_summary__process_core_files(self, user_id, summary)` - Process core user data files (profile, preferences, schedules, etc.).
-- [OK] `_get_user_data_summary__process_enabled_message_files(self, user_id, categories, summary)` - Process message files for enabled categories.
-- [OK] `_get_user_data_summary__process_file_types_with_adder(self, user_id, summary, file_types, adder)` - Process a list of file types: resolve path per type, and if file exists call adder(path, file_type, summary).
-- [OK] `_get_user_data_summary__process_log_files(self, user_id, summary)` - Process log files (checkins, chat_interactions).
-- [OK] `_get_user_data_summary__process_message_files(self, user_id, summary)` - Process message files for all user categories.
-- [OK] `_get_user_data_summary__process_orphaned_message_files(self, user_id, categories, message_files, summary)` - Process orphaned message files (categories not enabled but files exist).
-- [OK] `backup_user_data(user_id, include_messages)` - Create a complete backup of user's data with validation.
-
-Returns:
-    str: Path to backup file, empty string if failed
-- [OK] `backup_user_data(self, user_id, include_messages)` - Create a complete backup of user's data with validation.
-
-Returns:
-    str: Path to backup file, empty string if failed
-- [OK] `build_user_index()` - Build an index of all users and their message data with validation.
-
-Returns:
-    Dict[str, Any]: User index, empty dict if failed
-- [OK] `delete_user_completely(user_id, create_backup)` - Completely remove all traces of a user from the system with validation.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `delete_user_completely(self, user_id, create_backup)` - Completely remove all traces of a user from the system with validation.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `export_user_data(user_id, export_format)` - Export all user data to a structured format with validation.
-
-Returns:
-    Dict[str, Any]: Exported data, empty dict if failed
-- [OK] `export_user_data(self, user_id, export_format)` - Export all user data to a structured format with validation.
-
-Returns:
-    Dict[str, Any]: Exported data, empty dict if failed
-- [OK] `get_all_user_summaries()` - Get summaries for all users with validation.
-
-Returns:
-    List[Dict[str, Any]]: List of user summaries, empty list if failed
-- [OK] `get_user_analytics_summary(user_id)` - Get an analytics summary for a user including interaction patterns and data usage.
-
-Args:
-    user_id: The user's ID
-
-Returns:
-    Dict containing analytics summary information
-- [OK] `get_user_data_summary(user_id)` - Get comprehensive summary of user data with validation.
-
-Returns:
-    Dict[str, Any]: User data summary, error dict if failed
-- [OK] `get_user_data_summary(self, user_id)` - Get comprehensive summary of user data with validation.
-
-Returns:
-    Dict[str, Any]: User data summary, error dict if failed
-- [OK] `get_user_info_for_data_manager(user_id)` - Get user info using the new centralized data structure with validation.
-
-Returns:
-    Optional[Dict[str, Any]]: User info dict or None if failed
-- [OK] `get_user_message_files(self, user_id)` - Get all message file paths for a user
-- [OK] `get_user_summary(user_id)` - Get a summary of user data and message statistics with validation.
-
-Returns:
-    Dict[str, Any]: User summary, empty dict if failed
-- [OK] `rebuild_full_index(self)` - Rebuild full user index with validation.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `rebuild_user_index()` - Rebuild the complete user index.
-
-Returns:
-    bool: True if index was rebuilt successfully
-- [OK] `remove_from_index(self, user_id)` - Remove user from index with validation.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `search_users(self, query, search_fields)` - Search users with validation.
-
-Returns:
-    List[Dict[str, Any]]: Search results, empty list if failed
-- [OK] `update_message_references(user_id)` - Update message references with validation.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `update_message_references(self, user_id)` - Add/update message file references in user profile
-- [OK] `update_user_index(user_id)` - Update user index with validation.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `update_user_index(self, user_id)` - Update the user index with current information for a specific user.
-
-Creates flat lookup mappings for fast O(1) user lookups:
-- {"internal_username": "UUID", "email:email": "UUID", "discord:discord_id": "UUID", "phone:phone": "UUID"}
-
-All detailed user data is stored in account.json, not duplicated in the index.
-
-Args:
-    user_id: The user's ID (UUID)
-
-Returns:
-    bool: True if index was updated successfully
-**Classes:**
-- [OK] `UserDataManager` - Enhanced user data management with references, backup, and indexing capabilities
-  - [OK] `UserDataManager.__init__(self)` - Initialize the UserDataManager.
-
-Sets up backup directory and index file path for user data management operations.
-  - [OK] `UserDataManager._get_last_interaction(self, user_id)` - Get the timestamp of the user's last interaction with the system.
-
-Args:
-    user_id: The user's ID
-
-Returns:
-    str: ISO format timestamp of last interaction, or default if none found
-  - [OK] `UserDataManager._get_user_data_summary__add_core_file_info(self, file_path, file_type, summary)` - Add file info and special details for a single core file (used by process_core_files).
-  - [OK] `UserDataManager._get_user_data_summary__add_file_info(self, file_path, file_type, summary)` - Add basic file information to the summary.
-  - [OK] `UserDataManager._get_user_data_summary__add_json_file_detail(self, file_path, summary, file_type, detail_key, extractor, log_label)` - Load JSON from path and set summary["files"][file_type][detail_key] = extractor(data). Used for schedules (periods) and sent_messages (count).
-  - [OK] `UserDataManager._get_user_data_summary__add_log_file_info(self, log_file, log_type, summary)` - Add log file information to the summary.
-  - [OK] `UserDataManager._get_user_data_summary__add_message_file_info(self, file_path, category, summary, orphaned)` - Add message file information to the summary.
-  - [OK] `UserDataManager._get_user_data_summary__add_missing_message_file_info(self, file_path, category, summary, user_id)` - Add information for missing message files.
-  - [OK] `UserDataManager._get_user_data_summary__add_special_file_details(self, file_path, file_type, summary)` - Add special details for specific file types (schedules, sent_messages).
-  - [OK] `UserDataManager._get_user_data_summary__ensure_message_files(self, user_id, categories)` - Ensure message files exist for all user categories.
-  - [OK] `UserDataManager._get_user_data_summary__initialize_summary(self, user_id)` - Initialize the summary structure with default values.
-  - [OK] `UserDataManager._get_user_data_summary__process_core_files(self, user_id, summary)` - Process core user data files (profile, preferences, schedules, etc.).
-  - [OK] `UserDataManager._get_user_data_summary__process_enabled_message_files(self, user_id, categories, summary)` - Process message files for enabled categories.
-  - [OK] `UserDataManager._get_user_data_summary__process_file_types_with_adder(self, user_id, summary, file_types, adder)` - Process a list of file types: resolve path per type, and if file exists call adder(path, file_type, summary).
-  - [OK] `UserDataManager._get_user_data_summary__process_log_files(self, user_id, summary)` - Process log files (checkins, chat_interactions).
-  - [OK] `UserDataManager._get_user_data_summary__process_message_files(self, user_id, summary)` - Process message files for all user categories.
-  - [OK] `UserDataManager._get_user_data_summary__process_orphaned_message_files(self, user_id, categories, message_files, summary)` - Process orphaned message files (categories not enabled but files exist).
-  - [OK] `UserDataManager.backup_user_data(self, user_id, include_messages)` - Create a complete backup of user's data with validation.
-
-Returns:
-    str: Path to backup file, empty string if failed
-  - [OK] `UserDataManager.delete_user_completely(self, user_id, create_backup)` - Completely remove all traces of a user from the system with validation.
-
-Returns:
-    bool: True if successful, False if failed
-  - [OK] `UserDataManager.export_user_data(self, user_id, export_format)` - Export all user data to a structured format with validation.
-
-Returns:
-    Dict[str, Any]: Exported data, empty dict if failed
-  - [OK] `UserDataManager.get_user_data_summary(self, user_id)` - Get comprehensive summary of user data with validation.
-
-Returns:
-    Dict[str, Any]: User data summary, error dict if failed
-  - [OK] `UserDataManager.get_user_message_files(self, user_id)` - Get all message file paths for a user
-  - [OK] `UserDataManager.rebuild_full_index(self)` - Rebuild full user index with validation.
-
-Returns:
-    bool: True if successful, False if failed
-  - [OK] `UserDataManager.remove_from_index(self, user_id)` - Remove user from index with validation.
-
-Returns:
-    bool: True if successful, False if failed
-  - [OK] `UserDataManager.search_users(self, query, search_fields)` - Search users with validation.
-
-Returns:
-    List[Dict[str, Any]]: Search results, empty list if failed
-  - [OK] `UserDataManager.update_message_references(self, user_id)` - Add/update message file references in user profile
-  - [OK] `UserDataManager.update_user_index(self, user_id)` - Update the user index with current information for a specific user.
-
-Creates flat lookup mappings for fast O(1) user lookups:
-- {"internal_username": "UUID", "email:email": "UUID", "discord:discord_id": "UUID", "phone:phone": "UUID"}
-
-All detailed user data is stored in account.json, not duplicated in the index.
-
-Args:
-    user_id: The user's ID (UUID)
-
-Returns:
-    bool: True if index was updated successfully
 
 #### `core/user_data_presets.py`
-**Functions:**
-- [OK] `_load_presets_json()` - Load presets from resources/presets.json (cached).
-- [OK] `get_predefined_options(field)` - Return predefined options for a personalization field.
-- [OK] `get_timezone_options()` - Get timezone options.
 
 #### `core/user_data_read.py`
-**Functions:**
-- [OK] `clear_user_caches(user_id)` - Clear user data caches (delegate to registry).
-- [OK] `ensure_unique_ids(data)` - Ensure all messages have unique canonical IDs.
-- [OK] `get_user_data(user_id, data_types, fields, auto_create, include_metadata, normalize_on_read)` - Get user data with comprehensive validation.
-
-Returns:
-    Dict[str, Any]: User data dictionary, empty dict if failed
-- [OK] `get_user_data_with_metadata(user_id, data_types)` - Get user data with file metadata using centralized system.
-- [OK] `load_and_ensure_ids(user_id)` - Load messages for all categories and ensure IDs are unique for a user.
 
 #### `core/user_data_registry.py`
-**Functions:**
-- [OK] `_account_default_data(user_id)` - Return default account dict for a user (e.g. when auto-creating).
-- [OK] `_account_normalize_after_load(data)` - Normalize account dict after load (ensure email, timezone).
-- [OK] `_context_default_data(user_id)` - Return default user context dict (e.g. when auto-creating).
-- [MISSING] `_ensure_default_loaders_once()` - No description
-- [MISSING] `_get_user_data__load_account(user_id, auto_create)` - No description
-- [MISSING] `_get_user_data__load_context(user_id, auto_create)` - No description
-- [OK] `_get_user_data__load_impl(user_id, auto_create, cache_key_prefix, file_key, cache_dict, default_data_factory, validate_fn, log_name, normalize_after_load)` - Internal: common load flow for user data (cache, file, default, validate).
-- [MISSING] `_get_user_data__load_preferences(user_id, auto_create)` - No description
-- [MISSING] `_get_user_data__load_schedules(user_id, auto_create)` - No description
-- [MISSING] `_get_user_data__load_tags(user_id, auto_create)` - No description
-- [OK] `_preferences_default_data(user_id)` - Return default preferences dict for a user (e.g. when auto-creating).
-- [MISSING] `_save_user_data__save_account(user_id, account_data)` - No description
-- [MISSING] `_save_user_data__save_context(user_id, context_data)` - No description
-- [MISSING] `_save_user_data__save_preferences(user_id, preferences_data)` - No description
-- [MISSING] `_save_user_data__save_schedules(user_id, schedules_data)` - No description
-- [MISSING] `_save_user_data__save_tags(user_id, tags_data)` - No description
-- [OK] `_schedules_default_data(user_id)` - Return default schedules dict for a user (e.g. when auto-creating).
-- [OK] `clear_user_caches(user_id)` - Clear user data caches.
-- [OK] `get_available_data_types()` - Get list of available data types.
-- [OK] `get_data_type_info(data_type)` - Get information about a specific data type.
-- [OK] `register_data_loader(data_type, loader_func, file_type, default_fields, metadata_fields, description)` - Register a new data loader for the centralized system.
-- [OK] `register_default_loaders()` - Ensure required loaders are registered (idempotent).
 
 #### `core/user_data_v2_base.py`
-**Functions:**
-- [OK] `_stable_uuid(value)` - Return value as a UUID, deriving a deterministic UUID when the string is not UUID-shaped.
-- [OK] `generate_short_id(record_id, kind, length)` - Generate a mobile-friendly no-dash short ID from a UUID-like value.
-- [MISSING] `normalize_string_list(cls, value)` - No description
-- [OK] `v2_schema_validation_error(message)` - Build a Pydantic-native validation error without generic exception raises.
-- [MISSING] `validate_optional_timestamp_fields(cls, value)` - No description
-- [MISSING] `validate_optional_v2_timestamp(value, field_name)` - No description
-- [MISSING] `validate_required_timestamp(cls, value)` - No description
-**Classes:**
-- [OK] `BaseItemModel` - Shared item fields for v2 task, notebook, list, and journal records.
-  - [MISSING] `BaseItemModel.normalize_string_list(cls, value)` - No description
-  - [MISSING] `BaseItemModel.validate_optional_timestamp_fields(cls, value)` - No description
-  - [MISSING] `BaseItemModel.validate_required_timestamp(cls, value)` - No description
-- [OK] `SourceModel` - Best-known origin of a persisted record.
 
 #### `core/user_data_validation.py`
-**Functions:**
-- [OK] `_shared__title_case(text)` - Convert text to title case with special handling for technical terms.
-- [OK] `is_valid_category_name(name, max_length, field_name, allow_none)` - Validate that a category/group name is valid.
-
-Category names should be simple identifiers: alphanumeric, spaces, hyphens, underscores.
-This is used for grouping/categorizing items (e.g., notebook groups, task categories).
-
-Args:
-    name: Category name to validate (can be None if allow_none=True)
-    max_length: Maximum allowed length (default: 50)
-    field_name: Name of the field being validated (for error messages)
-    allow_none: Whether None values are allowed (default: True)
-
-Returns:
-    True if category name is valid, False otherwise
-- [OK] `is_valid_discord_id(discord_id)` - Validate Discord user ID format.
-
-Discord user IDs are snowflakes (numeric IDs) that are 17-19 digits long.
-Empty strings are allowed (Discord ID is optional).
-
-Args:
-    discord_id: The Discord user ID to validate
-
-Returns:
-    bool: True if valid Discord ID format or empty, False otherwise
-- [MISSING] `is_valid_email(email)` - No description
-- [MISSING] `is_valid_phone(phone)` - No description
-- [OK] `is_valid_string_length(text, max_length, field_name, allow_none)` - Validate that a string is within the specified maximum length.
-
-Args:
-    text: String to validate (can be None if allow_none=True)
-    max_length: Maximum allowed length
-    field_name: Name of the field being validated (for error messages)
-    allow_none: Whether None values are allowed
-
-Returns:
-    True if string length is valid, False otherwise
-- [OK] `is_valid_user_id(user_id)` - Validate user_id for filesystem paths, task handlers, updates, and command handlers.
-
-Rules: non-empty string after strip, length at most 100, characters limited to
-ASCII alphanumeric plus underscore and hyphen (UUIDs and simple internal IDs).
-- [OK] `validate_new_user_data(user_id, data_updates)` - Validate complete dataset required for a brand-new user.
-- [OK] `validate_personalization_data(data)` - Validate *context/personalization* structure.
-
-No field is required; we only type-check fields that are present.
-This logic previously lived in the legacy user management utilities.
-- [OK] `validate_schedule_periods(periods, category)` - Validate schedule periods and return (is_valid, error_messages).
-
-Args:
-    periods: Dictionary of period_name -> period_data
-    category: Category name for error messages (e.g., "tasks", "check-ins")
-
-Returns:
-    Tuple of (is_valid, list_of_error_messages)
-- [MISSING] `validate_schedule_periods__validate_time_format(time_str)` - No description
-- [OK] `validate_user_update(user_id, data_type, updates)` - Validate partial updates to an existing user's data.
 
 #### `core/user_data_write.py`
-**Functions:**
-- [MISSING] `_save_user_data__check_cross_file_invariants(user_id, merged_data, valid_types)` - No description
-- [MISSING] `_save_user_data__create_backup(user_id, valid_types, create_backup)` - No description
-- [MISSING] `_save_user_data__merge_all_types(user_id, data_updates, valid_types, auto_create)` - No description
-- [MISSING] `_save_user_data__merge_single_type(user_id, dt, updates, auto_create)` - No description
-- [MISSING] `_save_user_data__normalize_data(dt, updated)` - No description
-- [MISSING] `_save_user_data__preserve_preference_settings(updated, updates, user_id)` - No description
-- [MISSING] `_save_user_data__update_index(user_id, result, update_index)` - No description
-- [MISSING] `_save_user_data__validate_data(user_id, data_updates, valid_types, validate_data, is_new_user)` - No description
-- [MISSING] `_save_user_data__validate_input(user_id, data_updates)` - No description
-- [MISSING] `_save_user_data__write_all_types(user_id, merged_data, valid_types)` - No description
-- [OK] `_update_user_section(user_id, section_key, data)` - Save a single user-data section and return whether that section was saved.
-- [OK] `_validate_user_id_and_dict(user_id, data, dict_name)` - Validate user_id and that data is a dict. Log and return False if invalid.
-- [OK] `save_user_data(user_id, data_updates, auto_create, update_index, create_backup, validate_data)` - Save user data with two-phase approach: merge/validate in Phase 1, write in Phase 2.
-- [OK] `save_user_data_transaction(user_id, data_updates, auto_create)` - Atomic wrapper for user data updates.
-- [MISSING] `update_channel_preferences(user_id, updates)` - No description
-- [MISSING] `update_user_account(user_id, updates)` - No description
-- [MISSING] `update_user_context(user_id, updates)` - No description
-- [MISSING] `update_user_preferences(user_id, updates)` - No description
-- [MISSING] `update_user_schedules(user_id, schedules_data)` - No description
 
 #### `core/user_item_storage.py`
-**Functions:**
-- [OK] `ensure_user_subdir(user_id, subdir, init_files)` - Ensure the user's subdirectory exists and optionally create default JSON files.
-
-Args:
-    user_id: User identifier.
-    subdir: Subdirectory name (e.g. 'notebook', 'tasks').
-    init_files: Optional mapping of filename -> default JSON-serializable data.
-                Files are created only if missing (e.g. {"tasks.json": {"schema_version": 2, "tasks": []}}).
-
-Returns:
-    Path to the subdir, or None on failure.
-- [OK] `get_user_subdir_path(user_id, subdir)` - Return the path for a user's subdirectory (e.g. notebook, tasks, events).
-
-Args:
-    user_id: User identifier.
-    subdir: Subdirectory name under the user data dir (e.g. 'notebook', 'tasks').
-
-Returns:
-    Path to the subdir, or None if user_id is invalid.
-- [OK] `load_user_json_file(user_id, subdir, filename, default_data)` - Load a JSON file from a user's subdirectory.
-
-Args:
-    user_id: User identifier.
-    subdir: Subdirectory name (e.g. 'notebook', 'tasks').
-    filename: JSON filename (e.g. 'entries.json', 'tasks.json').
-    default_data: Returned when file is missing or load fails (must match expected type).
-
-Returns:
-    Loaded data (dict or list), or default_data on failure. None if path invalid.
-- [OK] `save_user_json_file(user_id, subdir, filename, data)` - Save JSON data to a user's subdirectory. Creates subdir if missing.
-
-Args:
-    user_id: User identifier.
-    subdir: Subdirectory name (e.g. 'notebook', 'tasks').
-    filename: JSON filename.
-    data: JSON-serializable dict or list.
-
-Returns:
-    True if save succeeded, False otherwise.
 
 #### `core/user_lookup.py`
 **Functions:**
@@ -6120,7 +5760,7 @@ Channels cannot run without the service, so we check service status first.
 - [OK] `_merge_rotated_channel_log_lines(primary, backup_dir)` - Merge recent lines from the primary channel log and TimedRotating backups.
 
 Rotated files use ``{primary.name}.{date_suffix}`` under ``backup_dir`` (see
-``BackupDirectoryRotatingFileHandler``). Order is oldest backup → newest →
+``BackupDirectoryRotatingFileHandler``). Order is oldest backup â†’ newest â†’
 primary so the combined sequence is roughly chronological.
 - [OK] `_populate_active_users_in_combo_box(self)` - Populate user combo box from active user metadata.
 - [OK] `_prepare_current_user_category_editor(self, editor_label)` - Validate the current user/category and load user context for an editor.

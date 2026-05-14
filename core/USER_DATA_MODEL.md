@@ -8,10 +8,10 @@
 This document defines the expected on-disk layout for per-user persisted state.
 
 Key implementation references:
-- `core/user_data_registry.py`, `core/user_data_read.py`, `core/user_data_write.py` (centralized loader/saver API for top-level user files; section updates live in `user_data_write.py`)
-- `core/user_item_storage.py` (shared helpers for user-scoped subdir JSON: notebook, tasks, future events)
+- `storage/user_data_registry.py`, `storage/user_data_read.py`, `storage/user_data_write.py` (centralized loader/saver API for top-level user files; section updates live in `user_data_write.py`)
+- `storage/user_item_storage.py` (shared helpers for user-scoped subdir JSON: notebook, tasks, future events)
 - `core/schemas.py` (tolerant account/preferences/schedules validation on the read/save path)
-- `core/user_data_v2_base.py` / `core/user_data_v2_envelopes.py` (strict v2 primitives and envelopes for versioned JSON files)
+- `storage/user_data_v2_base.py` / `storage/user_data_v2_envelopes.py` (strict v2 primitives and envelopes for versioned JSON files)
 - `core/config.py` (root path configuration: `BASE_DATA_DIR`, `USER_INFO_DIR_PATH`)
 
 ---
@@ -23,23 +23,23 @@ One line per core module (plus related packages). **Read here first** when you a
 | Module | Read this path when you need... |
 |--------|-------------------------------|
 | `core/file_operations.py` | Generic JSON load/save, user file path helpers, creating default user files on disk. |
-| `core/user_item_storage.py` | Paths and load/save for user **subdirs** (`notebook/`, `tasks/`) without domain rules. |
-| `core/user_data_registry.py` | Loader table, caches, default load/save for `account`, `preferences`, `context`, `schedules`. |
-| `core/user_data_read.py` | `get_user_data`, cache clearing, ID helpers on the read path. |
-| `core/user_data_write.py` | `save_user_data`, transactions, and **centralised** `update_user_*` helpers (single save pipeline). |
-| `core/user_data_validation.py` | Primitive checks (email, phone, time formats) and rules used by handlers. |
+| `storage/user_item_storage.py` | Paths and load/save for user **subdirs** (`notebook/`, `tasks/`) without domain rules. |
+| `storage/user_data_registry.py` | Loader table, caches, default load/save for `account`, `preferences`, `context`, `schedules`. |
+| `storage/user_data_read.py` | `get_user_data`, cache clearing, ID helpers on the read path. |
+| `storage/user_data_write.py` | `save_user_data`, transactions, and **centralised** `update_user_*` helpers (single save pipeline). |
+| `storage/user_data_validation.py` | Primitive checks (email, phone, time formats) and rules used by handlers. |
 | `core/schemas.py` | **Tolerant** Pydantic models for account/preferences/schedules JSON (coerce/normalize; `extra` may allow/ignore). |
-| `core/user_data_v2_base.py` | **Strict** shared v2 item layer: `SCHEMA_VERSION`, `BaseItemModel`, `generate_short_id` (dependency **leaf**: no `tasks/` or `notebook/` imports). |
-| `core/user_data_v2_envelopes.py` | **Strict** v2 **envelopes** for check-ins, message templates, deliveries; `validate_v2_document` orchestration. |
+| `storage/user_data_v2_base.py` | **Strict** shared v2 item layer: `SCHEMA_VERSION`, `BaseItemModel`, `generate_short_id` (dependency **leaf**: no `tasks/` or `notebook/` imports). |
+| `storage/user_data_v2_envelopes.py` | **Strict** v2 **envelopes** for check-ins, message templates, deliveries; `validate_v2_document` orchestration. |
 | `tasks/task_schemas.py`, `tasks/task_validation.py` | Task v2 disk models and `validate_tasks_v2_document`. |
 | `notebook/notebook_schemas.py`, `notebook/notebook_validation.py` | Notebook v2 disk models and `validate_notebook_v2_document`. |
 | `core/message_management.py` | User message **categories**, template files, deliveries, archive behaviour. |
 | `core/schedule_runtime.py` | **Runtime** schedule periods (active windows, caches, manipulation against live `get_user_data`). |
 | `core/schedule_document_defaults.py` | **On-disk** default period shapes and migrations for `schedules.json`. |
 | `core/schedule_utilities.py` | Small shared schedule helpers (active period lists) without user I/O. |
-| `core/user_data_operations.py` | **Ops/admin**: `UserDataManager` class - backup, export, user index, analytics summaries (not the hot read/write path). |
+| `storage/user_data_operations.py` | **Ops/admin**: `UserDataManager` class - backup, export, user index, analytics summaries (not the hot read/write path). |
 | `core/user_management.py` | User **lifecycle**: list users, create user, categories. |
-| `core/user_data_presets.py` | Static preset options (e.g. form dropdowns). |
+| `storage/user_data_presets.py` | Static preset options (e.g. form dropdowns). |
 | `core/tags.py` | Shared tag normalization used by notebook and elsewhere. |
 | `core/response_tracking.py` | Check-in and chat interaction persistence and queries. |
 | `core/checkin_dynamic_manager.py` | Bundled default check-in **prompt** JSON from `resources/`, not per-user `checkins.json`. |
@@ -130,15 +130,15 @@ Example (typical user directory):
 
 - `tasks/tasks.json`
 
-This file is the canonical v2 task collection. Active/completed state lives in each task's `status` and `completion`, not in separate files. Historical v1 files (`tasks/active_tasks.json`, `tasks/completed_tasks.json`, `tasks/task_schedules.json`) were replaced for migrated users and should not be recreated for migrated data. Access via `tasks.task_data_handlers` (which uses `core.user_item_storage`). To add a new item type (e.g. events), use the same pattern: `ensure_user_subdir`, `load_user_json_file`, `save_user_json_file` from `core.user_item_storage`, and `is_valid_user_id` from `core.user_data_validation` (non-empty string, max length 100, alphanumeric plus `_` and `-` only, aligned with command-handler validation).
+This file is the canonical v2 task collection. Active/completed state lives in each task's `status` and `completion`, not in separate files. Historical v1 files (`tasks/active_tasks.json`, `tasks/completed_tasks.json`, `tasks/task_schedules.json`) were replaced for migrated users and should not be recreated for migrated data. Access via `tasks.task_data_handlers` (which uses `storage.user_item_storage`). To add a new item type (e.g. events), use the same pattern: `ensure_user_subdir`, `load_user_json_file`, `save_user_json_file` from `storage.user_item_storage`, and `is_valid_user_id` from `storage.user_data_validation` (non-empty string, max length 100, alphanumeric plus `_` and `-` only, aligned with command-handler validation).
 
 ### 2.4. Canonical v2 item model
 
-Shared v2 item primitives live in `core.user_data_v2_base`. Task and notebook/journal
+Shared v2 item primitives live in `storage.user_data_v2_base`. Task and notebook/journal
 persistence models (`TaskV2Model`, `TaskCollectionV2Model`, `NotebookV2Model`,
 `NotebookCollectionV2Model`) live in `tasks.task_schemas` and `notebook.notebook_schemas`.
-Check-in, message template, and delivery models remain in `core.user_data_v2_envelopes`.
-`core.user_data_v2_envelopes.validate_v2_document` validates against Pydantic models with `extra="forbid"`, so
+Check-in, message template, and delivery models remain in `storage.user_data_v2_envelopes`.
+`storage.user_data_v2_envelopes.validate_v2_document` validates against Pydantic models with `extra="forbid"`, so
 any field that is not part of the v2 schema (including old v1-only keys) is rejected
 with a normal validation error-there is no separate v1 key denylist.
 
@@ -165,7 +165,7 @@ For `kind: "task"` records in `tasks/tasks.json`:
 
 **Short IDs (no dash)**
 
-Persisted `short_id` values use `core.user_data_v2_base.generate_short_id` (prefix + hex fragment, **no hyphen**), e.g. tasks `t...`, notes `n...`, lists `l...`, journal entries `j...`. User-facing confirmations and entry references should use this canonical form; dashed `n-...` / `kind[0]-uuid6` display is obsolete.
+Persisted `short_id` values use `storage.user_data_v2_base.generate_short_id` (prefix + hex fragment, **no hyphen**), e.g. tasks `t...`, notes `n...`, lists `l...`, journal entries `j...`. User-facing confirmations and entry references should use this canonical form; dashed `n-...` / `kind[0]-uuid6` display is obsolete.
 
 Canonical v2 files:
 
@@ -175,11 +175,11 @@ Canonical v2 files:
 - `messages/<category>.json`: versioned message template collection with `messages[]`, `text`, `active`, and nested `schedule`.
 - `messages/sent_messages.json`: versioned delivery collection with `deliveries[]`, distinct from reusable templates.
 
-**Migration tooling:** There is **no** shipped migration or verification CLI under `scripts/` for user data. The tree is v2-native. Recover stale trees from backups or project history; validate in code with `core.user_data_v2_envelopes.validate_v2_document` (or hand-fix using Section 2.6). Do not expect an in-repo one-click migrator.
+**Migration tooling:** There is **no** shipped migration or verification CLI under `scripts/` for user data. The tree is v2-native. Recover stale trees from backups or project history; validate in code with `storage.user_data_v2_envelopes.validate_v2_document` (or hand-fix using Section 2.6). Do not expect an in-repo one-click migrator.
 
 ### 2.5. Schema validation (v2)
 
-`core.user_data_v2_envelopes.validate_v2_document` dispatches to domain validators for tasks and notebook files (`tasks.task_validation.validate_tasks_v2_document`, `notebook.notebook_validation.validate_notebook_v2_document`) and runs collection models for check-ins, templates, and deliveries. Unknown or misspelled keys fail validation like any other schema error. For allowed fields and shapes, use Section 2.5 and 2.7.
+`storage.user_data_v2_envelopes.validate_v2_document` dispatches to domain validators for tasks and notebook files (`tasks.task_validation.validate_tasks_v2_document`, `notebook.notebook_validation.validate_notebook_v2_document`) and runs collection models for check-ins, templates, and deliveries. Unknown or misspelled keys fail validation like any other schema error. For allowed fields and shapes, use Section 2.5 and 2.7.
 
 ### 2.6. Runtime contract (v2-native)
 
@@ -191,7 +191,7 @@ On-disk user data and bundled message resources are **v2**. Runtime code treats 
 
 ### 3.0. Code must use centralized handlers
 
-All reads/writes of user data should go through `core/user_data_registry.py`, `core/user_data_read.py`, and `core/user_data_write.py` (and their internal helpers), not ad-hoc `json.load`/`json.dump` in random modules.
+All reads/writes of user data should go through `storage/user_data_registry.py`, `storage/user_data_read.py`, and `storage/user_data_write.py` (and their internal helpers), not ad-hoc `json.load`/`json.dump` in random modules.
 
 Rationale:
 - Centralizes validation and normalization
@@ -280,7 +280,7 @@ This section defines **scope only**, not scheduling or retention behavior.
 
 AI-related components are expected to:
 
-- Read user data via `core/user_data_read.py` and related core user data modules
+- Read user data via `storage/user_data_read.py` and related storage user data modules
 - Write only to files defined in this model
 - Avoid creating ad-hoc files outside documented subtrees
 

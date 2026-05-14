@@ -1,312 +1,296 @@
 """Core functionality package for the MHM application.
 
 Contains foundational modules for configuration, logging, error handling,
-service management, user data operations, scheduling, and system utilities.
+service management, runtime wiring, and public facade exports.
 """
 
-# Main public API - package-level exports for easier refactoring
-# Logger exports
-from .logger import (
-    get_component_logger,
-    setup_logging,
-    ComponentLogger,
-    BackupDirectoryRotatingFileHandler,
-    ExcludeLoggerNamesFilter,
-    PytestContextLogFormatter,
-    setup_third_party_error_logging,
-    suppress_noisy_logging,
-    set_console_log_level,
-    toggle_verbose_logging,
-    get_verbose_mode,
-    set_verbose_mode,
-    get_logger,
-)
+from importlib import import_module
+from typing import TYPE_CHECKING, Any
 
-# Error handling exports
-from .error_handling import (
-    handle_errors,
-    MHMError,
-    DataError,
-    FileOperationError,
-    ConfigurationError,
-    CommunicationError,
-    SchedulerError,
-    UserInterfaceError,
-    AIError,
-    ValidationError,
-    RecoveryError,
-)
-
-# User data handlers exports (from split modules)
-from .user_data_read import get_user_data, clear_user_caches
-from .user_data_write import save_user_data, save_user_data_transaction
-from .user_management import get_all_user_ids, create_new_user
-from .user_data_write import (
-    update_user_account,
-    update_user_preferences,
-    update_user_schedules,
-    update_user_context,
-    update_channel_preferences,
-)
-from .user_data_registry import register_data_loader
-
-# Config exports - commonly used constants and functions
-# Note: We import the module rather than individual constants to avoid
-# exposing too many items. Users can do: from core import config; config.BASE_DATA_DIR
-from . import config
-
-# File operations exports (no circular dependencies)
-from .file_operations import (
-    load_json_data,
-    save_json_data,
-    determine_file_path,
-    verify_file_access,
-)
-
-# Message management exports (no circular dependencies)
-from .message_management import (
-    get_recent_messages,
-    store_sent_message,
-    get_message_categories,
-    load_user_messages,
-    add_message,
-    archive_old_messages,
-)
-
-# Response tracking exports (no circular dependencies)
-from .response_tracking import (
-    get_recent_responses,
-    store_chat_interaction,
-    get_recent_checkins,
-    is_user_checkins_enabled,
-)
-
-# User data validation exports (no circular dependencies)
-from .user_data_validation import (
-    validate_schedule_periods,
-    is_valid_email,  # Medium usage
-)
-
-# Error handling additional exports (medium usage)
-from .error_handling import handle_network_error
-
-# Config constants exports (medium usage)
-# Note: Some config constants are imported directly, so we export commonly used ones
-from .config import (
-    DISCORD_BOT_TOKEN,
-    EMAIL_SMTP_SERVER,
-    EMAIL_IMAP_SERVER,
-    EMAIL_SMTP_USERNAME,
-    LM_STUDIO_BASE_URL,
-    LM_STUDIO_API_KEY,
-    LM_STUDIO_MODEL,
-    SCHEDULER_INTERVAL,
-    get_available_channels,
-)
-
-# User data handlers additional exports (medium usage)
-from .schedule_document_defaults import ensure_all_categories_have_schedules
-from .user_lookup import get_user_id_by_identifier
-from .user_data_presets import get_timezone_options, get_predefined_options
-
-# Schema validation exports (medium usage)
-from .schemas import (
-    validate_account_dict,
-    validate_preferences_dict,
-    validate_schedules_dict,
-)
-
-# Schema models exports (public API)
-from .schemas import (
-    AccountModel,
-    ChannelModel,
-    PreferencesModel,
-    CategoryScheduleModel,
-    FeaturesModel,
-    PeriodModel,
-    SchedulesModel,
-)
-
-# Config additional constants exports (low usage)
-from .config import (
-    CONTEXT_CACHE_TTL,
-    DISCORD_APPLICATION_ID,
-    EMAIL_SMTP_PASSWORD,
-)
-
-# Config additional functions exports (public API)
-from .config import (
-    validate_all_configuration,
-    validate_and_raise_if_invalid,
-    get_backups_dir,
-    ensure_user_directory,
-    get_channel_class_mapping,
-    validate_core_paths,
-    validate_ai_configuration,
-    validate_communication_channels,
-    validate_logging_configuration,
-    validate_scheduler_configuration,
-    validate_file_organization_settings,
-    validate_environment_variables,
-    print_configuration_report,
-)
-
-# Error handling additional classes and functions (public API)
-from .error_handling import (
-    ErrorHandler,
-    ErrorRecoveryStrategy,
-    ConfigurationRecovery,
-)
-
-# Config validation error class (public API)
-from .config import ConfigValidationError
-
-# Service classes exports (public API)
-# Note: Some service items may have circular dependencies
-from .service import (
-    MHMService,
-    InitializationError,
-)
-
-# Service utilities exports (public API)
-from .network_probe import wait_for_network
-from .service_utilities import (
-    Throttler,
-    is_service_running,
-    get_service_processes,
-    is_headless_service_running,
-    is_ui_service_running,
-)
-from .service_requests import create_reschedule_request
-from .time_utilities import InvalidTimeFormatError, load_and_localize_datetime
-
-# Headless service exports (public API)
-from .headless_service import HeadlessServiceManager
-
-# File operations additional exports (public API)
-from .file_operations import create_user_files
-
-# File auditor exports (public API)
-from .file_auditor import (
-    FileAuditor,
-    start_auditor,
-    stop_auditor,
-    record_created,
-)
-
-# Schedule utilities exports (public API)
-# Note: schedule_utilities may have dependencies on schedule_runtime
-from .schedule_utilities import (
-    get_active_schedules,
-    is_schedule_active,
-    get_current_active_schedules,
-)
-
-# Auto cleanup exports (public API)
-from .auto_cleanup import (
-    get_last_cleanup_timestamp,
-    update_cleanup_timestamp,
-    should_run_cleanup,
-    perform_cleanup,
-    auto_cleanup_if_needed,
-    cleanup_data_directory,
-    cleanup_tests_data_directory,
-    archive_old_messages_for_all_users,
-    get_cleanup_status,
-)
-
-# Backup manager exports (public API)
-from .backup_manager import BackupManager
-
-# Check-in dynamic manager class exports (public API)
-from .checkin_dynamic_manager import DynamicCheckinManager
-
-# Check-in analytics exports (high usage)
-from .checkin_analytics import CheckinAnalytics
-
-# Error handling additional exports (high usage)
-from .error_handling import handle_ai_error
-
-# Config function exports (high usage)
-from .config import get_user_data_dir, get_user_file_path
-
-# Dynamic check-in manager exports (high usage)
-from .checkin_dynamic_manager import dynamic_checkin_manager
-
-# Schedule runtime exports - lazy import due to circular dependencies (medium usage)
-# Note: schedule_runtime has circular dependencies with user package
-# Functions available: get_schedule_time_periods, set_schedule_periods (high usage),
-# clear_schedule_periods_cache (medium usage), add_schedule_period (low usage)
-# Note: add_schedule_period has circular dependencies, documented as lazy import
-
-# User data operations exports (high usage)
-# Note: user_data_operations may have circular dependencies
-# Attempting direct import - if this causes circular import errors, this will be
-# documented as lazy import in comments
-from .user_data_operations import (
-    update_user_index,
-    rebuild_user_index,
-    UserDataManager,
-    update_message_references,
-    backup_user_data,
-    export_user_data,
-    delete_user_completely,
-    get_user_data_summary,
-    get_user_info_for_data_manager,
-    build_user_index,
-    get_user_summary,
-    get_all_user_summaries,
-    get_user_analytics_summary,
-)
-
-# User data handlers exports (high usage)
-from .user_management import get_user_categories
-from .user_data_registry import (
-    register_default_loaders,
-    get_available_data_types,
-    get_data_type_info,
-)
-from .schedule_document_defaults import (
-    create_default_schedule_periods,
-    migrate_legacy_schedules_structure,
-    ensure_category_has_default_schedule,
-)
-
-# Service exports - lazy import due to circular dependencies (medium usage)
-# Note: service has circular dependencies with scheduler
-# Functions available: get_scheduler_manager (medium usage), MHMService, InitializationError
-# Use: from core.service import get_scheduler_manager
-
-# User data handlers exports - lazy import to avoid circular dependencies
-# Functions available via direct import: get_user_categories (high usage),
-# ensure_all_categories_have_schedules, get_user_id_by_identifier (medium usage)
-# Other functions: clear_user_caches (use: from core.user_data_read import clear_user_caches)
-
-# User data operations exports - lazy import to avoid circular dependencies
-# Note: user_data_operations may have circular dependencies
-# Functions available via direct import: update_user_index (high usage)
-# Other functions: rebuild_user_index (use: from core.user_data_operations import rebuild_user_index)
+if TYPE_CHECKING:
+    from storage.user_data_read import get_user_data as get_user_data
 
 
-# Scheduler exports - lazy import due to circular dependencies (medium usage)
-# Note: SchedulerManager and add_schedule_period have circular dependencies
-# Use lazy import pattern for these items
-# ERROR_HANDLING_EXCLUDE: Special Python method for dynamic attribute access
-def __getattr__(name: str):
-    """Lazy import handler for items with circular dependencies"""
-    if name == "SchedulerManager":
-        from scheduler.manager import SchedulerManager
+_LAZY_EXPORTS: dict[str, tuple[str, str]] = {
+    # Logger
+    "get_component_logger": ("core.logger", "get_component_logger"),
+    "setup_logging": ("core.logger", "setup_logging"),
+    "ComponentLogger": ("core.logger", "ComponentLogger"),
+    "BackupDirectoryRotatingFileHandler": (
+        "core.logger",
+        "BackupDirectoryRotatingFileHandler",
+    ),
+    "ExcludeLoggerNamesFilter": ("core.logger", "ExcludeLoggerNamesFilter"),
+    "PytestContextLogFormatter": ("core.logger", "PytestContextLogFormatter"),
+    "setup_third_party_error_logging": (
+        "core.logger",
+        "setup_third_party_error_logging",
+    ),
+    "suppress_noisy_logging": ("core.logger", "suppress_noisy_logging"),
+    "set_console_log_level": ("core.logger", "set_console_log_level"),
+    "toggle_verbose_logging": ("core.logger", "toggle_verbose_logging"),
+    "get_verbose_mode": ("core.logger", "get_verbose_mode"),
+    "set_verbose_mode": ("core.logger", "set_verbose_mode"),
+    "get_logger": ("core.logger", "get_logger"),
+    # Error handling
+    "handle_errors": ("core.error_handling", "handle_errors"),
+    "MHMError": ("core.error_handling", "MHMError"),
+    "DataError": ("core.error_handling", "DataError"),
+    "FileOperationError": ("core.error_handling", "FileOperationError"),
+    "ConfigurationError": ("core.error_handling", "ConfigurationError"),
+    "CommunicationError": ("core.error_handling", "CommunicationError"),
+    "SchedulerError": ("core.error_handling", "SchedulerError"),
+    "UserInterfaceError": ("core.error_handling", "UserInterfaceError"),
+    "AIError": ("core.error_handling", "AIError"),
+    "ValidationError": ("core.error_handling", "ValidationError"),
+    "RecoveryError": ("core.error_handling", "RecoveryError"),
+    "handle_network_error": ("core.error_handling", "handle_network_error"),
+    "ErrorHandler": ("core.error_handling", "ErrorHandler"),
+    "ErrorRecoveryStrategy": ("core.error_handling", "ErrorRecoveryStrategy"),
+    "ConfigurationRecovery": ("core.error_handling", "ConfigurationRecovery"),
+    "handle_ai_error": ("core.error_handling", "handle_ai_error"),
+    # User data and storage facade
+    "get_user_data": ("storage.user_data_read", "get_user_data"),
+    "clear_user_caches": ("storage.user_data_read", "clear_user_caches"),
+    "save_user_data": ("storage.user_data_write", "save_user_data"),
+    "save_user_data_transaction": (
+        "storage.user_data_write",
+        "save_user_data_transaction",
+    ),
+    "update_user_account": ("storage.user_data_write", "update_user_account"),
+    "update_user_preferences": ("storage.user_data_write", "update_user_preferences"),
+    "update_user_schedules": ("storage.user_data_write", "update_user_schedules"),
+    "update_user_context": ("storage.user_data_write", "update_user_context"),
+    "update_channel_preferences": (
+        "storage.user_data_write",
+        "update_channel_preferences",
+    ),
+    "register_data_loader": ("storage.user_data_registry", "register_data_loader"),
+    "register_default_loaders": (
+        "storage.user_data_registry",
+        "register_default_loaders",
+    ),
+    "get_available_data_types": (
+        "storage.user_data_registry",
+        "get_available_data_types",
+    ),
+    "get_data_type_info": ("storage.user_data_registry", "get_data_type_info"),
+    "validate_schedule_periods": (
+        "storage.user_data_validation",
+        "validate_schedule_periods",
+    ),
+    "is_valid_email": ("storage.user_data_validation", "is_valid_email"),
+    "get_timezone_options": ("storage.user_data_presets", "get_timezone_options"),
+    "get_predefined_options": ("storage.user_data_presets", "get_predefined_options"),
+    "update_user_index": ("storage.user_data_operations", "update_user_index"),
+    "rebuild_user_index": ("storage.user_data_operations", "rebuild_user_index"),
+    "UserDataManager": ("storage.user_data_operations", "UserDataManager"),
+    "update_message_references": (
+        "storage.user_data_operations",
+        "update_message_references",
+    ),
+    "backup_user_data": ("storage.user_data_operations", "backup_user_data"),
+    "export_user_data": ("storage.user_data_operations", "export_user_data"),
+    "delete_user_completely": (
+        "storage.user_data_operations",
+        "delete_user_completely",
+    ),
+    "get_user_data_summary": (
+        "storage.user_data_operations",
+        "get_user_data_summary",
+    ),
+    "get_user_info_for_data_manager": (
+        "storage.user_data_operations",
+        "get_user_info_for_data_manager",
+    ),
+    "build_user_index": ("storage.user_data_operations", "build_user_index"),
+    "get_user_summary": ("storage.user_data_operations", "get_user_summary"),
+    "get_all_user_summaries": (
+        "storage.user_data_operations",
+        "get_all_user_summaries",
+    ),
+    "get_user_analytics_summary": (
+        "storage.user_data_operations",
+        "get_user_analytics_summary",
+    ),
+    # User lifecycle
+    "get_all_user_ids": ("core.user_management", "get_all_user_ids"),
+    "create_new_user": ("core.user_management", "create_new_user"),
+    "get_user_categories": ("core.user_management", "get_user_categories"),
+    "get_user_id_by_identifier": ("core.user_lookup", "get_user_id_by_identifier"),
+    # File operations
+    "load_json_data": ("core.file_operations", "load_json_data"),
+    "save_json_data": ("core.file_operations", "save_json_data"),
+    "determine_file_path": ("core.file_operations", "determine_file_path"),
+    "verify_file_access": ("core.file_operations", "verify_file_access"),
+    "create_user_files": ("core.file_operations", "create_user_files"),
+    # Message and response handling
+    "get_recent_messages": ("core.message_management", "get_recent_messages"),
+    "store_sent_message": ("core.message_management", "store_sent_message"),
+    "get_message_categories": ("core.message_management", "get_message_categories"),
+    "load_user_messages": ("core.message_management", "load_user_messages"),
+    "add_message": ("core.message_management", "add_message"),
+    "archive_old_messages": ("core.message_management", "archive_old_messages"),
+    "get_recent_responses": ("core.response_tracking", "get_recent_responses"),
+    "store_chat_interaction": ("core.response_tracking", "store_chat_interaction"),
+    "get_recent_checkins": ("core.response_tracking", "get_recent_checkins"),
+    "is_user_checkins_enabled": (
+        "core.response_tracking",
+        "is_user_checkins_enabled",
+    ),
+    # Config
+    "DISCORD_BOT_TOKEN": ("core.config", "DISCORD_BOT_TOKEN"),
+    "EMAIL_SMTP_SERVER": ("core.config", "EMAIL_SMTP_SERVER"),
+    "EMAIL_IMAP_SERVER": ("core.config", "EMAIL_IMAP_SERVER"),
+    "EMAIL_SMTP_USERNAME": ("core.config", "EMAIL_SMTP_USERNAME"),
+    "LM_STUDIO_BASE_URL": ("core.config", "LM_STUDIO_BASE_URL"),
+    "LM_STUDIO_API_KEY": ("core.config", "LM_STUDIO_API_KEY"),
+    "LM_STUDIO_MODEL": ("core.config", "LM_STUDIO_MODEL"),
+    "SCHEDULER_INTERVAL": ("core.config", "SCHEDULER_INTERVAL"),
+    "get_available_channels": ("core.config", "get_available_channels"),
+    "CONTEXT_CACHE_TTL": ("core.config", "CONTEXT_CACHE_TTL"),
+    "DISCORD_APPLICATION_ID": ("core.config", "DISCORD_APPLICATION_ID"),
+    "EMAIL_SMTP_PASSWORD": ("core.config", "EMAIL_SMTP_PASSWORD"),
+    "validate_all_configuration": ("core.config", "validate_all_configuration"),
+    "validate_and_raise_if_invalid": (
+        "core.config",
+        "validate_and_raise_if_invalid",
+    ),
+    "get_backups_dir": ("core.config", "get_backups_dir"),
+    "ensure_user_directory": ("core.config", "ensure_user_directory"),
+    "get_channel_class_mapping": ("core.config", "get_channel_class_mapping"),
+    "validate_core_paths": ("core.config", "validate_core_paths"),
+    "validate_ai_configuration": ("core.config", "validate_ai_configuration"),
+    "validate_communication_channels": (
+        "core.config",
+        "validate_communication_channels",
+    ),
+    "validate_logging_configuration": (
+        "core.config",
+        "validate_logging_configuration",
+    ),
+    "validate_scheduler_configuration": (
+        "core.config",
+        "validate_scheduler_configuration",
+    ),
+    "validate_file_organization_settings": (
+        "core.config",
+        "validate_file_organization_settings",
+    ),
+    "validate_environment_variables": (
+        "core.config",
+        "validate_environment_variables",
+    ),
+    "print_configuration_report": ("core.config", "print_configuration_report"),
+    "ConfigValidationError": ("core.config", "ConfigValidationError"),
+    "get_user_data_dir": ("core.config", "get_user_data_dir"),
+    "get_user_file_path": ("core.config", "get_user_file_path"),
+    # Schemas
+    "validate_account_dict": ("core.schemas", "validate_account_dict"),
+    "validate_preferences_dict": ("core.schemas", "validate_preferences_dict"),
+    "validate_schedules_dict": ("core.schemas", "validate_schedules_dict"),
+    "AccountModel": ("core.schemas", "AccountModel"),
+    "ChannelModel": ("core.schemas", "ChannelModel"),
+    "PreferencesModel": ("core.schemas", "PreferencesModel"),
+    "CategoryScheduleModel": ("core.schemas", "CategoryScheduleModel"),
+    "FeaturesModel": ("core.schemas", "FeaturesModel"),
+    "PeriodModel": ("core.schemas", "PeriodModel"),
+    "SchedulesModel": ("core.schemas", "SchedulesModel"),
+    # Service and runtime
+    "MHMService": ("core.service", "MHMService"),
+    "InitializationError": ("core.service", "InitializationError"),
+    "wait_for_network": ("core.network_probe", "wait_for_network"),
+    "Throttler": ("core.service_utilities", "Throttler"),
+    "is_service_running": ("core.service_utilities", "is_service_running"),
+    "get_service_processes": ("core.service_utilities", "get_service_processes"),
+    "is_headless_service_running": (
+        "core.service_utilities",
+        "is_headless_service_running",
+    ),
+    "is_ui_service_running": ("core.service_utilities", "is_ui_service_running"),
+    "create_reschedule_request": (
+        "core.service_requests",
+        "create_reschedule_request",
+    ),
+    "InvalidTimeFormatError": ("core.time_utilities", "InvalidTimeFormatError"),
+    "load_and_localize_datetime": (
+        "core.time_utilities",
+        "load_and_localize_datetime",
+    ),
+    "HeadlessServiceManager": ("core.headless_service", "HeadlessServiceManager"),
+    "FileAuditor": ("core.file_auditor", "FileAuditor"),
+    "start_auditor": ("core.file_auditor", "start_auditor"),
+    "stop_auditor": ("core.file_auditor", "stop_auditor"),
+    "record_created": ("core.file_auditor", "record_created"),
+    # Schedule and cleanup
+    "get_active_schedules": ("core.schedule_utilities", "get_active_schedules"),
+    "is_schedule_active": ("core.schedule_utilities", "is_schedule_active"),
+    "get_current_active_schedules": (
+        "core.schedule_utilities",
+        "get_current_active_schedules",
+    ),
+    "add_schedule_period": ("core.schedule_runtime", "add_schedule_period"),
+    "create_default_schedule_periods": (
+        "core.schedule_document_defaults",
+        "create_default_schedule_periods",
+    ),
+    "migrate_legacy_schedules_structure": (
+        "core.schedule_document_defaults",
+        "migrate_legacy_schedules_structure",
+    ),
+    "ensure_category_has_default_schedule": (
+        "core.schedule_document_defaults",
+        "ensure_category_has_default_schedule",
+    ),
+    "ensure_all_categories_have_schedules": (
+        "core.schedule_document_defaults",
+        "ensure_all_categories_have_schedules",
+    ),
+    "get_last_cleanup_timestamp": ("core.auto_cleanup", "get_last_cleanup_timestamp"),
+    "update_cleanup_timestamp": ("core.auto_cleanup", "update_cleanup_timestamp"),
+    "should_run_cleanup": ("core.auto_cleanup", "should_run_cleanup"),
+    "perform_cleanup": ("core.auto_cleanup", "perform_cleanup"),
+    "auto_cleanup_if_needed": ("core.auto_cleanup", "auto_cleanup_if_needed"),
+    "cleanup_data_directory": ("core.auto_cleanup", "cleanup_data_directory"),
+    "cleanup_tests_data_directory": (
+        "core.auto_cleanup",
+        "cleanup_tests_data_directory",
+    ),
+    "archive_old_messages_for_all_users": (
+        "core.auto_cleanup",
+        "archive_old_messages_for_all_users",
+    ),
+    "get_cleanup_status": ("core.auto_cleanup", "get_cleanup_status"),
+    # Other public classes
+    "BackupManager": ("core.backup_manager", "BackupManager"),
+    "DynamicCheckinManager": (
+        "core.checkin_dynamic_manager",
+        "DynamicCheckinManager",
+    ),
+    "dynamic_checkin_manager": (
+        "core.checkin_dynamic_manager",
+        "dynamic_checkin_manager",
+    ),
+    "CheckinAnalytics": ("core.checkin_analytics", "CheckinAnalytics"),
+    "SchedulerManager": ("scheduler.manager", "SchedulerManager"),
+}
 
-        return SchedulerManager
-    elif name == "add_schedule_period":
-        from .schedule_runtime import add_schedule_period
 
-        return add_schedule_period
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+def __getattr__(name: str) -> Any:
+    """Lazy import handler for package-level facade exports."""
+    if name == "config":
+        value = import_module("core.config")
+    else:
+        target = _LAZY_EXPORTS.get(name)
+        if target is None:
+            raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+        module_name, attr_name = target
+        value = getattr(import_module(module_name), attr_name)
+    globals()[name] = value
+    return value
 
 
 __all__ = [
-    # Logger
     "get_component_logger",
     "setup_logging",
     "ComponentLogger",
@@ -320,7 +304,6 @@ __all__ = [
     "get_verbose_mode",
     "set_verbose_mode",
     "get_logger",
-    # Error handling
     "handle_errors",
     "MHMError",
     "DataError",
@@ -332,7 +315,6 @@ __all__ = [
     "AIError",
     "ValidationError",
     "RecoveryError",
-    # User data handlers
     "get_user_data",
     "save_user_data",
     "save_user_data_transaction",
@@ -343,29 +325,23 @@ __all__ = [
     "update_user_context",
     "update_channel_preferences",
     "register_data_loader",
-    # File operations
     "load_json_data",
     "save_json_data",
     "determine_file_path",
     "verify_file_access",
-    # Message management
     "get_recent_messages",
     "store_sent_message",
     "get_message_categories",
     "load_user_messages",
     "add_message",
     "archive_old_messages",
-    # Response tracking
     "get_recent_responses",
     "store_chat_interaction",
     "get_recent_checkins",
     "is_user_checkins_enabled",
-    # User data validation
     "validate_schedule_periods",
-    "is_valid_email",  # Medium usage
-    # Error handling additional (medium usage)
+    "is_valid_email",
     "handle_network_error",
-    # Config constants (medium usage)
     "DISCORD_BOT_TOKEN",
     "EMAIL_SMTP_SERVER",
     "EMAIL_IMAP_SERVER",
@@ -375,21 +351,16 @@ __all__ = [
     "LM_STUDIO_MODEL",
     "SCHEDULER_INTERVAL",
     "get_available_channels",
-    # User management additional (medium usage)
     "ensure_all_categories_have_schedules",
     "get_user_id_by_identifier",
     "create_new_user",
     "get_timezone_options",
     "get_predefined_options",
-    # Schedule management - lazy import (circular dependencies)
     "add_schedule_period",
-    # Scheduler - lazy import (circular dependencies)
     "SchedulerManager",
-    # Schema validation (medium usage)
     "validate_account_dict",
     "validate_preferences_dict",
     "validate_schedules_dict",
-    # Schema models (public API)
     "AccountModel",
     "ChannelModel",
     "PreferencesModel",
@@ -397,11 +368,9 @@ __all__ = [
     "FeaturesModel",
     "PeriodModel",
     "SchedulesModel",
-    # Config additional constants (low usage)
     "CONTEXT_CACHE_TTL",
     "DISCORD_APPLICATION_ID",
     "EMAIL_SMTP_PASSWORD",
-    # Config additional functions (public API)
     "validate_all_configuration",
     "validate_and_raise_if_invalid",
     "get_backups_dir",
@@ -415,16 +384,12 @@ __all__ = [
     "validate_file_organization_settings",
     "validate_environment_variables",
     "print_configuration_report",
-    # Error handling additional classes and functions (public API)
     "ErrorHandler",
     "ErrorRecoveryStrategy",
     "ConfigurationRecovery",
-    # Config validation error class (public API)
     "ConfigValidationError",
-    # Service classes (public API)
     "MHMService",
     "InitializationError",
-    # Service utilities (public API)
     "Throttler",
     "InvalidTimeFormatError",
     "create_reschedule_request",
@@ -434,20 +399,15 @@ __all__ = [
     "is_ui_service_running",
     "wait_for_network",
     "load_and_localize_datetime",
-    # Headless service (public API)
     "HeadlessServiceManager",
-    # File operations additional (public API)
     "create_user_files",
-    # File auditor (public API)
     "FileAuditor",
     "start_auditor",
     "stop_auditor",
     "record_created",
-    # Schedule utilities (public API)
     "get_active_schedules",
     "is_schedule_active",
     "get_current_active_schedules",
-    # Auto cleanup (public API)
     "get_last_cleanup_timestamp",
     "update_cleanup_timestamp",
     "should_run_cleanup",
@@ -457,23 +417,13 @@ __all__ = [
     "cleanup_tests_data_directory",
     "archive_old_messages_for_all_users",
     "get_cleanup_status",
-    # Backup manager (public API)
     "BackupManager",
-    # Check-in dynamic manager class (public API)
     "DynamicCheckinManager",
-    # Check-in analytics (high usage)
     "CheckinAnalytics",
-    # Error handling additional (high usage)
     "handle_ai_error",
-    # Config functions (high usage)
     "get_user_data_dir",
     "get_user_file_path",
-    # Dynamic check-in manager (high usage)
     "dynamic_checkin_manager",
-    # Schedule runtime (high usage) - lazy import due to circular dependencies
-    # Note: get_schedule_time_periods, set_schedule_periods not in __all__ due to circular dependencies
-    # Use: from core.schedule_runtime import get_schedule_time_periods, set_schedule_periods
-    # User data operations (high usage and public API)
     "update_user_index",
     "rebuild_user_index",
     "UserDataManager",
@@ -487,7 +437,6 @@ __all__ = [
     "get_user_summary",
     "get_all_user_summaries",
     "get_user_analytics_summary",
-    # User management (high usage and public API)
     "get_user_categories",
     "clear_user_caches",
     "register_default_loaders",
@@ -496,6 +445,5 @@ __all__ = [
     "create_default_schedule_periods",
     "migrate_legacy_schedules_structure",
     "ensure_category_has_default_schedule",
-    # Modules (for module-level access: from core import config)
     "config",
 ]

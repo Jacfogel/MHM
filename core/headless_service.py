@@ -13,7 +13,7 @@ from pathlib import Path
 from core.launch_env import prepare_launch_environment, resolve_python_interpreter
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.service_flag_storage import write_service_flag_json
+from storage.service_flag_storage import write_service_flag_json
 from core.service_utilities import (
     get_service_processes,
     get_flags_dir,

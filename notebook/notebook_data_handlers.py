@@ -11,7 +11,7 @@ from core.error_handling import handle_errors, FileOperationError
 from core.config import get_user_data_dir
 from core.file_operations import load_json_data, save_json_data
 from core.time_utilities import now_timestamp_full
-from core.user_data_v2_base import SCHEMA_VERSION as V2_SCHEMA_VERSION, generate_short_id
+from storage.user_data_v2_base import SCHEMA_VERSION as V2_SCHEMA_VERSION, generate_short_id
 from notebook.notebook_schemas import Entry, NotebookV2Model
 
 logger = get_component_logger("notebook_data_handlers")
