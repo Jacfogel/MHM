@@ -10,7 +10,7 @@ from unittest.mock import patch, MagicMock
 from datetime import timedelta
 import schedule
 
-from core.scheduler import SchedulerManager
+from scheduler.manager import SchedulerManager
 from tasks import (
     create_task,
     complete_task,
@@ -31,7 +31,7 @@ class TestOrphanedReminderCleanup:
     @pytest.mark.scheduler
     @pytest.mark.tasks
     @patch("core.service.get_scheduler_manager")
-    @patch("core.scheduler.SchedulerManager.set_wake_timer")
+    @patch("scheduler.manager.SchedulerManager.set_wake_timer")
     def test_cleanup_removes_reminders_for_deleted_tasks(
         self, mock_wake_timer, mock_get_scheduler, test_data_dir
     ):
@@ -120,7 +120,7 @@ class TestOrphanedReminderCleanup:
     @pytest.mark.scheduler
     @pytest.mark.tasks
     @patch("core.service.get_scheduler_manager")
-    @patch("core.scheduler.SchedulerManager.set_wake_timer")
+    @patch("scheduler.manager.SchedulerManager.set_wake_timer")
     def test_cleanup_removes_reminders_for_completed_tasks(
         self, mock_wake_timer, mock_get_scheduler, test_data_dir
     ):
@@ -207,7 +207,7 @@ class TestOrphanedReminderCleanup:
     @pytest.mark.scheduler
     @pytest.mark.tasks
     @patch("core.service.get_scheduler_manager")
-    @patch("core.scheduler.SchedulerManager.set_wake_timer")
+    @patch("scheduler.manager.SchedulerManager.set_wake_timer")
     def test_cleanup_preserves_reminders_for_active_tasks(
         self, mock_wake_timer, mock_get_scheduler, test_data_dir
     ):
@@ -288,7 +288,7 @@ class TestOrphanedReminderCleanup:
     @pytest.mark.scheduler
     @pytest.mark.tasks
     @patch("core.service.get_scheduler_manager")
-    @patch("core.scheduler.SchedulerManager.set_wake_timer")
+    @patch("scheduler.manager.SchedulerManager.set_wake_timer")
     def test_cleanup_handles_multiple_users(
         self, mock_wake_timer, mock_get_scheduler, test_data_dir
     ):

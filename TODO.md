@@ -2,9 +2,9 @@
 
 > **File**: `TODO.md`
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
-> **Purpose**: Current development priorities and planned improvements  
+> **Purpose**: Current development priorities and planned improvements
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-05-13 (service utilities responsibility clarified)
+> **Last Updated**: 2026-05-13 (scheduler package move completed)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -31,7 +31,7 @@ When adding new tasks, follow this format:
 - **Dating**: Add `- *Created*: YYYY-MM-DD` when adding new tasks; add completion date when marking progress
 
 
-**Note**: Phase 1: Enhanced Task & Check-in Systems is tracked in [PLANS.md](development_docs/PLANS.md). 
+**Note**: Phase 1: Enhanced Task & Check-in Systems is tracked in [PLANS.md](development_docs/PLANS.md).
 **Note**: Mood-Aware Support Calibration items (Safety Net Response Library, Task Breakdown Prompt Experiments, Context-Aware Reminder Content Mapping, Mood Re-evaluation Cadence Guidelines) are tracked in [PLANS.md](development_docs/PLANS.md) under "Mood-Aware Support Calibration" plan.
 **Note**: Development tools backlog is tracked in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md). [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) remains for historical V4 checkboxes only.
 **Testing Source of Truth**: All testing roadmap items are tracked in [TEST_PLAN.md](development_docs/TEST_PLAN.md). Keep only non-testing TODO items here. Coverage-growth follow-ups from this session are tracked in TEST_PLAN Phase 5.7.
@@ -39,11 +39,11 @@ When adding new tasks, follow this format:
 
 **Parallel product work (from audits)**: After each `audit --full`, use [`development_tools/AI_PRIORITIES.md`](development_tools/AI_PRIORITIES.md) for coverage, duplicates, coupling, and complexity (V5 Section 5.6); this is separate from dev-tools suite implementation in [`AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md`](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md).
 
-**Development tools backlog (active follow-ups only, reviewed 2026-05-11)**  
-- **Portability / Section 7.6**: full Pyright diagnostic parity remains partial; structural policy tests exist in `tests/development_tools/test_pyright_config_paths.py`, while diagnostic-count parity is optional via `PYRIGHT_ERROR_COUNT_MAX_DELTA` / `PYRIGHT_WARNING_COUNT_MAX_DELTA`.  
-- **Section 4.1 external tools**: Bandit and pip-audit are integrated and currently clean; remaining evaluation is optional/manual expansion for Radon, pydeps, vulture, deeper Ruff usage, and pre-commit.  
-- **Section 5.x low-priority gap tools**: unused-imports analyzer/report exist but fixer/categorization remains open; documentation overlap is tuned but reopenable on new noise; TODO sync has dry-run/apply/manual-review guidance, with broader workflow polish optional; memory profiler integration is pending.  
-- **Section 1.1 `test_config.json` fixture migration**: adopt `tests/development_tools/test_config.json` when touching analyzer tests; full migration remains low priority.  
+**Development tools backlog (active follow-ups only, reviewed 2026-05-11)**
+- **Portability / Section 7.6**: full Pyright diagnostic parity remains partial; structural policy tests exist in `tests/development_tools/test_pyright_config_paths.py`, while diagnostic-count parity is optional via `PYRIGHT_ERROR_COUNT_MAX_DELTA` / `PYRIGHT_WARNING_COUNT_MAX_DELTA`.
+- **Section 4.1 external tools**: Bandit and pip-audit are integrated and currently clean; remaining evaluation is optional/manual expansion for Radon, pydeps, vulture, deeper Ruff usage, and pre-commit.
+- **Section 5.x low-priority gap tools**: unused-imports analyzer/report exist but fixer/categorization remains open; documentation overlap is tuned but reopenable on new noise; TODO sync has dry-run/apply/manual-review guidance, with broader workflow polish optional; memory profiler integration is pending.
+- **Section 1.1 `test_config.json` fixture migration**: adopt `tests/development_tools/test_config.json` when touching analyzer tests; full migration remains low priority.
 Detail: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md).
 
 **Use / fit** (2026-05-11 status): AI items remain deferred until system overhaul. Project-specific script ownership remains high/medium. Performance monitoring still includes RAM/caching. Duplicate-list and backup-audit ideas live in dev-tools V5 Sections 7.8/7.9. Completed dev-tools migrations, `--dev-tools-only` report scoping, headless/email admin status, and `sent_messages` fixes are tracked in changelogs rather than active TODOs.
@@ -72,7 +72,7 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 
 #### Status
 
-- [ ] Larger scheduler splits (e.g. moving more task-reminder scheduling bodies out of `core/scheduler.py`) remain optional follow-ups. (Initial split shipped **2026-05-02**; see paired changelogs.)
+- [ ] Larger scheduler splits (e.g. moving more task-reminder scheduling bodies out of `scheduler/manager.py`) remain optional follow-ups. (Initial split shipped **2026-05-02**; package move shipped **2026-05-13**; see paired changelogs.)
 - Intentional thin delegators: suppress duplicate-tool pairs by giving **both** functions the same `# not_duplicate: <group_id>` (or `# duplicate_functions_intentional:`) comment within a few lines above `def` - see `development_tools/functions/analyze_duplicate_functions.py` module docstring. Single-function exclusion: `# duplicate_functions_exclude`.
 
 ## Medium Priority
@@ -170,21 +170,19 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 
 ### Architecture
 
-**Consider a top-level scheduler package**
-- *What it means*: After the scheduler split stabilizes, decide whether `core/scheduler.py`, `core/scheduler_jobs.py`, `core/scheduler_maintenance.py`, and `core/scheduler_task_reminders.py` should move into a dedicated `scheduler/` package.
-- *Why it helps*: Keeps scheduling mechanics separate from broad core infrastructure without moving scheduler-specific code into task/domain packages.
-- *Estimated effort*: Medium
-- *Created*: 2026-05-03
-
-**Consider a top-level storage package**
-- *What it means*: Decide whether persistence infrastructure currently in `core/user_data_*` and related storage helpers should eventually move into a dedicated `storage/` package. Do not use `data/` for code because `data/` is the literal runtime data directory.
+**Move persistence infrastructure to a top-level storage package**
+- *Decision*: Proceed, but as a separate refactor after the scheduler package move. This has a larger blast radius because user-data helpers are tied into `core` exports, validation, user management, runtime paths, and tests.
+- *What it means*: Move persistence infrastructure currently in `core/user_data_*` and related storage helpers into a dedicated `storage/` package. Candidate modules include user-data read/write/validation/registry/operations/presets/v2 envelope helpers, `user_item_storage`, `runtime_state_storage`, and `service_flag_storage`. Do not use `data/` for code because `data/` is the literal runtime data directory.
 - *Why it helps*: Separates data persistence mechanics from core runtime wiring and user-domain concepts.
+- *Execution guidance*: Do not bundle with scheduler or domain package moves. Keep file locations and on-disk JSON contracts stable unless a separate migration plan explicitly says otherwise. If old `core.user_data_*` import paths need temporary bridges, follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) and track bridge removal through the deprecation inventory and legacy tools.
 - *Estimated effort*: Medium
 - *Created*: 2026-05-03
 
-**Consider first-class automated message and check-in domain packages**
-- *What it means*: Decide whether automated message logic and check-in logic should move out of `core/` into clearer domain packages, such as `messages/` and `checkins/`, after the current scheduler/service/channel refactors stabilize. These packages should follow the existing `notebook/` and `tasks/` pattern where practical: `*_data_handlers.py`, `*_data_manager.py`, `*_schemas.py`, `*_service.py`, and `*_validation.py`, plus domain-specific modules where they are justified.
+**Create first-class automated message and check-in domain packages**
+- *Decision*: Proceed in principle, but do this last and start with a short design pass. Message and check-in logic are real application domains, but they touch scheduler behavior, communication handlers, UI dialogs, analytics, schemas, response tracking, and persistence.
+- *What it means*: Move automated message logic and check-in logic out of `core/` into clearer domain packages, such as `messages/` and `checkins/`, after scheduler and storage boundaries are stable. Follow the existing `notebook/` and `tasks/` pattern where practical: `*_data_handlers.py`, `*_data_manager.py`, `*_schemas.py`, `*_service.py`, and `*_validation.py`, plus domain-specific modules where they are justified. Do not force empty layers if a module has no real responsibility.
 - *Why it helps*: Makes messages, check-ins, tasks, and notebook entries equally visible as application domains instead of burying message/check-in behavior under broad core modules.
+- *Execution guidance*: Design the target ownership before moving files. Avoid long-lived `core.message_*` or `core.checkin_*` bridges; if temporary bridges are needed for staged migration, follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md), including bridge markers, usage logging, a removal plan, deprecation inventory entries, and `--find`/`--verify` cleanup before deletion.
 - *Estimated effort*: Medium/Large
 - *Created*: 2026-05-03
 
@@ -238,7 +236,7 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 
 **Investigate naive vs timezone-aware datetime usage in scheduler & task reminders**
 Context: During the datetime canonicalization audit, a potential split was identified between:
-- **Timezone-aware datetimes** (e.g., `pytz.localize(...)`) used in parts of `core/scheduler.py`, and  
+- **Timezone-aware datetimes** (e.g., `pytz.localize(...)`) used in parts of `scheduler/manager.py`, and
 - **Naive datetimes** produced by canonical parsing helpers (e.g., `parse_timestamp_minute(...)`) and compared against canonical "now".
 This task is to **investigate intent and correctness**, not to refactor preemptively.
 ---
@@ -277,5 +275,5 @@ Deliverables
 - Documentation note if the split is intentional (where and why)
 ---
 Priority
-- Medium  
+- Medium
 - Blocker only if a real bug or undefined behavior is confirmed

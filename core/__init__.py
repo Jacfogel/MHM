@@ -295,7 +295,7 @@ from .schedule_document_defaults import (
 def __getattr__(name: str):
     """Lazy import handler for items with circular dependencies"""
     if name == "SchedulerManager":
-        from .scheduler import SchedulerManager
+        from scheduler.manager import SchedulerManager
 
         return SchedulerManager
     elif name == "add_schedule_period":

@@ -1,4 +1,4 @@
-# scheduler.py
+# Scheduler manager and standalone scheduler entry points.
 
 import schedule
 import time
@@ -30,9 +30,9 @@ from core.logger import get_component_logger
 from user.user_context import UserContext
 from core.error_handling import handle_errors
 from core import get_user_data
-from core import scheduler_jobs
-from core import scheduler_maintenance
-from core import scheduler_task_reminders
+from scheduler import jobs as scheduler_jobs
+from scheduler import maintenance as scheduler_maintenance
+from scheduler import task_reminders as scheduler_task_reminders
 
 # Suppress debug logging from the schedule library to reduce log spam
 from core.logger import suppress_noisy_logging

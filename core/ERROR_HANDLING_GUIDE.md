@@ -143,7 +143,7 @@ File-related recovery behavior (such as backing up corrupted JSON and recreating
 
 Use `@handle_errors` on **entry points** where an unhandled exception should never crash the whole service:
 
-- Scheduler jobs and background loops in `scheduler.py`.
+- Scheduler jobs and background loops in `scheduler/manager.py`.
 - Shared scheduling utilities (for example `get_active_schedules` in `schedule_utilities.py`).
 - User data load/save operations and channel-preference changes in `user_data_registry.py`, `user_data_read.py`, and `user_data_write.py`.
 - Service and network utilities in `service_utilities.py` and `network_probe.py` (for example throttler checks, service status, network wait loops).

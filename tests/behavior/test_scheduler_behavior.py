@@ -1,5 +1,5 @@
 """
-Tests for core scheduler module.
+Tests for the scheduler package.
 
 Tests scheduling logic, time management, and task execution.
 """
@@ -9,7 +9,7 @@ import os
 from unittest.mock import patch, Mock
 from datetime import datetime, timedelta
 from core import get_user_data
-from core.scheduler import SchedulerManager, schedule_all_task_reminders
+from scheduler.manager import SchedulerManager, schedule_all_task_reminders
 from core import get_user_categories
 from core.time_utilities import (
     parse_time_only_minute,
@@ -83,7 +83,7 @@ class TestSchedulerManager:
         mock_job_func.keywords = {"user_id": "test-user", "category": "motivational"}
         mock_job.job_func = mock_job_func
 
-        with patch("core.scheduler.schedule") as mock_schedule:
+        with patch("scheduler.manager.schedule") as mock_schedule:
             mock_schedule.jobs = [mock_job]
 
             result = scheduler_manager.is_job_for_category(
@@ -101,7 +101,7 @@ class TestSchedulerManager:
         mock_job = Mock()
         mock_job.job_func.args = ["other-user", "health"]
 
-        with patch("core.scheduler.schedule") as mock_schedule:
+        with patch("scheduler.manager.schedule") as mock_schedule:
             mock_schedule.jobs = [mock_job]
 
             result = scheduler_manager.is_job_for_category(
@@ -121,7 +121,7 @@ class TestSchedulerManager:
         timezone_str = "America/Regina"
 
         # Mock get_schedule_time_periods to return a valid period
-        with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods:
+        with patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods:
             mock_get_periods.return_value = {
                 period_name: {
                     "start_time": "09:00",
@@ -168,7 +168,7 @@ class TestSchedulerManager:
         period_name = "morning"
         timezone_str = "America/Regina"
 
-        with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods:
+        with patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods:
             mock_get_periods.return_value = {
                 period_name: {
                     "start_time": "invalid",
@@ -216,7 +216,7 @@ class TestSchedulerManager:
         mock_job.job_func.args = [user_id, category]
         mock_job.next_run = now_datetime_full() - timedelta(days=2)  # Old job
 
-        with patch("core.scheduler.schedule") as mock_schedule:
+        with patch("scheduler.manager.schedule") as mock_schedule:
             mock_schedule.jobs = [mock_job]
 
             # Should not raise any exceptions
@@ -237,7 +237,7 @@ class TestSchedulerManager:
         mock_job2.job_func.args = ["user2", "health"]
         mock_job2.next_run = now_datetime_full() + timedelta(hours=2)
 
-        with patch("core.scheduler.schedule") as mock_schedule:
+        with patch("scheduler.manager.schedule") as mock_schedule:
             mock_schedule.jobs = [mock_job1, mock_job2]
 
             # Should not raise any exceptions
@@ -363,10 +363,10 @@ class TestSchedulerIntegration:
         """Test scheduler with mock user data."""
         scheduler = SchedulerManager(mock_communication_manager)
 
-        with patch("core.scheduler.get_all_user_ids") as mock_get_users:
+        with patch("scheduler.manager.get_all_user_ids") as mock_get_users:
             mock_get_users.return_value = ["user1", "user2"]
 
-            with patch("core.scheduler.get_user_data") as mock_get_data:
+            with patch("scheduler.manager.get_user_data") as mock_get_data:
                 mock_get_data.return_value = {
                     "preferences": {"categories": ["motivational"]}
                 }
@@ -388,7 +388,7 @@ class TestSchedulerEdgeCases:
         """Test scheduler behavior with no users."""
         scheduler = SchedulerManager(mock_communication_manager)
 
-        with patch("core.scheduler.get_all_user_ids") as mock_get_users:
+        with patch("scheduler.manager.get_all_user_ids") as mock_get_users:
             mock_get_users.return_value = []
 
             # Should not raise any exceptions
@@ -400,10 +400,10 @@ class TestSchedulerEdgeCases:
         """Test scheduler behavior with invalid user data."""
         scheduler = SchedulerManager(mock_communication_manager)
 
-        with patch("core.scheduler.get_all_user_ids") as mock_get_users:
+        with patch("scheduler.manager.get_all_user_ids") as mock_get_users:
             mock_get_users.return_value = ["invalid-user"]
 
-            with patch("core.scheduler.get_user_data") as mock_get_data:
+            with patch("scheduler.manager.get_user_data") as mock_get_data:
                 mock_get_data.return_value = {}  # Empty data
 
                 # Should handle gracefully without raising exceptions
@@ -421,7 +421,7 @@ class TestSchedulerEdgeCases:
         timezone_str = "America/Regina"
 
         # Mock get_schedule_time_periods to return a valid period
-        with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods:
+        with patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods:
             mock_get_periods.return_value = {
                 period_name: {
                     "start_time": "10:00",
@@ -470,7 +470,7 @@ class TestTaskReminderFunctions:
         """Test scheduling all task reminders for a user."""
         user_id = "test-task-user"
 
-        with patch("core.scheduler.get_user_data") as mock_get_data:
+        with patch("scheduler.manager.get_user_data") as mock_get_data:
             mock_get_data.return_value = {
                 "account": {"features": {"task_management": "enabled"}},
                 "preferences": {
@@ -487,7 +487,7 @@ class TestTaskReminderFunctions:
         """Test scheduling task reminders when task management is disabled."""
         user_id = "test-task-user"
 
-        with patch("core.scheduler.get_user_data") as mock_get_data:
+        with patch("scheduler.manager.get_user_data") as mock_get_data:
             mock_get_data.return_value = {
                 "account": {"features": {"task_management": "disabled"}}
             }

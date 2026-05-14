@@ -1022,7 +1022,7 @@ class MHMManagerUI(QMainWindow):
     def run_full_scheduler(self):
         """Run the full scheduler for all users"""
         from communication.core.channel_orchestrator import CommunicationManager
-        from core.scheduler import (
+        from scheduler.manager import (
             run_full_scheduler_standalone,
             set_scheduler_delivery_factory,
         )
@@ -1045,7 +1045,7 @@ class MHMManagerUI(QMainWindow):
             QMessageBox.warning(None, "Scheduler", "Please select a user first")
             return
 
-        from core.scheduler import run_user_scheduler_standalone
+        from scheduler.manager import run_user_scheduler_standalone
 
         logger.info(f"UI: Running scheduler for user {self.current_user}")
         success = run_user_scheduler_standalone(self.current_user)
@@ -1075,7 +1075,7 @@ class MHMManagerUI(QMainWindow):
             QMessageBox.warning(None, "Scheduler", "Please select a category first")
             return
 
-        from core.scheduler import run_category_scheduler_standalone
+        from scheduler.manager import run_category_scheduler_standalone
 
         logger.info(
             f"UI: Running category scheduler for user {self.current_user}, category {category}"
@@ -2218,7 +2218,7 @@ class MHMManagerUI(QMainWindow):
             # Use scheduler's weighted selection for proper priority-based semi-random selection
             # Note: We create a temporary scheduler manager just for task selection
             # The actual sending will be done by the service when it processes the request file
-            from core.scheduler import SchedulerManager
+            from scheduler.manager import SchedulerManager
             from communication.core.channel_orchestrator import CommunicationManager
 
             # Create temporary instances for task selection only

@@ -29,7 +29,7 @@ from core.config import validate_and_raise_if_invalid, print_configuration_repor
 # Import the communication manager (channels auto-register from config)
 from communication.core.channel_orchestrator import CommunicationManager
 from core.config import LOG_MAIN_FILE, USER_INFO_DIR_PATH, get_user_data_dir
-from core.scheduler import SchedulerManager, set_scheduler_delivery_factory
+from scheduler.manager import SchedulerManager, set_scheduler_delivery_factory
 from core.service_utilities import get_flags_dir
 from core.time_utilities import parse_timestamp_full, now_datetime_full
 from core.file_operations import verify_file_access

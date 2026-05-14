@@ -46,7 +46,7 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 
 **Where to look:**
 - Implementation: `core/backup_manager.py` - `BackupManager`
-- Scheduler integration: `core/scheduler.py`
+- Scheduler integration: `scheduler/manager.py` and `scheduler/maintenance.py`
 - Backup artifacts: `data/backups/*` (directory backups by policy; zip is read-only compatibility for historical artifacts)
 
 **Key rules:**

@@ -96,7 +96,7 @@ This guide covers both how the systems work and how to restore from backups.
 
 - **Code**: `core/backup_manager.py`
 - **Backups**: `data/backups/*` (directory backups by policy; zip backups are read-only compatibility for historical artifacts)
-- **Scheduler**: `core/scheduler.py` (weekly backup check)
+- **Scheduler**: `scheduler/manager.py` and `scheduler/maintenance.py` (weekly backup check)
 
 ### 2.2. How It Works
 
@@ -439,7 +439,7 @@ All retention policies have been standardized for consistency. This is the autho
 ### 7.3. Configuration
 
 Retention policies are configured in:
-- Core runtime/user backups: `core/backup_manager.py`, `core/scheduler.py`, `core/logger.py`
+- Core runtime/user backups: `core/backup_manager.py`, `scheduler/manager.py`, `scheduler/maintenance.py`, `core/logger.py`
 - Development-tool artifact policy: `development_tools/config/development_tools_config.json` -> `backup_policy`
 - Dev-tools policy engine: `development_tools/shared/backup_policy_models.py`, `development_tools/shared/retention_engine.py`
 

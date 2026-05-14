@@ -443,7 +443,7 @@ class TestTaskReminderFollowupBehavior:
     @pytest.mark.communication
     @pytest.mark.tasks
     @patch("core.service.get_scheduler_manager")
-    @patch("core.scheduler.SchedulerManager.set_wake_timer")
+    @patch("scheduler.manager.SchedulerManager.set_wake_timer")
     def test_reminder_followup_schedules_reminders(
         self, mock_wake_timer, mock_get_scheduler, test_data_dir
     ):

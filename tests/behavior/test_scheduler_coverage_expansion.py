@@ -1,5 +1,5 @@
 """
-Comprehensive test suite for core scheduler module coverage expansion.
+Comprehensive test suite for scheduler package coverage expansion.
 
 Tests scheduling logic, time management, task execution, and edge cases.
 Focuses on real behavior and side effects to ensure actual functionality works.
@@ -11,7 +11,7 @@ import json
 import time
 from unittest.mock import patch, Mock
 from datetime import datetime, timedelta
-from core.scheduler import (
+from scheduler.manager import (
     SchedulerManager,
     schedule_all_task_reminders,
     process_user_schedules,
@@ -72,17 +72,17 @@ class TestSchedulerManagerLifecycle:
     @pytest.mark.slow
     def test_run_daily_scheduler_thread_creation_real_behavior(self, scheduler_manager):
         """Test that run_daily_scheduler creates a thread and starts it."""
-        with patch("core.scheduler.get_all_user_ids") as mock_get_users:
+        with patch("scheduler.manager.get_all_user_ids") as mock_get_users:
             mock_get_users.return_value = ["test-user-1", "test-user-2"]
 
-            with patch("core.scheduler.get_user_data") as mock_get_data:
+            with patch("scheduler.manager.get_user_data") as mock_get_data:
                 mock_get_data.return_value = {
                     "preferences": {"categories": ["motivational"]},
                     "account": {"features": {"checkins": "enabled"}},
                 }
 
                 with patch(
-                    "core.scheduler.get_schedule_time_periods"
+                    "scheduler.manager.get_schedule_time_periods"
                 ) as mock_get_periods:
                     mock_get_periods.return_value = {"morning": {"active": True}}
 
@@ -107,17 +107,17 @@ class TestSchedulerManagerLifecycle:
     @pytest.mark.slow
     def test_stop_scheduler_thread_cleanup_real_behavior(self, scheduler_manager):
         """Test that stop_scheduler properly cleans up the thread."""
-        with patch("core.scheduler.get_all_user_ids") as mock_get_users:
+        with patch("scheduler.manager.get_all_user_ids") as mock_get_users:
             mock_get_users.return_value = ["test-user-1"]
 
-            with patch("core.scheduler.get_user_data") as mock_get_data:
+            with patch("scheduler.manager.get_user_data") as mock_get_data:
                 mock_get_data.return_value = {
                     "preferences": {"categories": ["motivational"]},
                     "account": {"features": {"checkins": "enabled"}},
                 }
 
                 with patch(
-                    "core.scheduler.get_schedule_time_periods"
+                    "scheduler.manager.get_schedule_time_periods"
                 ) as mock_get_periods:
                     mock_get_periods.return_value = {"morning": {"active": True}}
 
@@ -208,7 +208,7 @@ class TestMessageScheduling:
         with open(schedules_file, "w") as f:
             json.dump(schedules_data, f)
 
-        with patch("core.scheduler.get_all_user_ids") as mock_get_users:
+        with patch("scheduler.manager.get_all_user_ids") as mock_get_users:
             mock_get_users.return_value = [user_id]
 
             # Test real behavior: function should schedule messages for the user
@@ -224,7 +224,7 @@ class TestMessageScheduling:
         """Test scheduling a newly created user."""
         user_id = "test-new-user"
 
-        with patch("core.scheduler.get_user_data") as mock_get_data:
+        with patch("scheduler.manager.get_user_data") as mock_get_data:
             mock_get_data.side_effect = [
                 # First call: preferences
                 {"preferences": {"categories": ["motivational"]}},
@@ -234,7 +234,7 @@ class TestMessageScheduling:
                 {"checkin": {"periods": {"morning": {"active": True}}}},
             ]
 
-            with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods, \
+            with patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods, \
                  patch.object(
                      scheduler_manager, "schedule_daily_message_job"
                  ) as mock_schedule, \
@@ -262,7 +262,7 @@ class TestMessageScheduling:
         user_id = "test-user"
         category = "motivational"
 
-        with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods:
+        with patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods:
             mock_get_periods.return_value = {
                 "morning": {
                     "active": True,
@@ -299,7 +299,7 @@ class TestMessageScheduling:
         user_id = "test-user"
         category = "motivational"
 
-        with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods:
+        with patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods:
             mock_get_periods.return_value = {}
 
             with patch.object(
@@ -325,7 +325,7 @@ class TestMessageScheduling:
         ) as mock_get_time:
             mock_get_time.return_value = "2024-01-15 10:30"
 
-            with patch("core.scheduler.load_and_localize_datetime") as mock_load_time:
+            with patch("scheduler.manager.load_and_localize_datetime") as mock_load_time:
                 mock_load_time.return_value = now_datetime_full() + timedelta(hours=1)
 
                 with patch.object(
@@ -367,7 +367,7 @@ class TestMessageScheduling:
         ) as mock_get_time:
             mock_get_time.return_value = "2024-01-15 10:30"
 
-            with patch("core.scheduler.load_and_localize_datetime") as mock_load_time:
+            with patch("scheduler.manager.load_and_localize_datetime") as mock_load_time:
                 mock_load_time.return_value = now_datetime_full() + timedelta(hours=1)
 
                 with patch.object(
@@ -411,7 +411,7 @@ class TestTaskReminderScheduling:
         with patch("tasks.are_tasks_enabled") as mock_tasks_enabled:
             mock_tasks_enabled.return_value = True
 
-            with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods:
+            with patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods:
                 mock_get_periods.return_value = {
                     "morning": {
                         "active": True,
@@ -473,7 +473,7 @@ class TestTaskReminderScheduling:
         with patch("tasks.are_tasks_enabled") as mock_tasks_enabled:
             mock_tasks_enabled.return_value = False
 
-            with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods, \
+            with patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods, \
                  patch(
                      "tasks.load_active_tasks"
                  ) as mock_load_tasks:
@@ -591,7 +591,7 @@ class TestTimeManagement:
             minutes=30
         )  # Within 2-hour window
 
-        with patch("core.scheduler.schedule") as mock_schedule:
+        with patch("scheduler.manager.schedule") as mock_schedule:
             mock_schedule.jobs = [mock_job]
 
             # Test real behavior: function should detect the conflict
@@ -612,7 +612,7 @@ class TestTimeManagement:
         mock_job.job_func.args = ["other-user", "motivational"]
         mock_job.next_run = schedule_datetime + timedelta(minutes=30)
 
-        with patch("core.scheduler.schedule") as mock_schedule:
+        with patch("scheduler.manager.schedule") as mock_schedule:
             mock_schedule.jobs = [mock_job]
 
             # Test real behavior: function should not detect conflict for different user
@@ -630,7 +630,7 @@ class TestTimeManagement:
         category = "motivational"
         period_name = "morning"
 
-        with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods:
+        with patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods:
             mock_get_periods.return_value = {
                 period_name: {
                     "start_time": "09:00",
@@ -672,7 +672,7 @@ class TestTimeManagement:
         category = "motivational"
         period_name = "invalid-period"
 
-        with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods:
+        with patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods:
             mock_get_periods.return_value = {
                 "morning": {
                     "start_time": "09:00",
@@ -781,8 +781,8 @@ class TestMessageHandling:
             captured["kwargs"] = kwargs
 
         with (
-            patch("core.scheduler.schedule.every") as mock_every,
-            patch("core.scheduler.now_datetime_full", return_value=now_datetime_full()),
+            patch("scheduler.manager.schedule.every") as mock_every,
+            patch("scheduler.manager.now_datetime_full", return_value=now_datetime_full()),
         ):
             mock_every.return_value.day.at.return_value.do.side_effect = _capture
             scheduler_manager._schedule_deferred_message_retry(user_id, category)
@@ -929,7 +929,7 @@ class TestCleanupOperations:
         mock_job2.job_func.keywords = {"user_id": "other-user", "category": "health"}
         mock_job2.at_time = "11:00"
 
-        with patch("core.scheduler.schedule") as mock_schedule:
+        with patch("scheduler.manager.schedule") as mock_schedule:
             # Create a mutable list that can be modified
             jobs_list = [mock_job1, mock_job2]
             mock_schedule.jobs = jobs_list
@@ -978,12 +978,12 @@ class TestStandaloneFunctions:
         """Test processing schedules for a specific user."""
         user_id = "test-user"
 
-        with patch("core.scheduler.get_user_data") as mock_get_data:
+        with patch("scheduler.manager.get_user_data") as mock_get_data:
             mock_get_data.return_value = {
                 "preferences": {"categories": ["motivational", "health"]}
             }
 
-            with patch("core.scheduler.process_category_schedule") as mock_process:
+            with patch("scheduler.manager.process_category_schedule") as mock_process:
                 # Test real behavior: function should process each category
                 process_user_schedules(user_id)
 
@@ -1001,7 +1001,7 @@ class TestStandaloneFunctions:
         category = "motivational"
         mock_delivery = Mock()
 
-        with patch("core.scheduler.SchedulerManager") as mock_scheduler_manager:
+        with patch("scheduler.manager.SchedulerManager") as mock_scheduler_manager:
             mock_scheduler_instance = Mock()
             mock_scheduler_manager.return_value = mock_scheduler_instance
             set_scheduler_delivery_factory(lambda: mock_delivery)
@@ -1023,7 +1023,7 @@ class TestStandaloneFunctions:
         """Test getting user check-in preferences."""
         user_id = "test-user"
 
-        with patch("core.scheduler.get_user_data") as mock_get_data:
+        with patch("scheduler.manager.get_user_data") as mock_get_data:
             mock_get_data.return_value = {
                 "preferences": {
                     "checkin_settings": {"enabled": True, "frequency": "daily"}
@@ -1089,7 +1089,7 @@ class TestErrorHandling:
         category = "motivational"
         period_name = "morning"
 
-        with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods:
+        with patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods:
             mock_get_periods.return_value = {
                 period_name: {
                     "active": True,
@@ -1119,7 +1119,7 @@ class TestErrorHandling:
         ) as mock_get_time:
             mock_get_time.return_value = "2024-01-15 10:30"
 
-            with patch("core.scheduler.load_and_localize_datetime") as mock_load_time:
+            with patch("scheduler.manager.load_and_localize_datetime") as mock_load_time:
                 mock_load_time.return_value = now_datetime_full() + timedelta(hours=1)
 
                 with patch.object(
@@ -1202,8 +1202,8 @@ class TestSchedulerLoopCoverage:
     def test_scheduler_loop_error_handling_real_behavior(self, scheduler_manager):
         """Test scheduler loop error handling when scheduling fails."""
         with (
-            patch("core.scheduler.get_all_user_ids") as mock_get_users,
-            patch("core.scheduler.get_user_data"),
+            patch("scheduler.manager.get_all_user_ids") as mock_get_users,
+            patch("scheduler.manager.get_user_data"),
         ):
 
             # Mock error during scheduling - this will be called in schedule_all_users_immediately()
@@ -1239,9 +1239,9 @@ class TestSchedulerLoopCoverage:
     def test_scheduler_loop_stop_event_handling_real_behavior(self, scheduler_manager):
         """Test scheduler loop properly responds to stop events."""
         with (
-            patch("core.scheduler.get_all_user_ids") as mock_get_users,
-            patch("core.scheduler.schedule.run_pending"),
-            patch("core.scheduler.schedule.jobs", []),
+            patch("scheduler.manager.get_all_user_ids") as mock_get_users,
+            patch("scheduler.manager.schedule.run_pending"),
+            patch("scheduler.manager.schedule.jobs", []),
         ):
 
             mock_get_users.return_value = []
@@ -1274,10 +1274,10 @@ class TestCheckinSchedulingCoverage:
         period_name = "morning"
 
         with (
-            patch("core.scheduler.get_schedule_time_periods") as mock_get_periods,
-            patch("core.scheduler.schedule.every") as mock_schedule,
+            patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods,
+            patch("scheduler.manager.schedule.every") as mock_schedule,
             patch.object(scheduler_manager, "set_wake_timer") as mock_wake_timer,
-            patch("core.scheduler.now_datetime_full") as mock_now_dt,
+            patch("scheduler.manager.now_datetime_full") as mock_now_dt,
         ):
 
             # Mock time periods
@@ -1306,7 +1306,7 @@ class TestCheckinSchedulingCoverage:
         user_id = "test-checkin-user"
         period_name = "nonexistent"
 
-        with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods:
+        with patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods:
             # Mock missing period
             mock_get_periods.return_value = {}
 
@@ -1323,7 +1323,7 @@ class TestCheckinSchedulingCoverage:
         user_id = "test-checkin-user"
         period_name = "morning"
 
-        with patch("core.scheduler.get_schedule_time_periods") as mock_get_periods:
+        with patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods:
             # Mock period without start time
             mock_get_periods.return_value = {
                 period_name: {
@@ -1407,7 +1407,7 @@ class TestTaskReminderSchedulingCoverage:
         user_id = "test-task-user"
 
         with (
-            patch("core.scheduler.get_schedule_time_periods") as mock_get_periods,
+            patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods,
             patch("tasks.load_active_tasks") as mock_load_tasks,
         ):
 
@@ -1434,7 +1434,7 @@ class TestTaskReminderSchedulingCoverage:
         user_id = "test-task-user"
 
         with (
-            patch("core.scheduler.get_schedule_time_periods") as mock_get_periods,
+            patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods,
             patch("tasks.load_active_tasks") as mock_load_tasks,
             patch.object(
                 scheduler_manager, "select_task_for_reminder"

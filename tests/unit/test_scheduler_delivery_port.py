@@ -1,7 +1,7 @@
 import pytest
 
 from communication.core.message_send_result import MessageSendResult
-from core.scheduler import (
+from scheduler.manager import (
     SchedulerManager,
     clear_all_accumulated_jobs_standalone,
     run_category_scheduler_standalone,

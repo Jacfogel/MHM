@@ -239,7 +239,7 @@ def get_module_purpose(file_path: str) -> str:
         "core/user_data_validation.py": "User data validation - validates user input and data integrity",
         "core/validation.py": "Validation system - provides validation utilities and error handling",
         "core/response_tracking.py": "Response tracking system - tracks user responses and interactions",
-        "core/scheduler.py": "Scheduler system - manages scheduled tasks and operations",
+        "scheduler/manager.py": "Scheduler system - manages scheduled tasks and operations",
         "core/service.py": "Main service - coordinates all system components and manages the application lifecycle",
         "core/service_utilities.py": "Service utilities - provides utility functions for the service layer",
         "core/ui_management.py": "UI management - manages user interface components and interactions",

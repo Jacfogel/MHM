@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from core import scheduler_maintenance
+from scheduler import maintenance as scheduler_maintenance
 from core.time_format_constants import TIMESTAMP_FULL
 from core.time_utilities import format_timestamp, now_datetime_full
 

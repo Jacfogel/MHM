@@ -53,7 +53,7 @@ class TestTaskCleanupBugVerification:
 
         # Act: Try to clean up reminders using REAL system (mock Windows tasks per guidelines)
         with patch(
-            "core.scheduler.SchedulerManager.set_wake_timer"
+            "scheduler.manager.SchedulerManager.set_wake_timer"
         ):  # Prevent Windows task creation
             # Call the real cleanup function - this will fail because method doesn't exist
             result = cleanup_task_reminders(user_id, task_id)
@@ -87,7 +87,7 @@ class TestTaskCleanupBugVerification:
 
         # Act: Complete task (mock Windows tasks per guidelines)
         with patch(
-            "core.scheduler.SchedulerManager.set_wake_timer"
+            "scheduler.manager.SchedulerManager.set_wake_timer"
         ):  # Prevent Windows task creation
             result = complete_task(user_id, task_id)
 
@@ -133,7 +133,7 @@ class TestTaskCleanupBugVerification:
 
         # Act: Schedule reminders (mock Windows tasks per guidelines)
         with patch(
-            "core.scheduler.SchedulerManager.set_wake_timer"
+            "scheduler.manager.SchedulerManager.set_wake_timer"
         ):  # Prevent Windows task creation
             schedule_result = schedule_task_reminders(
                 user_id, task_id, reminder_periods

@@ -343,7 +343,7 @@ class TestReminderDeliveryIntegration:
     def test_reminder_delivery_skips_completed_tasks(self, test_data_dir):
         """Test that reminders are not sent for completed tasks."""
         user_id = "test_user_reminder_skip"
-        from core.scheduler import SchedulerManager
+        from scheduler.manager import SchedulerManager
         from communication.core.channel_orchestrator import CommunicationManager
 
         # Create mock communication manager
@@ -373,7 +373,7 @@ class TestReminderDeliveryIntegration:
     def test_reminder_delivery_sends_for_active_tasks(self, test_data_dir):
         """Test that reminders are sent for active tasks."""
         user_id = "test_user_reminder_send"
-        from core.scheduler import SchedulerManager
+        from scheduler.manager import SchedulerManager
         from communication.core.channel_orchestrator import CommunicationManager
 
         # Create mock communication manager

@@ -569,7 +569,7 @@ class TestRegistryHelpers:
                 {"file": "communication/core/channel_orchestrator.py", "function": "receive_status"},
             ],
             "error_handlers": [{"file": "core/error_handling.py", "function": "handle_errors"}],
-            "schedulers": [{"file": "core/scheduler.py", "function": "schedule_checkins"}],
+            "schedulers": [{"file": "scheduler/manager.py", "function": "schedule_checkins"}],
         }
         actual_functions = {
             "communication/message_processing/command_parser.py": {

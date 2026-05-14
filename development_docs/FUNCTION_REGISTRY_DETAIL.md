@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-13 01:45:28
+> **Last Generated**: 2026-05-13 17:25:46
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,15 +15,15 @@
 ## Overview
 
 ### **Function Documentation Coverage: 93.0% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 143
-- **Functions Found**: 1892
-- **Methods Found**: 1274
-- **Classes Found**: 175
-- **Total Items**: 3166
-- **Functions Documented**: 1737
-- **Methods Documented**: 1208
+- **Files Scanned**: 139
+- **Functions Found**: 1831
+- **Methods Found**: 1243
+- **Classes Found**: 174
+- **Total Items**: 3074
+- **Functions Documented**: 1681
+- **Methods Documented**: 1177
 - **Classes Documented**: 137
-- **Total Documented**: 2945
+- **Total Documented**: 2858
 - **Template-Generated**: 20
 - **Last Updated**: 2026-05-13
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (677)
+### **Core System Functions** (616)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (499)
@@ -4148,237 +4148,6 @@ Args:
 
 Returns:
     bool: True if the schedule is active, False otherwise
-
-#### `core/scheduler.py`
-**Functions:**
-- [OK] `__init__(self, delivery)` - Initialize the SchedulerManager with the delivery surface it needs.
-
-Args:
-    delivery: Object that can send scheduled messages and task reminders.
-- [OK] `_create_standalone_scheduler_manager()` - Build a scheduler for standalone entry points using the configured delivery port.
-- [OK] `_remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
-This makes user message jobs effectively one-time jobs.
-- [OK] `_schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay)` - Schedule a one-time retry for deferred scheduled sends.
-- [OK] `check_and_perform_weekly_backup(self)` - Check if a weekly backup is needed and perform it if so.
-Runs during the daily scheduler job at 01:00 (before log archival at 02:00).
-Creates a backup if:
-- No weekly backups exist, OR
-- Last weekly backup is 7+ days old
-Retention is enforced by BackupManager with separate weekly/non-weekly buckets.
-- [OK] `cleanup_old_tasks(self, user_id, category)` - Cleans up all tasks (scheduled jobs and system tasks) associated with a given user and category.
-- [OK] `cleanup_orphaned_task_reminders(self)` - Periodic cleanup job to remove reminders for tasks that no longer exist.
-
-Scans all scheduled reminder jobs and verifies the associated tasks still exist.
-Removes reminders for tasks that have been deleted or completed.
-Runs daily at 03:00.
-- [OK] `cleanup_task_reminders(self, user_id, task_identifier)` - Clean up all reminders for a specific task.
-
-Finds and removes all APScheduler jobs that call handle_task_reminder for the given task identifier.
-Handles both one-time reminders (schedule_task_reminder_at_datetime) and daily reminders (schedule_task_reminder_at_time).
-
-Args:
-    user_id: The user's ID
-    task_identifier: Canonical task ``id`` (or resolved identifier) to clean up reminders for
-
-Returns:
-    bool: True if cleanup succeeded (or no reminders found), False on error
-- [OK] `clear_all_accumulated_jobs(self)` - Clears all accumulated scheduler jobs and reschedules only the necessary ones.
-- [OK] `clear_all_accumulated_jobs_standalone()` - Standalone function to clear all accumulated scheduler jobs.
-This can be called from the admin UI or service to fix job accumulation issues.
-- [OK] `get_random_time_within_period(self, user_id, category, period, timezone_str)` - Get a random time within a specified period for a given category.
-- [OK] `get_random_time_within_task_period(self, start_time, end_time)` - Generate a random time within a task reminder period.
-Args:
-    start_time: Start time in HH:MM format (e.g., "17:00")
-    end_time: End time in HH:MM format (e.g., "18:00")
-Returns:
-    Random time in HH:MM format
-- [OK] `handle_sending_scheduled_message(self, user_id, category, retry_attempts, retry_delay, allow_deferral)` - Handles the sending of scheduled messages with retries.
-This is a one-time job that removes itself after execution.
-- [OK] `handle_task_reminder(self, user_id, task_identifier, retry_attempts, retry_delay)` - Handles sending task reminders with retries.
-
-``task_identifier`` is the task record's canonical ``id`` (or a value that
-``get_task_by_id`` resolves). Scheduled jobs must pass ``task_identifier=``.
-- [OK] `is_job_for_category(self, job, user_id, category)` - Determines if a job is scheduled for a specific user and category.
-- [OK] `is_time_conflict(self, user_id, schedule_datetime)` - Checks if there is a time conflict with any existing scheduled jobs for the user.
-
-NOTE:
-The `schedule` library commonly uses naive datetimes for `job.next_run`.
-Our schedule_datetime is often tz-aware (pytz). Subtracting naive/aware raises TypeError.
-- [OK] `log_scheduled_tasks(self)` - Logs all current and upcoming scheduled tasks in a user-friendly manner.
-- [OK] `perform_daily_log_archival(self)` - Perform daily log archival to compress old logs and clean up archives.
-This runs automatically at 02:00 daily via the scheduler.
-- [OK] `process_category_schedule(user_id, category)` - Process schedule for a specific user and category.
-- [OK] `process_user_schedules(user_id)` - Process schedules for a specific user.
-- [OK] `reset_and_reschedule_daily_messages(self, category, user_id)` - Resets scheduled tasks for a specific category and reschedules daily messages for that category.
-- [OK] `run_category_scheduler_standalone(user_id, category)` - Standalone function to run scheduler for a specific user and category.
-This can be called from the admin UI without needing a scheduler instance.
-- [OK] `run_daily_scheduler(self)` - Starts the daily scheduler in a separate thread that handles all users.
-- [OK] `run_full_daily_scheduler(self)` - Runs the full daily scheduler process - same as system startup.
-This includes clearing accumulated jobs, scheduling all users, checkins, task reminders, and checking for weekly backups.
-- [OK] `run_full_scheduler_standalone()` - Standalone function to run the full scheduler for all users.
-This can be called from the admin UI without needing a scheduler instance.
-- [OK] `run_user_scheduler_standalone(user_id)` - Standalone function to run scheduler for a specific user.
-This can be called from the admin UI without needing a scheduler instance.
-- [OK] `schedule_all_task_reminders(user_id)` - Standalone function to schedule all task reminders for a user.
-This can be called from the admin UI without needing a scheduler instance.
-- [OK] `schedule_all_task_reminders(self, user_id)` - Schedule reminders for all active tasks for a user.
-For each reminder period, pick one random task and schedule it at a random time within the period.
-- [OK] `schedule_all_users_immediately(self)` - Schedule daily messages immediately for all users
-- [OK] `schedule_checkin_at_exact_time(self, user_id, period_name)` - Schedule a check-in at the exact time specified in the period.
-- [OK] `schedule_daily_message_job(self, user_id, category)` - Schedules daily messages immediately for the specified user and category.
-Schedules one message per active period in the category.
-- [OK] `schedule_message_at_random_time(self, user_id, category)` - Schedules a message at a random time within the user's preferred time periods.
-- [OK] `schedule_message_for_period(self, user_id, category, period_name)` - Schedules a message at a random time within a specific period for a user and category.
-- [OK] `schedule_new_user(self, user_id)` - Schedule a newly created user immediately.
-This method should be called after a new user is created to add them to the scheduler.
-
-Args:
-    user_id: The ID of the newly created user
-- [OK] `schedule_task_reminder_at_datetime(self, user_id, task_identifier, date_str, time_str)` - Schedule a reminder for a specific task at a specific date and time.
-- [OK] `schedule_task_reminder_at_time(self, user_id, task_identifier, reminder_time)` - Schedule a reminder for a specific task at the specified time (daily).
-- [MISSING] `scheduler_loop()` - No description
-- [OK] `select_task_for_reminder(self, incomplete_tasks)` - Select a task for reminder using priority-based and due date proximity weighting.
-
-Args:
-    incomplete_tasks: List of incomplete tasks to choose from
-
-Returns:
-    Selected task dictionary
-- [OK] `set_scheduler_delivery_factory(factory)` - Configure the delivery factory used by standalone scheduler entry points.
-- [OK] `set_wake_timer(self, schedule_time, user_id, category, period, wake_ahead_minutes)` - Set a Windows scheduled task to wake the computer before a scheduled message.
-
-Args:
-    schedule_time: The datetime when the message is scheduled
-    user_id: The user ID
-    category: The message category
-    period: The time period name
-    wake_ahead_minutes: Minutes before schedule_time to wake the computer (default: 4)
-- [OK] `stop_scheduler(self)` - Stops the scheduler thread.
-**Classes:**
-- [MISSING] `SchedulerManager` - No description
-  - [OK] `SchedulerManager.__init__(self, delivery)` - Initialize the SchedulerManager with the delivery surface it needs.
-
-Args:
-    delivery: Object that can send scheduled messages and task reminders.
-  - [OK] `SchedulerManager._remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
-This makes user message jobs effectively one-time jobs.
-  - [OK] `SchedulerManager._schedule_deferred_message_retry(self, user_id, category, delay_minutes, retry_delay)` - Schedule a one-time retry for deferred scheduled sends.
-  - [OK] `SchedulerManager.check_and_perform_weekly_backup(self)` - Check if a weekly backup is needed and perform it if so.
-Runs during the daily scheduler job at 01:00 (before log archival at 02:00).
-Creates a backup if:
-- No weekly backups exist, OR
-- Last weekly backup is 7+ days old
-Retention is enforced by BackupManager with separate weekly/non-weekly buckets.
-  - [OK] `SchedulerManager.cleanup_old_tasks(self, user_id, category)` - Cleans up all tasks (scheduled jobs and system tasks) associated with a given user and category.
-  - [OK] `SchedulerManager.cleanup_orphaned_task_reminders(self)` - Periodic cleanup job to remove reminders for tasks that no longer exist.
-
-Scans all scheduled reminder jobs and verifies the associated tasks still exist.
-Removes reminders for tasks that have been deleted or completed.
-Runs daily at 03:00.
-  - [OK] `SchedulerManager.cleanup_task_reminders(self, user_id, task_identifier)` - Clean up all reminders for a specific task.
-
-Finds and removes all APScheduler jobs that call handle_task_reminder for the given task identifier.
-Handles both one-time reminders (schedule_task_reminder_at_datetime) and daily reminders (schedule_task_reminder_at_time).
-
-Args:
-    user_id: The user's ID
-    task_identifier: Canonical task ``id`` (or resolved identifier) to clean up reminders for
-
-Returns:
-    bool: True if cleanup succeeded (or no reminders found), False on error
-  - [OK] `SchedulerManager.clear_all_accumulated_jobs(self)` - Clears all accumulated scheduler jobs and reschedules only the necessary ones.
-  - [OK] `SchedulerManager.get_random_time_within_period(self, user_id, category, period, timezone_str)` - Get a random time within a specified period for a given category.
-  - [OK] `SchedulerManager.get_random_time_within_task_period(self, start_time, end_time)` - Generate a random time within a task reminder period.
-Args:
-    start_time: Start time in HH:MM format (e.g., "17:00")
-    end_time: End time in HH:MM format (e.g., "18:00")
-Returns:
-    Random time in HH:MM format
-  - [OK] `SchedulerManager.handle_sending_scheduled_message(self, user_id, category, retry_attempts, retry_delay, allow_deferral)` - Handles the sending of scheduled messages with retries.
-This is a one-time job that removes itself after execution.
-  - [OK] `SchedulerManager.handle_task_reminder(self, user_id, task_identifier, retry_attempts, retry_delay)` - Handles sending task reminders with retries.
-
-``task_identifier`` is the task record's canonical ``id`` (or a value that
-``get_task_by_id`` resolves). Scheduled jobs must pass ``task_identifier=``.
-  - [OK] `SchedulerManager.is_job_for_category(self, job, user_id, category)` - Determines if a job is scheduled for a specific user and category.
-  - [OK] `SchedulerManager.is_time_conflict(self, user_id, schedule_datetime)` - Checks if there is a time conflict with any existing scheduled jobs for the user.
-
-NOTE:
-The `schedule` library commonly uses naive datetimes for `job.next_run`.
-Our schedule_datetime is often tz-aware (pytz). Subtracting naive/aware raises TypeError.
-  - [OK] `SchedulerManager.log_scheduled_tasks(self)` - Logs all current and upcoming scheduled tasks in a user-friendly manner.
-  - [OK] `SchedulerManager.perform_daily_log_archival(self)` - Perform daily log archival to compress old logs and clean up archives.
-This runs automatically at 02:00 daily via the scheduler.
-  - [OK] `SchedulerManager.reset_and_reschedule_daily_messages(self, category, user_id)` - Resets scheduled tasks for a specific category and reschedules daily messages for that category.
-  - [OK] `SchedulerManager.run_daily_scheduler(self)` - Starts the daily scheduler in a separate thread that handles all users.
-  - [OK] `SchedulerManager.run_full_daily_scheduler(self)` - Runs the full daily scheduler process - same as system startup.
-This includes clearing accumulated jobs, scheduling all users, checkins, task reminders, and checking for weekly backups.
-  - [OK] `SchedulerManager.schedule_all_task_reminders(self, user_id)` - Schedule reminders for all active tasks for a user.
-For each reminder period, pick one random task and schedule it at a random time within the period.
-  - [OK] `SchedulerManager.schedule_all_users_immediately(self)` - Schedule daily messages immediately for all users
-  - [OK] `SchedulerManager.schedule_checkin_at_exact_time(self, user_id, period_name)` - Schedule a check-in at the exact time specified in the period.
-  - [OK] `SchedulerManager.schedule_daily_message_job(self, user_id, category)` - Schedules daily messages immediately for the specified user and category.
-Schedules one message per active period in the category.
-  - [OK] `SchedulerManager.schedule_message_at_random_time(self, user_id, category)` - Schedules a message at a random time within the user's preferred time periods.
-  - [OK] `SchedulerManager.schedule_message_for_period(self, user_id, category, period_name)` - Schedules a message at a random time within a specific period for a user and category.
-  - [OK] `SchedulerManager.schedule_new_user(self, user_id)` - Schedule a newly created user immediately.
-This method should be called after a new user is created to add them to the scheduler.
-
-Args:
-    user_id: The ID of the newly created user
-  - [OK] `SchedulerManager.schedule_task_reminder_at_datetime(self, user_id, task_identifier, date_str, time_str)` - Schedule a reminder for a specific task at a specific date and time.
-  - [OK] `SchedulerManager.schedule_task_reminder_at_time(self, user_id, task_identifier, reminder_time)` - Schedule a reminder for a specific task at the specified time (daily).
-  - [OK] `SchedulerManager.select_task_for_reminder(self, incomplete_tasks)` - Select a task for reminder using priority-based and due date proximity weighting.
-
-Args:
-    incomplete_tasks: List of incomplete tasks to choose from
-
-Returns:
-    Selected task dictionary
-  - [OK] `SchedulerManager.set_wake_timer(self, schedule_time, user_id, category, period, wake_ahead_minutes)` - Set a Windows scheduled task to wake the computer before a scheduled message.
-
-Args:
-    schedule_time: The datetime when the message is scheduled
-    user_id: The user ID
-    category: The message category
-    period: The time period name
-    wake_ahead_minutes: Minutes before schedule_time to wake the computer (default: 4)
-  - [OK] `SchedulerManager.stop_scheduler(self)` - Stops the scheduler thread.
-
-#### `core/scheduler_jobs.py`
-**Functions:**
-- [OK] `register_full_daily_maintenance_jobs(scheduler_manager)` - Register maintenance jobs refreshed during the full daily scheduler run.
-- [OK] `register_system_daily_jobs(scheduler_manager)` - Register 02:00 log archival and 01:00 full daily scheduler jobs on the global ``schedule`` queue.
-
-#### `core/scheduler_maintenance.py`
-**Functions:**
-- [MISSING] `_is_weekly_backup_entry(backup_entry)` - No description
-- [MISSING] `check_and_perform_weekly_backup()` - No description
-- [OK] `cleanup_scheduler_wake_tasks()` - Delete stale Windows wake tasks created by scheduler jobs.
-- [MISSING] `perform_daily_log_archival()` - No description
-
-#### `core/scheduler_task_reminders.py`
-**Functions:**
-- [OK] `calculate_due_date_weight(task, today)` - Calculate due-date proximity reminder selection weight for a task.
-- [OK] `calculate_priority_weight(task)` - Calculate priority-based reminder selection weight for a task.
-- [OK] `calculate_task_weights(incomplete_tasks, today)` - Calculate combined priority and due-date weights for reminder candidates.
-- [MISSING] `cleanup_orphaned_task_reminders(scheduler_manager)` - No description
-- [OK] `cleanup_task_reminders(scheduler_manager, user_id, task_identifier)` - Remove scheduled reminder jobs for a specific task.
-- [OK] `get_random_time_within_task_period(start_time, end_time)` - Generate a random HH:MM time within a task reminder period.
-- [OK] `handle_task_reminder(scheduler_manager, user_id, task_identifier, retry_attempts, retry_delay)` - Send a task reminder with retries through the scheduler communication manager.
-
-``task_identifier`` is the task record's canonical ``id`` or another value
-accepted by ``tasks.get_task_by_id``.
-- [OK] `handle_task_selection_edge_cases(incomplete_tasks)` - Handle trivial task-selection cases before weighted selection.
-- [OK] `schedule_all_task_reminders(scheduler_manager, user_id)` - Schedule one active task reminder per configured task reminder period.
-
-For each active period, one incomplete task is selected with weighted
-priority/due-date logic and scheduled at a random time within that period.
-- [OK] `schedule_task_reminder_at_datetime(scheduler_manager, user_id, task_identifier, date_str, time_str)` - Schedule a one-time reminder for one task at a specific date and time.
-- [OK] `schedule_task_reminder_at_time(scheduler_manager, user_id, task_identifier, reminder_time)` - Schedule a daily reminder for one task at an HH:MM time.
-- [OK] `select_task_by_weight(scheduler_manager, task_weights, incomplete_tasks)` - Select a reminder candidate using weighted random selection.
-- [OK] `select_task_for_reminder(scheduler_manager, incomplete_tasks)` - Select a task for reminder using priority and due-date weighting.
-- [OK] `task_selection_key(task, index)` - Build a stable key for tracking reminder selection state.
 
 #### `core/schemas.py`
 **Functions:**

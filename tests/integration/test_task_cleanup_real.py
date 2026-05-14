@@ -246,7 +246,7 @@ class TestTaskCleanupReal:
         # Arrange: Import scheduler components
         try:
             from communication.core.channel_orchestrator import CommunicationManager
-            from core.scheduler import SchedulerManager
+            from scheduler.manager import SchedulerManager
             
             # Act: Create scheduler manager
             comm_manager = CommunicationManager()

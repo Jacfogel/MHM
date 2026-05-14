@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-13 - Scheduler Package Move **COMPLETED**
+- Moved scheduler runtime modules from `core/` into the new top-level `scheduler/` package: `manager`, `jobs`, `maintenance`, and `task_reminders`.
+- Updated production imports, tests, and UI scheduler entry points to use `scheduler.manager` directly; no `core.*` compatibility bridge was kept.
+- Removed the completed scheduler package TODO item. Validation: scheduler package `py_compile` and focused scheduler tests passed.
+
 ### 2026-05-13 - Service Utilities Responsibility Cleanup **COMPLETED**
 - Moved scheduler timestamp localization ownership to `core.time_utilities` and reschedule request flag creation to `core.service_requests`.
 - Migrated callers/tests to the new owners and removed the temporary `core.service_utilities` compatibility bridges; legacy/facade scans are clean.
@@ -113,14 +118,6 @@ Guidelines:
 - Cleaned stale legacy audit noise by removing the broad `user_data_v1_runtime_adapters` scan bucket and moving the chatbot fallback bridge to removed inventory history.
 - Tightened `analyze_facade_shims` so default audit output focuses on named/documented compatibility surfaces or active deprecation-inventory hits; plain low-signal thin wrappers are still available with `--include-low-signal`.
 - Refreshed generated audit outputs; current facade/shim priority count is 8 default candidates, with 174 low-signal candidates filtered. Validation: focused product/dev-tools tests passed; standard audit passed. A full audit timed out after saving tightened facade JSON, so it is not counted as clean full-audit validation.
-
-### 2026-05-06 - Dev-tools facade/shim analyzer and markers **COMPLETED**
-- Added advisory `facade-shims` tooling for facade, shim, re-export, alias, compatibility bridge, and deprecation-inventory candidates; registered it in CLI, service wrappers, tool metadata, Tier 2+ audit execution, cache inventory, scoped JSON storage, and AI status/priority/consolidated report output.
-- Standardized code-level tool suppressions through `# devtools: ignore[...]` and `# devtools: intentional[...]`; duplicate-function legacy markers still work, and legacy-reference scanning now honors `ignore[legacy-references]`.
-- Aligned the clear `_get_fallback_response` compatibility bridge with the legacy workflow: inventory now tracks it, `backwards compatibility` wording is detected, the canonical inventory file is no longer ignored, and legacy analyzer cache invalidates on inventory changes.
-- Extended duplicate-function analysis with argument signature capture, argument-name/shape similarity fields, and capped argument-similarity candidate expansion.
-- V5 Sections 7.11-7.13 are marked complete; paired development-tools guides document the new command/markers/scoring. Generated docs/reports were refreshed so the function registry gap is zero and Ruff findings are cleared.
-- Validation: focused dev-tools tests, report-surfacing checks, policy checks, `py_compile`, `ruff check .`, `docs`, standard `audit`, and `audit --quick` passed.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

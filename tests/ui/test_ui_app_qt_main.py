@@ -385,7 +385,7 @@ class TestMHMManagerUI:
                         ui = MHMManagerUI()
                         ui.current_user = "test_user"
                         
-                        with patch('core.scheduler.run_category_scheduler_standalone', return_value=True):
+                        with patch('scheduler.manager.run_category_scheduler_standalone', return_value=True):
                             # Act
                             ui.run_category_scheduler()
                             
@@ -495,7 +495,7 @@ class TestMHMManagerUI:
         with patch('ui.ui_app_qt.Ui_ui_app_mainwindow') as mock_ui:
             with patch('ui.ui_app_qt.QTimer') as mock_timer:
                 with patch('ui.ui_app_qt.Path') as mock_path:
-                    with patch('core.scheduler.run_full_scheduler_standalone') as mock_scheduler:
+                    with patch('scheduler.manager.run_full_scheduler_standalone') as mock_scheduler:
                         with patch('ui.ui_app_qt.QMessageBox'):
                             mock_ui_instance = Mock()
                             mock_ui.return_value = mock_ui_instance

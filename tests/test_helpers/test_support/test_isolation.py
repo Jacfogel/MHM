@@ -55,7 +55,7 @@ def ensure_test_isolation():
     real system resource creation.
     """
     # Mock scheduler's set_wake_timer method globally
-    with patch('core.scheduler.SchedulerManager.set_wake_timer') as mock_wake_timer:
+    with patch('scheduler.manager.SchedulerManager.set_wake_timer') as mock_wake_timer:
         mock_wake_timer.return_value = None
         return mock_wake_timer
 
@@ -67,7 +67,7 @@ def create_safe_scheduler_manager():
     This should be used in tests that need to test scheduler functionality
     without creating real system resources.
     """
-    from core.scheduler import SchedulerManager
+    from scheduler.manager import SchedulerManager
     from unittest.mock import Mock
 
     # Create mock communication manager

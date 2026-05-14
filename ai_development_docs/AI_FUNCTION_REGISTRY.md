@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-13 01:45:28
+> **Last Generated**: 2026-05-13 17:25:46
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,10 +11,10 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 93.0% [!] GOOD**
-- **Total Functions**: 1892
-- **Total Methods**: 1274
-- **Documented**: 2945/3166
-- **Files Scanned**: 143
+- **Total Functions**: 1831
+- **Total Methods**: 1243
+- **Documented**: 2858/3074
+- **Files Scanned**: 139
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -56,7 +56,7 @@ UI Operations Decision Tree:
 Core System Decision Tree:
 +-- `core/service.py` - Main service (88 functions)
 +-- `core/config.py` - Configuration (19 functions)
-`-- `core/scheduler.py` - Scheduling (71/72 functions)```
+`-- `scheduler/manager.py` - Scheduling```
 
 ## [PATTERNS] **Key Function Patterns**
 
@@ -179,8 +179,7 @@ Core System Decision Tree:
 3. **Main Entry**: `run_headless_service.py::main()`
 4. **Command Parsing**: `communication/message_processing/command_parser.py::get_enhanced_command_parser()`
 5. **Error Handling**: `core/error_handling.py::handle_errors()`
-6. **Scheduling**: `core/scheduler.py::run_full_scheduler_standalone()`
-7. **Configuration**: `communication/core/channel_orchestrator.py::get_configured_channels()`
+6. **Configuration**: `communication/core/channel_orchestrator.py::get_configured_channels()`
 
 
 ### **Complexity Metrics**
@@ -199,7 +198,7 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (47 files, 963 functions)
+- `core/` - System utilities and data management (43 files, 871 functions)
 - `communication/` - Communication channels and message processing (45 files, 944 functions)
 - `ai/` - AI chatbot functionality (7 files, 220 functions)
 - `ui/` - User interface components (30 files, 839 functions)
