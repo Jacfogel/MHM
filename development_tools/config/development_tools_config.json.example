@@ -664,6 +664,7 @@
       "development_tools",
       "notebook",
       "scripts",
+      "scheduler",
       "tasks",
       "tests",
       "ui",
@@ -732,26 +733,15 @@
       "development_tools.shared.logging",
       "core.error_handling",
       "core.config",
-      "core.scheduler",
+      "scheduler.manager",
       "ai.chatbot"
     ],
     "fix_version_sync_directories": {
-      "development_tools": "development_tools/",
       "ai_development_docs": "ai_development_docs/",
       "development_docs": "development_docs/",
-      "core": "core/",
-      "communication": "communication/",
-      "ui": "ui/",
-      "tests": "tests/",
-      "notebook": "notebook/",
       "logs": "logs/",
-      "scripts": "scripts/",
-      "data": "data/",
       "resources": "resources/",
-      "styles": "styles/",
-      "tasks": "tasks/",
-      "user": "user/",
-      "ai": "ai/"
+      "styles": "styles/"
     },
     "derived_prefix_excludes": {
       "scan": ["data", "development_tools", "notebook", "scripts"],
@@ -801,14 +791,6 @@
     "max_complexity_json": 200,
     "max_undocumented_json": 200,
     "max_duplicates_json": 200,
-    "priority_directories": [
-      "core",
-      "communication",
-      "ai",
-      "ui",
-      "user",
-      "tasks"
-    ],
     "decision_trees": {
       "user_data": {
         "title": "User Data Operations Decision Tree",

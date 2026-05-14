@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-13 17:25:48
+> **Last Generated**: 2026-05-13 19:52:55
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,12 +15,12 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 137
-- **Total Imports Found**: 1555
-- **Dependencies Documented**: 137 (100% coverage)
-- **Standard Library Imports**: 446 (28.7%)
-- **Third-Party Imports**: 237 (15.2%)
-- **Local Imports**: 872 (56.1%)
+- **Files Scanned**: 142
+- **Total Imports Found**: 1612
+- **Dependencies Documented**: 142 (100% coverage)
+- **Standard Library Imports**: 461 (28.6%)
+- **Third-Party Imports**: 236 (14.6%)
+- **Local Imports**: 915 (56.8%)
 - **Last Updated**: 2026-05-13
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 446 imports (28.7%)
-- **Third-Party**: 237 imports (15.2%)
-- **Local**: 872 imports (56.1%)
+- **Standard Library**: 461 imports (28.6%)
+- **Third-Party**: 236 imports (14.6%)
+- **Local**: 915 imports (56.8%)
 
 ## Module Dependencies by Directory
 
@@ -1356,6 +1356,8 @@
 #### `core/__init__.py`
 - **Purpose**: Core system module for __init__
 - **Dependencies**:
+  - **Local**:
+    - `scheduler.manager (SchedulerManager)`
   - **Third-party**:
     - `auto_cleanup (archive_old_messages_for_all_users, auto_cleanup_if_needed, cleanup_data_directory, cleanup_tests_data_directory, get_cleanup_status, get_last_cleanup_timestamp, perform_cleanup, should_run_cleanup, update_cleanup_timestamp)`
     - `backup_manager (BackupManager)`
@@ -1373,7 +1375,6 @@
     - `schedule_document_defaults (create_default_schedule_periods, ensure_all_categories_have_schedules, ensure_category_has_default_schedule, migrate_legacy_schedules_structure)`
     - `schedule_runtime (add_schedule_period)`
     - `schedule_utilities (get_active_schedules, get_current_active_schedules, is_schedule_active)`
-    - `scheduler.manager (SchedulerManager)`
     - `schemas (AccountModel, CategoryScheduleModel, ChannelModel, FeaturesModel, PeriodModel, PreferencesModel, SchedulesModel, validate_account_dict, validate_preferences_dict, validate_schedules_dict)`
     - `service (InitializationError, MHMService)`
     - `service_requests (create_reschedule_request)`
@@ -1388,9 +1389,6 @@
     - `user_lookup (get_user_id_by_identifier)`
     - `user_management (create_new_user, get_all_user_ids, get_user_categories)`
 - **Used by**: None (not imported by other modules)
-
-**Dependency Changes**:
-- Removed: scheduler.manager
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -1416,6 +1414,7 @@
     - `time`
 - **Used by**:
   - `core/service.py`
+  - `scheduler/jobs.py`
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
@@ -1445,7 +1444,8 @@
     - `time`
     - `traceback`
     - `typing (Dict, List, Optional, Tuple)`
-- **Used by**: None (not imported by other modules)
+- **Used by**:
+  - `scheduler/maintenance.py`
 
 **Dependency Changes**:
 - Added: core, core.config, core.error_handling, core.file_locking, core.logger, core.time_utilities
@@ -1575,6 +1575,7 @@
   - `core/user_item_storage.py`
   - `core/user_lookup.py`
   - `core/user_management.py`
+  - `scheduler/manager.py`
   - `ui/dialogs/account_creator_dialog.py`
   - `ui/dialogs/schedule_editor_dialog.py`
   - `ui/ui_app_qt.py`
@@ -1595,6 +1596,7 @@
     - `typing (Any, Protocol, runtime_checkable)`
 - **Used by**:
   - `core/service_requests.py`
+  - `scheduler/manager.py`
 
 **Dependency Changes**:
 - Removed: core/service_requests.py
@@ -1704,6 +1706,10 @@
   - `core/user_lookup.py`
   - `core/user_management.py`
   - `run_headless_service.py`
+  - `scheduler/jobs.py`
+  - `scheduler/maintenance.py`
+  - `scheduler/manager.py`
+  - `scheduler/task_reminders.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_data_manager.py`
   - `tasks/task_service.py`
@@ -1964,6 +1970,10 @@
   - `core/user_lookup.py`
   - `core/user_management.py`
   - `run_headless_service.py`
+  - `scheduler/jobs.py`
+  - `scheduler/maintenance.py`
+  - `scheduler/manager.py`
+  - `scheduler/task_reminders.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_data_manager.py`
   - `tasks/task_validation.py`
@@ -2226,6 +2236,8 @@
   - `communication/core/channel_orchestrator.py`
   - `communication/delivery/message_dispatcher.py`
   - `core/message_preview.py`
+  - `scheduler/manager.py`
+  - `scheduler/task_reminders.py`
   - `ui/dialogs/category_management_dialog.py`
   - `ui/dialogs/checkin_management_dialog.py`
   - `ui/dialogs/schedule_editor_dialog.py`
@@ -2306,6 +2318,7 @@
     - `core.service_requests` (NEW)
     - `core.service_utilities (get_flags_dir)` (NEW)
     - `core.time_utilities (now_datetime_full, parse_timestamp_full)` (NEW)
+    - `scheduler.manager (SchedulerManager, set_scheduler_delivery_factory)`
   - **Standard Library**:
     - `atexit`
     - `contextlib`
@@ -2317,14 +2330,13 @@
     - `time`
   - **Third-party**:
     - `psutil`
-    - `scheduler.manager (SchedulerManager, set_scheduler_delivery_factory)`
 - **Used by**:
   - `tasks/task_data_manager.py`
   - `ui/dialogs/account_creator_dialog.py`
 
 **Dependency Changes**:
 - Added: core, core.auto_cleanup, core.config, core.error_handling, core.file_auditor, core.file_operations, core.logger, core.service_requests, core.service_utilities, core.time_utilities
-- Removed: scheduler.manager, tasks/task_data_manager.py, ui/dialogs/account_creator_dialog.py
+- Removed: tasks/task_data_manager.py, ui/dialogs/account_creator_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Main service orchestration and management
@@ -2506,6 +2518,9 @@
   - `core/user_data_v2_base.py`
   - `core/user_data_validation.py`
   - `core/user_management.py`
+  - `scheduler/maintenance.py`
+  - `scheduler/manager.py`
+  - `scheduler/task_reminders.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_data_manager.py`
   - `tasks/task_schemas.py`
@@ -2861,6 +2876,129 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+### `scheduler/`
+
+#### `scheduler/__init__.py`
+- **Purpose**: Module for scheduler/__init__.py
+- **Dependencies**:
+  - **Local**:
+    - `scheduler.manager (SchedulerManager, clear_all_accumulated_jobs_standalone, process_category_schedule, process_user_schedules, run_category_scheduler_standalone, run_full_scheduler_standalone, run_user_scheduler_standalone, schedule_all_task_reminders, set_scheduler_delivery_factory)` (NEW)
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: scheduler.manager
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `scheduler/jobs.py`
+- **Purpose**: Core system module with heavy core dependencies
+- **Dependencies**:
+  - **Local**:
+    - `core.auto_cleanup (cleanup_data_directory, cleanup_tests_data_directory)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+  - **Third-party**:
+    - `schedule`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: core.auto_cleanup, core.error_handling, core.logger
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `scheduler/maintenance.py`
+- **Purpose**: Core system module with heavy core dependencies
+- **Dependencies**:
+  - **Local**:
+    - `core (get_all_user_ids)` (NEW)
+    - `core.backup_manager (backup_manager)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (cleanup_old_archives, compress_old_logs, get_component_logger)` (NEW)
+    - `core.time_utilities (now_datetime_full, now_timestamp_filename, parse_timestamp_full)` (NEW)
+  - **Standard Library**:
+    - `subprocess`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: core, core.backup_manager, core.error_handling, core.logger, core.time_utilities
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `scheduler/manager.py`
+- **Purpose**: Module for scheduler/manager.py
+- **Dependencies**:
+  - **Local**:
+    - `core (get_all_user_ids, get_user_data)` (NEW)
+    - `core.config (BASE_DATA_DIR, get_user_data_dir)` (NEW)
+    - `core.delivery (SchedulerDeliveryPort)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger, suppress_noisy_logging)` (NEW)
+    - `core.schedule_runtime (get_schedule_time_periods)` (NEW)
+    - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIMESTAMP_MINUTE, TIME_ONLY_MINUTE, format_time_compact_hour_minute, format_timestamp, load_and_localize_datetime, now_datetime_full, parse_time_only_minute)` (NEW)
+    - `scheduler (jobs, maintenance, task_reminders)` (NEW)
+    - `tasks (are_tasks_enabled)` (NEW)
+    - `user.user_context (UserContext)` (NEW)
+  - **Standard Library**:
+    - `calendar`
+    - `collections.abc (Callable)`
+    - `datetime (datetime, timedelta)`
+    - `os`
+    - `random`
+    - `subprocess`
+    - `threading`
+    - `time`
+    - `typing (Any)`
+  - **Third-party**:
+    - `pytz`
+    - `schedule`
+- **Used by**:
+  - `core/__init__.py`
+  - `core/service.py`
+  - `scheduler/__init__.py`
+  - `ui/ui_app_qt.py`
+
+**Dependency Changes**:
+- Added: core, core.config, core.delivery, core.error_handling, core.logger, core.schedule_runtime, core.time_utilities, scheduler, tasks, user.user_context
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `scheduler/task_reminders.py`
+- **Purpose**: Module for scheduler/task_reminders.py
+- **Dependencies**:
+  - **Local**:
+    - `core (get_all_user_ids)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `core.schedule_runtime (get_schedule_time_periods)` (NEW)
+    - `core.time_utilities (TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, parse_date_only, parse_time_only_minute, parse_timestamp_minute)` (NEW)
+    - `tasks (are_tasks_enabled, get_task_by_id, load_active_tasks, update_task)` (NEW)
+    - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_is_completed)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `datetime (datetime, timedelta)`
+    - `random`
+    - `time`
+    - `typing (Any)`
+  - **Third-party**:
+    - `pytz`
+    - `schedule`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: core, core.error_handling, core.logger, core.schedule_runtime, core.time_utilities, tasks, tasks.task_data_handlers
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 ### `tasks/` - Task management
 
 #### `tasks/__init__.py`
@@ -2895,6 +3033,7 @@
   - `communication/message_processing/conversation_flow_manager.py`
   - `communication/message_processing/interaction_manager.py`
   - `communication/reminders/reminder_dispatcher.py`
+  - `scheduler/task_reminders.py`
   - `tasks/task_data_manager.py`
   - `tasks/task_service.py`
   - `ui/dialogs/task_crud_dialog.py`
@@ -3517,6 +3656,7 @@
     - `core.time_utilities (now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
     - `core.user_data_operations (rebuild_user_index)` (NEW)
     - `core.user_data_validation (_shared__title_case)` (NEW)
+    - `scheduler.manager (SchedulerManager, run_category_scheduler_standalone, run_full_scheduler_standalone, run_user_scheduler_standalone, set_scheduler_delivery_factory)`
     - `tasks (are_tasks_enabled, load_active_tasks)` (NEW)
     - `tasks.task_data_handlers (runtime_task_is_completed)` (NEW)
     - `ui.dialogs.account_creator_dialog (AccountCreatorDialog)`
@@ -3548,12 +3688,11 @@
     - `PySide6.QtGui (QFont)`
     - `PySide6.QtWidgets (QApplication, QDialog, QHBoxLayout, QLabel, QMainWindow, QMessageBox, QPushButton, QTabWidget, QTextEdit, QVBoxLayout, QWidget)`
     - `psutil`
-    - `scheduler.manager (SchedulerManager, run_category_scheduler_standalone, run_full_scheduler_standalone, run_user_scheduler_standalone, set_scheduler_delivery_factory)`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
 - Added: core, core.auto_cleanup, core.config, core.error_handling, core.launch_env, core.logger, core.service_utilities, core.time_utilities, core.user_data_operations, core.user_data_validation, tasks, tasks.task_data_handlers
-- Removed: PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets, scheduler.manager
+- Removed: PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -3867,6 +4006,7 @@
     - `threading`
 - **Used by**:
   - `core/schedule_runtime.py`
+  - `scheduler/manager.py`
   - `ui/ui_app_qt.py`
   - `user/context_manager.py`
 

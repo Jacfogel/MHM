@@ -733,7 +733,10 @@ class ToolWrappersMixin:
             )
             from concurrent.futures import ThreadPoolExecutor, as_completed
 
-            packages = ["core", "communication", "ui", "tasks", "ai", "user"]
+            package_config = dev_config.get_analyze_package_exports_config()
+            packages = list(package_config.get("packages") or [])
+            if not packages:
+                packages = ["core", "communication", "ui", "tasks", "ai", "user"]
             all_reports = {}
             max_workers = min(6, len(packages))
             import_usage_index = analyze_imports_for_packages(packages)

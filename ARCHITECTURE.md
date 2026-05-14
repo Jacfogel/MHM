@@ -44,7 +44,7 @@ This section describes the top-level directories. It should match the actual pro
 
 - `core/`  
   Core business logic and services. Includes configuration loading, logging setup, error handling,
-  the background service, schedulers, and user data helpers.
+  the background service, and user data helpers.
 
 - `data/`  
   Per-user runtime data. The most important folder is `data/users/`, which contains one directory
@@ -58,9 +58,16 @@ This section describes the top-level directories. It should match the actual pro
   Application and component logs. See section 2. Logging Architecture in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)
   for the detailed logging scheme.
 
+- `notebook/`
+  Notebook domain modules for note data handlers, schema validation, and notebook service logic.
+
 - `resources/`  
   Shared templates and assets. Message templates live under `resources/default_messages/` and are
   copied into user-specific folders the first time a category is enabled.
+
+- `scheduler/`
+  Background scheduling mechanics, system job registration, maintenance jobs, and task-reminder
+  scheduling loops. Domain-specific task behavior remains in `tasks/`.
 
 - `styles/`  
   QSS themes and styling assets for the admin UI.

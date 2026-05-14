@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-13 17:25:58
+> **Last Generated**: 2026-05-13 19:53:04
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -25,10 +25,10 @@ C:.
 |   requirements.txt
 |   run_headless_service.py
 |   TODO.md
-|
+|   
 +---.cursor
 |   |   worktrees.json
-|   |
+|   |   
 |   +---commands
 |   |       ai-functionality-tests.md
 |   |       audit.md
@@ -42,7 +42,7 @@ C:.
 |   |       start.md
 |   |       test.md
 |   |       triage-issue.md
-|   |
+|   |       
 |   +---plans
 |   |   |   conftest_refactor_plan_4aa2eb26.plan.md
 |   |   |   continue_v5_roadmap_314d28fc.plan.md
@@ -53,7 +53,7 @@ C:.
 |   |   |   unified_user_items_and_shared_helpers.plan.md
 |   |   |   v5_dev-tools_continuation_5ab62a62.plan.md
 |   |   |   v5_dev-tools_continuation_95e84204.plan.md
-|   |   |
+|   |   |   
 |   \---rules
 |           communication-guidelines.mdc
 |           context.mdc
@@ -63,7 +63,7 @@ C:.
 |           quality-standards.mdc
 |           testing-guidelines.mdc
 |           ui-guidelines.mdc
-|
+|           
 +---ai
 |   |   cache_manager.py
 |   |   chatbot.py
@@ -73,7 +73,7 @@ C:.
 |   |   prompt_manager.py
 |   |   SYSTEM_AI_GUIDE.md
 |   |   __init__.py
-|   |
+|   |   
 +---ai_development_docs
 |   |   AI_ARCHITECTURE.md
 |   |   AI_BACKUP_GUIDE.md
@@ -87,11 +87,11 @@ C:.
 |   |   AI_MODULE_DEPENDENCIES.md
 |   |   AI_SESSION_STARTER.md
 |   |   AI_TESTING_GUIDE.md
-|   |
+|   |   
 +---communication
 |   |   COMMUNICATION_GUIDE.md
 |   |   __init__.py
-|   |
+|   |   
 |   +---command_handlers
 |   |   |   account_handler.py
 |   |   |   analytics_handler.py
@@ -104,16 +104,16 @@ C:.
 |   |   |   shared_types.py
 |   |   |   task_handler.py
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 |   +---communication_channels
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 |   |   +---base
 |   |   |   |   base_channel.py
 |   |   |   |   command_registry.py
 |   |   |   |   message_formatter.py
 |   |   |   |   rich_formatter.py
-|   |   |   |
+|   |   |   |   
 |   |   +---discord
 |   |   |   |   account_flow_handler.py
 |   |   |   |   api_client.py
@@ -125,10 +125,10 @@ C:.
 |   |   |   |   webhook_handler.py
 |   |   |   |   webhook_server.py
 |   |   |   |   welcome_handler.py
-|   |   |   |
+|   |   |   |   
 |   |   +---email
 |   |   |   |   bot.py
-|   |   |   |
+|   |   |   |   
 |   +---core
 |   |   |   channel_monitor.py
 |   |   |   channel_orchestrator.py
@@ -137,11 +137,11 @@ C:.
 |   |   |   retry_manager.py
 |   |   |   welcome_manager.py
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 |   +---delivery
 |   |   |   message_dispatcher.py
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 |   +---message_processing
 |   |   |   command_parser.py
 |   |   |   conversation_flow_manager.py
@@ -149,12 +149,12 @@ C:.
 |   |   |   interaction_manager.py
 |   |   |   message_router.py
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 |   +---reminders
 |   |   |   checkin_prompt_dispatcher.py
 |   |   |   reminder_dispatcher.py
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 +---core
 |   |   auto_cleanup.py
 |   |   backup_manager.py
@@ -201,7 +201,7 @@ C:.
 |   |   user_lookup.py
 |   |   user_management.py
 |   |   __init__.py
-|   |
+|   |   
 +---data
     (data files)
 +---development_docs
@@ -218,14 +218,14 @@ C:.
 |   |   TEST_COVERAGE_REPORT.md
 |   |   TEST_PLAN.md
 |   |   UNUSED_IMPORTS_REPORT.md
-|   |
+|   |   
 |   \---changelog_history
 |           CHANGELOG_DETAIL_2025_08.md
 |           CHANGELOG_DETAIL_2025_09.md
 |           CHANGELOG_DETAIL_2025_10.md
 |           CHANGELOG_DETAIL_2025_11.md
 |           CHANGELOG_DETAIL_2025_12.md
-|
+|           
 +---development_tools
 |   |   AI_DEVELOPMENT_TOOLS_GUIDE.md
 |   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md
@@ -239,11 +239,11 @@ C:.
 |   |   run_development_tools.py
 |   |   run_dev_tools.py
 |   |   __init__.py
-|   |
+|   |   
 |   +---ai_work
 |   |   |   analyze_ai_work.py
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 |   |   +---jsons
     (JSON files created by development tools)
 |   +---config
@@ -257,7 +257,7 @@ C:.
 |   |   |   sync_ruff_toml.py
 |   |   |   tool_cache_inventory.json
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 |   |   +---jsons
     (JSON files created by development tools)
 |   +---docs
@@ -277,14 +277,14 @@ C:.
 |   |   |   fix_version_sync.py
 |   |   |   generate_directory_tree.py
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 |   |   +---jsons
     (JSON files created by development tools)
 |   +---error_handling
 |   |   |   analyze_error_handling.py
 |   |   |   generate_error_handling_report.py
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 |   |   +---jsons
     (JSON files created by development tools)
 |   +---functions
@@ -298,7 +298,7 @@ C:.
 |   |   |   fix_function_docstrings.py
 |   |   |   generate_function_registry.py
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 |   |   +---jsons
     (JSON files created by development tools)
 |   +---imports
@@ -310,7 +310,7 @@ C:.
 |   |   |   generate_module_dependencies.py
 |   |   |   generate_unused_imports_report.py
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 |   |   +---jsons
     (JSON files created by development tools)
 |   +---legacy
@@ -318,7 +318,7 @@ C:.
 |   |   |   fix_legacy_references.py
 |   |   |   generate_legacy_reference_report.py
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 |   |   +---jsons
     (JSON files created by development tools)
 |   +---reports
@@ -327,7 +327,7 @@ C:.
 |   |   |   generate_consolidated_report.py
 |   |   |   quick_status.py
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 |   |   +---jsons
     (JSON files created by development tools)
 |   |   +---logs
@@ -338,7 +338,7 @@ C:.
     (JSON files created by development tools)
 |   |   |   \---full
 |   |   |       |   analysis_detailed_results.json
-|   |   |       |
+|   |   |       |   
 |   |   |       \---jsons
     (JSON files created by development tools)
 |   +---shared
@@ -375,7 +375,7 @@ C:.
 |   |   |   tool_metadata.py
 |   |   |   verify_tool_storage.py
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 |   |   +---service
 |   |   |   |   audit_orchestration.py
 |   |   |   |   commands.py
@@ -387,14 +387,14 @@ C:.
 |   |   |   |   tool_wrappers.py
 |   |   |   |   utilities.py
 |   |   |   |   __init__.py
-|   |   |   |
+|   |   |   |   
 |   +---static_checks
 |   |   |   analyze_bandit.py
 |   |   |   analyze_pip_audit.py
 |   |   |   analyze_pyright.py
 |   |   |   analyze_ruff.py
 |   |   |   check_channel_loggers.py
-|   |   |
+|   |   |   
 |   |   +---jsons
     (JSON files created by development tools)
 |   +---tests
@@ -412,7 +412,7 @@ C:.
 |   |   |   test_file_coverage_cache.py
 |   |   |   verify_process_cleanup.py
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 |   |   +---jsons
     (JSON files created by development tools)
 |   |   +---logs
@@ -426,34 +426,34 @@ C:.
 |   |   notebook_service.py
 |   |   notebook_validation.py
 |   |   __init__.py
-|   |
+|   |   
 +---resources
 |   |   assistant_system_prompt.txt
 |   |   default_tags.json
 |   |   presets.json
-|   |
+|   |   
 |   +---default_checkin
 |   |       questions.json
 |   |       question_templates.json
 |   |       responses.json
-|   |
+|   |       
 |   \---default_messages
 |           fun_facts.json
 |           health.json
 |           motivational.json
 |           quotes_to_ponder.json
 |           word_of_the_day.json
-|
+|           
 +---scheduler
 |   |   jobs.py
 |   |   maintenance.py
 |   |   manager.py
 |   |   task_reminders.py
 |   |   __init__.py
-|   |
+|   |   
 +---styles
 |       admin_theme.qss
-|
+|       
 +---tasks
 |   |   task_data_handlers.py
 |   |   task_data_manager.py
@@ -461,7 +461,7 @@ C:.
 |   |   task_service.py
 |   |   task_validation.py
 |   |   __init__.py
-|   |
+|   |   
 +---tests
 |   |   conftest.py
 |   |   DEVELOPMENT_TOOLS_TESTING_GUIDE.md
@@ -469,7 +469,7 @@ C:.
 |   |   MANUAL_TESTING_GUIDE.md
 |   |   TESTING_GUIDE.md
 |   |   __init__.py
-|   |
+|   |   
 |   +---ai
 |   |   |   ai_response_validator.py
 |   |   |   ai_test_base.py
@@ -485,7 +485,7 @@ C:.
 |   |   |   test_ai_quality.py
 |   |   |   test_cache_manager.py
 |   |   |   test_context_includes_recent_messages.py
-|   |   |
+|   |   |   
 |   +---behavior
 |   |   |   test_account_handler_behavior.py
 |   |   |   test_account_management_real_behavior.py
@@ -567,11 +567,11 @@ C:.
 |   |   |   test_webhook_server_behavior.py
 |   |   |   test_welcome_handler_behavior.py
 |   |   |   test_welcome_manager_behavior.py
-|   |   |
+|   |   |   
 |   +---communication
 |   |   |   test_channel_monitor.py
 |   |   |   test_retry_manager.py
-|   |   |
+|   |   |   
 |   +---core
 |   |   |   test_file_auditor.py
 |   |   |   test_file_auditor_gap_coverage.py
@@ -582,7 +582,7 @@ C:.
 |   |   |   test_service_message_content_helpers.py
 |   |   |   test_service_request_helpers.py
 |   |   |   test_user_data_read_scenarios.py
-|   |   |
+|   |   |   
 |   +---data
     (data files)
 |   +---development_tools
@@ -720,7 +720,7 @@ C:.
 |   |   |   test_verify_process_cleanup.py
 |   |   |   test_verify_tool_storage.py
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 |   +---fixtures
 |   +---integration
 |   |   |   test_account_lifecycle.py
@@ -733,17 +733,17 @@ C:.
 |   |   |   test_task_cleanup_silent_failure.py
 |   |   |   test_task_reminder_integration.py
 |   |   |   test_user_creation.py
-|   |   |
+|   |   |   
 |   |   +---data
     (data files)
 |   +---logs
     (log files)
 |   +---notebook
 |   |       __init__.py
-|   |
+|   |       
 |   +---test_helpers
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 |   |   +---test_support
 |   |   |   |   conftest_cleanup.py
 |   |   |   |   conftest_cleanup_impl.py
@@ -755,7 +755,7 @@ C:.
 |   |   |   |   test_helpers.py
 |   |   |   |   test_isolation.py
 |   |   |   |   __init__.py
-|   |   |   |
+|   |   |   |   
 |   |   +---test_utilities
 |   |   |   |   test_data_factory.py
 |   |   |   |   test_data_manager.py
@@ -763,7 +763,7 @@ C:.
 |   |   |   |   test_user_data_factory.py
 |   |   |   |   test_user_factory.py
 |   |   |   |   __init__.py
-|   |   |   |
+|   |   |   |   
 |   +---ui
 |   |   |   test_account_creation_ui.py
 |   |   |   test_account_creator_dialog_validation.py
@@ -791,7 +791,7 @@ C:.
 |   |   |   test_user_profile_dialog_coverage_expansion.py
 |   |   |   test_widget_behavior.py
 |   |   |   test_widget_behavior_simple.py
-|   |   |
+|   |   |   
 |   +---unit
 |   |   |   debug_file_paths.py
 |   |   |   test_admin_panel.py
@@ -885,14 +885,14 @@ C:.
 |   |   |   test_user_preferences.py
 |   |   |   test_validation.py
 |   |   |   test_webhook_handler_gap_coverage.py
-|   |   |
+|   |   |   
 +---ui
 |   |   generate_ui_files.py
 |   |   period_row_management.py
 |   |   ui_app_qt.py
 |   |   UI_GUIDE.md
 |   |   __init__.py
-|   |
+|   |   
 |   +---designs
 |   |       account_creator_dialog.ui
 |   |       admin_panel.ui
@@ -916,7 +916,7 @@ C:.
 |   |       user_analytics_dialog.ui
 |   |       user_profile_management_dialog.ui
 |   |       user_profile_settings_widget.ui
-|   |
+|   |       
 |   +---dialogs
     (log files)
 |   +---generated
@@ -931,14 +931,14 @@ C:.
 |   |   |   task_settings_widget.py
 |   |   |   user_profile_settings_widget.py
 |   |   |   __init__.py
-|   |   |
+|   |   |   
 +---user
 |   |   context_manager.py
 |   |   profile_service.py
 |   |   user_context.py
 |   |   user_preferences.py
 |   |   __init__.py
-|   |
+|   |   
 
 ---
 

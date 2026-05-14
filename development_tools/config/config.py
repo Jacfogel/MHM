@@ -127,16 +127,16 @@ _CORE_SYSTEM_FILES_ALWAYS = frozenset({".gitignore", "requirements.txt"})
 # Default analyze_function_registry.priority_directories ordering when not in JSON.
 _PRIORITY_DIRECTORIES_ORDER = (
     "core",
+    "scheduler",
     "communication",
     "ai",
     "ui",
     "user",
     "tasks",
-    "tests",
-    "scripts",
     "notebook",
-    "development_tools",
-    "data",
+)
+_PRIORITY_DIRECTORY_EXCLUDES: frozenset[str] = frozenset(
+    {"data", "development_tools", "scripts", "tests"}
 )
 
 # AI Collaboration Optimization
@@ -1061,7 +1061,11 @@ def get_analyze_function_registry_config():
     if not result.get("priority_directories"):
         prefixes = _get_external_value("constants.local_module_prefixes", None)
         if isinstance(prefixes, list) and prefixes:
-            pref_set = {str(p).strip() for p in prefixes if str(p).strip()}
+            pref_set = {
+                str(p).strip()
+                for p in prefixes
+                if str(p).strip() and str(p).strip() not in _PRIORITY_DIRECTORY_EXCLUDES
+            }
             ordered = [p for p in _PRIORITY_DIRECTORIES_ORDER if p in pref_set]
             for p in sorted(pref_set):
                 if p not in ordered:
@@ -1194,12 +1198,34 @@ AUDIT_PACKAGE_EXPORTS = {
     "expected_exports": {},  # Expected exports by module
 }
 
+_PACKAGE_EXPORT_PREFIX_EXCLUDES: frozenset[str] = frozenset(
+    {"data", "development_tools", "scripts", "tests"}
+)
+
+
+def _derive_package_export_packages() -> list[str]:
+    """Derive package-export audit targets from configured local module prefixes."""
+    prefixes = _get_external_value("constants.local_module_prefixes", None)
+    if not isinstance(prefixes, list) or not prefixes:
+        return ["core", "communication", "ui", "tasks", "ai", "user"]
+
+    project_root = get_project_root()
+    packages: list[str] = []
+    for prefix in prefixes:
+        package = str(prefix).strip()
+        if not package or package in _PACKAGE_EXPORT_PREFIX_EXCLUDES:
+            continue
+        if not (project_root / package / "__init__.py").exists():
+            continue
+        packages.append(package)
+    return packages
+
 
 def get_analyze_package_exports_config():
     """Get audit package exports configuration (from external config if available, otherwise default)."""
     external_config = _get_external_value("analyze_package_exports", None)
+    result = AUDIT_PACKAGE_EXPORTS.copy()
     if external_config:
-        result = AUDIT_PACKAGE_EXPORTS.copy()
         # Deep merge for nested dicts
         if "expected_exports" in external_config and "expected_exports" in result:
             result["expected_exports"].update(
@@ -1209,8 +1235,9 @@ def get_analyze_package_exports_config():
         for key, value in external_config.items():
             if key != "expected_exports":
                 result[key] = value
-        return result
-    return AUDIT_PACKAGE_EXPORTS
+    if not result.get("packages"):
+        result["packages"] = _derive_package_export_packages()
+    return result
 
 
 # Config validator configuration (project-specific lists can override via development_tools_config.json)
@@ -1739,6 +1766,42 @@ DOMAIN_MAPPER_DEFAULTS = {
     },
 }
 
+_DOMAIN_MAPPER_PREFIX_EXCLUDES: frozenset[str] = frozenset(
+    {"data", "scripts", "tests"}
+)
+
+
+def _augment_domain_mapper_from_local_prefixes(config: dict[str, Any]) -> dict[str, Any]:
+    """Ensure configured local module prefixes have a domain-mapper entry."""
+    prefixes = _get_external_value("constants.local_module_prefixes", None)
+    if not isinstance(prefixes, list) or not prefixes:
+        return config
+
+    source_map = dict(config.get("source_to_test_mapping") or {})
+    dependencies = dict(config.get("domain_dependencies") or {})
+    keywords = dict(config.get("keyword_map") or {})
+    project_root = get_project_root()
+
+    for prefix in prefixes:
+        domain = str(prefix).strip()
+        if not domain or domain in _DOMAIN_MAPPER_PREFIX_EXCLUDES:
+            continue
+        if not (project_root / domain).exists():
+            continue
+        if domain not in source_map:
+            domain_test_dir = f"tests/{domain}/"
+            test_dirs = (
+                [domain_test_dir] if (project_root / domain_test_dir).exists() else []
+            )
+            source_map[domain] = [test_dirs, [domain]]
+        dependencies.setdefault(domain, [])
+        keywords.setdefault(domain, [domain])
+
+    config["source_to_test_mapping"] = source_map
+    config["domain_dependencies"] = dependencies
+    config["keyword_map"] = keywords
+    return config
+
 
 def get_domain_mapper_config():
     """Get domain mapper configuration (external override or defaults)."""
@@ -1752,5 +1815,5 @@ def get_domain_mapper_config():
         for key in ("source_to_test_mapping", "domain_dependencies", "keyword_map"):
             if key in external_config and isinstance(external_config[key], dict):
                 result[key].update(external_config[key])
-        return result
-    return DOMAIN_MAPPER_DEFAULTS.copy()
+        return _augment_domain_mapper_from_local_prefixes(result)
+    return _augment_domain_mapper_from_local_prefixes(DOMAIN_MAPPER_DEFAULTS.copy())

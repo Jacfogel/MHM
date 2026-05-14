@@ -165,6 +165,7 @@ MHM/
 - logs/                    # Application and component logs
 - notebook/                # Notebook Framework
 - resources/               # Message templates and other assets
+- scheduler/               # Background job scheduling and maintenance loops
 - styles/                  # QSS themes for the admin UI
 - tasks/                   # Task/reminder framework
 - tests/                   # Unit, integration, behavior, and UI tests

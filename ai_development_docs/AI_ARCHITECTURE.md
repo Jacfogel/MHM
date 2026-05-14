@@ -24,7 +24,7 @@ Typical questions and starting points:
   -> Details: see section 5. UI Architecture and Naming Conventions in [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 - Scheduling or reminder logic  
-  -> `core/service.py`, `tasks/`  
+  -> `core/service.py`, `scheduler/`, `tasks/`
   -> Details: see section 4. Key Modules and Responsibilities in [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 - Channel behavior (Discord, email, etc.)  
@@ -60,6 +60,8 @@ Top-level routing only; do not duplicate full descriptions here.
 - `ai_development_docs/` - AI-focused documentation for routing and constraints.  
 - `development_tools/` - tools runner and commands such as `doc-sync`, `config`, `coverage`.  
 - `development_docs/` - human references (changelog, dependencies, plans).  
+- `notebook/` - notebook domain modules and service logic.
+- `scheduler/` - background job scheduling, maintenance jobs, and task-reminder loops.
 - `tasks/` - reminder and task definitions.  
 - `tests/` - tests, fixtures, `tests/data/`, `tests/logs/`. See section 2. Test Layout and Discovery
   in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md).  

@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_config - Development Tools",
-  "last_generated": "2026-05-13 18:12:27",
-  "timestamp": "2026-05-13T18:12:27",
+  "last_generated": "2026-05-13 23:17:27",
+  "timestamp": "2026-05-13T23:17:27",
   "tool_name": "analyze_config",
   "domain": "config",
   "source": "python development_tools/config/analyze_config.py",
@@ -47,6 +47,7 @@
           "ai",
           "communication",
           "core",
+          "scheduler",
           "tasks",
           "tests",
           "ui",
