@@ -8,16 +8,18 @@ This launches the MHM Manager UI where you can:
 - Monitor service status
 """
 
-import sys
 import os
 import subprocess
+import sys
 from pathlib import Path
+
 from core.error_handling import handle_errors
 from core.launch_env import prepare_launch_environment, resolve_python_interpreter
+from core.logger import get_component_logger, setup_logging
 
 
 @handle_errors("launching MHM Manager", default_return=1)
-def main():
+def main() -> int:
     """
     Launch the MHM Manager UI.
 
@@ -27,40 +29,50 @@ def main():
     Returns:
         int: Exit code (0 for success, 1 for failure)
     """
-    # Get the directory where this script is located
-    script_dir = os.path.dirname(os.path.abspath(__file__))
+    setup_logging()
+    logger = get_component_logger("launcher")
 
-    # Check if the UI app exists
-    ui_app_path = Path(script_dir) / "ui" / "ui_app_qt.py"
+    # Get the directory where this script is located.
+    script_dir = Path(__file__).resolve().parent
+
+    # Check if the UI app exists.
+    ui_app_path = script_dir / "ui" / "ui_app_qt.py"
     if not ui_app_path.exists():
-        print(f"Error: Could not find ui_app_qt.py at {ui_app_path}")
+        message = f"Could not find ui_app_qt.py at {ui_app_path}"
+        logger.error(message)
+        print(f"Error: {message}")
         return 1
 
-    # Ensure we use the venv Python explicitly
-    python_executable = resolve_python_interpreter(script_dir)
+    # Ensure we use the venv Python explicitly.
+    python_executable = resolve_python_interpreter(str(script_dir))
 
+    logger.info(f"Using Python: {python_executable}")
     print(f"Using Python: {python_executable}")
 
-    # Set up environment to ensure venv is used
-    env = prepare_launch_environment(script_dir)
+    # Set up environment to ensure venv is used.
+    env = prepare_launch_environment(str(script_dir))
 
-    # Launch the UI directly
     try:
+        # Launch the UI directly.
         subprocess.Popen(
             [python_executable, str(ui_app_path)],
             env=env,
-            cwd=script_dir,  # Set working directory to project root
-            shell=False,  # Explicitly prevent shell interpretation
+            cwd=str(script_dir),  # Set working directory to project root.
+            shell=False,  # Explicitly prevent shell interpretation.
             creationflags=(
                 getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
             ),
         )
-        # Don't wait - let the launcher exit and let the UI run independently
-        print("UI launched successfully. Launcher exiting.")
-        return 0
-    except Exception as e:
-        print(f"Error launching UI: {e}")
+    except Exception as exc:
+        message = f"Error launching UI: {exc}"
+        logger.error(message)
+        print(message)
         return 1
+
+    # Don't wait - let the launcher exit and let the UI run independently.
+    logger.info("UI launched successfully. Launcher exiting.")
+    print("UI launched successfully. Launcher exiting.")
+    return 0
 
 
 if __name__ == "__main__":

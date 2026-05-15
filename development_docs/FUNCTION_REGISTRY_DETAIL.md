@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-14 18:09:24
+> **Last Generated**: 2026-05-15 14:08:17
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 93.9% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 134
-- **Functions Found**: 1774
+- **Functions Found**: 1776
 - **Methods Found**: 1244
 - **Classes Found**: 172
-- **Total Items**: 3018
-- **Functions Documented**: 1653
+- **Total Items**: 3020
+- **Functions Documented**: 1655
 - **Methods Documented**: 1182
 - **Classes Documented**: 134
-- **Total Documented**: 2835
+- **Total Documented**: 2837
 - **Template-Generated**: 20
-- **Last Updated**: 2026-05-14
+- **Last Updated**: 2026-05-15
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -4595,7 +4595,9 @@ Returns None if path resolution fails (caller treats as no users dir).
 
 #### `run_headless_service.py`
 **Functions:**
-- [OK] `main()` - Main entry point for headless service launcher.
+- [OK] `_build_parser()` - Build the command-line parser for headless service operations.
+- [OK] `_print_service_details(label, services)` - Print process details for a list of detected services.
+- [OK] `main(argv)` - Main entry point for headless service launcher.
 
 #### `run_mhm.py`
 **Functions:**

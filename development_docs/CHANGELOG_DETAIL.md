@@ -33,6 +33,44 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-05-15 - Launcher Module Cleanup and Modernization
+
+Improved both launcher entry-point modules (`run_mhm.py` and `run_headless_service.py`) for consistency, reliability, and alignment with current architecture standards.
+
+#### `run_mhm.py`
+- Standardized launcher path handling using `pathlib.Path`
+- Updated launcher flow to explicitly target `ui/ui_app_qt.py`
+- Added centralized logging initialization via `setup_logging()`
+- Added component logger usage for launcher events/errors
+- Improved subprocess launch handling and error reporting
+- Preserved CLI-visible startup output while adding structured logging
+- Continued explicit virtual-environment interpreter resolution via `core.launch_env`
+- Preserved detached/non-blocking UI launch behavior
+
+#### `run_headless_service.py`
+- Refactored CLI parsing from manual `sys.argv` handling to `argparse`
+- Added structured subcommands for:
+  - `start`
+  - `stop`
+  - `status`
+  - `info`
+  - `test`
+  - `reschedule`
+- Converted launcher flow to consistent return-based exit codes instead of scattered `sys.exit()` calls
+- Added helper functions for parser construction and service detail rendering
+- Added missing error-handling decorators to helper functions:
+  - `_build_parser`
+  - `_print_service_details`
+- Added defensive parser initialization validation
+- Improved launcher logging consistency using component loggers
+- Preserved user-friendly CLI output for operational visibility
+
+#### General
+- Reduced legacy launcher drift and improved consistency with current Qt/PySide6 architecture
+- Improved maintainability and testability of launcher modules
+- Identified remaining future cleanup opportunity:
+  - define a formal launcher output policy (`print`, logging, or hybrid)
+  
 ### 2026-05-14 - Storage follow-up cleanup
 - **Cleanup**: Migrated the remaining active test and test-support imports from legacy `core.user_data_*` and `core.user_item_storage` bridge modules to the new `storage.*` package owners, then removed the temporary `core.*` storage bridge modules and `_storage_bridge.py`. The deprecation inventory entry for `core_storage_module_import_bridges` is now in removed history.
 - **Duplicate-function / error-handling follow-up**: Removed the private `CommunicationManager._send_checkin_prompt()` forwarding wrapper and the equivalent private service-request helper, so check-in dispatch now goes through the public `send_checkin_prompt()` delivery-port method directly. Added a shared process-flag predicate in [`core/service_utilities.py`](../core/service_utilities.py) for headless/UI service checks and protected it with `@handle_errors`. Consolidated task due-date/priority/reminder follow-up state setup through `ConversationManager._start_task_followup_flow()` and marked intentional API-boundary similarities with supported duplicate-function analyzer markers.

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-14 18:09:26
+> **Last Generated**: 2026-05-15 14:08:18
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 132
-- **Total Imports Found**: 1447
+- **Total Imports Found**: 1449
 - **Dependencies Documented**: 132 (100% coverage)
-- **Standard Library Imports**: 419 (29.0%)
+- **Standard Library Imports**: 421 (29.1%)
 - **Third-Party Imports**: 227 (15.7%)
-- **Local Imports**: 801 (55.4%)
-- **Last Updated**: 2026-05-14
+- **Local Imports**: 801 (55.3%)
+- **Last Updated**: 2026-05-15
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 419 imports (29.0%)
+- **Standard Library**: 421 imports (29.1%)
 - **Third-Party**: 227 imports (15.7%)
-- **Local**: 801 imports (55.4%)
+- **Local**: 801 imports (55.3%)
 
 ## Module Dependencies by Directory
 
@@ -2518,7 +2518,9 @@
     - `core.headless_service (HeadlessServiceManager)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
   - **Standard Library**:
+    - `argparse`
     - `sys`
+    - `typing (Any)`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-14 18:09:24
+> **Last Generated**: 2026-05-15 14:08:17
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 93.9% [!] GOOD**
-- **Total Functions**: 1774
+- **Total Functions**: 1776
 - **Total Methods**: 1244
-- **Documented**: 2835/3018
+- **Documented**: 2837/3020
 - **Files Scanned**: 134
 
 ## [DECISION TREES] **Decision Trees for AI Context**

@@ -50,6 +50,8 @@ Detail: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMP
 
 ## High Priority
 
+### launcher logging/output policy - decide whether entry-point scripts should use print-only, log-only, or both.
+
 ### Post-refactor architecture cleanup follow-ups
 
 The May 2026 service/scheduler/dispatcher refactor moved request handling, preview resolution, task reminders, maintenance jobs, message dispatch, check-in prompt dispatch, and delivery-port wiring out of the largest coordinator paths. Keep only the remaining deferred cleanup here.

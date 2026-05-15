@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-14 18:09:31
+> **Last Generated**: 2026-05-15 14:08:24
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 132
-- **Total Imports**: 1447
-- **Standard Library**: 419 (29.0%)
+- **Total Imports**: 1449
+- **Standard Library**: 421 (29.1%)
 - **Third-Party**: 227 (15.7%)
-- **Local Imports**: 801 (55.4%)
+- **Local Imports**: 801 (55.3%)
 
 ## Dependency Decision Trees
 
@@ -100,7 +100,7 @@ External libraries provide channel and UI support.
 ## Critical Dependencies for AI Context
 
 ### Entry Points
-- `run_headless_service.py` -> standard library (sys), headless_service, logger, error_handling (main application entry)
+- `run_headless_service.py` -> standard library (argparse, sys, typing), error_handling, headless_service, logger (main application entry)
 
 ### Data Flow
 - file_operations.py: core/file_operations.py <- standard library (importlib, json, os, pathlib), third-party (storage.user_data_v2_base), logger, config, error_handling, time_utilities, file_auditor (+1 more)

@@ -30,6 +30,17 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-15 - Launcher Module Modernization
+
+Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency and maintainability.
+
+- Standardized launcher path handling and Qt UI launch flow
+- Added/improved centralized logging usage
+- Modernized `run_headless_service.py` CLI using `argparse`
+- Converted launcher flows to consistent return-based exit handling
+- Added missing error-handling decorators to helper functions
+- Improved subprocess launch robustness and operational diagnostics
+
 ### 2026-05-14 - Storage Follow-up Cleanup **COMPLETED**
 - Migrated test and test-support imports from legacy `core.user_data_*` / `core.user_item_storage` bridge paths to the new `storage.*` owners.
 - Removed the temporary `core.*` storage bridge modules and moved their deprecation inventory entry to removed history.
