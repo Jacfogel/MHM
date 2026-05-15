@@ -229,7 +229,7 @@ def test_runtime_task_handlers_accept_and_write_v2_task_file(tmp_path, monkeypat
         ),
         encoding="utf-8",
     )
-    monkeypatch.setattr("core.user_item_storage.get_user_data_dir", lambda _user_id: str(user_root))
+    monkeypatch.setattr("storage.user_item_storage.get_user_data_dir", lambda _user_id: str(user_root))
 
     active = load_active_tasks("user-1")
     completed = load_completed_tasks("user-1")

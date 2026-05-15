@@ -1,5 +1,5 @@
 """
-Scenario-style coverage for core.user_data_read (get/load paths, ID repair).
+Scenario-style coverage for storage.user_data_read (get/load paths, ID repair).
 
 Targets the core domain coverage gap around user data loading and validation.
 """
@@ -13,8 +13,8 @@ import uuid
 import pytest
 
 from core.file_operations import load_json_data
-from core.user_data_operations import update_user_index
-from core.user_data_read import (
+from storage.user_data_operations import update_user_index
+from storage.user_data_read import (
     clear_user_caches,
     ensure_unique_ids,
     get_user_data,

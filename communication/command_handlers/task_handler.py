@@ -42,12 +42,14 @@ logger = get_component_logger("communication_manager")
 handlers_logger = logger
 
 
+# not_duplicate: task_identifier_service_facade
 @handle_errors("resolving task identifier", default_return="")
 def _task_identifier(task: dict[str, Any]) -> str:
     """Return canonical task identifier for command routing."""
     return _task_service().task_identifier(task)
 
 
+# not_duplicate: task_identifier_service_facade
 @handle_errors("resolving task short identifier", default_return="")
 def _task_short_identifier(task: dict[str, Any]) -> str:
     """Return canonical short_id for task matching/display."""
@@ -497,6 +499,7 @@ class TaskManagementHandler(InteractionHandler):
 
         return rich_data
 
+    # not_duplicate: task_mutation_handlers
     @handle_errors("handling task completion")
     def _handle_complete_task(
         self, user_id: str, entities: dict[str, Any]
@@ -608,6 +611,7 @@ class TaskManagementHandler(InteractionHandler):
             )
         return InteractionResponse("❌ Failed to restore task. Please try again.", True)
 
+    # not_duplicate: task_mutation_handlers
     @handle_errors("handling task deletion")
     def _handle_delete_task(
         self, user_id: str, entities: dict[str, Any]
@@ -669,6 +673,7 @@ class TaskManagementHandler(InteractionHandler):
                 "❌ Failed to delete task. Please try again.", True
             )
 
+    # not_duplicate: task_mutation_handlers
     @handle_errors("handling task update")
     def _handle_update_task(
         self, user_id: str, entities: dict[str, Any]

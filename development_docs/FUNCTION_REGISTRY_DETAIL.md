@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-14 00:39:18
+> **Last Generated**: 2026-05-14 18:09:24
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### **Function Documentation Coverage: 93.9% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 145
-- **Functions Found**: 1776
+- **Files Scanned**: 134
+- **Functions Found**: 1774
 - **Methods Found**: 1244
 - **Classes Found**: 172
-- **Total Items**: 3020
-- **Functions Documented**: 1654
-- **Methods Documented**: 1181
+- **Total Items**: 3018
+- **Functions Documented**: 1653
+- **Methods Documented**: 1182
 - **Classes Documented**: 134
 - **Total Documented**: 2835
 - **Template-Generated**: 20
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (500)
+### **Core System Functions** (498)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (499)
@@ -1793,7 +1793,6 @@ Returns:
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
 - [MISSING] `_send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - No description
-- [MISSING] `_send_checkin_prompt(self, user_id, messaging_service, recipient)` - No description
 - [OK] `_send_email_response(self, recipient_email, response_text, subject)` - Send an email response to a user
 - [MISSING] `_send_predefined_message(self, user_id, category, messaging_service, recipient)` - No description
 - [OK] `_should_ignore_inbound_sender(self, sender_email)` - Return True for known non-user/system senders that should never get replies.
@@ -1888,7 +1887,6 @@ Returns:
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
   - [MISSING] `CommunicationManager._send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - No description
-  - [MISSING] `CommunicationManager._send_checkin_prompt(self, user_id, messaging_service, recipient)` - No description
   - [OK] `CommunicationManager._send_email_response(self, recipient_email, response_text, subject)` - Send an email response to a user
   - [MISSING] `CommunicationManager._send_predefined_message(self, user_id, category, messaging_service, recipient)` - No description
   - [OK] `CommunicationManager._should_ignore_inbound_sender(self, sender_email)` - Return True for known non-user/system senders that should never get replies.
@@ -2215,6 +2213,7 @@ Args:
 Returns:
     List of question keys in selected order
 - [OK] `_start_dynamic_checkin(self, user_id)` - Start a dynamic check-in flow based on user preferences with weighted question selection
+- [OK] `_start_task_followup_flow(self, user_id, task_id, flow, extra_data, log_label)` - Persist a task follow-up flow with shared task identifier state.
 - [OK] `_validate_response(self, question_key, response, user_id)` - Validate user response based on question type using dynamic manager
 - [OK] `clear_all_states(self)` - Clear all user states - primarily for testing.
 - [OK] `clear_stuck_flows(self, user_id)` - Clear any stuck conversation flows for a user.
@@ -2334,6 +2333,7 @@ Args:
 Returns:
     List of question keys in selected order
   - [OK] `ConversationManager._start_dynamic_checkin(self, user_id)` - Start a dynamic check-in flow based on user preferences with weighted question selection
+  - [OK] `ConversationManager._start_task_followup_flow(self, user_id, task_id, flow, extra_data, log_label)` - Persist a task follow-up flow with shared task identifier state.
   - [OK] `ConversationManager._validate_response(self, question_key, response, user_id)` - Validate user response based on question type using dynamic manager
   - [OK] `ConversationManager.clear_all_states(self)` - Clear all user states - primarily for testing.
   - [OK] `ConversationManager.clear_stuck_flows(self, user_id)` - Clear any stuck conversation flows for a user.
@@ -2596,11 +2596,6 @@ value ``get_task_by_id`` accepts.
 #### `core/__init__.py`
 **Functions:**
 - [OK] `__getattr__(name)` - Lazy import handler for package-level facade exports.
-
-#### `core/_storage_bridge.py`
-**Functions:**
-- [OK] `_log_bridge_import(legacy_name, storage_name)` - Log bridge use without depending on logging availability.
-- [OK] `bridge_storage_module(legacy_name, storage_name)` - Alias a legacy ``core`` storage module name to its ``storage`` module.
 
 #### `core/auto_cleanup.py`
 **Functions:**
@@ -4030,8 +4025,6 @@ Raises:
 - [OK] `store_user_response(user_id, response_data, response_type)` - Store user response data in appropriate file structure.
 - [OK] `track_user_response(user_id, category, response_data)` - Track a user's response to a message.
 
-#### `core/runtime_state_storage.py`
-
 #### `core/schedule_document_defaults.py`
 **Functions:**
 - [OK] `create_default_schedule_periods(category)` - Create default schedule periods for a new category.
@@ -4351,14 +4344,11 @@ Sets up signal handlers for graceful shutdown.
   - [OK] `MHMService.to_service_request_context(self)` - Build the request-file context used by service request helpers.
   - [OK] `MHMService.validate_configuration(self)` - Validate all configuration settings before starting the service.
 
-#### `core/service_flag_storage.py`
-
 #### `core/service_requests.py`
 **Functions:**
 - [OK] `_as_context(context_or_service)` - Normalize explicit contexts and context-capable service wrappers to one shape.
 - [OK] `_cleanup_matching_request_files(base_path, predicate, label)` - Remove request files matching a predicate while continuing after per-file failures.
 - [OK] `_get_recipient_for_service(delivery, user_id, messaging_service, preferences)` - Resolve a recipient through the public delivery port.
-- [OK] `_send_checkin_prompt(delivery, user_id, messaging_service, recipient)` - Send a check-in prompt through the public delivery port.
 - [OK] `_write_response_file(response_file, response_data)` - Write a service response flag file as indented JSON.
 - [MISSING] `check_checkin_prompt_requests(context)` - No description
 - [MISSING] `check_reschedule_requests(context)` - No description
@@ -4407,6 +4397,7 @@ Returns:
 
 Args:
     interval: Time interval in seconds between allowed operations
+- [OK] `_is_service_process_type_running(process_flag)` - Return True when any known service process has the requested flag.
 - [OK] `get_flags_dir()` - Get the directory for service flag files.
 - [OK] `get_service_processes()` - Get detailed information about all MHM service processes
 - [OK] `is_headless_service_running()` - Check if a headless MHM service is currently running
@@ -4576,22 +4567,6 @@ Args:
 
 Returns:
     Storage-formatted period name (preserve original case)
-
-#### `core/user_data_operations.py`
-
-#### `core/user_data_presets.py`
-
-#### `core/user_data_read.py`
-
-#### `core/user_data_registry.py`
-
-#### `core/user_data_v2_base.py`
-
-#### `core/user_data_validation.py`
-
-#### `core/user_data_write.py`
-
-#### `core/user_item_storage.py`
 
 #### `core/user_lookup.py`
 **Functions:**

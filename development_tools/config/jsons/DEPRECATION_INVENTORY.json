@@ -64,25 +64,6 @@
   },
   "active_or_candidate_inventory": [
     {
-      "id": "core_storage_module_import_bridges",
-      "status": "active_bridge",
-      "search_terms": [
-        "core.user_data_read",
-        "core.user_data_write",
-        "core.user_data_registry",
-        "core.user_data_operations",
-        "core.user_data_presets",
-        "core.user_data_validation",
-        "core.user_data_v2_base",
-        "core.user_data_v2_envelopes",
-        "core.user_item_storage",
-        "core.runtime_state_storage",
-        "core.service_flag_storage"
-      ],
-      "exit_criteria": "Run legacy find/verify for each core storage module path, update active tests and callers to storage.*, then remove the core bridge files and this inventory entry when no active code/config references remain.",
-      "notes": "2026-05-13: storage implementations moved to top-level storage package. Thin core module bridges remain only for temporary import compatibility and old monkeypatch paths."
-    },
-    {
       "id": "root_ruff_compat_mirror",
       "status": "active_bridge",
       "search_terms": [],
@@ -91,6 +72,11 @@
     }
   ],
   "removed_inventory": [
+    {
+      "id": "core_storage_module_import_bridges",
+      "removed_at": "2026-05-14",
+      "note": "Removed temporary core.* storage bridge modules after active callers and tests migrated to storage.*. Narrow core_storage_module_bridges scan patterns remain to catch regressions to old import paths."
+    },
     {
       "id": "ai_chatbot_legacy_fallback_response",
       "removed_at": "2026-05-06",

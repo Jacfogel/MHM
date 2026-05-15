@@ -1957,6 +1957,7 @@ class EnhancedCommandParser:
             logger.error(f"Error calculating confidence score: {e}")
             return 0.5
 
+    # not_duplicate: intent_validation_delegates
     @handle_errors("checking if intent is valid")
     def _is_valid_intent(self, intent: str) -> bool:
         """Check if intent is supported by any handler"""

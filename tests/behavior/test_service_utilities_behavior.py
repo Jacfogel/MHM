@@ -22,7 +22,7 @@ from core.time_utilities import (
     format_timestamp,
     load_and_localize_datetime,
 )
-from core.user_data_validation import _shared__title_case
+from storage.user_data_validation import _shared__title_case
 
 
 @pytest.mark.core

@@ -73,7 +73,7 @@ class TestWebhookHandlerGapCoverage:
             lambda discord_user_id: "internal-user",
         )
         monkeypatch.setattr(
-            "core.user_data_write.update_user_account",
+            "storage.user_data_write.update_user_account",
             lambda user_id, data: (_ for _ in ()).throw(RuntimeError("db write failed")),
         )
         monkeypatch.setattr(wh, "_is_testing_environment", lambda: False)

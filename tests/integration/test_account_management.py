@@ -24,8 +24,8 @@ def test_account_management_imports():
     
     modules_to_test = [
         ("Account Creator Dialog", "ui.dialogs.account_creator_dialog", "AccountCreatorDialog"),
-        ("User Management", "core.user_data_write", "update_user_account"),
-        ("User Data Manager", "core.user_data_operations", "UserDataManager"),
+        ("User Management", "storage.user_data_write", "update_user_account"),
+        ("User Data Manager", "storage.user_data_operations", "UserDataManager"),
         ("User Context", "user.user_context", "UserContext"),
     ]
     
@@ -61,7 +61,7 @@ def test_account_management_functions():
         from core import (
             get_user_data
         )
-        from core.user_data_operations import UserDataManager
+        from storage.user_data_operations import UserDataManager
         from user.user_context import UserContext
         
         # Use a safe test user
@@ -253,7 +253,7 @@ def test_account_management_validation():
     logging.getLogger("mhm_tests").info("Testing Account Management Validation...")
     
     try:
-        from core.user_data_validation import validate_user_update
+        from storage.user_data_validation import validate_user_update
         
         # Test valid account updates
         try:
@@ -434,7 +434,7 @@ def test_account_management_integration():
     
     try:
         from core import get_user_data
-        from core.user_data_operations import update_user_index
+        from storage.user_data_operations import update_user_index
         from core.file_operations import get_user_file_path
         
         # Use a safe test user

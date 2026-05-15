@@ -18,7 +18,7 @@ import json
 import zipfile
 import shutil
 
-from core.user_data_operations import (
+from storage.user_data_operations import (
 
     UserDataManager,
     update_message_references,
@@ -47,8 +47,8 @@ class TestUserDataManagerInitialization:
     def test_manager_initialization(self, test_data_dir):
         """Test: UserDataManager initializes correctly"""
         # Arrange: Set up test environment
-        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
+        with patch('storage.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('storage.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
             
             # Act: Create manager
             manager = UserDataManager()
@@ -84,8 +84,8 @@ class TestUserDataManagerInitialization:
                         with contextlib.suppress(PermissionError):
                             shutil.rmtree(backup_dir)
         
-        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_operations.get_backups_dir', return_value=backup_dir):
+        with patch('storage.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('storage.user_data_operations.get_backups_dir', return_value=backup_dir):
             
             # Act: Create manager
             UserDataManager()
@@ -101,8 +101,8 @@ class TestUserDataManagerMessageReferences:
     @pytest.fixture
     def manager(self, test_data_dir):
         """Create user data manager for testing."""
-        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
+        with patch('storage.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('storage.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
             return UserDataManager()
     
     @pytest.fixture
@@ -199,8 +199,8 @@ class TestUserDataManagerBackup:
     @pytest.fixture
     def manager(self, test_data_dir):
         """Create user data manager for testing."""
-        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
+        with patch('storage.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('storage.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
             return UserDataManager()
     
     @pytest.fixture
@@ -279,8 +279,8 @@ class TestUserDataManagerExport:
     @pytest.fixture
     def manager(self, test_data_dir):
         """Create user data manager for testing."""
-        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
+        with patch('storage.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('storage.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
             return UserDataManager()
     
     @pytest.fixture
@@ -343,8 +343,8 @@ class TestUserDataManagerIndex:
     @pytest.fixture
     def manager(self, test_data_dir):
         """Create user data manager for testing."""
-        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
+        with patch('storage.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('storage.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
             return UserDataManager()
     
     @pytest.fixture
@@ -355,7 +355,7 @@ class TestUserDataManagerIndex:
         so serial execution ensures data is available without retry logic.
         """
         from core import get_user_id_by_identifier
-        from core.user_data_operations import rebuild_user_index
+        from storage.user_data_operations import rebuild_user_index
         from core import get_user_data
         
         user_id = "test_index_user"
@@ -386,7 +386,7 @@ class TestUserDataManagerIndex:
         """
         # Arrange: User is created in fixture
         from core import get_user_data
-        from core.user_data_operations import rebuild_user_index
+        from storage.user_data_operations import rebuild_user_index
         
         # Verify user account exists (serial execution ensures data is available)
         # If account doesn't exist, try to ensure it's created
@@ -496,8 +496,8 @@ class TestUserDataManagerSearch:
     @pytest.fixture
     def manager(self, test_data_dir):
         """Create user data manager for testing."""
-        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
+        with patch('storage.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('storage.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
             return UserDataManager()
     
     @pytest.fixture
@@ -569,8 +569,8 @@ class TestUserDataManagerSummary:
     @pytest.fixture
     def manager(self, test_data_dir):
         """Create user data manager for testing."""
-        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
+        with patch('storage.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('storage.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
             return UserDataManager()
     
     @pytest.fixture
@@ -805,8 +805,8 @@ class TestUserDataManagerDeleteUser:
     @pytest.fixture
     def manager(self, test_data_dir):
         """Create user data manager for testing."""
-        with patch('core.user_data_operations.BASE_DATA_DIR', test_data_dir), \
-             patch('core.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
+        with patch('storage.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+             patch('storage.user_data_operations.get_backups_dir', return_value=os.path.join(test_data_dir, 'backups')):
             return UserDataManager()
     
     @pytest.fixture

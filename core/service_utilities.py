@@ -101,6 +101,7 @@ def get_flags_dir() -> Path:
     return flags_dir
 
 
+# not_duplicate: service_status_detection_variants
 @handle_errors("checking if service is running", default_return=False)
 def is_service_running():
     """Check if the MHM service is currently running"""
@@ -201,12 +202,17 @@ def get_service_processes():
 @handle_errors("checking if headless service is running", default_return=False)
 def is_headless_service_running():
     """Check if a headless MHM service is currently running"""
-    processes = get_service_processes()
-    return any(proc["is_headless"] for proc in processes)
+    return _is_service_process_type_running("is_headless")
 
 
 @handle_errors("checking if UI service is running", default_return=False)
 def is_ui_service_running():
     """Check if a UI-managed MHM service is currently running"""
+    return _is_service_process_type_running("is_ui_managed")
+
+
+@handle_errors("checking service process type", default_return=False)
+def _is_service_process_type_running(process_flag: str) -> bool:
+    """Return True when any known service process has the requested flag."""
     processes = get_service_processes()
-    return any(proc["is_ui_managed"] for proc in processes)
+    return any(bool(proc.get(process_flag)) for proc in processes)

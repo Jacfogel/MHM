@@ -167,6 +167,7 @@ class ServiceManager:
 
         return True
 
+    # not_duplicate: service_status_detection_variants
     @handle_errors("checking service status", default_return=(False, None))
     def is_service_running(self):
         """

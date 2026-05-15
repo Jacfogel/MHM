@@ -15,7 +15,7 @@ from unittest.mock import patch
 import json
 from datetime import datetime, timedelta
 
-import core.user_item_storage as user_item_storage
+import storage.user_item_storage as user_item_storage
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
 
 # Do not modify sys.path; rely on package imports

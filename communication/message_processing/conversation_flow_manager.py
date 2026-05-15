@@ -1800,14 +1800,13 @@ class ConversationManager:
         Start a task due date/time flow.
         Called by task handler after creating a task without a due date.
         """
-        self.user_states[user_id] = {
-            "flow": FLOW_TASK_DUE_DATE,
-            "state": 0,
-            "data": {"task_identifier": task_id, "ask_priority": ask_priority},
-            "started_at": now_timestamp_full(),
-        }
-        self._save_user_states()
-        logger.debug(f"Started task due date flow for user {user_id}, task {task_id}")
+        self._start_task_followup_flow(
+            user_id,
+            task_id,
+            FLOW_TASK_DUE_DATE,
+            {"ask_priority": ask_priority},
+            "task due date flow",
+        )
 
     @handle_errors("starting task reminder follow-up flow", default_return=None)
     def start_task_reminder_followup(self, user_id: str, task_id: str) -> None:
@@ -1815,15 +1814,12 @@ class ConversationManager:
         Start a task reminder follow-up flow.
         Called by task handler after creating a task with a due date.
         """
-        self.user_states[user_id] = {
-            "flow": FLOW_TASK_REMINDER,
-            "state": 0,
-            "data": {"task_identifier": task_id},
-            "started_at": now_timestamp_full(),
-        }
-        self._save_user_states()
-        logger.debug(
-            f"Started task reminder follow-up flow for user {user_id}, task {task_id}"
+        self._start_task_followup_flow(
+            user_id,
+            task_id,
+            FLOW_TASK_REMINDER,
+            {},
+            "task reminder follow-up flow",
         )
 
     @handle_errors("starting task priority flow", default_return=None)
@@ -1831,14 +1827,32 @@ class ConversationManager:
         self, user_id: str, task_id: str, ask_reminders: bool = True
     ) -> None:
         """Start a priority follow-up after task creation."""
+        self._start_task_followup_flow(
+            user_id,
+            task_id,
+            FLOW_TASK_PRIORITY,
+            {"ask_reminders": ask_reminders},
+            "task priority flow",
+        )
+
+    @handle_errors("starting task follow-up flow", default_return=None)
+    def _start_task_followup_flow(
+        self,
+        user_id: str,
+        task_id: str,
+        flow: int,
+        extra_data: dict[str, Any],
+        log_label: str,
+    ) -> None:
+        """Persist a task follow-up flow with shared task identifier state."""
         self.user_states[user_id] = {
-            "flow": FLOW_TASK_PRIORITY,
+            "flow": flow,
             "state": 0,
-            "data": {"task_identifier": task_id, "ask_reminders": ask_reminders},
+            "data": {"task_identifier": task_id, **extra_data},
             "started_at": now_timestamp_full(),
         }
         self._save_user_states()
-        logger.debug(f"Started task priority flow for user {user_id}, task {task_id}")
+        logger.debug(f"Started {log_label} for user {user_id}, task {task_id}")
 
     @handle_errors(
         "continuing after task priority flow",

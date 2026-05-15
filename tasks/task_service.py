@@ -91,12 +91,14 @@ def get_recurring_task_defaults(user_id: str) -> dict[str, Any]:
     return task_settings.get("recurring_settings", {})
 
 
+# not_duplicate: task_identifier_service_facade
 @handle_errors("task service: task identifier", default_return="")
 def task_identifier(task: dict[str, Any]) -> str:
     """Return canonical task id for matching and mutations."""
     return str(task.get("id") or "")
 
 
+# not_duplicate: task_identifier_service_facade
 @handle_errors("task service: task short identifier", default_return="")
 def task_short_identifier(task: dict[str, Any]) -> str:
     """Return canonical task short_id for matching and display."""

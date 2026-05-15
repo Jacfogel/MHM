@@ -18,7 +18,7 @@ from core.response_tracking import (
     get_user_info_for_tracking,
     track_user_response,
 )
-from core.user_data_v2_base import SCHEMA_VERSION
+from storage.user_data_v2_base import SCHEMA_VERSION
 
 
 @pytest.mark.communication

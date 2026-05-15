@@ -583,7 +583,7 @@ class TestCommunicationManagerCoverageExpansion:
         
         # Mock get_user_data to return preferences
         with patch('communication.core.channel_orchestrator.get_user_data', return_value={'preferences': {'checkin_enabled': True}}), \
-             patch.object(comm_manager, '_send_checkin_prompt'):
+             patch.object(comm_manager, 'send_checkin_prompt'):
             # Test scheduled checkin
             comm_manager._handle_scheduled_checkin(user_id, 'discord', 'test_recipient')
             
@@ -603,7 +603,7 @@ class TestCommunicationManagerCoverageExpansion:
         # Mock send_message_sync
         with patch.object(comm_manager, 'send_message_sync', return_value=True):
             # Test sending checkin prompt
-            comm_manager._send_checkin_prompt(user_id, 'discord', 'test_recipient')
+            comm_manager.send_checkin_prompt(user_id, 'discord', 'test_recipient')
             
             # Verify prompt was sent
             comm_manager.send_message_sync.assert_called_once()

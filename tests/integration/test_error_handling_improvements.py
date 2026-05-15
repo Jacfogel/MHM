@@ -16,7 +16,7 @@ from typing import TextIO, cast
 from core.error_handling import handle_errors
 from core.file_operations import load_json_data, save_json_data, verify_file_access
 from core import get_user_data, save_user_data
-from core.user_data_operations import UserDataManager
+from storage.user_data_operations import UserDataManager
 from core.backup_manager import BackupManager
 from communication.communication_channels.discord.bot import DiscordBot
 from communication.message_processing.message_router import MessageRouter

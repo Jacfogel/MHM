@@ -784,7 +784,7 @@ class TestBackupManagerBehavior:
         time.sleep(0.5)  # Longer delay to ensure all user files are flushed
 
         # Rebuild index to ensure all users are indexed
-        from core.user_data_operations import rebuild_user_index
+        from storage.user_data_operations import rebuild_user_index
 
         rebuild_user_index()
         time.sleep(0.2)

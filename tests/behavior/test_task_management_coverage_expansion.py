@@ -74,7 +74,7 @@ class TestTaskManagementCoverageExpansion:
     @pytest.fixture
     def mock_user_data_dir(self, temp_dir):
         """Mock user data directory."""
-        with patch("core.user_item_storage.get_user_data_dir", return_value=temp_dir):
+        with patch("storage.user_item_storage.get_user_data_dir", return_value=temp_dir):
             yield temp_dir
 
     # ============================================================================

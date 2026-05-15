@@ -325,7 +325,7 @@ class TestCheckinSettingsWidgetBehavior:
         
         # Get the actual user ID (UUID) from the test data - retry in case of race conditions
         from core import get_user_id_by_identifier
-        from core.user_data_operations import rebuild_user_index
+        from storage.user_data_operations import rebuild_user_index
         import time
         actual_user_id = None
         for attempt in range(5):

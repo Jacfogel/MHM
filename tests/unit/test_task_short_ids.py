@@ -2,7 +2,7 @@
 
 import pytest
 
-from core.user_data_v2_base import generate_short_id
+from storage.user_data_v2_base import generate_short_id
 from tasks.task_data_manager import _task_matches_identifier
 
 pytestmark = [pytest.mark.unit, pytest.mark.core]

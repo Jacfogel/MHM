@@ -8,7 +8,7 @@
 This document defines the expected on-disk layout for per-user persisted state.
 
 Key implementation references:
-- `storage/user_data_registry.py`, `storage/user_data_read.py`, `storage/user_data_write.py` (centralized loader/saver API for top-level user files; section updates live in `user_data_write.py`)
+- `storage/user_data_registry.py`, `storage/user_data_read.py`, `storage/user_data_write.py` (centralized loader/saver API for top-level user files; section updates live in `storage/user_data_write.py`)
 - `storage/user_item_storage.py` (shared helpers for user-scoped subdir JSON: notebook, tasks, future events)
 - `core/schemas.py` (tolerant account/preferences/schedules validation on the read/save path)
 - `storage/user_data_v2_base.py` / `storage/user_data_v2_envelopes.py` (strict v2 primitives and envelopes for versioned JSON files)
@@ -50,7 +50,7 @@ One line per core module (plus related packages). **Read here first** when you a
 
 **Two validation layers (intentional):**
 
-1. **`schemas.py` (+ `user_data_validation.py`)** - **tolerant / ergonomic** validation for the **top-level user profile files** (`account.json`, `preferences.json`, `schedules.json`) on the normal `get_user_data` / `save_user_data` path. Unknown keys may be ignored or coerced; the goal is smooth upgrades and hand-edited JSON survival.
+1. **`schemas.py` (+ `storage/user_data_validation.py`)** - **tolerant / ergonomic** validation for the **top-level user profile files** (`account.json`, `preferences.json`, `schedules.json`) on the normal `get_user_data` / `save_user_data` path. Unknown keys may be ignored or coerced; the goal is smooth upgrades and hand-edited JSON survival.
 
 2. **`user_data_v2_base` + `user_data_v2_envelopes` + domain validators** - **strict** validation for **versioned v2 documents** (`tasks.json`, `entries.json`, `checkins.json`, message template files, `sent_messages.json`): Pydantic `extra="forbid"`, canonical timestamps, `validate_v2_document` for tooling and recovery.
 

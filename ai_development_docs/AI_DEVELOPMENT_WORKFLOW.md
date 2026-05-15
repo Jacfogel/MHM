@@ -39,7 +39,7 @@
     - [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) (routing for key modules, responsibilities, and patterns).
 - Data and configuration rules:
   - Use `core.get_user_data()` for the stable package facade, or `storage.user_data_read` / `storage.user_data_write` for module-level user data access; do not invent new direct file-access wrappers.
-  - Treat `core.user_data_*`, `core.user_item_storage`, `core.runtime_state_storage`, and `core.service_flag_storage` module paths as temporary compatibility bridges.
+  - Do not import removed `core.user_data_*`, `core.user_item_storage`, `core.runtime_state_storage`, or `core.service_flag_storage` module paths; use the `storage.*` modules that own persistence.
   - Use `.env` and `core/config.py` for configuration; do not add ad hoc `os.getenv` calls outside the established patterns.
 
 ---

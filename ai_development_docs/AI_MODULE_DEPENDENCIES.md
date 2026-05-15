@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-14 00:39:29
+> **Last Generated**: 2026-05-14 18:09:31
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 143
-- **Total Imports**: 1471
-- **Standard Library**: 421 (28.6%)
-- **Third-Party**: 237 (16.1%)
-- **Local Imports**: 813 (55.3%)
+- **Files Scanned**: 132
+- **Total Imports**: 1447
+- **Standard Library**: 419 (29.0%)
+- **Third-Party**: 227 (15.7%)
+- **Local Imports**: 801 (55.4%)
 
 ## Dependency Decision Trees
 
@@ -27,8 +27,6 @@ Core System Dependencies:
   - core/logger.py <- standard library (contextlib, glob, gzip, json), error_handling, time_utilities, config
 - Data Management
   - core/file_operations.py <- standard library (importlib, json, os, pathlib), third-party (storage.user_data_v2_base), logger, config, error_handling, time_utilities, file_auditor (+1 more)
-  - core/user_data_operations.py <- third-party (storage.user_data_operations), _storage_bridge
-  - core/user_data_presets.py <- third-party (storage.user_data_presets), _storage_bridge
 - Error Handling
   - core/error_handling.py <- standard library (asyncio, collections.abc, contextlib, functools), network_probe, time_utilities
 
@@ -106,8 +104,6 @@ External libraries provide channel and UI support.
 
 ### Data Flow
 - file_operations.py: core/file_operations.py <- standard library (importlib, json, os, pathlib), third-party (storage.user_data_v2_base), logger, config, error_handling, time_utilities, file_auditor (+1 more)
-- user_data_operations.py: core/user_data_operations.py <- third-party (storage.user_data_operations), _storage_bridge
-- user_data_presets.py: core/user_data_presets.py <- third-party (storage.user_data_presets), _storage_bridge
 
 ### Communication Flow
 - __init__: communication/__init__.py <- third-party (command_handlers.analytics_handler, command_handlers.base_handler, command_handlers.checkin_handler), retry_manager, channel_orchestrator, factory, channel_monitor
@@ -127,9 +123,9 @@ External libraries provide channel and UI support.
 ### Third-Party Risks
 - `ui/ui_app_qt.py` -> PySide6.QtWidgets (31 modules use this)
 - `ui/ui_app_qt.py` -> PySide6.QtCore (19 modules use this)
-- `communication/command_handlers/base_handler.py` -> storage.user_data_validation (14 modules use this)
+- `communication/command_handlers/base_handler.py` -> storage.user_data_validation (13 modules use this)
 - `communication/communication_channels/base/command_registry.py` -> discord (11 modules use this)
-- `communication/message_processing/conversation_flow_manager.py` -> storage.user_data_v2_base (9 modules use this)
+- `communication/message_processing/conversation_flow_manager.py` -> storage.user_data_v2_base (8 modules use this)
 
 
 ## Quick Reference for AI

@@ -7,7 +7,7 @@ import pytest
 import json
 import os
 from core.checkin_analytics import CheckinAnalytics
-from core.user_data_v2_base import SCHEMA_VERSION
+from storage.user_data_v2_base import SCHEMA_VERSION
 from core import (
     get_user_data,
     get_user_id_by_identifier,

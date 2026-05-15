@@ -342,8 +342,8 @@ except (ImportError, ModuleNotFoundError):
 # CRITICAL: Re-initialize UserDataManager module-level instance if it was already imported
 # This ensures the module-level instance uses the test directory
 try:
-    import core.user_data_operations as udm_module
-    from core.user_data_operations import UserDataManager
+    import storage.user_data_operations as udm_module
+    from storage.user_data_operations import UserDataManager
 
     # Recreate the module-level instance with updated BASE_DATA_DIR
     if hasattr(udm_module, "user_data_manager"):

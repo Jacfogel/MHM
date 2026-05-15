@@ -237,6 +237,7 @@ class PromptManager:
         )
         return self._fallback_prompts["wellness"].content
 
+    # not_duplicate: prompt_template_lookup_mutation
     @handle_errors("getting prompt template", default_return=None)
     def get_prompt_template(self, prompt_type: str) -> PromptTemplate | None:
         """
@@ -268,6 +269,7 @@ class PromptManager:
             f"Added custom prompt template: {template.name} (content_length={len(template.content)}, max_tokens={template.max_tokens})"
         )
 
+    # not_duplicate: prompt_template_lookup_mutation
     @handle_errors("removing prompt template", default_return=False)
     def remove_prompt_template(self, prompt_type: str) -> bool:
         """
@@ -291,11 +293,13 @@ class PromptManager:
         self._load_custom_prompt()
         logger.info("Custom system prompt reloaded")
 
+    # not_duplicate: custom_prompt_metadata
     @handle_errors("checking if custom prompt exists", default_return=False)
     def has_custom_prompt(self) -> bool:
         """Check if a custom prompt is loaded."""
         return self._custom_prompt is not None
 
+    # not_duplicate: custom_prompt_metadata
     @handle_errors("getting custom prompt length", default_return=0)
     def custom_prompt_length(self) -> int:
         """Get the length of the custom prompt."""
@@ -353,6 +357,7 @@ class PromptManager:
         )
         return contextual_prompt
 
+    # not_duplicate: domain_prompt_builders
     @handle_errors("creating task prompt", default_return="")
     def create_task_prompt(self, task_description: str, user_context: str = "") -> str:
         """
@@ -378,6 +383,7 @@ class PromptManager:
             base_prompt, context, "Help me with this task"
         )
 
+    # not_duplicate: domain_prompt_builders
     @handle_errors("creating checkin prompt", default_return="")
     def create_checkin_prompt(
         self, checkin_type: str = "daily", user_context: str = ""

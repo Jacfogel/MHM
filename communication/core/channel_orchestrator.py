@@ -1492,6 +1492,7 @@ class CommunicationManager:
             user_id, messaging_service, preferences
         )
 
+    # not_duplicate: checkin_prompt_delivery_boundary
     @handle_errors("determining if check-in prompt should be sent", default_return=True)
     def _should_send_checkin_prompt(self, user_id: str, checkin_prefs: dict) -> bool:
         return self.checkin_dispatcher.should_send_checkin_prompt(
@@ -1508,20 +1509,15 @@ class CommunicationManager:
             user_id, messaging_service, recipient
         )
 
-    @handle_errors("sending check-in prompt", default_return=None)
-    def _send_checkin_prompt(
-        self, user_id: str, messaging_service: str, recipient: str
-    ):
-        self.checkin_dispatcher.send_checkin_prompt(
-            user_id, messaging_service, recipient
-        )
-
+    # not_duplicate: checkin_prompt_delivery_boundary
     @handle_errors("sending check-in prompt", default_return=None)
     def send_checkin_prompt(
         self, user_id: str, messaging_service: str, recipient: str
     ):
         """Public delivery-port wrapper for scheduled check-in prompts."""
-        self._send_checkin_prompt(user_id, messaging_service, recipient)
+        self.checkin_dispatcher.send_checkin_prompt(
+            user_id, messaging_service, recipient
+        )
 
     @handle_errors("sending AI-generated message", default_return=(False, None))
     def _send_ai_generated_message(

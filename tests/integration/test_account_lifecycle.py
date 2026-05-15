@@ -11,7 +11,7 @@ import json
 import shutil
 
 from core.time_utilities import now_timestamp_full
-from core.user_data_v2_base import SCHEMA_VERSION
+from storage.user_data_v2_base import SCHEMA_VERSION
 
 pytestmark = [pytest.mark.core]
 
@@ -166,7 +166,7 @@ class TestAccountLifecycle:
         success, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(user_id, self.test_data_dir)
         assert success, "Test user should be created successfully"
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
-        from core.user_data_operations import rebuild_user_index
+        from storage.user_data_operations import rebuild_user_index
         rebuild_user_index()
         
         # Update user data to match the test requirements
@@ -229,7 +229,7 @@ class TestAccountLifecycle:
         
         # Get the UUID for the user using the proper system lookup
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
-        from core.user_data_operations import update_user_index
+        from storage.user_data_operations import update_user_index
         from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         if actual_user_id:
@@ -326,7 +326,7 @@ class TestAccountLifecycle:
         success, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(user_id, self.test_data_dir)
         assert success, "Test user should be created successfully"
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
-        from core.user_data_operations import rebuild_user_index
+        from storage.user_data_operations import rebuild_user_index
         rebuild_user_index()
         # Ensure minimal structure exists before mutation
         self._ensure_minimal_structure(actual_user_id)
@@ -434,7 +434,7 @@ class TestAccountLifecycle:
         # Create user using centralized save then resolve actual UUID
         self.save_user_data_simple(user_id, account_data, preferences_data, schedules_data)
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
-        from core.user_data_operations import update_user_index
+        from storage.user_data_operations import update_user_index
         from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         if actual_user_id:
@@ -530,7 +530,7 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, account_data)
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
-        from core.user_data_operations import rebuild_user_index
+        from storage.user_data_operations import rebuild_user_index
         rebuild_user_index()
         from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
@@ -629,7 +629,7 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
-        from core.user_data_operations import update_user_index
+        from storage.user_data_operations import update_user_index
         from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         self._ensure_minimal_structure(actual_user_id)
@@ -717,7 +717,7 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
-        from core.user_data_operations import update_user_index
+        from storage.user_data_operations import update_user_index
         from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         self._ensure_minimal_structure(actual_user_id)
@@ -785,7 +785,7 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
-        from core.user_data_operations import update_user_index
+        from storage.user_data_operations import update_user_index
         from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         self._ensure_minimal_structure(actual_user_id)
@@ -864,7 +864,7 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
-        from core.user_data_operations import update_user_index
+        from storage.user_data_operations import update_user_index
         from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         assert actual_user_id is not None
@@ -934,7 +934,7 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
         # Use update_user_index instead of rebuild_user_index for single user (optimization)
-        from core.user_data_operations import update_user_index
+        from storage.user_data_operations import update_user_index
         from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         assert actual_user_id is not None
@@ -1001,7 +1001,7 @@ class TestAccountLifecycle:
             os.makedirs(initial_user_dir, exist_ok=True)
         
         # Rebuild index with retry for race conditions
-        from core.user_data_operations import rebuild_user_index
+        from storage.user_data_operations import rebuild_user_index
         import time
         rebuild_success = rebuild_user_index()
         time.sleep(0.1)  # Brief delay to ensure index is written

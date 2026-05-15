@@ -276,6 +276,7 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
 }
 
 
+# devtools: ignore[facade-shims]: intentional package-level lazy exports for current public core API
 def __getattr__(name: str) -> Any:
     """Lazy import handler for package-level facade exports."""
     if name == "config":

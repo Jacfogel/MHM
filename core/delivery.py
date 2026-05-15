@@ -54,6 +54,7 @@ class ServiceRequestDeliveryPort(SchedulerDeliveryPort, Protocol):
         """Resolve the channel recipient for a user."""
         ...
 
+    # not_duplicate: checkin_prompt_delivery_boundary
     # ERROR_HANDLING_EXCLUDE: Protocol method declaration; concrete delivery implementations handle errors.
     def send_checkin_prompt(
         self, user_id: str, messaging_service: str, recipient: str

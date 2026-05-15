@@ -357,7 +357,7 @@ class TestDiscordBotBehavior:
         import time
         from tests.test_helpers.test_utilities import TestUserFactory
         from core import get_user_id_by_identifier
-        from core.user_data_operations import rebuild_user_index
+        from storage.user_data_operations import rebuild_user_index
 
         username = f"dup_user_{uuid.uuid4().hex[:8]}"
         created = TestUserFactory.create_basic_user(
@@ -406,7 +406,7 @@ class TestDiscordBotBehavior:
         assert ok, "User creation should succeed"
         
         # Ensure user index is updated
-        from core.user_data_operations import rebuild_user_index
+        from storage.user_data_operations import rebuild_user_index
         rebuild_user_index()
         
         # Resolve from test-owned data first to avoid stale global index collisions.
@@ -476,7 +476,7 @@ class TestDiscordBotBehavior:
         assert ok, "User creation should succeed"
         
         # Ensure user index is updated
-        from core.user_data_operations import rebuild_user_index
+        from storage.user_data_operations import rebuild_user_index
         rebuild_user_index()
         
         # Get user ID (no retry needed in serial execution)

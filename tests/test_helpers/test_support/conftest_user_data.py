@@ -17,7 +17,7 @@ from tests.conftest import (
     test_logger,
 )
 from core.time_utilities import now_timestamp_full
-from core.user_data_v2_base import SCHEMA_VERSION
+from storage.user_data_v2_base import SCHEMA_VERSION
 from tests.test_helpers.test_support.conftest_cleanup_impl import _is_transient_test_data_dir_name
 import contextlib
 
@@ -79,7 +79,7 @@ def clear_user_caches_between_tests():
 @pytest.fixture(scope="session", autouse=True)
 def register_user_data_loaders_session():
     """Ensure core user data loaders are present without overwriting metadata."""
-    import core.user_data_registry as um
+    import storage.user_data_registry as um
 
     # Set only missing loaders to avoid clobbering metadata
     for key, func, ftype in [
@@ -101,7 +101,7 @@ def register_user_data_loaders_session():
 @pytest.fixture(scope="function", autouse=True)
 def fix_user_data_loaders():
     """Ensure loaders stay correctly registered for each test without overwriting metadata."""
-    import core.user_data_registry as um
+    import storage.user_data_registry as um
 
     for key, func, ftype in [
         ("account", um._get_user_data__load_account, "account"),
@@ -117,7 +117,7 @@ def fix_user_data_loaders():
 
 @pytest.fixture(scope="session", autouse=True)
 def shim_get_user_data_to_invoke_loaders():
-    """Shim core.user_data_read.get_user_data to ensure structured dicts.
+    """Shim storage.user_data_read.get_user_data to ensure structured dicts.
 
     If a test calls get_user_data with 'all' or a specific type and the result is
     empty/missing, invoke the registered loaders in USER_DATA_LOADERS to assemble
@@ -125,8 +125,8 @@ def shim_get_user_data_to_invoke_loaders():
     wired correctly, but guards against import-order timing in tests.
     """
     import core as core_module
-    import core.user_data_registry as um
-    import core.user_data_read as read_module
+    import storage.user_data_registry as um
+    import storage.user_data_read as read_module
 
     # get_user_data lives in user_data_read
     original_get_user_data = getattr(read_module, "get_user_data", None)
@@ -296,7 +296,7 @@ def shim_get_user_data_to_invoke_loaders():
 def verify_required_loaders_present():
     """Fail fast if required user-data loaders are missing at session start."""
     try:
-        import core.user_data_registry as um
+        import storage.user_data_registry as um
 
         required = ("account", "preferences", "context", "schedules")
         missing = []
@@ -671,7 +671,7 @@ def mock_user_data(mock_config, test_data_dir, request):
     # Ensure user is discoverable via identifier lookups
     # Use file locking-aware update and retry if needed
     try:
-        from core.user_data_operations import update_user_index
+        from storage.user_data_operations import update_user_index
 
         # Retry update_user_index in case of race conditions in parallel execution
         max_retries = 3
@@ -836,7 +836,7 @@ def update_user_index_for_test(test_data_dir):
 
     def _update_index(user_id):
         try:
-            from core.user_data_operations import update_user_index
+            from storage.user_data_operations import update_user_index
 
             success = update_user_index(user_id)
             if success:

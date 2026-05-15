@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-14 00:39:20
+> **Last Generated**: 2026-05-14 18:09:26
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,12 +15,12 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 143
-- **Total Imports Found**: 1471
-- **Dependencies Documented**: 143 (100% coverage)
-- **Standard Library Imports**: 421 (28.6%)
-- **Third-Party Imports**: 237 (16.1%)
-- **Local Imports**: 813 (55.3%)
+- **Files Scanned**: 132
+- **Total Imports Found**: 1447
+- **Dependencies Documented**: 132 (100% coverage)
+- **Standard Library Imports**: 419 (29.0%)
+- **Third-Party Imports**: 227 (15.7%)
+- **Local Imports**: 801 (55.4%)
 - **Last Updated**: 2026-05-14
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 421 imports (28.6%)
-- **Third-Party**: 237 imports (16.1%)
-- **Local**: 813 imports (55.3%)
+- **Standard Library**: 419 imports (29.0%)
+- **Third-Party**: 227 imports (15.7%)
+- **Local**: 801 imports (55.4%)
 
 ## Module Dependencies by Directory
 
@@ -1374,35 +1374,6 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `core/_storage_bridge.py`
-- **Purpose**: Core system module for _storage_bridge
-- **Dependencies**:
-  - **Local**:
-    - `core.error_handling (handle_errors)` (NEW)
-    - `core.logger (get_component_logger)` (NEW)
-  - **Standard Library**:
-    - `importlib (import_module)`
-    - `sys`
-- **Used by**:
-  - `core/runtime_state_storage.py`
-  - `core/service_flag_storage.py`
-  - `core/user_data_operations.py`
-  - `core/user_data_presets.py`
-  - `core/user_data_read.py`
-  - `core/user_data_registry.py`
-  - `core/user_data_v2_base.py`
-  - `core/user_data_validation.py`
-  - `core/user_data_write.py`
-  - `core/user_item_storage.py`
-
-**Dependency Changes**:
-- Added: core.error_handling, core.logger
-- Removed: core/runtime_state_storage.py, core/service_flag_storage.py, core/user_data_operations.py, core/user_data_presets.py, core/user_data_read.py, core/user_data_registry.py, core/user_data_v2_base.py, core/user_data_validation.py, core/user_data_write.py, core/user_item_storage.py
-
-<!-- MANUAL_ENHANCEMENT_START -->
-<!-- Add any additional context, key functions, or special considerations here -->
-<!-- MANUAL_ENHANCEMENT_END -->
-
 #### `core/auto_cleanup.py`
 - **Purpose**: Automatic cache cleanup and maintenance
 - **Dependencies**:
@@ -1671,7 +1642,6 @@
   - `communication/message_processing/message_router.py`
   - `communication/reminders/checkin_prompt_dispatcher.py`
   - `communication/reminders/reminder_dispatcher.py`
-  - `core/_storage_bridge.py`
   - `core/auto_cleanup.py`
   - `core/backup_manager.py`
   - `core/checkin_analytics.py`
@@ -1742,7 +1712,7 @@
 
 **Dependency Changes**:
 - Added: core.network_probe, core.time_utilities
-- Removed: ai/cache_manager.py, ai/chatbot.py, ai/context_builder.py, ai/conversation_history.py, ai/lm_studio_manager.py, ai/prompt_manager.py, collections.abc, communication/command_handlers/account_handler.py, communication/command_handlers/analytics_handler.py, communication/command_handlers/base_handler.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/interaction_handlers.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/profile_handler.py, communication/command_handlers/schedule_handler.py, communication/command_handlers/task_handler.py, communication/communication_channels/base/base_channel.py, communication/communication_channels/base/command_registry.py, communication/communication_channels/base/message_formatter.py, communication/communication_channels/base/rich_formatter.py, communication/communication_channels/discord/account_flow_handler.py, communication/communication_channels/discord/api_client.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/checkin_view.py, communication/communication_channels/discord/event_handler.py, communication/communication_channels/discord/task_reminder_view.py, communication/communication_channels/discord/webhook_handler.py, communication/communication_channels/discord/webhook_server.py, communication/communication_channels/discord/welcome_handler.py, communication/communication_channels/email/bot.py, communication/core/channel_monitor.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/message_send_result.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/delivery/message_dispatcher.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/intent_validation.py, communication/message_processing/interaction_manager.py, communication/message_processing/message_router.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py, core/_storage_bridge.py, core/auto_cleanup.py, core/backup_manager.py, core/checkin_analytics.py, core/checkin_dynamic_manager.py, core/checkin_service.py, core/config.py, core/file_auditor.py, core/file_locking.py, core/file_operations.py, core/headless_service.py, core/logger.py, core/message_analytics.py, core/message_management.py, core/message_preview.py, core/pagination.py, core/response_tracking.py, core/schedule_document_defaults.py, core/schedule_runtime.py, core/schedule_utilities.py, core/schemas.py, core/service.py, core/service_requests.py, core/service_utilities.py, core/tags.py, core/ui_management.py, core/user_lookup.py, core/user_management.py, run_headless_service.py, scheduler/jobs.py, scheduler/maintenance.py, scheduler/manager.py, scheduler/task_reminders.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_service.py, tasks/task_validation.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/admin_panel.py, ui/dialogs/category_management_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/dialog_helpers.py, ui/dialogs/message_editor_dialog.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_completion_dialog.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_analytics_dialog.py, ui/dialogs/user_profile_dialog.py, ui/generate_ui_files.py, ui/period_row_management.py, ui/ui_app_qt.py, ui/widgets/category_selection_widget.py, ui/widgets/channel_selection_widget.py, ui/widgets/checkin_settings_widget.py, ui/widgets/dynamic_list_container.py, ui/widgets/dynamic_list_field.py, ui/widgets/period_row_widget.py, ui/widgets/tag_widget.py, ui/widgets/task_settings_widget.py, ui/widgets/user_profile_settings_widget.py, user/context_manager.py, user/profile_service.py, user/user_context.py, user/user_preferences.py
+- Removed: ai/cache_manager.py, ai/chatbot.py, ai/context_builder.py, ai/conversation_history.py, ai/lm_studio_manager.py, ai/prompt_manager.py, collections.abc, communication/command_handlers/account_handler.py, communication/command_handlers/analytics_handler.py, communication/command_handlers/base_handler.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/interaction_handlers.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/profile_handler.py, communication/command_handlers/schedule_handler.py, communication/command_handlers/task_handler.py, communication/communication_channels/base/base_channel.py, communication/communication_channels/base/command_registry.py, communication/communication_channels/base/message_formatter.py, communication/communication_channels/base/rich_formatter.py, communication/communication_channels/discord/account_flow_handler.py, communication/communication_channels/discord/api_client.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/checkin_view.py, communication/communication_channels/discord/event_handler.py, communication/communication_channels/discord/task_reminder_view.py, communication/communication_channels/discord/webhook_handler.py, communication/communication_channels/discord/webhook_server.py, communication/communication_channels/discord/welcome_handler.py, communication/communication_channels/email/bot.py, communication/core/channel_monitor.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/message_send_result.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/delivery/message_dispatcher.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/intent_validation.py, communication/message_processing/interaction_manager.py, communication/message_processing/message_router.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py, core/auto_cleanup.py, core/backup_manager.py, core/checkin_analytics.py, core/checkin_dynamic_manager.py, core/checkin_service.py, core/config.py, core/file_auditor.py, core/file_locking.py, core/file_operations.py, core/headless_service.py, core/logger.py, core/message_analytics.py, core/message_management.py, core/message_preview.py, core/pagination.py, core/response_tracking.py, core/schedule_document_defaults.py, core/schedule_runtime.py, core/schedule_utilities.py, core/schemas.py, core/service.py, core/service_requests.py, core/service_utilities.py, core/tags.py, core/ui_management.py, core/user_lookup.py, core/user_management.py, run_headless_service.py, scheduler/jobs.py, scheduler/maintenance.py, scheduler/manager.py, scheduler/task_reminders.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_service.py, tasks/task_validation.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/admin_panel.py, ui/dialogs/category_management_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/dialog_helpers.py, ui/dialogs/message_editor_dialog.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_completion_dialog.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_analytics_dialog.py, ui/dialogs/user_profile_dialog.py, ui/generate_ui_files.py, ui/period_row_management.py, ui/ui_app_qt.py, ui/widgets/category_selection_widget.py, ui/widgets/channel_selection_widget.py, ui/widgets/checkin_settings_widget.py, ui/widgets/dynamic_list_container.py, ui/widgets/dynamic_list_field.py, ui/widgets/period_row_widget.py, ui/widgets/tag_widget.py, ui/widgets/task_settings_widget.py, ui/widgets/user_profile_settings_widget.py, user/context_manager.py, user/profile_service.py, user/user_context.py, user/user_preferences.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Centralized error handling and recovery
@@ -1926,7 +1896,6 @@
   - `communication/message_processing/message_router.py`
   - `communication/reminders/checkin_prompt_dispatcher.py`
   - `communication/reminders/reminder_dispatcher.py`
-  - `core/_storage_bridge.py`
   - `core/auto_cleanup.py`
   - `core/backup_manager.py`
   - `core/checkin_analytics.py`
@@ -1987,7 +1956,7 @@
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.time_utilities
-- Removed: ai/cache_manager.py, ai/chatbot.py, ai/context_builder.py, ai/conversation_history.py, ai/lm_studio_manager.py, ai/prompt_manager.py, communication/command_handlers/account_handler.py, communication/command_handlers/analytics_handler.py, communication/command_handlers/base_handler.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/interaction_handlers.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/profile_handler.py, communication/command_handlers/schedule_handler.py, communication/command_handlers/task_handler.py, communication/communication_channels/base/base_channel.py, communication/communication_channels/base/command_registry.py, communication/communication_channels/base/message_formatter.py, communication/communication_channels/base/rich_formatter.py, communication/communication_channels/discord/account_flow_handler.py, communication/communication_channels/discord/api_client.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/checkin_view.py, communication/communication_channels/discord/event_handler.py, communication/communication_channels/discord/task_reminder_view.py, communication/communication_channels/discord/webhook_handler.py, communication/communication_channels/discord/webhook_server.py, communication/communication_channels/discord/welcome_handler.py, communication/communication_channels/email/bot.py, communication/core/channel_monitor.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/delivery/message_dispatcher.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, communication/message_processing/message_router.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py, core/_storage_bridge.py, core/auto_cleanup.py, core/backup_manager.py, core/checkin_analytics.py, core/checkin_dynamic_manager.py, core/file_auditor.py, core/file_locking.py, core/file_operations.py, core/headless_service.py, core/message_analytics.py, core/message_management.py, core/response_tracking.py, core/schedule_document_defaults.py, core/schedule_runtime.py, core/schedule_utilities.py, core/schemas.py, core/service.py, core/service_requests.py, core/service_utilities.py, core/tags.py, core/user_lookup.py, core/user_management.py, logging.handlers, run_headless_service.py, scheduler/jobs.py, scheduler/maintenance.py, scheduler/manager.py, scheduler/task_reminders.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_validation.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/admin_panel.py, ui/dialogs/category_management_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/message_editor_dialog.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_completion_dialog.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_analytics_dialog.py, ui/dialogs/user_profile_dialog.py, ui/period_row_management.py, ui/ui_app_qt.py, ui/widgets/category_selection_widget.py, ui/widgets/channel_selection_widget.py, ui/widgets/checkin_settings_widget.py, ui/widgets/dynamic_list_container.py, ui/widgets/dynamic_list_field.py, ui/widgets/period_row_widget.py, ui/widgets/tag_widget.py, ui/widgets/task_settings_widget.py, ui/widgets/user_profile_settings_widget.py, user/context_manager.py, user/user_context.py, user/user_preferences.py
+- Removed: ai/cache_manager.py, ai/chatbot.py, ai/context_builder.py, ai/conversation_history.py, ai/lm_studio_manager.py, ai/prompt_manager.py, communication/command_handlers/account_handler.py, communication/command_handlers/analytics_handler.py, communication/command_handlers/base_handler.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/interaction_handlers.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/profile_handler.py, communication/command_handlers/schedule_handler.py, communication/command_handlers/task_handler.py, communication/communication_channels/base/base_channel.py, communication/communication_channels/base/command_registry.py, communication/communication_channels/base/message_formatter.py, communication/communication_channels/base/rich_formatter.py, communication/communication_channels/discord/account_flow_handler.py, communication/communication_channels/discord/api_client.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/checkin_view.py, communication/communication_channels/discord/event_handler.py, communication/communication_channels/discord/task_reminder_view.py, communication/communication_channels/discord/webhook_handler.py, communication/communication_channels/discord/webhook_server.py, communication/communication_channels/discord/welcome_handler.py, communication/communication_channels/email/bot.py, communication/core/channel_monitor.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/delivery/message_dispatcher.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, communication/message_processing/message_router.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py, core/auto_cleanup.py, core/backup_manager.py, core/checkin_analytics.py, core/checkin_dynamic_manager.py, core/file_auditor.py, core/file_locking.py, core/file_operations.py, core/headless_service.py, core/message_analytics.py, core/message_management.py, core/response_tracking.py, core/schedule_document_defaults.py, core/schedule_runtime.py, core/schedule_utilities.py, core/schemas.py, core/service.py, core/service_requests.py, core/service_utilities.py, core/tags.py, core/user_lookup.py, core/user_management.py, logging.handlers, run_headless_service.py, scheduler/jobs.py, scheduler/maintenance.py, scheduler/manager.py, scheduler/task_reminders.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_validation.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/admin_panel.py, ui/dialogs/category_management_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/message_editor_dialog.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_completion_dialog.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_analytics_dialog.py, ui/dialogs/user_profile_dialog.py, ui/period_row_management.py, ui/ui_app_qt.py, ui/widgets/category_selection_widget.py, ui/widgets/channel_selection_widget.py, ui/widgets/checkin_settings_widget.py, ui/widgets/dynamic_list_container.py, ui/widgets/dynamic_list_field.py, ui/widgets/period_row_widget.py, ui/widgets/tag_widget.py, ui/widgets/task_settings_widget.py, ui/widgets/user_profile_settings_widget.py, user/context_manager.py, user/user_context.py, user/user_preferences.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Logging system configuration and management
@@ -2145,23 +2114,6 @@
 **Enhanced Purpose**: Tracks user responses and interactions
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `core/runtime_state_storage.py`
-- **Purpose**: Core system module for runtime_state_storage
-- **Dependencies**:
-  - **Local**:
-    - `core._storage_bridge (bridge_storage_module)` (NEW)
-  - **Third-party**:
-    - `storage.runtime_state_storage (get_runtime_state_path, load_runtime_state_json, save_runtime_state_json)`
-- **Used by**: None (not imported by other modules)
-
-**Dependency Changes**:
-- Added: core._storage_bridge
-- Removed: storage.runtime_state_storage
-
-<!-- MANUAL_ENHANCEMENT_START -->
-<!-- Add any additional context, key functions, or special considerations here -->
-<!-- MANUAL_ENHANCEMENT_END -->
-
 #### `core/schedule_document_defaults.py`
 - **Purpose**: Core system module for schedule_document_defaults
 - **Dependencies**:
@@ -2306,23 +2258,6 @@
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Main service orchestration and management
-<!-- MANUAL_ENHANCEMENT_END -->
-
-#### `core/service_flag_storage.py`
-- **Purpose**: Main service orchestration and management
-- **Dependencies**:
-  - **Local**:
-    - `core._storage_bridge (bridge_storage_module)` (NEW)
-  - **Third-party**:
-    - `storage.service_flag_storage (read_service_flag_json, write_service_flag_json)`
-- **Used by**: None (not imported by other modules)
-
-**Dependency Changes**:
-- Added: core._storage_bridge
-- Removed: storage.service_flag_storage
-
-<!-- MANUAL_ENHANCEMENT_START -->
-<!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
 #### `core/service_requests.py`
@@ -2518,142 +2453,6 @@
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: UI management and widget utilities
-<!-- MANUAL_ENHANCEMENT_END -->
-
-#### `core/user_data_operations.py`
-- **Purpose**: Core system module with heavy core dependencies
-- **Dependencies**:
-  - **Local**:
-    - `core._storage_bridge (bridge_storage_module)` (NEW)
-  - **Third-party**:
-    - `storage.user_data_operations (UserDataManager, backup_user_data, build_user_index, delete_user_completely, export_user_data, get_all_user_summaries, get_user_analytics_summary, get_user_data_summary, get_user_info_for_data_manager, get_user_summary, rebuild_user_index, update_message_references, update_user_index, user_data_manager)`
-- **Used by**: None (not imported by other modules)
-
-**Dependency Changes**:
-- Added: core._storage_bridge
-- Removed: storage.user_data_operations
-
-<!-- MANUAL_ENHANCEMENT_START -->
-**Enhanced Purpose**: Enhanced user data management with references and indexing
-<!-- MANUAL_ENHANCEMENT_END -->
-
-#### `core/user_data_presets.py`
-- **Purpose**: Core system module with heavy core dependencies
-- **Dependencies**:
-  - **Local**:
-    - `core._storage_bridge (bridge_storage_module)` (NEW)
-  - **Third-party**:
-    - `storage.user_data_presets (TIMEZONE_OPTIONS, get_predefined_options, get_timezone_options)`
-- **Used by**: None (not imported by other modules)
-
-**Dependency Changes**:
-- Added: core._storage_bridge
-- Removed: storage.user_data_presets
-
-<!-- MANUAL_ENHANCEMENT_START -->
-<!-- Add any additional context, key functions, or special considerations here -->
-<!-- MANUAL_ENHANCEMENT_END -->
-
-#### `core/user_data_read.py`
-- **Purpose**: Core system module with heavy core dependencies
-- **Dependencies**:
-  - **Local**:
-    - `core._storage_bridge (bridge_storage_module)` (NEW)
-  - **Third-party**:
-    - `storage.user_data_read (clear_user_caches, ensure_unique_ids, get_user_data, get_user_data_with_metadata, load_and_ensure_ids)`
-- **Used by**: None (not imported by other modules)
-
-**Dependency Changes**:
-- Added: core._storage_bridge
-- Removed: storage.user_data_read
-
-<!-- MANUAL_ENHANCEMENT_START -->
-<!-- Add any additional context, key functions, or special considerations here -->
-<!-- MANUAL_ENHANCEMENT_END -->
-
-#### `core/user_data_registry.py`
-- **Purpose**: Core system module with heavy core dependencies
-- **Dependencies**:
-  - **Local**:
-    - `core._storage_bridge (bridge_storage_module)` (NEW)
-  - **Third-party**:
-    - `storage.user_data_registry (USER_DATA_LOADERS, _get_user_data__load_account, _get_user_data__load_context, _get_user_data__load_preferences, _get_user_data__load_schedules, _save_user_data__save_account, _save_user_data__save_context, _save_user_data__save_preferences, _save_user_data__save_schedules, clear_user_caches, get_available_data_types, get_data_type_info, register_data_loader, register_default_loaders)`
-- **Used by**: None (not imported by other modules)
-
-**Dependency Changes**:
-- Added: core._storage_bridge
-- Removed: storage.user_data_registry
-
-<!-- MANUAL_ENHANCEMENT_START -->
-<!-- Add any additional context, key functions, or special considerations here -->
-<!-- MANUAL_ENHANCEMENT_END -->
-
-#### `core/user_data_v2_base.py`
-- **Purpose**: Core system module with heavy core dependencies
-- **Dependencies**:
-  - **Local**:
-    - `core._storage_bridge (bridge_storage_module)` (NEW)
-  - **Third-party**:
-    - `storage.user_data_v2_base (BaseItemModel, ItemKind, SCHEMA_VERSION, SourceModel, generate_short_id, v2_schema_validation_error)`
-- **Used by**: None (not imported by other modules)
-
-**Dependency Changes**:
-- Added: core._storage_bridge
-- Removed: storage.user_data_v2_base
-
-<!-- MANUAL_ENHANCEMENT_START -->
-<!-- Add any additional context, key functions, or special considerations here -->
-<!-- MANUAL_ENHANCEMENT_END -->
-
-#### `core/user_data_validation.py`
-- **Purpose**: User data validation and integrity checks
-- **Dependencies**:
-  - **Local**:
-    - `core._storage_bridge (bridge_storage_module)` (NEW)
-  - **Third-party**:
-    - `storage.user_data_validation (_shared__title_case, is_valid_category_name, is_valid_discord_id, is_valid_email, is_valid_phone, is_valid_string_length, is_valid_user_id, validate_new_user_data, validate_personalization_data, validate_schedule_periods, validate_schedule_periods__validate_time_format, validate_user_update)`
-- **Used by**: None (not imported by other modules)
-
-**Dependency Changes**:
-- Added: core._storage_bridge
-- Removed: storage.user_data_validation
-
-<!-- MANUAL_ENHANCEMENT_START -->
-**Enhanced Purpose**: User data validation - validates user input and data integrity
-<!-- MANUAL_ENHANCEMENT_END -->
-
-#### `core/user_data_write.py`
-- **Purpose**: Core system module with heavy core dependencies
-- **Dependencies**:
-  - **Local**:
-    - `core._storage_bridge (bridge_storage_module)` (NEW)
-  - **Third-party**:
-    - `storage.user_data_write (save_user_data, save_user_data_transaction, update_channel_preferences, update_user_account, update_user_context, update_user_preferences, update_user_schedules)`
-- **Used by**: None (not imported by other modules)
-
-**Dependency Changes**:
-- Added: core._storage_bridge
-- Removed: storage.user_data_write
-
-<!-- MANUAL_ENHANCEMENT_START -->
-<!-- Add any additional context, key functions, or special considerations here -->
-<!-- MANUAL_ENHANCEMENT_END -->
-
-#### `core/user_item_storage.py`
-- **Purpose**: Core system module for user_item_storage
-- **Dependencies**:
-  - **Local**:
-    - `core._storage_bridge (bridge_storage_module)` (NEW)
-  - **Third-party**:
-    - `storage.user_item_storage (ensure_user_subdir, get_user_subdir_path, load_user_json_file, save_user_json_file)`
-- **Used by**: None (not imported by other modules)
-
-**Dependency Changes**:
-- Added: core._storage_bridge
-- Removed: storage.user_item_storage
-
-<!-- MANUAL_ENHANCEMENT_START -->
-<!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
 #### `core/user_lookup.py`

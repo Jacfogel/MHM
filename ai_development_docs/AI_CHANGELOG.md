@@ -30,9 +30,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-14 - Storage Follow-up Cleanup **COMPLETED**
+- Migrated test and test-support imports from legacy `core.user_data_*` / `core.user_item_storage` bridge paths to the new `storage.*` owners.
+- Removed the temporary `core.*` storage bridge modules and moved their deprecation inventory entry to removed history.
+- Removed duplicate check-in forwarding wrappers, shared service-process status helper logic, and consolidated task follow-up flow state setup.
+- Refreshed legacy, duplicate-function, facade-shim, and audit status reports: legacy findings, duplicate-function groups, and facade/shim candidates are now 0; error-handling coverage is 100%.
+- Validation: runtime `py_compile` passed; focused storage/service/check-in tests passed except `test_checkin_retry_after_discord_reconnect`, which still hangs when run directly and remains a separate test-stability issue.
+
 ### 2026-05-14 - Storage Package Move **COMPLETED**
 - Moved persistence implementations from `core/` into the new top-level `storage/` package while preserving existing on-disk JSON locations and schemas.
-- Kept temporary `core.*` storage bridge modules only for legacy public import paths, backed by `core._storage_bridge` and tracked in the deprecation inventory with explicit removal criteria.
+- Initially kept temporary `core.*` storage bridge modules for legacy public import paths; they were removed in the follow-up cleanup after active callers were migrated.
 - Updated active callers, `core.__init__` lazy exports, package discovery, and architecture/user-data docs so `storage` is the persistence owner.
 - Follow-up hygiene is clean: Ruff PASS, Pyright 0/0, unused imports 0, doc-sync PASS, Tier 2 audit PASS. Tier 3 full coverage remains a separate orchestration follow-up because broader runs still expose intermittent Windows pytest temp-root/setup behavior.
 
@@ -112,18 +119,6 @@ Guidelines:
 - Successful full audits now clear/restore SIGINT state and exit cleanly after ignored Windows console interrupts, preventing success output from returning exit code 1.
 - Added missing error handling to cache/user lookup/service response helpers, regenerated registry/status outputs, and refreshed the stale aggregate report so the resolved error-handling, function-registry, and Pyright-warning priorities are gone.
 - Validation: focused duplicate, service-request, logging, audit-signal/CLI, cache-manager, and shared-logging tests passed; Pyright is 0/0 and targeted Ruff checks passed.
-
-### 2026-05-07 - Duplicate-function cleanup without legacy shims **COMPLETED**
-- Cleared the full-scope duplicate-function priority: `duplicate-functions --body-for-near-miss` now reports 0 issues and 0 groups.
-- Refactored real duplication in user lookup, cache cleanup/removal, UI/service request helpers, process watcher selection, backup restore, and LM Studio readiness while avoiding new legacy compatibility bridges.
-- Removed unnecessary private user-lookup shim functions after review; remaining thin entry points are existing UI/API/tested hooks, not legacy adapters.
-- Validation: `py_compile`, service request helper tests, duplicate-analyzer tests, and the legacy scan passed.
-
-### 2026-05-06 - Facade/shim cleanup and signal tuning **COMPLETED**
-- Removed verified-dead compatibility/facade surfaces: chatbot fallback bridge, factory config wrappers, scheduler task-selection delegates, service request aliases, and unused UI/preference aliases.
-- Cleaned stale legacy audit noise by removing the broad `user_data_v1_runtime_adapters` scan bucket and moving the chatbot fallback bridge to removed inventory history.
-- Tightened `analyze_facade_shims` so default audit output focuses on named/documented compatibility surfaces or active deprecation-inventory hits; plain low-signal thin wrappers are still available with `--include-low-signal`.
-- Refreshed generated audit outputs; current facade/shim priority count is 8 default candidates, with 174 low-signal candidates filtered. Validation: focused product/dev-tools tests passed; standard audit passed. A full audit timed out after saving tightened facade JSON, so it is not counted as clean full-audit validation.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

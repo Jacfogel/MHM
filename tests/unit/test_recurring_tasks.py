@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 import pytest
 
-from core.user_data_v2_base import SCHEMA_VERSION
+from storage.user_data_v2_base import SCHEMA_VERSION
 from tasks import (
 
     create_task,
@@ -52,7 +52,7 @@ class TestRecurringTasks:
         
         yield user_id, temp_dir
     
-    @patch('core.user_item_storage.get_user_data_dir')
+    @patch('storage.user_item_storage.get_user_data_dir')
     def test_create_recurring_task(self, mock_get_user_data_dir, temp_user_dir):
         """Test creating a recurring task."""
         user_id, temp_dir = temp_user_dir
@@ -83,7 +83,7 @@ class TestRecurringTasks:
         assert task["recurrence"]["repeat_after_completion"] is True
         assert task["recurrence"]["next_due_date"] == "2025-01-15"
     
-    @patch('core.user_item_storage.get_user_data_dir')
+    @patch('storage.user_item_storage.get_user_data_dir')
     def test_complete_recurring_task_creates_next_instance(self, mock_get_user_data_dir, temp_user_dir):
         """Test that completing a recurring task creates the next instance."""
         user_id, temp_dir = temp_user_dir
@@ -184,7 +184,7 @@ class TestRecurringTasks:
         next_date = _calculate_next_due_date(base_date, "invalid_pattern", 1, True)
         assert next_date is None
     
-    @patch('core.user_item_storage.get_user_data_dir')
+    @patch('storage.user_item_storage.get_user_data_dir')
     def test_non_recurring_task_completion(self, mock_get_user_data_dir, temp_user_dir):
         """Test that completing a non-recurring task doesn't create a new instance."""
         user_id, temp_dir = temp_user_dir

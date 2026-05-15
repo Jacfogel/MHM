@@ -39,17 +39,6 @@ def _get_recipient_for_service(
     return delivery.get_recipient_for_service(user_id, messaging_service, preferences)
 
 
-@handle_errors("sending service request check-in prompt", default_return=None)
-def _send_checkin_prompt(
-    delivery: ServiceRequestDeliveryPort,
-    user_id: str,
-    messaging_service: str,
-    recipient: str,
-) -> None:
-    """Send a check-in prompt through the public delivery port."""
-    delivery.send_checkin_prompt(user_id, messaging_service, recipient)
-
-
 @handle_errors("normalizing service request context")
 def _as_context(context_or_service: Any) -> ServiceRequestContext:
     """Normalize explicit contexts and context-capable service wrappers to one shape."""
@@ -432,8 +421,7 @@ def check_checkin_prompt_requests(context: ServiceRequestContext) -> None:
                             )
                             if recipient:
                                 first_question = get_checkin_first_question(user_id)
-                                _send_checkin_prompt(
-                                    context.delivery,
+                                context.delivery.send_checkin_prompt(
                                     user_id, messaging_service, recipient
                                 )
                                 logger.info(

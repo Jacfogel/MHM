@@ -192,7 +192,7 @@ class TestDiscordCheckinRetryBehavior:
             # same check-in prompt send path directly for deterministic
             # queueing verification.
             if comm_manager.retry_manager.get_queue_size() == 0:
-                comm_manager._send_checkin_prompt(
+                comm_manager.send_checkin_prompt(
                     actual_user_id,
                     "discord",
                     f"discord_user:{actual_user_id}",

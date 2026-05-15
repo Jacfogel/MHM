@@ -1,8 +1,8 @@
-"""Unit tests for core.user_data_validation.is_valid_user_id."""
+"""Unit tests for storage.user_data_validation.is_valid_user_id."""
 
 import pytest
 
-from core.user_data_validation import is_valid_user_id
+from storage.user_data_validation import is_valid_user_id
 
 
 pytestmark = [pytest.mark.core]

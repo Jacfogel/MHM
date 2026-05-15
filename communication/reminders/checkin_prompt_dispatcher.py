@@ -78,11 +78,12 @@ class CheckinPromptDispatcher:
             return
 
         if self.should_send_checkin_prompt(user_id, checkin_prefs):
-            self._cm._send_checkin_prompt(user_id, messaging_service, recipient)
+            self._cm.send_checkin_prompt(user_id, messaging_service, recipient)
             logger.info(f"Sent scheduled check-in prompt to user {user_id}")
         else:
             logger.debug(f"Check-in not due yet for user {user_id}")
 
+    # not_duplicate: checkin_prompt_delivery_boundary
     @handle_errors("sending check-in prompt", default_return=None)
     def send_checkin_prompt(self, user_id: str, messaging_service: str, recipient: str):
         """Start the dynamic check-in flow and send its prompt through the channel."""

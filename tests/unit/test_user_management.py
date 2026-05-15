@@ -529,7 +529,7 @@ class TestUserManagementEdgeCases:
         # Get the actual user ID (UUID) that was created to find the correct directory
         # Serial execution ensures index is updated before lookup
         from core import get_user_id_by_identifier
-        from core.user_data_operations import rebuild_user_index
+        from storage.user_data_operations import rebuild_user_index
 
         # Rebuild index to ensure user is discoverable (serial execution ensures this works)
         rebuild_user_index()

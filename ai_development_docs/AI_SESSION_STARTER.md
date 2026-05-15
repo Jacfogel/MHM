@@ -74,6 +74,9 @@ Use these AI docs as your primary routing table; they, in turn, point to detaile
   - Quick reference for using `development_tools/legacy/fix_legacy_references.py` and the `legacy` command.  
   - Tightly coupled with [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) and the legacy reports described there.
 
+- **User-data storage** - `storage/user_data_registry.py`, `storage/user_data_read.py`, `storage/user_data_write.py`, `storage/user_data_validation.py`
+  - Persistence implementation ownership lives in `storage.*`; `core` keeps package-level facade exports only.
+
 ## 3. Safe Change Rules
 
 Follow these high-level rules whenever you propose or describe changes:
@@ -159,7 +162,7 @@ Use this as a routing table for common request types.
 - `run_headless_service.py` - service entry point for collaborators.
 - `run_mhm.py` - admin UI entry point.
 - `core/service.py`, `core/config.py` - service lifecycle and configuration.
-- `core/user_data_registry.py`, `core/user_data_read.py`, `core/user_data_write.py`, `core/user_data_validation.py` - user data helpers and validation.
+- `storage/user_data_registry.py`, `storage/user_data_read.py`, `storage/user_data_write.py`, `storage/user_data_validation.py` - user data helpers and validation.
 - `communication/core/channel_orchestrator.py` - channel coordination.
 
 #### 3.2. Data flow patterns

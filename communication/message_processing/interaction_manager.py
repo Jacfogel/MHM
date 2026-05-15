@@ -1532,6 +1532,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
             logger.error(f"Error extracting intent from text: {e}")
             return None
 
+    # not_duplicate: intent_validation_delegates
     @handle_errors("checking if intent is valid", default_return=False)
     def _is_valid_intent(self, intent: str) -> bool:
         """Check if intent is supported by any handler"""
