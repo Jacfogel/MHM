@@ -3,11 +3,18 @@
 from pathlib import Path
 import pytest
 
-from tests.development_tools.conftest import load_development_tools_module
+from tests.development_tools.conftest import load_development_tools_module, temp_project_copy_paths
 
 
 ruff_module = load_development_tools_module("static_checks.analyze_ruff")
 pyright_module = load_development_tools_module("static_checks.analyze_pyright")
+
+
+@pytest.fixture(scope="module")
+def temp_project_copy():
+    """One demo-tree copy per module (avoids ~5s copytree setup per test)."""
+    fixture_path = Path(__file__).parent.parent / "fixtures" / "development_tools_demo"
+    yield from temp_project_copy_paths(fixture_path.resolve())
 
 
 @pytest.mark.unit

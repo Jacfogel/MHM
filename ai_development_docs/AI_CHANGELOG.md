@@ -51,6 +51,12 @@ Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency a
 - ERROR_HANDLING_GUIDE pair Section 2.6 documents `MHMService` fatal startup exception types (no `InitializationError` on `core`)
 - Service startup uses `CommunicationError` / `SchedulerError` (plus `ConfigurationError` / `ConfigValidationError` on the critical path); removed `InitializationError` and its `core` lazy export (`DEPRECATION_INVENTORY`: `core_initialization_error_exception`)
 - Single process-wide `atexit` hook targets the most recently constructed `MHMService` (avoids stacked handlers in tests)
+- Regenerated ranked priorities layout in [`report_generation.py`](../development_tools/shared/service/report_generation.py): `AI_PRIORITIES.md` / `DEV_TOOLS_PRIORITIES.md` now put each numbered **title** on its own line and emit the summary as the first sub-bullet (re-run `audit` to refresh the markdown files)
+- Re-investigated dev-tools pytest slowness (**Section 7.23**): count still 1479 tests; bottleneck is function-scoped `temp_project_copy` (~3-5s setup/test); documented profiling commands and promoted **Section 1.8** fixture-scope work
+- **Section 1.8**: module-scoped `temp_project_copy` in hot dev-tools test modules via `temp_project_copy_paths` in [`conftest.py`](../tests/development_tools/conftest.py); `test_fix_project_cleanup.py` kept function-scoped (shared mutations); fixed `test_run_generate_test_coverage_report_fails_when_coverage_json_missing` isolation (unlink stale `coverage.json` on module-scoped tree)
+- **`run_tests.py` SIGINT policy**: match audit multi-tap (**5** distinct Ctrl+C within 2s by default, debounced bursts); fixes intermittent stops ~68% through dev-tools runs when static/audit strict tests run; optional `MHM_TESTS_SIGINT_TAPS_TO_STOP=2` for debugging; module-scoped `temp_project_copy` on `test_audit_strict_mode.py` and `test_static_analysis_tools.py`
+- Tier 3 audit fix: `test_run_dev_tools_coverage_sets_development_tools_outcome` forces `_is_coverage_file_fresh` false so a present `coverage_dev_tools.json` does not short-circuit to `skipped` when asserting failed dev-tools pytest outcome from structured JSON
+- Ruff: removed duplicate `Path` import in `test_tool_wrappers_additional.py` (F811); `doc-fix --fix-ascii` + `doc-sync` for changelog ASCII compliance
 
 ### 2026-05-14 - Storage Follow-up Cleanup **COMPLETED**
 - Migrated test and test-support imports from legacy `core.user_data_*` / `core.user_item_storage` bridge paths to the new `storage.*` owners.

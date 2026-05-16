@@ -206,8 +206,9 @@ Each block mirrors **AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md** section numbering. Co
 
 #### 1.8 Improve slow development tools tests (residual)
 
-- **Deferred (no batch change)**: Consider `scope="module"` for `temp_project_copy` where tests do not mutate shared state — **2026-03-24 V4**: shared-state risk; prefer **per-test review** when touching slow tests.
-- **Note**: Concurrent worker fallback 4→6 and `@pytest.mark.slow` on heavy tests were completed; full-suite timing remains environment-dependent.
+- **Active (2026-05-16, from §7.23)**: Primary lever is **`temp_project_copy` scope** — function scope costs **~3–5s setup per test** under parallel load. **Landed**: module-scoped override in four hot files (see §7.23 **Done 2026-05-16**); `test_fix_project_cleanup.py` remains function-scoped. **Next**: `test_report_generation_quick_wins.py` and other high-count modules when touched.
+- **Deferred (no batch change without review)**: Each module must be checked for tests that mutate the copied tree in place (report/status files, cleanup tests). **2026-03-24 V4**: shared-state risk; prefer **per-module review** when widening fixture scope.
+- **Note**: Concurrent worker fallback 4→6 and `@pytest.mark.slow` on heavy tests were completed; full-suite timing remains environment-dependent. Local quick loop: `-m "not slow and not e2e"` once more modules are marked.
 
 #### 1.9 Tier 3 coverage and test execution by audit scope (orchestration)
 
@@ -662,6 +663,23 @@ Outstanding product/codebase work **surfaced by tools**, not dev-tools implement
 
 #### 7.23 development tools tests take a particularly long time, we've investigated this before so there should be a script or tool or something or it, but it's been a while and it's ballooned again, so a new investigation is appropriate
   - **2026-05-11 investigation**: `pytest --collect-only -q -m "not e2e" tests/development_tools/` currently selects **1479** dev-tools tests (1 deselected), up from the latest dev-tools coverage log's **1405 passed in 366.93s** on 2026-05-02. Existing profiling path remains `python run_tests.py --mode development_tools --durations-all`; the latest dev-tools coverage log's slowest entries are setup-heavy (~6s each) across audit orchestration, quick-wins/report generation, tool wrapper branch-path, project cleanup, and coverage-regeneration tests.
+  - **2026-05-16 investigation (re-run)**:
+    - **Collection count unchanged**: still **1479/1480 selected** (1 deselected). The “balloon” is **wall-clock per test**, not more tests since 2026-05-11.
+    - **Profiling paths** (pytest, not audit tools):
+      - Full suite + durations: `python run_tests.py --mode development_tools --durations-all`
+      - Fast targeted slice (hot modules):  
+        `python -m pytest tests/development_tools/test_audit_orchestration_helpers.py tests/development_tools/test_report_generation_quick_wins.py tests/development_tools/test_tool_wrappers_branch_paths.py tests/development_tools/test_fix_project_cleanup.py tests/development_tools/test_generate_consolidated_report.py tests/development_tools/test_commands_additional_helpers.py -q --durations=20 -o addopts= -m "not e2e"`
+      - Baseline without project copy: `test_example_marker_validation.py` + `test_exclusion_utilities.py` → **34 passed in 2.38s** (setup ~0.78s).
+    - **Targeted slice result**: **169 passed in 597.24s** (~9m57s serial). **All top 20 slowest entries are `setup` (~3.0–4.5s each)**; call/teardown negligible.
+    - **Root cause**: function-scoped [`temp_project_copy`](../tests/development_tools/conftest.py) runs `shutil.copytree` of [`tests/fixtures/development_tools_demo`](../tests/fixtures/development_tools_demo) **once per test** (~28 modules / **~478** test functions declare it). Demo tree is small (24 files); cost is **per-test copy + dev-tools import/bootstrap**, not fixture size.
+    - **Not the same tool**: [`measure_tool_timings.py`](shared/measure_tool_timings.py) profiles **audit tool** wall clock, not pytest; use it for Tier 3 tool latency, not dev-tools test suite timing.
+    - **Recommended next work** (align with **§1.8**):
+      1. Promote `temp_project_copy` to **`scope="module"`** in modules that only read project layout or write under `temp_output_dir` / unique subdirs (start with `test_audit_orchestration_helpers.py`, `test_commands_additional_helpers.py`, `test_report_generation_quick_wins.py`).
+      2. Split **pure** report/command helpers into tests that never request `temp_project_copy` (several already exist in `test_report_generation_helpers_pure.py` but many still copy).
+      3. Mark remaining integration copies `@pytest.mark.slow` and document `-m "not slow"` for local iteration.
+      4. Re-benchmark after (1): rerun targeted slice expecting setup under ~1s when copy is once-per-module.
+    - **Done 2026-05-16 (§1.8 slice)**: Extracted [`temp_project_copy_paths`](../tests/development_tools/conftest.py); module-scoped `temp_project_copy` override in `test_audit_orchestration_helpers.py`, `test_commands_additional_helpers.py`, `test_data_loading_helpers.py`, `test_report_generation_helpers_pure.py`. **`test_fix_project_cleanup.py` stays function-scoped** (3 failures with module scope: `FileExistsError` from shared mutations). Targeted four-module run ~**103 tests in ~29s** vs ~**597s** before; full five-file run **162 passed in ~209s** (cleanup file still pays per-test copy).
+    - **Status**: investigation **complete**; further **§1.8** work optional (`test_report_generation_quick_wins.py`, other `temp_project_copy` modules).
 
 #### 7.24 disparity between number of tests run duing audit --full and run_tests.py
   - audit --full runs 5764 tests and skips a further 20

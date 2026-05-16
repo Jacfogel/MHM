@@ -471,9 +471,13 @@ def temp_output_dir():
         shutil.rmtree(tmpdir, ignore_errors=True)
 
 
-@pytest.fixture
-def temp_project_copy(demo_project_root):
-    """Create a temporary copy of the demo project for destructive tests."""
+def temp_project_copy_paths(demo_project_root):
+    """
+    Yield a temporary copy of the demo project for destructive tests.
+
+    Shared by function- and module-scoped fixtures. Hot test modules override
+    ``temp_project_copy`` with ``scope="module"`` to avoid per-test copytree cost.
+    """
     tmp_root = project_root / "tests" / "data" / "tmp"
     tmp_root.mkdir(parents=True, exist_ok=True)
     base_dir = tmp_root / f"devtools_project_{uuid.uuid4().hex}"
@@ -511,6 +515,19 @@ def temp_project_copy(demo_project_root):
         yield copy_path
     finally:
         shutil.rmtree(base_dir, ignore_errors=True)
+
+
+@pytest.fixture
+def temp_project_copy(demo_project_root):
+    """Create a temporary copy of the demo project for destructive tests."""
+    yield from temp_project_copy_paths(demo_project_root)
+
+
+@pytest.fixture(scope="module")
+def temp_project_copy_module():
+    """Module-scoped demo project copy for hot test modules (faster setup)."""
+    fixture_path = Path(__file__).parent.parent / "fixtures" / "development_tools_demo"
+    yield from temp_project_copy_paths(fixture_path.resolve())
 
 
 @pytest.fixture

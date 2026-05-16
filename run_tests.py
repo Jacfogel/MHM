@@ -50,10 +50,17 @@ RESET = "\033[0m"
 
 ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
-# Global state for interrupt handling
+# Global state for interrupt handling (aligned with audit_signal_state multi-tap policy)
 _interrupt_requested = False
-_last_sigint_time: float | None = None  # for double-tap Ctrl+C to really stop
-_SIGINT_DOUBLE_TAP_SECONDS = 2.0
+_sigint_count_in_window: int = 0
+_last_sigint_count_time: float | None = None
+_SIGINT_WINDOW_SECONDS = float(os.environ.get("MHM_TESTS_SIGINT_WINDOW_SECONDS", "2.0"))
+# Spurious Windows/Cursor events often arrive as pairs; debounce merges a burst into one tap.
+_SIGINT_DEBOUNCE_SECONDS = float(
+    os.environ.get("MHM_TESTS_SIGINT_DEBOUNCE_SECONDS", "0.35")
+)
+# Default 5 taps matches development_tools.shared.audit_signal_state (Tier 3 propagation).
+_SIGINT_TAPS_TO_STOP = int(os.environ.get("MHM_TESTS_SIGINT_TAPS_TO_STOP", "5"))
 _current_process = None
 _current_junit_xml = None
 _partial_results_file = Path("tests/logs/partial_results.json")
@@ -275,15 +282,31 @@ def _approximate_test_from_captured_output(captured_lines: list) -> str | None:
 
 @handle_errors("handling interrupt signal", user_friendly=False, default_return=None)
 def interrupt_handler(signum, frame):
-    """Handle interrupt signals (Ctrl+C). Single SIGINT is ignored (spurious); two within 2s stops the run."""
-    global _interrupt_requested, _captured_output_lines, _current_test_context, _last_sigint_time
+    """Handle interrupt signals (Ctrl+C).
+
+    Requires ``_SIGINT_TAPS_TO_STOP`` distinct taps within ``_SIGINT_WINDOW_SECONDS``
+    (default 5 in 2s). Bursts closer than ``_SIGINT_DEBOUNCE_SECONDS`` count as one tap.
+    """
+    global _interrupt_requested, _captured_output_lines, _current_test_context
+    global _sigint_count_in_window, _last_sigint_count_time
     now = time.time()
-    if _last_sigint_time is not None and (now - _last_sigint_time) <= _SIGINT_DOUBLE_TAP_SECONDS:
+    if _last_sigint_count_time is not None:
+        elapsed = now - _last_sigint_count_time
+        if elapsed < _SIGINT_DEBOUNCE_SECONDS:
+            return
+        if elapsed > _SIGINT_WINDOW_SECONDS:
+            _sigint_count_in_window = 0
+    _sigint_count_in_window += 1
+    _last_sigint_count_time = now
+    if _sigint_count_in_window >= _SIGINT_TAPS_TO_STOP:
         _interrupt_requested = True
-        _last_sigint_time = None
-        print(f"\n{YELLOW}[INTERRUPT]{RESET} Second Ctrl+C within 2s - stopping run.")
+        _sigint_count_in_window = 0
+        _last_sigint_count_time = None
+        print(
+            f"\n{YELLOW}[INTERRUPT]{RESET} {_SIGINT_TAPS_TO_STOP} Ctrl+C within "
+            f"{int(_SIGINT_WINDOW_SECONDS)}s - stopping run."
+        )
         return
-    _last_sigint_time = now
     try:
         signal_name = signal.Signals(signum).name
     except Exception:
@@ -294,9 +317,10 @@ def interrupt_handler(signum, frame):
         if location
         else ""
     )
+    remaining = _SIGINT_TAPS_TO_STOP - _sigint_count_in_window
     print(
-        f"\n{YELLOW}[SIGINT]{RESET} Received {signal_name} - ignoring.{location_part} "
-        f"Press Ctrl+C again within {int(_SIGINT_DOUBLE_TAP_SECONDS)}s to stop the run."
+        f"\n{YELLOW}[SIGINT]{RESET} Received {signal_name} - ignoring ({remaining} more within "
+        f"{int(_SIGINT_WINDOW_SECONDS)}s to stop).{location_part}"
     )
     return
 
@@ -1517,11 +1541,12 @@ def run_command(
     Returns:
         dict with 'success', 'output', 'results', 'duration', 'warnings', 'failures' keys
     """
-    global _interrupt_requested, _current_process, _current_junit_xml, _last_output_time, _captured_output_lines, _current_test_context, _current_console_output_file, _last_sigint_time
+    global _interrupt_requested, _current_process, _current_junit_xml, _last_output_time, _captured_output_lines, _current_test_context, _current_console_output_file, _sigint_count_in_window, _last_sigint_count_time
 
     _current_test_context = test_context
     _interrupt_requested = False
-    _last_sigint_time = None
+    _sigint_count_in_window = 0
+    _last_sigint_count_time = None
     _last_output_time = None
     _captured_output_lines = []
     _current_console_output_file = (

@@ -5721,7 +5721,9 @@ class ReportGenerationMixin:
             for idx, item in enumerate(
                 sorted(priority_items, key=lambda entry: entry["order"]), start=1
             ):
-                lines.append(f"{idx}. **{item['title']}**  -  {item['reason']}")
+                # Title on its own line (trailing spaces = Markdown line break in many viewers).
+                lines.append(f"{idx}. **{item['title']}**  ")
+                lines.append(f"   -  {item['reason']}")
                 for bullet in item["bullets"]:
                     bullet = _linkify_review_paths_bullet(bullet)
                     # Further indent top-3 list items (numbered or "Group N")
@@ -5729,7 +5731,7 @@ class ReportGenerationMixin:
                         re.match(r"^\d+\.\s", bullet.strip())
                         or bullet.strip().startswith("Group ")
                     )
-                    prefix = "     - " if is_sub_bullet else "   - "
+                    prefix = "     - " if is_sub_bullet else "   -  "
                     lines.append(f"{prefix}{bullet}")
         else:
             lines.append(

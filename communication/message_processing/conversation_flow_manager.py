@@ -1792,6 +1792,7 @@ class ConversationManager:
             "end_time": format_timestamp(reminder_end, TIME_ONLY_MINUTE),
         }
 
+    # duplicate_functions_intentional: task_followup_flow_starters
     @handle_errors("starting task due date flow", default_return=None)
     def start_task_due_date_flow(
         self, user_id: str, task_id: str, ask_priority: bool = False
@@ -1822,6 +1823,7 @@ class ConversationManager:
             "task reminder follow-up flow",
         )
 
+    # duplicate_functions_intentional: task_followup_flow_starters
     @handle_errors("starting task priority flow", default_return=None)
     def start_task_priority_flow(
         self, user_id: str, task_id: str, ask_reminders: bool = True

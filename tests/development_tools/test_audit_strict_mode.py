@@ -1,16 +1,24 @@
 """Tests for strict mode and Tier 3 test outcome semantics."""
 
+from pathlib import Path
 from unittest.mock import MagicMock
 import json
 
 import pytest
 
-from tests.development_tools.conftest import load_development_tools_module
+from tests.development_tools.conftest import load_development_tools_module, temp_project_copy_paths
 
 service_module = load_development_tools_module("shared.service")
 coverage_module = load_development_tools_module("tests.run_test_coverage")
 AIToolsService = service_module.AIToolsService
 CoverageMetricsRegenerator = coverage_module.CoverageMetricsRegenerator
+
+
+@pytest.fixture(scope="module")
+def temp_project_copy():
+    """One demo-tree copy per module (avoids ~5s copytree setup per test)."""
+    fixture_path = Path(__file__).parent.parent / "fixtures" / "development_tools_demo"
+    yield from temp_project_copy_paths(fixture_path.resolve())
 
 
 @pytest.mark.unit
@@ -593,6 +601,8 @@ def test_run_dev_tools_coverage_sets_development_tools_outcome(
 ):
     """Dev tools coverage execution should populate tier3_test_outcome.development_tools."""
     service = AIToolsService(project_root=str(temp_project_copy))
+    # Force subprocess outcome path: a fresh coverage_dev_tools.json alone would skip the run.
+    monkeypatch.setattr(service, "_is_coverage_file_fresh", lambda *args, **kwargs: False)
 
     dev_tools_coverage_file = (
         temp_project_copy

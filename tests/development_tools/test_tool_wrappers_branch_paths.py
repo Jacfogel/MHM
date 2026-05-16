@@ -1,14 +1,23 @@
 """Branch-focused tests for shared/service/tool_wrappers.py."""
 
+from pathlib import Path
+
 import pytest
 
-from tests.development_tools.conftest import load_development_tools_module
+from tests.development_tools.conftest import load_development_tools_module, temp_project_copy_paths
 
 
 service_module = load_development_tools_module("shared.service")
 tool_wrappers_module = load_development_tools_module("shared.service.tool_wrappers")
 output_storage_module = load_development_tools_module("shared.output_storage")
 AIToolsService = service_module.AIToolsService
+
+
+@pytest.fixture(scope="module")
+def temp_project_copy():
+    """One demo-tree copy per module (avoids ~5s copytree setup per test)."""
+    fixture_path = Path(__file__).parent.parent / "fixtures" / "development_tools_demo"
+    yield from temp_project_copy_paths(fixture_path.resolve())
 
 
 @pytest.mark.unit
@@ -307,6 +316,12 @@ def test_run_analyze_error_handling_skips_cache_when_script_failed(temp_project_
 @pytest.mark.unit
 def test_run_generate_test_coverage_report_fails_when_coverage_json_missing(temp_project_copy):
     """Coverage report generation should require pre-existing coverage.json data."""
+    coverage_json = (
+        temp_project_copy / "development_tools" / "tests" / "jsons" / "coverage.json"
+    )
+    # Module-scoped copy: a sibling test may create this file first under xdist/order.
+    coverage_json.unlink(missing_ok=True)
+
     service = AIToolsService(project_root=str(temp_project_copy))
 
     result = service.run_generate_test_coverage_report()
