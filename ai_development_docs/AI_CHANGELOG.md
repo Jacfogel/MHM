@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-16 - Check-in Emoji Fix and Tier 3 Test Stability **COMPLETED**
+- Restored UTF-8 emojis and bullets in user-facing communication strings (check-in intro/completion, welcome, account messages) that had been saved as Latin-1 mojibake (`ðŸŒŸ` instead of stars, etc.)
+- Marked `tests/unit/test_checkin_management_dialog.py` with module-level `@pytest.mark.no_parallel` after Tier 3 parallel run crashed on Windows (Qt access violation in `CheckinSettingsWidget._setup_question_count_controls` under xdist)
+- User confirmed full `audit --full` passes; `AI_PRIORITIES.md` no longer lists the test-pipeline crash item
+
 ### 2026-05-15 - Launcher Module Modernization **COMPLETED**
 
 Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency and maintainability.

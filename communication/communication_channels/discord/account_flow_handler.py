@@ -287,13 +287,13 @@ class CreateAccountButton(discord.ui.Button):
             try:
                 if interaction.message:
                     await interaction.message.edit(
-                        content=f"âœ… **Account created successfully!**\n\n"
+                        content=f"✅ **Account created successfully!**\n\n"
                         f"Username: `{self.parent_view.username}`\n"
                         f"Features enabled:\n"
-                        f"â€¢ Task Management: {'âœ…' if self.parent_view.tasks_enabled else 'âŒ'}\n"
-                        f"â€¢ Check-ins: {'âœ…' if self.parent_view.checkins_enabled else 'âŒ'}\n"
-                        f"â€¢ Automated Messages: {'âœ…' if self.parent_view.messages_enabled else 'âŒ'}\n"
-                        f"â€¢ Timezone: {self.parent_view.timezone}",
+                        f"• Task Management: {'✅' if self.parent_view.tasks_enabled else '❌'}\n"
+                        f"• Check-ins: {'✅' if self.parent_view.checkins_enabled else '❌'}\n"
+                        f"• Automated Messages: {'✅' if self.parent_view.messages_enabled else '❌'}\n"
+                        f"• Timezone: {self.parent_view.timezone}",
                         view=None,  # Remove the view
                     )
             except Exception as e:
@@ -372,21 +372,21 @@ async def start_account_creation_flow(
             # Validate username
             if not username or len(username) < 3:
                 await modal_interaction.response.send_message(
-                    "âŒ Username must be at least 3 characters long.", ephemeral=True
+                    "❌ Username must be at least 3 characters long.", ephemeral=True
                 )
                 return
 
             # Check if username already exists
             if _account_handler._username_exists(username):
                 await modal_interaction.response.send_message(
-                    f"âŒ Username '{username}' is already taken. Please choose a different username.",
+                    f"❌ Username '{username}' is already taken. Please choose a different username.",
                     ephemeral=True,
                 )
                 return
 
             # After username is validated, show feature selection view
             await modal_interaction.response.send_message(
-                f"âœ… Username '{username}' is available!\n\n"
+                f"✅ Username '{username}' is available!\n\n"
                 f"Now let's configure your account. Please select which features you'd like to enable:",
                 view=FeatureSelectionView(username, discord_user_id),
                 ephemeral=True,
@@ -440,7 +440,7 @@ async def start_account_linking_flow(
             # Validate username
             if not username or len(username) < 3:
                 await modal_interaction.response.send_message(
-                    "âŒ Username must be at least 3 characters long.", ephemeral=True
+                    "❌ Username must be at least 3 characters long.", ephemeral=True
                 )
                 return
 
@@ -516,7 +516,7 @@ async def start_account_linking_flow(
                                         f"Error linking account for Discord user {discord_user_id}: {e}"
                                     )
                                     await confirm_interaction.response.send_message(
-                                        "âŒ An error occurred while linking your account. Please try again.",
+                                        "❌ An error occurred while linking your account. Please try again.",
                                         ephemeral=True,
                                     )
 
@@ -543,7 +543,7 @@ async def start_account_linking_flow(
                     f"Error in account linking flow for Discord user {discord_user_id}: {e}"
                 )
                 await modal_interaction.response.send_message(
-                    "âŒ An error occurred. Please try again.", ephemeral=True
+                    "❌ An error occurred. Please try again.", ephemeral=True
                 )
 
     # Send modal via response (modals must be sent via response, not followup)

@@ -16,6 +16,10 @@ from tests.conftest import ensure_qt_runtime
 ensure_qt_runtime()
 
 import pytest
+
+# Qt dialog/widget tests: serial only — parallel xdist on Windows can access-violate in
+# CheckinSettingsWidget._setup_question_count_controls (see Tier 3 crash 2026-05-16).
+pytestmark = pytest.mark.no_parallel
 import uuid
 from unittest.mock import patch, Mock
 from PySide6.QtWidgets import QApplication, QWidget

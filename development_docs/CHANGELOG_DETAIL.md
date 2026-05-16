@@ -33,6 +33,21 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-05-16 - Check-in Emoji Encoding and Parallel Test Crash **COMPLETED**
+
+#### User-facing text (mojibake)
+- **Problem**: Scheduled check-ins and related messages showed garbled emoji (e.g. `ðŸŒŸ Check-in Time!`) because UTF-8 sequences had been stored in source as if they were Latin-1.
+- **Fix**: Replaced mojibake with correct Unicode in communication modules:
+  - [`conversation_flow_manager.py`](../communication/message_processing/conversation_flow_manager.py) — check-in intro, welcome, completion insights, help bullets, task/note flow strings
+  - [`welcome_manager.py`](../communication/core/welcome_manager.py) — Discord welcome copy
+  - [`account_handler.py`](../communication/command_handlers/account_handler.py), [`profile_handler.py`](../communication/command_handlers/profile_handler.py), [`account_flow_handler.py`](../communication/communication_channels/discord/account_flow_handler.py) — account/link success messages
+- **Impact**: Check-in prompts and completion messages display intended emoji on Discord and other channels after service restart.
+
+#### Tier 3 test pipeline (xdist worker crash)
+- **Problem**: `audit --full` parallel track exited `0x00000001` at ~99% with `xdist_worker_crash_output`; worker `gw0` died on `test_load_user_checkin_data_loads_settings` (Windows access violation in `CheckinSettingsWidget._setup_question_count_controls` during `QApplication.processEvents()`).
+- **Fix**: Module-level `pytestmark = pytest.mark.no_parallel` on [`tests/unit/test_checkin_management_dialog.py`](../tests/unit/test_checkin_management_dialog.py) (same policy as [`test_checkin_settings_widget_question_counts.py`](../tests/ui/test_checkin_settings_widget_question_counts.py)); parallel runs deselect these tests; serial phase runs all 21.
+- **Validation**: 21/21 pass serial (`-m no_parallel`); 0 collected under `-m "not no_parallel"`; user re-ran `audit --full` successfully (priorities regenerated 2026-05-16 14:41).
+
 ### 2026-05-15 - Launcher Module Cleanup and Modernization **COMPLETED**
 
 Improved both launcher entry-point modules (`run_mhm.py` and `run_headless_service.py`) for consistency, reliability, and alignment with current architecture standards.

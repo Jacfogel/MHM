@@ -134,7 +134,7 @@ def get_welcome_message(
     """
     if is_authorization:
         # User just authorized/connected the app
-        message = """ðŸ‘‹ **Welcome to MHM (Motivational Health Messages)!**
+        message = """👋 **Welcome to MHM (Motivational Health Messages)!**
 
 Thank you for connecting MHM! I'm your personal motivational health assistant, and I'm here to send you encouraging messages, help you manage tasks, check-in with yourself and analyse trends, and provide personalized support.
 
@@ -144,22 +144,22 @@ Use the buttons below to create a new account or link to an existing one.
 
 **Once your account is linked, you can:**
 
-â€¢ Create and manage tasks with reminders
-â€¢ Set up check-ins
-â€¢ Get personalized AI-powered support
-â€¢ Manage your mental health goals
+• Create and manage tasks with reminders
+• Set up check-ins
+• Get personalized AI-powered support
+• Manage your mental health goals
 
 **Try these commands:**
 
-â€¢ `/help` - See all available commands
-â€¢ `create task [description]` - Create a new task
-â€¢ `show my tasks` - View your tasks
-â€¢ `show my profile` - View your profile (once linked)
+• `/help` - See all available commands
+• `create task [description]` - Create a new task
+• `show my tasks` - View your tasks
+• `show my profile` - View your profile (once linked)
 
-Feel free to ask me anything! I'm here to help. ðŸš€"""
+Feel free to ask me anything! I'm here to help. 🚀"""
     else:
         # General welcome message
-        message = """ðŸ‘‹ **Welcome to MHM (Motivational Health Messages)!**
+        message = """👋 **Welcome to MHM (Motivational Health Messages)!**
 
 I'm your motivational health assistant, and I'm here to help you manage tasks, check-ins, and more.
 
@@ -167,15 +167,15 @@ I'm your motivational health assistant, and I'm here to help you manage tasks, c
 
 **Once your account is linked, you can:**
 
-â€¢ Create and manage tasks
-â€¢ Set up reminders
-â€¢ Start check-ins
-â€¢ Get personalized support
+• Create and manage tasks
+• Set up reminders
+• Start check-ins
+• Get personalized support
 
 **Need help?** Just ask! Try commands like:
-â€¢ `/help` - See available commands
-â€¢ `show my profile` - View your profile (once linked)
+• `/help` - See available commands
+• `show my profile` - View your profile (once linked)
 
-I'll be here when you're ready! ðŸš€"""
+I'll be here when you're ready! 🚀"""
 
     return message

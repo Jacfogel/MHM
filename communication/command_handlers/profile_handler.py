@@ -206,14 +206,14 @@ class ProfileHandler(InteractionHandler):
         )
         if result.failed_field == "email":
             return InteractionResponse(
-                "âŒ Failed to update email. Please try again.", True
+                "❌ Failed to update email. Please try again.", True
             )
         if not result.success:
             return InteractionResponse(
-                "âŒ Failed to update profile. Please try again.", True
+                "❌ Failed to update profile. Please try again.", True
             )
         if result.updates:
-            response = f"âœ… Profile updated: {', '.join(result.updates)}"
+            response = f"✅ Profile updated: {', '.join(result.updates)}"
             return InteractionResponse(
                 response,
                 True,

@@ -82,14 +82,14 @@ class AccountManagementHandler(InteractionHandler):
         # Validate username
         if len(username) < 3:
             return InteractionResponse(
-                "âŒ Username must be at least 3 characters long. Please choose a different username.",
+                "❌ Username must be at least 3 characters long. Please choose a different username.",
                 completed=False,
             )
 
         # Check if username already exists
         if self._username_exists(username):
             return InteractionResponse(
-                f"âŒ Username '{username}' is already taken. Please choose a different username.",
+                f"❌ Username '{username}' is already taken. Please choose a different username.",
                 completed=False,
             )
 
@@ -142,15 +142,15 @@ class AccountManagementHandler(InteractionHandler):
                 )
 
                 return InteractionResponse(
-                    f"âœ… **Account created successfully!**\n\n"
+                    f"✅ **Account created successfully!**\n\n"
                     f"Your MHM username: `{username}`\n"
                     f"Your account is now linked to your {channel_type} account.\n\n"
                     f"You can now use commands like:\n"
-                    f"â€¢ `/help` - See all available commands\n"
-                    f"â€¢ `/profile` - View your profile\n"
-                    f"â€¢ `create task [description]` - Create a new task\n"
-                    f"â€¢ `show my tasks` - View your tasks\n\n"
-                    f"Welcome to MHM! ðŸš€",
+                    f"• `/help` - See all available commands\n"
+                    f"• `/profile` - View your profile\n"
+                    f"• `create task [description]` - Create a new task\n"
+                    f"• `show my tasks` - View your tasks\n\n"
+                    f"Welcome to MHM! 🚀",
                     completed=True,
                     rich_data={
                         "type": "account_created",
@@ -160,13 +160,13 @@ class AccountManagementHandler(InteractionHandler):
                 )
             else:
                 return InteractionResponse(
-                    "âŒ Failed to create account. Please try again or contact support.",
+                    "❌ Failed to create account. Please try again or contact support.",
                     completed=False,
                 )
         except Exception as e:
             logger.error(f"Error creating account: {e}")
             return InteractionResponse(
-                "âŒ An error occurred while creating your account. Please try again.",
+                "❌ An error occurred while creating your account. Please try again.",
                 completed=False,
             )
 
@@ -202,7 +202,7 @@ class AccountManagementHandler(InteractionHandler):
         # Validate username
         if len(username) < 3:
             return InteractionResponse(
-                "âŒ Username must be at least 3 characters long. Please check your username and try again.",
+                "❌ Username must be at least 3 characters long. Please check your username and try again.",
                 completed=False,
             )
 
@@ -210,7 +210,7 @@ class AccountManagementHandler(InteractionHandler):
         existing_user_id = self._get_user_id_by_username(username)
         if not existing_user_id:
             return InteractionResponse(
-                f"âŒ Username '{username}' not found. Please check your username and try again.",
+                f"❌ Username '{username}' not found. Please check your username and try again.",
                 completed=False,
             )
 
@@ -223,7 +223,7 @@ class AccountManagementHandler(InteractionHandler):
             existing_discord_id = account_data.get("discord_user_id", "")
             if existing_discord_id and existing_discord_id != channel_identifier:
                 return InteractionResponse(
-                    "âŒ This account is already linked to a different Discord account.\n"
+                    "❌ This account is already linked to a different Discord account.\n"
                     "If this is your account, please contact support.",
                     completed=False,
                 )
@@ -231,7 +231,7 @@ class AccountManagementHandler(InteractionHandler):
             existing_email = account_data.get("email", "")
             if existing_email and existing_email.lower() != channel_identifier.lower():
                 return InteractionResponse(
-                    "âŒ This account is already linked to a different email address.\n"
+                    "❌ This account is already linked to a different email address.\n"
                     "If this is your account, please contact support.",
                     completed=False,
                 )
@@ -260,7 +260,7 @@ class AccountManagementHandler(InteractionHandler):
 
             if code_sent:
                 return InteractionResponse(
-                    "âœ… **Confirmation code sent!**\n\n"
+                    "✅ **Confirmation code sent!**\n\n"
                     "A confirmation code has been sent to the email address associated with your MHM account.\n"
                     "Please check your email and enter the code here to complete the linking process.",
                     completed=False,
@@ -273,7 +273,7 @@ class AccountManagementHandler(InteractionHandler):
                 )
             else:
                 return InteractionResponse(
-                    "âŒ Could not send confirmation code. This account may not have an email address configured.\n"
+                    "❌ Could not send confirmation code. This account may not have an email address configured.\n"
                     "Please contact support for assistance.",
                     completed=False,
                 )
@@ -283,13 +283,13 @@ class AccountManagementHandler(InteractionHandler):
 
         if not pending or pending["operation_type"] != "link":
             return InteractionResponse(
-                "âŒ No pending account linking operation found. Please start over.",
+                "❌ No pending account linking operation found. Please start over.",
                 completed=False,
             )
 
         if confirmation_code.strip() != pending["confirmation_code"]:
             return InteractionResponse(
-                f"âŒ Invalid confirmation code. Please check your {channel_type} and try again.",
+                f"❌ Invalid confirmation code. Please check your {channel_type} and try again.",
                 completed=False,
             )
 
@@ -305,7 +305,7 @@ class AccountManagementHandler(InteractionHandler):
 
             if not success:
                 return InteractionResponse(
-                    "âŒ Failed to link account. Please try again or contact support.",
+                    "❌ Failed to link account. Please try again or contact support.",
                     completed=False,
                 )
 
@@ -320,14 +320,14 @@ class AccountManagementHandler(InteractionHandler):
             del _pending_link_operations[channel_identifier]
 
             return InteractionResponse(
-                f"âœ… **Account linked successfully!**\n\n"
+                f"✅ **Account linked successfully!**\n\n"
                 f"Your MHM account (`{username}`) is now linked to your {channel_type} account.\n\n"
                 f"You can now use commands like:\n"
-                f"â€¢ `/help` - See all available commands\n"
-                f"â€¢ `/profile` - View your profile\n"
-                f"â€¢ `create task [description]` - Create a new task\n"
-                f"â€¢ `show my tasks` - View your tasks\n\n"
-                f"Welcome back! ðŸš€",
+                f"• `/help` - See all available commands\n"
+                f"• `/profile` - View your profile\n"
+                f"• `create task [description]` - Create a new task\n"
+                f"• `show my tasks` - View your tasks\n\n"
+                f"Welcome back! 🚀",
                 completed=True,
                 rich_data={
                     "type": "account_linked",
@@ -338,7 +338,7 @@ class AccountManagementHandler(InteractionHandler):
         except Exception as e:
             logger.error(f"Error linking account: {e}")
             return InteractionResponse(
-                "âŒ An error occurred while linking your account. Please try again.",
+                "❌ An error occurred while linking your account. Please try again.",
                 completed=False,
             )
 
@@ -353,7 +353,7 @@ class AccountManagementHandler(InteractionHandler):
             username = account_data.get("internal_username", "Unknown")
 
             return InteractionResponse(
-                f"âœ… You have a MHM account linked!\n"
+                f"✅ You have a MHM account linked!\n"
                 f"Your account username: `{username}`\n"
                 f"Use `/profile` to view your profile or `/help` to see available commands.",
                 completed=True,
@@ -365,7 +365,7 @@ class AccountManagementHandler(InteractionHandler):
             )
         else:
             return InteractionResponse(
-                "âŒ No MHM account found linked to this account.\n"
+                "❌ No MHM account found linked to this account.\n"
                 "Use the account creation or linking options to get started.",
                 completed=False,
                 rich_data={"type": "account_status", "has_account": False},
