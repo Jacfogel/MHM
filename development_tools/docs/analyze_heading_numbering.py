@@ -101,17 +101,22 @@ class HeadingNumberingAnalyzer:
         files_to_check = list(DEFAULT_DOCS)
 
         def is_changelog_file(filepath: str) -> bool:
-            """Check if a file is a changelog, plan, or TODO file (should be skipped from numbering checks)."""
-            # Match changelogs, plans, and TODO files
+            """Check if a file should skip heading numbering (changelog, plans, TODO, spec topics)."""
+            normalized = filepath.replace("\\", "/")
             skip_patterns = [
                 r"CHANGELOG",
                 r"PLANS",
                 r"TODO\.md$",
             ]
-            for pattern in skip_patterns:
-                if re.search(pattern, filepath, re.IGNORECASE):
-                    return True
-            return False
+            if any(
+                re.search(pattern, normalized, re.IGNORECASE)
+                for pattern in skip_patterns
+            ):
+                return True
+            # Behavior spec topics use unnumbered headings (see specs/SPECS_GUIDE.md section 4.2).
+            return normalized.startswith("specs/") and not normalized.endswith(
+                "SPECS_GUIDE.md"
+            )
 
         for file_path in files_to_check:
             # Skip changelog files - they have their own structure

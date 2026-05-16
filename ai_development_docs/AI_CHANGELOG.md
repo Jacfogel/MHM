@@ -30,10 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-05-16 - Check-in Emoji Fix and Tier 3 Test Stability **COMPLETED**
-- Restored UTF-8 emojis and bullets in user-facing communication strings (check-in intro/completion, welcome, account messages) that had been saved as Latin-1 mojibake (`ðŸŒŸ` instead of stars, etc.)
+### 2026-05-16 - Check-in Emoji Fix, Specs, and Tier 3 Test Stability **COMPLETED**
+- Restored UTF-8 emojis and bullets in user-facing communication strings (check-in intro/completion, welcome, account messages) that had been saved as Latin-1 mojibake (garbled star/check-in text instead of intended emoji)
 - Marked `tests/unit/test_checkin_management_dialog.py` with module-level `@pytest.mark.no_parallel` after Tier 3 parallel run crashed on Windows (Qt access violation in `CheckinSettingsWidget._setup_question_count_controls` under xdist)
 - User confirmed full `audit --full` passes; `AI_PRIORITIES.md` no longer lists the test-pipeline crash item
+- Added minimal behavior specs: [SPECS_GUIDE.md](../specs/SPECS_GUIDE.md), [discord-welcome-and-onboarding.md](../specs/discord-welcome-and-onboarding.md) (aligned with webhook, bot fallback, and account flows); wired into [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md), [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md), communication guides, `.cursor/rules/communication-guidelines.mdc`, and `development_tools_config.json` (`fix_version_sync.docs`, `constants.fix_version_sync_directories`, `path_drift.ignored_path_patterns`); doc-sync fixes (path drift, ASCII, heading exemptions for spec topics); Ruff SIM103 fixes in heading tools; regenerated `verify_process_cleanup_results.json` for CONSOLIDATED_REPORT link target
 
 ### 2026-05-15 - Launcher Module Modernization **COMPLETED**
 
@@ -140,11 +141,6 @@ Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency a
 - Cleared the remaining advisory hints in `CHANGELOG_DETAIL.md` (backticked truly removed files, pointed `DUPLICATE_FUNCTIONS_INVESTIGATION.md` at the archive copy, updated four V5-relocated JSON references to their `scopes/full/` paths, noted the `core/user_data_v2.py` split). `doc-sync` is now down from 762 to 0 markdown-link-target hints.
 - Scoped `LegacyReferenceFixer.required_pattern_keys` validation to only warn when running against the project that owns the loaded external config (added `config.get_loaded_config_file_path()`), so test fixtures no longer pollute `ai_dev_tools.log` with `dashed_short_id_display` warnings during `audit --full`.
 - Validation: focused link-fixer / path-drift / legacy-cleanup / coverage-metrics tests pass without spurious warnings; Ruff and `doc-fix --dry-run` / `doc-sync` clean.
-
-### 2026-05-08 - Generated report link fixes **COMPLETED**
-- Fixed generated report markdown links that were written as repo-root-relative paths from nested report files, causing editor click-through failures.
-- `AI_PRIORITIES.md` review links now resolve relative to `development_tools/`, and `LEGACY_REFERENCE_REPORT.md` guidance links now resolve relative to `development_docs/`.
-- Added focused regression tests for both link-generation paths and removed the completed TODO item.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -112,7 +112,10 @@ def _is_changelog_file(file_path: Path) -> bool:
     """Determine if a file is a changelog, plan, or TODO file."""
     filename = file_path.name
     skip_patterns = [r"CHANGELOG", r"PLANS", r"^TODO\.md$"]
-    return any(re.search(pattern, filename, re.IGNORECASE) for pattern in skip_patterns)
+    if any(re.search(pattern, filename, re.IGNORECASE) for pattern in skip_patterns):
+        return True
+    normalized = str(file_path).replace("\\", "/")
+    return normalized.startswith("specs/") and not normalized.endswith("SPECS_GUIDE.md")
 
 
 def _remove_emojis_from_text(text: str) -> str:

@@ -9,6 +9,7 @@ This guide describes how messages flow through MHM independent of channel (Disco
 
 For the system-wide view, see section 2. "High-Level Architecture" in [ARCHITECTURE.md](../ARCHITECTURE.md).  
 For Discord-specific details, see section 2. "Discord Channel Architecture" in [DISCORD_GUIDE.md](communication_channels/discord/DISCORD_GUIDE.md).  
+For user-visible behavior requirements (welcome, onboarding, and similar), see [specs/SPECS_GUIDE.md](../specs/SPECS_GUIDE.md) and topic specs such as [specs/discord-welcome-and-onboarding.md](../specs/discord-welcome-and-onboarding.md).  
 For error handling and logging patterns, see section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md) and section 2. "Logging Architecture" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).
 
 ---

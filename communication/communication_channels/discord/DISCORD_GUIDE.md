@@ -178,9 +178,11 @@ The current implementation of `verify_webhook_signature` is a **placeholder**. I
 - Generates a personalized welcome message, usually including:
   - A brief explanation of what MHM does.  
   - A prompt or link to create or link an account.  
-- Tracks welcomed users in a JSON file (e.g., `data/discord_welcome_tracking.json`) to avoid sending multiple welcome messages to the same user.
+- Tracks welcomed users in `data/welcome_tracking.json` (via `communication/core/welcome_manager.py`) to avoid sending multiple welcome messages to the same user.
 
-The webhook path is the *preferred* way to detect initial authorization. If webhook delivery fails, you can supplement onboarding using join events or first-message heuristics.
+Canonical behavior requirements: [specs/discord-welcome-and-onboarding.md](../../../specs/discord-welcome-and-onboarding.md). Spec index: [specs/SPECS_GUIDE.md](../../../specs/SPECS_GUIDE.md).
+
+The webhook path is the *preferred* way to detect initial authorization and includes create/link buttons on the welcome DM. If webhook delivery fails, `bot.py` may send a text-only welcome from `/start` or first interaction heuristics (see the spec for fallback scenarios).
 
 ---
 

@@ -38,6 +38,11 @@ safely.
     For a condensed workflow summary, see
     [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md).
 
+-   **User-visible behavior requirements**  
+    See [specs/SPECS_GUIDE.md](specs/SPECS_GUIDE.md) and capability files under
+    `specs/` (for example
+    [specs/discord-welcome-and-onboarding.md](specs/discord-welcome-and-onboarding.md)).
+
 -   **Architecture and data flow**  
     See [ARCHITECTURE.md](ARCHITECTURE.md) for module layout, data
     handling patterns, and UI architecture.  
@@ -175,6 +180,22 @@ Examples (non-exhaustive):
 
 For generation details and maintenance rules, see section 6, "Generated
 Documentation Standards".
+
+### 2.4. Behavior specifications
+
+Behavior specs are short, testable descriptions of **what the product must do**
+for a focused capability. They are used by both human developers and AI
+collaborators (no separate AI/human pair per spec file).
+
+-   Index and rules: [specs/SPECS_GUIDE.md](specs/SPECS_GUIDE.md)
+-   Topic files: `specs/<topic>.md` (requirements and GIVEN/WHEN/THEN scenarios)
+-   Architecture and patterns stay in module guides (for example
+    [COMMUNICATION_GUIDE.md](communication/COMMUNICATION_GUIDE.md)); specs state
+    observable behavior only.
+
+When to write or update a spec, file naming, templates, and workflow are defined in
+[specs/SPECS_GUIDE.md](specs/SPECS_GUIDE.md). Spec topic files are exempt from H2
+numbering (see section 3.5).
 
 ## 3. Standards and Templates
 
@@ -318,8 +339,9 @@ All main documentation files must use numbered H2 and H3 headings:
 
 Exceptions:
 
-Changelog files, plan files, and TODO.md are excluded from numbering as
-they have their own structure.
+Changelog files, plan files, TODO.md, and behavior spec topic files under
+`specs/<topic>.md` are excluded from numbering as they have their own
+structure (see [specs/SPECS_GUIDE.md](specs/SPECS_GUIDE.md) section 4.2).
 
 Q&A headings and step headings should be converted to bold text instead
 of additional numbered headings.

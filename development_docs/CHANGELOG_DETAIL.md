@@ -33,14 +33,18 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
-### 2026-05-16 - Check-in Emoji Encoding and Parallel Test Crash **COMPLETED**
+### 2026-05-16 - Check-in Emoji Encoding, Behavior Specs, and Parallel Test Crash **COMPLETED**
+
+#### Behavior specifications (minimal)
+- **Feature**: Introduced the [specs/](../specs/SPECS_GUIDE.md) directory for testable product behavior, separate from architecture and workflow docs. Added [SPECS_GUIDE.md](../specs/SPECS_GUIDE.md) (index, template, workflow) and [discord-welcome-and-onboarding.md](../specs/discord-welcome-and-onboarding.md) documenting welcome tracking (`data/welcome_tracking.json`), `APPLICATION_AUTHORIZED` webhook welcome with buttons, bot fallback text-only paths, and create/link account flows via `AccountManagementHandler`. Removed the former specs README in favor of the guide.
+- **Documentation**: Updated [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md) (section 1.1, 2.4, numbering exception), [AI_DOCUMENTATION_GUIDE.md](../ai_development_docs/AI_DOCUMENTATION_GUIDE.md) (routing section 2.4), [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md) (correct welcome tracking path), [communication-guidelines.mdc](../.cursor/rules/communication-guidelines.mdc), [development_tools_config.json](../development_tools/config/development_tools_config.json) (`fix_version_sync.docs`, `constants.fix_version_sync_directories`, `path_drift.ignored_path_patterns`), and [LIST_OF_LISTS.md](LIST_OF_LISTS.md) (behavior specs row).
 
 #### User-facing text (mojibake)
-- **Problem**: Scheduled check-ins and related messages showed garbled emoji (e.g. `ðŸŒŸ Check-in Time!`) because UTF-8 sequences had been stored in source as if they were Latin-1.
+- **Problem**: Scheduled check-ins and related messages showed garbled emoji (for example garbled "Check-in Time!" star prefixes) because UTF-8 sequences had been stored in source as if they were Latin-1.
 - **Fix**: Replaced mojibake with correct Unicode in communication modules:
-  - [`conversation_flow_manager.py`](../communication/message_processing/conversation_flow_manager.py) — check-in intro, welcome, completion insights, help bullets, task/note flow strings
-  - [`welcome_manager.py`](../communication/core/welcome_manager.py) — Discord welcome copy
-  - [`account_handler.py`](../communication/command_handlers/account_handler.py), [`profile_handler.py`](../communication/command_handlers/profile_handler.py), [`account_flow_handler.py`](../communication/communication_channels/discord/account_flow_handler.py) — account/link success messages
+  - [`conversation_flow_manager.py`](../communication/message_processing/conversation_flow_manager.py) - check-in intro, welcome, completion insights, help bullets, task/note flow strings
+  - [`welcome_manager.py`](../communication/core/welcome_manager.py) - Discord welcome copy
+  - [`account_handler.py`](../communication/command_handlers/account_handler.py), [`profile_handler.py`](../communication/command_handlers/profile_handler.py), [`account_flow_handler.py`](../communication/communication_channels/discord/account_flow_handler.py) - account/link success messages
 - **Impact**: Check-in prompts and completion messages display intended emoji on Discord and other channels after service restart.
 
 #### Tier 3 test pipeline (xdist worker crash)

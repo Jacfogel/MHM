@@ -21,6 +21,7 @@ Use this section to decide what to open or reference next.
 - If you need testing: use [AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md), then [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md).
 - If you need error handling patterns: use [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md), then [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md).
 - If you need backups: use [AI_BACKUP_GUIDE.md](AI_BACKUP_GUIDE.md), then [BACKUP_GUIDE.md](../development_docs/BACKUP_GUIDE.md).
+- If you need user-visible behavior requirements: use [specs/SPECS_GUIDE.md](../specs/SPECS_GUIDE.md) and the relevant `specs/<topic>.md` (read before editing files listed in the spec's **Implementation** block).
 
 ### 1.2. When editing documentation
 
@@ -51,6 +52,14 @@ Do not mutate AI docs into pure routing lists. Keep them brief, but rule-heavy.
 Generated docs are read-only inputs (registries, dependency maps, legacy reference reports).
 - Do not advise editing them directly.
 - If a generated file is stale or wrong, recommend fixing the generator and regenerating.
+
+### 2.4. Behavior specifications
+
+- Index and rules: [specs/SPECS_GUIDE.md](../specs/SPECS_GUIDE.md).
+- Capability files: `specs/<topic>.md` - requirements and scenarios; shared by humans and AI (no paired spec files).
+- Before changing paths listed in a spec's **Implementation** block, read that spec and treat **Requirements** as the behavior contract.
+- Architecture and adapter rules remain in module guides (for example [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md)); do not duplicate long guide text inside specs.
+- Update the spec when behavior intentionally changes; record the session in changelog files.
 
 ## 3. Standards and Templates
 
@@ -86,7 +95,7 @@ AI docs should:
 - Format: trailing period and space required.
 
 Exceptions:
-- Changelogs, plan files, and [TODO.md](../TODO.md) are excluded from numbering.
+- Changelogs, plan files, [TODO.md](../TODO.md), and spec topic files under `specs/<topic>.md` are excluded from numbering (see [specs/SPECS_GUIDE.md](../specs/SPECS_GUIDE.md)).
 
 ### 3.6. Example marking standards
 
