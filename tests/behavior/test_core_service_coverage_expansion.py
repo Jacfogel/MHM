@@ -10,7 +10,8 @@ import json
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock, mock_open
 
-from core.service import MHMService, InitializationError, main, get_scheduler_manager
+from core.service import MHMService, main, get_scheduler_manager
+from core.error_handling import CommunicationError, SchedulerError
 from core.time_utilities import TIMESTAMP_FULL, format_timestamp
 
 # Deterministic 'now' for tests that compare timestamps to "recent activity" thresholds.
@@ -39,8 +40,8 @@ class TestCoreServiceCoverageExpansion:
     def mock_config(self):
         """Mock configuration to avoid real config dependencies."""
         with (
-            patch("core.service.validate_and_raise_if_invalid") as mock_validate,
-            patch("core.service.print_configuration_report") as mock_report,
+            patch("core.config.validate_and_raise_if_invalid") as mock_validate,
+            patch("core.config.print_configuration_report") as mock_report,
         ):
             mock_validate.return_value = ["email", "discord"]
             yield mock_validate, mock_report
@@ -92,8 +93,8 @@ class TestCoreServiceCoverageExpansion:
     def test_validate_configuration_failure_real_behavior(self, service):
         """Test configuration validation failure."""
         with (
-            patch("core.service.validate_and_raise_if_invalid") as mock_validate,
-            patch("core.service.print_configuration_report"),
+            patch("core.config.validate_and_raise_if_invalid") as mock_validate,
+            patch("core.config.print_configuration_report"),
         ):
 
             # Mock validation failure
@@ -112,7 +113,7 @@ class TestCoreServiceCoverageExpansion:
         with (
             patch("core.service.get_all_user_ids") as mock_get_users,
             patch("core.service.get_user_data") as mock_get_data,
-            patch("core.service.get_user_data_dir") as mock_get_dir,
+            patch("core.config.get_user_data_dir") as mock_get_dir,
         ):
 
             # Mock user data
@@ -139,7 +140,7 @@ class TestCoreServiceCoverageExpansion:
         with (
             patch("core.service.get_all_user_ids") as mock_get_users,
             patch("core.service.get_user_data") as mock_get_data,
-            patch("core.service.get_user_data_dir") as mock_get_dir,
+            patch("core.config.get_user_data_dir") as mock_get_dir,
         ):
 
             # Mock user data with None user ID
@@ -163,7 +164,7 @@ class TestCoreServiceCoverageExpansion:
         with (
             patch("core.service.get_all_user_ids") as mock_get_users,
             patch("core.service.get_user_data") as mock_get_data,
-            patch("core.service.get_user_data_dir") as mock_get_dir,
+            patch("core.config.get_user_data_dir") as mock_get_dir,
         ):
 
             # Mock user data with invalid categories
@@ -189,7 +190,7 @@ class TestCoreServiceCoverageExpansion:
         with (
             patch("core.service.get_all_user_ids") as mock_get_users,
             patch("core.service.get_user_data") as mock_get_data,
-            patch("core.service.get_user_data_dir") as mock_get_dir,
+            patch("core.config.get_user_data_dir") as mock_get_dir,
         ):
 
             # Mock user data with empty categories
@@ -215,7 +216,7 @@ class TestCoreServiceCoverageExpansion:
         with (
             patch("core.service.get_all_user_ids") as mock_get_users,
             patch("core.service.get_user_data") as mock_get_data,
-            patch("core.service.get_user_data_dir") as mock_get_dir,
+            patch("core.config.get_user_data_dir") as mock_get_dir,
         ):
 
             # Mock user data
@@ -240,8 +241,8 @@ class TestCoreServiceCoverageExpansion:
     def test_check_and_fix_logging_success_real_behavior(self, service):
         """Test successful logging check and fix."""
         with (
-            patch("core.service.setup_logging") as mock_setup,
-            patch("core.service.get_component_logger") as mock_get_logger,
+            patch("core.logger.setup_logging") as mock_setup,
+            patch("core.logger.get_component_logger") as mock_get_logger,
         ):
 
             # Mock successful logging setup
@@ -260,8 +261,8 @@ class TestCoreServiceCoverageExpansion:
     def test_check_and_fix_logging_failure_real_behavior(self, service):
         """Test logging check and fix failure."""
         with (
-            patch("core.service.setup_logging") as mock_setup,
-            patch("core.service.get_component_logger") as mock_get_logger,
+            patch("core.logger.setup_logging") as mock_setup,
+            patch("core.logger.get_component_logger") as mock_get_logger,
         ):
 
             # Mock logging setup failure
@@ -314,7 +315,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_start_service_configuration_failure_real_behavior(self, service):
         """Test service startup with configuration failure."""
-        with patch("core.service.validate_and_raise_if_invalid") as mock_validate:
+        with patch("core.config.validate_and_raise_if_invalid") as mock_validate:
             # Mock configuration failure
             mock_validate.side_effect = Exception("Configuration validation failed")
 
@@ -538,12 +539,20 @@ class TestCoreServiceCoverageExpansion:
         assert service.running is False
 
     @pytest.mark.behavior
-    def test_service_initialization_error_real_behavior(self):
-        """Test InitializationError exception."""
-        # [OK] VERIFY REAL BEHAVIOR: InitializationError can be raised and caught
-        error = InitializationError("Test initialization error")
-        assert str(error) == "Test initialization error"
-        assert isinstance(error, Exception)
+    def test_service_startup_critical_exceptions_real_behavior(self):
+        """Startup failures use MHMError subclasses (communication vs scheduler stages)."""
+        comm_err = CommunicationError(
+            "Communication startup failed",
+            details={"stage": "test"},
+        )
+        sched_err = SchedulerError(
+            "Scheduler startup failed",
+            details={"stage": "test"},
+        )
+        assert str(comm_err) == "Communication startup failed"
+        assert str(sched_err) == "Scheduler startup failed"
+        assert comm_err.details.get("stage") == "test"
+        assert sched_err.details.get("stage") == "test"
 
     @pytest.mark.behavior
     def test_service_startup_time_tracking_real_behavior(self, service):
@@ -1044,13 +1053,13 @@ class TestCoreServiceCoverageExpansion:
         """Test basic successful logging verification."""
         with (
             patch("core.service.logger") as mock_logger,
-            patch("core.service.logging.getLogger") as mock_get_logger,
+            patch("logging.getLogger") as mock_get_logger,
             patch("core.service.os.path.exists", return_value=True),
             patch(
                 "builtins.open",
                 mock_open(read_data="2025-01-16 15:30:00 DEBUG: Test message\n"),
             ),
-            patch("core.service.LOG_MAIN_FILE", "/test/logs/app.log"),
+            patch("core.config.LOG_MAIN_FILE", "/test/logs/app.log"),
         ):
 
             # Mock root logger with handlers
@@ -1070,10 +1079,10 @@ class TestCoreServiceCoverageExpansion:
         """Test logging verification when log file doesn't exist."""
         with (
             patch("core.service.logger") as mock_logger,
-            patch("core.service.logging.getLogger") as mock_get_logger,
+            patch("logging.getLogger") as mock_get_logger,
             patch("core.service.os.path.exists", return_value=False),
             patch("builtins.open", mock_open()),
-            patch("core.service.LOG_MAIN_FILE", "/test/logs/missing.log"),
+            patch("core.config.LOG_MAIN_FILE", "/test/logs/missing.log"),
         ):
 
             # Mock root logger with handlers
@@ -1093,10 +1102,10 @@ class TestCoreServiceCoverageExpansion:
         """Test logging verification when log file creation fails."""
         with (
             patch("core.service.logger") as mock_logger,
-            patch("core.service.logging.getLogger") as mock_get_logger,
+            patch("logging.getLogger") as mock_get_logger,
             patch("core.service.os.path.exists", return_value=False),
             patch("builtins.open", side_effect=PermissionError("Permission denied")),
-            patch("core.service.LOG_MAIN_FILE", "/test/logs/unwritable.log"),
+            patch("core.config.LOG_MAIN_FILE", "/test/logs/unwritable.log"),
         ):
 
             # Mock root logger with handlers
@@ -1115,13 +1124,13 @@ class TestCoreServiceCoverageExpansion:
         """Test logging restart when activity is too old."""
         with (
             patch("core.service.logger") as mock_logger,
-            patch("core.service.logging.getLogger") as mock_get_logger,
+            patch("logging.getLogger") as mock_get_logger,
             patch("core.service.os.path.exists", return_value=True),
             patch(
                 "builtins.open",
                 mock_open(read_data="2025-01-16 10:30:00 DEBUG: Old activity\n"),
             ),
-            patch("core.service.LOG_MAIN_FILE", "/test/logs/app.log"),
+            patch("core.config.LOG_MAIN_FILE", "/test/logs/app.log"),
             patch(
                 "core.logger.force_restart_logging", return_value=True
             ),
@@ -1144,13 +1153,13 @@ class TestCoreServiceCoverageExpansion:
         """Test detection of recent logging activity."""
         with (
             patch("core.service.logger") as mock_logger,
-            patch("core.service.logging.getLogger") as mock_get_logger,
+            patch("logging.getLogger") as mock_get_logger,
             patch("core.service.os.path.exists", return_value=True),
             patch(
                 "builtins.open",
                 mock_open(read_data="2025-01-16 15:28:00 DEBUG: Recent activity\n"),
             ),
-            patch("core.service.LOG_MAIN_FILE", "/test/logs/app.log"),
+            patch("core.config.LOG_MAIN_FILE", "/test/logs/app.log"),
         ):
 
             # Mock root logger with handlers
@@ -1332,7 +1341,7 @@ class TestCoreServiceCoverageExpansion:
 
         # Mock the base directory method to return our temp directory
         with patch(
-            "core.service.MHMService._check_test_message_requests__get_base_directory",
+            "core.service.MHMService._get_service_request_base_directory",
             return_value=str(temp_base_dir),
         ):
             service.check_test_message_requests()
@@ -1361,7 +1370,7 @@ class TestCoreServiceCoverageExpansion:
             )
 
         with patch(
-            "core.service.MHMService._check_test_message_requests__get_base_directory",
+            "core.service.MHMService._get_service_request_base_directory",
             return_value=str(temp_base_dir),
         ):
             service.check_test_message_requests()
@@ -1382,7 +1391,7 @@ class TestCoreServiceCoverageExpansion:
             f.write("invalid json")
 
         with patch(
-            "core.service.MHMService._check_test_message_requests__get_base_directory",
+            "core.service.MHMService._get_service_request_base_directory",
             return_value=str(temp_base_dir),
         ):
             service.check_test_message_requests()
@@ -1415,7 +1424,7 @@ class TestCoreServiceCoverageExpansion:
             )
 
         with patch(
-            "core.service.MHMService._check_test_message_requests__get_base_directory",
+            "core.service.MHMService._get_service_request_base_directory",
             return_value=str(temp_base_dir),
         ):
             service.check_test_message_requests()
@@ -1448,7 +1457,7 @@ class TestCoreServiceCoverageExpansion:
         )
 
         with patch(
-            "core.service.MHMService._check_test_message_requests__get_base_directory",
+            "core.service.MHMService._get_service_request_base_directory",
             return_value=str(temp_base_dir),
         ):
             service.check_test_message_requests()
@@ -1563,7 +1572,7 @@ class TestCoreServiceCoverageExpansion:
         mock_file.read.return_value = large_content
 
         with (
-            patch("core.service.LOG_MAIN_FILE", "/test/logs/large.log"),
+            patch("core.config.LOG_MAIN_FILE", "/test/logs/large.log"),
             patch("builtins.open", return_value=mock_file),
         ):
 
@@ -1587,7 +1596,7 @@ class TestCoreServiceCoverageExpansion:
         mock_file.read.return_value = small_content
 
         with (
-            patch("core.service.LOG_MAIN_FILE", "/test/logs/small.log"),
+            patch("core.config.LOG_MAIN_FILE", "/test/logs/small.log"),
             patch("builtins.open", return_value=mock_file),
         ):
 

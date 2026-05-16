@@ -67,6 +67,14 @@ python run_headless_service.py start
 - `run_mhm.py` opens the admin panel so you can manage users and start the background service
 - `run_headless_service.py` launches the service directly for AI collaborators
 
+### 1.6. Launcher logging vs terminal output (policy)
+
+**Hybrid convention:** launcher scripts use **structured logging** (`setup_logging()` + component loggers) **and** selective **`print`** for humans running commands in a terminal.
+
+- **Logging**: Durable trace under `logs/` (and console at the configured level) for successes, failures, and diagnostics.
+- **Print**: Short, explicit CLI lines where immediate feedback matters (for example `[SUCCESS]` / `[ERROR]` messages from `run_headless_service.py`).
+- **Noise**: Avoid repeating the same informational line on both `print` and `logger.info` inside loops or periodic status ticks; one-shot CLI actions may duplicate briefly so the terminal and log file stay aligned.
+
 ## 2. Alternative Commands
 
 Once your virtual environment is set up and activated:

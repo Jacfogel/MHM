@@ -2,6 +2,8 @@
 """
 MHM Headless Service Launcher
 Safe headless service management that works alongside UI service management.
+
+Launcher output policy (logging vs print): see HOW_TO_RUN.md section 1.6.
 """
 
 import argparse

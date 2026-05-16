@@ -30,7 +30,7 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-05-15 - Launcher Module Modernization
+### 2026-05-15 - Launcher Module Modernization **COMPLETED**
 
 Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency and maintainability.
 
@@ -40,6 +40,17 @@ Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency a
 - Converted launcher flows to consistent return-based exit handling
 - Added missing error-handling decorators to helper functions
 - Improved subprocess launch robustness and operational diagnostics
+- Explicit `init_service_runtime()` in `core.service` (invoked from `MHMService.__init__` and `start()`): `setup_logging()` + component loggers + optional file auditor run once per process, not at import; `import core.config` for patchable config access; `get_all_user_ids` / `get_user_data` from [`core.user_management`](../core/user_management.py) and [`storage.user_data_read`](../storage/user_data_read.py) (no `core` package facade for those calls)
+- `@handle_errors` on `init_service_runtime()` (`user_friendly=False`, `default_return=None`; clears analyzer gap)
+- Renamed `MHMService._get_service_request_base_directory()` (replacing the old test-message-specific helper name) and updated request-path tests accordingly
+- Fixed `test_conversation_manager_concurrent_access_safety` to use an isolated `conversation_states` file under `test_data_dir` so parallel suites do not inherit persisted flow state from other tests
+- Regenerated documentation outputs via `run_development_tools.py docs` (function registry aligned with `core.service` helpers)
+- Phase 1 error-handling: `_start_file_auditor_optional()` wraps `start_auditor()` with `@handle_errors` (`user_friendly=False`, non-fatal startup)
+- `@handle_errors` on `_emergency_shutdown_from_atexit` (process-wide atexit hook)
+- Documented hybrid launcher print+log policy in [HOW_TO_RUN.md](../HOW_TO_RUN.md) Section 1.6; launcher scripts reference it from module docstrings
+- ERROR_HANDLING_GUIDE pair Section 2.6 documents `MHMService` fatal startup exception types (no `InitializationError` on `core`)
+- Service startup uses `CommunicationError` / `SchedulerError` (plus `ConfigurationError` / `ConfigValidationError` on the critical path); removed `InitializationError` and its `core` lazy export (`DEPRECATION_INVENTORY`: `core_initialization_error_exception`)
+- Single process-wide `atexit` hook targets the most recently constructed `MHMService` (avoids stacked handlers in tests)
 
 ### 2026-05-14 - Storage Follow-up Cleanup **COMPLETED**
 - Migrated test and test-support imports from legacy `core.user_data_*` / `core.user_item_storage` bridge paths to the new `storage.*` owners.
@@ -123,13 +134,6 @@ Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency a
 - Fixed generated report markdown links that were written as repo-root-relative paths from nested report files, causing editor click-through failures.
 - `AI_PRIORITIES.md` review links now resolve relative to `development_tools/`, and `LEGACY_REFERENCE_REPORT.md` guidance links now resolve relative to `development_docs/`.
 - Added focused regression tests for both link-generation paths and removed the completed TODO item.
-
-### 2026-05-07 - Dev-tools logging, audit exit, and priority cleanup **COMPLETED**
-- Cleared the full-scope duplicate-function priority: `duplicate-functions --body-for-near-miss` now reports 0 issues and 0 groups; real duplication was refactored without adding legacy shim bridges.
-- Development-tools logging now defaults to `development_tools/reports/logs/ai_dev_tools.log`, rotates at 1 MB with backups under `development_tools/reports/logs/backups`, and no longer recreates the root `logs/ai_dev_tools.log` path by default.
-- Successful full audits now clear/restore SIGINT state and exit cleanly after ignored Windows console interrupts, preventing success output from returning exit code 1.
-- Added missing error handling to cache/user lookup/service response helpers, regenerated registry/status outputs, and refreshed the stale aggregate report so the resolved error-handling, function-registry, and Pyright-warning priorities are gone.
-- Validation: focused duplicate, service-request, logging, audit-signal/CLI, cache-manager, and shared-logging tests passed; Pyright is 0/0 and targeted Ruff checks passed.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

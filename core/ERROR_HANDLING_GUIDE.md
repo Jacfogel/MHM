@@ -135,6 +135,15 @@ Error handling integrates tightly with `core/logger.py`:
 
 File-related recovery behavior (such as backing up corrupted JSON and recreating files with default data) is logged via the `main` component logger so operators can see when auto-recovery occurs.
 
+### 2.6. Service startup (`MHMService`)
+
+In [`core/service.py`](service.py), service bootstrap raises typed errors instead of a bespoke startup exception:
+
+- **Communication stack failures** (for example constructing `CommunicationManager` or initializing channels) raise [`CommunicationError`](error_handling.py) with `details` that include a `stage` string for diagnostics.
+- **Scheduler failures** during manager construction raise [`SchedulerError`](error_handling.py), also with structured `details`.
+
+`MHMService.start()` treats **`CommunicationError`**, **`SchedulerError`**, **`ConfigurationError`**, and **`ConfigValidationError`** from [`core/config.py`](config.py) as fatal startup failures: they are logged at CRITICAL and the service shuts down. Tests and callers should mock or expect these types; there is no longer a package-level `InitializationError` on `core`.
+
 ---
 
 ## 3. Usage Patterns

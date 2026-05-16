@@ -6,6 +6,8 @@ This launches the MHM Manager UI where you can:
 - Start/stop/restart the backend service
 - Access user management interface
 - Monitor service status
+
+Launcher output policy (logging vs print): see HOW_TO_RUN.md section 1.6.
 """
 
 import os

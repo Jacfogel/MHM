@@ -27,9 +27,9 @@ import signal
 # Import the actual functions from service
 from core.service import (
     MHMService,
-    InitializationError,
     main
 )
+from core.config import ConfigValidationError
 from core import get_user_categories
 
 
@@ -74,8 +74,8 @@ class TestMHMService:
             }, f)
         
         # Mock the validation function to use our real config
-        with patch('core.service.validate_and_raise_if_invalid') as mock_validate, \
-             patch('core.service.print_configuration_report') as mock_print_report:
+        with patch('core.config.validate_and_raise_if_invalid') as mock_validate, \
+             patch('core.config.print_configuration_report') as mock_print_report:
             
             mock_validate.return_value = ['discord', 'email']
             
@@ -112,9 +112,9 @@ class TestMHMService:
         # Mock the data access functions to return real data
         with patch('core.service.get_all_user_ids', return_value=['user1', 'user2']), \
              patch('core.service.get_user_data') as mock_get_user_data, \
-                     patch('core.service.get_user_data_dir', return_value=temp_dir), \
-        patch('core.service.LOG_MAIN_FILE', os.path.join(temp_dir, 'log.txt')), \
-        patch('core.service.USER_INFO_DIR_PATH', temp_dir):
+                     patch('core.config.get_user_data_dir', return_value=temp_dir), \
+        patch('core.config.LOG_MAIN_FILE', os.path.join(temp_dir, 'log.txt')), \
+        patch('core.config.USER_INFO_DIR_PATH', temp_dir):
             
             # Mock get_user_data to return real data structure
             def mock_get_user_data_side_effect(user_id, data_type):
@@ -152,10 +152,9 @@ class TestMHMService:
         # Verify log file exists
         assert os.path.exists(log_file)
         
-        # Patch both core.service and core.config LOG_MAIN_FILE since the code imports from config
+        # Service reads log paths via core_config; root flush uses stdlib logging.getLogger.
         with patch('core.config.LOG_MAIN_FILE', log_file), \
-             patch('core.service.LOG_MAIN_FILE', log_file), \
-             patch('core.service.logging.getLogger') as mock_get_logger, \
+             patch('logging.getLogger') as mock_get_logger, \
              patch('core.logger.force_restart_logging') as mock_force_restart:
             
             # Mock force_restart_logging to return False so it doesn't actually restart
@@ -330,7 +329,7 @@ class TestMHMService:
         
         with patch.object(
             service,
-            "_check_test_message_requests__get_base_directory",
+            "_get_service_request_base_directory",
             return_value=temp_base_dir,
         ), patch("core.service.os.remove") as mock_remove:
             service.check_test_message_requests()
@@ -558,7 +557,7 @@ class TestMHMService:
         assert service.running is True
         
         # Mock validation to raise a real error
-        with patch.object(service, 'validate_configuration', side_effect=InitializationError("Config error")):
+        with patch.object(service, 'validate_configuration', side_effect=ConfigValidationError('Config error', missing_configs=[], warnings=[])):
             service.start()
             
             # Verify real behavior - service actually stopped after error
@@ -625,7 +624,7 @@ class TestMHMService:
         
         with patch.object(
             service,
-            "_check_test_message_requests__get_base_directory",
+            "_get_service_request_base_directory",
             return_value=temp_base_dir,
         ), patch("core.service.os.remove") as mock_remove:
             service.check_test_message_requests()
@@ -666,7 +665,7 @@ class TestMHMService:
         
         with patch.object(
             service,
-            "_check_test_message_requests__get_base_directory",
+            "_get_service_request_base_directory",
             return_value=temp_base_dir,
         ):
             service.check_test_message_requests()
@@ -818,7 +817,7 @@ class TestMHMService:
         assert service.running is True
         
         # Mock validation to raise an error
-        with patch.object(service, 'validate_configuration', side_effect=InitializationError("Config error")):
+        with patch.object(service, 'validate_configuration', side_effect=ConfigValidationError('Config error', missing_configs=[], warnings=[])):
             service.start()
             
             # Verify service actually stopped (real side effect)

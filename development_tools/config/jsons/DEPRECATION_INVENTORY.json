@@ -73,6 +73,11 @@
   ],
   "removed_inventory": [
     {
+      "id": "core_initialization_error_exception",
+      "removed_at": "2026-05-15",
+      "note": "Removed core.service.InitializationError and the core package lazy export. MHMService startup raises CommunicationError for communication/bootstrap failures, SchedulerError for scheduler bootstrap failures; configuration-stage failures use ConfigurationError or ConfigValidationError with the same critical handler in start(). Prefer those types over ad hoc Exception subclasses for new startup paths."
+    },
+    {
       "id": "core_storage_module_import_bridges",
       "removed_at": "2026-05-14",
       "note": "Removed temporary core.* storage bridge modules after active callers and tests migrated to storage.*. Narrow core_storage_module_bridges scan patterns remain to catch regressions to old import paths."

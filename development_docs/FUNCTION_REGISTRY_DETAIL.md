@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-15 14:08:17
+> **Last Generated**: 2026-05-15 19:04:04
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 93.9% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 134
-- **Functions Found**: 1776
+- **Functions Found**: 1779
 - **Methods Found**: 1244
-- **Classes Found**: 172
-- **Total Items**: 3020
-- **Functions Documented**: 1655
+- **Classes Found**: 171
+- **Total Items**: 3023
+- **Functions Documented**: 1658
 - **Methods Documented**: 1182
-- **Classes Documented**: 134
-- **Total Documented**: 2837
+- **Classes Documented**: 133
+- **Total Documented**: 2840
 - **Template-Generated**: 20
 - **Last Updated**: 2026-05-15
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (498)
+### **Core System Functions** (501)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (499)
@@ -4234,7 +4234,6 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
 - [OK] `_check_reschedule_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
 - [OK] `_check_reschedule_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
 - [OK] `_check_test_message_requests__discover_request_files(self, base_dir)` - Discover all test message request files in the base directory.
-- [OK] `_check_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
 - [OK] `_check_test_message_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
 - [OK] `_check_test_message_requests__parse_request_file(self, request_file)` - Parse and validate a test message request file.
 - [OK] `_check_test_message_requests__process_valid_request(self, request_data)` - Process a valid test message request.
@@ -4244,12 +4243,15 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
 - [OK] `_cleanup_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
 - [OK] `_cleanup_test_message_requests__remove_request_file(self, request_file, filename)` - Remove a single test message request file with proper error handling.
 - [OK] `_collect_service_status_metrics(self, loop_minutes)` - Collect coarse health metrics for periodic service logs.
+- [OK] `_emergency_shutdown_from_atexit()` - Backup shutdown registered once per process; targets the most recently constructed service.
 - [OK] `_get_checkin_first_question(self, user_id)` - Get the first question that will be asked in the check-in.
+- [OK] `_get_service_request_base_directory(self)` - Project root directory used for request-file flows (flags, responses).
 - [OK] `_has_any_request_files(self, base_dir)` - Quick check if any request files exist (optimization to avoid full scan when not needed).
 - [OK] `_log_discord_connectivity_health(self)` - Log connectivity diagnostics for Discord channel health.
 - [OK] `_log_hourly_service_status(self, loop_minutes)` - Log periodic service metrics and channel-health diagnostics.
 - [OK] `_request_shutdown(self)` - Mark the service loop for shutdown after a request-file signal.
 - [OK] `_service_request_context_for_base(self, base_dir)` - Build a request context rooted at a specific request-file directory.
+- [OK] `_start_file_auditor_optional()` - Start developer file-auditor tooling; failures are non-fatal for the service.
 - [OK] `_write_checkin_response(self, user_id, first_question)` - Write the first check-in question to a response file for the UI to read.
 - [OK] `check_and_fix_logging(self)` - Check if logging is working and restart if needed
 - [OK] `check_checkin_prompt_requests(self)` - Check for and process check-in prompt request files from admin panel
@@ -4258,9 +4260,13 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
 - [OK] `check_test_message_requests(self)` - Check for and process test message request files from admin panel
 - [OK] `cleanup_reschedule_requests(self)` - Clean up any remaining reschedule request files
 - [OK] `cleanup_test_message_requests(self)` - Clean up any remaining test message request files
-- [OK] `emergency_shutdown(self)` - Emergency shutdown handler registered with atexit
+- [OK] `emergency_shutdown(self)` - Emergency shutdown invoked via signal handling or the process-wide atexit hook.
 - [OK] `get_scheduler_manager()` - Get the scheduler manager instance from the global service.
 Safely handle cases where the global 'service' symbol may not be defined yet.
+- [OK] `init_service_runtime()` - Configure logging, component loggers, and optional developer tooling once per process.
+
+Call from service entry points (``MHMService`` construction / ``start()``) instead of running
+``setup_logging()`` at ``core.service`` import time.
 - [OK] `initialize_paths(self)` - Initialize and verify all required file paths for the service.
 
 Creates paths for log files, user data directories, and message files for all users.
@@ -4284,7 +4290,6 @@ Sets up signal handlers for graceful shutdown.
 - [OK] `to_service_request_context(self)` - Build the request-file context used by service request helpers.
 - [OK] `validate_configuration(self)` - Validate all configuration settings before starting the service.
 **Classes:**
-- [OK] `InitializationError` - Custom exception for initialization errors.
 - [MISSING] `MHMService` - No description
   - [OK] `MHMService.__init__(self)` - Initialize the MHM backend service.
 
@@ -4299,7 +4304,6 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
   - [OK] `MHMService._check_reschedule_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
   - [OK] `MHMService._check_reschedule_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
   - [OK] `MHMService._check_test_message_requests__discover_request_files(self, base_dir)` - Discover all test message request files in the base directory.
-  - [OK] `MHMService._check_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
   - [OK] `MHMService._check_test_message_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
   - [OK] `MHMService._check_test_message_requests__parse_request_file(self, request_file)` - Parse and validate a test message request file.
   - [OK] `MHMService._check_test_message_requests__process_valid_request(self, request_data)` - Process a valid test message request.
@@ -4310,6 +4314,7 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
   - [OK] `MHMService._cleanup_test_message_requests__remove_request_file(self, request_file, filename)` - Remove a single test message request file with proper error handling.
   - [OK] `MHMService._collect_service_status_metrics(self, loop_minutes)` - Collect coarse health metrics for periodic service logs.
   - [OK] `MHMService._get_checkin_first_question(self, user_id)` - Get the first question that will be asked in the check-in.
+  - [OK] `MHMService._get_service_request_base_directory(self)` - Project root directory used for request-file flows (flags, responses).
   - [OK] `MHMService._has_any_request_files(self, base_dir)` - Quick check if any request files exist (optimization to avoid full scan when not needed).
   - [OK] `MHMService._log_discord_connectivity_health(self)` - Log connectivity diagnostics for Discord channel health.
   - [OK] `MHMService._log_hourly_service_status(self, loop_minutes)` - Log periodic service metrics and channel-health diagnostics.
@@ -4323,7 +4328,7 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
   - [OK] `MHMService.check_test_message_requests(self)` - Check for and process test message request files from admin panel
   - [OK] `MHMService.cleanup_reschedule_requests(self)` - Clean up any remaining reschedule request files
   - [OK] `MHMService.cleanup_test_message_requests(self)` - Clean up any remaining test message request files
-  - [OK] `MHMService.emergency_shutdown(self)` - Emergency shutdown handler registered with atexit
+  - [OK] `MHMService.emergency_shutdown(self)` - Emergency shutdown invoked via signal handling or the process-wide atexit hook.
   - [OK] `MHMService.initialize_paths(self)` - Initialize and verify all required file paths for the service.
 
 Creates paths for log files, user data directories, and message files for all users.

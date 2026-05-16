@@ -50,7 +50,7 @@ class TestServiceCheckinRequestHelpers:
         base_dir = Path(test_path_factory)
         with patch.object(
             service,
-            "_check_test_message_requests__get_base_directory",
+            "_get_service_request_base_directory",
             return_value=str(base_dir),
         ):
             service._write_checkin_response("user-1", "How are you?")
@@ -76,7 +76,7 @@ class TestServiceCheckinRequestHelpers:
         with (
             patch.object(
                 service,
-                "_check_test_message_requests__get_base_directory",
+                "_get_service_request_base_directory",
                 return_value=str(base_dir),
             ),
             patch(
@@ -111,7 +111,7 @@ class TestServiceCheckinRequestHelpers:
         with (
             patch.object(
                 service,
-                "_check_test_message_requests__get_base_directory",
+                "_get_service_request_base_directory",
                 return_value=str(base_dir),
             ),
             patch(
@@ -143,7 +143,7 @@ class TestServiceTaskAndMessageRequestHelpers:
 
         with patch.object(
             service,
-            "_check_test_message_requests__get_base_directory",
+            "_get_service_request_base_directory",
             return_value=str(base_dir),
         ):
             service.check_task_reminder_requests()
@@ -170,7 +170,7 @@ class TestServiceTaskAndMessageRequestHelpers:
 
         with patch.object(
             service,
-            "_check_test_message_requests__get_base_directory",
+            "_get_service_request_base_directory",
             return_value=str(base_dir),
         ):
             service._check_test_message_requests__process_valid_request(request_data)

@@ -31,6 +31,7 @@ Key components (see section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.
 - **Recovery strategies**: `FileNotFoundRecovery`, `JSONDecodeRecovery`, `NetworkRecovery`, `ConfigurationRecovery`.  
 - **`ErrorHandler`**: central object with `handle_error(error, context, operation, user_friendly=True) -> bool`.  
 - **Decorator**: `handle_errors(operation=None, context=None, user_friendly=True, default_return=None, re_raise=False)` for wrapping entry points. Use `re_raise=True` when there is no safe default (e.g. lazy import helpers); the error is logged/handled then re-raised.  
+- **Service startup (`MHMService`)**: Bootstrap raises `CommunicationError` or `SchedulerError` with structured `details` (including `stage`) for subsystem failures. `MHMService.start()` treats `CommunicationError`, `SchedulerError`, `ConfigurationError`, and `core.config.ConfigValidationError` as fatal startup failures (CRITICAL logging before shutdown). Do not expect a `core.InitializationError` export; see section 2.6 in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md).
 
 Constraints:
 

@@ -198,7 +198,6 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     "SchedulesModel": ("core.schemas", "SchedulesModel"),
     # Service and runtime
     "MHMService": ("core.service", "MHMService"),
-    "InitializationError": ("core.service", "InitializationError"),
     "wait_for_network": ("core.network_probe", "wait_for_network"),
     "Throttler": ("core.service_utilities", "Throttler"),
     "is_service_running": ("core.service_utilities", "is_service_running"),
@@ -390,7 +389,6 @@ __all__ = [
     "ConfigurationRecovery",
     "ConfigValidationError",
     "MHMService",
-    "InitializationError",
     "Throttler",
     "InvalidTimeFormatError",
     "create_reschedule_request",

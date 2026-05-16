@@ -4,51 +4,92 @@ import signal
 import time
 import os
 import atexit
+import logging
 from pathlib import Path
 
-# Set up logging FIRST before any other imports
+from typing import Any
+
 from core.logger import setup_logging, get_component_logger
-import logging  # kept for tests that patch core.service.logging.getLogger
+from core.error_handling import (
+    CommunicationError,
+    ConfigurationError,
+    FileOperationError,
+    SchedulerError,
+    handle_errors,
+)
 
-setup_logging()
-logger = get_component_logger("main")
-discord_logger = get_component_logger("discord")
-logger.debug("Logging setup successfully.")
+# Single atexit callback per process (avoids stacking handlers when tests construct many instances).
+_atexit_bound_service = None
+_SERVICE_PROCESS_ATEXIT_REGISTERED = False
 
-# Start file creation auditor early (developer tool)
-try:
+
+@handle_errors(
+    "emergency shutdown from atexit",
+    user_friendly=False,
+    default_return=None,
+)
+def _emergency_shutdown_from_atexit() -> None:
+    """Backup shutdown registered once per process; targets the most recently constructed service."""
+    global _atexit_bound_service
+    inst = _atexit_bound_service
+    if inst is not None:
+        inst.emergency_shutdown()
+
+
+@handle_errors(
+    "starting file creation auditor",
+    user_friendly=False,
+    default_return=None,
+)
+def _start_file_auditor_optional() -> None:
+    """Start developer file-auditor tooling; failures are non-fatal for the service."""
     from core.file_auditor import start_auditor
 
     start_auditor()
-except Exception as _fa_err:
-    logger.debug(f"File auditor not started: {_fa_err}")
 
-# Import configuration validation
-from core.config import validate_and_raise_if_invalid, print_configuration_report
+
+_SERVICE_RUNTIME_INITIALIZED = False
+# Populated by init_service_runtime() (called from MHMService.__init__ / start); avoid import-time logging.
+logger: Any = None
+discord_logger: Any = None
+
+
+@handle_errors(
+    "initializing service runtime",
+    user_friendly=False,
+    default_return=None,
+)
+def init_service_runtime() -> None:
+    """Configure logging, component loggers, and optional developer tooling once per process.
+
+    Call from service entry points (``MHMService`` construction / ``start()``) instead of running
+    ``setup_logging()`` at ``core.service`` import time.
+    """
+    global _SERVICE_RUNTIME_INITIALIZED, logger, discord_logger
+    if _SERVICE_RUNTIME_INITIALIZED:
+        return
+    setup_logging()
+    logger = get_component_logger("main")
+    discord_logger = get_component_logger("discord")
+    logger.debug("Logging setup successfully.")
+    _start_file_auditor_optional()
+    _SERVICE_RUNTIME_INITIALIZED = True
+
+
+import core.config
+from core.user_management import get_all_user_ids
+from storage.user_data_read import get_user_data
 
 # Import the communication manager (channels auto-register from config)
 from communication.core.channel_orchestrator import CommunicationManager
-from core.config import LOG_MAIN_FILE, USER_INFO_DIR_PATH, get_user_data_dir
 from scheduler.manager import SchedulerManager, set_scheduler_delivery_factory
 from core.service_utilities import get_flags_dir
 from core.time_utilities import parse_timestamp_full, now_datetime_full
 from core.file_operations import verify_file_access
-from core import get_all_user_ids
-from core import get_user_data
 
-# Expose get_user_data at module level so tests
-# that patch core.service.get_user_data continue to work.
-
-from core.error_handling import handle_errors, FileOperationError
 import contextlib
 
 import core.service_requests as service_requests
-
-
-class InitializationError(Exception):
-    """Custom exception for initialization errors."""
-
-    pass
 
 
 class MHMService:
@@ -59,18 +100,24 @@ class MHMService:
 
         Sets up communication manager, scheduler manager, and registers emergency shutdown handler.
         """
+        global _atexit_bound_service, _SERVICE_PROCESS_ATEXIT_REGISTERED
+
+        init_service_runtime()
+
         self.communication_manager = None
         self.scheduler_manager = None
         self.running = False
         self.startup_time = None  # Track when service started
-        # Register atexit handler as backup shutdown method
-        atexit.register(self.emergency_shutdown)
+        _atexit_bound_service = self
+        if not _SERVICE_PROCESS_ATEXIT_REGISTERED:
+            atexit.register(_emergency_shutdown_from_atexit)
+            _SERVICE_PROCESS_ATEXIT_REGISTERED = True
 
     @handle_errors("building service request context")
     def to_service_request_context(self) -> service_requests.ServiceRequestContext:
         """Build the request-file context used by service request helpers."""
         return self._service_request_context_for_base(
-            self._check_test_message_requests__get_base_directory()
+            self._get_service_request_base_directory()
         )
 
     @handle_errors("building service request context for base directory")
@@ -97,10 +144,10 @@ class MHMService:
         logger.info("Validating configuration...")
 
         # Print configuration report for debugging
-        print_configuration_report()
+        core.config.print_configuration_report()
 
         # Validate configuration and get available channels
-        available_channels = validate_and_raise_if_invalid()
+        available_channels = core.config.validate_and_raise_if_invalid()
 
         return available_channels
 
@@ -114,13 +161,15 @@ class MHMService:
         Returns:
             List[str]: List of all initialized file paths
         """
-        paths = [LOG_MAIN_FILE, USER_INFO_DIR_PATH]
+        paths = [core.config.LOG_MAIN_FILE, core.config.USER_INFO_DIR_PATH]
 
         user_ids = get_all_user_ids()
         logger.debug(f"User IDs retrieved: {user_ids}")
         for user_id in user_ids:
             if user_id is None:
-                logger.warning("Encountered None user_id in get_all_user_ids()")
+                logger.warning(
+                    "Encountered None user_id in get_all_user_ids()"
+                )
                 continue
             # Get user categories
             user_data = get_user_data(user_id, "preferences")
@@ -133,7 +182,7 @@ class MHMService:
                             from pathlib import Path
 
                             user_messages_dir = (
-                                Path(get_user_data_dir(user_id)) / "messages"
+                                Path(core.config.get_user_data_dir(user_id)) / "messages"
                             )
                             path = str(user_messages_dir / f"{category}.json")
                             paths.append(path)
@@ -176,25 +225,21 @@ class MHMService:
     @handle_errors("ensuring log file exists", default_return=False)
     def _check_and_fix_logging__ensure_log_file_exists(self):
         """Ensure the log file exists, creating it if necessary."""
-        from core.config import LOG_MAIN_FILE
-
-        if not os.path.exists(LOG_MAIN_FILE):
+        if not os.path.exists(core.config.LOG_MAIN_FILE):
             logger.warning("Log file does not exist - logging may have issues")
             # Do not delete or alter the provided path; create the file to satisfy health check
             try:
-                with open(LOG_MAIN_FILE, "a", encoding="utf-8") as _f:
+                with open(core.config.LOG_MAIN_FILE, "a", encoding="utf-8") as _f:
                     _f.write("")
             except Exception as err:
                 raise FileOperationError(
-                    "Log file missing", details={"log_file": LOG_MAIN_FILE}
+                    "Log file missing", details={"log_file": core.config.LOG_MAIN_FILE}
                 ) from err
 
     @handle_errors("reading recent log content", default_return="")
     def _check_and_fix_logging__read_recent_log_content(self):
         """Read the last 1000 characters from the log file to check for recent activity."""
-        from core.config import LOG_MAIN_FILE
-
-        with open(LOG_MAIN_FILE, encoding="utf-8") as f:
+        with open(core.config.LOG_MAIN_FILE, encoding="utf-8") as f:
             # Read last 1000 characters to check for recent activity
             f.seek(0, 2)  # Go to end
             file_size = f.tell()
@@ -316,6 +361,7 @@ class MHMService:
         Initializes communication channels, scheduler, and begins the main service loop.
         Sets up signal handlers for graceful shutdown.
         """
+        init_service_runtime()
         logger.info("Starting MHM Backend Service...")
         self.running = True
 
@@ -380,8 +426,9 @@ class MHMService:
                     time.sleep(1)
 
             if self.communication_manager is None:
-                raise InitializationError(
-                    "Failed to initialize CommunicationManager after retries."
+                raise CommunicationError(
+                    "Failed to initialize CommunicationManager after retries.",
+                    details={"stage": "communication_manager_construct"},
                 )
             set_scheduler_delivery_factory(lambda: self.communication_manager)
 
@@ -392,8 +439,9 @@ class MHMService:
                 logger.info("Communication channels initialized successfully")
             except Exception as e:
                 logger.error(f"Failed to initialize communication channels: {e}")
-                raise InitializationError(
-                    f"Failed to initialize communication channels: {e}"
+                raise CommunicationError(
+                    f"Failed to initialize communication channels: {e}",
+                    details={"stage": "communication_channels_init"},
                 ) from e
 
             # Step 3: Start the SchedulerManager
@@ -410,8 +458,9 @@ class MHMService:
                     time.sleep(1)
 
             if self.scheduler_manager is None:
-                raise InitializationError(
-                    "Failed to initialize SchedulerManager after retries."
+                raise SchedulerError(
+                    "Failed to initialize SchedulerManager after retries.",
+                    details={"stage": "scheduler_manager_construct"},
                 )
 
             # Step 4: Start bots and scheduler
@@ -430,8 +479,15 @@ class MHMService:
             # Keep the service running
             self.run_service_loop()
 
-        except InitializationError as init_err:
-            logger.critical(f"Critical initialization error: {init_err}", exc_info=True)
+        except (
+            CommunicationError,
+            SchedulerError,
+            ConfigurationError,
+            core.config.ConfigValidationError,
+        ) as startup_err:
+            logger.critical(
+                f"Critical initialization error: {startup_err}", exc_info=True
+            )
             self.running = False
         except KeyboardInterrupt:
             logger.info("Service interrupted by user. Shutting down...")
@@ -578,13 +634,10 @@ class MHMService:
         logger.info(f"Service status: {', '.join(status_metrics)}")
         self._log_discord_connectivity_health()
 
-    @handle_errors("checking test message requests")
     # not_duplicate: service_request_base_dir_accessors
-    @handle_errors(
-        "getting base directory for test message requests", default_return=""
-    )
-    def _check_test_message_requests__get_base_directory(self):
-        """Get the base directory for test message request files."""
+    @handle_errors("getting base directory for service request files", default_return="")
+    def _get_service_request_base_directory(self):
+        """Project root directory used for request-file flows (flags, responses)."""
         return os.path.dirname(os.path.dirname(__file__))
 
     @handle_errors("checking if request files exist", default_return=False)
@@ -631,7 +684,7 @@ class MHMService:
             user_id,
             category,
             message,
-            base_dir=self._check_test_message_requests__get_base_directory(),
+            base_dir=self._get_service_request_base_directory(),
         )
 
     # not_duplicate: cleanup_request_file_delegate
@@ -685,7 +738,7 @@ class MHMService:
         service_requests.write_checkin_response(
             user_id,
             first_question,
-            base_dir=self._check_test_message_requests__get_base_directory(),
+            base_dir=self._get_service_request_base_directory(),
         )
 
     @handle_errors("checking task reminder requests")
@@ -697,7 +750,7 @@ class MHMService:
     @handle_errors("getting base directory for cleanup", default_return="")
     def _cleanup_test_message_requests__get_base_directory(self):
         """Get the base directory for test message request files."""
-        return os.path.dirname(os.path.dirname(__file__))
+        return self._get_service_request_base_directory()
 
     @handle_errors(
         "removing test message request file", user_friendly=False, default_return=False
@@ -722,7 +775,7 @@ class MHMService:
     @handle_errors("getting base directory for reschedule requests", default_return="")
     def _check_reschedule_requests__get_base_directory(self):
         """Get the base directory for reschedule request files."""
-        return os.path.dirname(os.path.dirname(__file__))
+        return self._get_service_request_base_directory()
 
     @handle_errors("validating reschedule request data", default_return=False)
     def _check_reschedule_requests__validate_request_data(self, request_data, filename):
@@ -815,7 +868,7 @@ class MHMService:
 
     @handle_errors("emergency shutdown")
     def emergency_shutdown(self):
-        """Emergency shutdown handler registered with atexit"""
+        """Emergency shutdown invoked via signal handling or the process-wide atexit hook."""
         if self.running:
             logger.critical("Emergency shutdown triggered!")
             try:

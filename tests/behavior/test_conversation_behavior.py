@@ -8,7 +8,9 @@ Tests verify actual system changes, not just return values.
 """
 
 import os
+import uuid
 import pytest
+from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 from communication.message_processing.conversation_flow_manager import ConversationManager, FLOW_CHECKIN, CHECKIN_START, CHECKIN_MOOD, CHECKIN_REFLECTION
@@ -620,8 +622,12 @@ class TestConversationManagerIntegration:
     
     def test_conversation_manager_concurrent_access_safety(self, test_data_dir):
         """Test ConversationManager safety under concurrent access."""
-        # Arrange
+        # Arrange — isolate persisted flow state so other tests cannot preload user_states
         manager = ConversationManager()
+        manager._state_file = Path(test_data_dir) / (
+            f"conversation_states_{uuid.uuid4().hex[:8]}.json"
+        )
+        manager.user_states = {}
         test_user_id = "concurrent-user-test"
         
         # Mock AI chatbot

@@ -165,7 +165,7 @@ class TestServiceMessageContentHelpers:
 
         with patch.object(
             service,
-            "_check_test_message_requests__get_base_directory",
+            "_get_service_request_base_directory",
             return_value=str(base_dir),
         ):
             service.check_test_message_requests()
@@ -193,7 +193,7 @@ class TestServiceMessageContentHelpers:
 
         with patch.object(
             service,
-            "_check_test_message_requests__get_base_directory",
+            "_get_service_request_base_directory",
             return_value=str(base_dir),
         ):
             service.check_test_message_requests()

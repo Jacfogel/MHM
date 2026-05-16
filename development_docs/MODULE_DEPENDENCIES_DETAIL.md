@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-15 14:08:18
+> **Last Generated**: 2026-05-15 19:04:05
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 132
-- **Total Imports Found**: 1449
+- **Total Imports Found**: 1447
 - **Dependencies Documented**: 132 (100% coverage)
-- **Standard Library Imports**: 421 (29.1%)
-- **Third-Party Imports**: 227 (15.7%)
-- **Local Imports**: 801 (55.3%)
+- **Standard Library Imports**: 422 (29.2%)
+- **Third-Party Imports**: 228 (15.8%)
+- **Local Imports**: 797 (55.1%)
 - **Last Updated**: 2026-05-15
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 421 imports (29.1%)
-- **Third-Party**: 227 imports (15.7%)
-- **Local**: 801 imports (55.3%)
+- **Standard Library**: 422 imports (29.2%)
+- **Third-Party**: 228 imports (15.8%)
+- **Local**: 797 imports (55.1%)
 
 ## Module Dependencies by Directory
 
@@ -2226,16 +2226,16 @@
 - **Dependencies**:
   - **Local**:
     - `communication.core.channel_orchestrator (CommunicationManager)`
-    - `core (get_all_user_ids, get_user_data)` (NEW)
     - `core.auto_cleanup (auto_cleanup_if_needed, cleanup_data_directory, cleanup_tests_data_directory)` (NEW)
-    - `core.config (LOG_MAIN_FILE, USER_INFO_DIR_PATH, get_user_data_dir, print_configuration_report, validate_and_raise_if_invalid)` (NEW)
-    - `core.error_handling (FileOperationError, handle_errors)` (NEW)
+    - `core.config` (NEW)
+    - `core.error_handling (CommunicationError, ConfigurationError, FileOperationError, SchedulerError, handle_errors)` (NEW)
     - `core.file_auditor (start_auditor, stop_auditor)` (NEW)
     - `core.file_operations (verify_file_access)` (NEW)
     - `core.logger (force_restart_logging, get_component_logger, setup_logging)` (NEW)
     - `core.service_requests` (NEW)
     - `core.service_utilities (get_flags_dir)` (NEW)
     - `core.time_utilities (now_datetime_full, parse_timestamp_full)` (NEW)
+    - `core.user_management (get_all_user_ids)` (NEW)
     - `scheduler.manager (SchedulerManager, set_scheduler_delivery_factory)`
   - **Standard Library**:
     - `atexit`
@@ -2246,15 +2246,17 @@
     - `re`
     - `signal`
     - `time`
+    - `typing (Any)`
   - **Third-party**:
     - `psutil`
+    - `storage.user_data_read (get_user_data)`
 - **Used by**:
   - `tasks/task_data_manager.py`
   - `ui/dialogs/account_creator_dialog.py`
 
 **Dependency Changes**:
-- Added: core, core.auto_cleanup, core.config, core.error_handling, core.file_auditor, core.file_operations, core.logger, core.service_requests, core.service_utilities, core.time_utilities
-- Removed: tasks/task_data_manager.py, ui/dialogs/account_creator_dialog.py
+- Added: core.auto_cleanup, core.config, core.error_handling, core.file_auditor, core.file_operations, core.logger, core.service_requests, core.service_utilities, core.time_utilities, core.user_management
+- Removed: storage.user_data_read, tasks/task_data_manager.py, ui/dialogs/account_creator_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Main service orchestration and management
@@ -2498,11 +2500,12 @@
     - `storage.user_data_read (get_user_data)`
     - `storage.user_data_write (save_user_data)`
 - **Used by**:
+  - `core/service.py`
   - `core/user_lookup.py`
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.logger, core.schedule_document_defaults, core.time_utilities
-- Removed: core/user_lookup.py, storage.user_data_read, storage.user_data_write
+- Removed: core/service.py, core/user_lookup.py, storage.user_data_read, storage.user_data_write
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
