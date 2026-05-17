@@ -20,6 +20,11 @@ GLOB_DISCOVERY_PATTERN = re.compile(
     re.IGNORECASE,
 )
 OS_WALK_PATTERN = re.compile(r"""\bos\.walk\(""")
+GENERIC_MHM_DEFAULT_STRINGS = {
+    "run_mhm.py",
+    "core/config.py",
+    "core/service.py",
+}
 
 
 def _extract_flags(text: str) -> set[str]:
@@ -137,6 +142,27 @@ def _collect_non_compliant_scanners(project_root: Path) -> list[str]:
     return non_compliant
 
 
+def _collect_direct_core_imports(project_root: Path) -> list[str]:
+    violations: list[str] = []
+    for py_file in sorted((project_root / "development_tools").rglob("*.py")):
+        rel = py_file.relative_to(project_root).as_posix()
+        text = py_file.read_text(encoding="utf-8", errors="replace")
+        try:
+            tree = ast.parse(text)
+        except SyntaxError:
+            continue
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    if alias.name == "core" or alias.name.startswith("core."):
+                        violations.append(f"{rel}:{node.lineno}:{alias.name}")
+            elif isinstance(node, ast.ImportFrom):
+                module = node.module or ""
+                if node.level == 0 and (module == "core" or module.startswith("core.")):
+                    violations.append(f"{rel}:{node.lineno}:{module}")
+    return violations
+
+
 @pytest.mark.unit
 def test_cli_alias_policy_rules():
     cli_module = load_development_tools_module("shared.cli_interface")
@@ -162,6 +188,30 @@ def test_scanner_exclusion_policy_consistency():
         "Scanner-like file discovery found without exclusion filtering: "
         + ", ".join(non_compliant)
     )
+
+
+@pytest.mark.unit
+def test_dev_tools_has_no_direct_core_imports():
+    project_root = Path(__file__).resolve().parents[2]
+    violations = _collect_direct_core_imports(project_root)
+
+    assert not violations, (
+        "development_tools must not directly import core.* modules: "
+        + ", ".join(violations)
+    )
+
+
+@pytest.mark.unit
+def test_generic_config_defaults_do_not_embed_mhm_project_files():
+    config_module = load_development_tools_module("config.config")
+
+    generic_lists = [
+        getattr(config_module, "_CORE_SYSTEM_FILES_ORDER", ()),
+        getattr(config_module, "_PRIORITY_DIRECTORIES_ORDER", ()),
+    ]
+    flattened = {str(item) for values in generic_lists for item in values}
+
+    assert not (flattened & GENERIC_MHM_DEFAULT_STRINGS)
 
 
 @pytest.mark.unit

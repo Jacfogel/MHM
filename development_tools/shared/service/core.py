@@ -36,9 +36,21 @@ class AIToolsService(
     
     def __init__(self, project_root: str | None = None, config_path: str | None = None, 
                  project_name: str | None = None, key_files: list[str] | None = None):
-        # Load external config if path provided, or try to auto-load from default location
+        # Load external config if path provided, or prefer the supplied project root's
+        # config before falling back to the current working directory.
         if config_path:
             config.load_external_config(config_path)
+        elif project_root:
+            candidate_config = (
+                Path(project_root).resolve()
+                / "development_tools"
+                / "config"
+                / "development_tools_config.json"
+            )
+            if candidate_config.exists():
+                config.load_external_config(str(candidate_config))
+            else:
+                config.load_external_config()
         else:
             # Try to auto-load from development_tools/config/development_tools_config.json or project root
             config.load_external_config()

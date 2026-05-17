@@ -75,8 +75,8 @@ class QuickStatus:
         health = {"core_files": {}, "key_directories": {}, "overall_status": "OK"}
 
         # Check core files - use config or project.key_files, fallback to generic defaults
-        core_files = self.quick_status_config.get("core_files", [])
-        if not core_files:
+        core_files = self.quick_status_config.get("core_files", None)
+        if core_files is None:
             # Try to get from project.key_files in config
             core_files = self.config.get_project_key_files(["requirements.txt"])
 
@@ -85,8 +85,8 @@ class QuickStatus:
             health["core_files"][file_path] = "OK" if full_path.exists() else "MISSING"
 
         # Check key directories - use config or paths.scan_directories, fallback to generic defaults
-        key_dirs = self.quick_status_config.get("key_directories", [])
-        if not key_dirs:
+        key_dirs = self.quick_status_config.get("key_directories", None)
+        if key_dirs is None:
             # Try to get from paths.scan_directories in config
             key_dirs = self.config.get_scan_directories() or ["core", "tests"]
 

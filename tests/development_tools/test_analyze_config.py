@@ -10,13 +10,14 @@ from development_tools.config import analyze_config
 
 
 @pytest.mark.unit
-def test_config_validator_relative_project_root_uses_package_anchor(
-    monkeypatch: pytest.MonkeyPatch,
+def test_config_validator_relative_project_root_uses_cwd_anchor(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     """Fallback project root matches `_PACKAGE_ROOT` when config returns a relative path (V5 §3.17)."""
     monkeypatch.setattr(analyze_config.config, "get_project_root", lambda: ".")
+    monkeypatch.chdir(tmp_path)
     v = analyze_config.ConfigValidator()
-    assert v.project_root == analyze_config._PACKAGE_ROOT
+    assert v.project_root == tmp_path.resolve()
 
 
 @pytest.mark.unit

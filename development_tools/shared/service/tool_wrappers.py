@@ -100,7 +100,9 @@ class ToolWrappersMixin:
                 "output": "",
                 "error": f"Script '{script_name}' is not registered",
             }
-        script_path = Path(__file__).resolve().parent.parent.parent / script_rel_path
+        project_script_path = self.project_root / "development_tools" / script_rel_path
+        package_script_path = Path(__file__).resolve().parent.parent.parent / script_rel_path
+        script_path = project_script_path if project_script_path.exists() else package_script_path
         if not script_path.exists():
             return {
                 "success": False,

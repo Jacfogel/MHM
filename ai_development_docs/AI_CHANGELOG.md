@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-17 - Dev-tools Minimal-Repo Portability **COMPLETED**
+- Made `development_tools/` honor a supplied external `project_root`: config auto-load, script wrapper lookup, and `analyze_config` relative-root handling now target the copied project instead of the MHM checkout
+- Kept MHM-specific quick-status files/directories in `development_tools_config.json`; generic defaults no longer embed `run_mhm.py` or `core/*` project files
+- Backup health/drill now skip cleanly when an external project has no `core.backup_manager`
+- Added minimal external-repo smoke tests and policy tests for no direct `core.*` imports; validation: targeted portability/policy tests passed, affected 144-test selection passed, `audit --quick` passed, and `audit --full --dev-tools-only` passed cleanly
+
 ### 2026-05-17 - AI_PRIORITIES Accuracy, Doc Links, Ruff Test Flake **COMPLETED**
 - Fixed Tier 2 `AI_PRIORITIES` falsely reporting Tier 3 test failures when coverage cache lacked real `tier3_test_outcome`; lower tiers still show **cached** actionable Tier 3 issues with a refresh hint (`report_generation.py` + unit tests)
 - Corrected 39 broken markdown link targets (V5 archive paths → V6, V6 `development_tools/` hrefs, dead test links in changelog); `doc-sync` clean
@@ -143,12 +149,6 @@ Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency a
 - Added `core/service_flag_storage.py` and consolidated JSON `.flag` request/response I/O across service request, service utility, and headless-service paths; shutdown flags remain plain text.
 - `backup_manager` now reads `user_index.json` under `file_lock`; generated docs/reports were refreshed, and the module-dependency generator no longer emits trailing-space dependency headings.
 - Removed the completed JSON storage classification/migration/service-flag cleanup work from active `PLANS.md`. Validation: focused storage/service tests, `py_compile`, `docs`, `audit --quick`, error-handling analysis, and `git diff --check` passed; full audit timed out and is not counted as clean.
-
-### 2026-05-09 - Markdown link target audit and fixer **COMPLETED**
-- Extended path-drift/doc-sync so local markdown links are checked from the source document directory, not only from the repo root, and `doc-fix --convert-links` rewrites auto-fixable repo-root-relative markdown hrefs to source-relative hrefs across documentation.
-- Cleared the remaining advisory hints in `CHANGELOG_DETAIL.md` (backticked truly removed files, pointed `DUPLICATE_FUNCTIONS_INVESTIGATION.md` at the archive copy, updated four V5-relocated JSON references to their `scopes/full/` paths, noted the `core/user_data_v2.py` split). `doc-sync` is now down from 762 to 0 markdown-link-target hints.
-- Scoped `LegacyReferenceFixer.required_pattern_keys` validation to only warn when running against the project that owns the loaded external config (added `config.get_loaded_config_file_path()`), so test fixtures no longer pollute `ai_dev_tools.log` with `dashed_short_id_display` warnings during `audit --full`.
-- Validation: focused link-fixer / path-drift / legacy-cleanup / coverage-metrics tests pass without spurious warnings; Ruff and `doc-fix --dry-run` / `doc-sync` clean.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

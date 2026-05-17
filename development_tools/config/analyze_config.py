@@ -39,11 +39,10 @@ class ConfigValidator:
     """Validates configuration usage across all AI tools."""
 
     def __init__(self):
-        # Prefer config-driven project root; fall back to package location if unset/relative
+        # Prefer config-driven project root; resolve relative roots against the
+        # current process cwd so copied-out projects do not fall back to this checkout.
         cfg_root = Path(config.get_project_root()).expanduser()
-        self.project_root = (
-            cfg_root.resolve() if cfg_root.is_absolute() else _PACKAGE_ROOT.resolve()
-        )
+        self.project_root = cfg_root.resolve() if cfg_root.is_absolute() else (Path.cwd() / cfg_root).resolve()
         self.ai_tools_dir = self.project_root / "development_tools"
         self.validation_results = {
             "config_usage": {},

@@ -117,24 +117,13 @@ SCAN_DIRECTORIES = []  # Empty by default - requires config file
 # project.core_system_files derivation; see get_project_core_system_files.
 _CORE_SYSTEM_FILES_ORDER = (
     ".gitignore",
-    "core/config.py",
-    "core/service.py",
+    "README.md",
     "requirements.txt",
-    "run_mhm.py",
 )
 # Included even when absent from project.key_files (health/version-sync convention).
 _CORE_SYSTEM_FILES_ALWAYS = frozenset({".gitignore", "requirements.txt"})
 # Default analyze_function_registry.priority_directories ordering when not in JSON.
-_PRIORITY_DIRECTORIES_ORDER = (
-    "core",
-    "scheduler",
-    "communication",
-    "ai",
-    "ui",
-    "user",
-    "tasks",
-    "notebook",
-)
+_PRIORITY_DIRECTORIES_ORDER: tuple[str, ...] = ()
 _PRIORITY_DIRECTORY_EXCLUDES: frozenset[str] = frozenset(
     {"data", "development_tools", "scripts", "tests"}
 )
@@ -1502,8 +1491,8 @@ def get_coverage_runtime_config():
 
 # Quick status configuration
 QUICK_STATUS = {
-    "core_files": [],  # Will use project.key_files if empty
-    "key_directories": [],  # Will use paths.scan_directories if empty
+    "core_files": None,  # None uses project.key_files; [] means check no files
+    "key_directories": None,  # None uses paths.scan_directories; [] means check no dirs
     "data_source_plugins": {},  # Plugin hooks for data sources (Discord, schedulers, etc.)
 }
 

@@ -1466,6 +1466,19 @@ class CommandsMixin:
         try:
             import importlib
 
+            if not (self.project_root / "core" / "backup_manager.py").exists():
+                return {
+                    "success": True,
+                    "skipped": True,
+                    "data": {
+                        "summary": {
+                            "success": True,
+                            "status": "SKIP",
+                            "message": "Backup drill skipped: no project backup manager is configured.",
+                        },
+                        "verification": {},
+                    },
+                }
             mod = importlib.import_module("core.backup_manager")
             backup_manager = mod.backup_manager
         except Exception as e:
@@ -1569,6 +1582,25 @@ class CommandsMixin:
         try:
             import importlib
 
+            if not (self.project_root / "core" / "backup_manager.py").exists():
+                payload = {
+                    "generated_at": datetime.now().isoformat(timespec="seconds"),
+                    "project_root": str(self.project_root),
+                    "summary": {
+                        "status": "SKIP",
+                        "total_issues": 0,
+                        "files_affected": 0,
+                        "success": True,
+                        "total_checks": 0,
+                        "passed_checks": 0,
+                        "latest_backup_path": None,
+                        "latest_backup_created_at": None,
+                        "drill_executed": False,
+                        "message": "Backup health skipped: no project backup manager is configured.",
+                    },
+                    "details": {"checks": [], "failed_checks": []},
+                }
+                return {"success": True, "skipped": True, "data": payload}
             mod = importlib.import_module("core.backup_manager")
             backup_manager = mod.backup_manager
         except Exception as e:
