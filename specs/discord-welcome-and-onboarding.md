@@ -7,7 +7,8 @@
 > **Last Updated**: 2026-05-16  
 > **Implementation**: `communication/core/welcome_manager.py`, `communication/communication_channels/discord/welcome_handler.py`, `communication/communication_channels/discord/webhook_handler.py`, `communication/communication_channels/discord/account_flow_handler.py`, `communication/communication_channels/discord/bot.py`, `communication/command_handlers/account_handler.py`  
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md)  
-> **Automated tests**: `tests/behavior/test_welcome_manager_behavior.py`, `tests/behavior/test_welcome_handler_behavior.py`, `tests/behavior/test_webhook_handler_behavior.py`
+> **Automated tests**: `tests/behavior/test_welcome_manager_behavior.py`, `tests/behavior/test_welcome_handler_behavior.py`, `tests/behavior/test_webhook_handler_behavior.py`  
+> **Coverage matrix**: [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md#discord-welcome-and-onboarding)
 
 ## Purpose
 
@@ -161,15 +162,15 @@ Discord account creation SHALL use `AccountManagementHandler` for business logic
 
 ### Requirement: Account linking flow (Discord UI)
 
-Linking SHALL use `AccountManagementHandler` with intent `link_account`, including a confirmation-code step when the handler requests it.
+Linking SHALL use `AccountManagementHandler` with intent `link_account`. When the handler requests a confirmation-code step, the current Discord UI sends instructions to restart the link flow rather than presenting a second modal immediately.
 
-#### Scenario: Link by username then confirmation code
+#### Scenario: Link by username then confirmation-code instructions
 
 - **GIVEN** the user starts linking and enters an existing MHM username  
 - **WHEN** the handler responds with `confirmation_code_sent`  
-- **THEN** the system prompts for a 6-digit confirmation code modal  
-- **WHEN** the user submits a valid code  
-- **THEN** linking completes per handler response messages  
+- **THEN** the system sends the handler response ephemerally  
+- **AND** sends follow-up instructions to use `/start` and select "Link Account" again to enter the confirmation code  
+- **AND** does not complete linking until a later valid confirmation-code submission reaches `AccountManagementHandler`  
 
 ### Requirement: Channel-agnostic business logic
 
@@ -191,7 +192,7 @@ Run after changing welcome or account onboarding code:
 3. [ ] Deauthorize app -> `discord:<id>` entry removed from `data/welcome_tracking.json`.
 4. [ ] Re-authorize -> welcome DM with buttons again.
 5. [ ] "Create a New Account" -> modal -> feature UI -> account created; Discord ID linked.
-6. [ ] "Link to Existing Account" -> username -> confirmation code -> link succeeds for existing user.
+6. [ ] "Link to Existing Account" -> username -> confirmation-code instructions appear; later valid code submission completes linking through `AccountManagementHandler`.
 7. [ ] User with existing link clicks create/link -> ephemeral "already have account" style message, no duplicate account.
 8. [ ] `/start` without account -> text welcome DM (no buttons) when webhook did not run first.
 

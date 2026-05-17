@@ -46,6 +46,8 @@ Test locations (must not change without updating this file and [TESTING_GUIDE.md
 - `tests/test_helpers/` - test utilities and support (not test categories). Contains `test_utilities/` (factories: TestUserFactory, TestDataFactory, env helpers) and `test_support/` (conftest plugins, standalone helpers like wait_until). Import from `tests.test_helpers.test_utilities` or `tests.test_helpers.test_support` (or `tests.test_helpers` for convenience).
 - `tests/conftest.py` - fixtures, hooks, and global configuration (root). Plugin modules live under `tests/test_helpers/test_support/` (conftest_env, conftest_mocks, conftest_cleanup, conftest_logging, conftest_user_data, conftest_hooks) and are loaded via `pytest_plugins`. Logging implementation in `tests/test_helpers/test_support/conftest_logging_impl.py`; cleanup in `tests/test_helpers/test_support/conftest_cleanup_impl.py`.
 
+Discord behavior-spec scenario coverage is tracked in [SPEC_COVERAGE_MATRIX.md](../specs/SPEC_COVERAGE_MATRIX.md). Check it before adding Discord tests so new coverage targets a real `Partial`, `Manual`, or `Gap` scenario.
+
 Rules:
 
 - Tests belong under `tests/`, **never** under `scripts/` or arbitrary directories.

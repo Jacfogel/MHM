@@ -5,7 +5,7 @@
 > **Purpose**: Quick reference for Discord bot manual testing  
 > **Style**: Command-focused, concise examples
 
-This guide provides quick test commands for Discord bot features. For detailed testing procedures, see [MANUAL_TESTING_GUIDE.md](MANUAL_TESTING_GUIDE.md).
+This guide provides quick test commands for Discord bot features. For detailed testing procedures, see [MANUAL_TESTING_GUIDE.md](MANUAL_TESTING_GUIDE.md). For scenario-by-scenario automated/manual/gap coverage, see [SPEC_COVERAGE_MATRIX.md](../specs/SPEC_COVERAGE_MATRIX.md).
 
 ---
 

@@ -51,6 +51,7 @@ When behavior changes: update the spec **before or with** the code, add or adjus
 
 ```text
 specs/
+  SPEC_COVERAGE_MATRIX.md
   SPECS_GUIDE.md
   discord-checkin-flow.md
   discord-connection-and-webhook-lifecycle.md
@@ -112,6 +113,7 @@ Do not copy long guide sections into specs; link to them under **Related documen
 
 | Spec | Covers |
 |------|--------|
+| [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md) | Scenario coverage status across the Discord specs |
 | [discord-checkin-flow.md](discord-checkin-flow.md) | Check-in prompts, check-in buttons, retry-safe delivery |
 | [discord-connection-and-webhook-lifecycle.md](discord-connection-and-webhook-lifecycle.md) | Bot init, reconnect, webhook server, guild join |
 | [discord-message-and-command-routing.md](discord-message-and-command-routing.md) | Messages, slash/classic commands, suggestion buttons |
@@ -127,7 +129,7 @@ Add new rows here when you add specs worth listing.
 
 Behavior spec files are registered in [`development_tools/config/development_tools_config.json`](../development_tools/config/development_tools_config.json):
 
-- `fix_version_sync.docs` - includes each `specs/<topic>.md` plus [SPECS_GUIDE.md](SPECS_GUIDE.md) (feeds `DEFAULT_DOCS` for doc-sync, path-drift, heading, and ASCII tools).
+- `fix_version_sync.docs` - includes each `specs/<topic>.md`, [SPECS_GUIDE.md](SPECS_GUIDE.md), and [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md) (feeds `DEFAULT_DOCS` for doc-sync, path-drift, heading, and ASCII tools).
 - `constants.fix_version_sync_directories` - `specs/` root for version-sync directory scans.
 - `path_drift.ignored_path_patterns` - heading fragments that are not file paths (for example "Behavior specifications", "Manual test checklist").
 

@@ -7,7 +7,8 @@
 > **Last Updated**: 2026-05-16  
 > **Implementation**: `communication/communication_channels/discord/bot.py`, `communication/communication_channels/discord/webhook_server.py`, `communication/communication_channels/discord/webhook_handler.py`, `communication/communication_channels/discord/event_handler.py`, `core/network_probe.py`, `communication/core/channel_monitor.py`  
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [discord-welcome-and-onboarding.md](discord-welcome-and-onboarding.md)  
-> **Automated tests**: `tests/behavior/test_discord_bot_behavior.py`, `tests/behavior/test_webhook_server_behavior.py`, `tests/behavior/test_webhook_handler_behavior.py`, `tests/unit/test_discord_event_handler.py`, `tests/unit/test_webhook_handler_gap_coverage.py`
+> **Automated tests**: `tests/behavior/test_discord_bot_behavior.py`, `tests/behavior/test_webhook_server_behavior.py`, `tests/behavior/test_webhook_handler_behavior.py`, `tests/unit/test_discord_event_handler.py`, `tests/unit/test_webhook_handler_gap_coverage.py`  
+> **Coverage matrix**: [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md#discord-connection-and-webhook-lifecycle)
 
 ## Purpose
 

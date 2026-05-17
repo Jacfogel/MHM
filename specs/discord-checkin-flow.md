@@ -7,7 +7,8 @@
 > **Last Updated**: 2026-05-16  
 > **Implementation**: `communication/communication_channels/discord/checkin_view.py`, `communication/communication_channels/discord/bot.py`, `communication/reminders/checkin_prompt_dispatcher.py`, `communication/message_processing/interaction_manager.py`, `communication/command_handlers/checkin_handler.py`, `core/checkin_service.py`, `core/response_tracking.py`  
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [discord-message-and-command-routing.md](discord-message-and-command-routing.md)  
-> **Automated tests**: `tests/unit/test_checkin_view.py`, `tests/behavior/test_discord_checkin_retry_behavior.py`, `tests/behavior/test_discord_bot_behavior.py`, `tests/behavior/test_discord_automation_complete.py`, `tests/behavior/test_checkin_handler_behavior.py`
+> **Automated tests**: `tests/unit/test_checkin_view.py`, `tests/behavior/test_discord_checkin_retry_behavior.py`, `tests/behavior/test_discord_bot_behavior.py`, `tests/behavior/test_discord_automation_complete.py`, `tests/behavior/test_checkin_handler_behavior.py`  
+> **Coverage matrix**: [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md#discord-check-in-flow)
 
 ## Purpose
 
@@ -81,23 +82,23 @@ Discord SHALL route check-in text and button actions through `handle_user_messag
 - **THEN** it sends an ephemeral account-not-found error  
 - **AND** does not call check-in business logic  
 
-### Requirement: Check-in delivery must not falsely log success
+### Requirement: Check-in delivery must not falsely log successful delivery
 
-A check-in prompt SHALL only be recorded as started/sent after the Discord send succeeds.
+A check-in prompt SHALL only be logged to user activity as started after the Discord send succeeds. The current implementation initializes the dynamic check-in flow before attempting delivery, then records the user-activity "User check-in started" event only after successful send.
 
 #### Scenario: Check-in prompt send succeeds
 
 - **GIVEN** the scheduler or dispatcher sends a check-in prompt to Discord  
 - **WHEN** Discord delivery succeeds  
-- **THEN** the system records the check-in as started once  
-- **AND** duplicate send attempts do not create duplicate started records for the same prompt delivery  
+- **THEN** the system logs the check-in as started once in user activity  
+- **AND** duplicate send attempts do not create duplicate user-activity started records for the same prompt delivery  
 
 #### Scenario: Check-in prompt send fails
 
 - **GIVEN** the scheduler or dispatcher attempts to send a check-in prompt to Discord  
 - **AND** Discord delivery fails because the bot is disconnected, unavailable, or cannot send  
 - **WHEN** the send attempt completes unsuccessfully  
-- **THEN** the system does not record the check-in as started  
+- **THEN** the system does not log the check-in as started in user activity  
 - **AND** the prompt remains eligible for retry according to the reminder/dispatch retry behavior  
 
 #### Scenario: Retry after reconnect

@@ -7,7 +7,8 @@
 > **Last Updated**: 2026-05-16  
 > **Implementation**: `communication/communication_channels/discord/bot.py`, `communication/communication_channels/discord/api_client.py`, `communication/communication_channels/discord/checkin_view.py`, `communication/communication_channels/discord/task_reminder_view.py`, `communication/communication_channels/base/rich_formatter.py`, `communication/delivery/message_dispatcher.py`  
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [discord-message-and-command-routing.md](discord-message-and-command-routing.md)  
-> **Automated tests**: `tests/behavior/test_discord_bot_behavior.py`, `tests/unit/test_discord_api_client.py`, `tests/unit/test_message_formatter.py`, `tests/unit/test_rich_formatter.py`, `tests/communication/test_retry_manager.py`
+> **Automated tests**: `tests/behavior/test_discord_bot_behavior.py`, `tests/unit/test_discord_api_client.py`, `tests/unit/test_message_formatter.py`, `tests/unit/test_rich_formatter.py`, `tests/communication/test_retry_manager.py`  
+> **Coverage matrix**: [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md#discord-message-delivery-and-rich-responses)
 
 ## Purpose
 

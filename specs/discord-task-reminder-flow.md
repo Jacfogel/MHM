@@ -7,7 +7,8 @@
 > **Last Updated**: 2026-05-16  
 > **Implementation**: `communication/communication_channels/discord/task_reminder_view.py`, `communication/communication_channels/discord/bot.py`, `communication/reminders/reminder_dispatcher.py`, `scheduler/task_reminders.py`, `tasks/task_service.py`, `communication/message_processing/interaction_manager.py`, `communication/command_handlers/task_handler.py`  
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [discord-message-and-command-routing.md](discord-message-and-command-routing.md)  
-> **Automated tests**: `tests/behavior/test_discord_task_reminder_followup.py`, `tests/behavior/test_task_reminder_followup_behavior.py`, `tests/integration/test_task_reminder_integration.py`, `tests/behavior/test_discord_bot_behavior.py`, `tests/unit/test_task_service.py`
+> **Automated tests**: `tests/behavior/test_discord_task_reminder_followup.py`, `tests/behavior/test_task_reminder_followup_behavior.py`, `tests/integration/test_task_reminder_integration.py`, `tests/behavior/test_discord_bot_behavior.py`, `tests/unit/test_task_service.py`  
+> **Coverage matrix**: [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md#discord-task-reminder-flow)
 
 ## Purpose
 
@@ -46,6 +47,14 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 - **WHEN** task reminder scheduling is refreshed  
 - **THEN** old reminder jobs are replaced or ignored  
 - **AND** future Discord reminders follow the updated task reminder settings  
+
+#### Scenario: Scheduler marks reminder attempted after dispatch handoff
+
+- **GIVEN** `scheduler/task_reminders.py` hands a task reminder to the delivery interface  
+- **WHEN** the delivery call returns without raising an exception  
+- **THEN** the scheduler updates the task's `reminder_sent` flag  
+- **AND** the lower-level `TaskReminderDispatcher` still returns a `MessageSendResult` that records whether Discord delivery actually succeeded, failed, or was skipped  
+- **NOTE** this reflects current behavior; the scheduler does not currently gate `reminder_sent` on the returned delivery result  
 
 ### Requirement: Task reminder view provides persistent action buttons
 
@@ -140,11 +149,12 @@ Run after changing Discord task reminder behavior:
 3. [ ] Completed task reaches reminder time -> no Discord reminder is sent.
 4. [ ] Deleted task reaches reminder time -> no Discord reminder is sent.
 5. [ ] Update task reminder time -> future reminder follows new time.
-6. [ ] Click `Complete Task` -> task is completed through normal task handler behavior.
-7. [ ] Click `Remind Me Later` -> only acknowledgement appears; task remains active.
-8. [ ] Click `More` -> short ID and title examples appear ephemerally.
-9. [ ] Unlinked user clicks a task button -> account-not-found message appears; task remains unchanged.
-10. [ ] Complete recurring task from reminder -> next instance/reminder behavior is correct.
+6. [ ] Delivery handoff returns without exception -> scheduler marks `reminder_sent`; dispatcher result still reflects actual Discord delivery outcome.
+7. [ ] Click `Complete Task` -> task is completed through normal task handler behavior.
+8. [ ] Click `Remind Me Later` -> only acknowledgement appears; task remains active.
+9. [ ] Click `More` -> short ID and title examples appear ephemerally.
+10. [ ] Unlinked user clicks a task button -> account-not-found message appears; task remains unchanged.
+11. [ ] Complete recurring task from reminder -> next instance/reminder behavior is correct.
 
 ## Related documentation
 

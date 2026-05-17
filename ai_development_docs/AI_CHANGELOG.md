@@ -35,6 +35,7 @@ Guidelines:
 - Marked `tests/unit/test_checkin_management_dialog.py` with module-level `@pytest.mark.no_parallel` after Tier 3 parallel run crashed on Windows (Qt access violation in `CheckinSettingsWidget._setup_question_count_controls` under xdist)
 - User confirmed full `audit --full` passes; `AI_PRIORITIES.md` no longer lists the test-pipeline crash item
 - Added behavior specs under `specs/` ([SPECS_GUIDE.md](../specs/SPECS_GUIDE.md), six Discord topic files including welcome, routing, check-ins, reminders, delivery, lifecycle); registered in `development_tools_config.json` `fix_version_sync.docs`; cross-linked from [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [LIST_OF_LISTS.md](../development_docs/LIST_OF_LISTS.md); doc-sync path-drift fix for bare filenames in spec prose
+- Corrected Discord spec wording to match current implementation and added [SPEC_COVERAGE_MATRIX.md](../specs/SPEC_COVERAGE_MATRIX.md): all 95 Discord scenarios mapped to `Automated`, `Partial`, `Manual`, or `Gap`, with links from each spec and testing docs
 - Fixed flaky Tier 3 failure in `test_analyze_pyright_respects_existing_project_arg`: Pyright shard cache now keys monolithic/shard entries by CLI args as well as source signatures; subprocess-mocking tests disable cache reads/writes on the module-scoped demo copy
 
 ### 2026-05-15 - Launcher Module Modernization **COMPLETED**

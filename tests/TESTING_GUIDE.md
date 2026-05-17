@@ -94,6 +94,7 @@ Tests are organized by real-world features and workflows to encourage integratio
 - Exercise end-to-end flows as closely as practical.
 - Often follow "user-does-X, system-responds-with-Y" patterns.
 - Validate that side effects (messages sent, logs written, tasks scheduled) occur correctly.
+- Discord behavior-spec scenario coverage is tracked in [SPEC_COVERAGE_MATRIX.md](../specs/SPEC_COVERAGE_MATRIX.md); use it to find automated, partial, manual-only, and gap coverage before adding Discord tests.
 
 **UI tests (`tests/ui/`)**
 
