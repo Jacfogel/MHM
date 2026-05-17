@@ -15,7 +15,7 @@ Status legend:
 - **Manual** - covered by manual Discord validation only.
 - **Gap** - no clear automated or manual coverage identified; add tests or checklist coverage before relying on it.
 
-## Discord Check-In Flow
+## 1. Discord Check-In Flow
 
 Spec: [discord-checkin-flow.md](discord-checkin-flow.md)
 
@@ -33,7 +33,7 @@ Spec: [discord-checkin-flow.md](discord-checkin-flow.md)
 | Retry after reconnect | Automated | [tests/behavior/test_discord_checkin_retry_behavior.py](../tests/behavior/test_discord_checkin_retry_behavior.py), [tests/communication/test_retry_manager.py](../tests/communication/test_retry_manager.py) |
 | Check-in state changes remain outside Discord view code | Partial | Button tests assert routing through `handle_user_message`; add a static/behavior guard if this adapter boundary becomes high-risk. |
 
-## Discord Connection and Webhook Lifecycle
+## 2. Discord Connection and Webhook Lifecycle
 
 Spec: [discord-connection-and-webhook-lifecycle.md](discord-connection-and-webhook-lifecycle.md)
 
@@ -60,7 +60,7 @@ Spec: [discord-connection-and-webhook-lifecycle.md](discord-connection-and-webho
 | System channel unavailable but another text channel is sendable | Gap | Add automated `on_guild_join` fallback-channel coverage. |
 | No sendable guild channel | Gap | Add automated `on_guild_join` no-channel coverage. |
 
-## Discord Message and Command Routing
+## 3. Discord Message and Command Routing
 
 Spec: [discord-message-and-command-routing.md](discord-message-and-command-routing.md)
 
@@ -82,7 +82,7 @@ Spec: [discord-message-and-command-routing.md](discord-message-and-command-routi
 | Too many buttons are available | Automated | [tests/unit/test_discord_bot_helpers.py](../tests/unit/test_discord_bot_helpers.py) |
 | Interaction manager raises during message processing | Partial | Discord error resilience is tested broadly; add direct `on_message` interaction-manager exception coverage. |
 
-## Discord Message Delivery and Rich Responses
+## 4. Discord Message Delivery and Rich Responses
 
 Spec: [discord-message-delivery-and-rich-responses.md](discord-message-delivery-and-rich-responses.md)
 
@@ -108,7 +108,7 @@ Spec: [discord-message-delivery-and-rich-responses.md](discord-message-delivery-
 | API client send message with options | Automated | [tests/unit/test_discord_api_client.py](../tests/unit/test_discord_api_client.py) |
 | API client handles Discord permission errors | Automated | [tests/unit/test_discord_api_client.py](../tests/unit/test_discord_api_client.py) |
 
-## Discord Task Reminder Flow
+## 5. Discord Task Reminder Flow
 
 Spec: [discord-task-reminder-flow.md](discord-task-reminder-flow.md)
 
@@ -128,7 +128,7 @@ Spec: [discord-task-reminder-flow.md](discord-task-reminder-flow.md)
 | Complete by typed title after reminder | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py) |
 | Recurring task is completed from Discord reminder | Automated | [tests/integration/test_task_reminder_integration.py](../tests/integration/test_task_reminder_integration.py) |
 
-## Discord Welcome and Onboarding
+## 6. Discord Welcome and Onboarding
 
 Spec: [discord-welcome-and-onboarding.md](discord-welcome-and-onboarding.md)
 
@@ -152,7 +152,7 @@ Spec: [discord-welcome-and-onboarding.md](discord-welcome-and-onboarding.md)
 | Successful account creation | Automated | [tests/behavior/test_account_handler_behavior.py](../tests/behavior/test_account_handler_behavior.py) |
 | Link by username then confirmation-code instructions | Partial | Account handler confirmation-code behavior is automated; current Discord instruction/follow-up path needs direct coverage. |
 
-## Priority Automation Gaps
+## 7. Priority Automation Gaps
 
 Good next tests to add:
 

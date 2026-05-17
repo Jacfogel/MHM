@@ -10,13 +10,13 @@
 > **Automated tests**: `tests/unit/test_checkin_view.py`, `tests/behavior/test_discord_checkin_retry_behavior.py`, `tests/behavior/test_discord_bot_behavior.py`, `tests/behavior/test_discord_automation_complete.py`, `tests/behavior/test_checkin_handler_behavior.py`  
 > **Coverage matrix**: [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md#discord-check-in-flow)
 
-## Purpose
+## 1. Purpose
 
 Discord check-ins allow a linked user to start, answer, skip, cancel, and get help for check-in flows from Discord. Discord-specific UI SHALL remain an adapter around channel-agnostic check-in handling.
 
-## Requirements
+## 2. Requirements
 
-### Requirement: Check-in messages use the channel-agnostic interaction path
+### 2.1. Requirement: Check-in messages use the channel-agnostic interaction path
 
 Discord SHALL route check-in text and button actions through `handle_user_message` so check-in behavior stays consistent across channels.
 
@@ -36,7 +36,7 @@ Discord SHALL route check-in text and button actions through `handle_user_messag
 - **AND** the check-in flow interprets the answer using channel-agnostic logic  
 - **AND** Discord sends the next prompt or completion response returned by the handler  
 
-### Requirement: Check-in view provides persistent action buttons
+### 2.2. Requirement: Check-in view provides persistent action buttons
 
 `get_checkin_view(user_id)` SHALL create a persistent Discord `View` with Cancel Check-in, Skip Question, and More buttons.
 
@@ -82,7 +82,7 @@ Discord SHALL route check-in text and button actions through `handle_user_messag
 - **THEN** it sends an ephemeral account-not-found error  
 - **AND** does not call check-in business logic  
 
-### Requirement: Check-in delivery must not falsely log successful delivery
+### 2.3. Requirement: Check-in delivery must not falsely log successful delivery
 
 A check-in prompt SHALL only be logged to user activity as started after the Discord send succeeds. The current implementation initializes the dynamic check-in flow before attempting delivery, then records the user-activity "User check-in started" event only after successful send.
 
@@ -108,7 +108,7 @@ A check-in prompt SHALL only be logged to user activity as started after the Dis
 - **THEN** the prompt may be delivered  
 - **AND** the check-in is logged as started only after the successful delivery  
 
-### Requirement: Discord check-in UI stays adapter-only
+### 2.4. Requirement: Discord check-in UI stays adapter-only
 
 Discord-specific modules SHALL only map button clicks and messages into channel-agnostic check-in commands.
 
@@ -119,7 +119,7 @@ Discord-specific modules SHALL only map button clicks and messages into channel-
 - **THEN** it SHALL NOT directly mutate check-in state files  
 - **AND** it SHALL use `handle_user_message` so `checkin_handler` and check-in services own state changes  
 
-## Out of scope
+## 3. Out of scope
 
 - Exact check-in question wording and scoring rules.
 - Analytics calculations after check-in responses are stored.
@@ -127,7 +127,7 @@ Discord-specific modules SHALL only map button clicks and messages into channel-
 - Email check-in prompt behavior.
 - Welcome/onboarding for users without linked accounts.
 
-## Manual test checklist
+## 4. Manual test checklist
 
 Run after changing Discord check-in behavior:
 
@@ -141,7 +141,7 @@ Run after changing Discord check-in behavior:
 8. [ ] Discord disconnected during scheduled check-in -> no false started log.
 9. [ ] Discord reconnects -> pending/retry delivery logs started once only after successful send.
 
-## Related documentation
+## 5. Related documentation
 
 - [SPECS_GUIDE.md](SPECS_GUIDE.md) - how behavior specs fit the project  
 - [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md) - channel-agnostic architecture  

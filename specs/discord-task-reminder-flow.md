@@ -10,13 +10,13 @@
 > **Automated tests**: `tests/behavior/test_discord_task_reminder_followup.py`, `tests/behavior/test_task_reminder_followup_behavior.py`, `tests/integration/test_task_reminder_integration.py`, `tests/behavior/test_discord_bot_behavior.py`, `tests/unit/test_task_service.py`  
 > **Coverage matrix**: [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md#discord-task-reminder-flow)
 
-## Purpose
+## 1. Purpose
 
 Discord task reminders notify linked Discord users about active tasks and provide quick actions to complete the task, defer action, or get help. Discord-specific code SHALL adapt the reminder into Discord UI but SHALL route actual task completion through channel-agnostic task handling.
 
-## Requirements
+## 2. Requirements
 
-### Requirement: Task reminders are sent only for eligible active tasks
+### 2.1. Requirement: Task reminders are sent only for eligible active tasks
 
 Task reminder delivery SHALL respect task state and reminder scheduling rules before a Discord reminder is sent.
 
@@ -56,7 +56,7 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 - **AND** the lower-level `TaskReminderDispatcher` still returns a `MessageSendResult` that records whether Discord delivery actually succeeded, failed, or was skipped  
 - **NOTE** this reflects current behavior; the scheduler does not currently gate `reminder_sent` on the returned delivery result  
 
-### Requirement: Task reminder view provides persistent action buttons
+### 2.2. Requirement: Task reminder view provides persistent action buttons
 
 `get_task_reminder_view(user_id, task_id, task_title)` SHALL create a persistent Discord `View` with Complete Task, Remind Me Later, and More buttons.
 
@@ -101,7 +101,7 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 - **AND** the help includes a shortened task ID  
 - **AND** the help shows both ID-based and title-based completion examples  
 
-### Requirement: Task completion follow-up uses normal task command behavior
+### 2.3. Requirement: Task completion follow-up uses normal task command behavior
 
 Completing a task from Discord SHALL go through the same command flow as typed task completion.
 
@@ -120,7 +120,7 @@ Completing a task from Discord SHALL go through the same command flow as typed t
 - **THEN** Discord routes the typed message through `handle_user_message`  
 - **AND** the task handler completes or disambiguates using normal task command behavior  
 
-### Requirement: Recurring task reminders continue from the next generated task instance
+### 2.4. Requirement: Recurring task reminders continue from the next generated task instance
 
 Recurring task completion SHALL create or expose the next task instance according to task recurrence rules, and reminders SHALL follow the next active instance.
 
@@ -132,7 +132,7 @@ Recurring task completion SHALL create or expose the next task instance accordin
 - **AND** the next recurring instance is created or scheduled according to recurrence rules  
 - **AND** future reminders apply to the next active instance rather than the completed one  
 
-## Out of scope
+## 3. Out of scope
 
 - Implementing snooze/reschedule logic for `Remind Me Later`; the current button only acknowledges.
 - Exact text of task reminder messages generated outside the Discord view.
@@ -140,7 +140,7 @@ Recurring task completion SHALL create or expose the next task instance accordin
 - UI configuration screens for task reminder settings.
 - Email task reminders.
 
-## Manual test checklist
+## 4. Manual test checklist
 
 Run after changing Discord task reminder behavior:
 
@@ -156,7 +156,7 @@ Run after changing Discord task reminder behavior:
 10. [ ] Unlinked user clicks a task button -> account-not-found message appears; task remains unchanged.
 11. [ ] Complete recurring task from reminder -> next instance/reminder behavior is correct.
 
-## Related documentation
+## 5. Related documentation
 
 - [SPECS_GUIDE.md](SPECS_GUIDE.md) - how behavior specs fit the project  
 - [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md) - channel-agnostic architecture  

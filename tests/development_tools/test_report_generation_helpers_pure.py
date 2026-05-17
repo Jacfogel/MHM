@@ -136,7 +136,7 @@ def test_tier3_track_skipped_for_audit_scope_and_effective_state(
         {"classification_reason": "not_run_this_audit_scope"}
     ) is True
 
-    assert service._effective_tier3_state_from_outcome({}) == "coverage_failed"
+    assert service._effective_tier3_state_from_outcome({}) == "unknown"
     assert service._effective_tier3_state_from_outcome("not-a-dict") == "unknown"  # type: ignore[arg-type]
     assert (
         service._effective_tier3_state_from_outcome({"state": "coverage_failed"})
@@ -147,7 +147,16 @@ def test_tier3_track_skipped_for_audit_scope_and_effective_state(
         "no_parallel": {"classification": "unknown"},
         "development_tools": {"classification": "unknown"},
     }
-    assert service._effective_tier3_state_from_outcome(all_unknown) == "coverage_failed"
+    assert service._effective_tier3_state_from_outcome(all_unknown) == "unknown"
+    unclassified_run = {
+        "parallel": {"classification": "unknown", "return_code": 2},
+        "no_parallel": {"classification": "unknown", "return_code": 2},
+        "development_tools": {"classification": "unknown", "return_code": 2},
+    }
+    assert (
+        service._effective_tier3_state_from_outcome(unclassified_run)
+        == "coverage_failed"
+    )
 
     clean = {
         "parallel": {"classification": "passed"},
@@ -420,6 +429,66 @@ def test_get_tier3_test_outcome_merges_dev_tools_cached_track(
 
     assert outcome["parallel"]["classification"] == "failed"
     assert outcome["development_tools"]["classification"] == "passed"
+
+
+@pytest.mark.unit
+def test_get_tier3_test_outcome_does_not_merge_dev_tools_without_main_outcome(
+    temp_project_copy: Path,
+) -> None:
+    """Coverage-only cache must not synthesize a tier3 outcome from dev-tools data alone."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    payloads = {
+        "analyze_test_coverage": {
+            "details": {"overall": {"coverage": 70.0}},
+        },
+        "generate_dev_tools_coverage": {
+            "details": {
+                "dev_tools_test_outcome": {
+                    "classification": "unknown",
+                }
+            }
+        },
+    }
+    service._load_tool_data = lambda tool, *_args, **_kwargs: payloads.get(tool, {})
+
+    assert service._get_tier3_test_outcome() == {}
+
+
+@pytest.mark.unit
+def test_tier3_test_outcome_is_cached_for_report_by_audit_tier(
+    temp_project_copy: Path,
+) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.current_audit_tier = 2
+    assert service._tier3_test_outcome_is_cached_for_report() is True
+    service.current_audit_tier = 3
+    service.tier3_test_outcome = {"state": "test_failures"}
+    assert service._tier3_test_outcome_is_cached_for_report() is False
+    service.tier3_test_outcome = {}
+    assert service._tier3_test_outcome_is_cached_for_report() is True
+
+
+@pytest.mark.unit
+def test_effective_tier3_state_unknown_without_run_evidence(
+    temp_project_copy: Path,
+) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+    assert service._effective_tier3_state_from_outcome({}) == "unknown"
+    assert (
+        service._effective_tier3_state_from_outcome(
+            {"development_tools": {"classification": "unknown"}}
+        )
+        == "unknown"
+    )
+    assert (
+        service._effective_tier3_state_from_outcome(
+            {
+                "state": "test_failures",
+                "parallel": {"classification": "failed", "failed_count": 1},
+            }
+        )
+        == "test_failures"
+    )
 
 
 @pytest.mark.unit

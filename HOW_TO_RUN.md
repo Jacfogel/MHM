@@ -123,7 +123,7 @@ If you run the development tools full audit on this or another PC:
 - **First run**: The backup health check reports "no backups" (skipped) until you create backups via the app; that is normal on a fresh install and does not fail the audit.
 - **Commands**: `python development_tools/run_development_tools.py audit --full` runs the full Tier 3 audit (tests + coverage + reports). See [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) for details.
 
-- **Tier 3 freshness (coverage / pytest rows in AI_STATUS)**: A default `audit --full` refreshes full-repo coverage and Tier 3 test outcomes. If **AI_STATUS** still shows `cache_only_precheck` or stale numbers, run again with `--clear-cache` to bypass Tier 3 caches (see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) nuance index). To refresh **development_tools-only** coverage and DEV_TOOLS_* reports without re-running the full product test track, use `python development_tools/run_development_tools.py audit --full --dev-tools-only`.
+- **Tier 3 freshness (coverage / pytest rows in AI_STATUS)**: A default `audit --full` refreshes full-repo coverage and Tier 3 test outcomes. If **AI_STATUS** still shows `cache_only_precheck` or stale numbers, run again with `--clear-cache` to bypass Tier 3 caches (see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) nuance index). To refresh **development_tools-only** coverage and DEV_TOOLS_* reports without re-running the full product test track, use `python development_tools/run_development_tools.py audit --full --dev-tools-only`.
 
 #### 5.1.1. Choosing an audit tier (time vs coverage)
 
@@ -137,7 +137,7 @@ Pick the **smallest** command that answers your question; full Tier 3 can exceed
 | Tier 3 but only dev-tools tests/coverage + scoped DEV_TOOLS_* reports | `python development_tools/run_development_tools.py audit --full --dev-tools-only` |
 | Skip pip-audit subprocess (offline / CI) | Set environment variable `MHM_PIP_AUDIT_SKIP` (see [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)) |
 
-**Deferred (not default)**: Moving Bandit or pip-audit into Tier 1 (`audit --quick`) would make quick audits slower without addressing the main cost (pytest + coverage); see [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 5.4 - 4.1.
+**Deferred (not default)**: Moving Bandit or pip-audit into Tier 1 (`audit --quick`) would make quick audits slower without addressing the main cost (pytest + coverage); see [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 5.4 - 4.1.
 
 #### 5.1.2. Where full-audit time goes (baseline snapshot)
 
@@ -164,7 +164,7 @@ Ruff, Pyright, and Bandit use **per-shard fragment caches** on disk (see [`devel
 
 #### 5.1.6. Completion log lines (`issues=`)
 
-Lines like `Completed analyze_functions: PASS issues=493` in [`development_tools/reports/logs/ai_dev_tools.log`](development_tools/reports/logs/ai_dev_tools.log) mean the tool **finished successfully** (`PASS`); **`issues=`** is the tool's **`total_issues`** summary field (often a **metric total**, not "493 test failures"). Use [development_tools/AI_STATUS.md](development_tools/AI_STATUS.md), [development_tools/AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md), and [development_tools/CONSOLIDATED_REPORT.md](development_tools/CONSOLIDATED_REPORT.md) for actionable next steps. Per-tool semantics: [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 3.21.
+Lines like `Completed analyze_functions: PASS issues=493` in [`development_tools/reports/logs/ai_dev_tools.log`](development_tools/reports/logs/ai_dev_tools.log) mean the tool **finished successfully** (`PASS`); **`issues=`** is the tool's **`total_issues`** summary field (often a **metric total**, not "493 test failures"). Use [development_tools/AI_STATUS.md](development_tools/AI_STATUS.md), [development_tools/AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md), and [development_tools/CONSOLIDATED_REPORT.md](development_tools/CONSOLIDATED_REPORT.md) for actionable next steps. Per-tool semantics: [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 3.21.
 
 - **Never install dependencies globally** - this can cause conflicts
 - **If you see (.venv) in your terminal prompt**, you're using the virtual environment correctly

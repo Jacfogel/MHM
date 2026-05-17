@@ -13,7 +13,7 @@
 Use this guide when you need:
 - The authoritative human-readable catalog of tools and tiers
 - Rationale behind trust levels and roadmap priorities
-- Links to supporting plans such as [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) (V4 checklist history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md))
+- Links to supporting plans such as [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (V4 checklist history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md))
 
 The machine-readable metadata lives in `development_tools/shared/tool_metadata.py` and is surfaced to AI collaborators through the paired guide.
 
@@ -63,7 +63,7 @@ python development_tools/run_development_tools.py --project-root . --config-path
 - **Porting** `development_tools/` only: install a matching Python stack in the host repo and ensure tools referenced in `development_tools/config/development_tools_config.json` are available.
 - **Future options** (when portability criteria land): optional `requirements-devtools.txt`, `[project.optional-dependencies]` devtools extra in `pyproject.toml`, or a lock file for reproducible tool-only CI.
 
-See improvement plan Section 7.6 in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) for background.
+See improvement plan Section 7.6 in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) for background.
 
 ### 2.2. Command Examples
 
@@ -266,7 +266,7 @@ Pipeline artifacts:
 
 - **`PASS` / `FAIL`** indicates whether the orchestration run for that tool **completed successfully** (`success` in the tool result), not whether `total_issues` is zero.
 - When present, **`issues=N`** copies **`data.summary.total_issues`** from the tool payload (same schema as the JSON block above). For many tools that number is a **metric total** (e.g. functions counted in complexity bands, documentation rows flagged), not a count of subprocess failures.
-- For **per-tool meanings** (documentation inventory vs function complexity vs package exports vs registry gaps) and how those counts surface in **AI_STATUS** / **AI_PRIORITIES** / **CONSOLIDATED_REPORT**, see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 3.21.
+- For **per-tool meanings** (documentation inventory vs function complexity vs package exports vs registry gaps) and how those counts surface in **AI_STATUS** / **AI_PRIORITIES** / **CONSOLIDATED_REPORT**, see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 3.21.
 
 **When to run each command**: See "Standard Audit Recipe" section in [AI_DEVELOPMENT_WORKFLOW.md](../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) for guidance on day-to-day checks (`audit`), pre-merge/pre-release checks (`audit --full`), and documentation work (`doc-sync`, `docs`).
 
@@ -399,7 +399,7 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 - When adding or relocating tools, update:
 - `shared/tool_metadata.py`
 - This guide and the AI guide (paired H2 requirements)
-- [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) if scope or gaps change
+- [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) if scope or gaps change
 - Maintain directory integrity (`development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) so automation can locate artifacts; keep generated reports under the paths enumerated in `shared/constants.py`.
 - Use the shared test locations: `tests/development_tools/` for suites and `tests/fixtures/development_tools_demo/` for synthetic inputs.
 - For detailed testing guidance, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](../tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
@@ -422,7 +422,7 @@ development_tools/tests/logs/
 ```
 
 - Do not implement bespoke exclusion logic inside individual tools - always import from `shared/standard_exclusions.py` so rules remain centralized.
-- Treat the tooling as a self-contained subproject: track follow-up work in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), document shipped changes in both changelogs, and keep the AI + human guides synchronized.
+- Treat the tooling as a self-contained subproject: track follow-up work in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md), document shipped changes in both changelogs, and keep the AI + human guides synchronized.
 
 Keeping these standards ensures the tooling ecosystem remains predictable for both humans and AI collaborators.
 
@@ -624,7 +624,7 @@ Markers may sit immediately above decorators or inside the function/class body. 
 
 **Phased migration** (when restructuring): (1) clarify docs + ownership map (this section); (2) compatibility shims if modules move; (3) migrate imports and remove shims. Core CLI entrypoints (`run_development_tools.py`, `audit` tiers) should keep working throughout.
 
-**Phase 2 (evaluation, not yet executed)**: Gate is recorded in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 7.7. Before moving files out of `development_tools/config/`, decide which items are true "policy surface" vs runtime/plumbing. Candidate home for runtime-only helpers: a dedicated package (for example `development_tools/shared/runtime_config/`) with **temporary** re-export shims only when required-each shim must follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) (inventory, removal plan, no silent long-term duplication). Acceptance: contributors can find config entrypoints within minutes; existing imports keep working until an explicit deprecation window ends.
+**Phase 2 (evaluation, not yet executed)**: Gate is recorded in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 7.7. Before moving files out of `development_tools/config/`, decide which items are true "policy surface" vs runtime/plumbing. Candidate home for runtime-only helpers: a dedicated package (for example `development_tools/shared/runtime_config/`) with **temporary** re-export shims only when required-each shim must follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) (inventory, removal plan, no silent long-term duplication). Acceptance: contributors can find config entrypoints within minutes; existing imports keep working until an explicit deprecation window ends.
 
 **Pyright configs**: Root **`[tool.pyright]`** in `pyproject.toml` is the whole-repo / IDE baseline (Pylance discovers it); `development_tools/config/pyrightconfig.json` remains dev-tools-owned JSON for alternate `--project` / parity work. Default `analyze_pyright` uses **`pyproject.toml`**. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` remains a compatibility mirror. Policy tests: `tests/development_tools/test_pyright_config_paths.py` (Pyright TOML section + owned JSON + Ruff TOML).
 
@@ -683,7 +683,7 @@ When `AI_PRIORITIES.md` is generated, items that lack explicit "Review for guida
 
 Tier 2 **`module-refactor-candidates`** is the in-repo "large module / complexity" gap signal; pair it with `AI_PRIORITIES.md` and `analyze_module_refactor_candidates_results.json` when triaging Documentation / Code quality / Testing themes. A single combined "gap matrix" tool remains future work; use existing JSON and priorities until then.
 
-**Scripts backlog** (migration/review): Policy, triage, flaky-detector notes, and inventory refresh command live in [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md). Task checklist: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) Section 3.12-Section 3.14 and [TODO.md](../TODO.md).
+**Scripts backlog** (migration/review): Policy, triage, flaky-detector notes, and inventory refresh command live in [scripts/SCRIPTS_GUIDE.md](../scripts/SCRIPTS_GUIDE.md). Task checklist: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 3.12-Section 3.14 and [TODO.md](../TODO.md).
 
 **Snapshot (refresh when migrating)**:
 

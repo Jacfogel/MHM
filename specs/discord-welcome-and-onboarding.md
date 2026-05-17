@@ -10,19 +10,19 @@
 > **Automated tests**: `tests/behavior/test_welcome_manager_behavior.py`, `tests/behavior/test_welcome_handler_behavior.py`, `tests/behavior/test_webhook_handler_behavior.py`  
 > **Coverage matrix**: [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md#discord-welcome-and-onboarding)
 
-## Purpose
+## 1. Purpose
 
 When someone connects or uses the MHM Discord application without a linked MHM account, they receive onboarding guidance to create or link an account. Welcome delivery is tracked so users are not spammed, while deauthorizing the app clears that tracking so a later reconnect can welcome them again.
 
-## Welcome tracking
+## 2. Welcome tracking
 
 - Persisted in `data/welcome_tracking.json` under `BASE_DATA_DIR` (resolved via `welcome_tracking_json_path()` in `communication/core/welcome_manager.py`).
 - Each Discord user is keyed as `discord:<discord_user_id>`.
 - Core helpers: `has_been_welcomed`, `mark_as_welcomed`, `clear_welcomed_status` (channel type `discord` for Discord paths).
 
-## Requirements
+## 3. Requirements
 
-### Requirement: One welcome cycle per authorization period
+### 3.1. Requirement: One welcome cycle per authorization period
 
 The system SHALL treat "welcomed" as a per-Discord-user flag that lasts from a successful welcome mark until the user deauthorizes the MHM application.
 
@@ -55,7 +55,7 @@ The system SHALL treat "welcomed" as a per-Discord-user flag that lasts from a s
 - **WHEN** the webhook handler handles the failure paths documented in `communication/communication_channels/discord/webhook_handler.py`  
 - **THEN** the system still calls `mark_as_welcomed` to avoid repeated welcome retries  
 
-### Requirement: Fallback welcome paths without buttons
+### 3.2. Requirement: Fallback welcome paths without buttons
 
 If the webhook path does not run, the bot MAY send a **text-only** authorization-style welcome DM from interaction or message handlers in `communication/communication_channels/discord/bot.py` (no `WelcomeView`). These paths exist today for `/start`, first slash command without an MHM account, and some message-based heuristics.
 
@@ -84,7 +84,7 @@ If the webhook path does not run, the bot MAY send a **text-only** authorization
 - **THEN** the system attempts a text-only welcome DM without blocking command processing  
 - **AND** marks welcomed on success or on `discord.Forbidden`  
 
-### Requirement: Welcome message content (authorization)
+### 3.3. Requirement: Welcome message content (authorization)
 
 Authorization-style welcome copy from `communication/core/welcome_manager.py` SHALL instruct the user to create or link an MHM account and mention tasks, check-ins, and help entry points.
 
@@ -95,7 +95,7 @@ Authorization-style welcome copy from `communication/core/welcome_manager.py` SH
 - **THEN** it describes creating or linking an account  
 - **AND** references tasks, check-ins, and `/help` (or equivalent)  
 
-### Requirement: Welcome action buttons (webhook and WelcomeView)
+### 3.4. Requirement: Welcome action buttons (webhook and WelcomeView)
 
 When a `WelcomeView` is attached, the system SHALL provide create and link actions that start the Discord account flows.
 
@@ -118,7 +118,7 @@ When a `WelcomeView` is attached, the system SHALL provide create and link actio
 - **THEN** the welcome buttons remain valid (no view timeout)  
 - **AND** `communication/communication_channels/discord/bot.py` may still dispatch clicks via `custom_id` after restarts  
 
-### Requirement: Account creation flow (Discord UI)
+### 3.5. Requirement: Account creation flow (Discord UI)
 
 Discord account creation SHALL use `AccountManagementHandler` for business logic and SHALL follow the modal -> feature selection -> create sequence in `communication/communication_channels/discord/account_flow_handler.py`.
 
@@ -160,7 +160,7 @@ Discord account creation SHALL use `AccountManagementHandler` for business logic
 - **AND** the user receives ephemeral success feedback  
 - **AND** the feature-selection message is updated to a success summary when possible  
 
-### Requirement: Account linking flow (Discord UI)
+### 3.6. Requirement: Account linking flow (Discord UI)
 
 Linking SHALL use `AccountManagementHandler` with intent `link_account`. When the handler requests a confirmation-code step, the current Discord UI sends instructions to restart the link flow rather than presenting a second modal immediately.
 
@@ -172,18 +172,18 @@ Linking SHALL use `AccountManagementHandler` with intent `link_account`. When th
 - **AND** sends follow-up instructions to use `/start` and select "Link Account" again to enter the confirmation code  
 - **AND** does not complete linking until a later valid confirmation-code submission reaches `AccountManagementHandler`  
 
-### Requirement: Channel-agnostic business logic
+### 3.7. Requirement: Channel-agnostic business logic
 
 Create, link, and status checks SHALL be implemented in `communication/command_handlers/account_handler.py` (`AccountManagementHandler`). Discord modules SHALL only provide UI and map interactions to `ParsedCommand` calls.
 
-## Out of scope
+## 4. Out of scope
 
 - Email or other channels' welcome wording (separate specs if needed).
 - Guild-join channel messages in `communication/communication_channels/discord/bot.py` (`on_guild_join`) - server broadcast, not DM onboarding.
 - Post-onboarding slash commands, check-in flows, and conversation cancel/back.
 - Full email-delivery details for link confirmation codes (covered by account handler and email channel docs).
 
-## Manual test checklist
+## 5. Manual test checklist
 
 Run after changing welcome or account onboarding code:
 
@@ -196,7 +196,7 @@ Run after changing welcome or account onboarding code:
 7. [ ] User with existing link clicks create/link -> ephemeral "already have account" style message, no duplicate account.
 8. [ ] `/start` without account -> text welcome DM (no buttons) when webhook did not run first.
 
-## Related documentation
+## 6. Related documentation
 
 - [SPECS_GUIDE.md](SPECS_GUIDE.md) - how behavior specs fit the project  
 - [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md) - channel-agnostic architecture  

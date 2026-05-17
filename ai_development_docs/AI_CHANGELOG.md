@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-17 - AI_PRIORITIES Accuracy, Doc Links, Ruff Test Flake **COMPLETED**
+- Fixed Tier 2 `AI_PRIORITIES` falsely reporting Tier 3 test failures when coverage cache lacked real `tier3_test_outcome`; lower tiers still show **cached** actionable Tier 3 issues with a refresh hint (`report_generation.py` + unit tests)
+- Corrected 39 broken markdown link targets (V5 archive paths → V6, V6 `development_tools/` hrefs, dead test links in changelog); `doc-sync` clean
+- Fixed parallel-suite flake in `test_analyze_ruff_keyboard_interrupt_returns_warn` by isolating Ruff shard cache like Pyright
+- **Note**: `no_parallel` pytest exit code 5 with all tests deselected is normal when no `no_parallel` tests match; log warnings are diagnostic noise
+
 ### 2026-05-16 - Check-in Emoji Fix, Specs, and Tier 3 Test Stability **COMPLETED**
 - Restored UTF-8 emojis and bullets in user-facing communication strings (check-in intro/completion, welcome, account messages) that had been saved as Latin-1 mojibake (garbled star/check-in text instead of intended emoji)
 - Marked `tests/unit/test_checkin_management_dialog.py` with module-level `@pytest.mark.no_parallel` after Tier 3 parallel run crashed on Windows (Qt access violation in `CheckinSettingsWidget._setup_question_count_controls` under xdist)

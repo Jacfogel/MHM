@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-15 19:04:04
+> **Last Generated**: 2026-05-17 01:15:53
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -25,7 +25,7 @@
 - **Classes Documented**: 133
 - **Total Documented**: 2840
 - **Template-Generated**: 20
-- **Last Updated**: 2026-05-15
+- **Last Updated**: 2026-05-17
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -4647,7 +4647,10 @@ Returns a list of dicts with 'test', 'message', and 'type' keys.
 - [OK] `format_classification_counts(counts)` - Format non-zero classification counts as a compact comma-separated line.
 - [OK] `format_live_output_line(line)` - Insert readability breaks where logger output is glued to progress output.
 - [OK] `has_race_hints(text)` - Heuristic detector for race-condition-like failure text.
-- [OK] `interrupt_handler(signum, frame)` - Handle interrupt signals (Ctrl+C). Single SIGINT is ignored (spurious); two within 2s stops the run.
+- [OK] `interrupt_handler(signum, frame)` - Handle interrupt signals (Ctrl+C).
+
+Requires ``_SIGINT_TAPS_TO_STOP`` distinct taps within ``_SIGINT_WINDOW_SECONDS``
+(default 5 in 2s). Bursts closer than ``_SIGINT_DEBOUNCE_SECONDS`` count as one tap.
 - [OK] `kill_process_tree_windows(pid)` - Kill a process and all its children on Windows.
 
 Returns:

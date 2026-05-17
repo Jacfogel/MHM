@@ -167,9 +167,89 @@ def test_ai_priorities_hides_tier3_test_outcome_when_clean(temp_project_copy):
 
 
 @pytest.mark.unit
+def test_ai_priorities_omits_tier3_test_failures_on_tier2_audit(temp_project_copy):
+    """Tier 2 audits do not run tests; stale coverage cache must not add test priorities."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.current_audit_tier = 2
+
+    payloads = {
+        "analyze_test_coverage": {
+            "summary": {"total_issues": 100, "files_affected": 1},
+            "details": {
+                "overall": {"coverage": 70.0, "statements": 10, "covered": 7, "missed": 3},
+            },
+        },
+        "generate_dev_tools_coverage": {
+            "details": {
+                "dev_tools_test_outcome": {
+                    "classification": "unknown",
+                }
+            }
+        },
+    }
+
+    def fake_load(tool_name, domain=None, log_source=True):
+        return payloads.get(tool_name, {})
+
+    service._load_tool_data = fake_load
+    service._load_coverage_summary = lambda: payloads["analyze_test_coverage"]["details"]
+    service._load_dev_tools_coverage = lambda: None
+
+    doc = service._generate_ai_priorities_document()
+
+    assert "Investigate and correct test failures/errors" not in doc
+    assert "Tier 3 coverage orchestration reported" not in doc
+
+
+@pytest.mark.unit
+def test_ai_priorities_surfaces_cached_tier3_failures_on_tier2_audit(
+    temp_project_copy,
+):
+    """Tier 2 should surface actionable Tier 3 test outcomes from cache when evidence exists."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.current_audit_tier = 2
+
+    payloads = {
+        "analyze_test_coverage": {
+            "summary": {"total_issues": 100, "files_affected": 1},
+            "details": {
+                "overall": {"coverage": 70.0, "statements": 10, "covered": 7, "missed": 3},
+                "tier3_test_outcome": {
+                    "state": "test_failures",
+                    "parallel": {
+                        "classification": "failed",
+                        "failed_count": 1,
+                        "failed_node_ids": ["tests/behavior/test_a.py::TestA::test_one"],
+                    },
+                    "no_parallel": {
+                        "classification": "passed",
+                        "passed_count": 5,
+                        "return_code": 0,
+                    },
+                },
+            },
+        }
+    }
+
+    def fake_load(tool_name, domain=None, log_source=True):
+        return payloads.get(tool_name, {})
+
+    service._load_tool_data = fake_load
+    service._load_coverage_summary = lambda: {}
+    service._load_dev_tools_coverage = lambda: None
+
+    doc = service._generate_ai_priorities_document()
+
+    assert "Investigate and correct test failures/errors" in doc
+    assert "cached from last Tier 3 run" in doc
+    assert "tests/behavior/test_a.py::test_one" in doc
+
+
+@pytest.mark.unit
 def test_ai_priorities_include_tier3_failed_tests_in_immediate_focus(temp_project_copy):
     """Tier 3 failed tests should appear as a ranked immediate-focus priority."""
     service = AIToolsService(project_root=str(temp_project_copy))
+    service.current_audit_tier = 3
 
     payloads = {
         "analyze_test_coverage": {
@@ -217,10 +297,14 @@ def test_ai_priorities_include_tier3_failed_tests_in_immediate_focus(temp_projec
     service._load_tool_data = fake_load
     service._load_coverage_summary = lambda: {}
     service._load_dev_tools_coverage = lambda: None
+    service.tier3_test_outcome = payloads["analyze_test_coverage"]["details"][
+        "tier3_test_outcome"
+    ]
 
     doc = service._generate_ai_priorities_document()
 
     assert "Investigate and correct test failures/errors" in doc
+    assert "cached from last Tier 3 run" not in doc
     assert "Parallel tests failed=1: tests/behavior/test_a.py::test_one." in doc
     assert "No-parallel tests failed=1: tests/behavior/test_b.py::test_two." in doc
     assert "Failing/erroring test(s):" not in doc

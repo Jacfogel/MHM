@@ -10,13 +10,13 @@
 > **Automated tests**: `tests/behavior/test_discord_bot_behavior.py`, `tests/behavior/test_webhook_server_behavior.py`, `tests/behavior/test_webhook_handler_behavior.py`, `tests/unit/test_discord_event_handler.py`, `tests/unit/test_webhook_handler_gap_coverage.py`  
 > **Coverage matrix**: [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md#discord-connection-and-webhook-lifecycle)
 
-## Purpose
+## 1. Purpose
 
 The Discord channel has lifecycle behavior beyond message routing: initialization, gateway readiness, network checks, reconnect handling, webhook server startup, webhook request validation, and guild join messages. These behaviours SHALL provide truthful channel status and avoid blocking core service startup where possible.
 
-## Requirements
+## 2. Requirements
 
-### Requirement: Discord bot initialization validates configuration and network readiness
+### 2.1. Requirement: Discord bot initialization validates configuration and network readiness
 
 The Discord bot SHALL initialize only when required configuration and basic connectivity checks pass, and SHALL expose detailed connection status for operators and health checks.
 
@@ -44,7 +44,7 @@ The Discord bot SHALL initialize only when required configuration and basic conn
 - **THEN** detailed connection status reflects DNS or network failure  
 - **AND** the bot does not claim it can send messages  
 
-### Requirement: Ready event starts command sync and webhook support once
+### 2.2. Requirement: Ready event starts command sync and webhook support once
 
 The Discord ready path SHALL run once per ready cycle and SHALL avoid duplicate command/event startup work.
 
@@ -72,7 +72,7 @@ The Discord ready path SHALL run once per ready cycle and SHALL avoid duplicate 
 - **THEN** the implementation may manually trigger ready startup work on the bot loop  
 - **AND** it must not create unawaited coroutine warnings if the loop is unavailable or closed  
 
-### Requirement: Disconnect and error events update connection status without fighting discord.py reconnect
+### 2.3. Requirement: Disconnect and error events update connection status without fighting discord.py reconnect
 
 Discord lifecycle handlers SHALL record useful status but allow discord.py to handle ordinary gateway reconnects.
 
@@ -98,7 +98,7 @@ Discord lifecycle handlers SHALL record useful status but allow discord.py to ha
 - **THEN** the bot attempts recovery only when reconnection rules allow it  
 - **AND** reconnect attempts are tracked to avoid uncontrolled retry loops  
 
-### Requirement: Health status reflects actual Discord readiness
+### 2.4. Requirement: Health status reflects actual Discord readiness
 
 Health checks SHALL use actual bot state, connection status, and latency rather than only assuming initialization success.
 
@@ -117,7 +117,7 @@ Health checks SHALL use actual bot state, connection status, and latency rather 
 - **THEN** they report not connected/not sendable  
 - **AND** the channel does not claim it can deliver Discord messages  
 
-### Requirement: Webhook server accepts Discord webhook POSTs only with required security headers
+### 2.5. Requirement: Webhook server accepts Discord webhook POSTs only with required security headers
 
 `DiscordWebhookHandler` SHALL reject webhook POST requests missing Discord security headers and SHALL verify signatures when a public key is configured.
 
@@ -151,7 +151,7 @@ Health checks SHALL use actual bot state, connection status, and latency rather 
 - **THEN** the event is acknowledged successfully  
 - **AND** a debug log records that the event type was unhandled  
 
-### Requirement: Webhook server lifecycle is explicit and stoppable
+### 2.6. Requirement: Webhook server lifecycle is explicit and stoppable
 
 `WebhookServer` SHALL start the HTTP server on the configured port and SHALL support safe shutdown.
 
@@ -170,7 +170,7 @@ Health checks SHALL use actual bot state, connection status, and latency rather 
 - **THEN** the HTTP server is shut down safely  
 - **AND** calling stop when no server exists does not raise  
 
-### Requirement: Guild join message is server-facing and separate from user onboarding
+### 2.7. Requirement: Guild join message is server-facing and separate from user onboarding
 
 Server/guild welcome messaging SHALL remain separate from DM onboarding and shall not mark individual Discord users as welcomed.
 
@@ -196,14 +196,14 @@ Server/guild welcome messaging SHALL remain separate from DM onboarding and shal
 - **THEN** no welcome message is sent  
 - **AND** the condition is logged  
 
-## Out of scope
+## 3. Out of scope
 
 - Detailed welcome/account onboarding flow for individual Discord users; see [discord-welcome-and-onboarding.md](discord-welcome-and-onboarding.md).
 - Command handler business logic after the Discord channel is ready.
 - Exact ngrok tunnel setup beyond whether the webhook server can be exposed.
 - Permanent Discord webhook registration in the Discord Developer Portal.
 
-## Manual test checklist
+## 4. Manual test checklist
 
 Run after changing Discord lifecycle or webhook behavior:
 
@@ -219,7 +219,7 @@ Run after changing Discord lifecycle or webhook behavior:
 10. [ ] Webhook server stop with no active server -> no exception.
 11. [ ] Bot joins a server -> server welcome message appears in the first suitable channel.
 
-## Related documentation
+## 5. Related documentation
 
 - [SPECS_GUIDE.md](SPECS_GUIDE.md) - how behavior specs fit the project  
 - [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md) - channel-agnostic architecture  

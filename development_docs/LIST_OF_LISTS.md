@@ -80,7 +80,7 @@
 | **Behavior specifications (`specs/`)** | `development_tools_config.json` — `fix_version_sync.docs` includes `specs/SPECS_GUIDE.md`, `specs/SPEC_COVERAGE_MATRIX.md`, and topic files (for example `specs/discord-checkin-flow.md`, `specs/discord-welcome-and-onboarding.md`); `constants.fix_version_sync_directories` includes `specs/` | Derived into `DEFAULT_DOCS` via `_derive_default_docs_list()`; doc-sync, path-drift, heading/ASCII tools | Not paired (shared human + AI). Index: [specs/SPECS_GUIDE.md](../specs/SPECS_GUIDE.md) section 6 lists Discord specs and the coverage matrix. `path_drift.ignored_path_patterns` includes spec heading fragments. Use full project-root paths in spec body text (not bare `module.py` filenames). |
 
 
-**Alignment note**: See [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) §7.8. Align config and DOCUMENTATION_GUIDE §4.1 first (one canonical); then ensure docs that reference "paired doc list" point to that canonical source.
+**Alignment note**: See [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) §7.8. Align config and DOCUMENTATION_GUIDE §4.1 first (one canonical); then ensure docs that reference "paired doc list" point to that canonical source.
 
 ---
 

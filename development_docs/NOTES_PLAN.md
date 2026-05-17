@@ -1,854 +1,467 @@
-# MHM Notebook (Unified Entry) Roadmap
+# MHM Notebook Roadmap
 
 > **File**: `development_docs/NOTES_PLAN.md`  
 > **Audience**: Human Developer & AI Collaborators  
-> **Purpose**: Implementation plan for notebook feature  
-> **Style**: Actionable, checklist-focused, roadmap-oriented  
-> **Last Updated**: 2026-04-29 (Notebook v2 persisted + v2-native runtime aligned with USER_DATA_MODEL)
+> **Purpose**: Current roadmap for the notebook feature  
+> **Style**: Actionable, checklist-focused, concise  
+> **Last Updated**: 2026-05-17  
+> **Current Evidence**: Reviewed against `code_snapshot_project_root_2026-05-16_17-49-25.md`  
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
-**Use / fit**: Notebook is intended as a primary daily tool but not yet there. Focus: get "Show More" pagination working first, then improve search feedback; edit sessions medium; AI extraction and slash-command discovery deferred until AI/command-parsing overhaul. User priority order for known issues: search feedback > Show More > help system > group ambiguity > bulk ops > journal visual distinction.
+---
 
-**Purpose:** Add a **global personal notebook** to MHM that works **Discord-first** (phone-friendly), is **channel-agnostic**, and is built to share foundations with Tasks (tags, validation, persistence patterns) **without forcing a big refactor now**.
+## 1. Current Use / Fit
 
-This roadmap assumes:
-- Current command routing lives in `communication\command_handlers` and channel abstraction lives in `communication\communication_channels\base`.
-- Discord channel implementation is in `communication\communication_channels\discord`.
-- Per-user persistence is JSON under `data\users\<user_uuid>\...`.
+Notebook is intended to become a primary daily-capture tool in MHM, especially from Discord on a phone.
+
+Current priority is no longer basic implementation. The core feature exists. The current priority is making it easier and more reliable to use day-to-day:
+
+1. Validate and polish pagination / Show More behavior in live Discord.
+2. Improve command discovery and notebook help text.
+3. Make phone-friendly editing practical.
+4. Clarify rough edges around group commands, inbox behavior, and visual distinctions.
+5. Defer AI extraction, slash-command expansion, and database/FTS work until the AI/command parsing or storage architecture is ready for that larger change.
 
 ---
 
-## Goal State (what “done” looks like)
+## 2. Current State
 
-From Discord on your phone you can:
-- capture a note in seconds
-- create and manage lists (as a type of entry)
-- retrieve by **recent**, **pinned**, **tag**, **group**, and **search**
-- edit entries without needing your PC
-- keep everything organized with tags + group + timestamps, with minimal babysitting
+### Implemented / Current
 
-Future-friendly constraints:
-- Unified “Entry” supports `note`, `list`, `journal` now, and `event` later.
-- Storage is JSON initially, but **storage access is abstracted** so moving to SQLite/FTS later is straightforward.
+The notebook feature is now implemented as a real feature package, not just a proposed module layout.
 
----
+Current notebook modules:
 
-## Directory / Module Plan (minimal change, future-friendly)
+- `notebook/__init__.py`
+- `notebook/notebook_data_handlers.py`
+- `notebook/notebook_data_manager.py`
+- `notebook/notebook_schemas.py`
+- `notebook/notebook_service.py`
+- `notebook/notebook_validation.py`
 
-### New top-level feature directory
-- `notebook/`
-  - `__init__.py`
-  - `schemas.py` (Pydantic models; feature-specific)
-  - `notebook_data_handlers.py` (JSON read/write + migrations + indexing)
-  - `notebook_data_manager.py` (CRUD operations + queries; no “service” naming)
-  - `notebook_validation.py` (validation helpers specific to notebook objects)
-  - `notebook_search.py` (search strategy; starts substring, later can be swapped)
+Current shared support:
 
-### New shared primitives (core)
-- `core/tags.py` (shared tag normalization/validation across notebook + tasks)
-- (Optional) `core/ids.py` (short external ID formatting and parsing)
+- `core/tags.py` provides shared tag normalization and validation.
+- `core/pagination.py` provides channel-neutral pagination helpers.
+- `communication/command_handlers/notebook_handler.py` handles notebook interactions and calls `notebook/notebook_service.py` rather than doing all business operations directly.
 
-### New command handler
-- `communication\command_handlers\notebook_handler.py`
-  - channel-agnostic command parsing for notebook commands
-  - calls into `notebook.notebook_data_manager`
+The old plan sections that said to create these modules have been removed because they are completed.
 
-### User data layout (per user)
-Add:
-- `data\users\<uuid>\notebook\`
-  - `entries.json`  *(primary source of truth)*
-  - `entries_index.json` *(optional; helps “recent” + search speed for JSON)*
+### Current Entry Model
 
-> **Note:** Keep your existing `tags.json` for now unless it causes conflicts. The tag **logic** moves to `core/tags.py`, not necessarily the file location yet.
----
-### Clarify and extract reusable list/query behavior from NotebookHandler
+The current Pydantic model lives in `notebook/notebook_schemas.py`.
 
-- **Problem**:
-  - `communication/command_handlers/notebook_handler.py` contains reusable list/query behavior that should not be notebook-specific:
-    - pagination
-    - list by tag
-    - list by group
-    - pinned filtering
-    - archived filtering
-    - inbox filtering
-    - tag mutation
-    - group mutation
-  - It also contains channel-specific pagination behavior that should not live in a generic command handler.
+Current entry kinds:
 
-- **Why it matters**:
-  - The same concepts will be needed for tasks and future events.
-  - Discord, email, and UI should render pagination differently.
-  - NotebookHandler should not know about Discord-style buttons or hidden payloads.
+- `note`
+- `list`
+- `journal_entry`
 
----
+Current important fields:
 
-#### Implementation
-
-- Add reusable pagination support:
-  - `core/pagination.py`
-  - Include generic page request/result objects and item slicing helpers.
-
-- Add reusable item organization helpers:
-  - `core/item_filters.py`
-  - `core/item_tags.py`
-  - `core/item_groups.py`
-
-- Move notebook-specific business operations into:
-  - `notebook/notebook_service.py`
-
-- Keep `NotebookHandler` responsible only for:
-  - reading `ParsedCommand`
-  - calling notebook service functions
-  - returning generic `InteractionResponse`
-
-- Move channel-specific pagination rendering to adapters:
-  - Discord renders buttons.
-  - Email renders text instructions.
-  - UI renders page controls.
-
----
-
-#### Clarify Inbox Semantics
-
-- Define what "inbox" means for notebook entries.
-- Document whether inbox means:
-  - active and unarchived entries with no group
-  - active and unarchived entries with no tags
-  - active and unarchived entries with no group and no tags
-  - something else
--Determine whether "nbox" has use and value as a concept or whether it should just be removed
-
-- Update:
-  - `NOTES_PLAN.md`
-  - notebook help text
-  - relevant tests
-
----
-
-#### Validation
-
-- Existing notebook commands behave the same.
-- Pagination tests still pass.
-- No Discord-specific pagination payloads are built inside NotebookHandler.
-- Inbox behavior is documented and covered by tests.
-
----
-
-#### Status
-
-- Planned
----
-
-## Unified Entry Model (Pydantic)
-
-### Entry kinds
-- `note` – free text
-- `list` – list items + optional description
-- `journal` – note with date semantics (optional daily grouping)
-- *(future)* `event` – calendar item
-
-### Required fields (all entries)
-- `id` (UUID string, internal)
-- `kind` (`note` | `list` | `journal` | ...)
-- `title` (optional for quick capture notes)
-- `body` (text; may be empty for lists)
-- `tags` (list[str]) - multiple labels for detailed categorization (e.g., `["#work", "#urgent", "project:alpha"]`)
-- `group` (optional string; e.g., `work`, `health`, `home`) - single high-level category for broad organization
-- `pinned` (bool)
-- `archived` (bool)
-- `created_at`, `updated_at` (ISO timestamps)
-
-**Groups vs Tags:**
-- **Groups**: Single optional string - used for broad, high-level organization (one group per entry)
-- **Tags**: List of strings - used for detailed labeling and fine-grained filtering (multiple tags per entry)
-- Example: A note might have `group: "work"` (broad category) and `tags: ["#meeting", "#urgent", "project:alpha"]` (detailed labels)
-
-### List items (when `kind == "list"`)
-Each item:
-- `id` (UUID)
-- `text`
-- `done` (bool)
-- `order` (int)
-- `created_at`, `updated_at` (ISO)
-
-### External IDs (Discord-friendly)
-- Internal IDs stay UUID.
-- Optionally display short IDs (no dash for mobile UX):
-  - `n3f2a9c`, `l91ab20`, `j0c77e2`
-- Short IDs are derived from UUID prefix, and only used for lookup convenience.
----
-
-## Command Set (Discord-first, channel-agnostic)
-
-### V0 (must-have)
-- `!n <text>` or `!note <text>`  
-  Create a quick note. If only title provided, prompts for body text (5 min timeout, can skip with `!skip`).  
-- `!n <title> : <body>` or `!n <title>\n<body>`  
-  Create note with title/body split (colon or newline separator).
-- `!qn [<title>]`, `!qnote [<title>]`, `!quickn [<title>]`, `!quicknote [<title>]`, `!q note [<title>]`, `quick note [<title>]`  
-  Create quick note (no body text required). Automatically placed in "Quick Notes" group. If no title provided, uses timestamp as default title.
-- `create note titled "<title>" with body "<body>"`  
-  Create note with explicit title and body in natural language format (no flow prompt).  
-- `!recent [N]` or `!r [N]`  
-  Show last N updated entries (notes + lists + journal).  
-- `!recentn [N]`, `!rnote [N]`, `!shownotes [N]`, etc.  
-  Show recent notes only.  
-- `!show <id_or_title>`  
-  Display one entry (works for both notes and tasks).  
-- `!append <id_or_title> <text>`, `!add <id_or_title> <text>`, `!addto <id_or_title> <text>`  
-  Append text to entry body (works for both notes and tasks).  
-- `!tag <id_or_title> <tags...>`  
-  Add tags (supports `#tag`, `area:home`, etc.; works for both notes and tasks).  
-- `!untag <id_or_title> <tags...>`  
-  Remove tags (works for both notes and tasks).  
-- `!search <query>` or `!s <query>`  
-  Search entries (V0: substring; works for both notes and tasks).  
-- `!pin <id_or_title>` / `!unpin <id_or_title>` (notes only)  
-- `!archive <id_or_title>` / `!unarchive <id_or_title>` (notes only)
-
-### V1 (lists)
-- `!l <title>`, `!list <title>`, `!nl <title>`, `!newlist <title>`, `!createlist <title>`, etc.  
-  Create list. If no items provided, prompts for items (comma/semicolon/newline separated). End with `!end`, `/end`, or `end`.  
-- `!l <title> : <item1>, <item2>, ...` or `!l <title>\n<item1>\n<item2>...`  
-  Create list with initial items in command.  
-- `!l add <id_or_title> <item text>`
-- `!l show <id_or_title>` or `!show <id_or_title>` (works for lists too)
-- `!l done <id_or_title> <item#>`
-- `!l undo <id_or_title> <item#>` or `!l undo <id_or_title> <item#>`
-
-### V2 (organization)
-- `!group <id_or_title> <groupname>`  
-  Set group on entry.  
-- `!group <groupname>`  
-  Show entries in group.  
-- `!tag <tag>` or `!t <tag>`  
-  Show entries with tag (works for both notes and tasks).  
-- `!pinned`  
-  Show pinned entries.  
-- `!inbox`  
-  Show untagged, unarchived recent items (works for both notes and tasks).
-- `!archived` or `!archive`  
-  Show archived entries (notebook entries only).
-
-### Editing sessions (phone-friendly, recommended)
-- `!edit <id_or_title>`  
-  Starts an edit session; your next message becomes replacement body (or use `!appendmode`).
-- `!cancel`  
-  Cancels edit session.
-
----
-
-## Roadmap Tasks (in build order)
-
-### Milestone 1 — Foundations + V0 Notes (Capture + Find)
-**Outcome:** You can capture, tag, show, append, and retrieve recent notes from Discord.
-
-#### 1.1 Create `core/tags.py`
-- Implement:
-  - `normalize_tag(tag: str) -> str`
-  - `validate_tags(tags: list[str]) -> list[str]`
-  - `parse_tags_from_text(text: str) -> tuple[str, list[str]]` *(optional)*
-- Decide tag rules:
-  - allow `#tag` and `key:value` formats
-  - lowercase normalization (recommended)
-
-**Acceptance:**
-- tags are stored consistently (no duplicates like `Work` vs `work`).
-
-#### 1.2 Add Notebook schemas (`notebook/notebook_schemas.py`)
-- Define `EntryKind`, `Entry`, `ListItem`.
-- Use Pydantic validation:
-  - required fields, timestamp formats, tag normalization via `core/tags.py`
-
-**Acceptance:**
-- invalid entries cannot be saved (fails fast with useful errors).
-
-#### 1.3 Add JSON handlers (`notebook/notebook_data_handlers.py`)
-- Implement:
-  - `load_entries(user_id) -> list[Entry]`
-  - `save_entries(user_id, entries) -> None` (atomic write)
-  - `ensure_notebook_dirs(user_id) -> Path`
-  - basic migration/versioning if needed (`schema_version` in file)
-- Store:
-  - `entries.json` as canonical
-
-**Acceptance:**
-- notebook creates required directories and files automatically on first use.
-
-#### 1.4 Add operations (`notebook/notebook_data_manager.py`)
-Implement high-level functions:
-- `create_entry(...) -> Entry`
-- `get_entry(ref) -> Entry` (ref = id, short id, or title if unique)
-- `list_recent(n=5) -> list[EntrySummary]`
-- `append_to_entry(ref, text) -> Entry`
-- `set_entry_body(ref, text) -> Entry`
-- `add_tags(ref, tags) -> Entry`
-- `remove_tags(ref, tags) -> Entry`
-- `pin/unpin`, `archive/unarchive`
-- `search(query) -> list[EntrySummary]` (V0 substring)
-
-**Acceptance:**
-- “recent” and “show” work after restart; entries persist reliably.
-
-#### 1.5 Add command handler (`communication\command_handlers\notebook_handler.py`)
-- Parse notebook commands and call data manager methods.
-- Keep output short and mobile-friendly:
-  - always display title (or first line), tags, and short id
-- Return IDs in responses.
-
-**Acceptance:**
-- From Discord, you can:
-  - `!n hello`
-  - `!recent`
-  - `!show <id>`
-  - `!append <id> more`
-  - `!tag <id> area:home`
-
-#### 1.6 Wire into command parser (`communication\message_processing\command_parser.py`)
-- Register notebook commands alongside existing task commands.
-- Ensure channel-agnostic behavior remains intact.
-
-**Acceptance:**
-- Notebook commands work through the same pipeline tasks use.
-
-#### 1.7 Tests (minimum)
-- Add `tests/` coverage for:
-  - tag normalization
-  - create/save/load roundtrip
-  - append updates `updated_at`
-  - search returns expected matches
-
----
-
-### Milestone 2 — Lists as Entry Kind
-**Outcome:** Lists are usable from Discord like a lightweight task list.
-
-#### 2.1 Extend schemas for list entries
-- Enforce:
-  - `kind == "list"` implies `items` exists
-  - list item ordering consistent
-
-#### 2.2 Add list operations to data manager
-- `create_list(title, tags, group) -> Entry`
-- `add_list_item(ref, text) -> Entry`
-- `toggle_list_item_done(ref, item_index, done=True) -> Entry`
-- `reorder_list_items(ref, ...)` *(optional later)*
-
-#### 2.3 Add list commands to handler
-- `!l new`, `!l add`, `!l show`, `!l done`, `!l undo`
-
-**Acceptance:**
-- You can maintain groceries (or similar) entirely from Discord.
-
----
-
-### Milestone 3 — Organization Views (group, inbox, pinned)
-**Outcome:** You can retrieve info even when you don’t remember names.
-
-#### 3.1 Add group support
-- store `group` on entries
-- commands:
-  - `!group <id> <group>`
-  - `!group <group>`
-
-#### 3.2 Add “smart views” (queries)
-- `inbox`: untagged + unarchived within last X days
+- `id`
+- `short_id`
+- `kind`
+- `title`
+- `description`
+- `category`
+- `status` (`active`, `archived`, `deleted`)
+- `items`
+- `tags`
+- `group`
 - `pinned`
-- `by_tag`
-- `by_group`
-- optional `stale`: not updated in 60+ days
+- `submitted_at`
+- `source`
+- `linked_item_ids`
+- `created_at`
+- `updated_at`
+- `archived_at`
+- `deleted_at`
+- `metadata`
 
-**Acceptance:**
-- You can find anything via recent/tag/group/search with minimal friction.
+Notes:
 
----
+- Use `description`, not `body`, when referring to the current schema.
+- Use `journal_entry`, not `journal`, when referring to the current schema value.
+- Archived/deleted state is represented by `status` plus timestamps, not by an `archived: bool` field.
+- `group` exists on notebook entries and also exists in the task update field set, so future shared organization work should not assume tasks lack groups.
 
-### Milestone 4 — Phone-friendly Edit Sessions
-**Outcome:** Editing longer entries is practical from mobile.
+### Current Inbox Semantics
 
-#### 4.1 Add edit session tracking per user/channel
-- store temporary state in memory (and optionally in a small json if needed)
-- timeout after N minutes
-- `!edit <id>` + next message becomes body
-- `!cancel`
+Current implementation: inbox means **active, untagged notebook entries updated within the last 30 days**.
 
-**Acceptance:**
-- You can rewrite a note from your phone without copying/pasting IDs repeatedly.
+It is **not** currently based on missing group. It is **not** currently “no group and no tags.”
 
----
+Keep this behavior unless there is a deliberate product decision to change it.
 
-### Milestone 5 — Skip-responsive Reminders that Create Notebook Artifacts
-**Outcome:** Skips produce useful “why” notes/lists instead of nagging.
+### Current Search Semantics
 
-#### 5.1 Extend task skip tracking (if not already)
-- record skip reason codes
-- record skip counts per task
+Current implementation:
 
-#### 5.2 “Skipped → capture” integrations
-- When skipped repeatedly:
-  - auto-create notebook entry tagged `blocker` + `task:<id>`
-  - optional prompt: “Capture why?” → creates note if you reply
+- case-insensitive substring search
+- searches active notebook entries only
+- searches title, description, and list item text
+- excludes archived entries
+- sorts by `updated_at` descending when possible
 
-**Acceptance:**
-- Repeated skips reduce noise and externalize the blocker into notebook.
+Search no-result feedback now exists and explains:
 
----
+- search is substring-based
+- archived entries are excluded
+- try `!archived`, `!recent`, `!inbox`, shorter keywords, `!t <tag>`, or `!group <name>` as appropriate
 
-### Milestone 6 — AI “Intent Extraction” for Notebook Actions
-**Outcome:** You can write conversationally and have MHM propose notebook actions safely.
+The old “search feedback not implemented” task is complete. Remaining search work is polish, not core implementation.
 
-#### 6.1 Define Pydantic intents (AI output schema)
-- `CreateEntryIntent`, `AppendEntryIntent`, `CreateListIntent`, `AddListItemIntent`, `TagIntent`, etc.
+### Current Pagination / Show More State
 
-#### 6.2 Integrate with `ai\chatbot.py`
-- AI produces structured JSON matching intent schemas.
-- Validate with Pydantic.
-- Execute only via `notebook_data_manager` methods.
+Current implementation:
 
-#### 6.3 Hook into `communication\message_processing\command_parser.py`
-- If no explicit command is detected:
-  - optionally pass text through AI intent extraction
-  - apply safety rules (confidence/confirmation gates)
+- `core/pagination.py` defines `PageRequest`, `PageResult`, and `paginate_items()`.
+- Notebook list/search handlers return channel-neutral pagination metadata in `rich_data["pagination_actions"]`.
+- Discord converts pagination metadata into `Show More` buttons with hidden payloads containing the original intent and next offset.
+- Discord button handling can route a pagination payload directly back to the appropriate interaction handler.
 
-**Acceptance:**
-- You can type: “remind me to buy milk and eggs; make a groceries list”
-- system proposes actions and performs them (with confirmation if needed).
+The old “Show More button loses pagination state” item appears to be addressed in code. Remaining work is live Discord validation and UX polish.
 
 ---
 
-## JSON vs SQLite Search: Migration Guidance
+## 3. Current Supported Capability Areas
 
-Start with JSON + substring search.
-To keep migration easy later:
-- Keep all notebook data access behind `notebook_data_handlers` + `notebook_data_manager`.
-- Avoid having command handlers read/write JSON directly.
-- Add `notebook_search.py` with a `search()` function whose implementation can be swapped.
+This is a high-level capability map, not a complete alias list. Exact command aliases belong in the parser/handler tests and help text.
 
-Later migration steps (when you’re ready):
-1. Add SQLite DB under `data\users\<uuid>\notebook\notebook.db`
-2. Write one-time migration script: JSON → DB
-3. Replace handler implementations in `notebook_data_handlers` (keep method signatures)
-4. Implement SQLite FTS5 for `title/body/items.text`
+### Capture
 
-If you follow this structure, the migration is **not** a rewrite—just a backend swap.
+- Create quick notes.
+- Create titled notes.
+- Create notes with title and description split by supported separators.
+- Create quick notes in the `Quick Notes` group.
+- Create lists.
+- Create journal entries.
 
----
+### Retrieve
 
-## Suggested Implementation Order (short version)
-1. `core/tags.py`
-2. `notebook/notebook_schemas.py`
-3. `notebook/notebook_data_handlers.py`
-4. `notebook/notebook_data_manager.py`
-5. `communication/command_handlers/notebook_handler.py`
-6. wire into `command_parser.py`
-7. tests
-8. lists
-9. smart views
-10. edit sessions
-11. skip integrations
-12. AI extraction
+- Recent entries.
+- Recent notes.
+- Show one entry by full UUID, short ID, or title when resolvable.
+- Search entries.
+- List pinned entries.
+- List inbox entries.
+- List archived entries.
+- List by tag.
+- List by group.
 
----
+### Modify
 
-## Current Implementation Status
+- Append to an entry.
+- Replace/set entry description.
+- Add tags.
+- Remove tags.
+- Set group.
+- Pin/unpin.
+- Archive/unarchive.
 
-### Milestone Completion Summary (last verified 2026-02-28)
-- **Milestone 1 (Foundations + V0 Notes)**: ✅ **COMPLETED** (prior sessions) - Core infrastructure, data handlers, command handler, and basic commands all implemented
-- **Milestone 2 (Lists)**: ✅ **COMPLETED** (prior sessions) - List operations and commands fully implemented
-- **Milestone 3 (Organization Views)**: ✅ **COMPLETED** (prior sessions) - Group support, smart views (pinned, inbox, tag view) implemented
-- **Milestone 4 (Edit Sessions)**: ⏳ **PENDING** - Not yet implemented. *User priority*: Medium.
-- **Milestone 5 (Skip Integration)**: ⏳ **PENDING** - When you repeatedly skip a task reminder, MHM would create a notebook entry (tagged `blocker` + `task:<id>`) or prompt "Capture why?" instead of nagging—reducing repeat reminders and externalizing blockers. *User priority*: Clarify value before implementing.
-- **Milestone 6 (AI Extraction)**: ⏳ **DEFERRED** - Important but not actionable until AI and command parsing receive full overhaul. *User priority*: Defer.
+### List Operations
 
-### Recent Fixes & Improvements ✅
-- **Regex Pattern Fix**: Removed `!` prefix from all regex patterns in `command_parser.py` to match messages after prefix stripping
-- **Multi-line Support**: Added `re.DOTALL` flag to regex compilation to support newline-separated note bodies and list items
-- **Button Handler**: Added Discord button interaction handler for suggestion buttons (`suggestion_` custom_ids)
-- **Slash Command Conversion**: Fixed slash command conversion to strip `!` prefix before passing to parser (prevents recursion)
-- **Flow State Clearing**: Added early flow clearing when commands (`/` or `!`) are detected, preventing flow keywords from interfering
-- **Command Definition Cleanup**: Made `mapped_message` optional in `CommandDefinition`, removed redundant entries, relying on regex patterns for aliases
-- **Flow Keywords**: Removed flow-specific keywords (`skip`, `end`, `endlist`) from command detection, allowing `ConversationManager` to handle them properly
-- **Note Body Flow Prompt**: Updated note creation prompt to use button-style format: "What would you like to add as the body text? [Skip] [Cancel]" with `suggestions=["Skip", "Cancel"]` for consistent UX
-- **Flow Expiration**: Increased all conversation flow timeouts from 5 minutes to 10 minutes (note body, list items, task due date, task reminder flows) to prevent premature expiration
-- **Flow Interference Detection**: Added unrelated message detection in flow handlers (`_handle_note_body_flow`, `_handle_list_items_flow`, `_handle_task_due_date_flow`, `_handle_task_reminder_followup`) - if user sends a command or greeting while in a flow, the flow is cleared to allow normal command processing
-- **Task Creation Flow Fixes**: Fixed task creation to properly route to due date flow when no valid due date exists, and only prompt for reminder periods when a valid due date is present. Added explicit date validation and improved date/time parsing for natural language expressions
-- **List Flow End Command Fix**: Fixed `!end` command not working in list creation flow - added `'end'`, `'endlist'`, and `'endl'` to flow keywords list in `interaction_manager.py` so they're properly routed to conversation manager instead of being treated as regular commands that clear the flow
-
-### Initial Testing Results ✅
-**Discord Testing (Quick Start):**
-- ✅ **Note Creation**: `!n Hello world` - Works correctly, creates note with short ID (e.g., `n-835a65`)
-- ✅ **Recent View**: `!recent` - Works correctly, shows recent entries with proper formatting
-- ✅ **Show Entry**: `!show n-xxxxxx` - Works correctly, displays entry details
-- ✅ **Note Body Flow**: Flow prompts correctly with Skip/Cancel buttons when only title provided
-- ✅ **List Creation Flow**: `!l Groceries` - Flow prompts correctly for items, accepts comma-separated items
-- ⚠️ **List End Command**: `!end` - **FIXED** - Was not working (treated as command instead of flow keyword), now fixed by adding to flow keywords list
-
-### Command Implementation Status
-
-#### In Progress
-- **Note Creation**: `!n`, `!note`, `!nn`, `!newn`, `!createnote`, etc. with `:` or newline separator
-- **Quick Note Creation**: `!qn`, `!qnote`, `!quickn`, `!quicknote`, `!q note`, `quick note` - automatically grouped as "Quick Notes", no body text required ✅ **COMPLETED**
-- **Natural Language Note Creation**: `create note titled "X" with body "Y"` format ✅ **COMPLETED**
-- **Note Flow State**: Prompts for body text when only title provided (10 min timeout, `[Skip]` and `[Cancel]` button support)
-  - ✅ **Verified**: Flow correctly prompts with button-style format when only title provided
-  - ⏳ **Not yet verified**: Flow expires after 10 minutes of inactivity
-  - ⏳ **Not yet verified**: Flow clears when unrelated commands are sent (allows normal command processing)
-  - ✅ **Verified**: Skip and Cancel buttons work correctly to exit flow
-- **List Creation**: `!l`, `!list`, `!newlist`, `!createlist`, etc. with flow support for items
-- **List Flow State**: Prompts for list items (comma/semicolon/newline separated, `!end` to finish)
-  - ✅ **Verified**: Flow correctly prompts for items when only title provided
-  - ✅ **Verified**: Accepts comma/semicolon/newline separated items
-  - ✅ **Fixed**: `!end` command now properly ends list creation (was clearing flow instead of finishing list)
-  - ⏳ **Not yet verified**: Flow expires after 10 minutes of inactivity
-  - ⏳ **Not yet verified**: Flow clears when unrelated commands are sent
-- **Recent Views**: `!recent`, `!r`, `!recentn`, `!rnote`, `!shownotes` patterns
-- **Entry Display**: `!show <id_or_title>` (works for both notes and tasks)
-- **Append Operations**: `!append`, `!add`, `!addto` (works for both notes and tasks)
-- **Tag Operations**: `!tag`, `!untag` (works for both notes and tasks)
-- **Search**: `!search`, `!s` (works for both notes and tasks)
-- **Note Actions**: `!pin`, `!unpin`, `!archive`, `!unarchive` (notes only)
-- **List Operations**: `!l add`, `!l done`, `!l undo`, `!l remove`
-- **Smart Views**: `!pinned`, `!inbox`, `!t <tag>`, `!group <groupname>`
-- **Group Management**: `!group <id_or_title> <groupname>` (set group)
-
-#### Known Issues & Opportunities for Improvement ⚠️
-
-*User-priority order (2026-02-28): 1=most bothersome, 6=least*
-- **1. Search Feedback**: No helpful feedback when search returns no results (just "No entries found")
-- **2. Pagination "Show More" Button**: Button click loses pagination context (offset, query, intent); must re-run command to see more
-- **3. Command Discovery**: No help system for discovering notebook commands (e.g., `!help notebook`)
-- **4. Group Command Ambiguity**: `!group <entry> <group>` vs `!group <group>` - parser may incorrectly route single-word group names
-- **5. No Bulk Operations**: Can't tag multiple entries at once, or perform other bulk actions
-- **6. Journal Visual Distinction**: Journal entries look identical to notes in responses (no visual distinction)
-
-**Fixed (historical):**
-- ~~**Set Entry Body Command**~~ ✅ **FIXED** - Added `!set`, `!replace`, `!update` command patterns
-- ~~**Create Journal Commands**~~ ✅ **FIXED** - Added `!j`, `!journal`, `!newjournal`, etc. command patterns
-- ~~**Short ID Format**~~ ✅ **FIXED** - Changed to `n123abc` format (no dash)
-
-**Other User Experience Issues:**
-- **Edit Sessions (Milestone 4)**: Not implemented - users can't easily rewrite long notes (must use `!set` or `!append`). *User priority*: Medium.
-- **Error Messages**: Some error messages could be more actionable (e.g., suggest similar entry IDs when not found)
-- **Group vs Tag Clarity**: Group vs tag distinction might be unclear to users (single group vs multiple tags)
-- **Command Consistency**: Some commands note-specific (`!pin`, `!archive`) while others are shared (could be confusing)
-- **List Command Prefix**: List operations use `!l` prefix while note operations don't (inconsistent)
-
-**Technical Debt:**
-- **Search Module**: Search logic in `notebook_data_manager.py` instead of separate `notebook_search.py` (plan suggested abstraction)
-- **Short ID Formatting**: Logic duplicated between handler and validation - should centralize in `core/ids.py`
-- **Task Short IDs**: Tasks don't have short IDs - should implement centralized ID system (`core/ids.py`) for both tasks and notebook entries
-- **Pattern Duplication**: Some regex patterns duplicated (e.g., `r'^n\s+(.+)$'` appears twice in create_note patterns)
-- **Slash Command Registration**: Notebook commands work via conversion but not explicitly registered (affects discoverability)
-- **Flow State Persistence**: Currently in-memory with JSON backup - could be improved
-- **Pagination Button Handler**: "Show More" buttons appear but don't work - button click loses pagination context (offset, query, intent). Need to store pagination state or encode in custom_id
-
-**Robustness & Scalability:**
-- **Concurrent Access**: No validation for concurrent access (multiple users/devices)
-- **File Operation Retry**: No retry logic for file operations (though atomic writes reduce risk)
-- **Migration System**: Schema versioning exists but no migration logic for schema changes
-- **Backup/Restore**: No backup/restore mechanism for notebook data
-- **Performance**: No indexing for large datasets (plan mentioned `entries_index.json` as optional)
-- **Performance Tests**: No performance tests (large datasets, concurrent access)
-- **Integration Tests**: No integration tests with actual Discord bot
-
-**AI Integration:**
-- **AI Chatbot Access**: AI chatbot does not currently have access to notebook entries in context
-- **AI Intent Extraction (Milestone 6)**: Not implemented - natural language intent extraction pending
-- **AI Fallback**: Falls back to AI chatbot when commands unclear, but AI may not understand notebook-specific intents
-
-**Documentation:**
-- **User Documentation**: No user-facing documentation (how to use notebook commands)
-- **API Documentation**: No API documentation for data manager functions
-
-### Command Support Matrix
-- **Bang commands (`!command`)**: ✅ Fully supported
-- **Slash commands (`/command`)**: ✅ Supported via conversion logic (works but not explicitly registered)
-- **Natural text (no prefix)**: ✅ Mostly supported via regex patterns (~83% coverage)
-
-### Generalization Status
-Many commands now work for both tasks and notes:
-- `!show <id_or_title>` - works for both
-- `!append`, `!add`, `!addto` - works for both
-- `!tag`, `!untag` - works for both
-- `!search`, `!s` - works for both
-- `!inbox` - works for both
-- `!tag <tag>`, `!t <tag>` - works for both
-
-Task-specific: `!complete`, `!uncomplete` (tasks only)  
-Note-specific: `!pin`, `!unpin`, `!archive`, `!unarchive` (notes only)
+- Add list item.
+- Mark list item done.
+- Mark list item not done.
+- Remove list item.
 
 ---
 
-## Implementation Details & Behavior
+## 4. Active Backlog
 
-### Recent Entries Behavior
-- **Default Limit**: Shows 5 most recently updated entries by default
-- **Custom Limit**: Users can specify limit with `!recent N` (e.g., `!recent 10`)
-- **Sorting**: Entries sorted by `updated_at` timestamp (most recent first)
-- **Archived Entries**: Archived entries are **excluded** from recent by default
-- **Including Archived**: Can include archived entries by calling `list_recent(user_id, n=5, include_archived=True)` programmatically (no command pattern yet)
-- **What if More Notes Exist**: Only shows the N most recent (doesn't indicate if more exist - acceptable for recent view)
-- **Tasks Included**: ❌ **NO** - Only notebook entries (notes, lists, journal) are included. Tasks are stored separately and don't appear in notebook queries.
+### 4.1 Validate and polish live Discord pagination
 
-### Inbox vs Recent - Key Differences
-- **Recent (`!recent`)**: Shows N most recently updated entries (default 5), sorted by `updated_at`, excludes archived
-- **Inbox (`!inbox`)**: Shows **untagged, unarchived** entries updated within last 30 days (default 5, paginated), sorted by `updated_at`
-  - **Purpose**: Inbox is for "uncategorized" items that need attention/tagging
-  - **Filter**: Must have NO tags AND not be archived AND updated within 30 days
-  - **Use Case**: Quick way to see items that haven't been organized yet
-  - **Pagination**: Shows 5 at a time with "Show More" button if more exist
+**Status**: Active  
+**Priority**: High
 
-### Archiving Behavior
-- **What Archiving Does**: Sets `archived=True` flag on entry (entry still exists in storage)
-- **Effect on Queries**: 
-  - Archived entries excluded from `!recent` by default
-  - Archived entries excluded from `!search` results
-  - Archived entries excluded from `!inbox` view
-  - Archived entries excluded from `!pinned` view
-  - Archived entries excluded from `!group` and `!tag` views
-- **Accessing Archived**: 
-  - Can still access archived entries directly by ID (`!show <id>`)
-  - Use `!archived` or `!archive` to list archived entries (shows 5 at a time, paginated)
-- **Unarchiving**: Use `!unarchive <id>` to restore entry to normal views
-- **Pagination**: All list views (archived, inbox, pinned, group, tag, search) show 5 entries at a time with "Show More" button if more exist
-- **Default Display**: All queries show 5 entries initially, with pagination support to view more
+**Problem**: Pagination appears implemented in code, but it still needs live Discord validation and any UX polish found during manual use.
 
-### Short ID Format
-- **Current Format**: `n123abc` (kind prefix + 6-8 hex characters, **no dash**)
-- **Change Made**: Removed dash for easier mobile typing (changed from `n-123abc` to `n123abc`)
-- **Backward Compatibility**: **REMOVED** - No longer supports dash format (user will update files manually)
-- **Examples**: `n123abc` (note), `l91ab20` (list), `j0c77e2` (journal)
-- **Task Short IDs**: Tasks currently use full UUIDs (`task_id`), not short IDs - **TODO**: Implement centralized short ID system for tasks (e.g., `t123abc`)
+**Tasks**:
 
-### Adding Tags and Groups
+- [ ] Manually test `Show More` from Discord for:
+  - [ ] `!s <query>`
+  - [ ] `!recent`
+  - [ ] `!pinned`
+  - [ ] `!inbox`
+  - [ ] `!archived`
+  - [ ] `!t <tag>`
+  - [ ] `!group <group>`
+- [ ] Confirm the second page preserves the original intent, query/filter, limit, and offset.
+- [ ] Confirm repeated Show More clicks continue paging correctly.
+- [ ] Confirm button payload cache behavior does not break after multiple notebook interactions.
+- [ ] Add or update behavior tests for any bug found during live validation.
 
-**Tags** (`!tag <id_or_title> <tags...>`):
-- **How it works**: Use `!tag <entry_id> #work #urgent` or `!tag <entry_id> work urgent`
-- **Supported formats**: `#tag` format or plain text (both normalized to lowercase)
-- **Works for**: ✅ Notes, ✅ Lists, ✅ Journal entries
-- **Works for Tasks**: ⚠️ **PARTIAL** - Tasks have tags in their schema, but `!tag` command only works for notebook entries. Tasks need to use `update task <id> tags <tags>` or have tags added during creation.
-- **Multiple tags**: Can add multiple tags at once: `!tag n123abc #work #urgent project:alpha`
-- **Tag normalization**: All tags normalized to lowercase, duplicates removed automatically
+**Acceptance**:
 
-**Groups** (`!group <id_or_title> <groupname>`):
-- **How it works**: Use `!group <entry_id> work` to set a group
-- **Single group**: Each entry can have only ONE group (unlike tags which can have multiple)
-- **Works for**: ✅ Notes, ✅ Lists, ✅ Journal entries
-- **Works for Tasks**: ❌ **NO** - Tasks don't have a `group` field in their schema
-- **Viewing by group**: Use `!group <groupname>` (without entry ID) to see all entries in that group (shows 5 at a time, paginated)
-- **Group vs Tags**: 
-  - **Group**: Single high-level category (e.g., "work", "health", "home")
-  - **Tags**: Multiple detailed labels (e.g., `["#meeting", "#urgent", "project:alpha"]`)
-
-### Tasks in Notebook Queries
-- **Tasks are NOT included** in notebook queries (`!recent`, `!search`, `!inbox`, `!pinned`, `!group`, `!tag`, `!archived`)
-- **Why**: Tasks are stored separately (`tasks/active_tasks.json`) from notebook entries (`notebook/entries.json`)
-  - `load_entries()` only loads from `notebook/entries.json`
-  - Tasks are managed by `tasks/task_data_manager.py` and stored in `tasks/active_tasks.json`
-- **Commands that work for both**: Some commands like `!show`, `!append`, `!tag` work for both tasks and notebook entries, but the queries themselves are separate
-- **Future consideration**: 
-  - **Long-term plan**: Move to SQLite or unified database system that contains tasks, notebook entries, events (future feature), etc.
-  - **Laying groundwork**: Shared modules (`core/tags.py`, `core/user_data_validation.py`) are already in place for cross-feature functionality
-  - **Unified queries**: When migrating to database, unified queries can be implemented to include both tasks and notebook entries in single results
-  - **Current state**: Separate systems by design, but architecture supports future unification
-
-### Pagination and Limits
-- **All list queries are paginated**: Every query shows 5 entries at a time by default
-- **Data manager limits**: Functions fetch up to 100 matching entries, then handlers paginate to show 5 at a time
-- **"Show More" button**: When more entries exist, a "Show More" button appears
-  - ⚠️ **ISSUE**: Button click handler processes button label as message ("show more (5 more)"), which doesn't match any command pattern
-  - **Root cause**: Pagination state (offset, query, intent) is lost when button is clicked
-  - **Current workaround**: Users must re-run the original command to see more results
-  - **Solution needed**: Store pagination state in user state or encode in button custom_id
-- **Commands with pagination**:
-  - `!search` - Shows 5 results at a time
-  - `!inbox` - Shows 5 entries at a time
-  - `!archived` - Shows 5 entries at a time
-  - `!pinned` - Shows 5 entries at a time
-  - `!group <groupname>` - Shows 5 entries at a time
-  - `!tag <tag>` - Shows 5 entries at a time
-  - `!recent` - Shows N entries (default 5, user can specify)
-
-**Examples**:
-```
-!tag n123abc #work #urgent          # Add tags to note
-!group n123abc work                  # Set group on note
-!tag l91ab20 groceries shopping     # Add tags to list
-!group l91ab20 home                  # Set group on list
-!tag j0c77e2 reflection              # Add tags to journal entry
-!group j0c77e2 personal              # Set group on journal entry
-```
-
-### AI Chatbot Integration
-- **Fallback Behavior**: When commands are unclear, system falls back to AI chatbot (`generate_contextual_response`)
-- **AI Command Parsing**: AI can parse natural language into notebook intents via `EnhancedCommandParser._ai_enhanced_parse`
-- **AI Context Access**: **Currently AI chatbot does NOT have access to notebook entries** in context
-  - AI sees: user profile, check-ins, tasks, schedules, conversation history
-  - AI does NOT see: notebook entries, notes, lists, journal entries
-- **AI Command Awareness**: AI prompt includes notebook actions (`create_note`, `create_list`, `create_journal`, `list_recent_entries`, `show_entry`, `append_to_entry`, `add_tags_to_entry`, `remove_tags_from_entry`, `search_entries`, `pin_entry`, `unpin_entry`, `archive_entry`) but AI may not always recognize them in natural language
-- **Multiple Commands**: **System does NOT handle multiple commands in a single message** - parser processes one command at a time
-  - Example: "delete n123abc and add potatoes to l123abc" would only process the first command
-  - **Workaround**: User must send separate messages for each command
-- **AI Intent Extraction (Milestone 6)**: Planned but not implemented - would allow conversational notebook actions and better multi-command handling
-- **Recommendation**: 
-  - Add recent notebook entries to AI context for better contextual responses
-  - Consider implementing multi-command parsing (split by "and", "then", etc.)
+- Show More works from Discord without requiring the user to rerun the original command.
+- If no more entries remain, no stale Show More button appears on the new response.
 
 ---
 
-## Testing Status & Next Steps
+### 4.2 Improve notebook command discovery
 
-### Testing Status ✅
-**Comprehensive Automated Test Suite** - Full test coverage created to replace manual Discord testing. All tests located in `tests/behavior/test_notebook_handler_behavior.py` with 54 total tests covering all notebook functionality.
+**Status**: Active  
+**Priority**: High
 
-**Test Execution Results** (Verified in prior sessions; automated suite added 2025-01-27):
-- ✅ **54/54 tests PASSED** in 19.89 seconds
-- ✅ All test categories passing:
-  - Core handler tests (29 tests) - Note/list creation, viewing, editing, operations
-  - Entity extraction tests (9 tests) - Title/body extraction, tag extraction, reference parsing
-  - Flow state edge cases (7 tests) - Note body flow, list items flow, timeouts, interruptions
-  - Error handling tests (9 tests) - Invalid IDs, missing entries, malformed references, edge cases
-- ✅ **Test Coverage**: All major functionality verified including commands, flows, error handling, and edge cases
+**Problem**: Notebook has many useful commands, but discovery is weak. `NotebookHandler.get_help()` is currently too short to serve as the main user guide.
 
-**Validation System** ✅ **COMPLETED** - Comprehensive validation system implemented with proper separation of concerns:
-- **General Validation** (`core/user_data_validation.py`): `is_valid_string_length()`, `is_valid_category_name()` - reusable across features
-- **Notebook-Specific Validation** (`notebook/notebook_validation.py`): Entry references, short IDs, entry kinds, list indices
-- **Test Coverage**: 51 validation tests total (28 unit validation + 10 unit error handling + 13 integration)
-- **Error Handling**: All functions use `@handle_errors` decorator, return safe defaults, log appropriately, provide user-friendly messages
-- **Data Manager Integration**: Enhanced validation in all CRUD operations (append, set body, add list item, search, set group)
+**Tasks**:
 
-**Automated Test Coverage (54 tests total):**
+- [ ] Add or improve `!help notebook` / notebook-specific help output.
+- [ ] Group commands by capture, retrieve, modify, lists, and organization.
+- [ ] Include examples for the commands most useful on a phone.
+- [ ] Mention current inbox semantics in help text.
+- [ ] Mention group vs tag distinction briefly.
+- [ ] Add tests for the help/discovery output.
 
-**Core Handler Tests (29 tests):**
-- ✅ Handler intent handling verification
-- ✅ Note creation (title only, title+body, with tags)
-- ✅ List creation (title only, with items)
-- ✅ Entry viewing (recent, show, not found cases)
-- ✅ Entry editing (append, add tags, pin)
-- ✅ List operations (add item, toggle done)
-- ✅ Organization views (pinned, search)
-- ✅ Flow states (note body flow, list items flow with !end)
-- ✅ Command parsing variations (bang commands, slash commands)
-- ✅ End-to-end command processing through InteractionManager
+**Acceptance**:
 
-**Entity Extraction Tests (9 tests):**
-- ✅ Title/body extraction with colon separator (`:`)
-- ✅ Title/body extraction with newline separator
-- ✅ Tag extraction from commands (`#work`, `#urgent`)
-- ✅ Entry reference extraction (short IDs like `n-123abc`)
-- ✅ List items extraction from commands
-- ✅ Limit extraction from recent commands
-- ✅ Tag extraction from append commands
-- ✅ Handling missing entities gracefully
-- ✅ Handling empty entity values
+- A user can discover basic notebook use without reading developer docs.
+- Help text is short enough for Discord but complete enough to be useful.
 
-**Flow State Edge Cases (7 tests):**
-- ✅ Skip note body flow (creating note without body)
-- ✅ Cancel note body flow (aborting note creation)
-- ✅ Interrupt note flow with different command
-- ✅ Empty response in note flow
-- ✅ Multiple items in list flow (adding items in batches)
-- ✅ List flow with empty items (ending flow without adding items)
-- ✅ Flow timeout simulation (10-minute timeout logic)
+---
 
-**Error Handling Tests (9 tests):**
-- ✅ Invalid entry reference handling
-- ✅ Append to non-existent entry
-- ✅ Add tags to non-existent entry
-- ✅ Toggle item on non-existent list
-- ✅ Invalid item index handling
-- ✅ Missing user_id defensive handling
-- ✅ Very long title handling
-- ✅ Special characters in titles/bodies
-- ✅ Malformed entry reference handling
+### 4.3 Implement phone-friendly edit sessions
 
-**Verified Working (Discord Testing):**
-- ✅ Note creation (`!n`, `!note`) with and without body
-- ✅ Recent entries view (`!recent`)
-- ✅ Show entry (`!show <id>`)
-- ✅ Note body flow (prompts, Skip/Cancel buttons)
-- ✅ List creation flow (prompts, item collection)
-- ✅ List end command (`!end`) - **Fixed and verified**
+**Status**: Planned  
+**Priority**: Medium
 
-**Running Automated Tests:**
+**Problem**: Replacing long note content from a phone is awkward. `!set` / replace-style commands exist, but they are not a comfortable editing flow for longer entries.
+
+**Proposed behavior**:
+
+- `!edit <id_or_title>` starts an edit session.
+- The next non-command message replaces the entry description.
+- `!cancel` cancels the edit session.
+- Optional later mode: append mode vs replace mode.
+
+**Tasks**:
+
+- [ ] Define edit-session state model and timeout.
+- [ ] Decide whether state belongs in the existing conversation flow manager or notebook-specific flow handling.
+- [ ] Implement replace flow first; defer append/review modes unless needed.
+- [ ] Add skip/cancel handling.
+- [ ] Add tests for timeout, cancel, valid replacement, and invalid entry reference.
+
+**Acceptance**:
+
+- Long note replacement can be done from Discord without packing the entire replacement into one command line.
+
+---
+
+### 4.4 Resolve group command ambiguity
+
+**Status**: Active  
+**Priority**: Medium
+
+**Problem**: Group commands can mean either:
+
+- list entries in a group: `!group <group>`
+- set an entry's group: `!group <entry_ref> <group>`
+
+Single-word groups and short entry references can be ambiguous.
+
+**Tasks**:
+
+- [ ] Review parser behavior for `!group home`, `!group n123abc home`, and title-based references.
+- [ ] Decide whether to keep dual-use `!group` or introduce a clearer alias such as `!setgroup <entry_ref> <group>`.
+- [ ] Add ambiguity tests.
+- [ ] Improve error/help text when a group command is ambiguous.
+
+**Acceptance**:
+
+- Listing a group and setting an entry group are both predictable.
+- Ambiguous input does not silently do the wrong thing.
+
+---
+
+### 4.5 Improve journal visual distinction
+
+**Status**: Planned  
+**Priority**: Low / Medium
+
+**Problem**: Journal entries can look too much like regular notes in list/show output.
+
+**Tasks**:
+
+- [ ] Make journal entries visually distinct in formatted responses.
+- [ ] Consider showing `submitted_at` or a date label for journal entries.
+- [ ] Add formatting tests.
+
+**Acceptance**:
+
+- Journal entries are clearly recognizable without making notebook output noisy.
+
+---
+
+### 4.6 Add bulk operations only after core use feels good
+
+**Status**: Deferred  
+**Priority**: Low
+
+**Possible operations**:
+
+- bulk tag
+- bulk untag
+- bulk archive
+- bulk group assignment
+
+**Rule**: Do not implement bulk operations until normal single-entry notebook use is smooth and command ambiguity is resolved.
+
+---
+
+## 5. Technical Backlog
+
+### 5.1 Centralize external short IDs
+
+**Status**: Planned  
+**Priority**: Medium
+
+**Problem**: Notebook short ID formatting exists, task short IDs exist separately or partially, and the system will likely need a shared external ID strategy.
+
+**Tasks**:
+
+- [ ] Add `core/ids.py` or equivalent shared helper.
+- [ ] Centralize short ID creation/parsing.
+- [ ] Support notebook prefixes (`n`, `l`, `j`) consistently.
+- [ ] Review task short ID behavior and align only where it makes sense.
+- [ ] Add collision/ambiguity tests.
+
+**Acceptance**:
+
+- Notebook and task ID display/lookup conventions are clear and not duplicated across handlers.
+
+---
+
+### 5.2 Keep search simple unless usage proves otherwise
+
+**Status**: Deferred  
+**Priority**: Low
+
+Current substring search is acceptable for JSON storage.
+
+Do not create `notebook_search.py`, SQLite, or FTS just because the old roadmap mentioned them. Revisit only if one of these becomes true:
+
+- search gets slow with real data
+- search ranking becomes important
+- fuzzy matching is needed
+- notebook and tasks need unified search
+- storage moves to SQLite anyway
+
+---
+
+### 5.3 Extract more reusable item organization helpers only when duplication is real
+
+**Status**: Deferred  
+**Priority**: Low / Medium
+
+Old plan proposed:
+
+- `core/item_filters.py`
+- `core/item_tags.py`
+- `core/item_groups.py`
+
+Do not add these yet just to satisfy the old roadmap. Extract them only when tasks, notebook, and future events are clearly duplicating behavior.
+
+Current reusable helpers already in place:
+
+- `core/tags.py`
+- `core/pagination.py`
+
+---
+
+### 5.4 Add notebook entries to AI context later
+
+**Status**: Deferred  
+**Priority**: Medium later, not now
+
+Current concern:
+
+- AI/chat context work needs a broader overhaul.
+- Notebook entries can contain sensitive personal content.
+- Adding notebook content to AI context should be deliberate, scoped, and user-controlled.
+
+Future tasks:
+
+- [ ] Decide what notebook content, if any, can enter AI context.
+- [ ] Add opt-in or clear config for notebook context inclusion.
+- [ ] Start with small summaries or recent pinned entries, not full notebook dumps.
+- [ ] Add tests for privacy boundaries and context size.
+
+---
+
+### 5.5 Revisit skip integration only if the product value is clear
+
+**Status**: Deferred  
+**Priority**: Low until clarified
+
+Old idea: if a user repeatedly skips a task reminder, MHM could create a notebook entry tagged `blocker` / linked to the task, or ask “Capture why?”
+
+Do not implement until the desired behavior is clearer.
+
+Questions to answer first:
+
+- Should skipped reminders create notebook entries automatically?
+- Should the bot ask before capturing?
+- Should this belong to Tasks, Notebook, or a shared reflection/check-in flow?
+- How do we avoid making reminders feel more annoying?
+
+---
+
+## 6. Future Event / Calendar Direction
+
+Notebook can eventually support event-like entries, but do not force that now.
+
+Future options:
+
+- Add `Entry(kind="event")` only if events are simple and notebook-like.
+- Create a separate `events/` feature if events grow into scheduling, reminders, recurrence, attendees, or calendar sync.
+- Reuse tags, groups, search, and pagination where practical.
+
+---
+
+## 7. Validation Commands
+
+Use focused tests while changing notebook behavior:
+
 ```powershell
-# Activate virtual environment
-.\.venv\Scripts\Activate.ps1
-
-# Install notebook module (if not already installed)
-pip install -e .
-
-# Run all notebook tests
-python -m pytest tests/behavior/test_notebook_handler_behavior.py -v
-
-# Run specific test category
-python -m pytest tests/behavior/test_notebook_handler_behavior.py::TestNotebookHandlerBehavior -v
-
-# Run with coverage
-python -m pytest tests/behavior/test_notebook_handler_behavior.py --cov=notebook --cov=communication.command_handlers.notebook_handler -v
+python -m pytest tests/behavior/test_notebook_handler_behavior.py tests/unit/test_notebook_handler_edge_cases.py tests/unit/test_notebook_handler_pagination_formatting.py tests/unit/test_notebook_list_v2_round_trip.py tests/unit/test_notebook_service.py tests/unit/test_notebook_validation.py -q
 ```
 
-#### Test Suite Status
-**All Priority Testing Areas Covered** ✅
+Use broader validation before merging larger notebook/command-parser changes:
 
-1. **Command Patterns** ✅ **COMPLETE**
-   - ✅ All bang command variations tested (`!n`, `!nn`, `!newn`, etc.)
-   - ✅ Slash command conversion tested (`/n` → `!n`)
-   - ✅ Natural text recognition tested
-   - ✅ Multi-line input tested (newline-separated bodies/items)
-   - ✅ Flow states tested (note body prompt, list items prompt)
-   - ✅ Flow keywords tested (`skip`, `end`, `cancel`)
+```powershell
+python run_tests.py --mode development
+python development_tools/run_development_tools.py audit --quick
+```
 
-2. **Flow State Management** ✅ **COMPLETE**
-   - ✅ Note body flow: title-only → prompt → body collection → skip/cancel
-   - ✅ List items flow: title-only → prompt → items collection → `!end`
-   - ✅ Flow clearing when commands are sent
-   - ✅ Flow timeout simulation (10-minute expiration)
+Use full audit when a change touches command routing, shared core helpers, or persistence:
 
-3. **Command Generalization** ✅ **COMPLETE**
-   - ✅ Commands that work for both tasks and notes (`!show`, `!append`, `!tag`, `!search`, `!inbox`)
-   - ✅ Task-specific commands (covered in task handler tests)
-   - ✅ Note-specific commands (`!pin`, `!archive`)
-
-4. **Data Operations** ✅ **COMPLETE**
-   - ✅ CRUD operations (create, read, update, delete)
-   - ✅ Tag normalization and validation
-   - ✅ Search functionality
-   - ✅ List operations (add item, toggle done, remove item)
-
-5. **Edge Cases** ✅ **COMPLETE**
-   - ✅ Invalid entry references
-   - ✅ Empty inputs
-   - ✅ Very long entries
-   - ✅ Special characters in titles/bodies
-   - ✅ Missing entities
-   - ✅ Malformed references
-
-### Implementation Remaining
-
-*Order reflects user-priority Q&A (2026-02-28): Show More fix first, then search feedback, then edit sessions.*
-
-#### High Priority (user-identified)
-1. **Pagination "Show More" Button** - Fix button click handler to preserve pagination state (offset, query, intent). User needs this to work correctly.
-2. **Search Feedback** - Add helpful feedback when search returns no results (e.g., suggestions, query tips, or "Try different keywords") instead of just "No entries found".
-
-#### Medium Priority
-3. **Edit Sessions (Milestone 4)** - Implement `!edit` command with flow state for rewriting long notes from phone.
-4. **Command Discovery (!help notebook)** - Add help system for discovering notebook commands.
-5. **Group Command Ambiguity** - Resolve `!group <group>` vs `!group <entry> <group>` parser routing for single-word group names.
-
-#### Low Priority
-6. **Slash Command Registration** - Deferred until AI/command-parsing overhaul. User cares about discoverability but it's blocked.
-7. **Skip Integration (Milestone 5)** - Clarify value with user before implementing; see milestone summary for description.
-8. **AI Extraction (Milestone 6)** - Deferred until AI overhaul; important but not actionable now.
+```powershell
+python development_tools/run_development_tools.py audit --full
+```
 
 ---
 
-## Notes on future calendar/events
-When you add calendar/event support:
-- add new `Entry(kind="event")` with event-specific fields
-- create a new top-level `events/` feature only if it grows beyond simple entries
-- reuse tags/group/search/persistence exactly as notebook does
+## 8. Completed / Removed From Active Roadmap
 
-This roadmap keeps that door open without forcing the decision now.
+The following are no longer active roadmap tasks because the codebase now contains the relevant implementation:
+
+- Create `notebook/` feature package.
+- Create notebook schemas.
+- Create notebook JSON data handlers.
+- Create notebook data manager CRUD/query operations.
+- Create notebook service/use-case layer.
+- Create notebook command handler.
+- Add shared tag normalization in `core/tags.py`.
+- Add shared pagination helpers in `core/pagination.py`.
+- Implement notes, lists, and journal entries.
+- Implement recent/search/show/append/set/tag/untag/pin/archive/group/inbox/tag/group/archive views.
+- Implement list item add/done/undo/remove operations.
+- Add search no-result feedback.
+- Add channel-neutral pagination metadata and Discord Show More payload rendering.
+
+Historical details belong in `CHANGELOG_DETAIL.md` / `AI_CHANGELOG.md`, not in this active roadmap.

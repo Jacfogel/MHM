@@ -10,11 +10,11 @@
 > **Automated tests**: `tests/behavior/test_discord_bot_behavior.py`, `tests/unit/test_discord_api_client.py`, `tests/unit/test_message_formatter.py`, `tests/unit/test_rich_formatter.py`, `tests/communication/test_retry_manager.py`  
 > **Coverage matrix**: [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md#discord-message-delivery-and-rich-responses)
 
-## Purpose
+## 1. Purpose
 
 Discord delivery converts channel-agnostic messages and rich response data into Discord messages, embeds, and buttons. Delivery code SHALL validate inputs, use the correct recipient path, and return truthful success/failure results so callers can retry or avoid false state changes.
 
-## Recipient forms
+## 2. Recipient forms
 
 Discord delivery currently supports these recipient forms:
 
@@ -22,9 +22,9 @@ Discord delivery currently supports these recipient forms:
 - `discord_direct:<discord_user_id>` - send a DM directly to a Discord user ID without requiring an internal user lookup.
 - `<channel_id>` - send to a Discord channel when the recipient parses as a Discord channel ID.
 
-## Requirements
+## 3. Requirements
 
-### Requirement: Public send path validates required inputs
+### 3.1. Requirement: Public send path validates required inputs
 
 `DiscordBot.send_message` SHALL validate recipient and message before queuing delivery to the Discord event-loop thread.
 
@@ -57,7 +57,7 @@ Discord delivery currently supports these recipient forms:
 - **THEN** the method returns `False`  
 - **AND** logs the timeout  
 
-### Requirement: Internal send path selects the correct Discord destination
+### 3.2. Requirement: Internal send path selects the correct Discord destination
 
 `_send_message_internal` SHALL route messages to internal-user DMs, direct Discord DMs, or channel sends according to recipient prefix and parseability.
 
@@ -102,7 +102,7 @@ Discord delivery currently supports these recipient forms:
 - **THEN** it returns `False`  
 - **AND** logs that the recipient could not be found  
 
-### Requirement: Rich data is rendered as Discord embeds only when display fields exist
+### 3.3. Requirement: Rich data is rendered as Discord embeds only when display fields exist
 
 Discord SHALL create embeds for response `rich_data` only when it contains display-oriented data, not metadata-only keys.
 
@@ -128,7 +128,7 @@ Discord SHALL create embeds for response `rich_data` only when it contains displ
 - **THEN** embed creation returns `None`  
 - **AND** the caller may still send plain text or buttons when possible  
 
-### Requirement: Suggestions and pagination render as Discord buttons
+### 3.4. Requirement: Suggestions and pagination render as Discord buttons
 
 Discord SHALL render channel-agnostic suggestions and pagination actions as Discord buttons while respecting Discord limits.
 
@@ -154,7 +154,7 @@ Discord SHALL render channel-agnostic suggestions and pagination actions as Disc
 - **THEN** the oldest payload is removed  
 - **SO THAT** long-running bot sessions do not accumulate unbounded button payload state  
 
-### Requirement: Custom views take precedence over generated suggestion views
+### 3.5. Requirement: Custom views take precedence over generated suggestion views
 
 When a caller provides a custom Discord view, the send path SHALL use it instead of generating a generic suggestion-button view.
 
@@ -172,7 +172,7 @@ When a caller provides a custom Discord view, the send path SHALL use it instead
 - **THEN** it calls the factory to create the view  
 - **AND** logs and continues without the view if factory creation fails  
 
-### Requirement: Discord API client exposes lower-level send helpers
+### 3.6. Requirement: Discord API client exposes lower-level send helpers
 
 `DiscordAPIClient` SHALL provide direct message, channel/user lookup, guild/channel/user listing, permission checks, and connection status helpers for adapter-level use and tests.
 
@@ -190,14 +190,14 @@ When a caller provides a custom Discord view, the send path SHALL use it instead
 - **THEN** it returns `False`  
 - **AND** does not claim the message was delivered  
 
-## Out of scope
+## 4. Out of scope
 
 - Business logic that decides which message should be sent.
 - Exact formatting of every command handler response.
 - Welcome/onboarding buttons, check-in buttons, and task reminder buttons except where they are custom views attached to delivery.
 - Discord gateway connection and reconnect rules.
 
-## Manual test checklist
+## 5. Manual test checklist
 
 Run after changing Discord delivery or rich response rendering:
 
@@ -212,7 +212,7 @@ Run after changing Discord delivery or rich response rendering:
 9. [ ] Custom check-in/task view supplied -> custom view attaches instead of generic suggestions.
 10. [ ] Forbidden/NotFound/HTTP error -> returns `False` and caller can retry or skip state mutation.
 
-## Related documentation
+## 6. Related documentation
 
 - [SPECS_GUIDE.md](SPECS_GUIDE.md) - how behavior specs fit the project  
 - [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md) - channel-agnostic architecture  

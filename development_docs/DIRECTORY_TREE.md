@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-15 19:04:12
+> **Last Generated**: 2026-05-17 01:16:01
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -218,7 +218,7 @@ C:.
 |
 +---development_tools
 |   |   AI_DEVELOPMENT_TOOLS_GUIDE.md
-|   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md
+|   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md
 |   |   AI_PRIORITIES.md
 |   |   AI_STATUS.md
 |   |   CONSOLIDATED_REPORT.md
@@ -441,6 +441,16 @@ C:.
 |   |   task_reminders.py
 |   |   __init__.py
 |   |
++---specs
+|       discord-checkin-flow.md
+|       discord-connection-and-webhook-lifecycle.md
+|       discord-message-and-command-routing.md
+|       discord-message-delivery-and-rich-responses.md
+|       discord-task-reminder-flow.md
+|       discord-welcome-and-onboarding.md
+|       SPECS_GUIDE.md
+|       SPEC_COVERAGE_MATRIX.md
+|
 +---storage
 |   |   runtime_state_storage.py
 |   |   service_flag_storage.py

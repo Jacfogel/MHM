@@ -1,336 +1,357 @@
 # MHM Development Plans
 
-
-> **File**: `development_docs/PLANS.md`
+> **File**: `development_docs/PLANS.md`  
 > **Audience**: Human Developer & AI Collaborators  
-> **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
-> **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-05-14 (session note: completed storage package move removed from active TODOs)
-> **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md) (V4 history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)).  
+> **Purpose**: Top-level index for active, delegated, deferred, and completed MHM planning work  
+> **Style**: Concise, current, action-oriented  
+> **Last Updated**: 2026-05-17  
+> **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md)  
+> **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) and prior changelog entries remain the historical record.
 
 ---
 
-**Note**: [TODO.md](../TODO.md) is the canonical list for standalone tasks. Larger, scoped efforts live here or in subordinate dedicated plan files such as [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md).  
+## 1. Role of This File
 
-## [IN PROGRESS] **Plan Maintenance**
+`PLANS.md` is the **top-level planning index** for MHM.
 
-### **How to Update This Plan**
-1. **Add new plans** with clear goals and checklist format; include **Date** and **Last Updated** (YYYY-MM-DD).
-2. **Update progress** by checking off completed items; add completion date when marking items done (e.g., `- [x] Item (2026-02-28)`).
-3. **Remove fully completed plans** - document them in CHANGELOG files instead.
-4. **Keep reference information** current and useful.
-5. **Remove outdated information** to maintain relevance.
-6. **Dating convention**: New items and status changes get dates. See [AI_DOCUMENTATION_GUIDE.md](../ai_development_docs/AI_DOCUMENTATION_GUIDE.md) for the full dating standard.
+Use this file to answer:
 
-### **Success Criteria**
-- **Actionable**: Each item is a specific, testable action
-- **Trackable**: Clear progress indicators and completion status
-- **Maintainable**: Easy to update and keep current
-- **Useful**: Provides value for both human developer and AI collaborators
+- What major plans exist?
+- Which plans are active now?
+- Where does detailed work belong?
+- Which old plans are completed, archived, or deferred?
+
+Do **not** use this file as a dumping ground for long implementation checklists. Detailed work belongs in the child plan files, `TODO.md`, generated audit reports, or changelogs.
 
 ---
 
-## [ACTIVE] **Current Active Plans**
+## 2. Sources of Truth
 
-**Recently completed**: The MHM Refactor Continuation Plan was completed on 2026-05-05 and removed from active planning per the plan-maintenance rule. Runtime JSON storage classification, migration, service flag cleanup, the soft channel-boundary review, and the Backup Reliability and Restore Confidence Plan were completed on 2026-05-11 and removed from active planning. The top-level storage package move completed on 2026-05-14 and was removed from [TODO.md](../TODO.md). See [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) and [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) for session records. Deferred architecture follow-ups are tracked in [TODO.md](../TODO.md).
-
-### **Flow/Check-in Scheduled Send Stability Follow-up** **IN PROGRESS**
-
-**Status**: IN PROGRESS (since 2026-02-22) | **Priority**: High  
-**Spec**: [specs/discord-checkin-flow.md](../specs/discord-checkin-flow.md)
-
-**Use / fit**: Stability is critical. Check-ins and scheduled sends work well enough day to day, but reliability and debugging matter most-selecting the right number of questions from the right lists, responding dynamically, saving results properly, and flexible response formats.
-
-**Done**: Deferral + cooldown in runtime; one-time retry scheduling; unit/behavior tests (206 passed). See CHANGELOG_DETAIL 2026-02-22.
-
-**Remaining**:
-- [ ] Live Discord manual validation (active-flow deferral, 10-min cooldown, retry)
-- [ ] Monitor logs for legacy warnings in check-in flow paths
-- [ ] Monitor `MESSAGE_SELECTION` diagnostics
-
-### **Error Handling Quality Improvement Plan** **IN PROGRESS**
-
-**Status**: IN PROGRESS (since 2025-11-20) | **Priority**: Medium
-
-**Use / fit**: Validation helps (beginner + AI coding). Focus on **noisy/unclear logs when something fails** over cryptic user-facing errors. Coverage at 100%; continue improving clarity and log quality.
-
-**Done**: 100% coverage; Phase 1/2 tooling in `analyze_error_handling.py`; current Phase 1 and Phase 2 backlog reduced to zero candidates/issues in latest quick-audit cycle. Metrics in [AI_STATUS.md](../development_tools/AI_STATUS.md).
-
-**Remaining**: Phase 3 (enhance user/log messages), Phase 4 (recovery strategies), Phase 5 (context payloads), Phase 6 (direct `handle_error` calls). Emphasize clearer, less noisy logs. See [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md).
-
-### **Discord App/Bot Capabilities Exploration** **PLANNING**
-
-**Status**: **PLANNING** | **Priority**: Low
-
-**Use / fit**: Discord is the main interface. Interest in message/menu features. Main improvement wanted: **more buttons that work consistently**. Stay planning-only or deferred until other work is done.
-
-**Effort**: Medium | **Date**: 2025-11-13
-
-**Objective**: Explore Discord's app/bot capabilities more thoroughly to identify additional features and integrations that could enhance the MHM Discord experience.
-
-**Scope**:
-- [ ] Research Discord's user-installable app features and limitations
-- [ ] Explore Discord's webhook event system beyond APPLICATION_AUTHORIZED/DEAUTHORIZED
-- [ ] Investigate Discord's interaction types (slash commands, buttons, modals, select menus)
-- [ ] Review Discord's message formatting and rich content capabilities
-- [ ] Explore Discord's permission system and OAuth2 scopes
-- [ ] Research Discord's rate limiting and best practices
-- [ ] Identify potential integrations with Discord's features (threads, forums, voice, etc.)
-
-**Success Criteria**:
-- [ ] Document findings about Discord capabilities relevant to MHM
-- [ ] Identify 3-5 potential feature enhancements based on Discord capabilities
-- [ ] Create a prioritized list of Discord integrations to consider
-
-**Notes**:
-- Current webhook implementation (APPLICATION_AUTHORIZED/DEAUTHORIZED) is working well
-- Focus on capabilities that align with MHM's communication-first, AI-led experience
-- Consider both user-installable app features and potential server bot features
-
-### **Account Management System Improvements** **ARCHIVED (MOSTLY COMPLETE)**
-
-**Status**: **ARCHIVED** (2026-02-28)  
-**Outcome**: Core account creation and feature enablement complete. Remaining work (e2e linking, edge cases) tracked in [TODO.md](../TODO.md) if needed. Full details in changelog history (2025-11-13 through 2025-11-20).
-
-### **Mood-Aware Support Calibration** **PLANNING**
-
-**Status**: **PLANNING** | **Priority**: High (deferred-do foundational work first)
-
-**Use / fit**: Very important for daily use. In practice: gentler when low, less nagging when overwhelmed, mood/energy-appropriate actions (e.g. water/breathing when low; walk/laundry when better). Sounds hard; sequence after Phase 1 and flow stability.
-
-**Effort**: Medium | **Date**: 2025-11-10
-
-**Objective**: Define how the assistant adapts tone, reminders, and check-ins based on user mood/energy cues while protecting quiet time boundaries.
-
-**Scope (initial threads)**:
-- [ ] Codify "safety net" language library with choose-your-support prompts.
-- [ ] Compare task breakdown helper formats (checklist vs. conversational) for stalled tasks.
-- [ ] Draft context-to-reminder content mapping covering energy, mood, and task age.
-- [ ] Rename and document "Unavailable" mode rules, including urgent escalation criteria.
-- [ ] Specify mood re-evaluation triggers and cooldowns.
-
-**Success Criteria**:
-- [ ] Safety net prompts feel grounding in sample conversations and pass tone review.
-- [ ] Reminder and task helper variants include decision guidance for when to use each.
-- [ ] Quiet periods respect "Unavailable" framing without work-centric language.
-- [ ] Mood cadence guidelines balance responsiveness with minimal nagging.
-
-**Notes**:
-- Capture findings in TODO task updates and tag future implementation tickets once guidelines are approved.
-- Validate prototypes against mobile UX constraints (concise, quick replies).
-
-### **Message Deduplication Advanced Features**
-
-**Status**: **IN PROGRESS** (analytics/deep ML deferred)  
-**Priority**: Low (deferred)  
-**Effort**: Large  
-**Started**: 2025-11-11  
-**Last Updated**: 2026-02-28
-
-**Use / fit**: Analytics and ML-style features (predictive scheduling, pattern-based personalization) feel overkill for 1-2 users; mostly long-term. Desired improvement: more personalized, time-appropriate messages. Smart scheduling maybe; analytics no.
-
-**Objective**: Implement advanced analytics, insights, and intelligent scheduling features for the message deduplication system.
-
-**Completed** (documented in changelog 2025-11-11):
-- [x] **Message frequency analytics foundation**: MessageAnalytics class with frequency tracking, delivery success rate analysis, message summary generation (7 tests passing)
-
-**Remaining Work**:
-
-#### **Step 5.1: Analytics and Insights** [IN PROGRESS]
-- [x] **Message frequency analytics** [COMPLETED] (2025-11-11)
-  - [x] Track message send frequency by category and time period
-  - [x] Generate reports on message delivery success rates
-  - [ ] Analyze user engagement patterns over time
-  - [ ] Create visualizations for message analytics
-- [ ] **User engagement tracking** [LONG-TERM/FUTURE] - Requires multiple users for meaningful data
-  - [ ] Monitor user response rates to different message types
-  - [ ] Track user interaction patterns with messages
-  - [ ] Analyze user engagement trends and preferences
-  - [ ] Generate user engagement reports
-- [ ] **Message effectiveness metrics** [LONG-TERM/FUTURE] - Requires multiple users and response data for meaningful analysis
-  - [ ] Measure message effectiveness based on user responses
-  - [ ] Track which messages generate the most positive responses
-  - [ ] Analyze message timing effectiveness
-  - [ ] Create effectiveness scoring system
-- [ ] **Smart message recommendation system**
-  - [ ] AI-powered message selection based on user history
-  - [ ] Personalized message recommendations
-  - [ ] Context-aware message suggestions
-  - [ ] Learning algorithms for message optimization
-
-#### **Step 5.2: Advanced Scheduling** [PLANNED]
-- [ ] **Intelligent message spacing**
-  - [ ] Dynamic spacing based on user engagement patterns
-  - [ ] Adaptive timing based on user response history
-  - [ ] Smart scheduling to avoid message fatigue
-  - [ ] Personalized optimal timing algorithms
-- [ ] **User preference learning**
-  - [ ] Machine learning from user interaction patterns
-  - [ ] Adaptive message selection based on preferences
-  - [ ] Personalized category preferences
-  - [ ] Learning from user feedback and responses
-- [ ] **Context-aware message selection**
-  - [ ] Time-of-day context awareness
-  - [ ] Seasonal and calendar context integration
-  - [ ] User mood and state context
-  - [ ] Environmental context consideration
-- [ ] **A/B testing for message effectiveness**
-  - [ ] Split testing framework for message variations
-  - [ ] Statistical analysis of message performance
-  - [ ] Automated optimization based on test results
-  - [ ] Continuous improvement through testing
-
-**Note**: Many features marked LONG-TERM/FUTURE as they require multiple users for meaningful data/analysis
+| Area | Source of truth |
+|------|-----------------|
+| Standalone tasks | [TODO.md](../TODO.md) |
+| Testing roadmap | [TEST_PLAN.md](TEST_PLAN.md) |
+| Task-system roadmap | [TASKS_PLAN.md](TASKS_PLAN.md) |
+| Notebook roadmap | [NOTES_PLAN.md](NOTES_PLAN.md) |
+| AI/dev-tools roadmap | [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) |
+| Current audit status | [AI_STATUS.md](../development_tools/AI_STATUS.md) |
+| Generated priority queue | [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) |
+| Detailed session history | [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) and [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) |
+| Architecture/data model references | [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md) and [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md) |
 
 ---
 
+## 3. Status Vocabulary
 
-### **Phase 1: Enhanced Task & Check-in Systems** **PARTIALLY COMPLETE**
+Use these statuses consistently across plan files:
 
-**Status**: **PARTIALLY COMPLETE**  
+- **ACTIVE** - current work or near-term follow-up.
+- **PLANNED** - accepted future work, but not the current focus.
+- **DEFERRED** - intentionally postponed until a dependency, priority shift, or usage signal changes.
+- **MONITORING** - no active implementation; watch logs, audits, or live behavior.
+- **COMPLETED** - done; keep detail in changelogs, not active plans.
+- **ARCHIVED** - old plan retained only as historical context.
+
+Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSIDERATION`, or `PARTIALLY COMPLETE` in new planning sections. If nuance is needed, put it in a short note under one of the statuses above.
+
+---
+
+## 4. Current Active Plan Index
+
+| Plan | Status | Priority | Where details live | Current focus |
+|------|--------|----------|--------------------|---------------|
+| Flow/check-in scheduled-send stability | **ACTIVE / MONITORING** | High | This file + spec | Live Discord validation, retry/cooldown observation, log review |
+| Error handling quality | **ACTIVE** | Medium | This file + [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) | Better user/log messages and recovery guidance |
+| Notebook system | **ACTIVE** | High | [NOTES_PLAN.md](NOTES_PLAN.md) | Live validation, edit sessions, command discovery, group ambiguity, bulk organization |
+| Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Broader natural-language task creation, templates, notes/links, Discord validation |
+| Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
+| AI development tools | **ACTIVE** | Medium | [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) | Dev-tools coverage slices, marker/domain work, portability follow-ups |
+
+---
+
+## 5. Active Top-Level Plans
+
+### 5.1 Flow/check-in scheduled-send stability
+
+**Status**: **ACTIVE / MONITORING**  
 **Priority**: High  
-**Last Updated**: 2026-02-28
+**Started**: 2026-02-22  
+**Spec**: [discord-checkin-flow.md](../specs/discord-checkin-flow.md)
 
-**Use / fit**: Check-in Response Analysis matters more than AI context in chat. Biggest impact: **better insights from check-ins** and **better phrased questions**. AI conversations need a major overhaul separately; deprioritize Enhanced Context-Aware Conversations for now.
+**Use / fit**: Stability is critical. Check-ins and scheduled sends work well enough day to day, but reliability and debugging matter most: selecting the right number of questions from the right lists, responding dynamically, saving results properly, and supporting flexible response formats.
 
-**Completed** (documented in changelog):
-- [x] **Enhanced Task Reminder System** (COMPLETED - documented in changelog)
-  - Priority-based weighting, due date proximity weighting, critical priority level, no due date option
-- [x] **Semi-Random Check-in Questions** (COMPLETED - documented in changelog)
-  - Weighted selection, question variety, category balancing
+**Completed baseline**:
 
-**Remaining Work**:
-- [ ] **Check-in Response Analysis** (High Impact, Medium Effort) - *prioritize first*
-  - [ ] Implement pattern analysis of responses over time
-  - [ ] Add progress tracking for mood trends
-  - [ ] Create response categorization and sentiment analysis
-  - [ ] Generate insights for AI context enhancement
-  - [ ] Test pattern analysis accuracy
-  - [ ] Validate progress tracking metrics
-- [ ] **Enhanced Context-Aware Conversations** (Medium Impact, Medium Effort) - *deprioritized: AI needs major overhaul*
-  - [ ] Expand user context with check-in history
-  - [ ] Add conversation history analysis
-  - [ ] Implement preference learning from interactions
-  - [ ] Create more sophisticated personalization algorithms
-  - [ ] Test context enhancement effectiveness
-  - [ ] Validate personalization improvements
+- Deferral and cooldown behavior implemented in runtime.
+- One-time retry scheduling implemented.
+- Unit/behavior coverage exists for the February 2026 stability slice.
+
+**Remaining work**:
+
+- [ ] Live Discord manual validation for active-flow deferral, 10-minute cooldown, and retry behavior.
+- [ ] Monitor logs for legacy warnings in check-in flow paths.
+- [ ] Monitor `MESSAGE_SELECTION` diagnostics.
+- [ ] Move recurring concrete follow-ups to [TODO.md](../TODO.md) if they become standalone tasks.
 
 ---
 
-### **Phase 2: Mood-Responsive AI & Advanced Intelligence** [WARNING] **PARTIALLY COMPLETE**
+### 5.2 Error handling quality
 
-**Status**: [WARNING] **PARTIALLY COMPLETE**  
+**Status**: **ACTIVE**  
+**Priority**: Medium  
+**Started**: 2025-11-20
+
+**Use / fit**: Error-handling validation helps because this is a beginner/AI-assisted codebase. The practical goal is not theoretical perfection; it is clearer failures, less noisy logs, and better user-facing messages.
+
+**Completed baseline**:
+
+- Error-handling audit tooling exists.
+- Current Phase 1/2 audit queues have been reduced in prior quick-audit cycles.
+- Coverage status is tracked through generated reports rather than copied here.
+
+**Remaining work**:
+
+- [ ] Improve user-facing error messages where failures are currently vague or cryptic.
+- [ ] Improve log messages where failures lack enough context to debug quickly.
+- [ ] Add recovery strategies only where they are actually useful.
+- [ ] Add structured context payloads where they reduce debugging time.
+- [ ] Review direct `handle_error` calls when generated reports surface them.
+
+**Reference**: [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md)
+
+---
+
+## 6. Delegated Active Plans
+
+These plans should not be duplicated in detail here.
+
+### 6.1 Notebook system
+
+**Status**: **ACTIVE**  
 **Priority**: High  
-**Effort**: High  
-**Date**: 2025-11-10  
-**Last Updated**: 2026-02-28
+**Detailed plan**: [NOTES_PLAN.md](NOTES_PLAN.md)
 
-**Use / fit**: Very important; MHM often feels rigid or tone-deaf. Goal: **noticeably more adaptive**-gentler when low, less nagging when overwhelmed, mood/energy-appropriate actions (water/breathing when low; walk/laundry when better).
+**Current focus**:
 
-**Goal**: Implement mood-responsive AI conversations and advanced emotional intelligence
-
-**Current State**:
-- [OK] **Mood data included in context**: AI chatbot includes mood and energy data from check-ins in context (`ai/chatbot.py`, `ai/context_builder.py`)
-- [OK] **Mood trend analysis**: Context builder analyzes mood trends (improving/declining/stable)
-- [OK] **Emotional intelligence in system prompt**: System prompt includes emotional intelligence instructions
-- [OK] **Mood-aware completion messages**: Check-in completion messages adapt based on mood/energy (`communication/message_processing/conversation_flow_manager.py`)
-- [X] **Prompt modification based on mood**: Prompts are NOT dynamically modified based on mood/energy - mood data is only included in context
-- [X] **Tone adaptation algorithms**: No explicit tone adaptation based on detected mood
-- [X] **Emotional response templates**: No mood-specific response templates
-- [X] **Mood prediction**: No predictive mood analysis
-
-**What's Missing**:
-- [ ] **Dynamic prompt modification**: Modify system prompt or add mood-specific instructions based on detected mood/energy levels
-- [ ] **Tone adaptation algorithms**: Implement algorithms that adjust response tone based on mood (e.g., more gentle for low mood, more energetic for high energy)
-- [ ] **Emotional response templates**: Create templates for different mood states (low mood = more supportive, high mood = more celebratory)
-- [ ] **Enhanced mood tracking**: More granular mood detection (beyond 1-5 scale)
-- [ ] **Mood prediction**: Predictive analysis of mood trends
-- [ ] **Emotional intelligence scoring**: System to score and improve emotional intelligence of responses
-- [ ] **Machine learning patterns**: Advanced ML-based mood analysis (currently uses simple averages/trends)
+- Live validation of implemented notebook behavior.
+- Edit sessions for longer note editing from Discord/mobile.
+- Better command discovery and help text.
+- Group command ambiguity cleanup.
+- Bulk organization commands only after core use feels reliable.
 
 ---
 
-### **Phase 3: Proactive Intelligence & Advanced Features** [WARNING] **NEW**
+### 6.2 Task system
 
-**Status**: Planning Phase | **Priority**: Medium  
-**Estimated Duration**: 3-4 weeks  
-**Last Updated**: 2026-02-28
+**Status**: **ACTIVE**  
+**Priority**: High  
+**Detailed plan**: [TASKS_PLAN.md](TASKS_PLAN.md)
 
-**Use / fit**: Proactive suggestions useful if they're good. Target examples: "You haven't checked in today"; "Your recent check-ins indicate you haven't been brushing your teeth much lately..."; "[Task] has been open for weeks-identify barriers, ask for help, break it down."
+**Current focus**:
 
-**Goal**: Implement proactive suggestion system and advanced AI capabilities
-
-**Checklist**:
-- [ ] **Proactive Suggestion System** (Medium Impact, High Effort)
-  - [ ] Analyze user patterns and habits from check-in and task data
-  - [ ] Generate contextual suggestions based on patterns
-  - [ ] Implement suggestion timing and delivery algorithms
-  - [ ] Add suggestion relevance scoring and filtering
-  - [ ] Test suggestion accuracy and user engagement
-  - [ ] Validate proactive system effectiveness
-- [ ] **Advanced Context-Aware Personalization** (Medium Impact, High Effort)
-  - [ ] Implement deep learning from user interaction patterns
-  - [ ] Add adaptive personality traits based on user preferences
-  - [ ] Create sophisticated preference learning algorithms
-  - [ ] Implement context-aware response generation
-  - [ ] Test personalization depth and accuracy
-  - [ ] Validate adaptive personality effectiveness
-- [ ] **Smart Home Integration Planning** [WARNING] **LONG-TERM/FUTURE** - Not applicable for current single-user personal assistant; mentioned in [PROJECT_VISION.md](../PROJECT_VISION.md) Phase 3 but not a current priority
-  - [ ] Research smart home APIs and protocols
-  - [ ] Design integration architecture for future implementation
-  - [ ] Document requirements and constraints
-  - [ ] Create integration roadmap and timeline
-  - [ ] Test integration feasibility with sample APIs
-  - [ ] Validate integration architecture design
-  - **Note**: This is a future consideration from [PROJECT_VISION.md](../PROJECT_VISION.md) Phase 3. With only 1-2 users and focus on core mental health assistant features, smart home integration is not currently applicable or prioritized.
+- Broader natural-language task creation beyond recurring-task basics.
+- Templates and quick actions.
+- Task notes/links/attachments.
+- Live Discord validation for task creation and follow-up flows.
 
 ---
 
-### **UI Migration Plan**
+### 6.3 Test program
 
-**Status**: Foundation, Dialogs, and Widgets Complete; Testing Remaining  
-**Priority**: Low  
-**Last Updated**: 2026-02-28
+**Status**: **ACTIVE**  
+**Priority**: High  
+**Detailed plan**: [TEST_PLAN.md](TEST_PLAN.md)
 
-**Use / fit**: Discord is the main interface; UI not used regularly. Polish secondary. If fixing: sizing/spacing, confirm everything works as intended.
+**Current focus**:
 
-**Completed** (documented in changelogs):
-- [x] **Foundation**: PySide6/Qt migration, file reorganization, naming conventions, widget refactoring, user data migration, signal-based updates, 100% function documentation
-- [x] **Dialog Implementation**: All 7 dialogs complete (Category Management, Channel Management, Check-in Management, User Profile, Account Creator, Task Management, Schedule Editor)
-- [x] **Widget Implementation**: All 6 widgets complete (TagWidget, Task Settings, Category Selection, Channel Selection, Check-in Settings, User Profile Settings)
-- [x] **Main UI Application**: 21 behavior tests complete
-
-**Remaining Work**:
-- [ ] **Testing & Validation Strategy** is tracked in [TEST_PLAN.md](TEST_PLAN.md) (UI and integration testing backlog).
-- [ ] **UI Quality Improvements**
-  - [ ] Fix Dialog Integration (main window updates after dialog changes)
-  - [ ] Add Data Validation across all forms
-  - [ ] Improve Error Handling with clear, user-friendly messages
-  - [ ] Monitor and optimize UI responsiveness for common operations
+- Full-audit reliability.
+- Test artifact/log isolation.
+- Domain-attribution pytest markers.
+- Static policy tests for time utilities, user-data JSON access, and core/UI boundaries.
+- No-parallel marker reduction only when stability is preserved.
+- Coverage growth in high-value domains.
 
 ---
 
-### **Testing Strategy Plan**
+### 6.4 AI development tools
 
-Moved to [TEST_PLAN.md](TEST_PLAN.md) as part of testing roadmap consolidation.
+**Status**: **ACTIVE**  
+**Priority**: Medium  
+**Detailed plan**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md)
+
+**Current focus**:
+
+- Use live generated reports before choosing the next slice.
+- Keep dev-tools coverage improvements small and targeted.
+- Coordinate domain-marker analyzer work with [TEST_PLAN.md](TEST_PLAN.md).
+- Keep pip-audit/watch items in monitoring unless a trusted fix or explicit policy decision exists.
+
+---
+
+## 7. Deferred / Low-Priority Plans
+
+These are real ideas, but they are **not current implementation priorities**.
+
+### 7.1 Discord app/bot capabilities exploration
+
+**Status**: **DEFERRED**  
+**Priority**: Low
+
+**Use / fit**: Discord is the main interface and better buttons/menus matter, but this should stay planning-only until core notebook/task/check-in flows are reliable.
+
+**Keep for later**:
+
+- Research user-installable app features and limitations.
+- Review interaction types: slash commands, buttons, modals, select menus.
+- Review permissions, OAuth scopes, rate limits, and formatting options.
+- Identify a small list of Discord features that would directly improve MHM.
 
 ---
 
+### 7.2 Mood-aware support calibration
 
-### **Channel Interaction Implementation Plan**
+**Status**: **DEFERRED**  
+**Priority**: High once foundational work is stable
 
-**Status**: Email Integration Complete, Cross-Channel Sync Remaining  
-**Priority**: Low (deferred)  
-**Last Updated**: 2026-02-28
+**Use / fit**: This is important for long-term usefulness: gentler support when mood/energy is low, less nagging when overwhelmed, and better action suggestions based on state.
 
-**Use / fit**: Discord primary; friend uses email. Cross-channel sync not important at this point.
+**Why deferred**:
 
-**Completed**:
-- [x] Email Integration - Full email-based interaction system (COMPLETED 2025-11-11, documented in changelog)
-  - Email message body extraction, polling loop, user mapping, message routing, response sending
+- It depends on more reliable check-ins, task usage, and AI/prompt architecture.
+- It overlaps with future task context, reminder tone, and AI overhaul work.
 
-**Remaining Work**:
-- [ ] Cross-Channel Sync - Synchronize data across supported channels
-  - Note: Telegram integration has been removed from scope
+**Keep for later**:
+
+- Safety-net prompt language.
+- Mood/energy-to-reminder mapping.
+- Quiet/unavailable mode rules.
+- Mood re-evaluation triggers and cooldowns.
+- Low-energy task suggestions.
 
 ---
+
+### 7.3 Message analytics, deduplication, and proactive intelligence
+
+**Status**: **DEFERRED / MONITORING**  
+**Priority**: Low/Medium
+
+**Completed baseline**:
+
+- Message frequency analytics foundation exists and was documented in prior changelog history.
+
+**Why deferred**:
+
+- Analytics, A/B testing, ML-style personalization, and predictive scheduling are overbuilt for the current 1-2 user reality.
+- The practical near-term desire is more personalized and time-appropriate messages, not a full analytics platform.
+
+**Keep for later**:
+
+- User engagement tracking.
+- Message effectiveness metrics.
+- Smart message recommendation.
+- Adaptive spacing/timing.
+- Proactive suggestions based on check-in/task patterns.
+
+---
+
+### 7.4 UI polish and validation
+
+**Status**: **DEFERRED / OPPORTUNISTIC**  
+**Priority**: Low
+
+**Completed baseline**:
+
+- PySide6/Qt migration foundation completed.
+- Dialogs and widgets exist.
+- Main UI behavior coverage exists.
+
+**Why deferred**:
+
+- Discord is the primary interface.
+- UI improvements are worthwhile when they unblock real use or stabilize tests, but they should not displace Discord/mobile flows.
+
+**Keep for later**:
+
+- Dialog sizing/spacing polish.
+- Main-window refresh after dialog changes.
+- Form validation improvements.
+- Clearer UI error messages.
+- UI responsiveness monitoring.
+
+Testing details belong in [TEST_PLAN.md](TEST_PLAN.md).
+
+---
+
+### 7.5 Cross-channel sync
+
+**Status**: **DEFERRED**  
+**Priority**: Low
+
+**Completed baseline**:
+
+- Email integration was completed and documented in changelog history.
+
+**Why deferred**:
+
+- Discord is primary.
+- Cross-channel sync is not currently important enough to compete with notebook/task/check-in reliability.
+
+**Keep for later**:
+
+- Synchronize state across Discord, email, and future channels if multi-channel usage grows.
+- Keep Telegram out of scope unless explicitly revived.
+
+---
+
+### 7.6 Smart home integration
+
+**Status**: **ARCHIVED / FUTURE ONLY**  
+**Priority**: None currently
+
+This remains a long-term idea from the broader project vision, not a current MHM implementation plan.
+
+---
+
+## 8. Completed / Archived Plans
+
+Keep details in changelogs, not here.
+
+| Plan / workstream | Status | Notes |
+|-------------------|--------|-------|
+| MHM Refactor Continuation Plan | **COMPLETED** | Completed 2026-05-05; removed from active planning. |
+| Runtime JSON storage classification/migration/service flag cleanup | **COMPLETED** | Completed 2026-05-11; follow-ups belong in TODO or storage docs. |
+| Soft channel-boundary review | **COMPLETED** | Completed 2026-05-11; future boundary policy belongs in TEST_PLAN/TODO. |
+| Backup Reliability and Restore Confidence Plan | **COMPLETED** | Completed 2026-05-11; future issues should become specific TODO items. |
+| Top-level storage package move | **COMPLETED** | Completed 2026-05-14; `storage/` is the current package for user-data persistence helpers. |
+| Account management system improvements | **ARCHIVED** | Core account creation and feature enablement complete; remaining edge cases belong in TODO. |
+| UI migration foundation/dialogs/widgets | **COMPLETED** | UI polish/testing remains deferred/opportunistic. |
+| Email integration | **COMPLETED** | Cross-channel sync remains deferred. |
+| Testing strategy consolidation | **COMPLETED AS CONSOLIDATION** | Current testing roadmap lives in TEST_PLAN.md. |
+
+---
+
+## 9. Plan Maintenance Rules
+
+When updating plans:
+
+1. Keep `PLANS.md` as an index, not a long backlog.
+2. Put detailed roadmap items in the relevant child plan.
+3. Put small standalone tasks in [TODO.md](../TODO.md).
+4. Move completed implementation history to changelogs.
+5. Use live generated reports for metrics instead of copying stale counts into plan files.
+6. Use current package/module names from the codebase; do not preserve old paths for nostalgia.
+7. Add dates to new items and status changes using `YYYY-MM-DD`.
+8. When a plan becomes mostly completed, collapse it here and move remaining concrete work to the correct child plan or TODO.
+
+---
+
+## 10. Next Review Checklist
+
+Use this checklist during the next planning cleanup:
+
+- [ ] Confirm all child links still resolve.
+- [ ] Confirm `PLANS.md` still references V6, not V5, for AI development tools.
+- [ ] Confirm completed work is not re-expanded into active sections.
+- [ ] Confirm deferred items still deserve to exist.
+- [ ] Confirm active plan summaries match their child plans.
+- [ ] Confirm generated reports, not copied metrics, are used for current audit/coverage status.

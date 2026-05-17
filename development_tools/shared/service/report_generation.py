@@ -19,7 +19,9 @@ logger = get_dev_tools_logger("development_tools")
 
 # Import audit orchestration helper
 from .audit_orchestration import _is_audit_in_progress
-from .report_generation_linkify import linkify_review_paths_bullet as _linkify_review_paths_bullet
+from .report_generation_linkify import (
+    linkify_review_paths_bullet as _linkify_review_paths_bullet,
+)
 
 
 class ReportGenerationMixin:
@@ -49,14 +51,9 @@ class ReportGenerationMixin:
             return anchor in candidate.parents or candidate == anchor
         except (OSError, ValueError, RuntimeError):
             norm = path_str.replace("\\", "/").strip().lstrip("./")
-            return (
-                norm.startswith("development_tools/")
-                or norm == "development_tools"
-            )
+            return norm.startswith("development_tools/") or norm == "development_tools"
 
-    def _filter_duplicate_groups_dev_tools(
-        self, groups: list[Any]
-    ) -> list[Any]:
+    def _filter_duplicate_groups_dev_tools(self, groups: list[Any]) -> list[Any]:
         """Keep duplicate groups where every function maps to a file under development_tools/."""
         out: list[Any] = []
         for group in groups:
@@ -116,9 +113,7 @@ class ReportGenerationMixin:
                 out.append(chain)
         return out
 
-    def _filter_high_coupling_dev_tools(
-        self, items: list[Any]
-    ) -> list[dict[str, Any]]:
+    def _filter_high_coupling_dev_tools(self, items: list[Any]) -> list[dict[str, Any]]:
         out: list[dict[str, Any]] = []
         for item in items:
             if isinstance(item, dict) and self._path_is_under_development_tools_dir(
@@ -346,7 +341,11 @@ class ReportGenerationMixin:
             if not isinstance(tool_data, dict):
                 result[tool_name] = {
                     "available": False,
-                    "summary": {"total_issues": 0, "files_affected": 0, "status": "WARN"},
+                    "summary": {
+                        "total_issues": 0,
+                        "files_affected": 0,
+                        "status": "WARN",
+                    },
                     "details": {},
                 }
                 continue
@@ -361,7 +360,9 @@ class ReportGenerationMixin:
                 "available": tool_available,
                 "summary": {
                     "total_issues": self._coerce_int(summary.get("total_issues"), 0),
-                    "files_affected": self._coerce_int(summary.get("files_affected"), 0),
+                    "files_affected": self._coerce_int(
+                        summary.get("files_affected"), 0
+                    ),
                     "status": str(summary.get("status", "UNKNOWN")),
                 },
                 "details": details,
@@ -587,6 +588,41 @@ class ReportGenerationMixin:
             "coverage": coverage,
         }
 
+    def _tier3_outcome_has_run_evidence(self, outcome: dict[str, Any]) -> bool:
+        """True when outcome reflects a Tier 3 test run (not empty/stale coverage-only cache)."""
+        if not isinstance(outcome, dict) or not outcome:
+            return False
+        state = outcome.get("state")
+        if isinstance(state, str) and state.strip() and state.strip() != "unknown":
+            return True
+        for key in ("parallel", "no_parallel", "development_tools"):
+            track = outcome.get(key)
+            if not isinstance(track, dict) or not track:
+                continue
+            if track.get("classification_reason") == "not_run_this_audit_scope":
+                return True
+            classification = self._track_classification_label(track)
+            if classification not in {"", "unknown"}:
+                return True
+            for field in (
+                "return_code",
+                "passed_count",
+                "failed_count",
+                "error_count",
+                "log_file",
+            ):
+                value = track.get(field)
+                if value not in (None, 0, "", []):
+                    return True
+        return False
+
+    def _tier3_test_outcome_is_cached_for_report(self) -> bool:
+        """True when tier-3 test outcome comes from cache, not from the current Tier 3 audit run."""
+        if getattr(self, "current_audit_tier", None) != 3:
+            return True
+        in_memory = getattr(self, "tier3_test_outcome", None)
+        return not (isinstance(in_memory, dict) and in_memory.get("state"))
+
     def _get_tier3_test_outcome(self) -> dict[str, Any]:
         """Load Tier 3 test outcome state from in-memory or cached results."""
         in_memory = getattr(self, "tier3_test_outcome", None)
@@ -600,7 +636,7 @@ class ReportGenerationMixin:
         details = coverage_result.get("details", {})
         if isinstance(details, dict):
             outcome = details.get("tier3_test_outcome", {})
-            if isinstance(outcome, dict):
+            if isinstance(outcome, dict) and outcome:
                 if not isinstance(outcome.get("development_tools"), dict):
                     dev_tools_result = self._load_tool_data(
                         "generate_dev_tools_coverage", "tests", log_source=False
@@ -609,7 +645,7 @@ class ReportGenerationMixin:
                         dev_details = dev_tools_result.get("details", {})
                         if isinstance(dev_details, dict):
                             dev_outcome = dev_details.get("dev_tools_test_outcome", {})
-                            if isinstance(dev_outcome, dict):
+                            if isinstance(dev_outcome, dict) and dev_outcome:
                                 outcome = {**outcome, "development_tools": dev_outcome}
                 return outcome
         return {}
@@ -621,6 +657,8 @@ class ReportGenerationMixin:
         if state == "coverage_failed":
             return "coverage_failed"
         if not isinstance(outcome, dict):
+            return "unknown"
+        if not self._tier3_outcome_has_run_evidence(outcome):
             return "unknown"
         parallel = (
             outcome.get("parallel", {})
@@ -724,6 +762,11 @@ class ReportGenerationMixin:
         failed_nodes = outcome.get("failed_node_ids", [])
 
         lines.append("## Tier 3 Test Outcome")
+        if self._tier3_test_outcome_is_cached_for_report():
+            lines.append(
+                "- **Source**: Cached from last Tier 3 (`audit --full`) run "
+                "(this audit did not re-run tests)"
+            )
         lines.append(f"- **State**: {state}")
         skip_p = self._tier3_track_skipped_for_audit_scope(parallel)
         skip_np = self._tier3_track_skipped_for_audit_scope(no_parallel)
@@ -750,14 +793,18 @@ class ReportGenerationMixin:
                 f"return={dev_tools.get('return_code')})"
             )
         if not skip_p:
-            lines.append(self._format_track_classification_summary("Parallel", parallel))
+            lines.append(
+                self._format_track_classification_summary("Parallel", parallel)
+            )
         if not skip_np:
             lines.append(
                 self._format_track_classification_summary("No-Parallel", no_parallel)
             )
         if not skip_dt:
             lines.append(
-                self._format_track_classification_summary("Development Tools", dev_tools)
+                self._format_track_classification_summary(
+                    "Development Tools", dev_tools
+                )
             )
         if isinstance(failed_nodes, list) and failed_nodes:
             lines.append(
@@ -1324,9 +1371,7 @@ class ReportGenerationMixin:
                     "results" in cached_data
                     and "analyze_function_registry" in cached_data["results"]
                 ):
-                    func_reg_data = cached_data["results"][
-                        "analyze_function_registry"
-                    ]
+                    func_reg_data = cached_data["results"]["analyze_function_registry"]
                     if "data" in func_reg_data:
                         cached_metrics = func_reg_data["data"]
                         cached_details = (
@@ -1339,9 +1384,7 @@ class ReportGenerationMixin:
                             if isinstance(missing_docs_raw, dict):
                                 missing_docs = missing_docs_raw
                             else:
-                                missing_docs = {
-                                    "count": to_int(missing_docs_raw) or 0
-                                }
+                                missing_docs = {"count": to_int(missing_docs_raw) or 0}
                         if isinstance(missing_docs, dict):
                             missing_files = missing_docs.get("missing_files", [])
             except Exception as e:
@@ -1497,9 +1540,7 @@ class ReportGenerationMixin:
 
         # Test coverage snapshot: dev-tools-only runs skip full-repo refresh; avoid showing
         # stale overall % from coverage.json alongside "not refreshed" in the Test Coverage section.
-        skip_main_tracks_snap = bool(
-            getattr(self, "_tier3_skipped_main_tracks", False)
-        )
+        skip_main_tracks_snap = bool(getattr(self, "_tier3_skipped_main_tracks", False))
         if self._is_dev_tools_scoped_report() and skip_main_tracks_snap:
             dev_snap = self._get_dev_tools_coverage_insights()
             if dev_snap and dev_snap.get("overall_pct") is not None:
@@ -1591,18 +1632,26 @@ class ReportGenerationMixin:
             if isinstance(static_analysis, dict)
             else {}
         )
-        ruff_available = bool(
-            static_analysis.get("analyze_ruff", {}).get("available", False)
-        ) if isinstance(static_analysis, dict) else False
-        pyright_available = bool(
-            static_analysis.get("analyze_pyright", {}).get("available", False)
-        ) if isinstance(static_analysis, dict) else False
-        bandit_available = bool(
-            static_analysis.get("analyze_bandit", {}).get("available", False)
-        ) if isinstance(static_analysis, dict) else False
-        pip_audit_available = bool(
-            static_analysis.get("analyze_pip_audit", {}).get("available", False)
-        ) if isinstance(static_analysis, dict) else False
+        ruff_available = (
+            bool(static_analysis.get("analyze_ruff", {}).get("available", False))
+            if isinstance(static_analysis, dict)
+            else False
+        )
+        pyright_available = (
+            bool(static_analysis.get("analyze_pyright", {}).get("available", False))
+            if isinstance(static_analysis, dict)
+            else False
+        )
+        bandit_available = (
+            bool(static_analysis.get("analyze_bandit", {}).get("available", False))
+            if isinstance(static_analysis, dict)
+            else False
+        )
+        pip_audit_available = (
+            bool(static_analysis.get("analyze_pip_audit", {}).get("available", False))
+            if isinstance(static_analysis, dict)
+            else False
+        )
         ruff_total = to_int(ruff_summary.get("total_issues")) or 0
         pyright_total = to_int(pyright_summary.get("total_issues")) or 0
         bandit_total = to_int(bandit_summary.get("total_issues")) or 0
@@ -1629,9 +1678,7 @@ class ReportGenerationMixin:
                 f"(ruff={ruff_total}, pyright={pyright_total}, bandit={bandit_total}, pip-audit={pip_audit_total})"
             )
         else:
-            lines.append(
-                "- **Static Analysis (ruff/pyright/bandit/pip-audit)**: CLEAN"
-            )
+            lines.append("- **Static Analysis (ruff/pyright/bandit/pip-audit)**: CLEAN")
 
         lines.extend(
             self._lines_for_verify_process_cleanup_status_snapshot(
@@ -2276,9 +2323,7 @@ class ReportGenerationMixin:
         lines.append("## Test Coverage")
 
         dev_tools_insights = self._get_dev_tools_coverage_insights()
-        skip_main_tracks = bool(
-            getattr(self, "_tier3_skipped_main_tracks", False)
-        )
+        skip_main_tracks = bool(getattr(self, "_tier3_skipped_main_tracks", False))
         skip_dev_track = bool(getattr(self, "_tier3_skipped_dev_track", False))
 
         if skip_main_tracks and self._is_dev_tools_scoped_report():
@@ -2294,9 +2339,7 @@ class ReportGenerationMixin:
                     f"- **Development Tools Coverage**: {percent_text(dev_pct, 1)}"
                 )
                 if dev_statements is not None and dev_covered is not None:
-                    summary_line += (
-                        f" ({dev_covered} of {dev_statements} statements)"
-                    )
+                    summary_line += f" ({dev_covered} of {dev_statements} statements)"
                 lines.append(summary_line)
                 gen_json = (
                     self.project_root
@@ -2334,7 +2377,9 @@ class ReportGenerationMixin:
                 pct = primary.get("coverage")
                 covered = primary.get("covered")
                 stmts = primary.get("statements")
-                domains = ", ".join(primary.get("domains", ["core", "communication", "ai", "user"]))
+                domains = ", ".join(
+                    primary.get("domains", ["core", "communication", "ai", "user"])
+                )
                 lines.append(
                     f"- **Overall Coverage**: {percent_text(pct, 1)} "
                     f"({covered} of {stmts} statements)"
@@ -2367,7 +2412,9 @@ class ReportGenerationMixin:
                     "`python development_tools/run_development_tools.py audit --full --dev-tools-only` "
                     "only when you need refreshed DEV_TOOLS_* artifacts and the dedicated scoped track."
                 )
-            elif dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
+            elif (
+                dev_tools_insights and dev_tools_insights.get("overall_pct") is not None
+            ):
                 dev_pct = dev_tools_insights["overall_pct"]
                 dev_statements = dev_tools_insights.get("statements")
                 dev_covered = dev_tools_insights.get("covered")
@@ -2390,7 +2437,9 @@ class ReportGenerationMixin:
                     "`python development_tools/run_development_tools.py audit --full --dev-tools-only` "
                     "only when you need refreshed DEV_TOOLS_* artifacts and the dedicated scoped track."
                 )
-            elif dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
+            elif (
+                dev_tools_insights and dev_tools_insights.get("overall_pct") is not None
+            ):
                 dev_pct = dev_tools_insights["overall_pct"]
                 dev_statements = dev_tools_insights.get("statements")
                 dev_covered = dev_tools_insights.get("covered")
@@ -2529,9 +2578,7 @@ class ReportGenerationMixin:
                 else {}
             )
             bandit_summary = (
-                bandit_data.get("summary", {})
-                if isinstance(bandit_data, dict)
-                else {}
+                bandit_data.get("summary", {}) if isinstance(bandit_data, dict) else {}
             )
             pip_audit_summary = (
                 pip_audit_data.get("summary", {})
@@ -2547,9 +2594,7 @@ class ReportGenerationMixin:
                 else {}
             )
             bandit_details = (
-                bandit_data.get("details", {})
-                if isinstance(bandit_data, dict)
-                else {}
+                bandit_data.get("details", {}) if isinstance(bandit_data, dict) else {}
             )
             pip_audit_details = (
                 pip_audit_data.get("details", {})
@@ -3291,9 +3336,7 @@ class ReportGenerationMixin:
         duplicate_functions_data = self._load_tool_data(
             "analyze_duplicate_functions", "functions"
         )
-        facade_shims_data = self._load_tool_data(
-            "analyze_facade_shims", "functions"
-        )
+        facade_shims_data = self._load_tool_data("analyze_facade_shims", "functions")
         module_refactor_candidates_data = self._load_tool_data(
             "analyze_module_refactor_candidates", "functions"
         )
@@ -3657,7 +3700,9 @@ class ReportGenerationMixin:
             def _complexity_example_in_scope(ex: Any) -> bool:
                 if not isinstance(ex, dict):
                     return False
-                return self._path_is_under_development_tools_dir(str(ex.get("file", "")))
+                return self._path_is_under_development_tools_dir(
+                    str(ex.get("file", ""))
+                )
 
             critical_examples = [
                 e for e in (critical_examples or []) if _complexity_example_in_scope(e)
@@ -3802,31 +3847,63 @@ class ReportGenerationMixin:
                 "Triage documentation example-marker hints": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md (section 3.6)",
             }
             details_defaults: dict[str, str] = {
-                "Stabilize documentation drift": self._scoped_tool_result_path("docs", "analyze_documentation_sync"),
-                "Add docstrings to missing functions": self._scoped_tool_result_path("functions", "analyze_functions"),
+                "Stabilize documentation drift": self._scoped_tool_result_path(
+                    "docs", "analyze_documentation_sync"
+                ),
+                "Add docstrings to missing functions": self._scoped_tool_result_path(
+                    "functions", "analyze_functions"
+                ),
                 "Update function registry": "development_docs/FUNCTION_REGISTRY_DETAIL.md",
-                "Add error handling to missing functions": self._scoped_tool_result_path("error_handling", "analyze_error_handling"),
-                "Modernize error handling (Phase 1 + Phase 2)": self._scoped_tool_result_path("error_handling", "analyze_error_handling"),
+                "Add error handling to missing functions": self._scoped_tool_result_path(
+                    "error_handling", "analyze_error_handling"
+                ),
+                "Modernize error handling (Phase 1 + Phase 2)": self._scoped_tool_result_path(
+                    "error_handling", "analyze_error_handling"
+                ),
                 "Raise coverage for domains below target": "development_docs/TEST_COVERAGE_REPORT.md",
-                "Raise development tools coverage": self._scoped_tool_result_path("tests", "generate_dev_tools_coverage"),
+                "Raise development tools coverage": self._scoped_tool_result_path(
+                    "tests", "generate_dev_tools_coverage"
+                ),
                 "Reduce dependency pattern risk": "development_tools/CONSOLIDATED_REPORT.md",
-                "Fix development tools import boundary violations": self._scoped_tool_result_path("imports", "analyze_dev_tools_import_boundaries"),
+                "Fix development tools import boundary violations": self._scoped_tool_result_path(
+                    "imports", "analyze_dev_tools_import_boundaries"
+                ),
                 "Remove legacy compatibility code (after full call-site migration)": "development_docs/LEGACY_REFERENCE_REPORT.md (exact locations)",
-                "Update tools to use centralized config": self._scoped_tool_result_path("ai_work", "analyze_ai_work"),
-                "Add docstrings to handler classes": self._scoped_tool_result_path("functions", "analyze_function_patterns"),
-                "Add pytest category markers to tests": self._scoped_tool_result_path("tests", "analyze_test_markers"),
-                "Add pytest domain-attribution markers to tests": self._scoped_tool_result_path("tests", "analyze_test_markers"),
-                "Review orphaned pytest worker processes (Windows)": self._scoped_tool_result_path("tests", "verify_process_cleanup"),
+                "Update tools to use centralized config": self._scoped_tool_result_path(
+                    "ai_work", "analyze_ai_work"
+                ),
+                "Add docstrings to handler classes": self._scoped_tool_result_path(
+                    "functions", "analyze_function_patterns"
+                ),
+                "Add pytest category markers to tests": self._scoped_tool_result_path(
+                    "tests", "analyze_test_markers"
+                ),
+                "Add pytest domain-attribution markers to tests": self._scoped_tool_result_path(
+                    "tests", "analyze_test_markers"
+                ),
+                "Review orphaned pytest worker processes (Windows)": self._scoped_tool_result_path(
+                    "tests", "verify_process_cleanup"
+                ),
                 "Remove obvious unused imports": "development_docs/UNUSED_IMPORTS_REPORT.md",
-                "Investigate possible duplicate functions/methods": self._scoped_tool_result_path("functions", "analyze_duplicate_functions"),
-                "Consider refactoring large or high-complexity modules": self._scoped_tool_result_path("functions", "analyze_module_refactor_candidates"),
-                "Refactor high-complexity functions": self._scoped_tool_result_path("functions", "analyze_functions"),
+                "Investigate possible duplicate functions/methods": self._scoped_tool_result_path(
+                    "functions", "analyze_duplicate_functions"
+                ),
+                "Consider refactoring large or high-complexity modules": self._scoped_tool_result_path(
+                    "functions", "analyze_module_refactor_candidates"
+                ),
+                "Refactor high-complexity functions": self._scoped_tool_result_path(
+                    "functions", "analyze_functions"
+                ),
                 "Address Ruff findings": "development_tools/CONSOLIDATED_REPORT.md",
                 "Address Pyright findings": "development_tools/CONSOLIDATED_REPORT.md",
                 "Investigate and correct test failures/errors": "stdout files in development_tools/tests/logs",
                 "Investigate backup health failures": "development_tools/reports/jsons/backup_health_report.json",
-                "Consolidate documentation files": self._scoped_tool_result_path("docs", "analyze_documentation"),
-                "Review documentation overlaps": self._scoped_tool_result_path("docs", "analyze_documentation"),
+                "Consolidate documentation files": self._scoped_tool_result_path(
+                    "docs", "analyze_documentation"
+                ),
+                "Review documentation overlaps": self._scoped_tool_result_path(
+                    "docs", "analyze_documentation"
+                ),
                 "Triage documentation example-marker hints": f"{self._scoped_tool_result_path('docs', 'analyze_documentation_sync')} (details.example_marker_findings)",
             }
 
@@ -4353,13 +4430,9 @@ class ReportGenerationMixin:
                         "Action: Strengthen tests in `tests/development_tools/` for fragile helpers and low-coverage modules"
                     )
                     if dev_pct < 60:
-                        dev_reason = (
-                            f"Development tools coverage is {percent_text(dev_pct, 1)} (target 60%+)."
-                        )
+                        dev_reason = f"Development tools coverage is {percent_text(dev_pct, 1)} (target 60%+)."
                     else:
-                        dev_reason = (
-                            f"{len(low_dev_modules_below_target)} key development-tools module(s) remain below the 80% target."
-                        )
+                        dev_reason = f"{len(low_dev_modules_below_target)} key development-tools module(s) remain below the 80% target."
                     add_priority(
                         tier=2,  # Tier 2: High
                         title="Raise development tools coverage",
@@ -4456,7 +4529,8 @@ class ReportGenerationMixin:
                         "Review for details: development_tools/CONSOLIDATED_REPORT.md",
                     ]
                     ruff_bullets.insert(
-                        0, "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
+                        0,
+                        "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                     )
                     add_priority(
                         tier=3,
@@ -4476,7 +4550,8 @@ class ReportGenerationMixin:
                         "Review for details: development_tools/CONSOLIDATED_REPORT.md",
                     ]
                     pyright_bullets.insert(
-                        0, "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
+                        0,
+                        "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                     )
                     add_priority(
                         tier=3,
@@ -4495,7 +4570,8 @@ class ReportGenerationMixin:
                         "Review for details: development_tools/CONSOLIDATED_REPORT.md",
                     ]
                     bandit_bullets.insert(
-                        0, "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
+                        0,
+                        "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                     )
                     add_priority(
                         tier=3,
@@ -4507,12 +4583,14 @@ class ReportGenerationMixin:
                         bullets=bandit_bullets,
                     )
                 if pip_audit_issues > 0:
-                    pip_without_fix = to_int(
-                        pip_audit_details.get("vulnerable_packages_without_fix")
-                    ) or 0
-                    pip_with_fix = to_int(
-                        pip_audit_details.get("vulnerable_packages_with_fix")
-                    ) or 0
+                    pip_without_fix = (
+                        to_int(pip_audit_details.get("vulnerable_packages_without_fix"))
+                        or 0
+                    )
+                    pip_with_fix = (
+                        to_int(pip_audit_details.get("vulnerable_packages_with_fix"))
+                        or 0
+                    )
                     if pip_with_fix > 0:
                         pip_action = (
                             "Action: Run `python -m pip_audit --format json` and upgrade "
@@ -4537,7 +4615,8 @@ class ReportGenerationMixin:
                             f"No fixed version is currently reported for {pip_without_fix} vulnerable package(s).",
                         )
                     pip_bullets.insert(
-                        0, "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
+                        0,
+                        "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                     )
                     add_priority(
                         tier=2,
@@ -4555,7 +4634,11 @@ class ReportGenerationMixin:
             overall_pct = None
             if isinstance(overall, dict):
                 overall_pct = to_float(overall.get("coverage"))
-            if overall_pct is not None and overall_pct >= 80 and not low_coverage_modules:
+            if (
+                overall_pct is not None
+                and overall_pct >= 80
+                and not low_coverage_modules
+            ):
                 watch_items.append(
                     {
                         "title": "Domain coverage stability",
@@ -4858,9 +4941,13 @@ class ReportGenerationMixin:
             cat_n, dom_n, missing_list, missing_domain_list = (
                 self._test_marker_gap_metrics(test_markers_data)
             )
-            cat_display = cat_n if cat_n > 0 else (len(missing_list) if missing_list else 0)
-            dom_display = dom_n if dom_n > 0 else (
-                len(missing_domain_list) if missing_domain_list else 0
+            cat_display = (
+                cat_n if cat_n > 0 else (len(missing_list) if missing_list else 0)
+            )
+            dom_display = (
+                dom_n
+                if dom_n > 0
+                else (len(missing_domain_list) if missing_domain_list else 0)
             )
 
             if cat_display > 0:
@@ -4929,7 +5016,7 @@ class ReportGenerationMixin:
                 if vpc_n > 0 or vpc_st == "WARN":
                     vpc_bullets = [
                         "Action: Inspect candidate PIDs in the results JSON; end only processes you have verified are stale pytest-xdist workers.",
-                        "Limitation: orphan detection is heuristic until full command lines are available from the OS (see AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md §3.18).",
+                        "Limitation: orphan detection is heuristic until full command lines are available from the OS (see AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md §3.18).",
                     ]
                     add_priority(
                         tier=3,
@@ -4974,14 +5061,18 @@ class ReportGenerationMixin:
                 if files_dict and isinstance(files_dict, dict):
                     sorted_files = sorted(
                         files_dict.items(),
-                        key=lambda x: len(x[1]) if isinstance(x[1], list) else int(x[1]),
+                        key=lambda x: (
+                            len(x[1]) if isinstance(x[1], list) else int(x[1])
+                        ),
                         reverse=True,
                     )[:5]
                     if sorted_files:
                         file_list = []
                         for file_path, imports in sorted_files:
                             import_count = (
-                                len(imports) if isinstance(imports, list) else int(imports)
+                                len(imports)
+                                if isinstance(imports, list)
+                                else int(imports)
                             )
                             file_name = Path(file_path).name if file_path else "Unknown"
                             file_list.append(f"{file_name} ({import_count} imports)")
@@ -5051,9 +5142,11 @@ class ReportGenerationMixin:
                 if self._is_dev_tools_scoped_report()
                 and isinstance(groups, list)
                 and groups
-                else self._count_duplicate_affected_files(groups)
-                if isinstance(groups, list) and groups
-                else 0
+                else (
+                    self._count_duplicate_affected_files(groups)
+                    if isinstance(groups, list) and groups
+                    else 0
+                )
             )
             if dup_groups > 0 and isinstance(groups, list) and groups:
 
@@ -5245,14 +5338,12 @@ class ReportGenerationMixin:
                             "critical_complexity_examples", []
                         )
                     if (
-                        (not high_examples or len(high_examples) == 0)
-                        and "high_complexity_examples" in func_details
-                    ):
+                        not high_examples or len(high_examples) == 0
+                    ) and "high_complexity_examples" in func_details:
                         high_examples = func_details.get("high_complexity_examples", [])
                     elif (
-                        (not high_examples or len(high_examples) == 0)
-                        and "high_complexity_examples" in func_result
-                    ):
+                        not high_examples or len(high_examples) == 0
+                    ) and "high_complexity_examples" in func_result:
                         high_examples = func_result.get("high_complexity_examples", [])
 
                 # If still not available, fall back to decision_support.
@@ -5327,7 +5418,9 @@ class ReportGenerationMixin:
             # Insert details after top results (after index 1 if we have "Highest complexity")
             details_line = f"Review for details: {self._scoped_tool_result_path('functions', 'analyze_functions')}"
             complexity_bullets.insert(1, details_line)
-            if len(complexity_bullets) > 2 and not complexity_bullets[2].startswith("Review for details:"):
+            if len(complexity_bullets) > 2 and not complexity_bullets[2].startswith(
+                "Review for details:"
+            ):
                 # We have "Highest complexity" at index 2; move details to after it
                 complexity_bullets.pop(1)
                 complexity_bullets.insert(2, details_line)
@@ -5374,7 +5467,9 @@ class ReportGenerationMixin:
             )
             details_line_high = f"Review for details: {self._scoped_tool_result_path('functions', 'analyze_functions')}"
             high_complexity_bullets.insert(1, details_line_high)
-            if len(high_complexity_bullets) > 2 and not high_complexity_bullets[2].startswith("Review for details:"):
+            if len(high_complexity_bullets) > 2 and not high_complexity_bullets[
+                2
+            ].startswith("Review for details:"):
                 high_complexity_bullets.pop(1)
                 high_complexity_bullets.insert(2, details_line_high)
             high_complexity_bullets.append(
@@ -5475,7 +5570,9 @@ class ReportGenerationMixin:
                     parts_ret: list[str] = []
                     if not self._tier3_track_skipped_for_audit_scope(parallel_outcome):
                         parts_ret.append(f"Parallel return={rp}")
-                    if not self._tier3_track_skipped_for_audit_scope(no_parallel_outcome):
+                    if not self._tier3_track_skipped_for_audit_scope(
+                        no_parallel_outcome
+                    ):
                         parts_ret.append(f"no-parallel return={rnp}")
                     if not self._tier3_track_skipped_for_audit_scope(dev_tools_outcome):
                         parts_ret.append(f"dev-tools return={rdt}")
@@ -5532,7 +5629,9 @@ class ReportGenerationMixin:
                             f"Parallel failed={parallel_outcome.get('failed_count', 0)}, errors={parallel_outcome.get('error_count', 0)}."
                         )
                         include_parallel_logs = True
-                    if not self._tier3_track_skipped_for_audit_scope(no_parallel_outcome):
+                    if not self._tier3_track_skipped_for_audit_scope(
+                        no_parallel_outcome
+                    ):
                         tier3_bullets.append(
                             f"No-parallel failed={no_parallel_outcome.get('failed_count', 0)}, errors={no_parallel_outcome.get('error_count', 0)}."
                         )
@@ -5560,6 +5659,11 @@ class ReportGenerationMixin:
             tier3_bullets.insert(
                 0, "Review for guidance: ai_development_docs/AI_TESTING_GUIDE.md"
             )
+            if self._tier3_test_outcome_is_cached_for_report():
+                tier3_reason = (
+                    f"{tier3_reason} "
+                    "(cached from last Tier 3 run; re-run `audit --full` to refresh)."
+                )
             tier3_log_files = self._get_recent_tier3_log_files(
                 include_parallel=include_parallel_logs,
                 include_no_parallel=include_no_parallel_logs,
@@ -5668,9 +5772,7 @@ class ReportGenerationMixin:
         if em_hint_total > 0:
             em_findings_raw = em_details.get("example_marker_findings") or {}
             em_file_count = (
-                len(em_findings_raw)
-                if isinstance(em_findings_raw, dict)
-                else 0
+                len(em_findings_raw) if isinstance(em_findings_raw, dict) else 0
             )
             ranked_em_files: list[tuple[str, int]] = []
             if isinstance(em_findings_raw, dict):
@@ -5683,12 +5785,8 @@ class ReportGenerationMixin:
                 ranked_em_files.sort(key=lambda t: (-t[1], t[0].lower()))
             em_file_bullets: list[str] = []
             if ranked_em_files:
-                em_file_bullets.append(
-                    "Top file(s) by hint line count (up to 3):"
-                )
-                for idx, (rel_path, n_hints) in enumerate(
-                    ranked_em_files[:3], start=1
-                ):
+                em_file_bullets.append("Top file(s) by hint line count (up to 3):")
+                for idx, (rel_path, n_hints) in enumerate(ranked_em_files[:3], start=1):
                     em_file_bullets.append(
                         f"{idx}. `{rel_path}` — {n_hints} hint line(s)"
                     )
@@ -5782,9 +5880,7 @@ class ReportGenerationMixin:
                     pass
                 else:
                     miss_display = (
-                        len(files)
-                        if scoped_dt and isinstance(files, list)
-                        else missing
+                        len(files) if scoped_dt and isinstance(files, list) else missing
                     )
                     files_str = (
                         self._format_list_for_display(files, limit=2)
@@ -5986,7 +6082,9 @@ class ReportGenerationMixin:
                 for bullet in item.get("bullets", []):
                     lines.append(f"  - {bullet}")
         else:
-            lines.append("- No active watch-list items. Add threshold-monitor items as key metrics stabilize.")
+            lines.append(
+                "- No active watch-list items. Add threshold-monitor items as key metrics stabilize."
+            )
         lines.append("")
 
         # Add overlap analysis information only if there are issues to prioritize
@@ -6078,7 +6176,9 @@ class ReportGenerationMixin:
         if self._is_dev_tools_scoped_report():
             lines.append("# Development Tools Consolidated Report")
             lines.append("")
-            lines.append("> **File**: `development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md`")
+            lines.append(
+                "> **File**: `development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md`"
+            )
         else:
             lines.append("# Comprehensive AI Development Tools Report")
             lines.append("")
@@ -6253,9 +6353,7 @@ class ReportGenerationMixin:
             if overlap_analysis_ran
             else []
         )
-        analyze_docs_data.get("file_purposes") or details.get(
-            "file_purposes", {}
-        )
+        analyze_docs_data.get("file_purposes") or details.get("file_purposes", {})
 
         if section_overlaps is None:
             section_overlaps = {}
@@ -6797,9 +6895,7 @@ class ReportGenerationMixin:
                 lines.append("  - 0 problem files")
 
             markdown_link_targets = (
-                get_doc_sync_field(
-                    effective_summary, "markdown_link_target_issues", 0
-                )
+                get_doc_sync_field(effective_summary, "markdown_link_target_issues", 0)
                 or 0
             )
             if markdown_link_targets > 0:
@@ -7304,9 +7400,7 @@ class ReportGenerationMixin:
         # Test Coverage
         lines.append("## Test Coverage")
 
-        skip_main_tracks_cr = bool(
-            getattr(self, "_tier3_skipped_main_tracks", False)
-        )
+        skip_main_tracks_cr = bool(getattr(self, "_tier3_skipped_main_tracks", False))
         skip_dev_track_cr = bool(getattr(self, "_tier3_skipped_dev_track", False))
 
         if skip_main_tracks_cr:
@@ -7371,7 +7465,9 @@ class ReportGenerationMixin:
                     "`development_tools`; run `audit --full --dev-tools-only` only to refresh "
                     "DEV_TOOLS reports and the dedicated scoped track."
                 )
-            elif dev_tools_insights and dev_tools_insights.get("overall_pct") is not None:
+            elif (
+                dev_tools_insights and dev_tools_insights.get("overall_pct") is not None
+            ):
                 dev_pct = dev_tools_insights["overall_pct"]
                 dev_statements = dev_tools_insights.get("statements")
                 dev_covered = dev_tools_insights.get("covered")
@@ -7392,8 +7488,10 @@ class ReportGenerationMixin:
                     )
 
             test_markers_data = self._load_tool_data("analyze_test_markers", "tests")
-            cat_n, dom_n, missing_list, missing_domain_list = self._test_marker_gap_metrics(
-                test_markers_data if isinstance(test_markers_data, dict) else None
+            cat_n, dom_n, missing_list, missing_domain_list = (
+                self._test_marker_gap_metrics(
+                    test_markers_data if isinstance(test_markers_data, dict) else None
+                )
             )
             if cat_n > 0 or dom_n > 0 or missing_list or missing_domain_list:
                 lines.append("## Test Markers")
@@ -7427,7 +7525,9 @@ class ReportGenerationMixin:
                             file_list.append(
                                 f"... +{len(files_with_missing) - 5} files"
                             )
-                        lines.append(f"    - **Top files (category)**: {', '.join(file_list)}")
+                        lines.append(
+                            f"    - **Top files (category)**: {', '.join(file_list)}"
+                        )
                 if dom_n > 0 or missing_domain_list:
                     actual_dom = dom_n if dom_n > 0 else len(missing_domain_list)
                     lines.append(
@@ -7455,10 +7555,10 @@ class ReportGenerationMixin:
                             for f, tests in sorted_dom
                         ]
                         if len(files_dom) > 5:
-                            file_list_d.append(
-                                f"... +{len(files_dom) - 5} files"
-                            )
-                        lines.append(f"    - **Top files (domain)**: {', '.join(file_list_d)}")
+                            file_list_d.append(f"... +{len(files_dom) - 5} files")
+                        lines.append(
+                            f"    - **Top files (domain)**: {', '.join(file_list_d)}"
+                        )
             elif test_markers_data and isinstance(test_markers_data, dict):
                 lines.append("## Test Markers")
                 lines.append(
@@ -7641,7 +7741,9 @@ class ReportGenerationMixin:
                 ruff_data.get("summary", {}) if isinstance(ruff_data, dict) else {}
             )
             pyright_summary = (
-                pyright_data.get("summary", {}) if isinstance(pyright_data, dict) else {}
+                pyright_data.get("summary", {})
+                if isinstance(pyright_data, dict)
+                else {}
             )
             bandit_summary = (
                 bandit_data.get("summary", {}) if isinstance(bandit_data, dict) else {}
@@ -7655,7 +7757,9 @@ class ReportGenerationMixin:
                 ruff_data.get("details", {}) if isinstance(ruff_data, dict) else {}
             )
             pyright_details = (
-                pyright_data.get("details", {}) if isinstance(pyright_data, dict) else {}
+                pyright_data.get("details", {})
+                if isinstance(pyright_data, dict)
+                else {}
             )
             bandit_details = (
                 bandit_data.get("details", {}) if isinstance(bandit_data, dict) else {}
@@ -7711,9 +7815,13 @@ class ReportGenerationMixin:
                 if named_rules:
                     lines.append(f"  - Top Ruff Rules: {', '.join(named_rules)}")
             elif isinstance(ruff_details.get("violations_by_rule"), dict):
-                top_rules = list((ruff_details.get("violations_by_rule") or {}).items())[:5]
+                top_rules = list(
+                    (ruff_details.get("violations_by_rule") or {}).items()
+                )[:5]
                 if top_rules:
-                    rule_text = ", ".join(f"{rule} ({count})" for rule, count in top_rules)
+                    rule_text = ", ".join(
+                        f"{rule} ({count})" for rule, count in top_rules
+                    )
                     lines.append(f"  - Top Ruff Rules: {rule_text}")
             if not pyright_available:
                 message = str(pyright_details.get("message", "")).strip()
@@ -7775,7 +7883,9 @@ class ReportGenerationMixin:
                         )
                         if file_text:
                             lines.append(f"  - Top Pyright Warning Files: {file_text}")
-            elif pyright_available and isinstance(pyright_details.get("top_files"), list):
+            elif pyright_available and isinstance(
+                pyright_details.get("top_files"), list
+            ):
                 top_files = pyright_details.get("top_files", [])[:5]
                 if top_files:
                     file_text = ", ".join(
@@ -8452,9 +8562,7 @@ class ReportGenerationMixin:
                     if isinstance(f, dict)
                 ]
                 if top_facades:
-                    lines.append(
-                        f"   - **Top candidates**: {', '.join(top_facades)}"
-                    )
+                    lines.append(f"   - **Top candidates**: {', '.join(top_facades)}")
                 lines.append(
                     f"   - **Full list**: {self._scoped_tool_result_path('functions', 'analyze_facade_shims')}"
                 )
@@ -9027,18 +9135,14 @@ class ReportGenerationMixin:
         )
         if coverage_report.exists():
             href = self._markdown_href_from_dev_tools_report(coverage_report)
-            lines.append(
-                f"- Test coverage report: [TEST_COVERAGE_REPORT.md]({href})"
-            )
+            lines.append(f"- Test coverage report: [TEST_COVERAGE_REPORT.md]({href})")
 
         unused_imports_report = (
             self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
         )
         if unused_imports_report.exists():
             href = self._markdown_href_from_dev_tools_report(unused_imports_report)
-            lines.append(
-                f"- Unused imports detail: [UNUSED_IMPORTS_REPORT.md]({href})"
-            )
+            lines.append(f"- Unused imports detail: [UNUSED_IMPORTS_REPORT.md]({href})")
 
         archive_dir = self.project_root / "development_tools" / "reports" / "archive"
         if archive_dir.exists():

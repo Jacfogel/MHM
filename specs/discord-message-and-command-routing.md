@@ -10,15 +10,15 @@
 > **Automated tests**: `tests/behavior/test_discord_bot_behavior.py`, `tests/behavior/test_discord_automation_complete.py`, `tests/behavior/test_discord_advanced_automation.py`, `tests/behavior/test_communication_interaction_manager_behavior.py`, `tests/behavior/test_message_router_behavior.py`  
 > **Coverage matrix**: [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md#discord-message-and-command-routing)
 
-## Purpose
+## 1. Purpose
 
 Discord is an adapter around the channel-agnostic interaction pipeline. Discord-specific code SHALL identify the Discord user, map the Discord event into a text command or `ParsedCommand`, call the interaction layer, and render the returned message, rich data, and suggestions back into Discord.
 
 The Discord adapter SHALL NOT duplicate task, profile, schedule, notebook, check-in, or AI business logic that already belongs in command handlers or the interaction manager.
 
-## Requirements
+## 2. Requirements
 
-### Requirement: Discord user identity maps to an internal MHM user
+### 2.1. Requirement: Discord user identity maps to an internal MHM user
 
 Incoming Discord interactions SHALL map `interaction.user.id` or `message.author.id` to an internal MHM user ID before executing protected features.
 
@@ -47,7 +47,7 @@ Incoming Discord interactions SHALL map `interaction.user.id` or `message.author
 - **AND** does not call the interaction manager  
 - **AND** does not send a response  
 
-### Requirement: Slash commands are generated from the central interaction command map
+### 2.2. Requirement: Slash commands are generated from the central interaction command map
 
 Discord slash commands SHALL be dynamically registered from `get_interaction_manager().get_command_definitions()` instead of maintaining a separate Discord-only command list.
 
@@ -76,7 +76,7 @@ Discord slash commands SHALL be dynamically registered from `get_interaction_man
 - **AND** replies ephemerally that the user must create or link an MHM account  
 - **AND** includes the user's Discord ID for setup  
 
-### Requirement: Classic commands mirror central command definitions where appropriate
+### 2.3. Requirement: Classic commands mirror central command definitions where appropriate
 
 Classic `!command` style Discord commands MAY be registered from the same command definition list so that Discord users can access common features without slash command UI.
 
@@ -102,7 +102,7 @@ Classic `!command` style Discord commands MAY be registered from the same comman
 - **WHEN** classic commands are registered  
 - **THEN** commands that would duplicate Discord's native help handling are skipped where the implementation excludes them  
 
-### Requirement: Suggestion buttons are translated back into interaction requests
+### 2.4. Requirement: Suggestion buttons are translated back into interaction requests
 
 Suggestion buttons returned by channel-agnostic handlers SHALL be rendered as Discord buttons. Button clicks SHALL either use stored hidden payloads or fall back to the button label as a user message.
 
@@ -131,7 +131,7 @@ Suggestion buttons returned by channel-agnostic handlers SHALL be rendered as Di
 - **THEN** the system sends a user-facing error  
 - **AND** asks the user to type the command instead  
 
-### Requirement: Pagination actions are rendered as Discord buttons
+### 2.5. Requirement: Pagination actions are rendered as Discord buttons
 
 Channel-neutral pagination metadata SHALL be converted into Discord action buttons without requiring each command handler to know about Discord UI.
 
@@ -150,7 +150,7 @@ Channel-neutral pagination metadata SHALL be converted into Discord action butto
 - **THEN** only the first five buttons are rendered  
 - **SO THAT** the adapter respects Discord component limits  
 
-### Requirement: Discord adapter errors do not break the interaction pipeline
+### 2.6. Requirement: Discord adapter errors do not break the interaction pipeline
 
 Discord-specific errors SHALL be logged and surfaced as practical user-facing fallback messages where possible.
 
@@ -163,14 +163,14 @@ Discord-specific errors SHALL be logged and surfaced as practical user-facing fa
 - **AND** sends a generic retry-later message to the Discord channel  
 - **AND** does not fall back to legacy conversation-manager behavior  
 
-## Out of scope
+## 3. Out of scope
 
 - Welcome and account onboarding; see [discord-welcome-and-onboarding.md](discord-welcome-and-onboarding.md).
 - Details of task CRUD, notebook CRUD, profile, schedule, analytics, or check-in business logic after routing reaches command handlers.
 - Discord webhook authorization/deauthorization events.
 - Low-level network reconnect behavior.
 
-## Manual test checklist
+## 4. Manual test checklist
 
 Run after changing Discord message or command routing:
 
@@ -185,7 +185,7 @@ Run after changing Discord message or command routing:
 9. [ ] Paginated response -> "Show More" button routes to next page.
 10. [ ] Handler failure -> user sees a generic retry-later message and logs contain the error.
 
-## Related documentation
+## 5. Related documentation
 
 - [SPECS_GUIDE.md](SPECS_GUIDE.md) - how behavior specs fit the project  
 - [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md) - channel-agnostic architecture  
