@@ -52,6 +52,11 @@ When behavior changes: update the spec **before or with** the code, add or adjus
 ```text
 specs/
   SPECS_GUIDE.md
+  discord-checkin-flow.md
+  discord-connection-and-webhook-lifecycle.md
+  discord-message-and-command-routing.md
+  discord-message-delivery-and-rich-responses.md
+  discord-task-reminder-flow.md
   discord-welcome-and-onboarding.md
   <short-topic>.md
 ```
@@ -107,7 +112,12 @@ Do not copy long guide sections into specs; link to them under **Related documen
 
 | Spec | Covers |
 |------|--------|
-| [discord-welcome-and-onboarding.md](discord-welcome-and-onboarding.md) | Discord welcome DM, welcome tracking, create/link account onboarding |
+| [discord-checkin-flow.md](discord-checkin-flow.md) | Check-in prompts, check-in buttons, retry-safe delivery |
+| [discord-connection-and-webhook-lifecycle.md](discord-connection-and-webhook-lifecycle.md) | Bot init, reconnect, webhook server, guild join |
+| [discord-message-and-command-routing.md](discord-message-and-command-routing.md) | Messages, slash/classic commands, suggestion buttons |
+| [discord-message-delivery-and-rich-responses.md](discord-message-delivery-and-rich-responses.md) | Send paths, embeds, views, DMs, delivery failures |
+| [discord-task-reminder-flow.md](discord-task-reminder-flow.md) | Task reminder delivery and reminder action buttons |
+| [discord-welcome-and-onboarding.md](discord-welcome-and-onboarding.md) | Welcome DM, welcome tracking, create/link account onboarding |
 
 Add new rows here when you add specs worth listing.
 

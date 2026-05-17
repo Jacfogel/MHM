@@ -180,9 +180,18 @@ The current implementation of `verify_webhook_signature` is a **placeholder**. I
   - A prompt or link to create or link an account.  
 - Tracks welcomed users in `data/welcome_tracking.json` (via `communication/core/welcome_manager.py`) to avoid sending multiple welcome messages to the same user.
 
-Canonical behavior requirements: [specs/discord-welcome-and-onboarding.md](../../../specs/discord-welcome-and-onboarding.md). Spec index: [specs/SPECS_GUIDE.md](../../../specs/SPECS_GUIDE.md).
+Canonical behavior requirements live under `specs/`. Index: [specs/SPECS_GUIDE.md](../../../specs/SPECS_GUIDE.md).
 
-The webhook path is the *preferred* way to detect initial authorization and includes create/link buttons on the welcome DM. If webhook delivery fails, `bot.py` may send a text-only welcome from `/start` or first interaction heuristics (see the spec for fallback scenarios).
+| Spec | Topic |
+|------|-------|
+| [discord-welcome-and-onboarding.md](../../../specs/discord-welcome-and-onboarding.md) | Welcome DM, welcome tracking, create/link account |
+| [discord-connection-and-webhook-lifecycle.md](../../../specs/discord-connection-and-webhook-lifecycle.md) | Bot init, reconnect, webhook server, guild join |
+| [discord-message-and-command-routing.md](../../../specs/discord-message-and-command-routing.md) | Message and command routing into the interaction layer |
+| [discord-message-delivery-and-rich-responses.md](../../../specs/discord-message-delivery-and-rich-responses.md) | Send paths, embeds, views, DMs, delivery failures |
+| [discord-checkin-flow.md](../../../specs/discord-checkin-flow.md) | Check-in prompts, buttons, retry-safe delivery |
+| [discord-task-reminder-flow.md](../../../specs/discord-task-reminder-flow.md) | Task reminders and reminder action buttons |
+
+The webhook path is the *preferred* way to detect initial authorization and includes create/link buttons on the welcome DM. If webhook delivery fails, `communication/communication_channels/discord/bot.py` may send a text-only welcome from `/start` or first interaction heuristics (see [discord-welcome-and-onboarding.md](../../../specs/discord-welcome-and-onboarding.md) for fallback scenarios).
 
 ---
 

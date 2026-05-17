@@ -375,6 +375,11 @@ def test_run_pyright_partial_cache_mixed_hit_miss_merges_parity(
         return "sig-core" if rels == ["core"] else "sig-ui"
 
     monkeypatch.setattr(ap_mod, "compute_scoped_py_source_signature", _sig)
+    monkeypatch.setattr(
+        ap_mod,
+        "_pyright_cache_signature",
+        lambda source_signature, _cli_args: source_signature or "__empty_scope__",
+    )
     calls: list[list[str]] = []
 
     def _capture(_project_root: Path, _command: list[str], args: list[str], _timeout: int):
@@ -403,3 +408,59 @@ def test_run_pyright_partial_cache_mixed_hit_miss_merges_parity(
     sr = out["details"]["shard_run"]
     assert sr["fragment_cache_hits"] == 1
     assert sr["fragment_cache_misses"] == 1
+
+
+@pytest.mark.unit
+def test_run_pyright_mono_cache_invalidates_when_cli_args_change(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (tmp_path / "demo_module.py").write_text("x = 1\n", encoding="utf-8")
+    (tmp_path / "pyproject.toml").write_text("[tool.pyright]\n", encoding="utf-8")
+    cfg_dir = tmp_path / "development_tools" / "config"
+    cfg_dir.mkdir(parents=True, exist_ok=True)
+    (cfg_dir / "pyrightconfig.json").write_text("{}", encoding="utf-8")
+
+    calls: list[list[str]] = []
+
+    def _capture(_project_root: Path, _command: list[str], args: list[str], _timeout: int):
+        calls.append(args)
+        payload = {
+            "version": "1.1.0",
+            "summary": {
+                "filesAnalyzed": 1,
+                "errorCount": 0,
+                "warningCount": 0,
+                "informationCount": 0,
+            },
+            "generalDiagnostics": [],
+        }
+        return 0, payload, ""
+
+    monkeypatch.setattr(ap_mod, "_run_pyright_subprocess_for_json", _capture)
+    monkeypatch.setattr(ap_mod, "static_check_config_digest", lambda _root: "cfg")
+    monkeypatch.setattr(
+        ap_mod.config,
+        "get_static_analysis_config",
+        lambda: {
+            "pyright_command": ["python", "-m", "pyright"],
+            "pyright_args": ["--outputjson"],
+            "pyright_project_path": "pyproject.toml",
+            "timeout_seconds": 10,
+        },
+    )
+    ap_mod.run_pyright(tmp_path)
+    assert len(calls) == 1
+
+    monkeypatch.setattr(
+        ap_mod.config,
+        "get_static_analysis_config",
+        lambda: {
+            "pyright_command": ["python", "-m", "pyright"],
+            "pyright_args": ["--outputjson", "--project", "custom_pyright.json"],
+            "pyright_project_path": "pyproject.toml",
+            "timeout_seconds": 10,
+        },
+    )
+    ap_mod.run_pyright(tmp_path)
+    assert len(calls) == 2
+    assert "custom_pyright.json" in calls[1]

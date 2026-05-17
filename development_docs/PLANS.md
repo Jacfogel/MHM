@@ -36,7 +36,8 @@
 
 ### **Flow/Check-in Scheduled Send Stability Follow-up** **IN PROGRESS**
 
-**Status**: IN PROGRESS (since 2026-02-22) | **Priority**: High
+**Status**: IN PROGRESS (since 2026-02-22) | **Priority**: High  
+**Spec**: [specs/discord-checkin-flow.md](../specs/discord-checkin-flow.md)
 
 **Use / fit**: Stability is critical. Check-ins and scheduled sends work well enough day to day, but reliability and debugging matter most-selecting the right number of questions from the right lists, responding dynamically, saving results properly, and flexible response formats.
 

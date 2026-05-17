@@ -17,6 +17,17 @@ def temp_project_copy():
     yield from temp_project_copy_paths(fixture_path.resolve())
 
 
+@pytest.fixture(autouse=True)
+def _isolate_pyright_shard_cache_for_subprocess_tests(monkeypatch):
+    """Avoid module-scoped demo copies reusing pyright JSON cache across mocked runs."""
+    monkeypatch.setattr(pyright_module, "load_shard_manifest", lambda _path: None)
+    monkeypatch.setattr(
+        pyright_module,
+        "save_shard_manifest_atomic",
+        lambda _path, _data: None,
+    )
+
+
 @pytest.mark.unit
 def test_analyze_ruff_build_result_from_payload_counts_files_and_rules():
     payload = [

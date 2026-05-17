@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import hashlib
 import json
 import subprocess
 import sys
@@ -85,6 +86,14 @@ def _resolve_python_command(command: list[str]) -> list[str]:
     if first in {"python", "python3", "py", "python.exe"}:
         return [sys.executable] + command[1:]
     return command
+
+
+def _pyright_cache_signature(source_signature: str | None, cli_args: list[str]) -> str:
+    """Combine a source-tree signature with resolved CLI args for shard cache lookup."""
+    base = source_signature or "__empty_scope__"
+    norm = "|".join(str(arg) for arg in cli_args)
+    digest = hashlib.sha256(norm.encode("utf-8")).hexdigest()[:16]
+    return f"{base}\0{digest}"
 
 
 def _normalize_pyright_shard_rel_paths(project_root: Path, shard: Any) -> list[str]:
@@ -284,7 +293,8 @@ def run_pyright(project_root: Path) -> dict[str, Any]:
                 continue
             sid = stable_shard_id(rels)
             src_sig = compute_scoped_py_source_signature(project_root, rels)
-            effective_sig = src_sig or "__empty_scope__"
+            run_args = list(args) + rels
+            effective_sig = _pyright_cache_signature(src_sig, run_args)
             cached_obj: dict[str, Any] | None = None
             if cfg_digest is not None:
                 frag = shard_entry_hit(
@@ -299,7 +309,6 @@ def run_pyright(project_root: Path) -> dict[str, Any]:
                 shard_payloads.append(cached_obj)
                 fragment_hits += 1
                 continue
-            run_args = list(args) + rels
             rc, pl, err = _run_pyright_subprocess_for_json(
                 project_root, command, run_args, timeout_seconds
             )
@@ -341,13 +350,14 @@ def run_pyright(project_root: Path) -> dict[str, Any]:
         mono_id = "__monolithic__"
         full_sig = compute_full_repo_py_source_signature(project_root)
         mono_cached: dict[str, Any] | None = None
-        if full_sig is not None and cfg_digest is not None:
+        mono_sig = _pyright_cache_signature(full_sig, args) if full_sig is not None else None
+        if mono_sig is not None and cfg_digest is not None:
             mf = load_shard_manifest(cache_path)
             frag = shard_entry_hit(
                 mf,
                 config_digest=cfg_digest,
                 shard_id=mono_id,
-                source_signature=full_sig,
+                source_signature=mono_sig,
             )
             if isinstance(frag, dict):
                 mono_cached = frag
@@ -378,13 +388,13 @@ def run_pyright(project_root: Path) -> dict[str, Any]:
                     if (use_shards and shards)
                     else {"mode": "single", "subprocesses": 1}
                 )
-            if full_sig is not None and cfg_digest is not None:
+            if mono_sig is not None and cfg_digest is not None:
                 wm = upsert_shard_manifest(
                     load_shard_manifest(cache_path),
                     tool_name="analyze_pyright",
                     config_digest=cfg_digest,
                     shard_id=mono_id,
-                    source_signature=full_sig,
+                    source_signature=mono_sig,
                     fragment=pl,
                 )
                 with contextlib.suppress(OSError):
