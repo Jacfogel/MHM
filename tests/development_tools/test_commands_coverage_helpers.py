@@ -1,5 +1,7 @@
 """Tests for coverage-related helpers in CommandsMixin."""
 
+import json
+import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -12,6 +14,7 @@ CONFIG_PATCH = "development_tools.config.get_coverage_runtime_config"
 
 commands_module = load_development_tools_module("shared.service.commands")
 CommandsMixin = commands_module.CommandsMixin
+cli_module = load_development_tools_module("shared.cli_interface")
 
 
 class _DummyService(CommandsMixin):
@@ -344,12 +347,12 @@ def test_get_audit_related_lock_paths_config_error_falls_back_to_defaults(tmp_pa
 
 
 @pytest.mark.unit
-def test_derive_tier3_state_explicit_coverage_failed(tmp_path):
-    """Explicit aggregate state short-circuits per-track classification."""
+def test_derive_tier3_state_explicit_crashed(tmp_path):
+    """Explicit aggregate test-suite states short-circuit per-track classification."""
     service = _DummyService(tmp_path)
     assert (
-        service._derive_tier3_state_from_classifications({"state": "coverage_failed"})
-        == "coverage_failed"
+        service._derive_tier3_state_from_classifications({"state": "crashed"})
+        == "crashed"
     )
 
 
@@ -376,14 +379,107 @@ def test_derive_tier3_state_clean_with_skipped_tracks(tmp_path):
 
 
 @pytest.mark.unit
-def test_derive_tier3_state_all_unknown_is_coverage_failed(tmp_path):
+def test_derive_tier3_state_all_unknown_is_unknown(tmp_path):
     service = _DummyService(tmp_path)
     outcome = {
         "parallel": {"classification": "unknown"},
         "no_parallel": {"classification": "unknown"},
         "development_tools": {"classification": "unknown"},
     }
-    assert service._derive_tier3_state_from_classifications(outcome) == "coverage_failed"
+    assert service._derive_tier3_state_from_classifications(outcome) == "unknown"
+
+
+@pytest.mark.unit
+def test_coverage_command_runs_full_explicit_pipeline() -> None:
+    """The standalone coverage command owns coverage regeneration, marker checks, and report output."""
+    calls: list[tuple[str, object]] = []
+
+    class Service:
+        def run_coverage_regeneration(self):
+            calls.append(("coverage", None))
+            return {"success": True}
+
+        def run_test_markers(self, action):
+            calls.append(("markers", action))
+            return {"success": True}
+
+        def run_generate_test_coverage_report(self):
+            calls.append(("report", None))
+            return {"success": True}
+
+    assert cli_module._coverage_command(Service(), []) == 0
+    assert calls == [("coverage", None), ("markers", "check"), ("report", None)]
+
+
+@pytest.mark.unit
+def test_run_test_suite_parses_structured_failures_without_coverage(tmp_path, monkeypatch):
+    """Tier 3 test-suite failures are structured outcomes, not coverage failures."""
+    service = _DummyService(tmp_path)
+    service._internal_interrupt_detected = False
+    output_file = tmp_path / "development_tools" / "tests" / "jsons" / "run_test_suite_results.json"
+    payload = {
+        "summary": {"total_issues": 1, "files_affected": 0, "status": "FAIL"},
+        "details": {
+            "tier3_test_outcome": {
+                "state": "test_failures",
+                "parallel": {
+                    "classification": "failed",
+                    "classification_reason": "pytest_failed",
+                    "failed_count": 1,
+                },
+                "no_parallel": {"classification": "skipped"},
+                "failed_node_ids": ["tests/test_a.py::test_bad"],
+            }
+        },
+    }
+
+    def run_script(*_args, **_kwargs):
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        output_file.write_text(json.dumps(payload), encoding="utf-8")
+        return {"success": False, "output": "", "error": "", "returncode": 1}
+
+    monkeypatch.setattr(service, "run_script", run_script, raising=False)
+    monkeypatch.setattr(commands_module, "save_tool_result", lambda *_a, **_k: None)
+
+    result = service.run_test_suite()
+
+    assert result["success"] is True
+    assert service.tier3_test_outcome["state"] == "test_failures"
+    assert "run_test_suite" in service._tool_cache_metadata
+
+
+@pytest.mark.unit
+def test_run_test_suite_ignores_stale_structured_output(tmp_path, monkeypatch):
+    """A failed subprocess must not recycle an older run_test_suite JSON payload."""
+    service = _DummyService(tmp_path)
+    service._internal_interrupt_detected = False
+    output_file = tmp_path / "development_tools" / "tests" / "jsons" / "run_test_suite_results.json"
+
+    stale_payload = {
+        "summary": {"total_issues": 1, "files_affected": 0, "status": "FAIL"},
+        "details": {
+            "tier3_test_outcome": {
+                "state": "test_failures",
+                "parallel": {"classification": "failed", "failed_count": 1},
+                "failed_node_ids": ["tests/test_old.py::test_old"],
+            }
+        },
+    }
+
+    def run_script(*_args, **_kwargs):
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        output_file.write_text(json.dumps(stale_payload), encoding="utf-8")
+        os.utime(output_file, (1, 1))
+        return {"success": False, "output": "", "error": "No module named pytest", "returncode": 1}
+
+    monkeypatch.setattr(service, "run_script", run_script, raising=False)
+    monkeypatch.setattr(commands_module, "save_tool_result", lambda *_a, **_k: None)
+
+    result = service.run_test_suite()
+
+    assert result["success"] is False
+    assert service.tier3_test_outcome["state"] == "crashed"
+    assert service.tier3_test_outcome["failed_node_ids"] == []
 
 
 @pytest.mark.unit

@@ -35,6 +35,30 @@ def test_audit_tool_matrix_covers_tier3_static_group() -> None:
 
 
 @pytest.mark.unit
+def test_audit_tool_matrix_uses_test_suite_for_tier3_not_coverage() -> None:
+    """Tier 3 audits run pytest without coverage; coverage tools stay manual/explicit."""
+    tools = build_audit_tool_matrix()["audit_tools"]
+
+    assert tools["run_test_suite"]["in_tier3_full_repo_audit"] is True
+    assert tools["run_test_suite"]["in_tier3_dev_tools_only_audit"] is True
+
+    for name in (
+        "run_test_coverage",
+        "generate_dev_tools_coverage",
+        "analyze_test_markers",
+        "generate_test_coverage_report",
+    ):
+        assert name not in tools
+
+    manual_tools = {
+        entry["tool"]
+        for entry in build_audit_tool_matrix()["script_registry_tools_not_in_audit_matrix"]
+    }
+    assert "run_test_coverage" in manual_tools
+    assert "generate_test_coverage_report" in manual_tools
+
+
+@pytest.mark.unit
 def test_facade_shims_runs_in_tier2_groups_and_reports() -> None:
     """Facade/shims must be scheduled by Tier 2 and surfaced in status reports."""
 

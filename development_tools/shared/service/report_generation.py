@@ -626,36 +626,46 @@ class ReportGenerationMixin:
     def _get_tier3_test_outcome(self) -> dict[str, Any]:
         """Load Tier 3 test outcome state from in-memory or cached results."""
         in_memory = getattr(self, "tier3_test_outcome", None)
-        if isinstance(in_memory, dict) and in_memory.get("state"):
+        if isinstance(in_memory, dict) and (
+            in_memory.get("state")
+            or isinstance(in_memory.get("parallel"), dict)
+            or isinstance(in_memory.get("no_parallel"), dict)
+            or isinstance(in_memory.get("development_tools"), dict)
+        ):
             return in_memory
+
+        suite_result = self._load_tool_data(
+            "run_test_suite", "tests", log_source=False
+        )
         coverage_result = self._load_tool_data(
             "analyze_test_coverage", "tests", log_source=False
         )
-        if not isinstance(coverage_result, dict):
-            return {}
-        details = coverage_result.get("details", {})
-        if isinstance(details, dict):
-            outcome = details.get("tier3_test_outcome", {})
-            if isinstance(outcome, dict) and outcome:
-                if not isinstance(outcome.get("development_tools"), dict):
-                    dev_tools_result = self._load_tool_data(
-                        "generate_dev_tools_coverage", "tests", log_source=False
-                    )
-                    if isinstance(dev_tools_result, dict):
-                        dev_details = dev_tools_result.get("details", {})
-                        if isinstance(dev_details, dict):
-                            dev_outcome = dev_details.get("dev_tools_test_outcome", {})
-                            if isinstance(dev_outcome, dict) and dev_outcome:
-                                outcome = {**outcome, "development_tools": dev_outcome}
-                return outcome
+        for result in (suite_result, coverage_result):
+            if not isinstance(result, dict):
+                continue
+            details = result.get("details", {})
+            if isinstance(details, dict):
+                outcome = details.get("tier3_test_outcome", {})
+                if isinstance(outcome, dict) and outcome:
+                    if not isinstance(outcome.get("development_tools"), dict):
+                        dev_tools_result = self._load_tool_data(
+                            "generate_dev_tools_coverage", "tests", log_source=False
+                        )
+                        if isinstance(dev_tools_result, dict):
+                            dev_details = dev_tools_result.get("details", {})
+                            if isinstance(dev_details, dict):
+                                dev_outcome = dev_details.get("dev_tools_test_outcome", {})
+                                if isinstance(dev_outcome, dict) and dev_outcome:
+                                    outcome = {**outcome, "development_tools": dev_outcome}
+                    return outcome
         return {}
 
     def _effective_tier3_state_from_outcome(self, outcome: dict[str, Any]) -> str:
         """Return effective Tier 3 state including development-tools test outcome."""
         state = outcome.get("state", "") if isinstance(outcome, dict) else ""
 
-        if state == "coverage_failed":
-            return "coverage_failed"
+        if state in {"clean", "test_failures", "crashed", "infra_cleanup_error"}:
+            return state
         if not isinstance(outcome, dict):
             return "unknown"
         if not self._tier3_outcome_has_run_evidence(outcome):
@@ -689,7 +699,7 @@ class ReportGenerationMixin:
         if any(label in {"passed", "skipped"} for label in track_labels):
             return "clean"
         if any(label == "unknown" for label in track_labels):
-            return "coverage_failed"
+            return "unknown"
         return "unknown"
 
     def _get_recent_tier3_log_files(
@@ -738,7 +748,6 @@ class ReportGenerationMixin:
         state = self._effective_tier3_state_from_outcome(outcome)
         actionable_states = {
             "test_failures",
-            "coverage_failed",
             "crashed",
             "infra_cleanup_error",
         }
@@ -3969,7 +3978,11 @@ class ReportGenerationMixin:
                 priority_links = []
                 for path in path_drift_files:
                     normalized_path = str(path).replace("\\", "/")
-                    if not normalized_path.startswith(("../", "development_tools/")):
+                    if normalized_path.startswith("development_tools/"):
+                        normalized_path = normalized_path.removeprefix(
+                            "development_tools/"
+                        )
+                    elif not normalized_path.startswith("../"):
                         normalized_path = "../" + normalized_path
                     priority_links.append(normalized_path)
                 drift_details.append(
@@ -5486,7 +5499,6 @@ class ReportGenerationMixin:
         tier3_state = self._effective_tier3_state_from_outcome(tier3_outcome)
         actionable_tier3_states = {
             "test_failures",
-            "coverage_failed",
             "crashed",
             "infra_cleanup_error",
         }
@@ -5511,27 +5523,7 @@ class ReportGenerationMixin:
             include_parallel_logs = False
             include_no_parallel_logs = False
             include_dev_tools_logs = False
-            if tier3_state == "coverage_failed":
-                tier3_title = "Investigate and correct test failures/errors"
-                tier3_reason = (
-                    "Tier 3 coverage orchestration reported a coverage failure outcome."
-                )
-                cov_parts: list[str] = []
-                if not self._tier3_track_skipped_for_audit_scope(parallel_outcome):
-                    cov_parts.append(
-                        f"Parallel: {self._track_classification_label(parallel_outcome)}"
-                    )
-                if not self._tier3_track_skipped_for_audit_scope(no_parallel_outcome):
-                    cov_parts.append(
-                        f"no-parallel: {self._track_classification_label(no_parallel_outcome)}"
-                    )
-                if not self._tier3_track_skipped_for_audit_scope(dev_tools_outcome):
-                    cov_parts.append(
-                        f"dev-tools: {self._track_classification_label(dev_tools_outcome)}"
-                    )
-                if cov_parts:
-                    tier3_bullets.append(", ".join(cov_parts) + ".")
-            elif tier3_state in {"crashed", "infra_cleanup_error"}:
+            if tier3_state in {"crashed", "infra_cleanup_error"}:
                 tier3_title = "Investigate and correct test failures/errors"
                 tier3_reason = f"Tier 3 test pipeline reported `{tier3_state}`."
                 for label, track_outcome, track_key in (

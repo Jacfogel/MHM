@@ -243,9 +243,11 @@ When to run AI development tools for codebase analysis and health checks:
 
 - **Day-to-day checks**: Run `python development_tools/run_development_tools.py audit` (Tier 2, default, ~2-5min) for standard quality checks. Includes everything in Tier 1 plus: documentation analysis, error handling coverage, decision support insights, config validation, and AI work validation.
 
-- **Pre-merge / pre-release checks**: Run `python development_tools/run_development_tools.py audit --full` (Tier 3, ~10-30min) for comprehensive analysis. Includes everything in Tier 1 & 2 plus: main-project coverage regeneration and `development_docs/TEST_COVERAGE_REPORT.md`, unused import detection, legacy reference scanning, module dependency analysis, and improvement opportunity reports (for example `development_docs/LEGACY_REFERENCE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`). Tier 3 runs **either** main-repo coverage **or** dev-tools coverage in one pass, not both; see dev-tools-only bullet.
+- **Pre-merge / pre-release checks**: Run `python development_tools/run_development_tools.py audit --full` (Tier 3) for comprehensive analysis. Includes everything in Tier 1 & 2 plus: the configured pytest suite without coverage, legacy reference scanning, static analysis, and improvement opportunity reports (for example `development_docs/LEGACY_REFERENCE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`). Tier 3 uses the portable `development_tools/tests/run_test_suite.py` runner and does **not** call the project-specific `run_tests.py`.
 
-- **Dev-tools-only full audit**: Run `python development_tools/run_development_tools.py audit --full --dev-tools-only` to refresh `development_tools/DEV_TOOLS_STATUS.md`, `development_tools/DEV_TOOLS_PRIORITIES.md`, and `development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md` and dev-tools coverage only; full-repo coverage is **not** refreshed. Use `audit --full` without the flag for product-wide coverage.
+- **Coverage refresh**: Run `python development_tools/run_development_tools.py coverage` separately when coverage metrics, marker analysis, and `development_docs/TEST_COVERAGE_REPORT.md` need refresh. Coverage runs are intentionally less frequent than Tier 3 audits.
+
+- **Dev-tools-only full audit**: Run `python development_tools/run_development_tools.py audit --full --dev-tools-only` to refresh `development_tools/DEV_TOOLS_STATUS.md`, `development_tools/DEV_TOOLS_PRIORITIES.md`, and `development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md` for the development-tools scope. Coverage is still refreshed only by the explicit `coverage` command.
 
 - **Documentation work**: 
   - Run `python development_tools/run_development_tools.py doc-sync` to check documentation pairing and path drift.

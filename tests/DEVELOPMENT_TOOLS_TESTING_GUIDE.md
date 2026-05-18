@@ -28,6 +28,8 @@ python run_tests.py --mode all --full
 Note:
 - Default `python run_tests.py` (`--mode all`) does not include `tests/development_tools/`.
 - Use `--full` when you want development tools tests included in the same run.
+- `audit --full` uses `development_tools/tests/run_test_suite.py` to run pytest directly without coverage. It does not call the project-specific `run_tests.py`.
+- Run `python development_tools/run_development_tools.py coverage` separately when coverage metrics, marker analysis, and `development_docs/TEST_COVERAGE_REPORT.md` need refresh.
 
 **Test Results Location**: Test output appears in console; logs go to `tests/logs/` if configured.
 

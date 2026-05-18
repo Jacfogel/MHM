@@ -289,6 +289,29 @@
       "dev_tools_html": "development_tools/coverage_html_dev_tools"
     }
   },
+  "test_run": {
+    "pytest_command": [
+      "{python}",
+      "-m",
+      "pytest"
+    ],
+    "pytest_base_args": [
+      "--tb=short",
+      "--disable-warnings",
+      "--maxfail=10"
+    ],
+    "test_paths": null,
+    "workers": "auto",
+    "timeout_seconds": 1200,
+    "exclude_markers": [
+      "e2e"
+    ],
+    "no_parallel_marker": "no_parallel",
+    "sigint_taps_to_stop": 5,
+    "sigint_window_seconds": 2.0,
+    "sigint_debounce_seconds": 0.35,
+    "junit_dir": "development_tools/tests/jsons/test_suite_junit"
+  },
   "domain_mapper": {
     "source_to_test_mapping": {
       "core": [

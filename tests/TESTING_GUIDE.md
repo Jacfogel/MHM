@@ -459,9 +459,13 @@ Guidelines:
 
 `run_tests.py` runs `no_parallel` tests in a separate serial phase after the parallel phase.
 
+Development-tools Tier 3 audits use their own portable pytest runner (`development_tools/tests/run_test_suite.py`) with the same parallel/serial split, but they do not use project-specific `run_tests.py` and do not collect coverage.
+
 ### 5.3. Coverage
 
 Coverage is used to understand how much of the codebase is exercised by tests, not as a rigid target.
+
+Coverage is separate from development-tools Tier 3 audits. Run `python development_tools/run_development_tools.py coverage` when you need refreshed coverage metrics, marker analysis, and `development_docs/TEST_COVERAGE_REPORT.md`; run it less frequently than normal pytest or `audit --full` checks.
 
 To run tests with coverage:
 

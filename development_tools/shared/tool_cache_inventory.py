@@ -68,6 +68,17 @@ def _cache_entry(tool_name: str, domain: str) -> dict[str, str]:
             "artifact_glob": f"development_tools/tests/jsons/{file_name}",
             "invalidation": "Per test-file cache keys; see coverage JSON _metadata",
         }
+    if tool_name == "run_test_suite":
+        return {
+            "tool": tool_name,
+            "strategy": "always_run_pytest_no_coverage",
+            "implementation": "development_tools/tests/run_test_suite.py",
+            "artifact_glob": (
+                "development_tools/tests/jsons/run_test_suite_results.json; "
+                "development_tools/tests/jsons/test_suite_junit/*.xml"
+            ),
+            "invalidation": "Tier 3 always runs pytest without coverage",
+        }
     if tool_name == "analyze_unused_imports":
         return {
             "tool": tool_name,

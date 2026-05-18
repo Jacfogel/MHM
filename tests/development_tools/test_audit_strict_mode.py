@@ -86,7 +86,7 @@ def test_audit_full_strict_fails_when_dev_tools_tests_fail(temp_project_copy):
 
     def _full_strict_dev_tools():
         service.tier3_test_outcome = {
-            "state": "clean",
+            "state": "test_failures",
             "parallel": {"classification": "passed"},
             "no_parallel": {"classification": "passed"},
             "development_tools": {"classification": "failed"},

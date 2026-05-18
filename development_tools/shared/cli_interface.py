@@ -41,7 +41,7 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     parser.add_argument(
         "--full",
         action="store_true",
-        help="Run comprehensive audit (Tier 3 - includes coverage and dependencies).",
+        help="Run comprehensive audit (Tier 3 - runs pytest suite without coverage).",
     )
     parser.add_argument(
         "--quick",
@@ -69,7 +69,7 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     parser.add_argument(
         "--strict",
         action="store_true",
-        help="For Tier 3, return non-zero when tests fail or crash even if coverage data is produced.",
+        help="For Tier 3, return non-zero when tests fail, crash, or process cleanup fails.",
     )
     parser.add_argument(
         "--dev-tools-only",
@@ -320,7 +320,26 @@ def _coverage_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         print("Usage: coverage")
         return 0
 
-    success = service.run_coverage_regeneration()
+    coverage_result = service.run_coverage_regeneration()
+    success = bool(
+        coverage_result.get("success", False)
+        if isinstance(coverage_result, dict)
+        else coverage_result
+    )
+    if success:
+        marker_result = service.run_test_markers("check")
+        success = bool(
+            marker_result.get("success", False)
+            if isinstance(marker_result, dict)
+            else marker_result
+        )
+    if success:
+        report_result = service.run_generate_test_coverage_report()
+        success = bool(
+            report_result.get("success", False)
+            if isinstance(report_result, dict)
+            else report_result
+        )
     return 0 if success else 1
 
 
@@ -865,7 +884,7 @@ COMMAND_REGISTRY = OrderedDict(
         (
             "coverage",
             CommandRegistration(
-                "coverage", _coverage_command, "Regenerate coverage metrics."
+                "coverage", _coverage_command, "Regenerate coverage metrics, marker analysis, and coverage report."
             ),
         ),
         (

@@ -77,6 +77,7 @@ def _static_check_cache_metadata_from_analyzer_details(
 _WIN_PROCESS_GROUP_SCRIPTS = frozenset(
     {
         "run_test_coverage",
+        "run_test_suite",
         "analyze_pyright",
         "analyze_ruff",
         "analyze_bandit",

@@ -676,6 +676,34 @@ def get_coverage_tool_config() -> dict[str, Any]:
     return result
 
 
+TEST_RUN_DEFAULTS: dict[str, Any] = {
+    "pytest_command": ["{python}", "-m", "pytest"],
+    "pytest_base_args": ["--tb=short", "--disable-warnings", "--maxfail=10"],
+    "test_paths": None,
+    "workers": "auto",
+    "timeout_seconds": 1200,
+    "exclude_markers": ["e2e"],
+    "no_parallel_marker": "no_parallel",
+    "sigint_taps_to_stop": 5,
+    "sigint_window_seconds": 2.0,
+    "sigint_debounce_seconds": 0.35,
+    "junit_dir": "development_tools/tests/jsons/test_suite_junit",
+}
+
+
+def get_test_run_config() -> dict[str, Any]:
+    """Portable pytest suite runner settings used by Tier 3 audits."""
+    external = _get_external_value("test_run", None)
+    result = copy.deepcopy(TEST_RUN_DEFAULTS)
+    if isinstance(external, dict):
+        result.update(external)
+    if not result.get("test_paths"):
+        paths = get_paths_config()
+        tests_dir = str(paths.get("tests_dir", "tests")).strip().rstrip("/\\") or "tests"
+        result["test_paths"] = [tests_dir]
+    return result
+
+
 def get_data_freshness_config():
     """
     Get data freshness audit configuration (e.g. known deleted files to check for in caches).

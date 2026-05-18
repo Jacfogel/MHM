@@ -22,6 +22,7 @@ _REPORT_HINT_OVERRIDES: dict[str, list[str]] = {
     "analyze_system_signals": ["AI_STATUS System Signals", "CONSOLIDATED_REPORT"],
     "analyze_test_markers": ["AI_STATUS Test Markers"],
     "verify_process_cleanup": ["AI_STATUS Pytest process cleanup"],
+    "run_test_suite": ["AI_STATUS Tier 3 Tests", "CONSOLIDATED_REPORT"],
     "run_test_coverage": ["AI_STATUS Test Coverage", "TEST_COVERAGE_REPORT", "coverage.json"],
     "generate_dev_tools_coverage": ["AI_STATUS Development Tools Coverage", "coverage_dev_tools.json"],
     "generate_unused_imports_report": ["development_docs/UNUSED_IMPORTS_REPORT.md"],

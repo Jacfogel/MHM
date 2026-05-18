@@ -8,6 +8,7 @@ Contains methods for executing various CLI commands (docs, validate, config, etc
 import json
 import os
 import shutil
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import cast
@@ -373,8 +374,8 @@ class CommandsMixin:
         if not isinstance(outcome, dict):
             return ""
         state = outcome.get("state")
-        if state == "coverage_failed":
-            return "coverage_failed"
+        if state in {"clean", "test_failures", "crashed", "infra_cleanup_error"}:
+            return state
         parallel = (
             outcome.get("parallel", {}) if isinstance(outcome.get("parallel"), dict) else {}
         )
@@ -400,7 +401,7 @@ class CommandsMixin:
         if "passed" in track_labels or "skipped" in track_labels:
             return "clean"
         if any(label == "unknown" for label in track_labels):
-            return "coverage_failed"
+            return "unknown"
         return "unknown"
 
     def _is_failure_state(self, state: str | None) -> bool:
@@ -1004,6 +1005,132 @@ class CommandsMixin:
                 logger.debug(f"Script output: {result['output'][:200]}")
             return False
     
+    def run_test_suite(self) -> dict:
+        """Run the portable pytest suite runner without coverage for Tier 3."""
+        logger.debug("Running Tier 3 pytest suite without coverage...")
+        output_file = (
+            self.project_root
+            / "development_tools"
+            / "tests"
+            / "jsons"
+            / "run_test_suite_results.json"
+        )
+        args = ["run_test_suite", "--output-file", str(output_file)]
+        try:
+            from ... import config as dt_config
+
+            cfg = dt_config.get_test_run_config()
+        except Exception:
+            cfg = {}
+        timeout = int(cfg.get("timeout_seconds", 1200) or 1200) + 120
+        workers = cfg.get("workers")
+        if workers:
+            args.extend(["--workers", str(workers)])
+        started_at = time.time()
+        with contextlib.suppress(OSError):
+            output_file.unlink()
+        result = self.run_script(*args, timeout=timeout)
+        payload = None
+        output_is_current = False
+        if output_file.exists():
+            try:
+                output_is_current = output_file.stat().st_mtime >= started_at - 1.0
+            except OSError:
+                output_is_current = False
+        if output_is_current:
+            try:
+                with open(output_file, encoding="utf-8") as handle:
+                    payload = json.load(handle)
+            except Exception as exc:
+                logger.warning(f"Failed to parse run_test_suite output: {exc}")
+        elif output_file.exists():
+            logger.warning("Ignoring stale run_test_suite output file from a previous audit.")
+        if not isinstance(payload, dict):
+            try:
+                payload = json.loads(result.get("output", "") or "{}")
+            except Exception:
+                payload = {}
+
+        details = payload.get("details") if isinstance(payload, dict) else {}
+        outcome = details.get("tier3_test_outcome") if isinstance(details, dict) else None
+        if not isinstance(outcome, dict):
+            output_text = "\n".join(
+                [result.get("output", "") or "", result.get("error", "") or ""]
+            )
+            interrupted = self._is_interrupt_signature(
+                output_text, result.get("returncode")
+            )
+            outcome = {
+                "state": "crashed",
+                "parallel": {
+                    "state": "crashed",
+                    "classification": "crashed",
+                    "classification_reason": (
+                        "subprocess_keyboard_interrupt"
+                        if interrupted
+                        else "missing_structured_test_outcome"
+                    ),
+                    "actionable_context": "Inspect run_test_suite subprocess output.",
+                    "log_file": None,
+                    "return_code_hex": (
+                        hex(result.get("returncode"))
+                        if isinstance(result.get("returncode"), int)
+                        else None
+                    ),
+                    "return_code": result.get("returncode"),
+                    "passed_count": 0,
+                    "failed_count": 0,
+                    "error_count": 0,
+                    "skipped_count": 0,
+                    "failed_node_ids": [],
+                },
+                "no_parallel": {
+                    "state": "unknown",
+                    "classification": "unknown",
+                    "classification_reason": "not_available",
+                    "failed_node_ids": [],
+                },
+                "failed_node_ids": [],
+            }
+            if interrupted:
+                self._internal_interrupt_detected = True
+            payload = {
+                "summary": {"total_issues": 1, "files_affected": 0, "status": "FAIL"},
+                "details": {"tier3_test_outcome": outcome},
+            }
+
+        self.tier3_test_outcome = outcome
+        if not hasattr(self, "_tool_cache_metadata"):
+            self._tool_cache_metadata = {}
+        self._tool_cache_metadata["run_test_suite"] = {
+            "cache_mode": "cold_scan",
+            "source": "run_test_suite",
+            "invalidation_reason": "Tier 3 always runs tests without coverage",
+        }
+        try:
+            save_tool_result(
+                "run_test_suite",
+                "tests",
+                {
+                    "summary": payload.get("summary", {}),
+                    "details": payload.get("details", {}),
+                    "_cache_metadata": self._tool_cache_metadata["run_test_suite"],
+                },
+                project_root=self.project_root,
+            )
+        except Exception as exc:
+            logger.debug(f"Failed to save run_test_suite result: {exc}")
+
+        state = str(outcome.get("state", "crashed"))
+        return {
+            "success": state in {"clean", "test_failures"},
+            "data": {
+                "summary": payload.get("summary", {}),
+                "details": payload.get("details", {}),
+            },
+            "cache_metadata": self._tool_cache_metadata["run_test_suite"],
+        }
+
     def run_coverage_regeneration(self):
         """Regenerate test coverage data"""
         logger.debug("Generating test coverage (main project tests)...")

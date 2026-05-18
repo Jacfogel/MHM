@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-18 - Tier 3 Test Suite Runner and Audit Stability **COMPLETED**
+- Replaced Tier 3 coverage execution with portable `run_test_suite`, which runs pytest without coverage, excludes `e2e`, splits normal vs `no_parallel` tests, and uses coverage only through the explicit `coverage` command
+- Added test-run config/metadata/docs plus strict-mode/reporting updates so Tier 3 outcomes come from test-suite state (`clean`, `test_failures`, `crashed`, `infra_cleanup_error`) instead of coverage state
+- Hardened test execution against stale results and wrong Python resolution: `{python}`/`python` now resolves to the audit interpreter, stale JSON/JUnit artifacts are ignored, and pytest startup failures classify as crashes
+- Fixed follow-up Tier 3 failures in env-mutation policy and consolidated-report tests; validation included focused pytest runs, Ruff, Pyright, py_compile, doc-sync, and config key checks
+
 ### 2026-05-17 - Dev-tools Minimal-Repo Portability **COMPLETED**
 - Made `development_tools/` honor a supplied external `project_root`: config auto-load, script wrapper lookup, and `analyze_config` relative-root handling now target the copied project instead of the MHM checkout
 - Kept MHM-specific quick-status files/directories in `development_tools_config.json`; generic defaults no longer embed `run_mhm.py` or `core/*` project files
@@ -38,7 +44,7 @@ Guidelines:
 
 ### 2026-05-17 - AI_PRIORITIES Accuracy, Doc Links, Ruff Test Flake **COMPLETED**
 - Fixed Tier 2 `AI_PRIORITIES` falsely reporting Tier 3 test failures when coverage cache lacked real `tier3_test_outcome`; lower tiers still show **cached** actionable Tier 3 issues with a refresh hint (`report_generation.py` + unit tests)
-- Corrected 39 broken markdown link targets (V5 archive paths → V6, V6 `development_tools/` hrefs, dead test links in changelog); `doc-sync` clean
+- Corrected 39 broken markdown link targets (V5 archive paths -> V6, V6 `development_tools/` hrefs, dead test links in changelog); `doc-sync` clean
 - Fixed parallel-suite flake in `test_analyze_ruff_keyboard_interrupt_returns_warn` by isolating Ruff shard cache like Pyright
 - **Note**: `no_parallel` pytest exit code 5 with all tests deselected is normal when no `no_parallel` tests match; log warnings are diagnostic noise
 
@@ -143,12 +149,6 @@ Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency a
 - Removed the one misleading UI-specific source string from core reschedule request creation by making `create_reschedule_request()` use neutral `schedule_runtime` metadata by default.
 - Reworded the new diagnostic-source docstring to avoid a false facade/shim compatibility signal; refreshed `facade-shims` and status outputs so `AI_PRIORITIES.md` no longer lists the advisory.
 - Removed the completed plan item from active `PLANS.md`.
-
-### 2026-05-11 - Runtime JSON storage cleanup **COMPLETED**
-- Added `core/runtime_state_storage.py` and routed `conversation_states.json` / `welcome_tracking.json` through it, removing the direct runtime-state JSON reads/writes while preserving file locations and test isolation.
-- Added `core/service_flag_storage.py` and consolidated JSON `.flag` request/response I/O across service request, service utility, and headless-service paths; shutdown flags remain plain text.
-- `backup_manager` now reads `user_index.json` under `file_lock`; generated docs/reports were refreshed, and the module-dependency generator no longer emits trailing-space dependency headings.
-- Removed the completed JSON storage classification/migration/service-flag cleanup work from active `PLANS.md`. Validation: focused storage/service tests, `py_compile`, `docs`, `audit --quick`, error-handling analysis, and `git diff --check` passed; full audit timed out and is not counted as clean.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

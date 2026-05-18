@@ -47,7 +47,7 @@ python development_tools/run_development_tools.py help
 - `doc-sync` - Check documentation synchronization
 - `doc-fix` - Fix documentation issues (addresses, ASCII, headings, links). Alias: `--full` == `--all`.
 - `legacy` - Scan for legacy references
-- `coverage` - Regenerate coverage metrics
+- `coverage` - Regenerate coverage metrics, marker analysis, and [TEST_COVERAGE_REPORT.md](../development_docs/TEST_COVERAGE_REPORT.md)
 - `unused-imports` - Detect unused imports (analysis only)
 - `unused-imports-report` - Generate unused imports report from analysis results
 - `config` - Check configuration consistency
@@ -55,7 +55,7 @@ python development_tools/run_development_tools.py help
 
 **Additional commands**: `system-signals`, `validate`, `decision-support`, `unused-imports`, `unused-imports-report`, `flaky-detector` (manual only; not part of `audit --full`), `verify-process-cleanup` (Tier 3 audit), `duplicate-functions`, `facade-shims`, `module-refactor-candidates`, `workflow`, `trees`, `cleanup` (alias: `clean-up`), `backup`, `export-code`, `export-docs`. For `duplicate-functions`, use `--consider-body-similarity` to include body/structural (AST) similarity; increases runtime and pair count (capped by `max_body_candidate_pairs` and `body_similarity_scope` in config). During **full audit** (`audit --full`), body similarity runs automatically only on *near-miss* name-token pairs (name similarity above `body_similarity_min_name_threshold` but below the normal reporting bar); disable with `run_body_similarity_on_full_audit: false` in config.
 
-**Note**: Test marker analysis is automatically run during `audit --full` when coverage is generated. For fixing markers, use `development_tools/tests/fix_test_markers.py` directly.
+**Note**: Coverage is separate from `audit --full`. Run `coverage` when you need refreshed coverage data, marker analysis, and `development_docs/TEST_COVERAGE_REPORT.md`. For fixing markers, use `development_tools/tests/fix_test_markers.py` directly.
 
 **Service Architecture**: The tool suite uses a modular service architecture. `AIToolsService` is composed from mixin classes in `development_tools/shared/service/`: `development_tools/shared/service/core.py` (base class), `development_tools/shared/service/utilities.py` (formatting/extraction), `development_tools/shared/service/data_loading.py` (data parsing), `development_tools/shared/service/tool_wrappers.py` (tool execution), `development_tools/shared/service/audit_orchestration.py` (audit workflow), `development_tools/shared/service/report_generation.py` (report generation), and `development_tools/shared/service/commands.py` (command handlers). The CLI interface (`COMMAND_REGISTRY` and command handlers) is in `development_tools/shared/cli_interface.py`. Import `AIToolsService` from `development_tools.shared.service` and `COMMAND_REGISTRY` from `development_tools.shared.cli_interface`.
 
@@ -77,7 +77,9 @@ python development_tools/run_development_tools.py help
 
 **Lock handling**: Audit/coverage locks use metadata JSON payloads in the existing lock files. Stale or malformed locks are auto-cleaned; active locks (live PID within stale window) block conflicting `audit`, `full-audit`, and `docs` operations.
 
-**Coverage worker config keys** (`coverage` section): `main_workers`, `dev_tools_workers`, `main_workers_when_concurrent`, `dev_tools_workers_when_concurrent`. Tier 3 concurrent defaults are `6` (main) and `2` (dev-tools) unless overridden.
+**Test run config keys** (`test_run` section): pytest command/base args, test paths, workers, timeout, excluded markers, no-parallel marker, and SIGINT tap threshold for Tier 3's pytest run.
+
+**Coverage worker config keys** (`coverage` section): `main_workers`, `dev_tools_workers`, `main_workers_when_concurrent`, `dev_tools_workers_when_concurrent`. These apply to the explicit `coverage` command, not Tier 3 audit scheduling.
 
 ---
 
@@ -105,24 +107,21 @@ python development_tools/run_development_tools.py help
 - **Use case**: Standard quality checks, daily development workflow
 
 ### 3.3. Tier 3: Full Audit - `audit --full`
-- **Duration**: Environment-dependent (~6-30+ minutes); heaviest wall-clock is usually `run_test_coverage`
+- **Duration**: Environment-dependent; heaviest wall-clock is usually `run_test_suite`
 - **Tools**: Everything in Tier 1 & 2 PLUS tools >10s (or groups containing tools >10s):
-  - **Coverage (full-repo scope)** - exactly **one** subprocess: `run_test_coverage` runs the **full** suite including `tests/development_tools/`, measures product packages **and** the `development_tools` tree per `development_tools/tests/coverage.ini`, writes `development_tools/tests/jsons/coverage.json`, derives `coverage_dev_tools.json` for dev-tools-only metrics, and persists `generate_dev_tools_coverage` results after success. Tier 3 schedules **no** separate `generate_dev_tools_coverage` in the same pass when scope is full-repo ([development_tools/shared/audit_tiers.py](shared/audit_tiers.py) `get_tier3_groups`).
-  - **Coverage (`--dev-tools-only`)** - only `generate_dev_tools_coverage` (dev-tools tests + dev-tools coverage config); main `coverage.json` / `development_docs/TEST_COVERAGE_REPORT.md` are not refreshed this pass (reports document that).
-  - **Coverage-dependent tools** (run sequentially after the coverage step for this scope, ~7s full-repo):
-    - `analyze_test_markers` - Test marker analysis (~2s, requires coverage data)
-    - `generate_test_coverage_report` - Coverage report generation (~5s; **full-repo only**, generates `development_docs/TEST_COVERAGE_REPORT.md` from main coverage data)
-  - **Legacy group** (runs in parallel with the coverage step):
+  - **Test suite group** - `run_test_suite` runs pytest directly without coverage. It discovers configured test paths (default `tests`), excludes `e2e` by default, runs normal tests in a parallel-capable phase excluding `no_parallel`, then runs `no_parallel` tests serially. It falls back to serial pytest when xdist is unavailable and does not use MHM's project-specific `run_tests.py`.
+  - **Coverage** - not part of Tier 3. Run `python development_tools/run_development_tools.py coverage` less frequently when coverage metrics, marker analysis, or `development_docs/TEST_COVERAGE_REPORT.md` need refresh.
+  - **Legacy group** (runs in parallel with the test suite):
     - `analyze_legacy_references` - Legacy code scanning (~62s, >10s)
     - `generate_legacy_reference_report` - Legacy report generation (~1s, but part of legacy group)
-  - **Static analysis group** (runs in parallel with coverage and legacy groups):
+  - **Static analysis group** (runs in parallel with test suite and legacy groups):
     - `analyze_ruff` - Ruff diagnostics summary (advisory)
     - `analyze_pyright` - Pyright diagnostics summary (advisory)
-- **Execution**: The coverage subprocess group, legacy group, and static-analysis group run in parallel where the platform allows; coverage-dependent tools run sequentially after coverage completes
+- **Execution**: The test-suite group, legacy group, and static-analysis group run in parallel where the platform allows
 - **Use case**: Comprehensive analysis, pre-release checks, periodic deep audits
-- **Tier 3 outcome states**: `clean`, `test_failures`, `crashed`, `infra_cleanup_error`, `coverage_failed`.
+- **Tier 3 outcome states**: `clean`, `test_failures`, `crashed`, `infra_cleanup_error`.
 - **Strict mode behavior**: `audit --strict` returns non-zero for Tier 3 `test_failures`, `crashed`, or `infra_cleanup_error`; default audit mode remains non-strict.
-- **Track classification fields**: Tier 3 `coverage_outcome.parallel`/`coverage_outcome.no_parallel` include `classification`, `classification_reason`, `actionable_context`, `log_file`, and `return_code_hex` in addition to legacy state/count fields.
+- **Track classification fields**: Tier 3 `tier3_test_outcome.parallel`/`tier3_test_outcome.no_parallel` include `classification`, `classification_reason`, `actionable_context`, `log_file`, and `return_code_hex` in addition to count fields.
 
 **Note**: All three tiers update the same output files:
 - AI-facing (root): `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/CONSOLIDATED_REPORT.md`
@@ -160,7 +159,7 @@ python development_tools/run_development_tools.py help
 
 **Human-facing reports** (generated by Tier 3):
 - `development_docs/LEGACY_REFERENCE_REPORT.md`
-- `development_docs/TEST_COVERAGE_REPORT.md`
+- [TEST_COVERAGE_REPORT.md](../development_docs/TEST_COVERAGE_REPORT.md)
 - `development_docs/UNUSED_IMPORTS_REPORT.md`
 
 **Static documentation** (regenerated via `docs` command, not during audits):
@@ -193,7 +192,7 @@ Most tools follow prefix-based naming to indicate primary intent; shared and orc
 - **`analyze_*`** - Finding + assessing (read-only examination, validation, detection)
   - Examples: `analyze_functions.py`, `analyze_documentation.py`, `analyze_error_handling.py`
 - **`generate_*`** - Making artifacts (create/recreate documentation, registries, reports)
-  - Examples: `generate_function_registry.py`, `tests/run_test_coverage.py`, `generate_module_dependencies.py`
+  - Examples: `generate_function_registry.py`, `tests/run_test_suite.py`, `tests/run_test_coverage.py`, `generate_module_dependencies.py`
 - **`fix_*`** - Cleanup/repair (removal, cleanup operations)
   - Examples: `fix_legacy_references.py`, `fix_version_sync.py`, `fix_project_cleanup.py`
 - **No prefix** - Reporting/utility tools (descriptive names)
@@ -205,7 +204,7 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 - `functions/` - Function discovery, registry generation, audits
 - `imports/` - Import checking, module dependency analysis and audits (merged from `modules/`)
 - `error_handling/` - Error handling coverage analysis
-- `tests/` - Test coverage metrics
+- `tests/` - Test execution, coverage metrics, and marker analysis
 - `docs/` - Documentation analysis and sync checking
 - `config/` - Configuration validation
 - `legacy/` - Legacy cleanup
@@ -215,7 +214,7 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 
 **Tool Categories**:
 - **Documentation & structure**: `docs/analyze_documentation_sync.py` (paired doc sync only), `docs/analyze_path_drift.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_missing_addresses.py`, `docs/analyze_unconverted_links.py`, `docs/generate_directory_tree.py`, `docs/fix_documentation.py` (dispatcher), `docs/fix_documentation_addresses.py`, `docs/fix_documentation_ascii.py`, `docs/fix_documentation_headings.py`, `docs/fix_documentation_links.py`, `functions/generate_function_registry.py`, `functions/analyze_function_patterns.py`, `functions/analyze_duplicate_functions.py`, `functions/analyze_facade_shims.py`, `functions/analyze_module_refactor_candidates.py`, `imports/generate_module_dependencies.py` (orchestrator), `imports/analyze_module_imports.py`, `imports/analyze_dependency_patterns.py`, `docs/analyze_documentation.py`
-- **Quality, validation, coverage**: `tests/run_test_coverage.py`, `tests/analyze_test_coverage.py`, `tests/generate_test_coverage_report.py`, `ai_work/analyze_ai_work.py`, `imports/analyze_unused_imports.py`, `imports/generate_unused_imports_report.py`, `error_handling/analyze_error_handling.py`, `error_handling/generate_error_handling_report.py`
+- **Quality, validation, coverage**: `tests/run_test_suite.py`, `tests/run_test_coverage.py`, `tests/analyze_test_coverage.py`, `tests/generate_test_coverage_report.py`, `ai_work/analyze_ai_work.py`, `imports/analyze_unused_imports.py`, `imports/generate_unused_imports_report.py`, `error_handling/analyze_error_handling.py`, `error_handling/generate_error_handling_report.py`
 - **Legacy, versioning, signals**: `legacy/fix_legacy_references.py`, `reports/analyze_system_signals.py`, `reports/quick_status.py`, `docs/fix_version_sync.py` (experimental)
 - **Static analysis**: `static_checks/analyze_ruff.py`, `static_checks/analyze_pyright.py`, `static_checks/check_channel_loggers.py`
 - **Decision & utilities**: `reports/decision_support.py`, `functions/analyze_functions.py`, `functions/fix_function_docstrings.py` (experimental), `config/analyze_config.py`, `shared/file_rotation.py`, `functions/analyze_*` helpers, `shared/tool_guide.py`
@@ -252,7 +251,7 @@ Consult [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for the detaile
 - **Documentation overlap (V5 Section 5.2 backlog)**: `analyze_documentation` / doc-sync can emit `section_overlaps` and consolidation hints; they also surface in `AI_STATUS.md` / `CONSOLIDATED_REPORT.md`. Treat as advisory-verify against [LIST_OF_LISTS.md](../development_docs/LIST_OF_LISTS.md) and paired-guide boundaries before large doc merges.
 - **Parallel Execution**: Tools run in parallel where possible, with dependency-aware grouping:
   - **Tier 2**: Independent tools run in parallel; dependent groups (module imports, function patterns, decision support, function registry) run sequentially within groups but in parallel with each other
-  - **Tier 3**: Coverage group runs sequentially; legacy and unused imports groups run in parallel with each other (tools within each group run sequentially)
+  - **Tier 3**: Test-suite, legacy, and static-analysis groups run in parallel with each other (tools within each group run sequentially)
   - **Tool Dependencies**: Some tools must stay together due to dependencies (see tool dependency notes in audit orchestration)
 - **Output Format**: All analysis tools output standard format JSON with `summary` (total_issues, files_affected, status) and `details` (tool-specific data). Use `--json` flag when running tools standalone to get standard format output.
 - Never hardcode project paths; derive them from configuration helpers

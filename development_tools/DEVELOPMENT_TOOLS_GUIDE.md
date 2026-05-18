@@ -211,23 +211,20 @@ The modular structure provides clear separation of concerns, making the codebase
 - **Duration**: ~15-25 seconds (with parallel execution)
 
 **Tier 3: Full Audit (`audit --full`)** includes everything in Tier 1 & 2 plus tools >10s (or groups containing tools >10s):
-- **Coverage tools** (run in parallel, ~365s max):
-- Full pytest execution with coverage regeneration (~365s, >10s)
-- Dev tools test coverage (~94s, >10s, runs in parallel with main tests)
-- **Coverage-dependent tools** (run sequentially after coverage completes, ~7s):
-- Test marker analysis (~2s, requires coverage data from both test suites)
-- Coverage report generation (~5s, requires coverage data from both test suites)
-- **Legacy group** (runs in parallel with coverage tools):
+- **Test suite group**:
+- `run_test_suite` runs configured pytest paths directly without coverage, excludes `e2e` by default, and runs `no_parallel` tests in a serial phase.
+- **Legacy group** (runs in parallel with the test suite):
 - Legacy reference scanning (~62s, >10s)
 - Reference report generation (~1s, but part of the legacy reference group)
-- **Static analysis group** (runs in parallel with coverage + legacy groups):
+- **Static analysis group** (runs in parallel with test suite + legacy groups):
 - Ruff diagnostics summary (advisory)
 - Pyright diagnostics summary (advisory)
-- Improvement opportunity reports (LEGACY_REFERENCE_REPORT.md, TEST_COVERAGE_REPORT.md, UNUSED_IMPORTS_REPORT.md)
-- Tier 3 outcome states are explicit: `clean`, `test_failures`, `crashed`, `infra_cleanup_error`, `coverage_failed`
-- In strict mode (`audit --strict`), Tier 3 returns non-zero for `test_failures` or `crashed`; default mode remains non-strict.
+- Improvement opportunity reports (LEGACY_REFERENCE_REPORT.md, UNUSED_IMPORTS_REPORT.md)
+- Tier 3 outcome states are explicit: `clean`, `test_failures`, `crashed`, `infra_cleanup_error`
+- In strict mode (`audit --strict`), Tier 3 returns non-zero for `test_failures`, `crashed`, or `infra_cleanup_error`; default mode remains non-strict.
+- Coverage regeneration, marker analysis, and TEST_COVERAGE_REPORT.md are handled by the explicit `coverage` command.
 
-**Performance**: Total full audit time: ~6-7 minutes (coverage tools run in parallel, reducing total time from ~460s to ~365s)
+**Performance**: Full audit runtime is dominated by the pytest suite and static/legacy checks; coverage is intentionally outside the Tier 3 critical path.
 
 Pipeline artifacts:
 - AI-facing (root): [AI_STATUS.md](AI_STATUS.md), `AI_PRIORITIES.md`, `CONSOLIDATED_REPORT.md`
@@ -332,6 +329,7 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 | imports/analyze_module_imports.py | core | stable | Extracts and analyzes imports from Python files. Provides import parsing, scanning, reverse dependencies, dependency changes, purpose inference, and formatting of imports. |
 | imports/analyze_dependency_patterns.py | core | stable | Analyzes dependency patterns, circular dependencies, and risk areas. Provides pattern analysis, circular dependency detection, risk area detection, and critical dependency finding. |
 | legacy/fix_legacy_references.py | core | stable | Finds/validates legacy markers before cleanup. Pattern mappings load from external config. 
+| tests/run_test_suite.py | core | stable | Portable Tier 3 pytest runner. Runs configured pytest paths without coverage, excludes `e2e` by default, splits `no_parallel` tests into a serial phase, and does not call project-specific `run_tests.py`. |
 | tests/run_test_coverage.py | core | stable | Orchestrates coverage execution (pytest runs) and artifact management. Executes tests and collects coverage data. Accepts pytest command, coverage config, and artifact directories via external config. 
 | tests/analyze_test_coverage.py | core | stable | Parses coverage output and performs coverage analysis. Pure analysis tool that works with existing coverage data. Includes caching support - caches analysis results based on coverage JSON file mtime. |
 | tests/generate_test_coverage_report.py | core | stable | Generates coverage reports (TEST_COVERAGE_REPORT.md, JSON, HTML) from analysis results. Uses TestCoverageReportGenerator class to create reports from coverage.json. |
@@ -393,8 +391,9 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 - **Failure-aware dev tools invalidation**: `tests/dev_tools_coverage_cache.py` stores last run success/exit code and invalidates cache after failed previous dev-tools coverage runs.
 - **Parallel Execution**: Tools run in parallel where possible to reduce audit time:
 - **Tier 2**: Independent tools (5 tools) run in parallel; dependent groups run sequentially within groups but in parallel with each other
-- **Tier 3**: **Full-repo scope** runs a **single** main coverage subprocess (`run_test_coverage`) that includes `tests/development_tools/` and measures the `development_tools` package; legacy reference and static-analysis groups run in parallel with that step; coverage-dependent tools (marker analysis, full-repo report generation) run after it. **`audit --full --dev-tools-only`** runs only `generate_dev_tools_coverage` (no main coverage refresh).
-- **Tool Dependencies**: Some tools must run together due to dependencies (e.g., analysis -> report, imports -> patterns/dependencies). Coverage-dependent tools run after the coverage step for the active scope. See `development_tools/shared/service/audit_orchestration.py` for dependency groupings.
+- **Tier 3**: Runs the portable `run_test_suite` pytest runner without coverage; legacy reference and static-analysis groups run in parallel with that step. The runner uses configured test paths, excludes `e2e` by default, splits `no_parallel` tests into a serial phase, and falls back to serial pytest when xdist is unavailable. It does not call MHM's project-specific `run_tests.py`.
+- **Coverage command**: `python development_tools/run_development_tools.py coverage` owns coverage regeneration, marker analysis, and `development_docs/TEST_COVERAGE_REPORT.md`. Run it explicitly and less frequently than Tier 3 audits.
+- **Tool Dependencies**: Some tools must run together due to dependencies (e.g., analysis -> report, imports -> patterns/dependencies). See `development_tools/shared/service/audit_orchestration.py` for dependency groupings.
 - **Output Format Standardization**: All 19 analysis tools output JSON in a standardized structure with `summary` (total_issues, files_affected, status) and `details` (tool-specific data). This enables consistent data aggregation and simplified report generation. Tools support `--json` flag for direct standard format output. Results are validated against the standard format in `shared/result_format.py`.
 - When adding or relocating tools, update:
 - `shared/tool_metadata.py`

@@ -165,8 +165,8 @@ class AuditOrchestrationMixin:
             _track_label(dev_tools),
         )
 
-        if state == "coverage_failed":
-            return "coverage_failed"
+        if state in {"clean", "test_failures", "crashed", "infra_cleanup_error"}:
+            return state
         if "infra_cleanup_error" in track_labels:
             return "infra_cleanup_error"
         if "crashed" in track_labels:
@@ -176,7 +176,7 @@ class AuditOrchestrationMixin:
         if any(label in {"passed", "skipped"} for label in track_labels):
             return "clean"
         if any(label == "unknown" for label in track_labels):
-            return "coverage_failed"
+            return "unknown"
         return "unknown"
 
     def _finalize_tier3_audit_scope(self) -> None:
@@ -187,6 +187,17 @@ class AuditOrchestrationMixin:
             if isinstance(getattr(self, "tier3_test_outcome", None), dict)
             else {}
         )
+        parallel_track = outcome.get("parallel")
+        no_parallel_track = outcome.get("no_parallel")
+        if (
+            isinstance(parallel_track, dict)
+            and isinstance(no_parallel_track, dict)
+            and str(parallel_track.get("classification_reason", "")).startswith("pytest_")
+        ):
+            self._tier3_skipped_main_tracks = False
+            self._tier3_skipped_dev_track = True
+            self.tier3_test_outcome = outcome
+            return
 
         skipped_scope_parallel = {
             "state": "skipped",
@@ -196,7 +207,7 @@ class AuditOrchestrationMixin:
                 "Main parallel/no-parallel pytest tracks were not run; this pass used "
                 "`audit --full --dev-tools-only`. "
                 "Run `python development_tools/run_development_tools.py audit --full` "
-                "(without `--dev-tools-only`) to refresh full-repo coverage and Tier 3 main tracks."
+                "(without `--dev-tools-only`) to refresh full-repo Tier 3 tracks."
             ),
             "log_file": None,
             "return_code_hex": None,
@@ -212,10 +223,10 @@ class AuditOrchestrationMixin:
             "classification": "skipped",
             "classification_reason": "not_run_this_audit_scope",
             "actionable_context": (
-                "Development-tools coverage was not run; this pass used full-repo Tier 3 scope "
-                "(main `run_test_coverage` only). "
-                "Run `python development_tools/run_development_tools.py audit --full --dev-tools-only` "
-                "to refresh dev-tools coverage and the development-tools Tier 3 track."
+                "Development-tools scoped Tier 3 reports were not run; this pass used "
+                "full-repo Tier 3 scope. Run "
+                "`python development_tools/run_development_tools.py audit --full --dev-tools-only` "
+                "to refresh development-tools scoped Tier 3 reports."
             ),
             "log_file": None,
             "return_code_hex": None,
@@ -424,12 +435,12 @@ class AuditOrchestrationMixin:
         except KeyboardInterrupt:
             if bool(getattr(self, "_internal_interrupt_detected", False)):
                 print(
-                    "WARNING: Internal interrupt signature detected during Tier 3 coverage "
+                    "WARNING: Internal interrupt signature detected during Tier 3 pytest "
                     "(SIGINT/control event propagated from subprocess). "
                     "Treating audit as failed without user-interrupt exit."
                 )
                 logger.error(
-                    "Internal interrupt signature detected during Tier 3 coverage; "
+                    "Internal interrupt signature detected during Tier 3 pytest; "
                     "continuing audit finalization with failure state."
                 )
                 success = False
@@ -1276,58 +1287,34 @@ class AuditOrchestrationMixin:
         """Run Tier 3 tools: Full audit (comprehensive analysis, >10s per tool or groups with >10s tools).
 
         Note: Tools moved here based on execution time (>10s) while respecting dependencies:
-        - Coverage: exactly one scope per audit — main ``run_test_coverage`` *or* ``generate_dev_tools_coverage``
-          (see V5 §1.9); they are never both scheduled in the same pass.
-        - Coverage-dependent tools run after that coverage step; ``generate_test_coverage_report`` runs only
-          after main coverage (it reads repo ``coverage.json``).
+        - Test suite group: ``run_test_suite`` runs pytest without coverage.
         - Legacy group: analyze_legacy_references (62.11s) is >10s, so entire group stays in Tier 3
-        - Static analysis group: ruff and pyright run in parallel with coverage/legacy groups
+        - Static analysis group: ruff and pyright run in parallel with test/legacy groups
         """
         successful = []
         failed = []
         
         # Tier 3 tool groups from canonical audit_tiers (single source of truth).
-        # Coverage groups run heavy pytest workloads; we run them concurrently for throughput
-        # and apply worker caps in command handlers to avoid CPU oversubscription.
+        # The test-suite group runs the heavy pytest workload without coverage while
+        # legacy and static-analysis groups run concurrently.
         (
-            tier3_coverage_main_group,
-            tier3_coverage_dev_tools_group,
-            tier3_coverage_dependent_group,
+            tier3_test_suite_group,
             tier3_legacy_group,
             tier3_static_analysis_group,
         ) = get_tier3_groups(self)
 
-        coverage_run_groups: list[list[tuple[str, Any]]] = []
-        if tier3_coverage_main_group:
-            coverage_run_groups.append(tier3_coverage_main_group)
-        if tier3_coverage_dev_tools_group:
-            coverage_run_groups.append(tier3_coverage_dev_tools_group)
-        if not coverage_run_groups:
-            logger.error("Tier 3 has no coverage group for this audit scope; aborting Tier 3.")
+        if not tier3_test_suite_group:
+            logger.error("Tier 3 has no test suite group for this audit scope; aborting Tier 3.")
             return False
 
         # Independent groups that can run in parallel with each other.
-        if os.name == "nt":
-            # Windows guardrail: when both coverage arms existed historically, they ran in one sequential batch.
-            # With scope split (V5 §1.9) there is at most one coverage arm; still merge for a single worker slot.
-            merged_coverage: list[tuple[str, Any]] = []
-            for grp in coverage_run_groups:
-                merged_coverage.extend(grp)
-            logger.info(
-                "Windows Tier 3 coverage: running coverage tool group sequentially within one worker slot."
-            )
-            tier3_parallel_groups = [
-                merged_coverage,
-                tier3_legacy_group,
-                tier3_static_analysis_group,
-            ]
-        else:
-            tier3_parallel_groups = coverage_run_groups + [
-                tier3_legacy_group,
-                tier3_static_analysis_group,
-            ]
+        tier3_parallel_groups = [
+            tier3_test_suite_group,
+            tier3_legacy_group,
+            tier3_static_analysis_group,
+        ]
         
-        # Run coverage and legacy groups in parallel (each group runs its tools sequentially)
+        # Run independent groups in parallel (each group runs its tools sequentially).
         if tier3_parallel_groups:
             from concurrent.futures import ThreadPoolExecutor, as_completed
             import time
@@ -1519,8 +1506,8 @@ class AuditOrchestrationMixin:
                 if time_saved > 1.0:  # Only log if significant time saved
                     logger.info(f"Parallel execution saved ~{time_saved:.1f}s (wall-clock: {max_parallel_time:.1f}s vs sequential: {sum_individual_times:.1f}s)")
         
-        # Run coverage-dependent tools sequentially (after the coverage step for this audit scope).
-        logger.debug("Running coverage-dependent tools (sequential, after coverage completion)...")
+        # Coverage-dependent tools are run only by the explicit `coverage` command.
+        tier3_coverage_dependent_group: list[tuple[str, Any]] = []
         for tool_name, tool_func in tier3_coverage_dependent_group:
             if audit_signal_state.audit_sigint_requested():
                 self._internal_interrupt_detected = True

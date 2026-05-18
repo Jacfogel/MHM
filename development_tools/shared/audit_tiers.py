@@ -49,13 +49,10 @@ TIER2_TOOL_NAMES = [
 ]
 
 # Tier 3: Full audit (>10s acceptable).
-# flaky_detector is manual/CLI-only: it spawns nested parallel pytest and must not run alongside
-# run_test_coverage (resource contention, timeouts, empty capture). See flaky-detector command.
+# flaky_detector is manual/CLI-only: it spawns repeated pytest runs and must not run alongside
+# run_test_suite (resource contention, timeouts, empty capture). See flaky-detector command.
 TIER3_TOOL_NAMES = [
-    "run_test_coverage",
-    "generate_dev_tools_coverage",
-    "analyze_test_markers",
-    "generate_test_coverage_report",
+    "run_test_suite",
     "analyze_backup_health",
     "analyze_legacy_references",
     "generate_legacy_reference_report",
@@ -68,19 +65,17 @@ TIER3_TOOL_NAMES = [
 
 
 def get_tier3_tool_names_full_repo() -> list[str]:
-    """Tier 3 tools for a normal full audit (main/project coverage only; no dev-tools coverage subprocess)."""
-    return [name for name in TIER3_TOOL_NAMES if name != "generate_dev_tools_coverage"]
+    """Tier 3 tools for a normal full audit."""
+    return list(TIER3_TOOL_NAMES)
 
 
 def get_tier3_tool_names_dev_tools_only() -> list[str]:
-    """Tier 3 tools for `audit --full --dev-tools-only` (dev-tools coverage only; no main TEST_COVERAGE_REPORT refresh)."""
+    """Tier 3 tools for `audit --full --dev-tools-only`."""
     return [
         name
         for name in TIER3_TOOL_NAMES
         if name
         not in (
-            "run_test_coverage",
-            "generate_test_coverage_report",
             "generate_legacy_reference_report",
         )
     ]
@@ -132,6 +127,8 @@ def _get_runnable(service: Any, tool_name: str) -> Callable[[], Any]:
         return lambda: service.run_backup_health_check(run_drill=True)
     if tool_name == "verify_process_cleanup":
         return service.run_verify_process_cleanup
+    if tool_name == "run_test_suite":
+        return service.run_test_suite
     if tool_name == "run_test_coverage":
         return service.run_coverage_regeneration
     if tool_name == "generate_dev_tools_coverage":
@@ -220,36 +217,18 @@ def get_tier2_groups(service: Any) -> tuple[list[tuple[str, Any]], list[list[tup
 
 def get_tier3_groups(
     service: Any,
-) -> tuple[list[tuple[str, Any]], list[tuple[str, Any]], list[tuple[str, Any]], list[tuple[str, Any]], list[tuple[str, Any]]]:
-    """Return (coverage_main, coverage_dev_tools, coverage_dependent, legacy_group, static_analysis_group) for Tier 3.
+) -> tuple[list[tuple[str, Any]], list[tuple[str, Any]], list[tuple[str, Any]]]:
+    """Return (test_suite_group, legacy_group, static_analysis_group) for Tier 3.
 
-    Coverage subprocesses are split by audit scope (V5 §1.9):
-    - Full audit: main ``run_test_coverage`` only (no ``generate_dev_tools_coverage`` in the same pass).
-    - ``--dev-tools-only``: ``generate_dev_tools_coverage`` only; ``generate_test_coverage_report`` is omitted
-      because it consumes main-repo ``coverage.json``.
+    The test-suite group runs pytest without coverage. Coverage regeneration,
+    marker analysis, and coverage report generation are reserved for the
+    explicit ``coverage`` command.
     """
     dev_tools_only = bool(getattr(service, "dev_tools_only_mode", False))
-    if dev_tools_only:
-        logger.info(
-            "Skipping generate_test_coverage_report (dev-tools-only scope); "
-            "development_docs/TEST_COVERAGE_REPORT.md left unchanged."
-        )
-        coverage_main = []
-        coverage_dev_tools = [
-            ("generate_dev_tools_coverage", _get_runnable(service, "generate_dev_tools_coverage")),
-        ]
-        coverage_dependent = [
-            ("analyze_test_markers", _get_runnable(service, "analyze_test_markers")),
-            ("analyze_backup_health", _get_runnable(service, "analyze_backup_health")),
-        ]
-    else:
-        coverage_main = [("run_test_coverage", _get_runnable(service, "run_test_coverage"))]
-        coverage_dev_tools = []
-        coverage_dependent = [
-            ("analyze_test_markers", _get_runnable(service, "analyze_test_markers")),
-            ("generate_test_coverage_report", _get_runnable(service, "generate_test_coverage_report")),
-            ("analyze_backup_health", _get_runnable(service, "analyze_backup_health")),
-        ]
+    test_suite_group = [
+        ("run_test_suite", _get_runnable(service, "run_test_suite")),
+        ("analyze_backup_health", _get_runnable(service, "analyze_backup_health")),
+    ]
     if dev_tools_only:
         legacy_group = [
             ("analyze_legacy_references", _get_runnable(service, "analyze_legacy_references")),
@@ -270,4 +249,4 @@ def get_tier3_groups(
         ("analyze_pip_audit", _get_runnable(service, "analyze_pip_audit")),
         ("verify_process_cleanup", _get_runnable(service, "verify_process_cleanup")),
     ]
-    return coverage_main, coverage_dev_tools, coverage_dependent, legacy_group, static_analysis_group
+    return test_suite_group, legacy_group, static_analysis_group

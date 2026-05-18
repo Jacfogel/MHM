@@ -31,7 +31,7 @@ class TestGenerateConsolidatedReport:
     def test_generate_consolidated_reports_basic(self, temp_project_copy):
         """Test basic consolidated report generation."""
         # Mock AIToolsService to avoid full audit execution
-        with patch('development_tools.reports.generate_consolidated_report.AIToolsService') as mock_service_class:
+        with patch.object(consolidated_report_module, 'AIToolsService') as mock_service_class:
             mock_service = MagicMock()
             mock_service_class.return_value = mock_service
             
@@ -41,7 +41,7 @@ class TestGenerateConsolidatedReport:
             mock_service._generate_consolidated_report.return_value = "Consolidated Report\n\nTest content"
             
             # Mock create_output_file
-            with patch('development_tools.reports.generate_consolidated_report.create_output_file') as mock_create:
+            with patch.object(consolidated_report_module, 'create_output_file') as mock_create:
                 mock_create.side_effect = lambda path, content, **_kwargs: Path(temp_project_copy) / path
                 
                 # Run generation
@@ -74,7 +74,7 @@ class TestGenerateConsolidatedReport:
         """Test consolidated report generation with config path."""
         config_path = str(temp_project_copy / "custom_config.json")
         
-        with patch('development_tools.reports.generate_consolidated_report.AIToolsService') as mock_service_class:
+        with patch.object(consolidated_report_module, 'AIToolsService') as mock_service_class:
             mock_service = MagicMock()
             mock_service_class.return_value = mock_service
             
@@ -82,7 +82,7 @@ class TestGenerateConsolidatedReport:
             mock_service._generate_ai_priorities_document.return_value = "# AI Priorities"
             mock_service._generate_consolidated_report.return_value = "Consolidated Report"
             
-            with patch('development_tools.reports.generate_consolidated_report.create_output_file') as mock_create:
+            with patch.object(consolidated_report_module, 'create_output_file') as mock_create:
                 mock_create.side_effect = lambda path, content, **_kwargs: Path(temp_project_copy) / path
                 
                 result = generate_consolidated_reports(
@@ -101,7 +101,7 @@ class TestGenerateConsolidatedReport:
     @pytest.mark.unit
     def test_generate_consolidated_reports_output_file_paths(self, temp_project_copy):
         """Test that output file paths are correctly generated."""
-        with patch('development_tools.reports.generate_consolidated_report.AIToolsService') as mock_service_class:
+        with patch.object(consolidated_report_module, 'AIToolsService') as mock_service_class:
             mock_service = MagicMock()
             mock_service_class.return_value = mock_service
             
@@ -109,7 +109,7 @@ class TestGenerateConsolidatedReport:
             mock_service._generate_ai_priorities_document.return_value = "# AI Priorities"
             mock_service._generate_consolidated_report.return_value = "Consolidated Report"
             
-            with patch('development_tools.reports.generate_consolidated_report.create_output_file') as mock_create:
+            with patch.object(consolidated_report_module, 'create_output_file') as mock_create:
                 # Track calls to verify paths
                 call_paths = []
                 
@@ -136,7 +136,7 @@ class TestGenerateConsolidatedReport:
     @pytest.mark.unit
     def test_generate_consolidated_reports_service_error_handling(self, temp_project_copy):
         """Test error handling when service fails."""
-        with patch('development_tools.reports.generate_consolidated_report.AIToolsService') as mock_service_class:
+        with patch.object(consolidated_report_module, 'AIToolsService') as mock_service_class:
             # Simulate service initialization failure
             mock_service_class.side_effect = Exception("Service initialization failed")
             
@@ -149,7 +149,7 @@ class TestGenerateConsolidatedReport:
     @pytest.mark.unit
     def test_generate_consolidated_reports_report_generation_error(self, temp_project_copy):
         """Test error handling when report generation fails."""
-        with patch('development_tools.reports.generate_consolidated_report.AIToolsService') as mock_service_class:
+        with patch.object(consolidated_report_module, 'AIToolsService') as mock_service_class:
             mock_service = MagicMock()
             mock_service_class.return_value = mock_service
             
@@ -158,7 +158,7 @@ class TestGenerateConsolidatedReport:
             
             # Should raise exception
             with pytest.raises(Exception, match="Report generation failed"):
-                with patch('development_tools.reports.generate_consolidated_report.create_output_file'):
+                with patch.object(consolidated_report_module, 'create_output_file'):
                     generate_consolidated_reports(
                         project_root=str(temp_project_copy)
                     )
@@ -166,7 +166,7 @@ class TestGenerateConsolidatedReport:
     @pytest.mark.unit
     def test_generate_consolidated_reports_file_creation_error(self, temp_project_copy):
         """Test error handling when file creation fails."""
-        with patch('development_tools.reports.generate_consolidated_report.AIToolsService') as mock_service_class:
+        with patch.object(consolidated_report_module, 'AIToolsService') as mock_service_class:
             mock_service = MagicMock()
             mock_service_class.return_value = mock_service
             
@@ -175,7 +175,7 @@ class TestGenerateConsolidatedReport:
             mock_service._generate_consolidated_report.return_value = "Consolidated Report"
             
             # Simulate file creation failure
-            with patch('development_tools.reports.generate_consolidated_report.create_output_file') as mock_create:
+            with patch.object(consolidated_report_module, 'create_output_file') as mock_create:
                 mock_create.side_effect = Exception("File creation failed")
                 
                 # Should raise exception
@@ -187,7 +187,7 @@ class TestGenerateConsolidatedReport:
     @pytest.mark.unit
     def test_generate_consolidated_reports_none_project_root(self, temp_project_copy):
         """Test generation with None project_root (uses default)."""
-        with patch('development_tools.reports.generate_consolidated_report.AIToolsService') as mock_service_class:
+        with patch.object(consolidated_report_module, 'AIToolsService') as mock_service_class:
             mock_service = MagicMock()
             mock_service_class.return_value = mock_service
             
@@ -195,7 +195,7 @@ class TestGenerateConsolidatedReport:
             mock_service._generate_ai_priorities_document.return_value = "# AI Priorities"
             mock_service._generate_consolidated_report.return_value = "Consolidated Report"
             
-            with patch('development_tools.reports.generate_consolidated_report.create_output_file') as mock_create:
+            with patch.object(consolidated_report_module, 'create_output_file') as mock_create:
                 mock_create.side_effect = lambda path, content, **_kwargs: Path(temp_project_copy) / path
                 
                 result = generate_consolidated_reports(
@@ -213,7 +213,7 @@ class TestGenerateConsolidatedReport:
     @pytest.mark.unit
     def test_generate_consolidated_reports_content_passed_to_file_creator(self, temp_project_copy):
         """Test that report content is correctly passed to file creator."""
-        with patch('development_tools.reports.generate_consolidated_report.AIToolsService') as mock_service_class:
+        with patch.object(consolidated_report_module, 'AIToolsService') as mock_service_class:
             mock_service = MagicMock()
             mock_service_class.return_value = mock_service
             
@@ -225,7 +225,7 @@ class TestGenerateConsolidatedReport:
             mock_service._generate_ai_priorities_document.return_value = priorities_content
             mock_service._generate_consolidated_report.return_value = consolidated_content
             
-            with patch('development_tools.reports.generate_consolidated_report.create_output_file') as mock_create:
+            with patch.object(consolidated_report_module, 'create_output_file') as mock_create:
                 call_contents = []
                 
                 def track_create(path, content, **_kwargs):
@@ -272,7 +272,7 @@ class TestGenerateConsolidatedReport:
         
         # Run generation (may take time if it runs audits)
         # We'll use a timeout or mock to prevent long execution
-        with patch('development_tools.reports.generate_consolidated_report.AIToolsService') as mock_service_class:
+        with patch.object(consolidated_report_module, 'AIToolsService') as mock_service_class:
             mock_service = MagicMock()
             mock_service_class.return_value = mock_service
             
@@ -280,7 +280,7 @@ class TestGenerateConsolidatedReport:
             mock_service._generate_ai_priorities_document.return_value = "# AI Priorities\n\nIntegration test"
             mock_service._generate_consolidated_report.return_value = "Consolidated Report\n\nIntegration test"
             
-            with patch('development_tools.reports.generate_consolidated_report.create_output_file') as mock_create:
+            with patch.object(consolidated_report_module, 'create_output_file') as mock_create:
                 mock_create.side_effect = lambda path, content, **_kwargs: temp_project_copy / path
                 
                 result = generate_consolidated_reports(

@@ -221,15 +221,6 @@
         "CONSOLIDATED_REPORT"
       ]
     },
-    "analyze_test_markers": {
-      "in_tier1_quick": false,
-      "in_tier2_standard_expanded": false,
-      "in_tier3_full_repo_audit": true,
-      "in_tier3_dev_tools_only_audit": true,
-      "report_surface_hints": [
-        "AI_STATUS Test Markers"
-      ]
-    },
     "analyze_unused_imports": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": true,
@@ -249,16 +240,6 @@
         "AI_PRIORITIES"
       ]
     },
-    "generate_dev_tools_coverage": {
-      "in_tier1_quick": false,
-      "in_tier2_standard_expanded": false,
-      "in_tier3_full_repo_audit": false,
-      "in_tier3_dev_tools_only_audit": true,
-      "report_surface_hints": [
-        "AI_STATUS Development Tools Coverage",
-        "coverage_dev_tools.json"
-      ]
-    },
     "generate_legacy_reference_report": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": false,
@@ -266,15 +247,6 @@
       "in_tier3_dev_tools_only_audit": false,
       "report_surface_hints": [
         "development_docs/LEGACY_REFERENCE_REPORT.md"
-      ]
-    },
-    "generate_test_coverage_report": {
-      "in_tier1_quick": false,
-      "in_tier2_standard_expanded": false,
-      "in_tier3_full_repo_audit": true,
-      "in_tier3_dev_tools_only_audit": false,
-      "report_surface_hints": [
-        "development_docs/TEST_COVERAGE_REPORT.md"
       ]
     },
     "generate_unused_imports_report": {
@@ -295,15 +267,14 @@
         "jsons/reports"
       ]
     },
-    "run_test_coverage": {
+    "run_test_suite": {
       "in_tier1_quick": false,
       "in_tier2_standard_expanded": false,
       "in_tier3_full_repo_audit": true,
-      "in_tier3_dev_tools_only_audit": false,
+      "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
-        "AI_STATUS Test Coverage",
-        "TEST_COVERAGE_REPORT",
-        "coverage.json"
+        "AI_STATUS Tier 3 Tests",
+        "CONSOLIDATED_REPORT"
       ]
     },
     "verify_process_cleanup": {
@@ -335,6 +306,10 @@
     },
     {
       "tool": "analyze_test_coverage",
+      "reason": "core_script_not_in_tier_lists"
+    },
+    {
+      "tool": "analyze_test_markers",
       "reason": "core_script_not_in_tier_lists"
     },
     {
@@ -426,7 +401,15 @@
       "reason": "core_script_not_in_tier_lists"
     },
     {
+      "tool": "generate_test_coverage_report",
+      "reason": "core_script_not_in_tier_lists"
+    },
+    {
       "tool": "operations",
+      "reason": "core_script_not_in_tier_lists"
+    },
+    {
+      "tool": "run_test_coverage",
       "reason": "core_script_not_in_tier_lists"
     },
     {

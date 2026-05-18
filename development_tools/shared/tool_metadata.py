@@ -224,6 +224,13 @@ _TOOLS: dict[str, ToolInfo] = {
         trust="stable",
         description="Runs pytest coverage and manages coverage artifacts.",
     ),
+    "run_test_suite": ToolInfo(
+        name="run_test_suite",
+        path="development_tools/tests/run_test_suite.py",
+        tier="core",
+        trust="stable",
+        description="Runs the configured pytest suite without coverage for Tier 3 audits.",
+    ),
     "analyze_test_coverage": ToolInfo(
         name="analyze_test_coverage",
         path="development_tools/tests/analyze_test_coverage.py",
@@ -562,6 +569,7 @@ def get_command_groups():
 # Tools that use cache invalidation; audit orchestration uses this for cache-state logging.
 # Single canonical source (was in audit_orchestration._CACHE_AWARE_TOOLS).
 CACHE_AWARE_TOOLS: frozenset[str] = frozenset({
+    "run_test_suite",
     "run_test_coverage",
     "generate_dev_tools_coverage",
     "analyze_unused_imports",

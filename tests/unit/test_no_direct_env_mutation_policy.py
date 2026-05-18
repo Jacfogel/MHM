@@ -19,7 +19,15 @@ def test_no_direct_os_environ_mutations_in_tests():
     ]
 
     violations = []
-    for dirpath, _dirnames, filenames in os.walk(root):
+    ignored_runtime_dirs = {
+        'tmp_pytest_runtime',
+        'pytest-of-Julie',
+        '.pytest_cache',
+        '__pycache__',
+    }
+
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [name for name in dirnames if name not in ignored_runtime_dirs]
         for name in filenames:
             if not name.endswith('.py'):
                 continue
@@ -48,5 +56,4 @@ def test_no_direct_os_environ_mutations_in_tests():
                 continue
 
     assert not violations, "Direct os.environ mutations found in tests. Use monkeypatch.setenv() instead.\n" + "\n".join(violations)
-
 

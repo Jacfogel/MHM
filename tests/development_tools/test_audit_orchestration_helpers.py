@@ -138,13 +138,13 @@ def test_is_audit_in_progress_cleans_stale_and_legacy_locks(
 @pytest.mark.parametrize(
     ("tier3_outcome", "expected_state"),
     [
-        ({"state": "coverage_failed"}, "coverage_failed"),
+        ({"state": "crashed"}, "crashed"),
         ({"parallel": {"classification": "infra_cleanup_error"}}, "infra_cleanup_error"),
         ({"parallel": {"classification": "crashed"}}, "crashed"),
         ({"parallel": {"classification": "failed"}}, "test_failures"),
         ({"parallel": {"classification": "passed"}}, "clean"),
-        ({"parallel": {"classification": "unknown"}}, "coverage_failed"),
-        ({}, "coverage_failed"),
+        ({"parallel": {"classification": "unknown"}}, "unknown"),
+        ({}, "unknown"),
     ],
 )
 def test_effective_tier3_state_resolution(
@@ -329,30 +329,22 @@ def test_finalize_tier3_audit_scope_full_repo_replaces_cache_only_precheck_dev_t
 
 
 @pytest.mark.unit
-def test_get_tier3_groups_respects_full_vs_dev_tools_only_scope():
-    """Tier 3 coverage arms are mutually exclusive by audit scope (V5 §1.9)."""
+def test_get_tier3_groups_runs_test_suite_and_keeps_coverage_out():
+    """Tier 3 schedules pytest without coverage for both audit scopes."""
     from development_tools.shared.audit_tiers import get_tier3_groups
 
     svc = MagicMock()
     svc.dev_tools_only_mode = False
-    main, dev, dep, legacy, static = get_tier3_groups(svc)
-    assert [n for n, _ in main] == ["run_test_coverage"]
-    assert dev == []
-    dep_names = [n for n, _ in dep]
-    assert "generate_test_coverage_report" in dep_names
-    assert "analyze_test_markers" in dep_names
+    tests, legacy, static = get_tier3_groups(svc)
+    assert [n for n, _ in tests] == ["run_test_suite", "analyze_backup_health"]
     legacy_names = [n for n, _ in legacy]
     assert legacy_names == ["analyze_legacy_references", "generate_legacy_reference_report"]
     static_names = [n for n, _ in static]
     assert "verify_process_cleanup" in static_names
 
     svc.dev_tools_only_mode = True
-    main, dev, dep, legacy, static = get_tier3_groups(svc)
-    assert main == []
-    assert [n for n, _ in dev] == ["generate_dev_tools_coverage"]
-    dep_names_dt = [n for n, _ in dep]
-    assert "generate_test_coverage_report" not in dep_names_dt
-    assert "analyze_backup_health" in dep_names_dt
+    tests_dt, legacy, static = get_tier3_groups(svc)
+    assert [n for n, _ in tests_dt] == ["run_test_suite", "analyze_backup_health"]
     legacy_names_dt = [n for n, _ in legacy]
     assert legacy_names_dt == ["analyze_legacy_references"]
     assert "generate_legacy_reference_report" not in legacy_names_dt
@@ -389,8 +381,11 @@ def test_get_expected_tools_for_tier_matrix(temp_project_copy: Path):
     assert "quick_status" in tier1
     assert "quick_status" not in tier2
     assert "analyze_functions" in tier2
-    assert "run_test_coverage" in tier3
+    assert "run_test_suite" in tier3
+    assert "run_test_coverage" not in tier3
     assert "generate_dev_tools_coverage" not in tier3
+    assert "generate_test_coverage_report" not in tier3
+    assert "analyze_test_markers" not in tier3
     assert "analyze_pyright" in tier3
     assert "analyze_bandit" in tier3
     assert "analyze_pip_audit" in tier3
@@ -400,7 +395,8 @@ def test_get_expected_tools_for_tier_matrix(temp_project_copy: Path):
     tier2_dt = service._get_expected_tools_for_tier(2)
     assert "generate_unused_imports_report" not in tier2_dt
     tier3_dt = service._get_expected_tools_for_tier(3)
-    assert "generate_dev_tools_coverage" in tier3_dt
+    assert "run_test_suite" in tier3_dt
+    assert "generate_dev_tools_coverage" not in tier3_dt
     assert "run_test_coverage" not in tier3_dt
     assert "generate_test_coverage_report" not in tier3_dt
     assert "generate_legacy_reference_report" not in tier3_dt
@@ -502,7 +498,7 @@ def test_run_full_audit_tools_traps_keyboardinterrupt_from_worker_group(
     service._internal_interrupt_detected = False
 
     def _fake_run_tool_with_timing(tool_name, _tool_func):
-        if tool_name == "run_test_coverage":
+        if tool_name == "run_test_suite":
             raise KeyboardInterrupt()
         return {"success": True}, 0.01
 
@@ -695,15 +691,16 @@ def test_run_full_audit_tools_drains_done_futures_after_as_completed_interrupt(
     result = service._run_full_audit_tools()
 
     assert result is True
-    assert "run_test_coverage" in service._tool_timings
+    assert "run_test_suite" in service._tool_timings
+    assert "run_test_coverage" not in service._tool_timings
     assert "generate_dev_tools_coverage" not in service._tool_timings
 
 
 @pytest.mark.unit
-def test_run_full_audit_tools_dev_tools_only_runs_dev_coverage_not_main(
+def test_run_full_audit_tools_dev_tools_only_runs_test_suite_not_coverage(
     temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    """--dev-tools-only Tier 3 should schedule dev-tools coverage, not main run_test_coverage."""
+    """--dev-tools-only Tier 3 should still schedule pytest without coverage."""
     service = AIToolsService(project_root=str(temp_project_copy))
     service.dev_tools_only_mode = True
     service._tool_timings = {}
@@ -756,11 +753,9 @@ def test_run_full_audit_tools_dev_tools_only_runs_dev_coverage_not_main(
     )
 
     assert service._run_full_audit_tools() is True
-    assert "generate_dev_tools_coverage" in service._tool_timings
+    assert "run_test_suite" in service._tool_timings
+    assert "generate_dev_tools_coverage" not in service._tool_timings
     assert "run_test_coverage" not in service._tool_timings
-    assert service._tier3_skipped_main_tracks is True
-    assert service._tier3_skipped_dev_track is False
-    assert service.tier3_test_outcome.get("parallel", {}).get("classification") == "skipped"
 
 
 @pytest.mark.unit
@@ -1147,5 +1142,3 @@ def test_log_tool_completion_pip_audit_fragments(
         service._log_tool_completion("analyze_pip_audit", result, 0.01)
     msg = log.info.call_args[0][0]
     assert needle in msg
-
-

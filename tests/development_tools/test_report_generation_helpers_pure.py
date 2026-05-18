@@ -138,10 +138,7 @@ def test_tier3_track_skipped_for_audit_scope_and_effective_state(
 
     assert service._effective_tier3_state_from_outcome({}) == "unknown"
     assert service._effective_tier3_state_from_outcome("not-a-dict") == "unknown"  # type: ignore[arg-type]
-    assert (
-        service._effective_tier3_state_from_outcome({"state": "coverage_failed"})
-        == "coverage_failed"
-    )
+    assert service._effective_tier3_state_from_outcome({"state": "crashed"}) == "crashed"
     all_unknown = {
         "parallel": {"classification": "unknown"},
         "no_parallel": {"classification": "unknown"},
@@ -153,10 +150,7 @@ def test_tier3_track_skipped_for_audit_scope_and_effective_state(
         "no_parallel": {"classification": "unknown", "return_code": 2},
         "development_tools": {"classification": "unknown", "return_code": 2},
     }
-    assert (
-        service._effective_tier3_state_from_outcome(unclassified_run)
-        == "coverage_failed"
-    )
+    assert service._effective_tier3_state_from_outcome(unclassified_run) == "unknown"
 
     clean = {
         "parallel": {"classification": "passed"},
@@ -497,7 +491,7 @@ def test_append_tier3_test_outcome_lines_respects_actionable_and_skipped_tracks(
 ) -> None:
     service = AIToolsService(project_root=str(temp_project_copy))
     service.tier3_test_outcome = {
-        "state": "clean",
+        "state": "test_failures",
         "parallel": {
             "classification": "skipped",
             "classification_reason": "not_run_this_audit_scope",
