@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-19 01:18:41
+> **Last Generated**: 2026-05-19 16:33:50
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,15 +14,15 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 94.0% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 139
-- **Functions Found**: 1801
+### **Function Documentation Coverage: 93.7% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 146
+- **Functions Found**: 1813
 - **Methods Found**: 1258
-- **Classes Found**: 175
-- **Total Items**: 3059
-- **Functions Documented**: 1680
-- **Methods Documented**: 1196
-- **Classes Documented**: 137
+- **Classes Found**: 177
+- **Total Items**: 3071
+- **Functions Documented**: 1683
+- **Methods Documented**: 1193
+- **Classes Documented**: 138
 - **Total Documented**: 2876
 - **Template-Generated**: 24
 - **Last Updated**: 2026-05-19
@@ -539,19 +539,53 @@ Returns:
 - [OK] `ConversationSession` - A conversation session with multiple messages
   - [OK] `ConversationSession.__post_init__(self)` - Post-initialization setup
 
-#### `ai/fallback_responses.py`
+#### `ai/fallback_responses/__init__.py`
 **Functions:**
-- [OK] `contextual(self, user_prompt, user_id)` - Provide contextually aware fallback responses based on user data and prompt analysis.
-Analyzes user's check-in data when available for meaningful responses.
+- [MISSING] `contextual(self, user_prompt, user_id)` - No description
 - [OK] `get_fallback_responses()` - Return the shared fallback responses helper.
-- [OK] `personalize_with_profile_name(self, fallback_response, context_summary, profile)` - Inject preferred name into greeting-based fallback responses when available.
-- [OK] `personalized(self, user_id)` - Provide fallback personalized messages when AI model is not available.
+- [MISSING] `personalize_with_profile_name(self, fallback_response, context_summary, profile)` - No description
+- [MISSING] `personalized(self, user_id)` - No description
 **Classes:**
 - [OK] `FallbackResponses` - Template and data-aware fallback text; does not call LM Studio.
-  - [OK] `FallbackResponses.contextual(self, user_prompt, user_id)` - Provide contextually aware fallback responses based on user data and prompt analysis.
-Analyzes user's check-in data when available for meaningful responses.
-  - [OK] `FallbackResponses.personalize_with_profile_name(self, fallback_response, context_summary, profile)` - Inject preferred name into greeting-based fallback responses when available.
-  - [OK] `FallbackResponses.personalized(self, user_id)` - Provide fallback personalized messages when AI model is not available.
+  - [MISSING] `FallbackResponses.contextual(self, user_prompt, user_id)` - No description
+  - [MISSING] `FallbackResponses.personalize_with_profile_name(self, fallback_response, context_summary, profile)` - No description
+  - [MISSING] `FallbackResponses.personalized(self, user_id)` - No description
+
+#### `ai/fallback_responses/categories.py`
+**Classes:**
+- [OK] `FallbackCategory` - Explicit fallback kinds; avoids one undifferentiated keyword cascade.
+
+#### `ai/fallback_responses/checkin_summary.py`
+**Functions:**
+- [MISSING] `compute_checkin_metrics(recent_data)` - No description
+- [OK] `try_checkin_summary_response(prompt_lower, metrics, name_prefix)` - Return a check-in summary fallback when prompt and data align.
+**Classes:**
+- [MISSING] `CheckinMetrics` - No description
+
+#### `ai/fallback_responses/conversational.py`
+**Functions:**
+- [MISSING] `default_contextual_response(name_prefix, is_new_user)` - No description
+- [OK] `try_conversational_support(prompt_lower, name_prefix, user_name)` - Keyword-based general support (no check-in calculations).
+- [MISSING] `try_new_user_no_context(prompt_lower, name_prefix, is_new_user)` - No description
+- [MISSING] `try_technical_unavailable(prompt_lower, name_prefix)` - No description
+
+#### `ai/fallback_responses/coordinator.py`
+**Functions:**
+- [OK] `build_contextual_fallback(user_prompt, user_id)` - Provide contextually aware fallback responses based on user data and prompt analysis.
+Check-in analytics are handled separately from generic keyword support.
+
+#### `ai/fallback_responses/data_access.py`
+
+#### `ai/fallback_responses/personalized.py`
+**Functions:**
+- [OK] `build_personalized_message(user_id)` - Provide fallback personalized messages when AI model is not available.
+
+#### `ai/fallback_responses/profile_helpers.py`
+**Functions:**
+- [OK] `load_user_context(user_id)` - Return the user's context dict, or empty dict when unavailable.
+- [MISSING] `name_prefix_from_context(user_context)` - No description
+- [OK] `personalize_with_profile_name(fallback_response, context_summary, profile)` - Inject preferred name into greeting-based fallback responses when available.
+- [MISSING] `preferred_name_from_context(user_context)` - No description
 
 #### `ai/interaction_types.py`
 **Functions:**

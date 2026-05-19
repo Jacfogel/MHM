@@ -326,6 +326,12 @@ def _run_phase(
         "stderr": subprocess.STDOUT,
         "text": True,
         "cwd": str(Path.cwd()),
+        "env": {
+            **os.environ,
+            # Keep pytest on test loggers (see tests/conftest.py); do not inherit
+            # audit CLI MHM_TESTING=0 into workers.
+            "MHM_TESTING": "1",
+        },
     }
     if os.name == "nt":
         creationflags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)

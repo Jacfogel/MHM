@@ -2170,7 +2170,7 @@ class CommandsMixin:
         result = self.run_script("verify_process_cleanup", *cli_args, timeout=300)
         output = result.get("output", "")
         if not output:
-            logger.error("verify_process_cleanup returned empty output")
+            logger.warning("verify_process_cleanup returned empty output")
             return {
                 "success": False,
                 "output": "",

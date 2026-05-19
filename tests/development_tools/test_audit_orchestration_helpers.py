@@ -335,21 +335,23 @@ def test_get_tier3_groups_runs_test_suite_and_keeps_coverage_out():
 
     svc = MagicMock()
     svc.dev_tools_only_mode = False
-    tests, legacy, static = get_tier3_groups(svc)
+    tests, legacy, static, post_test = get_tier3_groups(svc)
     assert [n for n, _ in tests] == ["run_test_suite", "analyze_backup_health"]
     legacy_names = [n for n, _ in legacy]
     assert legacy_names == ["analyze_legacy_references", "generate_legacy_reference_report"]
     static_names = [n for n, _ in static]
-    assert "verify_process_cleanup" in static_names
+    assert "verify_process_cleanup" not in static_names
+    assert [n for n, _ in post_test] == ["verify_process_cleanup"]
 
     svc.dev_tools_only_mode = True
-    tests_dt, legacy, static = get_tier3_groups(svc)
+    tests_dt, legacy, static, post_test_dt = get_tier3_groups(svc)
     assert [n for n, _ in tests_dt] == ["run_test_suite", "analyze_backup_health"]
     legacy_names_dt = [n for n, _ in legacy]
     assert legacy_names_dt == ["analyze_legacy_references"]
     assert "generate_legacy_reference_report" not in legacy_names_dt
     static_names_dt = [n for n, _ in static]
-    assert "verify_process_cleanup" in static_names_dt
+    assert "verify_process_cleanup" not in static_names_dt
+    assert [n for n, _ in post_test_dt] == ["verify_process_cleanup"]
 
 
 @pytest.mark.unit

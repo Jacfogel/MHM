@@ -459,7 +459,7 @@ def run_tool_with_guidance(tool_name):
             print(f"   - {criterion}")
 
     except subprocess.TimeoutExpired:
-        logger.error("Tool timed out after 60 seconds")
+        logger.warning("Tool timed out after 60 seconds")
         print("Tool timed out after 60 seconds")
     except Exception as e:
         logger.error(f"Error running tool: {e}")

@@ -83,7 +83,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 **Completed 2026-05-18 (Phases 1-4)**:
 
-- `ai/interaction_types.py`, `ai/fallback_responses.py`, `ai/command_interpreter.py`, `ai/response_generator.py`, `ai/command_registry.py`; `ai/chatbot.py` remains the facade.
+- `ai/interaction_types.py`, `ai/fallback_responses/` (package), `ai/command_interpreter.py`, `ai/response_generator.py`, `ai/command_registry.py`; `ai/chatbot.py` remains the facade.
 - Clarification command prompt suffix; dynamic command intent list from `get_rule_based_intent_names()`.
 - Boundary unit tests under `tests/unit/test_fallback_responses.py`, `test_command_interpreter.py`, `test_command_registry.py`.
 

@@ -4,7 +4,7 @@
 > **Audience**: Developers and AI collaborators working on MHM's AI system
 > **Purpose**: Explain how the AI subsystem is structured, how it behaves at runtime, and how to extend it safely
 > **Style**: Technical, concise, system-level (hybrid of conceptual and concrete details)
-> **Last Updated**: 2026-05-18
+> **Last Updated**: 2026-05-19
 
 ## 1. Overview
 
@@ -42,8 +42,11 @@ The AI subsystem lives primarily under `ai/` and collaborates with `user/` and `
   - Detects LM Studio status and model readiness.
 - `ai/interaction_types.py`  
   - Named interaction types (`conversational`, `command_interpretation`, `clarification`, `fallback`) mapped from `generate_response` modes.
-- `ai/fallback_responses.py`  
-  - Template and data-aware fallback responses when LM Studio is unavailable or API calls fail.
+- `ai/fallback_responses/` (package)  
+  - Template and data-aware fallback responses when LM Studio is unavailable or API calls fail.  
+  - `ai/fallback_responses/coordinator.py` routes prompts; `ai/fallback_responses/checkin_summary.py` handles check-in analytics; `ai/fallback_responses/conversational.py` handles keyword support; `ai/fallback_responses/personalized.py` and `ai/fallback_responses/profile_helpers.py` handle named greetings.  
+  - `ai/fallback_responses/categories.py` defines deterministic categories (`technical_unavailable`, `new_user_no_context`, `data_unavailable`, `checkin_summary`, `general_support`, `personalized_message`).  
+  - Public API unchanged: `get_fallback_responses().contextual(...)` / `.personalized(...)`.
 - `ai/command_interpreter.py`  
   - Mode detection, command parsing prompts, and structured extraction from model output.
 - `ai/response_generator.py`  
@@ -120,7 +123,9 @@ Per [SYSTEM_AI_OVERHAUL_PLAN.md](SYSTEM_AI_OVERHAUL_PLAN.md), the system separat
 
 **Clarification mode** (`mode="command_with_clarification"`): follow-up questions when command fields are ambiguous; routed by `_detect_mode` / `interaction_manager._try_ai_command_parsing`.
 
-**Fallback**: `ai/fallback_responses.py` supplies templates and check-in-aware text when LM Studio is down, the API is busy, or generation fails. Fallbacks must not pretend AI succeeded or invent data not retrieved deterministically.
+**Fallback**: `ai/fallback_responses/` supplies templates and check-in-aware text when LM Studio is down, the API is busy, or generation fails. Fallbacks must not pretend AI succeeded or invent data not retrieved deterministically.
+
+**Fallback ownership boundary**: Fallback *content* and routing belong in `ai/fallback_responses/`. `communication/` adapters (Discord, email, etc.) format and deliver messages only; they must not own business fallback text or check-in-aware wording. See Phase 4.5 in [SYSTEM_AI_OVERHAUL_PLAN.md](SYSTEM_AI_OVERHAUL_PLAN.md).
 
 `AIChatBotSingleton._detect_mode(user_prompt)` chooses a mode when none is passed. Prefer explicit `mode=` from callers that already know the interaction type (for example command parsing).
 

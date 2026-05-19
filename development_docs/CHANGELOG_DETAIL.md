@@ -44,6 +44,7 @@ When adding new changes, follow this format:
 - **Pyright**: Pass `set[str]` to `TestFileSuiteCache.update_run_status` instead of sorted lists (0 warnings).
 - **Test**: Hardened `test_domain_attribution_summary_via_analyzer_ast_scan` with pinned `domain_markers`; added selective cold-mapping coverage cache test.
 - **Impact**: Repeat full audits skip pytest when source domains are unchanged, matching coverage-run incremental behavior without conflating suite results with coverage JSON.
+- **AI Phase 4.5**: Replaced monolithic `ai/fallback_responses.py` with package `ai/fallback_responses/` (`coordinator`, `checkin_summary`, `conversational`, `personalized`, `profile_helpers`, `categories`, `data_access`). Check-in analytics separated from keyword support; `FallbackCategory` enum for deterministic routing. Public facade unchanged. Documented fallback ownership in [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md); marked Phase 4.5 complete in [SYSTEM_AI_OVERHAUL_PLAN.md](../ai/SYSTEM_AI_OVERHAUL_PLAN.md) (deferred `response_generator` audit to Phase 5+). Expanded `tests/unit/test_fallback_responses.py` with category and import-boundary tests.
 
 ### 2026-05-18 - System AI Overhaul Phases 1-4 **COMPLETED**
 

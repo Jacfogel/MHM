@@ -20,10 +20,11 @@ if project_root_str not in sys.path:
     sys.path.insert(0, project_root_str)
 
 # Force explicit dev-tools logging mode before importing the logger module.
-# This prevents leaked test env vars (e.g., MHM_TESTING=1) from routing
-# development-tools logs into test-coverage log directories.
+# Preserve MHM_TESTING=1 when pytest/conftest already set it so Tier 3 pytest
+# does not bleed test output into development_tools/reports/logs/ai_dev_tools.log.
 os.environ["MHM_DEV_TOOLS_RUN"] = "1"
-os.environ["MHM_TESTING"] = "0"
+if os.getenv("MHM_TESTING") != "1":
+    os.environ["MHM_TESTING"] = "0"
 # Integration tests subprocess this entrypoint; inherited PYTEST_CURRENT_TEST would
 # make create_output_file treat the CLI as an in-test write and block real status files.
 os.environ.pop("PYTEST_CURRENT_TEST", None)
@@ -246,7 +247,7 @@ def _preflight_handle_stale_audit_locks(project_root: Path) -> tuple[bool, int]:
             for entry in lock_states["active"]
             if isinstance(entry.get("path"), Path)
         )
-        logger.error(
+        logger.warning(
             "Audit blocked: active audit/coverage lock file(s) present: "
             f"{lock_list}"
         )
@@ -456,7 +457,7 @@ def main(argv=None) -> int:
                 )
         if internal_interrupt or audit_signal_state.audit_sigint_requested():
             if internal_interrupt:
-                logger.error(
+                logger.warning(
                     "Execution hit KeyboardInterrupt after internal interrupt signature "
                     "was already detected; returning failure state instead of user-interrupt exit."
                 )

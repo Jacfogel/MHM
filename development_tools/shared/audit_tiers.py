@@ -217,12 +217,22 @@ def get_tier2_groups(service: Any) -> tuple[list[tuple[str, Any]], list[list[tup
 
 def get_tier3_groups(
     service: Any,
-) -> tuple[list[tuple[str, Any]], list[tuple[str, Any]], list[tuple[str, Any]]]:
-    """Return (test_suite_group, legacy_group, static_analysis_group) for Tier 3.
+) -> tuple[
+    list[tuple[str, Any]],
+    list[tuple[str, Any]],
+    list[tuple[str, Any]],
+    list[tuple[str, Any]],
+]:
+    """Return Tier 3 tool groups for orchestration.
 
-    The test-suite group runs pytest without coverage. Coverage regeneration,
-    marker analysis, and coverage report generation are reserved for the
-    explicit ``coverage`` command.
+    Returns ``(test_suite_group, legacy_group, static_analysis_group, post_test_group)``.
+
+    The test-suite group runs pytest without coverage. ``verify_process_cleanup`` runs in
+    ``post_test_group`` after parallel work completes so orphan detection runs when workers
+    may exist and does not contend with pytest subprocess startup (Windows SIGINT noise).
+
+    Coverage regeneration, marker analysis, and coverage report generation are reserved for
+    the explicit ``coverage`` command.
     """
     dev_tools_only = bool(getattr(service, "dev_tools_only_mode", False))
     test_suite_group = [
@@ -247,6 +257,8 @@ def get_tier3_groups(
         ("analyze_pyright", _get_runnable(service, "analyze_pyright")),
         ("analyze_bandit", _get_runnable(service, "analyze_bandit")),
         ("analyze_pip_audit", _get_runnable(service, "analyze_pip_audit")),
+    ]
+    post_test_group = [
         ("verify_process_cleanup", _get_runnable(service, "verify_process_cleanup")),
     ]
-    return test_suite_group, legacy_group, static_analysis_group
+    return test_suite_group, legacy_group, static_analysis_group, post_test_group

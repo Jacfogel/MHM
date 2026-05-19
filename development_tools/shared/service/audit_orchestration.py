@@ -327,7 +327,7 @@ class AuditOrchestrationMixin:
                 "Audit blocked: active audit/coverage lock file(s) present: "
                 f"{lock_list}"
             )
-            logger.error(
+            logger.warning(
                 "Audit blocked: active audit/coverage lock file(s) present: "
                 f"{lock_list}"
             )
@@ -439,7 +439,7 @@ class AuditOrchestrationMixin:
                     "(SIGINT/control event propagated from subprocess). "
                     "Treating audit as failed without user-interrupt exit."
                 )
-                logger.error(
+                logger.warning(
                     "Internal interrupt signature detected during Tier 3 pytest; "
                     "continuing audit finalization with failure state."
                 )
@@ -1301,6 +1301,7 @@ class AuditOrchestrationMixin:
             tier3_test_suite_group,
             tier3_legacy_group,
             tier3_static_analysis_group,
+            tier3_post_test_group,
         ) = get_tier3_groups(self)
 
         if not tier3_test_suite_group:
@@ -1505,7 +1506,55 @@ class AuditOrchestrationMixin:
                 time_saved = sum_individual_times - max_parallel_time
                 if time_saved > 1.0:  # Only log if significant time saved
                     logger.info(f"Parallel execution saved ~{time_saved:.1f}s (wall-clock: {max_parallel_time:.1f}s vs sequential: {sum_individual_times:.1f}s)")
-        
+
+        # Post-test tools run after pytest (orphan worker probe; avoid parallel startup races).
+        for tool_name, tool_func in tier3_post_test_group:
+            if audit_signal_state.audit_sigint_requested():
+                self._internal_interrupt_detected = True
+                failed.append(tool_name)
+                break
+            try:
+                result, elapsed_time = self._run_tool_with_timing(tool_name, tool_func)
+                self._tool_timings[tool_name] = elapsed_time
+                if isinstance(result, dict):
+                    success = result.get("success", False)
+                    if "data" in result:
+                        self._extract_key_info(tool_name, result)
+                else:
+                    success = bool(result)
+                self._record_tool_cache_metadata(tool_name, result)
+                if success:
+                    self._tool_execution_status[tool_name] = "success"
+                    successful.append(tool_name)
+                    self._tools_run_in_current_tier.add(tool_name)
+                else:
+                    self._tool_execution_status[tool_name] = "failed"
+                    failed.append(tool_name)
+                    logger.warning(
+                        f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data"
+                    )
+                    if isinstance(result, dict) and result.get("error"):
+                        _err = (result.get("error") or "").strip()[:800]
+                        if _err:
+                            logger.warning(f"  {tool_name} error detail: {_err}")
+            except KeyboardInterrupt:
+                self._internal_interrupt_detected = True
+                self._tool_timings[tool_name] = 0.0
+                self._tool_execution_status[tool_name] = "failed"
+                failed.append(tool_name)
+                logger.warning(
+                    f"  - {tool_name} interrupted during Tier 3 post-test execution"
+                )
+            except Exception as exc:
+                elapsed_time = exc.elapsed_time if isinstance(exc, ToolExecutionError) else 0.0
+                self._tool_timings[tool_name] = elapsed_time
+                self._tool_execution_status[tool_name] = "failed"
+                failed.append(tool_name)
+                logger.error(f"  - {tool_name} failed: {exc}", exc_info=True)
+                logger.warning(
+                    f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data"
+                )
+
         # Coverage-dependent tools are run only by the explicit `coverage` command.
         tier3_coverage_dependent_group: list[tuple[str, Any]] = []
         for tool_name, tool_func in tier3_coverage_dependent_group:

@@ -431,13 +431,14 @@ The practical refactor direction is:
 7. **Phase 5 (planned):** Collapse thin facade delegates on `AIChatBotSingleton` once Phases 1–4 are stable (see Section 8.1).
 
 ---
-## 8.0 Phase 4.5 - address follow-ups:
+## 8.0 Phase 4.5 - address follow-ups **COMPLETED** (2026-05-19)
+
 Refactor follow-up tasks
 Clarify fallback ownership
 What it means: Decide and document that AI fallback behavior belongs to ai/, while channel formatting belongs to communication/.
 Why it helps: Prevents fallback logic from leaking into Discord/email adapters.
 Estimated effort: Small
-Split ai/fallback_responses.py by fallback purpose
+Split `ai/fallback_responses/` package by fallback purpose
 
 What it means: Replace the single large file with a small package:
 
@@ -466,10 +467,11 @@ Avoid moving fallback text into communication/
 What it means: Keep communication/ responsible for delivery/formatting only.
 Why it helps: Communication architecture is supposed to stay channel-agnostic and adapter-focused, not own business response logic.
 Estimated effort: Small
-Audit response_generator.py next
+Audit response_generator.py next **DEFERRED** (Phase 5+)
 What it means: The big prompt/context logic was mostly moved, not simplified.
 Why it helps: This is now the largest remaining AI responsibility blob.
 Estimated effort: Medium/Large
+Status: Not done in 4.5; track as next AI refactor after facade collapse (Section 8.1).
 Add fallback boundary tests
 What it means: Expand test_fallback_responses.py to verify fallback responses do not claim AI success, data access, or completed actions.
 Why it helps: The AI test guide already treats fallbacks/error handling as a core AI test category .
@@ -507,7 +509,7 @@ Replace each call site inside `chatbot.py` with the corresponding `get_*()` modu
 
 ### Exit criteria
 
-- No one-line `_…` delegates on `AIChatBotSingleton` that only forward to `ai/fallback_responses.py`, `ai/command_interpreter.py`, or `ai/response_generator.py`.
+- No one-line `_…` delegates on `AIChatBotSingleton` that only forward to `ai/fallback_responses/`, `ai/command_interpreter.py`, or `ai/response_generator.py`.
 - `communication/` still imports only `get_ai_chatbot()` (no requirement to import submodules from channels).
 - Tests and docs describe module ownership clearly; `SYSTEM_AI_GUIDE.md` updated to reflect post–Phase 5 layout.
 

@@ -30,7 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-05-19 - run_test_suite domain cache **COMPLETED**
+### 2026-05-19 - Dev tools cache + AI fallback Phase 4.5 **COMPLETED**
+- **Phase 4.5**: Split `ai/fallback_responses.py` into package (`coordinator`, `checkin_summary`, `conversational`, `personalized`, `profile_helpers`, `categories`); explicit `FallbackCategory`; ownership documented in `SYSTEM_AI_GUIDE.md`
+- Facade API unchanged (`get_fallback_responses().contextual` / `.personalized`); import-boundary and category tests in `test_fallback_responses.py`
+- Dev-tools logging: handled outcomes (audit lock block, internal interrupt signature, tool-guide timeout) now log at WARNING so Tier 3 pytest does not write false ERROR lines to `ai_dev_tools.log`
+- Tier 3: `verify_process_cleanup` runs after parallel groups (post-pytest) instead of alongside `run_test_suite` startup, avoiding Windows SIGINT/site-import subprocess failures during audits
+- Dev-tools pytest: preserve `MHM_TESTING=1` in `run_test_suite` subprocess; `MHM_TESTING=0` overrides pytest context for rotation tests; audit log bleed reduced
+- Audit priorities: Pyright clean on `ai/fallback_responses/`; docstrings on profile/conversational helpers; `@handle_errors` on full fallback package including `personalize_with_profile_name`; `SYSTEM_AI_GUIDE.md` path drift cleared (doc-sync PASS)
 - `test_file_suite_cache.py` shares domain invalidation with coverage cache; per-test-file JUnit outcomes + full snapshot skip
 - `run_test_suite --no-domain-cache` disables; cleanup removes `test_file_suite_cache.json`
 - Audit metadata reports `cache_mode` (cache_hit / selective_run / full_run)

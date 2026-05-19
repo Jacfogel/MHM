@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-19 01:18:55
+> **Last Generated**: 2026-05-19 16:33:59
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -71,7 +71,6 @@ C:.
 |   |   command_registry.py
 |   |   context_builder.py
 |   |   conversation_history.py
-|   |   fallback_responses.py
 |   |   interaction_types.py
 |   |   lm_studio_manager.py
 |   |   prompt_manager.py
@@ -80,6 +79,16 @@ C:.
 |   |   SYSTEM_AI_OVERHAUL_PLAN.md
 |   |   __init__.py
 |   |
+|   +---fallback_responses
+|   |   |   categories.py
+|   |   |   checkin_summary.py
+|   |   |   conversational.py
+|   |   |   coordinator.py
+|   |   |   data_access.py
+|   |   |   personalized.py
+|   |   |   profile_helpers.py
+|   |   |   __init__.py
+|   |   |
 +---ai_development_docs
 |   |   AI_ARCHITECTURE.md
 |   |   AI_BACKUP_GUIDE.md
@@ -409,6 +418,7 @@ C:.
 |   |   |   run_test_coverage.py
 |   |   |   run_test_suite.py
 |   |   |   test_file_coverage_cache.py
+|   |   |   test_file_suite_cache.py
 |   |   |   verify_process_cleanup.py
 |   |   |   __init__.py
 |   |   |
@@ -730,6 +740,7 @@ C:.
 |   |   |   test_supporting_tools.py
 |   |   |   test_sync_ruff_toml.py
 |   |   |   test_test_file_coverage_cache.py
+|   |   |   test_test_file_suite_cache.py
 |   |   |   test_tooling_policy_consistency.py
 |   |   |   test_tool_cache_inventory_policy.py
 |   |   |   test_tool_guide.py

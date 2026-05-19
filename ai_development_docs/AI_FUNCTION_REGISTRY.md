@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-19 01:18:41
+> **Last Generated**: 2026-05-19 16:33:50
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 94.0% [!] GOOD**
-- **Total Functions**: 1801
+### **Documentation Coverage: 93.7% [!] GOOD**
+- **Total Functions**: 1813
 - **Total Methods**: 1258
-- **Documented**: 2876/3059
-- **Files Scanned**: 139
+- **Documented**: 2876/3071
+- **Files Scanned**: 146
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -160,12 +160,14 @@ Core System Decision Tree:
 - `tasks/task_schemas.py` - 10/10 functions undocumented (0% coverage)
 - `tasks/task_service.py` - 10/26 functions undocumented (62% coverage)
 - `ui/dialogs/channel_management_dialog.py` - 7/11 functions undocumented (36% coverage)
+- `ai/fallback_responses/__init__.py` - 6/7 functions undocumented (14% coverage)
 - `ui/widgets/channel_selection_widget.py` - 6/16 functions undocumented (62% coverage)
-- `tasks/task_data_handlers.py` - 6/22 functions undocumented (73% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
+- `ai/fallback_responses/profile_helpers.py` - 2/4 functions undocumented (50% coverage)
+- `ai/fallback_responses/checkin_summary.py` - 1/2 functions undocumented (50% coverage)
 - `core/user_lookup.py` - 1/3 functions undocumented (67% coverage)
 
 
@@ -197,7 +199,7 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `ai/` - AI chatbot functionality (12 files, 255 functions)
+- `ai/` - AI chatbot functionality (19 files, 267 functions)
 - `communication/` - Communication channels and message processing (45 files, 945 functions)
 - `core/` - System utilities and data management (33 files, 726 functions)
 - `scheduler/` -  (5 files, 92 functions)

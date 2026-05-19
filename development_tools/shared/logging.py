@@ -36,7 +36,18 @@ def _normalize_component_name(component_name: str) -> str:
 
 
 def _is_testing() -> bool:
-    return os.getenv("MHM_TESTING") == "1"
+    """
+    True when dev-tools loggers should stay quiet (dummy / test log dirs).
+
+    ``MHM_TESTING=0`` forces production file logging even under pytest (used by
+    ``test_shared_logging``). ``MHM_TESTING=1`` from tests/conftest keeps audit logs clean.
+    """
+    flag = os.getenv("MHM_TESTING")
+    if flag == "0":
+        return False
+    if flag == "1":
+        return True
+    return os.getenv("PYTEST_CURRENT_TEST") is not None
 
 
 def _test_verbose_logs() -> bool:
