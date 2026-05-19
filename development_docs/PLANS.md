@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for active, delegated, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-05-17  
+> **Last Updated**: 2026-05-18  
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) and prior changelog entries remain the historical record.
 
@@ -66,10 +66,36 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Broader natural-language task creation, templates, notes/links, Discord validation |
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
 | AI development tools | **ACTIVE** | Medium | [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) | Dev-tools coverage slices, marker/domain work, portability follow-ups |
+| System AI overhaul | **ACTIVE** | High | [SYSTEM_AI_OVERHAUL_PLAN.md](../ai/SYSTEM_AI_OVERHAUL_PLAN.md) | Phase 5: collapse thin `chatbot.py` delegates; Phases 1-4 done |
 
 ---
 
 ## 5. Active Top-Level Plans
+
+### 5.0 System AI overhaul (interaction-type separation)
+
+**Status**: **ACTIVE**  
+**Priority**: High  
+**Started**: 2026-05-18  
+**Spec**: [SYSTEM_AI_OVERHAUL_PLAN.md](../ai/SYSTEM_AI_OVERHAUL_PLAN.md)
+
+**Use / fit**: Separate conversational, command-interpretation, clarification, and fallback AI paths without a new orchestration framework. Deterministic handlers remain authoritative for execution.
+
+**Completed 2026-05-18 (Phases 1-4)**:
+
+- `ai/interaction_types.py`, `ai/fallback_responses.py`, `ai/command_interpreter.py`, `ai/response_generator.py`, `ai/command_registry.py`; `ai/chatbot.py` remains the facade.
+- Clarification command prompt suffix; dynamic command intent list from `get_rule_based_intent_names()`.
+- Boundary unit tests under `tests/unit/test_fallback_responses.py`, `test_command_interpreter.py`, `test_command_registry.py`.
+
+**Next (Phase 5 - collapse facade delegates):**
+
+- Inline calls in `ai/chatbot.py` to `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()`; remove one-line private delegates (`_get_contextual_fallback`, `_detect_mode`, `_create_comprehensive_context_prompt`, etc.).
+- Update tests that call `bot._detect_mode` / similar to target the canonical modules where appropriate.
+- Keep `get_ai_chatbot()` and public generate/status methods as the stable API for `communication/` (see overhaul plan Section 8.1). This is refactor completion, not `# LEGACY COMPATIBILITY` removal.
+
+**Later follow-ups** (see overhaul plan Section 8.1): deeper `ContextBuilder` / `response_generator` deduplication; AI Chatbot Actionability Sprint and NLP accuracy work in [TODO.md](../TODO.md).
+
+---
 
 ### 5.1 Flow/check-in scheduled-send stability
 

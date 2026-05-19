@@ -33,6 +33,15 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-05-18 - System AI Overhaul Phases 1-4 **COMPLETED**
+
+#### Interaction-type separation
+- **Feature**: Implemented [SYSTEM_AI_OVERHAUL_PLAN.md](../ai/SYSTEM_AI_OVERHAUL_PLAN.md) Phases 1-4: `ai/interaction_types.py` (`AIInteractionType` + mode mapping), `ai/fallback_responses.py`, `ai/command_interpreter.py` (including clarification prompt suffix), `ai/response_generator.py` (comprehensive context + engagement), and `ai/command_registry.py` with `get_rule_based_intent_names()` backed by `RULE_BASED_INTENT_PATTERNS` in `communication/message_processing/command_parser.py`. `ai/chatbot.py` delegates to these modules; communication call sites unchanged.
+- **Documentation**: Updated [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md), active entry in [PLANS.md](PLANS.md), [TODO.md](../TODO.md) deferred-AI notes, and plan file header path.
+- **Testing**: Added `tests/unit/test_fallback_responses.py`, `test_command_interpreter.py`, `test_command_registry.py`; updated personalized-fallback mocks in `test_ai_chatbot_helpers.py`. Focused pytest on AI unit/behavior tests passed.
+- **Impact**: Clearer boundaries between conversational, command, clarification, and fallback AI work; easier refactors and safer extension without a new orchestration framework.
+- **Planning (Phase 5)**: Documented collapse of thin `AIChatBotSingleton` facade delegates in overhaul plan Section 8.1 and [PLANS.md](PLANS.md) Section 5.0 (refactor completion, not legacy-bridge removal).
+
 ### 2026-05-18 - Tier 3 Pytest Runner Without Coverage and Audit Stability **COMPLETED**
 
 #### Tier 3 test execution
@@ -42,7 +51,7 @@ When adding new changes, follow this format:
 
 #### Coverage separation
 - **Feature/Fix**: Moved coverage-only work to the explicit `coverage` command in [`cli_interface.py`](../development_tools/shared/cli_interface.py). The command now owns coverage regeneration, marker analysis (`run_test_markers("check")`), and `TEST_COVERAGE_REPORT.md` generation; coverage tools were removed from Tier 3 scheduling.
-- **Documentation**: Updated [`DEVELOPMENT_TOOLS_GUIDE.md`](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md), [`AI_DEVELOPMENT_TOOLS_GUIDE.md`](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), [`AI_DEVELOPMENT_WORKFLOW.md`](../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md), [`AI_TESTING_GUIDE.md`](../ai_development_docs/AI_TESTING_GUIDE.md), [`tests/TESTING_GUIDE.md`](../tests/TESTING_GUIDE.md), and [`tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md`](../tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md) to state that Tier 3 runs pytest without coverage and coverage is a separate, less frequent command.
+- **Documentation**: Updated [`DEVELOPMENT_TOOLS_GUIDE.md`](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md), [`AI_DEVELOPMENT_TOOLS_GUIDE.md`](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), [`AI_DEVELOPMENT_WORKFLOW.md`](../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md), [`AI_TESTING_GUIDE.md`](../ai_development_docs/AI_TESTING_GUIDE.md), [[TESTING_GUIDE.md](../tests/TESTING_GUIDE.md)](../tests/TESTING_GUIDE.md), and [[DEVELOPMENT_TOOLS_TESTING_GUIDE.md](../tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md)](../tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md) to state that Tier 3 runs pytest without coverage and coverage is a separate, less frequent command.
 
 #### Runner hardening and stale-result fixes
 - **Problem**: A later full audit appeared to rerun tests in 0.28s while preserving old failures. Investigation showed `test_run.pytest_command` used `python -m pytest`, which resolved to system `C:\Python312\python.exe` without pytest; stale `run_test_suite_results.json` and JUnit XML were then parsed as if current.

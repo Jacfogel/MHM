@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-17 01:15:59
+> **Last Generated**: 2026-05-19 01:18:53
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 132
-- **Total Imports**: 1447
-- **Standard Library**: 422 (29.2%)
-- **Third-Party**: 228 (15.8%)
-- **Local Imports**: 797 (55.1%)
+- **Files Scanned**: 137
+- **Total Imports**: 1468
+- **Standard Library**: 424 (28.9%)
+- **Third-Party**: 228 (15.5%)
+- **Local Imports**: 816 (55.6%)
 
 ## Dependency Decision Trees
 
@@ -34,7 +34,7 @@ Core System Dependencies:
 AI System Dependencies:
 - AI Core
   - ai/cache_manager.py <- standard library (dataclasses, hashlib, threading, time), logger, error_handling, config
-  - ai/chatbot.py <- standard library (asyncio, collections, datetime, json), third-party (psutil, requests), logger, config, response_tracking, core, context_manager (+8 more)
+  - ai/chatbot.py <- standard library (asyncio, collections, os, re), third-party (psutil, requests), logger, config, response_tracking, context_manager, prompt_manager (+7 more)
 - Command Processing
   - communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), third-party (storage.user_data_operations), logger, error_handling, core, base_handler, shared_types (+1 more)
   - communication/command_handlers/analytics_handler.py <- standard library (collections, typing), logger, error_handling, base_handler, shared_types, response_tracking (+5 more)
@@ -76,7 +76,7 @@ UI Dependencies:
 Communication and AI modules depend on core system modules.
 - `ai/cache_manager.py` -> core.logger, core.error_handling, core.config
 - `ai/chatbot.py` -> core.logger, core.config, core.response_tracking
-- `ai/context_builder.py` -> core.logger, core.error_handling, core.time_utilities
+- `ai/command_interpreter.py` -> core.error_handling
 
 ### UI -> Core
 UI modules rely on core configuration and data access.
@@ -86,7 +86,8 @@ UI modules rely on core configuration and data access.
 
 ### Communication -> Communication
 Communication modules compose other communication utilities for complete flows.
-- `ai/chatbot.py` -> ai.prompt_manager, ai.cache_manager, ai.lm_studio_manager
+- `ai/chatbot.py` -> ai.prompt_manager, ai.cache_manager, ai.command_interpreter
+- `ai/command_interpreter.py` -> ai.prompt_manager
 
 ### Third-Party Integration
 External libraries provide channel and UI support.

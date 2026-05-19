@@ -4,7 +4,7 @@
 > **Audience**: Developers and AI collaborators working on MHM's AI system
 > **Purpose**: Explain how the AI subsystem is structured, how it behaves at runtime, and how to extend it safely
 > **Style**: Technical, concise, system-level (hybrid of conceptual and concrete details)
-> **Last Updated**: 2025-11-01
+> **Last Updated**: 2026-05-18
 
 ## 1. Overview
 
@@ -40,8 +40,20 @@ The AI subsystem lives primarily under `ai/` and collaborates with `user/` and `
   - Persists and retrieves per-user conversational history.
 - `ai/lm_studio_manager.py`  
   - Detects LM Studio status and model readiness.
+- `ai/interaction_types.py`  
+  - Named interaction types (`conversational`, `command_interpretation`, `clarification`, `fallback`) mapped from `generate_response` modes.
+- `ai/fallback_responses.py`  
+  - Template and data-aware fallback responses when LM Studio is unavailable or API calls fail.
+- `ai/command_interpreter.py`  
+  - Mode detection, command parsing prompts, and structured extraction from model output.
+- `ai/response_generator.py`  
+  - Comprehensive conversational context prompts and engagement post-processing.
+- `ai/command_registry.py`  
+  - Dynamic command intent list for the command system prompt (from rule-based parser patterns).
 - `communication/message_processing/command_parser.py`  
   - Enhanced command parser combining rule-based and AI parsing.
+
+**Facade vs legacy compatibility:** After Phases 1-4, `ai/chatbot.py` still has thin private delegates (for example `_get_contextual_fallback` -> `fallback_responses`) while logic lives in the new modules. That is **transitional refactor wiring**, not `# LEGACY COMPATIBILITY` bridge code. **Phase 5** (planned) removes those forwarders: `chatbot.py` calls the modules directly and keeps `get_ai_chatbot()` as the public API. See [SYSTEM_AI_OVERHAUL_PLAN.md](SYSTEM_AI_OVERHAUL_PLAN.md) Section 8.1 and [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md).
 
 Supporting modules:
 
@@ -89,23 +101,33 @@ The core public entry points in `ai/chatbot.py` are:
 
 All of these are accessed via a singleton instance; use `get_ai_chatbot()` rather than instantiating the chatbot class directly.
 
-### 3.2. Modes
+### 3.2. Interaction types and modes
 
-The AI subsystem distinguishes between two primary modes internally:
+Per [SYSTEM_AI_OVERHAUL_PLAN.md](SYSTEM_AI_OVERHAUL_PLAN.md), the system separates **why** AI is called from **what** happens with the output. `AIInteractionType` in `ai/interaction_types.py` is the canonical name; `generate_response(..., mode=...)` remains the runtime API.
 
-- **Chat mode** (`mode="chat"`)  
-  - General wellness/support/QA conversation.
-  - No caching for responses to allow natural variation.
-- **Command mode** (`mode="command"`)  
-  - Structured responses used for parsing and integration with `EnhancedCommandParser`.
-  - Caching is enabled when safe, and responses may be cleaned or parsed as JSON/structured output.
+| `AIInteractionType` | Typical `mode` | User-visible? | May execute actions? |
+|---------------------|----------------|---------------|----------------------|
+| `conversational` | `chat` | Yes | No |
+| `command_interpretation` | `command` | No | No (structured candidate only) |
+| `clarification` | `command_with_clarification` | Yes (short question) | No |
+| `fallback` | (any; LM/API failure paths) | Yes | No |
 
-`AIChatBotSingleton._detect_mode(user_prompt)` applies a combination of keyword heuristics and simple patterns (for example, phrases like "create a task", "remind me to...", "update my schedule") to choose a mode when one is not explicitly provided.
+**AI output is not system authority.** Only deterministic handlers in `communication/message_processing/` (for example `interaction_manager._handle_structured_command`, rule-based `EnhancedCommandParser`) validate and execute actions. AI must not claim an action completed unless the deterministic layer did it.
+
+**Chat mode** (`mode="chat"`): general wellness/support conversation; no response caching for natural variation.
+
+**Command mode** (`mode="command"`): structured parsing for `EnhancedCommandParser`; caching when safe; output cleaned via `_extract_command_from_response`.
+
+**Clarification mode** (`mode="command_with_clarification"`): follow-up questions when command fields are ambiguous; routed by `_detect_mode` / `interaction_manager._try_ai_command_parsing`.
+
+**Fallback**: `ai/fallback_responses.py` supplies templates and check-in-aware text when LM Studio is down, the API is busy, or generation fails. Fallbacks must not pretend AI succeeded or invent data not retrieved deterministically.
+
+`AIChatBotSingleton._detect_mode(user_prompt)` chooses a mode when none is passed. Prefer explicit `mode=` from callers that already know the interaction type (for example command parsing).
 
 When you add new high-level capabilities, prefer:
 
-- Keeping **mode detection rules** in `ai/chatbot.py`, and
-- Introducing **explicit mode override** where higher-level code already knows the correct mode (for example, command parsing).
+- Keeping **mode detection rules** in `ai/chatbot.py` (moving to `command_interpreter.py` in a later overhaul phase), and
+- Introducing **explicit mode override** where higher-level code already knows the correct mode.
 
 ### 3.3. Command parsing integration
 

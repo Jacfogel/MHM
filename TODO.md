@@ -120,12 +120,12 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 
 ### AI & Conversation
 
-**Improve Natural Language Processing (NLP) Accuracy** - *Deferred (AI overhaul)*
+**Improve Natural Language Processing (NLP) Accuracy** - *Deferred (post-overhaul; command_interpreter in place)*
 - *What it means*: Refine parsing patterns and thresholds to better recognize intents and entities. NLP = how the system interprets user commands and natural language (e.g., "create a task to buy milk" -> task creation intent).
 - *Why it helps*: More reliable command understanding and fewer misinterpretations
 - *Estimated effort*: Medium
 
-**Investigate and Refactor AI Command List Generation** - *Deferred (AI overhaul)*
+**Investigate and Refactor AI Command List Generation** - *Partially addressed 2026-05-18: `ai/command_registry.py` + `get_rule_based_intent_names()`; verify parity and remove static list from prompt template when stable*
 - *What it means*: Investigate why there are two separate hardcoded command lists for the AI chatbot (in `ai/prompt_manager.py` and `ai/chatbot.py`) and explore generating these lists dynamically from the handlers' `can_handle()` methods or the command parser's `intent_patterns` dictionary
 - *Why it helps*: Prevents maintenance issues where new commands (like `create_quick_note`) need to be manually added to multiple places, reduces risk of inconsistencies between lists, and ensures the AI always knows about all available commands automatically
 - *Estimated effort*: Medium
@@ -149,7 +149,7 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 
 ### Performance Optimizations
 
-**Optimize AI Response Times** - *Deferred (AI overhaul)*
+**Optimize AI Response Times** - *Deferred (post-overhaul)*
 - *What it means*: Reduce latency for AI-backed responses via batching, caching, or configuration tuning
 - *Why it helps*: Snappier interactions and better UX
 - *Estimated effort*: Medium
@@ -178,9 +178,9 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 - *Estimated effort*: Medium/Large
 - *Created*: 2026-05-03
 
-### Deferred (AI overhaul)
+### Deferred (AI overhaul - follow-ups after Phases 1-3)
 
-**AI Chatbot Actionability Sprint** - *Deferred (AI overhaul)*
+**AI Chatbot Actionability Sprint** - *Deferred (post-overhaul Phase 4+)*
 - *What it means*: Improve AI chat quality and enable robust task/message/profile CRUD, with awareness of recent automated messages and targeted, non-conflicting suggestions.
 - *Why it helps*: Addresses the user's biggest friction and increases real utility.
 - *Estimated effort*: Large

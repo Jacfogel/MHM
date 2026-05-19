@@ -1,5 +1,12 @@
 # context_builder.py
 
+"""
+Lighter-weight AI context assembly for targeted prompts.
+
+Full conversational context for LM Studio is built in
+`ai.response_generator.ResponseGenerator.create_comprehensive_context_prompt`.
+"""
+
 from typing import Any
 from dataclasses import dataclass
 from datetime import datetime

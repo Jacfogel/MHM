@@ -6,12 +6,18 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import os
+import sys
+import time
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any
+
+# Default defer window when audit/coverage lock files are active (15 minutes).
+_DEFAULT_ROLLOVER_DEFER_SECONDS = 15 * 60
 
 _RESERVED_LOG_KWARGS = frozenset({"exc_info", "stack_info", "stacklevel", "extra"})
 
@@ -55,6 +61,111 @@ def _resolve_int_env(name: str, fallback: int) -> int:
     return value if value >= 0 else fallback
 
 
+def _resolve_project_root_from_log_path(log_path: Path) -> Path | None:
+    """Walk parents from the log file to find the repository root."""
+    try:
+        current = log_path.resolve().parent
+    except OSError:
+        current = log_path.parent
+    for _ in range(15):
+        if (current / "development_tools").is_dir() or (current / ".git").exists():
+            return current
+        if current.parent == current:
+            break
+        current = current.parent
+    return None
+
+
+class AuditDeferredRotatingFileHandler(RotatingFileHandler):
+    """
+    RotatingFileHandler that defers rollover while audit/coverage locks are active.
+
+    When active lock files are present (same set as ``active_audit_coverage_locks_present``),
+    rollover is skipped and retried after ``DEV_TOOLS_LOG_ROLLOVER_DEFER_SECONDS`` (default 15
+    minutes). This avoids Windows rename failures while ``ai_dev_tools.log`` is heavily written
+    or held open during Tier 3 audits.
+    """
+
+    def __init__(
+        self,
+        filename: str | os.PathLike[str],
+        defer_seconds: int | None = None,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(filename, **kwargs)
+        self.defer_seconds = (
+            defer_seconds
+            if defer_seconds is not None
+            else _resolve_int_env(
+                "DEV_TOOLS_LOG_ROLLOVER_DEFER_SECONDS",
+                _DEFAULT_ROLLOVER_DEFER_SECONDS,
+            )
+        )
+        if self.defer_seconds <= 0:
+            self.defer_seconds = _DEFAULT_ROLLOVER_DEFER_SECONDS
+        self._defer_rollover_until = 0.0
+        self._project_root: Path | None = None
+
+    def _get_project_root(self) -> Path | None:
+        if self._project_root is None:
+            self._project_root = _resolve_project_root_from_log_path(Path(self.baseFilename))
+        return self._project_root
+
+    def _rollover_deferred_now(self) -> bool:
+        return time.time() < self._defer_rollover_until
+
+    def _audit_locks_block_rollover(self) -> bool:
+        if os.environ.get("DISABLE_LOG_ROTATION") == "1":
+            return False
+        project_root = self._get_project_root()
+        if project_root is None:
+            return False
+        from development_tools.shared.lock_state import active_audit_coverage_locks_present
+
+        return active_audit_coverage_locks_present(project_root)
+
+    def _schedule_rollover_retry(self, reason: str) -> None:
+        now = time.time()
+        if now < self._defer_rollover_until:
+            return
+        self._defer_rollover_until = now + float(self.defer_seconds)
+        minutes = max(1, int(self.defer_seconds // 60))
+        with contextlib.suppress(Exception):
+            sys.stderr.write(
+                f"[devtools] Log rollover deferred for {minutes} minute(s): {reason}\n"
+            )
+
+    def shouldRollover(self, record: logging.LogRecord) -> bool:  # noqa: N802
+        if os.environ.get("DISABLE_LOG_ROTATION") == "1":
+            return False
+        if self._rollover_deferred_now():
+            return False
+        if not super().shouldRollover(record):
+            return False
+        if self._audit_locks_block_rollover():
+            self._schedule_rollover_retry("active audit/coverage lock file(s) present")
+            return False
+        return True
+
+    def doRollover(self) -> None:  # noqa: N802
+        if os.environ.get("DISABLE_LOG_ROTATION") == "1":
+            return
+        if self._rollover_deferred_now():
+            return
+        if self._audit_locks_block_rollover():
+            self._schedule_rollover_retry("active audit/coverage lock file(s) present")
+            return
+        try:
+            super().doRollover()
+        except PermissionError:
+            if self._audit_locks_block_rollover():
+                self._schedule_rollover_retry(
+                    "log file locked during audit/coverage (rollover rename failed)"
+                )
+            else:
+                raise
+
+
 def _setup_devtools_parent_logger() -> None:
     global _parent_initialized
     if _parent_initialized:
@@ -77,7 +188,7 @@ def _setup_devtools_parent_logger() -> None:
         "DEV_TOOLS_LOG_BACKUP_COUNT",
         _resolve_int_env("LOG_BACKUP_COUNT", 7),
     )
-    handler = RotatingFileHandler(
+    handler = AuditDeferredRotatingFileHandler(
         log_path,
         maxBytes=max_bytes,
         backupCount=backup_count,
@@ -174,6 +285,8 @@ def get_dev_tools_logger(component_name: str) -> DevToolsLogger | _DummyDevTools
     Rotation defaults to 1 MB and can be overridden with
     ``DEV_TOOLS_LOG_MAX_BYTES``. Retention defaults to ``LOG_BACKUP_COUNT``
     compatible values and can be overridden with ``DEV_TOOLS_LOG_BACKUP_COUNT``.
+    While audit/coverage lock files are active, log rollover is deferred for
+    ``DEV_TOOLS_LOG_ROLLOVER_DEFER_SECONDS`` (default 900 / 15 minutes).
     """
     name = _normalize_component_name(component_name)
     if _is_testing() and not _test_verbose_logs():

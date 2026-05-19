@@ -229,7 +229,12 @@ class PromptManager:
         template = self._fallback_prompts.get(prompt_type)
         if template:
             logger.debug(f"Using fallback prompt for type: {prompt_type}")
-            return template.content
+            content = template.content
+            if prompt_type == "command":
+                from ai.command_registry import inject_command_actions_into_prompt
+
+                content = inject_command_actions_into_prompt(content)
+            return content
 
         # Default to wellness prompt
         logger.debug(

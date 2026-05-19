@@ -251,8 +251,8 @@ class TestAIChatBotHelpers:
 
     def test_get_fallback_personalized_message_with_name(self, chatbot_instance):
         """Test _get_fallback_personalized_message includes user name."""
-        with patch('ai.chatbot.get_user_data') as mock_get_data, \
-             patch('ai.chatbot.get_recent_responses', return_value=[]):
+        with patch('ai.fallback_responses.get_user_data') as mock_get_data, \
+             patch('ai.fallback_responses.get_recent_responses', return_value=[]):
             mock_get_data.return_value = {
                 'context': {
                     'preferred_name': 'TestUser'
@@ -265,8 +265,8 @@ class TestAIChatBotHelpers:
 
     def test_get_fallback_personalized_message_with_mood(self, chatbot_instance):
         """Test _get_fallback_personalized_message adapts to mood."""
-        with patch('ai.chatbot.get_user_data') as mock_get_data, \
-             patch('ai.chatbot.get_recent_responses') as mock_recent:
+        with patch('ai.fallback_responses.get_user_data') as mock_get_data, \
+             patch('ai.fallback_responses.get_recent_responses') as mock_recent:
             mock_get_data.return_value = {'context': {}}
             mock_recent.return_value = [
                 {'mood': 5, 'energy': 5}
@@ -278,8 +278,8 @@ class TestAIChatBotHelpers:
 
     def test_get_fallback_personalized_message_low_mood(self, chatbot_instance):
         """Test _get_fallback_personalized_message adapts to low mood."""
-        with patch('ai.chatbot.get_user_data') as mock_get_data, \
-             patch('ai.chatbot.get_recent_responses') as mock_recent:
+        with patch('ai.fallback_responses.get_user_data') as mock_get_data, \
+             patch('ai.fallback_responses.get_recent_responses') as mock_recent:
             mock_get_data.return_value = {'context': {}}
             mock_recent.return_value = [
                 {'mood': 1, 'energy': 1}
@@ -291,8 +291,8 @@ class TestAIChatBotHelpers:
 
     def test_get_fallback_personalized_message_no_data(self, chatbot_instance):
         """Test _get_fallback_personalized_message with no user data."""
-        with patch('ai.chatbot.get_user_data', return_value={}), \
-             patch('ai.chatbot.get_recent_responses', return_value=[]):
+        with patch('ai.fallback_responses.get_user_data', return_value={}), \
+             patch('ai.fallback_responses.get_recent_responses', return_value=[]):
             
             result = chatbot_instance._get_fallback_personalized_message("user123")
             

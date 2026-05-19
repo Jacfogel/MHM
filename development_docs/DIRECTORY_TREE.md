@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-17 01:16:01
+> **Last Generated**: 2026-05-19 01:18:55
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -67,11 +67,17 @@ C:.
 +---ai
 |   |   cache_manager.py
 |   |   chatbot.py
+|   |   command_interpreter.py
+|   |   command_registry.py
 |   |   context_builder.py
 |   |   conversation_history.py
+|   |   fallback_responses.py
+|   |   interaction_types.py
 |   |   lm_studio_manager.py
 |   |   prompt_manager.py
+|   |   response_generator.py
 |   |   SYSTEM_AI_GUIDE.md
+|   |   SYSTEM_AI_OVERHAUL_PLAN.md
 |   |   __init__.py
 |   |
 +---ai_development_docs
@@ -324,6 +330,8 @@ C:.
     (log files)
 |   |   +---scopes
 |   |   |   +---dev_tools
+|   |   |   |   |   analysis_detailed_results.json
+|   |   |   |   |
 |   |   |   |   \---jsons
     (JSON files created by development tools)
 |   |   |   \---full
@@ -399,6 +407,7 @@ C:.
 |   |   |   flaky_detector.py
 |   |   |   generate_test_coverage_report.py
 |   |   |   run_test_coverage.py
+|   |   |   run_test_suite.py
 |   |   |   test_file_coverage_cache.py
 |   |   |   verify_process_cleanup.py
 |   |   |   __init__.py
@@ -663,7 +672,6 @@ C:.
 |   |   |   test_dev_tools_coverage_cache.py
 |   |   |   test_dev_tools_portability_smoke.py
 |   |   |   test_dev_tools_scoped_status_report.py
-|   |   |   test_directory_taxonomy_policy.py
 |   |   |   test_documentation_sync_checker.py
 |   |   |   test_error_scenarios.py
 |   |   |   test_example_marker_validation.py
@@ -711,6 +719,7 @@ C:.
 |   |   |   test_run_development_tools.py
 |   |   |   test_run_dev_tools.py
 |   |   |   test_run_test_coverage_helpers.py
+|   |   |   test_run_test_suite_helpers.py
 |   |   |   test_service_utilities.py
 |   |   |   test_sharded_static_analysis.py
 |   |   |   test_sharded_static_scan_wiring.py
@@ -825,6 +834,7 @@ C:.
 |   |   |   test_checkin_service.py
 |   |   |   test_checkin_view.py
 |   |   |   test_cleanup.py
+|   |   |   test_command_interpreter.py
 |   |   |   test_command_parser_helpers.py
 |   |   |   test_command_parser_notebook_entities_expansion.py
 |   |   |   test_command_parser_rule_based_patterns_expansion.py
@@ -844,6 +854,7 @@ C:.
 |   |   |   test_enhanced_checkin_responses.py
 |   |   |   test_error_categorization.py
 |   |   |   test_error_handling.py
+|   |   |   test_fallback_responses.py
 |   |   |   test_file_locking.py
 |   |   |   test_file_locking_platform_branches.py
 |   |   |   test_file_operations.py

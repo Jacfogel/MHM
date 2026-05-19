@@ -32,6 +32,9 @@ from communication.message_processing.intent_validation import is_valid_intent
 parser_logger = get_component_logger("ai")
 logger = parser_logger
 
+# Populated when EnhancedCommandParser is constructed (single source for AI command lists).
+RULE_BASED_INTENT_PATTERNS: dict[str, list] | None = None
+
 
 @dataclass
 class ParsingResult:
@@ -528,6 +531,9 @@ class EnhancedCommandParser:
                 r"^list\s+archived$",
             ],
         }
+
+        global RULE_BASED_INTENT_PATTERNS
+        RULE_BASED_INTENT_PATTERNS = self.intent_patterns
 
         # Compile patterns for performance
         # Use DOTALL flag so . matches newlines (for multi-line command input)
@@ -2097,3 +2103,11 @@ def parse_command(message: str) -> ParsingResult:
         return ParsingResult(
             ParsedCommand("unknown", {}, 0.0, message), 0.0, "fallback"
         )
+
+
+@handle_errors("getting rule-based intent names", default_return=[])
+def get_rule_based_intent_names() -> list[str]:
+    """Return sorted rule-based intent names for AI command prompts."""
+    if RULE_BASED_INTENT_PATTERNS is not None:
+        return sorted(RULE_BASED_INTENT_PATTERNS.keys())
+    return []

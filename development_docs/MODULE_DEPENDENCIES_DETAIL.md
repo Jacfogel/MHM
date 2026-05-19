@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-17 01:15:54
+> **Last Generated**: 2026-05-19 01:18:43
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 132
-- **Total Imports Found**: 1447
-- **Dependencies Documented**: 132 (100% coverage)
-- **Standard Library Imports**: 422 (29.2%)
-- **Third-Party Imports**: 228 (15.8%)
-- **Local Imports**: 797 (55.1%)
-- **Last Updated**: 2026-05-17
+- **Files Scanned**: 137
+- **Total Imports Found**: 1468
+- **Dependencies Documented**: 137 (100% coverage)
+- **Standard Library Imports**: 424 (28.9%)
+- **Third-Party Imports**: 228 (15.5%)
+- **Local Imports**: 816 (55.6%)
+- **Last Updated**: 2026-05-19
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 422 imports (29.2%)
-- **Third-Party**: 228 imports (15.8%)
-- **Local**: 797 imports (55.1%)
+- **Standard Library**: 424 imports (28.9%)
+- **Third-Party**: 228 imports (15.5%)
+- **Local**: 816 imports (55.6%)
 
 ## Module Dependencies by Directory
 
@@ -82,23 +82,20 @@
 - **Dependencies**:
   - **Local**:
     - `ai.cache_manager (get_response_cache)`
+    - `ai.command_interpreter (get_command_interpreter)` (NEW)
+    - `ai.fallback_responses (get_fallback_responses)` (NEW)
+    - `ai.interaction_types (AIInteractionType, interaction_type_for_mode)` (NEW)
     - `ai.lm_studio_manager (is_lm_studio_ready)`
     - `ai.prompt_manager (get_prompt_manager)`
-    - `core (get_user_data)` (NEW)
-    - `core.config (AI_API_CALL_TIMEOUT, AI_CACHE_RESPONSES, AI_CHAT_TEMPERATURE, AI_CLARIFICATION_TEMPERATURE, AI_COMMAND_TEMPERATURE, AI_CONNECTION_TEST_TIMEOUT, AI_CONTEXTUAL_RESPONSE_TIMEOUT, AI_MAX_RESPONSE_LENGTH, AI_MAX_RESPONSE_TOKENS, AI_MAX_RESPONSE_WORDS, AI_MIN_RESPONSE_LENGTH, AI_PERSONALIZED_MESSAGE_TIMEOUT, AI_QUICK_RESPONSE_TIMEOUT, AI_SYSTEM_PROMPT_PATH, AI_TIMEOUT_SECONDS, AI_USE_CUSTOM_PROMPT, LM_STUDIO_API_KEY, LM_STUDIO_BASE_URL, LM_STUDIO_MODEL)` (NEW)
+    - `ai.response_generator (get_response_generator)` (NEW)
+    - `core.config (AI_API_CALL_TIMEOUT, AI_CACHE_RESPONSES, AI_CHAT_TEMPERATURE, AI_CLARIFICATION_TEMPERATURE, AI_COMMAND_TEMPERATURE, AI_CONNECTION_TEST_TIMEOUT, AI_CONTEXTUAL_RESPONSE_TIMEOUT, AI_MAX_RESPONSE_LENGTH, AI_MAX_RESPONSE_TOKENS, AI_MAX_RESPONSE_WORDS, AI_PERSONALIZED_MESSAGE_TIMEOUT, AI_QUICK_RESPONSE_TIMEOUT, AI_SYSTEM_PROMPT_PATH, AI_TIMEOUT_SECONDS, AI_USE_CUSTOM_PROMPT, LM_STUDIO_API_KEY, LM_STUDIO_BASE_URL, LM_STUDIO_MODEL)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.message_management (get_recent_messages)` (NEW)
-    - `core.response_tracking (checkin_runtime_timestamp, get_recent_responses, is_user_checkins_enabled, store_chat_interaction)` (NEW)
-    - `core.time_utilities (TIME_ONLY_MINUTE, format_timestamp, parse_timestamp_full)` (NEW)
-    - `tasks (are_tasks_enabled, get_tasks_due_soon, get_user_task_stats, load_active_tasks)` (NEW)
-    - `tasks.task_data_handlers (runtime_task_due_date)` (NEW)
+    - `core.response_tracking (get_recent_responses, store_chat_interaction)` (NEW)
     - `user.context_manager (user_context_manager)`
   - **Standard Library**:
     - `asyncio`
     - `collections`
-    - `datetime (date)`
-    - `json`
     - `os`
     - `re`
     - `threading`
@@ -112,8 +109,44 @@
   - `communication/message_processing/interaction_manager.py`
 
 **Dependency Changes**:
-- Added: core, core.config, core.error_handling, core.logger, core.message_management, core.response_tracking, core.time_utilities, tasks, tasks.task_data_handlers
+- Added: ai.command_interpreter, ai.fallback_responses, ai.interaction_types, ai.response_generator, core.config, core.error_handling, core.logger, core.response_tracking
 - Removed: communication/core/channel_orchestrator.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `ai/command_interpreter.py`
+- **Purpose**: Communication channel implementation for command_interpreter
+- **Dependencies**:
+  - **Local**:
+    - `ai.prompt_manager (get_prompt_manager)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `json`
+- **Used by**:
+  - `ai/chatbot.py`
+
+**Dependency Changes**:
+- Added: ai.prompt_manager, core.error_handling
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `ai/command_registry.py`
+- **Purpose**: Communication channel implementation for command_registry
+- **Dependencies**:
+  - **Local**:
+    - `communication.message_processing.command_parser (get_rule_based_intent_names)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `re`
+- **Used by**:
+  - `ai/prompt_manager.py`
+
+**Dependency Changes**:
+- Added: communication.message_processing.command_parser, core.error_handling
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -162,6 +195,41 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `ai/fallback_responses.py`
+- **Purpose**: Communication channel implementation for fallback_responses
+- **Dependencies**:
+  - **Local**:
+    - `core (get_user_data)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `core.response_tracking (get_recent_responses)` (NEW)
+- **Used by**:
+  - `ai/chatbot.py`
+
+**Dependency Changes**:
+- Added: core, core.error_handling, core.logger, core.response_tracking
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `ai/interaction_types.py`
+- **Purpose**: Communication channel implementation for interaction_types
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `enum (StrEnum)`
+- **Used by**:
+  - `ai/chatbot.py`
+
+**Dependency Changes**:
+- Added: core.error_handling
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `ai/lm_studio_manager.py`
 - **Purpose**: Communication channel implementation for lm_studio_manager
 - **Dependencies**:
@@ -188,6 +256,7 @@
 - **Purpose**: Communication channel implementation for prompt_manager
 - **Dependencies**:
   - **Local**:
+    - `ai.command_registry (inject_command_actions_into_prompt)` (NEW)
     - `core.config (AI_SYSTEM_PROMPT_PATH, AI_USE_CUSTOM_PROMPT)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
@@ -197,10 +266,39 @@
     - `sys`
 - **Used by**:
   - `ai/chatbot.py`
+  - `ai/command_interpreter.py`
+  - `ai/response_generator.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.logger
+- Added: ai.command_registry, core.config, core.error_handling, core.logger
 - Removed: ai/chatbot.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `ai/response_generator.py`
+- **Purpose**: Communication channel implementation for response_generator
+- **Dependencies**:
+  - **Local**:
+    - `ai.prompt_manager (get_prompt_manager)` (NEW)
+    - `core (get_user_data)` (NEW)
+    - `core.config (AI_MIN_RESPONSE_LENGTH)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `core.message_management (get_recent_messages)` (NEW)
+    - `core.response_tracking (checkin_runtime_timestamp, get_recent_responses, is_user_checkins_enabled)` (NEW)
+    - `core.time_utilities (TIME_ONLY_MINUTE, format_timestamp, parse_timestamp_full)` (NEW)
+    - `tasks (are_tasks_enabled, get_tasks_due_soon, get_user_task_stats, load_active_tasks)` (NEW)
+    - `tasks.task_data_handlers (runtime_task_due_date)` (NEW)
+    - `user.context_manager (user_context_manager)` (NEW)
+  - **Standard Library**:
+    - `datetime (date)`
+- **Used by**:
+  - `ai/chatbot.py`
+
+**Dependency Changes**:
+- Added: ai.prompt_manager, core, core.config, core.error_handling, core.logger, core.message_management, core.response_tracking, core.time_utilities, tasks, tasks.task_data_handlers, user.context_manager
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -1150,6 +1248,7 @@
     - `re`
     - `typing (Any)`
 - **Used by**:
+  - `ai/command_registry.py`
   - `communication/message_processing/interaction_manager.py`
 
 **Dependency Changes**:
@@ -1530,6 +1629,7 @@
   - `ai/chatbot.py`
   - `ai/lm_studio_manager.py`
   - `ai/prompt_manager.py`
+  - `ai/response_generator.py`
   - `communication/communication_channels/discord/bot.py`
   - `communication/communication_channels/discord/webhook_server.py`
   - `communication/communication_channels/email/bot.py`
@@ -1601,10 +1701,15 @@
 - **Used by**:
   - `ai/cache_manager.py`
   - `ai/chatbot.py`
+  - `ai/command_interpreter.py`
+  - `ai/command_registry.py`
   - `ai/context_builder.py`
   - `ai/conversation_history.py`
+  - `ai/fallback_responses.py`
+  - `ai/interaction_types.py`
   - `ai/lm_studio_manager.py`
   - `ai/prompt_manager.py`
+  - `ai/response_generator.py`
   - `communication/command_handlers/account_handler.py`
   - `communication/command_handlers/analytics_handler.py`
   - `communication/command_handlers/base_handler.py`
@@ -1859,8 +1964,10 @@
   - `ai/chatbot.py`
   - `ai/context_builder.py`
   - `ai/conversation_history.py`
+  - `ai/fallback_responses.py`
   - `ai/lm_studio_manager.py`
   - `ai/prompt_manager.py`
+  - `ai/response_generator.py`
   - `communication/command_handlers/account_handler.py`
   - `communication/command_handlers/analytics_handler.py`
   - `communication/command_handlers/base_handler.py`
@@ -2002,7 +2109,7 @@
     - `storage.user_data_v2_base (SCHEMA_VERSION, generate_short_id)`
     - `storage.user_data_v2_envelopes (MessageTemplateV2Model)`
 - **Used by**:
-  - `ai/chatbot.py`
+  - `ai/response_generator.py`
   - `communication/core/channel_orchestrator.py`
   - `communication/delivery/message_dispatcher.py`
   - `core/auto_cleanup.py`
@@ -2095,6 +2202,8 @@
 - **Used by**:
   - `ai/chatbot.py`
   - `ai/context_builder.py`
+  - `ai/fallback_responses.py`
+  - `ai/response_generator.py`
   - `communication/command_handlers/analytics_handler.py`
   - `communication/command_handlers/checkin_handler.py`
   - `communication/command_handlers/interaction_handlers.py`
@@ -2384,9 +2493,9 @@
   - **Third-party**:
     - `pytz`
 - **Used by**:
-  - `ai/chatbot.py`
   - `ai/context_builder.py`
   - `ai/conversation_history.py`
+  - `ai/response_generator.py`
   - `communication/command_handlers/analytics_handler.py`
   - `communication/command_handlers/notebook_handler.py`
   - `communication/command_handlers/task_handler.py`
@@ -2686,7 +2795,7 @@
     - `storage.user_data_validation (is_valid_user_id)`
     - `storage.user_item_storage (ensure_user_subdir, get_user_subdir_path, load_user_json_file, save_user_json_file)`
 - **Used by**:
-  - `ai/chatbot.py`
+  - `ai/response_generator.py`
   - `communication/command_handlers/task_handler.py`
   - `communication/message_processing/conversation_flow_manager.py`
   - `communication/message_processing/interaction_manager.py`
@@ -3624,6 +3733,7 @@
 - **Used by**:
   - `ai/chatbot.py`
   - `ai/context_builder.py`
+  - `ai/response_generator.py`
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.logger, core.message_management, core.response_tracking, core.schedule_utilities, core.time_utilities
