@@ -212,7 +212,7 @@ The modular structure provides clear separation of concerns, making the codebase
 
 **Tier 3: Full Audit (`audit --full`)** includes everything in Tier 1 & 2 plus tools >10s (or groups containing tools >10s):
 - **Test suite group**:
-- `run_test_suite` runs configured pytest paths directly without coverage, excludes `e2e` by default, and runs `no_parallel` tests in a serial phase.
+- `run_test_suite` runs configured pytest paths directly without coverage, excludes `e2e` by default, and runs `no_parallel` tests in a serial phase. Domain-based caching (shared invalidation with `tests/test_file_coverage_cache.py`) stores per-test-file outcomes in `development_tools/tests/jsons/test_file_suite_cache.json`; disable with `--no-domain-cache`.
 - **Legacy group** (runs in parallel with the test suite):
 - Legacy reference scanning (~62s, >10s)
 - Reference report generation (~1s, but part of the legacy reference group)
@@ -329,7 +329,8 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 | imports/analyze_module_imports.py | core | stable | Extracts and analyzes imports from Python files. Provides import parsing, scanning, reverse dependencies, dependency changes, purpose inference, and formatting of imports. |
 | imports/analyze_dependency_patterns.py | core | stable | Analyzes dependency patterns, circular dependencies, and risk areas. Provides pattern analysis, circular dependency detection, risk area detection, and critical dependency finding. |
 | legacy/fix_legacy_references.py | core | stable | Finds/validates legacy markers before cleanup. Pattern mappings load from external config. 
-| tests/run_test_suite.py | core | stable | Portable Tier 3 pytest runner. Runs configured pytest paths without coverage, excludes `e2e` by default, splits `no_parallel` tests into a serial phase, and does not call project-specific `run_tests.py`. |
+| tests/run_test_suite.py | core | stable | Portable Tier 3 pytest runner. Runs configured pytest paths without coverage, excludes `e2e` by default, splits `no_parallel` tests into a serial phase, and does not call project-specific `run_tests.py`. Uses domain-based caching via `tests/test_file_suite_cache.py` (disable with `--no-domain-cache`). |
+| tests/test_file_suite_cache.py | core | stable | Per-test-file suite outcome cache for `run_test_suite`. Reuses domain invalidation from `tests/test_file_coverage_cache.py`. Cache: `development_tools/tests/jsons/test_file_suite_cache.json`. |
 | tests/run_test_coverage.py | core | stable | Orchestrates coverage execution (pytest runs) and artifact management. Executes tests and collects coverage data. Accepts pytest command, coverage config, and artifact directories via external config. 
 | tests/analyze_test_coverage.py | core | stable | Parses coverage output and performs coverage analysis. Pure analysis tool that works with existing coverage data. Includes caching support - caches analysis results based on coverage JSON file mtime. |
 | tests/generate_test_coverage_report.py | core | stable | Generates coverage reports (TEST_COVERAGE_REPORT.md, JSON, HTML) from analysis results. Uses TestCoverageReportGenerator class to create reports from coverage.json. |

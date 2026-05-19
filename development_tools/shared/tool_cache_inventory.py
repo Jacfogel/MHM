@@ -71,13 +71,21 @@ def _cache_entry(tool_name: str, domain: str) -> dict[str, str]:
     if tool_name == "run_test_suite":
         return {
             "tool": tool_name,
-            "strategy": "always_run_pytest_no_coverage",
-            "implementation": "development_tools/tests/run_test_suite.py",
+            "strategy": "domain_test_file_suite_cache",
+            "implementation": (
+                "development_tools/tests/run_test_suite.py + "
+                "development_tools/tests/test_file_suite_cache.py "
+                "(domain invalidation via test_file_coverage_cache.py)"
+            ),
             "artifact_glob": (
+                "development_tools/tests/jsons/test_file_suite_cache.json; "
                 "development_tools/tests/jsons/run_test_suite_results.json; "
                 "development_tools/tests/jsons/test_suite_junit/*.xml"
             ),
-            "invalidation": "Tier 3 always runs pytest without coverage",
+            "invalidation": (
+                "Shared domain/test-file invalidation with coverage cache; "
+                "per-test-file suite outcomes; disable with --no-domain-cache"
+            ),
         }
     if tool_name == "analyze_unused_imports":
         return {

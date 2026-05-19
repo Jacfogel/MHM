@@ -33,6 +33,18 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-05-19 - Domain-based caching for run_test_suite
+- **Feature**: Added [`development_tools/tests/test_file_suite_cache.py`](../development_tools/tests/test_file_suite_cache.py) so Tier 3 `run_test_suite` reuses the same domain/test-file invalidation as coverage runs (`test_file_coverage_cache.py`), stores per-test-file pytest outcomes, supports full-suite snapshot skip when nothing changed, and merges cached + fresh JUnit results on selective runs. Cache file: `development_tools/tests/jsons/test_file_suite_cache.json`; disable with `--no-domain-cache`.
+- **Integration**: Updated [`run_test_suite.py`](../development_tools/tests/run_test_suite.py) (selective test paths, cache metadata in payload), [`commands.py`](../development_tools/shared/service/commands.py) (cache metadata from structured output), [`tool_cache_inventory.py`](../development_tools/shared/tool_cache_inventory.py), [`fix_project_cleanup.py`](../development_tools/shared/fix_project_cleanup.py), and dev-tools guides.
+- **Tests**: [`test_test_file_suite_cache.py`](../tests/development_tools/test_test_file_suite_cache.py), extended [`test_run_test_suite_helpers.py`](../tests/development_tools/test_run_test_suite_helpers.py).
+- **Follow-up**: Fixed path-drift references in dev-tools guides (`tests/test_file_*_cache.py` paths) and Ruff SIM103/SIM108 in `test_file_suite_cache.py`.
+- **Cache fix**: `get_test_files_to_run` no longer treats an empty per-file mapping as a full-suite run when only some domains changed (was running ~368 files despite selective `development_tools` invalidation). Suite runner logs cache decisions and records `run_domains` from files actually executed.
+- **Repeat-audit fix**: Prune deleted test files from cache (fixes ghost `test_directory_taxonomy_policy.py` re-invalidating `development_tools` every run). Selective runs treat empty `no_parallel` as success; clear `last_failed_domains` on pass; cache full suite snapshot after any clean run so back-to-back audits can hit `cache_hit`.
+- **Cache/test fixes**: Normalize Windows cache keys to forward slashes; record `last_failed_domains` only from failing test node IDs (not every file in a selective run); fix regressions in `test_test_file_set_removal_selective_invalidates_subset`, `test_cache_and_read_per_file_suite_results`, and DIRECTORY_TREE debug-log test.
+- **Pyright**: Pass `set[str]` to `TestFileSuiteCache.update_run_status` instead of sorted lists (0 warnings).
+- **Test**: Hardened `test_domain_attribution_summary_via_analyzer_ast_scan` with pinned `domain_markers`; added selective cold-mapping coverage cache test.
+- **Impact**: Repeat full audits skip pytest when source domains are unchanged, matching coverage-run incremental behavior without conflating suite results with coverage JSON.
+
 ### 2026-05-18 - System AI Overhaul Phases 1-4 **COMPLETED**
 
 #### Interaction-type separation

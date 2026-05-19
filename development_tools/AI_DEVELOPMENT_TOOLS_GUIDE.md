@@ -109,7 +109,7 @@ python development_tools/run_development_tools.py help
 ### 3.3. Tier 3: Full Audit - `audit --full`
 - **Duration**: Environment-dependent; heaviest wall-clock is usually `run_test_suite`
 - **Tools**: Everything in Tier 1 & 2 PLUS tools >10s (or groups containing tools >10s):
-  - **Test suite group** - `run_test_suite` runs pytest directly without coverage. It discovers configured test paths (default `tests`), excludes `e2e` by default, runs normal tests in a parallel-capable phase excluding `no_parallel`, then runs `no_parallel` tests serially. It falls back to serial pytest when xdist is unavailable and does not use MHM's project-specific `run_tests.py`.
+  - **Test suite group** - `run_test_suite` runs pytest directly without coverage. It discovers configured test paths (default `tests`), excludes `e2e` by default, runs normal tests in a parallel-capable phase excluding `no_parallel`, then runs `no_parallel` tests serially. It falls back to serial pytest when xdist is unavailable and does not use MHM's project-specific `run_tests.py`. Domain-based caching (`tests/test_file_suite_cache.py`, shared invalidation with coverage cache) skips unchanged domains; disable with `--no-domain-cache`.
   - **Coverage** - not part of Tier 3. Run `python development_tools/run_development_tools.py coverage` less frequently when coverage metrics, marker analysis, or `development_docs/TEST_COVERAGE_REPORT.md` need refresh.
   - **Legacy group** (runs in parallel with the test suite):
     - `analyze_legacy_references` - Legacy code scanning (~62s, >10s)
@@ -230,6 +230,9 @@ Consult [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for the detaile
 - **Caching**:
   - **General analyzer caching (`shared/mtime_cache.py`)**: Caches file-based analyzer outputs by input mtimes and auto-invalidates when either `development_tools/config/development_tools_config.json` or the tool source changes. Cache keys are namespaced by tool/domain/config-signature/tool-hash, and cache payload includes tool hash, tool mtimes, and last run status for failure-aware invalidation. Used by high-cost analyzers across `imports/`, `functions/`, `docs/`, `legacy/`, and `tests/analyze_test_coverage.py`.
   - **Coverage analysis cache**: `tests/analyze_test_coverage.py` caches coverage analysis from coverage JSON mtime.
+  - **Domain test suite cache (`tests/test_file_suite_cache.py`)**:
+    - Per-test-file pytest outcomes for `run_test_suite`; reuses domain invalidation from `tests/test_file_coverage_cache.py`.
+    - Cache file: `development_tools/tests/jsons/test_file_suite_cache.json` (enabled by default; disable with `--no-domain-cache` on `run_test_suite`).
   - **Domain test coverage cache (`tests/test_file_coverage_cache.py`)**:
     - Uses `tests/domain_mapper.py` to rerun only test files covering changed domains.
     - Stores run status and failed domains for failure-aware invalidation.

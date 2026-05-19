@@ -1102,11 +1102,17 @@ class CommandsMixin:
         self.tier3_test_outcome = outcome
         if not hasattr(self, "_tool_cache_metadata"):
             self._tool_cache_metadata = {}
-        self._tool_cache_metadata["run_test_suite"] = {
-            "cache_mode": "cold_scan",
-            "source": "run_test_suite",
-            "invalidation_reason": "Tier 3 always runs tests without coverage",
-        }
+        domain_cache = {}
+        if isinstance(details, dict):
+            domain_cache = details.get("domain_cache") or {}
+        if isinstance(domain_cache, dict) and domain_cache:
+            self._tool_cache_metadata["run_test_suite"] = dict(domain_cache)
+        else:
+            self._tool_cache_metadata["run_test_suite"] = {
+                "cache_mode": "cold_scan",
+                "source": "run_test_suite",
+                "invalidation_reason": "structured_output_missing_domain_cache",
+            }
         try:
             save_tool_result(
                 "run_test_suite",

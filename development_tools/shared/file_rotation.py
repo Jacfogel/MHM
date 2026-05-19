@@ -204,8 +204,11 @@ def create_output_file(
         or "directory_tree.md" in file_path_str.lower()
     )
     if is_directory_tree:
-        logger.warning(
-            f"[SAFEGUARD-DEBUG] create_output_file called for DIRECTORY_TREE: file_path={file_path}, file_name={file_name}, project_root={project_root}, type(file_path)={type(file_path)}"
+        logger.debug(
+            "[SAFEGUARD] create_output_file DIRECTORY_TREE probe: file_path=%s file_name=%s project_root=%s",
+            file_path,
+            file_name,
+            project_root,
         )
     status_files = ["AI_STATUS.md", "AI_PRIORITIES.md", "CONSOLIDATED_REPORT.md"]
     # Static documentation files that should only be generated via 'docs' command, not during audits

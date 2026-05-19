@@ -435,6 +435,63 @@ def test_get_test_files_domains_explicit_markers_exclude_directory_fallback() ->
 
 
 @pytest.mark.unit
+def test_prune_removed_test_file_stops_repeat_invalidation() -> None:
+    """Removed test files are pruned from cache so the next run is not re-invalidated."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        dev_tests = temp_path / "tests" / "development_tools"
+        dev_tests.mkdir(parents=True)
+        kept = dev_tests / "test_kept.py"
+        kept.write_text("def test_a():\n    assert True\n", encoding="utf-8")
+        ghost = dev_tests / "test_ghost.py"
+        ghost.write_text("def test_b():\n    assert True\n", encoding="utf-8")
+        cache = TestFileCoverageCache(temp_path, cache_dir=temp_path / "cache")
+        cache.cache_data["test_files"] = {
+            "tests/development_tools/test_kept.py": {"domains": ["development_tools"]},
+            "tests/development_tools/test_ghost.py": {"domains": ["development_tools"]},
+        }
+        cache.cache_data["last_run_ok"] = True
+        ghost.unlink()
+        cache._cached_changed_domains = None
+        changed = cache.get_changed_domains()
+        assert changed == {"development_tools"}
+        assert "tests/development_tools/test_ghost.py" not in cache.cache_data["test_files"]
+        # File sets should match on the next check (no perpetual test_file_set drift).
+        cache._cached_changed_domains = None
+        assert (
+            cache._get_current_test_files()
+            == {
+                cache._normalize_test_file_rel(rel)
+                for rel in (cache.cache_data.get("test_files", {}) or {})
+            }
+        )
+    finally:
+        _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
+def test_get_test_files_to_run_selective_when_mapping_cold() -> None:
+    """Empty per-file mapping must not force a full-suite run for a single changed domain."""
+    temp_path = _make_local_scratch_dir()
+    try:
+        dev_tests = temp_path / "tests" / "development_tools"
+        dev_tests.mkdir(parents=True)
+        core_tests = temp_path / "tests" / "unit"
+        core_tests.mkdir(parents=True)
+        (dev_tests / "test_dev.py").write_text("def test_a():\n    assert True\n", encoding="utf-8")
+        (core_tests / "test_core.py").write_text("def test_b():\n    assert True\n", encoding="utf-8")
+        cache = TestFileCoverageCache(temp_path, cache_dir=temp_path / "cache")
+        assert cache.cache_data.get("test_files") == {}
+        to_run = cache.get_test_files_to_run({"development_tools"})
+        rels = {str(p.relative_to(temp_path)).replace("\\", "/") for p in to_run}
+        assert rels == {"tests/development_tools/test_dev.py"}
+        all_count = len(list(cache._iter_test_files()))
+        assert len(to_run) < all_count
+    finally:
+        _cleanup_local_scratch_dir(temp_path)
+
+
+@pytest.mark.unit
 def test_get_test_files_domains_fallback_uses_directory_when_no_attribution_markers() -> None:
     """No domain-attribution markers → legacy directory / keyword mapping."""
     temp_path = _make_local_scratch_dir()

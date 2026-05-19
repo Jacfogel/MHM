@@ -115,6 +115,8 @@ def test_domain_attribution_summary_via_analyzer_ast_scan(
     )
 
     analyzer = TestMarkerAnalyzer(project_root=tmp_path)
+    # Pin domain policy so xdist workers do not depend on ambient config load timing.
+    analyzer.domain_markers = ("core",)
     monkeypatch.setattr(
         analyzer,
         "find_test_files",

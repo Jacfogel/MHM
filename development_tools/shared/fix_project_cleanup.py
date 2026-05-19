@@ -385,6 +385,18 @@ class ProjectCleanup:
                     if not dry_run:
                         logger.warning(f"  {message}")
 
+            suite_cache_file = jsons_dir / "test_file_suite_cache.json"
+            if suite_cache_file.exists():
+                success, message = self.remove_path(suite_cache_file, dry_run)
+                if success:
+                    removed += 1
+                    if not dry_run:
+                        logger.info(f"  {message}")
+                else:
+                    failed += 1
+                    if not dry_run:
+                        logger.warning(f"  {message}")
+
             # Dev tools coverage cache
             dev_tools_cache_file = jsons_dir / "dev_tools_coverage_cache.json"
             if dev_tools_cache_file.exists():

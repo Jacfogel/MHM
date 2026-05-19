@@ -30,6 +30,15 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-19 - run_test_suite domain cache **COMPLETED**
+- `test_file_suite_cache.py` shares domain invalidation with coverage cache; per-test-file JUnit outcomes + full snapshot skip
+- `run_test_suite --no-domain-cache` disables; cleanup removes `test_file_suite_cache.json`
+- Audit metadata reports `cache_mode` (cache_hit / selective_run / full_run)
+- Doc-sync path drift cleared (qualified `tests/test_file_*_cache.py` references); Ruff clean on suite cache module
+- Fixed selective suite run running full suite when per-file cache mapping was cold; pinned flaky domain attribution test
+- Failed-domain recording scoped to failing tests only; cache path keys normalized on Windows
+- Pyright: `update_run_status` callers pass sets, not sorted lists
+
 ### 2026-05-18 - System AI Overhaul Phases 1-4 **COMPLETED**
 - Named AI interaction types (`ai/interaction_types.py`) and added structured logging on generate/fallback paths
 - Extracted fallback, command interpretation, and conversational generation into `ai/fallback_responses.py`, `ai/command_interpreter.py`, and `ai/response_generator.py`; `ai/chatbot.py` remains the public facade
@@ -140,12 +149,6 @@ Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency a
 - Retired ignored `scripts/create_project_snapshot.py`; use `backup_manager.create_backup(include_code=True)` for restorable backups and `export-code` / `export-docs` for AI-readable snapshots.
 - Retired ignored `scripts/utilities/user_data_cli.py` instead of migrating it; tracked `core.user_data_operations` remains the canonical user-data owner.
 - Updated backup docs, PLANS, and TODO so active guidance no longer points at ignored project scripts; the backup reliability plan is complete.
-
-### 2026-05-11 - Audit/run_tests suite parity and no_parallel cache scope **COMPLETED**
-- `audit --full` coverage now runs serial `no_parallel` tests only for the same domain-filtered file set as the parallel phase; scoped runs with no matching serial tests are classified as skipped, not crashed.
-- `run_tests.py --mode all` now includes `tests/ai/` but still intentionally leaves development-tools tests to `run_tests.py --full`, which keeps the two-phase product/AI plus development-tools execution shape.
-- Dev-tools test investigation refreshed: current collection is 1479 selected dev-tools tests, and the existing profiling command is `python run_tests.py --mode development_tools --durations-all`.
-- Validation: focused coverage-runner helper tests, `py_compile`, and collection-only parity checks passed.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

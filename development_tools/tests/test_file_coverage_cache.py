@@ -378,6 +378,8 @@ class TestFileCoverageCache:
             self.cache_data = self._default_cache_data()
 
         schema_changed = self._ensure_cache_schema()
+        if self._normalize_test_files_cache_keys():
+            schema_changed = True
         if schema_changed:
             try:
                 self._save_cache()
@@ -622,12 +624,63 @@ class TestFileCoverageCache:
             self.cache_data["last_run_at"] = datetime.now().isoformat()
         self._save_cache()
 
+    @staticmethod
+    def _normalize_test_file_rel(path: str) -> str:
+        """Normalize cached test file paths to forward slashes for stable comparisons."""
+        return path.replace("\\", "/").strip()
+
+    def _test_file_rel(self, test_file: Path) -> str:
+        return self._normalize_test_file_rel(
+            str(test_file.relative_to(self.project_root))
+        )
+
+    def _cache_entry_for_rel(self, rel: str) -> dict[str, Any] | None:
+        entries = self.cache_data.get("test_files", {}) or {}
+        norm = self._normalize_test_file_rel(rel)
+        entry = entries.get(norm)
+        if isinstance(entry, dict):
+            return entry
+        legacy = entries.get(rel)
+        return legacy if isinstance(legacy, dict) else None
+
+    def _normalize_test_files_cache_keys(self) -> bool:
+        """Migrate legacy backslash keys to forward-slash form (Windows)."""
+        test_files = self.cache_data.get("test_files", {})
+        if not isinstance(test_files, dict):
+            return False
+        migrated: dict[str, Any] = {}
+        changed = False
+        for rel, data in test_files.items():
+            norm = self._normalize_test_file_rel(rel)
+            if norm != rel:
+                changed = True
+            migrated[norm] = data
+        if changed:
+            self.cache_data["test_files"] = migrated
+        return changed
+
     def _get_current_test_files(self) -> set[str]:
         """Return relative paths for all valid test files on disk."""
         current_files = set()
         for test_file in self._iter_test_files():
-            current_files.add(str(test_file.relative_to(self.project_root)))
+            rel = self._normalize_test_file_rel(
+                str(test_file.relative_to(self.project_root))
+            )
+            current_files.add(rel)
         return current_files
+
+    def _prune_removed_test_file_entries(self, removed_paths: set[str]) -> None:
+        """Drop cache rows for test files that no longer exist on disk."""
+        if not removed_paths:
+            return
+        test_files = self.cache_data.get("test_files", {})
+        test_files_mtime = self.cache_data.get("test_files_mtime", {})
+        for rel in removed_paths:
+            norm = self._normalize_test_file_rel(rel)
+            test_files.pop(norm, None)
+            test_files.pop(rel, None)
+            test_files_mtime.pop(norm, None)
+            test_files_mtime.pop(rel, None)
 
     def get_source_file_mtimes(self, domain: str) -> dict[str, float]:
         """
@@ -671,9 +724,8 @@ class TestFileCoverageCache:
     ) -> set[str] | None:
         """Infer domains for added/removed test paths only. None = caller must use full bust."""
         narrowed: set[str] = set()
-        cached_entries = self.cache_data.get("test_files", {}) or {}
         for rel in removed:
-            entry = cached_entries.get(rel)
+            entry = self._cache_entry_for_rel(rel)
             if not isinstance(entry, dict):
                 return None
             doms = entry.get("domains", [])
@@ -827,7 +879,10 @@ class TestFileCoverageCache:
             return set(all_domains)
 
         current_test_files = self._get_current_test_files()
-        cached_test_files = set(self.cache_data.get("test_files", {}).keys())
+        cached_test_files = {
+            self._normalize_test_file_rel(rel)
+            for rel in (self.cache_data.get("test_files", {}) or {})
+        }
         if current_test_files != cached_test_files:
             all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
             added_paths = current_test_files - cached_test_files
@@ -855,6 +910,7 @@ class TestFileCoverageCache:
             narrow_base = self._narrow_domains_for_test_file_set_delta(
                 added_paths, removed_paths
             )
+            self._prune_removed_test_file_entries(removed_paths)
             if narrow_base is None:
                 self.last_invalidation_reason = "test_file_set_changed_full_bust"
                 self.last_invalidation_detail = {
@@ -987,16 +1043,10 @@ class TestFileCoverageCache:
         test_files_to_run = set()
         test_files = self.cache_data.get("test_files", {})
 
-        # Check if this is a "full run" scenario (all domains changed or cache is empty)
+        # Full run only when every domain changed (not when per-file mapping is still cold).
         all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
-        is_full_run = (changed_domains == all_domains) or (len(test_files) == 0)
-
-        if is_full_run:
-            # Full run: include ALL test files, even unmapped ones, to ensure complete coverage
-            # But exclude test data directories
-            all_test_files = list(self._iter_test_files())
-
-            return sorted(all_test_files)
+        if changed_domains == all_domains:
+            return sorted(self._iter_test_files())
 
         # Selective run: only include test files that cover changed domains
         # Find all test files that cover any of the changed domains
@@ -1098,7 +1148,7 @@ class TestFileCoverageCache:
         if reload_cache:
             self._load_cache()
 
-        test_file_rel = str(test_file.relative_to(self.project_root))
+        test_file_rel = self._test_file_rel(test_file)
         test_file_domains = self.get_test_files_domains(test_file)
 
         if "test_files" not in self.cache_data:
@@ -1143,7 +1193,7 @@ class TestFileCoverageCache:
         # Reload cache first to merge with any concurrent updates
         self._load_cache()
 
-        test_file_rel = str(test_file.relative_to(self.project_root))
+        test_file_rel = self._test_file_rel(test_file)
         test_file_domains = self.get_test_files_domains(test_file)
 
         if "test_files" not in self.cache_data:
@@ -1180,7 +1230,7 @@ class TestFileCoverageCache:
         Returns:
             Cached coverage data or None if not cached or invalid
         """
-        test_file_rel = str(test_file.relative_to(self.project_root))
+        test_file_rel = self._test_file_rel(test_file)
         test_files = self.cache_data.get("test_files", {})
 
         if test_file_rel not in test_files:

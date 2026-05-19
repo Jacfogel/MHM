@@ -146,6 +146,59 @@ def test_pytest_startup_failure_without_junit_is_crashed(tmp_path: Path):
 
 
 @pytest.mark.unit
+def test_parse_junit_by_test_file_groups_counts(tmp_path: Path):
+    xml = tmp_path / "results.xml"
+    xml.write_text(
+        """<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+  <testsuite>
+    <testcase classname="tests.unit.test_alpha" name="test_one"/>
+    <testcase classname="tests.unit.test_alpha" name="test_two">
+      <failure message="boom"/>
+    </testcase>
+  </testsuite>
+</testsuites>
+""",
+        encoding="utf-8",
+    )
+    by_file = runner._parse_junit_by_test_file(xml)
+    assert "tests/unit/test_alpha.py" in by_file
+    assert by_file["tests/unit/test_alpha.py"]["counts"]["total"] == 2
+    assert by_file["tests/unit/test_alpha.py"]["counts"]["failed"] == 1
+    assert "tests/unit/test_alpha.py::test_two" in by_file["tests/unit/test_alpha.py"]["failed_node_ids"]
+
+
+@pytest.mark.unit
+def test_phase_ok_for_run_status_allows_selective_no_parallel_skip(tmp_path: Path):
+    skipped = runner.PhaseResult(
+        name="no_parallel",
+        command=[],
+        return_code=5,
+        duration_seconds=0.0,
+        counts={"total": 0, "passed": 0, "failed": 0, "errors": 0, "skipped": 0},
+        failed_node_ids=[],
+        output_tail="",
+        junit_xml=str(tmp_path / "no_parallel.xml"),
+    )
+    assert runner._phase_ok_for_run_status(
+        skipped, allow_empty_no_parallel_skip=True
+    )
+    assert not runner._phase_ok_for_run_status(
+        skipped, allow_empty_no_parallel_skip=False
+    )
+
+
+@pytest.mark.unit
+def test_merge_counts_sums_all_keys():
+    merged = runner._merge_counts(
+        {"total": 2, "passed": 2, "failed": 0, "errors": 0, "skipped": 0},
+        {"total": 1, "passed": 0, "failed": 1, "errors": 0, "skipped": 0},
+    )
+    assert merged["total"] == 3
+    assert merged["failed"] == 1
+
+
+@pytest.mark.unit
 def test_sigint_threshold_ignores_until_confirmed(monkeypatch):
     calls = []
 

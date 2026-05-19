@@ -431,6 +431,53 @@ The practical refactor direction is:
 7. **Phase 5 (planned):** Collapse thin facade delegates on `AIChatBotSingleton` once Phases 1–4 are stable (see Section 8.1).
 
 ---
+## 8.0 Phase 4.5 - address follow-ups:
+Refactor follow-up tasks
+Clarify fallback ownership
+What it means: Decide and document that AI fallback behavior belongs to ai/, while channel formatting belongs to communication/.
+Why it helps: Prevents fallback logic from leaking into Discord/email adapters.
+Estimated effort: Small
+Split ai/fallback_responses.py by fallback purpose
+
+What it means: Replace the single large file with a small package:
+
+ai/fallback_responses/
+  __init__.py
+  coordinator.py
+  conversational.py
+  checkin_summary.py
+  personalized.py
+  profile_helpers.py
+Why it helps: Keeps fallback behavior readable without scattering it across unrelated domains.
+Estimated effort: Medium
+Keep a compatibility facade
+What it means: Preserve get_fallback_responses().contextual(...) and .personalized(...) at first, even if implementation moves underneath.
+Why it helps: Avoids breaking ai/chatbot.py while refactoring gradually.
+Estimated effort: Small
+Separate data-aware fallback from keyword fallback
+What it means: Move check-in calculations like breakfast rate, mood average, and energy average out of generic conversational fallback.
+Why it helps: The current fallback blends analytics and generic support in one path.
+Estimated effort: Medium
+Create deterministic fallback response categories
+What it means: Add explicit categories like technical_unavailable, new_user_no_context, data_unavailable, general_support, personalized_message.
+Why it helps: Makes tests clearer and avoids one giant keyword cascade.
+Estimated effort: Medium
+Avoid moving fallback text into communication/
+What it means: Keep communication/ responsible for delivery/formatting only.
+Why it helps: Communication architecture is supposed to stay channel-agnostic and adapter-focused, not own business response logic.
+Estimated effort: Small
+Audit response_generator.py next
+What it means: The big prompt/context logic was mostly moved, not simplified.
+Why it helps: This is now the largest remaining AI responsibility blob.
+Estimated effort: Medium/Large
+Add fallback boundary tests
+What it means: Expand test_fallback_responses.py to verify fallback responses do not claim AI success, data access, or completed actions.
+Why it helps: The AI test guide already treats fallbacks/error handling as a core AI test category .
+Estimated effort: Medium
+Add import-boundary test for AI fallback
+What it means: Ensure ai/fallback_responses/* does not import Discord/email/channel modules.
+Why it helps: Prevents communication-layer leakage.
+Estimated effort: Small
 
 ## 8.1 Phase 5 — Collapse facade delegates (planned)
 

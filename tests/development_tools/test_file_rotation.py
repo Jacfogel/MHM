@@ -171,7 +171,7 @@ def test_create_output_file_directory_tree_name_logs_warning(tmp_path, fr_mod, m
         "development_tools.shared.logging.get_dev_tools_logger", return_value=mock_logger
     ):
         fr_mod.create_output_file(p, "x", rotate=False)
-    mock_logger.warning.assert_called()
+    mock_logger.debug.assert_called()
 
 
 @pytest.mark.unit

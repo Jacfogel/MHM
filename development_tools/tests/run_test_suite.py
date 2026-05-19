@@ -45,6 +45,15 @@ _STOP_REQUESTED = False
 _ACTIVE_PROCESS: subprocess.Popen[str] | None = None
 _SIGINT_CFG = DEFAULT_TEST_RUN.copy()
 
+try:
+    from development_tools.shared.logging import get_dev_tools_logger
+    from development_tools.tests.test_file_coverage_cache import TestFileCoverageCache
+
+    _suite_logger = get_dev_tools_logger("development_tools")
+except ImportError:
+    _suite_logger = None
+    TestFileCoverageCache = None  # type: ignore[misc, assignment]
+
 
 @dataclass
 class PhaseResult:
@@ -123,6 +132,7 @@ def build_phase_command(
     cfg: dict[str, Any],
     junit_xml: Path,
     force_serial: bool = False,
+    test_paths: list[str] | None = None,
 ) -> list[str]:
     command = _pytest_command(cfg)
     command.extend(str(part) for part in (cfg.get("pytest_base_args") or []))
@@ -133,7 +143,8 @@ def build_phase_command(
         workers = str(cfg.get("workers") or "auto").strip()
         if workers and workers.lower() != "none":
             command.extend(["-n", workers])
-    command.extend(str(path) for path in (cfg.get("test_paths") or ["tests"]))
+    paths = test_paths if test_paths is not None else (cfg.get("test_paths") or ["tests"])
+    command.extend(str(path) for path in paths)
     return command
 
 
@@ -178,6 +189,85 @@ def _terminate_process_tree(process: subprocess.Popen[str]) -> None:
             process.terminate()
 
 
+def _test_file_rel_from_case(classname: str, name: str) -> str | None:
+    if classname:
+        return f"{classname.replace('.', '/')}.py"
+    if "::" in name:
+        return name.split("::", 1)[0]
+    return None
+
+
+def _parse_junit_by_test_file(xml_path: Path) -> dict[str, dict[str, Any]]:
+    """Group JUnit cases by test file path (project-relative)."""
+    by_file: dict[str, dict[str, Any]] = {}
+    if not xml_path.exists():
+        return by_file
+    try:
+        root = ET.parse(xml_path).getroot()  # nosec B314 - local pytest output
+    except Exception:
+        return by_file
+    for case in root.findall(".//testcase"):
+        classname = case.get("classname") or ""
+        name = case.get("name") or "unknown"
+        rel = _test_file_rel_from_case(classname, name)
+        if not rel:
+            continue
+        entry = by_file.setdefault(
+            rel,
+            {
+                "counts": {"total": 0, "passed": 0, "failed": 0, "errors": 0, "skipped": 0},
+                "failed_node_ids": [],
+            },
+        )
+        counts = entry["counts"]
+        counts["total"] += 1
+        if case.find("skipped") is not None:
+            counts["skipped"] += 1
+            counts["passed"] += 0
+        elif case.find("failure") is not None or case.find("error") is not None:
+            if case.find("error") is not None:
+                counts["errors"] += 1
+            else:
+                counts["failed"] += 1
+            node_class = classname.replace(".", "/")
+            node = f"{node_class}.py::{name}" if node_class else name
+            entry["failed_node_ids"].append(node)
+        else:
+            counts["passed"] += 1
+    for entry in by_file.values():
+        entry["failed_node_ids"] = sorted(set(entry["failed_node_ids"]))
+    return by_file
+
+
+def _merge_counts(*parts: dict[str, int]) -> dict[str, int]:
+    merged = {"total": 0, "passed": 0, "failed": 0, "errors": 0, "skipped": 0}
+    for part in parts:
+        for key in merged:
+            merged[key] += int(part.get(key, 0) or 0)
+    return merged
+
+
+def _phase_from_counts(
+    *,
+    name: str,
+    counts: dict[str, int],
+    failed_node_ids: list[str],
+    junit_xml: str,
+    duration_seconds: float = 0.0,
+    return_code: int = 0,
+) -> PhaseResult:
+    return PhaseResult(
+        name=name,
+        command=[],
+        return_code=return_code,
+        duration_seconds=duration_seconds,
+        counts=counts,
+        failed_node_ids=sorted(set(failed_node_ids)),
+        output_tail="",
+        junit_xml=junit_xml,
+    )
+
+
 def _parse_junit(xml_path: Path) -> tuple[dict[str, int], list[str]]:
     counts = {"total": 0, "passed": 0, "failed": 0, "errors": 0, "skipped": 0}
     failed_nodes: list[str] = []
@@ -207,12 +297,25 @@ def _parse_junit(xml_path: Path) -> tuple[dict[str, int], list[str]]:
     return counts, sorted(set(failed_nodes))
 
 
-def _run_phase(name: str, cfg: dict[str, Any], junit_dir: Path, *, force_serial: bool = False) -> PhaseResult:
+def _run_phase(
+    name: str,
+    cfg: dict[str, Any],
+    junit_dir: Path,
+    *,
+    force_serial: bool = False,
+    test_paths: list[str] | None = None,
+) -> PhaseResult:
     global _ACTIVE_PROCESS
     junit_xml = junit_dir / f"{name}.xml"
     with contextlib.suppress(OSError):
         junit_xml.unlink()
-    command = build_phase_command(phase=name, cfg=cfg, junit_xml=junit_xml, force_serial=force_serial)
+    command = build_phase_command(
+        phase=name,
+        cfg=cfg,
+        junit_xml=junit_xml,
+        force_serial=force_serial,
+        test_paths=test_paths,
+    )
     start = time.perf_counter()
     output = ""
     return_code: int | None = None
@@ -308,7 +411,140 @@ def _aggregate(phases: list[PhaseResult]) -> dict[str, Any]:
     }
 
 
-def run_suite(cfg: dict[str, Any]) -> dict[str, Any]:
+def _build_cache_metadata(
+    suite_cache: Any,
+    *,
+    cache_mode: str,
+    changed_domains: set[str] | None = None,
+    test_files_to_run: int | None = None,
+) -> dict[str, Any]:
+    stats = suite_cache.get_cache_stats() if suite_cache else {}
+    return {
+        "cache_mode": cache_mode,
+        "source": "run_test_suite",
+        "invalidation_reason": getattr(suite_cache, "last_invalidation_reason", None)
+        or ("domain_cache" if cache_mode != "cold_scan" else "full_run"),
+        "changed_domains": sorted(changed_domains or []),
+        "test_files_to_run": test_files_to_run,
+        "test_files_cached": stats.get("test_files_cached"),
+        "has_full_suite_cache": stats.get("has_full_suite_cache"),
+    }
+
+
+def _aggregate_cached_phases(
+    suite_cache: Any,
+    junit_dir: Path,
+    *,
+    full_snapshot: dict[str, Any] | None = None,
+    per_file_cached: dict[str, dict[str, Any]] | None = None,
+) -> list[PhaseResult]:
+    if full_snapshot:
+        parallel = full_snapshot.get("parallel") or {}
+        no_parallel = full_snapshot.get("no_parallel") or {}
+        return [
+            _phase_from_counts(
+                name="parallel",
+                counts=parallel.get("counts") or {},
+                failed_node_ids=parallel.get("failed_node_ids") or [],
+                junit_xml=str(junit_dir / "parallel.xml"),
+                duration_seconds=float(full_snapshot.get("parallel_duration_seconds") or 0),
+            ),
+            _phase_from_counts(
+                name="no_parallel",
+                counts=no_parallel.get("counts") or {},
+                failed_node_ids=no_parallel.get("failed_node_ids") or [],
+                junit_xml=str(junit_dir / "no_parallel.xml"),
+                duration_seconds=float(full_snapshot.get("no_parallel_duration_seconds") or 0),
+            ),
+        ]
+    parallel_counts: dict[str, int] = {}
+    no_parallel_counts: dict[str, int] = {}
+    parallel_failed: list[str] = []
+    no_parallel_failed: list[str] = []
+    for data in (per_file_cached or {}).values():
+        if not isinstance(data, dict):
+            continue
+        if isinstance(data.get("parallel"), dict):
+            parallel_counts = _merge_counts(
+                parallel_counts, data["parallel"].get("counts") or {}
+            )
+            parallel_failed.extend(data["parallel"].get("failed_node_ids") or [])
+        if isinstance(data.get("no_parallel"), dict):
+            no_parallel_counts = _merge_counts(
+                no_parallel_counts, data["no_parallel"].get("counts") or {}
+            )
+            no_parallel_failed.extend(data["no_parallel"].get("failed_node_ids") or [])
+    return [
+        _phase_from_counts(
+            name="parallel",
+            counts=parallel_counts,
+            failed_node_ids=parallel_failed,
+            junit_xml=str(junit_dir / "parallel.xml"),
+        ),
+        _phase_from_counts(
+            name="no_parallel",
+            counts=no_parallel_counts,
+            failed_node_ids=no_parallel_failed,
+            junit_xml=str(junit_dir / "no_parallel.xml"),
+        ),
+    ]
+
+
+def _failed_test_file_rels_from_phases(phases: list[PhaseResult]) -> set[str]:
+    rels: set[str] = set()
+    for phase in phases:
+        for node in phase.failed_node_ids:
+            file_part = node.split("::", 1)[0]
+            if file_part:
+                rels.add(file_part.replace("\\", "/"))
+    return rels
+
+
+def _phase_ok_for_run_status(
+    phase: PhaseResult, *, allow_empty_no_parallel_skip: bool = False
+) -> bool:
+    """Whether a phase outcome should count as success for cache run status."""
+    if phase.classification == "passed":
+        return True
+    return bool(
+        allow_empty_no_parallel_skip
+        and phase.name == "no_parallel"
+        and phase.classification == "skipped"
+    )
+
+
+def _merge_phase_with_cache(
+    phase: PhaseResult,
+    cached_by_file: dict[str, dict[str, Any]],
+    phase_key: str,
+) -> PhaseResult:
+    fresh_by_file = _parse_junit_by_test_file(Path(phase.junit_xml))
+    merged_counts: dict[str, int] = {}
+    merged_failed: list[str] = []
+    seen_files = set(cached_by_file.keys()) | set(fresh_by_file.keys())
+    for rel in sorted(seen_files):
+        cached_entry = cached_by_file.get(rel, {})
+        cached_phase = (
+            cached_entry.get(phase_key) if isinstance(cached_entry, dict) else None
+        )
+        fresh_phase = fresh_by_file.get(rel)
+        if isinstance(cached_phase, dict) and rel not in fresh_by_file:
+            merged_counts = _merge_counts(merged_counts, cached_phase.get("counts") or {})
+            merged_failed.extend(cached_phase.get("failed_node_ids") or [])
+        elif isinstance(fresh_phase, dict):
+            merged_counts = _merge_counts(merged_counts, fresh_phase.get("counts") or {})
+            merged_failed.extend(fresh_phase.get("failed_node_ids") or [])
+    return _phase_from_counts(
+        name=phase.name,
+        counts=merged_counts,
+        failed_node_ids=merged_failed,
+        junit_xml=phase.junit_xml,
+        duration_seconds=phase.duration_seconds,
+        return_code=phase.return_code or 0,
+    )
+
+
+def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str, Any]:
     global _SIGINT_CFG
     _SIGINT_CFG = cfg
     previous_handler = signal.getsignal(signal.SIGINT) if hasattr(signal, "SIGINT") else None
@@ -318,15 +554,202 @@ def run_suite(cfg: dict[str, Any]) -> dict[str, Any]:
     if not junit_dir.is_absolute():
         junit_dir = Path.cwd() / junit_dir
     junit_dir.mkdir(parents=True, exist_ok=True)
+
+    suite_cache = None
+    changed_domains: set[str] = set()
+    test_files_to_run: list[Path] = []
+    cache_mode = "cold_scan"
+    if use_domain_cache:
+        try:
+            from development_tools.tests.test_file_suite_cache import TestFileSuiteCache
+
+            suite_cache = TestFileSuiteCache(Path.cwd())
+            changed_domains = suite_cache.get_changed_domains()
+            test_files_to_run = suite_cache.get_test_files_to_run(changed_domains)
+            if _suite_logger:
+                _suite_logger.info(
+                    "run_test_suite domain cache: invalidation=%s changed_domains=%s "
+                    "files_to_run=%s has_full_snapshot=%s",
+                    getattr(suite_cache, "last_invalidation_reason", None)
+                    or getattr(suite_cache.coverage_cache, "last_invalidation_reason", None),
+                    sorted(changed_domains),
+                    len(test_files_to_run),
+                    suite_cache.get_full_suite_cache() is not None,
+                )
+        except Exception:
+            suite_cache = None
+            use_domain_cache = False
+
     phases: list[PhaseResult] = []
+    cache_metadata: dict[str, Any] = {}
     try:
-        force_serial = not _has_xdist()
-        phases.append(_run_phase("parallel", cfg, junit_dir, force_serial=force_serial))
-        if not _STOP_REQUESTED:
-            phases.append(_run_phase("no_parallel", cfg, junit_dir, force_serial=True))
+        run_pytest = True
+        test_filter_paths: list[str] | None = None
+        cached_per_file: dict[str, dict[str, Any]] = {}
+        full_snapshot = None
+        if use_domain_cache and suite_cache:
+            full_snapshot = suite_cache.get_full_suite_cache()
+            cached_per_file = suite_cache.get_all_cached_suite_results(
+                exclude_domains=changed_domains
+            )
+            if not test_files_to_run and (full_snapshot or cached_per_file):
+                run_pytest = False
+                cache_mode = "cache_hit"
+                if _suite_logger:
+                    _suite_logger.info(
+                        "run_test_suite using cache only (no pytest): snapshot=%s cached_files=%s",
+                        bool(full_snapshot),
+                        len(cached_per_file),
+                    )
+                phases = _aggregate_cached_phases(
+                    suite_cache,
+                    junit_dir,
+                    full_snapshot=full_snapshot,
+                    per_file_cached=cached_per_file,
+                )
+            elif test_files_to_run:
+                cache_mode = "selective_run"
+                test_filter_paths = [
+                    str(tf.relative_to(Path.cwd())) for tf in test_files_to_run
+                ]
+            else:
+                cache_mode = "full_run"
+
+        if run_pytest:
+            force_serial = not _has_xdist()
+            parallel_phase = _run_phase(
+                "parallel",
+                cfg,
+                junit_dir,
+                force_serial=force_serial,
+                test_paths=test_filter_paths,
+            )
+            if use_domain_cache and suite_cache and test_filter_paths and cached_per_file:
+                parallel_phase = _merge_phase_with_cache(
+                    parallel_phase, cached_per_file, "parallel"
+                )
+            phases.append(parallel_phase)
+            if not _STOP_REQUESTED:
+                no_parallel_phase = _run_phase(
+                    "no_parallel",
+                    cfg,
+                    junit_dir,
+                    force_serial=True,
+                    test_paths=test_filter_paths,
+                )
+                if use_domain_cache and suite_cache and test_filter_paths and cached_per_file:
+                    no_parallel_phase = _merge_phase_with_cache(
+                        no_parallel_phase, cached_per_file, "no_parallel"
+                    )
+                phases.append(no_parallel_phase)
+
+            if use_domain_cache and suite_cache and not _STOP_REQUESTED:
+                parallel_by_file = _parse_junit_by_test_file(Path(parallel_phase.junit_xml))
+                no_parallel_by_file = (
+                    _parse_junit_by_test_file(Path(phases[-1].junit_xml))
+                    if len(phases) > 1
+                    else {}
+                )
+                normalize_rel = (
+                    TestFileCoverageCache._normalize_test_file_rel
+                    if TestFileCoverageCache is not None
+                    else lambda p: p.replace("\\", "/")
+                )
+                files_to_update = (
+                    {
+                        normalize_rel(str(p.relative_to(Path.cwd())))
+                        for p in test_files_to_run
+                    }
+                    if test_files_to_run
+                    else set(parallel_by_file) | set(no_parallel_by_file)
+                )
+                for rel in files_to_update:
+                    test_path = Path.cwd() / rel
+                    if not test_path.exists():
+                        continue
+                    suite_cache.cache_test_file_suite(
+                        test_path,
+                        parallel=parallel_by_file.get(rel),
+                        no_parallel=no_parallel_by_file.get(rel),
+                    )
+                outcome_preview = _aggregate(phases)
+                allow_np_skip = bool(test_filter_paths)
+                parallel_ok = _phase_ok_for_run_status(phases[0])
+                no_parallel_ok = (
+                    _phase_ok_for_run_status(
+                        phases[1], allow_empty_no_parallel_skip=allow_np_skip
+                    )
+                    if len(phases) > 1
+                    else None
+                )
+                failed_domains: set[str] = set()
+                run_domains: set[str] = set()
+                for rel in files_to_update:
+                    test_path = Path.cwd() / rel
+                    if not test_path.exists():
+                        continue
+                    run_domains.update(
+                        suite_cache.coverage_cache.get_test_files_domains(test_path)
+                    )
+                if outcome_preview["state"] != "clean":
+                    for rel in _failed_test_file_rels_from_phases(phases):
+                        test_path = Path.cwd() / rel
+                        if test_path.exists():
+                            failed_domains.update(
+                                suite_cache.coverage_cache.get_test_files_domains(
+                                    test_path
+                                )
+                            )
+                np_present = len(phases) <= 1 or phases[1].classification != "crashed"
+                suite_cache.update_run_status(
+                    parallel_ok=parallel_ok,
+                    no_parallel_ok=no_parallel_ok,
+                    no_parallel_coverage_present=np_present,
+                    failed_domains=failed_domains,
+                    run_domains=(
+                        run_domains
+                        or changed_domains
+                        or suite_cache._all_domains()
+                    ),
+                )
+                if outcome_preview["state"] == "clean":
+                    suite_cache.cache_full_suite(
+                        {
+                            "parallel": {
+                                "counts": phases[0].counts,
+                                "failed_node_ids": phases[0].failed_node_ids,
+                            },
+                            "no_parallel": {
+                                "counts": phases[-1].counts,
+                                "failed_node_ids": phases[-1].failed_node_ids,
+                            },
+                            "parallel_duration_seconds": phases[0].duration_seconds,
+                            "no_parallel_duration_seconds": phases[-1].duration_seconds,
+                        }
+                    )
+                    if _suite_logger:
+                        _suite_logger.info(
+                            "run_test_suite cached full suite snapshot (mode=%s)",
+                            cache_mode,
+                        )
     finally:
         if hasattr(signal, "SIGINT") and previous_handler is not None:
             signal.signal(signal.SIGINT, previous_handler)
+
+    if not cache_metadata and suite_cache:
+        cache_metadata = _build_cache_metadata(
+            suite_cache,
+            cache_mode=cache_mode,
+            changed_domains=changed_domains,
+            test_files_to_run=len(test_files_to_run),
+        )
+    elif not cache_metadata:
+        cache_metadata = {
+            "cache_mode": "disabled",
+            "source": "run_test_suite",
+            "invalidation_reason": "domain_cache_disabled",
+        }
+
     outcome = _aggregate(phases)
     return {
         "tool_name": "run_test_suite",
@@ -352,6 +775,7 @@ def run_suite(cfg: dict[str, Any]) -> dict[str, Any]:
                 for phase in phases
             ],
             "xdist_available": _has_xdist(),
+            "domain_cache": cache_metadata,
         },
     }
 
@@ -361,13 +785,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output-file", default=None)
     parser.add_argument("--workers", default=None)
     parser.add_argument("--timeout", type=int, default=None)
+    parser.add_argument(
+        "--no-domain-cache",
+        action="store_true",
+        help="Disable domain-based test selection and suite result caching (runs all tests).",
+    )
     args = parser.parse_args(argv)
     cfg = _load_config()
     if args.workers:
         cfg["workers"] = args.workers
     if args.timeout:
         cfg["timeout_seconds"] = args.timeout
-    payload = run_suite(cfg)
+    payload = run_suite(cfg, use_domain_cache=not args.no_domain_cache)
     output = json.dumps(payload, indent=2)
     if args.output_file:
         out = Path(args.output_file)
