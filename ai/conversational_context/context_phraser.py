@@ -1,11 +1,16 @@
-# ai/conversational_context/sections.py
+# ai/conversational_context/context_phraser.py
 
-"""Natural-language context sections for comprehensive conversational prompts."""
+"""
+Format computed context facts into natural-language prompt sections.
+
+Analytics and aggregation live in ``ai.context_builder`` (``analyze_context``).
+This module only phrases those facts for comprehensive conversational prompts.
+"""
 
 from datetime import date
 from typing import Any
 
-from ai.context_builder import ContextData, get_context_builder
+from ai.context_builder import ContextAnalysis, ContextData, get_context_builder
 from core import get_user_data
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
@@ -25,6 +30,56 @@ _FEATURE_STATUS_UNKNOWN = (
     "IMPORTANT - Feature availability: check-ins status unknown, "
     "task management status unknown"
 )
+
+
+@handle_errors("phrasing check-in summary", default_return="")
+def phrase_checkin_summary(
+    analysis: ContextAnalysis,
+    recent_checkins: list[dict[str, Any]],
+) -> str:
+    """Turn ``ContextAnalysis`` check-in metrics into natural-language summary text."""
+    total_entries = analysis.total_entries or len(recent_checkins)
+    if total_entries <= 0:
+        return "They have not completed any check-ins yet."
+
+    summary_lines = [f"Over the last {total_entries} check-ins:"]
+    if analysis.avg_mood is not None:
+        summary_lines.append(
+            f"Their average mood has been {analysis.avg_mood:.1f} out of 5"
+        )
+    if analysis.avg_energy is not None:
+        summary_lines.append(
+            f"Their average energy level has been {analysis.avg_energy:.1f} out of 5"
+        )
+    summary_lines.append(
+        f"They ate breakfast {analysis.breakfast_count} out of {total_entries} times "
+        f"({analysis.breakfast_rate:.0f}% of the time)"
+    )
+    summary_lines.append(
+        f"They brushed their teeth {analysis.teeth_brushed_count} out of {total_entries} times "
+        f"({analysis.teeth_brushing_rate:.0f}% of the time)"
+    )
+
+    if recent_checkins[:3]:
+        summary_lines.append("Most recent check-ins:")
+        for i, entry in enumerate(recent_checkins[:3]):
+            entry_desc = []
+            if entry.get("mood") is not None:
+                entry_desc.append(f"mood was {entry['mood']} out of 5")
+            if entry.get("energy") is not None:
+                entry_desc.append(f"energy was {entry['energy']} out of 5")
+            if entry.get("ate_breakfast") is not None:
+                entry_desc.append(
+                    f"{'ate' if entry['ate_breakfast'] else 'did not eat'} breakfast"
+                )
+            if entry.get("brushed_teeth") is not None:
+                entry_desc.append(
+                    f"{'brushed' if entry['brushed_teeth'] else 'did not brush'} teeth"
+                )
+            if entry_desc:
+                summary_lines.append(f"  - Check-in {i + 1}: {', '.join(entry_desc)}")
+
+    return "\n".join(summary_lines)
 
 
 @handle_errors("appending profile context sections", default_return=None)
@@ -100,7 +155,7 @@ def append_feature_enablement(parts: list[str], user_id: str) -> None:
 
 @handle_errors("appending check-in summary context", default_return=None)
 def append_checkin_summary(parts: list[str], user_id: str) -> None:
-    """Recent check-in analytics in natural language (uses ContextBuilder analysis)."""
+    """Recent check-in analytics phrased from ``ContextBuilder.analyze_context``."""
     if not is_user_checkins_enabled(user_id):
         return
 
@@ -112,52 +167,7 @@ def append_checkin_summary(parts: list[str], user_id: str) -> None:
     analysis = get_context_builder().analyze_context(
         ContextData(recent_checkins=recent_checkins)
     )
-    total_entries = len(recent_checkins)
-    breakfast_count = sum(
-        1 for entry in recent_checkins if entry.get("ate_breakfast") is True
-    )
-    teeth_brushed_count = sum(
-        1 for entry in recent_checkins if entry.get("brushed_teeth") is True
-    )
-
-    summary_lines = [f"Over the last {total_entries} check-ins:"]
-    if analysis.avg_mood is not None:
-        summary_lines.append(
-            f"Their average mood has been {analysis.avg_mood:.1f} out of 5"
-        )
-    if analysis.avg_energy is not None:
-        summary_lines.append(
-            f"Their average energy level has been {analysis.avg_energy:.1f} out of 5"
-        )
-    summary_lines.append(
-        f"They ate breakfast {breakfast_count} out of {total_entries} times "
-        f"({analysis.breakfast_rate:.0f}% of the time)"
-    )
-    summary_lines.append(
-        f"They brushed their teeth {teeth_brushed_count} out of {total_entries} times "
-        f"({analysis.teeth_brushing_rate:.0f}% of the time)"
-    )
-
-    if recent_checkins[:3]:
-        summary_lines.append("Most recent check-ins:")
-        for i, entry in enumerate(recent_checkins[:3]):
-            entry_desc = []
-            if entry.get("mood") is not None:
-                entry_desc.append(f"mood was {entry['mood']} out of 5")
-            if entry.get("energy") is not None:
-                entry_desc.append(f"energy was {entry['energy']} out of 5")
-            if entry.get("ate_breakfast") is not None:
-                entry_desc.append(
-                    f"{'ate' if entry['ate_breakfast'] else 'did not eat'} breakfast"
-                )
-            if entry.get("brushed_teeth") is not None:
-                entry_desc.append(
-                    f"{'brushed' if entry['brushed_teeth'] else 'did not brush'} teeth"
-                )
-            if entry_desc:
-                summary_lines.append(f"  - Check-in {i + 1}: {', '.join(entry_desc)}")
-
-    parts.append("\n".join(summary_lines))
+    parts.append(phrase_checkin_summary(analysis, recent_checkins))
 
 
 @handle_errors("appending activity and mood trend context", default_return=None)

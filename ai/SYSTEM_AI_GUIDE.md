@@ -220,7 +220,7 @@ When you add new forms of tracked data, prefer:
 
 The prompt layer in `ai/prompt_manager.py` is responsible for:
 
-- Loading the **system prompt** from `AI_SYSTEM_PROMPT_PATH` (by default `resources/assistant_system_prompt.txt`).
+- Loading the **system prompt** from `AI_SYSTEM_PROMPT_PATH` (by default `resources/prompts/assistant_system_prompt.txt`).
 - Respecting `AI_USE_CUSTOM_PROMPT` from `core/config.py` to enable/disable custom system prompts.
 - Providing `PromptTemplate` structures for different prompt types (for example, chat, command parsing).
 

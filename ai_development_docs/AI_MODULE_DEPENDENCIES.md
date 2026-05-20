@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-19 22:48:01
+> **Last Generated**: 2026-05-20 00:06:29
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 148
-- **Total Imports**: 1501
-- **Standard Library**: 428 (28.5%)
-- **Third-Party**: 234 (15.6%)
-- **Local Imports**: 839 (55.9%)
+- **Files Scanned**: 150
+- **Total Imports**: 1509
+- **Standard Library**: 430 (28.5%)
+- **Third-Party**: 234 (15.5%)
+- **Local Imports**: 845 (56.0%)
 
 ## Dependency Decision Trees
 
@@ -34,7 +34,7 @@ Core System Dependencies:
 AI System Dependencies:
 - AI Core
   - ai/cache_manager.py <- standard library (dataclasses, hashlib, threading, time), logger, error_handling, config
-  - ai/chatbot.py <- standard library (asyncio, collections, os, re), third-party (psutil, requests), logger, config, response_tracking, context_manager, prompt_manager (+7 more)
+  - ai/chatbot.py <- standard library (asyncio, collections, os, threading), third-party (psutil), logger, config, response_tracking, context_manager, prompt_manager (+9 more)
 - Command Processing
   - communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), third-party (storage.user_data_operations), logger, error_handling, core, base_handler, shared_types (+1 more)
   - communication/command_handlers/analytics_handler.py <- standard library (collections, typing), logger, error_handling, base_handler, shared_types, response_tracking (+5 more)
@@ -91,11 +91,11 @@ Communication modules compose other communication utilities for complete flows.
 
 ### Third-Party Integration
 External libraries provide channel and UI support.
-- `ai/chatbot.py` -> requests, psutil
+- `ai/chatbot.py` -> psutil
+- `ai/lm_studio_client.py` -> requests
 - `ai/lm_studio_manager.py` -> requests
 - `ai/__init__.py` -> chatbot, cache_manager
 - `communication/__init__.py` -> communication_channels.base.base_channel, message_processing.command_parser
-- `communication/command_handlers/account_handler.py` -> storage.user_data_operations
 
 
 ## Critical Dependencies for AI Context

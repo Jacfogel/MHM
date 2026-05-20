@@ -1,10 +1,13 @@
 # context_builder.py
 
 """
-Lighter-weight AI context assembly for targeted prompts.
+Compute structured user context and check-in analytics for AI interactions.
 
-Full conversational context for LM Studio is assembled in
-`ai.conversational_context` (via `ResponseGenerator.create_comprehensive_context_prompt`).
+This module calculates facts (``analyze_context``, ``ContextAnalysis``).
+Natural-language phrasing for comprehensive chat prompts lives in
+``ai.conversational_context.context_phraser``.
+
+Full conversational prompt assembly: ``ai.conversational_context.assembly``.
 """
 
 from typing import Any
@@ -52,8 +55,11 @@ class ContextData:
 
 @dataclass
 class ContextAnalysis:
-    """Analysis results from context data"""
+    """Canonical check-in analytics from ``ContextBuilder.analyze_context``."""
 
+    total_entries: int = 0
+    breakfast_count: int = 0
+    teeth_brushed_count: int = 0
     breakfast_rate: float = 0.0
     avg_mood: float | None = None
     avg_energy: float | None = None
@@ -215,6 +221,9 @@ class ContextBuilder:
             )
 
             return ContextAnalysis(
+                total_entries=total_entries,
+                breakfast_count=breakfast_count,
+                teeth_brushed_count=teeth_brushed_count,
                 breakfast_rate=breakfast_rate,
                 avg_mood=avg_mood,
                 avg_energy=avg_energy,
@@ -348,217 +357,6 @@ class ContextBuilder:
         except Exception as e:
             logger.error(f"Error generating insights: {e}")
             return []
-
-    @handle_errors("creating context prompt", default_return="")
-    def create_context_prompt(
-        self, context_data: ContextData, analysis: ContextAnalysis | None = None
-    ) -> str:
-        """
-        Create a context prompt string for AI interactions
-
-        Args:
-            context_data: User context data
-            analysis: Optional pre-computed analysis
-
-        Returns:
-            Formatted context prompt string
-        """
-        try:
-            logger.debug("Creating context prompt for AI interaction")
-
-            effective_analysis = (
-                analysis if analysis is not None else self.analyze_context(context_data)
-            )
-
-            context_parts = []
-
-            # User profile information
-            profile = context_data.user_profile
-            if profile and profile.get("preferred_name"):
-                context_parts.append(f"User's name: {profile['preferred_name']}")
-                logger.debug(f"Added user name to context: {profile['preferred_name']}")
-            if profile and profile.get("active_categories"):
-                context_parts.append(
-                    f"Interests: {', '.join(profile['active_categories'])}"
-                )
-                logger.debug(
-                    f"Added user interests to context: {profile['active_categories']}"
-                )
-
-            # Neurodivergent-specific context
-            user_context = context_data.user_context
-            if user_context:
-                # Health conditions
-                health_conditions = user_context.get("custom_fields", {}).get(
-                    "health_conditions", []
-                )
-                if health_conditions:
-                    context_parts.append(
-                        f"Health conditions: {', '.join(health_conditions)}"
-                    )
-                    logger.debug(
-                        f"Added health conditions to context: {health_conditions}"
-                    )
-
-                # User's notes for AI
-                notes_for_ai = user_context.get("notes_for_ai", [])
-                if notes_for_ai:
-                    context_parts.append(
-                        f"User notes for AI: {'; '.join(notes_for_ai)}"
-                    )
-                    logger.debug(
-                        f"Added user notes to context: {len(notes_for_ai)} notes"
-                    )
-
-                # Encouraging activities
-                encouraging_activities = user_context.get(
-                    "activities_for_encouragement", []
-                )
-                if encouraging_activities:
-                    context_parts.append(
-                        f"Encouraging activities: {', '.join(encouraging_activities)}"
-                    )
-                    logger.debug(
-                        f"Added encouraging activities to context: {encouraging_activities}"
-                    )
-
-                # Goals
-                goals = user_context.get("goals", [])
-                if goals:
-                    context_parts.append(f"User goals: {', '.join(goals)}")
-                    logger.debug(f"Added user goals to context: {goals}")
-
-            # Recent check-in analysis
-            if context_data.recent_checkins:
-                total_entries = len(context_data.recent_checkins)
-                context_parts.append(
-                    f"Recent check-in data (last {total_entries} entries):"
-                )
-                context_parts.append(
-                    f"- Breakfast eaten: {effective_analysis.breakfast_rate:.0f}% of the time"
-                )
-                if effective_analysis.avg_mood:
-                    context_parts.append(
-                        f"- Average mood: {effective_analysis.avg_mood:.1f}/5 ({effective_analysis.mood_trend})"
-                    )
-                if effective_analysis.avg_energy:
-                    context_parts.append(
-                        f"- Average energy: {effective_analysis.avg_energy:.1f}/5 ({effective_analysis.energy_trend})"
-                    )
-                context_parts.append(
-                    f"- Teeth brushed: {effective_analysis.teeth_brushing_rate:.0f}% of the time"
-                )
-                context_parts.append(
-                    f"- Overall wellness score: {effective_analysis.overall_wellness_score:.1f}/100"
-                )
-
-                # Add insights
-                if effective_analysis.insights:
-                    context_parts.append(
-                        f"Key insights: {', '.join(effective_analysis.insights)}"
-                    )
-
-                logger.debug(
-                    f"Added check-in analysis to context: {total_entries} entries, wellness_score={effective_analysis.overall_wellness_score:.1f}"
-                )
-
-            context_prompt = "\n".join(context_parts)
-            logger.debug(
-                f"Context prompt created successfully: {len(context_prompt)} characters, {len(context_parts)} sections"
-            )
-
-            return context_prompt
-
-        except Exception as e:
-            logger.error(f"Error creating context prompt: {e}")
-            return ""
-
-    @handle_errors("creating task-specific context", default_return="")
-    def create_task_context(self, user_id: str, task_description: str) -> str:
-        """
-        Create context specifically for task-related interactions
-
-        Args:
-            user_id: User ID
-            task_description: Description of the task
-
-        Returns:
-            Task-specific context string
-        """
-        try:
-            context_data = self.build_user_context(
-                user_id, include_conversation_history=False
-            )
-            analysis = self.analyze_context(context_data)
-
-            user_context = context_data.user_context
-            task_preferences = []
-
-            if user_context:
-                # Preferred task times
-                preferred_times = user_context.get("preferred_task_times", [])
-                if preferred_times:
-                    task_preferences.append(
-                        f"prefers tasks at: {', '.join(preferred_times)}"
-                    )
-
-                # Task completion patterns
-                task_patterns = user_context.get("task_completion_patterns", [])
-                if task_patterns:
-                    task_preferences.append(
-                        f"task patterns: {', '.join(task_patterns)}"
-                    )
-
-            # Build task-specific context
-            context_parts = [
-                f"Task: {task_description}",
-                self.create_context_prompt(context_data, analysis),
-            ]
-
-            if task_preferences:
-                context_parts.append(f"Task preferences: {'; '.join(task_preferences)}")
-
-            return "\n\n".join(context_parts)
-
-        except Exception as e:
-            logger.error(f"Error creating task context: {e}")
-            return f"Task: {task_description}"
-
-    @handle_errors("creating checkin context", default_return="")
-    def create_checkin_context(self, user_id: str, checkin_type: str = "daily") -> str:
-        """
-        Create context specifically for check-in interactions
-
-        Args:
-            user_id: User ID
-            checkin_type: Type of check-in (daily, weekly, etc.)
-
-        Returns:
-            Check-in specific context string
-        """
-        try:
-            context_data = self.build_user_context(
-                user_id, include_conversation_history=False
-            )
-            analysis = self.analyze_context(context_data)
-
-            # Build check-in specific context
-            context_parts = [
-                f"Check-in Type: {checkin_type}",
-                self.create_context_prompt(context_data, analysis),
-            ]
-
-            # Add check-in specific insights
-            if analysis.insights:
-                context_parts.append(
-                    f"Areas to focus on: {', '.join(analysis.insights)}"
-                )
-
-            return "\n\n".join(context_parts)
-
-        except Exception as e:
-            logger.error(f"Error creating checkin context: {e}")
-            return f"Check-in Type: {checkin_type}"
 
 
 # Global context builder instance

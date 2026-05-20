@@ -373,6 +373,7 @@ class TagWidget(QWidget):
     @handle_errors("refreshing tags")
     def refresh_tags(self):
         """Refresh the tags in the tag widget."""
+        # not_duplicate: widget_refresh_tags
         self.load_tags()
 
     @handle_errors("undoing last tag delete")

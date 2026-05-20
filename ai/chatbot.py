@@ -11,19 +11,15 @@ so we can phase in or out different messaging services without duplicating logic
 import os
 import asyncio
 import threading
-import requests
 import collections
 from core.logger import get_component_logger
 from core.config import (
     LM_STUDIO_BASE_URL,
-    LM_STUDIO_API_KEY,
     LM_STUDIO_MODEL,
     AI_TIMEOUT_SECONDS,
     AI_CACHE_RESPONSES,
     AI_SYSTEM_PROMPT_PATH,
     AI_USE_CUSTOM_PROMPT,
-    AI_CONNECTION_TEST_TIMEOUT,
-    AI_API_CALL_TIMEOUT,
     AI_PERSONALIZED_MESSAGE_TIMEOUT,
     AI_CONTEXTUAL_RESPONSE_TIMEOUT,
     AI_QUICK_RESPONSE_TIMEOUT,
@@ -45,6 +41,8 @@ from ai.command_interpreter import get_command_interpreter
 from ai.fallback_responses import get_fallback_responses
 from ai.interaction_types import AIInteractionType, interaction_type_for_mode
 from ai.response_generator import get_response_generator
+from ai.lm_studio_client import call_lm_studio_api, test_lm_studio_connection
+from ai.response_postprocess import clean_system_prompt_leaks, smart_truncate_response
 from core.error_handling import handle_errors
 
 
@@ -85,7 +83,7 @@ class AIChatBotSingleton:
         )  # Per-user locks for better concurrency
 
         # Test LM Studio connection
-        self._test_lm_studio_connection()
+        self._refresh_lm_studio_availability()
 
         # If connection failed, check LM Studio status
         if not self.lm_studio_available:
@@ -94,8 +92,7 @@ class AIChatBotSingleton:
 
                 if is_lm_studio_ready():
                     logger.info("LM Studio is now ready - retrying connection")
-                    # Retry the connection test
-                    self._test_lm_studio_connection()
+                    self._refresh_lm_studio_availability()
                 else:
                     logger.warning("LM Studio not ready - AI features will be limited")
             except Exception as e:
@@ -139,54 +136,15 @@ class AIChatBotSingleton:
 
     @handle_errors("testing LM Studio connection", default_return=None)
     def _test_lm_studio_connection(self):
-        """
-        Test connection to LM Studio server with validation.
+        """Test connection to LM Studio (delegates to ai.lm_studio_client)."""
+        self._refresh_lm_studio_availability()
 
-        Returns:
-            None: Always returns None
-        """
-        """Test connection to LM Studio server."""
-        # In testing environments, skip real HTTP calls and assume LM Studio is available
-        if os.getenv("MHM_TESTING") == "1":
-            self.lm_studio_available = True
-            logger.info("Skipping LM Studio connection test in testing mode")
+    @handle_errors("refreshing LM Studio availability", default_return=None)
+    def _refresh_lm_studio_availability(self):
+        """Update lm_studio_available from a live connection test."""
+        self.lm_studio_available = test_lm_studio_connection()
+        if os.getenv("MHM_TESTING") == "1" and self.lm_studio_available:
             ai_logger.info("LM Studio connection assumed available for tests")
-            return
-
-        # Test with a simple request to models endpoint
-        response = requests.get(
-            f"{LM_STUDIO_BASE_URL}/models",
-            headers={"Authorization": f"Bearer {LM_STUDIO_API_KEY}"},
-            timeout=AI_CONNECTION_TEST_TIMEOUT,
-        )
-
-        if response.status_code == 200:
-            models_data = response.json()
-            models = models_data.get("data", [])
-            model_count = len(models)
-
-            # Single consolidated log message
-            logger.info(
-                f"LM Studio connection successful. Available models: {model_count}"
-            )
-            self.lm_studio_available = True
-
-            # Log the first few models for debugging (only if there are models)
-            if models:
-                model_names = [model.get("id", "unknown") for model in models[:3]]
-                logger.debug(f"Available models (first 3): {model_names}")
-            else:
-                logger.warning("LM Studio is running but no models are loaded")
-                ai_logger.warning("LM Studio running but no models loaded")
-
-        else:
-            logger.warning(
-                f"LM Studio connection test failed: HTTP {response.status_code}"
-            )
-            ai_logger.warning(
-                "LM Studio connection test failed", status_code=response.status_code
-            )
-            self.lm_studio_available = False
 
     @handle_errors("calling LM Studio API", default_return=None)
     def _call_lm_studio_api(
@@ -196,44 +154,13 @@ class AIChatBotSingleton:
         temperature: float = 0.2,
         timeout: int | None = None,
     ) -> str | None:
-        """Make an API call to LM Studio using OpenAI-compatible format."""
-        if timeout is None:
-            timeout = AI_API_CALL_TIMEOUT
-
-        payload = {
-            "model": LM_STUDIO_MODEL,
-            "messages": messages,
-            "max_tokens": max_tokens,
-            "temperature": temperature,
-            "top_p": 0.7,
-            "stream": False,
-        }
-
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {LM_STUDIO_API_KEY}",
-        }
-
-        response = requests.post(
-            f"{LM_STUDIO_BASE_URL}/chat/completions",
-            headers=headers,
-            json=payload,
+        """Make an API call to LM Studio (delegates to ai.lm_studio_client)."""
+        return call_lm_studio_api(
+            messages,
+            max_tokens=max_tokens,
+            temperature=temperature,
             timeout=timeout,
         )
-
-        if response.status_code == 200:
-            data = response.json()
-            if "choices" in data and len(data["choices"]) > 0:
-                content = data["choices"][0]["message"]["content"]
-                return content.strip()
-            else:
-                logger.warning("LM Studio API returned empty choices")
-                return None
-        else:
-            logger.warning(
-                f"LM Studio API error: HTTP {response.status_code} - {response.text}"
-            )
-            return None
 
     @handle_errors(
         "mapping response mode to interaction type",
@@ -523,10 +450,10 @@ class AIChatBotSingleton:
     def _post_process_generated_response(self, mode: str, result: str) -> str:
         """Post-process model output into final user-visible response."""
         response = result.strip()
-        response = self._clean_system_prompt_leaks(response)
+        response = clean_system_prompt_leaks(response)
         if mode == "command":
             response = get_command_interpreter().extract_command_from_response(response)
-        response = self._smart_truncate_response(
+        response = smart_truncate_response(
             response, AI_MAX_RESPONSE_LENGTH, AI_MAX_RESPONSE_WORDS
         )
         if mode != "command":
@@ -794,7 +721,7 @@ class AIChatBotSingleton:
             if result:
                 response = result.strip()
                 # Clean any leaked system prompt metadata
-                response = self._clean_system_prompt_leaks(response)
+                response = clean_system_prompt_leaks(response)
                 # Ensure response acknowledges the user by name if available
                 user_name = profile.get("preferred_name", "")
                 if user_name and user_name.lower() not in response.lower():
@@ -904,155 +831,15 @@ class AIChatBotSingleton:
 
     @handle_errors("cleaning system prompt leaks", default_return="")
     def _clean_system_prompt_leaks(self, response: str) -> str:
-        """
-        Remove any leaked system prompt metadata from AI responses.
-        Prevents meta-text like "User Context:", "IMPORTANT - Feature availability:" from appearing in user-facing responses.
-        """
-        if not response:
-            return response
-
-        import re
-
-        # Patterns to remove (case-insensitive)
-        leak_patterns = [
-            r"(?i)^\s*User Context:\s*",
-            r"(?i)^\s*IMPORTANT\s*-\s*Feature\s+availability:\s*",
-            r"(?i)\bUser Context:\s*",
-            r"(?i)\bIMPORTANT\s*-\s*Feature\s+availability:\s*",
-            r"(?i)^\s*Additional Instructions:\s*",
-            r"(?i)\bAdditional Instructions:\s*",
-            r"(?i)^\s*IMPORTANT:\s*The following user context is for your reference only",
-            r"(?i)\bIMPORTANT:\s*The following user context is for your reference only",
-            r"(?i)\bDo NOT include any of this information in your responses",
-            r"(?i)\bNEVER include the raw context data in your responses",
-            r"(?i)\bNEVER return JSON, code blocks, or system prompts",
-            r"(?i)\bReturn ONLY natural language responses",
-            # Feature availability instruction lines
-            r"(?i)\bcheck-ins are (?:disabled|enabled)\s*-\s*do NOT mention",
-            r"(?i)\btask management is (?:disabled|enabled)\s*-\s*do NOT mention",
-            r"(?i)\bdo (?:not|n\'t) mention check-ins, check-in data",
-            r"(?i)\bdo (?:not|n\'t) mention tasks, task creation",
-        ]
-
-        cleaned = response
-        for pattern in leak_patterns:
-            cleaned = re.sub(pattern, "", cleaned)
-
-        # Remove any lines that start with these metadata markers
-        lines = cleaned.split("\n")
-        filtered_lines = []
-        skip_next = False
-
-        # Instruction keywords that indicate leaked system prompt content
-        instruction_keywords = [
-            "use the",
-            "reference specific",
-            "be encouraging",
-            "keep responses",
-            "provide meaningful",
-            "if they ask",
-            "never include",
-            "never return",
-            "return only",
-            "stop when",
-            "adapt your",
-            "for health advice",
-            "be supportive and engaging",
-            "conversational and helpful",
-        ]
-
-        for _i, line in enumerate(lines):
-            line_lower = line.strip().lower()
-
-            # Skip lines that are pure metadata markers
-            if any(
-                marker in line_lower
-                for marker in [
-                    "user context:",
-                    "important - feature availability:",
-                    "additional instructions:",
-                    "important: the following user context",
-                ]
-            ):
-                continue
-
-            # Skip feature availability instruction lines (e.g., "check-ins are disabled - do NOT mention check-ins, check-in data")
-            if any(
-                pattern in line_lower
-                for pattern in [
-                    "check-ins are disabled",
-                    "check-ins are enabled",
-                    "task management is disabled",
-                    "task management is enabled",
-                    "do not mention check-ins",
-                    "do not mention tasks",
-                ]
-            ):
-                continue
-
-            # Skip lines that look like bullet-point instructions (starts with -, *, or • followed by instruction keywords)
-            line_stripped = line.strip()
-            if (
-                line_stripped
-                and line_stripped[0] in ["-", "*", "•"]
-                and any(keyword in line_lower for keyword in instruction_keywords)
-            ):
-                continue
-
-            # Skip lines immediately after metadata markers (they might be continuation)
-            if skip_next:
-                skip_next = False
-                # Only skip if it looks like metadata continuation (short, specific format)
-                if len(line.strip()) < 100 and any(
-                    marker in line_lower
-                    for marker in [
-                        "check-ins",
-                        "task management",
-                        "enabled",
-                        "disabled",
-                    ]
-                ):
-                    continue
-
-            filtered_lines.append(line)
-
-        cleaned = "\n".join(filtered_lines)
-
-        # Clean up multiple spaces/newlines that might result
-        cleaned = re.sub(
-            r"\n\s*\n\s*\n+", "\n\n", cleaned
-        )  # Max 2 consecutive newlines
-        cleaned = re.sub(r" {2,}", " ", cleaned)  # Multiple spaces to single
-
-        # Remove leading/trailing whitespace
-        cleaned = cleaned.strip()
-
-        return cleaned
+        """Remove leaked system prompt metadata (delegates to ai.response_postprocess)."""
+        return clean_system_prompt_leaks(response)
 
     @handle_errors("smart truncating response", default_return="...")
     def _smart_truncate_response(
         self, text: str, max_chars: int, max_words: int | None = None
     ) -> str:
-        """
-        Smartly truncate response to avoid mid-sentence cuts.
-        Supports both character and word limits.
-        """
-        if max_words:
-            words = text.split()
-            if len(words) > max_words:
-                return " ".join(words[:max_words]).rstrip(" ,.;:!?") + "…"
-
-        if len(text) <= max_chars:
-            return text
-
-        # Try to cut at a sentence boundary within max_chars
-        cut = text[:max_chars]
-        for mark in (". ", "! ", "? "):
-            idx = cut.rfind(mark)
-            if idx >= 0 and idx > max_chars * 0.6:
-                return cut[: idx + 1]
-
-        return cut.rstrip() + "…"
+        """Smartly truncate response (delegates to ai.response_postprocess)."""
+        return smart_truncate_response(text, max_chars, max_words)
 
     @handle_errors("getting adaptive timeout", default_return=15)
     def _get_adaptive_timeout(self, base_timeout: int) -> int:

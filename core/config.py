@@ -109,7 +109,7 @@ LM_STUDIO_MODEL_LOAD_TIMEOUT = int(
 
 # AI System Prompt Configuration
 AI_SYSTEM_PROMPT_PATH = os.getenv(
-    "AI_SYSTEM_PROMPT_PATH", "resources/assistant_system_prompt.txt"
+    "AI_SYSTEM_PROMPT_PATH", "resources/prompts/assistant_system_prompt.txt"
 )
 AI_USE_CUSTOM_PROMPT = os.getenv("AI_USE_CUSTOM_PROMPT", "true").lower() == "true"
 

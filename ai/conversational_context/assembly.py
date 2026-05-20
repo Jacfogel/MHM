@@ -5,7 +5,7 @@
 from typing import Any
 
 from ai.conversational_context.instructions import CONVERSATIONAL_CONTEXT_INSTRUCTIONS
-from ai.conversational_context.sections import (
+from ai.conversational_context.context_phraser import (
     append_activity_and_mood_trends,
     append_checkin_summary,
     append_conversation_history,

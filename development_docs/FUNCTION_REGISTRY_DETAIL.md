@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-19 22:47:50
+> **Last Generated**: 2026-05-20 00:06:13
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 93.5% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 150
-- **Functions Found**: 1815
-- **Methods Found**: 1245
+- **Files Scanned**: 152
+- **Functions Found**: 1821
+- **Methods Found**: 1243
 - **Classes Found**: 177
-- **Total Items**: 3060
-- **Functions Documented**: 1681
-- **Methods Documented**: 1180
+- **Total Items**: 3064
+- **Functions Documented**: 1687
+- **Methods Documented**: 1178
 - **Classes Documented**: 138
-- **Total Documented**: 2861
+- **Total Documented**: 2865
 - **Template-Generated**: 24
-- **Last Updated**: 2026-05-19
+- **Last Updated**: 2026-05-20
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -116,9 +116,8 @@ Test functions and testing utilities.
 - [OK] `_build_contextual_summary(self, context)` - Build a concise context summary used for logging and fallback personalization.
 - [OK] `_build_response_generation_request(self, mode, user_prompt, user_id)` - Build messages and generation parameters based on response mode.
 - [OK] `_cache_response_if_needed(self, mode, prompt_for_key, uid_for_key, ptype, response)` - Cache successful non-chat responses.
-- [OK] `_call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio using OpenAI-compatible format.
-- [OK] `_clean_system_prompt_leaks(self, response)` - Remove any leaked system prompt metadata from AI responses.
-Prevents meta-text like "User Context:", "IMPORTANT - Feature availability:" from appearing in user-facing responses.
+- [OK] `_call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio (delegates to ai.lm_studio_client).
+- [OK] `_clean_system_prompt_leaks(self, response)` - Remove leaked system prompt metadata (delegates to ai.response_postprocess).
 - [OK] `_detect_resource_constraints(self)` - Detect if system is resource-constrained.
 - [OK] `_ensure_lm_studio_available(self)` - Ensure LM Studio availability by retrying connection if needed.
 - [OK] `_fallback_response_for_unavailable_lm(self, user_prompt, user_id, mode)` - Return contextual fallback when LM Studio is unavailable.
@@ -135,13 +134,10 @@ Returns:
 - [OK] `_optimize_prompt(self, user_prompt, context)` - Create optimized messages array for LM Studio API.
 - [OK] `_post_process_generated_response(self, mode, result)` - Post-process model output into final user-visible response.
 - [OK] `_record_contextual_interaction(self, user_id, user_prompt, response)` - Persist contextual response and conversation history.
-- [OK] `_smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response to avoid mid-sentence cuts.
-Supports both character and word limits.
+- [OK] `_refresh_lm_studio_availability(self)` - Update lm_studio_available from a live connection test.
+- [OK] `_smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response (delegates to ai.response_postprocess).
 - [OK] `_store_chat_mode_interaction(self, mode, user_id, user_prompt, response)` - Persist chat interactions for conversation context.
-- [OK] `_test_lm_studio_connection(self)` - Test connection to LM Studio server with validation.
-
-Returns:
-    None: Always returns None
+- [OK] `_test_lm_studio_connection(self)` - Test connection to LM Studio (delegates to ai.lm_studio_client).
 - [OK] `generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
 Integrates with existing UserContext and UserPreferences systems.
 - [OK] `generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
@@ -162,9 +158,8 @@ Uses adaptive timeout to prevent blocking for too long with improved performance
   - [OK] `AIChatBotSingleton._build_contextual_summary(self, context)` - Build a concise context summary used for logging and fallback personalization.
   - [OK] `AIChatBotSingleton._build_response_generation_request(self, mode, user_prompt, user_id)` - Build messages and generation parameters based on response mode.
   - [OK] `AIChatBotSingleton._cache_response_if_needed(self, mode, prompt_for_key, uid_for_key, ptype, response)` - Cache successful non-chat responses.
-  - [OK] `AIChatBotSingleton._call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio using OpenAI-compatible format.
-  - [OK] `AIChatBotSingleton._clean_system_prompt_leaks(self, response)` - Remove any leaked system prompt metadata from AI responses.
-Prevents meta-text like "User Context:", "IMPORTANT - Feature availability:" from appearing in user-facing responses.
+  - [OK] `AIChatBotSingleton._call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio (delegates to ai.lm_studio_client).
+  - [OK] `AIChatBotSingleton._clean_system_prompt_leaks(self, response)` - Remove leaked system prompt metadata (delegates to ai.response_postprocess).
   - [OK] `AIChatBotSingleton._detect_resource_constraints(self)` - Detect if system is resource-constrained.
   - [OK] `AIChatBotSingleton._ensure_lm_studio_available(self)` - Ensure LM Studio availability by retrying connection if needed.
   - [OK] `AIChatBotSingleton._fallback_response_for_unavailable_lm(self, user_prompt, user_id, mode)` - Return contextual fallback when LM Studio is unavailable.
@@ -181,13 +176,10 @@ Returns:
   - [OK] `AIChatBotSingleton._optimize_prompt(self, user_prompt, context)` - Create optimized messages array for LM Studio API.
   - [OK] `AIChatBotSingleton._post_process_generated_response(self, mode, result)` - Post-process model output into final user-visible response.
   - [OK] `AIChatBotSingleton._record_contextual_interaction(self, user_id, user_prompt, response)` - Persist contextual response and conversation history.
-  - [OK] `AIChatBotSingleton._smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response to avoid mid-sentence cuts.
-Supports both character and word limits.
+  - [OK] `AIChatBotSingleton._refresh_lm_studio_availability(self)` - Update lm_studio_available from a live connection test.
+  - [OK] `AIChatBotSingleton._smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response (delegates to ai.response_postprocess).
   - [OK] `AIChatBotSingleton._store_chat_mode_interaction(self, mode, user_id, user_prompt, response)` - Persist chat interactions for conversation context.
-  - [OK] `AIChatBotSingleton._test_lm_studio_connection(self)` - Test connection to LM Studio server with validation.
-
-Returns:
-    None: Always returns None
+  - [OK] `AIChatBotSingleton._test_lm_studio_connection(self)` - Test connection to LM Studio (delegates to ai.lm_studio_client).
   - [OK] `AIChatBotSingleton.generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
 Integrates with existing UserContext and UserPreferences systems.
   - [OK] `AIChatBotSingleton.generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
@@ -252,33 +244,9 @@ Args:
 
 Returns:
     ContextData object with all available context
-- [OK] `create_checkin_context(self, user_id, checkin_type)` - Create context specifically for check-in interactions
-
-Args:
-    user_id: User ID
-    checkin_type: Type of check-in (daily, weekly, etc.)
-
-Returns:
-    Check-in specific context string
-- [OK] `create_context_prompt(self, context_data, analysis)` - Create a context prompt string for AI interactions
-
-Args:
-    context_data: User context data
-    analysis: Optional pre-computed analysis
-
-Returns:
-    Formatted context prompt string
-- [OK] `create_task_context(self, user_id, task_description)` - Create context specifically for task-related interactions
-
-Args:
-    user_id: User ID
-    task_description: Description of the task
-
-Returns:
-    Task-specific context string
 - [OK] `get_context_builder()` - Get the global context builder instance
 **Classes:**
-- [OK] `ContextAnalysis` - Analysis results from context data
+- [OK] `ContextAnalysis` - Canonical check-in analytics from ``ContextBuilder.analyze_context``.
   - [OK] `ContextAnalysis.__post_init__(self)` - Post-initialization setup
 - [OK] `ContextBuilder` - Builds comprehensive context for AI interactions
   - [OK] `ContextBuilder.__init__(self)` - Initialize the context builder
@@ -300,30 +268,6 @@ Args:
 
 Returns:
     ContextData object with all available context
-  - [OK] `ContextBuilder.create_checkin_context(self, user_id, checkin_type)` - Create context specifically for check-in interactions
-
-Args:
-    user_id: User ID
-    checkin_type: Type of check-in (daily, weekly, etc.)
-
-Returns:
-    Check-in specific context string
-  - [OK] `ContextBuilder.create_context_prompt(self, context_data, analysis)` - Create a context prompt string for AI interactions
-
-Args:
-    context_data: User context data
-    analysis: Optional pre-computed analysis
-
-Returns:
-    Formatted context prompt string
-  - [OK] `ContextBuilder.create_task_context(self, user_id, task_description)` - Create context specifically for task-related interactions
-
-Args:
-    user_id: User ID
-    task_description: Description of the task
-
-Returns:
-    Task-specific context string
 - [OK] `ContextData` - Structured context data for AI interactions
   - [OK] `ContextData.__post_init__(self)` - Post-initialization setup
 
@@ -524,14 +468,12 @@ Returns:
 - [OK] `assemble_comprehensive_messages(user_id, user_prompt, wellness_base_prompt)` - Build system + user messages for comprehensive conversational generation.
 - [OK] `build_context_parts(user_id)` - Assemble natural-language context lines for the system prompt.
 
-#### `ai/conversational_context/instructions.py`
-
-#### `ai/conversational_context/sections.py`
+#### `ai/conversational_context/context_phraser.py`
 **Functions:**
 - [MISSING] `_checkin_completed_today(ts)` - No description
 - [MISSING] `_feature_status_lines(user_id)` - No description
 - [OK] `append_activity_and_mood_trends(parts, user_id, context)` - Recent activity counts and mood trend summary from get_ai_context.
-- [OK] `append_checkin_summary(parts, user_id)` - Recent check-in analytics in natural language (uses ContextBuilder analysis).
+- [OK] `append_checkin_summary(parts, user_id)` - Recent check-in analytics phrased from ``ContextBuilder.analyze_context``.
 - [MISSING] `append_conversation_history(parts, context)` - No description
 - [OK] `append_feature_enablement(parts, user_id)` - Tell the model which product features are enabled for this user.
 - [OK] `append_profile_sections(parts, context)` - Profile, neurodivergent context, and goals from get_ai_context.
@@ -540,6 +482,9 @@ Returns:
 - [MISSING] `append_task_data(parts, user_id)` - No description
 - [MISSING] `append_task_reminder(parts, recent_sent_all)` - No description
 - [MISSING] `append_today_checkin_status(parts, user_id)` - No description
+- [OK] `phrase_checkin_summary(analysis, recent_checkins)` - Turn ``ContextAnalysis`` check-in metrics into natural-language summary text.
+
+#### `ai/conversational_context/instructions.py`
 
 #### `ai/fallback_responses/__init__.py`
 **Functions:**
@@ -595,6 +540,11 @@ Check-in analytics are handled separately from generic keyword support.
 **Classes:**
 - [OK] `AIInteractionType` - Why the system is calling AI and what shape of output is expected.
 
+#### `ai/lm_studio_client.py`
+**Functions:**
+- [OK] `call_lm_studio_api(messages, max_tokens, temperature, timeout)` - Make a chat/completions request to LM Studio.
+- [OK] `test_lm_studio_connection()` - Return True when the LM Studio /models endpoint responds successfully.
+
 #### `ai/lm_studio_manager.py`
 **Functions:**
 - [OK] `__init__(self)` - Initialize LM Studio status detector
@@ -618,7 +568,10 @@ Check-in analytics are handled separately from generic keyword support.
 #### `ai/prompt_manager.py`
 **Functions:**
 - [OK] `__init__(self)` - Initialize the prompt manager
-- [OK] `_load_custom_prompt(self)` - Load the custom system prompt from file
+- [OK] `_load_assistant_system_prompt_text()` - Load the main companion prompt from resources/prompts/assistant_system_prompt.txt.
+- [OK] `_load_command_prompt_text()` - Load the command-parser system prompt from resources/prompts/command.txt.
+- [OK] `_load_custom_prompt(self)` - Load the custom system prompt from file when AI_USE_CUSTOM_PROMPT is enabled.
+- [OK] `_read_prompt_file(path)` - Read UTF-8 prompt text from a file path.
 - [OK] `add_prompt_template(self, template)` - Add a custom prompt template
 
 Args:
@@ -681,7 +634,7 @@ Returns:
 **Classes:**
 - [OK] `PromptManager` - Manages AI prompts and templates
   - [OK] `PromptManager.__init__(self)` - Initialize the prompt manager
-  - [OK] `PromptManager._load_custom_prompt(self)` - Load the custom system prompt from file
+  - [OK] `PromptManager._load_custom_prompt(self)` - Load the custom system prompt from file when AI_USE_CUSTOM_PROMPT is enabled.
   - [OK] `PromptManager.add_prompt_template(self, template)` - Add a custom prompt template
 
 Args:
@@ -755,6 +708,12 @@ Adds engagement prompts if the response doesn't already have them.
   - [OK] `ResponseGenerator.create_comprehensive_context_prompt(self, user_id, user_prompt)` - Create a comprehensive context prompt with all user data for LM Studio.
   - [OK] `ResponseGenerator.enhance_conversational_engagement(self, response)` - Enhance response to ensure good conversational engagement.
 Adds engagement prompts if the response doesn't already have them.
+
+#### `ai/response_postprocess.py`
+**Functions:**
+- [OK] `clean_system_prompt_leaks(response)` - Remove leaked system prompt metadata from AI responses.
+Prevents meta-text like "User Context:" from appearing in user-facing output.
+- [OK] `smart_truncate_response(text, max_chars, max_words)` - Truncate response to avoid mid-sentence cuts when possible.
 
 ### `communication/` - Communication Channel Implementations
 

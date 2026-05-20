@@ -4,8 +4,8 @@
 Natural-language context assembly for comprehensive conversational AI prompts.
 
 Split from ai/response_generator.py so prompt orchestration stays separate from
-engagement post-processing. Prefer adding new context domains as section helpers
-in sections.py rather than growing response_generator.py.
+engagement post-processing. Prefer adding new context phrasing in context_phraser.py
+rather than growing response_generator.py. Analytics belong in ai.context_builder.
 """
 
 from ai.conversational_context.assembly import (

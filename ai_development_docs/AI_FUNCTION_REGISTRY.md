@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-19 22:47:50
+> **Last Generated**: 2026-05-20 00:06:13
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,10 +11,10 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 93.5% [!] GOOD**
-- **Total Functions**: 1815
-- **Total Methods**: 1245
-- **Documented**: 2861/3060
-- **Files Scanned**: 150
+- **Total Functions**: 1821
+- **Total Methods**: 1243
+- **Documented**: 2865/3064
+- **Files Scanned**: 152
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -31,7 +31,7 @@ User Data Operations Decision Tree:
 ### **[AI] Need AI/Chatbot Functionality?**
 ```
 AI Operations Decision Tree:
-+-- `ai/chatbot.py` - Main AI implementation (63 functions)
++-- `ai/chatbot.py` - Main AI implementation (65 functions)
 +-- `user/context_manager.py` - Context for AI (24 functions)
 +-- `communication/message_processing/command_parser.py` - Natural language parsing (52 functions)
 +-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
@@ -160,7 +160,7 @@ Core System Decision Tree:
 - `tasks/task_schemas.py` - 10/10 functions undocumented (0% coverage)
 - `tasks/task_service.py` - 10/26 functions undocumented (62% coverage)
 - `ui/dialogs/channel_management_dialog.py` - 7/11 functions undocumented (36% coverage)
-- `ai/conversational_context/sections.py` - 7/12 functions undocumented (42% coverage)
+- `ai/conversational_context/context_phraser.py` - 7/13 functions undocumented (46% coverage)
 - `ai/fallback_responses/__init__.py` - 6/7 functions undocumented (14% coverage)
 
 ### **Medium Priority** (Partial Coverage)
@@ -199,7 +199,7 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `ai/` - AI chatbot functionality (23 files, 259 functions)
+- `ai/` - AI chatbot functionality (25 files, 263 functions)
 - `communication/` - Communication channels and message processing (45 files, 943 functions)
 - `core/` - System utilities and data management (33 files, 727 functions)
 - `scheduler/` -  (5 files, 92 functions)

@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-19 - AI helpers, file prompts, context calculate/phrase split **COMPLETED**
+- Extracted LM Studio HTTP and response post-process from `chatbot.py` into `lm_studio_client` / `response_postprocess`
+- Companion and command prompts under `resources/prompts/`; `context_phraser.py` phrases facts from `ContextBuilder.analyze_context`
+- Lazy `command_registry` import fixes circular load with `command_parser`
+- Removed legacy context bullet helpers and `sections.py`; tests on `context_phraser`
+- Documented `command_registry` -> `command_parser` adapter; import-boundary tests under `test_ai_import_boundaries.py`
+
 ### 2026-05-19 - Dev tools cache + AI fallback Phase 4.5 **COMPLETED**
 - **Conversational context split**: Extracted comprehensive prompt assembly from `response_generator.py` into `ai/conversational_context/` (sections, assembly, instructions); check-in aggregates reuse `ContextBuilder.analyze_context`; `ai/__init__.py` exports fallback package, command/response modules, and interaction types; `@handle_errors` on all section helpers (replaced ad-hoc try/except); function registry regenerated via `docs`
 - **Phase 4.5**: Split `ai/fallback_responses.py` into package (`coordinator`, `checkin_summary`, `conversational`, `personalized`, `profile_helpers`, `categories`); explicit `FallbackCategory`; ownership documented in `SYSTEM_AI_GUIDE.md`
@@ -50,7 +57,7 @@ Guidelines:
 - **AI Phase 5:** Removed one-line facade delegates from `ai/chatbot.py`; orchestration calls `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()` directly; tests/docs updated (`SYSTEM_AI_GUIDE.md`, overhaul plan Section 8.1)
 - **Duplicate-function triage:** Shared `_discover_flag_request_files` in `core/service_requests.py`; collapsed `CommunicationManager.get_recipient_for_service` (removed private twin); removed `TaskSettingsWidget.get_available_tags` passthrough; `not_duplicate` only where behavior genuinely differs (dataclass defaults, channel status checks, parsers/processors)
 - **Audit quick wins:** `@handle_errors` on `_discover_flag_request_files`; registry regen via `docs`; ASCII fix in `PLANS.md`; TODO added for dedicated `MHMService._check_*__*` delegate removal pass
-- **Parallel test flake:** `test_create_account_updates_user_index` — `build_user_index` account.json fallback + retry alignment with `update_user_index`; test uses `wait_until` for index visibility
+- **Parallel test flake:** `test_create_account_updates_user_index` - `build_user_index` account.json fallback + retry alignment with `update_user_index`; test uses `wait_until` for index visibility
 
 ### 2026-05-18 - System AI Overhaul Phases 1-4 **COMPLETED**
 - Named AI interaction types (`ai/interaction_types.py`) and added structured logging on generate/fallback paths
@@ -156,12 +163,6 @@ Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency a
 - Preserved current handler patch boundaries/Discord behavior, added service-focused tests, fixed the profile show regression, and marked the task stats facade duplicate as intentional with the supported analyzer marker.
 - Raised `urllib3` to `>=2.7.0` and upgraded the local venv; direct `pip-audit --format json` reports no known vulnerabilities.
 - Validation: focused profile/task/check-in tests, marker analysis, duplicate analysis, `py_compile`, `doc-fix --convert-links`, `doc-sync`, direct pip-audit, and standard audit passed. Cache-cleared full audit was killed with exit 137, so it is not counted as clean full-audit validation.
-
-### 2026-05-11 - Ignored project script retirements **COMPLETED**
-- Retired ignored `scripts/cleanup_windows_tasks.py`; tracked scheduler cleanup in `core.scheduler_maintenance.cleanup_scheduler_wake_tasks` is the owner now.
-- Retired ignored `scripts/create_project_snapshot.py`; use `backup_manager.create_backup(include_code=True)` for restorable backups and `export-code` / `export-docs` for AI-readable snapshots.
-- Retired ignored `scripts/utilities/user_data_cli.py` instead of migrating it; tracked `core.user_data_operations` remains the canonical user-data owner.
-- Updated backup docs, PLANS, and TODO so active guidance no longer points at ignored project scripts; the backup reliability plan is complete.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

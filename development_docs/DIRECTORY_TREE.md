@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-19 22:48:03
+> **Last Generated**: 2026-05-20 00:06:33
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -72,17 +72,19 @@ C:.
 |   |   context_builder.py
 |   |   conversation_history.py
 |   |   interaction_types.py
+|   |   lm_studio_client.py
 |   |   lm_studio_manager.py
 |   |   prompt_manager.py
 |   |   response_generator.py
+|   |   response_postprocess.py
 |   |   SYSTEM_AI_GUIDE.md
 |   |   SYSTEM_AI_OVERHAUL_PLAN.md
 |   |   __init__.py
 |   |
 |   +---conversational_context
 |   |   |   assembly.py
+|   |   |   context_phraser.py
 |   |   |   instructions.py
-|   |   |   sections.py
 |   |   |   __init__.py
 |   |   |
 |   +---fallback_responses
@@ -443,7 +445,6 @@ C:.
 |   |   __init__.py
 |   |
 +---resources
-|   |   assistant_system_prompt.txt
 |   |   default_tags.json
 |   |   presets.json
 |   |
@@ -452,12 +453,16 @@ C:.
 |   |       question_templates.json
 |   |       responses.json
 |   |
-|   \---default_messages
-|           fun_facts.json
-|           health.json
-|           motivational.json
-|           quotes_to_ponder.json
-|           word_of_the_day.json
+|   +---default_messages
+|   |       fun_facts.json
+|   |       health.json
+|   |       motivational.json
+|   |       quotes_to_ponder.json
+|   |       word_of_the_day.json
+|   |
+|   \---prompts
+|           assistant_system_prompt.txt
+|           command.txt
 |
 +---scheduler
 |   |   jobs.py
@@ -836,6 +841,7 @@ C:.
 |   |   |   test_admin_panel.py
 |   |   |   test_ai_chatbot_helpers.py
 |   |   |   test_ai_deterministic.py
+|   |   |   test_ai_import_boundaries.py
 |   |   |   test_analytics_handler.py
 |   |   |   test_analytics_handler_helper_branches.py
 |   |   |   test_auto_cleanup_backup_retention.py
@@ -861,6 +867,8 @@ C:.
 |   |   |   test_communication_init.py
 |   |   |   test_config.py
 |   |   |   test_config_branch_coverage.py
+|   |   |   test_context_analytics_shared_source.py
+|   |   |   test_context_phraser.py
 |   |   |   test_conversation_flow_reminder_helpers.py
 |   |   |   test_dialog_helpers.py
 |   |   |   test_discord_api_client.py

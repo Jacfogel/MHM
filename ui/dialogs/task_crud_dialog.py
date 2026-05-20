@@ -165,6 +165,7 @@ class TaskCrudDialog(QDialog):
     @handle_errors("refreshing active tasks", user_friendly=True, default_return=None)
     def refresh_active_tasks(self):
         """Refresh the active tasks table."""
+        # not_duplicate: task_crud_refresh_lists
         # Save current sort state before refreshing
         sort_column = (
             self.ui.tableWidget_active_tasks.horizontalHeader().sortIndicatorSection()
@@ -222,6 +223,7 @@ class TaskCrudDialog(QDialog):
     )
     def refresh_completed_tasks(self):
         """Refresh the completed tasks table."""
+        # not_duplicate: task_crud_refresh_lists
         # Save current sort state before refreshing
         sort_column = (
             self.ui.tableWidget_completed_tasks.horizontalHeader().sortIndicatorSection()

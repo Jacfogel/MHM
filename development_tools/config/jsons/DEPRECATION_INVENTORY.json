@@ -88,6 +88,26 @@
       "note": "Removed unused _get_fallback_response bridge from ai/chatbot.py after search showed no active callers. Fallback behavior lives in ai/fallback_responses/ (package). Phase 5 (2026-05-19) removed chatbot one-line delegates (_get_contextual_fallback, _detect_mode, etc.); chatbot calls get_fallback_responses() / get_command_interpreter() / get_response_generator() directly."
     },
     {
+      "id": "assistant_system_prompt_resources_root",
+      "removed_at": "2026-05-19",
+      "search_terms": [
+        "resources/assistant_system_prompt.txt",
+        "_LEGACY_ASSISTANT_PROMPT_PATH"
+      ],
+      "note": "Companion prompt lives at resources/prompts/assistant_system_prompt.txt only; root copy and prompt_manager legacy fallback removed."
+    },
+    {
+      "id": "context_builder_bullet_context_helpers",
+      "removed_at": "2026-05-19",
+      "search_terms": [
+        "create_context_prompt",
+        "create_task_context",
+        "create_checkin_context",
+        "ai/conversational_context/sections.py"
+      ],
+      "note": "Removed ContextBuilder bullet prompt helpers and sections.py shim; tests use context_phraser. Production chat uses context_phraser via assembly."
+    },
+    {
       "id": "ai_fallback_responses_monolithic_module",
       "removed_at": "2026-05-19",
       "search_terms": [

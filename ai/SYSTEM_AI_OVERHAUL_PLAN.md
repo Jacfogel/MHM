@@ -471,7 +471,7 @@ Extract conversational context assembly **IN PROGRESS** (2026-05-19)
 What it means: Move comprehensive prompt/context assembly out of `response_generator.py` into `ai/conversational_context/` (sections + assembly + static instructions). Reuse `ContextBuilder.analyze_context` for check-in aggregates where possible.
 Why it helps: `response_generator.py` should own orchestration and engagement post-processing only; context domains grow in section helpers, not one giant method.
 Estimated effort: Medium/Large
-Status: Initial split shipped 2026-05-19; deeper deduplication with `ContextBuilder.create_context_prompt` remains follow-up. `ai/__init__.py` exports fallback package and newer modules.
+Status: Shipped 2026-05-19; `context_phraser.py` owns phrasing, `ContextBuilder.analyze_context` owns metrics; bullet helpers removed.
 Add fallback boundary tests
 What it means: Expand test_fallback_responses.py to verify fallback responses do not claim AI success, data access, or completed actions.
 Why it helps: The AI test guide already treats fallbacks/error handling as a core AI test category .
@@ -515,7 +515,7 @@ Replace each call site inside `chatbot.py` with the corresponding `get_*()` modu
 
 ### Related follow-ups (not Phase 5)
 
-- Deeper deduplication of `ContextBuilder.create_context_prompt` vs `ai/conversational_context/sections.py` (profile/check-in wording still differs slightly).
+- ~~Deeper deduplication of `ContextBuilder.create_context_prompt` vs sections~~ Done: `context_phraser.py` only.
 - AI Chatbot Actionability Sprint and NLP items in [TODO.md](../TODO.md).
 
 ---
