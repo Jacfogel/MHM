@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-05-19 18:27:39",
+  "last_generated": "2026-05-19 22:03:11",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-05-19T18:27:39.264214",
+  "timestamp": "2026-05-19T22:03:11.981075",
   "successful": [
     "analyze_ai_work",
     "analyze_config",
@@ -58,7 +58,7 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-05-19T18:22:54"
+      "timestamp": "2026-05-19T22:02:51"
     },
     "analyze_config": {
       "success": true,
@@ -127,7 +127,7 @@
           }
         }
       },
-      "timestamp": "2026-05-19T18:22:54"
+      "timestamp": "2026-05-19T22:02:51"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -145,7 +145,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-05-19T18:23:06"
+      "timestamp": "2026-05-19T22:03:03"
     },
     "analyze_documentation": {
       "success": true,
@@ -407,7 +407,7 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 19817,
+              "content_length": 20130,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
               "section_count": 21,
               "sections": [
@@ -609,7 +609,7 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 622644,
+              "content_length": 623051,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
               "section_count": 195,
               "sections": [
@@ -1048,7 +1048,7 @@
           "total_issues": 13
         }
       },
-      "timestamp": "2026-05-19T18:22:54"
+      "timestamp": "2026-05-19T22:02:51"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -1131,7 +1131,7 @@
           "example_marker_findings": {}
         }
       },
-      "timestamp": "2026-05-19T18:23:11"
+      "timestamp": "2026-05-19T22:03:06"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -1146,7 +1146,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-05-19T18:23:06"
+      "timestamp": "2026-05-19T22:03:04"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -1161,7 +1161,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-05-19T18:23:09"
+      "timestamp": "2026-05-19T22:03:06"
     },
     "analyze_path_drift": {
       "success": true,
@@ -1176,7 +1176,7 @@
           "markdown_link_target_files": {}
         }
       },
-      "timestamp": "2026-05-19T18:23:06"
+      "timestamp": "2026-05-19T22:03:03"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -1191,7 +1191,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-05-19T18:23:11"
+      "timestamp": "2026-05-19T22:03:06"
     },
     "analyze_error_handling": {
       "success": true,
@@ -1272,7 +1272,7 @@
           ]
         }
       },
-      "timestamp": "2026-05-19T18:22:59"
+      "timestamp": "2026-05-19T22:02:56"
     },
     "analyze_duplicate_functions": {
       "success": true,
@@ -1289,8 +1289,8 @@
           "groups_filtered_intentional": 39,
           "cache": {
             "total_files": 148,
-            "cached_files": 147,
-            "scanned_files": 1
+            "cached_files": 148,
+            "scanned_files": 0
           },
           "pairs_considered": 24898,
           "pairs_reported": 66,
@@ -2914,7 +2914,7 @@
           "body_similarity_min_name_threshold": 0.35
         }
       },
-      "timestamp": "2026-05-19T18:23:02"
+      "timestamp": "2026-05-19T22:02:59"
     },
     "analyze_facade_shims": {
       "success": true,
@@ -2930,7 +2930,7 @@
           "low_signal_filter": "Plain one-line delegating wrappers and generic import aliases are filtered unless they also have facade/shim/compatibility naming, compatibility documentation, or active deprecation-inventory terms. Use --include-low-signal for the exhaustive advisory list."
         }
       },
-      "timestamp": "2026-05-19T18:23:01"
+      "timestamp": "2026-05-19T22:02:59"
     },
     "analyze_functions": {
       "success": true,
@@ -3135,7 +3135,7 @@
           "utilities": 0
         }
       },
-      "timestamp": "2026-05-19T18:22:59"
+      "timestamp": "2026-05-19T22:02:57"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -5088,7 +5088,7 @@
           ]
         }
       },
-      "timestamp": "2026-05-19T18:22:58"
+      "timestamp": "2026-05-19T22:02:55"
     },
     "analyze_function_registry": {
       "success": true,
@@ -7601,7 +7601,7 @@
           "total_issues": 47
         }
       },
-      "timestamp": "2026-05-19T18:23:04"
+      "timestamp": "2026-05-19T22:03:01"
     },
     "analyze_module_refactor_candidates": {
       "success": true,
@@ -8319,7 +8319,7 @@
           }
         }
       },
-      "timestamp": "2026-05-19T18:23:01"
+      "timestamp": "2026-05-19T22:02:59"
     },
     "analyze_package_exports": {
       "success": true,
@@ -14937,6 +14937,240 @@
                 "try_checkin_summary_response"
               ]
             },
+            "scheduler": {
+              "package": "scheduler",
+              "current_exports_count": 9,
+              "should_export_count": 27,
+              "already_exported": [
+                "SchedulerManager",
+                "clear_all_accumulated_jobs_standalone",
+                "process_category_schedule",
+                "process_user_schedules",
+                "run_category_scheduler_standalone",
+                "run_full_scheduler_standalone",
+                "run_user_scheduler_standalone",
+                "schedule_all_task_reminders",
+                "set_scheduler_delivery_factory"
+              ],
+              "missing_exports": [
+                "calculate_due_date_weight",
+                "calculate_priority_weight",
+                "calculate_task_weights",
+                "check_and_perform_weekly_backup",
+                "cleanup_orphaned_task_reminders",
+                "cleanup_scheduler_wake_tasks",
+                "cleanup_task_reminders",
+                "get_random_time_within_task_period",
+                "handle_task_reminder",
+                "handle_task_selection_edge_cases",
+                "perform_daily_log_archival",
+                "register_full_daily_maintenance_jobs",
+                "register_system_daily_jobs",
+                "schedule_task_reminder_at_datetime",
+                "schedule_task_reminder_at_time",
+                "select_task_by_weight",
+                "select_task_for_reminder",
+                "task_selection_key"
+              ],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "SchedulerManager": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "set_scheduler_delivery_factory": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_category_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_full_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_user_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                }
+              },
+              "import_usage_details": {
+                "SchedulerManager": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "set_scheduler_delivery_factory": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "clear_all_accumulated_jobs_standalone": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "process_category_schedule": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "process_user_schedules": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_category_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_full_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_user_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "schedule_all_task_reminders": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                }
+              },
+              "package_api_items": [
+                "SchedulerManager",
+                "calculate_due_date_weight",
+                "calculate_priority_weight",
+                "calculate_task_weights",
+                "check_and_perform_weekly_backup",
+                "cleanup_orphaned_task_reminders",
+                "cleanup_scheduler_wake_tasks",
+                "cleanup_task_reminders",
+                "clear_all_accumulated_jobs_standalone",
+                "get_random_time_within_task_period",
+                "handle_task_reminder",
+                "handle_task_selection_edge_cases",
+                "perform_daily_log_archival",
+                "process_category_schedule",
+                "process_user_schedules",
+                "register_full_daily_maintenance_jobs",
+                "register_system_daily_jobs",
+                "run_category_scheduler_standalone",
+                "run_full_scheduler_standalone",
+                "run_user_scheduler_standalone",
+                "schedule_all_task_reminders",
+                "schedule_task_reminder_at_datetime",
+                "schedule_task_reminder_at_time",
+                "select_task_by_weight",
+                "select_task_for_reminder",
+                "set_scheduler_delivery_factory",
+                "task_selection_key"
+              ],
+              "registry_items": [
+                "__init__",
+                "_is_weekly_backup_entry",
+                "calculate_due_date_weight",
+                "calculate_priority_weight",
+                "check_and_perform_weekly_backup",
+                "cleanup_scheduler_wake_tasks",
+                "register_full_daily_maintenance_jobs",
+                "register_system_daily_jobs"
+              ]
+            },
             "tasks": {
               "package": "tasks",
               "current_exports_count": 20,
@@ -15362,240 +15596,6 @@
                 "validate_completed_at",
                 "validate_completion_status",
                 "validate_date"
-              ]
-            },
-            "scheduler": {
-              "package": "scheduler",
-              "current_exports_count": 9,
-              "should_export_count": 27,
-              "already_exported": [
-                "SchedulerManager",
-                "clear_all_accumulated_jobs_standalone",
-                "process_category_schedule",
-                "process_user_schedules",
-                "run_category_scheduler_standalone",
-                "run_full_scheduler_standalone",
-                "run_user_scheduler_standalone",
-                "schedule_all_task_reminders",
-                "set_scheduler_delivery_factory"
-              ],
-              "missing_exports": [
-                "calculate_due_date_weight",
-                "calculate_priority_weight",
-                "calculate_task_weights",
-                "check_and_perform_weekly_backup",
-                "cleanup_orphaned_task_reminders",
-                "cleanup_scheduler_wake_tasks",
-                "cleanup_task_reminders",
-                "get_random_time_within_task_period",
-                "handle_task_reminder",
-                "handle_task_selection_edge_cases",
-                "perform_daily_log_archival",
-                "register_full_daily_maintenance_jobs",
-                "register_system_daily_jobs",
-                "schedule_task_reminder_at_datetime",
-                "schedule_task_reminder_at_time",
-                "select_task_by_weight",
-                "select_task_for_reminder",
-                "task_selection_key"
-              ],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "SchedulerManager": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "set_scheduler_delivery_factory": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_category_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_full_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_user_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                }
-              },
-              "import_usage_details": {
-                "SchedulerManager": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "set_scheduler_delivery_factory": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "clear_all_accumulated_jobs_standalone": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "process_category_schedule": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "process_user_schedules": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_category_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_full_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_user_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "schedule_all_task_reminders": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                }
-              },
-              "package_api_items": [
-                "SchedulerManager",
-                "calculate_due_date_weight",
-                "calculate_priority_weight",
-                "calculate_task_weights",
-                "check_and_perform_weekly_backup",
-                "cleanup_orphaned_task_reminders",
-                "cleanup_scheduler_wake_tasks",
-                "cleanup_task_reminders",
-                "clear_all_accumulated_jobs_standalone",
-                "get_random_time_within_task_period",
-                "handle_task_reminder",
-                "handle_task_selection_edge_cases",
-                "perform_daily_log_archival",
-                "process_category_schedule",
-                "process_user_schedules",
-                "register_full_daily_maintenance_jobs",
-                "register_system_daily_jobs",
-                "run_category_scheduler_standalone",
-                "run_full_scheduler_standalone",
-                "run_user_scheduler_standalone",
-                "schedule_all_task_reminders",
-                "schedule_task_reminder_at_datetime",
-                "schedule_task_reminder_at_time",
-                "select_task_by_weight",
-                "select_task_for_reminder",
-                "set_scheduler_delivery_factory",
-                "task_selection_key"
-              ],
-              "registry_items": [
-                "__init__",
-                "_is_weekly_backup_entry",
-                "calculate_due_date_weight",
-                "calculate_priority_weight",
-                "check_and_perform_weekly_backup",
-                "cleanup_scheduler_wake_tasks",
-                "register_full_daily_maintenance_jobs",
-                "register_system_daily_jobs"
               ]
             },
             "notebook": {
@@ -16169,117 +16169,6 @@
                 "validate_notebook_v2_document"
               ],
               "registry_items": []
-            },
-            "user": {
-              "package": "user",
-              "current_exports_count": 4,
-              "should_export_count": 8,
-              "already_exported": [
-                "UserContext",
-                "UserContextManager",
-                "UserPreferences",
-                "user_context_manager"
-              ],
-              "missing_exports": [
-                "ProfileSections",
-                "ProfileUpdateResult",
-                "apply_profile_updates",
-                "load_profile_sections"
-              ],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "user_context_manager": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "ai/context_builder.py",
-                    "ai/conversational_context/assembly.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.context_manager"
-                },
-                "UserContext": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/schedule_runtime.py",
-                    "scheduler/manager.py",
-                    "ui/ui_app_qt.py",
-                    "user/context_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.user_context"
-                }
-              },
-              "import_usage_details": {
-                "user_context_manager": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "ai/context_builder.py",
-                    "ai/conversational_context/assembly.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.context_manager"
-                },
-                "UserContext": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/schedule_runtime.py",
-                    "scheduler/manager.py",
-                    "ui/ui_app_qt.py",
-                    "user/context_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.user_context"
-                },
-                "apply_profile_updates": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/profile_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.profile_service"
-                },
-                "load_profile_sections": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/profile_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.profile_service"
-                }
-              },
-              "package_api_items": [
-                "ProfileSections",
-                "ProfileUpdateResult",
-                "UserContext",
-                "UserContextManager",
-                "UserPreferences",
-                "apply_profile_updates",
-                "load_profile_sections"
-              ],
-              "registry_items": [
-                "__getattr__",
-                "__init__",
-                "__new__",
-                "_get_conversation_history",
-                "_list_from_command_value",
-                "apply_profile_updates",
-                "get_all_preferences",
-                "get_instance_context"
-              ]
             },
             "ui": {
               "package": "ui",
@@ -17090,11 +16979,122 @@
                 "on_enable_task_management_toggled",
                 "set_selected_categories"
               ]
+            },
+            "user": {
+              "package": "user",
+              "current_exports_count": 4,
+              "should_export_count": 8,
+              "already_exported": [
+                "UserContext",
+                "UserContextManager",
+                "UserPreferences",
+                "user_context_manager"
+              ],
+              "missing_exports": [
+                "ProfileSections",
+                "ProfileUpdateResult",
+                "apply_profile_updates",
+                "load_profile_sections"
+              ],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "user_context_manager": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "ai/chatbot.py",
+                    "ai/context_builder.py",
+                    "ai/conversational_context/assembly.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.context_manager"
+                },
+                "UserContext": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "core/schedule_runtime.py",
+                    "scheduler/manager.py",
+                    "ui/ui_app_qt.py",
+                    "user/context_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.user_context"
+                }
+              },
+              "import_usage_details": {
+                "user_context_manager": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "ai/chatbot.py",
+                    "ai/context_builder.py",
+                    "ai/conversational_context/assembly.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.context_manager"
+                },
+                "UserContext": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "core/schedule_runtime.py",
+                    "scheduler/manager.py",
+                    "ui/ui_app_qt.py",
+                    "user/context_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.user_context"
+                },
+                "apply_profile_updates": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/profile_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.profile_service"
+                },
+                "load_profile_sections": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/profile_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.profile_service"
+                }
+              },
+              "package_api_items": [
+                "ProfileSections",
+                "ProfileUpdateResult",
+                "UserContext",
+                "UserContextManager",
+                "UserPreferences",
+                "apply_profile_updates",
+                "load_profile_sections"
+              ],
+              "registry_items": [
+                "__getattr__",
+                "__init__",
+                "__new__",
+                "_get_conversation_history",
+                "_list_from_command_value",
+                "apply_profile_updates",
+                "get_all_preferences",
+                "get_instance_context"
+              ]
             }
           }
         }
       },
-      "timestamp": "2026-05-19T18:23:01"
+      "timestamp": "2026-05-19T22:02:59"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -20280,7 +20280,7 @@
           ]
         }
       },
-      "timestamp": "2026-05-19T18:23:03"
+      "timestamp": "2026-05-19T22:03:01"
     },
     "analyze_dev_tools_import_boundaries": {
       "success": true,
@@ -20297,7 +20297,7 @@
           }
         }
       },
-      "timestamp": "2026-05-19T18:22:55"
+      "timestamp": "2026-05-19T22:02:52"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -20308,7 +20308,7 @@
         },
         "details": {}
       },
-      "timestamp": "2026-05-19T18:23:04"
+      "timestamp": "2026-05-19T22:03:02"
     },
     "analyze_module_imports": {
       "success": true,
@@ -32927,7 +32927,7 @@
           }
         }
       },
-      "timestamp": "2026-05-19T18:23:03"
+      "timestamp": "2026-05-19T22:03:01"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -32955,25 +32955,25 @@
             "files_scanned": 649,
             "files_with_issues": 0,
             "total_unused": 0,
-            "cache_hits": 648,
-            "cache_misses": 1,
-            "changed_files": 1,
-            "cache_mode": "partial_cache",
+            "cache_hits": 649,
+            "cache_misses": 0,
+            "changed_files": 0,
+            "cache_mode": "cache_only",
             "backend": "ruff"
           },
           "performance": {
             "backend": "ruff",
-            "scan_mode": "partial_cache",
+            "scan_mode": "cache_only",
             "timings": {
-              "discovery_seconds": 1.9135,
-              "detection_seconds": 0.3631,
-              "categorization_seconds": 0.0166,
-              "total_seconds": 2.6371
+              "discovery_seconds": 1.8606,
+              "detection_seconds": 0.1214,
+              "categorization_seconds": 0.0162,
+              "total_seconds": 2.331
             },
-            "files_per_second": 246.1,
-            "cache_hits": 648,
-            "cache_misses": 1,
-            "changed_files": 1,
+            "files_per_second": 278.43,
+            "cache_hits": 649,
+            "cache_misses": 0,
+            "changed_files": 0,
             "batch_size": 200,
             "fallback_used": false,
             "fallback_reason": ""
@@ -33000,22 +33000,22 @@
             "stats_reflect": "cache_hits / cache_misses / changed_files per scan"
           },
           "_cache_metadata": {
-            "cache_mode": "partial_cache",
-            "hits": 648,
-            "misses": 1,
+            "cache_mode": "cache_only",
+            "hits": 649,
+            "misses": 0,
             "total_cache_checks": 649,
-            "hit_rate": 99.8
+            "hit_rate": 100.0
           }
         },
         "_cache_metadata": {
-          "cache_mode": "partial_cache",
-          "hits": 648,
-          "misses": 1,
+          "cache_mode": "cache_only",
+          "hits": 649,
+          "misses": 0,
           "total_cache_checks": 649,
-          "hit_rate": 99.8
+          "hit_rate": 100.0
         }
       },
-      "timestamp": "2026-05-19T18:23:05"
+      "timestamp": "2026-05-19T22:03:02"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -33044,20 +33044,20 @@
             "check_passed": true
           },
           "cache": {
-            "cache_mode": "partial_cache",
-            "hits": 646,
-            "misses": 1,
+            "cache_mode": "cache_only",
+            "hits": 647,
+            "misses": 0,
             "total_cache_checks": 647,
-            "hit_rate": 99.8
+            "hit_rate": 100.0
           }
         }
       },
-      "timestamp": "2026-05-19T18:23:15"
+      "timestamp": "2026-05-19T22:03:11"
     },
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-05-19T18:27:38",
+        "generated_at": "2026-05-19T22:03:09",
         "project_root": "C:\\Users\\Julie\\projects\\MHM\\MHM",
         "summary": {
           "status": "PASS",
@@ -33102,7 +33102,7 @@
               "name": "weekly_backup_recent_enough",
               "success": true,
               "details": {
-                "recent_cutoff": "2026-05-05T18:27:38",
+                "recent_cutoff": "2026-05-05T22:03:09",
                 "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-05-15_01-00-05",
                 "latest_weekly_created_at": "2026-05-15 01:00:05"
               }
@@ -33113,7 +33113,7 @@
               "details": {
                 "latest_backup_path": "data\\backups\\weekly_backup_2026-05-15_01-00-05",
                 "latest_created_at": "2026-05-15 01:00:05",
-                "recent_cutoff": "2026-05-05T18:27:38"
+                "recent_cutoff": "2026-05-05T22:03:09"
               }
             },
             {
@@ -33168,7 +33168,7 @@
             "name": "weekly_backup_recent_enough",
             "success": true,
             "details": {
-              "recent_cutoff": "2026-05-05T18:27:38",
+              "recent_cutoff": "2026-05-05T22:03:09",
               "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-05-15_01-00-05",
               "latest_weekly_created_at": "2026-05-15 01:00:05"
             }
@@ -33179,7 +33179,7 @@
             "details": {
               "latest_backup_path": "data\\backups\\weekly_backup_2026-05-15_01-00-05",
               "latest_created_at": "2026-05-15 01:00:05",
-              "recent_cutoff": "2026-05-05T18:27:38"
+              "recent_cutoff": "2026-05-05T22:03:09"
             }
           },
           {
@@ -33202,7 +33202,7 @@
           }
         ]
       },
-      "timestamp": "2026-05-19T18:27:38"
+      "timestamp": "2026-05-19T22:03:09"
     },
     "analyze_system_signals": {
       "success": true,
@@ -33213,7 +33213,7 @@
           "status": "OK"
         },
         "details": {
-          "timestamp": "2026-05-19T18:22:53.814794",
+          "timestamp": "2026-05-19T22:02:51.006365",
           "system_health": {
             "overall_status": "OK",
             "core_files": {
@@ -33234,12 +33234,12 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-05-19T18:07:13.279526",
-            "audit_freshness": "<1 hour",
+            "last_audit": "2026-05-19T20:05:57.599463",
+            "audit_freshness": "<24 hours",
             "test_coverage_status": "Unknown",
             "documentation_sync_status": "Synchronized",
             "health_indicators": [
-              "Audit data is very recent (<1 hour)",
+              "Audit data is recent (1 hours ago)",
               "Documentation is synchronized"
             ],
             "recommendations": [],
@@ -33253,16 +33253,16 @@
           },
           "recent_activity": {
             "recent_changes": [
-              "ai/fallback_responses/coordinator.py",
-              "ai/fallback_responses/personalized.py",
-              "tests/ai/test_context_includes_recent_messages.py",
-              "ai/fallback_responses/conversational.py",
-              "development_tools/shared/service/commands.py",
-              "tests/unit/test_ai_chatbot_helpers.py",
+              "tests/test_helpers/test_support/conftest_user_data.py",
               "ai/context_builder.py",
-              "ai/fallback_responses/categories.py",
-              "ai/fallback_responses/profile_helpers.py",
-              "tests/unit/test_fallback_responses.py"
+              "tests/core/test_user_data_read_scenarios.py",
+              "ai/conversational_context/__init__.py",
+              "tests/development_tools/test_test_file_coverage_cache.py",
+              "ai/__init__.py",
+              "ai/fallback_responses/conversational.py",
+              "ai/conversational_context/assembly.py",
+              "ai/conversational_context/instructions.py",
+              "ai/response_generator.py"
             ],
             "git_status": "Modified",
             "last_commit": null,
@@ -33277,7 +33277,7 @@
               "discord.log": "0.0MB",
               "email.log": "0.0MB",
               "errors.log": "0.0MB",
-              "file_ops.log": "0.0MB",
+              "file_ops.log": "0.1MB",
               "message.log": "0.0MB",
               "scheduler.log": "0.0MB",
               "ui.log": "0.0MB",
@@ -33288,7 +33288,7 @@
           }
         }
       },
-      "timestamp": "2026-05-19T18:22:53"
+      "timestamp": "2026-05-19T22:02:51"
     },
     "decision_support": {
       "success": true,
@@ -33453,7 +33453,7 @@
           ]
         }
       },
-      "timestamp": "2026-05-19T18:22:55"
+      "timestamp": "2026-05-19T22:02:53"
     },
     "quick_status": {
       "success": true,
@@ -43523,10 +43523,10 @@
               "log_file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_tools\\tests\\jsons\\test_suite_junit\\parallel.xml",
               "return_code_hex": "0x0",
               "return_code": 0,
-              "passed_count": 1746,
+              "passed_count": 4915,
               "failed_count": 0,
               "error_count": 0,
-              "skipped_count": 0,
+              "skipped_count": 2,
               "failed_node_ids": []
             },
             "no_parallel": {
@@ -43535,12 +43535,12 @@
               "classification_reason": "pytest_passed",
               "actionable_context": "",
               "log_file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_tools\\tests\\jsons\\test_suite_junit\\no_parallel.xml",
-              "return_code_hex": "0x5",
-              "return_code": 5,
-              "passed_count": 6,
+              "return_code_hex": "0x0",
+              "return_code": 0,
+              "passed_count": 157,
               "failed_count": 0,
               "error_count": 0,
-              "skipped_count": 0,
+              "skipped_count": 20,
               "failed_node_ids": []
             },
             "failed_node_ids": []
@@ -43550,13 +43550,13 @@
               "name": "parallel",
               "command": [],
               "return_code": 0,
-              "duration_seconds": 199.049,
+              "duration_seconds": 144.559,
               "counts": {
-                "total": 1746,
-                "passed": 1746,
+                "total": 4917,
+                "passed": 4915,
                 "failed": 0,
                 "errors": 0,
-                "skipped": 0
+                "skipped": 2
               },
               "classification": "passed",
               "failed_node_ids": [],
@@ -43566,14 +43566,14 @@
             {
               "name": "no_parallel",
               "command": [],
-              "return_code": 5,
-              "duration_seconds": 7.354,
+              "return_code": 0,
+              "duration_seconds": 83.271,
               "counts": {
-                "total": 6,
-                "passed": 6,
+                "total": 177,
+                "passed": 157,
                 "failed": 0,
                 "errors": 0,
-                "skipped": 0
+                "skipped": 20
               },
               "classification": "passed",
               "failed_node_ids": [],
@@ -43583,30 +43583,26 @@
           ],
           "xdist_available": true,
           "domain_cache": {
-            "cache_mode": "selective_run",
+            "cache_mode": "cache_hit",
             "source": "run_test_suite",
-            "invalidation_reason": "test_file_set_changed_selective",
-            "changed_domains": [
-              "development_tools"
-            ],
-            "test_files_to_run": 131,
-            "test_files_cached": 129,
+            "invalidation_reason": "domain_cache",
+            "changed_domains": [],
+            "test_files_to_run": 0,
+            "test_files_cached": 368,
             "has_full_suite_cache": true
           }
         },
         "_cache_metadata": {
-          "cache_mode": "selective_run",
+          "cache_mode": "cache_hit",
           "source": "run_test_suite",
-          "invalidation_reason": "test_file_set_changed_selective",
-          "changed_domains": [
-            "development_tools"
-          ],
-          "test_files_to_run": 131,
-          "test_files_cached": 129,
+          "invalidation_reason": "domain_cache",
+          "changed_domains": [],
+          "test_files_to_run": 0,
+          "test_files_cached": 368,
           "has_full_suite_cache": true
         }
       },
-      "timestamp": "2026-05-19T18:27:38"
+      "timestamp": "2026-05-19T22:03:09"
     },
     "verify_process_cleanup": {
       "success": true,
@@ -43622,7 +43618,7 @@
           "orphaned_processes": []
         }
       },
-      "timestamp": "2026-05-19T18:27:39"
+      "timestamp": "2026-05-19T22:03:11"
     },
     "analyze_ruff": {
       "success": true,
@@ -43641,14 +43637,14 @@
           "top_rules": [],
           "shard_run": {
             "mode": "sharded",
-            "subprocesses": 1,
+            "subprocesses": 0,
             "merged": true,
-            "fragment_cache_hits": 8,
-            "fragment_cache_misses": 1
+            "fragment_cache_hits": 9,
+            "fragment_cache_misses": 0
           }
         }
       },
-      "timestamp": "2026-05-19T18:27:39.264214"
+      "timestamp": "2026-05-19T22:03:11.981075"
     },
     "analyze_pyright": {
       "success": true,
@@ -43671,15 +43667,15 @@
           "top_warning_files": [],
           "shard_run": {
             "mode": "sharded",
-            "subprocesses": 1,
+            "subprocesses": 0,
             "merged": true,
-            "fragment_cache_hits": 8,
-            "fragment_cache_misses": 1,
+            "fragment_cache_hits": 9,
+            "fragment_cache_misses": 0,
             "parity_note": "Sharded Pyright may omit cross-package diagnostics; run a full-project Pyright periodically (e.g. pyright_shard_scan false or CI) for strict parity."
           }
         }
       },
-      "timestamp": "2026-05-19T18:27:39.264214"
+      "timestamp": "2026-05-19T22:03:11.981075"
     },
     "analyze_bandit": {
       "success": true,
@@ -43692,7 +43688,7 @@
         "details": {
           "tool": "bandit",
           "tool_available": true,
-          "returncode": 1,
+          "returncode": 0,
           "severity_counts": {
             "LOW": 164,
             "MEDIUM": 0,
@@ -43703,14 +43699,14 @@
           "top_files": [],
           "shard_run": {
             "mode": "sharded",
-            "subprocesses": 1,
+            "subprocesses": 0,
             "merged": true,
-            "fragment_cache_hits": 9,
-            "fragment_cache_misses": 1
+            "fragment_cache_hits": 10,
+            "fragment_cache_misses": 0
           }
         }
       },
-      "timestamp": "2026-05-19T18:27:39.264214"
+      "timestamp": "2026-05-19T22:03:11.981075"
     },
     "analyze_pip_audit": {
       "success": true,
@@ -43732,7 +43728,7 @@
           "pip_audit_timing_note": "Requirements unchanged; reused pip-audit JSON from a prior run. Orchestration elapsed time reflects cache lookup only, not subprocess."
         }
       },
-      "timestamp": "2026-05-19T18:27:39.264214"
+      "timestamp": "2026-05-19T22:03:11.981075"
     }
   }
 }

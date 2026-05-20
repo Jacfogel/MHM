@@ -43,6 +43,8 @@ Guidelines:
 - Audit metadata reports `cache_mode` (cache_hit / selective_run / full_run)
 - Doc-sync path drift cleared (qualified `tests/test_file_*_cache.py` references); Ruff clean on suite cache module
 - Fixed selective suite run running full suite when per-file cache mapping was cold; pinned flaky domain attribution test
+- Persist pruned deleted test paths to disk so ghost entries (e.g. removed `test_directory_taxonomy_policy.py`) stop re-invalidating `development_tools` every audit
+- Fixed parallel-only flake in `test_get_user_data_fields_scalar_list_and_dict`: field-filtered reads skip test healing/shim full-document backfill
 - Failed-domain recording scoped to failing tests only; cache path keys normalized on Windows
 - Pyright: `update_run_status` callers pass sets, not sorted lists
 

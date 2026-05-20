@@ -247,6 +247,9 @@ def shim_get_user_data_to_invoke_loaders():
             # Specific type request: ensure structure present
             if isinstance(data_type, str):
                 key = data_type
+                # Never replace partial field-filtered results with full loader output.
+                if kwargs.get("fields") is not None:
+                    return result if isinstance(result, dict) else {}
                 # If result already a dict containing the key with a value, return as-is
                 if isinstance(result, dict) and result.get(key):
                     return result

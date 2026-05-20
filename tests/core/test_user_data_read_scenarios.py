@@ -52,6 +52,33 @@ class TestEnsureUniqueIds:
             assert len(mid) >= 32
 
 
+@pytest.mark.unit
+@pytest.mark.user_management
+@pytest.mark.fast
+class TestGetUserDataFieldsPolicy:
+    """Field-filtered get_user_data must not be expanded by test-only assembly."""
+
+    def test_get_user_data_fields_not_backfilled_when_loader_empty(
+        self, mock_user_data, monkeypatch
+    ):
+        """Field-filtered reads must not gain full preferences from test healing/shim."""
+        import storage.user_data_registry as reg
+
+        uid = mock_user_data["user_id"]
+        clear_user_caches(uid)
+
+        def _empty_preferences(_user_id: str, auto_create: bool = True):
+            return None
+
+        monkeypatch.setitem(
+            reg.USER_DATA_LOADERS["preferences"],
+            "loader",
+            _empty_preferences,
+        )
+        result = get_user_data(uid, "preferences", fields="channel")
+        assert result == {}
+
+
 @pytest.mark.integration
 @pytest.mark.user_management
 class TestGetUserDataReadPath:

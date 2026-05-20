@@ -681,6 +681,9 @@ class TestFileCoverageCache:
             test_files.pop(rel, None)
             test_files_mtime.pop(norm, None)
             test_files_mtime.pop(rel, None)
+        # Persist so later update_test_file_mapping(reload_cache=True) cannot
+        # resurrect deleted paths from a stale on-disk cache (repeat-audit drift).
+        self._save_cache()
 
     def get_source_file_mtimes(self, domain: str) -> dict[str, float]:
         """

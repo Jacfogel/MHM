@@ -465,6 +465,16 @@ def test_prune_removed_test_file_stops_repeat_invalidation() -> None:
                 for rel in (cache.cache_data.get("test_files", {}) or {})
             }
         )
+        # Prune must survive reload (suite run calls update_test_file_mapping with reload_cache).
+        reloaded = TestFileCoverageCache(temp_path, cache_dir=temp_path / "cache")
+        assert "tests/development_tools/test_ghost.py" not in reloaded.cache_data["test_files"]
+        assert (
+            reloaded._get_current_test_files()
+            == {
+                reloaded._normalize_test_file_rel(rel)
+                for rel in (reloaded.cache_data.get("test_files", {}) or {})
+            }
+        )
     finally:
         _cleanup_local_scratch_dir(temp_path)
 

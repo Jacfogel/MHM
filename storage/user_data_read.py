@@ -34,6 +34,31 @@ from storage.user_data_registry import clear_user_caches as _registry_clear_user
 logger = get_component_logger("main")
 
 
+def _apply_fields_filter(
+    data: Any,
+    data_type: str,
+    fields: str | list[str] | dict[str, str | list[str]] | None,
+) -> Any:
+    """Return *data* narrowed to the requested field selection for *data_type*."""
+    if fields is None or data is None:
+        return data
+    if isinstance(fields, str):
+        return data.get(fields) if isinstance(data, dict) else None
+    if isinstance(fields, list):
+        if not isinstance(data, dict):
+            return None
+        extracted = {f: data[f] for f in fields if f in data}
+        return extracted if extracted else None
+    if isinstance(fields, dict) and data_type in fields:
+        type_fields = fields[data_type]
+        if isinstance(type_fields, str):
+            return data.get(type_fields) if isinstance(data, dict) else None
+        if isinstance(type_fields, list) and isinstance(data, dict):
+            extracted = {f: data[f] for f in type_fields if f in data}
+            return extracted if extracted else None
+    return data
+
+
 # not_duplicate: clear_user_caches
 @handle_errors("clearing user caches", default_return=None)
 def clear_user_caches(user_id: str | None = None) -> None:
@@ -241,25 +266,7 @@ def get_user_data(
         elif isinstance(data, dict):
             logger.debug(f"Loaded {data_type} keys: {list(data.keys())}")
 
-        if fields is not None:
-            if isinstance(fields, str):
-                data = data.get(fields) if data else None
-            elif isinstance(fields, list):
-                if data:
-                    extracted = {f: data[f] for f in fields if f in data}
-                    data = extracted if extracted else None
-                else:
-                    data = None
-            elif isinstance(fields, dict) and data_type in fields:
-                type_fields = fields[data_type]
-                if isinstance(type_fields, str):
-                    data = data.get(type_fields) if data else None
-                elif isinstance(type_fields, list):
-                    if data:
-                        extracted = {f: data[f] for f in type_fields if f in data}
-                        data = extracted if extracted else None
-                    else:
-                        data = None
+        data = _apply_fields_filter(data, data_type, fields)
 
         if normalize_on_read and fields is None and isinstance(data, dict):
             try:
@@ -349,7 +356,9 @@ def get_user_data(
             result[data_type] = data
 
     try:
-        if os.getenv("MHM_TESTING") == "1" and auto_create:
+        # Partial field requests must not be back-filled with full documents (parallel
+        # suite flakes when a transient empty load triggered test-only healing).
+        if os.getenv("MHM_TESTING") == "1" and auto_create and fields is None:
             try:
                 from core.config import get_user_data_dir as _get_user_data_dir
                 if not os.path.exists(_get_user_data_dir(user_id)):
