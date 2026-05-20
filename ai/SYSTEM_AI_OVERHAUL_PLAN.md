@@ -467,11 +467,11 @@ Avoid moving fallback text into communication/
 What it means: Keep communication/ responsible for delivery/formatting only.
 Why it helps: Communication architecture is supposed to stay channel-agnostic and adapter-focused, not own business response logic.
 Estimated effort: Small
-Audit response_generator.py next **DEFERRED** (Phase 5+)
-What it means: The big prompt/context logic was mostly moved, not simplified.
-Why it helps: This is now the largest remaining AI responsibility blob.
+Extract conversational context assembly **IN PROGRESS** (2026-05-19)
+What it means: Move comprehensive prompt/context assembly out of `response_generator.py` into `ai/conversational_context/` (sections + assembly + static instructions). Reuse `ContextBuilder.analyze_context` for check-in aggregates where possible.
+Why it helps: `response_generator.py` should own orchestration and engagement post-processing only; context domains grow in section helpers, not one giant method.
 Estimated effort: Medium/Large
-Status: Not done in 4.5; track as next AI refactor after facade collapse (Section 8.1).
+Status: Initial split shipped 2026-05-19; deeper deduplication with `ContextBuilder.create_context_prompt` remains follow-up. `ai/__init__.py` exports fallback package and newer modules.
 Add fallback boundary tests
 What it means: Expand test_fallback_responses.py to verify fallback responses do not claim AI success, data access, or completed actions.
 Why it helps: The AI test guide already treats fallbacks/error handling as a core AI test category .
@@ -515,7 +515,7 @@ Replace each call site inside `chatbot.py` with the corresponding `get_*()` modu
 
 ### Related follow-ups (not Phase 5)
 
-- Deeper deduplication of `ContextBuilder` vs `response_generator.create_comprehensive_context_prompt`.
+- Deeper deduplication of `ContextBuilder.create_context_prompt` vs `ai/conversational_context/sections.py` (profile/check-in wording still differs slightly).
 - AI Chatbot Actionability Sprint and NLP items in [TODO.md](../TODO.md).
 
 ---

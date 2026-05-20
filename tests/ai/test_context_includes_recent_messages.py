@@ -1,5 +1,5 @@
 
-from ai.chatbot import get_ai_chatbot
+from ai.response_generator import get_response_generator
 from core.message_management import store_sent_message
 from core.response_tracking import store_user_response
 import pytest
@@ -54,8 +54,9 @@ class TestAIContextRecentMessages:
         time.sleep(0.1)
 
         # Build context prompt and ensure recent automated messages are included
-        bot = get_ai_chatbot()
-        messages = bot._create_comprehensive_context_prompt(user_id, "hello")
+        messages = get_response_generator().create_comprehensive_context_prompt(
+            user_id, "hello"
+        )
         assert isinstance(messages, list) and len(messages) >= 2
         system = messages[0]
         assert system["role"] == "system"
@@ -77,7 +78,9 @@ class TestAIContextRecentMessages:
         # The check-in status will appear if: 1) check-ins enabled, 2) data is retrieved, 3) timestamp matches today
         # Since timing/storage format might vary, we just verify the context builds without error
         store_user_response(user_id, {"mood": 4, "energy": 3}, response_type="checkin")
-        messages2 = bot._create_comprehensive_context_prompt(user_id, "hello")
+        messages2 = get_response_generator().create_comprehensive_context_prompt(
+            user_id, "hello"
+        )
         system2 = messages2[0]
         content2 = system2["content"]
         # Context should build successfully - check-in status will appear if data is found
@@ -95,7 +98,9 @@ class TestAIContextRecentMessages:
             time_period="afternoon",
         )
         assert ok3
-        messages3 = bot._create_comprehensive_context_prompt(user_id, "hello")
+        messages3 = get_response_generator().create_comprehensive_context_prompt(
+            user_id, "hello"
+        )
         content3 = messages3[0]["content"]
         # Natural language format: "They received a task reminder at...: \"Don't forget to review your tasks for today.\""
         assert "task reminder" in content3.lower()

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-19 16:33:59
+> **Last Generated**: 2026-05-19 18:10:33
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -79,6 +79,12 @@ C:.
 |   |   SYSTEM_AI_OVERHAUL_PLAN.md
 |   |   __init__.py
 |   |
+|   +---conversational_context
+|   |   |   assembly.py
+|   |   |   instructions.py
+|   |   |   sections.py
+|   |   |   __init__.py
+|   |   |
 |   +---fallback_responses
 |   |   |   categories.py
 |   |   |   checkin_summary.py

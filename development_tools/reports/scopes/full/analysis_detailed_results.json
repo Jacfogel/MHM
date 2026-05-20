@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-05-19 17:55:22",
+  "last_generated": "2026-05-19 18:27:39",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-05-19T17:55:22.047243",
+  "timestamp": "2026-05-19T18:27:39.264214",
   "successful": [
     "analyze_ai_work",
     "analyze_config",
@@ -58,7 +58,7 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-05-19T17:48:06"
+      "timestamp": "2026-05-19T18:22:54"
     },
     "analyze_config": {
       "success": true,
@@ -127,7 +127,7 @@
           }
         }
       },
-      "timestamp": "2026-05-19T17:48:06"
+      "timestamp": "2026-05-19T18:22:54"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -145,7 +145,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-05-19T17:48:23"
+      "timestamp": "2026-05-19T18:23:06"
     },
     "analyze_documentation": {
       "success": true,
@@ -407,7 +407,7 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 19379,
+              "content_length": 19817,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
               "section_count": 21,
               "sections": [
@@ -609,7 +609,7 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 621947,
+              "content_length": 622644,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
               "section_count": 195,
               "sections": [
@@ -1048,7 +1048,7 @@
           "total_issues": 13
         }
       },
-      "timestamp": "2026-05-19T17:48:07"
+      "timestamp": "2026-05-19T18:22:54"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -1131,7 +1131,7 @@
           "example_marker_findings": {}
         }
       },
-      "timestamp": "2026-05-19T17:48:27"
+      "timestamp": "2026-05-19T18:23:11"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -1146,7 +1146,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-05-19T17:48:23"
+      "timestamp": "2026-05-19T18:23:06"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -1161,7 +1161,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-05-19T17:48:27"
+      "timestamp": "2026-05-19T18:23:09"
     },
     "analyze_path_drift": {
       "success": true,
@@ -1176,7 +1176,7 @@
           "markdown_link_target_files": {}
         }
       },
-      "timestamp": "2026-05-19T17:48:23"
+      "timestamp": "2026-05-19T18:23:06"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -1191,7 +1191,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-05-19T17:48:27"
+      "timestamp": "2026-05-19T18:23:11"
     },
     "analyze_error_handling": {
       "success": true,
@@ -1201,15 +1201,15 @@
           "files_affected": 0
         },
         "details": {
-          "total_functions": 1710,
-          "functions_with_try_except": 527,
-          "functions_with_error_handling": 1710,
-          "functions_with_decorators": 1690,
+          "total_functions": 1724,
+          "functions_with_try_except": 526,
+          "functions_with_error_handling": 1724,
+          "functions_with_decorators": 1704,
           "functions_missing_error_handling": 0,
           "analyze_error_handling": 100.0,
           "error_patterns": {
-            "handle_errors_decorator": 1642,
-            "try_except": 651,
+            "handle_errors_decorator": 1657,
+            "try_except": 649,
             "handle_ai_error": 15,
             "handle_communication_error": 4,
             "handle_network_error": 5,
@@ -1228,7 +1228,7 @@
           },
           "missing_error_handling": [],
           "error_handling_quality": {
-            "excellent": 1690,
+            "excellent": 1704,
             "good": 20
           },
           "recommendations": [],
@@ -1272,7 +1272,7 @@
           ]
         }
       },
-      "timestamp": "2026-05-19T17:48:13"
+      "timestamp": "2026-05-19T18:22:59"
     },
     "analyze_duplicate_functions": {
       "success": true,
@@ -1282,18 +1282,18 @@
           "files_affected": 1
         },
         "details": {
-          "total_functions": 1784,
+          "total_functions": 1798,
           "functions_excluded": 9,
           "records_deduplicated": 0,
-          "groups_filtered_single_function": 6,
+          "groups_filtered_single_function": 5,
           "groups_filtered_intentional": 39,
           "cache": {
-            "total_files": 144,
-            "cached_files": 143,
+            "total_files": 148,
+            "cached_files": 147,
             "scanned_files": 1
           },
           "pairs_considered": 24898,
-          "pairs_reported": 67,
+          "pairs_reported": 66,
           "groups_reported": 1,
           "min_name_similarity": 0.6,
           "min_overall_similarity": 0.7,
@@ -1325,6 +1325,44 @@
               "locals_similarity": 1.0,
               "imports_similarity": 1.0,
               "a": {
+                "name": "send_message_sync__queue_failed_message",
+                "full_name": "CommunicationManager.send_message_sync__queue_failed_message",
+                "class": "CommunicationManager",
+                "file": "communication/core/channel_orchestrator.py",
+                "line": 171,
+                "args": [
+                  "user_id",
+                  "category",
+                  "message",
+                  "recipient",
+                  "channel_name"
+                ]
+              },
+              "b": {
+                "name": "send_message_sync__queue_failed_message",
+                "full_name": "CommunicationManager.send_message_sync__queue_failed_message",
+                "class": "CommunicationManager",
+                "file": "communication/core/channel_orchestrator.py",
+                "line": 171,
+                "args": [
+                  "user_id",
+                  "category",
+                  "message",
+                  "recipient",
+                  "channel_name"
+                ]
+              },
+              "body_similarity": 1.0
+            },
+            {
+              "overall_similarity": 1.0,
+              "name_similarity": 1.0,
+              "args_similarity": 1.0,
+              "argument_name_similarity": 1.0,
+              "argument_shape_similarity": 1.0,
+              "locals_similarity": 1.0,
+              "imports_similarity": 1.0,
+              "a": {
                 "name": "_get_user_id_by_identifier__by_chat_id",
                 "full_name": "_get_user_id_by_identifier__by_chat_id",
                 "class": null,
@@ -1372,44 +1410,6 @@
                 "line": 752,
                 "args": [
                   "last_date"
-                ]
-              },
-              "body_similarity": 1.0
-            },
-            {
-              "overall_similarity": 1.0,
-              "name_similarity": 1.0,
-              "args_similarity": 1.0,
-              "argument_name_similarity": 1.0,
-              "argument_shape_similarity": 1.0,
-              "locals_similarity": 1.0,
-              "imports_similarity": 1.0,
-              "a": {
-                "name": "send_message_sync__queue_failed_message",
-                "full_name": "CommunicationManager.send_message_sync__queue_failed_message",
-                "class": "CommunicationManager",
-                "file": "communication/core/channel_orchestrator.py",
-                "line": 171,
-                "args": [
-                  "user_id",
-                  "category",
-                  "message",
-                  "recipient",
-                  "channel_name"
-                ]
-              },
-              "b": {
-                "name": "send_message_sync__queue_failed_message",
-                "full_name": "CommunicationManager.send_message_sync__queue_failed_message",
-                "class": "CommunicationManager",
-                "file": "communication/core/channel_orchestrator.py",
-                "line": 171,
-                "args": [
-                  "user_id",
-                  "category",
-                  "message",
-                  "recipient",
-                  "channel_name"
                 ]
               },
               "body_similarity": 1.0
@@ -1567,36 +1567,6 @@
               "locals_similarity": 0.0,
               "imports_similarity": 1.0,
               "a": {
-                "name": "_handle_complete_task__find_most_urgent_task",
-                "full_name": "TaskManagementHandler._handle_complete_task__find_most_urgent_task",
-                "class": "TaskManagementHandler",
-                "file": "communication/command_handlers/task_handler.py",
-                "line": 846,
-                "args": [
-                  "tasks"
-                ]
-              },
-              "b": {
-                "name": "_handle_complete_task__find_most_urgent_task",
-                "full_name": "TaskManagementHandler._handle_complete_task__find_most_urgent_task",
-                "class": "TaskManagementHandler",
-                "file": "communication/command_handlers/task_handler.py",
-                "line": 846,
-                "args": [
-                  "tasks"
-                ]
-              },
-              "body_similarity": 1.0
-            },
-            {
-              "overall_similarity": 0.84,
-              "name_similarity": 1.0,
-              "args_similarity": 1.0,
-              "argument_name_similarity": 1.0,
-              "argument_shape_similarity": 1.0,
-              "locals_similarity": 0.0,
-              "imports_similarity": 1.0,
-              "a": {
                 "name": "_create_user_files__update_user_references",
                 "full_name": "_create_user_files__update_user_references",
                 "class": null,
@@ -1685,13 +1655,13 @@
               "locals_similarity": 1.0,
               "imports_similarity": 1.0,
               "a": {
-                "name": "_format_no_search_hits_message",
-                "full_name": "_format_no_search_hits_message",
+                "name": "_format_no_group_hits_message",
+                "full_name": "_format_no_group_hits_message",
                 "class": null,
                 "file": "communication/command_handlers/notebook_handler.py",
-                "line": 112,
+                "line": 135,
                 "args": [
-                  "query"
+                  "group"
                 ]
               },
               "b": {
@@ -1745,13 +1715,13 @@
               "locals_similarity": 1.0,
               "imports_similarity": 1.0,
               "a": {
-                "name": "_format_no_group_hits_message",
-                "full_name": "_format_no_group_hits_message",
+                "name": "_format_no_search_hits_message",
+                "full_name": "_format_no_search_hits_message",
                 "class": null,
                 "file": "communication/command_handlers/notebook_handler.py",
-                "line": 135,
+                "line": 112,
                 "args": [
-                  "group"
+                  "query"
                 ]
               },
               "b": {
@@ -2841,6 +2811,32 @@
                 "args": []
               },
               "body_similarity": 1.0
+            },
+            {
+              "overall_similarity": 0.712,
+              "name_similarity": 1.0,
+              "args_similarity": 1.0,
+              "argument_name_similarity": 0.0,
+              "argument_shape_similarity": 1.0,
+              "locals_similarity": 0.5,
+              "imports_similarity": 0.1,
+              "a": {
+                "name": "__new__",
+                "full_name": "AIChatBotSingleton.__new__",
+                "class": "AIChatBotSingleton",
+                "file": "ai/chatbot.py",
+                "line": 67,
+                "args": []
+              },
+              "b": {
+                "name": "__new__",
+                "full_name": "UserContext.__new__",
+                "class": "UserContext",
+                "file": "user/user_context.py",
+                "line": 18,
+                "args": []
+              },
+              "body_similarity": 0.5
             }
           ],
           "duplicate_groups": [
@@ -2918,7 +2914,7 @@
           "body_similarity_min_name_threshold": 0.35
         }
       },
-      "timestamp": "2026-05-19T17:48:17"
+      "timestamp": "2026-05-19T18:23:02"
     },
     "analyze_facade_shims": {
       "success": true,
@@ -2934,20 +2930,20 @@
           "low_signal_filter": "Plain one-line delegating wrappers and generic import aliases are filtered unless they also have facade/shim/compatibility naming, compatibility documentation, or active deprecation-inventory terms. Use --include-low-signal for the exhaustive advisory list."
         }
       },
-      "timestamp": "2026-05-19T17:48:16"
+      "timestamp": "2026-05-19T18:23:01"
     },
     "analyze_functions": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 546,
-          "files_affected": 95
+          "total_issues": 557,
+          "files_affected": 97
         },
         "details": {
-          "total_functions": 1672,
-          "moderate_complexity": 230,
-          "high_complexity": 168,
-          "critical_complexity": 148,
+          "total_functions": 1686,
+          "moderate_complexity": 232,
+          "high_complexity": 173,
+          "critical_complexity": 152,
           "undocumented": 0,
           "undocumented_examples": [],
           "critical_complexity_examples": [
@@ -3134,12 +3130,12 @@
               "complexity": 185
             }
           ],
-          "handlers": 785,
+          "handlers": 788,
           "tests": 63,
           "utilities": 0
         }
       },
-      "timestamp": "2026-05-19T17:48:14"
+      "timestamp": "2026-05-19T18:22:59"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -4336,6 +4332,16 @@
               "has_doc": true
             },
             {
+              "file": "ai/conversational_context/assembly.py",
+              "function": "assemble_comprehensive_messages",
+              "has_doc": true
+            },
+            {
+              "file": "ai/conversational_context/sections.py",
+              "function": "append_recent_sent_messages",
+              "has_doc": true
+            },
+            {
               "file": "ai/fallback_responses/personalized.py",
               "function": "build_personalized_message",
               "has_doc": true
@@ -5082,7 +5088,7 @@
           ]
         }
       },
-      "timestamp": "2026-05-19T17:48:11"
+      "timestamp": "2026-05-19T18:22:58"
     },
     "analyze_function_registry": {
       "success": true,
@@ -5763,12 +5769,6 @@
                 "name": "initialize__register_events"
               },
               {
-                "complexity": 2243,
-                "file": "ai/response_generator.py",
-                "has_docstring": true,
-                "name": "create_comprehensive_context_prompt"
-              },
-              {
                 "complexity": 1530,
                 "file": "communication/message_processing/command_parser.py",
                 "has_docstring": true,
@@ -6298,6 +6298,12 @@
               },
               {
                 "complexity": 403,
+                "file": "ai/conversational_context/sections.py",
+                "has_docstring": true,
+                "name": "append_checkin_summary"
+              },
+              {
+                "complexity": 403,
                 "file": "communication/message_processing/command_parser.py",
                 "has_docstring": true,
                 "name": "_extract_task_entities"
@@ -6675,6 +6681,12 @@
                 "name": "schedule_daily_message_job"
               },
               {
+                "complexity": 327,
+                "file": "ai/conversational_context/sections.py",
+                "has_docstring": false,
+                "name": "append_task_data"
+              },
+              {
                 "complexity": 326,
                 "file": "ui/dialogs/message_editor_dialog.py",
                 "has_docstring": true,
@@ -6943,16 +6955,18 @@
                 "file": "core/service_requests.py",
                 "has_docstring": false,
                 "name": "check_checkin_prompt_requests"
-              },
-              {
-                "complexity": 279,
-                "file": "core/tags.py",
-                "has_docstring": true,
-                "name": "_modify_user_tag_list"
               }
             ],
-            "high_complexity_total": 1177,
+            "high_complexity_total": 1191,
             "undocumented_handlers": [
+              {
+                "file": "ai/conversational_context/sections.py",
+                "name": "_checkin_completed_today"
+              },
+              {
+                "file": "ai/conversational_context/sections.py",
+                "name": "append_today_checkin_status"
+              },
               {
                 "file": "ai/fallback_responses/checkin_summary.py",
                 "name": "compute_checkin_metrics"
@@ -7218,11 +7232,31 @@
                 "name": "number_from_widget"
               }
             ],
-            "undocumented_handlers_total": 66,
+            "undocumented_handlers_total": 68,
             "undocumented_other": [
               {
                 "file": "ai/command_interpreter.py",
                 "name": "__init__"
+              },
+              {
+                "file": "ai/conversational_context/sections.py",
+                "name": "_feature_status_lines"
+              },
+              {
+                "file": "ai/conversational_context/sections.py",
+                "name": "append_conversation_history"
+              },
+              {
+                "file": "ai/conversational_context/sections.py",
+                "name": "append_schedule_details"
+              },
+              {
+                "file": "ai/conversational_context/sections.py",
+                "name": "append_task_data"
+              },
+              {
+                "file": "ai/conversational_context/sections.py",
+                "name": "append_task_reminder"
               },
               {
                 "file": "ai/fallback_responses/__init__.py",
@@ -7489,9 +7523,9 @@
                 "name": "is_blank"
               }
             ],
-            "undocumented_other_total": 67
+            "undocumented_other_total": 72
           },
-          "coverage": 98.98,
+          "coverage": 98.99,
           "errors": [],
           "extra": {
             "count": 47,
@@ -7557,9 +7591,9 @@
           "registry_sections": {},
           "totals": {
             "classes_found": 177,
-            "files_scanned": 144,
-            "functions_documented": 1748,
-            "functions_found": 1766
+            "files_scanned": 148,
+            "functions_documented": 1762,
+            "functions_found": 1780
           }
         },
         "summary": {
@@ -7567,7 +7601,7 @@
           "total_issues": 47
         }
       },
-      "timestamp": "2026-05-19T17:48:20"
+      "timestamp": "2026-05-19T18:23:04"
     },
     "analyze_module_refactor_candidates": {
       "success": true,
@@ -7928,18 +7962,6 @@
               ]
             },
             {
-              "file": "ai/response_generator.py",
-              "lines": 623,
-              "function_count": 4,
-              "class_count": 1,
-              "total_function_complexity": 2509,
-              "high_complexity_count": 0,
-              "critical_complexity_count": 2,
-              "reasons": [
-                "exceeds size/complexity thresholds"
-              ]
-            },
-            {
               "file": "communication/command_handlers/interaction_handlers.py",
               "lines": 618,
               "function_count": 11,
@@ -8156,6 +8178,18 @@
               ]
             },
             {
+              "file": "ai/conversational_context/sections.py",
+              "lines": 373,
+              "function_count": 12,
+              "class_count": 0,
+              "total_function_complexity": 2261,
+              "high_complexity_count": 4,
+              "critical_complexity_count": 5,
+              "reasons": [
+                "exceeds size/complexity thresholds"
+              ]
+            },
+            {
               "file": "core/headless_service.py",
               "lines": 372,
               "function_count": 10,
@@ -8285,7 +8319,7 @@
           }
         }
       },
-      "timestamp": "2026-05-19T17:48:17"
+      "timestamp": "2026-05-19T18:23:01"
     },
     "analyze_package_exports": {
       "success": true,
@@ -8295,8 +8329,8 @@
           "files_affected": 8
         },
         "details": {
-          "total_missing_exports": 363,
-          "total_unnecessary_exports": 32,
+          "total_missing_exports": 362,
+          "total_unnecessary_exports": 33,
           "packages_with_missing": 8,
           "packages": {
             "communication": {
@@ -9607,450 +9641,6 @@
                 "is_valid_intent"
               ]
             },
-            "ai": {
-              "package": "ai",
-              "current_exports_count": 22,
-              "should_export_count": 48,
-              "already_exported": [
-                "AIChatBotSingleton",
-                "CacheEntry",
-                "ContextAnalysis",
-                "ContextBuilder",
-                "ContextCache",
-                "ContextData",
-                "ConversationHistory",
-                "ConversationMessage",
-                "ConversationSession",
-                "LMStudioManager",
-                "PromptManager",
-                "PromptTemplate",
-                "ResponseCache",
-                "ensure_lm_studio_ready",
-                "get_ai_chatbot",
-                "get_context_builder",
-                "get_context_cache",
-                "get_conversation_history",
-                "get_lm_studio_manager",
-                "get_prompt_manager",
-                "get_response_cache",
-                "is_lm_studio_ready"
-              ],
-              "missing_exports": [
-                "AIInteractionType",
-                "CheckinMetrics",
-                "CommandInterpreter",
-                "FallbackCategory",
-                "ResponseGenerator",
-                "build_contextual_fallback",
-                "build_personalized_message",
-                "compute_checkin_metrics",
-                "default_contextual_response",
-                "format_command_actions_for_prompt",
-                "get_command_intent_names",
-                "get_command_interpreter",
-                "get_fallback_responses",
-                "get_recent_responses",
-                "get_response_generator",
-                "get_user_data",
-                "inject_command_actions_into_prompt",
-                "interaction_type_for_mode",
-                "load_user_context",
-                "name_prefix_from_context",
-                "personalize_with_profile_name",
-                "preferred_name_from_context",
-                "try_checkin_summary_response",
-                "try_conversational_support",
-                "try_new_user_no_context",
-                "try_technical_unavailable"
-              ],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "get_prompt_manager": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "ai/command_interpreter.py",
-                    "ai/response_generator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.prompt_manager"
-                },
-                "FallbackCategory": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "ai/fallback_responses/checkin_summary.py",
-                    "ai/fallback_responses/conversational.py",
-                    "ai/fallback_responses/coordinator.py",
-                    "ai/fallback_responses/personalized.py",
-                    "ai/fallback_responses/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses.categories"
-                },
-                "name_prefix_from_context": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ai/fallback_responses/coordinator.py",
-                    "ai/fallback_responses/personalized.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses.profile_helpers"
-                },
-                "get_ai_chatbot": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "communication/message_processing/command_parser.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.chatbot"
-                }
-              },
-              "import_usage_details": {
-                "get_prompt_manager": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "ai/command_interpreter.py",
-                    "ai/response_generator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.prompt_manager"
-                },
-                "get_response_cache": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/chatbot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.cache_manager"
-                },
-                "get_command_interpreter": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/chatbot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.command_interpreter"
-                },
-                "get_fallback_responses": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/chatbot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses"
-                },
-                "AIInteractionType": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/chatbot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.interaction_types"
-                },
-                "interaction_type_for_mode": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/chatbot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.interaction_types"
-                },
-                "get_response_generator": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/chatbot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.response_generator"
-                },
-                "is_lm_studio_ready": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/chatbot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.lm_studio_manager"
-                },
-                "inject_command_actions_into_prompt": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/prompt_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.command_registry"
-                },
-                "FallbackCategory": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "ai/fallback_responses/checkin_summary.py",
-                    "ai/fallback_responses/conversational.py",
-                    "ai/fallback_responses/coordinator.py",
-                    "ai/fallback_responses/personalized.py",
-                    "ai/fallback_responses/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses.categories"
-                },
-                "compute_checkin_metrics": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/fallback_responses/coordinator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses.checkin_summary"
-                },
-                "try_checkin_summary_response": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/fallback_responses/coordinator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses.checkin_summary"
-                },
-                "default_contextual_response": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/fallback_responses/coordinator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses.conversational"
-                },
-                "try_conversational_support": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/fallback_responses/coordinator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses.conversational"
-                },
-                "try_new_user_no_context": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/fallback_responses/coordinator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses.conversational"
-                },
-                "try_technical_unavailable": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/fallback_responses/coordinator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses.conversational"
-                },
-                "load_user_context": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/fallback_responses/coordinator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses.profile_helpers"
-                },
-                "name_prefix_from_context": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ai/fallback_responses/coordinator.py",
-                    "ai/fallback_responses/personalized.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses.profile_helpers"
-                },
-                "preferred_name_from_context": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/fallback_responses/coordinator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses.profile_helpers"
-                },
-                "get_recent_responses": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/fallback_responses/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses.data_access"
-                },
-                "get_user_data": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/fallback_responses/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses.data_access"
-                },
-                "build_contextual_fallback": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/fallback_responses/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses.coordinator"
-                },
-                "build_personalized_message": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/fallback_responses/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses.personalized"
-                },
-                "personalize_with_profile_name": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ai/fallback_responses/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.fallback_responses.profile_helpers"
-                },
-                "get_ai_chatbot": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "communication/message_processing/command_parser.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "ai.chatbot"
-                }
-              },
-              "package_api_items": [
-                "AIChatBotSingleton",
-                "AIInteractionType",
-                "CacheEntry",
-                "CheckinMetrics",
-                "CommandInterpreter",
-                "ContextAnalysis",
-                "ContextBuilder",
-                "ContextCache",
-                "ContextData",
-                "ConversationHistory",
-                "ConversationMessage",
-                "ConversationSession",
-                "FallbackCategory",
-                "LMStudioManager",
-                "PromptManager",
-                "PromptTemplate",
-                "ResponseCache",
-                "ResponseGenerator",
-                "build_contextual_fallback",
-                "build_personalized_message",
-                "compute_checkin_metrics",
-                "default_contextual_response",
-                "ensure_lm_studio_ready",
-                "format_command_actions_for_prompt",
-                "get_ai_chatbot",
-                "get_command_intent_names",
-                "get_command_interpreter",
-                "get_context_builder",
-                "get_context_cache",
-                "get_conversation_history",
-                "get_lm_studio_manager",
-                "get_prompt_manager",
-                "get_response_cache",
-                "get_response_generator",
-                "inject_command_actions_into_prompt",
-                "interaction_type_for_mode",
-                "is_lm_studio_ready",
-                "load_user_context",
-                "name_prefix_from_context",
-                "personalize_with_profile_name",
-                "preferred_name_from_context",
-                "try_checkin_summary_response",
-                "try_conversational_support",
-                "try_new_user_no_context",
-                "try_technical_unavailable"
-              ],
-              "registry_items": [
-                "__init__",
-                "__new__",
-                "__post_init__",
-                "_build_contextual_summary",
-                "_cleanup_lru",
-                "_load_custom_prompt",
-                "add_prompt_template",
-                "build_contextual_fallback",
-                "build_personalized_message",
-                "compute_checkin_metrics",
-                "contextual",
-                "create_command_parsing_prompt",
-                "create_comprehensive_context_prompt",
-                "default_contextual_response",
-                "ensure_lm_studio_ready",
-                "format_command_actions_for_prompt",
-                "get_command_intent_names",
-                "get_fallback_responses",
-                "interaction_type_for_mode",
-                "load_user_context",
-                "name_prefix_from_context",
-                "try_checkin_summary_response",
-                "try_conversational_support"
-              ]
-            },
             "core": {
               "package": "core",
               "current_exports_count": 154,
@@ -10381,7 +9971,7 @@
               ],
               "cross_module_usage": {
                 "handle_errors": {
-                  "import_count": 134,
+                  "import_count": 136,
                   "import_locations": [
                     "run_headless_service.py",
                     "ai/cache_manager.py",
@@ -10450,6 +10040,8 @@
                     "user/profile_service.py",
                     "user/user_context.py",
                     "user/user_preferences.py",
+                    "ai/conversational_context/assembly.py",
+                    "ai/conversational_context/sections.py",
                     "ai/fallback_responses/checkin_summary.py",
                     "ai/fallback_responses/conversational.py",
                     "ai/fallback_responses/coordinator.py",
@@ -10524,7 +10116,7 @@
                   "module_path": "core.error_handling"
                 },
                 "get_component_logger": {
-                  "import_count": 122,
+                  "import_count": 123,
                   "import_locations": [
                     "run_headless_service.py",
                     "ai/cache_manager.py",
@@ -10580,6 +10172,7 @@
                     "user/context_manager.py",
                     "user/user_context.py",
                     "user/user_preferences.py",
+                    "ai/conversational_context/sections.py",
                     "ai/fallback_responses/__init__.py",
                     "communication/command_handlers/account_handler.py",
                     "communication/command_handlers/analytics_handler.py",
@@ -10787,8 +10380,8 @@
                   "import_locations": [
                     "ai/chatbot.py",
                     "ai/context_builder.py",
-                    "ai/response_generator.py",
                     "storage/user_data_operations.py",
+                    "ai/conversational_context/sections.py",
                     "ai/fallback_responses/data_access.py"
                   ],
                   "import_types": [
@@ -10842,116 +10435,6 @@
                   ],
                   "module_path": "core.time_utilities"
                 },
-                "get_recent_messages": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "ai/response_generator.py",
-                    "core/message_analytics.py",
-                    "core/message_preview.py",
-                    "storage/user_data_operations.py",
-                    "user/context_manager.py",
-                    "communication/delivery/message_dispatcher.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.message_management"
-                },
-                "checkin_runtime_timestamp": {
-                  "import_count": 7,
-                  "import_locations": [
-                    "ai/response_generator.py",
-                    "core/checkin_analytics.py",
-                    "core/checkin_service.py",
-                    "storage/user_data_operations.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.response_tracking"
-                },
-                "TIME_ONLY_MINUTE": {
-                  "import_count": 7,
-                  "import_locations": [
-                    "ai/response_generator.py",
-                    "core/schedule_runtime.py",
-                    "core/schedule_utilities.py",
-                    "core/time_utilities.py",
-                    "scheduler/manager.py",
-                    "scheduler/task_reminders.py",
-                    "communication/message_processing/conversation_flow_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.time_utilities"
-                },
-                "format_timestamp": {
-                  "import_count": 12,
-                  "import_locations": [
-                    "ai/response_generator.py",
-                    "core/auto_cleanup.py",
-                    "core/backup_manager.py",
-                    "core/schedule_runtime.py",
-                    "core/schedule_utilities.py",
-                    "scheduler/manager.py",
-                    "scheduler/task_reminders.py",
-                    "tasks/task_data_manager.py",
-                    "tasks/task_service.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py",
-                    "ui/dialogs/process_watcher_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.time_utilities"
-                },
-                "is_user_checkins_enabled": {
-                  "import_count": 9,
-                  "import_locations": [
-                    "ai/response_generator.py",
-                    "ai/response_generator.py",
-                    "ai/response_generator.py",
-                    "ai/response_generator.py",
-                    "core/checkin_service.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.response_tracking"
-                },
-                "parse_timestamp_full": {
-                  "import_count": 15,
-                  "import_locations": [
-                    "ai/response_generator.py",
-                    "core/checkin_analytics.py",
-                    "core/checkin_service.py",
-                    "core/message_management.py",
-                    "core/response_tracking.py",
-                    "core/service.py",
-                    "notebook/notebook_data_manager.py",
-                    "scheduler/maintenance.py",
-                    "storage/user_data_v2_base.py",
-                    "tasks/task_data_handlers.py",
-                    "tasks/task_data_manager.py",
-                    "ui/ui_app_qt.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.time_utilities"
-                },
                 "DATE_ONLY": {
                   "import_count": 7,
                   "import_locations": [
@@ -10997,6 +10480,27 @@
                     "ui/dialogs/message_editor_dialog.py",
                     "ui/dialogs/schedule_editor_dialog.py",
                     "ui/dialogs/user_profile_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.time_utilities"
+                },
+                "format_timestamp": {
+                  "import_count": 12,
+                  "import_locations": [
+                    "core/auto_cleanup.py",
+                    "core/backup_manager.py",
+                    "core/schedule_runtime.py",
+                    "core/schedule_utilities.py",
+                    "scheduler/manager.py",
+                    "scheduler/task_reminders.py",
+                    "tasks/task_data_manager.py",
+                    "tasks/task_service.py",
+                    "ai/conversational_context/sections.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py",
+                    "ui/dialogs/process_watcher_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
@@ -11069,6 +10573,22 @@
                   ],
                   "module_path": "core.config"
                 },
+                "checkin_runtime_timestamp": {
+                  "import_count": 7,
+                  "import_locations": [
+                    "core/checkin_analytics.py",
+                    "core/checkin_service.py",
+                    "storage/user_data_operations.py",
+                    "ai/conversational_context/sections.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.response_tracking"
+                },
                 "get_checkins_by_days": {
                   "import_count": 3,
                   "import_locations": [
@@ -11096,6 +10616,30 @@
                     "from_import"
                   ],
                   "module_path": "core.error_handling"
+                },
+                "parse_timestamp_full": {
+                  "import_count": 15,
+                  "import_locations": [
+                    "core/checkin_analytics.py",
+                    "core/checkin_service.py",
+                    "core/message_management.py",
+                    "core/response_tracking.py",
+                    "core/service.py",
+                    "notebook/notebook_data_manager.py",
+                    "scheduler/maintenance.py",
+                    "storage/user_data_v2_base.py",
+                    "tasks/task_data_handlers.py",
+                    "tasks/task_data_manager.py",
+                    "ui/ui_app_qt.py",
+                    "ai/conversational_context/sections.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.time_utilities"
                 },
                 "parse_time_only_minute": {
                   "import_count": 8,
@@ -11169,6 +10713,21 @@
                     "communication/command_handlers/profile_handler.py",
                     "communication/message_processing/conversation_flow_manager.py",
                     "communication/message_processing/interaction_manager.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.response_tracking"
+                },
+                "is_user_checkins_enabled": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "core/checkin_service.py",
+                    "ai/conversational_context/sections.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/message_processing/conversation_flow_manager.py",
                     "communication/message_processing/interaction_manager.py"
                   ],
                   "import_types": [
@@ -11314,6 +10873,21 @@
                   ],
                   "module_path": "core.service_utilities"
                 },
+                "get_recent_messages": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "core/message_analytics.py",
+                    "core/message_preview.py",
+                    "storage/user_data_operations.py",
+                    "user/context_manager.py",
+                    "ai/conversational_context/sections.py",
+                    "communication/delivery/message_dispatcher.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.message_management"
+                },
                 "save_json_data": {
                   "import_count": 9,
                   "import_locations": [
@@ -11377,6 +10951,22 @@
                     "from_import"
                   ],
                   "module_path": "core.schedule_runtime"
+                },
+                "TIME_ONLY_MINUTE": {
+                  "import_count": 7,
+                  "import_locations": [
+                    "core/schedule_runtime.py",
+                    "core/schedule_utilities.py",
+                    "core/time_utilities.py",
+                    "scheduler/manager.py",
+                    "scheduler/task_reminders.py",
+                    "ai/conversational_context/sections.py",
+                    "communication/message_processing/conversation_flow_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.time_utilities"
                 },
                 "ConfigurationError": {
                   "import_count": 2,
@@ -11848,7 +11438,7 @@
               },
               "import_usage_details": {
                 "handle_errors": {
-                  "import_count": 134,
+                  "import_count": 136,
                   "import_locations": [
                     "run_headless_service.py",
                     "ai/cache_manager.py",
@@ -11917,6 +11507,8 @@
                     "user/profile_service.py",
                     "user/user_context.py",
                     "user/user_preferences.py",
+                    "ai/conversational_context/assembly.py",
+                    "ai/conversational_context/sections.py",
                     "ai/fallback_responses/checkin_summary.py",
                     "ai/fallback_responses/conversational.py",
                     "ai/fallback_responses/coordinator.py",
@@ -12001,7 +11593,7 @@
                   "module_path": "core.headless_service"
                 },
                 "get_component_logger": {
-                  "import_count": 122,
+                  "import_count": 123,
                   "import_locations": [
                     "run_headless_service.py",
                     "ai/cache_manager.py",
@@ -12057,6 +11649,7 @@
                     "user/context_manager.py",
                     "user/user_context.py",
                     "user/user_preferences.py",
+                    "ai/conversational_context/sections.py",
                     "ai/fallback_responses/__init__.py",
                     "communication/command_handlers/account_handler.py",
                     "communication/command_handlers/analytics_handler.py",
@@ -12374,8 +11967,8 @@
                   "import_locations": [
                     "ai/chatbot.py",
                     "ai/context_builder.py",
-                    "ai/response_generator.py",
                     "storage/user_data_operations.py",
+                    "ai/conversational_context/sections.py",
                     "ai/fallback_responses/data_access.py"
                   ],
                   "import_types": [
@@ -12448,116 +12041,6 @@
                     "from_import"
                   ],
                   "module_path": "core.config"
-                },
-                "get_recent_messages": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "ai/response_generator.py",
-                    "core/message_analytics.py",
-                    "core/message_preview.py",
-                    "storage/user_data_operations.py",
-                    "user/context_manager.py",
-                    "communication/delivery/message_dispatcher.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.message_management"
-                },
-                "checkin_runtime_timestamp": {
-                  "import_count": 7,
-                  "import_locations": [
-                    "ai/response_generator.py",
-                    "core/checkin_analytics.py",
-                    "core/checkin_service.py",
-                    "storage/user_data_operations.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.response_tracking"
-                },
-                "TIME_ONLY_MINUTE": {
-                  "import_count": 7,
-                  "import_locations": [
-                    "ai/response_generator.py",
-                    "core/schedule_runtime.py",
-                    "core/schedule_utilities.py",
-                    "core/time_utilities.py",
-                    "scheduler/manager.py",
-                    "scheduler/task_reminders.py",
-                    "communication/message_processing/conversation_flow_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.time_utilities"
-                },
-                "format_timestamp": {
-                  "import_count": 12,
-                  "import_locations": [
-                    "ai/response_generator.py",
-                    "core/auto_cleanup.py",
-                    "core/backup_manager.py",
-                    "core/schedule_runtime.py",
-                    "core/schedule_utilities.py",
-                    "scheduler/manager.py",
-                    "scheduler/task_reminders.py",
-                    "tasks/task_data_manager.py",
-                    "tasks/task_service.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py",
-                    "ui/dialogs/process_watcher_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.time_utilities"
-                },
-                "is_user_checkins_enabled": {
-                  "import_count": 9,
-                  "import_locations": [
-                    "ai/response_generator.py",
-                    "ai/response_generator.py",
-                    "ai/response_generator.py",
-                    "ai/response_generator.py",
-                    "core/checkin_service.py",
-                    "communication/command_handlers/checkin_handler.py",
-                    "communication/command_handlers/interaction_handlers.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.response_tracking"
-                },
-                "parse_timestamp_full": {
-                  "import_count": 15,
-                  "import_locations": [
-                    "ai/response_generator.py",
-                    "core/checkin_analytics.py",
-                    "core/checkin_service.py",
-                    "core/message_management.py",
-                    "core/response_tracking.py",
-                    "core/service.py",
-                    "notebook/notebook_data_manager.py",
-                    "scheduler/maintenance.py",
-                    "storage/user_data_v2_base.py",
-                    "tasks/task_data_handlers.py",
-                    "tasks/task_data_manager.py",
-                    "ui/ui_app_qt.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.time_utilities"
                 },
                 "RetryManager": {
                   "import_count": 1,
@@ -12674,6 +12157,27 @@
                     "ui/dialogs/message_editor_dialog.py",
                     "ui/dialogs/schedule_editor_dialog.py",
                     "ui/dialogs/user_profile_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.time_utilities"
+                },
+                "format_timestamp": {
+                  "import_count": 12,
+                  "import_locations": [
+                    "core/auto_cleanup.py",
+                    "core/backup_manager.py",
+                    "core/schedule_runtime.py",
+                    "core/schedule_utilities.py",
+                    "scheduler/manager.py",
+                    "scheduler/task_reminders.py",
+                    "tasks/task_data_manager.py",
+                    "tasks/task_service.py",
+                    "ai/conversational_context/sections.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py",
+                    "ui/dialogs/process_watcher_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
@@ -12806,6 +12310,22 @@
                   ],
                   "module_path": "core.config"
                 },
+                "checkin_runtime_timestamp": {
+                  "import_count": 7,
+                  "import_locations": [
+                    "core/checkin_analytics.py",
+                    "core/checkin_service.py",
+                    "storage/user_data_operations.py",
+                    "ai/conversational_context/sections.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.response_tracking"
+                },
                 "get_checkins_by_days": {
                   "import_count": 3,
                   "import_locations": [
@@ -12833,6 +12353,30 @@
                     "from_import"
                   ],
                   "module_path": "core.error_handling"
+                },
+                "parse_timestamp_full": {
+                  "import_count": 15,
+                  "import_locations": [
+                    "core/checkin_analytics.py",
+                    "core/checkin_service.py",
+                    "core/message_management.py",
+                    "core/response_tracking.py",
+                    "core/service.py",
+                    "notebook/notebook_data_manager.py",
+                    "scheduler/maintenance.py",
+                    "storage/user_data_v2_base.py",
+                    "tasks/task_data_handlers.py",
+                    "tasks/task_data_manager.py",
+                    "ui/ui_app_qt.py",
+                    "ai/conversational_context/sections.py",
+                    "communication/command_handlers/analytics_handler.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.time_utilities"
                 },
                 "parse_time_only_minute": {
                   "import_count": 8,
@@ -12906,6 +12450,21 @@
                     "communication/command_handlers/profile_handler.py",
                     "communication/message_processing/conversation_flow_manager.py",
                     "communication/message_processing/interaction_manager.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.response_tracking"
+                },
+                "is_user_checkins_enabled": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "core/checkin_service.py",
+                    "ai/conversational_context/sections.py",
+                    "communication/command_handlers/checkin_handler.py",
+                    "communication/command_handlers/interaction_handlers.py",
+                    "communication/message_processing/conversation_flow_manager.py",
                     "communication/message_processing/interaction_manager.py"
                   ],
                   "import_types": [
@@ -13101,6 +12660,21 @@
                   ],
                   "module_path": "core.time_utilities"
                 },
+                "get_recent_messages": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "core/message_analytics.py",
+                    "core/message_preview.py",
+                    "storage/user_data_operations.py",
+                    "user/context_manager.py",
+                    "ai/conversational_context/sections.py",
+                    "communication/delivery/message_dispatcher.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.message_management"
+                },
                 "save_json_data": {
                   "import_count": 9,
                   "import_locations": [
@@ -13184,6 +12758,22 @@
                     "from_import"
                   ],
                   "module_path": "core.service_requests"
+                },
+                "TIME_ONLY_MINUTE": {
+                  "import_count": 7,
+                  "import_locations": [
+                    "core/schedule_runtime.py",
+                    "core/schedule_utilities.py",
+                    "core/time_utilities.py",
+                    "scheduler/manager.py",
+                    "scheduler/task_reminders.py",
+                    "ai/conversational_context/sections.py",
+                    "communication/message_processing/conversation_flow_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.time_utilities"
                 },
                 "DATE_DISPLAY_WEEKDAY": {
                   "import_count": 1,
@@ -14711,6 +14301,642 @@
                 "wait_for_network"
               ]
             },
+            "ai": {
+              "package": "ai",
+              "current_exports_count": 37,
+              "should_export_count": 61,
+              "already_exported": [
+                "AIChatBotSingleton",
+                "AIInteractionType",
+                "CacheEntry",
+                "CommandInterpreter",
+                "ContextAnalysis",
+                "ContextBuilder",
+                "ContextCache",
+                "ContextData",
+                "ConversationHistory",
+                "ConversationMessage",
+                "ConversationSession",
+                "FallbackCategory",
+                "LMStudioManager",
+                "PromptManager",
+                "PromptTemplate",
+                "ResponseCache",
+                "ResponseGenerator",
+                "assemble_comprehensive_messages",
+                "build_context_parts",
+                "build_contextual_fallback",
+                "ensure_lm_studio_ready",
+                "format_command_actions_for_prompt",
+                "get_ai_chatbot",
+                "get_command_intent_names",
+                "get_command_interpreter",
+                "get_context_builder",
+                "get_context_cache",
+                "get_conversation_history",
+                "get_fallback_responses",
+                "get_lm_studio_manager",
+                "get_prompt_manager",
+                "get_response_cache",
+                "get_response_generator",
+                "inject_command_actions_into_prompt",
+                "interaction_type_for_mode",
+                "is_lm_studio_ready"
+              ],
+              "missing_exports": [
+                "CONVERSATIONAL_CONTEXT_INSTRUCTIONS",
+                "CheckinMetrics",
+                "append_activity_and_mood_trends",
+                "append_checkin_summary",
+                "append_conversation_history",
+                "append_feature_enablement",
+                "append_profile_sections",
+                "append_recent_sent_messages",
+                "append_schedule_details",
+                "append_task_data",
+                "append_task_reminder",
+                "append_today_checkin_status",
+                "build_personalized_message",
+                "compute_checkin_metrics",
+                "default_contextual_response",
+                "get_recent_responses",
+                "get_user_data",
+                "load_user_context",
+                "name_prefix_from_context",
+                "personalize_with_profile_name",
+                "preferred_name_from_context",
+                "try_checkin_summary_response",
+                "try_conversational_support",
+                "try_new_user_no_context",
+                "try_technical_unavailable"
+              ],
+              "potentially_unnecessary": [
+                "FallbackResponses"
+              ],
+              "cross_module_usage": {
+                "get_prompt_manager": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "ai/chatbot.py",
+                    "ai/command_interpreter.py",
+                    "ai/response_generator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.prompt_manager"
+                },
+                "assemble_comprehensive_messages": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/response_generator.py",
+                    "ai/conversational_context/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.conversational_context"
+                },
+                "FallbackCategory": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "ai/fallback_responses/checkin_summary.py",
+                    "ai/fallback_responses/conversational.py",
+                    "ai/fallback_responses/coordinator.py",
+                    "ai/fallback_responses/personalized.py",
+                    "ai/fallback_responses/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses.categories"
+                },
+                "name_prefix_from_context": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/fallback_responses/coordinator.py",
+                    "ai/fallback_responses/personalized.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses.profile_helpers"
+                },
+                "get_ai_chatbot": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/message_processing/command_parser.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.chatbot"
+                }
+              },
+              "import_usage_details": {
+                "get_prompt_manager": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "ai/chatbot.py",
+                    "ai/command_interpreter.py",
+                    "ai/response_generator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.prompt_manager"
+                },
+                "get_response_cache": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/chatbot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.cache_manager"
+                },
+                "get_command_interpreter": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/chatbot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.command_interpreter"
+                },
+                "get_fallback_responses": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/chatbot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses"
+                },
+                "AIInteractionType": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/chatbot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.interaction_types"
+                },
+                "interaction_type_for_mode": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/chatbot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.interaction_types"
+                },
+                "get_response_generator": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/chatbot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.response_generator"
+                },
+                "is_lm_studio_ready": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/chatbot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.lm_studio_manager"
+                },
+                "inject_command_actions_into_prompt": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/prompt_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.command_registry"
+                },
+                "assemble_comprehensive_messages": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/response_generator.py",
+                    "ai/conversational_context/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.conversational_context"
+                },
+                "CONVERSATIONAL_CONTEXT_INSTRUCTIONS": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/conversational_context/assembly.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.conversational_context.instructions"
+                },
+                "append_activity_and_mood_trends": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/conversational_context/assembly.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.conversational_context.sections"
+                },
+                "append_checkin_summary": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/conversational_context/assembly.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.conversational_context.sections"
+                },
+                "append_conversation_history": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/conversational_context/assembly.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.conversational_context.sections"
+                },
+                "append_feature_enablement": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/conversational_context/assembly.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.conversational_context.sections"
+                },
+                "append_profile_sections": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/conversational_context/assembly.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.conversational_context.sections"
+                },
+                "append_recent_sent_messages": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/conversational_context/assembly.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.conversational_context.sections"
+                },
+                "append_schedule_details": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/conversational_context/assembly.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.conversational_context.sections"
+                },
+                "append_task_data": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/conversational_context/assembly.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.conversational_context.sections"
+                },
+                "append_task_reminder": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/conversational_context/assembly.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.conversational_context.sections"
+                },
+                "append_today_checkin_status": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/conversational_context/assembly.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.conversational_context.sections"
+                },
+                "ContextData": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/conversational_context/sections.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.context_builder"
+                },
+                "get_context_builder": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/conversational_context/sections.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.context_builder"
+                },
+                "build_context_parts": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/conversational_context/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.conversational_context.assembly"
+                },
+                "FallbackCategory": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "ai/fallback_responses/checkin_summary.py",
+                    "ai/fallback_responses/conversational.py",
+                    "ai/fallback_responses/coordinator.py",
+                    "ai/fallback_responses/personalized.py",
+                    "ai/fallback_responses/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses.categories"
+                },
+                "compute_checkin_metrics": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/fallback_responses/coordinator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses.checkin_summary"
+                },
+                "try_checkin_summary_response": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/fallback_responses/coordinator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses.checkin_summary"
+                },
+                "default_contextual_response": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/fallback_responses/coordinator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses.conversational"
+                },
+                "try_conversational_support": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/fallback_responses/coordinator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses.conversational"
+                },
+                "try_new_user_no_context": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/fallback_responses/coordinator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses.conversational"
+                },
+                "try_technical_unavailable": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/fallback_responses/coordinator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses.conversational"
+                },
+                "load_user_context": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/fallback_responses/coordinator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses.profile_helpers"
+                },
+                "name_prefix_from_context": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/fallback_responses/coordinator.py",
+                    "ai/fallback_responses/personalized.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses.profile_helpers"
+                },
+                "preferred_name_from_context": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/fallback_responses/coordinator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses.profile_helpers"
+                },
+                "get_recent_responses": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/fallback_responses/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses.data_access"
+                },
+                "get_user_data": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/fallback_responses/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses.data_access"
+                },
+                "build_contextual_fallback": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/fallback_responses/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses.coordinator"
+                },
+                "build_personalized_message": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/fallback_responses/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses.personalized"
+                },
+                "personalize_with_profile_name": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ai/fallback_responses/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.fallback_responses.profile_helpers"
+                },
+                "get_ai_chatbot": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/message_processing/command_parser.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "ai.chatbot"
+                }
+              },
+              "package_api_items": [
+                "AIChatBotSingleton",
+                "AIInteractionType",
+                "CacheEntry",
+                "CheckinMetrics",
+                "CommandInterpreter",
+                "ContextAnalysis",
+                "ContextBuilder",
+                "ContextCache",
+                "ContextData",
+                "ConversationHistory",
+                "ConversationMessage",
+                "ConversationSession",
+                "FallbackCategory",
+                "LMStudioManager",
+                "PromptManager",
+                "PromptTemplate",
+                "ResponseCache",
+                "ResponseGenerator",
+                "append_activity_and_mood_trends",
+                "append_checkin_summary",
+                "append_conversation_history",
+                "append_feature_enablement",
+                "append_profile_sections",
+                "append_recent_sent_messages",
+                "append_schedule_details",
+                "append_task_data",
+                "append_task_reminder",
+                "append_today_checkin_status",
+                "assemble_comprehensive_messages",
+                "build_context_parts",
+                "build_contextual_fallback",
+                "build_personalized_message",
+                "compute_checkin_metrics",
+                "default_contextual_response",
+                "ensure_lm_studio_ready",
+                "format_command_actions_for_prompt",
+                "get_ai_chatbot",
+                "get_command_intent_names",
+                "get_command_interpreter",
+                "get_context_builder",
+                "get_context_cache",
+                "get_conversation_history",
+                "get_lm_studio_manager",
+                "get_prompt_manager",
+                "get_response_cache",
+                "get_response_generator",
+                "inject_command_actions_into_prompt",
+                "interaction_type_for_mode",
+                "is_lm_studio_ready",
+                "load_user_context",
+                "name_prefix_from_context",
+                "personalize_with_profile_name",
+                "preferred_name_from_context",
+                "try_checkin_summary_response",
+                "try_conversational_support",
+                "try_new_user_no_context",
+                "try_technical_unavailable"
+              ],
+              "registry_items": [
+                "__init__",
+                "__new__",
+                "__post_init__",
+                "_build_contextual_summary",
+                "_checkin_completed_today",
+                "_cleanup_lru",
+                "_feature_status_lines",
+                "_load_custom_prompt",
+                "add_prompt_template",
+                "append_activity_and_mood_trends",
+                "assemble_comprehensive_messages",
+                "build_contextual_fallback",
+                "build_personalized_message",
+                "compute_checkin_metrics",
+                "contextual",
+                "create_command_parsing_prompt",
+                "create_comprehensive_context_prompt",
+                "default_contextual_response",
+                "ensure_lm_studio_ready",
+                "format_command_actions_for_prompt",
+                "get_command_intent_names",
+                "get_fallback_responses",
+                "interaction_type_for_mode",
+                "load_user_context",
+                "name_prefix_from_context",
+                "try_checkin_summary_response"
+              ]
+            },
             "tasks": {
               "package": "tasks",
               "current_exports_count": 20,
@@ -14780,25 +15006,6 @@
               ],
               "potentially_unnecessary": [],
               "cross_module_usage": {
-                "runtime_task_due_date": {
-                  "import_count": 10,
-                  "import_locations": [
-                    "ai/response_generator.py",
-                    "scheduler/task_reminders.py",
-                    "scheduler/task_reminders.py",
-                    "tasks/task_service.py",
-                    "communication/command_handlers/task_handler.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py",
-                    "communication/reminders/reminder_dispatcher.py",
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_edit_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
                 "TASKS_V2_FILENAME": {
                   "import_count": 2,
                   "import_locations": [
@@ -14816,6 +15023,25 @@
                     "scheduler/task_reminders.py",
                     "ui/ui_app_qt.py",
                     "communication/reminders/reminder_dispatcher.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "runtime_task_due_date": {
+                  "import_count": 10,
+                  "import_locations": [
+                    "scheduler/task_reminders.py",
+                    "scheduler/task_reminders.py",
+                    "tasks/task_service.py",
+                    "ai/conversational_context/sections.py",
+                    "communication/command_handlers/task_handler.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py",
+                    "communication/reminders/reminder_dispatcher.py",
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_edit_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
@@ -14849,25 +15075,6 @@
                 }
               },
               "import_usage_details": {
-                "runtime_task_due_date": {
-                  "import_count": 10,
-                  "import_locations": [
-                    "ai/response_generator.py",
-                    "scheduler/task_reminders.py",
-                    "scheduler/task_reminders.py",
-                    "tasks/task_service.py",
-                    "communication/command_handlers/task_handler.py",
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/interaction_manager.py",
-                    "communication/reminders/reminder_dispatcher.py",
-                    "ui/dialogs/task_crud_dialog.py",
-                    "ui/dialogs/task_edit_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "tasks.task_data_handlers"
-                },
                 "TASKS_V2_FILENAME": {
                   "import_count": 2,
                   "import_locations": [
@@ -14885,6 +15092,25 @@
                     "scheduler/task_reminders.py",
                     "ui/ui_app_qt.py",
                     "communication/reminders/reminder_dispatcher.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "tasks.task_data_handlers"
+                },
+                "runtime_task_due_date": {
+                  "import_count": 10,
+                  "import_locations": [
+                    "scheduler/task_reminders.py",
+                    "scheduler/task_reminders.py",
+                    "tasks/task_service.py",
+                    "ai/conversational_context/sections.py",
+                    "communication/command_handlers/task_handler.py",
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/interaction_manager.py",
+                    "communication/reminders/reminder_dispatcher.py",
+                    "ui/dialogs/task_crud_dialog.py",
+                    "ui/dialogs/task_edit_dialog.py"
                   ],
                   "import_types": [
                     "from_import"
@@ -15136,6 +15362,240 @@
                 "validate_completed_at",
                 "validate_completion_status",
                 "validate_date"
+              ]
+            },
+            "scheduler": {
+              "package": "scheduler",
+              "current_exports_count": 9,
+              "should_export_count": 27,
+              "already_exported": [
+                "SchedulerManager",
+                "clear_all_accumulated_jobs_standalone",
+                "process_category_schedule",
+                "process_user_schedules",
+                "run_category_scheduler_standalone",
+                "run_full_scheduler_standalone",
+                "run_user_scheduler_standalone",
+                "schedule_all_task_reminders",
+                "set_scheduler_delivery_factory"
+              ],
+              "missing_exports": [
+                "calculate_due_date_weight",
+                "calculate_priority_weight",
+                "calculate_task_weights",
+                "check_and_perform_weekly_backup",
+                "cleanup_orphaned_task_reminders",
+                "cleanup_scheduler_wake_tasks",
+                "cleanup_task_reminders",
+                "get_random_time_within_task_period",
+                "handle_task_reminder",
+                "handle_task_selection_edge_cases",
+                "perform_daily_log_archival",
+                "register_full_daily_maintenance_jobs",
+                "register_system_daily_jobs",
+                "schedule_task_reminder_at_datetime",
+                "schedule_task_reminder_at_time",
+                "select_task_by_weight",
+                "select_task_for_reminder",
+                "task_selection_key"
+              ],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "SchedulerManager": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "set_scheduler_delivery_factory": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_category_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_full_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_user_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                }
+              },
+              "import_usage_details": {
+                "SchedulerManager": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "set_scheduler_delivery_factory": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "clear_all_accumulated_jobs_standalone": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "process_category_schedule": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "process_user_schedules": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_category_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_full_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_user_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "schedule_all_task_reminders": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                }
+              },
+              "package_api_items": [
+                "SchedulerManager",
+                "calculate_due_date_weight",
+                "calculate_priority_weight",
+                "calculate_task_weights",
+                "check_and_perform_weekly_backup",
+                "cleanup_orphaned_task_reminders",
+                "cleanup_scheduler_wake_tasks",
+                "cleanup_task_reminders",
+                "clear_all_accumulated_jobs_standalone",
+                "get_random_time_within_task_period",
+                "handle_task_reminder",
+                "handle_task_selection_edge_cases",
+                "perform_daily_log_archival",
+                "process_category_schedule",
+                "process_user_schedules",
+                "register_full_daily_maintenance_jobs",
+                "register_system_daily_jobs",
+                "run_category_scheduler_standalone",
+                "run_full_scheduler_standalone",
+                "run_user_scheduler_standalone",
+                "schedule_all_task_reminders",
+                "schedule_task_reminder_at_datetime",
+                "schedule_task_reminder_at_time",
+                "select_task_by_weight",
+                "select_task_for_reminder",
+                "set_scheduler_delivery_factory",
+                "task_selection_key"
+              ],
+              "registry_items": [
+                "__init__",
+                "_is_weekly_backup_entry",
+                "calculate_due_date_weight",
+                "calculate_priority_weight",
+                "check_and_perform_weekly_backup",
+                "cleanup_scheduler_wake_tasks",
+                "register_full_daily_maintenance_jobs",
+                "register_system_daily_jobs"
               ]
             },
             "notebook": {
@@ -15710,240 +16170,6 @@
               ],
               "registry_items": []
             },
-            "scheduler": {
-              "package": "scheduler",
-              "current_exports_count": 9,
-              "should_export_count": 27,
-              "already_exported": [
-                "SchedulerManager",
-                "clear_all_accumulated_jobs_standalone",
-                "process_category_schedule",
-                "process_user_schedules",
-                "run_category_scheduler_standalone",
-                "run_full_scheduler_standalone",
-                "run_user_scheduler_standalone",
-                "schedule_all_task_reminders",
-                "set_scheduler_delivery_factory"
-              ],
-              "missing_exports": [
-                "calculate_due_date_weight",
-                "calculate_priority_weight",
-                "calculate_task_weights",
-                "check_and_perform_weekly_backup",
-                "cleanup_orphaned_task_reminders",
-                "cleanup_scheduler_wake_tasks",
-                "cleanup_task_reminders",
-                "get_random_time_within_task_period",
-                "handle_task_reminder",
-                "handle_task_selection_edge_cases",
-                "perform_daily_log_archival",
-                "register_full_daily_maintenance_jobs",
-                "register_system_daily_jobs",
-                "schedule_task_reminder_at_datetime",
-                "schedule_task_reminder_at_time",
-                "select_task_by_weight",
-                "select_task_for_reminder",
-                "task_selection_key"
-              ],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "SchedulerManager": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "set_scheduler_delivery_factory": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_category_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_full_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_user_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                }
-              },
-              "import_usage_details": {
-                "SchedulerManager": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "set_scheduler_delivery_factory": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "clear_all_accumulated_jobs_standalone": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "process_category_schedule": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "process_user_schedules": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_category_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_full_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_user_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "schedule_all_task_reminders": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                }
-              },
-              "package_api_items": [
-                "SchedulerManager",
-                "calculate_due_date_weight",
-                "calculate_priority_weight",
-                "calculate_task_weights",
-                "check_and_perform_weekly_backup",
-                "cleanup_orphaned_task_reminders",
-                "cleanup_scheduler_wake_tasks",
-                "cleanup_task_reminders",
-                "clear_all_accumulated_jobs_standalone",
-                "get_random_time_within_task_period",
-                "handle_task_reminder",
-                "handle_task_selection_edge_cases",
-                "perform_daily_log_archival",
-                "process_category_schedule",
-                "process_user_schedules",
-                "register_full_daily_maintenance_jobs",
-                "register_system_daily_jobs",
-                "run_category_scheduler_standalone",
-                "run_full_scheduler_standalone",
-                "run_user_scheduler_standalone",
-                "schedule_all_task_reminders",
-                "schedule_task_reminder_at_datetime",
-                "schedule_task_reminder_at_time",
-                "select_task_by_weight",
-                "select_task_for_reminder",
-                "set_scheduler_delivery_factory",
-                "task_selection_key"
-              ],
-              "registry_items": [
-                "__init__",
-                "_is_weekly_backup_entry",
-                "calculate_due_date_weight",
-                "calculate_priority_weight",
-                "check_and_perform_weekly_backup",
-                "cleanup_scheduler_wake_tasks",
-                "register_full_daily_maintenance_jobs",
-                "register_system_daily_jobs"
-              ]
-            },
             "user": {
               "package": "user",
               "current_exports_count": 4,
@@ -15967,7 +16193,7 @@
                   "import_locations": [
                     "ai/chatbot.py",
                     "ai/context_builder.py",
-                    "ai/response_generator.py"
+                    "ai/conversational_context/assembly.py"
                   ],
                   "import_types": [
                     "from_import"
@@ -15994,7 +16220,7 @@
                   "import_locations": [
                     "ai/chatbot.py",
                     "ai/context_builder.py",
-                    "ai/response_generator.py"
+                    "ai/conversational_context/assembly.py"
                   ],
                   "import_types": [
                     "from_import"
@@ -16868,7 +17094,7 @@
           }
         }
       },
-      "timestamp": "2026-05-19T17:48:17"
+      "timestamp": "2026-05-19T18:23:01"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -17349,33 +17575,62 @@
             },
             {
               "file": "ai/response_generator.py",
-              "local_imports": 17,
+              "local_imports": 5,
               "third_party_imports": 0,
               "modules": [
+                "ai.conversational_context",
+                "ai.prompt_manager",
                 "core.config",
                 "core.error_handling",
-                "core.logger",
-                "core.message_management",
-                "core.response_tracking",
-                "core.time_utilities",
-                "ai.prompt_manager",
-                "user.context_manager",
-                "core.response_tracking",
-                "tasks",
-                "core.response_tracking",
-                "core.response_tracking",
-                "core.response_tracking",
-                "tasks",
-                "tasks.task_data_handlers",
-                "core",
-                "core.time_utilities"
+                "core.logger"
               ]
             },
             {
               "file": "ai/__init__.py",
               "local_imports": 0,
-              "third_party_imports": 6,
+              "third_party_imports": 12,
               "modules": []
+            },
+            {
+              "file": "ai/conversational_context/assembly.py",
+              "local_imports": 4,
+              "third_party_imports": 0,
+              "modules": [
+                "ai.conversational_context.instructions",
+                "ai.conversational_context.sections",
+                "core.error_handling",
+                "user.context_manager"
+              ]
+            },
+            {
+              "file": "ai/conversational_context/instructions.py",
+              "local_imports": 0,
+              "third_party_imports": 0,
+              "modules": []
+            },
+            {
+              "file": "ai/conversational_context/sections.py",
+              "local_imports": 9,
+              "third_party_imports": 0,
+              "modules": [
+                "ai.context_builder",
+                "core",
+                "core.error_handling",
+                "core.logger",
+                "core.message_management",
+                "core.response_tracking",
+                "core.time_utilities",
+                "tasks",
+                "tasks.task_data_handlers"
+              ]
+            },
+            {
+              "file": "ai/conversational_context/__init__.py",
+              "local_imports": 1,
+              "third_party_imports": 0,
+              "modules": [
+                "ai.conversational_context.assembly"
+              ]
             },
             {
               "file": "ai/fallback_responses/categories.py",
@@ -18529,10 +18784,16 @@
               "dependencies": [
                 "chatbot",
                 "cache_manager",
+                "command_interpreter",
+                "command_registry",
                 "context_builder",
-                "prompt_manager",
                 "conversation_history",
-                "lm_studio_manager"
+                "conversational_context",
+                "fallback_responses",
+                "interaction_types",
+                "lm_studio_manager",
+                "prompt_manager",
+                "response_generator"
               ]
             },
             {
@@ -19133,26 +19394,18 @@
               ]
             },
             {
-              "file": "ai/response_generator.py",
-              "import_count": 17,
+              "file": "ai/conversational_context/sections.py",
+              "import_count": 9,
               "modules": [
-                "core.config",
+                "ai.context_builder",
+                "core",
                 "core.error_handling",
                 "core.logger",
                 "core.message_management",
                 "core.response_tracking",
                 "core.time_utilities",
-                "ai.prompt_manager",
-                "user.context_manager",
-                "core.response_tracking",
                 "tasks",
-                "core.response_tracking",
-                "core.response_tracking",
-                "core.response_tracking",
-                "tasks",
-                "tasks.task_data_handlers",
-                "core",
-                "core.time_utilities"
+                "tasks.task_data_handlers"
               ]
             },
             {
@@ -20027,7 +20280,7 @@
           ]
         }
       },
-      "timestamp": "2026-05-19T17:48:19"
+      "timestamp": "2026-05-19T18:23:03"
     },
     "analyze_dev_tools_import_boundaries": {
       "success": true,
@@ -20044,7 +20297,7 @@
           }
         }
       },
-      "timestamp": "2026-05-19T17:48:08"
+      "timestamp": "2026-05-19T18:22:55"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -20055,7 +20308,7 @@
         },
         "details": {}
       },
-      "timestamp": "2026-05-19T17:48:21"
+      "timestamp": "2026-05-19T18:23:04"
     },
     "analyze_module_imports": {
       "success": true,
@@ -20620,6 +20873,230 @@
           },
           "ai/response_generator.py": {
             "imports": {
+              "standard_library": [],
+              "third_party": [],
+              "local": [
+                {
+                  "module": "ai.conversational_context",
+                  "as_name": null,
+                  "imported_items": [
+                    "assemble_comprehensive_messages"
+                  ]
+                },
+                {
+                  "module": "ai.prompt_manager",
+                  "as_name": null,
+                  "imported_items": [
+                    "get_prompt_manager"
+                  ]
+                },
+                {
+                  "module": "core.config",
+                  "as_name": null,
+                  "imported_items": [
+                    "AI_MIN_RESPONSE_LENGTH"
+                  ]
+                },
+                {
+                  "module": "core.error_handling",
+                  "as_name": null,
+                  "imported_items": [
+                    "handle_errors"
+                  ]
+                },
+                {
+                  "module": "core.logger",
+                  "as_name": null,
+                  "imported_items": [
+                    "get_component_logger"
+                  ]
+                }
+              ]
+            },
+            "total_imports": 5
+          },
+          "ai/__init__.py": {
+            "imports": {
+              "standard_library": [],
+              "third_party": [
+                {
+                  "module": "chatbot",
+                  "as_name": null,
+                  "imported_items": [
+                    "AIChatBotSingleton",
+                    "get_ai_chatbot"
+                  ]
+                },
+                {
+                  "module": "cache_manager",
+                  "as_name": null,
+                  "imported_items": [
+                    "CacheEntry",
+                    "ContextCache",
+                    "ResponseCache",
+                    "get_context_cache",
+                    "get_response_cache"
+                  ]
+                },
+                {
+                  "module": "command_interpreter",
+                  "as_name": null,
+                  "imported_items": [
+                    "CommandInterpreter",
+                    "get_command_interpreter"
+                  ]
+                },
+                {
+                  "module": "command_registry",
+                  "as_name": null,
+                  "imported_items": [
+                    "format_command_actions_for_prompt",
+                    "get_command_intent_names",
+                    "inject_command_actions_into_prompt"
+                  ]
+                },
+                {
+                  "module": "context_builder",
+                  "as_name": null,
+                  "imported_items": [
+                    "ContextAnalysis",
+                    "ContextBuilder",
+                    "ContextData",
+                    "get_context_builder"
+                  ]
+                },
+                {
+                  "module": "conversation_history",
+                  "as_name": null,
+                  "imported_items": [
+                    "ConversationHistory",
+                    "ConversationMessage",
+                    "ConversationSession",
+                    "get_conversation_history"
+                  ]
+                },
+                {
+                  "module": "conversational_context",
+                  "as_name": null,
+                  "imported_items": [
+                    "assemble_comprehensive_messages",
+                    "build_context_parts"
+                  ]
+                },
+                {
+                  "module": "fallback_responses",
+                  "as_name": null,
+                  "imported_items": [
+                    "FallbackCategory",
+                    "FallbackResponses",
+                    "build_contextual_fallback",
+                    "get_fallback_responses"
+                  ]
+                },
+                {
+                  "module": "interaction_types",
+                  "as_name": null,
+                  "imported_items": [
+                    "AIInteractionType",
+                    "interaction_type_for_mode"
+                  ]
+                },
+                {
+                  "module": "lm_studio_manager",
+                  "as_name": null,
+                  "imported_items": [
+                    "LMStudioManager",
+                    "ensure_lm_studio_ready",
+                    "get_lm_studio_manager",
+                    "is_lm_studio_ready"
+                  ]
+                },
+                {
+                  "module": "prompt_manager",
+                  "as_name": null,
+                  "imported_items": [
+                    "PromptManager",
+                    "PromptTemplate",
+                    "get_prompt_manager"
+                  ]
+                },
+                {
+                  "module": "response_generator",
+                  "as_name": null,
+                  "imported_items": [
+                    "ResponseGenerator",
+                    "get_response_generator"
+                  ]
+                }
+              ],
+              "local": []
+            },
+            "total_imports": 12
+          },
+          "ai/conversational_context/assembly.py": {
+            "imports": {
+              "standard_library": [
+                {
+                  "module": "typing",
+                  "as_name": null,
+                  "imported_items": [
+                    "Any"
+                  ]
+                }
+              ],
+              "third_party": [],
+              "local": [
+                {
+                  "module": "ai.conversational_context.instructions",
+                  "as_name": null,
+                  "imported_items": [
+                    "CONVERSATIONAL_CONTEXT_INSTRUCTIONS"
+                  ]
+                },
+                {
+                  "module": "ai.conversational_context.sections",
+                  "as_name": null,
+                  "imported_items": [
+                    "append_activity_and_mood_trends",
+                    "append_checkin_summary",
+                    "append_conversation_history",
+                    "append_feature_enablement",
+                    "append_profile_sections",
+                    "append_recent_sent_messages",
+                    "append_schedule_details",
+                    "append_task_data",
+                    "append_task_reminder",
+                    "append_today_checkin_status"
+                  ]
+                },
+                {
+                  "module": "core.error_handling",
+                  "as_name": null,
+                  "imported_items": [
+                    "handle_errors"
+                  ]
+                },
+                {
+                  "module": "user.context_manager",
+                  "as_name": null,
+                  "imported_items": [
+                    "user_context_manager"
+                  ]
+                }
+              ]
+            },
+            "total_imports": 5
+          },
+          "ai/conversational_context/instructions.py": {
+            "imports": {
+              "standard_library": [],
+              "third_party": [],
+              "local": []
+            },
+            "total_imports": 0
+          },
+          "ai/conversational_context/sections.py": {
+            "imports": {
               "standard_library": [
                 {
                   "module": "datetime",
@@ -20627,15 +21104,30 @@
                   "imported_items": [
                     "date"
                   ]
+                },
+                {
+                  "module": "typing",
+                  "as_name": null,
+                  "imported_items": [
+                    "Any"
+                  ]
                 }
               ],
               "third_party": [],
               "local": [
                 {
-                  "module": "core.config",
+                  "module": "ai.context_builder",
                   "as_name": null,
                   "imported_items": [
-                    "AI_MIN_RESPONSE_LENGTH"
+                    "ContextData",
+                    "get_context_builder"
+                  ]
+                },
+                {
+                  "module": "core",
+                  "as_name": null,
+                  "imported_items": [
+                    "get_user_data"
                   ]
                 },
                 {
@@ -20664,7 +21156,8 @@
                   "as_name": null,
                   "imported_items": [
                     "checkin_runtime_timestamp",
-                    "get_recent_responses"
+                    "get_recent_responses",
+                    "is_user_checkins_enabled"
                   ]
                 },
                 {
@@ -20672,66 +21165,18 @@
                   "as_name": null,
                   "imported_items": [
                     "TIME_ONLY_MINUTE",
-                    "format_timestamp"
-                  ]
-                },
-                {
-                  "module": "ai.prompt_manager",
-                  "as_name": null,
-                  "imported_items": [
-                    "get_prompt_manager"
-                  ]
-                },
-                {
-                  "module": "user.context_manager",
-                  "as_name": null,
-                  "imported_items": [
-                    "user_context_manager"
-                  ]
-                },
-                {
-                  "module": "core.response_tracking",
-                  "as_name": null,
-                  "imported_items": [
-                    "is_user_checkins_enabled"
+                    "format_timestamp",
+                    "parse_timestamp_full"
                   ]
                 },
                 {
                   "module": "tasks",
                   "as_name": null,
                   "imported_items": [
-                    "are_tasks_enabled"
-                  ]
-                },
-                {
-                  "module": "core.response_tracking",
-                  "as_name": null,
-                  "imported_items": [
-                    "is_user_checkins_enabled"
-                  ]
-                },
-                {
-                  "module": "core.response_tracking",
-                  "as_name": null,
-                  "imported_items": [
-                    "is_user_checkins_enabled"
-                  ]
-                },
-                {
-                  "module": "core.response_tracking",
-                  "as_name": null,
-                  "imported_items": [
-                    "is_user_checkins_enabled"
-                  ]
-                },
-                {
-                  "module": "tasks",
-                  "as_name": null,
-                  "imported_items": [
-                    "load_active_tasks",
-                    "get_user_task_stats",
+                    "are_tasks_enabled",
                     "get_tasks_due_soon",
-                    "are_tasks_enabled"
+                    "get_user_task_stats",
+                    "load_active_tasks"
                   ]
                 },
                 {
@@ -20740,91 +21185,27 @@
                   "imported_items": [
                     "runtime_task_due_date"
                   ]
-                },
+                }
+              ]
+            },
+            "total_imports": 11
+          },
+          "ai/conversational_context/__init__.py": {
+            "imports": {
+              "standard_library": [],
+              "third_party": [],
+              "local": [
                 {
-                  "module": "core",
+                  "module": "ai.conversational_context.assembly",
                   "as_name": null,
                   "imported_items": [
-                    "get_user_data"
-                  ]
-                },
-                {
-                  "module": "core.time_utilities",
-                  "as_name": null,
-                  "imported_items": [
-                    "parse_timestamp_full"
+                    "assemble_comprehensive_messages",
+                    "build_context_parts"
                   ]
                 }
               ]
             },
-            "total_imports": 18
-          },
-          "ai/__init__.py": {
-            "imports": {
-              "standard_library": [],
-              "third_party": [
-                {
-                  "module": "chatbot",
-                  "as_name": null,
-                  "imported_items": [
-                    "AIChatBotSingleton",
-                    "get_ai_chatbot"
-                  ]
-                },
-                {
-                  "module": "cache_manager",
-                  "as_name": null,
-                  "imported_items": [
-                    "ResponseCache",
-                    "get_response_cache",
-                    "get_context_cache",
-                    "CacheEntry",
-                    "ContextCache"
-                  ]
-                },
-                {
-                  "module": "context_builder",
-                  "as_name": null,
-                  "imported_items": [
-                    "ContextBuilder",
-                    "get_context_builder",
-                    "ContextData",
-                    "ContextAnalysis"
-                  ]
-                },
-                {
-                  "module": "prompt_manager",
-                  "as_name": null,
-                  "imported_items": [
-                    "PromptManager",
-                    "get_prompt_manager",
-                    "PromptTemplate"
-                  ]
-                },
-                {
-                  "module": "conversation_history",
-                  "as_name": null,
-                  "imported_items": [
-                    "ConversationHistory",
-                    "get_conversation_history",
-                    "ConversationMessage",
-                    "ConversationSession"
-                  ]
-                },
-                {
-                  "module": "lm_studio_manager",
-                  "as_name": null,
-                  "imported_items": [
-                    "LMStudioManager",
-                    "get_lm_studio_manager",
-                    "is_lm_studio_ready",
-                    "ensure_lm_studio_ready"
-                  ]
-                }
-              ],
-              "local": []
-            },
-            "total_imports": 6
+            "total_imports": 1
           },
           "ai/fallback_responses/categories.py": {
             "imports": {
@@ -32546,7 +32927,7 @@
           }
         }
       },
-      "timestamp": "2026-05-19T17:48:19"
+      "timestamp": "2026-05-19T18:23:03"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -32571,10 +32952,10 @@
             "ui_imports": []
           },
           "stats": {
-            "files_scanned": 645,
+            "files_scanned": 649,
             "files_with_issues": 0,
             "total_unused": 0,
-            "cache_hits": 644,
+            "cache_hits": 648,
             "cache_misses": 1,
             "changed_files": 1,
             "cache_mode": "partial_cache",
@@ -32584,13 +32965,13 @@
             "backend": "ruff",
             "scan_mode": "partial_cache",
             "timings": {
-              "discovery_seconds": 2.5144,
-              "detection_seconds": 0.4819,
-              "categorization_seconds": 0.0248,
-              "total_seconds": 3.4967
+              "discovery_seconds": 1.9135,
+              "detection_seconds": 0.3631,
+              "categorization_seconds": 0.0166,
+              "total_seconds": 2.6371
             },
-            "files_per_second": 184.46,
-            "cache_hits": 644,
+            "files_per_second": 246.1,
+            "cache_hits": 648,
             "cache_misses": 1,
             "changed_files": 1,
             "batch_size": 200,
@@ -32609,7 +32990,7 @@
             "production_test_mocking": 0,
             "ui_imports": 0
           },
-          "files_scanned": 645,
+          "files_scanned": 649,
           "invalidation_summary": {
             "storage": "MtimeFileCache",
             "domain": "imports",
@@ -32620,21 +33001,21 @@
           },
           "_cache_metadata": {
             "cache_mode": "partial_cache",
-            "hits": 644,
+            "hits": 648,
             "misses": 1,
-            "total_cache_checks": 645,
+            "total_cache_checks": 649,
             "hit_rate": 99.8
           }
         },
         "_cache_metadata": {
           "cache_mode": "partial_cache",
-          "hits": 644,
+          "hits": 648,
           "misses": 1,
-          "total_cache_checks": 645,
+          "total_cache_checks": 649,
           "hit_rate": 99.8
         }
       },
-      "timestamp": "2026-05-19T17:48:21"
+      "timestamp": "2026-05-19T18:23:05"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -32654,7 +33035,7 @@
             "loaded": true,
             "error": null,
             "active_or_candidate_entries": 1,
-            "removed_entries": 24,
+            "removed_entries": 25,
             "active_search_terms": 0,
             "injected_pattern_count": 0
           },
@@ -32664,19 +33045,19 @@
           },
           "cache": {
             "cache_mode": "partial_cache",
-            "hits": 642,
+            "hits": 646,
             "misses": 1,
-            "total_cache_checks": 643,
+            "total_cache_checks": 647,
             "hit_rate": 99.8
           }
         }
       },
-      "timestamp": "2026-05-19T17:48:33"
+      "timestamp": "2026-05-19T18:23:15"
     },
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-05-19T17:55:21",
+        "generated_at": "2026-05-19T18:27:38",
         "project_root": "C:\\Users\\Julie\\projects\\MHM\\MHM",
         "summary": {
           "status": "PASS",
@@ -32721,7 +33102,7 @@
               "name": "weekly_backup_recent_enough",
               "success": true,
               "details": {
-                "recent_cutoff": "2026-05-05T17:55:21",
+                "recent_cutoff": "2026-05-05T18:27:38",
                 "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-05-15_01-00-05",
                 "latest_weekly_created_at": "2026-05-15 01:00:05"
               }
@@ -32732,7 +33113,7 @@
               "details": {
                 "latest_backup_path": "data\\backups\\weekly_backup_2026-05-15_01-00-05",
                 "latest_created_at": "2026-05-15 01:00:05",
-                "recent_cutoff": "2026-05-05T17:55:21"
+                "recent_cutoff": "2026-05-05T18:27:38"
               }
             },
             {
@@ -32787,7 +33168,7 @@
             "name": "weekly_backup_recent_enough",
             "success": true,
             "details": {
-              "recent_cutoff": "2026-05-05T17:55:21",
+              "recent_cutoff": "2026-05-05T18:27:38",
               "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-05-15_01-00-05",
               "latest_weekly_created_at": "2026-05-15 01:00:05"
             }
@@ -32798,7 +33179,7 @@
             "details": {
               "latest_backup_path": "data\\backups\\weekly_backup_2026-05-15_01-00-05",
               "latest_created_at": "2026-05-15 01:00:05",
-              "recent_cutoff": "2026-05-05T17:55:21"
+              "recent_cutoff": "2026-05-05T18:27:38"
             }
           },
           {
@@ -32821,7 +33202,7 @@
           }
         ]
       },
-      "timestamp": "2026-05-19T17:55:21"
+      "timestamp": "2026-05-19T18:27:38"
     },
     "analyze_system_signals": {
       "success": true,
@@ -32832,7 +33213,7 @@
           "status": "OK"
         },
         "details": {
-          "timestamp": "2026-05-19T17:48:06.387991",
+          "timestamp": "2026-05-19T18:22:53.814794",
           "system_health": {
             "overall_status": "OK",
             "core_files": {
@@ -32853,7 +33234,7 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-05-19T17:45:48.322791",
+            "last_audit": "2026-05-19T18:07:13.279526",
             "audit_freshness": "<1 hour",
             "test_coverage_status": "Unknown",
             "documentation_sync_status": "Synchronized",
@@ -32872,16 +33253,16 @@
           },
           "recent_activity": {
             "recent_changes": [
-              "development_tools/shared/tool_cache_inventory.py",
+              "ai/fallback_responses/coordinator.py",
+              "ai/fallback_responses/personalized.py",
+              "tests/ai/test_context_includes_recent_messages.py",
+              "ai/fallback_responses/conversational.py",
               "development_tools/shared/service/commands.py",
-              "development_tools/shared/logging.py",
-              "tests/development_tools/test_file_rotation.py",
-              "development_tools/tests/test_file_coverage_cache.py",
-              "tests/development_tools/test_test_file_suite_cache.py",
-              "development_tools/run_development_tools.py",
-              "tests/development_tools/test_run_test_suite_helpers.py",
-              "tests/unit/test_fallback_responses.py",
-              "tests/development_tools/test_analyze_test_markers_domain.py"
+              "tests/unit/test_ai_chatbot_helpers.py",
+              "ai/context_builder.py",
+              "ai/fallback_responses/categories.py",
+              "ai/fallback_responses/profile_helpers.py",
+              "tests/unit/test_fallback_responses.py"
             ],
             "git_status": "Modified",
             "last_commit": null,
@@ -32907,25 +33288,25 @@
           }
         }
       },
-      "timestamp": "2026-05-19T17:48:06"
+      "timestamp": "2026-05-19T18:22:53"
     },
     "decision_support": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 327,
+          "total_issues": 336,
           "files_affected": 0
         },
         "details": {
-          "total_functions": 1672,
-          "moderate_complexity": 230,
-          "high_complexity": 168,
-          "critical_complexity": 148,
+          "total_functions": 1686,
+          "moderate_complexity": 232,
+          "high_complexity": 173,
+          "critical_complexity": 152,
           "undocumented": 11,
           "decision_support_items": 5,
           "decision_support_sample": [
-            "[COMPLEXITY] Functions needing attention: 546",
-            "[CRITICAL] Critical Complexity (>199 nodes): 148",
+            "[COMPLEXITY] Functions needing attention: 557",
+            "[CRITICAL] Critical Complexity (>199 nodes): 152",
             "[DOC] Undocumented Handlers: 11",
             "[DUPE] Duplicate Function Names: 110",
             "- [CRITICAL] Refactor critical complexity functions immediately."
@@ -33072,7 +33453,7 @@
           ]
         }
       },
-      "timestamp": "2026-05-19T17:48:08"
+      "timestamp": "2026-05-19T18:22:55"
     },
     "quick_status": {
       "success": true,
@@ -43169,7 +43550,7 @@
               "name": "parallel",
               "command": [],
               "return_code": 0,
-              "duration_seconds": 324.472,
+              "duration_seconds": 199.049,
               "counts": {
                 "total": 1746,
                 "passed": 1746,
@@ -43186,7 +43567,7 @@
               "name": "no_parallel",
               "command": [],
               "return_code": 5,
-              "duration_seconds": 9.442,
+              "duration_seconds": 7.354,
               "counts": {
                 "total": 6,
                 "passed": 6,
@@ -43225,7 +43606,7 @@
           "has_full_suite_cache": true
         }
       },
-      "timestamp": "2026-05-19T17:55:20"
+      "timestamp": "2026-05-19T18:27:38"
     },
     "verify_process_cleanup": {
       "success": true,
@@ -43241,7 +43622,7 @@
           "orphaned_processes": []
         }
       },
-      "timestamp": "2026-05-19T17:55:22"
+      "timestamp": "2026-05-19T18:27:39"
     },
     "analyze_ruff": {
       "success": true,
@@ -43267,7 +43648,7 @@
           }
         }
       },
-      "timestamp": "2026-05-19T17:55:22.047243"
+      "timestamp": "2026-05-19T18:27:39.264214"
     },
     "analyze_pyright": {
       "success": true,
@@ -43298,7 +43679,7 @@
           }
         }
       },
-      "timestamp": "2026-05-19T17:55:22.047243"
+      "timestamp": "2026-05-19T18:27:39.264214"
     },
     "analyze_bandit": {
       "success": true,
@@ -43313,12 +43694,12 @@
           "tool_available": true,
           "returncode": 1,
           "severity_counts": {
-            "LOW": 167,
+            "LOW": 164,
             "MEDIUM": 0,
             "HIGH": 0
           },
-          "low_severity_count": 167,
-          "total_findings_including_low": 167,
+          "low_severity_count": 164,
+          "total_findings_including_low": 164,
           "top_files": [],
           "shard_run": {
             "mode": "sharded",
@@ -43329,7 +43710,7 @@
           }
         }
       },
-      "timestamp": "2026-05-19T17:55:22.047243"
+      "timestamp": "2026-05-19T18:27:39.264214"
     },
     "analyze_pip_audit": {
       "success": true,
@@ -43351,7 +43732,7 @@
           "pip_audit_timing_note": "Requirements unchanged; reused pip-audit JSON from a prior run. Orchestration elapsed time reflects cache lookup only, not subprocess."
         }
       },
-      "timestamp": "2026-05-19T17:55:22.047243"
+      "timestamp": "2026-05-19T18:27:39.264214"
     }
   }
 }

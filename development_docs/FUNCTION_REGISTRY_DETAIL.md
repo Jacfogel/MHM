@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-19 16:33:50
+> **Last Generated**: 2026-05-19 18:10:23
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 93.7% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 146
-- **Functions Found**: 1813
+### **Function Documentation Coverage: 93.5% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 150
+- **Functions Found**: 1827
 - **Methods Found**: 1258
 - **Classes Found**: 177
-- **Total Items**: 3071
-- **Functions Documented**: 1683
+- **Total Items**: 3085
+- **Functions Documented**: 1693
 - **Methods Documented**: 1193
 - **Classes Documented**: 138
-- **Total Documented**: 2876
+- **Total Documented**: 2886
 - **Template-Generated**: 24
 - **Last Updated**: 2026-05-19
 
@@ -539,6 +539,30 @@ Returns:
 - [OK] `ConversationSession` - A conversation session with multiple messages
   - [OK] `ConversationSession.__post_init__(self)` - Post-initialization setup
 
+#### `ai/conversational_context/__init__.py`
+
+#### `ai/conversational_context/assembly.py`
+**Functions:**
+- [OK] `assemble_comprehensive_messages(user_id, user_prompt, wellness_base_prompt)` - Build system + user messages for comprehensive conversational generation.
+- [OK] `build_context_parts(user_id)` - Assemble natural-language context lines for the system prompt.
+
+#### `ai/conversational_context/instructions.py`
+
+#### `ai/conversational_context/sections.py`
+**Functions:**
+- [MISSING] `_checkin_completed_today(ts)` - No description
+- [MISSING] `_feature_status_lines(user_id)` - No description
+- [OK] `append_activity_and_mood_trends(parts, user_id, context)` - Recent activity counts and mood trend summary from get_ai_context.
+- [OK] `append_checkin_summary(parts, user_id)` - Recent check-in analytics in natural language (uses ContextBuilder analysis).
+- [MISSING] `append_conversation_history(parts, context)` - No description
+- [OK] `append_feature_enablement(parts, user_id)` - Tell the model which product features are enabled for this user.
+- [OK] `append_profile_sections(parts, context)` - Profile, neurodivergent context, and goals from get_ai_context.
+- [OK] `append_recent_sent_messages(parts, user_id)` - Return full recent_sent list for task-reminder follow-up.
+- [MISSING] `append_schedule_details(parts, user_id, context)` - No description
+- [MISSING] `append_task_data(parts, user_id)` - No description
+- [MISSING] `append_task_reminder(parts, recent_sent_all)` - No description
+- [MISSING] `append_today_checkin_status(parts, user_id)` - No description
+
 #### `ai/fallback_responses/__init__.py`
 **Functions:**
 - [MISSING] `contextual(self, user_prompt, user_id)` - No description
@@ -564,7 +588,7 @@ Returns:
 
 #### `ai/fallback_responses/conversational.py`
 **Functions:**
-- [MISSING] `default_contextual_response(name_prefix, is_new_user)` - No description
+- [OK] `default_contextual_response(name_prefix, is_new_user)` - Last-resort supportive fallback when no keyword or check-in path matched.
 - [OK] `try_conversational_support(prompt_lower, name_prefix, user_name)` - Keyword-based general support (no check-in calculations).
 - [MISSING] `try_new_user_no_context(prompt_lower, name_prefix, is_new_user)` - No description
 - [MISSING] `try_technical_unavailable(prompt_lower, name_prefix)` - No description
@@ -583,9 +607,9 @@ Check-in analytics are handled separately from generic keyword support.
 #### `ai/fallback_responses/profile_helpers.py`
 **Functions:**
 - [OK] `load_user_context(user_id)` - Return the user's context dict, or empty dict when unavailable.
-- [MISSING] `name_prefix_from_context(user_context)` - No description
+- [OK] `name_prefix_from_context(user_context)` - Return a greeting prefix like ``'Alex, '`` when a preferred name exists.
 - [OK] `personalize_with_profile_name(fallback_response, context_summary, profile)` - Inject preferred name into greeting-based fallback responses when available.
-- [MISSING] `preferred_name_from_context(user_context)` - No description
+- [OK] `preferred_name_from_context(user_context)` - Return trimmed preferred name from a user context dict, or empty string.
 
 #### `ai/interaction_types.py`
 **Functions:**

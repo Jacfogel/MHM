@@ -31,6 +31,7 @@ Guidelines:
 ## Recent Changes (Most Recent First)
 
 ### 2026-05-19 - Dev tools cache + AI fallback Phase 4.5 **COMPLETED**
+- **Conversational context split**: Extracted comprehensive prompt assembly from `response_generator.py` into `ai/conversational_context/` (sections, assembly, instructions); check-in aggregates reuse `ContextBuilder.analyze_context`; `ai/__init__.py` exports fallback package, command/response modules, and interaction types; `@handle_errors` on all section helpers (replaced ad-hoc try/except); function registry regenerated via `docs`
 - **Phase 4.5**: Split `ai/fallback_responses.py` into package (`coordinator`, `checkin_summary`, `conversational`, `personalized`, `profile_helpers`, `categories`); explicit `FallbackCategory`; ownership documented in `SYSTEM_AI_GUIDE.md`
 - Facade API unchanged (`get_fallback_responses().contextual` / `.personalized`); import-boundary and category tests in `test_fallback_responses.py`
 - Dev-tools logging: handled outcomes (audit lock block, internal interrupt signature, tool-guide timeout) now log at WARNING so Tier 3 pytest does not write false ERROR lines to `ai_dev_tools.log`

@@ -88,6 +88,16 @@
       "note": "Removed unused _get_fallback_response bridge from ai/chatbot.py after search showed no active callers. Fallback behavior lives in ai/fallback_responses/ (package); chatbot._get_contextual_fallback is a thin facade delegate (2026-05-18 AI overhaul), not a legacy bridge."
     },
     {
+      "id": "ai_fallback_responses_monolithic_module",
+      "removed_at": "2026-05-19",
+      "search_terms": [
+        "ai/fallback_responses.py",
+        "from ai.fallback_responses import",
+        "import ai.fallback_responses"
+      ],
+      "note": "Removed monolithic ai/fallback_responses.py after Phase 4.5 package split. Use ai/fallback_responses/ package and get_fallback_responses(); public facade unchanged."
+    },
+    {
       "id": "legacy_timestamp_parsing",
       "removed_at": "2026-03-23",
       "note": "Moved to core/time_utilities.parse_timestamp_for_normalization; no longer legacy bridge."

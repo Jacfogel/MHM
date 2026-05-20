@@ -1,6 +1,12 @@
 # ai/fallback_responses/conversational.py
 
-"""Keyword-based conversational fallback (no check-in analytics)."""
+"""Keyword-based conversational fallback (no check-in analytics).
+
+MAINTENANCE: This module is intentionally a small keyword cascade for when LM
+Studio is unavailable. Do not add check-in analytics or new data-aware paths here
+(use checkin_summary.py / personalized.py / coordinator.py). Avoid growing the
+keyword lists; prefer new FallbackCategory handlers in coordinator.py instead.
+"""
 
 from ai.fallback_responses.categories import FallbackCategory
 from core.error_handling import handle_errors

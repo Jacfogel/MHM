@@ -3,8 +3,8 @@
 """
 Lighter-weight AI context assembly for targeted prompts.
 
-Full conversational context for LM Studio is built in
-`ai.response_generator.ResponseGenerator.create_comprehensive_context_prompt`.
+Full conversational context for LM Studio is assembled in
+`ai.conversational_context` (via `ResponseGenerator.create_comprehensive_context_prompt`).
 """
 
 from typing import Any
