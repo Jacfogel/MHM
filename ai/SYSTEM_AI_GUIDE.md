@@ -56,7 +56,7 @@ The AI subsystem lives primarily under `ai/` and collaborates with `user/` and `
 - `communication/message_processing/command_parser.py`  
   - Enhanced command parser combining rule-based and AI parsing.
 
-**Facade vs legacy compatibility:** After Phases 1-4, `ai/chatbot.py` still has thin private delegates (for example `_get_contextual_fallback` -> `fallback_responses`) while logic lives in the new modules. That is **transitional refactor wiring**, not `# LEGACY COMPATIBILITY` bridge code. **Phase 5** (planned) removes those forwarders: `chatbot.py` calls the modules directly and keeps `get_ai_chatbot()` as the public API. See [SYSTEM_AI_OVERHAUL_PLAN.md](SYSTEM_AI_OVERHAUL_PLAN.md) Section 8.1 and [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md).
+**Module ownership (Phase 5 complete):** `ai/chatbot.py` orchestrates LM Studio, locks, cache, and mode routing and calls `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()` directly. Channels import only `get_ai_chatbot()`; behavior tests that target module logic should use the canonical getters, not private chatbot delegates. See [SYSTEM_AI_OVERHAUL_PLAN.md](SYSTEM_AI_OVERHAUL_PLAN.md) Section 8.1.
 
 Supporting modules:
 
@@ -119,19 +119,19 @@ Per [SYSTEM_AI_OVERHAUL_PLAN.md](SYSTEM_AI_OVERHAUL_PLAN.md), the system separat
 
 **Chat mode** (`mode="chat"`): general wellness/support conversation; no response caching for natural variation.
 
-**Command mode** (`mode="command"`): structured parsing for `EnhancedCommandParser`; caching when safe; output cleaned via `_extract_command_from_response`.
+**Command mode** (`mode="command"`): structured parsing for `EnhancedCommandParser`; caching when safe; output cleaned via `get_command_interpreter().extract_command_from_response`.
 
-**Clarification mode** (`mode="command_with_clarification"`): follow-up questions when command fields are ambiguous; routed by `_detect_mode` / `interaction_manager._try_ai_command_parsing`.
+**Clarification mode** (`mode="command_with_clarification"`): follow-up questions when command fields are ambiguous; routed by `get_command_interpreter().detect_mode` / `interaction_manager._try_ai_command_parsing`.
 
 **Fallback**: `ai/fallback_responses/` supplies templates and check-in-aware text when LM Studio is down, the API is busy, or generation fails. Fallbacks must not pretend AI succeeded or invent data not retrieved deterministically.
 
 **Fallback ownership boundary**: Fallback *content* and routing belong in `ai/fallback_responses/`. `communication/` adapters (Discord, email, etc.) format and deliver messages only; they must not own business fallback text or check-in-aware wording. See Phase 4.5 in [SYSTEM_AI_OVERHAUL_PLAN.md](SYSTEM_AI_OVERHAUL_PLAN.md).
 
-`AIChatBotSingleton._detect_mode(user_prompt)` chooses a mode when none is passed. Prefer explicit `mode=` from callers that already know the interaction type (for example command parsing).
+`get_command_interpreter().detect_mode(user_prompt)` chooses a mode when `generate_response` is called without `mode=`. Prefer explicit `mode=` from callers that already know the interaction type (for example command parsing).
 
 When you add new high-level capabilities, prefer:
 
-- Keeping **mode detection rules** in `ai/chatbot.py` (moving to `command_interpreter.py` in a later overhaul phase), and
+- Keeping **mode detection rules** in `ai/command_interpreter.py`, and
 - Introducing **explicit mode override** where higher-level code already knows the correct mode.
 
 ### 3.3. Command parsing integration
@@ -313,7 +313,7 @@ All AI-related configuration is loaded in `core/config.py`. When changing AI beh
 AI components rely heavily on the centralized error handling system:
 
 - Most public methods in the AI stack are decorated with `@handle_errors`, for example:
-  - `_detect_mode`
+  - `get_command_interpreter().detect_mode`
   - `generate_response`
   - `build_user_context`
   - Cache operations
@@ -329,7 +329,7 @@ For detailed patterns, see:
 Common fallback behaviors include:
 
 - If LM Studio is not available or model calls repeatedly fail:
-  - Use a local, simple fallback response (for example, supportive generic messages) via `_get_contextual_fallback`.
+  - Use a local, simple fallback response (for example, supportive generic messages) via `get_fallback_responses().contextual`.
   - Log the failure to the AI component logger and, where appropriate, to user-activity logs.
 - If context building fails:
   - Log the failure.

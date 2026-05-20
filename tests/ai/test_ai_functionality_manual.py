@@ -21,6 +21,7 @@ import requests
 
 from ai.chatbot import AIChatBotSingleton
 from ai.cache_manager import get_response_cache
+from ai.command_interpreter import get_command_interpreter
 from tests.test_helpers.test_utilities import TestUserFactory
 from core.time_utilities import now_datetime_full, now_timestamp_filename
 from core.response_tracking import get_recent_chat_interactions
@@ -476,7 +477,7 @@ class AITestRunner:
         # Test 3.1: Clear command detection
         try:
             test_input = "add task buy milk"
-            mode = self.chatbot._detect_mode(test_input)
+            mode = get_command_interpreter().detect_mode(test_input)
             if mode == "command":
                 self.log_test(
                     "T-3.1",
@@ -508,7 +509,7 @@ class AITestRunner:
         # Test 3.2: Ambiguous request detection
         try:
             test_input = "Can you add a task?"
-            mode = self.chatbot._detect_mode(test_input)
+            mode = get_command_interpreter().detect_mode(test_input)
             if mode == "command_with_clarification":
                 self.log_test(
                     "T-3.2",
@@ -540,7 +541,7 @@ class AITestRunner:
         # Test 3.3: Chat detection
         try:
             test_input = "How are you doing?"
-            mode = self.chatbot._detect_mode(test_input)
+            mode = get_command_interpreter().detect_mode(test_input)
             if mode == "chat":
                 self.log_test(
                     "T-3.3",
@@ -685,7 +686,7 @@ class AITestRunner:
 
         for i, command in enumerate(command_phrasings, 1):
             try:
-                mode = self.chatbot._detect_mode(command)
+                mode = get_command_interpreter().detect_mode(command)
                 # All should detect as command or command_with_clarification
                 is_command = mode in ["command", "command_with_clarification"]
 

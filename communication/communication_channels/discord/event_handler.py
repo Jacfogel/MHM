@@ -42,6 +42,7 @@ class EventContext:
     timestamp: float | None = None
     data: dict[str, Any] | None = None
 
+    # not_duplicate: dataclass_post_init_defaults
     @handle_errors("post-initializing Discord event handler", default_return=None)
     def __post_init__(self):
         """Post-initialization setup"""

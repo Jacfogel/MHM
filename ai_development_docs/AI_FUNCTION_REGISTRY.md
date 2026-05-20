@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-19 18:10:23
+> **Last Generated**: 2026-05-19 22:47:50
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 93.5% [!] GOOD**
-- **Total Functions**: 1827
-- **Total Methods**: 1258
-- **Documented**: 2886/3085
+- **Total Functions**: 1815
+- **Total Methods**: 1245
+- **Documented**: 2861/3060
 - **Files Scanned**: 150
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -31,7 +31,7 @@ User Data Operations Decision Tree:
 ### **[AI] Need AI/Chatbot Functionality?**
 ```
 AI Operations Decision Tree:
-+-- `ai/chatbot.py` - Main AI implementation (85 functions)
++-- `ai/chatbot.py` - Main AI implementation (63 functions)
 +-- `user/context_manager.py` - Context for AI (24 functions)
 +-- `communication/message_processing/command_parser.py` - Natural language parsing (52 functions)
 +-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
@@ -40,7 +40,7 @@ AI Operations Decision Tree:
 ### **[COMM] Need Communication/Channels?**
 ```
 Communication Decision Tree:
-+-- `communication/core/channel_orchestrator.py` - Main communication (77/95 functions)
++-- `communication/core/channel_orchestrator.py` - Main communication (75/93 functions)
 +-- `communication/communication_channels/base/base_channel.py` - Channel base class (14 functions)
 `-- `communication/core/factory.py` - Channel creation (6 functions)```
 
@@ -49,7 +49,7 @@ Communication Decision Tree:
 UI Operations Decision Tree:
 +-- `ui/ui_app_qt.py` - Main admin interface (136/138 functions)
 +-- `ui/dialogs/task_crud_dialog.py` - Task CRUD (28 functions)
-`-- `ui/widgets/task_settings_widget.py` - Task settings (34/37 functions)```
+`-- `ui/widgets/task_settings_widget.py` - Task settings (32/35 functions)```
 
 ### **[CORE] Need Core System Operations?**
 ```
@@ -155,7 +155,7 @@ Core System Decision Tree:
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
 - `core/schemas.py` - 17/27 functions undocumented (37% coverage)
 - `communication/delivery/message_dispatcher.py` - 15/17 functions undocumented (12% coverage)
-- `core/service_requests.py` - 14/33 functions undocumented (58% coverage)
+- `core/service_requests.py` - 14/34 functions undocumented (59% coverage)
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
 - `tasks/task_schemas.py` - 10/10 functions undocumented (0% coverage)
 - `tasks/task_service.py` - 10/26 functions undocumented (62% coverage)
@@ -199,12 +199,12 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `ai/` - AI chatbot functionality (23 files, 281 functions)
-- `communication/` - Communication channels and message processing (45 files, 945 functions)
-- `core/` - System utilities and data management (33 files, 726 functions)
+- `ai/` - AI chatbot functionality (23 files, 259 functions)
+- `communication/` - Communication channels and message processing (45 files, 943 functions)
+- `core/` - System utilities and data management (33 files, 727 functions)
 - `scheduler/` -  (5 files, 92 functions)
 - `tasks/` - Task management system (6 files, 86 functions)
-- `ui/` - User interface components (30 files, 839 functions)
+- `ui/` - User interface components (30 files, 837 functions)
 - `user/` - User context and preferences (5 files, 66 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**

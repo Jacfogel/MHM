@@ -625,6 +625,7 @@ class MHMManagerUI(QMainWindow):
             self.ui.label_ngrok_status.setText("ngrok tunnel: Stopped")
             self.ui.label_ngrok_status.setStyleSheet("color: red; font-weight: bold;")
 
+    # not_duplicate: channel_status_detection_variants
     @handle_errors("checking Discord channel status", default_return=False)
     def _check_discord_status(self) -> bool:
         """Check if Discord channel is actually running and connected
@@ -810,6 +811,7 @@ class MHMManagerUI(QMainWindow):
             logger.debug(f"Error checking Discord status: {e}")
             return False
 
+    # not_duplicate: channel_status_detection_variants
     @handle_errors("checking Email channel status", default_return=False)
     def _check_email_status(self) -> bool:
         """Check if Email channel is actually initialized and running

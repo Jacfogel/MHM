@@ -1500,15 +1500,17 @@ def get_user_info_for_data_manager(user_id: str) -> dict[str, Any] | None:
         import time
 
         user_data = None
-        for attempt in range(3):
+        max_retries = 5
+        retry_delay = 0.2
+        for attempt in range(max_retries):
             user_data = get_user_data(user_id, "all", auto_create=True)
             # Check if user_data is valid (has at least account data)
             if user_data and isinstance(user_data, dict) and len(user_data) > 0:
                 account_data = user_data.get("account", {})
                 if account_data and account_data.get("internal_username"):
                     break
-            if attempt < 2:
-                time.sleep(0.1)  # Brief delay before retry
+            if attempt < max_retries - 1:
+                time.sleep(retry_delay)
 
         # Check if user_data is None or empty (error case)
         # Empty dict from get_user_data means error occurred (due to error handling default_return={})
@@ -1565,7 +1567,29 @@ def build_user_index() -> dict[str, Any]:
                 # Get user info using new structure
                 user_info = get_user_info_for_data_manager(user_id)
                 if not user_info:
-                    continue
+                    # Parallel account creation: account.json may exist before get_user_data stabilizes
+                    from core.file_locking import safe_json_read
+
+                    account_path = Path(get_user_data_dir(user_id)) / "account.json"
+                    if account_path.exists():
+                        account_data = safe_json_read(str(account_path), default={})
+                        if isinstance(account_data, dict) and account_data.get(
+                            "internal_username"
+                        ):
+                            user_info = {
+                                "user_id": user_id,
+                                "internal_username": account_data.get(
+                                    "internal_username", ""
+                                ),
+                                "preferred_name": "",
+                                "account_status": account_data.get(
+                                    "account_status", "unknown"
+                                ),
+                                "email": account_data.get("email", ""),
+                                "message_files": {},
+                            }
+                    if not user_info:
+                        continue
 
                 # Get message count
                 message_count = 0

@@ -221,20 +221,20 @@ class TestErrorHandlingImprovements:
         result = manager.initialize_channels_from_config(123)
         assert not result
         
-        # Test _get_recipient_for_service with invalid inputs
-        result = manager._get_recipient_for_service(None, "discord", {})
+        # Test get_recipient_for_service with invalid inputs
+        result = manager.get_recipient_for_service(None, "discord", {})
         assert result is None
         
-        result = manager._get_recipient_for_service("", "discord", {})
+        result = manager.get_recipient_for_service("", "discord", {})
         assert result is None
         
-        result = manager._get_recipient_for_service("user123", None, {})
+        result = manager.get_recipient_for_service("user123", None, {})
         assert result is None
         
-        result = manager._get_recipient_for_service("user123", "", {})
+        result = manager.get_recipient_for_service("user123", "", {})
         assert result is None
         
-        result = manager._get_recipient_for_service("user123", "discord", None)
+        result = manager.get_recipient_for_service("user123", "discord", None)
         assert result is None
         
     def test_ui_app_validation(self):

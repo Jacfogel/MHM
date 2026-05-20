@@ -244,24 +244,6 @@ class AIChatBotSingleton:
         return interaction_type_for_mode(mode)
 
     @handle_errors(
-        "getting contextual fallback",
-        default_return="I'd like to help with that! How can I assist you today?",
-    )
-    def _get_contextual_fallback(
-        self, user_prompt: str, user_id: str | None = None
-    ) -> str:
-        """Delegate to fallback_responses module."""
-        return get_fallback_responses().contextual(user_prompt, user_id)
-
-    @handle_errors(
-        "getting fallback personalized message",
-        default_return="Wishing you a wonderful day! Remember that every small step toward your wellbeing matters.",
-    )
-    def _get_fallback_personalized_message(self, user_id: str) -> str:
-        """Delegate to fallback_responses module."""
-        return get_fallback_responses().personalized(user_id)
-
-    @handle_errors(
         "optimizing prompt",
         default_return=[
             {
@@ -288,64 +270,6 @@ class AIChatBotSingleton:
         user_message = {"role": "user", "content": user_content}
 
         return [system_message, user_message]
-
-    # not_duplicate: response_generator_facade_delegate
-    @handle_errors(
-        "creating comprehensive context prompt",
-        default_return=[
-            {
-                "role": "system",
-                "content": "You are a supportive wellness assistant. Keep responses helpful, encouraging, and conversational.",
-            },
-            {"role": "user", "content": "Hello"},
-        ],
-    )
-    def _create_comprehensive_context_prompt(
-        self, user_id: str, user_prompt: str
-    ) -> list:
-        """Delegate to response_generator module."""
-        return get_response_generator().create_comprehensive_context_prompt(
-            user_id, user_prompt
-        )
-
-    @handle_errors("detecting prompt mode", default_return="chat")
-    def _detect_mode(self, user_prompt: str) -> str:
-        """Delegate to command_interpreter module."""
-        return get_command_interpreter().detect_mode(user_prompt)
-
-    @handle_errors("detecting natural language task request", default_return=False)
-    def _is_natural_language_task_request(self, prompt_lower: str) -> bool:
-        """Delegate to command_interpreter module."""
-        return get_command_interpreter().is_natural_language_task_request(prompt_lower)
-
-    @handle_errors("detecting command keyword", default_return=False)
-    def _has_command_keyword(self, prompt_lower: str) -> bool:
-        """Delegate to command_interpreter module."""
-        return get_command_interpreter().has_command_keyword(prompt_lower)
-
-    @handle_errors("detecting clarification need for command", default_return=True)
-    def _needs_command_clarification(
-        self, prompt_lower: str, words: list[str], stripped_prompt: str
-    ) -> bool:
-        """Delegate to command_interpreter module."""
-        return get_command_interpreter().needs_command_clarification(
-            prompt_lower, words, stripped_prompt
-        )
-
-    @handle_errors(
-        "creating command parsing prompt",
-        default_return=[
-            {"role": "system", "content": "You are a command parser."},
-            {"role": "user", "content": ""},
-        ],
-    )
-    def _create_command_parsing_prompt(
-        self, user_prompt: str, *, clarification: bool = False
-    ) -> list:
-        """Delegate to command_interpreter module."""
-        return get_command_interpreter().create_command_parsing_prompt(
-            user_prompt, clarification=clarification
-        )
 
     # not_duplicate: generate_response_pair
     @handle_errors(
@@ -408,7 +332,7 @@ class AIChatBotSingleton:
                 interaction_type=AIInteractionType.FALLBACK.value,
                 prompt_length=len(user_prompt),
             )
-            response = self._get_contextual_fallback(user_prompt, user_id)
+            response = get_fallback_responses().contextual(user_prompt, user_id)
             # Don't cache fallback responses to allow variation
             return response
 
@@ -451,7 +375,7 @@ class AIChatBotSingleton:
                 return response
             else:
                 # API failed, use contextual fallback
-                response = self._get_contextual_fallback(user_prompt, user_id)
+                response = get_fallback_responses().contextual(user_prompt, user_id)
                 # Don't cache fallback responses to allow variation
 
                 self._store_chat_mode_interaction(
@@ -479,7 +403,9 @@ class AIChatBotSingleton:
     @handle_errors("normalizing response mode", default_return="chat")
     def _normalize_response_mode(self, mode: str | None, user_prompt: str) -> str:
         """Normalize generation mode to supported values."""
-        resolved_mode = mode if mode is not None else self._detect_mode(user_prompt)
+        resolved_mode = (
+            mode if mode is not None else get_command_interpreter().detect_mode(user_prompt)
+        )
         if resolved_mode is None:
             return "chat"
         resolved_mode = resolved_mode.lower()
@@ -544,7 +470,7 @@ class AIChatBotSingleton:
         self, user_prompt: str, user_id: str | None, mode: str
     ) -> str:
         """Return contextual fallback when LM Studio is unavailable."""
-        response = self._get_contextual_fallback(user_prompt, user_id)
+        response = get_fallback_responses().contextual(user_prompt, user_id)
         ai_logger.warning(
             "AI response using fallback - LM Studio unavailable",
             user_id=user_id,
@@ -564,13 +490,15 @@ class AIChatBotSingleton:
         """Build messages and generation parameters based on response mode."""
         if mode == "command":
             return (
-                self._create_command_parsing_prompt(user_prompt),
+                get_command_interpreter().create_command_parsing_prompt(user_prompt),
                 60,
                 AI_COMMAND_TEMPERATURE,
             )
         if mode == "command_with_clarification":
             return (
-                self._create_command_parsing_prompt(user_prompt, clarification=True),
+                get_command_interpreter().create_command_parsing_prompt(
+                    user_prompt, clarification=True
+                ),
                 120,
                 AI_CLARIFICATION_TEMPERATURE,
             )
@@ -602,7 +530,7 @@ class AIChatBotSingleton:
             response, AI_MAX_RESPONSE_LENGTH, AI_MAX_RESPONSE_WORDS
         )
         if mode != "command":
-            response = self._enhance_conversational_engagement(response)
+            response = get_response_generator().enhance_conversational_engagement(response)
         return response
 
     @handle_errors("caching response when needed", default_return=None)
@@ -730,7 +658,7 @@ class AIChatBotSingleton:
             timeout = AI_PERSONALIZED_MESSAGE_TIMEOUT
 
         if not self.lm_studio_available:
-            return self._get_fallback_personalized_message(user_id)
+            return get_fallback_responses().personalized(user_id)
 
         recent_data = get_recent_responses(user_id, limit=3)  # Reduced for performance
         summary_lines = []
@@ -812,10 +740,10 @@ class AIChatBotSingleton:
 
         if not self.lm_studio_available:
             # Use enhanced contextual fallback with user information and data analysis
-            fallback_response = self._get_contextual_fallback(user_prompt, user_id)
+            fallback_response = get_fallback_responses().contextual(user_prompt, user_id)
 
             # Enhance fallback with context if available
-            fallback_response = self._personalize_fallback_with_profile_name(
+            fallback_response = get_fallback_responses().personalize_with_profile_name(
                 fallback_response, context_summary, profile
             )
             self._record_contextual_interaction(
@@ -824,7 +752,9 @@ class AIChatBotSingleton:
             return fallback_response
 
         # Create comprehensive context-aware messages for LM Studio with all user data
-        messages = self._create_comprehensive_context_prompt(user_id, user_prompt)
+        messages = get_response_generator().create_comprehensive_context_prompt(
+            user_id, user_prompt
+        )
 
         if not self._is_data_analysis_question(user_prompt):
             cached_response = self.response_cache.get(
@@ -842,7 +772,7 @@ class AIChatBotSingleton:
         lock_acquired = lock.acquire(blocking=True, timeout=5)
         if not lock_acquired:
             logger.warning("API is busy, using enhanced contextual fallback")
-            fallback_response = self._get_contextual_fallback(user_prompt, user_id)
+            fallback_response = get_fallback_responses().contextual(user_prompt, user_id)
             self._record_contextual_interaction(
                 user_id, user_prompt, fallback_response, context_used=False
             )
@@ -871,7 +801,7 @@ class AIChatBotSingleton:
                     # Prepend name if not already included
                     response = f"{user_name}, {response}"
             else:
-                response = self._get_contextual_fallback(user_prompt, user_id)
+                response = get_fallback_responses().contextual(user_prompt, user_id)
                 logger.info("Using contextual fallback response")
 
             # Cache the final response for contextual prompts
@@ -922,15 +852,6 @@ class AIChatBotSingleton:
 
         context_str = ". ".join(context_summary) if context_summary else "New user"
         return profile, context_summary, context_str
-
-    @handle_errors("personalizing fallback with profile name", default_return="")
-    def _personalize_fallback_with_profile_name(
-        self, fallback_response: str, context_summary: list[str], profile: dict
-    ) -> str:
-        """Delegate to fallback_responses module."""
-        return get_fallback_responses().personalize_with_profile_name(
-            fallback_response, context_summary, profile
-        )
 
     @handle_errors("detecting contextual data analysis question", default_return=False)
     def _is_data_analysis_question(self, user_prompt: str) -> bool:
@@ -1132,16 +1053,6 @@ class AIChatBotSingleton:
                 return cut[: idx + 1]
 
         return cut.rstrip() + "…"
-
-    @handle_errors("extracting command from response", default_return="")
-    def _extract_command_from_response(self, response: str) -> str:
-        """Delegate to command_interpreter module."""
-        return get_command_interpreter().extract_command_from_response(response)
-
-    @handle_errors("enhancing conversational engagement", default_return="")
-    def _enhance_conversational_engagement(self, response: str) -> str:
-        """Delegate to response_generator module."""
-        return get_response_generator().enhance_conversational_engagement(response)
 
     @handle_errors("getting adaptive timeout", default_return=15)
     def _get_adaptive_timeout(self, base_timeout: int) -> int:

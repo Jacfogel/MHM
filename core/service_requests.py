@@ -184,20 +184,27 @@ def has_any_request_files(base_dir: str) -> bool:
         return True
 
 
-@handle_errors("discovering test message request files", default_return=[])
-def discover_test_message_request_files(base_dir: str) -> list[str]:
+@handle_errors("discovering flag request files", default_return=[])
+def _discover_flag_request_files(base_dir: str, name_prefix: str) -> list[str]:
+    """List `.flag` request files under base_dir whose names start with name_prefix."""
     base_path = Path(base_dir)
-    request_files = []
+    request_files: list[str] = []
     for file_path in base_path.iterdir():
         if (
             file_path.is_file()
-            and file_path.name.startswith("test_message_request_")
+            and file_path.name.startswith(name_prefix)
             and file_path.name.endswith(".flag")
         ):
             request_files.append(str(file_path))
     return request_files
 
 
+@handle_errors("discovering test message request files", default_return=[])
+def discover_test_message_request_files(base_dir: str) -> list[str]:
+    return _discover_flag_request_files(base_dir, "test_message_request_")
+
+
+# not_duplicate: service_request_file_parsers
 @handle_errors(
     "parsing test message request file",
     default_return={"user_id": None, "category": None, "source": "unknown"},
@@ -225,6 +232,7 @@ def validate_test_message_request_data(request_data: dict, filename: str) -> boo
     return True
 
 
+# not_duplicate: service_request_processors
 @handle_errors("processing test message request", default_return=None)
 def process_valid_test_message_request(
     context: ServiceRequestContext, request_data: dict
@@ -528,18 +536,10 @@ def cleanup_test_message_requests(context: ServiceRequestContext) -> None:
 
 @handle_errors("discovering reschedule request files", default_return=[])
 def discover_reschedule_request_files(base_dir: str) -> list[str]:
-    base_path = Path(base_dir)
-    request_files = []
-    for file_path in base_path.iterdir():
-        if (
-            file_path.is_file()
-            and file_path.name.startswith("reschedule_request_")
-            and file_path.name.endswith(".flag")
-        ):
-            request_files.append(str(file_path))
-    return request_files
+    return _discover_flag_request_files(base_dir, "reschedule_request_")
 
 
+# not_duplicate: service_request_file_parsers
 @handle_errors(
     "parsing reschedule request file",
     default_return={
@@ -583,6 +583,7 @@ def validate_reschedule_request_data(
     return True
 
 
+# not_duplicate: service_request_processors
 @handle_errors("processing reschedule request", default_return=None)
 def process_valid_reschedule_request(
     context: ServiceRequestContext, request_data: dict

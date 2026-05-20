@@ -87,11 +87,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 - Clarification command prompt suffix; dynamic command intent list from `get_rule_based_intent_names()`.
 - Boundary unit tests under `tests/unit/test_fallback_responses.py`, `test_command_interpreter.py`, `test_command_registry.py`.
 
-**Next (Phase 5 - collapse facade delegates):**
-
-- Inline calls in `ai/chatbot.py` to `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()`; remove one-line private delegates (`_get_contextual_fallback`, `_detect_mode`, `_create_comprehensive_context_prompt`, etc.).
-- Update tests that call `bot._detect_mode` / similar to target the canonical modules where appropriate.
-- Keep `get_ai_chatbot()` and public generate/status methods as the stable API for `communication/` (see overhaul plan Section 8.1). This is refactor completion, not `# LEGACY COMPATIBILITY` removal.
+**Phase 5 (collapse facade delegates) - COMPLETED 2026-05-19:** `ai/chatbot.py` calls `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()` directly; one-line private delegates removed. Tests target canonical modules where appropriate. `get_ai_chatbot()` remains the stable API for `communication/`.
 
 **Later follow-ups** (see overhaul plan Section 8.1): deeper `ContextBuilder` / `response_generator` deduplication; AI Chatbot Actionability Sprint and NLP accuracy work in [TODO.md](../TODO.md).
 

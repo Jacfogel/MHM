@@ -1360,7 +1360,7 @@ class CommunicationManager:
             return MessageSendResult.failed(user_id, category)
 
         # Get the appropriate recipient ID for the messaging service
-        recipient = self._get_recipient_for_service(
+        recipient = self.get_recipient_for_service(
             user_id, messaging_service, preferences
         )
         if not recipient:
@@ -1431,11 +1431,11 @@ class CommunicationManager:
             )
 
     @handle_errors("getting recipient for service", default_return=None)
-    def _get_recipient_for_service(
+    def get_recipient_for_service(
         self, user_id: str, messaging_service: str, preferences: dict
     ) -> str | None:
         """
-        Get recipient for service with validation.
+        Resolve channel recipient for a user (ServiceRequestDeliveryPort).
 
         Returns:
             Optional[str]: Recipient ID, None if failed
@@ -1482,15 +1482,6 @@ class CommunicationManager:
         else:
             logger.error(f"Unknown messaging service: {messaging_service}")
             return None
-
-    @handle_errors("getting recipient for service", default_return=None)
-    def get_recipient_for_service(
-        self, user_id: str, messaging_service: str, preferences: dict
-    ) -> str | None:
-        """Public delivery-port wrapper for resolving channel recipients."""
-        return self._get_recipient_for_service(
-            user_id, messaging_service, preferences
-        )
 
     # not_duplicate: checkin_prompt_delivery_boundary
     @handle_errors("determining if check-in prompt should be sent", default_return=True)

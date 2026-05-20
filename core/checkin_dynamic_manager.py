@@ -24,6 +24,7 @@ class DynamicCheckinManager:
         self.responses_data = None
         self._load_data()
 
+    # not_duplicate: unrelated_load_data_methods
     @handle_errors("loading checkin data", default_return=False)
     def _load_data(self) -> bool:
         """Load questions and responses data from JSON files."""

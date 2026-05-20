@@ -433,16 +433,15 @@ class TestTaskSettingsWidgetTagManagement:
     
     @pytest.mark.ui
     @pytest.mark.unit
-    def test_get_available_tags_returns_tags(self, widget):
-        """Test that get_available_tags returns tags from tag widget."""
-        # Arrange
-        with patch.object(widget.tag_widget, 'get_available_tags', return_value=['tag1', 'tag2']) as mock_get:
-            # Act
-            tags = widget.get_available_tags()
-            
-            # Assert
-            assert tags == ['tag1', 'tag2'], "Should return tags from tag widget"
-            mock_get.assert_called_once()
+    def test_get_task_settings_includes_tags_from_tag_widget(self, widget):
+        """Test that get_task_settings reads tags from the embedded tag widget."""
+        with patch.object(
+            widget.tag_widget, "get_available_tags", return_value=["tag1", "tag2"]
+        ) as mock_get:
+            settings = widget.get_task_settings()
+
+        assert settings["tags"] == ["tag1", "tag2"], "Should include tags from tag widget"
+        mock_get.assert_called_once()
     
     @pytest.mark.ui
     @pytest.mark.unit

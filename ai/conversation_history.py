@@ -23,6 +23,7 @@ class ConversationMessage:
     timestamp: datetime
     metadata: dict[str, Any] | None = None
 
+    # not_duplicate: dataclass_post_init_defaults
     @handle_errors("post-initializing conversation message", default_return=None)
     def __post_init__(self):
         """Post-initialization setup"""
@@ -41,6 +42,7 @@ class ConversationSession:
     messages: list[ConversationMessage] | None = None
     metadata: dict[str, Any] | None = None
 
+    # not_duplicate: dataclass_post_init_defaults
     @handle_errors("post-initializing conversation session", default_return=None)
     def __post_init__(self):
         """Post-initialization setup"""

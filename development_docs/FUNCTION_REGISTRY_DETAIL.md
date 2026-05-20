@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-19 18:10:23
+> **Last Generated**: 2026-05-19 22:47:50
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 93.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 150
-- **Functions Found**: 1827
-- **Methods Found**: 1258
+- **Functions Found**: 1815
+- **Methods Found**: 1245
 - **Classes Found**: 177
-- **Total Items**: 3085
-- **Functions Documented**: 1693
-- **Methods Documented**: 1193
+- **Total Items**: 3060
+- **Functions Documented**: 1681
+- **Methods Documented**: 1180
 - **Classes Documented**: 138
-- **Total Documented**: 2886
+- **Total Documented**: 2861
 - **Template-Generated**: 24
 - **Last Updated**: 2026-05-19
 
@@ -39,13 +39,13 @@
 
 ## Function Categories
 
-### **Core System Functions** (501)
+### **Core System Functions** (502)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (500)
+### **Communication Functions** (499)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (437)
+### **User Interface Functions** (436)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (35)
@@ -119,31 +119,20 @@ Test functions and testing utilities.
 - [OK] `_call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio using OpenAI-compatible format.
 - [OK] `_clean_system_prompt_leaks(self, response)` - Remove any leaked system prompt metadata from AI responses.
 Prevents meta-text like "User Context:", "IMPORTANT - Feature availability:" from appearing in user-facing responses.
-- [OK] `_create_command_parsing_prompt(self, user_prompt)` - Delegate to command_interpreter module.
-- [OK] `_create_comprehensive_context_prompt(self, user_id, user_prompt)` - Delegate to response_generator module.
-- [OK] `_detect_mode(self, user_prompt)` - Delegate to command_interpreter module.
 - [OK] `_detect_resource_constraints(self)` - Detect if system is resource-constrained.
-- [OK] `_enhance_conversational_engagement(self, response)` - Delegate to response_generator module.
 - [OK] `_ensure_lm_studio_available(self)` - Ensure LM Studio availability by retrying connection if needed.
-- [OK] `_extract_command_from_response(self, response)` - Delegate to command_interpreter module.
 - [OK] `_fallback_response_for_unavailable_lm(self, user_prompt, user_id, mode)` - Return contextual fallback when LM Studio is unavailable.
 - [OK] `_get_adaptive_timeout(self, base_timeout)` - Get adaptive timeout based on system resources.
 - [OK] `_get_cached_non_chat_response(self, mode, prompt_for_key, uid_for_key, ptype, user_prompt, user_id)` - Return cached response for non-chat modes when eligible.
-- [OK] `_get_contextual_fallback(self, user_prompt, user_id)` - Delegate to fallback_responses module.
-- [OK] `_get_fallback_personalized_message(self, user_id)` - Delegate to fallback_responses module.
-- [OK] `_has_command_keyword(self, prompt_lower)` - Delegate to command_interpreter module.
 - [OK] `_interaction_type_for_mode(self, mode)` - Map response mode to interaction type for structured logging.
 - [OK] `_is_data_analysis_question(self, user_prompt)` - Detect prompts that should bypass contextual cache for fresh data.
-- [OK] `_is_natural_language_task_request(self, prompt_lower)` - Delegate to command_interpreter module.
 - [OK] `_is_valid_timeout(self, timeout)` - Validate timeout input type for response generation.
 - [OK] `_make_cache_key_inputs(self, mode, user_prompt, user_id)` - Create consistent cache key inputs with validation.
 
 Returns:
     tuple: (user_prompt, user_id, mode)
-- [OK] `_needs_command_clarification(self, prompt_lower, words, stripped_prompt)` - Delegate to command_interpreter module.
 - [OK] `_normalize_response_mode(self, mode, user_prompt)` - Normalize generation mode to supported values.
 - [OK] `_optimize_prompt(self, user_prompt, context)` - Create optimized messages array for LM Studio API.
-- [OK] `_personalize_fallback_with_profile_name(self, fallback_response, context_summary, profile)` - Delegate to fallback_responses module.
 - [OK] `_post_process_generated_response(self, mode, result)` - Post-process model output into final user-visible response.
 - [OK] `_record_contextual_interaction(self, user_id, user_prompt, response)` - Persist contextual response and conversation history.
 - [OK] `_smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response to avoid mid-sentence cuts.
@@ -176,31 +165,20 @@ Uses adaptive timeout to prevent blocking for too long with improved performance
   - [OK] `AIChatBotSingleton._call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio using OpenAI-compatible format.
   - [OK] `AIChatBotSingleton._clean_system_prompt_leaks(self, response)` - Remove any leaked system prompt metadata from AI responses.
 Prevents meta-text like "User Context:", "IMPORTANT - Feature availability:" from appearing in user-facing responses.
-  - [OK] `AIChatBotSingleton._create_command_parsing_prompt(self, user_prompt)` - Delegate to command_interpreter module.
-  - [OK] `AIChatBotSingleton._create_comprehensive_context_prompt(self, user_id, user_prompt)` - Delegate to response_generator module.
-  - [OK] `AIChatBotSingleton._detect_mode(self, user_prompt)` - Delegate to command_interpreter module.
   - [OK] `AIChatBotSingleton._detect_resource_constraints(self)` - Detect if system is resource-constrained.
-  - [OK] `AIChatBotSingleton._enhance_conversational_engagement(self, response)` - Delegate to response_generator module.
   - [OK] `AIChatBotSingleton._ensure_lm_studio_available(self)` - Ensure LM Studio availability by retrying connection if needed.
-  - [OK] `AIChatBotSingleton._extract_command_from_response(self, response)` - Delegate to command_interpreter module.
   - [OK] `AIChatBotSingleton._fallback_response_for_unavailable_lm(self, user_prompt, user_id, mode)` - Return contextual fallback when LM Studio is unavailable.
   - [OK] `AIChatBotSingleton._get_adaptive_timeout(self, base_timeout)` - Get adaptive timeout based on system resources.
   - [OK] `AIChatBotSingleton._get_cached_non_chat_response(self, mode, prompt_for_key, uid_for_key, ptype, user_prompt, user_id)` - Return cached response for non-chat modes when eligible.
-  - [OK] `AIChatBotSingleton._get_contextual_fallback(self, user_prompt, user_id)` - Delegate to fallback_responses module.
-  - [OK] `AIChatBotSingleton._get_fallback_personalized_message(self, user_id)` - Delegate to fallback_responses module.
-  - [OK] `AIChatBotSingleton._has_command_keyword(self, prompt_lower)` - Delegate to command_interpreter module.
   - [OK] `AIChatBotSingleton._interaction_type_for_mode(self, mode)` - Map response mode to interaction type for structured logging.
   - [OK] `AIChatBotSingleton._is_data_analysis_question(self, user_prompt)` - Detect prompts that should bypass contextual cache for fresh data.
-  - [OK] `AIChatBotSingleton._is_natural_language_task_request(self, prompt_lower)` - Delegate to command_interpreter module.
   - [OK] `AIChatBotSingleton._is_valid_timeout(self, timeout)` - Validate timeout input type for response generation.
   - [OK] `AIChatBotSingleton._make_cache_key_inputs(self, mode, user_prompt, user_id)` - Create consistent cache key inputs with validation.
 
 Returns:
     tuple: (user_prompt, user_id, mode)
-  - [OK] `AIChatBotSingleton._needs_command_clarification(self, prompt_lower, words, stripped_prompt)` - Delegate to command_interpreter module.
   - [OK] `AIChatBotSingleton._normalize_response_mode(self, mode, user_prompt)` - Normalize generation mode to supported values.
   - [OK] `AIChatBotSingleton._optimize_prompt(self, user_prompt, context)` - Create optimized messages array for LM Studio API.
-  - [OK] `AIChatBotSingleton._personalize_fallback_with_profile_name(self, fallback_response, context_summary, profile)` - Delegate to fallback_responses module.
   - [OK] `AIChatBotSingleton._post_process_generated_response(self, mode, result)` - Post-process model output into final user-visible response.
   - [OK] `AIChatBotSingleton._record_contextual_interaction(self, user_id, user_prompt, response)` - Persist contextual response and conversation history.
   - [OK] `AIChatBotSingleton._smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response to avoid mid-sentence cuts.
@@ -1886,10 +1864,6 @@ Returns:
 - [OK] `_expire_checkin_flow_if_needed(self, user_id, category)` - Expire check-in flow if this is a non-scheduled message.
 - [MISSING] `_filter_messages_by_day_and_period(self, messages, current_days, matching_periods)` - No description
 - [OK] `_get_default_channel_configs(self)` - Get default channel configurations
-- [OK] `_get_recipient_for_service(self, user_id, messaging_service, preferences)` - Get recipient for service with validation.
-
-Returns:
-    Optional[str]: Recipient ID, None if failed
 - [MISSING] `_handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - No description
 - [OK] `_initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
 - [MISSING] `_load_predefined_messages_library(self, user_id, category)` - No description
@@ -1922,7 +1896,10 @@ Returns:
 
 Returns:
     Optional[str]: Last task reminder, None if failed
-- [OK] `get_recipient_for_service(self, user_id, messaging_service, preferences)` - Public delivery-port wrapper for resolving channel recipients.
+- [OK] `get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve channel recipient for a user (ServiceRequestDeliveryPort).
+
+Returns:
+    Optional[str]: Recipient ID, None if failed
 - [OK] `get_registered_channels(self)` - Get registered channels with validation.
 
 Returns:
@@ -1980,10 +1957,6 @@ Returns:
   - [OK] `CommunicationManager._expire_checkin_flow_if_needed(self, user_id, category)` - Expire check-in flow if this is a non-scheduled message.
   - [MISSING] `CommunicationManager._filter_messages_by_day_and_period(self, messages, current_days, matching_periods)` - No description
   - [OK] `CommunicationManager._get_default_channel_configs(self)` - Get default channel configurations
-  - [OK] `CommunicationManager._get_recipient_for_service(self, user_id, messaging_service, preferences)` - Get recipient for service with validation.
-
-Returns:
-    Optional[str]: Recipient ID, None if failed
   - [MISSING] `CommunicationManager._handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - No description
   - [OK] `CommunicationManager._initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
   - [MISSING] `CommunicationManager._load_predefined_messages_library(self, user_id, category)` - No description
@@ -2016,7 +1989,10 @@ Returns:
 
 Returns:
     Optional[str]: Last task reminder, None if failed
-  - [OK] `CommunicationManager.get_recipient_for_service(self, user_id, messaging_service, preferences)` - Public delivery-port wrapper for resolving channel recipients.
+  - [OK] `CommunicationManager.get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve channel recipient for a user (ServiceRequestDeliveryPort).
+
+Returns:
+    Optional[str]: Recipient ID, None if failed
   - [OK] `CommunicationManager.get_registered_channels(self)` - Get registered channels with validation.
 
 Returns:
@@ -4462,6 +4438,7 @@ Sets up signal handlers for graceful shutdown.
 **Functions:**
 - [OK] `_as_context(context_or_service)` - Normalize explicit contexts and context-capable service wrappers to one shape.
 - [OK] `_cleanup_matching_request_files(base_path, predicate, label)` - Remove request files matching a predicate while continuing after per-file failures.
+- [OK] `_discover_flag_request_files(base_dir, name_prefix)` - List `.flag` request files under base_dir whose names start with name_prefix.
 - [OK] `_get_recipient_for_service(delivery, user_id, messaging_service, preferences)` - Resolve a recipient through the public delivery port.
 - [OK] `_write_response_file(response_file, response_data)` - Write a service response flag file as indented JSON.
 - [MISSING] `check_checkin_prompt_requests(context)` - No description
@@ -6495,7 +6472,6 @@ Args:
 - [OK] `__init__(self, parent, user_id)` - Initialize the object.
 - [OK] `add_new_period(self, checked, period_name, period_data)` - Add a new time period using the PeriodRowWidget.
 - [OK] `find_lowest_available_period_number(self)` - Find the lowest available integer (2+) that's not currently used in period names.
-- [OK] `get_available_tags(self)` - Get the current list of available tags from the tag widget.
 - [OK] `get_recurring_task_settings(self)` - Get the current recurring task settings.
 - [OK] `get_statistics(self)` - Get real task statistics for the user.
 - [OK] `get_task_settings(self)` - Get the current task settings.
@@ -6523,7 +6499,6 @@ Args:
   - [OK] `TaskSettingsWidget.__init__(self, parent, user_id)` - Initialize the object.
   - [OK] `TaskSettingsWidget.add_new_period(self, checked, period_name, period_data)` - Add a new time period using the PeriodRowWidget.
   - [OK] `TaskSettingsWidget.find_lowest_available_period_number(self)` - Find the lowest available integer (2+) that's not currently used in period names.
-  - [OK] `TaskSettingsWidget.get_available_tags(self)` - Get the current list of available tags from the tag widget.
   - [OK] `TaskSettingsWidget.get_recurring_task_settings(self)` - Get the current recurring task settings.
   - [OK] `TaskSettingsWidget.get_statistics(self)` - Get real task statistics for the user.
   - [OK] `TaskSettingsWidget.get_task_settings(self)` - Get the current task settings.

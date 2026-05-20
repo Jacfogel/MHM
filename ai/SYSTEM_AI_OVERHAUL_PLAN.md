@@ -481,9 +481,9 @@ What it means: Ensure ai/fallback_responses/* does not import Discord/email/chan
 Why it helps: Prevents communication-layer leakage.
 Estimated effort: Small
 
-## 8.1 Phase 5 — Collapse facade delegates (planned)
+## 8.1 Phase 5 — Collapse facade delegates **COMPLETED** (2026-05-19)
 
-Phases 1–4 moved implementation into dedicated modules but left **one-line private delegates** on `AIChatBotSingleton` (for example `_get_contextual_fallback` → `get_fallback_responses().contextual()`). That is **transitional refactor wiring**, not `# LEGACY COMPATIBILITY` bridge code (see [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md)). Phase 5 completes the refactor by removing those wrappers.
+Phases 1–4 moved implementation into dedicated modules but left **one-line private delegates** on `AIChatBotSingleton` (for example `_get_contextual_fallback` → `get_fallback_responses().contextual()`). Phase 5 removed those wrappers; `chatbot.py` now calls `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()` directly. That was **transitional refactor wiring**, not `# LEGACY COMPATIBILITY` bridge code (see [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md)).
 
 ### What stays after Phase 5
 

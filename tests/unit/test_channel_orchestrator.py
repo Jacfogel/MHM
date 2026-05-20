@@ -185,20 +185,20 @@ class TestChannelOrchestratorHelpers:
         message = self.manager._create_task_reminder_message({})
         assert isinstance(message, str), "Should return string even for empty dict"
 
-    def test_get_recipient_for_service_discord(self):
-        """Test _get_recipient_for_service for Discord."""
+    def testget_recipient_for_service_discord(self):
+        """Test get_recipient_for_service for Discord."""
         user_id = "test_user"
         messaging_service = "discord"
         preferences = {}
         
-        recipient = self.manager._get_recipient_for_service(user_id, messaging_service, preferences)
+        recipient = self.manager.get_recipient_for_service(user_id, messaging_service, preferences)
         
         # The function should return discord_user prefix, but there's unreachable code
         # Check if it returns the expected value or None (due to validation or unreachable code)
         assert recipient == f"discord_user:{user_id}" or recipient is None, "Should return discord_user prefix or None"
 
-    def test_get_recipient_for_service_email(self):
-        """Test _get_recipient_for_service for email."""
+    def testget_recipient_for_service_email(self):
+        """Test get_recipient_for_service for email."""
         user_id = "test_user"
         messaging_service = "email"
         preferences = {}
@@ -210,13 +210,13 @@ class TestChannelOrchestratorHelpers:
                 }
             }
             
-            recipient = self.manager._get_recipient_for_service(user_id, messaging_service, preferences)
+            recipient = self.manager.get_recipient_for_service(user_id, messaging_service, preferences)
             
             # Function returns email from account data, or False/None if not found
             assert recipient == 'test@example.com' or recipient is False or recipient is None, "Should return email or False/None"
 
-    def test_get_recipient_for_service_email_no_account(self):
-        """Test _get_recipient_for_service for email when account not found."""
+    def testget_recipient_for_service_email_no_account(self):
+        """Test get_recipient_for_service for email when account not found."""
         user_id = "test_user"
         messaging_service = "email"
         preferences = {}
@@ -224,36 +224,36 @@ class TestChannelOrchestratorHelpers:
         with patch('communication.core.channel_orchestrator.get_user_data') as mock_get_data:
             mock_get_data.return_value = {}
             
-            recipient = self.manager._get_recipient_for_service(user_id, messaging_service, preferences)
+            recipient = self.manager.get_recipient_for_service(user_id, messaging_service, preferences)
             
             assert recipient is None, "Should return None when account not found"
 
-    def test_get_recipient_for_service_unknown_service(self):
-        """Test _get_recipient_for_service for unknown service."""
+    def testget_recipient_for_service_unknown_service(self):
+        """Test get_recipient_for_service for unknown service."""
         user_id = "test_user"
         messaging_service = "unknown"
         preferences = {}
         
-        recipient = self.manager._get_recipient_for_service(user_id, messaging_service, preferences)
+        recipient = self.manager.get_recipient_for_service(user_id, messaging_service, preferences)
         
         assert recipient is None, "Should return None for unknown service"
 
-    def test_get_recipient_for_service_invalid_input(self):
-        """Test _get_recipient_for_service with invalid input."""
+    def testget_recipient_for_service_invalid_input(self):
+        """Test get_recipient_for_service with invalid input."""
         # Test None user_id
-        result = self.manager._get_recipient_for_service(None, "discord", {})
+        result = self.manager.get_recipient_for_service(None, "discord", {})
         assert result is None, "Should return None for None user_id"
         
         # Test empty user_id
-        result = self.manager._get_recipient_for_service("", "discord", {})
+        result = self.manager.get_recipient_for_service("", "discord", {})
         assert result is None, "Should return None for empty user_id"
         
         # Test None messaging_service
-        result = self.manager._get_recipient_for_service("user", None, {})
+        result = self.manager.get_recipient_for_service("user", None, {})
         assert result is None, "Should return None for None messaging_service"
         
         # Test None preferences
-        result = self.manager._get_recipient_for_service("user", "discord", None)
+        result = self.manager.get_recipient_for_service("user", "discord", None)
         assert result is None, "Should return None for None preferences"
 
     def test_should_send_checkin_prompt_frequency_none(self):
@@ -423,7 +423,7 @@ class TestChannelOrchestratorHelpers:
             ),
             patch.object(
                 self.manager,
-                "_get_recipient_for_service",
+                "get_recipient_for_service",
                 return_value="person@example.com",
             ),
             patch.object(
@@ -461,7 +461,7 @@ class TestChannelOrchestratorHelpers:
             ),
             patch.object(
                 self.manager,
-                "_get_recipient_for_service",
+                "get_recipient_for_service",
                 return_value="person@example.com",
             ),
             patch.object(self.manager, "send_message_sync", return_value=False),
@@ -549,7 +549,7 @@ class TestChannelOrchestratorHelpers:
                 "communication.core.channel_orchestrator.get_user_data",
                 return_value={"preferences": {"channel": {"type": "email"}}},
             ),
-            patch.object(self.manager, "_get_recipient_for_service", return_value=None),
+            patch.object(self.manager, "get_recipient_for_service", return_value=None),
             patch.object(self.manager, "send_message_sync") as mock_send,
         ):
             self.manager.handle_task_reminder("user_norecipient", "task_ok")
@@ -619,7 +619,7 @@ class TestChannelOrchestratorHelpers:
                 return_value={"preferences": {"channel": {"type": "discord"}}},
             ),
             patch.object(
-                self.manager, "_get_recipient_for_service", return_value="discord_user"
+                self.manager, "get_recipient_for_service", return_value="discord_user"
             ),
             patch.object(
                 self.manager, "_send_predefined_message", return_value=(True, "hello")

@@ -11,6 +11,7 @@ These were moved from manual AI functionality tests because they have determinis
 
 import pytest
 from ai.chatbot import AIChatBotSingleton
+from ai.command_interpreter import get_command_interpreter
 from ai.cache_manager import ResponseCache, get_response_cache
 
 
@@ -21,32 +22,29 @@ class TestAIModeDetection:
     @pytest.mark.unit
     def test_detect_clear_command(self):
         """Test that clear commands are detected as 'command' mode"""
-        chatbot = AIChatBotSingleton()
-        mode = chatbot._detect_mode("add task buy milk")
+        mode = get_command_interpreter().detect_mode("add task buy milk")
         assert mode == "command", f"Expected 'command', got '{mode}'"
     
     @pytest.mark.ai
     @pytest.mark.unit
     def test_detect_ambiguous_request(self):
         """Test that ambiguous requests are detected as 'command_with_clarification' mode"""
-        chatbot = AIChatBotSingleton()
-        mode = chatbot._detect_mode("Can you add a task?")
+        mode = get_command_interpreter().detect_mode("Can you add a task?")
         assert mode == "command_with_clarification", f"Expected 'command_with_clarification', got '{mode}'"
     
     @pytest.mark.ai
     @pytest.mark.unit
     def test_detect_chat_message(self):
         """Test that chat messages are detected as 'chat' mode"""
-        chatbot = AIChatBotSingleton()
-        mode = chatbot._detect_mode("How are you doing?")
+        mode = get_command_interpreter().detect_mode("How are you doing?")
         assert mode == "chat", f"Expected 'chat', got '{mode}'"
     
     @pytest.mark.ai
     @pytest.mark.unit
     def test_command_phrasings(self):
         """Test various command phrasings are detected correctly"""
-        chatbot = AIChatBotSingleton()
-        
+        interpreter = get_command_interpreter()
+
         # These should all be detected as command or command_with_clarification
         command_phrasings = [
             ("add task buy groceries", ["command"]),
@@ -56,18 +54,16 @@ class TestAIModeDetection:
         ]
         
         for prompt, expected_modes in command_phrasings:
-            mode = chatbot._detect_mode(prompt)
+            mode = interpreter.detect_mode(prompt)
             assert mode in expected_modes, f"Prompt '{prompt}' detected as '{mode}', expected one of {expected_modes}"
     
     @pytest.mark.ai
     @pytest.mark.unit
     def test_natural_language_command_detection(self):
         """Test natural language command detection"""
-        chatbot = AIChatBotSingleton()
-        
         # This should ideally be detected as command, but currently may be chat
         # Marking as partial in manual tests, but we can test current behavior here
-        mode = chatbot._detect_mode("I need to buy groceries")
+        mode = get_command_interpreter().detect_mode("I need to buy groceries")
         # Accept either chat or command - the behavior is currently uncertain
         assert mode in ["chat", "command", "command_with_clarification"], \
             f"Mode '{mode}' is valid (improvement: should detect as command)"

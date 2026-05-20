@@ -12,9 +12,8 @@ from contextlib import ExitStack
 from unittest.mock import patch, MagicMock
 
 # Import the modules we're testing
-from ai.chatbot import (
-    AIChatBotSingleton
-)
+from ai.chatbot import AIChatBotSingleton
+from ai.command_interpreter import get_command_interpreter
 from core.response_tracking import get_recent_chat_interactions, store_chat_interaction
 from core import save_user_data
 from core.config import AI_CLARIFICATION_TEMPERATURE
@@ -262,12 +261,14 @@ class TestAIChatBotBehavior:
 
         sentinel_prompt = [{"role": "system", "content": "clarify"}]
 
+        mock_interpreter = MagicMock()
+        mock_interpreter.create_command_parsing_prompt.return_value = sentinel_prompt
+
         with ExitStack() as stack:
-            mock_prompt = stack.enter_context(
-                patch.object(
-                    chatbot,
-                    '_create_command_parsing_prompt',
-                    return_value=sentinel_prompt,
+            stack.enter_context(
+                patch(
+                    'ai.chatbot.get_command_interpreter',
+                    return_value=mock_interpreter,
                 )
             )
             mock_api = stack.enter_context(
@@ -284,12 +285,11 @@ class TestAIChatBotBehavior:
                     side_effect=lambda text, *args, **kwargs: text,
                 )
             )
-            stack.enter_context(
-                patch.object(
-                    chatbot,
-                    '_enhance_conversational_engagement',
-                    side_effect=lambda text: text,
-                )
+            mock_get_generator = stack.enter_context(
+                patch('ai.chatbot.get_response_generator')
+            )
+            mock_get_generator.return_value.enhance_conversational_engagement.side_effect = (
+                lambda text: text
             )
             response = chatbot.generate_response(
                 "Can you add a task?",
@@ -297,7 +297,9 @@ class TestAIChatBotBehavior:
                 user_id="clar_prompt_user",
             )
 
-        mock_prompt.assert_called_once_with("Can you add a task?", clarification=True)
+        mock_interpreter.create_command_parsing_prompt.assert_called_once_with(
+            "Can you add a task?", clarification=True
+        )
         assert mock_api.call_count == 1, "Clarification mode should invoke the API once"
         call_kwargs = mock_api.call_args.kwargs
         assert call_kwargs["messages"] == sentinel_prompt, "Clarification prompt should be used"
@@ -312,17 +314,20 @@ class TestAIChatBotBehavior:
         chatbot.response_cache.clear()
 
         ambiguous_prompt = "Can you add a task?"
-        assert chatbot._detect_mode(ambiguous_prompt) == "command_with_clarification"
-        assert chatbot._detect_mode("Add task buy milk tomorrow at 5pm") == "command"
+        interpreter = get_command_interpreter()
+        assert interpreter.detect_mode(ambiguous_prompt) == "command_with_clarification"
+        assert interpreter.detect_mode("Add task buy milk tomorrow at 5pm") == "command"
 
         sentinel_prompt = [{"role": "system", "content": "clarify-ambiguous"}]
+        mock_interpreter = MagicMock()
+        mock_interpreter.detect_mode.return_value = "command_with_clarification"
+        mock_interpreter.create_command_parsing_prompt.return_value = sentinel_prompt
 
         with ExitStack() as stack:
-            mock_prompt = stack.enter_context(
-                patch.object(
-                    chatbot,
-                    '_create_command_parsing_prompt',
-                    return_value=sentinel_prompt,
+            stack.enter_context(
+                patch(
+                    'ai.chatbot.get_command_interpreter',
+                    return_value=mock_interpreter,
                 )
             )
             mock_api = stack.enter_context(
@@ -339,19 +344,20 @@ class TestAIChatBotBehavior:
                     side_effect=lambda text, *args, **kwargs: text,
                 )
             )
-            stack.enter_context(
-                patch.object(
-                    chatbot,
-                    '_enhance_conversational_engagement',
-                    side_effect=lambda text: text,
-                )
+            mock_get_generator = stack.enter_context(
+                patch('ai.chatbot.get_response_generator')
+            )
+            mock_get_generator.return_value.enhance_conversational_engagement.side_effect = (
+                lambda text: text
             )
             response = chatbot.generate_response(
                 ambiguous_prompt,
                 user_id="clar_detect_user",
             )
 
-        mock_prompt.assert_called_once_with(ambiguous_prompt, clarification=True)
+        mock_interpreter.create_command_parsing_prompt.assert_called_once_with(
+            ambiguous_prompt, clarification=True
+        )
         call_kwargs = mock_api.call_args.kwargs
         assert call_kwargs["messages"] == sentinel_prompt, "Clarification prompt should be used for ambiguous requests"
         assert call_kwargs["temperature"] == AI_CLARIFICATION_TEMPERATURE, "Clarification temperature should be applied"

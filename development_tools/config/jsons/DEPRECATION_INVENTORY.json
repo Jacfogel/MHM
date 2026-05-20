@@ -85,7 +85,7 @@
     {
       "id": "ai_chatbot_legacy_fallback_response",
       "removed_at": "2026-05-06",
-      "note": "Removed unused _get_fallback_response bridge from ai/chatbot.py after search showed no active callers. Fallback behavior lives in ai/fallback_responses/ (package); chatbot._get_contextual_fallback is a thin facade delegate (2026-05-18 AI overhaul), not a legacy bridge."
+      "note": "Removed unused _get_fallback_response bridge from ai/chatbot.py after search showed no active callers. Fallback behavior lives in ai/fallback_responses/ (package). Phase 5 (2026-05-19) removed chatbot one-line delegates (_get_contextual_fallback, _detect_mode, etc.); chatbot calls get_fallback_responses() / get_command_interpreter() / get_response_generator() directly."
     },
     {
       "id": "ai_fallback_responses_monolithic_module",

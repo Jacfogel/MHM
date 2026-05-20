@@ -24,6 +24,7 @@ class CommandDefinition:
     cooldown: float = 0.0
     enabled: bool = True
 
+    # not_duplicate: dataclass_post_init_defaults
     @handle_errors("post-initializing command definition")
     def __post_init__(self):
         """Post-initialization setup"""

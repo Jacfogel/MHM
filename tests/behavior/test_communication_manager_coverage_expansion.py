@@ -539,7 +539,7 @@ class TestCommunicationManagerCoverageExpansion:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.critical
-    def test_get_recipient_for_service_real_behavior(self, comm_manager, test_data_dir):
+    def testget_recipient_for_service_real_behavior(self, comm_manager, test_data_dir):
         """Test getting recipient for service functionality."""
         # Create test user with preferences
         user_id = "test_recipient_user"
@@ -549,7 +549,7 @@ class TestCommunicationManagerCoverageExpansion:
         # Mock get_user_data to return preferences
         with patch('communication.core.channel_orchestrator.get_user_data', return_value={'preferences': {'discord_id': 'test_discord_id'}}):
             # Test getting recipient
-            comm_manager._get_recipient_for_service(user_id, 'discord', {})
+            comm_manager.get_recipient_for_service(user_id, 'discord', {})
             
             # Verify recipient was retrieved (may be None if logic doesn't match expected)
             # The method handles missing data gracefully, so we just verify it doesn't crash

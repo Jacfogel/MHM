@@ -257,11 +257,6 @@ class TaskSettingsWidget(QWidget):
             # Fallback to placeholder if there's an error
             return {"active": 0, "completed": 0, "total": 0}
 
-    @handle_errors("getting available tags")
-    def get_available_tags(self):
-        """Get the current list of available tags from the tag widget."""
-        return self.tag_widget.get_available_tags()
-
     @handle_errors("refreshing tags")
     def refresh_tags(self):
         """Refresh the tags in the tag widget."""

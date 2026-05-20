@@ -142,6 +142,7 @@ class TaskCrudDialog(QDialog):
         self.ui.buttonBox_task_crud.accepted.connect(self.accept)
         self.ui.buttonBox_task_crud.rejected.connect(self.reject)
 
+    # not_duplicate: unrelated_load_data_methods
     @handle_errors("loading task data")
     def load_data(self):
         """Load all task data and update displays."""

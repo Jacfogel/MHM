@@ -33,6 +33,7 @@ class ContextData:
     conversation_history: list[dict[str, Any]] | None = None
     current_time: datetime | None = None
 
+    # not_duplicate: dataclass_post_init_defaults
     @handle_errors("post-initializing context data", default_return=None)
     def __post_init__(self):
         """Post-initialization setup"""
@@ -62,6 +63,7 @@ class ContextAnalysis:
     overall_wellness_score: float = 0.0
     insights: list[str] | None = None
 
+    # not_duplicate: dataclass_post_init_defaults
     @handle_errors("post-initializing context analysis", default_return=None)
     def __post_init__(self):
         """Post-initialization setup"""

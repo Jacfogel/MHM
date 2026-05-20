@@ -84,7 +84,7 @@ class TaskReminderDispatcher:
             logger.error(f"No messaging service configured for user {user_id}")
             return MessageSendResult.failed(user_id, TASK_REMINDER_CATEGORY)
 
-        recipient = self._cm._get_recipient_for_service(
+        recipient = self._cm.get_recipient_for_service(
             user_id, messaging_service, preferences
         )
         if not recipient:

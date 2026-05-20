@@ -7,6 +7,7 @@ Tests for basic AI response generation, mode detection, and contextual responses
 import os
 from unittest.mock import patch
 
+from ai.command_interpreter import get_command_interpreter
 from tests.ai.ai_test_base import AITestBase
 from tests.test_helpers.test_utilities import TestUserFactory
 from core import get_user_id_by_identifier
@@ -218,7 +219,7 @@ class TestAICore(AITestBase):
         # Test 3.1: Clear command detection
         try:
             test_input = "add task buy milk"
-            mode = self.chatbot._detect_mode(test_input)
+            mode = get_command_interpreter().detect_mode(test_input)
             if mode == "command":
                 self.log_test("T-3.1", "Detect clear command", "PASS",
                             f"Mode detected: {mode}", prompt=test_input, response=f"Mode: {mode}", test_type="mode_detection")
@@ -232,7 +233,7 @@ class TestAICore(AITestBase):
         # Test 3.2: Ambiguous request detection
         try:
             test_input = "Can you add a task?"
-            mode = self.chatbot._detect_mode(test_input)
+            mode = get_command_interpreter().detect_mode(test_input)
             if mode == "command_with_clarification":
                 self.log_test("T-3.2", "Detect ambiguous request", "PASS",
                             f"Mode detected: {mode}", prompt=test_input, response=f"Mode: {mode}", test_type="mode_detection")
@@ -246,7 +247,7 @@ class TestAICore(AITestBase):
         # Test 3.3: Chat detection
         try:
             test_input = "How are you doing?"
-            mode = self.chatbot._detect_mode(test_input)
+            mode = get_command_interpreter().detect_mode(test_input)
             if mode == "chat":
                 self.log_test("T-3.3", "Detect chat message", "PASS",
                             f"Mode detected: {mode}", prompt=test_input, response=f"Mode: {mode}", test_type="mode_detection")
@@ -276,7 +277,7 @@ class TestAICore(AITestBase):
         
         for _i, (command, test_id) in enumerate(command_phrasings, 1):
             try:
-                mode = self.chatbot._detect_mode(command)
+                mode = get_command_interpreter().detect_mode(command)
                 is_command = mode in ["command", "command_with_clarification"]
                 
                 status = "PASS" if is_command else "PARTIAL"

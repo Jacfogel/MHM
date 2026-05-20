@@ -47,6 +47,10 @@ Guidelines:
 - Fixed parallel-only flake in `test_get_user_data_fields_scalar_list_and_dict`: field-filtered reads skip test healing/shim full-document backfill
 - Failed-domain recording scoped to failing tests only; cache path keys normalized on Windows
 - Pyright: `update_run_status` callers pass sets, not sorted lists
+- **AI Phase 5:** Removed one-line facade delegates from `ai/chatbot.py`; orchestration calls `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()` directly; tests/docs updated (`SYSTEM_AI_GUIDE.md`, overhaul plan Section 8.1)
+- **Duplicate-function triage:** Shared `_discover_flag_request_files` in `core/service_requests.py`; collapsed `CommunicationManager.get_recipient_for_service` (removed private twin); removed `TaskSettingsWidget.get_available_tags` passthrough; `not_duplicate` only where behavior genuinely differs (dataclass defaults, channel status checks, parsers/processors)
+- **Audit quick wins:** `@handle_errors` on `_discover_flag_request_files`; registry regen via `docs`; ASCII fix in `PLANS.md`; TODO added for dedicated `MHMService._check_*__*` delegate removal pass
+- **Parallel test flake:** `test_create_account_updates_user_index` — `build_user_index` account.json fallback + retry alignment with `update_user_index`; test uses `wait_until` for index visibility
 
 ### 2026-05-18 - System AI Overhaul Phases 1-4 **COMPLETED**
 - Named AI interaction types (`ai/interaction_types.py`) and added structured logging on generate/fallback paths

@@ -33,6 +33,7 @@ class ChannelConfig:
     timeout: float = 30.0
     custom_settings: dict[str, Any] | None = None
 
+    # not_duplicate: dataclass_post_init_defaults
     @handle_errors("post-initializing channel config")
     def __post_init__(self):
         """Post-initialization setup."""

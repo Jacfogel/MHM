@@ -7,6 +7,8 @@ Tests for ai/chatbot.py focusing on helper methods and utility functions.
 import pytest
 from unittest.mock import patch
 from ai.chatbot import get_ai_chatbot
+from ai.command_interpreter import get_command_interpreter
+from ai.fallback_responses import get_fallback_responses
 
 
 @pytest.fixture(scope="module")
@@ -49,57 +51,57 @@ class TestAIChatBotHelpers:
     def test_detect_mode_chat(self, chatbot_instance):
         """Test _detect_mode detects chat mode."""
         # Simple greeting
-        result = chatbot_instance._detect_mode("Hello, how are you?")
+        result = get_command_interpreter().detect_mode("Hello, how are you?")
         assert result == "chat", "Should detect chat mode for greeting"
         
         # Question without command keywords
-        result = chatbot_instance._detect_mode("What's the weather like?")
+        result = get_command_interpreter().detect_mode("What's the weather like?")
         assert result == "chat", "Should detect chat mode for general question"
 
     def test_detect_mode_command(self, chatbot_instance):
         """Test _detect_mode detects command mode."""
         # Explicit command with details and detail markers
-        result = chatbot_instance._detect_mode("create task to buy groceries for dinner tomorrow")
+        result = get_command_interpreter().detect_mode("create task to buy groceries for dinner tomorrow")
         assert result in ["command", "command_with_clarification"], "Should detect command mode (or clarification) for create task"
         
         # Command with multiple detail markers - may still need clarification depending on complexity
-        result = chatbot_instance._detect_mode("delete task number 5")
+        result = get_command_interpreter().detect_mode("delete task number 5")
         assert result in ["command", "command_with_clarification"], "Should detect command mode (or clarification) for delete task"
         
         # Simple command with clear action
-        result = chatbot_instance._detect_mode("schedule appointment with doctor for next week")
+        result = get_command_interpreter().detect_mode("schedule appointment with doctor for next week")
         assert result in ["command", "command_with_clarification"], "Should detect command mode (or clarification) for schedule"
 
     def test_detect_mode_command_with_clarification(self, chatbot_instance):
         """Test _detect_mode detects command_with_clarification mode."""
         # Minimal command
-        result = chatbot_instance._detect_mode("remind me")
+        result = get_command_interpreter().detect_mode("remind me")
         assert result == "command_with_clarification", "Should detect clarification needed for minimal command"
         
         # Short command
-        result = chatbot_instance._detect_mode("add task")
+        result = get_command_interpreter().detect_mode("add task")
         assert result == "command_with_clarification", "Should detect clarification needed for short command"
         
         # Question pattern
-        result = chatbot_instance._detect_mode("should i create a task?")
+        result = get_command_interpreter().detect_mode("should i create a task?")
         assert result == "command_with_clarification", "Should detect clarification needed for question"
 
     def test_detect_mode_task_intent_phrases(self, chatbot_instance):
         """Test _detect_mode detects task intent phrases."""
         # Natural language task request
-        result = chatbot_instance._detect_mode("I need to buy groceries")
+        result = get_command_interpreter().detect_mode("I need to buy groceries")
         assert result == "command_with_clarification", "Should detect clarification for natural task request"
         
         # Task intent with verb
-        result = chatbot_instance._detect_mode("I want to call mom")
+        result = get_command_interpreter().detect_mode("I want to call mom")
         assert result == "command_with_clarification", "Should detect clarification for task intent"
 
     def test_detect_mode_empty_prompt(self, chatbot_instance):
         """Test _detect_mode with empty prompt."""
-        result = chatbot_instance._detect_mode("")
+        result = get_command_interpreter().detect_mode("")
         assert result == "chat", "Should default to chat for empty prompt"
         
-        result = chatbot_instance._detect_mode("   ")
+        result = get_command_interpreter().detect_mode("   ")
         assert result == "chat", "Should default to chat for whitespace"
 
     def test_clean_system_prompt_leaks_user_context(self, chatbot_instance):
@@ -182,42 +184,43 @@ class TestAIChatBotHelpers:
         assert "." in result or "!" in result or "?" in result, "Should cut at sentence boundary when possible"
 
     def test_extract_command_from_response_json(self, chatbot_instance):
-        """Test _extract_command_from_response extracts JSON."""
+        """Test command_interpreter.extract_command_from_response extracts JSON."""
         response = '{"action": "create_task", "title": "Buy groceries"}'
-        result = chatbot_instance._extract_command_from_response(response)
+        result = get_command_interpreter().extract_command_from_response(response)
         
         assert "create_task" in result, "Should extract JSON command"
         assert "Buy groceries" in result, "Should include task details"
 
     def test_extract_command_from_response_key_value(self, chatbot_instance):
-        """Test _extract_command_from_response extracts key-value format."""
+        """Test command_interpreter.extract_command_from_response extracts key-value format."""
         response = "ACTION: create_task\nTITLE: Buy groceries\nPRIORITY: high"
-        result = chatbot_instance._extract_command_from_response(response)
+        result = get_command_interpreter().extract_command_from_response(response)
         
         assert "ACTION: create_task" in result, "Should extract ACTION"
         assert "TITLE: Buy groceries" in result, "Should extract TITLE"
         assert "PRIORITY: high" in result, "Should extract PRIORITY"
 
     def test_extract_command_from_response_skips_code(self, chatbot_instance):
-        """Test _extract_command_from_response skips code blocks."""
+        """Test command_interpreter.extract_command_from_response skips code blocks."""
         response = "```python\nimport os\n```\nACTION: create_task\nTITLE: Test"
-        result = chatbot_instance._extract_command_from_response(response)
+        result = get_command_interpreter().extract_command_from_response(response)
         
         assert "import os" not in result, "Should skip code blocks"
         assert "ACTION: create_task" in result, "Should keep command lines"
 
     def test_extract_command_from_response_empty(self, chatbot_instance):
-        """Test _extract_command_from_response with empty response."""
-        result = chatbot_instance._extract_command_from_response("")
+        """Test command_interpreter.extract_command_from_response with empty response."""
+        interpreter = get_command_interpreter()
+        result = interpreter.extract_command_from_response("")
         assert result == "", "Should return empty string for empty input"
         
-        result = chatbot_instance._extract_command_from_response(None)
+        result = interpreter.extract_command_from_response(None)
         assert result == "" or result is None, "Should handle None gracefully"
 
     def test_extract_command_from_response_natural_language(self, chatbot_instance):
-        """Test _extract_command_from_response handles natural language."""
+        """Test command_interpreter.extract_command_from_response handles natural language."""
         response = "I want to create a task to buy groceries"
-        result = chatbot_instance._extract_command_from_response(response)
+        result = get_command_interpreter().extract_command_from_response(response)
         
         # Should return the response as-is or extract what it can
         assert isinstance(result, str), "Should return string"
@@ -259,7 +262,7 @@ class TestAIChatBotHelpers:
                 }
             }
             
-            result = chatbot_instance._get_fallback_personalized_message("user123")
+            result = get_fallback_responses().personalized("user123")
             
             assert "TestUser" in result, "Should include user name"
 
@@ -272,7 +275,7 @@ class TestAIChatBotHelpers:
                 {'mood': 5, 'energy': 5}
             ]
             
-            result = chatbot_instance._get_fallback_personalized_message("user123")
+            result = get_fallback_responses().personalized("user123")
             
             assert "doing great" in result.lower() or "positive" in result.lower() or "progress" in result.lower(), "Should adapt to positive mood"
 
@@ -285,7 +288,7 @@ class TestAIChatBotHelpers:
                 {'mood': 1, 'energy': 1}
             ]
             
-            result = chatbot_instance._get_fallback_personalized_message("user123")
+            result = get_fallback_responses().personalized("user123")
             
             assert "challenging" in result.lower() or "tough" in result.lower() or "temporary" in result.lower(), "Should adapt to low mood"
 
@@ -294,7 +297,7 @@ class TestAIChatBotHelpers:
         with patch('ai.fallback_responses.data_access.get_user_data', return_value={}), \
              patch('ai.fallback_responses.data_access.get_recent_responses', return_value=[]):
             
-            result = chatbot_instance._get_fallback_personalized_message("user123")
+            result = get_fallback_responses().personalized("user123")
             
             assert isinstance(result, str), "Should return string"
             assert len(result) > 0, "Should return non-empty message"

@@ -464,7 +464,7 @@ class TestConversationFlowManagerBehavior:
         # Prepare communication manager dependencies to avoid real sends
         comm_manager = CommunicationManager()
         mock_channel_get_user_data.return_value = {'preferences': {'channel': {'type': 'discord'}}}
-        monkeypatch.setattr(comm_manager, '_get_recipient_for_service', lambda *_, **__: 'recipient')
+        monkeypatch.setattr(comm_manager, 'get_recipient_for_service', lambda *_, **__: 'recipient')
         monkeypatch.setattr(comm_manager, '_send_ai_generated_message', lambda *_, **__: (True, "test message"))
         monkeypatch.setattr(comm_manager, '_send_predefined_message', lambda *_, **__: (True, "test message"))
 

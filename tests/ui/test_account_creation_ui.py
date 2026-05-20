@@ -2288,9 +2288,20 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         )
         assert user_id is not None, "User ID should be found"
 
+        def _user_in_build_index() -> bool:
+            from storage.user_data_operations import build_user_index
+
+            index = build_user_index()
+            return user_id in index and index[user_id].get("active") is True
+
+        assert wait_until(
+            _user_in_build_index,
+            timeout_seconds=30.0,
+            poll_seconds=0.1,
+        ), "User should appear in build_user_index after account creation"
+
         user_index = build_user_index()
         assert user_id in user_index, "User should be in user index"
-        # User index contains: active, categories, last_updated, message_count
         assert (
             "active" in user_index[user_id]
         ), "User index should contain active status"
