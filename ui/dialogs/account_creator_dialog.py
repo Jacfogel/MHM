@@ -677,6 +677,7 @@ class AccountCreatorDialog(QDialog):
     @handle_errors("collecting channel data")
     def _validate_and_accept__collect_channel_data(self) -> tuple[str, dict, dict]:
         """Collect channel and contact information from widgets."""
+        # not_duplicate: account_creator_collect_pipeline
         # Get selected timezone from channel widget
         timezone = (
             self.channel_widget.get_timezone()
@@ -720,6 +721,7 @@ class AccountCreatorDialog(QDialog):
     @handle_errors("collecting widget data")
     def _validate_and_accept__collect_widget_data(self) -> tuple[list, dict, dict]:
         """Collect data from all widgets."""
+        # not_duplicate: account_creator_collect_pipeline
         logger.info("About to collect category widget data")
         categories = (
             self.category_widget.get_selected_categories()
@@ -861,6 +863,7 @@ class AccountCreatorDialog(QDialog):
     @handle_errors("collecting data")
     def _validate_and_accept__collect_data(self) -> dict:
         """Collect all data from UI and build account data structure."""
+        # not_duplicate: account_creator_collect_pipeline
         messages_enabled, tasks_enabled, checkins_enabled = (
             self._validate_and_accept__collect_feature_settings()
         )

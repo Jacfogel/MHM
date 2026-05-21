@@ -359,6 +359,26 @@ class ContextBuilder:
             return []
 
 
+@handle_errors("analyzing recent check-in response rows", default_return=ContextAnalysis())
+def analyze_recent_checkin_rows(
+    recent_checkins: list[dict[str, Any]] | None,
+) -> ContextAnalysis:
+    """
+    Canonical check-in metrics from raw recent-response rows.
+
+    Same aggregates as ``ContextBuilder.analyze_context`` for the check-in slice
+    of ``ContextData``, without loading profile or conversation history. Used by
+    fallback routing and tests that need analytically consistent numbers with
+    conversational context.
+    """
+    builder = get_context_builder()
+    if builder is None:
+        return ContextAnalysis()
+    return builder.analyze_context(
+        ContextData(recent_checkins=list(recent_checkins or []))
+    )
+
+
 # Global context builder instance
 _context_builder = None
 

@@ -4,11 +4,9 @@
 
 import ai.fallback_responses.data_access as data_access
 
+from ai.context_builder import analyze_recent_checkin_rows
 from ai.fallback_responses.categories import FallbackCategory
-from ai.fallback_responses.checkin_summary import (
-    compute_checkin_metrics,
-    try_checkin_summary_response,
-)
+from ai.fallback_responses.checkin_summary import try_checkin_summary_response
 from ai.fallback_responses.conversational import (
     default_contextual_response,
     try_conversational_support,
@@ -46,9 +44,9 @@ def build_contextual_fallback(
     is_new_user = bool(not user_context or (user_id and not recent_data))
 
     if recent_data:
-        metrics = compute_checkin_metrics(recent_data)
+        analysis = analyze_recent_checkin_rows(recent_data)
         checkin_result = try_checkin_summary_response(
-            prompt_lower, metrics, name_prefix
+            prompt_lower, analysis, name_prefix
         )
         if checkin_result:
             return checkin_result

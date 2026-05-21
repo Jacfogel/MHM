@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock, mock_open
 
 from core.service import MHMService, main, get_scheduler_manager
+import core.service_requests as service_requests
 from core.error_handling import CommunicationError, SchedulerError
 from core.time_utilities import TIMESTAMP_FULL, format_timestamp
 
@@ -1209,8 +1210,9 @@ class TestCoreServiceCoverageExpansion:
                 f,
             )
 
-        with patch(
-            "core.service.MHMService._check_reschedule_requests__get_base_directory",
+        with patch.object(
+            service,
+            "_get_service_request_base_directory",
             return_value=str(temp_base_dir),
         ):
             service.check_reschedule_requests()
@@ -1240,8 +1242,9 @@ class TestCoreServiceCoverageExpansion:
                 f,
             )
 
-        with patch(
-            "core.service.MHMService._check_reschedule_requests__get_base_directory",
+        with patch.object(
+            service,
+            "_get_service_request_base_directory",
             return_value=str(temp_base_dir),
         ):
             service.check_reschedule_requests()
@@ -1269,8 +1272,9 @@ class TestCoreServiceCoverageExpansion:
                 f,
             )
 
-        with patch(
-            "core.service.MHMService._check_reschedule_requests__get_base_directory",
+        with patch.object(
+            service,
+            "_get_service_request_base_directory",
             return_value=str(temp_base_dir),
         ):
             service.check_reschedule_requests()
@@ -1292,8 +1296,9 @@ class TestCoreServiceCoverageExpansion:
         with open(request_file, "w") as f:
             f.write("invalid json")
 
-        with patch(
-            "core.service.MHMService._check_reschedule_requests__get_base_directory",
+        with patch.object(
+            service,
+            "_get_service_request_base_directory",
             return_value=str(temp_base_dir),
         ):
             service.check_reschedule_requests()
@@ -1648,7 +1653,7 @@ class TestCoreServiceCoverageExpansion:
             patch("core.service_requests.os.remove") as mock_remove,
         ):
 
-            service._check_reschedule_requests__handle_processing_error(
+            service_requests.handle_reschedule_request_processing_error(
                 request_file, filename, error
             )
 
@@ -1681,7 +1686,7 @@ class TestCoreServiceCoverageExpansion:
             ) as mock_handle_error,
         ):
 
-            service._check_reschedule_requests__handle_processing_error(
+            service_requests.handle_reschedule_request_processing_error(
                 request_file, filename, error
             )
 
@@ -1707,7 +1712,7 @@ class TestCoreServiceCoverageExpansion:
             patch("core.service_requests.os.remove") as mock_remove,
         ):
 
-            service._check_test_message_requests__handle_processing_error(
+            service_requests.handle_test_message_request_processing_error(
                 request_file, filename, error
             )
 
@@ -1740,7 +1745,7 @@ class TestCoreServiceCoverageExpansion:
             ) as mock_handle_error,
         ):
 
-            service._check_test_message_requests__handle_processing_error(
+            service_requests.handle_test_message_request_processing_error(
                 request_file, filename, error
             )
 
@@ -1770,8 +1775,10 @@ class TestCoreServiceCoverageExpansion:
             patch("core.service_requests.os.remove"),
         ):
 
-            result = service._check_reschedule_requests__validate_request_data(
-                request_data, filename
+            result = service_requests.validate_reschedule_request_data(
+                service.to_service_request_context(),
+                request_data,
+                filename,
             )
 
             assert result is False
@@ -1792,8 +1799,10 @@ class TestCoreServiceCoverageExpansion:
         filename = "reschedule_request_user1.flag"
 
         with patch("core.service_requests.logger") as mock_logger:
-            result = service._check_reschedule_requests__validate_request_data(
-                request_data, filename
+            result = service_requests.validate_reschedule_request_data(
+                service.to_service_request_context(),
+                request_data,
+                filename,
             )
 
             assert result is False

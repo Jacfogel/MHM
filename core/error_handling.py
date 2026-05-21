@@ -201,7 +201,7 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
                 _safe_logger.info(f"Created missing directory: {directory}")
 
             # Create default data based on file type
-            default_data = self._get_default_data(file_path, context)
+            default_data = _recovery_default_document_for_path(file_path, context)
             if default_data is not None:
                 with open(file_path, "w", encoding="utf-8") as f:
                     import json
@@ -216,42 +216,6 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
         except Exception as e:
             _safe_logger.error(f"File recovery failed: {e}")
             return False
-
-    # ERROR_HANDLING_EXCLUDE: Part of error handling infrastructure
-    def _get_default_data(
-        self, file_path: str, context: dict[str, Any]
-    ) -> dict[str, Any] | None:
-        """Get appropriate default data based on file type."""
-        if "user_info" in file_path:
-            return {
-                "user_id": context.get("user_id", "unknown"),
-                "preferences": {},
-                "created": now_timestamp_full(),
-            }
-        elif "messages" in file_path:
-            return {
-                "messages": [],
-                "category": context.get("category", "unknown"),
-                "created": now_timestamp_full(),
-            }
-        elif "schedule" in file_path:
-            return {
-                "periods": [],
-                "category": context.get("category", "unknown"),
-                "created": now_timestamp_full(),
-            }
-        elif "checkins" in file_path:
-            return _default_new_checkins_file_payload()
-        elif "chat_interactions" in file_path:
-            return []
-        elif file_path.endswith(".json"):
-            # Generic JSON file - create basic structure
-            return {
-                "data": {},
-                "created": now_timestamp_full(),
-                "file_type": "generic_json",
-            }
-        return None
 
 
 class JSONDecodeRecovery(ErrorRecoveryStrategy):
@@ -308,7 +272,7 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
                 )
 
             # Create new file with default data
-            default_data = self._get_default_data(file_path, context)
+            default_data = _recovery_default_document_for_path(file_path, context)
             if default_data is not None:
                 with open(file_path, "w", encoding="utf-8") as f:
                     import json
@@ -323,42 +287,6 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
         except Exception as e:
             _safe_logger.error(f"JSON recovery failed: {e}")
             return False
-
-    # ERROR_HANDLING_EXCLUDE: Part of error handling infrastructure
-    def _get_default_data(
-        self, file_path: str, context: dict[str, Any]
-    ) -> dict[str, Any] | None:
-        """Get appropriate default data based on file type."""
-        if "user_info" in file_path:
-            return {
-                "user_id": context.get("user_id", "unknown"),
-                "preferences": {},
-                "created": now_timestamp_full(),
-            }
-        elif "messages" in file_path:
-            return {
-                "messages": [],
-                "category": context.get("category", "unknown"),
-                "created": now_timestamp_full(),
-            }
-        elif "schedule" in file_path:
-            return {
-                "periods": [],
-                "category": context.get("category", "unknown"),
-                "created": now_timestamp_full(),
-            }
-        elif "checkins" in file_path:
-            return _default_new_checkins_file_payload()
-        elif "chat_interactions" in file_path:
-            return []
-        elif file_path.endswith(".json"):
-            # Generic JSON file - create basic structure
-            return {
-                "data": {},
-                "created": now_timestamp_full(),
-                "file_type": "generic_json",
-            }
-        return None
 
 
 class NetworkRecovery(ErrorRecoveryStrategy):
@@ -736,6 +664,50 @@ def handle_errors(
             return wrapper
 
     return decorator
+
+
+@handle_errors(
+    "resolving recovery default document for path",
+    user_friendly=False,
+    default_return=None,
+)
+def _recovery_default_document_for_path(
+    file_path: str, context: dict[str, Any]
+) -> dict[str, Any] | list[Any] | None:
+    """
+    Default on-disk shape for user JSON files when recovery recreates them.
+
+    Shared by file-not-found and JSON-decode recovery so defaults stay aligned.
+    """
+    if "user_info" in file_path:
+        return {
+            "user_id": context.get("user_id", "unknown"),
+            "preferences": {},
+            "created": now_timestamp_full(),
+        }
+    if "messages" in file_path:
+        return {
+            "messages": [],
+            "category": context.get("category", "unknown"),
+            "created": now_timestamp_full(),
+        }
+    if "schedule" in file_path:
+        return {
+            "periods": [],
+            "category": context.get("category", "unknown"),
+            "created": now_timestamp_full(),
+        }
+    if "checkins" in file_path:
+        return _default_new_checkins_file_payload()
+    if "chat_interactions" in file_path:
+        return []
+    if file_path.endswith(".json"):
+        return {
+            "data": {},
+            "created": now_timestamp_full(),
+            "file_type": "generic_json",
+        }
+    return None
 
 
 @handle_errors("safe file operation", default_return=None)

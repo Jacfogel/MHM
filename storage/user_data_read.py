@@ -59,6 +59,109 @@ def _apply_fields_filter(
     return data
 
 
+def _finalize_get_user_data_payload(
+    user_id: str,
+    data_type: str,
+    data: Any,
+    *,
+    fields: str | list[str] | dict[str, str | list[str]] | None,
+    normalize_on_read: bool,
+    include_metadata: bool,
+    loader_info: dict[str, Any],
+) -> Any:
+    """Apply field filtering, optional validation/normalization, schedules shape, and metadata."""
+    data = _apply_fields_filter(data, data_type, fields)
+
+    if normalize_on_read and fields is None and isinstance(data, dict):
+        try:
+            if data_type == "account":
+                normalized, _errs = validate_account_dict(data)
+                if normalized:
+                    if not normalized.get("timezone"):
+                        normalized["timezone"] = "UTC"
+                    data = normalized
+            elif data_type == "preferences":
+                normalized, _errs = validate_preferences_dict(data)
+                if normalized:
+                    try:
+                        caller_categories = (
+                            data.get("categories", [])
+                            if isinstance(data.get("categories"), list)
+                            else []
+                        )
+                        normalized_categories = (
+                            normalized.get("categories", [])
+                            if isinstance(normalized.get("categories"), list)
+                            else []
+                        )
+                        seen = set()
+                        merged = []
+                        for cat in caller_categories + normalized_categories:
+                            if isinstance(cat, str) and cat and cat not in seen:
+                                seen.add(cat)
+                                merged.append(cat)
+                        normalized["categories"] = merged
+                    except Exception:
+                        pass
+                    data = normalized
+            elif data_type == "schedules":
+                normalized, _errs = validate_schedules_dict(data)
+                if normalized:
+                    data = normalized
+                    try:
+                        _ensure_sched = importlib.import_module(
+                            "core.schedule_document_defaults"
+                        ).ensure_all_categories_have_schedules
+                        prefs = get_user_data(user_id, "preferences").get(
+                            "preferences", {}
+                        )
+                        categories = (
+                            prefs.get("categories", [])
+                            if isinstance(prefs, dict)
+                            else []
+                        )
+                        if categories:
+                            _ensure_sched(user_id, suppress_logging=True)
+                            normalized_after, _e2 = validate_schedules_dict(
+                                get_user_data(user_id, "schedules").get(
+                                    "schedules", {}
+                                )
+                            )
+                            if normalized_after:
+                                data = normalized_after
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+    if data_type == "schedules" and isinstance(data, dict):
+        try:
+            if "schedules" in data and isinstance(data["schedules"], dict):
+                data = data["schedules"]
+        except Exception:
+            pass
+
+    if include_metadata and data is not None:
+        ftype = loader_info.get("file_type")
+        if isinstance(ftype, str) and ftype.strip():
+            file_path_meta = get_user_file_path(user_id, ftype)
+            if os.path.exists(file_path_meta):
+                stat = os.stat(file_path_meta)
+                metadata = {
+                    "file_size": stat.st_size,
+                    "modified_time": stat.st_mtime,
+                    "file_path": file_path_meta,
+                    "data_type": data_type,
+                    "description": loader_info.get("description", ""),
+                }
+                if isinstance(data, dict):
+                    data["_metadata"] = metadata
+                else:
+                    data = {"data": data, "_metadata": metadata}
+
+    return data
+
+
 # not_duplicate: clear_user_caches
 @handle_errors("clearing user caches", default_return=None)
 def clear_user_caches(user_id: str | None = None) -> None:
@@ -266,91 +369,15 @@ def get_user_data(
         elif isinstance(data, dict):
             logger.debug(f"Loaded {data_type} keys: {list(data.keys())}")
 
-        data = _apply_fields_filter(data, data_type, fields)
-
-        if normalize_on_read and fields is None and isinstance(data, dict):
-            try:
-                if data_type == "account":
-                    normalized, _errs = validate_account_dict(data)
-                    if normalized:
-                        if not normalized.get("timezone"):
-                            normalized["timezone"] = "UTC"
-                        data = normalized
-                elif data_type == "preferences":
-                    normalized, _errs = validate_preferences_dict(data)
-                    if normalized:
-                        try:
-                            caller_categories = (
-                                data.get("categories", [])
-                                if isinstance(data.get("categories"), list)
-                                else []
-                            )
-                            normalized_categories = (
-                                normalized.get("categories", [])
-                                if isinstance(normalized.get("categories"), list)
-                                else []
-                            )
-                            seen = set()
-                            merged = []
-                            for cat in caller_categories + normalized_categories:
-                                if isinstance(cat, str) and cat and cat not in seen:
-                                    seen.add(cat)
-                                    merged.append(cat)
-                            normalized["categories"] = merged
-                        except Exception:
-                            pass
-                        data = normalized
-                elif data_type == "schedules":
-                    normalized, _errs = validate_schedules_dict(data)
-                    if normalized:
-                        data = normalized
-                        try:
-                            _ensure_sched = importlib.import_module(
-                                "core.schedule_document_defaults"
-                            ).ensure_all_categories_have_schedules
-                            prefs = get_user_data(user_id, "preferences").get(
-                                "preferences", {}
-                            )
-                            categories = (
-                                prefs.get("categories", [])
-                                if isinstance(prefs, dict)
-                                else []
-                            )
-                            if categories:
-                                _ensure_sched(user_id, suppress_logging=True)
-                                normalized_after, _e2 = validate_schedules_dict(
-                                    get_user_data(user_id, "schedules").get(
-                                        "schedules", {}
-                                    )
-                                )
-                                if normalized_after:
-                                    data = normalized_after
-                        except Exception:
-                            pass
-            except Exception:
-                pass
-        if data_type == "schedules" and isinstance(data, dict):
-            try:
-                if "schedules" in data and isinstance(data["schedules"], dict):
-                    data = data["schedules"]
-            except Exception:
-                pass
-
-        if include_metadata and data is not None:
-            file_path = get_user_file_path(user_id, loader_info["file_type"])
-            if os.path.exists(file_path):
-                stat = os.stat(file_path)
-                metadata = {
-                    "file_size": stat.st_size,
-                    "modified_time": stat.st_mtime,
-                    "file_path": file_path,
-                    "data_type": data_type,
-                    "description": loader_info["description"],
-                }
-                if isinstance(data, dict):
-                    data["_metadata"] = metadata
-                else:
-                    data = {"data": data, "_metadata": metadata}
+        data = _finalize_get_user_data_payload(
+            user_id,
+            data_type,
+            data,
+            fields=fields,
+            normalize_on_read=normalize_on_read,
+            include_metadata=include_metadata,
+            loader_info=loader_info,
+        )
 
         if data is not None:
             result[data_type] = data
@@ -408,7 +435,20 @@ def get_user_data(
                         if loader is not None:
                             loaded_val = loader(user_id, True)
                             if loaded_val is not None:
-                                result[key] = loaded_val
+                                entry_info = USER_DATA_LOADERS.get(key)
+                                if not isinstance(entry_info, dict):
+                                    entry_info = {}
+                                finalized_asm = _finalize_get_user_data_payload(
+                                    user_id,
+                                    key,
+                                    loaded_val,
+                                    fields=None,
+                                    normalize_on_read=normalize_on_read,
+                                    include_metadata=include_metadata,
+                                    loader_info=entry_info,
+                                )
+                                if finalized_asm is not None:
+                                    result[key] = finalized_asm
                                 continue
                     except Exception:
                         pass
@@ -426,7 +466,20 @@ def get_user_data(
                             fpath = _get_user_file_path(user_id, ftype)
                             data_from_file = _load_json(fpath)
                             if data_from_file is not None:
-                                result[key] = data_from_file
+                                entry_info = USER_DATA_LOADERS.get(key)
+                                if not isinstance(entry_info, dict):
+                                    entry_info = {}
+                                finalized_asm = _finalize_get_user_data_payload(
+                                    user_id,
+                                    key,
+                                    data_from_file,
+                                    fields=None,
+                                    normalize_on_read=normalize_on_read,
+                                    include_metadata=include_metadata,
+                                    loader_info=entry_info,
+                                )
+                                if finalized_asm is not None:
+                                    result[key] = finalized_asm
                     except Exception:
                         pass
     except Exception:

@@ -40,30 +40,46 @@ def qapp():
 @pytest.fixture(name="test_user")
 def task_management_user(test_data_dir):
     """Create a test user for task management tests."""
-    import time
     from pathlib import Path
+
     from core.file_locking import safe_json_read
+    from tests.test_helpers.test_support.test_helpers import wait_until
 
     user_id = f"test_task_user_{uuid.uuid4().hex[:8]}"
-    TestUserFactory.create_basic_user(user_id, enable_tasks=True, test_data_dir=test_data_dir)
-    users_dir = Path(test_data_dir) / "users"
+    ok = TestUserFactory.create_basic_user(
+        user_id, enable_tasks=True, test_data_dir=test_data_dir
+    )
+    if not ok:
+        pytest.fail(
+            f"TestUserFactory.create_basic_user failed for internal_username={user_id!r}"
+        )
 
-    for _ in range(60):
+    users_dir = Path(test_data_dir) / "users"
+    resolved: dict[str, str | None] = {"id": None}
+
+    def _try_resolve() -> bool:
         # Prefer on-disk scan to avoid stale user_index mappings under parallel load.
         if users_dir.exists():
             for account_file in users_dir.glob("*/account.json"):
                 account_data = safe_json_read(str(account_file), default={})
                 if account_data.get("internal_username") == user_id:
-                    return account_file.parent.name
-
-        # Fallback to index-based lookup if scan has not materialized yet.
-        resolved_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+                    resolved["id"] = account_file.parent.name
+                    return True
+        rid = TestUserFactory.get_test_user_id_by_internal_username(
             user_id, test_data_dir
         )
-        if resolved_user_id:
-            return resolved_user_id
-        time.sleep(0.05)
-    pytest.fail("Failed to resolve task-management test user id")
+        if rid:
+            resolved["id"] = rid
+            return True
+        return False
+
+    assert wait_until(
+        _try_resolve,
+        timeout_seconds=30.0,
+        poll_seconds=0.1,
+    ), f"Failed to resolve task-management test user id ({user_id!r})"
+    assert resolved["id"] is not None
+    return resolved["id"]
 
 
 @pytest.fixture

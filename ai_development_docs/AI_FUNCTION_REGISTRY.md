@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-20 00:06:13
+> **Last Generated**: 2026-05-20 02:03:42
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 93.5% [!] GOOD**
-- **Total Functions**: 1821
-- **Total Methods**: 1243
-- **Documented**: 2865/3064
+- **Total Functions**: 1811
+- **Total Methods**: 1232
+- **Documented**: 2845/3043
 - **Files Scanned**: 152
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -54,7 +54,7 @@ UI Operations Decision Tree:
 ### **[CORE] Need Core System Operations?**
 ```
 Core System Decision Tree:
-+-- `core/service.py` - Main service (91 functions)
++-- `core/service.py` - Main service (73 functions)
 +-- `core/config.py` - Configuration (19 functions)
 `-- `scheduler/manager.py` - Scheduling (71/72 functions)```
 
@@ -167,7 +167,6 @@ Core System Decision Tree:
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
 - `ai/fallback_responses/conversational.py` - 2/4 functions undocumented (50% coverage)
-- `ai/fallback_responses/checkin_summary.py` - 1/2 functions undocumented (50% coverage)
 - `core/user_lookup.py` - 1/3 functions undocumented (67% coverage)
 
 
@@ -201,7 +200,7 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (25 files, 263 functions)
 - `communication/` - Communication channels and message processing (45 files, 943 functions)
-- `core/` - System utilities and data management (33 files, 727 functions)
+- `core/` - System utilities and data management (33 files, 706 functions)
 - `scheduler/` -  (5 files, 92 functions)
 - `tasks/` - Task management system (6 files, 86 functions)
 - `ui/` - User interface components (30 files, 837 functions)

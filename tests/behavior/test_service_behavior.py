@@ -400,7 +400,7 @@ class TestMHMService:
         
         with patch.object(
             service,
-            "_check_reschedule_requests__get_base_directory",
+            "_get_service_request_base_directory",
             return_value=temp_base_dir,
         ), patch("core.service.os.remove") as mock_remove:
             service.check_reschedule_requests()
@@ -434,7 +434,7 @@ class TestMHMService:
         
         with patch.object(
             service,
-            "_check_reschedule_requests__get_base_directory",
+            "_get_service_request_base_directory",
             return_value=temp_base_dir,
         ):
             service.cleanup_reschedule_requests()

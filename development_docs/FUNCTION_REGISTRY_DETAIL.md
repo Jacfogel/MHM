@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-20 00:06:13
+> **Last Generated**: 2026-05-20 02:03:42
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 93.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 152
-- **Functions Found**: 1821
-- **Methods Found**: 1243
-- **Classes Found**: 177
-- **Total Items**: 3064
-- **Functions Documented**: 1687
-- **Methods Documented**: 1178
+- **Functions Found**: 1811
+- **Methods Found**: 1232
+- **Classes Found**: 176
+- **Total Items**: 3043
+- **Functions Documented**: 1678
+- **Methods Documented**: 1167
 - **Classes Documented**: 138
-- **Total Documented**: 2865
+- **Total Documented**: 2845
 - **Template-Generated**: 24
 - **Last Updated**: 2026-05-20
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (502)
+### **Core System Functions** (492)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (499)
@@ -236,6 +236,12 @@ Args:
 
 Returns:
     ContextAnalysis with insights and trends
+- [OK] `analyze_recent_checkin_rows(recent_checkins)` - Canonical check-in metrics from raw recent-response rows.
+
+Same aggregates as ``ContextBuilder.analyze_context`` for the check-in slice
+of ``ContextData``, without loading profile or conversation history. Used by
+fallback routing and tests that need analytically consistent numbers with
+conversational context.
 - [OK] `build_user_context(self, user_id, include_conversation_history)` - Build comprehensive context for a user
 
 Args:
@@ -504,10 +510,10 @@ Returns:
 
 #### `ai/fallback_responses/checkin_summary.py`
 **Functions:**
-- [MISSING] `compute_checkin_metrics(recent_data)` - No description
-- [OK] `try_checkin_summary_response(prompt_lower, metrics, name_prefix)` - Return a check-in summary fallback when prompt and data align.
-**Classes:**
-- [MISSING] `CheckinMetrics` - No description
+- [OK] `try_checkin_summary_response(prompt_lower, analysis, name_prefix)` - Return a check-in summary fallback when prompt and data align.
+
+``analysis`` must come from ``ContextBuilder.analyze_context`` or
+``analyze_recent_checkin_rows`` so metrics match conversational context.
 
 #### `ai/fallback_responses/conversational.py`
 **Functions:**
@@ -3135,10 +3141,11 @@ Args:
     category: Category of the operation
 - [OK] `_default_new_checkins_file_payload()` - Empty v2 envelope when recovery creates ``checkins.json``.
 ``schema_version`` must stay aligned with ``storage.user_data_v2_base.SCHEMA_VERSION``.
-- [OK] `_get_default_data(self, file_path, context)` - Get appropriate default data based on file type.
-- [OK] `_get_default_data(self, file_path, context)` - Get appropriate default data based on file type.
 - [OK] `_get_user_friendly_message(self, error, context)` - Convert technical error to user-friendly message.
 - [OK] `_log_error(self, error, context)` - Log error with context.
+- [OK] `_recovery_default_document_for_path(file_path, context)` - Default on-disk shape for user JSON files when recovery recreates them.
+
+Shared by file-not-found and JSON-decode recovery so defaults stay aligned.
 - [OK] `_show_user_error(self, error, context, custom_message)` - Show user-friendly error message.
 - [OK] `can_handle(self, error)` - Check if this strategy can handle the given error.
 - [OK] `can_handle(self, error)` - Check if this strategy can handle the given error.
@@ -3282,7 +3289,6 @@ Args:
   - [OK] `ErrorRecoveryStrategy.recover(self, error, context)` - Attempt to recover from the error. Returns True if successful.
 - [OK] `FileNotFoundRecovery` - Recovery strategy for missing files.
   - [OK] `FileNotFoundRecovery.__init__(self)` - Initialize the FileNotFoundRecovery strategy.
-  - [OK] `FileNotFoundRecovery._get_default_data(self, file_path, context)` - Get appropriate default data based on file type.
   - [OK] `FileNotFoundRecovery.can_handle(self, error)` - Check if this strategy can handle the given error.
 
 Args:
@@ -3301,7 +3307,6 @@ Returns:
 - [OK] `FileOperationError` - Raised when file operations fail.
 - [OK] `JSONDecodeRecovery` - Recovery strategy for corrupted JSON files.
   - [OK] `JSONDecodeRecovery.__init__(self)` - Initialize the JSONDecodeRecovery strategy.
-  - [OK] `JSONDecodeRecovery._get_default_data(self, file_path, context)` - Get appropriate default data based on file type.
   - [OK] `JSONDecodeRecovery.can_handle(self, error)` - Check if this strategy can handle the given error.
 
 Args:
@@ -4274,15 +4279,6 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
 - [OK] `_check_and_fix_logging__read_recent_log_content(self)` - Read the last 1000 characters from the log file to check for recent activity.
 - [OK] `_check_and_fix_logging__test_logging_functionality(self, test_message)` - Test if logging functionality works by writing a test message and flushing handlers.
 - [OK] `_check_and_fix_logging__verify_test_message_present(self, recent_content, test_message, test_timestamp)` - Check if our test message or recent timestamp patterns are present in log content.
-- [OK] `_check_reschedule_requests__get_base_directory(self)` - Get the base directory for reschedule request files.
-- [OK] `_check_reschedule_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
-- [OK] `_check_reschedule_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
-- [OK] `_check_test_message_requests__discover_request_files(self, base_dir)` - Discover all test message request files in the base directory.
-- [OK] `_check_test_message_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
-- [OK] `_check_test_message_requests__parse_request_file(self, request_file)` - Parse and validate a test message request file.
-- [OK] `_check_test_message_requests__process_valid_request(self, request_data)` - Process a valid test message request.
-- [OK] `_check_test_message_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
-- [OK] `_check_test_message_requests__write_response(self, user_id, category, message)` - Write the actual message content to a response file for the UI to read.
 - [OK] `_cleanup_request_file_after_process(self, request_file, filename, request_type_label)` - Remove a processed request file and log. Shared by test message and reschedule request flows.
 - [OK] `_cleanup_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
 - [OK] `_cleanup_test_message_requests__remove_request_file(self, request_file, filename)` - Remove a single test message request file with proper error handling.
@@ -4344,15 +4340,6 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
   - [OK] `MHMService._check_and_fix_logging__read_recent_log_content(self)` - Read the last 1000 characters from the log file to check for recent activity.
   - [OK] `MHMService._check_and_fix_logging__test_logging_functionality(self, test_message)` - Test if logging functionality works by writing a test message and flushing handlers.
   - [OK] `MHMService._check_and_fix_logging__verify_test_message_present(self, recent_content, test_message, test_timestamp)` - Check if our test message or recent timestamp patterns are present in log content.
-  - [OK] `MHMService._check_reschedule_requests__get_base_directory(self)` - Get the base directory for reschedule request files.
-  - [OK] `MHMService._check_reschedule_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
-  - [OK] `MHMService._check_reschedule_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
-  - [OK] `MHMService._check_test_message_requests__discover_request_files(self, base_dir)` - Discover all test message request files in the base directory.
-  - [OK] `MHMService._check_test_message_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
-  - [OK] `MHMService._check_test_message_requests__parse_request_file(self, request_file)` - Parse and validate a test message request file.
-  - [OK] `MHMService._check_test_message_requests__process_valid_request(self, request_data)` - Process a valid test message request.
-  - [OK] `MHMService._check_test_message_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
-  - [OK] `MHMService._check_test_message_requests__write_response(self, user_id, category, message)` - Write the actual message content to a response file for the UI to read.
   - [OK] `MHMService._cleanup_request_file_after_process(self, request_file, filename, request_type_label)` - Remove a processed request file and log. Shared by test message and reschedule request flows.
   - [OK] `MHMService._cleanup_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
   - [OK] `MHMService._cleanup_test_message_requests__remove_request_file(self, request_file, filename)` - Remove a single test message request file with proper error handling.

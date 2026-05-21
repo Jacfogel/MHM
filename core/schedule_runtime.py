@@ -507,6 +507,7 @@ def get_period_data__time_24h_to_12h_display(time_24h):
             - minute (int): Minute (0-59)
             - is_pm (bool): True if PM, False if AM
     """
+    # not_duplicate: schedule_period_display_conversion_pair
     try:
         hour_24, minute = map(int, time_24h.split(":"))
 
@@ -539,6 +540,7 @@ def get_period_data__time_12h_display_to_24h(hour_12, minute, is_pm):
     Returns:
         str: Time in 24-hour format (HH:MM)
     """
+    # not_duplicate: schedule_period_display_conversion_pair
     try:
         if hour_12 == 12:
             hour_24 = 0 if not is_pm else 12

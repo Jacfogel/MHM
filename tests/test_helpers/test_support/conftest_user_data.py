@@ -110,8 +110,18 @@ def fix_user_data_loaders():
         ("schedules", um._get_user_data__load_schedules, "schedules"),
     ]:
         entry = um.USER_DATA_LOADERS.get(key)
-        if entry and entry.get("loader") is None:
-            um.register_data_loader(key, func, ftype)
+        if isinstance(entry, dict):
+            entry["loader"] = func
+            if not entry.get("file_type"):
+                entry["file_type"] = ftype
+        else:
+            um.USER_DATA_LOADERS[key] = {
+                "loader": func,
+                "file_type": ftype,
+                "default_fields": [],
+                "metadata_fields": [],
+                "description": f"Default {key} data loader",
+            }
     yield
 
 

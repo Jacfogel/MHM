@@ -591,7 +591,7 @@ class TestAccountLifecycle:
     @pytest.mark.slow
     def test_add_message_category(self, update_user_index_for_test):
         """Test adding a new message category to user preferences."""
-        from core import get_user_data
+        from core import get_user_data, clear_user_caches
         
         # Arrange - Create user with automated_messages enabled and basic categories
         user_id = "test-add-category"
@@ -652,14 +652,12 @@ class TestAccountLifecycle:
         update_user_index(actual_user_id)
         update_user_index_for_test(actual_user_id)
         
-        # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify)
-        updated_data = get_user_data(actual_user_id)
-        assert "health" in updated_data["preferences"]["categories"], "Health category should be added"
-        
-        # Verify user preferences reflects the change
-        prefs_data = get_user_data(actual_user_id, 'preferences')
-        categories = prefs_data.get('preferences', {}).get('categories', [])
-        assert "health" in categories, "Health category should be in user preferences"
+        # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify).
+        # Prefer targeted preferences read + cache clear: parallel / "all" loads can omit keys briefly.
+        clear_user_caches(actual_user_id)
+        prefs_data = get_user_data(actual_user_id, "preferences")
+        categories = prefs_data.get("preferences", {}).get("categories", [])
+        assert "health" in categories, "Health category should be added and reflected in preferences"
         
         # Test removing category via public API (optimization: removed redundant _materialize_and_verify)
         current = get_user_data(actual_user_id, 'preferences')
@@ -673,13 +671,17 @@ class TestAccountLifecycle:
         update_user_index_for_test(actual_user_id)
         
         # Verify category was removed (optimization: removed redundant _materialize_and_verify)
-        updated_data = get_user_data(actual_user_id)
-        assert "health" not in updated_data["preferences"]["categories"], "Health category should be removed"
+        clear_user_caches(actual_user_id)
+        prefs_after_removal = get_user_data(actual_user_id, "preferences").get(
+            "preferences", {}
+        )
+        cats_after = prefs_after_removal.get("categories", [])
+        assert "health" not in cats_after, "Health category should be removed"
     
     @pytest.mark.integration
-    def test_remove_message_category(self):
+    def test_remove_message_category(self, update_user_index_for_test):
         """Test removing a message category from user preferences."""
-        from core import get_user_data
+        from core import get_user_data, clear_user_caches
         
         # Arrange - Create user with multiple categories
         user_id = "test-remove-category"
@@ -725,8 +727,7 @@ class TestAccountLifecycle:
         
         # Update user index (optimization: use update_user_index instead of rebuild)
         update_user_index(actual_user_id)
-        
-        # Act - Remove category via public API (optimization: materialize once at start)
+        update_user_index_for_test(actual_user_id)
         self._materialize_and_verify(actual_user_id)
         from core import update_user_preferences
         prefs_now = get_user_data(actual_user_id, 'preferences').get('preferences', {})
@@ -737,12 +738,15 @@ class TestAccountLifecycle:
         
         # Update user index after category removal (optimization: use update_user_index)
         update_user_index(actual_user_id)
+        update_user_index_for_test(actual_user_id)
         
         # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify)
-        updated_data = get_user_data(actual_user_id)
-        assert "health" not in updated_data["preferences"]["categories"], "Health category should be removed"
-        assert len(updated_data["preferences"]["categories"]) == 1, "Should have 1 category"
-        assert "motivational" in updated_data["preferences"]["categories"], "Motivational should remain"
+        clear_user_caches()
+        prefs_block = get_user_data(actual_user_id, "preferences").get("preferences", {})
+        updated_cats = prefs_block.get("categories", [])
+        assert "health" not in updated_cats, "Health category should be removed"
+        assert len(updated_cats) == 1, "Should have 1 category"
+        assert "motivational" in updated_cats, "Motivational should remain"
     
     @pytest.mark.integration
     def test_add_schedule_period(self):

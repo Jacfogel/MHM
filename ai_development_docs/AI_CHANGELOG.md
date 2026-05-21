@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-20 - Shared check-in analytics and service request cleanup **COMPLETED**
+- Removed thin `MHMService._check_test_message_requests__*` / `_check_reschedule_requests__*` delegates; reschedule paths use `to_service_request_context()`; tests call `core.service_requests` directly
+- `analyze_recent_checkin_rows()` in `context_builder.py`; fallback `checkin_summary` uses `ContextAnalysis` (dropped duplicate `compute_checkin_metrics`); parity tests in `test_context_analytics_shared_source.py`
+- `SYSTEM_AI_GUIDE.md` updated; completed service/check-in items cleared from [TODO.md](../TODO.md); recovery default JSON unified in `error_handling.py` (`@handle_errors` on `_recovery_default_document_for_path`); intentional `not_duplicate` for schedule time conversion + account creator collect steps; `clear_user_caches()` in user-index UI test + parallel-hardened `test_remove_message_category` integration test; function registry lists recovery helper
+- Parallel Tier 3: `get_user_data` test-only assembly now runs the same finalize path as primary loads (`normalize_on_read`, schedules shape, `_metadata`); `_finalize_get_user_data_payload` helper in `storage/user_data_read.py`; `fix_user_data_loaders` autouse fixture resets canonical `USER_DATA_LOADERS` each test so stub loaders cannot leak across scenarios
+- Parallel flake remediation: `test_add_message_category` / removal-branch asserts now read preferences via `get_user_data(..., "preferences")` with cache clears (`integration/test_account_lifecycle.py`); `test_remove_message_category` aligns similarly; `test_create_account_updates_user_index` marked `@pytest.mark.no_parallel` like sibling checks-ins UI test and uses one `wait_until` for index + active (avoids shared `users_index` races under xdist with a redundant follow-up `build_user_index()`)
+- Tier 3 run_test_suite parallel crash: `task_management_user` fixture in [`test_task_management_dialog.py`](../tests/ui/test_task_management_dialog.py) failed setup when `internal_username` lookup lagged under load (~3s retry too short); now requires `create_basic_user` success and resolves UUID via `wait_until` up to 30s (matches other UI stabilization patterns)
+
 ### 2026-05-19 - AI helpers, file prompts, context calculate/phrase split **COMPLETED**
 - Extracted LM Studio HTTP and response post-process from `chatbot.py` into `lm_studio_client` / `response_postprocess`
 - Companion and command prompts under `resources/prompts/`; `context_phraser.py` phrases facts from `ContextBuilder.analyze_context`
@@ -157,12 +165,6 @@ Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency a
 - Kept `core.ui_management` limited to UI-neutral period naming and numbering helpers, and removed the package-level core exports for widget helpers.
 - Updated task/check-in/schedule editor callers and focused tests; removed the completed TODO item.
 - Validation: focused UI/helper tests passed and static search confirms `core/ui_management.py` no longer imports `ui` or Qt.
-
-### 2026-05-11 - Command-handler service thinning and dependency audit cleanup **COMPLETED**
-- Moved task, check-in, and profile command-domain decisions into service helpers while keeping communication handlers responsible for ParsedCommand routing and InteractionResponse formatting.
-- Preserved current handler patch boundaries/Discord behavior, added service-focused tests, fixed the profile show regression, and marked the task stats facade duplicate as intentional with the supported analyzer marker.
-- Raised `urllib3` to `>=2.7.0` and upgraded the local venv; direct `pip-audit --format json` reports no known vulnerabilities.
-- Validation: focused profile/task/check-in tests, marker analysis, duplicate analysis, `py_compile`, `doc-fix --convert-links`, `doc-sync`, direct pip-audit, and standard audit passed. Cache-cleared full audit was killed with exit 137, so it is not counted as clean full-audit validation.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -645,48 +645,6 @@ class MHMService:
         """Quick check if any request files exist (optimization to avoid full scan when not needed)."""
         return service_requests.has_any_request_files(base_dir)
 
-    @handle_errors("discovering test message request files", default_return=[])
-    def _check_test_message_requests__discover_request_files(self, base_dir):
-        """Discover all test message request files in the base directory."""
-        return service_requests.discover_test_message_request_files(base_dir)
-
-    @handle_errors(
-        "parsing test message request file",
-        default_return={"user_id": None, "category": None, "source": "unknown"},
-    )
-    def _check_test_message_requests__parse_request_file(self, request_file):
-        """Parse and validate a test message request file."""
-        return service_requests.parse_test_message_request_file(request_file)
-
-    @handle_errors("validating test message request data", default_return=False)
-    def _check_test_message_requests__validate_request_data(
-        self, request_data, filename
-    ):
-        """Validate request data and check if it should be processed."""
-        return service_requests.validate_test_message_request_data(
-            request_data, filename
-        )
-
-    # not_duplicate: service_request_processing_delegates
-    @handle_errors("processing test message request", default_return=None)
-    def _check_test_message_requests__process_valid_request(self, request_data):
-        """Process a valid test message request."""
-        service_requests.process_valid_test_message_request(
-            self.to_service_request_context(), request_data
-        )
-
-    @handle_errors("writing test message response", default_return=None)
-    def _check_test_message_requests__write_response(
-        self, user_id: str, category: str, message: str
-    ):
-        """Write the actual message content to a response file for the UI to read."""
-        service_requests.write_test_message_response(
-            user_id,
-            category,
-            message,
-            base_dir=self._get_service_request_base_directory(),
-        )
-
     # not_duplicate: cleanup_request_file_delegate
     @handle_errors(
         "cleaning up request file after process",
@@ -699,19 +657,6 @@ class MHMService:
         """Remove a processed request file and log. Shared by test message and reschedule request flows."""
         service_requests.cleanup_request_file_after_process(
             request_file, filename, request_type_label
-        )
-
-    @handle_errors(
-        "cleaning up problematic test message request file",
-        user_friendly=False,
-        default_return=None,
-    )
-    def _check_test_message_requests__handle_processing_error(
-        self, request_file, filename, error
-    ):
-        """Handle errors during request processing."""
-        service_requests.handle_test_message_request_processing_error(
-            request_file, filename, error
         )
 
     # not_duplicate: service_request_processing_delegates
@@ -772,48 +717,15 @@ class MHMService:
             )
         )
 
-    @handle_errors("getting base directory for reschedule requests", default_return="")
-    def _check_reschedule_requests__get_base_directory(self):
-        """Get the base directory for reschedule request files."""
-        return self._get_service_request_base_directory()
-
-    @handle_errors("validating reschedule request data", default_return=False)
-    def _check_reschedule_requests__validate_request_data(self, request_data, filename):
-        """Validate request data and check if it should be processed."""
-        return service_requests.validate_reschedule_request_data(
-            self.to_service_request_context(), request_data, filename
-        )
-
-    @handle_errors(
-        "cleaning up problematic reschedule request file",
-        user_friendly=False,
-        default_return=None,
-    )
-    def _check_reschedule_requests__handle_processing_error(
-        self, request_file, filename, error
-    ):
-        """Handle errors during request processing."""
-        service_requests.handle_reschedule_request_processing_error(
-            request_file, filename, error
-        )
-
     @handle_errors("checking reschedule requests", default_return=None)
     def check_reschedule_requests(self):
         """Check for and process reschedule request files from UI"""
-        service_requests.check_reschedule_requests(
-            self._service_request_context_for_base(
-                self._check_reschedule_requests__get_base_directory()
-            )
-        )
+        service_requests.check_reschedule_requests(self.to_service_request_context())
 
     @handle_errors("cleaning up reschedule requests")
     def cleanup_reschedule_requests(self):
         """Clean up any remaining reschedule request files"""
-        service_requests.cleanup_reschedule_requests(
-            self._service_request_context_for_base(
-                self._check_reschedule_requests__get_base_directory()
-            )
-        )
+        service_requests.cleanup_reschedule_requests(self.to_service_request_context())
 
     @handle_errors("shutting down service")
     def shutdown(self):

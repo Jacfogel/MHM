@@ -4,7 +4,7 @@
 > **Audience**: Developers and AI collaborators working on MHM's AI system
 > **Purpose**: Explain how the AI subsystem is structured, how it behaves at runtime, and how to extend it safely
 > **Style**: Technical, concise, system-level (hybrid of conceptual and concrete details)
-> **Last Updated**: 2026-05-19
+> **Last Updated**: 2026-05-20
 
 ## 1. Overview
 
@@ -44,7 +44,7 @@ The AI subsystem lives primarily under `ai/` and collaborates with `user/` and `
   - Named interaction types (`conversational`, `command_interpretation`, `clarification`, `fallback`) mapped from `generate_response` modes.
 - `ai/fallback_responses/` (package)  
   - Template and data-aware fallback responses when LM Studio is unavailable or API calls fail.  
-  - `ai/fallback_responses/coordinator.py` routes prompts; `ai/fallback_responses/checkin_summary.py` handles check-in analytics; `ai/fallback_responses/conversational.py` handles keyword support; `ai/fallback_responses/personalized.py` and `ai/fallback_responses/profile_helpers.py` handle named greetings.  
+  - `ai/fallback_responses/coordinator.py` routes prompts; `ai/fallback_responses/checkin_summary.py` applies check-in-aware fallback copy using `ContextAnalysis` from `analyze_recent_checkin_rows` / `ContextBuilder.analyze_context` (same aggregates as conversational context); `ai/fallback_responses/conversational.py` handles keyword support; `ai/fallback_responses/personalized.py` and `ai/fallback_responses/profile_helpers.py` handle named greetings.  
   - `ai/fallback_responses/categories.py` defines deterministic categories (`technical_unavailable`, `new_user_no_context`, `data_unavailable`, `checkin_summary`, `general_support`, `personalized_message`).  
   - Public API unchanged: `get_fallback_responses().contextual(...)` / `.personalized(...)`.
 - `ai/command_interpreter.py`  

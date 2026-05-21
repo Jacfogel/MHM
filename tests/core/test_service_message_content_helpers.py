@@ -7,6 +7,7 @@ import pytest
 
 from core.message_preview import get_predefined_message_preview_text
 from core.service import MHMService
+import core.service_requests as service_requests
 
 
 @pytest.fixture
@@ -20,7 +21,7 @@ def service():
 class TestServiceMessageContentHelpers:
     def test_validate_test_message_request_data_rejects_missing_fields(self, service):
         with patch("core.service_requests.logger") as mock_logger:
-            ok = service._check_test_message_requests__validate_request_data(
+            ok = service_requests.validate_test_message_request_data(
                 {"user_id": None, "category": "motivational", "source": "ui"},
                 "test_message_request_1.flag",
             )
@@ -119,7 +120,7 @@ class TestServiceMessageContentHelpers:
         (base_dir / "task_reminder_request_a.flag").write_text("{}", encoding="utf-8")
         (base_dir / "random.txt").write_text("x", encoding="utf-8")
 
-        files = service._check_test_message_requests__discover_request_files(
+        files = service_requests.discover_test_message_request_files(
             str(base_dir)
         )
 
@@ -135,7 +136,7 @@ class TestServiceMessageContentHelpers:
             '{"user_id": "user-1", "category": "motivational"}', encoding="utf-8"
         )
 
-        data = service._check_test_message_requests__parse_request_file(str(request_path))
+        data = service_requests.parse_test_message_request_file(str(request_path))
 
         assert data["user_id"] == "user-1"
         assert data["category"] == "motivational"

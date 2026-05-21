@@ -8,6 +8,7 @@ import pytest
 
 from communication.core.message_send_result import MessageSendResult
 from core.service import MHMService
+import core.service_requests as service_requests
 
 
 @pytest.fixture
@@ -173,7 +174,10 @@ class TestServiceTaskAndMessageRequestHelpers:
             "_get_service_request_base_directory",
             return_value=str(base_dir),
         ):
-            service._check_test_message_requests__process_valid_request(request_data)
+            service_requests.process_valid_test_message_request(
+                service.to_service_request_context(),
+                request_data,
+            )
 
         service.communication_manager.handle_message_sending.assert_called_once_with(
             "user-1", "motivational"
@@ -195,9 +199,12 @@ class TestServiceTaskAndMessageRequestHelpers:
             "source": "admin_panel",
         }
 
-        with patch.object(
-            service, "_check_test_message_requests__write_response"
+        with patch(
+            "core.service_requests.write_test_message_response"
         ) as mock_write_response:
-            service._check_test_message_requests__process_valid_request(request_data)
+            service_requests.process_valid_test_message_request(
+                service.to_service_request_context(),
+                request_data,
+            )
 
         mock_write_response.assert_not_called()

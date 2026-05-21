@@ -2258,8 +2258,10 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
+    @pytest.mark.no_parallel  # shared user index JSON + test_data_dir under xdist; races with other workers
     def test_create_account_updates_user_index(self, dialog, test_data_dir):
         """Test that create_account updates the user index."""
+        from core import clear_user_caches
         from storage.user_data_operations import build_user_index
         import uuid
 
@@ -2288,24 +2290,22 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         )
         assert user_id is not None, "User ID should be found"
 
-        def _user_in_build_index() -> bool:
-            from storage.user_data_operations import build_user_index
-
+        def _index_complete_for_user() -> bool:
+            clear_user_caches()
             index = build_user_index()
-            return user_id in index and index[user_id].get("active") is True
+            entry = index.get(user_id)
+            if entry is None:
+                return False
+            return "active" in entry and entry["active"] is True
 
         assert wait_until(
-            _user_in_build_index,
+            _index_complete_for_user,
             timeout_seconds=30.0,
             poll_seconds=0.1,
-        ), "User should appear in build_user_index after account creation"
-
-        user_index = build_user_index()
-        assert user_id in user_index, "User should be in user index"
-        assert (
-            "active" in user_index[user_id]
-        ), "User index should contain active status"
-        assert user_index[user_id]["active"] is True, "User should be active in index"
+        ), (
+            "User should appear in build_user_index with active=True after account creation "
+            "(shared index under parallel workers can flake if re-checked)."
+        )
 
     @pytest.mark.ui
     @pytest.mark.behavior

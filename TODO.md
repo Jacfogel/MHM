@@ -77,15 +77,6 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 
 ## Medium Priority
 
-### Service request handling (MHMService delegate cleanup)
-
-**Remove thin `MHMService._check_*__*` delegates in favor of `service_requests`**
-- *What it means*: Production paths already call `service_requests.check_test_message_requests`, `check_reschedule_requests`, etc. via `to_service_request_context()`. Remove one-line wrappers such as `_check_test_message_requests__validate_request_data`, `_check_test_message_requests__discover_request_files`, `_check_reschedule_requests__validate_request_data`, and related `_*__*` helpers on [`core/service.py`](core/service.py). Update tests to call or patch [`core/service_requests.py`](core/service_requests.py) directly (or exercise public `MHMService.check_*` entry points only).
-- *Why it helps*: Eliminates duplicate-function noise, reduces indirection, and keeps service-request logic in one module.
-- *Estimated effort*: Medium
-- *Created*: 2026-05-19
-- *Exit criteria*: No `_check_test_message_requests__*` / `_check_reschedule_requests__*` (and parallel cleanup helpers that only forward to `service_requests`) on `MHMService`; duplicate-function scan clean for that pair; service/request tests updated.
-
 ### User data (versioned schemas)
 
 **Plan: versioned v2-style schemas for profile JSON (account, preferences, schedules, context)**
