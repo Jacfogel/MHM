@@ -1,10 +1,16 @@
 
-from ai.response_generator import get_response_generator
-from core.message_management import store_sent_message
-from core.response_tracking import store_user_response
 import pytest
 
-from tests.test_helpers.test_utilities import setup_test_data_environment, cleanup_test_data_environment
+from ai.response_generator import get_response_generator
+from core import get_user_data, get_user_id_by_identifier
+from core.config import get_user_file_path
+from core.file_operations import save_json_data
+from core.message_management import store_sent_message
+from core.response_tracking import store_user_response
+from tests.test_helpers.test_utilities import (
+    cleanup_test_data_environment,
+    setup_test_data_environment,
+)
 
 
 @pytest.mark.behavior
@@ -17,6 +23,16 @@ class TestAIContextRecentMessages:
     def teardown_method(self):
         cleanup_test_data_environment(self.test_dir)
 
+    def _ensure_automated_messages_enabled(self, user_id: str) -> None:
+        """Recent-send context requires account.features.automated_messages enabled."""
+        actual_id = get_user_id_by_identifier(user_id) or user_id
+        account_result = get_user_data(actual_id, "account")
+        account = account_result.get("account") or {}
+        features = dict(account.get("features") or {})
+        features["automated_messages"] = "enabled"
+        account["features"] = features
+        save_json_data(account, get_user_file_path(actual_id, "account"))
+
     def test_comprehensive_context_includes_recent_sent_messages_and_checkin_status(self, monkeypatch):
         # Set both TEST_DATA_DIR and MHM_TEST_DATA_DIR to ensure path resolution works correctly
         monkeypatch.setenv("TEST_DATA_DIR", self.test_data_dir)
@@ -25,7 +41,13 @@ class TestAIContextRecentMessages:
         user_id = "user_recent_msgs"
         # Ensure check-ins are enabled for this test (required for check-in status to appear)
         from tests.test_helpers.test_utilities import TestUserFactory
-        assert TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=self.test_data_dir)
+        assert TestUserFactory.create_basic_user(
+            user_id,
+            enable_checkins=True,
+            enable_tasks=True,
+            test_data_dir=self.test_data_dir,
+        )
+        self._ensure_automated_messages_enabled(user_id)
 
         # Store a recent sent message (simulating automated outbound)
         ok = store_sent_message(

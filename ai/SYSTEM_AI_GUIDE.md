@@ -4,7 +4,7 @@
 > **Audience**: Developers and AI collaborators working on MHM's AI system
 > **Purpose**: Explain how the AI subsystem is structured, how it behaves at runtime, and how to extend it safely
 > **Style**: Technical, concise, system-level (hybrid of conceptual and concrete details)
-> **Last Updated**: 2026-05-20
+> **Last Updated**: 2026-05-21
 
 ## 1. Overview
 
@@ -163,6 +163,26 @@ Confidence scores for AI parsing rely on thresholds from `core/config.py`:
 
 Do not hard-code these thresholds in new code; use the values from `core/config.py` and, where necessary, refer to section 9. "Configuration" in this guide.
 
+### 3.4. Command intent list injection (live paths)
+
+The command system prompt must list the same intents as the rule-based parser. Do not maintain a second hardcoded list in `ai/chatbot.py` or channel code.
+
+**Single source:** `EnhancedCommandParser.intent_patterns` in `communication/message_processing/command_parser.py`. On construction, the parser sets the module-global `RULE_BASEED_INTENT_PATTERNS`.
+
+**Bridge:** `ai/command_registry.py` exposes `get_command_intent_names()` and `inject_command_actions_into_prompt()`. The registry lazy-imports `get_rule_based_intent_names()` from the parser to avoid circular imports during package init.
+
+**When injection runs:** `ai/prompt_manager.py` calls `inject_command_actions_into_prompt()` whenever `get_prompt("command")` is used. `ai/command_interpreter.py` builds command and clarification prompts through that path.
+
+**Production initialization (verified):**
+
+1. `InteractionManager.__init__` calls `get_enhanced_command_parser()`, which constructs the parser singleton and populates `RULE_BASED_INTENT_PATTERNS`.
+2. Any later `get_prompt("command")` or `create_command_parsing_prompt(...)` replaces the placeholder line in `resources/prompts/command.txt` with the live comma-separated intent list.
+3. `generate_response(..., mode="command")` uses the injected prompt via the command interpreter (same path as `EnhancedCommandParser._ai_enhanced_parse`).
+
+**Template fallback:** `resources/prompts/command.txt` keeps a short placeholder (`Available actions: injected at runtime...`). If the parser was never constructed, injection is a no-op and the placeholder remains (tests should treat that as misconfiguration, not a second source of truth).
+
+**Tests:** `tests/unit/test_command_prompt_injection_live_path.py` (parser singleton, prompt manager, command interpreter, interaction manager). Registry unit tests in `tests/unit/test_command_registry.py` cover regex replacement when patterns are loaded.
+
 ---
 
 ## 4. Context and Conversation State
@@ -211,6 +231,40 @@ When you add new forms of tracked data, prefer:
 1. Extending `core/response_tracking.py` (or related tracking utilities).
 2. Updating `UserContextManager` and `ContextBuilder` to integrate the new signals.
 3. Keeping the context summary short and stable to avoid prompt bloat.
+
+### 4.3. Conversational context and actionability
+
+Comprehensive chat prompts are assembled in `ai/conversational_context/` (`ai/conversational_context/assembly.py` orchestrates; `ai/conversational_context/context_phraser.py` phrases facts; `ai/conversational_context/instructions.py` holds static rules). `ai/response_generator.py` calls `assemble_comprehensive_messages()` for `mode="chat"` / contextual generation.
+
+**Assembly order (high level):**
+
+1. Profile and goals (`append_profile_sections`)
+2. Feature availability (`append_feature_enablement`) - see table below
+3. Check-in summary and trends (skipped when check-ins disabled)
+4. Conversation history
+5. Today's check-in status (skipped when check-ins disabled)
+6. Recent automated sends (`append_recent_sent_messages`) - only when automated messages enabled
+7. Task reminder line from recent sends (only when messages enabled and a task_reminders send exists)
+8. Task data (skipped when task management disabled)
+9. Schedule details (skipped when automated messages disabled)
+
+**Feature flags in prompts** (`append_feature_enablement`):
+
+| Account feature (`account.features`) | Helper | When disabled, context tells the model |
+|--------------------------------------|--------|--------------------------------------|
+| `checkins` | `is_user_checkins_enabled()` | Do not mention check-ins or check-in data |
+| `task_management` | `are_tasks_enabled()` | Do not mention tasks, creation, or reminders |
+| `automated_messages` | `is_automated_messages_enabled()` | Do not mention scheduled categories, recent sends, or enabling automated messages |
+
+**Recent automated messages:** `append_recent_sent_messages` lists up to three non-checkin sends (full text for the most recent). Check-in outbound messages are excluded from this block. `ai/conversational_context/instructions.py` adds: do not suggest repeating the same category unless the user asks.
+
+**Actionability boundaries:**
+
+- Context supplies facts; `ai/conversational_context/instructions.py` forbids fabricating data and claiming completed actions.
+- Disabled features must not appear in suggestions even if stale files exist on disk (sections are gated before reading sends/schedules).
+- Task reminder context is additive when a recent `task_reminders` send exists and tasks are enabled.
+
+**Tests:** `tests/ai/test_context_includes_recent_messages.py` (recent sends + task reminder); `tests/unit/test_conversational_context_actionability.py` (feature flags and messages-disabled gating).
 
 ---
 

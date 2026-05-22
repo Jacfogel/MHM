@@ -307,6 +307,17 @@ def is_user_checkins_enabled(user_id: str) -> bool:
     return user_account.get("features", {}).get("checkins") == "enabled"
 
 
+@handle_errors("checking if automated messages enabled", default_return=False)
+def is_automated_messages_enabled(user_id: str) -> bool:
+    """Check if automated outbound messages are enabled for a user."""
+    user_data_result = get_user_data(user_id, "account")
+    user_account = user_data_result.get("account")
+    if not user_account:
+        return False
+
+    return user_account.get("features", {}).get("automated_messages") == "enabled"
+
+
 @handle_errors("getting user info for tracking", default_return={})
 def get_user_info_for_tracking(user_id: str) -> dict[str, Any]:
     """Get user information for response tracking."""

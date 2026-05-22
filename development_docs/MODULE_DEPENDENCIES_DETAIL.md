@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-20 02:03:43
+> **Last Generated**: 2026-05-21 17:31:02
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -21,7 +21,7 @@
 - **Standard Library Imports**: 429 (28.4%)
 - **Third-Party Imports**: 234 (15.5%)
 - **Local Imports**: 847 (56.1%)
-- **Last Updated**: 2026-05-20
+- **Last Updated**: 2026-05-21
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -181,7 +181,7 @@
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.logger, core.response_tracking, core.time_utilities
-- Removed: ai/conversational_context/context_phraser.py
+- Removed: ai/conversational_context/context_phraser.py, ai/fallback_responses/checkin_summary.py, ai/fallback_responses/coordinator.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -251,7 +251,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.message_management (get_recent_messages)` (NEW)
-    - `core.response_tracking (checkin_runtime_timestamp, get_recent_responses, is_user_checkins_enabled)` (NEW)
+    - `core.response_tracking (checkin_runtime_timestamp, get_recent_responses, is_automated_messages_enabled, is_user_checkins_enabled)` (NEW)
     - `core.time_utilities (TIME_ONLY_MINUTE, format_timestamp, parse_timestamp_full)` (NEW)
     - `tasks (are_tasks_enabled, get_tasks_due_soon, get_user_task_stats, load_active_tasks)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date)` (NEW)

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-20 02:03:51
+> **Last Generated**: 2026-05-21 17:31:10
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -862,6 +862,7 @@ C:.
 |   |   |   test_command_parser_notebook_entities_expansion.py
 |   |   |   test_command_parser_rule_based_patterns_expansion.py
 |   |   |   test_command_parser_task_entities_expansion.py
+|   |   |   test_command_prompt_injection_live_path.py
 |   |   |   test_command_registry.py
 |   |   |   test_communication_core_init.py
 |   |   |   test_communication_init.py
@@ -869,6 +870,7 @@ C:.
 |   |   |   test_config_branch_coverage.py
 |   |   |   test_context_analytics_shared_source.py
 |   |   |   test_context_phraser.py
+|   |   |   test_conversational_context_actionability.py
 |   |   |   test_conversation_flow_reminder_helpers.py
 |   |   |   test_dialog_helpers.py
 |   |   |   test_discord_api_client.py

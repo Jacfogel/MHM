@@ -35,3 +35,16 @@ class TestCommandRegistry:
         assert "old_action" not in result
         assert "create_task" in result
         assert result.startswith("Available actions:")
+
+    def test_inject_command_actions_replaces_runtime_placeholder_when_patterns_loaded(
+        self,
+    ):
+        if RULE_BASED_INTENT_PATTERNS is None:
+            pytest.skip("EnhancedCommandParser not constructed in this test process")
+        base = (
+            "Available actions: injected at runtime from the rule-based command parser "
+            "when loaded."
+        )
+        result = inject_command_actions_into_prompt(base)
+        assert "injected at runtime" not in result
+        assert "create_task" in result

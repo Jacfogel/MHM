@@ -13,6 +13,79 @@ _CLARIFICATION_PROMPT_SUFFIX = (
     "plain language. Do not return ACTION: lines unless you can identify a specific action."
 )
 
+# Mode-detection vocabulary aligned with rule-based intents in command_parser (not exhaustive).
+_COMMAND_KEYWORDS = (
+    "remind",
+    "todo",
+    "schedule",
+    "add",
+    "remove",
+    "delete",
+    "call",
+    "message",
+    "cancel",
+    "stop",
+    "task",
+    "tasks",
+    "note",
+    "notes",
+    "journal",
+    "notebook",
+    "entry",
+    "entries",
+    "checkin",
+    "check-in",
+    "check in",
+    "analytics",
+    "mood",
+    "profile",
+    "pin",
+    "archive",
+    "tag",
+    "tags",
+    "list",
+    "complete",
+    "done",
+    "help",
+    "commands",
+)
+
+_TASK_INTENT_PHRASES = (
+    "i need to",
+    "i should",
+    "i want to",
+    "i have to",
+    "remind me to",
+    "don't forget to",
+    "do not forget to",
+    "remember to",
+    "i need",
+    "i'd like to",
+    "i want",
+    "got to",
+    "gotta",
+)
+
+_TASK_VERBS = (
+    "buy",
+    "get",
+    "do",
+    "call",
+    "schedule",
+    "complete",
+    "finish",
+    "pick up",
+    "go to",
+    "make",
+    "send",
+    "email",
+    "pay",
+    "book",
+    "order",
+)
+
+_EXPLICIT_COMMAND_WORDS = ("add", "create", "new")
+
 
 class CommandInterpreter:
     """Detect command-oriented prompts and extract structured command candidates."""
@@ -43,53 +116,17 @@ class CommandInterpreter:
     @handle_errors("detecting natural language task request", default_return=False)
     def is_natural_language_task_request(self, prompt_lower: str) -> bool:
         """Detect natural-language task intents that likely need clarification."""
-        task_intent_phrases = [
-            "i need to",
-            "i should",
-            "i want to",
-            "i have to",
-            "remind me to",
-            "i need",
-            "i'd like to",
-            "i want",
-        ]
-        task_verbs = [
-            "buy",
-            "get",
-            "do",
-            "call",
-            "schedule",
-            "complete",
-            "finish",
-            "pick up",
-            "go to",
-        ]
-
-        has_task_intent = any(phrase in prompt_lower for phrase in task_intent_phrases)
-        has_task_verb = any(verb in prompt_lower for verb in task_verbs)
+        has_task_intent = any(phrase in prompt_lower for phrase in _TASK_INTENT_PHRASES)
+        has_task_verb = any(verb in prompt_lower for verb in _TASK_VERBS)
         has_explicit_command_word = any(
-            word in prompt_lower for word in ["add", "create", "new"]
+            word in prompt_lower for word in _EXPLICIT_COMMAND_WORDS
         )
         return has_task_intent and has_task_verb and not has_explicit_command_word
 
     @handle_errors("detecting command keyword", default_return=False)
     def has_command_keyword(self, prompt_lower: str) -> bool:
         """Return True when prompt appears command-oriented."""
-        command_keywords = [
-            "remind",
-            "todo",
-            "schedule",
-            "add",
-            "remove",
-            "delete",
-            "call",
-            "message",
-            "cancel",
-            "stop",
-            "task",
-            "tasks",
-        ]
-        return any(keyword in prompt_lower for keyword in command_keywords)
+        return any(keyword in prompt_lower for keyword in _COMMAND_KEYWORDS)
 
     @handle_errors("detecting clarification need for command", default_return=True)
     def needs_command_clarification(
@@ -129,8 +166,15 @@ class CommandInterpreter:
             "schedule something",
             "start checkin",
             "start a checkin",
+            "start check-in",
             "stop checkin",
             "stop a checkin",
+            "create note",
+            "create a note",
+            "new note",
+            "list tasks",
+            "show tasks",
+            "show profile",
         }
 
         request_question_patterns = [

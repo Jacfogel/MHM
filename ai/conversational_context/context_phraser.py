@@ -18,6 +18,7 @@ from core.message_management import get_recent_messages
 from core.response_tracking import (
     checkin_runtime_timestamp,
     get_recent_responses,
+    is_automated_messages_enabled,
     is_user_checkins_enabled,
 )
 from core.time_utilities import TIME_ONLY_MINUTE, format_timestamp, parse_timestamp_full
@@ -28,7 +29,7 @@ logger = get_component_logger("ai")
 
 _FEATURE_STATUS_UNKNOWN = (
     "IMPORTANT - Feature availability: check-ins status unknown, "
-    "task management status unknown"
+    "task management status unknown, automated messages status unknown"
 )
 
 
@@ -122,6 +123,7 @@ def append_profile_sections(parts: list[str], context: dict[str, Any]) -> None:
 def _feature_status_lines(user_id: str) -> list[str] | None:
     checkins_enabled = is_user_checkins_enabled(user_id)
     tasks_enabled = are_tasks_enabled(user_id) if user_id else False
+    messages_enabled = is_automated_messages_enabled(user_id) if user_id else False
 
     feature_status: list[str] = []
     if checkins_enabled:
@@ -138,6 +140,15 @@ def _feature_status_lines(user_id: str) -> list[str] | None:
         feature_status.append(
             "task management is disabled - do NOT mention tasks, task creation, "
             "or task reminders"
+        )
+
+    if messages_enabled:
+        feature_status.append("automated messages are enabled")
+    else:
+        feature_status.append(
+            "automated messages are disabled - do NOT mention scheduled message "
+            "categories, suggest enabling automated messages, or reference recent "
+            "automated sends"
         )
     return feature_status
 
@@ -262,6 +273,9 @@ def append_recent_sent_messages(
     parts: list[str], user_id: str
 ) -> list[dict[str, Any]] | None:
     """Return full recent_sent list for task-reminder follow-up."""
+    if not is_automated_messages_enabled(user_id):
+        return None
+
     recent_sent_all = get_recent_messages(user_id, category=None, limit=5)
     recent_sent = [m for m in recent_sent_all if m.get("category") != "checkin"][:3]
     if not recent_sent:
@@ -343,6 +357,9 @@ def append_task_data(parts: list[str], user_id: str) -> None:
 
 @handle_errors("appending schedule details context", default_return=None)
 def append_schedule_details(parts: list[str], user_id: str, context: dict[str, Any]) -> None:
+    if not is_automated_messages_enabled(user_id):
+        return
+
     profile = context.get("user_profile", {})
     active_schedules = profile.get("active_schedules", [])
     if not active_schedules:

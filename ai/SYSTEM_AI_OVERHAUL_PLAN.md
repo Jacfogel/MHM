@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Define and separate the current AI-service interaction types in MHM without overbuilding new architecture  
 > **Style**: Practical, implementation-aware, boundary-focused  
-> **Status**: ACTIVE (Phases 1–4 implemented 2026-05-18; Phase 5 planned)  
+> **Status**: **COMPLETED** (Phases 1–5 and 4.5, 2026-05-19). Post-overhaul follow-ups live in [PLANS.md](../development_docs/PLANS.md) Section 5.0.1 and [TODO.md](../TODO.md).  
 > **Parent**: [PROJECT_VISION.md](../PROJECT_VISION.md), [ARCHITECTURE.md](../ARCHITECTURE.md), [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md)
 
 ---
@@ -467,7 +467,7 @@ Avoid moving fallback text into communication/
 What it means: Keep communication/ responsible for delivery/formatting only.
 Why it helps: Communication architecture is supposed to stay channel-agnostic and adapter-focused, not own business response logic.
 Estimated effort: Small
-Extract conversational context assembly **IN PROGRESS** (2026-05-19)
+Extract conversational context assembly **COMPLETED** (2026-05-19)
 What it means: Move comprehensive prompt/context assembly out of `response_generator.py` into `ai/conversational_context/` (sections + assembly + static instructions). Reuse `ContextBuilder.analyze_context` for check-in aggregates where possible.
 Why it helps: `response_generator.py` should own orchestration and engagement post-processing only; context domains grow in section helpers, not one giant method.
 Estimated effort: Medium/Large

@@ -53,3 +53,17 @@ class TestCommandInterpreter:
         result = interpreter.extract_command_from_response(raw)
         assert result.count("\n") <= 5
         assert "ACTION:" in result
+
+    @pytest.mark.parametrize(
+        "prompt,expected_mode",
+        [
+            ("don't forget to call the dentist", "command_with_clarification"),
+            ("remember to buy milk", "command_with_clarification"),
+            ("create note about meeting", "command"),
+            ("list my journal entries", "command"),
+            ("start check-in", "command_with_clarification"),
+            ("how has my mood been", "command"),
+        ],
+    )
+    def test_detect_mode_post_overhaul_nlp_patterns(self, interpreter, prompt, expected_mode):
+        assert interpreter.detect_mode(prompt) == expected_mode

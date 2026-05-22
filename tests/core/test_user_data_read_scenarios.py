@@ -75,6 +75,7 @@ class TestGetUserDataFieldsPolicy:
             "loader",
             _empty_preferences,
         )
+        clear_user_caches(uid)
         result = get_user_data(uid, "preferences", fields="channel")
         assert result == {}
 
@@ -102,6 +103,10 @@ class TestGetUserDataReadPath:
 
     def test_get_user_data_fields_scalar_list_and_dict(self, mock_user_data):
         uid = mock_user_data["user_id"]
+        prefs_path = os.path.join(mock_user_data["user_dir"], "preferences.json")
+        assert os.path.isfile(prefs_path), "preferences.json must exist for field-filter reads"
+        clear_user_caches(uid)
+
         # Loaders return the on-disk preferences dict (channel, task_settings, ...).
         scalar = get_user_data(uid, "preferences", fields="channel")
         assert scalar["preferences"] == {"type": "email"}

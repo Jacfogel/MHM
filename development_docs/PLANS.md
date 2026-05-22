@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for active, delegated, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-05-18  
+> **Last Updated**: 2026-05-21  
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) and prior changelog entries remain the historical record.
 
@@ -66,7 +66,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Task system | **ACTIVE** | High | [TASKS_PLAN.md](TASKS_PLAN.md) | Broader natural-language task creation, templates, notes/links, Discord validation |
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Reliability, log isolation, domain markers, policy tests, coverage growth |
 | AI development tools | **ACTIVE** | Medium | [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) | Dev-tools coverage slices, marker/domain work, portability follow-ups |
-| System AI overhaul | **ACTIVE** | High | [SYSTEM_AI_OVERHAUL_PLAN.md](../ai/SYSTEM_AI_OVERHAUL_PLAN.md) | Phase 5: collapse thin `chatbot.py` delegates; Phases 1-4 done |
+| Post-overhaul AI quality | **ACTIVE** | High | This file Section 5.0.1 + [TODO.md](../TODO.md) | NLP accuracy, command-list parity, response-time tuning, actionability sprint |
 
 ---
 
@@ -74,22 +74,31 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 ### 5.0 System AI overhaul (interaction-type separation)
 
-**Status**: **ACTIVE**  
-**Priority**: High  
-**Started**: 2026-05-18  
+**Status**: **COMPLETED**  
+**Completed**: 2026-05-19  
 **Spec**: [SYSTEM_AI_OVERHAUL_PLAN.md](../ai/SYSTEM_AI_OVERHAUL_PLAN.md)
 
-**Use / fit**: Separate conversational, command-interpretation, clarification, and fallback AI paths without a new orchestration framework. Deterministic handlers remain authoritative for execution.
+**Outcome**: Conversational, command-interpretation, clarification, and fallback paths are separated; `ai/chatbot.py` orchestrates LM Studio and calls `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()` directly. `get_ai_chatbot()` remains the stable API for `communication/`. Detail and phase history are in the spec and changelogs (2026-05-18 through 2026-05-19).
 
-**Completed 2026-05-18 (Phases 1-4)**:
+---
 
-- `ai/interaction_types.py`, `ai/fallback_responses/` (package), `ai/command_interpreter.py`, `ai/response_generator.py`, `ai/command_registry.py`; `ai/chatbot.py` remains the facade.
-- Clarification command prompt suffix; dynamic command intent list from `get_rule_based_intent_names()`.
-- Boundary unit tests under `tests/unit/test_fallback_responses.py`, `test_command_interpreter.py`, `test_command_registry.py`.
+### 5.0.1 Post-overhaul AI quality (active follow-ups)
 
-**Phase 5 (collapse facade delegates) - COMPLETED 2026-05-19:** `ai/chatbot.py` calls `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()` directly; one-line private delegates removed. Tests target canonical modules where appropriate. `get_ai_chatbot()` remains the stable API for `communication/`.
+**Status**: **ACTIVE**  
+**Priority**: High  
+**Started**: 2026-05-21  
+**Tracking**: [TODO.md](../TODO.md) (AI & Conversation, Performance Optimizations)
 
-**Later follow-ups** (see overhaul plan Section 8.1): deeper `ContextBuilder` / `response_generator` deduplication; AI Chatbot Actionability Sprint and NLP accuracy work in [TODO.md](../TODO.md).
+**Use / fit**: Improve real-world utility now that interaction-type separation is stable. Deterministic handlers remain authoritative; AI assists wording, intent hints, and clarification only.
+
+**Workstreams** (in recommended order):
+
+1. **Command list parity** - Runtime injection via `ai/command_registry.py` is in place; finish template cleanup and parity tests; remove stale static lists when injection is verified in all run modes.
+2. **NLP / mode detection** - Expand `ai/command_interpreter.py` keywords and natural-language task patterns; add regression tests aligned with `command_parser` intents.
+3. **Response-time tuning** - Profile hot paths (`generate_quick_response`, command parsing, context assembly); tune cache TTL and timeouts where safe without stale user context.
+4. **Actionability sprint** - CRUD reliability, feature-flag-aware suggestions, and non-conflicting guidance using recent automated messages (partially present in `ai/conversational_context/`).
+
+**First increment (2026-05-21)**: NLP keyword expansion, command prompt placeholder cleanup, and tests for new detection patterns.
 
 ---
 
@@ -349,6 +358,7 @@ Keep details in changelogs, not here.
 | UI migration foundation/dialogs/widgets | **COMPLETED** | UI polish/testing remains deferred/opportunistic. |
 | Email integration | **COMPLETED** | Cross-channel sync remains deferred. |
 | Testing strategy consolidation | **COMPLETED AS CONSOLIDATION** | Current testing roadmap lives in TEST_PLAN.md. |
+| System AI overhaul (interaction-type separation) | **COMPLETED** | Completed 2026-05-19; spec [SYSTEM_AI_OVERHAUL_PLAN.md](../ai/SYSTEM_AI_OVERHAUL_PLAN.md); follow-ups in Section 5.0.1. |
 
 ---
 

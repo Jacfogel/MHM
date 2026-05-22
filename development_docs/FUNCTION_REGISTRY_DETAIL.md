@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-20 02:03:42
+> **Last Generated**: 2026-05-21 17:31:01
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 93.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 152
-- **Functions Found**: 1811
+- **Functions Found**: 1812
 - **Methods Found**: 1232
 - **Classes Found**: 176
-- **Total Items**: 3043
-- **Functions Documented**: 1678
+- **Total Items**: 3044
+- **Functions Documented**: 1679
 - **Methods Documented**: 1167
 - **Classes Documented**: 138
-- **Total Documented**: 2845
+- **Total Documented**: 2846
 - **Template-Generated**: 24
-- **Last Updated**: 2026-05-20
+- **Last Updated**: 2026-05-21
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (492)
+### **Core System Functions** (493)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (499)
@@ -4069,6 +4069,7 @@ Raises:
 - [OK] `get_recent_responses(user_id, response_type, limit)` - Get recent responses for a user from appropriate file structure.
 - [OK] `get_timestamp_for_sorting(item)` - Convert timestamp to float for consistent sorting
 - [OK] `get_user_info_for_tracking(user_id)` - Get user information for response tracking.
+- [OK] `is_automated_messages_enabled(user_id)` - Check if automated outbound messages are enabled for a user.
 - [OK] `is_user_checkins_enabled(user_id)` - Check if check-ins are enabled for a user.
 - [OK] `store_chat_interaction(user_id, user_message, ai_response, context_used)` - Store a chat interaction between user and AI.
 - [OK] `store_user_response(user_id, response_data, response_type)` - Store user response data in appropriate file structure.

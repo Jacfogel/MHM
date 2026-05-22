@@ -138,6 +138,10 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
         "core.response_tracking",
         "is_user_checkins_enabled",
     ),
+    "is_automated_messages_enabled": (
+        "core.response_tracking",
+        "is_automated_messages_enabled",
+    ),
     # Config
     "DISCORD_BOT_TOKEN": ("core.config", "DISCORD_BOT_TOKEN"),
     "EMAIL_SMTP_SERVER": ("core.config", "EMAIL_SMTP_SERVER"),
@@ -339,6 +343,7 @@ __all__ = [
     "store_chat_interaction",
     "get_recent_checkins",
     "is_user_checkins_enabled",
+    "is_automated_messages_enabled",
     "validate_schedule_periods",
     "is_valid_email",
     "handle_network_error",

@@ -46,7 +46,7 @@ When adding new tasks, follow this format:
 - **Section 1.1 `test_config.json` fixture migration**: adopt `tests/development_tools/test_config.json` when touching analyzer tests; full migration remains low priority.
 Detail: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
 
-**Use / fit** (2026-05-11 status): AI items remain deferred until system overhaul. Project-specific script ownership remains high/medium. Performance monitoring still includes RAM/caching. Duplicate-list and backup-audit ideas live in dev-tools V5 Sections 7.8/7.9. Completed dev-tools migrations, `--dev-tools-only` report scoping, headless/email admin status, and `sent_messages` fixes are tracked in changelogs rather than active TODOs.
+**Use / fit** (2026-05-21 status): System AI overhaul is complete; post-overhaul AI quality work is **ACTIVE** ([PLANS.md](development_docs/PLANS.md) Section 5.0.1). Project-specific script ownership remains high/medium. Performance monitoring still includes RAM/caching. Duplicate-list and backup-audit ideas live in dev-tools V5 Sections 7.8/7.9. Completed dev-tools migrations, `--dev-tools-only` report scoping, headless/email admin status, and `sent_messages` fixes are tracked in changelogs rather than active TODOs.
 
 ## High Priority
 
@@ -120,26 +120,10 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 
 ### AI & Conversation
 
-**Improve Natural Language Processing (NLP) Accuracy** - *Deferred (post-overhaul; command_interpreter in place)*
+**Improve Natural Language Processing (NLP) Accuracy** - *Active (post-overhaul; [PLANS.md](development_docs/PLANS.md) Section 5.0.1)*
 - *What it means*: Refine parsing patterns and thresholds to better recognize intents and entities. NLP = how the system interprets user commands and natural language (e.g., "create a task to buy milk" -> task creation intent).
 - *Why it helps*: More reliable command understanding and fewer misinterpretations
 - *Estimated effort*: Medium
-
-**Investigate and Refactor AI Command List Generation** - *Partially addressed 2026-05-18: `ai/command_registry.py` + `get_rule_based_intent_names()`; verify parity and remove static list from prompt template when stable*
-- *What it means*: Investigate why there are two separate hardcoded command lists for the AI chatbot (in `ai/prompt_manager.py` and `ai/chatbot.py`) and explore generating these lists dynamically from the handlers' `can_handle()` methods or the command parser's `intent_patterns` dictionary
-- *Why it helps*: Prevents maintenance issues where new commands (like `create_quick_note`) need to be manually added to multiple places, reduces risk of inconsistencies between lists, and ensures the AI always knows about all available commands automatically
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Investigate why there are two separate lists (historical reasons, different use cases, etc.)
-  - [ ] Review how `get_all_handlers()` and handlers' `can_handle()` methods work
-  - [ ] Review how `command_parser.intent_patterns` is structured
-  - [ ] Explore generating command list dynamically from handlers (iterate through handlers, collect all intents from `can_handle()` methods)
-  - [ ] Explore generating command list dynamically from command parser (extract keys from `intent_patterns` dictionary)
-  - [ ] Evaluate pros/cons of each approach (handler-based vs parser-based)
-  - [ ] Determine if both lists serve different purposes or can be consolidated
-  - [ ] Implement dynamic generation and update both locations to use it
-  - [ ] Add tests to ensure command lists stay in sync with actual available commands
-  - [ ] Document the new approach in relevant documentation
 
 **Conversation Flow Management**
 - *What it means*: Improve conversational state transitions and fallbacks to keep interactions smooth
@@ -149,7 +133,7 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 
 ### Performance Optimizations
 
-**Optimize AI Response Times** - *Deferred (post-overhaul)*
+**Optimize AI Response Times** - *Active (post-overhaul; profile cache/timeouts on hot paths)*
 - *What it means*: Reduce latency for AI-backed responses via batching, caching, or configuration tuning
 - *Why it helps*: Snappier interactions and better UX
 - *Estimated effort*: Medium
@@ -178,13 +162,13 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 - *Estimated effort*: Medium/Large
 - *Created*: 2026-05-03
 
-### Deferred (AI overhaul - follow-ups after Phases 1-3)
+### Post-overhaul AI (active - see PLANS.md Section 5.0.1)
 
-**AI Chatbot Actionability Sprint** - *Deferred (post-overhaul Phase 4+)*
+**AI Chatbot Actionability Sprint** - *Active (post-overhaul)*
 - *What it means*: Improve AI chat quality and enable robust task/message/profile CRUD, with awareness of recent automated messages and targeted, non-conflicting suggestions.
 - *Why it helps*: Addresses the user's biggest friction and increases real utility.
 - *Estimated effort*: Large
-- *User priority*: Defer until system AI receives major overhaul.
+- *Remaining*: Expand behavior tests for action-suggestion boundaries (no false CRUD claims). Shipped 2026-05-21: feature-flag audit, `is_automated_messages_enabled()`, gating in `ai/conversational_context/` - see [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) Section 4.3 and changelogs.
 
 **Differentiate Between New and Returning Users**
 - *What it means*: Implement logic to distinguish between users who are authorizing the app for the first time versus users who are returning after deauthorizing

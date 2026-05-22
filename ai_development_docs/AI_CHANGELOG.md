@@ -30,6 +30,15 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-21 - System AI overhaul closed; post-overhaul work started **COMPLETED**
+- Marked [SYSTEM_AI_OVERHAUL_PLAN.md](../ai/SYSTEM_AI_OVERHAUL_PLAN.md) and [PLANS.md](../development_docs/PLANS.md) Section 5.0 **COMPLETED**; added active Section 5.0.1 post-overhaul AI quality plan
+- [TODO.md](../TODO.md): NLP, command list, response times, and actionability sprint moved from deferred to active
+- First implementation increment: expanded `command_interpreter` mode-detection vocabulary, simplified `command.txt` actions placeholder, actionability instructions in `conversational_context/instructions.py`, regression tests
+- Command list: documented live injection paths in [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md) Section 3.4; added `tests/unit/test_command_prompt_injection_live_path.py`
+- Actionability audit: `is_automated_messages_enabled()` in `core/response_tracking.py`; gated recent sends and schedule context; guide Section 4.3; `tests/unit/test_conversational_context_actionability.py`
+- Audit priorities: fixed path drift in `TODO.md` and `SYSTEM_AI_GUIDE.md`; registry regen for `is_automated_messages_enabled`; fixed `test_context_includes_recent_messages` for automated-messages gating; cleared completed TODO checkboxes (command list + actionability subtasks)
+- Parallel Tier 3 flake: hardened `test_get_user_data_fields_scalar_list_and_dict` with `clear_user_caches`, on-disk preferences guard; 8x `-n 8` file runs pass
+
 ### 2026-05-20 - Shared check-in analytics and service request cleanup **COMPLETED**
 - Removed thin `MHMService._check_test_message_requests__*` / `_check_reschedule_requests__*` delegates; reschedule paths use `to_service_request_context()`; tests call `core.service_requests` directly
 - `analyze_recent_checkin_rows()` in `context_builder.py`; fallback `checkin_summary` uses `ContextAnalysis` (dropped duplicate `compute_checkin_metrics`); parity tests in `test_context_analytics_shared_source.py`
@@ -159,12 +168,6 @@ Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency a
 - Added canonical helpers for UTC-aware now, UTC ISO timestamps, compact HHMM formatting, and `time.struct_time` formatting in `core.time_utilities`.
 - Replaced direct datetime/formatting calls in message retention, scheduler wake task naming, log rollover suffixes, and welcome tracking ISO timestamps.
 - Removed the completed TODO item. Validation: focused time/message/welcome/scheduler/logger tests passed, `py_compile` passed, and static scan now reports direct datetime formatting/parsing only inside `core/time_utilities.py`.
-
-### 2026-05-12 - Core UI Widget Boundary Cleanup **COMPLETED**
-- Moved PeriodRowWidget creation/layout/removal/data collection helpers from `core.ui_management` into new `ui.period_row_management`.
-- Kept `core.ui_management` limited to UI-neutral period naming and numbering helpers, and removed the package-level core exports for widget helpers.
-- Updated task/check-in/schedule editor callers and focused tests; removed the completed TODO item.
-- Validation: focused UI/helper tests passed and static search confirms `core/ui_management.py` no longer imports `ui` or Qt.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
