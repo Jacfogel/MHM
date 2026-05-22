@@ -30,13 +30,19 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-22 - Conversational action boundary behavior tests **COMPLETED**
+- Audit hygiene: `@handle_errors` on `action_boundaries.py`; Ruff `re.Pattern` import; path drift in [TODO.md](../TODO.md); doc-sync clean after link fixes
+- Added `ai/conversational_context/action_boundaries.py` (false CRUD claim detection) and **ACTION BOUNDARIES** rules in `instructions.py`
+- New `tests/behavior/test_conversational_action_boundaries.py`: prompt contract, safe vs unsafe samples, `AIResponseValidator` integration, fallback regression
+- `tests/ai/ai_response_validator.py` flags false CRUD claims on chat/contextual responses; `test_fallback_responses.py` reuses shared substring list
+
 ### 2026-05-21 - System AI overhaul closed; post-overhaul work started **COMPLETED**
 - Marked [SYSTEM_AI_OVERHAUL_PLAN.md](../ai/SYSTEM_AI_OVERHAUL_PLAN.md) and [PLANS.md](../development_docs/PLANS.md) Section 5.0 **COMPLETED**; added active Section 5.0.1 post-overhaul AI quality plan
 - [TODO.md](../TODO.md): NLP, command list, response times, and actionability sprint moved from deferred to active
 - First implementation increment: expanded `command_interpreter` mode-detection vocabulary, simplified `command.txt` actions placeholder, actionability instructions in `conversational_context/instructions.py`, regression tests
 - Command list: documented live injection paths in [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md) Section 3.4; added `tests/unit/test_command_prompt_injection_live_path.py`
 - Actionability audit: `is_automated_messages_enabled()` in `core/response_tracking.py`; gated recent sends and schedule context; guide Section 4.3; `tests/unit/test_conversational_context_actionability.py`
-- Audit priorities: fixed path drift in `TODO.md` and `SYSTEM_AI_GUIDE.md`; registry regen for `is_automated_messages_enabled`; fixed `test_context_includes_recent_messages` for automated-messages gating; cleared completed TODO checkboxes (command list + actionability subtasks)
+- Audit priorities: fixed path drift in [TODO.md](../TODO.md) and [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md); registry regen for `is_automated_messages_enabled`; fixed `test_context_includes_recent_messages` for automated-messages gating; cleared completed TODO checkboxes (command list + actionability subtasks)
 - Parallel Tier 3 flake: hardened `test_get_user_data_fields_scalar_list_and_dict` with `clear_user_caches`, on-disk preferences guard; 8x `-n 8` file runs pass
 
 ### 2026-05-20 - Shared check-in analytics and service request cleanup **COMPLETED**
@@ -163,11 +169,6 @@ Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency a
 - Moved scheduler timestamp localization ownership to `core.time_utilities` and reschedule request flag creation to `core.service_requests`.
 - Migrated callers/tests to the new owners and removed the temporary `core.service_utilities` compatibility bridges; legacy/facade scans are clean.
 - Removed the completed TODO item, updated error-handling guidance, and regenerated generated docs/reports through development tools.
-
-### 2026-05-12 - Time Utility Policy Cleanup **COMPLETED**
-- Added canonical helpers for UTC-aware now, UTC ISO timestamps, compact HHMM formatting, and `time.struct_time` formatting in `core.time_utilities`.
-- Replaced direct datetime/formatting calls in message retention, scheduler wake task naming, log rollover suffixes, and welcome tracking ISO timestamps.
-- Removed the completed TODO item. Validation: focused time/message/welcome/scheduler/logger tests passed, `py_compile` passed, and static scan now reports direct datetime formatting/parsing only inside `core/time_utilities.py`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

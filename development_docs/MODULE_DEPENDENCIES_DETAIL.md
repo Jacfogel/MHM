@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-21 17:31:02
+> **Last Generated**: 2026-05-22 01:09:35
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 150
-- **Total Imports Found**: 1510
-- **Dependencies Documented**: 150 (100% coverage)
-- **Standard Library Imports**: 429 (28.4%)
+- **Files Scanned**: 151
+- **Total Imports Found**: 1514
+- **Dependencies Documented**: 151 (100% coverage)
+- **Standard Library Imports**: 432 (28.5%)
 - **Third-Party Imports**: 234 (15.5%)
-- **Local Imports**: 847 (56.1%)
-- **Last Updated**: 2026-05-21
+- **Local Imports**: 848 (56.0%)
+- **Last Updated**: 2026-05-22
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 429 imports (28.4%)
+- **Standard Library**: 432 imports (28.5%)
 - **Third-Party**: 234 imports (15.5%)
-- **Local**: 847 imports (56.1%)
+- **Local**: 848 imports (56.0%)
 
 ## Module Dependencies by Directory
 
@@ -216,6 +216,23 @@
 
 **Dependency Changes**:
 - Added: ai.conversational_context.assembly
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `ai/conversational_context/action_boundaries.py`
+- **Purpose**: Communication channel implementation for action_boundaries
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `re (Pattern, re)`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: core.error_handling
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -1964,6 +1981,7 @@
   - `ai/command_registry.py`
   - `ai/context_builder.py`
   - `ai/conversation_history.py`
+  - `ai/conversational_context/action_boundaries.py`
   - `ai/conversational_context/assembly.py`
   - `ai/conversational_context/context_phraser.py`
   - `ai/fallback_responses/__init__.py`

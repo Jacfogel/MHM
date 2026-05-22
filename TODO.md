@@ -168,7 +168,7 @@ The May 2026 service/scheduler/dispatcher refactor moved request handling, previ
 - *What it means*: Improve AI chat quality and enable robust task/message/profile CRUD, with awareness of recent automated messages and targeted, non-conflicting suggestions.
 - *Why it helps*: Addresses the user's biggest friction and increases real utility.
 - *Estimated effort*: Large
-- *Remaining*: Expand behavior tests for action-suggestion boundaries (no false CRUD claims). Shipped 2026-05-21: feature-flag audit, `is_automated_messages_enabled()`, gating in `ai/conversational_context/` - see [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) Section 4.3 and changelogs.
+- *Remaining*: Live LM Studio review of conversational replies under `tests/ai/run_ai_functionality_tests.py` (static boundaries shipped 2026-05-22). Shipped 2026-05-21: feature-flag audit, `is_automated_messages_enabled()`, gating in `ai/conversational_context/`; shipped 2026-05-22: [`ai/conversational_context/action_boundaries.py`](ai/conversational_context/action_boundaries.py), ACTION BOUNDARIES instructions, [`tests/behavior/test_conversational_action_boundaries.py`](tests/behavior/test_conversational_action_boundaries.py) - see [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) Section 4.3.
 
 **Differentiate Between New and Returning Users**
 - *What it means*: Implement logic to distinguish between users who are authorizing the app for the first time versus users who are returning after deauthorizing

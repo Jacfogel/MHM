@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-21 17:31:01
+> **Last Generated**: 2026-05-22 01:09:32
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 93.5% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 152
-- **Functions Found**: 1812
+- **Files Scanned**: 153
+- **Functions Found**: 1814
 - **Methods Found**: 1232
 - **Classes Found**: 176
-- **Total Items**: 3044
-- **Functions Documented**: 1679
+- **Total Items**: 3046
+- **Functions Documented**: 1681
 - **Methods Documented**: 1167
 - **Classes Documented**: 138
-- **Total Documented**: 2846
+- **Total Documented**: 2848
 - **Template-Generated**: 24
-- **Last Updated**: 2026-05-21
+- **Last Updated**: 2026-05-22
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -468,6 +468,11 @@ Returns:
   - [OK] `ConversationSession.__post_init__(self)` - Post-initialization setup
 
 #### `ai/conversational_context/__init__.py`
+
+#### `ai/conversational_context/action_boundaries.py`
+**Functions:**
+- [OK] `find_false_crud_claims(text)` - Return human-readable labels for false completed-action claims in *text*.
+- [OK] `response_has_false_crud_claim(text)` - True when *text* appears to claim a CRUD action completed without evidence.
 
 #### `ai/conversational_context/assembly.py`
 **Functions:**

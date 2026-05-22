@@ -107,8 +107,14 @@ class TestGetUserDataReadPath:
         assert os.path.isfile(prefs_path), "preferences.json must exist for field-filter reads"
         clear_user_caches(uid)
 
+        on_disk = load_json_data(prefs_path)
+        assert isinstance(on_disk, dict) and on_disk.get("channel") == {"type": "email"}
+
         # Loaders return the on-disk preferences dict (channel, task_settings, ...).
         scalar = get_user_data(uid, "preferences", fields="channel")
+        assert "preferences" in scalar, (
+            f"field-filtered preferences read missing key; got {scalar!r}"
+        )
         assert scalar["preferences"] == {"type": "email"}
 
         listed = get_user_data(

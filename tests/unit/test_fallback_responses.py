@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 from unittest.mock import patch
 
+from ai.conversational_context.action_boundaries import FALSE_CRUD_SUCCESS_SUBSTRINGS
 from ai.fallback_responses import (
     FallbackCategory,
     FallbackResponses,
@@ -17,17 +18,7 @@ from ai.fallback_responses import (
 from ai.interaction_types import AIInteractionType, interaction_type_for_mode
 
 
-FALSE_SUCCESS_PHRASES = (
-    "i created",
-    "i've created",
-    "task has been added",
-    "has been created",
-    "successfully created",
-    "i deleted",
-    "i updated",
-    "based on your recent data",
-    "i noticed a pattern",
-)
+FALSE_SUCCESS_PHRASES = FALSE_CRUD_SUCCESS_SUBSTRINGS
 
 FALSE_CAPABILITY_PHRASES = (
     "i've accessed",

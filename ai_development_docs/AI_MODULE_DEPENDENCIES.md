@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-21 17:31:09
+> **Last Generated**: 2026-05-22 01:10:00
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 150
-- **Total Imports**: 1510
-- **Standard Library**: 429 (28.4%)
+- **Files Scanned**: 151
+- **Total Imports**: 1514
+- **Standard Library**: 432 (28.5%)
 - **Third-Party**: 234 (15.5%)
-- **Local Imports**: 847 (56.1%)
+- **Local Imports**: 848 (56.0%)
 
 ## Dependency Decision Trees
 

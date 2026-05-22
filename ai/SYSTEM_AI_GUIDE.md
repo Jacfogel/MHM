@@ -264,7 +264,7 @@ Comprehensive chat prompts are assembled in `ai/conversational_context/` (`ai/co
 - Disabled features must not appear in suggestions even if stale files exist on disk (sections are gated before reading sends/schedules).
 - Task reminder context is additive when a recent `task_reminders` send exists and tasks are enabled.
 
-**Tests:** `tests/ai/test_context_includes_recent_messages.py` (recent sends + task reminder); `tests/unit/test_conversational_context_actionability.py` (feature flags and messages-disabled gating).
+**Tests:** `tests/ai/test_context_includes_recent_messages.py` (recent sends + task reminder); `tests/unit/test_conversational_context_actionability.py` (feature flags and messages-disabled gating); `tests/behavior/test_conversational_action_boundaries.py` (prompt ACTION BOUNDARIES rules, false-CRUD detection, validator integration, fallback regression). Shared detector: `ai/conversational_context/action_boundaries.py`.
 
 ---
 

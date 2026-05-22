@@ -8,6 +8,8 @@ Used in manual AI functionality tests to automatically flag issues.
 import re
 from typing import Any
 
+from ai.conversational_context.action_boundaries import find_false_crud_claims
+
 
 class AIResponseValidator:
     """Validates AI responses for quality issues"""
@@ -156,6 +158,12 @@ class AIResponseValidator:
         if contradiction_issues:
             issues.extend(contradiction_issues)
 
+        # Conversational chat must not claim completed CRUD without evidence
+        if test_type in ("", "chat", "contextual"):
+            crud_issues = cls._check_false_crud_claims(response)
+            if crud_issues:
+                issues.extend(crud_issues)
+
         # Check for username prefixes in responses (skip - names are fine in any response)
         # The AI can use user names conversationally, so we don't flag this
         # We only flag if it's clearly a test artifact (like "User1:" prefix), which is handled by meta-text patterns
@@ -182,6 +190,7 @@ class AIResponseValidator:
                         "should ask for information",
                         "fabricated",
                         "self-contradiction",
+                        "false crud",
                     ]
                 )
             ]
@@ -773,6 +782,16 @@ class AIResponseValidator:
                         "Response mentions check-in statistics but context suggests no check-in data may exist"
                     )
 
+        return issues
+
+    @classmethod
+    def _check_false_crud_claims(cls, response: str) -> list[str]:
+        """Flag responses that claim completed CRUD actions without evidence."""
+        issues = []
+        for label in find_false_crud_claims(response):
+            issues.append(
+                f"False CRUD claim detected: response implies a completed action ({label})"
+            )
         return issues
 
     @classmethod

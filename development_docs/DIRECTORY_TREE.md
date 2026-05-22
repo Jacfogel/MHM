@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-21 17:31:10
+> **Last Generated**: 2026-05-22 01:10:04
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -82,6 +82,7 @@ C:.
 |   |   __init__.py
 |   |
 |   +---conversational_context
+|   |   |   action_boundaries.py
 |   |   |   assembly.py
 |   |   |   context_phraser.py
 |   |   |   instructions.py
@@ -555,6 +556,7 @@ C:.
 |   |   |   test_communication_manager_coverage_expansion.py
 |   |   |   test_comprehensive_quantitative_analytics.py
 |   |   |   test_config_coverage_expansion_phase3_simple.py
+|   |   |   test_conversational_action_boundaries.py
 |   |   |   test_conversation_behavior.py
 |   |   |   test_conversation_flow_manager_behavior.py
 |   |   |   test_core_message_management_coverage_expansion.py
