@@ -30,11 +30,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-05-22 - Conversational action boundary behavior tests **COMPLETED**
+### 2026-05-22 - Conversational boundaries and task NLP parsing **COMPLETED**
 - Audit hygiene: `@handle_errors` on `action_boundaries.py`; Ruff `re.Pattern` import; path drift in [TODO.md](../TODO.md); doc-sync clean after link fixes
 - Added `ai/conversational_context/action_boundaries.py` (false CRUD claim detection) and **ACTION BOUNDARIES** rules in `instructions.py`
 - New `tests/behavior/test_conversational_action_boundaries.py`: prompt contract, safe vs unsafe samples, `AIResponseValidator` integration, fallback regression
-- `tests/ai/ai_response_validator.py` flags false CRUD claims on chat/contextual responses; `test_fallback_responses.py` reuses shared substring list
+- Tasks Section 2: expanded `_extract_task_entities` (due phrases, title cleanup, priority/tags/group); `parse_relative_date` for tonight/this week/before-by weekday; tests in `test_command_parser_task_entities_expansion.py`
+- Task due tweaks: `this week` on Sat/Sun -> end of coming week; `tonight` default time 18:00 (not 21:00)
+- [TASKS_PLAN.md](../development_docs/TASKS_PLAN.md) Section 5.1: backlog for per-user customizable NL timeframes (`tonight`, after work/school, time-of-day defaults); parser accepts `after school` same as `after work`
+- Task command discovery (Section 2.1): `TASK_HELP_TEXT`, richer `get_examples()`, `help tasks` / `examples tasks` delegate to `TaskManagementHandler`
+- Test/doc hygiene: fixed 3 Tier-3 failures (task `group` in prepare_create_task_data, NL title stripping, discord help tasks); `doc-fix --fix-ascii` on changelogs
+- Security/docs: `idna>=3.15` floor (CVE-2026-45409); regenerated `verify_process_cleanup_results.json` for dev-tools report link target
 
 ### 2026-05-21 - System AI overhaul closed; post-overhaul work started **COMPLETED**
 - Marked [SYSTEM_AI_OVERHAUL_PLAN.md](../ai/SYSTEM_AI_OVERHAUL_PLAN.md) and [PLANS.md](../development_docs/PLANS.md) Section 5.0 **COMPLETED**; added active Section 5.0.1 post-overhaul AI quality plan

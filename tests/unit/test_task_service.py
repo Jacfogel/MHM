@@ -77,6 +77,19 @@ def test_task_service_parse_relative_date_uses_canonical_clock():
         assert task_service.parse_relative_date("today") == "2026-05-11"
         assert task_service.parse_relative_date("tomorrow") == "2026-05-12"
         assert task_service.parse_relative_date("next week") == "2026-05-18"
+        assert task_service.parse_relative_date("tonight") == "2026-05-11"
+        assert task_service.parse_relative_date("this week") == "2026-05-17"
+        assert task_service.parse_relative_date("before Friday") == "2026-05-15"
+        assert task_service.parse_relative_date("by Monday") == "2026-05-18"
+        assert task_service.parse_relative_date("after school") == "2026-05-11"
+
+    saturday = datetime(2026, 5, 16, 10, 0)
+    with patch("tasks.task_service.now_datetime_full", return_value=saturday):
+        assert task_service.parse_relative_date("this week") == "2026-05-24"
+
+    sunday = datetime(2026, 5, 17, 10, 0)
+    with patch("tasks.task_service.now_datetime_full", return_value=sunday):
+        assert task_service.parse_relative_date("this week") == "2026-05-24"
 
 
 @pytest.mark.unit
@@ -110,6 +123,7 @@ def test_task_service_prepare_create_task_data_applies_defaults_and_due_time():
         "due_time": "14:00",
         "priority": "medium",
         "tags": [],
+        "group": "",
         "recurrence_pattern": "weekly",
         "recurrence_interval": 2,
         "repeat_after_completion": False,

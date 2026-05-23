@@ -192,8 +192,20 @@ def parse_relative_date(date_str: str, now_dt: datetime | None = None) -> str:
 
     if date_str_lower == "today":
         return format_timestamp(now_dt, DATE_ONLY)
+    if date_str_lower == "tonight" or date_str_lower in ("after work", "after school"):
+        if date_str_lower in ("after work", "after school") and now_dt.hour >= 17:
+            return format_timestamp(now_dt + timedelta(days=1), DATE_ONLY)
+        return format_timestamp(now_dt, DATE_ONLY)
     if date_str_lower == "tomorrow":
         return format_timestamp(now_dt + timedelta(days=1), DATE_ONLY)
+    if date_str_lower == "this week":
+        # Mon–Fri: due end of the current calendar week (Sunday).
+        # Sat–Sun: "this week" means the coming week (Sunday at end of that week).
+        if now_dt.weekday() >= 5:
+            days_until_sunday = (6 - now_dt.weekday()) + 7
+        else:
+            days_until_sunday = 6 - now_dt.weekday()
+        return format_timestamp(now_dt + timedelta(days=days_until_sunday), DATE_ONLY)
     if date_str_lower == "next week":
         return format_timestamp(now_dt + timedelta(days=7), DATE_ONLY)
     if date_str_lower == "next month":
@@ -238,8 +250,15 @@ def parse_relative_date(date_str: str, now_dt: datetime | None = None) -> str:
             return format_timestamp(now_dt + timedelta(days=7), DATE_ONLY)
         if "next month" in date_str_lower:
             return format_timestamp(add_one_calendar_month(now_dt), DATE_ONLY)
-    elif re.match(
-        r"(monday|tuesday|wednesday|thursday|friday|saturday|sunday)",
+    elif date_str_lower.startswith("before ") or date_str_lower.startswith("by "):
+        day_match = re.search(
+            r"(?:before|by)\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)",
+            date_str_lower,
+        )
+        if day_match:
+            date_str_lower = day_match.group(1)
+    if re.match(
+        r"^(monday|tuesday|wednesday|thursday|friday|saturday|sunday)$",
         date_str_lower,
     ):
         days_of_week = [
@@ -280,6 +299,7 @@ def prepare_create_task_data(
     priority_was_provided = raw_priority in VALID_PRIORITIES
     priority = raw_priority or "medium"
     tags = entities.get("tags", [])
+    group = entities.get("group", "")
     recurrence_pattern = entities.get("recurrence_pattern")
     recurrence_interval = entities.get("recurrence_interval", 1)
 
@@ -337,6 +357,7 @@ def prepare_create_task_data(
         "due_time": valid_due_time if valid_due_date else None,
         "priority": priority,
         "tags": tags,
+        "group": str(group or ""),
     }
 
     if recurrence_pattern:

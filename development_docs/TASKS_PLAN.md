@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Current roadmap for task-system usability, Discord task creation, follow-up flows, and advanced task features  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-05-17 (condensed completed history; aligned with May 16 code snapshot)  
+> **Last Updated**: 2026-05-22 (§2 NLP + §2.1 task help shipped; per-user timeframe defaults backlog)  
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -64,13 +64,32 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - Recurring-task natural language basics for phrases such as daily/weekly/monthly/yearly, interval recurrence, weekdays, and time phrases.
 
 **Remaining**:
-- [ ] Improve non-recurring due-date parsing, especially phrases like `this week`, `before Friday`, `after work`, and `tonight`.
-- [ ] Improve title extraction so due dates, recurrence, priority, and tags are not accidentally included in task titles.
-- [ ] Support natural priority phrases such as `important`, `urgent`, `low priority`, and `not urgent`.
-- [ ] Support tag/group extraction without making command parsing brittle.
-- [ ] Add focused parser tests for common Discord-style messages.
+- [x] Improve non-recurring due-date parsing, especially phrases like `this week`, `before Friday`, `after work` / `after school`, and `tonight` (2026-05-22: `command_parser._extract_task_entities`, `task_service.parse_relative_date`).
+- [x] Improve title extraction so due dates, recurrence, priority, and tags are not accidentally included in task titles (2026-05-22: metadata stripped into `clean_title`).
+- [x] Support natural priority phrases such as `important`, `urgent`, `low priority`, and `not urgent` (2026-05-22; `urgent` maps to priority `urgent`, not `high`).
+- [x] Support tag/group extraction without making command parsing brittle (`#tag` via `parse_tags_from_text`, `group:name` / `in group:name`).
+- [x] Add focused parser tests for common Discord-style messages (`test_command_parser_task_entities_expansion.py`).
+- [ ] Live Discord validation that parsed due dates/titles feel right in follow-up flows (see §1).
+
+---
+
+### 2.1 Improve task command discovery
+
+**Status**: Completed (2026-05-22)  
+**Priority**: High
+
+**Delivered**:
+- [x] Expanded `TaskManagementHandler.get_help()` (`TASK_HELP_TEXT`) — create, list, complete/update, shortcuts, tags/groups, due phrases, follow-up note.
+- [x] Expanded `get_examples()` with natural-language samples aligned with §2 parser.
+- [x] `help tasks` / `examples tasks` route through the task handler (single source in `HelpHandler`).
+- [x] Tests: `test_task_handler_behavior.py`, `test_command_discovery_help.py`.
 
 **Acceptance**:
+- A user can discover task use from `help tasks` without developer docs.
+
+---
+
+**§2 acceptance**:
 - Messages like `I need to call the dentist this week` and `remind me to submit forms tomorrow morning` create useful structured tasks without manual cleanup.
 
 ---
@@ -129,6 +148,27 @@ Notebook and tasks both use concepts like tags, groups, short IDs, search/list v
 - [ ] Reuse or align with `core/tags.py` for tag normalization.
 - [ ] Consider a shared ID helper if short-ID behavior diverges between tasks and notebook.
 - [ ] Avoid moving task behaviour into notebook-specific modules.
+
+---
+
+### 5.1 User-customizable natural-language timeframes
+
+**Status**: Planned  
+**Priority**: Medium  
+**Why it matters**: Parser and `parse_relative_date` currently use fixed defaults (for example `tonight` → 18:00, `after work` / `after school` → 17:00, weekend `this week` → end of the coming week). Different schedules and time zones need per-user settings.
+
+**Implement later**:
+- [ ] Add preference fields under task settings (for example in `preferences.json` / `task_settings`): `tonight_start_time`, `after_work_school_time` (shared default for “after work” and “after school”), `time_of_day_defaults` (morning/afternoon/evening/night), and optionally `weekend_this_week_means_coming_week` (boolean, default true).
+- [ ] Load preferences in `task_service.parse_relative_date` and `command_parser._extract_task_entities` (or a shared `task_natural_language_defaults(user_id)` helper) instead of hard-coded constants.
+- [ ] Expose settings via Discord command and/or desktop task settings when UX is defined (defer UI until data model is stable).
+- [ ] Document new fields in [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md) and [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md).
+- [ ] Add unit tests with mocked per-user preference payloads.
+
+**Acceptance**:
+- A user can change what “tonight” and “after work/school” mean without code changes.
+- Defaults remain sensible when preferences are unset.
+
+**Note (2026-05-22)**: Current shipped defaults — `tonight` 18:00, `after work` / `after school` 17:00, Sat/Sun `this week` → Sunday at end of the coming week.
 
 ---
 

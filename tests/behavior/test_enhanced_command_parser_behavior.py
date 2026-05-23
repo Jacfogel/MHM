@@ -170,7 +170,10 @@ class TestEnhancedCommandParserBehavior:
         result = self.parser.parse("create task to buy groceries tomorrow")
         assert result.parsed_command.intent == "create_task", "Should match create_task"
         assert "title" in result.parsed_command.entities, "Should extract task title"
-        assert "buy groceries tomorrow" in result.parsed_command.entities["title"], "Should extract correct task title"
+        assert result.parsed_command.entities["title"] == "buy groceries", (
+            "Due date should be stripped from title"
+        )
+        assert result.parsed_command.entities.get("due_date", "").lower() == "tomorrow"
         
         # Test task completion with entity extraction
         result = self.parser.parse("complete task 123")

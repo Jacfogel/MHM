@@ -257,15 +257,15 @@ class TestDiscordCompleteAutomation:
         assert response.completed is True
         message = response.message
         assert "**Task Management Help:**" in message
-        assert "create task" in message.lower()
-        assert "list tasks" in message.lower()
+        assert "remind me to" in message.lower()
+        assert "show my tasks" in message.lower()
         assert "complete task" in message.lower()
         assert "delete task" in message.lower()
         assert "update task" in message.lower()
         
-        # Verify: Commands are actionable
-        assert "Call mom tomorrow" in message
-        assert "Buy groceries" in message
+        # Verify: Natural-language examples are actionable
+        assert "this week" in message.lower()
+        assert "buy milk" in message.lower() or "groceries" in message.lower()
 
     def test_category_specific_help_checkin(self, test_data_dir):
         """Test: 'help checkin' - Manual Test 7 continued."""

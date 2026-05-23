@@ -63,27 +63,36 @@ class TestTaskHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.tasks
     def test_task_handler_get_help(self):
-        """Test that TaskManagementHandler returns help text."""
+        """Test that TaskManagementHandler returns structured task discovery help."""
         handler = TaskManagementHandler()
         help_text = handler.get_help()
 
         assert isinstance(help_text, str), "Should return help text as string"
-        assert len(help_text) > 0, "Help text should not be empty"
-        assert "task" in help_text.lower(), "Help text should mention tasks"
+        assert "**Task Management Help:**" in help_text
+        assert "i need to call the dentist this week" in help_text
+        assert "remind me to" in help_text
+        assert "after work" in help_text and "after school" in help_text
+        assert "#groceries" in help_text or "#health" in help_text
+        assert "group:" in help_text
+        assert "skip" in help_text.lower() and "cancel" in help_text.lower()
+        assert "help tasks" in help_text
 
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
     def test_task_handler_get_examples(self):
-        """Test that TaskManagementHandler returns example commands."""
+        """Test that TaskManagementHandler returns natural-language example commands."""
         handler = TaskManagementHandler()
         examples = handler.get_examples()
 
         assert isinstance(examples, list), "Should return examples as list"
-        assert len(examples) > 0, "Should have at least one example"
+        assert len(examples) >= 8, "Should include multiple discovery examples"
         assert all(
             isinstance(ex, str) for ex in examples
         ), "All examples should be strings"
+        assert any("remind me" in ex for ex in examples)
+        assert any("this week" in ex for ex in examples)
+        assert any("show my tasks" in ex for ex in examples)
 
     @pytest.mark.behavior
     @pytest.mark.communication

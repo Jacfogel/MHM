@@ -41,6 +41,36 @@ def _task_service():
 logger = get_component_logger("communication_manager")
 handlers_logger = logger
 
+# Discord-oriented task help (single source for `help tasks` and handler.get_help).
+TASK_HELP_TEXT = """**Task Management Help:**
+Manage tasks from Discord with natural language or short commands.
+
+**Create** (talk normally — dates/priority/tags can be in the same message):
+• `i need to call the dentist this week`
+• `remind me to submit forms tomorrow morning`
+• `nt buy milk tonight #groceries`
+• `new task urgent: fix login before Friday group:work`
+• `remind me to take medication every morning at 8am` (recurring)
+
+**List & stats:**
+• `show my tasks` / `list tasks` / `/tasks`
+• `task stats` / `how am I doing with my tasks this week?`
+
+**Complete, delete, update:**
+• `complete task 1` / `done Call mom`
+• `delete task 2` / `delete Buy groceries`
+• `update task 1 priority high due tomorrow`
+
+**Shortcuts:** `nt`, `ntask`, `ct`, `ctask`, `createtask` + title (same as create)
+
+**Tags & groups:** `#health` in the message; `group:medical` or `in group:medical`
+
+**Due phrases:** `tomorrow`, `tonight`, `this week`, `before Friday`, `after work` / `after school` (weekend `this week` means the coming week)
+
+**After create:** If due/priority/reminders are missing, I may ask follow-up questions — reply with a date/time, priority, or `skip` / `cancel`.
+
+**More:** `help tasks`, `examples tasks`, or `/tasks`"""
+
 
 # not_duplicate: task_identifier_service_facade
 @handle_errors("resolving task identifier", default_return="")
@@ -849,19 +879,23 @@ class TaskManagementHandler(InteractionHandler):
         """Find the most urgent task based on priority and due date"""
         return _task_service().find_most_urgent_task(tasks)
 
-    @handle_errors("getting help")
+    @handle_errors("getting help", default_return=TASK_HELP_TEXT)
     def get_help(self) -> str:
         """Get help text for task management commands."""
-        return "Help with task management - create, list, complete, delete, and update tasks"
+        return TASK_HELP_TEXT
 
-    @handle_errors("getting examples")
+    @handle_errors("getting examples", default_return=[])
     def get_examples(self) -> list[str]:
         """Get example commands for task management."""
         return [
-            "create task 'Call mom tomorrow'",
-            "list tasks",
+            "i need to call the dentist this week",
+            "remind me to submit forms tomorrow morning",
+            "nt buy milk tonight #groceries",
+            "create task to water plants every 2 weeks",
+            "show my tasks",
             "complete task 1",
-            "delete task 'Buy groceries'",
-            "update task 2 priority high",
+            "delete task Buy groceries",
+            "update task 2 priority urgent due friday",
             "task stats",
+            "how am I doing with my tasks this week?",
         ]

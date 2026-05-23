@@ -33,11 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
-### 2026-05-22 - Conversational action boundary behavior tests **COMPLETED**
+### 2026-05-22 - Conversational boundaries and task NLP parsing **COMPLETED**
 - **Maintenance (audit priorities)**: `@handle_errors` on [`action_boundaries.py`](../ai/conversational_context/action_boundaries.py); Ruff `re.Pattern` import; qualified paths in [TODO.md](../TODO.md); `doc-fix --convert-links`, `docs`, `doc-sync` PASS (0 drift/unconverted links)
 - **Feature**: [`ai/conversational_context/action_boundaries.py`](../ai/conversational_context/action_boundaries.py) centralizes regex detection of false completed-action claims; **ACTION BOUNDARIES** block added to [`instructions.py`](../ai/conversational_context/instructions.py) (offer language vs past-tense completion)
-- **Tests**: [`tests/behavior/test_conversational_action_boundaries.py`](../tests/behavior/test_conversational_action_boundaries.py) covers prompt contract, safe/unsafe response samples, [`AIResponseValidator`](../tests/ai/ai_response_validator.py) integration, and fallback regression; [`test_fallback_responses.py`](../tests/unit/test_fallback_responses.py) imports shared `FALSE_CRUD_SUCCESS_SUBSTRINGS`
-- **Documentation**: [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md) Section 4.3 test list; [TODO.md](../TODO.md) actionability sprint note updated
+- **Tasks Section 2 (natural-language creation)**: [`command_parser.py`](../communication/message_processing/command_parser.py) `_extract_task_entities` now parses `this week`, `tonight`, `before/by <weekday>`, `after work`, `tomorrow morning`, strips due/priority/tags/group from titles, maps `urgent`/`critical`/`not urgent`; [`task_service.py`](../tasks/task_service.py) `parse_relative_date` and `prepare_create_task_data` support new phrases and `group`
+- **Tests**: [`test_conversational_action_boundaries.py`](../tests/behavior/test_conversational_action_boundaries.py); expanded [`test_command_parser_task_entities_expansion.py`](../tests/unit/test_command_parser_task_entities_expansion.py) and `test_task_service_parse_relative_date_uses_canonical_clock`
+- **Documentation**: [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md) Section 4.3 test list; [TODO.md](../TODO.md) actionability sprint note updated; [TASKS_PLAN.md](TASKS_PLAN.md) Section 5.1 per-user NL timeframe preferences (planned); Section 2.1 task command discovery (`TASK_HELP_TEXT`, `help tasks` routing)
+- **Security/docs hygiene**: [`requirements.txt`](../requirements.txt) `idna>=3.15` (CVE-2026-45409); `verify-process-cleanup` regenerated link target JSON; Tier-3 test expectation updates; doc-sync markdown link targets clean
 - **Impact**: Static guardrails catch "I created your task" style replies in review tooling; live model quality still validated via AI functionality tests
 
 ### 2026-05-21 - System AI overhaul completed; post-overhaul AI quality **COMPLETED**

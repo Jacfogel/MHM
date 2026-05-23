@@ -38,6 +38,13 @@ class TestCommandParserTaskEntityExtraction:
             ("Pay rent on March 5", "on March 5"),
             ("Renew passport by April 12", "by April 12"),
             ("Buy groceries on May 1", "on May 1"),
+            ("Call dentist this week", "this week"),
+            ("Submit forms tonight", "tonight"),
+            ("Finish report after work", "after work"),
+            ("Study after school", "after school"),
+            ("Send invoice before Friday", "before Friday"),
+            ("Pay bill by Monday", "by Monday"),
+            ("I need to call the dentist this week", "this week"),
         ],
     )
     def test_extract_task_entities_due_date_patterns(
@@ -46,6 +53,23 @@ class TestCommandParserTaskEntityExtraction:
         entities = command_parser._extract_task_entities(title)
 
         assert entities.get("due_date") == expected_due_date
+
+    @pytest.mark.parametrize(
+        "title, expected_clean_title",
+        [
+            ("Call the dentist this week", "Call the dentist"),
+            ("submit forms tomorrow morning", "submit forms"),
+            ("Buy milk tomorrow #groceries", "Buy milk"),
+            ("Important: call mom tomorrow", "call mom"),
+            ("Pay rent by Monday group:home", "Pay rent"),
+        ],
+    )
+    def test_extract_task_entities_strips_metadata_from_title(
+        self, command_parser, title, expected_clean_title
+    ):
+        entities = command_parser._extract_task_entities(title)
+
+        assert entities.get("clean_title") == expected_clean_title
 
     @pytest.mark.parametrize(
         "title, expected_due_time",
@@ -66,15 +90,34 @@ class TestCommandParserTaskEntityExtraction:
         assert entities.get("due_time") == expected_due_time
 
     @pytest.mark.parametrize(
+        "title, expected_due_time",
+        [
+            ("Submit report tomorrow morning", "9:00"),
+            ("Meet tomorrow evening", "18:00"),
+            ("Check mail tonight", "18:00"),
+            ("Email client after work", "17:00"),
+            ("Call mom after school", "17:00"),
+        ],
+    )
+    def test_extract_task_entities_time_of_day_defaults(
+        self, command_parser, title, expected_due_time
+    ):
+        entities = command_parser._extract_task_entities(title)
+
+        assert entities.get("due_time") == expected_due_time
+
+    @pytest.mark.parametrize(
         "title, expected_priority",
         [
-            ("Urgent: fix bug", "high"),
-            ("This is ASAP", "high"),
+            ("Urgent: fix bug", "urgent"),
+            ("This is ASAP", "urgent"),
             ("Important call", "high"),
-            ("Critical report", "high"),
+            ("Critical report", "critical"),
             ("Low priority chore", "low"),
             ("Schedule when convenient", "low"),
             ("No rush on this", "low"),
+            ("Not urgent paperwork", "low"),
+            ("Medium priority review", "medium"),
             ("Regular task", None),
         ],
     )
@@ -107,6 +150,79 @@ class TestCommandParserTaskEntityExtraction:
         task_name = command_parser._extract_task_name_from_context(message)
 
         assert task_name == expected_task_name
+
+    @pytest.mark.parametrize(
+        "title, expected_tags, expected_group",
+        [
+            ("Buy milk #groceries", ["groceries"], None),
+            ("Call dentist tomorrow #health group:medical", ["health"], "medical"),
+            ("Plan trip in group:travel", None, "travel"),
+        ],
+    )
+    def test_extract_task_entities_tags_and_group(
+        self, command_parser, title, expected_tags, expected_group
+    ):
+        entities = command_parser._extract_task_entities(title)
+
+        if expected_tags is None:
+            assert "tags" not in entities
+        else:
+            assert entities.get("tags") == expected_tags
+        if expected_group is None:
+            assert "group" not in entities
+        else:
+            assert entities.get("group") == expected_group
+
+
+@pytest.mark.unit
+@pytest.mark.communication
+@pytest.mark.tasks
+class TestCommandParserCreateTaskNaturalLanguage:
+    """End-to-end rule parsing for Discord-style task creation messages."""
+
+    @pytest.mark.parametrize(
+        "message, expected_title, expected_due_date, expected_priority",
+        [
+            (
+                "i need to call the dentist this week",
+                "call the dentist",
+                "this week",
+                None,
+            ),
+            (
+                "remind me to submit forms tomorrow morning",
+                "submit forms",
+                "tomorrow",
+                None,
+            ),
+            (
+                "create task to buy groceries tonight #shopping",
+                "buy groceries",
+                "tonight",
+                None,
+            ),
+            (
+                "new task urgent fix login before Friday",
+                "fix login",
+                "before friday",
+                "urgent",
+            ),
+        ],
+    )
+    def test_rule_parse_create_task_natural_language(
+        self, command_parser, message, expected_title, expected_due_date, expected_priority
+    ):
+        result = command_parser._rule_based_parse(message)
+
+        assert result.method == "rule_based"
+        assert result.parsed_command.intent == "create_task"
+        entities = result.parsed_command.entities
+        assert entities.get("title") == expected_title
+        assert (entities.get("due_date") or "").lower() == expected_due_date.lower()
+        if expected_priority is None:
+            assert "priority" not in entities
+        else:
+            assert entities.get("priority") == expected_priority
 
 
 @pytest.mark.unit

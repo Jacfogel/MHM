@@ -131,20 +131,18 @@ class TestCommandDiscoveryHelp:
         
         message = response.message
         
-        # Verify category-specific examples provided
+        # Verify category-specific help from TaskManagementHandler (single source)
         assert "**Task Management Help:**" in message
-        assert "create task" in message.lower()
-        assert "recurring tasks" in message.lower()
+        assert "i need to call the dentist this week" in message
+        assert "remind me to" in message
         assert "every morning at 8am" in message.lower()
-        assert "list tasks" in message.lower()
+        assert "show my tasks" in message.lower()
         assert "complete task" in message.lower()
         assert "delete task" in message.lower()
         assert "update task" in message.lower()
         assert "task stats" in message.lower()
-        
-        # Verify commands are actionable
-        assert "Call mom tomorrow" in message
-        assert "Buy groceries" in message
+        assert "after work" in message and "after school" in message
+        assert "group:" in message
 
     def test_category_specific_help_checkin(self, test_data_dir):
         """Test category-specific help for check-ins."""
@@ -263,14 +261,15 @@ class TestCommandDiscoveryHelp:
         
         message = response.message
         
-        # Verify task-specific examples
+        # Verify task-specific examples from TaskManagementHandler.get_examples()
         assert "**Task Examples:**" in message
-        assert "call mom tomorrow" in message.lower()
-        assert "buy groceries" in message.lower()
-        assert "show me my tasks" in message.lower()
+        assert "this week" in message.lower()
+        assert "tomorrow morning" in message.lower()
+        assert "show my tasks" in message.lower()
         assert "complete task" in message.lower()
-        assert "delete" in message.lower()
+        assert "delete task" in message.lower()
         assert "update task" in message.lower()
+        assert "remind me" in message.lower()
 
     def test_help_system_comprehensive_coverage(self, test_data_dir):
         """Test that help system provides comprehensive command coverage."""

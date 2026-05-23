@@ -75,18 +75,11 @@ class HelpHandler(InteractionHandler):
         topic = entities.get("topic", "general")
 
         if topic == "tasks":
-            return InteractionResponse(
-                "**Task Management Help:**\n"
-                "• Create tasks: 'create task \"Call mom tomorrow\"'\n"
-                "• Recurring tasks: 'remind me to take medication every morning at 8am'\n"
-                "• List tasks: 'list tasks' or 'show my tasks'\n"
-                "• Complete tasks: 'complete task 1' or 'complete \"Call mom\"'\n"
-                "• Delete tasks: 'delete task 2' or 'delete \"Buy groceries\"'\n"
-                "• Update tasks: 'update task 1 priority high'\n"
-                "• Task stats: 'task stats' or 'show task statistics'\n"
-                "• Weekly progress: 'how am I doing with my tasks this week?'",
-                True,
+            from communication.command_handlers.task_handler import (
+                TaskManagementHandler,
             )
+
+            return InteractionResponse(TaskManagementHandler().get_help(), True)
         elif topic == "checkin":
             return InteractionResponse(
                 "**Check-in Help:**\n"
@@ -227,17 +220,13 @@ class HelpHandler(InteractionHandler):
         category = entities.get("category", "general")
 
         if category == "tasks":
-            return InteractionResponse(
-                "**Task Examples:**\n"
-                "• 'I need to call mom tomorrow'\n"
-                "• 'Create a task to buy groceries'\n"
-                "• 'Show me my tasks'\n"
-                "• 'What tasks are due soon?'\n"
-                "• 'Complete task 1'\n"
-                "• 'Delete the grocery task'\n"
-                "• 'Update task 2 to high priority'",
-                True,
+            from communication.command_handlers.task_handler import (
+                TaskManagementHandler,
             )
+
+            examples = TaskManagementHandler().get_examples()
+            lines = ["**Task Examples:**", *(f"• `{example}`" for example in examples)]
+            return InteractionResponse("\n".join(lines), True)
         elif category == "checkin":
             return InteractionResponse(
                 "**Check-in Examples:**\n"
