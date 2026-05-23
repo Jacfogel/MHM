@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-23 - Post-refactor architecture decisions closed **COMPLETED**
+- Closed the deferred service/scheduler/dispatcher cleanup TODOs after reviewing current startup, scheduler delivery ports, service request delivery, retry ownership, and package boundaries
+- Documented decisions in [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md): keep `CommunicationManager` as runtime owner/singleton, keep retry queueing in `communication/core/retry_manager.py` for now, and avoid new top-level message/check-in packages until concrete ownership pressure appears
+- Confirmed task-reminder scheduling bodies are already split into `scheduler/task_reminders.py`; retained only public wrappers/call sites in `scheduler/manager.py`
+- Cleared the completed high-priority architecture cleanup block from [TODO.md](../TODO.md)
+
 ### 2026-05-23 - Analytics handler split and audit cleanup **COMPLETED**
 - Split `AnalyticsHandler` into check-in, trend, task, and shared formatting handlers; removed duplicated task-stats implementation from `TaskManagementHandler`
 - Updated analytics/task behavior tests to assert current canonical behavior instead of legacy compatibility paths

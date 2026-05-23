@@ -242,6 +242,18 @@ Use this layout as the template when adding new channels.
   - Message parsing and routing are shared across channels.  
   - Error-handling and logging follow centralized patterns as documented in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md) and [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).
 
+- **Runtime wiring and delivery boundaries**
+  - `CommunicationManager` remains the runtime owner for channel lifecycle, async send plumbing, retry thread startup/shutdown, channel monitoring, and dispatch helper construction.
+  - Scheduler and service-request orchestration should depend on the narrow delivery protocols in [delivery.py](../core/delivery.py), not on `CommunicationManager` internals. Existing standalone scheduler entry points use the configured delivery factory in [manager.py](../scheduler/manager.py) so tests and non-channel callers can provide slim fakes.
+  - Do not introduce a separate application wiring object unless a concrete new runtime owner appears. The current singleton lifetime is intentional because the process has one channel lifecycle and one shared send loop.
+
+- **Retry ownership**
+  - Retry queueing stays in [retry_manager.py](core/retry_manager.py) for now. It is part of communication runtime lifecycle rather than predefined-message selection, and it only needs a send callback from the orchestrator.
+  - Move retry code into `communication/delivery/` only if retry policy becomes a reusable delivery pipeline concern, for example shared per-channel backoff rules, persisted queues, or tests that need retry behavior without constructing communication runtime.
+
+- **Package boundaries**
+  - Keep the current top-level packages stable. `scheduler/` already owns scheduling mechanics, `tasks/` owns task domain logic, and `communication/` owns channel adapters and dispatch. New `messages/`, `checkins/`, or `automated_messages/` packages should start with a short design pass and only move code when ownership pressure is clear.
+
 - **Discord**  
   - Fully wired into the channel-agnostic pipeline via `event_handler`, the Discord bot, and view adapters for check-ins and task reminders.   
   - Webhook-based onboarding is implemented on the Discord side; see section 5. "Webhook-Based Authorization and Welcome Flow" in [DISCORD_GUIDE.md](communication_channels/discord/DISCORD_GUIDE.md).

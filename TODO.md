@@ -4,7 +4,7 @@
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements
 > **Style**: Organized, actionable, beginner-friendly
-> **Last Updated**: 2026-05-17 (AI_PRIORITIES tier-3 cache accuracy, doc link targets, ruff test flake)
+> **Last Updated**: 2026-05-23 (post-refactor architecture decision cleanup)
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
@@ -50,30 +50,7 @@ Detail: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](development_tools/AI_DEV_TOOLS_IMP
 
 ## High Priority
 
-### Post-refactor architecture cleanup follow-ups
-
-The May 2026 service/scheduler/dispatcher refactor moved request handling, preview resolution, task reminders, maintenance jobs, message dispatch, check-in prompt dispatch, and delivery-port wiring out of the largest coordinator paths. Keep only the remaining deferred cleanup here.
-
-- [ ] Decide whether `CommunicationManager` singleton lifetime should remain as-is or move behind a smaller application wiring object.
-  - *What it means*: Review startup, UI, scheduler, and channel usage now that scheduler/service request code can fake delivery through ports.
-  - *Why it helps*: Avoids another broad dependency-injection rewrite unless it clearly reduces coupling.
-  - *Estimated effort*: Medium
-  - *Created*: 2026-05-05
-- [ ] Review whether retry management should remain in [retry_manager.py](communication/core/retry_manager.py) or move to a dedicated delivery module.
-  - *What it means*: Message dispatch is extracted, but retry/backoff behavior may still be worth isolating if it grows or blocks tests.
-  - *Why it helps*: Keeps delivery dispatch focused without splitting stable code too early.
-  - *Estimated effort*: Small/Medium
-  - *Created*: 2026-05-05
-- [ ] Reassess top-level package boundaries after the current refactor stays stable.
-  - *What it means*: Consider future `scheduler/`, `messages/`, `checkins/`, or `automated_messages/` packages only if concrete ownership pressure remains.
-  - *Why it helps*: Prevents premature package churn while leaving an explicit review point.
-  - *Estimated effort*: Medium
-  - *Created*: 2026-05-05
-
-#### Status
-
-- [ ] Larger scheduler splits (e.g. moving more task-reminder scheduling bodies out of `scheduler/manager.py`) remain optional follow-ups. (Initial split shipped **2026-05-02**; package move shipped **2026-05-13**; see paired changelogs.)
-- Intentional thin delegators: suppress duplicate-tool pairs by giving **both** functions the same `# not_duplicate: <group_id>` (or `# duplicate_functions_intentional:`) comment within a few lines above `def` - see `development_tools/functions/analyze_duplicate_functions.py` module docstring. Single-function exclusion: `# duplicate_functions_exclude`.
+No active high-priority TODOs are currently tracked here. Keep completed architecture-review decisions in changelogs and architecture guides, not in this file.
 
 ## Medium Priority
 
