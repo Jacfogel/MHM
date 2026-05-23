@@ -466,12 +466,13 @@ class TestTaskManagementHandlerCoverage:
         assert not response.completed  # Should ask what to update
         assert "what would you like to update" in response.message.lower()
 
-    def test_handle_task_stats_with_analytics(self, test_data_dir):
-        """Test task statistics with analytics."""
+    def test_handle_task_stats_uses_task_analytics_handler(self, test_data_dir):
+        """Test task statistics route through the canonical task analytics handler."""
         handler = TaskManagementHandler()
         user_id = "test_user_stats_1"
 
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        create_task(user_id, "High Priority Task", "2024-12-25", priority="high")
 
         parsed_command = ParsedCommand(
             intent="task_stats",
@@ -480,25 +481,16 @@ class TestTaskManagementHandlerCoverage:
             original_message="show task stats",
         )
 
-        with patch("core.checkin_analytics.CheckinAnalytics") as mock_analytics:
-            mock_instance = Mock()
-            mock_instance.get_task_weekly_stats.return_value = {
-                "Test Task": {
-                    "completion_rate": 85,
-                    "completed_days": 6,
-                    "total_days": 7,
-                }
-            }
-            mock_analytics.return_value = mock_instance
+        response = handler.handle(user_id, parsed_command)
 
-            response = handler.handle(user_id, parsed_command)
+        assert isinstance(response, InteractionResponse)
+        assert "task statistics" in response.message.lower()
+        assert "active tasks" in response.message.lower()
+        assert "high: 1 tasks" in response.message.lower()
 
-            assert isinstance(response, InteractionResponse)
-            assert "task statistics" in response.message.lower()
-            assert "🟢" in response.message  # High completion rate emoji
 
     def test_handle_task_stats_no_data(self, test_data_dir):
-        """Test task statistics with no data."""
+        """Test task statistics with no task data."""
         handler = TaskManagementHandler()
         user_id = "test_user_stats_2"
 
@@ -511,15 +503,11 @@ class TestTaskManagementHandlerCoverage:
             original_message="show task stats",
         )
 
-        with patch("core.checkin_analytics.CheckinAnalytics") as mock_analytics:
-            mock_instance = Mock()
-            mock_instance.get_task_weekly_stats.return_value = {"error": "No data"}
-            mock_analytics.return_value = mock_instance
+        response = handler.handle(user_id, parsed_command)
 
-            response = handler.handle(user_id, parsed_command)
-
-            assert isinstance(response, InteractionResponse)
-            assert "don't have enough check-in data" in response.message.lower()
+        assert isinstance(response, InteractionResponse)
+        assert "task statistics" in response.message.lower()
+        assert "total tasks" in response.message.lower()
 
     def test_handle_unknown_intent(self, test_data_dir):
         """Test handling unknown intent."""

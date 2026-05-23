@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import tempfile
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -75,6 +77,12 @@ def test_run_pip_audit_counts_vulnerabilities(mock_run: MagicMock, tmp_path) -> 
     assert out["details"].get("vulnerable_packages_with_fix") == 0
     assert out["details"].get("vulnerable_packages_without_fix") == 1
     assert out["details"]["vulnerable_packages"][0]["fix_available"] is False
+    command = mock_run.call_args.args[0]
+    cache_dir_index = command.index("--cache-dir") + 1
+    assert Path(command[cache_dir_index]) == (
+        Path(tempfile.gettempdir()) / "mhm-pip-audit-http-cache"
+    )
+    assert "--progress-spinner" in command
 
 
 @pytest.mark.unit

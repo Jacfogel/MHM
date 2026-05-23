@@ -8,6 +8,8 @@ from communication.command_handlers.analytics_handler import (
     InteractionResponse,
     ParsedCommand,
 )
+from communication.command_handlers.checkin_analytics_handler import CheckinAnalyticsHandler
+from communication.command_handlers.trend_analytics_handler import TrendAnalyticsHandler
 
 pytestmark = [pytest.mark.communication]
 
@@ -54,7 +56,7 @@ def test_handle_returns_default_for_unknown_intent(monkeypatch):
 @pytest.mark.unit
 @pytest.mark.communication
 def test_handle_mood_trends_includes_trend_and_distribution(monkeypatch):
-    handler = AnalyticsHandler()
+    handler = TrendAnalyticsHandler()
     mood_payload = {
         "average_mood": 4,
         "min_mood": 2,
@@ -69,7 +71,7 @@ def test_handle_mood_trends_includes_trend_and_distribution(monkeypatch):
         lambda *args, **kwargs: _FakeCheckinAnalytics(mood_payload),
     )
 
-    response = handler._handle_mood_trends("user_x", {"days": 7})
+    response = handler.handle_mood_trends("user_x", {"days": 7})
 
     assert isinstance(response, InteractionResponse)
     assert "Mood Trends" in response.message
@@ -81,7 +83,7 @@ def test_handle_mood_trends_includes_trend_and_distribution(monkeypatch):
 @pytest.mark.unit
 @pytest.mark.communication
 def test_get_field_scale_and_truncate_response():
-    handler = AnalyticsHandler()
+    handler = CheckinAnalyticsHandler()
 
     assert handler._get_field_scale("mood") == 5
     assert handler._get_field_scale("sleep_hours") is None

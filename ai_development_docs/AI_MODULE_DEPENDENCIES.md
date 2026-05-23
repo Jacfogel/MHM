@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-22 01:10:00
+> **Last Generated**: 2026-05-23 12:37:38
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 151
-- **Total Imports**: 1514
-- **Standard Library**: 432 (28.5%)
-- **Third-Party**: 234 (15.5%)
-- **Local Imports**: 848 (56.0%)
+- **Files Scanned**: 155
+- **Total Imports**: 1504
+- **Standard Library**: 436 (29.0%)
+- **Third-Party**: 235 (15.6%)
+- **Local Imports**: 833 (55.4%)
 
 ## Dependency Decision Trees
 
@@ -37,8 +37,8 @@ AI System Dependencies:
   - ai/chatbot.py <- standard library (asyncio, collections, os, threading), third-party (psutil), logger, config, response_tracking, context_manager, prompt_manager (+9 more)
 - Command Processing
   - communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), third-party (storage.user_data_operations), logger, error_handling, core, base_handler, shared_types (+1 more)
-  - communication/command_handlers/analytics_handler.py <- standard library (collections, typing), logger, error_handling, base_handler, shared_types, response_tracking (+5 more)
-  - communication/command_handlers/base_handler.py <- standard library (abc), third-party (storage.user_data_validation), shared_types, logger, error_handling
+  - communication/command_handlers/analytics_formatting.py <- standard library (typing), response_tracking, error_handling
+  - communication/command_handlers/analytics_handler.py <- standard library (typing), error_handling, command_handlers, base_handler, shared_types
 - Communication Integration
   - communication/communication_channels/__init__.py <- none
   - communication/core/channel_monitor.py <- standard library (threading, time, typing), time_utilities, logger, error_handling, base_channel
@@ -109,17 +109,17 @@ External libraries provide channel and UI support.
 ### Communication Flow
 - __init__: communication/__init__.py <- third-party (command_handlers.analytics_handler, command_handlers.base_handler, command_handlers.checkin_handler), retry_manager, channel_orchestrator, factory, channel_monitor
 - account_handler: communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), third-party (storage.user_data_operations), logger, error_handling, core, base_handler, shared_types (+1 more)
-- analytics_handler: communication/command_handlers/analytics_handler.py <- standard library (collections, typing), logger, error_handling, base_handler, shared_types, response_tracking (+5 more)
+- analytics_formatting: communication/command_handlers/analytics_formatting.py <- standard library (typing), response_tracking, error_handling
 
 
 ## Dependency Risk Areas
 
 ### High Coupling
 - `ui/ui_app_qt.py` -> 45 local dependencies (heavy coupling)
-- `communication/command_handlers/analytics_handler.py` -> 34 local dependencies (heavy coupling)
 - `communication/message_processing/conversation_flow_manager.py` -> 34 local dependencies (heavy coupling)
 - `communication/core/channel_orchestrator.py` -> 28 local dependencies (heavy coupling)
-- `communication/command_handlers/interaction_handlers.py` -> 22 local dependencies (heavy coupling)
+- `communication/command_handlers/interaction_handlers.py` -> 24 local dependencies (heavy coupling)
+- `communication/message_processing/interaction_manager.py` -> 22 local dependencies (heavy coupling)
 
 ### Third-Party Risks
 - `ui/ui_app_qt.py` -> PySide6.QtWidgets (31 modules use this)

@@ -56,7 +56,7 @@ The AI subsystem lives primarily under `ai/` and collaborates with `user/` and `
 - `communication/message_processing/command_parser.py`  
   - Enhanced command parser combining rule-based and AI parsing.
 
-**Module ownership (Phase 5 complete):** `ai/chatbot.py` orchestrates LM Studio, locks, cache, and mode routing and calls `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()` directly. Channels import only `get_ai_chatbot()`; behavior tests that target module logic should use the canonical getters, not private chatbot delegates. See [SYSTEM_AI_OVERHAUL_PLAN.md](SYSTEM_AI_OVERHAUL_PLAN.md) Section 8.1.
+**Module ownership (Phase 5 complete):** `ai/chatbot.py` orchestrates LM Studio, locks, cache, and mode routing and calls `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()` directly. Channels import only `get_ai_chatbot()`; behavior tests that target module logic should use the canonical getters, not private chatbot delegates. See [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md) Section 8.1.
 
 Supporting modules:
 
@@ -106,7 +106,7 @@ All of these are accessed via a singleton instance; use `get_ai_chatbot()` rathe
 
 ### 3.2. Interaction types and modes
 
-Per [SYSTEM_AI_OVERHAUL_PLAN.md](SYSTEM_AI_OVERHAUL_PLAN.md), the system separates **why** AI is called from **what** happens with the output. `AIInteractionType` in `ai/interaction_types.py` is the canonical name; `generate_response(..., mode=...)` remains the runtime API.
+Per [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md), the system separates **why** AI is called from **what** happens with the output. `AIInteractionType` in `ai/interaction_types.py` is the canonical name; `generate_response(..., mode=...)` remains the runtime API.
 
 | `AIInteractionType` | Typical `mode` | User-visible? | May execute actions? |
 |---------------------|----------------|---------------|----------------------|
@@ -125,7 +125,7 @@ Per [SYSTEM_AI_OVERHAUL_PLAN.md](SYSTEM_AI_OVERHAUL_PLAN.md), the system separat
 
 **Fallback**: `ai/fallback_responses/` supplies templates and check-in-aware text when LM Studio is down, the API is busy, or generation fails. Fallbacks must not pretend AI succeeded or invent data not retrieved deterministically.
 
-**Fallback ownership boundary**: Fallback *content* and routing belong in `ai/fallback_responses/`. `communication/` adapters (Discord, email, etc.) format and deliver messages only; they must not own business fallback text or check-in-aware wording. See Phase 4.5 in [SYSTEM_AI_OVERHAUL_PLAN.md](SYSTEM_AI_OVERHAUL_PLAN.md).
+**Fallback ownership boundary**: Fallback *content* and routing belong in `ai/fallback_responses/`. `communication/` adapters (Discord, email, etc.) format and deliver messages only; they must not own business fallback text or check-in-aware wording. See Phase 4.5 in [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md).
 
 `get_command_interpreter().detect_mode(user_prompt)` chooses a mode when `generate_response` is called without `mode=`. Prefer explicit `mode=` from callers that already know the interaction type (for example command parsing).
 

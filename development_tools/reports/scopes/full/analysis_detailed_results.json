@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-05-23 00:54:37",
+  "last_generated": "2026-05-23 14:44:23",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-05-23T00:54:37.014310",
+  "timestamp": "2026-05-23T14:44:23.945075",
   "successful": [
     "analyze_ai_work",
     "analyze_config",
@@ -55,7 +55,7 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-05-23T00:54:17"
+      "timestamp": "2026-05-23T14:43:52"
     },
     "analyze_config": {
       "success": true,
@@ -124,7 +124,7 @@
           }
         }
       },
-      "timestamp": "2026-05-23T00:54:17"
+      "timestamp": "2026-05-23T14:43:52"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -142,7 +142,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-05-23T00:54:29"
+      "timestamp": "2026-05-23T14:44:07"
     },
     "analyze_documentation": {
       "success": true,
@@ -355,7 +355,7 @@
               ]
             },
             "ai/SYSTEM_AI_GUIDE.md": {
-              "content_length": 25663,
+              "content_length": 25697,
               "header_info": "# AI System Documentation\n\n> **File**: `ai/SYSTEM_AI_GUIDE.md`\n> **Audience**: Developers and AI collaborators working on MHM's AI system\n> **Purpose**: Explain how the AI subsystem is structured, how",
               "section_count": 28,
               "sections": [
@@ -404,7 +404,7 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 24178,
+              "content_length": 24188,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent chan",
               "section_count": 21,
               "sections": [
@@ -606,7 +606,7 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 636465,
+              "content_length": 636485,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
               "section_count": 199,
               "sections": [
@@ -623,7 +623,7 @@
               ]
             },
             "development_docs/PLANS.md": {
-              "content_length": 16015,
+              "content_length": 16025,
               "header_info": "# MHM Development Plans\n\n> **File**: `development_docs/PLANS.md`  \n> **Audience**: Human Developer & AI Collaborators  \n> **Purpose**: Top-level index for active, delegated, deferred, and completed MH",
               "section_count": 25,
               "sections": [
@@ -1045,7 +1045,7 @@
           "total_issues": 13
         }
       },
-      "timestamp": "2026-05-23T00:54:17"
+      "timestamp": "2026-05-23T14:43:52"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -1128,7 +1128,7 @@
           "example_marker_findings": {}
         }
       },
-      "timestamp": "2026-05-23T00:54:31"
+      "timestamp": "2026-05-23T14:44:11"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -1143,7 +1143,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-05-23T00:54:29"
+      "timestamp": "2026-05-23T14:44:08"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -1158,7 +1158,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-05-23T00:54:31"
+      "timestamp": "2026-05-23T14:44:11"
     },
     "analyze_path_drift": {
       "success": true,
@@ -1173,7 +1173,7 @@
           "markdown_link_target_files": {}
         }
       },
-      "timestamp": "2026-05-23T00:54:28"
+      "timestamp": "2026-05-23T14:44:07"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -1188,7 +1188,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-05-23T00:54:31"
+      "timestamp": "2026-05-23T14:44:11"
     },
     "analyze_error_handling": {
       "success": true,
@@ -1198,16 +1198,16 @@
           "files_affected": 0
         },
         "details": {
-          "total_functions": 1713,
-          "functions_with_try_except": 523,
-          "functions_with_error_handling": 1713,
-          "functions_with_decorators": 1693,
+          "total_functions": 1714,
+          "functions_with_try_except": 522,
+          "functions_with_error_handling": 1714,
+          "functions_with_decorators": 1694,
           "functions_missing_error_handling": 0,
           "analyze_error_handling": 100.0,
           "error_patterns": {
-            "handle_errors_decorator": 1655,
-            "try_except": 646,
-            "handle_ai_error": 15,
+            "handle_errors_decorator": 1656,
+            "try_except": 647,
+            "handle_ai_error": 17,
             "handle_communication_error": 4,
             "handle_network_error": 5,
             "DataError": 15,
@@ -1216,16 +1216,16 @@
             "handle_configuration_error": 4,
             "error_handler_usage": 8,
             "handle_validation_error": 2,
-            "AIError": 2,
-            "safe_file_operation": 1,
             "CommunicationError": 4,
-            "FileOperationError": 10,
+            "safe_file_operation": 1,
+            "AIError": 2,
             "MHMError": 2,
-            "handle_file_error": 3
+            "handle_file_error": 3,
+            "FileOperationError": 10
           },
           "missing_error_handling": [],
           "error_handling_quality": {
-            "excellent": 1693,
+            "excellent": 1694,
             "good": 20
           },
           "recommendations": [],
@@ -1269,7 +1269,7 @@
           ]
         }
       },
-      "timestamp": "2026-05-23T00:54:22"
+      "timestamp": "2026-05-23T14:43:57"
     },
     "analyze_duplicate_functions": {
       "success": true,
@@ -1279,18 +1279,18 @@
           "files_affected": 0
         },
         "details": {
-          "total_functions": 1785,
+          "total_functions": 1786,
           "functions_excluded": 9,
           "records_deduplicated": 0,
           "groups_filtered_single_function": 8,
-          "groups_filtered_intentional": 45,
+          "groups_filtered_intentional": 44,
           "cache": {
-            "total_files": 151,
-            "cached_files": 151,
+            "total_files": 155,
+            "cached_files": 155,
             "scanned_files": 0
           },
           "pairs_considered": 24898,
-          "pairs_reported": 90,
+          "pairs_reported": 89,
           "groups_reported": 0,
           "min_name_similarity": 0.6,
           "min_overall_similarity": 0.7,
@@ -1322,36 +1322,6 @@
               "locals_similarity": 1.0,
               "imports_similarity": 1.0,
               "a": {
-                "name": "_get_cleanup_status__calculate_days_since_cleanup",
-                "full_name": "_get_cleanup_status__calculate_days_since_cleanup",
-                "class": null,
-                "file": "core/auto_cleanup.py",
-                "line": 737,
-                "args": [
-                  "last_cleanup_timestamp"
-                ]
-              },
-              "b": {
-                "name": "_get_cleanup_status__calculate_days_since_cleanup",
-                "full_name": "_get_cleanup_status__calculate_days_since_cleanup",
-                "class": null,
-                "file": "core/auto_cleanup.py",
-                "line": 737,
-                "args": [
-                  "last_cleanup_timestamp"
-                ]
-              },
-              "body_similarity": 1.0
-            },
-            {
-              "overall_similarity": 1.0,
-              "name_similarity": 1.0,
-              "args_similarity": 1.0,
-              "argument_name_similarity": 1.0,
-              "argument_shape_similarity": 1.0,
-              "locals_similarity": 1.0,
-              "imports_similarity": 1.0,
-              "a": {
                 "name": "_get_user_id_by_identifier__by_chat_id",
                 "full_name": "_get_user_id_by_identifier__by_chat_id",
                 "class": null,
@@ -1437,6 +1407,36 @@
                 "line": 752,
                 "args": [
                   "last_date"
+                ]
+              },
+              "body_similarity": 1.0
+            },
+            {
+              "overall_similarity": 1.0,
+              "name_similarity": 1.0,
+              "args_similarity": 1.0,
+              "argument_name_similarity": 1.0,
+              "argument_shape_similarity": 1.0,
+              "locals_similarity": 1.0,
+              "imports_similarity": 1.0,
+              "a": {
+                "name": "_get_cleanup_status__calculate_days_since_cleanup",
+                "full_name": "_get_cleanup_status__calculate_days_since_cleanup",
+                "class": null,
+                "file": "core/auto_cleanup.py",
+                "line": 737,
+                "args": [
+                  "last_cleanup_timestamp"
+                ]
+              },
+              "b": {
+                "name": "_get_cleanup_status__calculate_days_since_cleanup",
+                "full_name": "_get_cleanup_status__calculate_days_since_cleanup",
+                "class": null,
+                "file": "core/auto_cleanup.py",
+                "line": 737,
+                "args": [
+                  "last_cleanup_timestamp"
                 ]
               },
               "body_similarity": 1.0
@@ -1585,58 +1585,6 @@
               "overall_similarity": 0.84,
               "name_similarity": 1.0,
               "args_similarity": 1.0,
-              "argument_name_similarity": 0.0,
-              "argument_shape_similarity": 1.0,
-              "locals_similarity": 0.0,
-              "imports_similarity": 1.0,
-              "a": {
-                "name": "__post_init__",
-                "full_name": "ContextData.__post_init__",
-                "class": "ContextData",
-                "file": "ai/context_builder.py",
-                "line": 41,
-                "args": []
-              },
-              "b": {
-                "name": "__post_init__",
-                "full_name": "ContextAnalysis.__post_init__",
-                "class": "ContextAnalysis",
-                "file": "ai/context_builder.py",
-                "line": 74,
-                "args": []
-              },
-              "body_similarity": 1.0
-            },
-            {
-              "overall_similarity": 0.84,
-              "name_similarity": 1.0,
-              "args_similarity": 1.0,
-              "argument_name_similarity": 0.0,
-              "argument_shape_similarity": 1.0,
-              "locals_similarity": 0.0,
-              "imports_similarity": 1.0,
-              "a": {
-                "name": "_get_cleanup_status__get_never_cleaned_status",
-                "full_name": "_get_cleanup_status__get_never_cleaned_status",
-                "class": null,
-                "file": "core/auto_cleanup.py",
-                "line": 727,
-                "args": []
-              },
-              "b": {
-                "name": "_get_cleanup_status__get_never_cleaned_status",
-                "full_name": "_get_cleanup_status__get_never_cleaned_status",
-                "class": null,
-                "file": "core/auto_cleanup.py",
-                "line": 727,
-                "args": []
-              },
-              "body_similarity": 1.0
-            },
-            {
-              "overall_similarity": 0.84,
-              "name_similarity": 1.0,
-              "args_similarity": 1.0,
               "argument_name_similarity": 1.0,
               "argument_shape_similarity": 1.0,
               "locals_similarity": 0.0,
@@ -1664,6 +1612,58 @@
                   "days_since",
                   "next_cleanup"
                 ]
+              },
+              "body_similarity": 1.0
+            },
+            {
+              "overall_similarity": 0.84,
+              "name_similarity": 1.0,
+              "args_similarity": 1.0,
+              "argument_name_similarity": 0.0,
+              "argument_shape_similarity": 1.0,
+              "locals_similarity": 0.0,
+              "imports_similarity": 1.0,
+              "a": {
+                "name": "_get_cleanup_status__get_never_cleaned_status",
+                "full_name": "_get_cleanup_status__get_never_cleaned_status",
+                "class": null,
+                "file": "core/auto_cleanup.py",
+                "line": 727,
+                "args": []
+              },
+              "b": {
+                "name": "_get_cleanup_status__get_never_cleaned_status",
+                "full_name": "_get_cleanup_status__get_never_cleaned_status",
+                "class": null,
+                "file": "core/auto_cleanup.py",
+                "line": 727,
+                "args": []
+              },
+              "body_similarity": 1.0
+            },
+            {
+              "overall_similarity": 0.84,
+              "name_similarity": 1.0,
+              "args_similarity": 1.0,
+              "argument_name_similarity": 0.0,
+              "argument_shape_similarity": 1.0,
+              "locals_similarity": 0.0,
+              "imports_similarity": 1.0,
+              "a": {
+                "name": "__post_init__",
+                "full_name": "ContextData.__post_init__",
+                "class": "ContextData",
+                "file": "ai/context_builder.py",
+                "line": 41,
+                "args": []
+              },
+              "b": {
+                "name": "__post_init__",
+                "full_name": "ContextAnalysis.__post_init__",
+                "class": "ContextAnalysis",
+                "file": "ai/context_builder.py",
+                "line": 74,
+                "args": []
               },
               "body_similarity": 1.0
             },
@@ -1884,26 +1884,6 @@
                 ]
               },
               "b": {
-                "name": "_format_no_tag_hits_message",
-                "full_name": "_format_no_tag_hits_message",
-                "class": null,
-                "file": "communication/command_handlers/notebook_handler.py",
-                "line": 152,
-                "args": [
-                  "tag"
-                ]
-              },
-              "body_similarity": 1.0
-            },
-            {
-              "overall_similarity": 0.8,
-              "name_similarity": 0.667,
-              "args_similarity": 0.5,
-              "argument_name_similarity": 0.0,
-              "argument_shape_similarity": 1.0,
-              "locals_similarity": 1.0,
-              "imports_similarity": 1.0,
-              "a": {
                 "name": "_format_no_group_hits_message",
                 "full_name": "_format_no_group_hits_message",
                 "class": null,
@@ -1911,16 +1891,6 @@
                 "line": 135,
                 "args": [
                   "group"
-                ]
-              },
-              "b": {
-                "name": "_format_no_tag_hits_message",
-                "full_name": "_format_no_tag_hits_message",
-                "class": null,
-                "file": "communication/command_handlers/notebook_handler.py",
-                "line": 152,
-                "args": [
-                  "tag"
                 ]
               },
               "body_similarity": 1.0
@@ -1944,6 +1914,26 @@
                 ]
               },
               "b": {
+                "name": "_format_no_tag_hits_message",
+                "full_name": "_format_no_tag_hits_message",
+                "class": null,
+                "file": "communication/command_handlers/notebook_handler.py",
+                "line": 152,
+                "args": [
+                  "tag"
+                ]
+              },
+              "body_similarity": 1.0
+            },
+            {
+              "overall_similarity": 0.8,
+              "name_similarity": 0.667,
+              "args_similarity": 0.5,
+              "argument_name_similarity": 0.0,
+              "argument_shape_similarity": 1.0,
+              "locals_similarity": 1.0,
+              "imports_similarity": 1.0,
+              "a": {
                 "name": "_format_no_group_hits_message",
                 "full_name": "_format_no_group_hits_message",
                 "class": null,
@@ -1953,6 +1943,16 @@
                   "group"
                 ]
               },
+              "b": {
+                "name": "_format_no_tag_hits_message",
+                "full_name": "_format_no_tag_hits_message",
+                "class": null,
+                "file": "communication/command_handlers/notebook_handler.py",
+                "line": 152,
+                "args": [
+                  "tag"
+                ]
+              },
               "body_similarity": 1.0
             },
             {
@@ -2056,38 +2056,6 @@
                 "file": "ai/conversation_history.py",
                 "line": 28,
                 "args": []
-              },
-              "body_similarity": 1.0
-            },
-            {
-              "overall_similarity": 0.794,
-              "name_similarity": 1.0,
-              "args_similarity": 1.0,
-              "argument_name_similarity": 1.0,
-              "argument_shape_similarity": 1.0,
-              "locals_similarity": 0.292,
-              "imports_similarity": 0.231,
-              "a": {
-                "name": "_handle_task_stats",
-                "full_name": "AnalyticsHandler._handle_task_stats",
-                "class": "AnalyticsHandler",
-                "file": "communication/command_handlers/analytics_handler.py",
-                "line": 1041,
-                "args": [
-                  "user_id",
-                  "entities"
-                ]
-              },
-              "b": {
-                "name": "_handle_task_stats",
-                "full_name": "TaskManagementHandler._handle_task_stats",
-                "class": "TaskManagementHandler",
-                "file": "communication/command_handlers/task_handler.py",
-                "line": 781,
-                "args": [
-                  "user_id",
-                  "entities"
-                ]
               },
               "body_similarity": 1.0
             },
@@ -2123,6 +2091,40 @@
             },
             {
               "overall_similarity": 0.788,
+              "name_similarity": 0.5,
+              "args_similarity": 0.8,
+              "argument_name_similarity": 0.6,
+              "argument_shape_similarity": 1.0,
+              "locals_similarity": 1.0,
+              "imports_similarity": 1.0,
+              "a": {
+                "name": "_handle_pin_entry",
+                "full_name": "NotebookHandler._handle_pin_entry",
+                "class": "NotebookHandler",
+                "file": "communication/command_handlers/notebook_handler.py",
+                "line": 705,
+                "args": [
+                  "user_id",
+                  "entities",
+                  "pinned"
+                ]
+              },
+              "b": {
+                "name": "_handle_archive_entry",
+                "full_name": "NotebookHandler._handle_archive_entry",
+                "class": "NotebookHandler",
+                "file": "communication/command_handlers/notebook_handler.py",
+                "line": 728,
+                "args": [
+                  "user_id",
+                  "entities",
+                  "archived"
+                ]
+              },
+              "body_similarity": 1.0
+            },
+            {
+              "overall_similarity": 0.788,
               "name_similarity": 0.6,
               "args_similarity": 0.573,
               "argument_name_similarity": 0.545,
@@ -2155,40 +2157,6 @@
                   "category",
                   "messaging_service",
                   "recipient"
-                ]
-              },
-              "body_similarity": 1.0
-            },
-            {
-              "overall_similarity": 0.788,
-              "name_similarity": 0.5,
-              "args_similarity": 0.8,
-              "argument_name_similarity": 0.6,
-              "argument_shape_similarity": 1.0,
-              "locals_similarity": 1.0,
-              "imports_similarity": 1.0,
-              "a": {
-                "name": "_handle_pin_entry",
-                "full_name": "NotebookHandler._handle_pin_entry",
-                "class": "NotebookHandler",
-                "file": "communication/command_handlers/notebook_handler.py",
-                "line": 705,
-                "args": [
-                  "user_id",
-                  "entities",
-                  "pinned"
-                ]
-              },
-              "b": {
-                "name": "_handle_archive_entry",
-                "full_name": "NotebookHandler._handle_archive_entry",
-                "class": "NotebookHandler",
-                "file": "communication/command_handlers/notebook_handler.py",
-                "line": 728,
-                "args": [
-                  "user_id",
-                  "entities",
-                  "archived"
                 ]
               },
               "body_similarity": 1.0
@@ -2413,6 +2381,42 @@
             },
             {
               "overall_similarity": 0.76,
+              "name_similarity": 0.667,
+              "args_similarity": 1.0,
+              "argument_name_similarity": 1.0,
+              "argument_shape_similarity": 1.0,
+              "locals_similarity": 0.25,
+              "imports_similarity": 1.0,
+              "a": {
+                "name": "send_message",
+                "full_name": "CommunicationManager.send_message",
+                "class": "CommunicationManager",
+                "file": "communication/core/channel_orchestrator.py",
+                "line": 858,
+                "args": [
+                  "channel_name",
+                  "recipient",
+                  "message",
+                  "kwargs"
+                ]
+              },
+              "b": {
+                "name": "send_message_sync",
+                "full_name": "CommunicationManager.send_message_sync",
+                "class": "CommunicationManager",
+                "file": "communication/core/channel_orchestrator.py",
+                "line": 994,
+                "args": [
+                  "channel_name",
+                  "recipient",
+                  "message",
+                  "kwargs"
+                ]
+              },
+              "body_similarity": 1.0
+            },
+            {
+              "overall_similarity": 0.76,
               "name_similarity": 1.0,
               "args_similarity": 1.0,
               "argument_name_similarity": 0.0,
@@ -2516,37 +2520,31 @@
               "body_similarity": 1.0
             },
             {
-              "overall_similarity": 0.76,
-              "name_similarity": 0.667,
+              "overall_similarity": 0.758,
+              "name_similarity": 1.0,
               "args_similarity": 1.0,
               "argument_name_similarity": 1.0,
               "argument_shape_similarity": 1.0,
-              "locals_similarity": 0.25,
-              "imports_similarity": 1.0,
+              "locals_similarity": 0.0,
+              "imports_similarity": 0.321,
               "a": {
-                "name": "send_message",
-                "full_name": "CommunicationManager.send_message",
-                "class": "CommunicationManager",
-                "file": "communication/core/channel_orchestrator.py",
-                "line": 858,
+                "name": "keyPressEvent",
+                "full_name": "AccountCreatorDialog.keyPressEvent",
+                "class": "AccountCreatorDialog",
+                "file": "ui/dialogs/account_creator_dialog.py",
+                "line": 337,
                 "args": [
-                  "channel_name",
-                  "recipient",
-                  "message",
-                  "kwargs"
+                  "event"
                 ]
               },
               "b": {
-                "name": "send_message_sync",
-                "full_name": "CommunicationManager.send_message_sync",
-                "class": "CommunicationManager",
-                "file": "communication/core/channel_orchestrator.py",
-                "line": 994,
+                "name": "keyPressEvent",
+                "full_name": "UserProfileDialog.keyPressEvent",
+                "class": "UserProfileDialog",
+                "file": "ui/dialogs/user_profile_dialog.py",
+                "line": 121,
                 "args": [
-                  "channel_name",
-                  "recipient",
-                  "message",
-                  "kwargs"
+                  "event"
                 ]
               },
               "body_similarity": 1.0
@@ -2574,36 +2572,6 @@
                 "file": "ui/widgets/task_settings_widget.py",
                 "line": 261,
                 "args": []
-              },
-              "body_similarity": 1.0
-            },
-            {
-              "overall_similarity": 0.758,
-              "name_similarity": 1.0,
-              "args_similarity": 1.0,
-              "argument_name_similarity": 1.0,
-              "argument_shape_similarity": 1.0,
-              "locals_similarity": 0.0,
-              "imports_similarity": 0.321,
-              "a": {
-                "name": "keyPressEvent",
-                "full_name": "AccountCreatorDialog.keyPressEvent",
-                "class": "AccountCreatorDialog",
-                "file": "ui/dialogs/account_creator_dialog.py",
-                "line": 337,
-                "args": [
-                  "event"
-                ]
-              },
-              "b": {
-                "name": "keyPressEvent",
-                "full_name": "UserProfileDialog.keyPressEvent",
-                "class": "UserProfileDialog",
-                "file": "ui/dialogs/user_profile_dialog.py",
-                "line": 121,
-                "args": [
-                  "event"
-                ]
               },
               "body_similarity": 1.0
             },
@@ -2752,6 +2720,32 @@
                 "args": []
               },
               "body_similarity": 0.75
+            },
+            {
+              "overall_similarity": 0.751,
+              "name_similarity": 1.0,
+              "args_similarity": 1.0,
+              "argument_name_similarity": 0.0,
+              "argument_shape_similarity": 1.0,
+              "locals_similarity": 0.0,
+              "imports_similarity": 0.261,
+              "a": {
+                "name": "__post_init__",
+                "full_name": "ContextAnalysis.__post_init__",
+                "class": "ContextAnalysis",
+                "file": "ai/context_builder.py",
+                "line": 74,
+                "args": []
+              },
+              "b": {
+                "name": "__post_init__",
+                "full_name": "CommandDefinition.__post_init__",
+                "class": "CommandDefinition",
+                "file": "communication/communication_channels/base/command_registry.py",
+                "line": 29,
+                "args": []
+              },
+              "body_similarity": 1.0
             }
           ],
           "duplicate_groups": [],
@@ -2760,7 +2754,7 @@
           "body_similarity_min_name_threshold": 0.35
         }
       },
-      "timestamp": "2026-05-23T00:54:25"
+      "timestamp": "2026-05-23T14:44:00"
     },
     "analyze_facade_shims": {
       "success": true,
@@ -2776,7 +2770,7 @@
           "low_signal_filter": "Plain one-line delegating wrappers and generic import aliases are filtered unless they also have facade/shim/compatibility naming, compatibility documentation, or active deprecation-inventory terms. Use --include-low-signal for the exhaustive advisory list."
         }
       },
-      "timestamp": "2026-05-23T00:54:24"
+      "timestamp": "2026-05-23T14:44:00"
     },
     "analyze_functions": {
       "success": true,
@@ -2786,7 +2780,7 @@
           "files_affected": 99
         },
         "details": {
-          "total_functions": 1671,
+          "total_functions": 1672,
           "moderate_complexity": 234,
           "high_complexity": 173,
           "critical_complexity": 151,
@@ -2981,7 +2975,7 @@
           "utilities": 0
         }
       },
-      "timestamp": "2026-05-23T00:54:22"
+      "timestamp": "2026-05-23T14:43:57"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -3001,7 +2995,7 @@
             {
               "file": "communication/command_handlers/analytics_handler.py",
               "class": "AnalyticsHandler",
-              "methods": 29,
+              "methods": 7,
               "has_doc": true
             },
             {
@@ -3043,7 +3037,7 @@
             {
               "file": "communication/command_handlers/task_handler.py",
               "class": "TaskManagementHandler",
-              "methods": 28,
+              "methods": 27,
               "has_doc": true
             }
           ],
@@ -3260,6 +3254,11 @@
             },
             {
               "file": "ai/response_generator.py",
+              "function": "__init__",
+              "has_doc": true
+            },
+            {
+              "file": "communication/command_handlers/analytics_handler.py",
               "function": "__init__",
               "has_doc": true
             },
@@ -4914,7 +4913,7 @@
           ]
         }
       },
-      "timestamp": "2026-05-23T00:54:21"
+      "timestamp": "2026-05-23T14:43:56"
     },
     "analyze_function_registry": {
       "success": true,
@@ -4942,6 +4941,7 @@
                   "ai/lm_studio_manager.py",
                   "ai/prompt_manager.py",
                   "ai/response_generator.py",
+                  "communication/command_handlers/analytics_handler.py",
                   "communication/communication_channels/base/base_channel.py",
                   "communication/communication_channels/base/command_registry.py",
                   "communication/communication_channels/base/rich_formatter.py",
@@ -5026,10 +5026,10 @@
               },
               {
                 "files": [
-                  "communication/command_handlers/analytics_handler.py",
-                  "communication/command_handlers/task_handler.py"
+                  "communication/message_processing/command_parser.py",
+                  "communication/message_processing/interaction_manager.py"
                 ],
-                "name": "_handle_task_stats"
+                "name": "_is_valid_intent"
               }
             ],
             "duplicates": {
@@ -5048,6 +5048,7 @@
                 "ai/lm_studio_manager.py",
                 "ai/prompt_manager.py",
                 "ai/response_generator.py",
+                "communication/command_handlers/analytics_handler.py",
                 "communication/communication_channels/base/base_channel.py",
                 "communication/communication_channels/base/command_registry.py",
                 "communication/communication_channels/base/rich_formatter.py",
@@ -5121,10 +5122,6 @@
                 "communication/communication_channels/base/command_registry.py",
                 "communication/communication_channels/discord/event_handler.py",
                 "ui/widgets/dynamic_list_container.py"
-              ],
-              "_handle_task_stats": [
-                "communication/command_handlers/analytics_handler.py",
-                "communication/command_handlers/task_handler.py"
               ],
               "_is_valid_intent": [
                 "communication/message_processing/command_parser.py",
@@ -5365,6 +5362,10 @@
               "handle_message_sending": [
                 "communication/core/channel_orchestrator.py",
                 "core/delivery.py"
+              ],
+              "handle_show_analytics": [
+                "communication/command_handlers/analytics_handler.py",
+                "communication/command_handlers/checkin_analytics_handler.py"
               ],
               "handle_task_reminder": [
                 "communication/core/channel_orchestrator.py",
@@ -5864,9 +5865,9 @@
               },
               {
                 "complexity": 512,
-                "file": "communication/command_handlers/analytics_handler.py",
+                "file": "communication/command_handlers/checkin_analytics_handler.py",
                 "has_docstring": true,
-                "name": "_handle_checkin_analysis"
+                "name": "handle_checkin_analysis"
               },
               {
                 "complexity": 511,
@@ -5941,10 +5942,10 @@
                 "name": "generate_response"
               },
               {
-                "complexity": 480,
-                "file": "communication/command_handlers/analytics_handler.py",
+                "complexity": 488,
+                "file": "communication/command_handlers/checkin_analytics_handler.py",
                 "has_docstring": true,
-                "name": "_handle_checkin_history"
+                "name": "handle_checkin_history"
               },
               {
                 "complexity": 479,
@@ -5972,7 +5973,7 @@
               },
               {
                 "complexity": 471,
-                "file": "communication/command_handlers/analytics_handler.py",
+                "file": "communication/command_handlers/analytics_formatting.py",
                 "has_docstring": true,
                 "name": "_format_checkin_response_value"
               },
@@ -6043,6 +6044,12 @@
                 "name": "load_mood_data"
               },
               {
+                "complexity": 427,
+                "file": "communication/command_handlers/task_analytics_handler.py",
+                "has_docstring": true,
+                "name": "handle_task_analytics"
+              },
+              {
                 "complexity": 426,
                 "file": "communication/message_processing/command_parser.py",
                 "has_docstring": true,
@@ -6059,12 +6066,6 @@
                 "file": "core/headless_service.py",
                 "has_docstring": true,
                 "name": "start_headless_service"
-              },
-              {
-                "complexity": 423,
-                "file": "communication/command_handlers/analytics_handler.py",
-                "has_docstring": true,
-                "name": "_handle_task_analytics"
               },
               {
                 "complexity": 416,
@@ -6296,6 +6297,12 @@
               },
               {
                 "complexity": 363,
+                "file": "communication/command_handlers/task_analytics_handler.py",
+                "has_docstring": true,
+                "name": "handle_task_stats"
+              },
+              {
+                "complexity": 363,
                 "file": "communication/command_handlers/task_handler.py",
                 "has_docstring": true,
                 "name": "_handle_complete_task"
@@ -6356,12 +6363,6 @@
               },
               {
                 "complexity": 359,
-                "file": "communication/command_handlers/analytics_handler.py",
-                "has_docstring": true,
-                "name": "_handle_task_stats"
-              },
-              {
-                "complexity": 359,
                 "file": "communication/communication_channels/discord/checkin_view.py",
                 "has_docstring": true,
                 "name": "get_checkin_view"
@@ -6419,12 +6420,6 @@
                 "file": "core/config.py",
                 "has_docstring": true,
                 "name": "validate_logging_configuration"
-              },
-              {
-                "complexity": 342,
-                "file": "communication/command_handlers/task_handler.py",
-                "has_docstring": true,
-                "name": "_handle_task_stats"
               },
               {
                 "complexity": 342,
@@ -6590,7 +6585,7 @@
               },
               {
                 "complexity": 307,
-                "file": "communication/command_handlers/analytics_handler.py",
+                "file": "communication/command_handlers/analytics_formatting.py",
                 "has_docstring": true,
                 "name": "_format_basic_analytics_line"
               },
@@ -6623,12 +6618,6 @@
                 "file": "core/schedule_document_defaults.py",
                 "has_docstring": true,
                 "name": "ensure_category_has_default_schedule"
-              },
-              {
-                "complexity": 302,
-                "file": "communication/command_handlers/analytics_handler.py",
-                "has_docstring": true,
-                "name": "_handle_quant_summary"
               },
               {
                 "complexity": 302,
@@ -6764,6 +6753,12 @@
               },
               {
                 "complexity": 279,
+                "file": "communication/command_handlers/trend_analytics_handler.py",
+                "has_docstring": true,
+                "name": "handle_mood_trends"
+              },
+              {
+                "complexity": 279,
                 "file": "core/service_requests.py",
                 "has_docstring": false,
                 "name": "check_checkin_prompt_requests"
@@ -6773,6 +6768,12 @@
                 "file": "core/tags.py",
                 "has_docstring": true,
                 "name": "_modify_user_tag_list"
+              },
+              {
+                "complexity": 278,
+                "file": "core/checkin_analytics.py",
+                "has_docstring": true,
+                "name": "get_habit_analysis"
               }
             ],
             "high_complexity_total": 1192,
@@ -7404,10 +7405,10 @@
           },
           "registry_sections": {},
           "totals": {
-            "classes_found": 176,
-            "files_scanned": 151,
-            "functions_documented": 1750,
-            "functions_found": 1767
+            "classes_found": 180,
+            "files_scanned": 155,
+            "functions_documented": 1751,
+            "functions_found": 1768
           }
         },
         "summary": {
@@ -7415,14 +7416,14 @@
           "total_issues": 47
         }
       },
-      "timestamp": "2026-05-23T00:54:27"
+      "timestamp": "2026-05-23T14:44:02"
     },
     "analyze_module_refactor_candidates": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 58,
-          "files_affected": 58,
+          "total_issues": 59,
+          "files_affected": 59,
           "status": "WARN"
         },
         "details": {
@@ -7560,18 +7561,6 @@
               ]
             },
             {
-              "file": "communication/command_handlers/analytics_handler.py",
-              "lines": 1211,
-              "function_count": 29,
-              "class_count": 1,
-              "total_function_complexity": 5802,
-              "high_complexity_count": 5,
-              "critical_complexity_count": 14,
-              "reasons": [
-                "exceeds size/complexity thresholds"
-              ]
-            },
-            {
               "file": "communication/command_handlers/notebook_handler.py",
               "lines": 1151,
               "function_count": 35,
@@ -7620,18 +7609,6 @@
               ]
             },
             {
-              "file": "communication/command_handlers/task_handler.py",
-              "lines": 901,
-              "function_count": 32,
-              "class_count": 1,
-              "total_function_complexity": 3592,
-              "high_complexity_count": 4,
-              "critical_complexity_count": 7,
-              "reasons": [
-                "exceeds size/complexity thresholds"
-              ]
-            },
-            {
               "file": "core/error_handling.py",
               "lines": 863,
               "function_count": 37,
@@ -7651,6 +7628,18 @@
               "total_function_complexity": 3241,
               "high_complexity_count": 6,
               "critical_complexity_count": 4,
+              "reasons": [
+                "exceeds size/complexity thresholds"
+              ]
+            },
+            {
+              "file": "communication/command_handlers/task_handler.py",
+              "lines": 832,
+              "function_count": 31,
+              "class_count": 1,
+              "total_function_complexity": 3250,
+              "high_complexity_count": 4,
+              "critical_complexity_count": 6,
               "reasons": [
                 "exceeds size/complexity thresholds"
               ]
@@ -7884,6 +7873,18 @@
               ]
             },
             {
+              "file": "communication/command_handlers/checkin_analytics_handler.py",
+              "lines": 489,
+              "function_count": 9,
+              "class_count": 1,
+              "total_function_complexity": 2300,
+              "high_complexity_count": 2,
+              "critical_complexity_count": 6,
+              "reasons": [
+                "exceeds size/complexity thresholds"
+              ]
+            },
+            {
               "file": "ui/widgets/period_row_widget.py",
               "lines": 487,
               "function_count": 23,
@@ -8112,6 +8113,18 @@
               ]
             },
             {
+              "file": "communication/command_handlers/analytics_formatting.py",
+              "lines": 275,
+              "function_count": 11,
+              "class_count": 1,
+              "total_function_complexity": 1809,
+              "high_complexity_count": 4,
+              "critical_complexity_count": 3,
+              "reasons": [
+                "exceeds size/complexity thresholds"
+              ]
+            },
+            {
               "file": "ui/period_row_management.py",
               "lines": 209,
               "function_count": 6,
@@ -8124,7 +8137,7 @@
               ]
             }
           ],
-          "total_candidates": 58,
+          "total_candidates": 59,
           "thresholds_used": {
             "max_lines_per_module": 1000,
             "max_functions_per_module": 40,
@@ -8133,20 +8146,131 @@
           }
         }
       },
-      "timestamp": "2026-05-23T00:54:24"
+      "timestamp": "2026-05-23T14:44:00"
     },
     "analyze_package_exports": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 401,
+          "total_issues": 410,
           "files_affected": 8
         },
         "details": {
-          "total_missing_exports": 368,
+          "total_missing_exports": 377,
           "total_unnecessary_exports": 33,
           "packages_with_missing": 8,
           "packages": {
+            "user": {
+              "package": "user",
+              "current_exports_count": 4,
+              "should_export_count": 8,
+              "already_exported": [
+                "UserContext",
+                "UserContextManager",
+                "UserPreferences",
+                "user_context_manager"
+              ],
+              "missing_exports": [
+                "ProfileSections",
+                "ProfileUpdateResult",
+                "apply_profile_updates",
+                "load_profile_sections"
+              ],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "user_context_manager": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "ai/chatbot.py",
+                    "ai/context_builder.py",
+                    "ai/conversational_context/assembly.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.context_manager"
+                },
+                "UserContext": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "core/schedule_runtime.py",
+                    "scheduler/manager.py",
+                    "ui/ui_app_qt.py",
+                    "user/context_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.user_context"
+                }
+              },
+              "import_usage_details": {
+                "user_context_manager": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "ai/chatbot.py",
+                    "ai/context_builder.py",
+                    "ai/conversational_context/assembly.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.context_manager"
+                },
+                "UserContext": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "core/schedule_runtime.py",
+                    "scheduler/manager.py",
+                    "ui/ui_app_qt.py",
+                    "user/context_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.user_context"
+                },
+                "apply_profile_updates": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/profile_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.profile_service"
+                },
+                "load_profile_sections": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/profile_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "user.profile_service"
+                }
+              },
+              "package_api_items": [
+                "ProfileSections",
+                "ProfileUpdateResult",
+                "UserContext",
+                "UserContextManager",
+                "UserPreferences",
+                "apply_profile_updates",
+                "load_profile_sections"
+              ],
+              "registry_items": [
+                "__getattr__",
+                "__init__",
+                "__new__",
+                "_get_conversation_history",
+                "_list_from_command_value",
+                "apply_profile_updates",
+                "get_all_preferences",
+                "get_instance_context"
+              ]
+            },
             "ai": {
               "package": "ai",
               "current_exports_count": 37,
@@ -8863,7 +8987,7 @@
             "communication": {
               "package": "communication",
               "current_exports_count": 60,
-              "should_export_count": 95,
+              "should_export_count": 102,
               "already_exported": [
                 "AnalyticsHandler",
                 "BaseChannel",
@@ -8928,6 +9052,8 @@
               ],
               "missing_exports": [
                 "AccountManagementHandler",
+                "AnalyticsFormattingMixin",
+                "CheckinAnalyticsHandler",
                 "CheckinFeatureSelect",
                 "CheckinPromptDispatcher",
                 "CheckinReminderDispatcher",
@@ -8942,10 +9068,13 @@
                 "NotebookHandler",
                 "PaginationAction",
                 "PredefinedMessageDispatcher",
+                "TaskAnalyticsHandler",
                 "TaskFeatureSelect",
                 "TaskReminderDispatcher",
                 "TimezoneSelect",
+                "TrendAnalyticsHandler",
                 "WebhookServer",
+                "checkin_analytics_handler",
                 "clear_welcomed_status",
                 "get_checkin_view",
                 "get_rule_based_intent_names",
@@ -8960,6 +9089,8 @@
                 "parse_webhook_event",
                 "start_account_creation_flow",
                 "start_account_linking_flow",
+                "task_analytics_handler",
+                "trend_analytics_handler",
                 "verify_webhook_signature",
                 "welcome_tracking_json_path"
               ],
@@ -9014,16 +9145,19 @@
                   "module_path": "communication.command_handlers.base_handler"
                 },
                 "InteractionResponse": {
-                  "import_count": 10,
+                  "import_count": 13,
                   "import_locations": [
                     "communication/command_handlers/account_handler.py",
                     "communication/command_handlers/analytics_handler.py",
                     "communication/command_handlers/base_handler.py",
+                    "communication/command_handlers/checkin_analytics_handler.py",
                     "communication/command_handlers/checkin_handler.py",
                     "communication/command_handlers/interaction_handlers.py",
                     "communication/command_handlers/notebook_handler.py",
                     "communication/command_handlers/profile_handler.py",
                     "communication/command_handlers/schedule_handler.py",
+                    "communication/command_handlers/task_analytics_handler.py",
+                    "communication/command_handlers/trend_analytics_handler.py",
                     "communication/message_processing/interaction_manager.py",
                     "communication/communication_channels/discord/bot.py"
                   ],
@@ -9057,6 +9191,18 @@
                     "from_import"
                   ],
                   "module_path": "communication.command_handlers.shared_types"
+                },
+                "AnalyticsFormattingMixin": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "communication/command_handlers/checkin_analytics_handler.py",
+                    "communication/command_handlers/task_analytics_handler.py",
+                    "communication/command_handlers/trend_analytics_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.analytics_formatting"
                 },
                 "TaskManagementHandler": {
                   "import_count": 8,
@@ -9456,16 +9602,19 @@
                   "module_path": "communication.command_handlers.base_handler"
                 },
                 "InteractionResponse": {
-                  "import_count": 10,
+                  "import_count": 13,
                   "import_locations": [
                     "communication/command_handlers/account_handler.py",
                     "communication/command_handlers/analytics_handler.py",
                     "communication/command_handlers/base_handler.py",
+                    "communication/command_handlers/checkin_analytics_handler.py",
                     "communication/command_handlers/checkin_handler.py",
                     "communication/command_handlers/interaction_handlers.py",
                     "communication/command_handlers/notebook_handler.py",
                     "communication/command_handlers/profile_handler.py",
                     "communication/command_handlers/schedule_handler.py",
+                    "communication/command_handlers/task_analytics_handler.py",
+                    "communication/command_handlers/trend_analytics_handler.py",
                     "communication/message_processing/interaction_manager.py",
                     "communication/communication_channels/discord/bot.py"
                   ],
@@ -9499,6 +9648,48 @@
                     "from_import"
                   ],
                   "module_path": "communication.command_handlers.shared_types"
+                },
+                "checkin_analytics_handler": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/analytics_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers"
+                },
+                "task_analytics_handler": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/analytics_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers"
+                },
+                "trend_analytics_handler": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/analytics_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers"
+                },
+                "AnalyticsFormattingMixin": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "communication/command_handlers/checkin_analytics_handler.py",
+                    "communication/command_handlers/task_analytics_handler.py",
+                    "communication/command_handlers/trend_analytics_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.command_handlers.analytics_formatting"
                 },
                 "TaskManagementHandler": {
                   "import_count": 8,
@@ -10040,6 +10231,7 @@
               },
               "package_api_items": [
                 "AccountManagementHandler",
+                "AnalyticsFormattingMixin",
                 "AnalyticsHandler",
                 "BaseChannel",
                 "BotInitializationError",
@@ -10048,6 +10240,7 @@
                 "ChannelMonitor",
                 "ChannelStatus",
                 "ChannelType",
+                "CheckinAnalyticsHandler",
                 "CheckinFeatureSelect",
                 "CheckinHandler",
                 "CheckinPromptDispatcher",
@@ -10095,11 +10288,13 @@
                 "RoutingResult",
                 "ScheduleManagementHandler",
                 "SendMessageOptions",
+                "TaskAnalyticsHandler",
                 "TaskFeatureSelect",
                 "TaskManagementHandler",
                 "TaskReminderDispatcher",
                 "TextMessageFormatter",
                 "TimezoneSelect",
+                "TrendAnalyticsHandler",
                 "WebhookServer",
                 "clear_welcomed_status",
                 "get_all_handlers",
@@ -10146,6 +10341,7 @@
                 "_default_due_date_for_recurring_time",
                 "_format_profile_text",
                 "_generate_confirmation_code",
+                "_get_enabled_quantitative_fields",
                 "_get_user_id_by_username",
                 "_handle_add_schedule_period",
                 "_handle_checkin_status",
@@ -10159,6 +10355,7 @@
                 "_save_welcome_tracking",
                 "_schedule_fields",
                 "_set_status",
+                "can_handle",
                 "create_channel",
                 "create_embed",
                 "create_interactive_elements",
@@ -10169,13 +10366,590 @@
                 "failed",
                 "get_connection_latency",
                 "handle_application_authorized",
+                "handle_checkin_analysis",
+                "handle_energy_trends",
+                "handle_mood_trends",
+                "handle_task_analytics",
+                "handle_task_stats",
                 "is_valid_intent"
               ]
+            },
+            "notebook": {
+              "package": "notebook",
+              "current_exports_count": 0,
+              "should_export_count": 69,
+              "already_exported": [],
+              "missing_exports": [
+                "Entry",
+                "EntryKind",
+                "ListItem",
+                "MAX_BODY_LENGTH",
+                "NotebookCollectionV2Model",
+                "NotebookEntryResult",
+                "NotebookListResult",
+                "NotebookV2Model",
+                "add_entry_tags",
+                "add_item_to_list",
+                "add_list_item",
+                "add_tags",
+                "append_entry_body",
+                "append_to_entry_body",
+                "archive_entry",
+                "archive_notebook_entry",
+                "create_entry",
+                "create_journal",
+                "create_journal_from_command",
+                "create_list",
+                "create_list_from_command",
+                "create_note",
+                "create_note_from_command",
+                "create_quick_note_from_command",
+                "delete_list_item",
+                "ensure_notebook_dirs",
+                "format_short_id",
+                "get_entry",
+                "is_valid_entry_description",
+                "is_valid_entry_group",
+                "is_valid_entry_kind",
+                "is_valid_entry_reference",
+                "is_valid_entry_title",
+                "is_valid_list_item_index",
+                "list_archived",
+                "list_archived_entries",
+                "list_by_group",
+                "list_by_tag",
+                "list_entries_by_group",
+                "list_entries_by_tag",
+                "list_inbox",
+                "list_inbox_entries",
+                "list_pinned",
+                "list_pinned_entries",
+                "list_recent",
+                "list_recent_entries",
+                "load_entries",
+                "normalize_command_tags",
+                "normalize_list_item_index",
+                "parse_short_id",
+                "pin_entry",
+                "pin_notebook_entry",
+                "prepare_list_fields",
+                "prepare_note_fields",
+                "prepare_quick_note_fields",
+                "remove_entry_tags",
+                "remove_list_item",
+                "remove_tags",
+                "replace_entry_body",
+                "save_entries",
+                "search_entries",
+                "search_entries_for_display",
+                "set_entry_body",
+                "set_entry_group",
+                "set_group",
+                "set_list_item_done",
+                "toggle_list_item_done",
+                "validate_entry_content",
+                "validate_notebook_v2_document"
+              ],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "Entry": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "notebook/notebook_data_handlers.py",
+                    "notebook/notebook_data_manager.py",
+                    "notebook/notebook_service.py",
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_schemas"
+                },
+                "EntryKind": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "notebook/notebook_data_manager.py",
+                    "notebook/notebook_validation.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_schemas"
+                },
+                "create_note": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_data_manager"
+                }
+              },
+              "import_usage_details": {
+                "Entry": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "notebook/notebook_data_handlers.py",
+                    "notebook/notebook_data_manager.py",
+                    "notebook/notebook_service.py",
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_schemas"
+                },
+                "NotebookV2Model": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "notebook/notebook_data_handlers.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_schemas"
+                },
+                "ListItem": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "notebook/notebook_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_schemas"
+                },
+                "EntryKind": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "notebook/notebook_data_manager.py",
+                    "notebook/notebook_validation.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_schemas"
+                },
+                "load_entries": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "notebook/notebook_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_data_handlers"
+                },
+                "save_entries": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "notebook/notebook_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_data_handlers"
+                },
+                "is_valid_entry_reference": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "notebook/notebook_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_validation"
+                },
+                "is_valid_entry_group": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "notebook/notebook_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_validation"
+                },
+                "is_valid_entry_kind": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "notebook/notebook_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_validation"
+                },
+                "normalize_list_item_index": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "notebook/notebook_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_validation"
+                },
+                "validate_entry_content": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "notebook/notebook_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_validation"
+                },
+                "MAX_BODY_LENGTH": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "notebook/notebook_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_validation"
+                },
+                "NotebookCollectionV2Model": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "notebook/notebook_validation.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_schemas"
+                },
+                "add_entry_tags": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "add_item_to_list": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "get_entry": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "append_entry_body": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "archive_notebook_entry": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "create_journal_from_command": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "create_list_from_command": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "create_note_from_command": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "create_quick_note_from_command": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "delete_list_item": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "list_archived_entries": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "list_entries_by_group": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "list_entries_by_tag": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "list_inbox_entries": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "list_pinned_entries": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "list_recent_entries": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "pin_notebook_entry": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "remove_entry_tags": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "replace_entry_body": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "search_entries_for_display": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "set_entry_group": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "set_list_item_done": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_service"
+                },
+                "format_short_id": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/notebook_handler.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_validation"
+                },
+                "create_note": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/message_processing/conversation_flow_manager.py",
+                    "communication/message_processing/conversation_flow_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_data_manager"
+                },
+                "create_list": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/message_processing/conversation_flow_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "notebook.notebook_data_manager"
+                }
+              },
+              "package_api_items": [
+                "Entry",
+                "ListItem",
+                "NotebookCollectionV2Model",
+                "NotebookEntryResult",
+                "NotebookListResult",
+                "NotebookV2Model",
+                "add_entry_tags",
+                "add_item_to_list",
+                "add_list_item",
+                "add_tags",
+                "append_entry_body",
+                "append_to_entry_body",
+                "archive_entry",
+                "archive_notebook_entry",
+                "create_entry",
+                "create_journal",
+                "create_journal_from_command",
+                "create_list",
+                "create_list_from_command",
+                "create_note",
+                "create_note_from_command",
+                "create_quick_note_from_command",
+                "delete_list_item",
+                "ensure_notebook_dirs",
+                "format_short_id",
+                "get_entry",
+                "is_valid_entry_description",
+                "is_valid_entry_group",
+                "is_valid_entry_kind",
+                "is_valid_entry_reference",
+                "is_valid_entry_title",
+                "is_valid_list_item_index",
+                "list_archived",
+                "list_archived_entries",
+                "list_by_group",
+                "list_by_tag",
+                "list_entries_by_group",
+                "list_entries_by_tag",
+                "list_inbox",
+                "list_inbox_entries",
+                "list_pinned",
+                "list_pinned_entries",
+                "list_recent",
+                "list_recent_entries",
+                "load_entries",
+                "normalize_command_tags",
+                "normalize_list_item_index",
+                "parse_short_id",
+                "pin_entry",
+                "pin_notebook_entry",
+                "prepare_list_fields",
+                "prepare_note_fields",
+                "prepare_quick_note_fields",
+                "remove_entry_tags",
+                "remove_list_item",
+                "remove_tags",
+                "replace_entry_body",
+                "save_entries",
+                "search_entries",
+                "search_entries_for_display",
+                "set_entry_body",
+                "set_entry_group",
+                "set_group",
+                "set_list_item_done",
+                "toggle_list_item_done",
+                "validate_entry_content",
+                "validate_notebook_v2_document"
+              ],
+              "registry_items": []
             },
             "core": {
               "package": "core",
               "current_exports_count": 155,
-              "should_export_count": 287,
+              "should_export_count": 288,
               "already_exported": [
                 "AIError",
                 "AccountModel",
@@ -10358,6 +11132,7 @@
                 "coerce_limit",
                 "coerce_offset",
                 "compress_old_logs",
+                "core",
                 "create_automatic_backup",
                 "create_message_file_from_defaults",
                 "current_base_dir",
@@ -10503,7 +11278,7 @@
               ],
               "cross_module_usage": {
                 "handle_errors": {
-                  "import_count": 139,
+                  "import_count": 140,
                   "import_locations": [
                     "run_headless_service.py",
                     "ai/cache_manager.py",
@@ -10584,6 +11359,7 @@
                     "ai/fallback_responses/profile_helpers.py",
                     "ai/fallback_responses/__init__.py",
                     "communication/command_handlers/account_handler.py",
+                    "communication/command_handlers/analytics_formatting.py",
                     "communication/command_handlers/analytics_handler.py",
                     "communication/command_handlers/base_handler.py",
                     "communication/command_handlers/checkin_handler.py",
@@ -10651,7 +11427,7 @@
                   "module_path": "core.error_handling"
                 },
                 "get_component_logger": {
-                  "import_count": 124,
+                  "import_count": 123,
                   "import_locations": [
                     "run_headless_service.py",
                     "ai/cache_manager.py",
@@ -10711,7 +11487,6 @@
                     "ai/conversational_context/context_phraser.py",
                     "ai/fallback_responses/__init__.py",
                     "communication/command_handlers/account_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
                     "communication/command_handlers/base_handler.py",
                     "communication/command_handlers/checkin_handler.py",
                     "communication/command_handlers/interaction_handlers.py",
@@ -11112,13 +11887,12 @@
                   "module_path": "core.config"
                 },
                 "checkin_runtime_timestamp": {
-                  "import_count": 7,
+                  "import_count": 6,
                   "import_locations": [
                     "core/checkin_analytics.py",
                     "core/checkin_service.py",
                     "storage/user_data_operations.py",
                     "ai/conversational_context/context_phraser.py",
-                    "communication/command_handlers/analytics_handler.py",
                     "communication/command_handlers/checkin_handler.py",
                     "communication/message_processing/interaction_manager.py"
                   ],
@@ -11128,10 +11902,9 @@
                   "module_path": "core.response_tracking"
                 },
                 "get_checkins_by_days": {
-                  "import_count": 3,
+                  "import_count": 2,
                   "import_locations": [
                     "core/checkin_analytics.py",
-                    "communication/command_handlers/analytics_handler.py",
                     "ui/dialogs/user_analytics_dialog.py"
                   ],
                   "import_types": [
@@ -11156,7 +11929,7 @@
                   "module_path": "core.error_handling"
                 },
                 "parse_timestamp_full": {
-                  "import_count": 15,
+                  "import_count": 14,
                   "import_locations": [
                     "core/checkin_analytics.py",
                     "core/checkin_service.py",
@@ -11170,7 +11943,6 @@
                     "tasks/task_data_manager.py",
                     "ui/ui_app_qt.py",
                     "ai/conversational_context/context_phraser.py",
-                    "communication/command_handlers/analytics_handler.py",
                     "communication/message_processing/conversation_flow_manager.py",
                     "communication/message_processing/interaction_manager.py"
                   ],
@@ -11197,13 +11969,11 @@
                   "module_path": "core.time_utilities"
                 },
                 "dynamic_checkin_manager": {
-                  "import_count": 15,
+                  "import_count": 13,
                   "import_locations": [
                     "core/checkin_analytics.py",
                     "core/checkin_analytics.py",
                     "core/checkin_analytics.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
                     "communication/message_processing/conversation_flow_manager.py",
                     "communication/message_processing/conversation_flow_manager.py",
                     "ui/widgets/checkin_settings_widget.py",
@@ -11240,12 +12010,11 @@
                   "module_path": "core.file_operations"
                 },
                 "get_recent_checkins": {
-                  "import_count": 10,
+                  "import_count": 9,
                   "import_locations": [
                     "core/checkin_service.py",
                     "storage/user_data_operations.py",
                     "user/context_manager.py",
-                    "communication/command_handlers/analytics_handler.py",
                     "communication/command_handlers/checkin_handler.py",
                     "communication/command_handlers/interaction_handlers.py",
                     "communication/command_handlers/profile_handler.py",
@@ -11848,47 +12617,6 @@
                   ],
                   "module_path": "core.schedule_utilities"
                 },
-                "CheckinAnalytics": {
-                  "import_count": 12,
-                  "import_locations": [
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/task_handler.py",
-                    "ui/dialogs/user_analytics_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.checkin_analytics"
-                },
-                "handle_ai_error": {
-                  "import_count": 11,
-                  "import_locations": [
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.error_handling"
-                },
                 "set_schedule_periods": {
                   "import_count": 6,
                   "import_locations": [
@@ -11978,7 +12706,7 @@
               },
               "import_usage_details": {
                 "handle_errors": {
-                  "import_count": 139,
+                  "import_count": 140,
                   "import_locations": [
                     "run_headless_service.py",
                     "ai/cache_manager.py",
@@ -12059,6 +12787,7 @@
                     "ai/fallback_responses/profile_helpers.py",
                     "ai/fallback_responses/__init__.py",
                     "communication/command_handlers/account_handler.py",
+                    "communication/command_handlers/analytics_formatting.py",
                     "communication/command_handlers/analytics_handler.py",
                     "communication/command_handlers/base_handler.py",
                     "communication/command_handlers/checkin_handler.py",
@@ -12136,7 +12865,7 @@
                   "module_path": "core.headless_service"
                 },
                 "get_component_logger": {
-                  "import_count": 124,
+                  "import_count": 123,
                   "import_locations": [
                     "run_headless_service.py",
                     "ai/cache_manager.py",
@@ -12196,7 +12925,6 @@
                     "ai/conversational_context/context_phraser.py",
                     "ai/fallback_responses/__init__.py",
                     "communication/command_handlers/account_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
                     "communication/command_handlers/base_handler.py",
                     "communication/command_handlers/checkin_handler.py",
                     "communication/command_handlers/interaction_handlers.py",
@@ -12857,13 +13585,12 @@
                   "module_path": "core.config"
                 },
                 "checkin_runtime_timestamp": {
-                  "import_count": 7,
+                  "import_count": 6,
                   "import_locations": [
                     "core/checkin_analytics.py",
                     "core/checkin_service.py",
                     "storage/user_data_operations.py",
                     "ai/conversational_context/context_phraser.py",
-                    "communication/command_handlers/analytics_handler.py",
                     "communication/command_handlers/checkin_handler.py",
                     "communication/message_processing/interaction_manager.py"
                   ],
@@ -12873,10 +13600,9 @@
                   "module_path": "core.response_tracking"
                 },
                 "get_checkins_by_days": {
-                  "import_count": 3,
+                  "import_count": 2,
                   "import_locations": [
                     "core/checkin_analytics.py",
-                    "communication/command_handlers/analytics_handler.py",
                     "ui/dialogs/user_analytics_dialog.py"
                   ],
                   "import_types": [
@@ -12901,7 +13627,7 @@
                   "module_path": "core.error_handling"
                 },
                 "parse_timestamp_full": {
-                  "import_count": 15,
+                  "import_count": 14,
                   "import_locations": [
                     "core/checkin_analytics.py",
                     "core/checkin_service.py",
@@ -12915,7 +13641,6 @@
                     "tasks/task_data_manager.py",
                     "ui/ui_app_qt.py",
                     "ai/conversational_context/context_phraser.py",
-                    "communication/command_handlers/analytics_handler.py",
                     "communication/message_processing/conversation_flow_manager.py",
                     "communication/message_processing/interaction_manager.py"
                   ],
@@ -12942,13 +13667,11 @@
                   "module_path": "core.time_utilities"
                 },
                 "dynamic_checkin_manager": {
-                  "import_count": 15,
+                  "import_count": 13,
                   "import_locations": [
                     "core/checkin_analytics.py",
                     "core/checkin_analytics.py",
                     "core/checkin_analytics.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
                     "communication/message_processing/conversation_flow_manager.py",
                     "communication/message_processing/conversation_flow_manager.py",
                     "ui/widgets/checkin_settings_widget.py",
@@ -12985,12 +13708,11 @@
                   "module_path": "core.file_operations"
                 },
                 "get_recent_checkins": {
-                  "import_count": 10,
+                  "import_count": 9,
                   "import_locations": [
                     "core/checkin_service.py",
                     "storage/user_data_operations.py",
                     "user/context_manager.py",
-                    "communication/command_handlers/analytics_handler.py",
                     "communication/command_handlers/checkin_handler.py",
                     "communication/command_handlers/interaction_handlers.py",
                     "communication/command_handlers/profile_handler.py",
@@ -14153,46 +14875,15 @@
                   ],
                   "module_path": "core.response_tracking"
                 },
-                "CheckinAnalytics": {
-                  "import_count": 12,
+                "core": {
+                  "import_count": 1,
                   "import_locations": [
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/task_handler.py",
-                    "ui/dialogs/user_analytics_dialog.py"
+                    "communication/command_handlers/checkin_analytics_handler.py"
                   ],
                   "import_types": [
-                    "from_import"
+                    "direct_import"
                   ],
-                  "module_path": "core.checkin_analytics"
-                },
-                "handle_ai_error": {
-                  "import_count": 11,
-                  "import_locations": [
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py",
-                    "communication/command_handlers/analytics_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.error_handling"
+                  "module_path": null
                 },
                 "checkin_display_date": {
                   "import_count": 1,
@@ -14529,6 +15220,16 @@
                   ],
                   "module_path": "core.ui_management"
                 },
+                "CheckinAnalytics": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/dialogs/user_analytics_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.checkin_analytics"
+                },
                 "_number_after_prefix": {
                   "import_count": 2,
                   "import_locations": [
@@ -14863,7 +15564,7 @@
             "tasks": {
               "package": "tasks",
               "current_exports_count": 20,
-              "should_export_count": 59,
+              "should_export_count": 60,
               "already_exported": [
                 "TaskManagementError",
                 "add_user_task_tag",
@@ -14923,6 +15624,7 @@
                 "sort_tasks_by_priority_and_due_date",
                 "t",
                 "task_identifier",
+                "task_services",
                 "task_short_identifier",
                 "validate_tasks_v2_document",
                 "validate_update_field"
@@ -15172,6 +15874,16 @@
                   ],
                   "module_path": null
                 },
+                "task_services": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/command_handlers/task_analytics_handler.py"
+                  ],
+                  "import_types": [
+                    "direct_import"
+                  ],
+                  "module_path": null
+                },
                 "runtime_task_recurrence_interval": {
                   "import_count": 1,
                   "import_locations": [
@@ -15285,923 +15997,6 @@
                 "validate_completed_at",
                 "validate_completion_status",
                 "validate_date"
-              ]
-            },
-            "scheduler": {
-              "package": "scheduler",
-              "current_exports_count": 9,
-              "should_export_count": 27,
-              "already_exported": [
-                "SchedulerManager",
-                "clear_all_accumulated_jobs_standalone",
-                "process_category_schedule",
-                "process_user_schedules",
-                "run_category_scheduler_standalone",
-                "run_full_scheduler_standalone",
-                "run_user_scheduler_standalone",
-                "schedule_all_task_reminders",
-                "set_scheduler_delivery_factory"
-              ],
-              "missing_exports": [
-                "calculate_due_date_weight",
-                "calculate_priority_weight",
-                "calculate_task_weights",
-                "check_and_perform_weekly_backup",
-                "cleanup_orphaned_task_reminders",
-                "cleanup_scheduler_wake_tasks",
-                "cleanup_task_reminders",
-                "get_random_time_within_task_period",
-                "handle_task_reminder",
-                "handle_task_selection_edge_cases",
-                "perform_daily_log_archival",
-                "register_full_daily_maintenance_jobs",
-                "register_system_daily_jobs",
-                "schedule_task_reminder_at_datetime",
-                "schedule_task_reminder_at_time",
-                "select_task_by_weight",
-                "select_task_for_reminder",
-                "task_selection_key"
-              ],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "SchedulerManager": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "set_scheduler_delivery_factory": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_category_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_full_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_user_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                }
-              },
-              "import_usage_details": {
-                "SchedulerManager": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "set_scheduler_delivery_factory": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "clear_all_accumulated_jobs_standalone": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "process_category_schedule": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "process_user_schedules": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_category_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_full_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "run_user_scheduler_standalone": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "scheduler/__init__.py",
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                },
-                "schedule_all_task_reminders": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager"
-                }
-              },
-              "package_api_items": [
-                "SchedulerManager",
-                "calculate_due_date_weight",
-                "calculate_priority_weight",
-                "calculate_task_weights",
-                "check_and_perform_weekly_backup",
-                "cleanup_orphaned_task_reminders",
-                "cleanup_scheduler_wake_tasks",
-                "cleanup_task_reminders",
-                "clear_all_accumulated_jobs_standalone",
-                "get_random_time_within_task_period",
-                "handle_task_reminder",
-                "handle_task_selection_edge_cases",
-                "perform_daily_log_archival",
-                "process_category_schedule",
-                "process_user_schedules",
-                "register_full_daily_maintenance_jobs",
-                "register_system_daily_jobs",
-                "run_category_scheduler_standalone",
-                "run_full_scheduler_standalone",
-                "run_user_scheduler_standalone",
-                "schedule_all_task_reminders",
-                "schedule_task_reminder_at_datetime",
-                "schedule_task_reminder_at_time",
-                "select_task_by_weight",
-                "select_task_for_reminder",
-                "set_scheduler_delivery_factory",
-                "task_selection_key"
-              ],
-              "registry_items": [
-                "__init__",
-                "_is_weekly_backup_entry",
-                "calculate_due_date_weight",
-                "calculate_priority_weight",
-                "check_and_perform_weekly_backup",
-                "cleanup_scheduler_wake_tasks",
-                "register_full_daily_maintenance_jobs",
-                "register_system_daily_jobs"
-              ]
-            },
-            "notebook": {
-              "package": "notebook",
-              "current_exports_count": 0,
-              "should_export_count": 69,
-              "already_exported": [],
-              "missing_exports": [
-                "Entry",
-                "EntryKind",
-                "ListItem",
-                "MAX_BODY_LENGTH",
-                "NotebookCollectionV2Model",
-                "NotebookEntryResult",
-                "NotebookListResult",
-                "NotebookV2Model",
-                "add_entry_tags",
-                "add_item_to_list",
-                "add_list_item",
-                "add_tags",
-                "append_entry_body",
-                "append_to_entry_body",
-                "archive_entry",
-                "archive_notebook_entry",
-                "create_entry",
-                "create_journal",
-                "create_journal_from_command",
-                "create_list",
-                "create_list_from_command",
-                "create_note",
-                "create_note_from_command",
-                "create_quick_note_from_command",
-                "delete_list_item",
-                "ensure_notebook_dirs",
-                "format_short_id",
-                "get_entry",
-                "is_valid_entry_description",
-                "is_valid_entry_group",
-                "is_valid_entry_kind",
-                "is_valid_entry_reference",
-                "is_valid_entry_title",
-                "is_valid_list_item_index",
-                "list_archived",
-                "list_archived_entries",
-                "list_by_group",
-                "list_by_tag",
-                "list_entries_by_group",
-                "list_entries_by_tag",
-                "list_inbox",
-                "list_inbox_entries",
-                "list_pinned",
-                "list_pinned_entries",
-                "list_recent",
-                "list_recent_entries",
-                "load_entries",
-                "normalize_command_tags",
-                "normalize_list_item_index",
-                "parse_short_id",
-                "pin_entry",
-                "pin_notebook_entry",
-                "prepare_list_fields",
-                "prepare_note_fields",
-                "prepare_quick_note_fields",
-                "remove_entry_tags",
-                "remove_list_item",
-                "remove_tags",
-                "replace_entry_body",
-                "save_entries",
-                "search_entries",
-                "search_entries_for_display",
-                "set_entry_body",
-                "set_entry_group",
-                "set_group",
-                "set_list_item_done",
-                "toggle_list_item_done",
-                "validate_entry_content",
-                "validate_notebook_v2_document"
-              ],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "Entry": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "notebook/notebook_data_handlers.py",
-                    "notebook/notebook_data_manager.py",
-                    "notebook/notebook_service.py",
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_schemas"
-                },
-                "EntryKind": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "notebook/notebook_data_manager.py",
-                    "notebook/notebook_validation.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_schemas"
-                },
-                "create_note": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_data_manager"
-                }
-              },
-              "import_usage_details": {
-                "Entry": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "notebook/notebook_data_handlers.py",
-                    "notebook/notebook_data_manager.py",
-                    "notebook/notebook_service.py",
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_schemas"
-                },
-                "NotebookV2Model": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "notebook/notebook_data_handlers.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_schemas"
-                },
-                "ListItem": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "notebook/notebook_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_schemas"
-                },
-                "EntryKind": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "notebook/notebook_data_manager.py",
-                    "notebook/notebook_validation.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_schemas"
-                },
-                "load_entries": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "notebook/notebook_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_data_handlers"
-                },
-                "save_entries": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "notebook/notebook_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_data_handlers"
-                },
-                "is_valid_entry_reference": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "notebook/notebook_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_validation"
-                },
-                "is_valid_entry_group": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "notebook/notebook_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_validation"
-                },
-                "is_valid_entry_kind": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "notebook/notebook_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_validation"
-                },
-                "normalize_list_item_index": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "notebook/notebook_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_validation"
-                },
-                "validate_entry_content": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "notebook/notebook_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_validation"
-                },
-                "MAX_BODY_LENGTH": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "notebook/notebook_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_validation"
-                },
-                "NotebookCollectionV2Model": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "notebook/notebook_validation.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_schemas"
-                },
-                "add_entry_tags": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "add_item_to_list": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "get_entry": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "append_entry_body": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "archive_notebook_entry": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "create_journal_from_command": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "create_list_from_command": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "create_note_from_command": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "create_quick_note_from_command": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "delete_list_item": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "list_archived_entries": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "list_entries_by_group": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "list_entries_by_tag": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "list_inbox_entries": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "list_pinned_entries": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "list_recent_entries": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "pin_notebook_entry": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "remove_entry_tags": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "replace_entry_body": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "search_entries_for_display": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "set_entry_group": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "set_list_item_done": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_service"
-                },
-                "format_short_id": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/notebook_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_validation"
-                },
-                "create_note": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/message_processing/conversation_flow_manager.py",
-                    "communication/message_processing/conversation_flow_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_data_manager"
-                },
-                "create_list": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/message_processing/conversation_flow_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "notebook.notebook_data_manager"
-                }
-              },
-              "package_api_items": [
-                "Entry",
-                "ListItem",
-                "NotebookCollectionV2Model",
-                "NotebookEntryResult",
-                "NotebookListResult",
-                "NotebookV2Model",
-                "add_entry_tags",
-                "add_item_to_list",
-                "add_list_item",
-                "add_tags",
-                "append_entry_body",
-                "append_to_entry_body",
-                "archive_entry",
-                "archive_notebook_entry",
-                "create_entry",
-                "create_journal",
-                "create_journal_from_command",
-                "create_list",
-                "create_list_from_command",
-                "create_note",
-                "create_note_from_command",
-                "create_quick_note_from_command",
-                "delete_list_item",
-                "ensure_notebook_dirs",
-                "format_short_id",
-                "get_entry",
-                "is_valid_entry_description",
-                "is_valid_entry_group",
-                "is_valid_entry_kind",
-                "is_valid_entry_reference",
-                "is_valid_entry_title",
-                "is_valid_list_item_index",
-                "list_archived",
-                "list_archived_entries",
-                "list_by_group",
-                "list_by_tag",
-                "list_entries_by_group",
-                "list_entries_by_tag",
-                "list_inbox",
-                "list_inbox_entries",
-                "list_pinned",
-                "list_pinned_entries",
-                "list_recent",
-                "list_recent_entries",
-                "load_entries",
-                "normalize_command_tags",
-                "normalize_list_item_index",
-                "parse_short_id",
-                "pin_entry",
-                "pin_notebook_entry",
-                "prepare_list_fields",
-                "prepare_note_fields",
-                "prepare_quick_note_fields",
-                "remove_entry_tags",
-                "remove_list_item",
-                "remove_tags",
-                "replace_entry_body",
-                "save_entries",
-                "search_entries",
-                "search_entries_for_display",
-                "set_entry_body",
-                "set_entry_group",
-                "set_group",
-                "set_list_item_done",
-                "toggle_list_item_done",
-                "validate_entry_content",
-                "validate_notebook_v2_document"
-              ],
-              "registry_items": []
-            },
-            "user": {
-              "package": "user",
-              "current_exports_count": 4,
-              "should_export_count": 8,
-              "already_exported": [
-                "UserContext",
-                "UserContextManager",
-                "UserPreferences",
-                "user_context_manager"
-              ],
-              "missing_exports": [
-                "ProfileSections",
-                "ProfileUpdateResult",
-                "apply_profile_updates",
-                "load_profile_sections"
-              ],
-              "potentially_unnecessary": [],
-              "cross_module_usage": {
-                "user_context_manager": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "ai/context_builder.py",
-                    "ai/conversational_context/assembly.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.context_manager"
-                },
-                "UserContext": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/schedule_runtime.py",
-                    "scheduler/manager.py",
-                    "ui/ui_app_qt.py",
-                    "user/context_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.user_context"
-                }
-              },
-              "import_usage_details": {
-                "user_context_manager": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "ai/chatbot.py",
-                    "ai/context_builder.py",
-                    "ai/conversational_context/assembly.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.context_manager"
-                },
-                "UserContext": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "core/schedule_runtime.py",
-                    "scheduler/manager.py",
-                    "ui/ui_app_qt.py",
-                    "user/context_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.user_context"
-                },
-                "apply_profile_updates": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/profile_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.profile_service"
-                },
-                "load_profile_sections": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/command_handlers/profile_handler.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "user.profile_service"
-                }
-              },
-              "package_api_items": [
-                "ProfileSections",
-                "ProfileUpdateResult",
-                "UserContext",
-                "UserContextManager",
-                "UserPreferences",
-                "apply_profile_updates",
-                "load_profile_sections"
-              ],
-              "registry_items": [
-                "__getattr__",
-                "__init__",
-                "__new__",
-                "_get_conversation_history",
-                "_list_from_command_value",
-                "apply_profile_updates",
-                "get_all_preferences",
-                "get_instance_context"
               ]
             },
             "ui": {
@@ -17013,11 +16808,245 @@
                 "on_enable_task_management_toggled",
                 "set_selected_categories"
               ]
+            },
+            "scheduler": {
+              "package": "scheduler",
+              "current_exports_count": 9,
+              "should_export_count": 27,
+              "already_exported": [
+                "SchedulerManager",
+                "clear_all_accumulated_jobs_standalone",
+                "process_category_schedule",
+                "process_user_schedules",
+                "run_category_scheduler_standalone",
+                "run_full_scheduler_standalone",
+                "run_user_scheduler_standalone",
+                "schedule_all_task_reminders",
+                "set_scheduler_delivery_factory"
+              ],
+              "missing_exports": [
+                "calculate_due_date_weight",
+                "calculate_priority_weight",
+                "calculate_task_weights",
+                "check_and_perform_weekly_backup",
+                "cleanup_orphaned_task_reminders",
+                "cleanup_scheduler_wake_tasks",
+                "cleanup_task_reminders",
+                "get_random_time_within_task_period",
+                "handle_task_reminder",
+                "handle_task_selection_edge_cases",
+                "perform_daily_log_archival",
+                "register_full_daily_maintenance_jobs",
+                "register_system_daily_jobs",
+                "schedule_task_reminder_at_datetime",
+                "schedule_task_reminder_at_time",
+                "select_task_by_weight",
+                "select_task_for_reminder",
+                "task_selection_key"
+              ],
+              "potentially_unnecessary": [],
+              "cross_module_usage": {
+                "SchedulerManager": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "set_scheduler_delivery_factory": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_category_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_full_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_user_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                }
+              },
+              "import_usage_details": {
+                "SchedulerManager": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "set_scheduler_delivery_factory": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "clear_all_accumulated_jobs_standalone": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "process_category_schedule": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "process_user_schedules": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_category_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_full_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "run_user_scheduler_standalone": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "scheduler/__init__.py",
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                },
+                "schedule_all_task_reminders": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager"
+                }
+              },
+              "package_api_items": [
+                "SchedulerManager",
+                "calculate_due_date_weight",
+                "calculate_priority_weight",
+                "calculate_task_weights",
+                "check_and_perform_weekly_backup",
+                "cleanup_orphaned_task_reminders",
+                "cleanup_scheduler_wake_tasks",
+                "cleanup_task_reminders",
+                "clear_all_accumulated_jobs_standalone",
+                "get_random_time_within_task_period",
+                "handle_task_reminder",
+                "handle_task_selection_edge_cases",
+                "perform_daily_log_archival",
+                "process_category_schedule",
+                "process_user_schedules",
+                "register_full_daily_maintenance_jobs",
+                "register_system_daily_jobs",
+                "run_category_scheduler_standalone",
+                "run_full_scheduler_standalone",
+                "run_user_scheduler_standalone",
+                "schedule_all_task_reminders",
+                "schedule_task_reminder_at_datetime",
+                "schedule_task_reminder_at_time",
+                "select_task_by_weight",
+                "select_task_for_reminder",
+                "set_scheduler_delivery_factory",
+                "task_selection_key"
+              ],
+              "registry_items": [
+                "__init__",
+                "_is_weekly_backup_entry",
+                "calculate_due_date_weight",
+                "calculate_priority_weight",
+                "check_and_perform_weekly_backup",
+                "cleanup_scheduler_wake_tasks",
+                "register_full_daily_maintenance_jobs",
+                "register_system_daily_jobs"
+              ]
             }
           }
         }
       },
-      "timestamp": "2026-05-23T00:54:24"
+      "timestamp": "2026-05-23T14:44:00"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -17692,44 +17721,23 @@
               ]
             },
             {
-              "file": "communication/command_handlers/analytics_handler.py",
-              "local_imports": 34,
+              "file": "communication/command_handlers/analytics_formatting.py",
+              "local_imports": 2,
               "third_party_imports": 0,
               "modules": [
-                "core.logger",
-                "core.error_handling",
-                "communication.command_handlers.base_handler",
-                "communication.command_handlers.shared_types",
                 "core.response_tracking",
-                "core.checkin_analytics",
-                "core.checkin_analytics",
-                "core.checkin_analytics",
-                "core.checkin_analytics",
-                "core",
-                "core.checkin_analytics",
-                "core.checkin_analytics",
-                "core.checkin_analytics",
-                "core.checkin_dynamic_manager",
-                "core.response_tracking",
-                "core.time_utilities",
-                "core.response_tracking",
-                "core.checkin_analytics",
-                "core.checkin_dynamic_manager",
-                "core.checkin_analytics",
-                "tasks",
-                "core.checkin_analytics",
-                "tasks",
-                "core.error_handling",
-                "core.error_handling",
-                "core.error_handling",
-                "core.error_handling",
-                "core.error_handling",
-                "core.error_handling",
-                "core.error_handling",
-                "core.error_handling",
-                "core.error_handling",
-                "core.error_handling",
                 "core.error_handling"
+              ]
+            },
+            {
+              "file": "communication/command_handlers/analytics_handler.py",
+              "local_imports": 4,
+              "third_party_imports": 0,
+              "modules": [
+                "core.error_handling",
+                "communication.command_handlers",
+                "communication.command_handlers.base_handler",
+                "communication.command_handlers.shared_types"
               ]
             },
             {
@@ -17740,6 +17748,17 @@
                 "communication.command_handlers.shared_types",
                 "core.logger",
                 "core.error_handling"
+              ]
+            },
+            {
+              "file": "communication/command_handlers/checkin_analytics_handler.py",
+              "local_imports": 4,
+              "third_party_imports": 0,
+              "modules": [
+                "core",
+                "core",
+                "communication.command_handlers.analytics_formatting",
+                "communication.command_handlers.shared_types"
               ]
             },
             {
@@ -17847,16 +17866,36 @@
               "modules": []
             },
             {
+              "file": "communication/command_handlers/task_analytics_handler.py",
+              "local_imports": 4,
+              "third_party_imports": 0,
+              "modules": [
+                "core",
+                "tasks",
+                "communication.command_handlers.analytics_formatting",
+                "communication.command_handlers.shared_types"
+              ]
+            },
+            {
               "file": "communication/command_handlers/task_handler.py",
-              "local_imports": 6,
-              "third_party_imports": 1,
+              "local_imports": 5,
+              "third_party_imports": 2,
               "modules": [
                 "core.logger",
                 "core.error_handling",
                 "core.time_utilities",
                 "tasks.task_data_handlers",
-                "tasks",
-                "core.checkin_analytics"
+                "tasks"
+              ]
+            },
+            {
+              "file": "communication/command_handlers/trend_analytics_handler.py",
+              "local_imports": 3,
+              "third_party_imports": 0,
+              "modules": [
+                "core",
+                "communication.command_handlers.analytics_formatting",
+                "communication.command_handlers.shared_types"
               ]
             },
             {
@@ -18817,7 +18856,8 @@
             {
               "file": "communication/command_handlers/task_handler.py",
               "dependencies": [
-                "base_handler"
+                "base_handler",
+                "task_analytics_handler"
               ]
             },
             {
@@ -19411,46 +19451,6 @@
               ]
             },
             {
-              "file": "communication/command_handlers/analytics_handler.py",
-              "import_count": 34,
-              "modules": [
-                "core.logger",
-                "core.error_handling",
-                "communication.command_handlers.base_handler",
-                "communication.command_handlers.shared_types",
-                "core.response_tracking",
-                "core.checkin_analytics",
-                "core.checkin_analytics",
-                "core.checkin_analytics",
-                "core.checkin_analytics",
-                "core",
-                "core.checkin_analytics",
-                "core.checkin_analytics",
-                "core.checkin_analytics",
-                "core.checkin_dynamic_manager",
-                "core.response_tracking",
-                "core.time_utilities",
-                "core.response_tracking",
-                "core.checkin_analytics",
-                "core.checkin_dynamic_manager",
-                "core.checkin_analytics",
-                "tasks",
-                "core.checkin_analytics",
-                "tasks",
-                "core.error_handling",
-                "core.error_handling",
-                "core.error_handling",
-                "core.error_handling",
-                "core.error_handling",
-                "core.error_handling",
-                "core.error_handling",
-                "core.error_handling",
-                "core.error_handling",
-                "core.error_handling",
-                "core.error_handling"
-              ]
-            },
-            {
               "file": "communication/command_handlers/checkin_handler.py",
               "import_count": 7,
               "modules": [
@@ -19541,18 +19541,6 @@
                 "core",
                 "core.schedule_runtime",
                 "core.schedule_runtime"
-              ]
-            },
-            {
-              "file": "communication/command_handlers/task_handler.py",
-              "import_count": 6,
-              "modules": [
-                "core.logger",
-                "core.error_handling",
-                "core.time_utilities",
-                "tasks.task_data_handlers",
-                "tasks",
-                "core.checkin_analytics"
               ]
             },
             {
@@ -20247,7 +20235,7 @@
           ]
         }
       },
-      "timestamp": "2026-05-23T00:54:26"
+      "timestamp": "2026-05-23T14:44:02"
     },
     "analyze_dev_tools_import_boundaries": {
       "success": true,
@@ -20264,7 +20252,7 @@
           }
         }
       },
-      "timestamp": "2026-05-23T00:54:18"
+      "timestamp": "2026-05-23T14:43:53"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -20275,7 +20263,7 @@
         },
         "details": {}
       },
-      "timestamp": "2026-05-23T00:54:27"
+      "timestamp": "2026-05-23T14:44:04"
     },
     "analyze_module_imports": {
       "success": true,
@@ -22000,6 +21988,37 @@
             },
             "total_imports": 11
           },
+          "communication/command_handlers/analytics_formatting.py": {
+            "imports": {
+              "standard_library": [
+                {
+                  "module": "typing",
+                  "as_name": null,
+                  "imported_items": [
+                    "Any"
+                  ]
+                }
+              ],
+              "third_party": [],
+              "local": [
+                {
+                  "module": "core.response_tracking",
+                  "as_name": "response_tracking",
+                  "imported_items": [
+                    "core.response_tracking"
+                  ]
+                },
+                {
+                  "module": "core.error_handling",
+                  "as_name": null,
+                  "imported_items": [
+                    "handle_errors"
+                  ]
+                }
+              ]
+            },
+            "total_imports": 3
+          },
           "communication/command_handlers/analytics_handler.py": {
             "imports": {
               "standard_library": [
@@ -22009,29 +22028,24 @@
                   "imported_items": [
                     "Any"
                   ]
-                },
-                {
-                  "module": "collections",
-                  "as_name": null,
-                  "imported_items": [
-                    "Counter"
-                  ]
                 }
               ],
               "third_party": [],
               "local": [
                 {
-                  "module": "core.logger",
-                  "as_name": null,
-                  "imported_items": [
-                    "get_component_logger"
-                  ]
-                },
-                {
                   "module": "core.error_handling",
                   "as_name": null,
                   "imported_items": [
                     "handle_errors"
+                  ]
+                },
+                {
+                  "module": "communication.command_handlers",
+                  "as_name": null,
+                  "imported_items": [
+                    "checkin_analytics_handler",
+                    "task_analytics_handler",
+                    "trend_analytics_handler"
                   ]
                 },
                 {
@@ -22048,224 +22062,10 @@
                     "InteractionResponse",
                     "ParsedCommand"
                   ]
-                },
-                {
-                  "module": "core.response_tracking",
-                  "as_name": null,
-                  "imported_items": [
-                    "checkin_runtime_timestamp"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
-                  "module": "core",
-                  "as_name": null,
-                  "imported_items": [
-                    "get_user_data"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
-                  "module": "core.checkin_dynamic_manager",
-                  "as_name": null,
-                  "imported_items": [
-                    "dynamic_checkin_manager"
-                  ]
-                },
-                {
-                  "module": "core.response_tracking",
-                  "as_name": null,
-                  "imported_items": [
-                    "get_recent_checkins"
-                  ]
-                },
-                {
-                  "module": "core.time_utilities",
-                  "as_name": null,
-                  "imported_items": [
-                    "parse_timestamp_full"
-                  ]
-                },
-                {
-                  "module": "core.response_tracking",
-                  "as_name": null,
-                  "imported_items": [
-                    "get_checkins_by_days"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
-                  "module": "core.checkin_dynamic_manager",
-                  "as_name": null,
-                  "imported_items": [
-                    "dynamic_checkin_manager"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
-                  "module": "tasks",
-                  "as_name": null,
-                  "imported_items": [
-                    "get_user_task_stats",
-                    "load_active_tasks",
-                    "load_completed_tasks"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
-                  "module": "tasks",
-                  "as_name": null,
-                  "imported_items": [
-                    "get_user_task_stats",
-                    "load_active_tasks",
-                    "load_completed_tasks"
-                  ]
-                },
-                {
-                  "module": "core.error_handling",
-                  "as_name": null,
-                  "imported_items": [
-                    "handle_ai_error"
-                  ]
-                },
-                {
-                  "module": "core.error_handling",
-                  "as_name": null,
-                  "imported_items": [
-                    "handle_ai_error"
-                  ]
-                },
-                {
-                  "module": "core.error_handling",
-                  "as_name": null,
-                  "imported_items": [
-                    "handle_ai_error"
-                  ]
-                },
-                {
-                  "module": "core.error_handling",
-                  "as_name": null,
-                  "imported_items": [
-                    "handle_ai_error"
-                  ]
-                },
-                {
-                  "module": "core.error_handling",
-                  "as_name": null,
-                  "imported_items": [
-                    "handle_ai_error"
-                  ]
-                },
-                {
-                  "module": "core.error_handling",
-                  "as_name": null,
-                  "imported_items": [
-                    "handle_ai_error"
-                  ]
-                },
-                {
-                  "module": "core.error_handling",
-                  "as_name": null,
-                  "imported_items": [
-                    "handle_ai_error"
-                  ]
-                },
-                {
-                  "module": "core.error_handling",
-                  "as_name": null,
-                  "imported_items": [
-                    "handle_ai_error"
-                  ]
-                },
-                {
-                  "module": "core.error_handling",
-                  "as_name": null,
-                  "imported_items": [
-                    "handle_ai_error"
-                  ]
-                },
-                {
-                  "module": "core.error_handling",
-                  "as_name": null,
-                  "imported_items": [
-                    "handle_ai_error"
-                  ]
-                },
-                {
-                  "module": "core.error_handling",
-                  "as_name": null,
-                  "imported_items": [
-                    "handle_ai_error"
-                  ]
                 }
               ]
             },
-            "total_imports": 36
+            "total_imports": 5
           },
           "communication/command_handlers/base_handler.py": {
             "imports": {
@@ -22314,6 +22114,62 @@
               ]
             },
             "total_imports": 5
+          },
+          "communication/command_handlers/checkin_analytics_handler.py": {
+            "imports": {
+              "standard_library": [
+                {
+                  "module": "collections",
+                  "as_name": null,
+                  "imported_items": [
+                    "Counter"
+                  ]
+                },
+                {
+                  "module": "typing",
+                  "as_name": null,
+                  "imported_items": [
+                    "Any"
+                  ]
+                }
+              ],
+              "third_party": [],
+              "local": [
+                {
+                  "module": "core",
+                  "as_name": null,
+                  "imported_items": [
+                    "core"
+                  ]
+                },
+                {
+                  "module": "core",
+                  "as_name": null,
+                  "imported_items": [
+                    "checkin_analytics",
+                    "checkin_dynamic_manager",
+                    "error_handling",
+                    "response_tracking",
+                    "time_utilities"
+                  ]
+                },
+                {
+                  "module": "communication.command_handlers.analytics_formatting",
+                  "as_name": null,
+                  "imported_items": [
+                    "AnalyticsFormattingMixin"
+                  ]
+                },
+                {
+                  "module": "communication.command_handlers.shared_types",
+                  "as_name": null,
+                  "imported_items": [
+                    "InteractionResponse"
+                  ]
+                }
+              ]
+            },
+            "total_imports": 6
           },
           "communication/command_handlers/checkin_handler.py": {
             "imports": {
@@ -22910,6 +22766,52 @@
             },
             "total_imports": 2
           },
+          "communication/command_handlers/task_analytics_handler.py": {
+            "imports": {
+              "standard_library": [
+                {
+                  "module": "typing",
+                  "as_name": null,
+                  "imported_items": [
+                    "Any"
+                  ]
+                }
+              ],
+              "third_party": [],
+              "local": [
+                {
+                  "module": "core",
+                  "as_name": null,
+                  "imported_items": [
+                    "checkin_analytics",
+                    "error_handling"
+                  ]
+                },
+                {
+                  "module": "tasks",
+                  "as_name": "task_services",
+                  "imported_items": [
+                    "tasks"
+                  ]
+                },
+                {
+                  "module": "communication.command_handlers.analytics_formatting",
+                  "as_name": null,
+                  "imported_items": [
+                    "AnalyticsFormattingMixin"
+                  ]
+                },
+                {
+                  "module": "communication.command_handlers.shared_types",
+                  "as_name": null,
+                  "imported_items": [
+                    "InteractionResponse"
+                  ]
+                }
+              ]
+            },
+            "total_imports": 5
+          },
           "communication/command_handlers/task_handler.py": {
             "imports": {
               "standard_library": [
@@ -22943,6 +22845,13 @@
                     "InteractionHandler",
                     "InteractionResponse",
                     "ParsedCommand"
+                  ]
+                },
+                {
+                  "module": "task_analytics_handler",
+                  "as_name": null,
+                  "imported_items": [
+                    "TaskAnalyticsHandler"
                   ]
                 }
               ],
@@ -22983,17 +22892,49 @@
                   "imported_items": [
                     "task_service"
                   ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
                 }
               ]
             },
             "total_imports": 10
+          },
+          "communication/command_handlers/trend_analytics_handler.py": {
+            "imports": {
+              "standard_library": [
+                {
+                  "module": "typing",
+                  "as_name": null,
+                  "imported_items": [
+                    "Any"
+                  ]
+                }
+              ],
+              "third_party": [],
+              "local": [
+                {
+                  "module": "core",
+                  "as_name": null,
+                  "imported_items": [
+                    "checkin_analytics",
+                    "error_handling"
+                  ]
+                },
+                {
+                  "module": "communication.command_handlers.analytics_formatting",
+                  "as_name": null,
+                  "imported_items": [
+                    "AnalyticsFormattingMixin"
+                  ]
+                },
+                {
+                  "module": "communication.command_handlers.shared_types",
+                  "as_name": null,
+                  "imported_items": [
+                    "InteractionResponse"
+                  ]
+                }
+              ]
+            },
+            "total_imports": 4
           },
           "communication/command_handlers/__init__.py": {
             "imports": {
@@ -33040,7 +32981,7 @@
           }
         }
       },
-      "timestamp": "2026-05-23T00:54:26"
+      "timestamp": "2026-05-23T14:44:02"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -33065,10 +33006,10 @@
             "ui_imports": []
           },
           "stats": {
-            "files_scanned": 658,
+            "files_scanned": 662,
             "files_with_issues": 0,
             "total_unused": 0,
-            "cache_hits": 658,
+            "cache_hits": 662,
             "cache_misses": 0,
             "changed_files": 0,
             "cache_mode": "cache_only",
@@ -33078,13 +33019,13 @@
             "backend": "ruff",
             "scan_mode": "cache_only",
             "timings": {
-              "discovery_seconds": 1.9242,
-              "detection_seconds": 0.1027,
-              "categorization_seconds": 0.0165,
-              "total_seconds": 2.369
+              "discovery_seconds": 2.1558,
+              "detection_seconds": 0.2237,
+              "categorization_seconds": 0.0267,
+              "total_seconds": 2.9179
             },
-            "files_per_second": 277.76,
-            "cache_hits": 658,
+            "files_per_second": 226.87,
+            "cache_hits": 662,
             "cache_misses": 0,
             "changed_files": 0,
             "batch_size": 200,
@@ -33103,7 +33044,7 @@
             "production_test_mocking": 0,
             "ui_imports": 0
           },
-          "files_scanned": 658,
+          "files_scanned": 662,
           "invalidation_summary": {
             "storage": "MtimeFileCache",
             "domain": "imports",
@@ -33114,21 +33055,21 @@
           },
           "_cache_metadata": {
             "cache_mode": "cache_only",
-            "hits": 658,
+            "hits": 662,
             "misses": 0,
-            "total_cache_checks": 658,
+            "total_cache_checks": 662,
             "hit_rate": 100.0
           }
         },
         "_cache_metadata": {
           "cache_mode": "cache_only",
-          "hits": 658,
+          "hits": 662,
           "misses": 0,
-          "total_cache_checks": 658,
+          "total_cache_checks": 662,
           "hit_rate": 100.0
         }
       },
-      "timestamp": "2026-05-23T00:54:27"
+      "timestamp": "2026-05-23T14:44:03"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -33158,19 +33099,19 @@
           },
           "cache": {
             "cache_mode": "cache_only",
-            "hits": 656,
+            "hits": 660,
             "misses": 0,
-            "total_cache_checks": 656,
+            "total_cache_checks": 660,
             "hit_rate": 100.0
           }
         }
       },
-      "timestamp": "2026-05-23T00:54:36"
+      "timestamp": "2026-05-23T14:44:22"
     },
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-05-23T00:54:34",
+        "generated_at": "2026-05-23T14:44:18",
         "project_root": "C:\\Users\\Julie\\projects\\MHM\\MHM",
         "summary": {
           "status": "PASS",
@@ -33215,7 +33156,7 @@
               "name": "weekly_backup_recent_enough",
               "success": true,
               "details": {
-                "recent_cutoff": "2026-05-09T00:54:34",
+                "recent_cutoff": "2026-05-09T14:44:18",
                 "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-05-22_01-00-06",
                 "latest_weekly_created_at": "2026-05-22 01:00:06"
               }
@@ -33226,7 +33167,7 @@
               "details": {
                 "latest_backup_path": "data\\backups\\weekly_backup_2026-05-22_01-00-06",
                 "latest_created_at": "2026-05-22 01:00:06",
-                "recent_cutoff": "2026-05-09T00:54:34"
+                "recent_cutoff": "2026-05-09T14:44:18"
               }
             },
             {
@@ -33281,7 +33222,7 @@
             "name": "weekly_backup_recent_enough",
             "success": true,
             "details": {
-              "recent_cutoff": "2026-05-09T00:54:34",
+              "recent_cutoff": "2026-05-09T14:44:18",
               "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-05-22_01-00-06",
               "latest_weekly_created_at": "2026-05-22 01:00:06"
             }
@@ -33292,7 +33233,7 @@
             "details": {
               "latest_backup_path": "data\\backups\\weekly_backup_2026-05-22_01-00-06",
               "latest_created_at": "2026-05-22 01:00:06",
-              "recent_cutoff": "2026-05-09T00:54:34"
+              "recent_cutoff": "2026-05-09T14:44:18"
             }
           },
           {
@@ -33315,20 +33256,20 @@
           }
         ]
       },
-      "timestamp": "2026-05-23T00:54:34"
+      "timestamp": "2026-05-23T14:44:18"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
+          "total_issues": 1,
           "files_affected": 0,
-          "status": "OK"
+          "status": "ISSUES"
         },
         "details": {
-          "timestamp": "2026-05-23T00:54:17.281555",
+          "timestamp": "2026-05-23T14:43:51.753417",
           "system_health": {
-            "overall_status": "OK",
+            "overall_status": "ISSUES",
             "core_files": {
               "run_mhm.py": "OK",
               "run_tests.py": "OK",
@@ -33347,35 +33288,39 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-05-23T00:24:48.477956",
-            "audit_freshness": "<1 hour",
+            "last_audit": "2026-05-23T12:53:00.226369",
+            "audit_freshness": "<24 hours",
             "test_coverage_status": "Unknown",
             "documentation_sync_status": "Synchronized",
             "health_indicators": [
-              "Audit data is very recent (<1 hour)",
+              "Audit data is recent (1 hours ago)",
               "Documentation is synchronized"
             ],
-            "recommendations": [],
+            "recommendations": [
+              "Check logs/errors.log for recent errors"
+            ],
             "warnings": [],
             "errors": [],
             "severity_levels": {
               "INFO": [],
-              "WARNING": [],
+              "WARNING": [
+                "Errors detected in logs/errors.log (last 24 hours)"
+              ],
               "CRITICAL": []
             }
           },
           "recent_activity": {
             "recent_changes": [
-              "communication/message_processing/command_parser.py",
-              "tests/behavior/test_command_discovery_help.py",
-              "tests/unit/test_command_parser_task_entities_expansion.py",
-              "tests/behavior/test_conversational_action_boundaries.py",
-              "tests/core/test_user_data_read_scenarios.py",
-              "tests/test_helpers/test_support/conftest_user_data.py",
-              "tests/behavior/test_discord_automation_complete.py",
-              "ai/conversational_context/action_boundaries.py",
-              "tests/unit/test_fallback_responses.py",
-              "communication/command_handlers/interaction_handlers.py"
+              "tests/behavior/test_task_handler_behavior.py",
+              "communication/command_handlers/trend_analytics_handler.py",
+              "tests/unit/test_analytics_handler.py",
+              "development_tools/static_checks/analyze_pip_audit.py",
+              "communication/command_handlers/task_analytics_handler.py",
+              "communication/command_handlers/task_handler.py",
+              "tests/behavior/test_interaction_handlers_coverage_expansion.py",
+              "communication/command_handlers/checkin_analytics_handler.py",
+              "communication/command_handlers/interaction_handlers.py",
+              "tests/development_tools/test_analyze_security_static_checks.py"
             ],
             "git_status": "Modified",
             "last_commit": null,
@@ -33401,7 +33346,7 @@
           }
         }
       },
-      "timestamp": "2026-05-23T00:54:17"
+      "timestamp": "2026-05-23T14:43:51"
     },
     "decision_support": {
       "success": true,
@@ -33411,7 +33356,7 @@
           "files_affected": 0
         },
         "details": {
-          "total_functions": 1671,
+          "total_functions": 1672,
           "moderate_complexity": 234,
           "high_complexity": 173,
           "critical_complexity": 151,
@@ -33566,7 +33511,7 @@
           ]
         }
       },
-      "timestamp": "2026-05-23T00:54:18"
+      "timestamp": "2026-05-23T14:43:54"
     },
     "quick_status": {
       "success": true,
@@ -33577,7 +33522,7 @@
           "status": "OK"
         },
         "details": {
-          "timestamp": "2026-05-22T22:06:11.321585",
+          "timestamp": "2026-05-23T12:38:06.932164",
           "system_health": {
             "core_files": {
               "run_mhm.py": "OK",
@@ -33595,7 +33540,7 @@
           },
           "documentation_status": {
             "coverage": "Unknown",
-            "recent_audit": null,
+            "recent_audit": "2026-05-23T12:30:52.811055",
             "key_files": {
               "README.md": "OK",
               "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -33606,18 +33551,20 @@
             }
           },
           "critical_issues": [],
-          "action_items": [
-            "Run comprehensive audit to assess current state"
-          ],
+          "action_items": [],
           "recent_activity": {
-            "last_audit": null,
+            "last_audit": "2026-05-23T12:30:52.811055",
             "recent_changes": [
               "requirements.txt",
               "communication/message_processing/command_parser.py",
+              "communication/command_handlers/trend_analytics_handler.py",
               "communication/command_handlers/task_handler.py",
+              "communication/command_handlers/task_analytics_handler.py",
               "communication/command_handlers/interaction_handlers.py",
+              "communication/command_handlers/checkin_analytics_handler.py",
+              "communication/command_handlers/analytics_handler.py",
+              "communication/command_handlers/analytics_formatting.py",
               "ai_development_docs/AI_CHANGELOG.md",
-              "ai/conversational_context/instructions.py",
               "ai/conversational_context/action_boundaries.py",
               "ai/SYSTEM_AI_GUIDE.md",
               "TODO.md",
@@ -33626,7 +33573,7 @@
           }
         }
       },
-      "timestamp": "2026-05-22T22:06:11"
+      "timestamp": "2026-05-23T12:38:07"
     },
     "run_test_suite": {
       "success": true,
@@ -33674,7 +33621,7 @@
               "name": "parallel",
               "command": [],
               "return_code": 0,
-              "duration_seconds": 329.838,
+              "duration_seconds": 394.746,
               "counts": {
                 "total": 5726,
                 "passed": 5722,
@@ -33691,7 +33638,7 @@
               "name": "no_parallel",
               "command": [],
               "return_code": 0,
-              "duration_seconds": 118.824,
+              "duration_seconds": 402.229,
               "counts": {
                 "total": 178,
                 "passed": 158,
@@ -33726,7 +33673,7 @@
           "has_full_suite_cache": true
         }
       },
-      "timestamp": "2026-05-23T00:54:34"
+      "timestamp": "2026-05-23T14:44:16"
     },
     "verify_process_cleanup": {
       "success": true,
@@ -33742,7 +33689,7 @@
           "orphaned_processes": []
         }
       },
-      "timestamp": "2026-05-23T00:54:36"
+      "timestamp": "2026-05-23T14:44:23"
     },
     "analyze_ruff": {
       "success": true,
@@ -33768,7 +33715,7 @@
           }
         }
       },
-      "timestamp": "2026-05-23T00:54:37.014310"
+      "timestamp": "2026-05-23T14:44:23.945075"
     },
     "analyze_pyright": {
       "success": true,
@@ -33799,7 +33746,7 @@
           }
         }
       },
-      "timestamp": "2026-05-23T00:54:37.014310"
+      "timestamp": "2026-05-23T14:44:23.945075"
     },
     "analyze_bandit": {
       "success": true,
@@ -33830,7 +33777,7 @@
           }
         }
       },
-      "timestamp": "2026-05-23T00:54:37.014310"
+      "timestamp": "2026-05-23T14:44:23.945075"
     },
     "analyze_pip_audit": {
       "success": true,
@@ -33852,7 +33799,7 @@
           "pip_audit_timing_note": "Requirements unchanged; reused pip-audit JSON from a prior run. Orchestration elapsed time reflects cache lookup only, not subprocess."
         }
       },
-      "timestamp": "2026-05-23T00:54:37.014310"
+      "timestamp": "2026-05-23T14:44:23.945075"
     }
   }
 }

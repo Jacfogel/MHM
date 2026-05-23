@@ -10,6 +10,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 from typing import Any
@@ -178,6 +179,11 @@ def run_pip_audit(project_root: Path) -> dict[str, Any]:
     )
     timeout_seconds = int(static_cfg.get("pip_audit_timeout_seconds", 600) or 600)
     extra_args = list(static_cfg.get("pip_audit_args", []))
+    if "--cache-dir" not in extra_args:
+        cache_dir = Path(tempfile.gettempdir()) / "mhm-pip-audit-http-cache"
+        extra_args.extend(["--cache-dir", str(cache_dir)])
+    if "--progress-spinner" not in extra_args:
+        extra_args.extend(["--progress-spinner", "off"])
     args: list[str] = ["--format", "json"] + extra_args
 
     try:

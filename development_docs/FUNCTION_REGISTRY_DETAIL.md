@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-22 01:09:32
+> **Last Generated**: 2026-05-23 12:37:31
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 93.5% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 153
-- **Functions Found**: 1814
-- **Methods Found**: 1232
-- **Classes Found**: 176
-- **Total Items**: 3046
-- **Functions Documented**: 1681
-- **Methods Documented**: 1167
-- **Classes Documented**: 138
-- **Total Documented**: 2848
+- **Files Scanned**: 157
+- **Functions Found**: 1815
+- **Methods Found**: 1233
+- **Classes Found**: 180
+- **Total Items**: 3048
+- **Functions Documented**: 1682
+- **Methods Documented**: 1168
+- **Classes Documented**: 142
+- **Total Documented**: 2850
 - **Template-Generated**: 24
-- **Last Updated**: 2026-05-22
+- **Last Updated**: 2026-05-23
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (493)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (499)
+### **Communication Functions** (500)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (436)
@@ -799,7 +799,7 @@ Returns:
   - [OK] `AccountManagementHandler.get_help(self)` - Get help text for account management commands.
   - [OK] `AccountManagementHandler.handle(self, user_id, parsed_command)` - Handle account management interactions
 
-#### `communication/command_handlers/analytics_handler.py`
+#### `communication/command_handlers/analytics_formatting.py`
 **Functions:**
 - [OK] `_build_trend_graph(self, recent_data, value_key, label, max_points)` - Build a simple ASCII trend graph for recent check-in values.
 - [OK] `_clean_checkin_label(self, label)` - Remove redundant suffixes from check-in labels.
@@ -808,65 +808,42 @@ Returns:
 - [OK] `_format_checkin_response_value(self, key, value, question_defs)` - Format a check-in response value for display.
 - [OK] `_format_numeric_value(self, value)` - Format numeric values with minimal trailing decimals.
 - [OK] `_get_checkin_label(self, key, question_defs)` - Get a readable label for a check-in response key.
-- [OK] `_get_field_scale(self, field)` - Determine the scale for a field (1-5 scale, or None for other types)
-
-Returns:
-    int: Scale value (5 for 1-5 scale fields, None for other types)
+- [OK] `_get_field_scale(self, field)` - Determine the scale for a field.
 - [OK] `_get_ordered_checkin_keys(self, checkin, responses)` - Preserve original check-in order when available.
 - [OK] `_get_question_scale(self, key, question_defs)` - Return scale max for a question when available.
-- [OK] `_handle_checkin_analysis(self, user_id, entities)` - Show comprehensive check-in response analysis
-- [OK] `_handle_checkin_history(self, user_id, entities)` - Show check-in history
-- [OK] `_handle_completion_rate(self, user_id, entities)` - Show completion rate
-- [OK] `_handle_energy_trends(self, user_id, entities)` - Show energy trends analysis
-- [OK] `_handle_habit_analysis(self, user_id, entities)` - Show habit analysis
-- [OK] `_handle_mood_trends(self, user_id, entities)` - Show mood trends analysis
-- [OK] `_handle_quant_summary(self, user_id, entities)` - Show per-field quantitative summaries for opted-in fields.
-- [OK] `_handle_show_analytics(self, user_id, entities)` - Show comprehensive analytics overview
-- [OK] `_handle_sleep_analysis(self, user_id, entities)` - Show sleep analysis
-- [OK] `_handle_task_analytics(self, user_id, entities)` - Show comprehensive task analytics and insights
-- [OK] `_handle_task_stats(self, user_id, entities)` - Show detailed task statistics
-- [OK] `_handle_wellness_score(self, user_id, entities)` - Show wellness score
-- [OK] `_truncate_response(self, response, max_length)` - Truncate response to fit Discord message limits
+- [OK] `_truncate_response(self, response, max_length)` - Truncate response to fit Discord message limits.
+**Classes:**
+- [OK] `AnalyticsFormattingMixin` - Formatting helpers shared by analytics command handlers.
+  - [OK] `AnalyticsFormattingMixin._build_trend_graph(self, recent_data, value_key, label, max_points)` - Build a simple ASCII trend graph for recent check-in values.
+  - [OK] `AnalyticsFormattingMixin._clean_checkin_label(self, label)` - Remove redundant suffixes from check-in labels.
+  - [OK] `AnalyticsFormattingMixin._extract_checkin_responses(self, checkin, question_keys)` - Extract responses from current check-in records.
+  - [OK] `AnalyticsFormattingMixin._format_basic_analytics_line(self, question)` - Format a single basic analytics line.
+  - [OK] `AnalyticsFormattingMixin._format_checkin_response_value(self, key, value, question_defs)` - Format a check-in response value for display.
+  - [OK] `AnalyticsFormattingMixin._format_numeric_value(self, value)` - Format numeric values with minimal trailing decimals.
+  - [OK] `AnalyticsFormattingMixin._get_checkin_label(self, key, question_defs)` - Get a readable label for a check-in response key.
+  - [OK] `AnalyticsFormattingMixin._get_field_scale(self, field)` - Determine the scale for a field.
+  - [OK] `AnalyticsFormattingMixin._get_ordered_checkin_keys(self, checkin, responses)` - Preserve original check-in order when available.
+  - [OK] `AnalyticsFormattingMixin._get_question_scale(self, key, question_defs)` - Return scale max for a question when available.
+  - [OK] `AnalyticsFormattingMixin._truncate_response(self, response, max_length)` - Truncate response to fit Discord message limits.
+
+#### `communication/command_handlers/analytics_handler.py`
+**Functions:**
+- [OK] `__init__(self)` - Initialize domain-specific analytics sub-handlers.
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
 - [OK] `get_examples(self)` - Get example commands for analytics.
 - [OK] `get_help(self)` - Get help text for analytics commands.
 - [OK] `handle(self, user_id, parsed_command)` - Handle analytics and insights interactions.
 - [OK] `handle_show_analytics(self, user_id, entities)` - Public entry point for /analytics and similar.
-- [OK] `handle_show_status(self, user_id, entities)` - Public entry point for /status (same as analytics overview).
+- [OK] `handle_show_status(self, user_id, entities)` - Public entry point for /status.
 **Classes:**
-- [OK] `AnalyticsHandler` - Handler for analytics and insights interactions
-  - [OK] `AnalyticsHandler._build_trend_graph(self, recent_data, value_key, label, max_points)` - Build a simple ASCII trend graph for recent check-in values.
-  - [OK] `AnalyticsHandler._clean_checkin_label(self, label)` - Remove redundant suffixes from check-in labels.
-  - [OK] `AnalyticsHandler._extract_checkin_responses(self, checkin, question_keys)` - Extract responses from current check-in records.
-  - [OK] `AnalyticsHandler._format_basic_analytics_line(self, question)` - Format a single basic analytics line.
-  - [OK] `AnalyticsHandler._format_checkin_response_value(self, key, value, question_defs)` - Format a check-in response value for display.
-  - [OK] `AnalyticsHandler._format_numeric_value(self, value)` - Format numeric values with minimal trailing decimals.
-  - [OK] `AnalyticsHandler._get_checkin_label(self, key, question_defs)` - Get a readable label for a check-in response key.
-  - [OK] `AnalyticsHandler._get_field_scale(self, field)` - Determine the scale for a field (1-5 scale, or None for other types)
-
-Returns:
-    int: Scale value (5 for 1-5 scale fields, None for other types)
-  - [OK] `AnalyticsHandler._get_ordered_checkin_keys(self, checkin, responses)` - Preserve original check-in order when available.
-  - [OK] `AnalyticsHandler._get_question_scale(self, key, question_defs)` - Return scale max for a question when available.
-  - [OK] `AnalyticsHandler._handle_checkin_analysis(self, user_id, entities)` - Show comprehensive check-in response analysis
-  - [OK] `AnalyticsHandler._handle_checkin_history(self, user_id, entities)` - Show check-in history
-  - [OK] `AnalyticsHandler._handle_completion_rate(self, user_id, entities)` - Show completion rate
-  - [OK] `AnalyticsHandler._handle_energy_trends(self, user_id, entities)` - Show energy trends analysis
-  - [OK] `AnalyticsHandler._handle_habit_analysis(self, user_id, entities)` - Show habit analysis
-  - [OK] `AnalyticsHandler._handle_mood_trends(self, user_id, entities)` - Show mood trends analysis
-  - [OK] `AnalyticsHandler._handle_quant_summary(self, user_id, entities)` - Show per-field quantitative summaries for opted-in fields.
-  - [OK] `AnalyticsHandler._handle_show_analytics(self, user_id, entities)` - Show comprehensive analytics overview
-  - [OK] `AnalyticsHandler._handle_sleep_analysis(self, user_id, entities)` - Show sleep analysis
-  - [OK] `AnalyticsHandler._handle_task_analytics(self, user_id, entities)` - Show comprehensive task analytics and insights
-  - [OK] `AnalyticsHandler._handle_task_stats(self, user_id, entities)` - Show detailed task statistics
-  - [OK] `AnalyticsHandler._handle_wellness_score(self, user_id, entities)` - Show wellness score
-  - [OK] `AnalyticsHandler._truncate_response(self, response, max_length)` - Truncate response to fit Discord message limits
+- [OK] `AnalyticsHandler` - Route analytics intents to smaller domain-specific handlers.
+  - [OK] `AnalyticsHandler.__init__(self)` - Initialize domain-specific analytics sub-handlers.
   - [OK] `AnalyticsHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
   - [OK] `AnalyticsHandler.get_examples(self)` - Get example commands for analytics.
   - [OK] `AnalyticsHandler.get_help(self)` - Get help text for analytics commands.
   - [OK] `AnalyticsHandler.handle(self, user_id, parsed_command)` - Handle analytics and insights interactions.
   - [OK] `AnalyticsHandler.handle_show_analytics(self, user_id, entities)` - Public entry point for /analytics and similar.
-  - [OK] `AnalyticsHandler.handle_show_status(self, user_id, entities)` - Public entry point for /status (same as analytics overview).
+  - [OK] `AnalyticsHandler.handle_show_status(self, user_id, entities)` - Public entry point for /status.
 
 #### `communication/command_handlers/base_handler.py`
 **Functions:**
@@ -936,6 +913,29 @@ Returns:
 
 Returns:
     InteractionResponse: Response to the interaction
+
+#### `communication/command_handlers/checkin_analytics_handler.py`
+**Functions:**
+- [OK] `_get_enabled_quantitative_fields(self, user_id)` - Return enabled quantitative check-in fields for a user.
+- [OK] `handle_checkin_analysis(self, user_id, entities)` - Show comprehensive check-in response analysis.
+- [OK] `handle_checkin_history(self, user_id, entities)` - Show check-in history.
+- [OK] `handle_completion_rate(self, user_id, entities)` - Show completion rate.
+- [OK] `handle_habit_analysis(self, user_id, entities)` - Show habit analysis.
+- [OK] `handle_quant_summary(self, user_id, entities)` - Show per-field quantitative summaries for opted-in fields.
+- [OK] `handle_show_analytics(self, user_id, entities)` - Show comprehensive analytics overview.
+- [OK] `handle_sleep_analysis(self, user_id, entities)` - Show sleep analysis.
+- [OK] `handle_wellness_score(self, user_id, entities)` - Show wellness score replacement text plus analytics overview.
+**Classes:**
+- [OK] `CheckinAnalyticsHandler` - Handle check-in analytics, history, summaries, and completion rates.
+  - [OK] `CheckinAnalyticsHandler._get_enabled_quantitative_fields(self, user_id)` - Return enabled quantitative check-in fields for a user.
+  - [OK] `CheckinAnalyticsHandler.handle_checkin_analysis(self, user_id, entities)` - Show comprehensive check-in response analysis.
+  - [OK] `CheckinAnalyticsHandler.handle_checkin_history(self, user_id, entities)` - Show check-in history.
+  - [OK] `CheckinAnalyticsHandler.handle_completion_rate(self, user_id, entities)` - Show completion rate.
+  - [OK] `CheckinAnalyticsHandler.handle_habit_analysis(self, user_id, entities)` - Show habit analysis.
+  - [OK] `CheckinAnalyticsHandler.handle_quant_summary(self, user_id, entities)` - Show per-field quantitative summaries for opted-in fields.
+  - [OK] `CheckinAnalyticsHandler.handle_show_analytics(self, user_id, entities)` - Show comprehensive analytics overview.
+  - [OK] `CheckinAnalyticsHandler.handle_sleep_analysis(self, user_id, entities)` - Show sleep analysis.
+  - [OK] `CheckinAnalyticsHandler.handle_wellness_score(self, user_id, entities)` - Show wellness score replacement text plus analytics overview.
 
 #### `communication/command_handlers/checkin_handler.py`
 **Functions:**
@@ -1138,6 +1138,15 @@ Output examples:
 - [OK] `PaginationAction` - Channel-neutral metadata for requesting the next page of results.
 - [OK] `ParsedCommand` - Parsed command with intent and entities
 
+#### `communication/command_handlers/task_analytics_handler.py`
+**Functions:**
+- [OK] `handle_task_analytics(self, user_id, entities)` - Show comprehensive task analytics and insights.
+- [OK] `handle_task_stats(self, user_id, entities)` - Show detailed task statistics.
+**Classes:**
+- [OK] `TaskAnalyticsHandler` - Handle task analytics and task statistics commands.
+  - [OK] `TaskAnalyticsHandler.handle_task_analytics(self, user_id, entities)` - Show comprehensive task analytics and insights.
+  - [OK] `TaskAnalyticsHandler.handle_task_stats(self, user_id, entities)` - Show detailed task statistics.
+
 #### `communication/command_handlers/task_handler.py`
 **Functions:**
 - [OK] `_add_one_calendar_month(dt)` - Advance *dt* by one calendar month, clamping the day to the target month's last day.
@@ -1169,7 +1178,6 @@ Returns:
 - [OK] `_handle_list_tasks__get_suggestion(self, tasks)` - Get contextual show suggestion based on task analysis.
 - [OK] `_handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter)` - Get appropriate response when no tasks match filters.
 - [OK] `_handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
-- [OK] `_handle_task_stats(self, user_id, entities)` - Handle task statistics with dynamic time periods
 - [OK] `_handle_uncomplete_task(self, user_id, entities)` - Handle uncomplete/restore: move a completed task back to active.
 - [OK] `_handle_update_task(self, user_id, entities)` - Handle task updates
 - [OK] `_parse_time_string(self, time_str)` - Parse time string to HH:MM format
@@ -1211,7 +1219,6 @@ Returns:
   - [OK] `TaskManagementHandler._handle_list_tasks__get_suggestion(self, tasks)` - Get contextual show suggestion based on task analysis.
   - [OK] `TaskManagementHandler._handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter)` - Get appropriate response when no tasks match filters.
   - [OK] `TaskManagementHandler._handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
-  - [OK] `TaskManagementHandler._handle_task_stats(self, user_id, entities)` - Handle task statistics with dynamic time periods
   - [OK] `TaskManagementHandler._handle_uncomplete_task(self, user_id, entities)` - Handle uncomplete/restore: move a completed task back to active.
   - [OK] `TaskManagementHandler._handle_update_task(self, user_id, entities)` - Handle task updates
   - [OK] `TaskManagementHandler._parse_time_string(self, time_str)` - Parse time string to HH:MM format
@@ -1220,6 +1227,15 @@ Returns:
   - [OK] `TaskManagementHandler.get_help(self)` - Get help text for task management commands.
   - [OK] `TaskManagementHandler.handle(self, user_id, parsed_command)` - Handle task management interactions.
   - [OK] `TaskManagementHandler.handle_list_tasks(self, user_id, entities)` - Public entry point for /tasks (list tasks).
+
+#### `communication/command_handlers/trend_analytics_handler.py`
+**Functions:**
+- [OK] `handle_energy_trends(self, user_id, entities)` - Show energy trends analysis.
+- [OK] `handle_mood_trends(self, user_id, entities)` - Show mood trends analysis.
+**Classes:**
+- [OK] `TrendAnalyticsHandler` - Handle mood and energy trend analytics.
+  - [OK] `TrendAnalyticsHandler.handle_energy_trends(self, user_id, entities)` - Show energy trends analysis.
+  - [OK] `TrendAnalyticsHandler.handle_mood_trends(self, user_id, entities)` - Show mood trends analysis.
 
 #### `communication/communication_channels/__init__.py`
 

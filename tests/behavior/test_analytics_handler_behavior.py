@@ -11,6 +11,7 @@ from unittest.mock import patch, MagicMock
 
 # Import the modules we're testing
 from communication.command_handlers.analytics_handler import AnalyticsHandler
+from communication.command_handlers.checkin_analytics_handler import CheckinAnalyticsHandler
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from tests.test_helpers.test_utilities import TestUserFactory
 
@@ -669,9 +670,9 @@ class TestAnalyticsHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.analytics
-    def test_analytics_handler_truncate_response(self):
-        """Test that AnalyticsHandler truncates long responses."""
-        handler = AnalyticsHandler()
+    def test_checkin_analytics_handler_truncates_long_response(self):
+        """Test that shared analytics formatting truncates long responses."""
+        handler = CheckinAnalyticsHandler()
         
         # Create a very long response
         long_response = "A" * 2000  # 2000 characters
@@ -686,9 +687,9 @@ class TestAnalyticsHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.analytics
-    def test_analytics_handler_truncate_response_short(self):
-        """Test that AnalyticsHandler doesn't truncate short responses."""
-        handler = AnalyticsHandler()
+    def test_checkin_analytics_handler_keeps_short_response(self):
+        """Test that shared analytics formatting keeps short responses unchanged."""
+        handler = CheckinAnalyticsHandler()
         
         # Create a short response
         short_response = "This is a short response."
@@ -726,4 +727,3 @@ class TestAnalyticsHandlerBehavior:
             assert isinstance(response, InteractionResponse), "Should return InteractionResponse"
             assert response.completed, "Response should be completed"
             assert "don't understand" in response.message.lower() or "try" in response.message.lower(), "Should indicate command not understood"
-

@@ -804,27 +804,26 @@ class TestTaskHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.tasks
     @pytest.mark.file_io
-    @patch("core.checkin_analytics.CheckinAnalytics")
+    @patch("tasks.load_completed_tasks")
+    @patch("tasks.load_active_tasks")
     @patch("tasks.get_user_task_stats")
     def test_task_handler_task_stats_success(
-        self, mock_get_stats, mock_analytics_class, test_data_dir
+        self, mock_get_stats, mock_load_active, mock_load_completed, test_data_dir
     ):
-        """Test that TaskManagementHandler shows task statistics successfully."""
+        """Test that TaskManagementHandler routes task statistics successfully."""
         handler = TaskManagementHandler()
         user_id = "test_user_task_stats"
         assert self._create_test_user(
             user_id, test_data_dir=test_data_dir
         ), "Failed to create test user"
 
-        stats = {"active_tasks": 5, "total_tasks": 15}
-        stats["".join(("completed", "_tasks"))] = 10
+        stats = {"active_count": 5, "completed_count": 10, "total_count": 15}
         mock_get_stats.return_value = stats
-
-        mock_analytics_instance = mock_analytics_class.return_value
-        mock_analytics_instance.get_task_weekly_stats.return_value = {
-            "Task 1": {"completion_rate": 80, "completed_days": 8, "total_days": 10},
-            "Task 2": {"completion_rate": 60, "completed_days": 6, "total_days": 10},
-        }
+        mock_load_active.return_value = [
+            {"title": "Task 1", "priority": "high"},
+            {"title": "Task 2", "priority": "medium"},
+        ]
+        mock_load_completed.return_value = [{"title": "Completed Task"}]
 
         parsed_command = ParsedCommand(
             intent="task_stats",
@@ -842,16 +841,14 @@ class TestTaskHandlerBehavior:
             "statistics" in response.message.lower()
             or "stats" in response.message.lower()
         ), "Should mention statistics"
-        # Check for task stats content (task names, completion rates, or overall stats)
         assert (
-            "task" in response.message.lower()
-            or "habit" in response.message.lower()
-            or "progress" in response.message.lower()
+            "completion rate" in response.message.lower()
+            and "66.7%" in response.message
+            and "completed task" in response.message.lower()
         ), "Should include task stats"
         mock_get_stats.assert_called_once_with(user_id)
-        mock_analytics_instance.get_task_weekly_stats.assert_called_once_with(
-            user_id, 7
-        )
+        mock_load_active.assert_called_once_with(user_id)
+        mock_load_completed.assert_called_once_with(user_id)
 
     @pytest.mark.behavior
     @pytest.mark.communication

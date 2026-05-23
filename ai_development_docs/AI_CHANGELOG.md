@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-23 - Analytics handler split and audit cleanup **COMPLETED**
+- Split `AnalyticsHandler` into check-in, trend, task, and shared formatting handlers; removed duplicated task-stats implementation from `TaskManagementHandler`
+- Updated analytics/task behavior tests to assert current canonical behavior instead of legacy compatibility paths
+- Fixed documentation drift from the archived system AI overhaul plan and regenerated docs/registry/report outputs
+- Stabilized audit tooling: pip-audit uses a temp cache and full Tier 3 audit now passes with test suite, doc-sync, and static-analysis signals clean
+
 ### 2026-05-22 - Conversational boundaries and task NLP parsing **COMPLETED**
 - Audit hygiene: `@handle_errors` on `action_boundaries.py`; Ruff `re.Pattern` import; path drift in [TODO.md](../TODO.md); doc-sync clean after link fixes
 - Added `ai/conversational_context/action_boundaries.py` (false CRUD claim detection) and **ACTION BOUNDARIES** rules in `instructions.py`
@@ -42,7 +48,7 @@ Guidelines:
 - Security/docs: `idna>=3.15` floor (CVE-2026-45409); regenerated `verify_process_cleanup_results.json` for dev-tools report link target
 
 ### 2026-05-21 - System AI overhaul closed; post-overhaul work started **COMPLETED**
-- Marked [SYSTEM_AI_OVERHAUL_PLAN.md](../ai/SYSTEM_AI_OVERHAUL_PLAN.md) and [PLANS.md](../development_docs/PLANS.md) Section 5.0 **COMPLETED**; added active Section 5.0.1 post-overhaul AI quality plan
+- Marked [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md) and [PLANS.md](../development_docs/PLANS.md) Section 5.0 **COMPLETED**; added active Section 5.0.1 post-overhaul AI quality plan
 - [TODO.md](../TODO.md): NLP, command list, response times, and actionability sprint moved from deferred to active
 - First implementation increment: expanded `command_interpreter` mode-detection vocabulary, simplified `command.txt` actions placeholder, actionability instructions in `conversational_context/instructions.py`, regression tests
 - Command list: documented live injection paths in [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md) Section 3.4; added `tests/unit/test_command_prompt_injection_live_path.py`
@@ -91,7 +97,7 @@ Guidelines:
 - Named AI interaction types (`ai/interaction_types.py`) and added structured logging on generate/fallback paths
 - Extracted fallback, command interpretation, and conversational generation into `ai/fallback_responses.py`, `ai/command_interpreter.py`, and `ai/response_generator.py`; `ai/chatbot.py` remains the public facade
 - Wired clarification-specific command prompt text; dynamic command intent list via `ai/command_registry.py` and `get_rule_based_intent_names()`
-- Added boundary unit tests; updated [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md), [PLANS.md](../development_docs/PLANS.md), [TODO.md](../TODO.md), and [SYSTEM_AI_OVERHAUL_PLAN.md](../ai/SYSTEM_AI_OVERHAUL_PLAN.md) header path
+- Added boundary unit tests; updated [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md), [PLANS.md](../development_docs/PLANS.md), [TODO.md](../TODO.md), and [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md) header path
 - Audit follow-up: `@handle_errors` on facade delegates and module getters, Ruff unused-import cleanup, `response_generator` import fix, `not_duplicate` on context-prompt facade, `test_no_prints_policy` fix, docs/registry regeneration
 - Legacy-guide alignment: documented refactor facade vs `LEGACY COMPATIBILITY` bridges in `SYSTEM_AI_GUIDE.md`; clarified `DEPRECATION_INVENTORY` note for removed `_get_fallback_response` vs current `fallback_responses` path
 - Documented **Phase 5 (collapse facade delegates)** in `SYSTEM_AI_OVERHAUL_PLAN.md` Section 8.1 and [PLANS.md](../development_docs/PLANS.md) Section 5.0

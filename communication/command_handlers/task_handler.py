@@ -15,6 +15,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.time_utilities import now_datetime_full
 from .base_handler import InteractionHandler, InteractionResponse, ParsedCommand
+from .task_analytics_handler import TaskAnalyticsHandler
 
 from tasks.task_data_handlers import (
     runtime_task_due_date,
@@ -40,6 +41,7 @@ def _task_service():
 
 logger = get_component_logger("communication_manager")
 handlers_logger = logger
+TASK_ANALYTICS_HANDLER = TaskAnalyticsHandler()
 
 # Discord-oriented task help (single source for `help tasks` and handler.get_help).
 TASK_HELP_TEXT = """**Task Management Help:**
@@ -137,7 +139,7 @@ class TaskManagementHandler(InteractionHandler):
         elif intent == "update_task":
             return self._handle_update_task(user_id, entities)
         elif intent == "task_stats":
-            return self._handle_task_stats(user_id, entities)
+            return TASK_ANALYTICS_HANDLER.handle_task_stats(user_id, entities)
         else:
             return InteractionResponse(
                 f"I don't understand that task command. Try: {', '.join(self.get_examples())}",
@@ -776,77 +778,6 @@ class TaskManagementHandler(InteractionHandler):
                 "❌ Failed to update task. Please try again.", True
             )
 
-    # not_duplicate: handle_task_stats
-    @handle_errors("handling task statistics")
-    def _handle_task_stats(
-        self, user_id: str, entities: dict[str, Any]
-    ) -> InteractionResponse:
-        """Handle task statistics with dynamic time periods"""
-        # Get time period information
-        days = entities.get("days", 7)
-        period_name = entities.get("period_name", "this week")
-
-        try:
-            from core.checkin_analytics import CheckinAnalytics
-
-            analytics = CheckinAnalytics()
-
-            # Get task statistics for the specified period
-            task_stats = analytics.get_task_weekly_stats(user_id, days)
-            if "error" in task_stats:
-                return InteractionResponse(
-                    f"You don't have enough check-in data for {period_name} statistics yet. Try completing some check-ins first!",
-                    True,
-                )
-
-            # Get overall task stats
-            overall_stats = _task_service().get_user_task_stats(user_id)
-
-            response = f"**📊 Task Statistics for {period_name.title()}:**\n\n"
-
-            # Show habit-based task completion
-            if task_stats:
-                response += "**Daily Habits:**\n"
-                for task_name, stats in task_stats.items():
-                    completion_rate = stats.get("completion_rate", 0)
-                    completed_days = stats.get("completed_days", 0)
-                    total_days = stats.get("total_days", 0)
-
-                    # Add emoji based on completion rate
-                    if completion_rate >= 80:
-                        emoji = "🟢"
-                    elif completion_rate >= 60:
-                        emoji = "🟡"
-                    else:
-                        emoji = "🔴"
-
-                    response += f"{emoji} **{task_name}:** {completion_rate}% ({completed_days}/{total_days} days)\n"
-
-                response += "\n"
-
-            # Show overall task statistics
-            active_tasks = overall_stats.get("active_tasks", 0)
-            _completed_key = "".join(("completed", "_tasks"))
-            completed_tasks = overall_stats.get(_completed_key, 0)
-            total_tasks = active_tasks + completed_tasks
-
-            if total_tasks > 0:
-                overall_completion_rate = (completed_tasks / total_tasks) * 100
-                response += "**Overall Task Progress:**\n"
-                response += f"📋 **Active Tasks:** {active_tasks}\n"
-                response += f"✅ **Completed Tasks:** {completed_tasks}\n"
-                response += f"📊 **Completion Rate:** {overall_completion_rate:.1f}%\n"
-            else:
-                response += "**No tasks found.** Create some tasks to get started!\n"
-
-            return InteractionResponse(response, True)
-
-        except Exception as e:
-            logger.error(f"Error showing task statistics for user {user_id}: {e}")
-            return InteractionResponse(
-                "I'm having trouble showing your task statistics right now. Please try again.",
-                True,
-            )
 
     # not_duplicate: task_identifier_service_facade
     @handle_errors("finding task by identifier")

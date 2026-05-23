@@ -76,7 +76,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 **Status**: **COMPLETED**  
 **Completed**: 2026-05-19  
-**Spec**: [SYSTEM_AI_OVERHAUL_PLAN.md](../ai/SYSTEM_AI_OVERHAUL_PLAN.md)
+**Spec**: [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md)
 
 **Outcome**: Conversational, command-interpretation, clarification, and fallback paths are separated; `ai/chatbot.py` orchestrates LM Studio and calls `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()` directly. `get_ai_chatbot()` remains the stable API for `communication/`. Detail and phase history are in the spec and changelogs (2026-05-18 through 2026-05-19).
 
@@ -358,7 +358,7 @@ Keep details in changelogs, not here.
 | UI migration foundation/dialogs/widgets | **COMPLETED** | UI polish/testing remains deferred/opportunistic. |
 | Email integration | **COMPLETED** | Cross-channel sync remains deferred. |
 | Testing strategy consolidation | **COMPLETED AS CONSOLIDATION** | Current testing roadmap lives in TEST_PLAN.md. |
-| System AI overhaul (interaction-type separation) | **COMPLETED** | Completed 2026-05-19; spec [SYSTEM_AI_OVERHAUL_PLAN.md](../ai/SYSTEM_AI_OVERHAUL_PLAN.md); follow-ups in Section 5.0.1. |
+| System AI overhaul (interaction-type separation) | **COMPLETED** | Completed 2026-05-19; spec [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md); follow-ups in Section 5.0.1. |
 
 ---
 

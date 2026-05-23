@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-22 01:10:04
+> **Last Generated**: 2026-05-23 12:37:40
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -78,7 +78,6 @@ C:.
 |   |   response_generator.py
 |   |   response_postprocess.py
 |   |   SYSTEM_AI_GUIDE.md
-|   |   SYSTEM_AI_OVERHAUL_PLAN.md
 |   |   __init__.py
 |   |
 |   +---conversational_context
@@ -118,15 +117,19 @@ C:.
 |   |
 |   +---command_handlers
 |   |   |   account_handler.py
+|   |   |   analytics_formatting.py
 |   |   |   analytics_handler.py
 |   |   |   base_handler.py
+|   |   |   checkin_analytics_handler.py
 |   |   |   checkin_handler.py
 |   |   |   interaction_handlers.py
 |   |   |   notebook_handler.py
 |   |   |   profile_handler.py
 |   |   |   schedule_handler.py
 |   |   |   shared_types.py
+|   |   |   task_analytics_handler.py
 |   |   |   task_handler.py
+|   |   |   trend_analytics_handler.py
 |   |   |   __init__.py
 |   |   |
 |   +---communication_channels
@@ -254,6 +257,7 @@ C:.
 |   |   run_dev_tools.py
 |   |   __init__.py
 |   |
+|   +---.cache
 |   +---ai_work
 |   |   |   analyze_ai_work.py
 |   |   |   __init__.py
@@ -348,8 +352,6 @@ C:.
     (log files)
 |   |   +---scopes
 |   |   |   +---dev_tools
-|   |   |   |   |   analysis_detailed_results.json
-|   |   |   |   |
 |   |   |   |   \---jsons
     (JSON files created by development tools)
 |   |   |   \---full
