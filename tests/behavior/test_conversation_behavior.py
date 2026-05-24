@@ -434,7 +434,7 @@ class TestConversationManagerBehavior:
         # Mock response tracking functions
         with patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled') as mock_enabled, \
              patch('communication.message_processing.conversation_flow_manager.get_user_data') as mock_get_data, \
-             patch('core.response_tracking.store_user_response') as mock_store:
+             patch('checkins.checkin_data_manager.store_checkin_response') as mock_store:
             
             mock_enabled.return_value = True
             mock_get_data.return_value = {

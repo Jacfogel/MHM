@@ -599,7 +599,9 @@ class MHMService:
         if not self.communication_manager:
             return
         try:
-            discord_status = self.communication_manager.get_discord_connectivity_status()
+            discord_status = self.communication_manager.get_channel_connectivity_status(
+                "discord"
+            )
             if not discord_status:
                 return
             connection_status = discord_status.get("connection_status", "unknown")

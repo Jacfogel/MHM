@@ -3,7 +3,6 @@
 import asyncio
 import threading
 import time
-import re
 from typing import Any
 
 from core.logger import get_component_logger
@@ -17,7 +16,11 @@ from communication.core.factory import ChannelFactory
 from communication.core.retry_manager import RetryManager
 from communication.core.channel_monitor import ChannelMonitor
 from communication.core.message_send_result import MessageSendResult
+from communication.communication_channels.email.inbound_processor import (
+    EmailInboundProcessor,
+)
 from communication.delivery.message_dispatcher import PredefinedMessageDispatcher
+from communication.delivery.recipient_resolver import RecipientResolver
 from communication.reminders.checkin_prompt_dispatcher import CheckinPromptDispatcher
 from communication.reminders.reminder_dispatcher import TaskReminderDispatcher
 from core import get_user_data
@@ -77,14 +80,16 @@ class CommunicationManager:
         self._last_task_reminders = (
             {}
         )  # Track last task reminder per user: {user_id: task_id}
-        self._email_polling_thread = None
-        self._email_polling_stop_event = threading.Event()
-        self._processed_email_ids = set()  # Track processed emails to avoid duplicates
-
         # Initialize extracted modules
         # Pass send_message_sync as callback for retry manager
         self.retry_manager = RetryManager(send_callback=self.send_message_sync)
         self.channel_monitor = ChannelMonitor()
+        self.email_inbound_processor = EmailInboundProcessor(
+            get_email_channel=lambda: self._channels_dict.get("email"),
+            run_async_sync=self.send_message_sync__run_async_sync,
+            is_runtime_running=lambda: self._running,
+        )
+        self.recipient_resolver = RecipientResolver()
         self.predefined_dispatcher = PredefinedMessageDispatcher(self)
         self.checkin_dispatcher = CheckinPromptDispatcher(self)
         self.task_reminder_dispatcher = TaskReminderDispatcher(self)
@@ -202,278 +207,6 @@ class CommunicationManager:
         """Stop the automatic restart monitor thread"""
         self.channel_monitor.stop_restart_monitor()
 
-    @handle_errors("starting email polling thread", default_return=None)
-    def start_all__start_email_polling(self):
-        """Start the email polling thread to process incoming emails"""
-        if (
-            self._email_polling_thread is not None
-            and self._email_polling_thread.is_alive()
-        ):
-            logger.debug("Email polling thread already running")
-            return
-
-        self._email_polling_stop_event.clear()
-        self._email_polling_thread = threading.Thread(
-            target=self._email_polling_loop, daemon=True
-        )
-        self._email_polling_thread.start()
-        logger.info("Email polling thread started")
-
-    @handle_errors("stopping email polling thread", default_return=None)
-    def stop_all__stop_email_polling(self):
-        """Stop the email polling thread"""
-        if self._email_polling_thread is not None:
-            logger.info("Stopping email polling thread...")
-            self._email_polling_stop_event.set()
-            self._email_polling_thread.join(timeout=5)
-            if self._email_polling_thread.is_alive():
-                logger.warning("Email polling thread didn't stop within timeout")
-            else:
-                logger.info("Email polling thread stopped")
-            self._email_polling_thread = None
-
-    @handle_errors("email polling loop", default_return=None)
-    def _email_polling_loop(self):
-        """Background thread that periodically polls for incoming emails and processes them"""
-        logger.info("Email polling loop started")
-        poll_interval = 30  # Check for emails every 30 seconds
-
-        while not self._email_polling_stop_event.is_set():
-            try:
-                # Only poll if email channel is available and ready
-                email_channel = self._channels_dict.get("email")
-                if email_channel and email_channel.is_ready() and self._running:
-                    # Poll for new emails
-                    try:
-                        # Use the event loop to run async receive_messages
-                        # Check if we have a running loop thread - if not, use temporary loop
-                        if (
-                            self._loop_thread
-                            and self._loop_thread.is_alive()
-                            and self._main_loop
-                            and not self._main_loop.is_closed()
-                        ):
-                            try:
-                                logger.debug("Using main loop thread for email polling")
-                                future = asyncio.run_coroutine_threadsafe(
-                                    email_channel.receive_messages(), self._main_loop
-                                )
-                                emails = future.result(timeout=10)
-                            except RuntimeError as loop_error:
-                                # Event loop may have been closed between check and use
-                                logger.warning(
-                                    f"Event loop became invalid during email polling, using fallback: {loop_error}"
-                                )
-                                # Fallback: create temporary loop
-                                loop = asyncio.new_event_loop()
-                                asyncio.set_event_loop(loop)
-                                try:
-                                    emails = loop.run_until_complete(
-                                        email_channel.receive_messages()
-                                    )
-                                finally:
-                                    loop.close()
-                        else:
-                            # Fallback: create temporary loop (main loop not running or not available)
-                            logger.debug(
-                                "Using temporary event loop for email polling (main loop not running)"
-                            )
-                            loop = asyncio.new_event_loop()
-                            asyncio.set_event_loop(loop)
-                            try:
-                                emails = loop.run_until_complete(
-                                    email_channel.receive_messages()
-                                )
-                            finally:
-                                loop.close()
-
-                        # Process each email
-                        for email_msg in emails:
-                            email_id = email_msg.get("imap_email_id")
-                            if email_id and email_id not in self._processed_email_ids:
-                                self._process_incoming_email(email_msg)
-                                self._processed_email_ids.add(email_id)
-                                # Limit processed IDs set size to prevent memory growth
-                                if len(self._processed_email_ids) > 1000:
-                                    # Keep only the most recent 500
-                                    self._processed_email_ids = set(
-                                        list(self._processed_email_ids)[-500:]
-                                    )
-                    except asyncio.TimeoutError:
-                        logger.error(
-                            "Error polling for emails: Timeout waiting for receive_messages() to complete (10s timeout exceeded)",
-                            exc_info=True,
-                        )
-                    except RuntimeError as e:
-                        logger.error(
-                            f"Error polling for emails: RuntimeError - {e} (event loop may be closed or invalid)",
-                            exc_info=True,
-                        )
-                    except Exception as e:
-                        # Enhanced error logging with full exception details
-                        error_type = type(e).__name__
-                        error_msg = (
-                            str(e)
-                            if str(e)
-                            else f"Exception of type {error_type} with no message"
-                        )
-                        logger.error(
-                            f"Error polling for emails: {error_type} - {error_msg}",
-                            exc_info=True,
-                        )
-                else:
-                    logger.debug(
-                        "Email channel not available or not ready, skipping poll"
-                    )
-
-            except Exception as e:
-                # Enhanced error logging for outer exception handler
-                error_type = type(e).__name__
-                error_msg = (
-                    str(e)
-                    if str(e)
-                    else f"Exception of type {error_type} with no message"
-                )
-                logger.error(
-                    f"Error in email polling loop: {error_type} - {error_msg}",
-                    exc_info=True,
-                )
-
-            # Wait for poll interval or stop event
-            if self._email_polling_stop_event.wait(timeout=poll_interval):
-                break
-
-        logger.info("Email polling loop stopped")
-
-    @handle_errors("processing incoming email", default_return=None)
-    def _process_incoming_email(self, email_msg: dict[str, Any]):
-        """Process an incoming email message and send response"""
-        try:
-            email_from = email_msg.get("from", "")
-            email_body = email_msg.get("body", "")
-            email_subject = email_msg.get("subject", "")
-
-            if not email_from or not email_body:
-                logger.debug(f"Skipping email with missing from or body: {email_msg}")
-                return
-
-            # Extract email address from "from" field (may be "Name <email@example.com>" or just "email@example.com")
-            email_match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", email_from)
-            if not email_match:
-                logger.warning(
-                    f"Could not extract email address from 'from' field: {email_from}"
-                )
-                return
-
-            sender_email = email_match.group(0)
-
-            if self._should_ignore_inbound_sender(sender_email):
-                logger.info(
-                    f"Ignoring inbound email from non-user/system sender: {sender_email}"
-                )
-                return
-
-            # Map email to user ID
-            from core import get_user_id_by_identifier
-
-            user_id = get_user_id_by_identifier(sender_email)
-
-            if not user_id:
-                logger.info(f"Email from unregistered user: {sender_email}")
-                # Send registration prompt
-                response_text = (
-                    f"I don't recognize you yet! Please register first using the MHM application. "
-                    f"Your email is: {sender_email}"
-                )
-                self._send_email_response(sender_email, response_text, email_subject)
-                return
-
-            logger.info(
-                f"Processing email from registered user: {sender_email} (user_id: {user_id})"
-            )
-
-            # Route message to InteractionManager
-            from communication.message_processing.interaction_manager import (
-                handle_user_message,
-            )
-
-            response = handle_user_message(user_id, email_body, "email")
-
-            if response and response.message:
-                # Send response back via email
-                self._send_email_response(
-                    sender_email, response.message, f"Re: {email_subject}"
-                )
-            else:
-                logger.warning(f"No response generated for email from user {user_id}")
-
-        except Exception as e:
-            logger.error(f"Error processing incoming email: {e}", exc_info=True)
-
-    @handle_errors(
-        "checking whether inbound sender should be ignored",
-        user_friendly=False,
-        default_return=False,
-    )
-    def _should_ignore_inbound_sender(self, sender_email: str) -> bool:
-        """Return True for known non-user/system senders that should never get replies."""
-        if not sender_email or not isinstance(sender_email, str):
-            return False
-
-        normalized = sender_email.strip().lower()
-        if "@" not in normalized:
-            return False
-
-        local_part = normalized.split("@", 1)[0]
-        blocked_keywords = (
-            "mailer-daemon",
-            "postmaster",
-            "no-reply",
-            "noreply",
-            "donotreply",
-            "do-not-reply",
-            "bounce",
-        )
-        return any(keyword in local_part for keyword in blocked_keywords)
-
-    @handle_errors("sending email response", default_return=None)
-    def _send_email_response(
-        self,
-        recipient_email: str,
-        response_text: str,
-        subject: str = "Re: Your Message",
-    ):
-        """Send an email response to a user"""
-        try:
-            email_channel = self._channels_dict.get("email")
-            if not email_channel or not email_channel.is_ready():
-                logger.error("Email channel not available for sending response")
-                return
-
-            # Use the event loop to send email
-            if self._main_loop and not self._main_loop.is_closed():
-                future = asyncio.run_coroutine_threadsafe(
-                    email_channel.send_message(
-                        recipient_email, response_text, subject=subject
-                    ),
-                    self._main_loop,
-                )
-                future.result(timeout=10)
-            else:
-                # Fallback: create temporary loop
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.run_until_complete(
-                    email_channel.send_message(
-                        recipient_email, response_text, subject=subject
-                    )
-                )
-                loop.close()
-
-            logger.info(f"Email response sent to {recipient_email}")
-        except Exception as e:
-            logger.error(f"Error sending email response to {recipient_email}: {e}")
-
     @handle_errors("initializing channels from config", default_return=False)
     def initialize_channels_from_config(
         self, channel_configs: dict[str, ChannelConfig] | None = None
@@ -572,15 +305,12 @@ class CommunicationManager:
                             f"Channel {channel.config.name} initialization returned False on attempt {attempt + 1}"
                         )
 
-                        # Special handling for Discord bot - check if it's actually connected
-                        is_connected_fn = (
-                            getattr(channel, "is_actually_connected", None)
-                            if channel.config.name == "discord"
-                            else None
+                        is_connected_fn = getattr(
+                            channel, "is_actually_connected", None
                         )
                         if callable(is_connected_fn) and is_connected_fn():
                             logger.info(
-                                "Discord bot is actually connected despite initialization returning False"
+                                f"Channel {channel.config.name} is connected despite initialization returning False"
                             )
                             return True
 
@@ -589,15 +319,10 @@ class CommunicationManager:
                         f"Channel {channel.config.name} initialization timed out on attempt {attempt + 1}"
                     )
 
-                    # Special handling for Discord bot - check if it's actually connected after timeout
-                    is_connected_fn = (
-                        getattr(channel, "is_actually_connected", None)
-                        if channel.config.name == "discord"
-                        else None
-                    )
+                    is_connected_fn = getattr(channel, "is_actually_connected", None)
                     if callable(is_connected_fn) and is_connected_fn():
                         logger.info(
-                            "Discord bot is actually connected despite initialization timeout"
+                            f"Channel {channel.config.name} is connected despite initialization timeout"
                         )
                         return True
 
@@ -678,7 +403,7 @@ class CommunicationManager:
                 "email" in self.channel_configs
                 and self.channel_configs["email"].enabled
             ):
-                self.start_all__start_email_polling()
+                self.email_inbound_processor.start_polling()
 
             # Try async startup first
             try:
@@ -824,15 +549,10 @@ class CommunicationManager:
                         f"Channel {channel.config.name} initialization returned False on attempt {attempt + 1}"
                     )
 
-                    # Special handling for Discord bot - check if it's actually connected
-                    is_connected_fn = (
-                        getattr(channel, "is_actually_connected", None)
-                        if channel.config.name == "discord"
-                        else None
-                    )
+                    is_connected_fn = getattr(channel, "is_actually_connected", None)
                     if callable(is_connected_fn) and is_connected_fn():
                         logger.info(
-                            "Discord bot is actually connected despite initialization returning False"
+                            f"Channel {channel.config.name} is connected despite initialization returning False"
                         )
                         return True
 
@@ -866,24 +586,8 @@ class CommunicationManager:
             logger.error(f"Channel {channel_name} not found")
             return False
 
-        # Special handling for Discord bot - check if it can actually send messages
-        if channel_name == "discord" and hasattr(channel, "can_send_messages"):
-            if not channel.can_send_messages():
-                logger.error(f"Channel {channel_name} not ready - cannot send messages")
-                # Queue for retry after reconnection
-                with contextlib.suppress(Exception):
-                    self.send_message_sync__queue_failed_message(
-                        kwargs.get("user_id", ""),
-                        kwargs.get("category", "unknown"),
-                        message,
-                        recipient,
-                        channel_name,
-                    )
-                return False
-        elif not channel.is_ready():
-            # Don't call async get_status() in sync context - just log the issue
+        if not self._channel_can_send(channel):
             logger.error(f"Channel {channel_name} not ready")
-            # Queue for retry after reconnection
             with contextlib.suppress(Exception):
                 self.send_message_sync__queue_failed_message(
                     kwargs.get("user_id", ""),
@@ -989,6 +693,17 @@ class CommunicationManager:
                 return True
             return False
 
+    @handle_errors("checking channel send readiness", default_return=False)
+    def _channel_can_send(self, channel: BaseChannel | None) -> bool:
+        """Return whether a channel is ready to send using its capability if present."""
+        if not channel:
+            return False
+
+        can_send = getattr(type(channel), "can_send_messages", None)
+        if callable(can_send):
+            return bool(can_send(channel))
+        return channel.is_ready()
+
     # not_duplicate: send_message_sync_pair
     @handle_errors("sending message (sync)", default_return=False)
     def send_message_sync(
@@ -1000,14 +715,7 @@ class CommunicationManager:
 
         # Queue immediately if channel is not ready
         channel = self._channels_dict.get(channel_name)
-        not_ready = False
-        if not channel or (
-            channel_name == "discord"
-            and hasattr(channel, "can_send_messages")
-            and not channel.can_send_messages()
-        ) or channel and not channel.is_ready():
-            not_ready = True
-        if not_ready:
+        if not self._channel_can_send(channel):
             logger.error(
                 f"Channel {channel_name} not ready - queuing message for retry"
             )
@@ -1031,38 +739,6 @@ class CommunicationManager:
                     f"Channel {channel_name} not found in channels_dict - cannot send"
                 )
                 return False
-
-            # Get the underlying bot directly
-            if channel_name == "discord":
-                discord_channel = self._channels_dict.get("discord")
-                if discord_channel and hasattr(discord_channel, "bot"):
-                    # Use the discord.py sync methods if available
-                    bot = discord_channel.bot
-
-                    # Try to send via the bot's sync methods
-                    try:
-                        # Handle special Discord user format - skip sync method for discord_user: format
-                        if recipient.startswith("discord_user:"):
-                            # This format is handled by the async send_message method
-                            # Skip the sync channel lookup for discord_user: format
-                            pass
-                        else:
-                            # Try to convert to integer for channel ID
-                            channel = bot.get_channel(int(recipient))
-                            if channel:
-                                # This is hacky but might work
-                                import asyncio
-
-                                loop = asyncio.new_event_loop()
-                                asyncio.set_event_loop(loop)
-                                loop.run_until_complete(channel.send(message))
-                                loop.close()
-                                logger.info(
-                                    f"Direct Discord message sent to channel {recipient}"
-                                )
-                                return True
-                    except Exception as e:
-                        logger.error(f"Direct Discord send failed: {e}")
 
             # Fallback to async send
             # Note: This should only be reached if channel exists and is ready
@@ -1129,6 +805,7 @@ class CommunicationManager:
         )
         return results
 
+    # not_duplicate: channel_status_vs_connectivity_details
     @handle_errors("getting channel status", user_friendly=False, default_return=None)
     async def get_channel_status(self, channel_name: str) -> ChannelStatus | None:
         """Get status of a specific channel"""
@@ -1165,13 +842,15 @@ class CommunicationManager:
 
         return health_results
 
-    @handle_errors("getting Discord connectivity status", default_return=None)
-    def get_discord_connectivity_status(self) -> dict[str, Any] | None:
-        """Get detailed Discord connectivity status if available"""
-        if "discord" in self._channels_dict:
-            discord_channel = self._channels_dict["discord"]
-            if hasattr(discord_channel, "get_health_status"):
-                return discord_channel.get_health_status()
+    # not_duplicate: channel_status_vs_connectivity_details
+    @handle_errors("getting channel connectivity status", default_return=None)
+    def get_channel_connectivity_status(
+        self, channel_name: str
+    ) -> dict[str, Any] | None:
+        """Get detailed connectivity status for a channel if it exposes one."""
+        channel = self._channels_dict.get(channel_name)
+        if channel and hasattr(channel, "get_health_status"):
+            return channel.get_health_status()
         return None
 
     @handle_errors(
@@ -1254,7 +933,7 @@ class CommunicationManager:
         self._running = False
 
         # Stop email polling
-        self.stop_all__stop_email_polling()
+        self.email_inbound_processor.stop_polling()
 
         # Stop all channels
         for name, channel in self._channels_dict.items():
@@ -1440,48 +1119,9 @@ class CommunicationManager:
         Returns:
             Optional[str]: Recipient ID, None if failed
         """
-        # Validate user_id
-        if not user_id or not isinstance(user_id, str):
-            logger.error(f"Invalid user_id: {user_id}")
-            return None
-
-        if not user_id.strip():
-            logger.error("Empty user_id provided")
-            return None
-
-        # Validate messaging_service
-        if not messaging_service or not isinstance(messaging_service, str):
-            logger.error(f"Invalid messaging_service: {messaging_service}")
-            return None
-
-        if not messaging_service.strip():
-            logger.error("Empty messaging_service provided")
-            return None
-
-        # Validate preferences
-        if not preferences or not isinstance(preferences, dict):
-            logger.error(f"Invalid preferences: {preferences}")
-            return None
-        """Get the appropriate recipient ID for the messaging service"""
-        if messaging_service == "discord":
-            # For Discord, we need to get the channel ID, not the user ID
-            # The Discord bot handles user ID mapping internally
-            # We'll use a special marker that the Discord bot can recognize
-            return f"discord_user:{user_id}"
-
-            return None
-        elif messaging_service == "email":
-            # Get email from account.json, not preferences
-            # Get user account data
-            user_data_result = get_user_data(user_id, "account", normalize_on_read=True)
-            account_data = user_data_result.get("account")
-            if not account_data:
-                logger.error(f"User account not found for {user_id}")
-                return False
-            return account_data.get("email", "") if account_data else None
-        else:
-            logger.error(f"Unknown messaging service: {messaging_service}")
-            return None
+        return self.recipient_resolver.get_recipient_for_service(
+            user_id, messaging_service, preferences
+        )
 
     # not_duplicate: checkin_prompt_delivery_boundary
     @handle_errors("determining if check-in prompt should be sent", default_return=True)

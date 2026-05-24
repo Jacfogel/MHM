@@ -145,6 +145,7 @@ class TestDiscordCheckinRetryBehavior:
         # Mock Discord bot to simulate disconnect - is_ready() returns False
         mock_discord_bot = Mock()
         mock_discord_bot.is_ready.return_value = False  # Simulate disconnect
+        mock_discord_bot.can_send_messages.return_value = False
         mock_discord_bot.channel_type.return_value = "async"
         # Don't mock send_message - send_message_sync will detect not_ready and queue before calling it
 
@@ -343,6 +344,7 @@ class TestDiscordCheckinRetryBehavior:
         # Start with disconnected Discord
         mock_discord_bot = Mock()
         mock_discord_bot.is_ready.return_value = False  # Initially disconnected
+        mock_discord_bot.can_send_messages.return_value = False
         mock_discord_bot.channel_type.return_value = "async"
 
         comm_manager._channels_dict["discord"] = mock_discord_bot
@@ -358,22 +360,17 @@ class TestDiscordCheckinRetryBehavior:
 
         # Act: Simulate Discord reconnection
         mock_discord_bot.is_ready.return_value = True  # Now connected
+        mock_discord_bot.can_send_messages.return_value = True
 
         # Mock send_message_sync to succeed when retry happens
-        original_send = comm_manager.send_message_sync
         send_call_count = [0]
 
         def mock_send_sync(*args, **kwargs):
             send_call_count[0] += 1
-            # First call is the initial attempt (already happened), this is the retry
-            if send_call_count[0] > 1:
-                return True  # Retry succeeds
-            return original_send(*args, **kwargs)
+            return True
 
         comm_manager.send_message_sync = mock_send_sync
-
-        # Start retry thread and process queue
-        comm_manager.retry_manager.start_retry_thread()
+        comm_manager.retry_manager._send_callback = mock_send_sync
 
         # Wait a bit for retry to process (retry_delay is 300 seconds by default, so we'll manually trigger)
         # For testing, we'll directly process the queue with a shorter delay

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-23 16:57:59
+> **Last Generated**: 2026-05-23 22:28:29
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,17 +14,17 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 93.2% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 151
-- **Functions Found**: 1717
-- **Methods Found**: 1169
-- **Classes Found**: 175
-- **Total Items**: 2886
-- **Functions Documented**: 1584
-- **Methods Documented**: 1105
-- **Classes Documented**: 139
-- **Total Documented**: 2689
-- **Template-Generated**: 24
+### **Function Documentation Coverage: 93.1% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 155
+- **Functions Found**: 1727
+- **Methods Found**: 1176
+- **Classes Found**: 177
+- **Total Items**: 2903
+- **Functions Documented**: 1592
+- **Methods Documented**: 1112
+- **Classes Documented**: 141
+- **Total Documented**: 2704
+- **Template-Generated**: 26
 - **Last Updated**: 2026-05-23
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
@@ -42,7 +42,7 @@
 ### **Core System Functions** (395)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (500)
+### **Communication Functions** (510)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (436)
@@ -1626,6 +1626,13 @@ Args:
   - [OK] `EventContext.__post_init__(self)` - Post-initialization setup
 - [OK] `EventType` - Types of Discord events
 
+#### `communication/communication_channels/discord/interaction_views.py`
+**Functions:**
+- [OK] `_defer_if_no_running_loop(factory)` - Return a view immediately when in an event loop, otherwise defer creation.
+- [MISSING] `create_checkin_view(user_id)` - No description
+- [MISSING] `create_task_reminder_view(user_id)` - No description
+- [OK] `create_view()` - Create the Discord interaction view inside the channel loop.
+
 #### `communication/communication_channels/discord/task_reminder_view.py`
 **Functions:**
 - [OK] `__init__(self, user_id, task_id, task_title)` - Initialize a Discord task reminder view with buttons.
@@ -1799,6 +1806,33 @@ Returns:
   - [OK] `EmailBot.send_message__send_email_sync(self, recipient, message, kwargs)` - Send email synchronously
 - [OK] `EmailBotError` - Custom exception for email bot-related errors.
 
+#### `communication/communication_channels/email/inbound_processor.py`
+**Functions:**
+- [OK] `__init__(self, get_email_channel, run_async_sync, is_runtime_running)` - Special Python method
+- [OK] `_poll_once(self, email_channel)` - Receive available email messages once and process unseen message IDs.
+- [OK] `_polling_loop(self)` - Background thread that periodically polls for incoming emails.
+- [OK] `polling_thread(self)` - Return the active polling thread, if one has been started.
+- [OK] `process_incoming_email(self, email_msg)` - Process an incoming email message and send a response.
+- [OK] `send_email_response(self, recipient_email, response_text, subject)` - Send an email response to a user.
+- [OK] `should_ignore_inbound_sender(self, sender_email)` - Return True for known non-user/system senders that should never get replies.
+- [OK] `start_polling(self)` - Start the email polling thread.
+- [OK] `stop_polling(self)` - Stop the email polling thread.
+**Classes:**
+- [OK] `EmailInboundProcessor` - Polls the email channel, routes inbound messages, and sends replies.
+  - [OK] `EmailInboundProcessor.__init__(self, get_email_channel, run_async_sync, is_runtime_running)` - Special Python method
+  - [OK] `EmailInboundProcessor._poll_once(self, email_channel)` - Receive available email messages once and process unseen message IDs.
+  - [OK] `EmailInboundProcessor._polling_loop(self)` - Background thread that periodically polls for incoming emails.
+  - [OK] `EmailInboundProcessor.polling_thread(self)` - Return the active polling thread, if one has been started.
+  - [OK] `EmailInboundProcessor.process_incoming_email(self, email_msg)` - Process an incoming email message and send a response.
+  - [OK] `EmailInboundProcessor.send_email_response(self, recipient_email, response_text, subject)` - Send an email response to a user.
+  - [OK] `EmailInboundProcessor.should_ignore_inbound_sender(self, sender_email)` - Return True for known non-user/system senders that should never get replies.
+  - [OK] `EmailInboundProcessor.start_polling(self)` - Start the email polling thread.
+  - [OK] `EmailInboundProcessor.stop_polling(self)` - Stop the email polling thread.
+
+#### `communication/communication_channels/interaction_view_factory.py`
+**Functions:**
+- [OK] `create_interaction_view(channel_name, view_type, user_id)` - Create a channel-specific interaction view when the channel supports it.
+
 #### `communication/core/__init__.py`
 **Functions:**
 - [OK] `__getattr__(name)` - Lazy import handler for items with circular dependencies.
@@ -1838,6 +1872,7 @@ to avoid circular dependencies with error handling infrastructure.
 - [OK] `__init__(self)` - Initialize the CommunicationManager singleton
 - [OK] `__init____setup_event_loop(self)` - Set up a dedicated event loop for async operations
 - [OK] `__new__(cls)` - Ensure that only one instance of the CommunicationManager exists (Singleton pattern).
+- [OK] `_channel_can_send(self, channel)` - Return whether a channel is ready to send using its capability if present.
 - [OK] `_check_logging_health(self)` - Check if logging is still working and recover if needed.
 
 Verifies that the logging system is functional and attempts to restart it if issues are detected.
@@ -1846,7 +1881,6 @@ Verifies that the logging system is functional and attempts to restart it if iss
 Returns:
     str: Task reminder message, default if failed
 - [MISSING] `_deduplicate_candidate_messages(self, user_id, category, all_messages)` - No description
-- [OK] `_email_polling_loop(self)` - Background thread that periodically polls for incoming emails and processes them
 - [OK] `_expire_checkin_flow_if_needed(self, user_id, category)` - Expire check-in flow if this is a non-scheduled message.
 - [MISSING] `_filter_messages_by_day_and_period(self, messages, current_days, matching_periods)` - No description
 - [OK] `_get_default_channel_configs(self)` - Get default channel configurations
@@ -1854,16 +1888,13 @@ Returns:
 - [OK] `_initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
 - [MISSING] `_load_predefined_messages_library(self, user_id, category)` - No description
 - [MISSING] `_normalize_message_selection_periods(self, matching_periods, valid_periods)` - No description
-- [OK] `_process_incoming_email(self, email_msg)` - Process an incoming email message and send response
 - [MISSING] `_select_weighted_message(self, available_messages, matching_periods)` - No description
 - [OK] `_send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using contextual AI.
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
 - [MISSING] `_send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - No description
-- [OK] `_send_email_response(self, recipient_email, response_text, subject)` - Send an email response to a user
 - [MISSING] `_send_predefined_message(self, user_id, category, messaging_service, recipient)` - No description
-- [OK] `_should_ignore_inbound_sender(self, sender_email)` - Return True for known non-user/system senders that should never get replies.
 - [MISSING] `_should_send_checkin_prompt(self, user_id, checkin_prefs)` - No description
 - [OK] `_shutdown_sync(self)` - Synchronous shutdown method for all channels.
 
@@ -1873,11 +1904,11 @@ Stops all communication channels and cleans up resources.
 
 Returns:
     List[str]: List of active channels, empty list if failed
+- [OK] `get_channel_connectivity_status(self, channel_name)` - Get detailed connectivity status for a channel if it exposes one.
 - [OK] `get_configured_channels(self)` - Get configured channels with validation.
 
 Returns:
     List[str]: List of configured channels, empty list if failed
-- [OK] `get_discord_connectivity_status(self)` - Get detailed Discord connectivity status if available
 - [OK] `get_last_task_reminder(self, user_id)` - Get last task reminder with validation.
 
 Returns:
@@ -1915,14 +1946,12 @@ This nested function is used to manage the event loop for async channel operatio
 
 Returns:
     bool: True if successful, False if failed
-- [OK] `start_all__start_email_polling(self)` - Start the email polling thread to process incoming emails
 - [OK] `start_all__start_restart_monitor(self)` - Start the automatic restart monitor thread
 - [OK] `start_all__start_retry_thread(self)` - Start the retry thread for failed messages
 - [OK] `stop_all(self)` - Stop all communication channels with validation.
 
 Returns:
     bool: True if successful, False if failed
-- [OK] `stop_all__stop_email_polling(self)` - Stop the email polling thread
 - [OK] `stop_all__stop_restart_monitor(self)` - Stop the automatic restart monitor thread
 - [OK] `stop_all__stop_retry_thread(self)` - Stop the retry thread
 **Classes:**
@@ -1931,6 +1960,7 @@ Returns:
   - [OK] `CommunicationManager.__init__(self)` - Initialize the CommunicationManager singleton
   - [OK] `CommunicationManager.__init____setup_event_loop(self)` - Set up a dedicated event loop for async operations
   - [OK] `CommunicationManager.__new__(cls)` - Ensure that only one instance of the CommunicationManager exists (Singleton pattern).
+  - [OK] `CommunicationManager._channel_can_send(self, channel)` - Return whether a channel is ready to send using its capability if present.
   - [OK] `CommunicationManager._check_logging_health(self)` - Check if logging is still working and recover if needed.
 
 Verifies that the logging system is functional and attempts to restart it if issues are detected.
@@ -1939,7 +1969,6 @@ Verifies that the logging system is functional and attempts to restart it if iss
 Returns:
     str: Task reminder message, default if failed
   - [MISSING] `CommunicationManager._deduplicate_candidate_messages(self, user_id, category, all_messages)` - No description
-  - [OK] `CommunicationManager._email_polling_loop(self)` - Background thread that periodically polls for incoming emails and processes them
   - [OK] `CommunicationManager._expire_checkin_flow_if_needed(self, user_id, category)` - Expire check-in flow if this is a non-scheduled message.
   - [MISSING] `CommunicationManager._filter_messages_by_day_and_period(self, messages, current_days, matching_periods)` - No description
   - [OK] `CommunicationManager._get_default_channel_configs(self)` - Get default channel configurations
@@ -1947,16 +1976,13 @@ Returns:
   - [OK] `CommunicationManager._initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
   - [MISSING] `CommunicationManager._load_predefined_messages_library(self, user_id, category)` - No description
   - [MISSING] `CommunicationManager._normalize_message_selection_periods(self, matching_periods, valid_periods)` - No description
-  - [OK] `CommunicationManager._process_incoming_email(self, email_msg)` - Process an incoming email message and send response
   - [MISSING] `CommunicationManager._select_weighted_message(self, available_messages, matching_periods)` - No description
   - [OK] `CommunicationManager._send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using contextual AI.
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
   - [MISSING] `CommunicationManager._send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - No description
-  - [OK] `CommunicationManager._send_email_response(self, recipient_email, response_text, subject)` - Send an email response to a user
   - [MISSING] `CommunicationManager._send_predefined_message(self, user_id, category, messaging_service, recipient)` - No description
-  - [OK] `CommunicationManager._should_ignore_inbound_sender(self, sender_email)` - Return True for known non-user/system senders that should never get replies.
   - [MISSING] `CommunicationManager._should_send_checkin_prompt(self, user_id, checkin_prefs)` - No description
   - [OK] `CommunicationManager._shutdown_sync(self)` - Synchronous shutdown method for all channels.
 
@@ -1966,11 +1992,11 @@ Stops all communication channels and cleans up resources.
 
 Returns:
     List[str]: List of active channels, empty list if failed
+  - [OK] `CommunicationManager.get_channel_connectivity_status(self, channel_name)` - Get detailed connectivity status for a channel if it exposes one.
   - [OK] `CommunicationManager.get_configured_channels(self)` - Get configured channels with validation.
 
 Returns:
     List[str]: List of configured channels, empty list if failed
-  - [OK] `CommunicationManager.get_discord_connectivity_status(self)` - Get detailed Discord connectivity status if available
   - [OK] `CommunicationManager.get_last_task_reminder(self, user_id)` - Get last task reminder with validation.
 
 Returns:
@@ -2005,14 +2031,12 @@ Returns:
 
 Returns:
     bool: True if successful, False if failed
-  - [OK] `CommunicationManager.start_all__start_email_polling(self)` - Start the email polling thread to process incoming emails
   - [OK] `CommunicationManager.start_all__start_restart_monitor(self)` - Start the automatic restart monitor thread
   - [OK] `CommunicationManager.start_all__start_retry_thread(self)` - Start the retry thread for failed messages
   - [OK] `CommunicationManager.stop_all(self)` - Stop all communication channels with validation.
 
 Returns:
     bool: True if successful, False if failed
-  - [OK] `CommunicationManager.stop_all__stop_email_polling(self)` - Stop the email polling thread
   - [OK] `CommunicationManager.stop_all__stop_restart_monitor(self)` - Stop the automatic restart monitor thread
   - [OK] `CommunicationManager.stop_all__stop_retry_thread(self)` - Stop the retry thread
 - [OK] `MessageSendError` - Custom exception for message sending failures.
@@ -2136,6 +2160,17 @@ Returns:
   - [MISSING] `PredefinedMessageDispatcher.select_weighted_message(self, available_messages, matching_periods)` - No description
   - [MISSING] `PredefinedMessageDispatcher.send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - No description
   - [MISSING] `PredefinedMessageDispatcher.send_predefined_message(self, user_id, category, messaging_service, recipient)` - No description
+
+#### `communication/delivery/recipient_resolver.py`
+**Functions:**
+- [OK] `_resolve_discord_recipient(self, user_id, preferences)` - Return the Discord recipient marker understood by the Discord adapter.
+- [OK] `_resolve_email_recipient(self, user_id, preferences)` - Return the user's account email address for email delivery.
+- [OK] `get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve channel recipient for a user.
+**Classes:**
+- [OK] `RecipientResolver` - Resolve a user's channel-specific outbound recipient.
+  - [OK] `RecipientResolver._resolve_discord_recipient(self, user_id, preferences)` - Return the Discord recipient marker understood by the Discord adapter.
+  - [OK] `RecipientResolver._resolve_email_recipient(self, user_id, preferences)` - Return the user's account email address for email delivery.
+  - [OK] `RecipientResolver.get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve channel recipient for a user.
 
 #### `communication/message_processing/__init__.py`
 
@@ -2631,7 +2666,6 @@ Returns:
 #### `communication/reminders/checkin_prompt_dispatcher.py`
 **Functions:**
 - [OK] `__init__(self, communication_manager)` - Special Python method
-- [OK] `create_view()` - Create the Discord check-in view inside the channel loop.
 - [OK] `handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - Validate check-in feature settings and send the scheduled prompt when due.
 - [OK] `send_checkin_prompt(self, user_id, messaging_service, recipient)` - Start the dynamic check-in flow and send its prompt through the channel.
 - [OK] `should_send_checkin_prompt(self, user_id, checkin_prefs)` - Return True when the user's check-in settings allow an automatic prompt.
@@ -2647,7 +2681,6 @@ Returns:
 - [OK] `__init__(self, communication_manager)` - Special Python method
 - [OK] `create_task_reminder_message(self, task)` - Create a formatted task reminder message.
 - [OK] `create_task_reminder_view(self, user_id, task_identifier, task, messaging_service)` - Create a channel-specific interactive reminder view when supported.
-- [OK] `create_view()` - Create the Discord task reminder view inside the channel loop.
 - [OK] `handle_task_reminder(self, user_id, task_identifier)` - Send a reminder for a task and return the standard send contract.
 
 ``task_identifier`` matches the task record's canonical ``id`` or another

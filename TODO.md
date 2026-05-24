@@ -162,16 +162,6 @@ No active high-priority TODOs are currently tracked here. Keep completed archite
 
 ### Testing
 
-**Review Communication Module Architecture**
-- *What it means*: Review all modules in `communication/` directory to ensure they follow channel-agnostic architecture principles
-- *Why it helps*: Ensures consistency, reduces duplication, and makes it easier to add new communication channels
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Review `communication/core/channel_orchestrator.py` for email-specific code that should be channel-agnostic
-  - [ ] Identify other modules with channel-specific code that should be refactored
-  - [ ] Consider reorganizing/restructuring `communication/` directory for better organization
-  - [ ] Document channel-agnostic architecture patterns and guidelines
-
 **Add Performance Monitoring**
 - *What it means*: Track how long operations take across subsystems. Includes: Python worker memory usage, LM Studio model residency in RAM, Windows file cache behavior during large test runs. Identify safe optimizations without reducing usability.
 - *Why it helps*: Helps identify and fix performance problems proactively

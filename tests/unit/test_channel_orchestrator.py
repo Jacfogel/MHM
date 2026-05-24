@@ -185,25 +185,23 @@ class TestChannelOrchestratorHelpers:
         message = self.manager._create_task_reminder_message({})
         assert isinstance(message, str), "Should return string even for empty dict"
 
-    def testget_recipient_for_service_discord(self):
+    def test_get_recipient_for_service_discord(self):
         """Test get_recipient_for_service for Discord."""
         user_id = "test_user"
         messaging_service = "discord"
-        preferences = {}
+        preferences = {"channel": {"type": "discord"}}
         
         recipient = self.manager.get_recipient_for_service(user_id, messaging_service, preferences)
         
-        # The function should return discord_user prefix, but there's unreachable code
-        # Check if it returns the expected value or None (due to validation or unreachable code)
-        assert recipient == f"discord_user:{user_id}" or recipient is None, "Should return discord_user prefix or None"
+        assert recipient == f"discord_user:{user_id}", "Should return discord_user prefix"
 
-    def testget_recipient_for_service_email(self):
+    def test_get_recipient_for_service_email(self):
         """Test get_recipient_for_service for email."""
         user_id = "test_user"
         messaging_service = "email"
-        preferences = {}
+        preferences = {"channel": {"type": "email"}}
         
-        with patch('communication.core.channel_orchestrator.get_user_data') as mock_get_data:
+        with patch('communication.delivery.recipient_resolver.get_user_data') as mock_get_data:
             mock_get_data.return_value = {
                 'account': {
                     'email': 'test@example.com'
@@ -212,33 +210,32 @@ class TestChannelOrchestratorHelpers:
             
             recipient = self.manager.get_recipient_for_service(user_id, messaging_service, preferences)
             
-            # Function returns email from account data, or False/None if not found
-            assert recipient == 'test@example.com' or recipient is False or recipient is None, "Should return email or False/None"
+            assert recipient == 'test@example.com', "Should return account email"
 
-    def testget_recipient_for_service_email_no_account(self):
+    def test_get_recipient_for_service_email_no_account(self):
         """Test get_recipient_for_service for email when account not found."""
         user_id = "test_user"
         messaging_service = "email"
-        preferences = {}
+        preferences = {"channel": {"type": "email"}}
         
-        with patch('communication.core.channel_orchestrator.get_user_data') as mock_get_data:
+        with patch('communication.delivery.recipient_resolver.get_user_data') as mock_get_data:
             mock_get_data.return_value = {}
             
             recipient = self.manager.get_recipient_for_service(user_id, messaging_service, preferences)
             
             assert recipient is None, "Should return None when account not found"
 
-    def testget_recipient_for_service_unknown_service(self):
+    def test_get_recipient_for_service_unknown_service(self):
         """Test get_recipient_for_service for unknown service."""
         user_id = "test_user"
         messaging_service = "unknown"
-        preferences = {}
+        preferences = {"channel": {"type": "unknown"}}
         
         recipient = self.manager.get_recipient_for_service(user_id, messaging_service, preferences)
         
         assert recipient is None, "Should return None for unknown service"
 
-    def testget_recipient_for_service_invalid_input(self):
+    def test_get_recipient_for_service_invalid_input(self):
         """Test get_recipient_for_service with invalid input."""
         # Test None user_id
         result = self.manager.get_recipient_for_service(None, "discord", {})
@@ -635,11 +632,15 @@ class TestChannelOrchestratorHelpers:
 
     def test_should_ignore_inbound_sender_for_mailer_daemon(self):
         """System/bounce sender addresses should be blocked from autoresponses."""
-        assert self.manager._should_ignore_inbound_sender("mailer-daemon@googlemail.com")
+        assert self.manager.email_inbound_processor.should_ignore_inbound_sender(
+            "mailer-daemon@googlemail.com"
+        )
 
     def test_should_ignore_inbound_sender_for_normal_user(self):
         """Normal user addresses should not be blocked."""
-        assert not self.manager._should_ignore_inbound_sender("person@example.com")
+        assert not self.manager.email_inbound_processor.should_ignore_inbound_sender(
+            "person@example.com"
+        )
 
     def test_process_incoming_email_ignores_blocked_sender(self):
         """Blocked senders should exit before user lookup or any response send."""
@@ -651,9 +652,11 @@ class TestChannelOrchestratorHelpers:
 
         with (
             patch("core.get_user_id_by_identifier") as mock_get_user_id,
-            patch.object(self.manager, "_send_email_response") as mock_send_response,
+            patch.object(
+                self.manager.email_inbound_processor, "send_email_response"
+            ) as mock_send_response,
         ):
-            self.manager._process_incoming_email(email_msg)
+            self.manager.email_inbound_processor.process_incoming_email(email_msg)
 
         mock_get_user_id.assert_not_called()
         mock_send_response.assert_not_called()

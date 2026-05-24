@@ -94,28 +94,13 @@ class CheckinPromptDispatcher:
 
             reply_text, completed = conversation_manager._start_dynamic_checkin(user_id)
 
-            custom_view = None
-            if messaging_service == "discord":
-                try:
-                    from communication.communication_channels.discord.checkin_view import (
-                        get_checkin_view,
-                    )
+            from communication.communication_channels.interaction_view_factory import (
+                create_interaction_view,
+            )
 
-                    import asyncio
-
-                    try:
-                        asyncio.get_running_loop()
-                        custom_view = get_checkin_view(user_id)
-                    except RuntimeError:
-
-                        @handle_errors("creating check-in view", default_return=None)
-                        def create_view():
-                            """Create the Discord check-in view inside the channel loop."""
-                            return get_checkin_view(user_id)
-
-                        custom_view = create_view
-                except Exception as e:
-                    logger.warning(f"Could not create check-in view for Discord: {e}")
+            custom_view = create_interaction_view(
+                messaging_service, "checkin", user_id
+            )
 
             success = self._cm.send_message_sync(
                 messaging_service,

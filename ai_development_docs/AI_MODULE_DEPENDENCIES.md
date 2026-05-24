@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-23 16:56:06
+> **Last Generated**: 2026-05-23 22:28:37
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 149
-- **Total Imports**: 1455
-- **Standard Library**: 409 (28.1%)
-- **Third-Party**: 270 (18.6%)
-- **Local Imports**: 776 (53.3%)
+- **Files Scanned**: 153
+- **Total Imports**: 1475
+- **Standard Library**: 418 (28.3%)
+- **Third-Party**: 270 (18.3%)
+- **Local Imports**: 787 (53.4%)
 
 ## Dependency Decision Trees
 
@@ -40,15 +40,15 @@ AI System Dependencies:
   - communication/command_handlers/analytics_formatting.py <- standard library (typing), third-party (checkins.checkin_data_manager), error_handling
   - communication/command_handlers/analytics_handler.py <- standard library (typing), error_handling, command_handlers, base_handler, shared_types
 - Communication Integration
+  - communication/communication_channels/interaction_view_factory.py <- standard library (__future__, importlib, typing), error_handling
   - communication/communication_channels/__init__.py <- none
-  - communication/core/channel_monitor.py <- standard library (threading, time, typing), time_utilities, logger, error_handling, base_channel
 
 ### Need Communication Channel Coverage?
 Communication Dependencies:
 - Channel Infrastructure
   - communication/command_handlers/base_handler.py <- standard library (abc), third-party (storage.user_data_validation), shared_types, logger, error_handling
+  - communication/communication_channels/interaction_view_factory.py <- standard library (__future__, importlib, typing), error_handling
   - communication/core/factory.py <- standard library (importlib), base_channel, logger, error_handling, config
-  - communication/communication_channels/base/base_channel.py <- standard library (abc, dataclasses, enum, typing), logger, error_handling
 - Specific Channels
   - communication/communication_channels/discord/account_flow_handler.py <- standard library (contextlib), third-party (discord, storage.user_data_presets), logger, error_handling, shared_types, account_handler
   - communication/communication_channels/discord/api_client.py <- standard library (asyncio, dataclasses, time, typing), third-party (discord), logger, error_handling

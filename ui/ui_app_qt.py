@@ -2772,7 +2772,7 @@ For detailed setup instructions, see the ui/UI_GUIDE.md file.
                 from communication.core.channel_orchestrator import CommunicationManager
 
                 comm_manager = CommunicationManager()
-                discord_status = comm_manager.get_discord_connectivity_status()
+                discord_status = comm_manager.get_channel_connectivity_status("discord")
 
                 if discord_status:
                     connection_status = discord_status.get(

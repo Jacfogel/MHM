@@ -453,16 +453,16 @@ class TestCommunicationManagerCoverageExpansion:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.critical
-    def test_discord_connectivity_status_real_behavior(self, comm_manager, realistic_mock_channel):
-        """Test Discord connectivity status functionality."""
+    def test_channel_connectivity_status_real_behavior(self, comm_manager, realistic_mock_channel):
+        """Test channel connectivity status functionality."""
         # Add discord channel
         comm_manager._channels_dict['discord'] = realistic_mock_channel
         
         # Mock get_health_status to return a proper result
         realistic_mock_channel.get_health_status = Mock(return_value={'status': 'healthy'})
         
-        # Test getting Discord connectivity status
-        result = comm_manager.get_discord_connectivity_status()
+        # Test getting channel connectivity status
+        result = comm_manager.get_channel_connectivity_status("discord")
         
         # Verify status was retrieved
         assert result is not None

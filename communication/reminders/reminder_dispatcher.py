@@ -130,32 +130,17 @@ class TaskReminderDispatcher:
         messaging_service: str,
     ):
         """Create a channel-specific interactive reminder view when supported."""
-        if messaging_service != "discord":
-            return None
+        from communication.communication_channels.interaction_view_factory import (
+            create_interaction_view,
+        )
 
-        try:
-            from communication.communication_channels.discord.task_reminder_view import (
-                get_task_reminder_view,
-            )
-
-            task_title = task.get("title", "Untitled Task")
-
-            import asyncio
-
-            try:
-                asyncio.get_running_loop()
-                return get_task_reminder_view(user_id, task_identifier, task_title)
-            except RuntimeError:
-
-                @handle_errors("creating task reminder view", default_return=None)
-                def create_view():
-                    """Create the Discord task reminder view inside the channel loop."""
-                    return get_task_reminder_view(user_id, task_identifier, task_title)
-
-                return create_view
-        except Exception as e:
-            logger.warning(f"Could not create task reminder view for Discord: {e}")
-            return None
+        return create_interaction_view(
+            messaging_service,
+            "task_reminder",
+            user_id,
+            task_identifier=task_identifier,
+            task_title=task.get("title", "Untitled Task"),
+        )
 
     @handle_errors("creating task reminder message", default_return="Task reminder")
     def create_task_reminder_message(self, task: dict) -> str:

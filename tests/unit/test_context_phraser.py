@@ -81,7 +81,7 @@ class TestContextPhraser:
         assert "100%" in text
 
     @patch("ai.conversational_context.context_phraser.is_user_checkins_enabled", return_value=True)
-    @patch("ai.conversational_context.context_phraser.get_recent_responses")
+    @patch("ai.conversational_context.context_phraser.get_recent_checkins")
     def test_append_checkin_summary_for_user(self, mock_recent, _mock_enabled, test_data_dir):
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)

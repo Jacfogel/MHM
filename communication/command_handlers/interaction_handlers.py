@@ -196,7 +196,7 @@ class HelpHandler(InteractionHandler):
         response += "• **Conversational Flows**: Check-ins, some task creation - multi-turn conversations\n"
         response += "• **Natural Language**: Primary method - just talk naturally!\n"
         response += "• **Explicit Commands**: For precision when needed\n"
-        response += "• **Slash Commands**: Discord-native shortcuts (preferred) - also supports !commands\n\n"
+        response += "• **Slash Commands**: Channel-native shortcuts where supported - also supports !commands\n\n"
         response += "**Flow Management:**\n"
         response += '• To exit a conversation: say "cancel" or "/cancel"\n'
         response += '• To clear stuck flows: say "clear flows" or use /clear\n\n'

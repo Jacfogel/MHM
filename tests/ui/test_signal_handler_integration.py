@@ -74,9 +74,8 @@ class TestAccountCreatorDialogSignalHandlers:
                 if hasattr(instance, 'channel_monitor'):
                     instance.channel_monitor.stop_restart_monitor()
                 # Stop email polling loop if it exists
-                if hasattr(instance, '_email_polling_thread') and instance._email_polling_thread:
-                    if hasattr(instance, 'stop_all__stop_email_polling'):
-                        instance.stop_all__stop_email_polling()
+                if hasattr(instance, 'email_inbound_processor'):
+                    instance.email_inbound_processor.stop_polling()
                 # Stop retry manager if it exists
                 if hasattr(instance, 'retry_manager') and hasattr(instance.retry_manager, 'stop_retry_thread'):
                     instance.retry_manager.stop_retry_thread()
@@ -86,7 +85,7 @@ class TestAccountCreatorDialogSignalHandlers:
         
         # Patch all thread starters to prevent new threads from starting
         with patch('communication.core.channel_monitor.ChannelMonitor.start_restart_monitor'), \
-             patch('communication.core.channel_orchestrator.CommunicationManager.start_all__start_email_polling'), \
+             patch('communication.communication_channels.email.inbound_processor.EmailInboundProcessor.start_polling'), \
              patch('communication.core.retry_manager.RetryManager.start_retry_thread'):
             yield
         
@@ -96,9 +95,8 @@ class TestAccountCreatorDialogSignalHandlers:
                 instance = CommunicationManager._instance
                 if hasattr(instance, 'channel_monitor'):
                     instance.channel_monitor.stop_restart_monitor()
-                if hasattr(instance, '_email_polling_thread') and instance._email_polling_thread:
-                    if hasattr(instance, 'stop_all__stop_email_polling'):
-                        instance.stop_all__stop_email_polling()
+                if hasattr(instance, 'email_inbound_processor'):
+                    instance.email_inbound_processor.stop_polling()
                 if hasattr(instance, 'retry_manager') and hasattr(instance.retry_manager, 'stop_retry_thread'):
                     instance.retry_manager.stop_retry_thread()
         except Exception:
@@ -313,9 +311,8 @@ class TestUISignalConnectionIntegrity:
                 if hasattr(instance, 'channel_monitor'):
                     instance.channel_monitor.stop_restart_monitor()
                 # Stop email polling loop if it exists
-                if hasattr(instance, '_email_polling_thread') and instance._email_polling_thread:
-                    if hasattr(instance, 'stop_all__stop_email_polling'):
-                        instance.stop_all__stop_email_polling()
+                if hasattr(instance, 'email_inbound_processor'):
+                    instance.email_inbound_processor.stop_polling()
                 # Stop retry manager if it exists
                 if hasattr(instance, 'retry_manager') and hasattr(instance.retry_manager, 'stop_retry_thread'):
                     instance.retry_manager.stop_retry_thread()
@@ -325,7 +322,7 @@ class TestUISignalConnectionIntegrity:
         
         # Patch all thread starters to prevent new threads from starting
         with patch('communication.core.channel_monitor.ChannelMonitor.start_restart_monitor'), \
-             patch('communication.core.channel_orchestrator.CommunicationManager.start_all__start_email_polling'), \
+             patch('communication.communication_channels.email.inbound_processor.EmailInboundProcessor.start_polling'), \
              patch('communication.core.retry_manager.RetryManager.start_retry_thread'):
             yield
         
@@ -335,9 +332,8 @@ class TestUISignalConnectionIntegrity:
                 instance = CommunicationManager._instance
                 if hasattr(instance, 'channel_monitor'):
                     instance.channel_monitor.stop_restart_monitor()
-                if hasattr(instance, '_email_polling_thread') and instance._email_polling_thread:
-                    if hasattr(instance, 'stop_all__stop_email_polling'):
-                        instance.stop_all__stop_email_polling()
+                if hasattr(instance, 'email_inbound_processor'):
+                    instance.email_inbound_processor.stop_polling()
                 if hasattr(instance, 'retry_manager') and hasattr(instance.retry_manager, 'stop_retry_thread'):
                     instance.retry_manager.stop_retry_thread()
         except Exception:

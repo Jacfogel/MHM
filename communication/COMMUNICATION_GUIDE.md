@@ -241,11 +241,24 @@ Use this layout as the template when adding new channels.
 - **Channel-agnostic core**  
   - Message parsing and routing are shared across channels.  
   - Error-handling and logging follow centralized patterns as documented in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md) and [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md).
+  - Architecture review on 2026-05-24 found that the package boundaries are broadly correct: shared parsing, conversation state, command handlers, retry, and dispatch orchestration are separate from concrete Discord/email SDK code.
+  - The same cleanup pass moved the main known adapter leaks out of `CommunicationManager`: inbound email polling/replies now live in `communication/communication_channels/email/`, recipient resolution lives in `communication/delivery/`, Discord direct-send shortcuts were removed from the orchestrator, and rich reminder/check-in views are created through channel-local factories.
 
 - **Runtime wiring and delivery boundaries**
   - `CommunicationManager` remains the runtime owner for channel lifecycle, async send plumbing, retry thread startup/shutdown, channel monitoring, and dispatch helper construction.
   - Scheduler and service-request orchestration should depend on the narrow delivery protocols in [delivery.py](../core/delivery.py), not on `CommunicationManager` internals. Existing standalone scheduler entry points use the configured delivery factory in [manager.py](../scheduler/manager.py) so tests and non-channel callers can provide slim fakes.
   - Do not introduce a separate application wiring object unless a concrete new runtime owner appears. The current singleton lifetime is intentional because the process has one channel lifecycle and one shared send loop.
+  - Do not add more channel-name branches to `CommunicationManager` unless the branch is strictly lifecycle wiring. Prefer one of these shapes instead:
+    - A method on `BaseChannel` or an optional channel capability object.
+    - A channel-local adapter function under `communication/communication_channels/{channel}/`.
+    - A small shared delivery protocol if multiple channels need the same behavior.
+
+- **Channel-specific behavior placement**
+  - Inbound channel polling and response handling belongs under `communication/communication_channels/{channel}/`.
+  - Channel health details should be exposed through channel capabilities and accessed generically, for example `get_channel_connectivity_status("discord")`.
+  - Recipient resolution should remain outside the orchestrator; new channels should extend [recipient_resolver.py](delivery/recipient_resolver.py) or introduce a resolver capability rather than adding branches to `CommunicationManager`.
+  - Rich interactive UI should be created through [interaction_view_factory.py](communication_channels/interaction_view_factory.py) and channel-local modules such as [interaction_views.py](communication_channels/discord/interaction_views.py).
+  - Shared command/help text should stay channel-neutral unless it is in a channel adapter or channel guide.
 
 - **Retry ownership**
   - Retry queueing stays in [retry_manager.py](core/retry_manager.py) for now. It is part of communication runtime lifecycle rather than predefined-message selection, and it only needs a send callback from the orchestrator.

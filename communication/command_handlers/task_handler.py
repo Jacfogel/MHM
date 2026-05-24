@@ -43,9 +43,9 @@ logger = get_component_logger("communication_manager")
 handlers_logger = logger
 TASK_ANALYTICS_HANDLER = TaskAnalyticsHandler()
 
-# Discord-oriented task help (single source for `help tasks` and handler.get_help).
+# Channel-neutral task help (single source for `help tasks` and handler.get_help).
 TASK_HELP_TEXT = """**Task Management Help:**
-Manage tasks from Discord with natural language or short commands.
+Manage tasks with natural language or short commands.
 
 **Create** (talk normally — dates/priority/tags can be in the same message):
 • `i need to call the dentist this week`

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-23 16:56:08
+> **Last Generated**: 2026-05-23 22:28:39
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -141,6 +141,7 @@ C:.
 |   |   |   __init__.py
 |   |   |
 |   +---communication_channels
+|   |   |   interaction_view_factory.py
 |   |   |   __init__.py
 |   |   |
 |   |   +---base
@@ -156,6 +157,7 @@ C:.
 |   |   |   |   checkin_view.py
 |   |   |   |   DISCORD_GUIDE.md
 |   |   |   |   event_handler.py
+|   |   |   |   interaction_views.py
 |   |   |   |   task_reminder_view.py
 |   |   |   |   webhook_handler.py
 |   |   |   |   webhook_server.py
@@ -163,6 +165,7 @@ C:.
 |   |   |   |
 |   |   +---email
 |   |   |   |   bot.py
+|   |   |   |   inbound_processor.py
 |   |   |   |
 |   +---core
 |   |   |   channel_monitor.py
@@ -175,6 +178,7 @@ C:.
 |   |   |
 |   +---delivery
 |   |   |   message_dispatcher.py
+|   |   |   recipient_resolver.py
 |   |   |   __init__.py
 |   |   |
 |   +---message_processing

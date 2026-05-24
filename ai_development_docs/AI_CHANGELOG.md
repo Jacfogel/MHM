@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-24 - Communication architecture cleanup **COMPLETED**
+- Reviewed and acted on `communication/` channel-agnostic boundaries, with focus on `CommunicationManager`, email inbound handling, Discord send/health behavior, reminders, and shared help text
+- Moved inbound email polling/replies to `communication/communication_channels/email/inbound_processor.py`, recipient lookup to `communication/delivery/recipient_resolver.py`, and rich view creation through channel-local interaction-view factories
+- Removed Discord direct-send shortcuts and `get_discord_connectivity_status()` from `CommunicationManager`; callers now use generic channel status, and tests target new adapter APIs instead of preserving compatibility wrappers
+- Addressed current audit items for missing docstrings, email inbound error handling, function registry sync, duplicate status methods, and stale behavior test patch targets
+
 ### 2026-05-23 - Message and check-in domain packages **COMPLETED**
 - Created first-class `messages/` and `checkins/` packages for automated message storage/analytics/preview, check-in storage/service/dynamic questions/analytics, and their v2 schemas
 - Removed `core.message_*` and `core.checkin_*` modules; production imports now point directly at the domain packages, with `core.response_tracking` reduced to generic chat/response tracking plus check-in delegation
@@ -169,13 +175,6 @@ Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency a
 - **`run_tests.py` SIGINT policy**: match audit multi-tap (**5** distinct Ctrl+C within 2s by default, debounced bursts); fixes intermittent stops ~68% through dev-tools runs when static/audit strict tests run; optional `MHM_TESTS_SIGINT_TAPS_TO_STOP=2` for debugging; module-scoped `temp_project_copy` on `test_audit_strict_mode.py` and `test_static_analysis_tools.py`
 - Tier 3 audit fix: `test_run_dev_tools_coverage_sets_development_tools_outcome` forces `_is_coverage_file_fresh` false so a present `coverage_dev_tools.json` does not short-circuit to `skipped` when asserting failed dev-tools pytest outcome from structured JSON
 - Ruff: removed duplicate `Path` import in `test_tool_wrappers_additional.py` (F811); `doc-fix --fix-ascii` + `doc-sync` for changelog ASCII compliance
-
-### 2026-05-14 - Storage Follow-up Cleanup **COMPLETED**
-- Migrated test and test-support imports from legacy `core.user_data_*` / `core.user_item_storage` bridge paths to the new `storage.*` owners.
-- Removed the temporary `core.*` storage bridge modules and moved their deprecation inventory entry to removed history.
-- Removed duplicate check-in forwarding wrappers, shared service-process status helper logic, and consolidated task follow-up flow state setup.
-- Refreshed legacy, duplicate-function, facade-shim, and audit status reports: legacy findings, duplicate-function groups, and facade/shim candidates are now 0; error-handling coverage is 100%.
-- Validation: runtime `py_compile` passed; focused storage/service/check-in tests passed except `test_checkin_retry_after_discord_reconnect`, which still hangs when run directly and remains a separate test-stability issue.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

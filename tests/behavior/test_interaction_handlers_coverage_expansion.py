@@ -622,11 +622,11 @@ class TestCheckinHandlerCoverage:
         # Force check-ins enabled and provide a recent check-in
         monkeypatch.setenv("MHM_TESTING", "1")
 
-        from core import response_tracking as rt
+        from communication.command_handlers import checkin_handler as ch
 
-        monkeypatch.setattr(rt, "is_user_checkins_enabled", lambda uid: True)
+        monkeypatch.setattr(ch, "is_user_checkins_enabled", lambda uid: True)
         monkeypatch.setattr(
-            rt,
+            ch,
             "get_recent_checkins",
             lambda uid, limit=7: [
                 {
@@ -840,7 +840,7 @@ class TestAnalyticsHandlerCoverage:
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
         # Patch analytics implementation so this test focuses on handler filtering/output.
-        from core import checkin_analytics as ca
+        from checkins import checkin_analytics as ca
 
         class _MockAnalytics:
             def get_quantitative_summaries(self, uid, days=30, enabled_fields=None):
@@ -893,7 +893,7 @@ class TestAnalyticsHandlerCoverage:
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
         # Patch analytics to return deterministic data
-        from core import checkin_analytics as ca
+        from checkins import checkin_analytics as ca
 
         class _MockAnalytics:
             def get_mood_trends(self, uid, days):
@@ -925,7 +925,7 @@ class TestAnalyticsHandlerCoverage:
 
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
-        from core import checkin_analytics as ca
+        from checkins import checkin_analytics as ca
 
         class _MockAnalytics:
             def get_checkin_history(self, uid, days):

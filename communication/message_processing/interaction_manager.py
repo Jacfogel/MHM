@@ -1206,7 +1206,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
         )
 
         lines: list[str] = ["**Available Commands**"]
-        lines.append("Slash commands (type in Discord):")
+        lines.append("Slash commands (where supported):")
         for d in sorted_defs:
             slash = f"/{d['name']}"
             lines.append(f"- {slash} — {d['description']}")
