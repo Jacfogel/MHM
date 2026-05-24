@@ -31,6 +31,8 @@ Guidelines:
 ## Recent Changes (Most Recent First)
 
 ### 2026-05-24 - Communication architecture cleanup **COMPLETED**
+- Scheduler now resolves account `timezone` (fallback America/Regina) for messages, check-ins, and task reminders; one-time reminders use aware past/future checks via `scheduler/user_timezone.py`
+- Added unit tests for timezone resolution and `schedule_task_reminder_at_datetime` past/future behavior
 - Reviewed and acted on `communication/` channel-agnostic boundaries, with focus on `CommunicationManager`, email inbound handling, Discord send/health behavior, reminders, and shared help text
 - Moved inbound email polling/replies to `communication/communication_channels/email/inbound_processor.py`, recipient lookup to `communication/delivery/recipient_resolver.py`, and rich view creation through channel-local interaction-view factories
 - Removed Discord direct-send shortcuts and `get_discord_connectivity_status()` from `CommunicationManager`; callers now use generic channel status, and tests target new adapter APIs instead of preserving compatibility wrappers

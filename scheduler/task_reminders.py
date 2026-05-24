@@ -15,11 +15,12 @@ from core.logger import get_component_logger
 from core.time_utilities import (
     TIME_ONLY_MINUTE,
     format_timestamp,
+    load_and_localize_datetime,
     now_datetime_full,
     parse_date_only,
     parse_time_only_minute,
-    parse_timestamp_minute,
 )
+from scheduler.user_timezone import localized_now_for_user, resolve_user_timezone_str
 from tasks.task_data_handlers import runtime_task_is_completed
 
 logger = get_component_logger("scheduler")
@@ -368,8 +369,9 @@ def schedule_task_reminder_at_time(
             task_identifier=task_identifier,
         )
 
-        tz = pytz.timezone("America/Regina")
-        now = tz.localize(now_datetime_full())
+        user_tz = resolve_user_timezone_str(user_id)
+        tz = pytz.timezone(user_tz)
+        now = localized_now_for_user(user_id)
         today = now.date()
         hour, minute = map(int, time_str.split(":"))
         schedule_time_obj = datetime.min.time().replace(hour=hour, minute=minute)
@@ -416,16 +418,18 @@ def schedule_task_reminder_at_datetime(
             )
             return False
 
-        reminder_datetime = parse_timestamp_minute(f"{date_str} {time_str}")
+        user_tz = resolve_user_timezone_str(user_id)
+        reminder_datetime = load_and_localize_datetime(f"{date_str} {time_str}", user_tz)
         if reminder_datetime is None:
             logger.error(f"Invalid date/time format: {date_str} {time_str}")
             return False
 
-        if reminder_datetime < now_datetime_full():
+        now = localized_now_for_user(user_id)
+        if reminder_datetime < now:
             logger.debug(f"Reminder time {reminder_datetime} is in the past, skipping")
             return False
 
-        delay_seconds = (reminder_datetime - now_datetime_full()).total_seconds()
+        delay_seconds = (reminder_datetime - now).total_seconds()
         delay_seconds_int = max(1, int(delay_seconds))
         schedule.every(delay_seconds_int).seconds.do(
             scheduler_manager.handle_task_reminder,

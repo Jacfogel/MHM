@@ -33,6 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-05-24 - Communication cleanup and scheduler timezone wiring **COMPLETED**
+- **Feature (scheduler)**: Added [`scheduler/user_timezone.py`](../scheduler/user_timezone.py) to resolve account `timezone` (fallback `America/Regina`). [`scheduler/manager.py`](../scheduler/manager.py) and [`scheduler/task_reminders.py`](../scheduler/task_reminders.py) now localize schedule comparisons and one-time task reminders in the user's timezone instead of hardcoding Regina.
+- **Tests**: [`test_scheduler_user_timezone.py`](../tests/unit/test_scheduler_user_timezone.py), [`test_schedule_task_reminder_at_datetime.py`](../tests/unit/test_schedule_task_reminder_at_datetime.py); updated check-in scheduling and `TEST_NOW_DT` patch targets in behavior tests.
+- **Documentation**: [`core/time_utilities.py`](../core/time_utilities.py) module docstring notes scheduler timezone resolution.
+- **Impact**: Scheduled messages, check-ins, and task reminders align with stored user timezone; past/future one-time reminder checks are timezone-aware end-to-end.
+
 ### 2026-05-23 - Analytics handler split, task stats ownership, and audit cleanup **COMPLETED**
 - **Feature/refactor**: Split the former broad [`AnalyticsHandler`](../communication/command_handlers/analytics_handler.py) into focused handlers: [`checkin_analytics_handler.py`](../communication/command_handlers/checkin_analytics_handler.py), [`trend_analytics_handler.py`](../communication/command_handlers/trend_analytics_handler.py), [`task_analytics_handler.py`](../communication/command_handlers/task_analytics_handler.py), and shared [`analytics_formatting.py`](../communication/command_handlers/analytics_formatting.py). The public analytics handler now routes intents to those owners instead of carrying all analytics behavior directly.
 - **Legacy-compatibility cleanup**: Removed the duplicated task-statistics implementation from [`TaskManagementHandler`](../communication/command_handlers/task_handler.py); `task_stats` now delegates to [`TaskAnalyticsHandler.handle_task_stats`](../communication/command_handlers/task_analytics_handler.py), so task statistics have one canonical implementation instead of compatibility-preserving parallel behavior.

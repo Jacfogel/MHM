@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-23 22:28:31
+> **Last Generated**: 2026-05-24 01:08:54
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 153
-- **Total Imports Found**: 1475
-- **Dependencies Documented**: 153 (100% coverage)
-- **Standard Library Imports**: 418 (28.3%)
-- **Third-Party Imports**: 270 (18.3%)
-- **Local Imports**: 787 (53.4%)
-- **Last Updated**: 2026-05-23
+- **Files Scanned**: 154
+- **Total Imports Found**: 1484
+- **Dependencies Documented**: 154 (100% coverage)
+- **Standard Library Imports**: 420 (28.3%)
+- **Third-Party Imports**: 271 (18.3%)
+- **Local Imports**: 793 (53.4%)
+- **Last Updated**: 2026-05-24
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 418 imports (28.3%)
-- **Third-Party**: 270 imports (18.3%)
-- **Local**: 787 imports (53.4%)
+- **Standard Library**: 420 imports (28.3%)
+- **Third-Party**: 271 imports (18.3%)
+- **Local**: 793 imports (53.4%)
 
 ## Module Dependencies by Directory
 
@@ -2159,6 +2159,7 @@
   - `scheduler/maintenance.py`
   - `scheduler/manager.py`
   - `scheduler/task_reminders.py`
+  - `scheduler/user_timezone.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_data_manager.py`
   - `tasks/task_service.py`
@@ -2406,6 +2407,7 @@
   - `scheduler/maintenance.py`
   - `scheduler/manager.py`
   - `scheduler/task_reminders.py`
+  - `scheduler/user_timezone.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_data_manager.py`
   - `tasks/task_validation.py`
@@ -2807,6 +2809,7 @@
   - `scheduler/maintenance.py`
   - `scheduler/manager.py`
   - `scheduler/task_reminders.py`
+  - `scheduler/user_timezone.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_data_manager.py`
   - `tasks/task_schemas.py`
@@ -2991,8 +2994,9 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, suppress_noisy_logging)` (NEW)
     - `core.schedule_runtime (get_schedule_time_periods)` (NEW)
-    - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIMESTAMP_MINUTE, TIME_ONLY_MINUTE, format_time_compact_hour_minute, format_timestamp, load_and_localize_datetime, now_datetime_full, parse_time_only_minute)` (NEW)
+    - `core.time_utilities (DATE_ONLY, TIMESTAMP_FULL, TIMESTAMP_MINUTE, TIME_ONLY_MINUTE, format_time_compact_hour_minute, format_timestamp, load_and_localize_datetime, now_datetime_full, now_timestamp_minute, parse_time_only_minute)` (NEW)
     - `scheduler (jobs, maintenance, task_reminders)` (NEW)
+    - `scheduler.user_timezone (localized_now_for_user, resolve_user_timezone_str)` (NEW)
     - `tasks (are_tasks_enabled)` (NEW)
     - `user.user_context (UserContext)` (NEW)
   - **Standard Library**:
@@ -3014,7 +3018,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: core, core.config, core.delivery, core.error_handling, core.logger, core.schedule_runtime, core.time_utilities, scheduler, tasks, user.user_context
+- Added: core, core.config, core.delivery, core.error_handling, core.logger, core.schedule_runtime, core.time_utilities, scheduler, scheduler.user_timezone, tasks, user.user_context
 - Removed: collections.abc, core/service.py, scheduler/__init__.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3029,7 +3033,8 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.schedule_runtime (get_schedule_time_periods)` (NEW)
-    - `core.time_utilities (TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, parse_date_only, parse_time_only_minute, parse_timestamp_minute)` (NEW)
+    - `core.time_utilities (TIME_ONLY_MINUTE, format_timestamp, load_and_localize_datetime, now_datetime_full, parse_date_only, parse_time_only_minute)` (NEW)
+    - `scheduler.user_timezone (localized_now_for_user, resolve_user_timezone_str)` (NEW)
     - `tasks (are_tasks_enabled, get_task_by_id, load_active_tasks, update_task)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_is_completed)` (NEW)
   - **Standard Library**:
@@ -3044,7 +3049,31 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger, core.schedule_runtime, core.time_utilities, tasks, tasks.task_data_handlers
+- Added: core, core.error_handling, core.logger, core.schedule_runtime, core.time_utilities, scheduler.user_timezone, tasks, tasks.task_data_handlers
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `scheduler/user_timezone.py`
+- **Purpose**: Core system module with heavy core dependencies
+- **Dependencies**:
+  - **Local**:
+    - `core (get_user_data)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `core.time_utilities (now_datetime_full)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `datetime`
+  - **Third-party**:
+    - `pytz`
+- **Used by**:
+  - `scheduler/manager.py`
+  - `scheduler/task_reminders.py`
+
+**Dependency Changes**:
+- Added: core, core.error_handling, core.logger, core.time_utilities
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

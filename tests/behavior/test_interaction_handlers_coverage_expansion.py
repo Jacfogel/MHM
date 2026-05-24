@@ -150,10 +150,16 @@ class TestTaskManagementHandlerCoverage:
         """Test relative date parsing for 'next week'."""
         handler = TaskManagementHandler()
 
-        with patch(
-            "communication.command_handlers.task_handler.now_datetime_full",
-            return_value=TEST_NOW_DT,
-            create=True,
+        with (
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=TEST_NOW_DT,
+                create=True,
+            ),
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=TEST_NOW_DT,
+            ),
         ):
             result = handler._handle_create_task__parse_relative_date("next week")
 

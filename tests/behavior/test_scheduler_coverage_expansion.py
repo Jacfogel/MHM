@@ -343,7 +343,9 @@ class TestMessageScheduling:
                         # so it may be called multiple times depending on conflicts
                         assert mock_get_time.call_count >= 1
                         # Verify it was called with the correct parameters at least once
-                        mock_get_time.assert_any_call(user_id, category, period_name)
+                        mock_get_time.assert_any_call(
+                            user_id, category, period_name, "America/Regina"
+                        )
                         # Verify side effects - the method calls is_time_conflict in a retry loop
                         # so it may be called multiple times depending on conflicts
                         assert mock_conflict.call_count >= 1
@@ -1277,7 +1279,11 @@ class TestCheckinSchedulingCoverage:
             patch("scheduler.manager.get_schedule_time_periods") as mock_get_periods,
             patch("scheduler.manager.schedule.every") as mock_schedule,
             patch.object(scheduler_manager, "set_wake_timer") as mock_wake_timer,
-            patch("scheduler.manager.now_datetime_full") as mock_now_dt,
+            patch(
+                "scheduler.manager.resolve_user_timezone_str",
+                return_value="America/Regina",
+            ),
+            patch("scheduler.manager.localized_now_for_user") as mock_localized_now,
         ):
 
             # Mock time periods
@@ -1285,9 +1291,12 @@ class TestCheckinSchedulingCoverage:
                 period_name: {"start_time": "08:00", "active": True}
             }
 
-            # Mock current time via canonical helper (scheduler uses now_datetime_full)
-            mock_now = datetime(2025, 9, 10, 10, 0, 0)  # 10 AM (local-naive)
-            mock_now_dt.return_value = mock_now
+            import pytz
+
+            mock_now = pytz.timezone("America/Regina").localize(
+                datetime(2025, 9, 10, 10, 0, 0)
+            )  # 10 AM Regina
+            mock_localized_now.return_value = mock_now
 
             # Mock schedule chain
             mock_schedule.return_value.day.at.return_value.do.return_value = None

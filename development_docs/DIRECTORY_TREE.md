@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-23 22:28:39
+> **Last Generated**: 2026-05-24 01:09:03
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -485,6 +485,7 @@ C:.
 |   |   maintenance.py
 |   |   manager.py
 |   |   task_reminders.py
+|   |   user_timezone.py
 |   |   __init__.py
 |   |
 +---specs
@@ -927,8 +928,10 @@ C:.
 |   |   |   test_rich_formatter.py
 |   |   |   test_run_tests_interrupts.py
 |   |   |   test_scheduler_delivery_port.py
+|   |   |   test_scheduler_user_timezone.py
 |   |   |   test_schedule_editor_dialog_helpers.py
 |   |   |   test_schedule_management.py
+|   |   |   test_schedule_task_reminder_at_datetime.py
 |   |   |   test_schemas_validation.py
 |   |   |   test_schema_validation_helpers.py
 |   |   |   test_service_utilities_network.py

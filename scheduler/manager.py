@@ -17,6 +17,7 @@ from core.delivery import SchedulerDeliveryPort
 from core.schedule_runtime import get_schedule_time_periods
 from core.time_utilities import (
     now_datetime_full,
+    now_timestamp_minute,
     TIMESTAMP_FULL,
     DATE_ONLY,
     TIME_ONLY_MINUTE,
@@ -33,6 +34,10 @@ from core import get_user_data
 from scheduler import jobs as scheduler_jobs
 from scheduler import maintenance as scheduler_maintenance
 from scheduler import task_reminders as scheduler_task_reminders
+from scheduler.user_timezone import (
+    localized_now_for_user,
+    resolve_user_timezone_str,
+)
 
 # Suppress debug logging from the schedule library to reduce log spam
 from core.logger import suppress_noisy_logging
@@ -268,12 +273,7 @@ class SchedulerManager:
         total_scheduled = 0
         logger.info(f"Starting immediate scheduling for {len(user_ids)} users")
 
-        # Log current time once at the start
-        tz = pytz.timezone("America/Regina")
-        now_datetime = tz.localize(now_datetime_full())
-        logger.info(
-            f"Current time for scheduling: {format_timestamp(now_datetime, TIMESTAMP_MINUTE)}"
-        )
+        logger.info(f"Current time for scheduling: {now_timestamp_minute()}")
 
         for user_id in user_ids:
             try:
@@ -546,7 +546,10 @@ class SchedulerManager:
         while retry_count < max_retries:
             # Get a random time within the specified period
             random_time_str = self.get_random_time_within_period(
-                user_id, category, period_name
+                user_id,
+                category,
+                period_name,
+                resolve_user_timezone_str(user_id),
             )
             if not random_time_str:
                 logger.error(
@@ -557,9 +560,8 @@ class SchedulerManager:
             # Try to schedule the message
             try:
                 datetime_str = random_time_str
-                schedule_datetime = load_and_localize_datetime(
-                    datetime_str, "America/Regina"
-                )
+                user_tz = resolve_user_timezone_str(user_id)
+                schedule_datetime = load_and_localize_datetime(datetime_str, user_tz)
                 if schedule_datetime is None:
                     logger.error(
                         f"Could not localize schedule time for user {user_id}, "
@@ -567,7 +569,7 @@ class SchedulerManager:
                     )
                     retry_count += 1
                     continue
-                now = pytz.timezone("America/Regina").localize(now_datetime_full())
+                now = localized_now_for_user(user_id)
 
                 logger.info(
                     f"Attempting to schedule message for user {user_id}, category {category}, period {period_name} at {schedule_datetime} (now is {now})"
@@ -639,9 +641,9 @@ class SchedulerManager:
                 )
                 return
 
-            # Create datetime for today at the specified time
-            tz = pytz.timezone("America/Regina")
-            now = tz.localize(now_datetime_full())
+            user_tz = resolve_user_timezone_str(user_id)
+            tz = pytz.timezone(user_tz)
+            now = localized_now_for_user(user_id)
             today = now.date()
 
             # Parse the check-in time (HH:MM)
@@ -712,7 +714,10 @@ class SchedulerManager:
 
         while retry_count < max_retries:
             random_time_str = self.get_random_time_within_period(
-                user_id, category, selected_period
+                user_id,
+                category,
+                selected_period,
+                resolve_user_timezone_str(user_id),
             )
             if not random_time_str:
                 logger.error(
@@ -721,9 +726,8 @@ class SchedulerManager:
                 return
 
             try:
-                schedule_datetime = load_and_localize_datetime(
-                    random_time_str, "America/Regina"
-                )
+                user_tz = resolve_user_timezone_str(user_id)
+                schedule_datetime = load_and_localize_datetime(random_time_str, user_tz)
                 if schedule_datetime is None:
                     logger.error(
                         f"Could not localize schedule time for user {user_id}, "
@@ -731,7 +735,7 @@ class SchedulerManager:
                     )
                     retry_count += 1
                     continue
-                now = pytz.timezone("America/Regina").localize(now_datetime_full())
+                now = localized_now_for_user(user_id)
 
                 logger.info(
                     f"Attempting to schedule message for user {user_id}, category {category} at {schedule_datetime} (now is {now})"

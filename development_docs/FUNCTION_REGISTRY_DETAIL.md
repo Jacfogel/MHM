@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-23 22:28:29
+> **Last Generated**: 2026-05-24 01:08:53
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 93.1% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 155
-- **Functions Found**: 1727
+- **Files Scanned**: 156
+- **Functions Found**: 1729
 - **Methods Found**: 1176
 - **Classes Found**: 177
-- **Total Items**: 2903
-- **Functions Documented**: 1592
+- **Total Items**: 2905
+- **Functions Documented**: 1594
 - **Methods Documented**: 1112
 - **Classes Documented**: 141
-- **Total Documented**: 2704
+- **Total Documented**: 2706
 - **Template-Generated**: 26
-- **Last Updated**: 2026-05-23
+- **Last Updated**: 2026-05-24
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -2163,12 +2163,12 @@ Returns:
 
 #### `communication/delivery/recipient_resolver.py`
 **Functions:**
-- [OK] `_resolve_discord_recipient(self, user_id, preferences)` - Return the Discord recipient marker understood by the Discord adapter.
+- [OK] `_resolve_discord_recipient(self, user_id, preferences)` - Return the Discord recipient token for outbound delivery.
 - [OK] `_resolve_email_recipient(self, user_id, preferences)` - Return the user's account email address for email delivery.
 - [OK] `get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve channel recipient for a user.
 **Classes:**
 - [OK] `RecipientResolver` - Resolve a user's channel-specific outbound recipient.
-  - [OK] `RecipientResolver._resolve_discord_recipient(self, user_id, preferences)` - Return the Discord recipient marker understood by the Discord adapter.
+  - [OK] `RecipientResolver._resolve_discord_recipient(self, user_id, preferences)` - Return the Discord recipient token for outbound delivery.
   - [OK] `RecipientResolver._resolve_email_recipient(self, user_id, preferences)` - Return the user's account email address for email delivery.
   - [OK] `RecipientResolver.get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve channel recipient for a user.
 
@@ -4590,6 +4590,11 @@ priority/due-date logic and scheduled at a random time within that period.
 - [OK] `select_task_by_weight(scheduler_manager, task_weights, incomplete_tasks)` - Select a reminder candidate using weighted random selection.
 - [OK] `select_task_for_reminder(scheduler_manager, incomplete_tasks)` - Select a task for reminder using priority and due-date weighting.
 - [OK] `task_selection_key(task, index)` - Build a stable key for tracking reminder selection state.
+
+#### `scheduler/user_timezone.py`
+**Functions:**
+- [OK] `localized_now_for_user(user_id)` - Timezone-aware 'now' in the user's account timezone.
+- [OK] `resolve_user_timezone_str(user_id)` - Return a valid pytz timezone name for ``user_id`` (account ``timezone`` field).
 
 ### `tasks/` - Task Management
 

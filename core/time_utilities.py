@@ -12,6 +12,18 @@ Design goals:
 - Descriptive, intuitive names
 - Strict parse helpers for critical state
 - Optional flexible parse for "messy" inputs from outside the app
+
+Scheduler integration (naive vs timezone-aware):
+- Canonical "now" and parse helpers return local-naive datetimes (wall clock, no tzinfo).
+- One-time task reminders (`schedule_task_reminder_at_datetime`) stay in this naive layer end-to-end.
+- Daily messages, check-ins, random schedule slots, and daily task reminders localize naive
+  values with pytz (currently hardcoded to America/Regina in scheduler code) for aware
+  comparisons and wake timers; `load_and_localize_datetime` is the bridge from persisted
+  TIMESTAMP_MINUTE strings to aware datetimes.
+- `SchedulerManager.is_time_conflict` strips tzinfo before comparing to the `schedule`
+  library's naive `job.next_run` values (see scheduler/manager.py).
+- Scheduler code resolves account `timezone` via `scheduler.user_timezone` (fallback
+  America/Regina) for aware comparisons and one-time task reminder scheduling.
 """
 
 from __future__ import annotations
