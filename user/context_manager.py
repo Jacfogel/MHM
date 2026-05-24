@@ -14,8 +14,9 @@ from typing import Any
 
 from core.logger import get_component_logger
 from core import get_user_data
-from core.response_tracking import get_recent_checkins, get_recent_chat_interactions
-from core.message_management import get_recent_messages
+from checkins.checkin_data_manager import get_recent_checkins
+from core.response_tracking import get_recent_chat_interactions
+from messages.message_data_manager import get_recent_messages
 from core.schedule_utilities import get_active_schedules
 from core.error_handling import handle_errors
 from core.time_utilities import now_timestamp_full

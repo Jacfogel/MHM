@@ -710,7 +710,7 @@ def _create_user_files__message_files(user_id, categories):
 
         # Create message files for each category (importlib avoids static import cycles)
         _create_from_defaults = importlib.import_module(
-            "core.message_management"
+            "messages.message_data_manager"
         ).create_message_file_from_defaults
 
         success_count = 0

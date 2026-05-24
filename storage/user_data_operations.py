@@ -25,10 +25,10 @@ from storage.user_data_read import get_user_data
 from core.user_management import get_all_user_ids
 from core.error_handling import handle_errors
 from core.time_utilities import now_timestamp_filename, now_timestamp_full
-from core.response_tracking import checkin_runtime_timestamp
+from checkins.checkin_data_manager import checkin_runtime_timestamp
 from storage.user_data_v2_envelopes import validate_v2_document
 from storage.user_data_v2_base import SCHEMA_VERSION
-from core.message_management import get_recent_messages
+from messages.message_data_manager import get_recent_messages
 
 logger = get_component_logger("main")
 data_manager_logger = get_component_logger("user_activity")
@@ -627,7 +627,7 @@ class UserDataManager:
                 return
 
             _ensure = importlib.import_module(
-                "core.message_management"
+                "messages.message_data_manager"
             ).ensure_user_message_files
 
             result = _ensure(user_id, categories)
@@ -796,7 +796,7 @@ class UserDataManager:
         try:
             # Check recent check-ins
             try:
-                from core.response_tracking import get_recent_checkins
+                from checkins.checkin_data_manager import get_recent_checkins
 
                 recent_checkins = get_recent_checkins(user_id, limit=1)
                 if recent_checkins:

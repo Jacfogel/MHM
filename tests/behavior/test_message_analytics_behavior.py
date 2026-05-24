@@ -8,7 +8,7 @@ Focuses on frequency analysis, delivery success tracking, and message patterns.
 import pytest
 from unittest.mock import patch
 from datetime import datetime, timedelta
-from core.message_analytics import MessageAnalytics
+from messages.message_analytics import MessageAnalytics
 from core.time_utilities import TIMESTAMP_FULL, format_timestamp
 
 # Deterministic anchor for test data generation.
@@ -78,7 +78,7 @@ class TestMessageAnalyticsFrequencyBehavior:
     def test_message_frequency_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test message frequency with no message data."""
         # [OK] VERIFY REAL BEHAVIOR: No data returns error
-        with patch("core.message_analytics.get_recent_messages", return_value=[]):
+        with patch("messages.message_analytics.get_recent_messages", return_value=[]):
             result = analytics.get_message_frequency("test_user", days=30)
 
         assert "error" in result, "Should return error when no data available"
@@ -92,7 +92,7 @@ class TestMessageAnalyticsFrequencyBehavior:
         """REAL BEHAVIOR TEST: Test message frequency analysis with valid data."""
         # [OK] VERIFY REAL BEHAVIOR: Analysis works with valid data
         with patch(
-            "core.message_analytics.get_recent_messages", return_value=mock_messages
+            "messages.message_analytics.get_recent_messages", return_value=mock_messages
         ):
             result = analytics.get_message_frequency("test_user", days=30)
 
@@ -124,7 +124,7 @@ class TestMessageAnalyticsFrequencyBehavior:
         ]
 
         with patch(
-            "core.message_analytics.get_recent_messages",
+            "messages.message_analytics.get_recent_messages",
             return_value=motivational_messages,
         ):
             result = analytics.get_message_frequency(
@@ -184,7 +184,7 @@ class TestMessageAnalyticsDeliveryBehavior:
         """REAL BEHAVIOR TEST: Test delivery success rate calculation."""
         # [OK] VERIFY REAL BEHAVIOR: Success rate calculation works
         with patch(
-            "core.message_analytics.get_recent_messages",
+            "messages.message_analytics.get_recent_messages",
             return_value=mock_messages_mixed_status,
         ):
             result = analytics.get_delivery_success_rate("test_user", days=30)
@@ -205,7 +205,7 @@ class TestMessageAnalyticsDeliveryBehavior:
     def test_delivery_success_rate_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test delivery success rate with no message data."""
         # [OK] VERIFY REAL BEHAVIOR: No data returns error
-        with patch("core.message_analytics.get_recent_messages", return_value=[]):
+        with patch("messages.message_analytics.get_recent_messages", return_value=[]):
             result = analytics.get_delivery_success_rate("test_user", days=30)
 
         assert "error" in result, "Should return error when no data available"
@@ -250,7 +250,7 @@ class TestMessageAnalyticsSummaryBehavior:
         """REAL BEHAVIOR TEST: Test comprehensive message summary."""
         # [OK] VERIFY REAL BEHAVIOR: Summary combines frequency and delivery data
         with patch(
-            "core.message_analytics.get_recent_messages", return_value=mock_messages
+            "messages.message_analytics.get_recent_messages", return_value=mock_messages
         ):
             result = analytics.get_message_summary("test_user", days=30)
 

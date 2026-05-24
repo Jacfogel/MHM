@@ -162,7 +162,7 @@ class TestCheckinSettingsWidgetQuestionCounts:
                 return_value={"morning": {"start_time": "08:00", "end_time": "09:00"}},
             ),
             patch(
-                "core.checkin_dynamic_manager.dynamic_checkin_manager.get_enabled_questions_for_ui",
+                "checkins.checkin_dynamic_manager.dynamic_checkin_manager.get_enabled_questions_for_ui",
                 return_value={
                     "q_always": {"ui_display_name": "Always"},
                     "q_sometimes": {"ui_display_name": "Sometimes"},
@@ -216,7 +216,7 @@ class TestCheckinSettingsWidgetQuestionCounts:
 
         with (
             patch(
-                "core.checkin_dynamic_manager.dynamic_checkin_manager.save_custom_question",
+                "checkins.checkin_dynamic_manager.dynamic_checkin_manager.save_custom_question",
                 return_value=False,
             ),
             patch("ui.widgets.checkin_settings_widget.QMessageBox.critical") as mock_critical,

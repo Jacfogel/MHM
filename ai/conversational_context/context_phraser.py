@@ -14,12 +14,14 @@ from ai.context_builder import ContextAnalysis, ContextData, get_context_builder
 from core import get_user_data
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
-from core.message_management import get_recent_messages
-from core.response_tracking import (
+from messages.message_data_manager import get_recent_messages
+from checkins.checkin_data_manager import (
     checkin_runtime_timestamp,
-    get_recent_responses,
-    is_automated_messages_enabled,
+    get_recent_checkins,
     is_user_checkins_enabled,
+)
+from messages.message_data_manager import (
+    is_automated_messages_enabled,
 )
 from core.time_utilities import TIME_ONLY_MINUTE, format_timestamp, parse_timestamp_full
 from tasks import are_tasks_enabled, get_tasks_due_soon, get_user_task_stats, load_active_tasks
@@ -170,7 +172,7 @@ def append_checkin_summary(parts: list[str], user_id: str) -> None:
     if not is_user_checkins_enabled(user_id):
         return
 
-    recent_checkins = get_recent_responses(user_id, limit=10)
+    recent_checkins = get_recent_checkins(user_id, limit=10)
     if not recent_checkins:
         parts.append("They have not completed any check-ins yet.")
         return
@@ -238,7 +240,7 @@ def append_today_checkin_status(parts: list[str], user_id: str) -> None:
     if not is_user_checkins_enabled(user_id):
         return
 
-    recent_checkins = get_recent_responses(user_id, limit=1)
+    recent_checkins = get_recent_checkins(user_id, limit=1)
     completed_today = False
     completed_at = ""
     mood_val = None

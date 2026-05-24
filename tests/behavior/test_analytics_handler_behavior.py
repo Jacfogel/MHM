@@ -72,7 +72,7 @@ class TestAnalyticsHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.analytics
     @pytest.mark.file_io
-    @patch('core.checkin_analytics.CheckinAnalytics')
+    @patch('checkins.checkin_analytics.CheckinAnalytics')
     def test_analytics_handler_show_analytics_success(self, mock_analytics_class, test_data_dir):
         """Test that AnalyticsHandler shows analytics successfully."""
         handler = AnalyticsHandler()
@@ -129,7 +129,7 @@ class TestAnalyticsHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.analytics
     @pytest.mark.file_io
-    @patch('core.checkin_analytics.CheckinAnalytics')
+    @patch('checkins.checkin_analytics.CheckinAnalytics')
     def test_analytics_handler_show_analytics_no_data(self, mock_analytics_class, test_data_dir):
         """Test that AnalyticsHandler handles case with no data."""
         handler = AnalyticsHandler()
@@ -165,7 +165,7 @@ class TestAnalyticsHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.analytics
     @pytest.mark.file_io
-    @patch('core.checkin_analytics.CheckinAnalytics')
+    @patch('checkins.checkin_analytics.CheckinAnalytics')
     def test_analytics_handler_mood_trends_success(self, mock_analytics_class, test_data_dir):
         """Test that AnalyticsHandler shows mood trends successfully."""
         handler = AnalyticsHandler()
@@ -215,7 +215,7 @@ class TestAnalyticsHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.analytics
     @pytest.mark.file_io
-    @patch('core.checkin_analytics.CheckinAnalytics')
+    @patch('checkins.checkin_analytics.CheckinAnalytics')
     def test_analytics_handler_wellness_score_success(self, mock_analytics_class, test_data_dir):
         """Test that AnalyticsHandler shows wellness score successfully."""
         handler = AnalyticsHandler()
@@ -272,7 +272,7 @@ class TestAnalyticsHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.analytics
     @pytest.mark.file_io
-    @patch('core.checkin_analytics.CheckinAnalytics')
+    @patch('checkins.checkin_analytics.CheckinAnalytics')
     def test_analytics_handler_checkin_history_success(self, mock_analytics_class, test_data_dir):
         """Test that AnalyticsHandler shows check-in history successfully."""
         handler = AnalyticsHandler()
@@ -325,7 +325,7 @@ class TestAnalyticsHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.analytics
     @pytest.mark.file_io
-    @patch('core.checkin_analytics.CheckinAnalytics')
+    @patch('checkins.checkin_analytics.CheckinAnalytics')
     def test_analytics_handler_checkin_history_no_checkins(self, mock_analytics_class, test_data_dir):
         """Test that AnalyticsHandler handles case with no check-ins."""
         handler = AnalyticsHandler()
@@ -360,8 +360,8 @@ class TestAnalyticsHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.analytics
     @pytest.mark.file_io
-    @patch('core.checkin_analytics.CheckinAnalytics')
-    @patch('core.response_tracking.get_recent_checkins')
+    @patch('checkins.checkin_analytics.CheckinAnalytics')
+    @patch('checkins.checkin_data_manager.get_recent_checkins')
     def test_analytics_handler_checkin_analysis_success(self, mock_get_checkins, mock_analytics_class, test_data_dir):
         """Test that AnalyticsHandler shows check-in analysis successfully."""
         handler = AnalyticsHandler()
@@ -408,7 +408,7 @@ class TestAnalyticsHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.analytics
     @pytest.mark.file_io
-    @patch('core.checkin_analytics.CheckinAnalytics')
+    @patch('checkins.checkin_analytics.CheckinAnalytics')
     def test_analytics_handler_habit_analysis_success(self, mock_analytics_class, test_data_dir):
         """Test that AnalyticsHandler shows habit analysis successfully."""
         handler = AnalyticsHandler()
@@ -463,7 +463,7 @@ class TestAnalyticsHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.analytics
     @pytest.mark.file_io
-    @patch('core.checkin_analytics.CheckinAnalytics')
+    @patch('checkins.checkin_analytics.CheckinAnalytics')
     def test_analytics_handler_sleep_analysis_success(self, mock_analytics_class, test_data_dir):
         """Test that AnalyticsHandler shows sleep analysis successfully."""
         handler = AnalyticsHandler()
@@ -507,7 +507,7 @@ class TestAnalyticsHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.analytics
     @pytest.mark.file_io
-    @patch('core.checkin_analytics.CheckinAnalytics')
+    @patch('checkins.checkin_analytics.CheckinAnalytics')
     def test_analytics_handler_completion_rate_success(self, mock_analytics_class, test_data_dir):
         """Test that AnalyticsHandler shows completion rate successfully."""
         handler = AnalyticsHandler()
@@ -549,7 +549,7 @@ class TestAnalyticsHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.analytics
     @pytest.mark.file_io
-    @patch('core.checkin_analytics.CheckinAnalytics')
+    @patch('checkins.checkin_analytics.CheckinAnalytics')
     @patch('tasks.get_user_task_stats')
     @patch('tasks.load_active_tasks')
     @patch('tasks.load_completed_tasks')
@@ -618,7 +618,7 @@ class TestAnalyticsHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.analytics
     @pytest.mark.file_io
-    @patch('core.checkin_analytics.CheckinAnalytics')
+    @patch('checkins.checkin_analytics.CheckinAnalytics')
     @patch('storage.user_data_read.get_user_data')
     def test_analytics_handler_quant_summary_success(self, mock_get_user_data, mock_analytics_class, test_data_dir):
         """Test that AnalyticsHandler shows quantitative summary successfully."""

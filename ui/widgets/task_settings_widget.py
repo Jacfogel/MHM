@@ -66,6 +66,7 @@ class TaskSettingsWidget(QWidget):
             self.undo_last_period_delete
         )
 
+    # devtools: intentional[duplicate-functions]: ui_load_existing_data_lifecycle
     @handle_errors("loading existing data")
     def load_existing_data(self):
         if not self.user_id:

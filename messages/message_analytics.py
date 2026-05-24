@@ -9,7 +9,7 @@ understand message frequency, patterns, and delivery effectiveness.
 
 from collections import defaultdict
 from core.logger import get_component_logger
-from core.message_management import get_recent_messages
+from messages.message_data_manager import get_recent_messages
 from core.error_handling import handle_errors
 
 logger = get_component_logger("user_activity")

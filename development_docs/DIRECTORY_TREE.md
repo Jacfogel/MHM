@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-23 12:37:40
+> **Last Generated**: 2026-05-23 16:56:08
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -111,6 +111,14 @@ C:.
 |   |   AI_SESSION_STARTER.md
 |   |   AI_TESTING_GUIDE.md
 |   |
++---checkins
+|   |   checkin_analytics.py
+|   |   checkin_data_manager.py
+|   |   checkin_dynamic_manager.py
+|   |   checkin_schemas.py
+|   |   checkin_service.py
+|   |   __init__.py
+|   |
 +---communication
 |   |   COMMUNICATION_GUIDE.md
 |   |   __init__.py
@@ -185,9 +193,6 @@ C:.
 +---core
 |   |   auto_cleanup.py
 |   |   backup_manager.py
-|   |   checkin_analytics.py
-|   |   checkin_dynamic_manager.py
-|   |   checkin_service.py
 |   |   config.py
 |   |   delivery.py
 |   |   error_handling.py
@@ -197,9 +202,6 @@ C:.
 |   |   file_operations.py
 |   |   headless_service.py
 |   |   logger.py
-|   |   message_analytics.py
-|   |   message_management.py
-|   |   message_preview.py
 |   |   network_probe.py
 |   |   pagination.py
 |   |   response_tracking.py
@@ -439,6 +441,13 @@ C:.
     (log files)
 +---logs
     (log files)
++---messages
+|   |   message_analytics.py
+|   |   message_data_manager.py
+|   |   message_schemas.py
+|   |   message_service.py
+|   |   __init__.py
+|   |
 +---notebook
 |   |   notebook_data_handlers.py
 |   |   notebook_data_manager.py

@@ -67,7 +67,7 @@ def test_handle_mood_trends_includes_trend_and_distribution(monkeypatch):
     }
     monkeypatch.setenv("MHM_TESTING", "1")
     monkeypatch.setattr(
-        "core.checkin_analytics.CheckinAnalytics",
+        "checkins.checkin_analytics.CheckinAnalytics",
         lambda *args, **kwargs: _FakeCheckinAnalytics(mood_payload),
     )
 

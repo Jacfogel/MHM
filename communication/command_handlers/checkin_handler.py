@@ -4,12 +4,12 @@ from typing import Any
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.checkin_service import (
+from checkins.checkin_service import (
     checkin_display_date,
     get_checkin_start_status,
     get_recent_checkin_summary,
 )
-from core.response_tracking import (
+from checkins.checkin_data_manager import (
     checkin_runtime_timestamp,
     get_recent_checkins,
     is_user_checkins_enabled,

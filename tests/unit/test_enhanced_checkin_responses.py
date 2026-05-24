@@ -10,8 +10,8 @@ Tests the new response parsing features:
 
 import pytest
 from unittest.mock import patch
-from core.checkin_dynamic_manager import DynamicCheckinManager
-from core.checkin_analytics import CheckinAnalytics
+from checkins.checkin_dynamic_manager import DynamicCheckinManager
+from checkins.checkin_analytics import CheckinAnalytics
 
 
 pytestmark = [pytest.mark.core]
@@ -275,7 +275,7 @@ class TestAnalyticsSkippedQuestions:
         ]
         
         # Mock the get_checkins_by_days method
-        with patch('core.checkin_analytics.get_checkins_by_days', return_value=mock_checkins):
+        with patch('checkins.checkin_analytics.get_checkins_by_days', return_value=mock_checkins):
             summaries = self.analytics.get_quantitative_summaries("test_user", 30, ['mood', 'energy', 'sleep_quality'])
         
         # Check that skipped values are excluded from calculations
@@ -308,7 +308,7 @@ class TestAnalyticsSkippedQuestions:
         ]
         
         # Mock the get_checkins_by_days method
-        with patch('core.checkin_analytics.get_checkins_by_days', return_value=mock_checkins):
+        with patch('checkins.checkin_analytics.get_checkins_by_days', return_value=mock_checkins):
             summaries = self.analytics.get_quantitative_summaries("test_user", 30, ['exercise', 'medication_taken'])
         
         # Check that enhanced responses are properly converted

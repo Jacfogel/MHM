@@ -170,6 +170,7 @@ class UserProfileSettingsWidget(QWidget):
             logger.error(f"Error populating timezones: {e}")
             raise
 
+    # devtools: intentional[duplicate-functions]: ui_load_existing_data_lifecycle
     @handle_errors("loading existing data", default_return=None)
     def load_existing_data(self):
         """Load existing personalization data into the form."""
@@ -341,6 +342,7 @@ class UserProfileSettingsWidget(QWidget):
             logger.error(f"Error getting personalization data: {e}")
             return self.existing_data or {}
 
+    # devtools: intentional[duplicate-functions]: profile_personalization_extractors
     @handle_errors(
         "extracting basic fields from personalization data", default_return=None
     )
@@ -356,6 +358,7 @@ class UserProfileSettingsWidget(QWidget):
             logger.error(f"Error extracting basic fields: {e}")
             raise
 
+    # devtools: intentional[duplicate-functions]: profile_personalization_extractors
     @handle_errors("extracting gender identity from personalization data")
     def _get_personalization_data__extract_gender_identity(
         self, data: dict[str, Any]
@@ -497,6 +500,7 @@ class UserProfileSettingsWidget(QWidget):
             logger.error(f"Error extracting loved ones: {e}")
             raise
 
+    # devtools: intentional[duplicate-functions]: profile_personalization_extractors
     @handle_errors("extracting notes from personalization data")
     def _get_personalization_data__extract_notes(self, data: dict[str, Any]) -> None:
         """Extract notes for AI from text field."""

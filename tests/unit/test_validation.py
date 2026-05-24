@@ -309,7 +309,7 @@ class TestUserUpdateValidation:
         }
         
         # Mock get_message_categories
-        with patch('core.message_management.get_message_categories') as mock_categories:
+        with patch('messages.message_data_manager.get_message_categories') as mock_categories:
             mock_categories.return_value = ["motivational", "health", "fun_facts"]
             
             is_valid, errors = validate_user_update(user_id, 'preferences', updates)
@@ -328,7 +328,7 @@ class TestUserUpdateValidation:
         }
 
         # Mock get_message_categories
-        with patch('core.message_management.get_message_categories') as mock_categories:
+        with patch('messages.message_data_manager.get_message_categories') as mock_categories:
             mock_categories.return_value = ["motivational", "health", "fun_facts"]
 
             is_valid, errors = validate_user_update(user_id, 'preferences', updates)
@@ -720,7 +720,7 @@ class TestNewUserDataValidation:
         }
         
         # Mock get_message_categories
-        with patch('core.message_management.get_message_categories') as mock_categories:
+        with patch('messages.message_data_manager.get_message_categories') as mock_categories:
             mock_categories.return_value = ["motivational", "health", "fun_facts"]
             
             is_valid, errors = validate_new_user_data(user_id, data_updates)
@@ -1087,7 +1087,7 @@ class TestValidationIntegration:
         }
         
         # Mock get_message_categories
-        with patch('core.message_management.get_message_categories') as mock_categories:
+        with patch('messages.message_data_manager.get_message_categories') as mock_categories:
             mock_categories.return_value = ["motivational", "health", "fun_facts"]
             
             # Test new user validation

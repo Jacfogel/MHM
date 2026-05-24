@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-23 12:37:31
+> **Last Generated**: 2026-05-23 16:57:59
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 93.5% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 157
-- **Functions Found**: 1815
-- **Methods Found**: 1233
-- **Classes Found**: 180
-- **Total Items**: 3048
-- **Functions Documented**: 1682
-- **Methods Documented**: 1168
-- **Classes Documented**: 142
-- **Total Documented**: 2850
+### **Function Documentation Coverage: 93.2% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 151
+- **Functions Found**: 1717
+- **Methods Found**: 1169
+- **Classes Found**: 175
+- **Total Items**: 2886
+- **Functions Documented**: 1584
+- **Methods Documented**: 1105
+- **Classes Documented**: 139
+- **Total Documented**: 2689
 - **Template-Generated**: 24
 - **Last Updated**: 2026-05-23
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (493)
+### **Core System Functions** (395)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (500)
@@ -2825,233 +2825,6 @@ Args:
 Returns:
     Tuple of (is_valid, list_of_errors)
 
-#### `core/checkin_analytics.py`
-**Functions:**
-- [OK] `__init__(self)` - Initialize the CheckinAnalytics instance.
-
-This class provides analytics and insights from check-in data.
-- [OK] `_bucket_scale_value(value)` - Bucket a numeric value to the nearest 1-5 integer (half-up).
-- [OK] `_calculate_energy_score(self, checkins)` - Calculate energy score (0-100)
-- [OK] `_calculate_habit_score(self, checkins)` - Calculate habit score (0-100)
-- [OK] `_calculate_mood_score(self, checkins)` - Calculate mood score (0-100)
-- [OK] `_calculate_overall_completion(self, habit_stats)` - Calculate overall habit completion rate
-- [OK] `_calculate_sleep_consistency(self, hours)` - Calculate sleep consistency (lower variance = more consistent)
-- [OK] `_calculate_sleep_duration(self, sleep_time, wake_time)` - Calculate sleep duration in hours from sleep_time and wake_time (HH:MM format).
-- [OK] `_calculate_sleep_score(self, checkins)` - Calculate sleep score (0-100)
-- [OK] `_calculate_streak(self, checkins, habit_key)` - Calculate current and best streaks for a habit
-- [OK] `_coerce_numeric(value)` - Convert numeric-like values to float, skipping invalid or skipped entries.
-- [OK] `_coerce_sleep_hours(self, value)` - Convert sleep schedule values into hours.
-- [OK] `_coerce_yes_no(self, value)` - Convert yes/no-like values to bool.
-- [OK] `_get_energy_distribution(self, energies)` - Calculate distribution of energy scores (bucketed to 1-5).
-- [OK] `_get_habit_status(self, completion_rate)` - Get status description for habit completion rate
-- [OK] `_get_mood_distribution(self, moods)` - Calculate distribution of mood scores (bucketed to 1-5).
-- [OK] `_get_questions_asked(self, checkin)` - Return the list of questions asked for a check-in.
-- [OK] `_get_score_level(self, score)` - Get wellness score level description
-- [OK] `_get_sleep_recommendations(self, avg_hours, avg_quality, poor_days)` - Generate sleep recommendations
-- [OK] `_get_wellness_recommendations(self, mood_score, energy_score, habit_score, sleep_score)` - Generate wellness recommendations based on component scores
-- [OK] `_is_answered_value(self, value)` - Return True if the value counts as answered.
-- [OK] `_is_question_asked(self, checkin, question_key)` - Check if a question was asked for a check-in.
-- [MISSING] `_response_value(self, checkin, key)` - No description
-- [OK] `convert_score_100_to_5(score_100)` - Convert a score from 0-100 scale to 1-5 scale for display.
-
-Args:
-    score_100: Score on 0-100 scale
-
-Returns:
-    Score on 1-5 scale, rounded to 1 decimal place
-- [OK] `convert_score_5_to_100(score_5)` - Convert a score from 1-5 scale to 0-100 scale for calculations.
-
-Args:
-    score_5: Score on 1-5 scale
-
-Returns:
-    Score on 0-100 scale
-- [OK] `get_available_data_types(self, user_id, days)` - Detect what types of data are available for analytics
-- [OK] `get_basic_analytics(self, user_id, days)` - Return basic per-question stats grouped by category.
-- [OK] `get_checkin_history(self, user_id, days)` - Get check-in history with proper date formatting
-- [OK] `get_completion_rate(self, user_id, days)` - Calculate overall completion rate for check-ins
-- [OK] `get_energy_trends(self, user_id, days)` - Analyze energy trends over the specified period
-- [OK] `get_habit_analysis(self, user_id, days)` - Analyze habit patterns from check-in data
-- [OK] `get_mood_trends(self, user_id, days)` - Analyze mood trends over the specified period
-- [OK] `get_quantitative_summaries(self, user_id, days, enabled_fields)` - Compute per-field averages and ranges for opted-in quantitative fields.
-
-Parameters:
-    user_id: target user
-    days: number of recent check-ins to analyze
-    enabled_fields: list of fields to include (e.g., ['mood','energy','stress','sleep_quality','anxiety'])
-
-Returns mapping: { field: { 'average': float, 'min': float, 'max': float, 'count': int } }
-Only includes fields that appear in the data and are in enabled_fields if provided.
-- [OK] `get_sleep_analysis(self, user_id, days)` - Analyze sleep patterns from check-in data
-- [OK] `get_task_weekly_stats(self, user_id, days)` - Calculate weekly statistics for tasks
-- [OK] `get_wellness_score(self, user_id, days)` - Calculate overall wellness score from check-in data
-**Classes:**
-- [MISSING] `CheckinAnalytics` - No description
-  - [OK] `CheckinAnalytics.__init__(self)` - Initialize the CheckinAnalytics instance.
-
-This class provides analytics and insights from check-in data.
-  - [OK] `CheckinAnalytics._bucket_scale_value(value)` - Bucket a numeric value to the nearest 1-5 integer (half-up).
-  - [OK] `CheckinAnalytics._calculate_energy_score(self, checkins)` - Calculate energy score (0-100)
-  - [OK] `CheckinAnalytics._calculate_habit_score(self, checkins)` - Calculate habit score (0-100)
-  - [OK] `CheckinAnalytics._calculate_mood_score(self, checkins)` - Calculate mood score (0-100)
-  - [OK] `CheckinAnalytics._calculate_overall_completion(self, habit_stats)` - Calculate overall habit completion rate
-  - [OK] `CheckinAnalytics._calculate_sleep_consistency(self, hours)` - Calculate sleep consistency (lower variance = more consistent)
-  - [OK] `CheckinAnalytics._calculate_sleep_duration(self, sleep_time, wake_time)` - Calculate sleep duration in hours from sleep_time and wake_time (HH:MM format).
-  - [OK] `CheckinAnalytics._calculate_sleep_score(self, checkins)` - Calculate sleep score (0-100)
-  - [OK] `CheckinAnalytics._calculate_streak(self, checkins, habit_key)` - Calculate current and best streaks for a habit
-  - [OK] `CheckinAnalytics._coerce_numeric(value)` - Convert numeric-like values to float, skipping invalid or skipped entries.
-  - [OK] `CheckinAnalytics._coerce_sleep_hours(self, value)` - Convert sleep schedule values into hours.
-  - [OK] `CheckinAnalytics._coerce_yes_no(self, value)` - Convert yes/no-like values to bool.
-  - [OK] `CheckinAnalytics._get_energy_distribution(self, energies)` - Calculate distribution of energy scores (bucketed to 1-5).
-  - [OK] `CheckinAnalytics._get_habit_status(self, completion_rate)` - Get status description for habit completion rate
-  - [OK] `CheckinAnalytics._get_mood_distribution(self, moods)` - Calculate distribution of mood scores (bucketed to 1-5).
-  - [OK] `CheckinAnalytics._get_questions_asked(self, checkin)` - Return the list of questions asked for a check-in.
-  - [OK] `CheckinAnalytics._get_score_level(self, score)` - Get wellness score level description
-  - [OK] `CheckinAnalytics._get_sleep_recommendations(self, avg_hours, avg_quality, poor_days)` - Generate sleep recommendations
-  - [OK] `CheckinAnalytics._get_wellness_recommendations(self, mood_score, energy_score, habit_score, sleep_score)` - Generate wellness recommendations based on component scores
-  - [OK] `CheckinAnalytics._is_answered_value(self, value)` - Return True if the value counts as answered.
-  - [OK] `CheckinAnalytics._is_question_asked(self, checkin, question_key)` - Check if a question was asked for a check-in.
-  - [MISSING] `CheckinAnalytics._response_value(self, checkin, key)` - No description
-  - [OK] `CheckinAnalytics.convert_score_100_to_5(score_100)` - Convert a score from 0-100 scale to 1-5 scale for display.
-
-Args:
-    score_100: Score on 0-100 scale
-
-Returns:
-    Score on 1-5 scale, rounded to 1 decimal place
-  - [OK] `CheckinAnalytics.convert_score_5_to_100(score_5)` - Convert a score from 1-5 scale to 0-100 scale for calculations.
-
-Args:
-    score_5: Score on 1-5 scale
-
-Returns:
-    Score on 0-100 scale
-  - [OK] `CheckinAnalytics.get_available_data_types(self, user_id, days)` - Detect what types of data are available for analytics
-  - [OK] `CheckinAnalytics.get_basic_analytics(self, user_id, days)` - Return basic per-question stats grouped by category.
-  - [OK] `CheckinAnalytics.get_checkin_history(self, user_id, days)` - Get check-in history with proper date formatting
-  - [OK] `CheckinAnalytics.get_completion_rate(self, user_id, days)` - Calculate overall completion rate for check-ins
-  - [OK] `CheckinAnalytics.get_energy_trends(self, user_id, days)` - Analyze energy trends over the specified period
-  - [OK] `CheckinAnalytics.get_habit_analysis(self, user_id, days)` - Analyze habit patterns from check-in data
-  - [OK] `CheckinAnalytics.get_mood_trends(self, user_id, days)` - Analyze mood trends over the specified period
-  - [OK] `CheckinAnalytics.get_quantitative_summaries(self, user_id, days, enabled_fields)` - Compute per-field averages and ranges for opted-in quantitative fields.
-
-Parameters:
-    user_id: target user
-    days: number of recent check-ins to analyze
-    enabled_fields: list of fields to include (e.g., ['mood','energy','stress','sleep_quality','anxiety'])
-
-Returns mapping: { field: { 'average': float, 'min': float, 'max': float, 'count': int } }
-Only includes fields that appear in the data and are in enabled_fields if provided.
-  - [OK] `CheckinAnalytics.get_sleep_analysis(self, user_id, days)` - Analyze sleep patterns from check-in data
-  - [OK] `CheckinAnalytics.get_task_weekly_stats(self, user_id, days)` - Calculate weekly statistics for tasks
-  - [OK] `CheckinAnalytics.get_wellness_score(self, user_id, days)` - Calculate overall wellness score from check-in data
-
-#### `core/checkin_dynamic_manager.py`
-**Functions:**
-- [OK] `__init__(self)` - Initialize the dynamic check-in manager.
-- [OK] `_calculate_sleep_chunk_hours(self, sleep_time, wake_time)` - Calculate duration for one sleep chunk in hours.
-- [OK] `_clean_time_token(self, time_str)` - Remove connector words/punctuation around a time token.
-- [OK] `_extract_time_tokens(self, text)` - Extract schedule-style time tokens from free text.
-- [OK] `_get_numeric_response_fallback(self, question_responses, answer_value)` - Return response list for nearest integer key when float answers are provided.
-- [OK] `_load_data(self)` - Load questions and responses data from JSON files.
-- [OK] `_normalize_time(self, time_str)` - Normalize time string to HH:MM format (24-hour).
-
-Supports formats like:
-- "11:30 PM" -> "23:30"
-- "7:00 AM" -> "07:00"
-- "23:30" -> "23:30"
-- "7:00" -> "07:00" (assumes 24-hour value)
-- "9pm" -> "21:00"
-- "930pm" -> "21:30"
-- "9" -> "09:00"
-- "noon" -> "12:00"
-- "midnight" -> "00:00"
-- [OK] `_parse_numerical_response(self, answer)` - Parse numerical responses including written numbers, decimals, and mixed formats.
-- [OK] `_parse_time_pair_response(self, answer)` - Parse sleep data from user response.
-
-Supports either:
-- Single window: "11:30 PM and 7:00 AM"
-- Interrupted chunks (up to 3):
-  "11:00 PM-1:00 AM, 2:00 AM-6:30 AM"
-- [OK] `build_next_question_with_response(self, question_key, previous_question_key, previous_answer)` - Build the next question text with a response statement from the previous answer.
-- [OK] `delete_custom_question(self, user_id, question_key)` - Delete a custom question from user preferences.
-- [OK] `get_all_questions(self, user_id)` - Get all question definitions, merging predefined and custom questions.
-
-Custom questions take precedence over predefined questions with the same key.
-- [OK] `get_categories(self)` - Get all question categories.
-- [OK] `get_custom_questions(self, user_id)` - Get custom questions for a specific user from preferences.
-- [OK] `get_enabled_questions_for_ui(self, user_id)` - Get questions formatted for UI display with enabled_by_default status.
-
-Includes both predefined and custom questions if user_id is provided.
-- [OK] `get_question_definition(self, question_key, user_id)` - Get the definition for a specific question.
-
-Checks custom questions first (if user_id provided), then predefined questions.
-- [OK] `get_question_templates(self)` - Get available question templates for creating custom questions.
-- [OK] `get_question_text(self, question_key, user_id)` - Get the question text for a specific question.
-- [OK] `get_question_type(self, question_key)` - Get the type of a specific question.
-- [OK] `get_question_validation(self, question_key)` - Get validation rules for a specific question.
-- [OK] `get_response_statement(self, question_key, answer_value)` - Get a random response statement for a question answer.
-- [OK] `get_transition_phrase(self)` - Get a random transition phrase.
-- [OK] `save_custom_question(self, user_id, question_key, question_def)` - Save a custom question to user preferences.
-- [OK] `validate_answer(self, question_key, answer, user_id)` - Validate an answer for a specific question.
-**Classes:**
-- [OK] `DynamicCheckinManager` - Manages dynamic check-in questions and responses loaded from JSON files.
-  - [OK] `DynamicCheckinManager.__init__(self)` - Initialize the dynamic check-in manager.
-  - [OK] `DynamicCheckinManager._calculate_sleep_chunk_hours(self, sleep_time, wake_time)` - Calculate duration for one sleep chunk in hours.
-  - [OK] `DynamicCheckinManager._clean_time_token(self, time_str)` - Remove connector words/punctuation around a time token.
-  - [OK] `DynamicCheckinManager._extract_time_tokens(self, text)` - Extract schedule-style time tokens from free text.
-  - [OK] `DynamicCheckinManager._get_numeric_response_fallback(self, question_responses, answer_value)` - Return response list for nearest integer key when float answers are provided.
-  - [OK] `DynamicCheckinManager._load_data(self)` - Load questions and responses data from JSON files.
-  - [OK] `DynamicCheckinManager._normalize_time(self, time_str)` - Normalize time string to HH:MM format (24-hour).
-
-Supports formats like:
-- "11:30 PM" -> "23:30"
-- "7:00 AM" -> "07:00"
-- "23:30" -> "23:30"
-- "7:00" -> "07:00" (assumes 24-hour value)
-- "9pm" -> "21:00"
-- "930pm" -> "21:30"
-- "9" -> "09:00"
-- "noon" -> "12:00"
-- "midnight" -> "00:00"
-  - [OK] `DynamicCheckinManager._parse_numerical_response(self, answer)` - Parse numerical responses including written numbers, decimals, and mixed formats.
-  - [OK] `DynamicCheckinManager._parse_time_pair_response(self, answer)` - Parse sleep data from user response.
-
-Supports either:
-- Single window: "11:30 PM and 7:00 AM"
-- Interrupted chunks (up to 3):
-  "11:00 PM-1:00 AM, 2:00 AM-6:30 AM"
-  - [OK] `DynamicCheckinManager.build_next_question_with_response(self, question_key, previous_question_key, previous_answer)` - Build the next question text with a response statement from the previous answer.
-  - [OK] `DynamicCheckinManager.delete_custom_question(self, user_id, question_key)` - Delete a custom question from user preferences.
-  - [OK] `DynamicCheckinManager.get_all_questions(self, user_id)` - Get all question definitions, merging predefined and custom questions.
-
-Custom questions take precedence over predefined questions with the same key.
-  - [OK] `DynamicCheckinManager.get_categories(self)` - Get all question categories.
-  - [OK] `DynamicCheckinManager.get_custom_questions(self, user_id)` - Get custom questions for a specific user from preferences.
-  - [OK] `DynamicCheckinManager.get_enabled_questions_for_ui(self, user_id)` - Get questions formatted for UI display with enabled_by_default status.
-
-Includes both predefined and custom questions if user_id is provided.
-  - [OK] `DynamicCheckinManager.get_question_definition(self, question_key, user_id)` - Get the definition for a specific question.
-
-Checks custom questions first (if user_id provided), then predefined questions.
-  - [OK] `DynamicCheckinManager.get_question_templates(self)` - Get available question templates for creating custom questions.
-  - [OK] `DynamicCheckinManager.get_question_text(self, question_key, user_id)` - Get the question text for a specific question.
-  - [OK] `DynamicCheckinManager.get_question_type(self, question_key)` - Get the type of a specific question.
-  - [OK] `DynamicCheckinManager.get_question_validation(self, question_key)` - Get validation rules for a specific question.
-  - [OK] `DynamicCheckinManager.get_response_statement(self, question_key, answer_value)` - Get a random response statement for a question answer.
-  - [OK] `DynamicCheckinManager.get_transition_phrase(self)` - Get a random transition phrase.
-  - [OK] `DynamicCheckinManager.save_custom_question(self, user_id, question_key, question_def)` - Save a custom question to user preferences.
-  - [OK] `DynamicCheckinManager.validate_answer(self, question_key, answer, user_id)` - Validate an answer for a specific question.
-
-#### `core/checkin_service.py`
-**Functions:**
-- [OK] `checkin_display_date(checkin)` - Return a stable display date for a check-in.
-- [OK] `get_checkin_start_status(user_id)` - Return whether a user can start a new check-in right now.
-- [OK] `get_recent_checkin_summary(user_id)` - Return recent check-ins if check-ins are enabled for the user.
-**Classes:**
-- [OK] `CheckinStartStatus` - Preflight status for starting a check-in.
-- [OK] `RecentCheckinSummary` - Recent check-in data normalized for command display.
-
 #### `core/config.py`
 **Functions:**
 - [OK] `__init__(self, message, missing_configs, warnings)` - Initialize the object.
@@ -3857,208 +3630,6 @@ Returns:
 Args:
     name: Logger name (unused, kept for interface compatibility)
 
-#### `core/message_analytics.py`
-**Functions:**
-- [OK] `__init__(self)` - Initialize the MessageAnalytics instance.
-
-This class provides analytics and insights from sent message data.
-- [OK] `get_delivery_success_rate(self, user_id, days)` - Analyze message delivery success rates.
-
-Args:
-    user_id: The user ID to analyze
-    days: Number of days to analyze (default: 30)
-
-Returns:
-    Dict containing delivery statistics
-- [OK] `get_message_frequency(self, user_id, days, category)` - Analyze message send frequency by category and time period.
-
-Args:
-    user_id: The user ID to analyze
-    days: Number of days to analyze (default: 30)
-    category: Optional category filter (None = all categories)
-
-Returns:
-    Dict containing frequency statistics
-- [OK] `get_message_summary(self, user_id, days)` - Get a comprehensive summary of message activity.
-
-Args:
-    user_id: The user ID to analyze
-    days: Number of days to analyze (default: 30)
-
-Returns:
-    Dict containing summary statistics
-**Classes:**
-- [MISSING] `MessageAnalytics` - No description
-  - [OK] `MessageAnalytics.__init__(self)` - Initialize the MessageAnalytics instance.
-
-This class provides analytics and insights from sent message data.
-  - [OK] `MessageAnalytics.get_delivery_success_rate(self, user_id, days)` - Analyze message delivery success rates.
-
-Args:
-    user_id: The user ID to analyze
-    days: Number of days to analyze (default: 30)
-
-Returns:
-    Dict containing delivery statistics
-  - [OK] `MessageAnalytics.get_message_frequency(self, user_id, days, category)` - Analyze message send frequency by category and time period.
-
-Args:
-    user_id: The user ID to analyze
-    days: Number of days to analyze (default: 30)
-    category: Optional category filter (None = all categories)
-
-Returns:
-    Dict containing frequency statistics
-  - [OK] `MessageAnalytics.get_message_summary(self, user_id, days)` - Get a comprehensive summary of message activity.
-
-Args:
-    user_id: The user ID to analyze
-    days: Number of days to analyze (default: 30)
-
-Returns:
-    Dict containing summary statistics
-
-#### `core/message_management.py`
-**Functions:**
-- [OK] `_canonical_message_timestamp(value)` - Return a valid full timestamp string or current time when invalid.
-- [OK] `_delivery_to_runtime_message(delivery)` - Return runtime dict for a v2 delivery record.
-- [OK] `_ensure_v2_message_template_file(data, category)` - Normalize a message template file payload to canonical v2 wrapper shape.
-- [OK] `_message_template_default_to_v2(message, category)` - Build a canonical v2 message template from v2-shaped runtime or on-disk data.
-- [OK] `_message_template_to_runtime(message, category)` - Return runtime dict for message selection (canonical v2 template fields).
-- [OK] `_normalize_message_update_payload(updated_data)` - Return a shallow copy; callers must supply v2 template fields (text, schedule, id, etc.).
-- [OK] `_parse_message_timestamp(timestamp_str)` - Parse timestamp string to datetime object.
-
-Args:
-    timestamp_str: Timestamp string to parse
-
-Returns:
-    datetime: Parsed datetime object (UTC) or sentinel minimum
-- [OK] `add_message(user_id, category, message_data, index)` - Add a new message to a user's category.
-
-Args:
-    user_id: The user ID
-    category: The message category
-    message_data: Dictionary containing message data
-    index: Optional position to insert the message (None for append)
-- [OK] `archive_old_messages(user_id, days_to_keep)` - Archive messages older than specified days.
-
-This function implements file rotation by moving old messages to archive files,
-keeping the active sent_messages.json file manageable in size.
-
-Args:
-    user_id: The user ID
-    days_to_keep: Number of days to keep in active file
-
-Returns:
-    bool: True if archiving successful
-- [OK] `create_message_file_from_defaults(user_id, category)` - Create a user's message file for a specific category from default messages.
-This is the actual worker function that creates the file.
-
-Args:
-    user_id: The user ID
-    category: The specific category to create a message file for
-
-Returns:
-    bool: True if file was created successfully
-- [OK] `delete_message(user_id, category, message_id)` - Delete a specific message from a user's category.
-
-Args:
-    user_id: The user ID
-    category: The message category
-    message_id: The ID of the message to delete
-
-Raises:
-    ValidationError: If the message ID is not found or the category is invalid
-- [OK] `edit_message(user_id, category, message_id, updated_data)` - Edit an existing message in a user's category.
-
-Args:
-    user_id: The user ID
-    category: The message category
-    message_id: The ID of the message to edit
-    updated_data: Dictionary containing updated message data
-
-Raises:
-    ValidationError: If message ID is not found or category is invalid
-- [OK] `ensure_user_message_files(user_id, categories)` - Ensure user has message files for specified categories.
-Creates messages directory if missing, checks which files are missing, and creates them.
-
-Args:
-    user_id: The user ID
-    categories: List of categories to check/create message files for (can be subset of user's categories)
-
-Returns:
-    dict: Summary of the operation with keys:
-        - success: bool - True if all files were created/validated successfully
-        - directory_created: bool - True if messages directory was created
-        - files_checked: int - Number of categories checked
-        - files_created: int - Number of new files created
-        - files_existing: int - Number of files that already existed
-- [OK] `get_message_categories()` - Retrieves message categories from the environment variable CATEGORIES.
-Allows for either a comma-separated string or a JSON array.
-
-Returns:
-    List[str]: List of message categories
-- [OK] `get_recent_messages(user_id, category, limit, days_back)` - Get recent messages with flexible filtering.
-
-This function replaces get_last_10_messages() with enhanced functionality
-that supports both category-specific and cross-category queries.
-
-Args:
-    user_id: The user ID
-    category: Optional category filter (None = all categories)
-    limit: Maximum number of messages to return
-    days_back: Only include messages from last N days
-
-Returns:
-    List[dict]: List of recent messages, sorted by timestamp descending
-- [OK] `get_timestamp_for_sorting(item)` - Convert timestamp to float for consistent sorting.
-
-Args:
-    item: Dictionary containing a timestamp field or other data type
-
-Returns:
-    float: Timestamp as float for sorting, or 0.0 for invalid items
-- [OK] `load_default_messages(category)` - Load default messages for a specific category.
-- [OK] `load_user_messages(user_id, category)` - Load user's message templates for a specific category.
-
-Args:
-    user_id: The user ID
-    category: The message category
-
-Returns:
-    List[dict]: List of message templates for the category
-- [OK] `store_sent_message(user_id, category, message_id, message, delivery_status, time_period)` - Store sent message in chronological order.
-
-This function maintains the chronological structure by inserting new messages
-in the correct position based on timestamp.
-
-Args:
-    user_id: The user ID
-    category: The message category
-    message_id: The message ID
-    message: The message content
-    delivery_status: Delivery status (default: "sent")
-    time_period: The time period when the message was sent (e.g., "morning", "evening")
-
-Returns:
-    bool: True if message stored successfully
-- [OK] `update_message(user_id, category, message_id, new_message_data)` - Update a message by its message_id.
-
-Args:
-    user_id: The user ID
-    category: The message category
-    message_id: The ID of the message to update
-    new_message_data: Complete new message data to replace the existing message
-
-Raises:
-    ValidationError: If message ID is not found or category is invalid
-
-#### `core/message_preview.py`
-**Functions:**
-- [OK] `get_predefined_message_preview_text(user_id, category)` - Return the text that would be chosen for a predefined-category send (mirrors orchestrator weighting).
-- [OK] `message_schedule_matches_current_window(day_names, time_periods, current_days, matching_periods)` - True if template schedule overlaps current day/period (ALL matches any).
-- [OK] `message_template_schedule_lists(msg)` - Return day names and time periods from a v2 template ``schedule`` (or ALL defaults).
-
 #### `core/network_probe.py`
 **Functions:**
 - [OK] `wait_for_network(timeout)` - Wait for the network to be available, retrying every 5 seconds up to a timeout.
@@ -4078,22 +3649,14 @@ Raises:
 
 #### `core/response_tracking.py`
 **Functions:**
-- [OK] `_build_v2_checkin_from_response_payload(response_data)` - Build a canonical v2 check-in dict from a runtime payload (``submitted_at`` / ``sent_at`` only).
-- [OK] `_checkin_to_runtime_response(checkin)` - Return the flat response shape expected by existing analytics callers.
-- [OK] `_coerce_v2_checkins_envelope_for_store(existing_data)` - Return a mutable v2 envelope for appending a new check-in, or None if on-disk data is not v2.
 - [OK] `_get_response_log_filename(response_type)` - Get the filename for a response log type.
-- [OK] `_response_to_v2_checkin(response_data)` - Build a v2 check-in row from runtime payload (Discord / internal); v2 fields only.
-- [OK] `checkin_runtime_timestamp(checkin)` - Wall-clock timestamp string for a check-in row (v2 ``submitted_at`` only).
-- [OK] `get_checkins_by_days(user_id, days)` - Get check-ins from the last N calendar days.
+- [MISSING] `_get_response_timestamp_for_sorting(item)` - No description
 - [OK] `get_recent_chat_interactions(user_id, limit)` - Get recent chat interactions for a user.
-- [OK] `get_recent_checkins(user_id, limit)` - Get recent check-in responses for a user.
-- [OK] `get_recent_responses(user_id, response_type, limit)` - Get recent responses for a user from appropriate file structure.
-- [OK] `get_timestamp_for_sorting(item)` - Convert timestamp to float for consistent sorting
+- [OK] `get_recent_responses(user_id, response_type, limit)` - Get recent responses for a user.
 - [OK] `get_user_info_for_tracking(user_id)` - Get user information for response tracking.
 - [OK] `is_automated_messages_enabled(user_id)` - Check if automated outbound messages are enabled for a user.
-- [OK] `is_user_checkins_enabled(user_id)` - Check if check-ins are enabled for a user.
 - [OK] `store_chat_interaction(user_id, user_message, ai_response, context_used)` - Store a chat interaction between user and AI.
-- [OK] `store_user_response(user_id, response_data, response_type)` - Store user response data in appropriate file structure.
+- [OK] `store_user_response(user_id, response_data, response_type)` - Store a generic user response, delegating check-ins to the check-in domain.
 - [OK] `track_user_response(user_id, category, response_data)` - Track a user's response to a message.
 
 #### `core/schedule_document_defaults.py`

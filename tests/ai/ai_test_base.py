@@ -246,7 +246,7 @@ class AITestBase:
 
         try:
             from user.context_manager import user_context_manager
-            from core.response_tracking import (
+            from checkins.checkin_data_manager import (
                 get_recent_checkins,
                 is_user_checkins_enabled,
             )

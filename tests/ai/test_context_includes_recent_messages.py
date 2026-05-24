@@ -5,7 +5,7 @@ from ai.response_generator import get_response_generator
 from core import get_user_data, get_user_id_by_identifier
 from core.config import get_user_file_path
 from core.file_operations import save_json_data
-from core.message_management import store_sent_message
+from messages.message_data_manager import store_sent_message
 from core.response_tracking import store_user_response
 from tests.test_helpers.test_utilities import (
     cleanup_test_data_environment,

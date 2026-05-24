@@ -212,6 +212,7 @@ class TaskEditDialog(QDialog):
         self.ui.buttonBox_task_edit.accepted.connect(self.save_task)
         self.ui.buttonBox_task_edit.rejected.connect(self.reject)
 
+    # devtools: intentional[duplicate-functions]: task_edit_form_recurring_fields
     @handle_errors("loading task data")
     def load_task_data(self):
         """Load existing task data into the form."""
@@ -297,6 +298,7 @@ class TaskEditDialog(QDialog):
         # Load recurring task settings
         self.load_recurring_task_data()
 
+    # devtools: intentional[duplicate-functions]: task_edit_form_recurring_fields
     @handle_errors("loading recurring task data")
     def load_recurring_task_data(self):
         """Load recurring task data into the form."""
@@ -584,6 +586,7 @@ class TaskEditDialog(QDialog):
         """Collect selected tags from the tag widget."""
         return self.tag_widget.get_selected_tags()
 
+    # devtools: intentional[duplicate-functions]: task_edit_form_recurring_fields
     @handle_errors("collecting recurring task data")
     def collect_recurring_task_data(self):
         """Collect recurring task settings from the form."""

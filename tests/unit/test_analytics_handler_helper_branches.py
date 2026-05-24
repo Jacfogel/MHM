@@ -35,7 +35,7 @@ class TestAnalyticsHandlerHelperBranches:
                 return {"total_checkins": 4, "categories": {}}
 
         monkeypatch.setattr(
-            "core.checkin_analytics.CheckinAnalytics",
+            "checkins.checkin_analytics.CheckinAnalytics",
             lambda: _FakeAnalytics(),
         )
         result = self.checkin_handler.handle_show_analytics("u1", {"days": 7})
@@ -43,7 +43,7 @@ class TestAnalyticsHandlerHelperBranches:
 
     def test_show_analytics_exception_branch(self, monkeypatch):
         monkeypatch.setattr(
-            "core.checkin_analytics.CheckinAnalytics",
+            "checkins.checkin_analytics.CheckinAnalytics",
             lambda: (_ for _ in ()).throw(RuntimeError("boom")),
         )
         seen = []
@@ -64,7 +64,7 @@ class TestAnalyticsHandlerHelperBranches:
                 return self._payload
 
         monkeypatch.setattr(
-            "core.checkin_analytics.CheckinAnalytics",
+            "checkins.checkin_analytics.CheckinAnalytics",
             lambda: _FakeAnalytics({"error": "no data"}),
         )
         no_data = self.trend_handler.handle_energy_trends("u1", {"days": 14})
@@ -79,7 +79,7 @@ class TestAnalyticsHandlerHelperBranches:
             "recent_data": [{"date": "2026-02-01", "energy": 4.0}],
         }
         monkeypatch.setattr(
-            "core.checkin_analytics.CheckinAnalytics",
+            "checkins.checkin_analytics.CheckinAnalytics",
             lambda: _FakeAnalytics(payload_high),
         )
         high = self.trend_handler.handle_energy_trends("u1", {"days": 14})
@@ -95,7 +95,7 @@ class TestAnalyticsHandlerHelperBranches:
             "recent_data": [],
         }
         monkeypatch.setattr(
-            "core.checkin_analytics.CheckinAnalytics",
+            "checkins.checkin_analytics.CheckinAnalytics",
             lambda: _FakeAnalytics(payload_low),
         )
         low = self.trend_handler.handle_energy_trends("u1", {"days": 14})
@@ -204,11 +204,11 @@ class TestAnalyticsHandlerHelperBranches:
                 return {"mood": {"label": "Mood"}}
 
         monkeypatch.setattr(
-            "core.response_tracking.get_checkins_by_days",
+            "checkins.checkin_data_manager.get_checkins_by_days",
             lambda user_id, days: [{"id": i} for i in range(7)],
         )
-        monkeypatch.setattr("core.checkin_analytics.CheckinAnalytics", lambda: _FakeAnalytics())
-        monkeypatch.setattr("core.checkin_dynamic_manager.dynamic_checkin_manager", _FakeDynamic())
+        monkeypatch.setattr("checkins.checkin_analytics.CheckinAnalytics", lambda: _FakeAnalytics())
+        monkeypatch.setattr("checkins.checkin_dynamic_manager.dynamic_checkin_manager", _FakeDynamic())
         monkeypatch.setattr(
             self.checkin_handler,
             "_extract_checkin_responses",
@@ -221,7 +221,7 @@ class TestAnalyticsHandlerHelperBranches:
 
         seen = []
         monkeypatch.setattr(
-            "core.response_tracking.get_checkins_by_days",
+            "checkins.checkin_data_manager.get_checkins_by_days",
             lambda user_id, days: (_ for _ in ()).throw(RuntimeError("explode")),
         )
         monkeypatch.setattr(
@@ -241,14 +241,14 @@ class TestAnalyticsHandlerHelperBranches:
                 return self._payload
 
         monkeypatch.setattr(
-            "core.checkin_analytics.CheckinAnalytics",
+            "checkins.checkin_analytics.CheckinAnalytics",
             lambda: _FakeAnalytics({"error": "no data"}),
         )
         no_data = self.checkin_handler.handle_completion_rate("u1", {"days": 30})
         assert "don't have enough check-in data" in no_data.message
 
         monkeypatch.setattr(
-            "core.checkin_analytics.CheckinAnalytics",
+            "checkins.checkin_analytics.CheckinAnalytics",
             lambda: (_ for _ in ()).throw(RuntimeError("boom")),
         )
         seen = []
@@ -274,7 +274,7 @@ class TestAnalyticsHandlerHelperBranches:
         )
         monkeypatch.setattr("tasks.load_active_tasks", lambda user_id: [])
         monkeypatch.setattr("tasks.load_completed_tasks", lambda user_id: [])
-        monkeypatch.setattr("core.checkin_analytics.CheckinAnalytics", lambda: _FakeAnalytics({"error": "none"}))
+        monkeypatch.setattr("checkins.checkin_analytics.CheckinAnalytics", lambda: _FakeAnalytics({"error": "none"}))
         response_zero = self.task_handler.handle_task_analytics("u1", {"days": 30})
         assert "No detailed task completion data available" in response_zero.message
         assert "No active tasks - great job" in response_zero.message
@@ -283,7 +283,7 @@ class TestAnalyticsHandlerHelperBranches:
             "tasks.get_user_task_stats",
             lambda user_id: {"active_count": 6, "completed_count": 2, "total_count": 8},
         )
-        monkeypatch.setattr("core.checkin_analytics.CheckinAnalytics", lambda: _FakeAnalytics({"Task A": {"completion_rate": 90, "completed_days": 9, "total_days": 10}}))
+        monkeypatch.setattr("checkins.checkin_analytics.CheckinAnalytics", lambda: _FakeAnalytics({"Task A": {"completion_rate": 90, "completed_days": 9, "total_days": 10}}))
         response_many = self.task_handler.handle_task_analytics("u1", {"days": 30})
         assert "consider prioritizing" in response_many.message
         assert "making good progress" in response_many.message

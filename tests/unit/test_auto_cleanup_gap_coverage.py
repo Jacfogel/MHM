@@ -371,7 +371,7 @@ def test_archive_old_messages_for_all_users_mixed_results(monkeypatch):
             return False
         raise RuntimeError("fail-u3")
 
-    monkeypatch.setattr("core.message_management.archive_old_messages", fake_archive)
+    monkeypatch.setattr("messages.message_data_manager.archive_old_messages", fake_archive)
 
     assert auto_cleanup.archive_old_messages_for_all_users() is True
     assert any("No messages to archive for user u2" in msg for msg in logs["debug"])

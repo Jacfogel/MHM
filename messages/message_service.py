@@ -6,7 +6,7 @@ import random
 from typing import Any
 
 from core.error_handling import handle_errors
-from core.message_management import get_recent_messages, load_user_messages
+from messages.message_data_manager import get_recent_messages, load_user_messages
 from core.schedule_runtime import (
     get_current_day_names,
     get_current_time_periods_with_validation,

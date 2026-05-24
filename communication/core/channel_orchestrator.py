@@ -21,7 +21,7 @@ from communication.delivery.message_dispatcher import PredefinedMessageDispatche
 from communication.reminders.checkin_prompt_dispatcher import CheckinPromptDispatcher
 from communication.reminders.reminder_dispatcher import TaskReminderDispatcher
 from core import get_user_data
-from core.message_management import store_sent_message
+from messages.message_data_manager import store_sent_message
 from core.schedule_runtime import get_current_time_periods_with_validation
 from core.config import EMAIL_SMTP_SERVER, DISCORD_BOT_TOKEN
 from core.network_probe import wait_for_network

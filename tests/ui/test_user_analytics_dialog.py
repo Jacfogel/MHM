@@ -187,7 +187,7 @@ class TestUserAnalyticsDataLoading:
             'recent_data': []
         }
         
-        with patch('core.response_tracking.get_checkins_by_days', return_value=[]):
+        with patch('checkins.checkin_data_manager.get_checkins_by_days', return_value=[]):
             dialog.load_analytics_data()
             
             # Verify analytics methods were called (at least once, may be called multiple times)
@@ -282,7 +282,7 @@ class TestUserAnalyticsDataLoading:
         }
         
         # Act: Load overview data
-        with patch('core.response_tracking.get_checkins_by_days', return_value=[{}, {}, {}]):
+        with patch('checkins.checkin_data_manager.get_checkins_by_days', return_value=[{}, {}, {}]):
             dialog.load_overview_data()
             
             # Assert: Verify wellness score is displayed (side effect)
@@ -789,7 +789,7 @@ class TestUserAnalyticsIntegration:
         }
         
         # Act: Execute complete loading workflow
-        with patch('core.response_tracking.get_checkins_by_days', return_value=[{}, {}]):
+        with patch('checkins.checkin_data_manager.get_checkins_by_days', return_value=[{}, {}]):
             dialog.load_analytics_data()
         
         # Assert: Verify data was loaded and displayed (side effects)
@@ -830,7 +830,7 @@ class TestUserAnalyticsIntegration:
         }
         
         # Arrange: Load initial data
-        with patch('core.response_tracking.get_checkins_by_days', return_value=[]):
+        with patch('checkins.checkin_data_manager.get_checkins_by_days', return_value=[]):
             dialog.load_analytics_data()
         
         initial_days = dialog.current_days
@@ -855,7 +855,7 @@ class TestUserAnalyticsIntegration:
         # Arrange: Set combo box index to match the time period change
         dialog.ui.comboBox_time_period.setCurrentIndex(0)  # 7 days
         
-        with patch('core.response_tracking.get_checkins_by_days', return_value=[]):
+        with patch('checkins.checkin_data_manager.get_checkins_by_days', return_value=[]):
             dialog.on_time_period_changed(0)  # 7 days
         
         # Assert: Verify time period changed (system state)
@@ -889,7 +889,7 @@ class TestUserAnalyticsIntegration:
         }
         
         # Arrange: Load initial data
-        with patch('core.response_tracking.get_checkins_by_days', return_value=[]):
+        with patch('checkins.checkin_data_manager.get_checkins_by_days', return_value=[]):
             dialog.load_analytics_data()
         
         # Arrange: Update analytics data for refresh
@@ -910,7 +910,7 @@ class TestUserAnalyticsIntegration:
         }
         
         # Act: Refresh analytics
-        with patch('core.response_tracking.get_checkins_by_days', return_value=[{}, {}]):
+        with patch('checkins.checkin_data_manager.get_checkins_by_days', return_value=[{}, {}]):
             dialog.refresh_analytics()
         
         # Assert: Verify data was refreshed (side effects)

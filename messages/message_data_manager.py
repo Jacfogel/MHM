@@ -20,12 +20,25 @@ from core.time_utilities import (
     now_timestamp_full,
     parse_timestamp_full,
 )
-from storage.user_data_v2_envelopes import MessageTemplateV2Model
+from messages.message_schemas import MessageTemplateV2Model
 from storage.user_data_v2_base import SCHEMA_VERSION, generate_short_id
 import contextlib
 import importlib
 
 logger = get_component_logger("message")
+
+
+@handle_errors("checking if automated messages enabled", default_return=False)
+def is_automated_messages_enabled(user_id: str) -> bool:
+    """Check if automated outbound messages are enabled for a user."""
+    from core import get_user_data
+
+    user_data_result = get_user_data(user_id, "account")
+    user_account = user_data_result.get("account")
+    if not user_account:
+        return False
+
+    return user_account.get("features", {}).get("automated_messages") == "enabled"
 
 
 @handle_errors(

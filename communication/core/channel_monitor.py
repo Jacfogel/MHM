@@ -157,6 +157,7 @@ class ChannelMonitor:
         # Update last attempt time
         self._last_restart_attempts[channel_name] = now
 
+    # devtools: intentional[duplicate-functions]: channel_status_recorders
     @handle_errors("recording channel failure", default_return=None)
     def record_channel_failure(self, channel_name: str):
         """Record a failure for a specific channel"""
@@ -171,6 +172,7 @@ class ChannelMonitor:
             logger.error(f"Error recording channel failure for {channel_name}: {e}")
             raise
 
+    # devtools: intentional[duplicate-functions]: channel_status_recorders
     @handle_errors("recording channel success", default_return=None)
     def record_channel_success(self, channel_name: str):
         """Record a success for a specific channel (resets failure count)"""

@@ -25,7 +25,7 @@ from PySide6.QtWidgets import (
 from ui.generated.message_editor_dialog_pyqt import Ui_Dialog_message_editor
 
 # Import core functionality
-from core.message_management import (
+from messages.message_data_manager import (
     load_user_messages,
     add_message,
     edit_message,

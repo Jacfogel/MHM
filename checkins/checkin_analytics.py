@@ -1,4 +1,4 @@
-# core/checkin_analytics.py
+# checkins/checkin_analytics.py
 
 """
 Check-in Analytics Module
@@ -10,7 +10,7 @@ understand their patterns and progress over time.
 import statistics
 from typing import Any
 from core.logger import get_component_logger
-from core.response_tracking import checkin_runtime_timestamp, get_checkins_by_days
+from checkins.checkin_data_manager import checkin_runtime_timestamp, get_checkins_by_days
 from core.error_handling import ValidationError, handle_errors
 from core.time_utilities import parse_timestamp_full, parse_time_only_minute
 
@@ -350,7 +350,7 @@ class CheckinAnalytics:
         if not checkins:
             return {"error": "No check-in data available"}
 
-        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        from checkins.checkin_dynamic_manager import dynamic_checkin_manager
 
         question_defs = dynamic_checkin_manager.get_all_questions(user_id)
 
@@ -497,7 +497,7 @@ class CheckinAnalytics:
         if not checkins:
             return {"error": "No check-in data available"}
 
-        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        from checkins.checkin_dynamic_manager import dynamic_checkin_manager
 
         question_defs = dynamic_checkin_manager.get_all_questions(user_id)
         categories = dynamic_checkin_manager.get_categories()
@@ -988,7 +988,7 @@ class CheckinAnalytics:
         if not checkins:
             return {"error": "No check-in data available"}
 
-        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        from checkins.checkin_dynamic_manager import dynamic_checkin_manager
 
         question_defs = dynamic_checkin_manager.get_all_questions(user_id)
 

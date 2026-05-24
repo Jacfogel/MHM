@@ -129,16 +129,6 @@ No active high-priority TODOs are currently tracked here. Keep completed archite
 
 ## Low Priority
 
-### Architecture
-
-**Create first-class automated message and check-in domain packages**
-- *Decision*: Proceed in principle, but do this last and start with a short design pass. Message and check-in logic are real application domains, but they touch scheduler behavior, communication handlers, UI dialogs, analytics, schemas, response tracking, and persistence.
-- *What it means*: Move automated message logic and check-in logic out of `core/` into clearer domain packages, such as `messages/` and `checkins/`, after scheduler and storage boundaries are stable. Follow the existing `notebook/` and `tasks/` pattern where practical: `*_data_handlers.py`, `*_data_manager.py`, `*_schemas.py`, `*_service.py`, and `*_validation.py`, plus domain-specific modules where they are justified. Do not force empty layers if a module has no real responsibility.
-- *Why it helps*: Makes messages, check-ins, tasks, and notebook entries equally visible as application domains instead of burying message/check-in behavior under broad core modules.
-- *Execution guidance*: Design the target ownership before moving files. Avoid long-lived `core.message_*` or `core.checkin_*` bridges; if temporary bridges are needed for staged migration, follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md), including bridge markers, usage logging, a removal plan, deprecation inventory entries, and `--find`/`--verify` cleanup before deletion.
-- *Estimated effort*: Medium/Large
-- *Created*: 2026-05-03
-
 ### Post-overhaul AI (active - see PLANS.md Section 5.0.1)
 
 **AI Chatbot Actionability Sprint** - *Active (post-overhaul)*

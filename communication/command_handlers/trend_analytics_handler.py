@@ -2,7 +2,8 @@
 
 from typing import Any
 
-from core import checkin_analytics, error_handling
+from checkins import checkin_analytics
+from core import error_handling
 
 from communication.command_handlers.analytics_formatting import AnalyticsFormattingMixin
 from communication.command_handlers.shared_types import InteractionResponse

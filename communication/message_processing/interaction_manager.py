@@ -1319,7 +1319,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
 
         # Get check-in suggestions
         try:
-            from core.response_tracking import (
+            from checkins.checkin_data_manager import (
                 checkin_runtime_timestamp,
                 get_recent_checkins,
                 is_user_checkins_enabled,
@@ -1366,7 +1366,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
 
         # Get analytics suggestions
         try:
-            from core.response_tracking import get_recent_checkins
+            from checkins.checkin_data_manager import get_recent_checkins
 
             checkins = get_recent_checkins(user_id, limit=5)
             if checkins and len(checkins) >= 3:

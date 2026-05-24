@@ -1298,7 +1298,7 @@ class TestCheckinHandlerAdvancedCoverage:
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
         # Mock no questions available
-        with patch("core.response_tracking.get_recent_checkins") as mock_recent:
+        with patch("checkins.checkin_data_manager.get_recent_checkins") as mock_recent:
             mock_recent.return_value = []
 
             parsed_command = ParsedCommand(

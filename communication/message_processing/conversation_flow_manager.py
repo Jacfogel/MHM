@@ -23,7 +23,7 @@ from datetime import datetime, timedelta
 from ai.chatbot import get_ai_chatbot
 from core.logger import get_component_logger
 from core import get_user_data
-from core.response_tracking import (
+from checkins.checkin_data_manager import (
     is_user_checkins_enabled,
     get_recent_checkins,
 )
@@ -795,7 +795,7 @@ class ConversationManager:
     ) -> str:
         """Get appropriate question text based on question type and previous responses"""
         # Import the dynamic checkin manager
-        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        from checkins.checkin_dynamic_manager import dynamic_checkin_manager
 
         # Get the question text from the dynamic manager (pass user_id for custom questions)
         question_text = dynamic_checkin_manager.get_question_text(question_key, user_id)
@@ -965,7 +965,7 @@ class ConversationManager:
     ) -> dict:
         """Validate user response based on question type using dynamic manager"""
         # Import the dynamic checkin manager
-        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        from checkins.checkin_dynamic_manager import dynamic_checkin_manager
 
         # Use the dynamic manager to validate the response (pass user_id for custom questions)
         is_valid, value, error_message = dynamic_checkin_manager.validate_answer(
@@ -990,9 +990,9 @@ class ConversationManager:
         data["questions_asked"] = question_order
 
         # Store the check-in data using modern function
-        from core.response_tracking import store_user_response
+        from checkins.checkin_data_manager import store_checkin_response
 
-        store_user_response(user_id, data, "checkin")
+        store_checkin_response(user_id, data)
 
         # Log user activity for check-in completion
         from core.logger import get_component_logger

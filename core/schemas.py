@@ -281,7 +281,7 @@ class PreferencesModel(BaseModel):
 
         try:
             allowed_categories = importlib.import_module(
-                "core.message_management"
+                "messages.message_data_manager"
             ).get_message_categories()
             invalid_categories = [c for c in v if c not in allowed_categories]
 

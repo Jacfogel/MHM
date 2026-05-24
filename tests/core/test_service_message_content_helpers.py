@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from core.message_preview import get_predefined_message_preview_text
+from messages.message_service import get_predefined_message_preview_text
 from core.service import MHMService
 import core.service_requests as service_requests
 
@@ -54,15 +54,15 @@ class TestServiceMessageContentHelpers:
     def test_message_preview_selects_non_recent_specific_period_message(self):
         with (
             patch(
-                "core.message_preview.get_current_time_periods_with_validation",
+                "messages.message_service.get_current_time_periods_with_validation",
                 return_value=(["ALL", "morning"], ["ALL", "morning"]),
             ),
             patch(
-                "core.message_preview.get_current_day_names",
+                "messages.message_service.get_current_day_names",
                 return_value=["MONDAY"],
             ),
             patch(
-                "core.message_preview.load_user_messages",
+                "messages.message_service.load_user_messages",
                 return_value=[
                     {
                         "text": "recent message",
@@ -81,7 +81,7 @@ class TestServiceMessageContentHelpers:
                 ],
             ),
             patch(
-                "core.message_preview.get_recent_messages",
+                "messages.message_service.get_recent_messages",
                 return_value=[{"sent_text": "recent message"}],
             ),
             patch("core.config.get_user_data_dir", return_value="C:/tmp/user-1"),
@@ -95,15 +95,15 @@ class TestServiceMessageContentHelpers:
     def test_message_preview_returns_none_when_no_messages_match(self):
         with (
             patch(
-                "core.message_preview.get_current_time_periods_with_validation",
+                "messages.message_service.get_current_time_periods_with_validation",
                 return_value=(["morning"], ["morning"]),
             ),
             patch(
-                "core.message_preview.get_current_day_names",
+                "messages.message_service.get_current_day_names",
                 return_value=["MONDAY"],
             ),
             patch(
-                "core.message_preview.load_user_messages",
+                "messages.message_service.load_user_messages",
                 return_value=[],
             ),
             patch("core.config.get_user_data_dir", return_value="C:/tmp/user-1"),

@@ -8,7 +8,7 @@ import json
 import os
 import uuid
 
-from core.checkin_analytics import CheckinAnalytics
+from checkins.checkin_analytics import CheckinAnalytics
 from storage.user_data_v2_base import SCHEMA_VERSION
 from core import (
     get_user_data,

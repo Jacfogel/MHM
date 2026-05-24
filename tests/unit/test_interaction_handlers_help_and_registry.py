@@ -126,7 +126,7 @@ class TestHelpHandler:
             lambda user_id: [{"title": "A"}, {"title": "B"}],
         )
         monkeypatch.setattr(
-            "core.response_tracking.is_user_checkins_enabled",
+            "checkins.checkin_data_manager.is_user_checkins_enabled",
             lambda user_id: True,
         )
 
@@ -150,7 +150,7 @@ class TestHelpHandler:
             lambda user_id, data_type: {"account": {"internal_username": "julie"}},
         )
         monkeypatch.setattr(
-            "core.response_tracking.get_recent_checkins",
+            "checkins.checkin_data_manager.get_recent_checkins",
             lambda user_id, limit=5: [{"date": "2026-02-27"}],
         )
 
@@ -174,7 +174,7 @@ class TestHelpHandler:
             lambda user_id, data_type: {"account": {"internal_username": "julie"}},
         )
         monkeypatch.setattr(
-            "core.response_tracking.get_recent_checkins",
+            "checkins.checkin_data_manager.get_recent_checkins",
             lambda user_id, limit=5: [],
         )
         response = self.handler._handle_messages("user-1")

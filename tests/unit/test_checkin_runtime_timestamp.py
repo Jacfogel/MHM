@@ -2,7 +2,7 @@
 
 import pytest
 
-from core.response_tracking import checkin_runtime_timestamp
+from checkins.checkin_data_manager import checkin_runtime_timestamp
 
 
 @pytest.mark.unit

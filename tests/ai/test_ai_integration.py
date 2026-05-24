@@ -78,7 +78,7 @@ class TestAIIntegration(AITestBase):
                 )
 
                 # Get check-in status information
-                from core.response_tracking import get_recent_checkins
+                from checkins.checkin_data_manager import get_recent_checkins
                 from core.time_utilities import format_timestamp  # canonical helper
 
                 recent_checkins = (
@@ -364,7 +364,7 @@ class TestAIIntegration(AITestBase):
             # Test 8.1: Store conversation exchange
             try:
                 # Check if check-in data exists before first response
-                from core.response_tracking import get_recent_checkins
+                from checkins.checkin_data_manager import get_recent_checkins
 
                 # NOTE: Avoid datetime.now in tests that touch production behavior.
                 # Use canonical time helpers from core.time_utilities instead.

@@ -8,7 +8,7 @@ import os
 from datetime import datetime, timezone
 from unittest.mock import patch
 
-from core.message_management import (
+from messages.message_data_manager import (
     archive_old_messages,
     get_message_categories,
     store_sent_message,
@@ -21,7 +21,7 @@ pytestmark = [pytest.mark.core]
 
 def _patch_message_mgmt_utc_now(monkeypatch, fixed_now: datetime) -> None:
     """Make archive_old_messages use a fixed UTC 'now' (cutoff math)."""
-    monkeypatch.setattr("core.message_management.now_datetime_utc", lambda: fixed_now)
+    monkeypatch.setattr("messages.message_data_manager.now_datetime_utc", lambda: fixed_now)
 
 
 @pytest.mark.unit
@@ -63,8 +63,8 @@ class TestStoreSentMessage:
     
     def test_store_sent_message_success(self):
         """Test storing a sent message successfully."""
-        with patch('core.message_management.load_json_data', return_value={"sent_messages": []}):
-            with patch('core.message_management.save_json_data', return_value=True):
+        with patch('messages.message_data_manager.load_json_data', return_value={"sent_messages": []}):
+            with patch('messages.message_data_manager.save_json_data', return_value=True):
                 result = store_sent_message("test_user", "motivational", "msg1", "Test message")
                 assert result is True
 
@@ -82,7 +82,7 @@ class TestArchiveOldMessages:
         sent = tmp_path / "sent_messages.json"
         sent.write_text(json.dumps({}), encoding="utf-8")
         monkeypatch.setattr(
-            "core.message_management.determine_file_path",
+            "messages.message_data_manager.determine_file_path",
             lambda _ft, _uid: str(sent),
         )
         assert archive_old_messages("user-1", days_to_keep=30) is True
@@ -112,7 +112,7 @@ class TestArchiveOldMessages:
         }
         sent.write_text(json.dumps(payload), encoding="utf-8")
         monkeypatch.setattr(
-            "core.message_management.determine_file_path",
+            "messages.message_data_manager.determine_file_path",
             lambda _ft, _uid: str(sent),
         )
         assert archive_old_messages("user-1", days_to_keep=30) is True
@@ -159,11 +159,11 @@ class TestArchiveOldMessages:
         }
         sent.write_text(json.dumps(payload), encoding="utf-8")
         monkeypatch.setattr(
-            "core.message_management.determine_file_path",
+            "messages.message_data_manager.determine_file_path",
             lambda _ft, _uid: str(sent),
         )
         monkeypatch.setattr(
-            "core.message_management.now_timestamp_filename", lambda: "test_archive_ts"
+            "messages.message_data_manager.now_timestamp_filename", lambda: "test_archive_ts"
         )
 
         assert archive_old_messages("user-1", days_to_keep=30) is True

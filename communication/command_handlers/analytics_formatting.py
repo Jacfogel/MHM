@@ -2,7 +2,7 @@
 
 from typing import Any
 
-import core.response_tracking as response_tracking
+import checkins.checkin_data_manager as checkin_data_manager
 from core.error_handling import handle_errors
 
 
@@ -255,7 +255,7 @@ class AnalyticsFormattingMixin:
                 continue
             date_value = (
                 entry.get("date")
-                or response_tracking.checkin_runtime_timestamp(entry)
+                or checkin_data_manager.checkin_runtime_timestamp(entry)
                 or "Unknown"
             )
             date_label = (

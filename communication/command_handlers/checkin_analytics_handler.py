@@ -4,13 +4,9 @@ from collections import Counter
 from typing import Any
 
 import core
-from core import (
-    checkin_analytics,
-    checkin_dynamic_manager,
-    error_handling,
-    response_tracking,
-    time_utilities,
-)
+from checkins import checkin_analytics, checkin_dynamic_manager
+from checkins import checkin_data_manager as response_tracking
+from core import error_handling, time_utilities
 
 from communication.command_handlers.analytics_formatting import AnalyticsFormattingMixin
 from communication.command_handlers.shared_types import InteractionResponse

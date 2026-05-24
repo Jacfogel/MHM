@@ -288,7 +288,7 @@ class HelpHandler(InteractionHandler):
     def _handle_status(self, user_id: str) -> InteractionResponse:
         """Handle status request with detailed system information"""
         from tasks import load_active_tasks
-        from core.response_tracking import is_user_checkins_enabled
+        from checkins.checkin_data_manager import is_user_checkins_enabled
 
         # Load user data
         account_result = get_user_data(user_id, "account")
@@ -361,7 +361,7 @@ class HelpHandler(InteractionHandler):
     )
     def _handle_messages(self, user_id: str) -> InteractionResponse:
         """Handle messages request with message history and settings"""
-        from core.response_tracking import get_recent_checkins
+        from checkins.checkin_data_manager import get_recent_checkins
 
         # Load user data
         account_result = get_user_data(user_id, "account")

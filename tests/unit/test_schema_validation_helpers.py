@@ -46,7 +46,7 @@ def test_validate_account_dict_normalizes_features_when_validation_fails(feature
 @pytest.mark.regression
 @pytest.mark.core
 def test_validate_preferences_dict_reports_errors_and_returns_original(monkeypatch):
-    monkeypatch.setattr("core.message_management.get_message_categories", lambda: ["allowed"])
+    monkeypatch.setattr("messages.message_data_manager.get_message_categories", lambda: ["allowed"])
     data = {
         "categories": ["invalid"],
         "channel": {"type": "email", "contact": "user@example.com"},

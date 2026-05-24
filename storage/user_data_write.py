@@ -636,7 +636,7 @@ def update_user_preferences(
 
     if "categories" in updates:
         try:
-            from core.message_management import ensure_user_message_files
+            from messages.message_data_manager import ensure_user_message_files
 
             preferences_data = get_user_data(user_id, "preferences")
             if preferences_data is None:

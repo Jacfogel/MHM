@@ -693,7 +693,7 @@ def archive_old_messages_for_all_users():
     """
     try:
         from core import get_all_user_ids
-        from core.message_management import archive_old_messages
+        from messages.message_data_manager import archive_old_messages
 
         user_ids = get_all_user_ids()
         if not user_ids:

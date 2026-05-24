@@ -647,7 +647,7 @@ def validate_new_user_data(
     # PREFERENCES (mandatory for channel type)
     prefs = data_updates.get("preferences", {})
     if "categories" in prefs and isinstance(prefs["categories"], list):
-        from core.message_management import get_message_categories
+        from messages.message_data_manager import get_message_categories
 
         invalid = [c for c in prefs["categories"] if c not in get_message_categories()]
         if invalid:

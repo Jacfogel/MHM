@@ -12,11 +12,13 @@ from core.response_tracking import (
     store_user_response,
     store_chat_interaction,
     get_recent_responses,
-    get_recent_checkins,
     get_recent_chat_interactions,
-    is_user_checkins_enabled,
     get_user_info_for_tracking,
     track_user_response,
+)
+from checkins.checkin_data_manager import (
+    get_recent_checkins,
+    is_user_checkins_enabled,
 )
 from storage.user_data_v2_base import SCHEMA_VERSION
 
@@ -44,7 +46,7 @@ class TestResponseTrackingBehavior:
             os.remove(checkins_file)
         
         # Act - Store response with mocked file path
-        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+        with patch('checkins.checkin_data_manager.get_user_file_path', return_value=checkins_file):
             store_user_response(user_id, response_data, "checkin")
         
         # Assert - Verify file was created with data
@@ -78,7 +80,7 @@ class TestResponseTrackingBehavior:
             os.remove(checkins_file)
         
         # Act - Store multiple responses with mocked file path
-        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+        with patch('checkins.checkin_data_manager.get_user_file_path', return_value=checkins_file):
             store_user_response(user_id, response1, "checkin")
             store_user_response(user_id, response2, "checkin")
         
@@ -140,7 +142,7 @@ class TestResponseTrackingBehavior:
             os.remove(checkins_file)
 
         # Arrange - v2 check-ins via store path
-        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+        with patch('checkins.checkin_data_manager.get_user_file_path', return_value=checkins_file):
             store_user_response(
                 user_id,
                 {"mood": 5, "submitted_at": "2025-01-01 10:00:00"},
@@ -158,7 +160,7 @@ class TestResponseTrackingBehavior:
             )
 
         # Act - Get recent responses with mocked file path
-        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+        with patch('checkins.checkin_data_manager.get_user_file_path', return_value=checkins_file):
             recent = get_recent_responses(user_id, "checkin", limit=2)
         
         # Assert - Verify data is returned correctly
@@ -179,7 +181,7 @@ class TestResponseTrackingBehavior:
         if os.path.exists(checkins_file):
             os.remove(checkins_file)
 
-        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+        with patch('checkins.checkin_data_manager.get_user_file_path', return_value=checkins_file):
             store_user_response(
                 user_id,
                 {
@@ -200,7 +202,7 @@ class TestResponseTrackingBehavior:
             )
 
         # Act - Get recent checkins with mocked file path
-        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+        with patch('checkins.checkin_data_manager.get_user_file_path', return_value=checkins_file):
             recent = get_recent_checkins(user_id, limit=1)
         
         # Assert - Verify checkin data is returned
@@ -299,7 +301,7 @@ class TestResponseTrackingBehavior:
         }
         
         # Act - Check if checkins are enabled
-        with patch('core.response_tracking.get_user_data') as mock_get_user_data:
+        with patch('checkins.checkin_data_manager.get_user_data') as mock_get_user_data:
             mock_get_user_data.return_value = {"account": test_account}
             enabled = is_user_checkins_enabled(user_id)
         
@@ -313,7 +315,7 @@ class TestResponseTrackingBehavior:
             }
         }
         
-        with patch('core.response_tracking.get_user_data') as mock_get_user_data:
+        with patch('checkins.checkin_data_manager.get_user_data') as mock_get_user_data:
             mock_get_user_data.return_value = {"account": test_account_disabled}
             enabled = is_user_checkins_enabled(user_id)
         
@@ -483,7 +485,7 @@ class TestResponseTrackingBehavior:
         if os.path.exists(checkins_file):
             os.remove(checkins_file)
 
-        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+        with patch('checkins.checkin_data_manager.get_user_file_path', return_value=checkins_file):
             for i in range(100):
                 store_user_response(
                     user_id,
@@ -496,7 +498,7 @@ class TestResponseTrackingBehavior:
                 )
         
         # Act - Get recent responses with mocked file path (should be fast even with large dataset)
-        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+        with patch('checkins.checkin_data_manager.get_user_file_path', return_value=checkins_file):
             recent = get_recent_responses(user_id, "checkin", limit=5)
         
         # Assert - Should return quickly and correctly
@@ -521,7 +523,7 @@ class TestResponseTrackingBehavior:
             os.remove(checkins_file)
         
         # Store initial data
-        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+        with patch('checkins.checkin_data_manager.get_user_file_path', return_value=checkins_file):
             initial_data = {"mood": 7, "energy": 8, "notes": "Initial entry"}
             store_user_response(user_id, initial_data, "checkin")
             
@@ -579,8 +581,8 @@ class TestResponseTrackingIntegration:
             json.dump({"preferences": test_preferences}, f)
         
         # Act - Test complete workflow with mocked file paths and user data functions
-        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file), \
-             patch('core.response_tracking.get_user_data') as mock_get_user_data:
+        with patch('checkins.checkin_data_manager.get_user_file_path', return_value=checkins_file), \
+             patch('checkins.checkin_data_manager.get_user_data') as mock_get_user_data:
             # Mock get_user_data to return our test data
             mock_get_user_data.side_effect = [
                 {"account": test_account},  # For is_user_checkins_enabled
@@ -623,7 +625,7 @@ class TestResponseTrackingIntegration:
             f.write('{"invalid": json}')  # Invalid JSON
         
         # Act - Try to get recent responses with mocked file path (should handle corruption gracefully)
-        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+        with patch('checkins.checkin_data_manager.get_user_file_path', return_value=checkins_file):
             recent = get_recent_responses(user_id, "checkin", limit=5)
         
         # Assert - Should handle corruption gracefully with improved error handling
@@ -632,7 +634,7 @@ class TestResponseTrackingIntegration:
         assert len(recent) == 0, "Should return empty list for corrupted file (recovered)"
         
         # Act - Try to store new response with mocked file path (should create new file)
-        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+        with patch('checkins.checkin_data_manager.get_user_file_path', return_value=checkins_file):
             store_user_response(user_id, {"mood": 5}, "checkin")
         
         # Assert - Should create new valid file with improved error handling
@@ -663,7 +665,7 @@ class TestResponseTrackingIntegration:
             os.remove(checkins_file)
 
         # Create initial data with explicit timestamp to control sorting
-        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+        with patch('checkins.checkin_data_manager.get_user_file_path', return_value=checkins_file):
             store_user_response(
                 user_id,
                 {"mood": 5, "submitted_at": "2025-01-01 10:00:00"},
@@ -675,7 +677,7 @@ class TestResponseTrackingIntegration:
         
         # Act - Simulate concurrent access by reading and writing simultaneously
         # This tests that the file operations are thread-safe
-        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+        with patch('checkins.checkin_data_manager.get_user_file_path', return_value=checkins_file):
             recent1 = get_recent_responses(user_id, "checkin", limit=5)
             store_user_response(
                 user_id,

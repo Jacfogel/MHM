@@ -350,7 +350,7 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
     
     try:
         from core import save_user_data, get_user_data
-        from core.message_management import create_message_file_from_defaults
+        from messages.message_data_manager import create_message_file_from_defaults
         
         # Create test user
         user_id = "test-user-category"

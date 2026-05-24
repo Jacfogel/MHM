@@ -2,7 +2,8 @@
 
 from typing import Any
 
-from core import checkin_analytics, error_handling
+from checkins import checkin_analytics
+from core import error_handling
 import tasks as task_services
 
 from communication.command_handlers.analytics_formatting import AnalyticsFormattingMixin
@@ -12,6 +13,7 @@ from communication.command_handlers.shared_types import InteractionResponse
 class TaskAnalyticsHandler(AnalyticsFormattingMixin):
     """Handle task analytics and task statistics commands."""
 
+    # devtools: intentional[duplicate-functions]: task_analytics_command_variants
     @error_handling.handle_errors(
         "showing task analytics",
         default_return=InteractionResponse(
@@ -91,6 +93,7 @@ class TaskAnalyticsHandler(AnalyticsFormattingMixin):
                 True,
             )
 
+    # devtools: intentional[duplicate-functions]: task_analytics_command_variants
     @error_handling.handle_errors(
         "showing task statistics",
         default_return=InteractionResponse(

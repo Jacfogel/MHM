@@ -19,7 +19,7 @@ from unittest.mock import Mock, patch, mock_open
 # Add the project root to the path
 # Do not modify sys.path; rely on package imports
 
-from core.message_management import (
+from messages.message_data_manager import (
     get_message_categories,
     load_default_messages,
     add_message,
@@ -126,7 +126,7 @@ class TestDefaultMessages:
         from unittest.mock import patch
         
         with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', test_default_messages_dir), \
-             patch('core.message_management.DEFAULT_MESSAGES_DIR_PATH', test_default_messages_dir):
+             patch('messages.message_data_manager.DEFAULT_MESSAGES_DIR_PATH', test_default_messages_dir):
             # Create test default messages file with invalid JSON
             invalid_file = os.path.join(test_default_messages_dir, f'{category}.json')
             with open(invalid_file, 'w') as f:
@@ -174,7 +174,7 @@ class TestMessageCRUD:
         
         # Mock get_user_data_dir to return our test directory
         # Patch core.config.get_user_data_dir since that's where it's imported from
-        with patch('core.message_management.get_user_data_dir', return_value=user_dir):
+        with patch('messages.message_data_manager.get_user_data_dir', return_value=user_dir):
             result = add_message(user_id, category, message_data)
 
             # Functions return None on success
@@ -241,7 +241,7 @@ class TestMessageCRUD:
         
         # Mock get_user_data_dir to return our test directory
         # Note: message_management uses core.config.get_user_data_dir, not message_management.get_user_data_dir
-        with patch('core.message_management.get_user_data_dir', return_value=user_dir):
+        with patch('messages.message_data_manager.get_user_data_dir', return_value=user_dir):
             # Ensure directory exists before edit (race condition fix for parallel execution)
             user_messages_dir = os.path.join(user_dir, 'messages')
             os.makedirs(user_messages_dir, exist_ok=True)
@@ -292,7 +292,7 @@ class TestMessageCRUD:
 
         mock_load = Mock(return_value=existing_messages)
 
-        with patch("core.message_management.load_json_data", mock_load):
+        with patch("messages.message_data_manager.load_json_data", mock_load):
             result = edit_message(user_id, category, message_id, updated_data)
             
             # Functions return None on failure (due to error handler)
@@ -327,8 +327,8 @@ class TestMessageCRUD:
         mock_load = Mock(return_value=existing_messages)
         mock_save = Mock(return_value=True)
 
-        with patch("core.message_management.load_json_data", mock_load), patch(
-            "core.message_management.save_json_data", mock_save
+        with patch("messages.message_data_manager.load_json_data", mock_load), patch(
+            "messages.message_data_manager.save_json_data", mock_save
         ):
 
             result = update_message(user_id, category, message_id, updates)
@@ -373,7 +373,7 @@ class TestMessageCRUD:
         
         # Mock get_user_data_dir to return our test directory
         # Patch core.config.get_user_data_dir since that's where it's imported from
-        with patch('core.message_management.get_user_data_dir', return_value=user_dir):
+        with patch('messages.message_data_manager.get_user_data_dir', return_value=user_dir):
             result = delete_message(user_id, category, message_id)
             
             # Functions return None on success
@@ -412,7 +412,7 @@ class TestMessageCRUD:
 
         mock_load = Mock(return_value=existing_messages)
 
-        with patch("core.message_management.load_json_data", mock_load):
+        with patch("messages.message_data_manager.load_json_data", mock_load):
             result = delete_message(user_id, category, message_id)
             
             # Functions return None on failure (due to error handler)
@@ -438,8 +438,8 @@ class TestSentMessages:
         mock_load = Mock(return_value={})
         mock_save = Mock()
         
-        with patch('core.message_management.load_json_data', mock_load), \
-             patch('core.message_management.save_json_data', mock_save):
+        with patch('messages.message_data_manager.load_json_data', mock_load), \
+             patch('messages.message_data_manager.save_json_data', mock_save):
             
             result = store_sent_message(user_id, category, message_id, message)
             
@@ -507,7 +507,7 @@ class TestSentMessages:
             json.dump(test_sent_messages, f)
         
         # Mock determine_file_path to return our test file
-        with patch('core.message_management.determine_file_path', return_value=sent_messages_file):
+        with patch('messages.message_data_manager.determine_file_path', return_value=sent_messages_file):
             messages = get_recent_messages(user_id, category=category, limit=10)
             
             assert len(messages) == 3
@@ -525,7 +525,7 @@ class TestSentMessages:
         # Mock file operations
         mock_load = Mock(return_value={})
         
-        with patch('core.message_management.load_json_data', mock_load):
+        with patch('messages.message_data_manager.load_json_data', mock_load):
             result = get_recent_messages(user_id, category=category, limit=10)
 
             assert result == []
@@ -558,7 +558,7 @@ class TestSentMessages:
         with open(sent_messages_file, 'w', encoding='utf-8') as f:
             json.dump(test_sent_messages, f)
 
-        with patch('core.message_management.determine_file_path', return_value=sent_messages_file):
+        with patch('messages.message_data_manager.determine_file_path', return_value=sent_messages_file):
             messages = get_recent_messages(user_id, category=category, limit=10)
 
         assert messages == []
@@ -593,8 +593,8 @@ class TestMessageFileManagement:
         mock_load_defaults = Mock(return_value=default_messages)
         mock_save = Mock()
         
-        with patch('core.message_management.load_default_messages', mock_load_defaults), \
-             patch('core.message_management.save_json_data', mock_save):
+        with patch('messages.message_data_manager.load_default_messages', mock_load_defaults), \
+             patch('messages.message_data_manager.save_json_data', mock_save):
             
             result = create_message_file_from_defaults(user_id, category)
             
@@ -613,8 +613,8 @@ class TestMessageFileManagement:
         mock_file_exists = Mock(return_value=False)
         mock_create_file = Mock(return_value=True)
         
-        with patch('core.message_management.Path.exists', mock_file_exists), \
-             patch('core.message_management.create_message_file_from_defaults', mock_create_file):
+        with patch('messages.message_data_manager.Path.exists', mock_file_exists), \
+             patch('messages.message_data_manager.create_message_file_from_defaults', mock_create_file):
             
             result = ensure_user_message_files(user_id, categories)
             
@@ -642,7 +642,7 @@ class TestErrorHandling:
         # Mock file operations to raise exception
         mock_load = Mock(side_effect=Exception("File error"))
         
-        with patch('core.message_management.load_json_data', mock_load):
+        with patch('messages.message_data_manager.load_json_data', mock_load):
             result = add_message(user_id, category, message_data)
             
             assert result is False or result is None
@@ -662,7 +662,7 @@ class TestErrorHandling:
         # Mock file operations to raise exception
         mock_load = Mock(side_effect=Exception("File error"))
         
-        with patch('core.message_management.load_json_data', mock_load):
+        with patch('messages.message_data_manager.load_json_data', mock_load):
             result = edit_message(user_id, category, message_id, updated_data)
             
             assert result is False or result is None
@@ -678,7 +678,7 @@ class TestErrorHandling:
         # Mock file operations to raise exception
         mock_load = Mock(side_effect=Exception("File error"))
         
-        with patch('core.message_management.load_json_data', mock_load):
+        with patch('messages.message_data_manager.load_json_data', mock_load):
             result = delete_message(user_id, category, message_id)
             
             assert result is False or result is None
@@ -695,7 +695,7 @@ class TestErrorHandling:
         # Mock file operations to raise exception
         mock_load = Mock(side_effect=Exception("File error"))
         
-        with patch('core.message_management.load_json_data', mock_load):
+        with patch('messages.message_data_manager.load_json_data', mock_load):
             result = store_sent_message(user_id, category, message_id, message)
             
             assert result is False or result is None
@@ -742,7 +742,7 @@ class TestIntegration:
         
         # Mock get_user_data_dir to return our test directory
         # Note: message_management uses core.config.get_user_data_dir, not message_management.get_user_data_dir
-        with patch('core.message_management.get_user_data_dir', return_value=user_dir):
+        with patch('messages.message_data_manager.get_user_data_dir', return_value=user_dir):
             # 1. Add message
             result1 = add_message(user_id, category, new_message)
             assert result1 is None

@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-23 - Message and check-in domain packages **COMPLETED**
+- Created first-class `messages/` and `checkins/` packages for automated message storage/analytics/preview, check-in storage/service/dynamic questions/analytics, and their v2 schemas
+- Removed `core.message_*` and `core.checkin_*` modules; production imports now point directly at the domain packages, with `core.response_tracking` reduced to generic chat/response tracking plus check-in delegation
+- Moved message/check-in schema ownership out of `storage.user_data_v2_envelopes.py` while preserving validation dispatch and compatibility re-exports
+- Focused verification passed for message/check-in storage, analytics, schema validation, command handlers, and AI recent-message context
+
 ### 2026-05-23 - Post-refactor architecture decisions closed **COMPLETED**
 - Closed the deferred service/scheduler/dispatcher cleanup TODOs after reviewing current startup, scheduler delivery ports, service request delivery, retry ownership, and package boundaries
 - Documented decisions in [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md): keep `CommunicationManager` as runtime owner/singleton, keep retry queueing in `communication/core/retry_manager.py` for now, and avoid new top-level message/check-in packages until concrete ownership pressure appears
@@ -170,22 +176,6 @@ Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency a
 - Removed duplicate check-in forwarding wrappers, shared service-process status helper logic, and consolidated task follow-up flow state setup.
 - Refreshed legacy, duplicate-function, facade-shim, and audit status reports: legacy findings, duplicate-function groups, and facade/shim candidates are now 0; error-handling coverage is 100%.
 - Validation: runtime `py_compile` passed; focused storage/service/check-in tests passed except `test_checkin_retry_after_discord_reconnect`, which still hangs when run directly and remains a separate test-stability issue.
-
-### 2026-05-14 - Storage Package Move **COMPLETED**
-- Moved persistence implementations from `core/` into the new top-level `storage/` package while preserving existing on-disk JSON locations and schemas.
-- Initially kept temporary `core.*` storage bridge modules for legacy public import paths; they were removed in the follow-up cleanup after active callers were migrated.
-- Updated active callers, `core.__init__` lazy exports, package discovery, and architecture/user-data docs so `storage` is the persistence owner.
-- Follow-up hygiene is clean: Ruff PASS, Pyright 0/0, unused imports 0, doc-sync PASS, Tier 2 audit PASS. Tier 3 full coverage remains a separate orchestration follow-up because broader runs still expose intermittent Windows pytest temp-root/setup behavior.
-
-### 2026-05-13 - Scheduler Package Move **COMPLETED**
-- Moved scheduler runtime modules from `core/` into the new top-level `scheduler/` package: `manager`, `jobs`, `maintenance`, and `task_reminders`.
-- Updated production imports, tests, and UI scheduler entry points to use `scheduler.manager` directly; no `core.*` compatibility bridge was kept.
-- Removed the completed scheduler package TODO item. Validation: scheduler package `py_compile` and focused scheduler tests passed.
-
-### 2026-05-13 - Service Utilities Responsibility Cleanup **COMPLETED**
-- Moved scheduler timestamp localization ownership to `core.time_utilities` and reschedule request flag creation to `core.service_requests`.
-- Migrated callers/tests to the new owners and removed the temporary `core.service_utilities` compatibility bridges; legacy/facade scans are clean.
-- Removed the completed TODO item, updated error-handling guidance, and regenerated generated docs/reports through development tools.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

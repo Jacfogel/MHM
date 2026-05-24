@@ -308,6 +308,7 @@ class CheckinSettingsWidget(QWidget):
         # Validate question counts when questions are toggled
         self._validate_question_counts()
 
+    # devtools: intentional[duplicate-functions]: ui_load_existing_data_lifecycle
     @handle_errors("loading existing check-in data")
     def load_existing_data(self):
         """Load existing check-in data."""
@@ -340,7 +341,7 @@ class CheckinSettingsWidget(QWidget):
 
         # Merge custom questions into questions dict if they're not already there
         # This ensures new custom questions appear with their saved always_include state
-        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        from checkins.checkin_dynamic_manager import dynamic_checkin_manager
 
         custom_questions = dynamic_checkin_manager.get_custom_questions(self.user_id)
         for custom_key, custom_def in custom_questions.items():
@@ -400,7 +401,7 @@ class CheckinSettingsWidget(QWidget):
         Groups questions by category and creates Always/Sometimes checkboxes for each.
         """
         # Import the dynamic checkin manager
-        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        from checkins.checkin_dynamic_manager import dynamic_checkin_manager
 
         # Get all available questions from the dynamic manager (include custom questions)
         available_questions = dynamic_checkin_manager.get_enabled_questions_for_ui(
@@ -665,7 +666,7 @@ class CheckinSettingsWidget(QWidget):
     def get_default_question_state(self, question_key):
         """Get default enabled state for a question."""
         # Import the dynamic checkin manager
-        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        from checkins.checkin_dynamic_manager import dynamic_checkin_manager
 
         # Get the default enabled state from the dynamic manager (include custom questions)
         available_questions = dynamic_checkin_manager.get_enabled_questions_for_ui(
@@ -802,7 +803,7 @@ class CheckinSettingsWidget(QWidget):
             QGroupBox,
             QTextEdit,
         )
-        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        from checkins.checkin_dynamic_manager import dynamic_checkin_manager
 
         # Create dialog
         dialog = QDialog(self)
@@ -1158,7 +1159,7 @@ class CheckinSettingsWidget(QWidget):
     @handle_errors("editing custom question")
     def _edit_custom_question(self, question_key):
         """Edit an existing custom question."""
-        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        from checkins.checkin_dynamic_manager import dynamic_checkin_manager
 
         custom_questions = dynamic_checkin_manager.get_custom_questions(self.user_id)
         if question_key not in custom_questions:
@@ -1175,7 +1176,7 @@ class CheckinSettingsWidget(QWidget):
     @handle_errors("deleting custom question")
     def _delete_custom_question(self, question_key):
         """Delete a custom question."""
-        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        from checkins.checkin_dynamic_manager import dynamic_checkin_manager
 
         custom_questions = dynamic_checkin_manager.get_custom_questions(self.user_id)
         if question_key not in custom_questions:
@@ -1287,7 +1288,7 @@ class CheckinSettingsWidget(QWidget):
         question_def = deleted_question["definition"]
 
         # Restore the question
-        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        from checkins.checkin_dynamic_manager import dynamic_checkin_manager
 
         if dynamic_checkin_manager.save_custom_question(
             self.user_id, question_key, question_def
@@ -1364,7 +1365,7 @@ class CheckinSettingsWidget(QWidget):
         time_periods = collect_period_data_from_widgets(self.period_widgets, "checkin")
 
         # Import the dynamic checkin manager
-        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        from checkins.checkin_dynamic_manager import dynamic_checkin_manager
 
         # Get available questions from dynamic manager for labels (include custom questions)
         available_questions = dynamic_checkin_manager.get_enabled_questions_for_ui(

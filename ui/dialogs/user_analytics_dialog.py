@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
 from ui.generated.user_analytics_dialog_pyqt import Ui_Dialog_user_analytics
 
 # Import core functionality
-from core.checkin_analytics import CheckinAnalytics
+from checkins.checkin_analytics import CheckinAnalytics
 from core import get_user_data
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger
@@ -242,7 +242,7 @@ To see wellness insights, please complete more check-ins."""
             # Display summary with actual data from backend
             # The backend doesn't provide total_checkins and data_completeness in the response
             # We need to calculate these from the actual data using calendar days
-            from core.response_tracking import get_checkins_by_days
+            from checkins.checkin_data_manager import get_checkins_by_days
 
             actual_checkins = get_checkins_by_days(self.user_id, self.current_days)
             total_checkins = len(actual_checkins)

@@ -7,7 +7,7 @@ from datetime import date
 from typing import Any
 
 from core.error_handling import handle_errors
-from core.response_tracking import (
+from checkins.checkin_data_manager import (
     checkin_runtime_timestamp,
     get_recent_checkins,
     is_user_checkins_enabled,

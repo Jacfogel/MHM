@@ -121,6 +121,7 @@ class ScheduleEditorDialog(QDialog):
         # Update group box title
         self.ui.groupBox_time_periods.setTitle("Time Periods")
 
+    # devtools: intentional[duplicate-functions]: ui_load_existing_data_lifecycle
     @handle_errors("loading existing data", default_return=None)
     def load_existing_data(self):
         """Load existing schedule data using the new reusable function."""

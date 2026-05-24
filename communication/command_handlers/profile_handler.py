@@ -5,7 +5,7 @@ from typing import Any
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core import get_user_data, save_user_data
-from core.response_tracking import get_recent_checkins
+from checkins.checkin_data_manager import get_recent_checkins
 from user.profile_service import apply_profile_updates, load_profile_sections
 
 from communication.command_handlers.base_handler import InteractionHandler

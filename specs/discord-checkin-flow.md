@@ -5,7 +5,7 @@
 > **Purpose**: Behavior requirements for Discord check-in prompts, check-in buttons, and retry-safe check-in delivery  
 > **Style**: Behavior requirements and scenarios (see [SPECS_GUIDE.md](SPECS_GUIDE.md))  
 > **Last Updated**: 2026-05-16  
-> **Implementation**: `communication/communication_channels/discord/checkin_view.py`, `communication/communication_channels/discord/bot.py`, `communication/reminders/checkin_prompt_dispatcher.py`, `communication/message_processing/interaction_manager.py`, `communication/command_handlers/checkin_handler.py`, `core/checkin_service.py`, `core/response_tracking.py`  
+> **Implementation**: `communication/communication_channels/discord/checkin_view.py`, `communication/communication_channels/discord/bot.py`, `communication/reminders/checkin_prompt_dispatcher.py`, `communication/message_processing/interaction_manager.py`, `communication/command_handlers/checkin_handler.py`, `checkins/checkin_service.py`, `checkins/checkin_data_manager.py`  
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [discord-message-and-command-routing.md](discord-message-and-command-routing.md)  
 > **Automated tests**: `tests/unit/test_checkin_view.py`, `tests/behavior/test_discord_checkin_retry_behavior.py`, `tests/behavior/test_discord_bot_behavior.py`, `tests/behavior/test_discord_automation_complete.py`, `tests/behavior/test_checkin_handler_behavior.py`  
 > **Coverage matrix**: [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md#discord-check-in-flow)

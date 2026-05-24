@@ -7,8 +7,8 @@ Tests new questions, time_pair validation, and custom question system.
 import pytest
 import uuid
 from unittest.mock import patch
-from core.checkin_dynamic_manager import dynamic_checkin_manager
-from core.checkin_analytics import CheckinAnalytics
+from checkins.checkin_dynamic_manager import dynamic_checkin_manager
+from checkins.checkin_analytics import CheckinAnalytics
 from tests.test_helpers.test_utilities import (
     setup_test_data_environment,
     cleanup_test_data_environment,
@@ -426,7 +426,8 @@ class TestAnalyticsWithNewQuestions:
         monkeypatch.setenv("MHM_TEST_DATA_DIR", self.test_data_dir)
         monkeypatch.setenv("MHM_TESTING", "1")
 
-        from core.response_tracking import store_user_response, get_checkins_by_days
+        from core.response_tracking import store_user_response
+        from checkins.checkin_data_manager import get_checkins_by_days
         from unittest.mock import patch
         import os
         from tests.test_helpers.test_support.test_helpers import wait_until
@@ -476,7 +477,8 @@ class TestAnalyticsWithNewQuestions:
         monkeypatch.setenv("MHM_TEST_DATA_DIR", self.test_data_dir)
         monkeypatch.setenv("MHM_TESTING", "1")
 
-        from core.response_tracking import store_user_response, get_checkins_by_days
+        from core.response_tracking import store_user_response
+        from checkins.checkin_data_manager import get_checkins_by_days
         from unittest.mock import patch
         import os
         from tests.test_helpers.test_support.test_helpers import wait_until

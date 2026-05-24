@@ -7,7 +7,7 @@ Tests the score conversion utilities:
 """
 
 import pytest
-from core.checkin_analytics import CheckinAnalytics
+from checkins.checkin_analytics import CheckinAnalytics
 
 
 pytestmark = [pytest.mark.core]

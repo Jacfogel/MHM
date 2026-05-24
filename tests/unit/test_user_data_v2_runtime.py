@@ -4,8 +4,8 @@ import json
 
 import pytest
 
-from core.message_management import get_recent_messages, load_user_messages, store_sent_message
-from core.response_tracking import get_recent_checkins, store_user_response
+from messages.message_data_manager import get_recent_messages, load_user_messages, store_sent_message
+from checkins.checkin_data_manager import get_recent_checkins, store_checkin_response
 from notebook.notebook_data_handlers import load_entries, save_entries
 from tasks.task_data_handlers import load_active_tasks, load_completed_tasks, save_active_tasks
 
@@ -49,7 +49,7 @@ def test_runtime_message_loading_accepts_v2_template_files(tmp_path, monkeypatch
         ),
         encoding="utf-8",
     )
-    monkeypatch.setattr("core.message_management.get_user_data_dir", lambda _user_id: str(user_root))
+    monkeypatch.setattr("messages.message_data_manager.get_user_data_dir", lambda _user_id: str(user_root))
 
     messages = load_user_messages("user-1", "motivational")
 
@@ -93,7 +93,7 @@ def test_runtime_recent_messages_accepts_v2_delivery_files(tmp_path, monkeypatch
         ),
         encoding="utf-8",
     )
-    monkeypatch.setattr("core.message_management.determine_file_path", lambda _file_type, _user_id: str(sent_file))
+    monkeypatch.setattr("messages.message_data_manager.determine_file_path", lambda _file_type, _user_id: str(sent_file))
 
     messages = get_recent_messages("user-1", category="motivational")
 
@@ -110,8 +110,8 @@ def test_runtime_store_sent_message_writes_v2_delivery_when_file_is_v2(tmp_path,
         json.dumps({"schema_version": 2, "updated_at": TIMESTAMP, "deliveries": []}),
         encoding="utf-8",
     )
-    monkeypatch.setattr("core.message_management.determine_file_path", lambda _file_type, _user_id: str(sent_file))
-    monkeypatch.setattr("core.message_management.now_timestamp_full", lambda: TIMESTAMP)
+    monkeypatch.setattr("messages.message_data_manager.determine_file_path", lambda _file_type, _user_id: str(sent_file))
+    monkeypatch.setattr("messages.message_data_manager.now_timestamp_full", lambda: TIMESTAMP)
 
     assert store_sent_message("user-1", "motivational", "template-1", "Keep going.", time_period="morning")
 
@@ -150,15 +150,15 @@ def test_runtime_checkin_helpers_accept_and_write_v2_files(tmp_path, monkeypatch
         ),
         encoding="utf-8",
     )
-    monkeypatch.setattr("core.response_tracking.get_user_file_path", lambda _user_id, _file_type: str(checkins_file))
-    monkeypatch.setattr("core.response_tracking.now_timestamp_full", lambda: TIMESTAMP)
+    monkeypatch.setattr("checkins.checkin_data_manager.get_user_file_path", lambda _user_id, _file_type: str(checkins_file))
+    monkeypatch.setattr("checkins.checkin_data_manager.now_timestamp_full", lambda: TIMESTAMP)
 
     recent = get_recent_checkins("user-1")
     assert recent[0]["submitted_at"] == TIMESTAMP
     assert recent[0]["mood"] == "okay"
     assert recent[0]["responses"] == {"mood": "okay"}
 
-    store_user_response("user-1", {"energy": "low", "questions_asked": ["energy"]}, "checkin")
+    store_checkin_response("user-1", {"energy": "low", "questions_asked": ["energy"]})
 
     data = json.loads(checkins_file.read_text(encoding="utf-8"))
     assert len(data["checkins"]) == 2

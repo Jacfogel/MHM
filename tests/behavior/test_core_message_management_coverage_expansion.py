@@ -9,7 +9,7 @@ import pytest
 from datetime import datetime, timezone
 from unittest.mock import patch
 
-from core.message_management import (
+from messages.message_data_manager import (
     get_message_categories,
     load_default_messages,
     _parse_message_timestamp,

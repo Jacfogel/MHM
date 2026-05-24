@@ -125,21 +125,21 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     "verify_file_access": ("core.file_operations", "verify_file_access"),
     "create_user_files": ("core.file_operations", "create_user_files"),
     # Message and response handling
-    "get_recent_messages": ("core.message_management", "get_recent_messages"),
-    "store_sent_message": ("core.message_management", "store_sent_message"),
-    "get_message_categories": ("core.message_management", "get_message_categories"),
-    "load_user_messages": ("core.message_management", "load_user_messages"),
-    "add_message": ("core.message_management", "add_message"),
-    "archive_old_messages": ("core.message_management", "archive_old_messages"),
+    "get_recent_messages": ("messages.message_data_manager", "get_recent_messages"),
+    "store_sent_message": ("messages.message_data_manager", "store_sent_message"),
+    "get_message_categories": ("messages.message_data_manager", "get_message_categories"),
+    "load_user_messages": ("messages.message_data_manager", "load_user_messages"),
+    "add_message": ("messages.message_data_manager", "add_message"),
+    "archive_old_messages": ("messages.message_data_manager", "archive_old_messages"),
     "get_recent_responses": ("core.response_tracking", "get_recent_responses"),
     "store_chat_interaction": ("core.response_tracking", "store_chat_interaction"),
-    "get_recent_checkins": ("core.response_tracking", "get_recent_checkins"),
+    "get_recent_checkins": ("checkins.checkin_data_manager", "get_recent_checkins"),
     "is_user_checkins_enabled": (
-        "core.response_tracking",
+        "checkins.checkin_data_manager",
         "is_user_checkins_enabled",
     ),
     "is_automated_messages_enabled": (
-        "core.response_tracking",
+        "messages.message_data_manager",
         "is_automated_messages_enabled",
     ),
     # Config
@@ -267,14 +267,14 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     # Other public classes
     "BackupManager": ("core.backup_manager", "BackupManager"),
     "DynamicCheckinManager": (
-        "core.checkin_dynamic_manager",
+        "checkins.checkin_dynamic_manager",
         "DynamicCheckinManager",
     ),
     "dynamic_checkin_manager": (
-        "core.checkin_dynamic_manager",
+        "checkins.checkin_dynamic_manager",
         "dynamic_checkin_manager",
     ),
-    "CheckinAnalytics": ("core.checkin_analytics", "CheckinAnalytics"),
+    "CheckinAnalytics": ("checkins.checkin_analytics", "CheckinAnalytics"),
     "SchedulerManager": ("scheduler.manager", "SchedulerManager"),
 }
 
