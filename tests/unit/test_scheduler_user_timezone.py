@@ -14,6 +14,7 @@ from scheduler.user_timezone import (
 
 
 @pytest.mark.unit
+@pytest.mark.scheduler
 class TestResolveUserTimezoneStr:
     def test_returns_account_timezone_when_valid(self):
         with patch("core.get_user_data") as mock_get:
@@ -38,6 +39,7 @@ class TestResolveUserTimezoneStr:
 
 
 @pytest.mark.unit
+@pytest.mark.scheduler
 class TestLocalizedNowForUser:
     def test_localizes_canonical_now_in_user_timezone(self, monkeypatch):
         from datetime import datetime

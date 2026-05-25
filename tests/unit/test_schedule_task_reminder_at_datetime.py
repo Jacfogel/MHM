@@ -22,6 +22,7 @@ def active_task():
 
 
 @pytest.mark.unit
+@pytest.mark.scheduler
 class TestScheduleTaskReminderAtDatetime:
     def test_skips_past_reminder(self, mock_scheduler_manager, active_task, monkeypatch):
         fixed_now = datetime(2026, 1, 20, 12, 0, 0)

@@ -1202,6 +1202,9 @@ class CoverageMetricsRegenerator:
                         "overall": overall_coverage,
                         "coverage_collected": True,
                         "from_cache": True,
+                        "coverage_outcome": self._build_cache_only_coverage_outcome(
+                            coverage_collected=True
+                        ),
                     }
                 else:
                     # Fallback: return empty result
@@ -1214,6 +1217,9 @@ class CoverageMetricsRegenerator:
                         "overall": {},
                         "coverage_collected": False,
                         "from_cache": True,
+                        "coverage_outcome": self._build_cache_only_coverage_outcome(
+                            coverage_collected=False
+                        ),
                     }
 
             cmd = [
@@ -2302,11 +2308,25 @@ class CoverageMetricsRegenerator:
                 no_parallel_test_results = self._parse_pytest_test_results(
                     no_parallel_output
                 )
+                no_parallel_zero_tests_exit = (
+                    no_parallel_result.returncode == 5
+                    and not no_parallel_test_results.get("total_tests", 0)
+                    and not no_parallel_test_results.get("failed_count", 0)
+                    and not no_parallel_test_results.get("error_count", 0)
+                    and not no_parallel_test_results.get("failed_tests")
+                    and not no_parallel_test_results.get("error_tests")
+                )
 
                 # Check if output was empty - this indicates tests didn't run or output wasn't captured
-                if not no_parallel_output or (
-                    not no_parallel_test_results.get("total_tests", 0)
-                    and no_parallel_result.returncode != 0
+                if (
+                    not no_parallel_zero_tests_exit
+                    and (
+                        not no_parallel_output
+                        or (
+                            not no_parallel_test_results.get("total_tests", 0)
+                            and no_parallel_result.returncode != 0
+                        )
+                    )
                 ):
                     if logger:
                         logger.warning(
@@ -2387,6 +2407,10 @@ class CoverageMetricsRegenerator:
                     ):
                         logger.warning(
                             "No_parallel tests exited with code 0 but no tests were found in output - possible issue with test collection or output capture"
+                        )
+                    elif no_parallel_zero_tests_exit:
+                        logger.info(
+                            "No_parallel tests skipped: no no_parallel tests matched this scoped run"
                         )
                     else:
                         logger.warning(
@@ -3941,6 +3965,9 @@ class CoverageMetricsRegenerator:
                         "failed_node_ids": [],
                         "from_cache": True,
                     },
+                    "coverage_outcome": self._build_cache_only_coverage_outcome(
+                        coverage_collected=True
+                    ),
                 }
 
             # Coverage only for development_tools directory
@@ -5006,6 +5033,46 @@ class CoverageMetricsRegenerator:
         if "failed" in states:
             return "test_failures"
         return "clean"
+
+    def _build_cache_only_coverage_outcome(
+        self, coverage_collected: bool
+    ) -> dict[str, Any]:
+        """Build canonical Tier 3 outcome metadata for cache-only coverage runs."""
+        track_state = "skipped" if coverage_collected else "failed"
+        track_classification = "skipped" if coverage_collected else "failed"
+        track_reason = (
+            "cache_only"
+            if coverage_collected
+            else "cache_only_coverage_unavailable"
+        )
+        track_context = (
+            "Pytest execution skipped because full coverage data was restored from cache."
+            if coverage_collected
+            else "Pytest execution skipped but no cached coverage data was available."
+        )
+        track = {
+            "state": track_state,
+            "classification": track_classification,
+            "classification_reason": track_reason,
+            "actionable_context": track_context,
+            "log_file": None,
+            "return_code_hex": None,
+            "return_code": None,
+            "passed_count": 0,
+            "failed_count": 0,
+            "error_count": 0,
+            "skipped_count": 0,
+            "deselected_count": 0,
+            "failed_node_ids": [],
+        }
+        return {
+            "state": self._classify_coverage_outcome(
+                track, track, coverage_collected
+            ),
+            "parallel": dict(track),
+            "no_parallel": dict(track),
+            "failed_node_ids": [],
+        }
 
     def _rotate_log_files(self, base_name: str, max_versions: int = 7) -> None:
         """Rotate log files, keeping only the last max_versions copies total (consolidated)."""

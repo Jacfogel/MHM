@@ -328,33 +328,37 @@ class TestMessageScheduling:
             with patch("scheduler.manager.load_and_localize_datetime") as mock_load_time:
                 mock_load_time.return_value = now_datetime_full() + timedelta(hours=1)
 
-                with patch.object(
-                    scheduler_manager, "is_time_conflict"
-                ) as mock_conflict:
-                    mock_conflict.return_value = False
+                with patch(
+                    "scheduler.manager.resolve_user_timezone_str",
+                    return_value="America/Regina",
+                ):
+                    with patch.object(
+                        scheduler_manager, "is_time_conflict"
+                    ) as mock_conflict:
+                        mock_conflict.return_value = False
 
-                    with patch.object(scheduler_manager, "set_wake_timer") as mock_wake:
-                        # Test real behavior: function should schedule the message
-                        scheduler_manager.schedule_message_for_period(
-                            user_id, category, period_name
-                        )
+                        with patch.object(scheduler_manager, "set_wake_timer") as mock_wake:
+                            # Test real behavior: function should schedule the message
+                            scheduler_manager.schedule_message_for_period(
+                                user_id, category, period_name
+                            )
 
-                        # Verify side effects - the method calls get_random_time_within_period in a retry loop
-                        # so it may be called multiple times depending on conflicts
-                        assert mock_get_time.call_count >= 1
-                        # Verify it was called with the correct parameters at least once
-                        mock_get_time.assert_any_call(
-                            user_id, category, period_name, "America/Regina"
-                        )
-                        # Verify side effects - the method calls is_time_conflict in a retry loop
-                        # so it may be called multiple times depending on conflicts
-                        assert mock_conflict.call_count >= 1
-                        # The set_wake_timer should be called once when the method succeeds
-                        # However, if the method hits an exception, it might not reach this point
-                        # Let's check if it was called at least once (indicating success)
-                        assert (
-                            mock_wake.call_count >= 0
-                        )  # Allow for the case where it doesn't reach this point
+                            # Verify side effects - the method calls get_random_time_within_period in a retry loop
+                            # so it may be called multiple times depending on conflicts
+                            assert mock_get_time.call_count >= 1
+                            # Verify it was called with the correct parameters at least once
+                            mock_get_time.assert_any_call(
+                                user_id, category, period_name, "America/Regina"
+                            )
+                            # Verify side effects - the method calls is_time_conflict in a retry loop
+                            # so it may be called multiple times depending on conflicts
+                            assert mock_conflict.call_count >= 1
+                            # The set_wake_timer should be called once when the method succeeds
+                            # However, if the method hits an exception, it might not reach this point
+                            # Let's check if it was called at least once (indicating success)
+                            assert (
+                                mock_wake.call_count >= 0
+                            )  # Allow for the case where it doesn't reach this point
 
     @pytest.mark.behavior
     @pytest.mark.scheduler

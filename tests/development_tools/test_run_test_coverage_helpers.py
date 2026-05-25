@@ -243,6 +243,35 @@ def test_classify_coverage_outcome_precedence(tmp_path: Path):
 
 
 @pytest.mark.unit
+def test_cache_only_coverage_outcome_is_structured_clean_when_collected(
+    tmp_path: Path,
+):
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+
+    outcome = regenerator._build_cache_only_coverage_outcome(coverage_collected=True)
+
+    assert outcome["state"] == "clean"
+    assert outcome["parallel"]["classification"] == "skipped"
+    assert outcome["parallel"]["classification_reason"] == "cache_only"
+    assert outcome["no_parallel"]["classification"] == "skipped"
+    assert outcome["failed_node_ids"] == []
+
+
+@pytest.mark.unit
+def test_cache_only_coverage_outcome_is_failed_when_not_collected(tmp_path: Path):
+    regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
+
+    outcome = regenerator._build_cache_only_coverage_outcome(coverage_collected=False)
+
+    assert outcome["state"] == "coverage_failed"
+    assert outcome["parallel"]["classification"] == "failed"
+    assert (
+        outcome["parallel"]["classification_reason"]
+        == "cache_only_coverage_unavailable"
+    )
+
+
+@pytest.mark.unit
 def test_rotate_log_files_moves_main_logs_to_archive(tmp_path: Path):
     regenerator = CoverageMetricsRegenerator(str(tmp_path), parallel=False)
     regenerator.coverage_logs_dir = tmp_path / "development_tools" / "tests" / "logs"

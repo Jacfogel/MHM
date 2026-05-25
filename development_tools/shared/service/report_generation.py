@@ -3577,7 +3577,6 @@ class ReportGenerationMixin:
                 )
                 if coverage_float is not None and coverage_float < 80:
                     low_coverage_modules.append(module)
-            low_coverage_modules = low_coverage_modules[:3]
 
         if (
             hasattr(self, "dev_tools_coverage_results")

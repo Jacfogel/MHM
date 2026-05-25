@@ -276,26 +276,36 @@ class TestUserFactory:
         Also adds mappings for Discord user ID and email if provided.
         Uses file locking to prevent race conditions in parallel test execution.
         """
-        from core.file_locking import safe_json_read, safe_json_write
+        from core.file_locking import file_lock
 
         user_index_file = os.path.join(test_data_dir, "user_index.json")
+        os.makedirs(os.path.dirname(user_index_file), exist_ok=True)
 
-        # Read existing index with file locking
-        user_index = safe_json_read(user_index_file, default={})
+        with file_lock(user_index_file, timeout=10.0) as locked_file:
+            try:
+                locked_file.seek(0)
+                raw_content = locked_file.read().decode("utf-8")
+                user_index = json.loads(raw_content) if raw_content.strip() else {}
+                if not isinstance(user_index, dict):
+                    user_index = {}
+            except (json.JSONDecodeError, OSError, UnicodeDecodeError):
+                user_index = {}
 
-        # Add the new user to the index
-        user_index[user_id] = actual_user_id
+            user_index[user_id] = actual_user_id
 
-        # Add Discord user ID mapping if provided
-        if discord_user_id:
-            user_index[f"discord:{discord_user_id}"] = actual_user_id
+            if discord_user_id:
+                user_index[f"discord:{discord_user_id}"] = actual_user_id
 
-        # Add email mapping if provided
-        if email:
-            user_index[f"email:{email}"] = actual_user_id
+            if email:
+                user_index[f"email:{email}"] = actual_user_id
 
-        # Save the updated index with file locking
-        safe_json_write(user_index_file, user_index, indent=2)
+            locked_file.seek(0)
+            locked_file.truncate()
+            locked_file.write(
+                json.dumps(user_index, indent=2, ensure_ascii=False).encode("utf-8")
+            )
+            locked_file.flush()
+            os.fsync(locked_file.fileno())
 
     @staticmethod
     def _create_user_files_directly(
@@ -2885,4 +2895,3 @@ class TestUserFactory:
                     f"Email user {user_id} was created but not found by get_user_id_by_identifier"
                 )
                 return actual_user_id if actual_user_id else None
-

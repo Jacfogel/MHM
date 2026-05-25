@@ -1402,6 +1402,13 @@ class CommandsMixin:
                     "Tier 3 coverage outcome is coverage_failed; treating run_test_coverage as failed"
                 )
                 return False
+            if interrupted and payload_coverage_collected:
+                logger.info(
+                    "Ignoring wrapper interrupt signature because run_test_coverage "
+                    f"wrote a structured {tier3_state!r} coverage outcome."
+                )
+                result["success"] = True
+                result["error"] = ""
             if result['success']:
                 
                 # Save coverage results to standardized storage

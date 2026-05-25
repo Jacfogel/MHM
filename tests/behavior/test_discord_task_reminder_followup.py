@@ -4,8 +4,10 @@ Discord Task Reminder Follow-up Flow Tests
 Tests the complete Discord flow for task creation with reminder follow-up.
 """
 
-import pytest
 from unittest.mock import patch, MagicMock
+from uuid import uuid4
+
+import pytest
 
 from communication.message_processing.interaction_manager import InteractionManager
 from tasks import load_active_tasks
@@ -20,20 +22,24 @@ from tests.test_helpers.test_utilities import TestUserFactory
 
 class TestDiscordTaskReminderFollowup:
     """Test Discord task reminder follow-up flow."""
-    
+
+    def _unique_user_id(self, name: str) -> str:
+        return f"test_discord_{name}_{uuid4().hex[:8]}"
+
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    @pytest.mark.communication
     @patch('core.service.get_scheduler_manager')
     def test_discord_task_creation_triggers_reminder_followup(self, mock_get_scheduler, test_data_dir):
         """Test that creating a task via Discord triggers reminder follow-up flow."""
         # Arrange
         mock_scheduler = MagicMock()
         mock_get_scheduler.return_value = mock_scheduler
-        
-        user_id = "test_discord_reminder_flow"
-        TestUserFactory.create_basic_user(user_id, enable_tasks=True, test_data_dir=test_data_dir)
+
+        user_id = self._unique_user_id("reminder_flow")
+        assert TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
         
         manager = InteractionManager()
         conversation_manager.user_states.pop(user_id, None)
@@ -57,16 +63,17 @@ class TestDiscordTaskReminderFollowup:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    @pytest.mark.communication
     @patch('core.service.get_scheduler_manager')
     def test_discord_reminder_followup_complete_flow(self, mock_get_scheduler, test_data_dir):
         """Test complete Discord flow: create task -> set reminders."""
         # Arrange
         mock_scheduler = MagicMock()
         mock_get_scheduler.return_value = mock_scheduler
-        
-        user_id = "test_discord_complete_flow"
-        TestUserFactory.create_basic_user(user_id, enable_tasks=True, test_data_dir=test_data_dir)
+
+        user_id = self._unique_user_id("complete_flow")
+        assert TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
         
         manager = InteractionManager()
         conversation_manager.user_states.pop(user_id, None)
@@ -74,9 +81,10 @@ class TestDiscordTaskReminderFollowup:
         # Step 1: Create task
         message1 = "create task to buy groceries tomorrow at 2pm"
         response1 = manager.handle_message(user_id, message1, channel_type="discord")
-        
+
         assert not response1.completed, "Should ask about priority"
         assert user_id in conversation_manager.user_states, "Should be in flow"
+        assert load_active_tasks(user_id), "Task should exist before priority follow-up"
 
         # Step 2: Skip priority, moving into reminder setup
         response2 = manager.handle_message(user_id, "skip", channel_type="discord")
@@ -102,16 +110,17 @@ class TestDiscordTaskReminderFollowup:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    @pytest.mark.communication
     @patch('core.service.get_scheduler_manager')
     def test_discord_reminder_followup_no_reminders(self, mock_get_scheduler, test_data_dir):
         """Test Discord flow: create task -> decline reminders."""
         # Arrange
         mock_scheduler = MagicMock()
         mock_get_scheduler.return_value = mock_scheduler
-        
-        user_id = "test_discord_no_reminders"
-        TestUserFactory.create_basic_user(user_id, enable_tasks=True, test_data_dir=test_data_dir)
+
+        user_id = self._unique_user_id("no_reminders")
+        assert TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
         
         manager = InteractionManager()
         conversation_manager.user_states.pop(user_id, None)
@@ -119,8 +128,10 @@ class TestDiscordTaskReminderFollowup:
         # Step 1: Create task
         message1 = "create task to water plants tomorrow"
         response1 = manager.handle_message(user_id, message1, channel_type="discord")
-        
+
         assert not response1.completed, "Should ask about priority"
+        assert user_id in conversation_manager.user_states, "Should be in flow"
+        assert load_active_tasks(user_id), "Task should exist before reminder decline"
         
         # Step 2: Skip priority, moving into reminder setup
         response2 = manager.handle_message(user_id, "skip", channel_type="discord")

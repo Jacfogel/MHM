@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-25 - Tier 3 coverage and parallel test cleanup **COMPLETED**
+- Fixed dev-tools coverage reporting so cache-only payloads include canonical `coverage_outcome`, clean collected coverage is not reported as failed after Windows interrupt handling, and low-coverage priorities count all below-target domains.
+- Cleaned test domain markers for scheduler coverage tests and verified `analyze_test_markers.py --check`.
+- Stabilized parallel tests by locking test user index updates and giving Discord task-reminder behavior tests unique per-test users with explicit setup assertions.
+- Focused verification passed for dev-tools coverage/audit helpers, scheduler marker tests, and Discord reminder follow-up behavior under normal, seeded, and xdist runs.
+
 ### 2026-05-24 - Communication architecture cleanup **COMPLETED**
 - Scheduler now resolves account `timezone` (fallback America/Regina) for messages, check-ins, and task reminders; one-time reminders use aware past/future checks via `scheduler/user_timezone.py`
 - Added unit tests for timezone resolution and `schedule_task_reminder_at_datetime` past/future behavior

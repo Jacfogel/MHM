@@ -800,6 +800,34 @@ def test_ai_priorities_full_audit_does_not_duplicate_dev_tools_coverage_priority
 
 
 @pytest.mark.unit
+def test_ai_priorities_counts_all_low_coverage_domains_while_displaying_top_three(
+    temp_project_copy,
+):
+    """Coverage priority count should include every below-target domain, not only displayed highlights."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    service._load_tool_data = lambda *args, **kwargs: {}
+    service._load_coverage_summary = lambda: {
+        "modules": [
+            {"module": "development_tools", "coverage": 65.2, "missed": 9354},
+            {"module": "ui", "coverage": 70.4, "missed": 2023},
+            {"module": "scheduler", "coverage": 75.8, "missed": 277},
+            {"module": "communication", "coverage": 78.2, "missed": 2077},
+            {"module": "core", "coverage": 83.1, "missed": 937},
+        ]
+    }
+    service._load_dev_tools_coverage = lambda: None
+
+    doc = service._generate_ai_priorities_document()
+
+    assert "4 key domains remain below the 80% target" in doc
+    assert (
+        "Top target domains: development_tools (65.2%, 9354 lines missing), "
+        "ui (70.4%, 2023 lines missing), scheduler (75.8%, 277 lines missing)"
+    ) in doc
+
+
+@pytest.mark.unit
 def test_consolidated_report_marks_cached_overlap_data(temp_project_copy):
     """Consolidated report should identify cached overlap data instead of showing not-run."""
     service = AIToolsService(project_root=str(temp_project_copy))

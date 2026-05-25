@@ -596,6 +596,61 @@ def test_run_coverage_regeneration_propagates_track_classification_fields(
 
 
 @pytest.mark.unit
+def test_run_coverage_regeneration_accepts_clean_payload_after_wrapper_interrupt(
+    temp_project_copy, monkeypatch
+):
+    """A clean structured payload should win over parent-process KeyboardInterrupt noise."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    output_file = (
+        temp_project_copy
+        / "development_tools"
+        / "tests"
+        / "jsons"
+        / "run_test_coverage_results.json"
+    )
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    output_file.write_text(
+        json.dumps(
+            {
+                "coverage_collected": True,
+                "coverage_outcome": {
+                    "state": "clean",
+                    "parallel": {
+                        "state": "passed",
+                        "classification": "passed",
+                        "classification_reason": "pytest_passed",
+                    },
+                    "no_parallel": {
+                        "state": "passed",
+                        "classification": "passed",
+                        "classification_reason": "pytest_passed",
+                    },
+                    "failed_node_ids": [],
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *args, **kwargs: {
+            "success": False,
+            "output": "",
+            "error": "Script 'run_test_coverage' interrupted by KeyboardInterrupt",
+            "returncode": 130,
+            "interrupted": True,
+        },
+    )
+    monkeypatch.setattr(service, "_load_coverage_summary", lambda: {"overall": {"missed": 0}})
+
+    assert service.run_coverage_regeneration() is True
+    assert service.tier3_test_outcome["state"] == "clean"
+    assert not getattr(service, "_internal_interrupt_detected", False)
+
+
+@pytest.mark.unit
 def test_run_dev_tools_coverage_sets_development_tools_outcome(
     temp_project_copy, monkeypatch
 ):
