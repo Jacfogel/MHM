@@ -34,6 +34,7 @@ logger = get_component_logger("main")
 data_manager_logger = get_component_logger("user_activity")
 
 
+# duplicate_functions_exclude: importlib delegate to core.user_management.get_user_categories.
 @handle_errors("resolving user categories", default_return=[])
 def _get_user_categories(user_id: str):
     """Resolve categories without a static import (breaks user_management cycle in tooling)."""

@@ -912,6 +912,7 @@ def ensure_user_message_files(user_id: str, categories: list[str]) -> dict:
         }
 
 
+# duplicate_functions_exclude: field-specific wrapper; see core.time_utilities.timestamp_sort_key_from_dict.
 @handle_errors("getting timestamp for sorting", default_return=0.0)
 def get_timestamp_for_sorting(item):
     """
@@ -923,13 +924,6 @@ def get_timestamp_for_sorting(item):
     Returns:
         float: Timestamp as float for sorting, or 0.0 for invalid items
     """
-    if isinstance(item, str) or not isinstance(item, dict):
-        return 0.0
-    timestamp = item.get("sent_at") or "1970-01-01 00:00:00"
-    try:
-        dt = parse_timestamp_full(timestamp)
-        if dt is None:
-            return 0.0
-        return dt.timestamp()
-    except (ValueError, TypeError):
-        return 0.0
+    from core.time_utilities import timestamp_sort_key_from_dict
+
+    return timestamp_sort_key_from_dict(item, "sent_at")

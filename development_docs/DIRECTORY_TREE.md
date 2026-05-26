@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-24 01:09:03
+> **Last Generated**: 2026-05-25 16:13:29
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 5EAC-07BC
+Volume serial number is 000000A9 5EAC:07BC
 C:.
 |   .coverage
 |   .ruff.toml
@@ -712,6 +712,7 @@ C:.
 |   |   |   test_dev_tools_portability_smoke.py
 |   |   |   test_dev_tools_scoped_status_report.py
 |   |   |   test_documentation_sync_checker.py
+|   |   |   test_domain_mapper_product_packages.py
 |   |   |   test_error_scenarios.py
 |   |   |   test_example_marker_validation.py
 |   |   |   test_exclusion_utilities.py
@@ -941,6 +942,7 @@ C:.
 |   |   |   test_task_service.py
 |   |   |   test_task_short_ids.py
 |   |   |   test_test_policy_guards.py
+|   |   |   test_test_user_factory.py
 |   |   |   test_time_utilities.py
 |   |   |   test_ui_management.py
 |   |   |   test_user_context.py

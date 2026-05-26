@@ -34,6 +34,10 @@ Guidelines:
 - Fixed dev-tools coverage reporting so cache-only payloads include canonical `coverage_outcome`, clean collected coverage is not reported as failed after Windows interrupt handling, and low-coverage priorities count all below-target domains.
 - Cleaned test domain markers for scheduler coverage tests and verified `analyze_test_markers.py --check`.
 - Stabilized parallel tests by locking test user index updates and giving Discord task-reminder behavior tests unique per-test users with explicit setup assertions.
+- Added first-class `checkins`, `messages`, and `storage` product domains in `domain_mapper` / `local_module_prefixes` (marker-only test mapping like `tasks`), aligned code defaults, Bandit roots, setuptools includes, and a package policy test.
+- Cleared AI_PRIORITIES error-handling noise: `error_handling_exclude` on `_apply_fields_filter` and v2 schema validators; shared `timestamp_sort_key_from_dict` for sort helpers; `duplicate_functions_exclude` on intentional delegates.
+- Fixed check-in analytics test failures by restoring `parse_timestamp_full` in `checkin_data_manager` (regression from sort-key refactor), correcting check-in test `get_user_file_path` patches, and clearing Ruff unused-import findings.
+- Regenerated function registry via `run_development_tools.py docs`; Tier 3 parallel failures (`test_remove_schedule_period`, `test_user_data_access`) pass locally (stale audit log).
 - Focused verification passed for dev-tools coverage/audit helpers, scheduler marker tests, and Discord reminder follow-up behavior under normal, seeded, and xdist runs.
 
 ### 2026-05-24 - Communication architecture cleanup **COMPLETED**
@@ -155,34 +159,6 @@ Guidelines:
 - Added behavior specs under `specs/` ([SPECS_GUIDE.md](../specs/SPECS_GUIDE.md), six Discord topic files including welcome, routing, check-ins, reminders, delivery, lifecycle); registered in `development_tools_config.json` `fix_version_sync.docs`; cross-linked from [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [LIST_OF_LISTS.md](../development_docs/LIST_OF_LISTS.md); doc-sync path-drift fix for bare filenames in spec prose
 - Corrected Discord spec wording to match current implementation and added [SPEC_COVERAGE_MATRIX.md](../specs/SPEC_COVERAGE_MATRIX.md): all 95 Discord scenarios mapped to `Automated`, `Partial`, `Manual`, or `Gap`, with links from each spec and testing docs
 - Fixed flaky Tier 3 failure in `test_analyze_pyright_respects_existing_project_arg`: Pyright shard cache now keys monolithic/shard entries by CLI args as well as source signatures; subprocess-mocking tests disable cache reads/writes on the module-scoped demo copy
-
-### 2026-05-15 - Launcher Module Modernization **COMPLETED**
-
-Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency and maintainability.
-
-- Standardized launcher path handling and Qt UI launch flow
-- Added/improved centralized logging usage
-- Modernized `run_headless_service.py` CLI using `argparse`
-- Converted launcher flows to consistent return-based exit handling
-- Added missing error-handling decorators to helper functions
-- Improved subprocess launch robustness and operational diagnostics
-- Explicit `init_service_runtime()` in `core.service` (invoked from `MHMService.__init__` and `start()`): `setup_logging()` + component loggers + optional file auditor run once per process, not at import; `import core.config` for patchable config access; `get_all_user_ids` / `get_user_data` from [`core.user_management`](../core/user_management.py) and [`storage.user_data_read`](../storage/user_data_read.py) (no `core` package facade for those calls)
-- `@handle_errors` on `init_service_runtime()` (`user_friendly=False`, `default_return=None`; clears analyzer gap)
-- Renamed `MHMService._get_service_request_base_directory()` (replacing the old test-message-specific helper name) and updated request-path tests accordingly
-- Fixed `test_conversation_manager_concurrent_access_safety` to use an isolated `conversation_states` file under `test_data_dir` so parallel suites do not inherit persisted flow state from other tests
-- Regenerated documentation outputs via `run_development_tools.py docs` (function registry aligned with `core.service` helpers)
-- Phase 1 error-handling: `_start_file_auditor_optional()` wraps `start_auditor()` with `@handle_errors` (`user_friendly=False`, non-fatal startup)
-- `@handle_errors` on `_emergency_shutdown_from_atexit` (process-wide atexit hook)
-- Documented hybrid launcher print+log policy in [HOW_TO_RUN.md](../HOW_TO_RUN.md) Section 1.6; launcher scripts reference it from module docstrings
-- ERROR_HANDLING_GUIDE pair Section 2.6 documents `MHMService` fatal startup exception types (no `InitializationError` on `core`)
-- Service startup uses `CommunicationError` / `SchedulerError` (plus `ConfigurationError` / `ConfigValidationError` on the critical path); removed `InitializationError` and its `core` lazy export (`DEPRECATION_INVENTORY`: `core_initialization_error_exception`)
-- Single process-wide `atexit` hook targets the most recently constructed `MHMService` (avoids stacked handlers in tests)
-- Regenerated ranked priorities layout in [`report_generation.py`](../development_tools/shared/service/report_generation.py): `AI_PRIORITIES.md` / `DEV_TOOLS_PRIORITIES.md` now put each numbered **title** on its own line and emit the summary as the first sub-bullet (re-run `audit` to refresh the markdown files)
-- Re-investigated dev-tools pytest slowness (**Section 7.23**): count still 1479 tests; bottleneck is function-scoped `temp_project_copy` (~3-5s setup/test); documented profiling commands and promoted **Section 1.8** fixture-scope work
-- **Section 1.8**: module-scoped `temp_project_copy` in hot dev-tools test modules via `temp_project_copy_paths` in [`conftest.py`](../tests/development_tools/conftest.py); `test_fix_project_cleanup.py` kept function-scoped (shared mutations); fixed `test_run_generate_test_coverage_report_fails_when_coverage_json_missing` isolation (unlink stale `coverage.json` on module-scoped tree)
-- **`run_tests.py` SIGINT policy**: match audit multi-tap (**5** distinct Ctrl+C within 2s by default, debounced bursts); fixes intermittent stops ~68% through dev-tools runs when static/audit strict tests run; optional `MHM_TESTS_SIGINT_TAPS_TO_STOP=2` for debugging; module-scoped `temp_project_copy` on `test_audit_strict_mode.py` and `test_static_analysis_tools.py`
-- Tier 3 audit fix: `test_run_dev_tools_coverage_sets_development_tools_outcome` forces `_is_coverage_file_fresh` false so a present `coverage_dev_tools.json` does not short-circuit to `skipped` when asserting failed dev-tools pytest outcome from structured JSON
-- Ruff: removed duplicate `Path` import in `test_tool_wrappers_additional.py` (F811); `doc-fix --fix-ascii` + `doc-sync` for changelog ASCII compliance
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

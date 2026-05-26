@@ -277,6 +277,27 @@ def parse_date_and_time_minute(date_str: str, time_str: str) -> datetime | None:
         return None
 
 
+# error_handling_exclude: dependency-light helper; callers use @handle_errors wrappers.
+def timestamp_sort_key_from_dict(
+    item: object,
+    field: str,
+    *,
+    default_when_missing: str = "1970-01-01 00:00:00",
+) -> float:
+    """
+    Return a float sort key from a dict timestamp field (parse_timestamp_full).
+
+    Used by check-ins, messages, and response-tracking list sorts.
+    """
+    if isinstance(item, str) or not isinstance(item, dict):
+        return 0.0
+    raw = item.get(field) or default_when_missing
+    dt = parse_timestamp_full(str(raw))
+    if dt is None:
+        return 0.0
+    return dt.timestamp()
+
+
 # ---------------------------------------------------------------------------
 # Flexible parsing (use only when multiple inputs are legitimately expected)
 # ---------------------------------------------------------------------------

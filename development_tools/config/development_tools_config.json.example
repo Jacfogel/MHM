@@ -365,6 +365,30 @@
           "notebook"
         ]
       ],
+      "scheduler": [
+        [],
+        [
+          "scheduler"
+        ]
+      ],
+      "checkins": [
+        [],
+        [
+          "checkins"
+        ]
+      ],
+      "messages": [
+        [],
+        [
+          "messages"
+        ]
+      ],
+      "storage": [
+        [],
+        [
+          "storage"
+        ]
+      ],
       "development_tools": [
         [
           "tests/development_tools/"
@@ -379,13 +403,19 @@
         "tasks",
         "ai",
         "user",
-        "notebook"
+        "notebook",
+        "scheduler",
+        "checkins",
+        "messages",
+        "storage"
       ],
       "communication": [
         "ui",
         "tasks",
         "ai",
-        "user"
+        "user",
+        "checkins",
+        "messages"
       ],
       "tasks": [
         "communication",
@@ -394,7 +424,8 @@
       "user": [
         "communication",
         "ui",
-        "ai"
+        "ai",
+        "storage"
       ],
       "ai": [
         "communication",
@@ -404,6 +435,21 @@
       "notebook": [
         "communication",
         "ui"
+      ],
+      "scheduler": [
+        "communication",
+        "core"
+      ],
+      "checkins": [
+        "communication",
+        "user"
+      ],
+      "messages": [
+        "communication"
+      ],
+      "storage": [
+        "core",
+        "user"
       ],
       "development_tools": []
     },
@@ -455,10 +501,30 @@
         "journal",
         "list"
       ],
+      "scheduler": [
+        "scheduler",
+        "schedule",
+        "reminder"
+      ],
+      "checkins": [
+        "checkin",
+        "checkins"
+      ],
+      "messages": [
+        "message",
+        "messages",
+        "delivery",
+        "template"
+      ],
+      "storage": [
+        "storage",
+        "user_data",
+        "registry",
+        "persistence"
+      ],
       "core": [
         "core",
         "service",
-        "scheduler",
         "config",
         "logger",
         "logging",
@@ -467,7 +533,6 @@
         "backup",
         "file",
         "cleanup",
-        "checkin",
         "analytics",
         "response"
       ]
@@ -681,13 +746,16 @@
     },
     "local_module_prefixes": [
       "ai",
+      "checkins",
       "communication",
       "core",
       "data",
       "development_tools",
+      "messages",
       "notebook",
       "scripts",
       "scheduler",
+      "storage",
       "tasks",
       "tests",
       "ui",

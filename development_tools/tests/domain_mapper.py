@@ -7,7 +7,8 @@ This enables selective test execution: when source files in a domain change, onl
 covering that domain are re-run.
 
 **Taxonomy:** ``domain_mapper`` keys are **product domains** (top-level source areas: ``core``,
-``communication``, ``ui``, ``tasks``, ``ai``, ``user``, ``notebook``, ``development_tools``).
+``communication``, ``ui``, ``tasks``, ``ai``, ``user``, ``notebook``, ``scheduler``,
+``checkins``, ``messages``, ``storage``, ``development_tools``).
 That is separate from **suite category** markers (``unit``, ``integration``, ``behavior``, ``ui``)
 and from **quality** markers (e.g. ``critical``, ``smoke``). Per-domain ``source_to_test_mapping``
 marker lists may still include category or tier names for legacy cache behavior; they are not
@@ -45,16 +46,35 @@ def _default_domain_mapper_config() -> dict:
             "ai": [["tests/ai/"], ["ai"]],
             "user": [[], ["user_management"]],
             "notebook": [[], ["notebook"]],
+            "scheduler": [[], ["scheduler"]],
+            "checkins": [[], ["checkins"]],
+            "messages": [[], ["messages"]],
+            "storage": [[], ["storage"]],
             "development_tools": [["tests/development_tools/"], []],
         },
         "domain_dependencies": {
-            "core": ["communication", "ui", "tasks", "ai", "user", "notebook"],
-            "communication": ["ui", "tasks", "ai", "user"],
+            "core": [
+                "communication",
+                "ui",
+                "tasks",
+                "ai",
+                "user",
+                "notebook",
+                "scheduler",
+                "checkins",
+                "messages",
+                "storage",
+            ],
+            "communication": ["ui", "tasks", "ai", "user", "checkins", "messages"],
             "tasks": ["communication", "ui"],
-            "user": ["communication", "ui", "ai"],
+            "user": ["communication", "ui", "ai", "storage"],
             "ai": ["communication", "ui"],
             "ui": [],
             "notebook": ["communication", "ui"],
+            "scheduler": ["communication", "core"],
+            "checkins": ["communication", "user"],
+            "messages": ["communication"],
+            "storage": ["core", "user"],
             "development_tools": [],
         },
         "keyword_map": {
@@ -81,10 +101,13 @@ def _default_domain_mapper_config() -> dict:
             "ui": ["ui", "dialog", "widget", "qt", "pyside"],
             "user": ["user", "profile", "account", "preferences"],
             "notebook": ["notebook", "note", "journal", "list"],
+            "scheduler": ["scheduler", "schedule", "reminder"],
+            "checkins": ["checkin", "checkins"],
+            "messages": ["message", "messages", "delivery", "template"],
+            "storage": ["storage", "user_data", "registry", "persistence"],
             "core": [
                 "core",
                 "service",
-                "scheduler",
                 "config",
                 "logger",
                 "logging",
@@ -93,7 +116,6 @@ def _default_domain_mapper_config() -> dict:
                 "backup",
                 "file",
                 "cleanup",
-                "checkin",
                 "analytics",
                 "response",
             ],

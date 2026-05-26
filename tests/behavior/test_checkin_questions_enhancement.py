@@ -449,7 +449,7 @@ class TestAnalyticsWithNewQuestions:
 
         # Patch get_user_file_path for both storing and retrieving
         with patch(
-            "core.response_tracking.get_user_file_path", return_value=checkins_file
+            "checkins.checkin_data_manager.get_user_file_path", return_value=checkins_file
         ):
             store_user_response(self.user_id, checkin_data, "checkin")
 
@@ -464,7 +464,7 @@ class TestAnalyticsWithNewQuestions:
 
         # Test sleep analysis (also needs patched file path)
         with patch(
-            "core.response_tracking.get_user_file_path", return_value=checkins_file
+            "checkins.checkin_data_manager.get_user_file_path", return_value=checkins_file
         ):
             sleep_analysis = self.analytics.get_sleep_analysis(self.user_id, days=7)
             assert "error" not in sleep_analysis
@@ -501,7 +501,7 @@ class TestAnalyticsWithNewQuestions:
 
         # Patch get_user_file_path for both storing and retrieving
         with patch(
-            "core.response_tracking.get_user_file_path", return_value=checkins_file
+            "checkins.checkin_data_manager.get_user_file_path", return_value=checkins_file
         ):
             store_user_response(self.user_id, checkin_data, "checkin")
 
@@ -519,7 +519,7 @@ class TestAnalyticsWithNewQuestions:
 
         # Get quantitative summaries - should work with the stored data (also needs patched file path)
         with patch(
-            "core.response_tracking.get_user_file_path", return_value=checkins_file
+            "checkins.checkin_data_manager.get_user_file_path", return_value=checkins_file
         ):
             summaries = self.analytics.get_quantitative_summaries(self.user_id, days=7)
 

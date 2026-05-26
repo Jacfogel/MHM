@@ -34,6 +34,7 @@ from storage.user_data_registry import clear_user_caches as _registry_clear_user
 logger = get_component_logger("main")
 
 
+# error_handling_exclude: pure in-memory field projection; no I/O or external calls.
 def _apply_fields_filter(
     data: Any,
     data_type: str,
@@ -73,6 +74,7 @@ def _finalize_get_user_data_payload(
     data = _apply_fields_filter(data, data_type, fields)
 
     if normalize_on_read and fields is None and isinstance(data, dict):
+        # error_handling_exclude: best-effort read-time normalization; partial failures are skipped.
         try:
             if data_type == "account":
                 normalized, _errs = validate_account_dict(data)

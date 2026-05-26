@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-24 01:08:53
+> **Last Generated**: 2026-05-25 16:13:18
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 93.1% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 156
-- **Functions Found**: 1729
-- **Methods Found**: 1176
-- **Classes Found**: 177
-- **Total Items**: 2905
-- **Functions Documented**: 1594
-- **Methods Documented**: 1112
-- **Classes Documented**: 141
-- **Total Documented**: 2706
+### **Function Documentation Coverage: 92.4% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 178
+- **Functions Found**: 1956
+- **Methods Found**: 1273
+- **Classes Found**: 192
+- **Total Items**: 3229
+- **Functions Documented**: 1783
+- **Methods Documented**: 1202
+- **Classes Documented**: 147
+- **Total Documented**: 2985
 - **Template-Generated**: 26
-- **Last Updated**: 2026-05-24
+- **Last Updated**: 2026-05-25
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (395)
+### **Core System Functions** (396)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (510)
@@ -725,6 +725,258 @@ Adds engagement prompts if the response doesn't already have them.
 - [OK] `clean_system_prompt_leaks(response)` - Remove leaked system prompt metadata from AI responses.
 Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `smart_truncate_response(text, max_chars, max_words)` - Truncate response to avoid mid-sentence cuts when possible.
+
+### `checkins/` - Unknown Directory
+
+#### `checkins/__init__.py`
+
+#### `checkins/checkin_analytics.py`
+**Functions:**
+- [OK] `__init__(self)` - Initialize the CheckinAnalytics instance.
+
+This class provides analytics and insights from check-in data.
+- [OK] `_bucket_scale_value(value)` - Bucket a numeric value to the nearest 1-5 integer (half-up).
+- [OK] `_calculate_energy_score(self, checkins)` - Calculate energy score (0-100)
+- [OK] `_calculate_habit_score(self, checkins)` - Calculate habit score (0-100)
+- [OK] `_calculate_mood_score(self, checkins)` - Calculate mood score (0-100)
+- [OK] `_calculate_overall_completion(self, habit_stats)` - Calculate overall habit completion rate
+- [OK] `_calculate_sleep_consistency(self, hours)` - Calculate sleep consistency (lower variance = more consistent)
+- [OK] `_calculate_sleep_duration(self, sleep_time, wake_time)` - Calculate sleep duration in hours from sleep_time and wake_time (HH:MM format).
+- [OK] `_calculate_sleep_score(self, checkins)` - Calculate sleep score (0-100)
+- [OK] `_calculate_streak(self, checkins, habit_key)` - Calculate current and best streaks for a habit
+- [OK] `_coerce_numeric(value)` - Convert numeric-like values to float, skipping invalid or skipped entries.
+- [OK] `_coerce_sleep_hours(self, value)` - Convert sleep schedule values into hours.
+- [OK] `_coerce_yes_no(self, value)` - Convert yes/no-like values to bool.
+- [OK] `_get_energy_distribution(self, energies)` - Calculate distribution of energy scores (bucketed to 1-5).
+- [OK] `_get_habit_status(self, completion_rate)` - Get status description for habit completion rate
+- [OK] `_get_mood_distribution(self, moods)` - Calculate distribution of mood scores (bucketed to 1-5).
+- [OK] `_get_questions_asked(self, checkin)` - Return the list of questions asked for a check-in.
+- [OK] `_get_score_level(self, score)` - Get wellness score level description
+- [OK] `_get_sleep_recommendations(self, avg_hours, avg_quality, poor_days)` - Generate sleep recommendations
+- [OK] `_get_wellness_recommendations(self, mood_score, energy_score, habit_score, sleep_score)` - Generate wellness recommendations based on component scores
+- [OK] `_is_answered_value(self, value)` - Return True if the value counts as answered.
+- [OK] `_is_question_asked(self, checkin, question_key)` - Check if a question was asked for a check-in.
+- [MISSING] `_response_value(self, checkin, key)` - No description
+- [OK] `convert_score_100_to_5(score_100)` - Convert a score from 0-100 scale to 1-5 scale for display.
+
+Args:
+    score_100: Score on 0-100 scale
+
+Returns:
+    Score on 1-5 scale, rounded to 1 decimal place
+- [OK] `convert_score_5_to_100(score_5)` - Convert a score from 1-5 scale to 0-100 scale for calculations.
+
+Args:
+    score_5: Score on 1-5 scale
+
+Returns:
+    Score on 0-100 scale
+- [OK] `get_available_data_types(self, user_id, days)` - Detect what types of data are available for analytics
+- [OK] `get_basic_analytics(self, user_id, days)` - Return basic per-question stats grouped by category.
+- [OK] `get_checkin_history(self, user_id, days)` - Get check-in history with proper date formatting
+- [OK] `get_completion_rate(self, user_id, days)` - Calculate overall completion rate for check-ins
+- [OK] `get_energy_trends(self, user_id, days)` - Analyze energy trends over the specified period
+- [OK] `get_habit_analysis(self, user_id, days)` - Analyze habit patterns from check-in data
+- [OK] `get_mood_trends(self, user_id, days)` - Analyze mood trends over the specified period
+- [OK] `get_quantitative_summaries(self, user_id, days, enabled_fields)` - Compute per-field averages and ranges for opted-in quantitative fields.
+
+Parameters:
+    user_id: target user
+    days: number of recent check-ins to analyze
+    enabled_fields: list of fields to include (e.g., ['mood','energy','stress','sleep_quality','anxiety'])
+
+Returns mapping: { field: { 'average': float, 'min': float, 'max': float, 'count': int } }
+Only includes fields that appear in the data and are in enabled_fields if provided.
+- [OK] `get_sleep_analysis(self, user_id, days)` - Analyze sleep patterns from check-in data
+- [OK] `get_task_weekly_stats(self, user_id, days)` - Calculate weekly statistics for tasks
+- [OK] `get_wellness_score(self, user_id, days)` - Calculate overall wellness score from check-in data
+**Classes:**
+- [MISSING] `CheckinAnalytics` - No description
+  - [OK] `CheckinAnalytics.__init__(self)` - Initialize the CheckinAnalytics instance.
+
+This class provides analytics and insights from check-in data.
+  - [OK] `CheckinAnalytics._bucket_scale_value(value)` - Bucket a numeric value to the nearest 1-5 integer (half-up).
+  - [OK] `CheckinAnalytics._calculate_energy_score(self, checkins)` - Calculate energy score (0-100)
+  - [OK] `CheckinAnalytics._calculate_habit_score(self, checkins)` - Calculate habit score (0-100)
+  - [OK] `CheckinAnalytics._calculate_mood_score(self, checkins)` - Calculate mood score (0-100)
+  - [OK] `CheckinAnalytics._calculate_overall_completion(self, habit_stats)` - Calculate overall habit completion rate
+  - [OK] `CheckinAnalytics._calculate_sleep_consistency(self, hours)` - Calculate sleep consistency (lower variance = more consistent)
+  - [OK] `CheckinAnalytics._calculate_sleep_duration(self, sleep_time, wake_time)` - Calculate sleep duration in hours from sleep_time and wake_time (HH:MM format).
+  - [OK] `CheckinAnalytics._calculate_sleep_score(self, checkins)` - Calculate sleep score (0-100)
+  - [OK] `CheckinAnalytics._calculate_streak(self, checkins, habit_key)` - Calculate current and best streaks for a habit
+  - [OK] `CheckinAnalytics._coerce_numeric(value)` - Convert numeric-like values to float, skipping invalid or skipped entries.
+  - [OK] `CheckinAnalytics._coerce_sleep_hours(self, value)` - Convert sleep schedule values into hours.
+  - [OK] `CheckinAnalytics._coerce_yes_no(self, value)` - Convert yes/no-like values to bool.
+  - [OK] `CheckinAnalytics._get_energy_distribution(self, energies)` - Calculate distribution of energy scores (bucketed to 1-5).
+  - [OK] `CheckinAnalytics._get_habit_status(self, completion_rate)` - Get status description for habit completion rate
+  - [OK] `CheckinAnalytics._get_mood_distribution(self, moods)` - Calculate distribution of mood scores (bucketed to 1-5).
+  - [OK] `CheckinAnalytics._get_questions_asked(self, checkin)` - Return the list of questions asked for a check-in.
+  - [OK] `CheckinAnalytics._get_score_level(self, score)` - Get wellness score level description
+  - [OK] `CheckinAnalytics._get_sleep_recommendations(self, avg_hours, avg_quality, poor_days)` - Generate sleep recommendations
+  - [OK] `CheckinAnalytics._get_wellness_recommendations(self, mood_score, energy_score, habit_score, sleep_score)` - Generate wellness recommendations based on component scores
+  - [OK] `CheckinAnalytics._is_answered_value(self, value)` - Return True if the value counts as answered.
+  - [OK] `CheckinAnalytics._is_question_asked(self, checkin, question_key)` - Check if a question was asked for a check-in.
+  - [MISSING] `CheckinAnalytics._response_value(self, checkin, key)` - No description
+  - [OK] `CheckinAnalytics.convert_score_100_to_5(score_100)` - Convert a score from 0-100 scale to 1-5 scale for display.
+
+Args:
+    score_100: Score on 0-100 scale
+
+Returns:
+    Score on 1-5 scale, rounded to 1 decimal place
+  - [OK] `CheckinAnalytics.convert_score_5_to_100(score_5)` - Convert a score from 1-5 scale to 0-100 scale for calculations.
+
+Args:
+    score_5: Score on 1-5 scale
+
+Returns:
+    Score on 0-100 scale
+  - [OK] `CheckinAnalytics.get_available_data_types(self, user_id, days)` - Detect what types of data are available for analytics
+  - [OK] `CheckinAnalytics.get_basic_analytics(self, user_id, days)` - Return basic per-question stats grouped by category.
+  - [OK] `CheckinAnalytics.get_checkin_history(self, user_id, days)` - Get check-in history with proper date formatting
+  - [OK] `CheckinAnalytics.get_completion_rate(self, user_id, days)` - Calculate overall completion rate for check-ins
+  - [OK] `CheckinAnalytics.get_energy_trends(self, user_id, days)` - Analyze energy trends over the specified period
+  - [OK] `CheckinAnalytics.get_habit_analysis(self, user_id, days)` - Analyze habit patterns from check-in data
+  - [OK] `CheckinAnalytics.get_mood_trends(self, user_id, days)` - Analyze mood trends over the specified period
+  - [OK] `CheckinAnalytics.get_quantitative_summaries(self, user_id, days, enabled_fields)` - Compute per-field averages and ranges for opted-in quantitative fields.
+
+Parameters:
+    user_id: target user
+    days: number of recent check-ins to analyze
+    enabled_fields: list of fields to include (e.g., ['mood','energy','stress','sleep_quality','anxiety'])
+
+Returns mapping: { field: { 'average': float, 'min': float, 'max': float, 'count': int } }
+Only includes fields that appear in the data and are in enabled_fields if provided.
+  - [OK] `CheckinAnalytics.get_sleep_analysis(self, user_id, days)` - Analyze sleep patterns from check-in data
+  - [OK] `CheckinAnalytics.get_task_weekly_stats(self, user_id, days)` - Calculate weekly statistics for tasks
+  - [OK] `CheckinAnalytics.get_wellness_score(self, user_id, days)` - Calculate overall wellness score from check-in data
+
+#### `checkins/checkin_data_manager.py`
+**Functions:**
+- [OK] `_build_v2_checkin_from_response_payload(response_data)` - Build a canonical v2 check-in dict from a runtime payload.
+- [OK] `_checkin_to_runtime_response(checkin)` - Return the flat response shape expected by existing analytics callers.
+- [OK] `_coerce_v2_checkins_envelope_for_store(existing_data)` - Return a mutable v2 envelope for appending a new check-in.
+- [MISSING] `_get_checkin_timestamp_for_sorting(item)` - No description
+- [OK] `checkin_runtime_timestamp(checkin)` - Wall-clock timestamp string for a check-in row.
+- [OK] `get_checkins_by_days(user_id, days)` - Get check-ins from the last N calendar days.
+- [OK] `get_recent_checkins(user_id, limit)` - Get recent check-in responses for a user.
+- [OK] `is_user_checkins_enabled(user_id)` - Check if check-ins are enabled for a user.
+- [OK] `store_checkin_response(user_id, response_data)` - Store one check-in response in the user's check-in log.
+
+#### `checkins/checkin_dynamic_manager.py`
+**Functions:**
+- [OK] `__init__(self)` - Initialize the dynamic check-in manager.
+- [OK] `_calculate_sleep_chunk_hours(self, sleep_time, wake_time)` - Calculate duration for one sleep chunk in hours.
+- [OK] `_clean_time_token(self, time_str)` - Remove connector words/punctuation around a time token.
+- [OK] `_extract_time_tokens(self, text)` - Extract schedule-style time tokens from free text.
+- [OK] `_get_numeric_response_fallback(self, question_responses, answer_value)` - Return response list for nearest integer key when float answers are provided.
+- [OK] `_load_data(self)` - Load questions and responses data from JSON files.
+- [OK] `_normalize_time(self, time_str)` - Normalize time string to HH:MM format (24-hour).
+
+Supports formats like:
+- "11:30 PM" -> "23:30"
+- "7:00 AM" -> "07:00"
+- "23:30" -> "23:30"
+- "7:00" -> "07:00" (assumes 24-hour value)
+- "9pm" -> "21:00"
+- "930pm" -> "21:30"
+- "9" -> "09:00"
+- "noon" -> "12:00"
+- "midnight" -> "00:00"
+- [OK] `_parse_numerical_response(self, answer)` - Parse numerical responses including written numbers, decimals, and mixed formats.
+- [OK] `_parse_time_pair_response(self, answer)` - Parse sleep data from user response.
+
+Supports either:
+- Single window: "11:30 PM and 7:00 AM"
+- Interrupted chunks (up to 3):
+  "11:00 PM-1:00 AM, 2:00 AM-6:30 AM"
+- [OK] `build_next_question_with_response(self, question_key, previous_question_key, previous_answer)` - Build the next question text with a response statement from the previous answer.
+- [OK] `delete_custom_question(self, user_id, question_key)` - Delete a custom question from user preferences.
+- [OK] `get_all_questions(self, user_id)` - Get all question definitions, merging predefined and custom questions.
+
+Custom questions take precedence over predefined questions with the same key.
+- [OK] `get_categories(self)` - Get all question categories.
+- [OK] `get_custom_questions(self, user_id)` - Get custom questions for a specific user from preferences.
+- [OK] `get_enabled_questions_for_ui(self, user_id)` - Get questions formatted for UI display with enabled_by_default status.
+
+Includes both predefined and custom questions if user_id is provided.
+- [OK] `get_question_definition(self, question_key, user_id)` - Get the definition for a specific question.
+
+Checks custom questions first (if user_id provided), then predefined questions.
+- [OK] `get_question_templates(self)` - Get available question templates for creating custom questions.
+- [OK] `get_question_text(self, question_key, user_id)` - Get the question text for a specific question.
+- [OK] `get_question_type(self, question_key)` - Get the type of a specific question.
+- [OK] `get_question_validation(self, question_key)` - Get validation rules for a specific question.
+- [OK] `get_response_statement(self, question_key, answer_value)` - Get a random response statement for a question answer.
+- [OK] `get_transition_phrase(self)` - Get a random transition phrase.
+- [OK] `save_custom_question(self, user_id, question_key, question_def)` - Save a custom question to user preferences.
+- [OK] `validate_answer(self, question_key, answer, user_id)` - Validate an answer for a specific question.
+**Classes:**
+- [OK] `DynamicCheckinManager` - Manages dynamic check-in questions and responses loaded from JSON files.
+  - [OK] `DynamicCheckinManager.__init__(self)` - Initialize the dynamic check-in manager.
+  - [OK] `DynamicCheckinManager._calculate_sleep_chunk_hours(self, sleep_time, wake_time)` - Calculate duration for one sleep chunk in hours.
+  - [OK] `DynamicCheckinManager._clean_time_token(self, time_str)` - Remove connector words/punctuation around a time token.
+  - [OK] `DynamicCheckinManager._extract_time_tokens(self, text)` - Extract schedule-style time tokens from free text.
+  - [OK] `DynamicCheckinManager._get_numeric_response_fallback(self, question_responses, answer_value)` - Return response list for nearest integer key when float answers are provided.
+  - [OK] `DynamicCheckinManager._load_data(self)` - Load questions and responses data from JSON files.
+  - [OK] `DynamicCheckinManager._normalize_time(self, time_str)` - Normalize time string to HH:MM format (24-hour).
+
+Supports formats like:
+- "11:30 PM" -> "23:30"
+- "7:00 AM" -> "07:00"
+- "23:30" -> "23:30"
+- "7:00" -> "07:00" (assumes 24-hour value)
+- "9pm" -> "21:00"
+- "930pm" -> "21:30"
+- "9" -> "09:00"
+- "noon" -> "12:00"
+- "midnight" -> "00:00"
+  - [OK] `DynamicCheckinManager._parse_numerical_response(self, answer)` - Parse numerical responses including written numbers, decimals, and mixed formats.
+  - [OK] `DynamicCheckinManager._parse_time_pair_response(self, answer)` - Parse sleep data from user response.
+
+Supports either:
+- Single window: "11:30 PM and 7:00 AM"
+- Interrupted chunks (up to 3):
+  "11:00 PM-1:00 AM, 2:00 AM-6:30 AM"
+  - [OK] `DynamicCheckinManager.build_next_question_with_response(self, question_key, previous_question_key, previous_answer)` - Build the next question text with a response statement from the previous answer.
+  - [OK] `DynamicCheckinManager.delete_custom_question(self, user_id, question_key)` - Delete a custom question from user preferences.
+  - [OK] `DynamicCheckinManager.get_all_questions(self, user_id)` - Get all question definitions, merging predefined and custom questions.
+
+Custom questions take precedence over predefined questions with the same key.
+  - [OK] `DynamicCheckinManager.get_categories(self)` - Get all question categories.
+  - [OK] `DynamicCheckinManager.get_custom_questions(self, user_id)` - Get custom questions for a specific user from preferences.
+  - [OK] `DynamicCheckinManager.get_enabled_questions_for_ui(self, user_id)` - Get questions formatted for UI display with enabled_by_default status.
+
+Includes both predefined and custom questions if user_id is provided.
+  - [OK] `DynamicCheckinManager.get_question_definition(self, question_key, user_id)` - Get the definition for a specific question.
+
+Checks custom questions first (if user_id provided), then predefined questions.
+  - [OK] `DynamicCheckinManager.get_question_templates(self)` - Get available question templates for creating custom questions.
+  - [OK] `DynamicCheckinManager.get_question_text(self, question_key, user_id)` - Get the question text for a specific question.
+  - [OK] `DynamicCheckinManager.get_question_type(self, question_key)` - Get the type of a specific question.
+  - [OK] `DynamicCheckinManager.get_question_validation(self, question_key)` - Get validation rules for a specific question.
+  - [OK] `DynamicCheckinManager.get_response_statement(self, question_key, answer_value)` - Get a random response statement for a question answer.
+  - [OK] `DynamicCheckinManager.get_transition_phrase(self)` - Get a random transition phrase.
+  - [OK] `DynamicCheckinManager.save_custom_question(self, user_id, question_key, question_def)` - Save a custom question to user preferences.
+  - [OK] `DynamicCheckinManager.validate_answer(self, question_key, answer, user_id)` - Validate an answer for a specific question.
+
+#### `checkins/checkin_schemas.py`
+**Functions:**
+- [OK] `validate_checkins_v2_document(data)` - Validate a v2 check-in envelope.
+- [MISSING] `validate_timestamp(cls, value)` - No description
+**Classes:**
+- [MISSING] `CheckinCollectionV2Model` - No description
+- [MISSING] `CheckinV2Model` - No description
+  - [MISSING] `CheckinV2Model.validate_timestamp(cls, value)` - No description
+
+#### `checkins/checkin_service.py`
+**Functions:**
+- [OK] `checkin_display_date(checkin)` - Return a stable display date for a check-in.
+- [OK] `get_checkin_start_status(user_id)` - Return whether a user can start a new check-in right now.
+- [OK] `get_recent_checkin_summary(user_id)` - Return recent check-ins if check-ins are enabled for the user.
+**Classes:**
+- [OK] `CheckinStartStatus` - Preflight status for starting a check-in.
+- [OK] `RecentCheckinSummary` - Recent check-in data normalized for command display.
 
 ### `communication/` - Communication Channel Implementations
 
@@ -4189,6 +4441,9 @@ Use this only when multiple inputs are expected.
 Prefer parse_timestamp_full / parse_timestamp_minute for critical state.
 - [OK] `parse_timestamp_full(value)` - Parse TIMESTAMP_FULL. Returns None on invalid input.
 - [OK] `parse_timestamp_minute(value)` - Parse TIMESTAMP_MINUTE. Returns None on invalid input.
+- [OK] `timestamp_sort_key_from_dict(item, field)` - Return a float sort key from a dict timestamp field (parse_timestamp_full).
+
+Used by check-ins, messages, and response-tracking list sorts.
 - [OK] `wrapper()` - Run the wrapped time helper; log and return the guard default on failure.
 **Classes:**
 - [OK] `InvalidTimeFormatError` - Exception raised when a scheduler timestamp or timezone cannot be parsed.
@@ -4245,6 +4500,228 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `create_new_user(user_data)` - Create a new user with the new data structure.
 - [OK] `get_all_user_ids()` - Get all user IDs from the system.
 - [OK] `get_user_categories(user_id)` - Get user's message categories using centralized data access.
+
+### `messages/` - Unknown Directory
+
+#### `messages/__init__.py`
+
+#### `messages/message_analytics.py`
+**Functions:**
+- [OK] `__init__(self)` - Initialize the MessageAnalytics instance.
+
+This class provides analytics and insights from sent message data.
+- [OK] `get_delivery_success_rate(self, user_id, days)` - Analyze message delivery success rates.
+
+Args:
+    user_id: The user ID to analyze
+    days: Number of days to analyze (default: 30)
+
+Returns:
+    Dict containing delivery statistics
+- [OK] `get_message_frequency(self, user_id, days, category)` - Analyze message send frequency by category and time period.
+
+Args:
+    user_id: The user ID to analyze
+    days: Number of days to analyze (default: 30)
+    category: Optional category filter (None = all categories)
+
+Returns:
+    Dict containing frequency statistics
+- [OK] `get_message_summary(self, user_id, days)` - Get a comprehensive summary of message activity.
+
+Args:
+    user_id: The user ID to analyze
+    days: Number of days to analyze (default: 30)
+
+Returns:
+    Dict containing summary statistics
+**Classes:**
+- [MISSING] `MessageAnalytics` - No description
+  - [OK] `MessageAnalytics.__init__(self)` - Initialize the MessageAnalytics instance.
+
+This class provides analytics and insights from sent message data.
+  - [OK] `MessageAnalytics.get_delivery_success_rate(self, user_id, days)` - Analyze message delivery success rates.
+
+Args:
+    user_id: The user ID to analyze
+    days: Number of days to analyze (default: 30)
+
+Returns:
+    Dict containing delivery statistics
+  - [OK] `MessageAnalytics.get_message_frequency(self, user_id, days, category)` - Analyze message send frequency by category and time period.
+
+Args:
+    user_id: The user ID to analyze
+    days: Number of days to analyze (default: 30)
+    category: Optional category filter (None = all categories)
+
+Returns:
+    Dict containing frequency statistics
+  - [OK] `MessageAnalytics.get_message_summary(self, user_id, days)` - Get a comprehensive summary of message activity.
+
+Args:
+    user_id: The user ID to analyze
+    days: Number of days to analyze (default: 30)
+
+Returns:
+    Dict containing summary statistics
+
+#### `messages/message_data_manager.py`
+**Functions:**
+- [OK] `_canonical_message_timestamp(value)` - Return a valid full timestamp string or current time when invalid.
+- [OK] `_delivery_to_runtime_message(delivery)` - Return runtime dict for a v2 delivery record.
+- [OK] `_ensure_v2_message_template_file(data, category)` - Normalize a message template file payload to canonical v2 wrapper shape.
+- [OK] `_message_template_default_to_v2(message, category)` - Build a canonical v2 message template from v2-shaped runtime or on-disk data.
+- [OK] `_message_template_to_runtime(message, category)` - Return runtime dict for message selection (canonical v2 template fields).
+- [OK] `_normalize_message_update_payload(updated_data)` - Return a shallow copy; callers must supply v2 template fields (text, schedule, id, etc.).
+- [OK] `_parse_message_timestamp(timestamp_str)` - Parse timestamp string to datetime object.
+
+Args:
+    timestamp_str: Timestamp string to parse
+
+Returns:
+    datetime: Parsed datetime object (UTC) or sentinel minimum
+- [OK] `add_message(user_id, category, message_data, index)` - Add a new message to a user's category.
+
+Args:
+    user_id: The user ID
+    category: The message category
+    message_data: Dictionary containing message data
+    index: Optional position to insert the message (None for append)
+- [OK] `archive_old_messages(user_id, days_to_keep)` - Archive messages older than specified days.
+
+This function implements file rotation by moving old messages to archive files,
+keeping the active sent_messages.json file manageable in size.
+
+Args:
+    user_id: The user ID
+    days_to_keep: Number of days to keep in active file
+
+Returns:
+    bool: True if archiving successful
+- [OK] `create_message_file_from_defaults(user_id, category)` - Create a user's message file for a specific category from default messages.
+This is the actual worker function that creates the file.
+
+Args:
+    user_id: The user ID
+    category: The specific category to create a message file for
+
+Returns:
+    bool: True if file was created successfully
+- [OK] `delete_message(user_id, category, message_id)` - Delete a specific message from a user's category.
+
+Args:
+    user_id: The user ID
+    category: The message category
+    message_id: The ID of the message to delete
+
+Raises:
+    ValidationError: If the message ID is not found or the category is invalid
+- [OK] `edit_message(user_id, category, message_id, updated_data)` - Edit an existing message in a user's category.
+
+Args:
+    user_id: The user ID
+    category: The message category
+    message_id: The ID of the message to edit
+    updated_data: Dictionary containing updated message data
+
+Raises:
+    ValidationError: If message ID is not found or category is invalid
+- [OK] `ensure_user_message_files(user_id, categories)` - Ensure user has message files for specified categories.
+Creates messages directory if missing, checks which files are missing, and creates them.
+
+Args:
+    user_id: The user ID
+    categories: List of categories to check/create message files for (can be subset of user's categories)
+
+Returns:
+    dict: Summary of the operation with keys:
+        - success: bool - True if all files were created/validated successfully
+        - directory_created: bool - True if messages directory was created
+        - files_checked: int - Number of categories checked
+        - files_created: int - Number of new files created
+        - files_existing: int - Number of files that already existed
+- [OK] `get_message_categories()` - Retrieves message categories from the environment variable CATEGORIES.
+Allows for either a comma-separated string or a JSON array.
+
+Returns:
+    List[str]: List of message categories
+- [OK] `get_recent_messages(user_id, category, limit, days_back)` - Get recent messages with flexible filtering.
+
+This function replaces get_last_10_messages() with enhanced functionality
+that supports both category-specific and cross-category queries.
+
+Args:
+    user_id: The user ID
+    category: Optional category filter (None = all categories)
+    limit: Maximum number of messages to return
+    days_back: Only include messages from last N days
+
+Returns:
+    List[dict]: List of recent messages, sorted by timestamp descending
+- [OK] `get_timestamp_for_sorting(item)` - Convert timestamp to float for consistent sorting.
+
+Args:
+    item: Dictionary containing a timestamp field or other data type
+
+Returns:
+    float: Timestamp as float for sorting, or 0.0 for invalid items
+- [OK] `is_automated_messages_enabled(user_id)` - Check if automated outbound messages are enabled for a user.
+- [OK] `load_default_messages(category)` - Load default messages for a specific category.
+- [OK] `load_user_messages(user_id, category)` - Load user's message templates for a specific category.
+
+Args:
+    user_id: The user ID
+    category: The message category
+
+Returns:
+    List[dict]: List of message templates for the category
+- [OK] `store_sent_message(user_id, category, message_id, message, delivery_status, time_period)` - Store sent message in chronological order.
+
+This function maintains the chronological structure by inserting new messages
+in the correct position based on timestamp.
+
+Args:
+    user_id: The user ID
+    category: The message category
+    message_id: The message ID
+    message: The message content
+    delivery_status: Delivery status (default: "sent")
+    time_period: The time period when the message was sent (e.g., "morning", "evening")
+
+Returns:
+    bool: True if message stored successfully
+- [OK] `update_message(user_id, category, message_id, new_message_data)` - Update a message by its message_id.
+
+Args:
+    user_id: The user ID
+    category: The message category
+    message_id: The ID of the message to update
+    new_message_data: Complete new message data to replace the existing message
+
+Raises:
+    ValidationError: If message ID is not found or category is invalid
+
+#### `messages/message_schemas.py`
+**Functions:**
+- [OK] `validate_deliveries_v2_document(data)` - Validate a v2 message-delivery envelope.
+- [OK] `validate_messages_v2_document(data)` - Validate a v2 message-template envelope.
+- [MISSING] `validate_sent_at(cls, value)` - No description
+- [MISSING] `validate_timestamp(cls, value)` - No description
+**Classes:**
+- [MISSING] `MessageDeliveryCollectionV2Model` - No description
+- [MISSING] `MessageDeliveryV2Model` - No description
+  - [MISSING] `MessageDeliveryV2Model.validate_sent_at(cls, value)` - No description
+- [MISSING] `MessageTemplateCollectionV2Model` - No description
+- [MISSING] `MessageTemplateV2Model` - No description
+  - [MISSING] `MessageTemplateV2Model.validate_timestamp(cls, value)` - No description
+- [MISSING] `ScheduleModel` - No description
+
+#### `messages/message_service.py`
+**Functions:**
+- [OK] `get_predefined_message_preview_text(user_id, category)` - Return the text that would be chosen for a predefined-category send (mirrors orchestrator weighting).
+- [OK] `message_schedule_matches_current_window(day_names, time_periods, current_days, matching_periods)` - True if template schedule overlaps current day/period (ALL matches any).
+- [OK] `message_template_schedule_lists(msg)` - Return day names and time periods from a v2 template ``schedule`` (or ALL defaults).
 
 ### `root/` - Root Files
 
@@ -4595,6 +5072,397 @@ priority/due-date logic and scheduled at a random time within that period.
 **Functions:**
 - [OK] `localized_now_for_user(user_id)` - Timezone-aware 'now' in the user's account timezone.
 - [OK] `resolve_user_timezone_str(user_id)` - Return a valid pytz timezone name for ``user_id`` (account ``timezone`` field).
+
+### `storage/` - Unknown Directory
+
+#### `storage/__init__.py`
+
+#### `storage/runtime_state_storage.py`
+**Functions:**
+- [OK] `_fresh_default(default_data)` - Return an independent default dict for callers that mutate loaded state.
+- [OK] `get_runtime_state_path(file_name_or_path, base_dir)` - Resolve a runtime-state JSON path.
+
+Plain filenames are placed under BASE_DATA_DIR. Explicit paths are accepted
+for tests and callers that isolate a specific file.
+- [OK] `load_runtime_state_json(file_name_or_path)` - Load a runtime-state JSON dict through the centralized JSON helper.
+- [OK] `save_runtime_state_json(file_name_or_path, data)` - Save a runtime-state JSON dict through the centralized JSON helper.
+
+#### `storage/service_flag_storage.py`
+**Functions:**
+- [OK] `read_service_flag_json(flag_file, default_data)` - Read a JSON service flag file and return a dict payload.
+- [OK] `write_service_flag_json(flag_file, data)` - Write a JSON service flag file and optionally record file-auditor metadata.
+
+#### `storage/user_data_operations.py`
+**Functions:**
+- [OK] `__init__(self)` - Initialize the UserDataManager.
+
+Sets up backup directory and index file path for user data management operations.
+- [OK] `_get_last_interaction(self, user_id)` - Get the timestamp of the user's last interaction with the system.
+
+Args:
+    user_id: The user's ID
+
+Returns:
+    str: ISO format timestamp of last interaction, or default if none found
+- [OK] `_get_user_categories(user_id)` - Resolve categories without a static import (breaks user_management cycle in tooling).
+- [OK] `_get_user_data_summary__add_core_file_info(self, file_path, file_type, summary)` - Add file info and special details for a single core file (used by process_core_files).
+- [OK] `_get_user_data_summary__add_file_info(self, file_path, file_type, summary)` - Add basic file information to the summary.
+- [OK] `_get_user_data_summary__add_json_file_detail(self, file_path, summary, file_type, detail_key, extractor, log_label)` - Load JSON from path and set summary["files"][file_type][detail_key] = extractor(data). Used for schedules (periods) and sent_messages (count).
+- [OK] `_get_user_data_summary__add_log_file_info(self, log_file, log_type, summary)` - Add log file information to the summary.
+- [OK] `_get_user_data_summary__add_message_file_info(self, file_path, category, summary, orphaned)` - Add message file information to the summary.
+- [OK] `_get_user_data_summary__add_missing_message_file_info(self, file_path, category, summary, user_id)` - Add information for missing message files.
+- [OK] `_get_user_data_summary__add_special_file_details(self, file_path, file_type, summary)` - Add special details for specific file types (schedules, sent_messages).
+- [OK] `_get_user_data_summary__ensure_message_files(self, user_id, categories)` - Ensure message files exist for all user categories.
+- [OK] `_get_user_data_summary__initialize_summary(self, user_id)` - Initialize the summary structure with default values.
+- [OK] `_get_user_data_summary__process_core_files(self, user_id, summary)` - Process core user data files (profile, preferences, schedules, etc.).
+- [OK] `_get_user_data_summary__process_enabled_message_files(self, user_id, categories, summary)` - Process message files for enabled categories.
+- [OK] `_get_user_data_summary__process_file_types_with_adder(self, user_id, summary, file_types, adder)` - Process a list of file types: resolve path per type, and if file exists call adder(path, file_type, summary).
+- [OK] `_get_user_data_summary__process_log_files(self, user_id, summary)` - Process log files (checkins, chat_interactions).
+- [OK] `_get_user_data_summary__process_message_files(self, user_id, summary)` - Process message files for all user categories.
+- [OK] `_get_user_data_summary__process_orphaned_message_files(self, user_id, categories, message_files, summary)` - Process orphaned message files (categories not enabled but files exist).
+- [OK] `backup_user_data(user_id, include_messages)` - Create a complete backup of user's data with validation.
+
+Returns:
+    str: Path to backup file, empty string if failed
+- [OK] `backup_user_data(self, user_id, include_messages)` - Create a complete backup of user's data with validation.
+
+Returns:
+    str: Path to backup file, empty string if failed
+- [OK] `build_user_index()` - Build an index of all users and their message data with validation.
+
+Returns:
+    Dict[str, Any]: User index, empty dict if failed
+- [OK] `delete_user_completely(user_id, create_backup)` - Completely remove all traces of a user from the system with validation.
+
+Returns:
+    bool: True if successful, False if failed
+- [OK] `delete_user_completely(self, user_id, create_backup)` - Completely remove all traces of a user from the system with validation.
+
+Returns:
+    bool: True if successful, False if failed
+- [OK] `export_user_data(user_id, export_format)` - Export all user data to a structured format with validation.
+
+Returns:
+    Dict[str, Any]: Exported data, empty dict if failed
+- [OK] `export_user_data(self, user_id, export_format)` - Export all user data to a structured format with validation.
+
+Returns:
+    Dict[str, Any]: Exported data, empty dict if failed
+- [OK] `get_all_user_summaries()` - Get summaries for all users with validation.
+
+Returns:
+    List[Dict[str, Any]]: List of user summaries, empty list if failed
+- [OK] `get_user_analytics_summary(user_id)` - Get an analytics summary for a user including interaction patterns and data usage.
+
+Args:
+    user_id: The user's ID
+
+Returns:
+    Dict containing analytics summary information
+- [OK] `get_user_data_summary(user_id)` - Get comprehensive summary of user data with validation.
+
+Returns:
+    Dict[str, Any]: User data summary, error dict if failed
+- [OK] `get_user_data_summary(self, user_id)` - Get comprehensive summary of user data with validation.
+
+Returns:
+    Dict[str, Any]: User data summary, error dict if failed
+- [OK] `get_user_info_for_data_manager(user_id)` - Get user info using the new centralized data structure with validation.
+
+Returns:
+    Optional[Dict[str, Any]]: User info dict or None if failed
+- [OK] `get_user_message_files(self, user_id)` - Get all message file paths for a user
+- [OK] `get_user_summary(user_id)` - Get a summary of user data and message statistics with validation.
+
+Returns:
+    Dict[str, Any]: User summary, empty dict if failed
+- [OK] `rebuild_full_index(self)` - Rebuild full user index with validation.
+
+Returns:
+    bool: True if successful, False if failed
+- [OK] `rebuild_user_index()` - Rebuild the complete user index.
+
+Returns:
+    bool: True if index was rebuilt successfully
+- [OK] `remove_from_index(self, user_id)` - Remove user from index with validation.
+
+Returns:
+    bool: True if successful, False if failed
+- [OK] `search_users(self, query, search_fields)` - Search users with validation.
+
+Returns:
+    List[Dict[str, Any]]: Search results, empty list if failed
+- [OK] `update_message_references(user_id)` - Update message references with validation.
+
+Returns:
+    bool: True if successful, False if failed
+- [OK] `update_message_references(self, user_id)` - Add/update message file references in user profile
+- [OK] `update_user_index(user_id)` - Update user index with validation.
+
+Returns:
+    bool: True if successful, False if failed
+- [OK] `update_user_index(self, user_id)` - Update the user index with current information for a specific user.
+
+Creates flat lookup mappings for fast O(1) user lookups:
+- {"internal_username": "UUID", "email:email": "UUID", "discord:discord_id": "UUID", "phone:phone": "UUID"}
+
+All detailed user data is stored in account.json, not duplicated in the index.
+
+Args:
+    user_id: The user's ID (UUID)
+
+Returns:
+    bool: True if index was updated successfully
+**Classes:**
+- [OK] `UserDataManager` - Enhanced user data management with references, backup, and indexing capabilities
+  - [OK] `UserDataManager.__init__(self)` - Initialize the UserDataManager.
+
+Sets up backup directory and index file path for user data management operations.
+  - [OK] `UserDataManager._get_last_interaction(self, user_id)` - Get the timestamp of the user's last interaction with the system.
+
+Args:
+    user_id: The user's ID
+
+Returns:
+    str: ISO format timestamp of last interaction, or default if none found
+  - [OK] `UserDataManager._get_user_data_summary__add_core_file_info(self, file_path, file_type, summary)` - Add file info and special details for a single core file (used by process_core_files).
+  - [OK] `UserDataManager._get_user_data_summary__add_file_info(self, file_path, file_type, summary)` - Add basic file information to the summary.
+  - [OK] `UserDataManager._get_user_data_summary__add_json_file_detail(self, file_path, summary, file_type, detail_key, extractor, log_label)` - Load JSON from path and set summary["files"][file_type][detail_key] = extractor(data). Used for schedules (periods) and sent_messages (count).
+  - [OK] `UserDataManager._get_user_data_summary__add_log_file_info(self, log_file, log_type, summary)` - Add log file information to the summary.
+  - [OK] `UserDataManager._get_user_data_summary__add_message_file_info(self, file_path, category, summary, orphaned)` - Add message file information to the summary.
+  - [OK] `UserDataManager._get_user_data_summary__add_missing_message_file_info(self, file_path, category, summary, user_id)` - Add information for missing message files.
+  - [OK] `UserDataManager._get_user_data_summary__add_special_file_details(self, file_path, file_type, summary)` - Add special details for specific file types (schedules, sent_messages).
+  - [OK] `UserDataManager._get_user_data_summary__ensure_message_files(self, user_id, categories)` - Ensure message files exist for all user categories.
+  - [OK] `UserDataManager._get_user_data_summary__initialize_summary(self, user_id)` - Initialize the summary structure with default values.
+  - [OK] `UserDataManager._get_user_data_summary__process_core_files(self, user_id, summary)` - Process core user data files (profile, preferences, schedules, etc.).
+  - [OK] `UserDataManager._get_user_data_summary__process_enabled_message_files(self, user_id, categories, summary)` - Process message files for enabled categories.
+  - [OK] `UserDataManager._get_user_data_summary__process_file_types_with_adder(self, user_id, summary, file_types, adder)` - Process a list of file types: resolve path per type, and if file exists call adder(path, file_type, summary).
+  - [OK] `UserDataManager._get_user_data_summary__process_log_files(self, user_id, summary)` - Process log files (checkins, chat_interactions).
+  - [OK] `UserDataManager._get_user_data_summary__process_message_files(self, user_id, summary)` - Process message files for all user categories.
+  - [OK] `UserDataManager._get_user_data_summary__process_orphaned_message_files(self, user_id, categories, message_files, summary)` - Process orphaned message files (categories not enabled but files exist).
+  - [OK] `UserDataManager.backup_user_data(self, user_id, include_messages)` - Create a complete backup of user's data with validation.
+
+Returns:
+    str: Path to backup file, empty string if failed
+  - [OK] `UserDataManager.delete_user_completely(self, user_id, create_backup)` - Completely remove all traces of a user from the system with validation.
+
+Returns:
+    bool: True if successful, False if failed
+  - [OK] `UserDataManager.export_user_data(self, user_id, export_format)` - Export all user data to a structured format with validation.
+
+Returns:
+    Dict[str, Any]: Exported data, empty dict if failed
+  - [OK] `UserDataManager.get_user_data_summary(self, user_id)` - Get comprehensive summary of user data with validation.
+
+Returns:
+    Dict[str, Any]: User data summary, error dict if failed
+  - [OK] `UserDataManager.get_user_message_files(self, user_id)` - Get all message file paths for a user
+  - [OK] `UserDataManager.rebuild_full_index(self)` - Rebuild full user index with validation.
+
+Returns:
+    bool: True if successful, False if failed
+  - [OK] `UserDataManager.remove_from_index(self, user_id)` - Remove user from index with validation.
+
+Returns:
+    bool: True if successful, False if failed
+  - [OK] `UserDataManager.search_users(self, query, search_fields)` - Search users with validation.
+
+Returns:
+    List[Dict[str, Any]]: Search results, empty list if failed
+  - [OK] `UserDataManager.update_message_references(self, user_id)` - Add/update message file references in user profile
+  - [OK] `UserDataManager.update_user_index(self, user_id)` - Update the user index with current information for a specific user.
+
+Creates flat lookup mappings for fast O(1) user lookups:
+- {"internal_username": "UUID", "email:email": "UUID", "discord:discord_id": "UUID", "phone:phone": "UUID"}
+
+All detailed user data is stored in account.json, not duplicated in the index.
+
+Args:
+    user_id: The user's ID (UUID)
+
+Returns:
+    bool: True if index was updated successfully
+
+#### `storage/user_data_presets.py`
+**Functions:**
+- [OK] `_load_presets_json()` - Load presets from resources/presets.json (cached).
+- [OK] `get_predefined_options(field)` - Return predefined options for a personalization field.
+- [OK] `get_timezone_options()` - Get timezone options.
+
+#### `storage/user_data_read.py`
+**Functions:**
+- [OK] `_apply_fields_filter(data, data_type, fields)` - Return *data* narrowed to the requested field selection for *data_type*.
+- [OK] `_finalize_get_user_data_payload(user_id, data_type, data)` - Apply field filtering, optional validation/normalization, schedules shape, and metadata.
+- [OK] `clear_user_caches(user_id)` - Clear user data caches (delegate to registry).
+- [OK] `ensure_unique_ids(data)` - Ensure all messages have unique canonical IDs.
+- [OK] `get_user_data(user_id, data_types, fields, auto_create, include_metadata, normalize_on_read)` - Get user data with comprehensive validation.
+
+Returns:
+    Dict[str, Any]: User data dictionary, empty dict if failed
+- [OK] `get_user_data_with_metadata(user_id, data_types)` - Get user data with file metadata using centralized system.
+- [OK] `load_and_ensure_ids(user_id)` - Load messages for all categories and ensure IDs are unique for a user.
+
+#### `storage/user_data_registry.py`
+**Functions:**
+- [OK] `_account_default_data(user_id)` - Return default account dict for a user (e.g. when auto-creating).
+- [OK] `_account_normalize_after_load(data)` - Normalize account dict after load (ensure email, timezone).
+- [OK] `_context_default_data(user_id)` - Return default user context dict (e.g. when auto-creating).
+- [MISSING] `_ensure_default_loaders_once()` - No description
+- [MISSING] `_get_user_data__load_account(user_id, auto_create)` - No description
+- [MISSING] `_get_user_data__load_context(user_id, auto_create)` - No description
+- [OK] `_get_user_data__load_impl(user_id, auto_create, cache_key_prefix, file_key, cache_dict, default_data_factory, validate_fn, log_name, normalize_after_load)` - Internal: common load flow for user data (cache, file, default, validate).
+- [MISSING] `_get_user_data__load_preferences(user_id, auto_create)` - No description
+- [MISSING] `_get_user_data__load_schedules(user_id, auto_create)` - No description
+- [MISSING] `_get_user_data__load_tags(user_id, auto_create)` - No description
+- [OK] `_preferences_default_data(user_id)` - Return default preferences dict for a user (e.g. when auto-creating).
+- [MISSING] `_save_user_data__save_account(user_id, account_data)` - No description
+- [MISSING] `_save_user_data__save_context(user_id, context_data)` - No description
+- [MISSING] `_save_user_data__save_preferences(user_id, preferences_data)` - No description
+- [MISSING] `_save_user_data__save_schedules(user_id, schedules_data)` - No description
+- [MISSING] `_save_user_data__save_tags(user_id, tags_data)` - No description
+- [OK] `_schedules_default_data(user_id)` - Return default schedules dict for a user (e.g. when auto-creating).
+- [OK] `clear_user_caches(user_id)` - Clear user data caches.
+- [OK] `get_available_data_types()` - Get list of available data types.
+- [OK] `get_data_type_info(data_type)` - Get information about a specific data type.
+- [OK] `register_data_loader(data_type, loader_func, file_type, default_fields, metadata_fields, description)` - Register a new data loader for the centralized system.
+- [OK] `register_default_loaders()` - Ensure required loaders are registered (idempotent).
+
+#### `storage/user_data_v2_base.py`
+**Functions:**
+- [OK] `_stable_uuid(value)` - Return value as a UUID, deriving a deterministic UUID when the string is not UUID-shaped.
+- [OK] `generate_short_id(record_id, kind, length)` - Generate a mobile-friendly no-dash short ID from a UUID-like value.
+- [MISSING] `normalize_string_list(cls, value)` - No description
+- [OK] `v2_schema_validation_error(message)` - Build a Pydantic-native validation error without generic exception raises.
+- [MISSING] `validate_optional_timestamp_fields(cls, value)` - No description
+- [MISSING] `validate_optional_v2_timestamp(value, field_name)` - No description
+- [MISSING] `validate_required_timestamp(cls, value)` - No description
+**Classes:**
+- [OK] `BaseItemModel` - Shared item fields for v2 task, notebook, list, and journal records.
+  - [MISSING] `BaseItemModel.normalize_string_list(cls, value)` - No description
+  - [MISSING] `BaseItemModel.validate_optional_timestamp_fields(cls, value)` - No description
+  - [MISSING] `BaseItemModel.validate_required_timestamp(cls, value)` - No description
+- [OK] `SourceModel` - Best-known origin of a persisted record.
+
+#### `storage/user_data_validation.py`
+**Functions:**
+- [OK] `_shared__title_case(text)` - Convert text to title case with special handling for technical terms.
+- [OK] `is_valid_category_name(name, max_length, field_name, allow_none)` - Validate that a category/group name is valid.
+
+Category names should be simple identifiers: alphanumeric, spaces, hyphens, underscores.
+This is used for grouping/categorizing items (e.g., notebook groups, task categories).
+
+Args:
+    name: Category name to validate (can be None if allow_none=True)
+    max_length: Maximum allowed length (default: 50)
+    field_name: Name of the field being validated (for error messages)
+    allow_none: Whether None values are allowed (default: True)
+
+Returns:
+    True if category name is valid, False otherwise
+- [OK] `is_valid_discord_id(discord_id)` - Validate Discord user ID format.
+
+Discord user IDs are snowflakes (numeric IDs) that are 17-19 digits long.
+Empty strings are allowed (Discord ID is optional).
+
+Args:
+    discord_id: The Discord user ID to validate
+
+Returns:
+    bool: True if valid Discord ID format or empty, False otherwise
+- [MISSING] `is_valid_email(email)` - No description
+- [MISSING] `is_valid_phone(phone)` - No description
+- [OK] `is_valid_string_length(text, max_length, field_name, allow_none)` - Validate that a string is within the specified maximum length.
+
+Args:
+    text: String to validate (can be None if allow_none=True)
+    max_length: Maximum allowed length
+    field_name: Name of the field being validated (for error messages)
+    allow_none: Whether None values are allowed
+
+Returns:
+    True if string length is valid, False otherwise
+- [OK] `is_valid_user_id(user_id)` - Validate user_id for filesystem paths, task handlers, updates, and command handlers.
+
+Rules: non-empty string after strip, length at most 100, characters limited to
+ASCII alphanumeric plus underscore and hyphen (UUIDs and simple internal IDs).
+- [OK] `validate_new_user_data(user_id, data_updates)` - Validate complete dataset required for a brand-new user.
+- [OK] `validate_personalization_data(data)` - Validate *context/personalization* structure.
+
+No field is required; we only type-check fields that are present.
+This logic previously lived in the legacy user management utilities.
+- [OK] `validate_schedule_periods(periods, category)` - Validate schedule periods and return (is_valid, error_messages).
+
+Args:
+    periods: Dictionary of period_name -> period_data
+    category: Category name for error messages (e.g., "tasks", "check-ins")
+
+Returns:
+    Tuple of (is_valid, list_of_error_messages)
+- [MISSING] `validate_schedule_periods__validate_time_format(time_str)` - No description
+- [OK] `validate_user_update(user_id, data_type, updates)` - Validate partial updates to an existing user's data.
+
+#### `storage/user_data_write.py`
+**Functions:**
+- [MISSING] `_save_user_data__check_cross_file_invariants(user_id, merged_data, valid_types)` - No description
+- [MISSING] `_save_user_data__create_backup(user_id, valid_types, create_backup)` - No description
+- [MISSING] `_save_user_data__merge_all_types(user_id, data_updates, valid_types, auto_create)` - No description
+- [MISSING] `_save_user_data__merge_single_type(user_id, dt, updates, auto_create)` - No description
+- [MISSING] `_save_user_data__normalize_data(dt, updated)` - No description
+- [MISSING] `_save_user_data__preserve_preference_settings(updated, updates, user_id)` - No description
+- [MISSING] `_save_user_data__update_index(user_id, result, update_index)` - No description
+- [MISSING] `_save_user_data__validate_data(user_id, data_updates, valid_types, validate_data, is_new_user)` - No description
+- [MISSING] `_save_user_data__validate_input(user_id, data_updates)` - No description
+- [MISSING] `_save_user_data__write_all_types(user_id, merged_data, valid_types)` - No description
+- [OK] `_update_user_section(user_id, section_key, data)` - Save a single user-data section and return whether that section was saved.
+- [OK] `_validate_user_id_and_dict(user_id, data, dict_name)` - Validate user_id and that data is a dict. Log and return False if invalid.
+- [OK] `save_user_data(user_id, data_updates, auto_create, update_index, create_backup, validate_data)` - Save user data with two-phase approach: merge/validate in Phase 1, write in Phase 2.
+- [OK] `save_user_data_transaction(user_id, data_updates, auto_create)` - Atomic wrapper for user data updates.
+- [MISSING] `update_channel_preferences(user_id, updates)` - No description
+- [MISSING] `update_user_account(user_id, updates)` - No description
+- [MISSING] `update_user_context(user_id, updates)` - No description
+- [MISSING] `update_user_preferences(user_id, updates)` - No description
+- [MISSING] `update_user_schedules(user_id, schedules_data)` - No description
+
+#### `storage/user_item_storage.py`
+**Functions:**
+- [OK] `ensure_user_subdir(user_id, subdir, init_files)` - Ensure the user's subdirectory exists and optionally create default JSON files.
+
+Args:
+    user_id: User identifier.
+    subdir: Subdirectory name (e.g. 'notebook', 'tasks').
+    init_files: Optional mapping of filename -> default JSON-serializable data.
+                Files are created only if missing (e.g. {"tasks.json": {"schema_version": 2, "tasks": []}}).
+
+Returns:
+    Path to the subdir, or None on failure.
+- [OK] `get_user_subdir_path(user_id, subdir)` - Return the path for a user's subdirectory (e.g. notebook, tasks, events).
+
+Args:
+    user_id: User identifier.
+    subdir: Subdirectory name under the user data dir (e.g. 'notebook', 'tasks').
+
+Returns:
+    Path to the subdir, or None if user_id is invalid.
+- [OK] `load_user_json_file(user_id, subdir, filename, default_data)` - Load a JSON file from a user's subdirectory.
+
+Args:
+    user_id: User identifier.
+    subdir: Subdirectory name (e.g. 'notebook', 'tasks').
+    filename: JSON filename (e.g. 'entries.json', 'tasks.json').
+    default_data: Returned when file is missing or load fails (must match expected type).
+
+Returns:
+    Loaded data (dict or list), or default_data on failure. None if path invalid.
+- [OK] `save_user_json_file(user_id, subdir, filename, data)` - Save JSON data to a user's subdirectory. Creates subdir if missing.
+
+Args:
+    user_id: User identifier.
+    subdir: Subdirectory name (e.g. 'notebook', 'tasks').
+    filename: JSON filename.
+    data: JSON-serializable dict or list.
+
+Returns:
+    True if save succeeded, False otherwise.
 
 ### `tasks/` - Task Management
 

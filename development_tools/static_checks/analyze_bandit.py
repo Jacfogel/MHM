@@ -194,6 +194,10 @@ def run_bandit(project_root: Path) -> dict[str, Any]:
         "user",
         "tasks",
         "notebook",
+        "scheduler",
+        "checkins",
+        "messages",
+        "storage",
         "development_tools",
     ]
     scan_roots = list(static_cfg.get("bandit_scan_roots", default_roots))

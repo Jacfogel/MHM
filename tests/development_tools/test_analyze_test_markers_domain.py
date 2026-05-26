@@ -24,6 +24,10 @@ def test_domain_marker_union_matches_domain_mapper_markers() -> None:
     assert "communication" in union
     assert "ui" in union
     assert "tasks" in union
+    assert "checkins" in union
+    assert "messages" in union
+    assert "storage" in union
+    assert "scheduler" in union
     assert "unit" not in union
     assert "integration" not in union
     assert "critical" not in union

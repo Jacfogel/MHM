@@ -184,6 +184,10 @@ def pytest_configure(config):
         "markers", "messages: mark test as message system functionality"
     )
     config.addinivalue_line(
+        "markers",
+        "storage: mark test as user-data storage and persistence functionality",
+    )
+    config.addinivalue_line(
         "markers", "analytics: mark test as analytics and reporting functionality"
     )
     config.addinivalue_line(

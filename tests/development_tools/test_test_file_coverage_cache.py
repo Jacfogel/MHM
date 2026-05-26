@@ -66,6 +66,10 @@ def test_domain_mapper_expands_cross_domain_dependencies() -> None:
         assert "ai" in expanded
         assert "user" in expanded
         assert "notebook" in expanded
+        assert "scheduler" in expanded
+        assert "checkins" in expanded
+        assert "messages" in expanded
+        assert "storage" in expanded
     finally:
         _cleanup_local_scratch_dir(temp_dir)
 

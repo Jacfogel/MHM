@@ -85,6 +85,7 @@ class MessageDeliveryCollectionV2Model(BaseModel):
     deliveries: list[MessageDeliveryV2Model] = Field(default_factory=list)
 
 
+# error_handling_exclude: This validation API returns Pydantic errors as data.
 def validate_messages_v2_document(data: dict) -> tuple[dict, list[str]]:
     """Validate a v2 message-template envelope."""
     try:
@@ -94,6 +95,7 @@ def validate_messages_v2_document(data: dict) -> tuple[dict, list[str]]:
         return data, [str(exc)]
 
 
+# error_handling_exclude: This validation API returns Pydantic errors as data.
 def validate_deliveries_v2_document(data: dict) -> tuple[dict, list[str]]:
     """Validate a v2 message-delivery envelope."""
     try:

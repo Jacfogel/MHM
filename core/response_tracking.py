@@ -12,7 +12,7 @@ from core import get_user_data
 from core.error_handling import handle_errors
 from core.file_operations import get_user_file_path, load_json_data, save_json_data
 from core.logger import get_component_logger
-from core.time_utilities import now_timestamp_full, parse_timestamp_full
+from core.time_utilities import now_timestamp_full
 
 logger = get_component_logger("user_activity")
 tracking_logger = get_component_logger("user_activity")
@@ -100,15 +100,12 @@ def get_recent_chat_interactions(user_id: str, limit: int = 10) -> list[dict[str
     return get_recent_responses(user_id, "chat_interaction", limit)
 
 
+# duplicate_functions_exclude: field-specific wrapper; see core.time_utilities.timestamp_sort_key_from_dict.
 @handle_errors("getting response timestamp for sorting", default_return=0.0)
 def _get_response_timestamp_for_sorting(item: Any) -> float:
-    if isinstance(item, str) or not isinstance(item, dict):
-        return 0.0
-    timestamp = item.get("timestamp") or "1970-01-01 00:00:00"
-    dt = parse_timestamp_full(str(timestamp))
-    if dt is None:
-        return 0.0
-    return dt.timestamp()
+    from core.time_utilities import timestamp_sort_key_from_dict
+
+    return timestamp_sort_key_from_dict(item, "timestamp")
 
 
 @handle_errors("checking if automated messages enabled", default_return=False)

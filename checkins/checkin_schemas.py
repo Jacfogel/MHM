@@ -45,6 +45,7 @@ class CheckinCollectionV2Model(BaseModel):
     checkins: list[CheckinV2Model] = Field(default_factory=list)
 
 
+# error_handling_exclude: This validation API returns Pydantic errors as data.
 def validate_checkins_v2_document(data: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
     """Validate a v2 check-in envelope."""
     try:
