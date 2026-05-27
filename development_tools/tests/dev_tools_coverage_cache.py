@@ -13,7 +13,10 @@ import hashlib
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
-from development_tools.shared.cache_dependency_paths import static_check_config_paths
+from development_tools.shared.cache_dependency_paths import (
+    coverage_config_paths,
+    static_check_config_paths,
+)
 from development_tools.shared.time_helpers import (
     now_timestamp_full,
     now_timestamp_filename,
@@ -85,7 +88,11 @@ class DevToolsCoverageCache:
             self.project_root / "development_tools" / "tests" / "run_test_coverage.py",
             self.project_root / "development_tools" / "tests" / "dev_tools_coverage_cache.py",
         )
-        combined = (*coverage_tool_scripts, *static_check_config_paths(self.project_root))
+        combined = (
+            *coverage_tool_scripts,
+            *static_check_config_paths(self.project_root),
+            *coverage_config_paths(self.project_root),
+        )
         return tuple(path for path in combined if path.exists())
 
     def _default_cache_data(self) -> dict[str, Any]:

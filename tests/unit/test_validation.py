@@ -8,7 +8,7 @@ import os
 from unittest.mock import patch
 import core
 
-pytestmark = [pytest.mark.core]
+pytestmark = [pytest.mark.storage]
 
 # Import the validation functions we're testing
 from storage.user_data_validation import (
@@ -24,7 +24,7 @@ from storage.user_data_validation import (
 )
 
 
-@pytest.mark.core
+@pytest.mark.storage
 class TestPrimitiveValidators:
     """Test basic validation functions with real behavior verification."""
     
@@ -198,7 +198,7 @@ class TestPrimitiveValidators:
             assert result == expected, f"Title case of '{input_text}' should be '{expected}', got '{result}'"
 
 
-@pytest.mark.core
+@pytest.mark.storage
 class TestUserUpdateValidation:
     """Test user update validation with real behavior verification."""
     
@@ -499,7 +499,7 @@ class TestUserUpdateValidation:
         assert is_valid is True, f"Schedules update should be valid with Pydantic validation, got errors: {errors}"
 
 
-@pytest.mark.core
+@pytest.mark.storage
 class TestSchedulePeriodsValidation:
     """Test schedule periods validation with real behavior verification."""
     
@@ -693,7 +693,7 @@ class TestSchedulePeriodsValidation:
         assert "has invalid days" in errors[0]
 
 
-@pytest.mark.core
+@pytest.mark.storage
 class TestNewUserDataValidation:
     """Test new user data validation with real behavior verification."""
     
@@ -902,7 +902,7 @@ class TestNewUserDataValidation:
         assert "Invalid account_status. Must be one of: active, inactive, suspended" in errors
 
 
-@pytest.mark.core
+@pytest.mark.storage
 class TestPersonalizationDataValidation:
     """Test personalization data validation with real behavior verification."""
     
@@ -1054,7 +1054,7 @@ class TestPersonalizationDataValidation:
         assert "loved_one at index 0 must be a dictionary" in errors
 
 
-@pytest.mark.core
+@pytest.mark.storage
 class TestValidationIntegration:
     """Test validation functions working together with real behavior verification."""
     

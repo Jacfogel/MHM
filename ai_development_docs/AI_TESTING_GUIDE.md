@@ -245,7 +245,7 @@ Marker standards (must stay aligned with `pytest.ini` and section 6 in [TESTING_
 - Every test must have **exactly one** category marker:
   - `unit`, `integration`, `behavior`, or `ui`.
 - Add feature markers as needed, for example:
-  - `tasks`, `scheduler`, `checkins`, `messages`, `analytics`,
+  - `tasks`, `scheduler`, `checkins`, `messages`, `storage`, `analytics`,
     `user_management`, `communication`, `ai`, `notebook`.
 - Use:
   - `slow` for long-running tests.
@@ -257,7 +257,8 @@ Marker standards (must stay aligned with `pytest.ini` and section 6 in [TESTING_
 Policy guard tests:
 
 - Policy guardrails are enforced by tests in `tests/unit/test_test_policy_guards.py`.
-- When adding/refactoring tests, keep these policies green (for example, no direct `datetime.now()` in tests, no production-log path usage, no real-user-path writes, and `no_parallel` reason requirements).
+- When adding/refactoring tests, keep these policies green (for example, no direct `datetime.now()` in tests, no production-log path usage, no real-user-path writes, `no_parallel` reason requirements, **category** markers, and **product-domain** markers aligned with `development_tools/tests/analyze_test_markers.py` / `test_markers.domain_markers` in config).
+- Tier 3 audits run `analyze_test_markers --check` and fail when category or domain marker gaps are reported.
 
 Examples (pattern only; do not copy literally):
 

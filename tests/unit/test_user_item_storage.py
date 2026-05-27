@@ -10,12 +10,12 @@ from storage.user_item_storage import (
     save_user_json_file,
 )
 
-pytestmark = [pytest.mark.core]
+pytestmark = [pytest.mark.storage]
 
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.storage
 class TestUserItemStorageCoverage:
     def test_get_user_subdir_path_invalid_user_id(self):
         assert get_user_subdir_path("", "tasks") is None

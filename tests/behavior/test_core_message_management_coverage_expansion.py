@@ -15,7 +15,7 @@ from messages.message_data_manager import (
     _parse_message_timestamp,
     get_timestamp_for_sorting,
 )
-@pytest.mark.communication
+@pytest.mark.messages
 
 
 class TestCoreMessageManagementCoverageExpansion:

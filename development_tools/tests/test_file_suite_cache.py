@@ -23,7 +23,10 @@ try:
 except ImportError:
     logger = None
 
-from development_tools.shared.cache_dependency_paths import static_check_config_paths
+from development_tools.shared.cache_dependency_paths import (
+    coverage_config_paths,
+    static_check_config_paths,
+)
 from development_tools.shared.time_helpers import now_timestamp_full
 from development_tools.tests.test_file_coverage_cache import TestFileCoverageCache
 
@@ -50,7 +53,11 @@ class TestFileSuiteCache:
             tests_dir / "test_file_suite_cache.py",
             tests_dir / "domain_mapper.py",
         )
-        combined = (*scripts, *static_check_config_paths(self.project_root))
+        combined = (
+            *scripts,
+            *static_check_config_paths(self.project_root),
+            *coverage_config_paths(self.project_root),
+        )
         return tuple(path for path in combined if path.exists())
 
     def _default_cache_data(self) -> dict[str, Any]:

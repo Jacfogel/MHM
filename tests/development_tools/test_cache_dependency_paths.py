@@ -7,10 +7,12 @@ from pathlib import Path
 import pytest
 
 from development_tools.shared.cache_dependency_paths import (
+    COVERAGE_CONFIG_RELATIVE_PATHS,
     PIP_AUDIT_DEPENDENCY_RELATIVE_PATHS,
     STATIC_CHECK_CONFIG_RELATIVE_PATHS,
     compute_full_static_check_source_signature,
     compute_scoped_py_source_signature,
+    coverage_config_paths,
     requirements_lock_signature,
     static_check_config_digest,
     static_check_config_paths,
@@ -57,6 +59,57 @@ def test_test_file_coverage_cache_tool_paths_include_all_existing_static_configs
     for rel in static_check_config_paths(tmp_path):
         if rel.is_file():
             assert rel.resolve() in paths
+
+
+@pytest.mark.unit
+def test_coverage_config_paths_include_coverage_ini() -> None:
+    assert "development_tools/tests/coverage.ini" in COVERAGE_CONFIG_RELATIVE_PATHS
+
+
+@pytest.mark.unit
+def test_test_file_coverage_cache_tool_paths_include_coverage_ini(tmp_path: Path) -> None:
+    ini = tmp_path / "development_tools" / "tests" / "coverage.ini"
+    ini.parent.mkdir(parents=True, exist_ok=True)
+    ini.write_text("[run]\nsource = core\n", encoding="utf-8")
+    for rel in (
+        "development_tools/tests/run_test_coverage.py",
+        "development_tools/tests/test_file_coverage_cache.py",
+        "development_tools/tests/dev_tools_coverage_cache.py",
+        "development_tools/tests/domain_mapper.py",
+    ):
+        p = tmp_path / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("# stub\n", encoding="utf-8")
+
+    cache = TestFileCoverageCache(project_root=tmp_path)
+    paths = {x.resolve() for x in cache._get_default_tool_paths()}
+    assert ini.resolve() in paths
+    for rel in coverage_config_paths(tmp_path):
+        if rel.is_file():
+            assert rel.resolve() in paths
+
+
+@pytest.mark.unit
+def test_coverage_ini_change_invalidates_tool_hash(tmp_path: Path) -> None:
+    """Editing coverage.ini must change tool_hash so selective coverage cannot reuse stale JSON."""
+    ini = tmp_path / "development_tools" / "tests" / "coverage.ini"
+    ini.parent.mkdir(parents=True, exist_ok=True)
+    ini.write_text("[run]\nsource = core\n", encoding="utf-8")
+    for rel in (
+        "development_tools/tests/run_test_coverage.py",
+        "development_tools/tests/test_file_coverage_cache.py",
+        "development_tools/tests/dev_tools_coverage_cache.py",
+        "development_tools/tests/domain_mapper.py",
+    ):
+        p = tmp_path / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("# stub\n", encoding="utf-8")
+
+    cache = TestFileCoverageCache(project_root=tmp_path)
+    first = cache._compute_tool_hash()
+    ini.write_text("[run]\nsource = core,checkins\n", encoding="utf-8")
+    second = cache._compute_tool_hash()
+    assert first and second and first != second
 
 
 @pytest.mark.unit

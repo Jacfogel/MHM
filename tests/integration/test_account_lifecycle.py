@@ -13,8 +13,6 @@ import shutil
 from core.time_utilities import now_timestamp_full
 from storage.user_data_v2_base import SCHEMA_VERSION
 
-pytestmark = [pytest.mark.core]
-
 
 def _empty_v2_checkins_file_payload() -> dict:
     return {
@@ -26,7 +24,7 @@ def _empty_v2_checkins_file_payload() -> dict:
 # Removed path hacks; rely on proper package imports
 
 
-@pytest.mark.core
+@pytest.mark.user_management
 class TestAccountLifecycle:
     """Test complete account lifecycle workflows with real behavior verification."""
     

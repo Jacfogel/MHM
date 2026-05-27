@@ -14,10 +14,10 @@ from checkins.checkin_dynamic_manager import DynamicCheckinManager
 from checkins.checkin_analytics import CheckinAnalytics
 
 
-pytestmark = [pytest.mark.core]
+pytestmark = [pytest.mark.checkins]
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.checkins
 class TestEnhancedNumericalParsing:
     """Test enhanced numerical response parsing."""
     
@@ -125,7 +125,7 @@ class TestEnhancedNumericalParsing:
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.checkins
 class TestEnhancedYesNoParsing:
     """Test enhanced yes/no response parsing."""
     
@@ -194,7 +194,7 @@ class TestEnhancedYesNoParsing:
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.checkins
 class TestSkipFunctionality:
     """Test skip functionality for all question types."""
     
@@ -256,7 +256,7 @@ class TestSkipFunctionality:
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.checkins
 class TestAnalyticsSkippedQuestions:
     """Test that skipped questions are handled properly in analytics."""
     
@@ -325,7 +325,7 @@ class TestAnalyticsSkippedQuestions:
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.checkins
 class TestScaleQuestionsWithEnhancedParsing:
     """Test scale questions with enhanced numerical parsing."""
     

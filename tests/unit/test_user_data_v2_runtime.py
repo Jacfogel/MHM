@@ -19,7 +19,7 @@ _LEGACY_COMPLETED_TASKS_FILE = "".join(("completed", "_tasks", ".json"))
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.messages
 def test_runtime_message_loading_accepts_v2_template_files(tmp_path, monkeypatch):
     user_root = tmp_path / "user-1"
     messages_dir = user_root / "messages"
@@ -67,7 +67,7 @@ def test_runtime_message_loading_accepts_v2_template_files(tmp_path, monkeypatch
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.messages
 def test_runtime_recent_messages_accepts_v2_delivery_files(tmp_path, monkeypatch):
     sent_file = tmp_path / "sent_messages.json"
     sent_file.write_text(
@@ -103,7 +103,7 @@ def test_runtime_recent_messages_accepts_v2_delivery_files(tmp_path, monkeypatch
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.messages
 def test_runtime_store_sent_message_writes_v2_delivery_when_file_is_v2(tmp_path, monkeypatch):
     sent_file = tmp_path / "sent_messages.json"
     sent_file.write_text(
@@ -123,7 +123,7 @@ def test_runtime_store_sent_message_writes_v2_delivery_when_file_is_v2(tmp_path,
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.checkins
 def test_runtime_checkin_helpers_accept_and_write_v2_files(tmp_path, monkeypatch):
     checkins_file = tmp_path / "checkins.json"
     checkins_file.write_text(
@@ -167,7 +167,7 @@ def test_runtime_checkin_helpers_accept_and_write_v2_files(tmp_path, monkeypatch
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.tasks
 def test_runtime_task_handlers_accept_and_write_v2_task_file(tmp_path, monkeypatch):
     user_root = tmp_path / "user-1"
     tasks_dir = user_root / "tasks"
@@ -263,7 +263,7 @@ def test_runtime_task_handlers_accept_and_write_v2_task_file(tmp_path, monkeypat
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.notebook
 def test_runtime_notebook_handlers_accept_and_write_v2_entries(tmp_path, monkeypatch):
     user_root = tmp_path / "user-1"
     notebook_dir = user_root / "notebook"

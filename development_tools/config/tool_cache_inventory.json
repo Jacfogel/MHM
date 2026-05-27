@@ -122,6 +122,13 @@
       "invalidation": "Per-shard Python signatures via development_tools.shared.cache_dependency_paths.compute_scoped_py_source_signature or compute_full_repo_py_source_signature (__monolithic__); static_check_config_digest over STATIC_CHECK_CONFIG_RELATIVE_PATHS busts all shards"
     },
     {
+      "tool": "analyze_test_markers",
+      "strategy": "reads_coverage_artifacts",
+      "implementation": "development_tools/tests/analyze_test_markers.py (consumes coverage JSON)",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/tests/*test_markers*.json",
+      "invalidation": "Re-run when coverage JSON or marker config changes"
+    },
+    {
       "tool": "analyze_unused_imports",
       "strategy": "ruff_batch_and_optional_tool_json",
       "implementation": "imports analyzer + optional cache stats in JSON details",

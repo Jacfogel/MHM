@@ -26,7 +26,6 @@ def _mock_checkin_row(timestamp: str, **fields) -> dict:
     return row
 
 
-@pytest.mark.core
 @pytest.mark.behavior
 class TestCheckinAnalyticsInitializationBehavior:
     """Test CheckinAnalytics initialization with real behavior verification."""
@@ -42,7 +41,6 @@ class TestCheckinAnalyticsInitializationBehavior:
         assert isinstance(analytics, CheckinAnalytics), "Should be correct type"
 
 
-@pytest.mark.core
 @pytest.mark.behavior
 class TestCheckinAnalyticsMoodTrendsBehavior:
     """Test mood trends analysis with real behavior verification."""
@@ -144,7 +142,6 @@ class TestCheckinAnalyticsMoodTrendsBehavior:
         ), "Should have correct error message"
 
 
-@pytest.mark.core
 @pytest.mark.behavior
 class TestCheckinAnalyticsHabitAnalysisBehavior:
     """Test habit analysis with real behavior verification."""
@@ -235,7 +232,6 @@ class TestCheckinAnalyticsHabitAnalysisBehavior:
         ), "Breakfast should be 50% (every other day)"
 
 
-@pytest.mark.core
 @pytest.mark.behavior
 class TestCheckinAnalyticsSleepAnalysisBehavior:
     """Test sleep analysis with real behavior verification."""
@@ -326,7 +322,6 @@ class TestCheckinAnalyticsSleepAnalysisBehavior:
         ), "Recommendations should be list"
 
 
-@pytest.mark.core
 @pytest.mark.behavior
 class TestCheckinAnalyticsWellnessScoreBehavior:
     """Test wellness score calculation with real behavior verification."""
@@ -419,7 +414,6 @@ class TestCheckinAnalyticsWellnessScoreBehavior:
         ), "Recommendations should be list"
 
 
-@pytest.mark.core
 @pytest.mark.behavior
 class TestCheckinAnalyticsHistoryBehavior:
     """Test check-in history functionality with real behavior verification."""
@@ -487,7 +481,6 @@ class TestCheckinAnalyticsHistoryBehavior:
             # Notes may not be present in all check-ins
 
 
-@pytest.mark.core
 @pytest.mark.behavior
 class TestCheckinAnalyticsCompletionRateBehavior:
     """Test completion rate calculation with real behavior verification."""
@@ -559,7 +552,6 @@ class TestCheckinAnalyticsCompletionRateBehavior:
         assert 0 <= result["rate"] <= 100, "Completion rate should be percentage"
 
 
-@pytest.mark.core
 @pytest.mark.behavior
 class TestCheckinAnalyticsTaskStatsBehavior:
     """Test task weekly stats with real behavior verification."""

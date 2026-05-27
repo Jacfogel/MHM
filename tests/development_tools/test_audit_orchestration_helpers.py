@@ -387,7 +387,7 @@ def test_get_expected_tools_for_tier_matrix(temp_project_copy: Path):
     assert "run_test_coverage" not in tier3
     assert "generate_dev_tools_coverage" not in tier3
     assert "generate_test_coverage_report" not in tier3
-    assert "analyze_test_markers" not in tier3
+    assert "analyze_test_markers" in tier3
     assert "analyze_pyright" in tier3
     assert "analyze_bandit" in tier3
     assert "analyze_pip_audit" in tier3

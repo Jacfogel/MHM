@@ -17,7 +17,7 @@ from tests.test_helpers.test_utilities import (
 from core.time_utilities import now_timestamp_full
 
 
-@pytest.mark.core
+@pytest.mark.checkins
 @pytest.mark.behavior
 class TestNewCheckinQuestions:
     """Test the new predefined check-in questions."""
@@ -116,7 +116,7 @@ class TestNewCheckinQuestions:
         assert response is not None
 
 
-@pytest.mark.core
+@pytest.mark.checkins
 @pytest.mark.behavior
 class TestSleepScheduleQuestion:
     """Test the sleep_schedule time_pair question type."""
@@ -241,7 +241,7 @@ class TestSleepScheduleQuestion:
         assert duration == 6.0
 
 
-@pytest.mark.core
+@pytest.mark.checkins
 @pytest.mark.behavior
 class TestCustomQuestions:
     """Test custom question CRUD operations."""
@@ -374,7 +374,7 @@ class TestCustomQuestions:
             assert is_valid is False
 
 
-@pytest.mark.core
+@pytest.mark.checkins
 @pytest.mark.behavior
 class TestSleepQualityUpdate:
     """Test the updated sleep_quality question."""
@@ -393,7 +393,7 @@ class TestSleepQualityUpdate:
         assert "rest" in question["ui_display_name"].lower()
 
 
-@pytest.mark.core
+@pytest.mark.checkins
 @pytest.mark.behavior
 class TestAnalyticsWithNewQuestions:
     """Test analytics with new questions and sleep_schedule."""

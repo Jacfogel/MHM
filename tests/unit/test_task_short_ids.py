@@ -5,11 +5,11 @@ import pytest
 from storage.user_data_v2_base import generate_short_id
 from tasks.task_data_manager import _task_matches_identifier
 
-pytestmark = [pytest.mark.unit, pytest.mark.core]
+pytestmark = [pytest.mark.unit, pytest.mark.tasks]
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.tasks
 def test_generate_short_id_task_shape_and_stability():
     task_uuid = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
     sid = generate_short_id(task_uuid, "task", length=6)
@@ -21,7 +21,7 @@ def test_generate_short_id_task_shape_and_stability():
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.tasks
 def test_task_matches_identifier_uuid_and_short_id():
     tid = "bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb"
     short = generate_short_id(tid, "task", length=6)

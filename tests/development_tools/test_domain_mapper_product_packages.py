@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import configparser
 import sys
 from pathlib import Path
 
@@ -70,6 +71,23 @@ def test_refactored_packages_resolve_source_domain() -> None:
         assert mapper.get_source_domain(sample) == pkg
         changed = mapper.get_changed_domains([sample])
         assert pkg in changed
+
+
+@pytest.mark.unit
+def test_coverage_ini_source_includes_all_product_domains() -> None:
+    """coverage.ini [run] source= must list every product package plus development_tools."""
+    cov_ini = project_root / "development_tools" / "tests" / "coverage.ini"
+    assert cov_ini.is_file(), f"Missing {cov_ini}"
+    parser = configparser.ConfigParser()
+    parser.read(cov_ini)
+    source = {
+        s.strip()
+        for s in parser.get("run", "source", fallback="").split(",")
+        if s.strip()
+    }
+    expected = set(PRODUCT_PACKAGE_ROOTS) | {"development_tools"}
+    missing = sorted(expected - source)
+    assert not missing, f"coverage.ini source= missing: {missing}"
 
 
 @pytest.mark.unit

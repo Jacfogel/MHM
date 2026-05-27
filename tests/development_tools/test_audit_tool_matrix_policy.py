@@ -42,10 +42,12 @@ def test_audit_tool_matrix_uses_test_suite_for_tier3_not_coverage() -> None:
     assert tools["run_test_suite"]["in_tier3_full_repo_audit"] is True
     assert tools["run_test_suite"]["in_tier3_dev_tools_only_audit"] is True
 
+    assert tools["analyze_test_markers"]["in_tier3_full_repo_audit"] is True
+    assert tools["analyze_test_markers"]["in_tier3_dev_tools_only_audit"] is True
+
     for name in (
         "run_test_coverage",
         "generate_dev_tools_coverage",
-        "analyze_test_markers",
         "generate_test_coverage_report",
     ):
         assert name not in tools

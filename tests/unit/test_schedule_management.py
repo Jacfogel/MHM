@@ -17,11 +17,8 @@ from core.schedule_runtime import (
     get_period_data__time_12h_display_to_24h
 )
 
-pytestmark = [pytest.mark.core]
 
 
-
-@pytest.mark.core
 class TestPeriodValidation:
     """Tests for time validation and conversion helpers."""
 
@@ -48,7 +45,6 @@ class TestPeriodValidation:
         assert get_period_data__time_24h_to_12h_display("bad") is None
 
 
-@pytest.mark.core
 class TestScheduleManagement:
     """Tests for schedule period lifecycle operations."""
 

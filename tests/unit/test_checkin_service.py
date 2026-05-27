@@ -9,7 +9,6 @@ from checkins import checkin_service
 
 
 @pytest.mark.unit
-@pytest.mark.core
 @pytest.mark.checkins
 def test_get_checkin_start_status_detects_disabled_user():
     with patch("checkins.checkin_service.is_user_checkins_enabled", return_value=False):
@@ -20,7 +19,6 @@ def test_get_checkin_start_status_detects_disabled_user():
 
 
 @pytest.mark.unit
-@pytest.mark.core
 @pytest.mark.checkins
 def test_get_checkin_start_status_detects_today_checkin():
     with patch("checkins.checkin_service.is_user_checkins_enabled", return_value=True), patch(
@@ -40,7 +38,6 @@ def test_get_checkin_start_status_detects_today_checkin():
 
 
 @pytest.mark.unit
-@pytest.mark.core
 @pytest.mark.checkins
 def test_checkin_display_date_falls_back_to_timestamp():
     with patch(

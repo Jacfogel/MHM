@@ -46,7 +46,7 @@ def _v2_checkins_document(flat_rows: list[dict]) -> dict:
     return {"schema_version": SCHEMA_VERSION, "updated_at": updated_at, "checkins": checkins}
 
 
-@pytest.mark.core
+@pytest.mark.checkins
 
 
 class TestComprehensiveQuantitativeAnalytics:

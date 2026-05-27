@@ -67,7 +67,10 @@ from development_tools.shared.time_helpers import (
     now_timestamp_full,
     now_timestamp_filename,
 )
-from development_tools.shared.cache_dependency_paths import static_check_config_paths
+from development_tools.shared.cache_dependency_paths import (
+    coverage_config_paths,
+    static_check_config_paths,
+)
 from development_tools.shared.standard_exclusions import should_exclude_file
 import contextlib
 
@@ -154,7 +157,11 @@ class TestFileCoverageCache:
             self.project_root / "development_tools" / "tests" / "dev_tools_coverage_cache.py",
             self.project_root / "development_tools" / "tests" / "domain_mapper.py",
         )
-        combined = (*coverage_tool_scripts, *static_check_config_paths(self.project_root))
+        combined = (
+            *coverage_tool_scripts,
+            *static_check_config_paths(self.project_root),
+            *coverage_config_paths(self.project_root),
+        )
         return tuple(path for path in combined if path.exists())
 
     def _default_cache_data(self) -> dict[str, Any]:
@@ -765,6 +772,7 @@ class TestFileCoverageCache:
         self.invalidation_counters = {}
         tool_change_reason = self._get_tool_change_reason()
         if tool_change_reason:
+            self.cache_data.pop(self.full_coverage_cache_key, None)
             all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
             self.last_invalidation_reason = f"tool_change: {tool_change_reason}"
             self.last_invalidation_detail = {
@@ -864,6 +872,7 @@ class TestFileCoverageCache:
             return set(all_domains)
 
         if self._config_changed():
+            self.cache_data.pop(self.full_coverage_cache_key, None)
             all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
             self.last_invalidation_reason = "config_changed"
             self.last_invalidation_detail = {

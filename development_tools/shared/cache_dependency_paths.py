@@ -35,11 +35,22 @@ STATIC_CHECK_CONFIG_RELATIVE_PATHS: tuple[str, ...] = (
     ".ruff.toml",
 )
 
+# Pytest-cov scope for Tier 3 product coverage (``[run] source=``); changes must bust caches.
+COVERAGE_CONFIG_RELATIVE_PATHS: tuple[str, ...] = (
+    "development_tools/tests/coverage.ini",
+)
+
 
 def static_check_config_paths(project_root: Path) -> tuple[Path, ...]:
     """Return absolute paths for each static-check config entry (may be missing)."""
     root = Path(project_root).resolve()
     return tuple(root / rel for rel in STATIC_CHECK_CONFIG_RELATIVE_PATHS)
+
+
+def coverage_config_paths(project_root: Path) -> tuple[Path, ...]:
+    """Return absolute paths for coverage.ini (may be missing)."""
+    root = Path(project_root).resolve()
+    return tuple(root / rel for rel in COVERAGE_CONFIG_RELATIVE_PATHS)
 
 
 # Pip-audit cache (tool_wrappers._try_pip_audit_cache) invalidates when these change.

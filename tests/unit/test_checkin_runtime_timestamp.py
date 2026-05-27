@@ -6,7 +6,7 @@ from checkins.checkin_data_manager import checkin_runtime_timestamp
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.checkins
 def test_checkin_runtime_timestamp_prefers_submitted_at():
     assert (
         checkin_runtime_timestamp(
@@ -17,19 +17,19 @@ def test_checkin_runtime_timestamp_prefers_submitted_at():
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.checkins
 def test_checkin_runtime_timestamp_ignores_legacy_top_level_timestamp():
     assert checkin_runtime_timestamp({"timestamp": "2026-01-03 12:00:00"}) == ""
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.checkins
 def test_checkin_runtime_timestamp_empty_when_missing():
     assert checkin_runtime_timestamp({}) == ""
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.checkins
 def test_checkin_runtime_timestamp_returns_empty_when_stringify_fails():
     """Hostile values are logged and suppressed via @handle_errors (default_return=\"\")."""
 

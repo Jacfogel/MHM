@@ -53,6 +53,7 @@ TIER2_TOOL_NAMES = [
 # run_test_suite (resource contention, timeouts, empty capture). See flaky-detector command.
 TIER3_TOOL_NAMES = [
     "run_test_suite",
+    "analyze_test_markers",
     "analyze_backup_health",
     "analyze_legacy_references",
     "generate_legacy_reference_report",

@@ -2099,7 +2099,9 @@ class CommandsMixin:
                     details,
                 )
                 result['data'] = standard_result
-                result['success'] = True  # Mark as success if we got valid JSON
+                # --check exits 1 when markers are missing; treat gaps as tool failure for audits.
+                issue_count = int(total_issues or 0)
+                result['success'] = issue_count == 0 if action == 'check' else True
                 try:
                     save_tool_result('analyze_test_markers', 'tests', standard_result, project_root=self.project_root)
                 except Exception as e:

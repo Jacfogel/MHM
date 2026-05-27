@@ -34,12 +34,12 @@ from storage.user_data_operations import (
     get_user_analytics_summary
 )
 
-pytestmark = [pytest.mark.core]
+pytestmark = [pytest.mark.storage]
 
 from tests.test_helpers.test_utilities import TestUserFactory
 
 
-@pytest.mark.core
+@pytest.mark.storage
 class TestUserDataManagerInitialization:
     """Test user data manager initialization."""
     
@@ -94,7 +94,7 @@ class TestUserDataManagerInitialization:
             assert os.path.exists(backup_dir), "Backup directory should be created"
 
 
-@pytest.mark.core
+@pytest.mark.storage
 class TestUserDataManagerMessageReferences:
     """Test message reference management."""
     
@@ -192,7 +192,7 @@ class TestUserDataManagerMessageReferences:
         assert message_files == {}, "Should return empty dict for invalid user_id"
 
 
-@pytest.mark.core
+@pytest.mark.storage
 class TestUserDataManagerBackup:
     """Test user data backup functionality."""
     
@@ -272,7 +272,7 @@ class TestUserDataManagerBackup:
         assert backup_path == "", "Should return empty string for invalid include_messages"
 
 
-@pytest.mark.core
+@pytest.mark.storage
 class TestUserDataManagerExport:
     """Test user data export functionality."""
     
@@ -336,7 +336,7 @@ class TestUserDataManagerExport:
         assert export_data == {}, "Should return empty dict for invalid format"
 
 
-@pytest.mark.core
+@pytest.mark.storage
 class TestUserDataManagerIndex:
     """Test user index management."""
     
@@ -489,7 +489,7 @@ class TestUserDataManagerIndex:
             assert 'last_updated' in index_data, "Index should have last_updated"
 
 
-@pytest.mark.core
+@pytest.mark.storage
 class TestUserDataManagerSearch:
     """Test user search functionality."""
     
@@ -562,7 +562,7 @@ class TestUserDataManagerSearch:
         assert results == [], "Should return empty list for invalid search_fields"
 
 
-@pytest.mark.core
+@pytest.mark.storage
 class TestUserDataManagerSummary:
     """Test user data summary functionality."""
     
@@ -617,7 +617,7 @@ class TestUserDataManagerSummary:
         assert 'error' in summary, "Should include error"
 
 
-@pytest.mark.core
+@pytest.mark.storage
 class TestUserDataManagerConvenienceFunctions:
     """Test convenience functions."""
     
@@ -798,7 +798,7 @@ class TestUserDataManagerConvenienceFunctions:
         assert 'user_id' in analytics or 'error' in analytics, "Should include user_id or error"
 
 
-@pytest.mark.core
+@pytest.mark.storage
 class TestUserDataManagerDeleteUser:
     """Test user deletion functionality."""
     

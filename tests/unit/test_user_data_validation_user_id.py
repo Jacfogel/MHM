@@ -5,10 +5,10 @@ import pytest
 from storage.user_data_validation import is_valid_user_id
 
 
-pytestmark = [pytest.mark.core]
+pytestmark = [pytest.mark.storage]
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.storage
 class TestIsValidUserId:
     def test_accepts_uuid_like_and_simple_ids(self):
         assert is_valid_user_id("550e8400-e29b-41d4-a716-446655440000") is True

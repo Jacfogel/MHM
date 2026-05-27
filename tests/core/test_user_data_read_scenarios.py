@@ -24,7 +24,7 @@ from storage.user_data_read import (
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.storage
 @pytest.mark.fast
 class TestEnsureUniqueIds:
     """Pure transformations for message ID repair."""
@@ -53,7 +53,7 @@ class TestEnsureUniqueIds:
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.storage
 @pytest.mark.fast
 class TestGetUserDataFieldsPolicy:
     """Field-filtered get_user_data must not be expanded by test-only assembly."""
@@ -81,7 +81,7 @@ class TestGetUserDataFieldsPolicy:
 
 
 @pytest.mark.integration
-@pytest.mark.user_management
+@pytest.mark.storage
 class TestGetUserDataReadPath:
     """File-backed get_user_data scenarios."""
 
@@ -158,7 +158,7 @@ class TestGetUserDataReadPath:
 
 
 @pytest.mark.integration
-@pytest.mark.user_management
+@pytest.mark.storage
 @pytest.mark.messages
 class TestLoadAndEnsureIds:
     """End-to-end repair of category message files."""

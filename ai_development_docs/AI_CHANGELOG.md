@@ -30,6 +30,15 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-26 - Test domain markers (refactor alignment) **Progressed**
+- Registered `@pytest.mark.storage` in `pytest.ini` and paired testing guides (`AI_TESTING_GUIDE.md`, `TESTING_GUIDE.md`).
+- Retagged check-in and storage tests from `@core` (or redundant `@user_management`) to `@checkins` / `@storage`.
+- Second pass: aligned markers with code moved out of `core` into domain packages (`messages`, `user`, `tasks`, `scheduler`, `ui`, `notebook`) and removed stale file/class `@core` where `user_management` / `scheduler` / `ui` already applied. Left `@communication` unchanged except `test_core_message_management_coverage_expansion` -> `@messages` (tests `messages.*`, not channels).
+- Added `test_pytest_tests_have_required_domain_marker` (mirrors `analyze_test_markers` / config domain list). Wired `analyze_test_markers` into Tier 3 audit; `--check` now fails the audit when marker gaps exist.
+- Regenerated `audit_tool_matrix.json` and `tool_cache_inventory.json` for Tier 3 `analyze_test_markers`; fixed ASCII arrows in changelog entries.
+- Extended `development_tools/tests/coverage.ini` `[run] source=` to include `checkins`, `messages`, and `storage` (and full product package list); added policy test; regenerated `TEST_COVERAGE_REPORT.md` scope (rerun coverage for per-domain numbers).
+- Coverage cache invalidation now includes `coverage.ini` in tool_hash (fixes stale full-cache reuse after `source=` changes); clears stored full coverage JSON on tool/config bust. Fixed ASCII in changelog; doc-sync clean.
+
 ### 2026-05-25 - Tier 3 coverage and parallel test cleanup **COMPLETED**
 - Fixed dev-tools coverage reporting so cache-only payloads include canonical `coverage_outcome`, clean collected coverage is not reported as failed after Windows interrupt handling, and low-coverage priorities count all below-target domains.
 - Cleaned test domain markers for scheduler coverage tests and verified `analyze_test_markers.py --check`.
@@ -151,14 +160,6 @@ Guidelines:
 - Corrected 39 broken markdown link targets (V5 archive paths -> V6, V6 `development_tools/` hrefs, dead test links in changelog); `doc-sync` clean
 - Fixed parallel-suite flake in `test_analyze_ruff_keyboard_interrupt_returns_warn` by isolating Ruff shard cache like Pyright
 - **Note**: `no_parallel` pytest exit code 5 with all tests deselected is normal when no `no_parallel` tests match; log warnings are diagnostic noise
-
-### 2026-05-16 - Check-in Emoji Fix, Specs, and Tier 3 Test Stability **COMPLETED**
-- Restored UTF-8 emojis and bullets in user-facing communication strings (check-in intro/completion, welcome, account messages) that had been saved as Latin-1 mojibake (garbled star/check-in text instead of intended emoji)
-- Marked `tests/unit/test_checkin_management_dialog.py` with module-level `@pytest.mark.no_parallel` after Tier 3 parallel run crashed on Windows (Qt access violation in `CheckinSettingsWidget._setup_question_count_controls` under xdist)
-- User confirmed full `audit --full` passes; `AI_PRIORITIES.md` no longer lists the test-pipeline crash item
-- Added behavior specs under `specs/` ([SPECS_GUIDE.md](../specs/SPECS_GUIDE.md), six Discord topic files including welcome, routing, check-ins, reminders, delivery, lifecycle); registered in `development_tools_config.json` `fix_version_sync.docs`; cross-linked from [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [LIST_OF_LISTS.md](../development_docs/LIST_OF_LISTS.md); doc-sync path-drift fix for bare filenames in spec prose
-- Corrected Discord spec wording to match current implementation and added [SPEC_COVERAGE_MATRIX.md](../specs/SPEC_COVERAGE_MATRIX.md): all 95 Discord scenarios mapped to `Automated`, `Partial`, `Manual`, or `Gap`, with links from each spec and testing docs
-- Fixed flaky Tier 3 failure in `test_analyze_pyright_respects_existing_project_arg`: Pyright shard cache now keys monolithic/shard entries by CLI args as well as source signatures; subprocess-mocking tests disable cache reads/writes on the module-scoped demo copy
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -15,7 +15,7 @@ from messages.message_data_manager import (
 )
 from storage.user_data_v2_base import SCHEMA_VERSION
 
-pytestmark = [pytest.mark.core]
+pytestmark = [pytest.mark.messages]
 
 
 
@@ -26,7 +26,7 @@ def _patch_message_mgmt_utc_now(monkeypatch, fixed_now: datetime) -> None:
 
 @pytest.mark.unit
 @pytest.mark.messages
-@pytest.mark.core
+@pytest.mark.messages
 class TestGetMessageCategories:
     """Test get_message_categories function."""
     
@@ -57,7 +57,7 @@ class TestGetMessageCategories:
 
 @pytest.mark.unit
 @pytest.mark.messages
-@pytest.mark.core
+@pytest.mark.messages
 class TestStoreSentMessage:
     """Test store_sent_message function."""
     
@@ -71,7 +71,7 @@ class TestStoreSentMessage:
 
 @pytest.mark.unit
 @pytest.mark.messages
-@pytest.mark.core
+@pytest.mark.messages
 class TestArchiveOldMessages:
     """Tests for archive_old_messages (retention / sent_messages.json)."""
 

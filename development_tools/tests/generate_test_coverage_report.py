@@ -181,10 +181,14 @@ class TestCoverageReportGenerator:
         if not configured_domains:
             configured_domains = [
                 "ai",
+                "checkins",
                 "communication",
                 "core",
                 "development_tools",
+                "messages",
                 "notebook",
+                "scheduler",
+                "storage",
                 "tasks",
                 "ui",
                 "user",

@@ -845,7 +845,15 @@ def test_run_test_markers_normalizes_missing_items_and_handles_no_output(
 
     result = service.run_test_markers(action="fix", dry_run=True)
 
-    assert result["success"] is True
+    assert result["success"] is True  # fix/analyze actions succeed when JSON parses
+
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_a, **_k: {"success": False, "output": json.dumps(payload), "returncode": 1},
+    )
+    check_result = service.run_test_markers(action="check")
+    assert check_result["success"] is False
     assert "--fix" in captured["args"]
     assert "--dry-run" in captured["args"]
     assert result["data"]["summary"]["total_issues"] == 2

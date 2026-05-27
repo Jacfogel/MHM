@@ -40,7 +40,7 @@ class SlimDelivery:
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.scheduler
 def test_scheduler_handles_scheduled_message_with_slim_delivery(monkeypatch):
     delivery = SlimDelivery()
     scheduler = SchedulerManager(delivery)
@@ -70,7 +70,7 @@ def test_scheduler_handles_scheduled_message_with_slim_delivery(monkeypatch):
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.scheduler
 def test_scheduler_exposes_delivery_without_communication_manager_alias():
     scheduler = SchedulerManager(SlimDelivery())
 
@@ -79,7 +79,7 @@ def test_scheduler_exposes_delivery_without_communication_manager_alias():
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.scheduler
 def test_standalone_scheduler_helpers_use_configured_delivery_factory(monkeypatch):
     delivery = SlimDelivery()
     created_schedulers = []
@@ -111,7 +111,7 @@ def test_standalone_scheduler_helpers_use_configured_delivery_factory(monkeypatc
 
 
 @pytest.mark.unit
-@pytest.mark.core
+@pytest.mark.scheduler
 def test_standalone_scheduler_helper_fails_without_delivery_factory():
     set_scheduler_delivery_factory(None)
 

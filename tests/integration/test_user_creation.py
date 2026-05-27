@@ -21,13 +21,10 @@ from core import (
     update_user_context
 )
 
-pytestmark = [pytest.mark.core]
-
 from tests.test_helpers.test_utilities import TestUserFactory
 from storage.user_data_validation import is_valid_email
 
 
-@pytest.mark.core
 class TestUserCreationScenarios:
     """Test comprehensive user creation scenarios."""
     
@@ -127,6 +124,7 @@ class TestUserCreationScenarios:
             assert loaded_data['context']['gender_identity'] == ['they/them']
     
     @pytest.mark.unit
+    @pytest.mark.user_management
     @pytest.mark.no_parallel
     def test_user_with_custom_fields(self, test_data_dir, mock_config):
         """Test creating a user with extensive custom fields using enhanced test utilities."""
@@ -161,6 +159,7 @@ class TestUserCreationScenarios:
         assert 'Improve executive functioning' in loaded_data['context']['goals']
     
     @pytest.mark.unit
+    @pytest.mark.user_management
     @pytest.mark.no_parallel
     def test_user_creation_with_schedules(self, test_data_dir, mock_config):
         """Test creating a user with schedule periods using enhanced test utilities."""
@@ -198,7 +197,7 @@ class TestUserCreationScenarios:
         assert loaded_data['schedules']['motivational']['periods']['Default']['start_time'] == '18:00'
 
 
-@pytest.mark.core
+@pytest.mark.user_management
 class TestUserCreationValidation:
     """Test validation scenarios during user creation."""
     
@@ -273,7 +272,7 @@ class TestUserCreationValidation:
         assert isinstance(result, dict), "Should return a result dictionary"
 
 
-@pytest.mark.core
+@pytest.mark.user_management
 class TestUserCreationErrorHandling:
     """Test error handling during user creation."""
     
@@ -351,7 +350,7 @@ class TestUserCreationErrorHandling:
         assert isinstance(loaded_data, dict)
 
 
-@pytest.mark.core
+@pytest.mark.user_management
 class TestUserCreationIntegration:
     """Test integration scenarios for user creation."""
     

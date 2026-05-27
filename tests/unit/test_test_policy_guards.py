@@ -371,6 +371,40 @@ def test_pytest_tests_have_required_category_marker():
 
 @pytest.mark.unit
 @pytest.mark.user_management
+def test_pytest_tests_have_required_domain_marker():
+    """Policy: each pytest test must include a configured product-domain marker (see analyze_test_markers)."""
+    import sys
+
+    if str(PROJECT_ROOT) not in sys.path:
+        sys.path.insert(0, str(PROJECT_ROOT))
+
+    from development_tools import config
+    from development_tools.tests.analyze_test_markers import TestMarkerAnalyzer
+
+    config.load_external_config()
+    analyzer = TestMarkerAnalyzer(project_root=PROJECT_ROOT)
+    if not analyzer.domain_markers:
+        pytest.skip("test_markers.domain_markers is empty; domain policy not configured")
+
+    analyzer.find_missing_markers_ast()
+    domain_gaps = analyzer.get_last_domain_marker_gaps()
+    violations: list[str] = []
+    for file_path, lineno, name, node_type in domain_gaps:
+        try:
+            rel = Path(file_path).relative_to(PROJECT_ROOT).as_posix()
+        except ValueError:
+            rel = Path(file_path).as_posix()
+        violations.append(f"{rel}:{lineno} {name} ({node_type}) missing domain marker")
+
+    assert not violations, (
+        "Domain marker policy violations found "
+        f"(configured: {', '.join(analyzer.domain_markers)}):\n"
+        + "\n".join(sorted(violations))
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.user_management
 def test_no_datetime_now_in_tests():
     """Policy: tests should not call datetime.now() directly."""
     violations: list[str] = []
