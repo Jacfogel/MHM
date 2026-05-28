@@ -40,6 +40,8 @@ class TestTaskHandlerBehavior:
 
         expected_intents = [
             "create_task",
+            "create_task_from_template",
+            "list_task_templates",
             "list_tasks",
             "complete_task",
             "delete_task",
@@ -1013,3 +1015,61 @@ class TestTaskHandlerBehavior:
 
         assert "due" in result.lower(), "Should indicate future date"
         assert tomorrow in result, "Should include the date"
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    @patch("tasks.create_task")
+    def test_task_handler_create_from_template(self, mock_create_task, test_data_dir):
+        """Template creation applies defaults and optional title override."""
+        handler = TaskManagementHandler()
+        user_id = "test_user_task_template"
+        assert self._create_test_user(
+            user_id, test_data_dir=test_data_dir
+        ), "Failed to create test user"
+
+        mock_create_task.return_value = "task_tpl_1"
+        parsed_command = ParsedCommand(
+            intent="create_task_from_template",
+            entities={"template_ref": "phone_call", "title": "Call dentist"},
+            confidence=0.9,
+            original_message="task template phone_call Call dentist",
+        )
+
+        test_now_dt = datetime(2026, 5, 27, 12, 0, 0)
+        with (
+            patch(
+                "core.time_utilities.now_datetime_full",
+                return_value=test_now_dt,
+            ),
+            patch(
+                "communication.command_handlers.task_handler.now_datetime_full",
+                return_value=test_now_dt,
+                create=True,
+            ),
+        ):
+            response = handler.handle(user_id, parsed_command)
+
+        assert "created" in response.message.lower()
+        assert "Call dentist" in response.message
+        mock_create_task.assert_called_once()
+        call_kwargs = mock_create_task.call_args[1]
+        assert call_kwargs.get("title") == "Call dentist"
+        assert "phone" in call_kwargs.get("tags", [])
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    def test_task_handler_list_templates(self):
+        """List templates returns built-in template ids."""
+        handler = TaskManagementHandler()
+        parsed_command = ParsedCommand(
+            intent="list_task_templates",
+            entities={},
+            confidence=1.0,
+            original_message="list task templates",
+        )
+        response = handler.handle("user-templates", parsed_command)
+        assert response.completed
+        assert "medication" in response.message
+        assert "paperwork" in response.message

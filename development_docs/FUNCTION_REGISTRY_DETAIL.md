@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-25 16:13:18
+> **Last Generated**: 2026-05-27 19:34:43
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 92.4% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 178
-- **Functions Found**: 1956
-- **Methods Found**: 1273
-- **Classes Found**: 192
-- **Total Items**: 3229
-- **Functions Documented**: 1783
-- **Methods Documented**: 1202
-- **Classes Documented**: 147
-- **Total Documented**: 2985
+### **Function Documentation Coverage: 92.0% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 183
+- **Functions Found**: 1985
+- **Methods Found**: 1281
+- **Classes Found**: 197
+- **Total Items**: 3266
+- **Functions Documented**: 1800
+- **Methods Documented**: 1206
+- **Classes Documented**: 149
+- **Total Documented**: 3006
 - **Template-Generated**: 26
-- **Last Updated**: 2026-05-25
+- **Last Updated**: 2026-05-27
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (396)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (510)
+### **Communication Functions** (529)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (436)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (35)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (81)
+### **Task Management Functions** (91)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -1208,6 +1208,19 @@ Returns:
   - [OK] `CheckinHandler.get_help(self)` - Get help text for check-in commands.
   - [OK] `CheckinHandler.handle(self, user_id, parsed_command)` - Handle check-in interactions.
 
+#### `communication/command_handlers/create_menu_handler.py`
+**Functions:**
+- [MISSING] `can_handle(self, intent)` - No description
+- [MISSING] `get_examples(self)` - No description
+- [MISSING] `get_help(self)` - No description
+- [MISSING] `handle(self, user_id, parsed_command)` - No description
+**Classes:**
+- [OK] `CreateMenuHandler` - Show the Discord create hub (templates + modals). Works on all channels as text help.
+  - [MISSING] `CreateMenuHandler.can_handle(self, intent)` - No description
+  - [MISSING] `CreateMenuHandler.get_examples(self)` - No description
+  - [MISSING] `CreateMenuHandler.get_help(self)` - No description
+  - [MISSING] `CreateMenuHandler.handle(self, user_id, parsed_command)` - No description
+
 #### `communication/command_handlers/interaction_handlers.py`
 **Functions:**
 - [OK] `_handle_commands_list(self, user_id)` - Handle commands list request
@@ -1418,7 +1431,9 @@ Returns:
 - [OK] `_handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date
 - [OK] `_handle_create_task(self, user_id, entities)` - Handle task creation
 - [OK] `_handle_create_task__parse_relative_date(self, date_str)` - Convert relative date strings to proper dates
+- [OK] `_handle_create_task_from_template(self, user_id, entities)` - Create a task using a built-in template plus optional overrides.
 - [OK] `_handle_delete_task(self, user_id, entities)` - Handle task deletion
+- [OK] `_handle_list_task_templates(self, user_id, entities)` - List built-in task templates.
 - [OK] `_handle_list_tasks(self, user_id, entities)` - Handle task listing with enhanced filtering and details
 - [OK] `_handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter)` - Apply filters to tasks and return filtered list.
 - [OK] `_handle_list_tasks__build_filter_info(self, filter_type, priority_filter, tag_filter)` - Build filter information list.
@@ -1459,7 +1474,9 @@ Returns:
   - [OK] `TaskManagementHandler._handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date
   - [OK] `TaskManagementHandler._handle_create_task(self, user_id, entities)` - Handle task creation
   - [OK] `TaskManagementHandler._handle_create_task__parse_relative_date(self, date_str)` - Convert relative date strings to proper dates
+  - [OK] `TaskManagementHandler._handle_create_task_from_template(self, user_id, entities)` - Create a task using a built-in template plus optional overrides.
   - [OK] `TaskManagementHandler._handle_delete_task(self, user_id, entities)` - Handle task deletion
+  - [OK] `TaskManagementHandler._handle_list_task_templates(self, user_id, entities)` - List built-in task templates.
   - [OK] `TaskManagementHandler._handle_list_tasks(self, user_id, entities)` - Handle task listing with enhanced filtering and details
   - [OK] `TaskManagementHandler._handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter)` - Apply filters to tasks and return filtered list.
   - [OK] `TaskManagementHandler._handle_list_tasks__build_filter_info(self, filter_type, priority_filter, tag_filter)` - Build filter information list.
@@ -1750,6 +1767,7 @@ Returns:
 - [OK] `_has_external_ngrok_tunnel(self)` - Detect an externally running ngrok HTTP tunnel.
 - [OK] `_pagination_action_button_data(self, action)` - Convert generic pagination metadata into a Discord label and hidden payload.
 - [OK] `_pagination_action_value(self, action, field, default)` - Read a pagination action field from a dataclass or dictionary.
+- [OK] `_resolve_interaction_view_from_rich_data(self, rich_data)` - Attach channel-specific views (e.g. create hub) when rich_data requests them.
 - [OK] `_schedule_ready_tasks(self, bot)` - Schedule non-blocking tasks after Discord ready event.
 - [OK] `_shared__update_connection_status(self, status, error_info)` - Update connection status with detailed error information
 - [OK] `_should_attempt_reconnection(self)` - Determine if reconnection should be attempted based on various factors
@@ -1802,6 +1820,7 @@ Returns:
   - [OK] `DiscordBot._has_external_ngrok_tunnel(self)` - Detect an externally running ngrok HTTP tunnel.
   - [OK] `DiscordBot._pagination_action_button_data(self, action)` - Convert generic pagination metadata into a Discord label and hidden payload.
   - [OK] `DiscordBot._pagination_action_value(self, action, field, default)` - Read a pagination action field from a dataclass or dictionary.
+  - [OK] `DiscordBot._resolve_interaction_view_from_rich_data(self, rich_data)` - Attach channel-specific views (e.g. create hub) when rich_data requests them.
   - [OK] `DiscordBot._schedule_ready_tasks(self, bot)` - Schedule non-blocking tasks after Discord ready event.
   - [OK] `DiscordBot._shared__update_connection_status(self, status, error_info)` - Update connection status with detailed error information
   - [OK] `DiscordBot._should_attempt_reconnection(self)` - Determine if reconnection should be attempted based on various factors
@@ -1854,6 +1873,24 @@ skipping questions, and accessing help during the check-in flow.
 Args:
     user_id: The internal user ID for the check-in session
 
+#### `communication/communication_channels/discord/create_item_ui.py`
+**Functions:**
+- [MISSING] `_bind_modal_button_callback(label, discord_bot, modal_builder)` - No description
+- [MISSING] `_bind_template_button_callback(template_id, discord_bot)` - No description
+- [MISSING] `_build_custom_task_modal(user_id, discord_bot)` - No description
+- [MISSING] `_build_new_note_modal(user_id, discord_bot)` - No description
+- [MISSING] `_build_quick_note_modal(user_id, discord_bot)` - No description
+- [MISSING] `_internal_user_id(interaction)` - No description
+- [MISSING] `_run_handler(user_id, intent, entities, original_message)` - No description
+- [OK] `create_hub_rich_data(user_id)` - Rich-data marker for attaching the create hub view when sending on Discord.
+- [OK] `get_create_hub_view(user_id, discord_bot)` - Return a button menu for task templates and note/task modals.
+**Classes:**
+- [MISSING] `CustomTaskModal` - No description
+- [MISSING] `NewNoteModal` - No description
+- [MISSING] `QuickNoteModal` - No description
+
+#### `communication/communication_channels/discord/discord_response_delivery.py`
+
 #### `communication/communication_channels/discord/event_handler.py`
 **Functions:**
 - [OK] `__init__(self, bot)` - Initialize the Discord event handler
@@ -1882,8 +1919,14 @@ Args:
 **Functions:**
 - [OK] `_defer_if_no_running_loop(factory)` - Return a view immediately when in an event loop, otherwise defer creation.
 - [MISSING] `create_checkin_view(user_id)` - No description
+- [MISSING] `create_create_hub_view(user_id)` - No description
 - [MISSING] `create_task_reminder_view(user_id)` - No description
 - [OK] `create_view()` - Create the Discord interaction view inside the channel loop.
+
+#### `communication/communication_channels/discord/item_form_shared.py`
+**Functions:**
+- [OK] `entities_from_shared_fields()` - Build handler entities dict from shared modal fields.
+- [OK] `parse_modal_tags(tags_value)` - Parse comma- or space-separated tags from a modal text field.
 
 #### `communication/communication_channels/discord/task_reminder_view.py`
 **Functions:**
@@ -5552,20 +5595,25 @@ Returns:
 **Functions:**
 - [MISSING] `_tasks()` - No description
 - [OK] `add_one_calendar_month(dt)` - Advance *dt* by one calendar month, clamping the day if necessary.
+- [OK] `build_task_data_from_template(user_id, template_id)` - Merge template defaults with optional overrides into create_task kwargs.
 - [MISSING] `complete_task(user_id, task_id)` - No description
 - [MISSING] `create_task(user_id)` - No description
+- [OK] `create_task_from_template(user_id, template_id)` - Create a task from a built-in template with optional field overrides.
 - [OK] `default_due_date_for_recurring_time(due_time, now_dt)` - Return today for future recurring times, otherwise tomorrow.
 - [MISSING] `delete_task(user_id, task_id)` - No description
 - [OK] `filter_tasks(user_id, tasks, filter_type, priority_filter, tag_filter, now_dt)` - Apply command task-list filters.
 - [OK] `find_most_urgent_task(tasks)` - Find the most urgent task based on overdue status, priority, and due date.
 - [OK] `find_task_by_identifier(tasks, identifier)` - Find a task by number, name, canonical id, or short_id.
 - [OK] `format_due_date_status(due_date, now_dt)` - Format due-date status for command display.
+- [OK] `get_builtin_task_template(name_or_id)` - Return a built-in template by canonical id or user-facing name.
 - [OK] `get_completed_task_candidates(tasks, identifier)` - Return completed-task candidates matching id, short_id, number, or title.
 - [OK] `get_contextual_task_suggestion(tasks, now_dt)` - Return a state-based suggestion for a task list.
 - [OK] `get_recurring_task_defaults(user_id)` - Return recurring-task preference defaults for command task creation.
 - [OK] `get_task_candidates(tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
+- [OK] `get_task_templates_help_text()` - Help snippet listing available task templates.
 - [MISSING] `get_tasks_due_soon(user_id)` - No description
 - [MISSING] `get_user_task_stats(user_id)` - No description
+- [OK] `list_task_templates()` - Return built-in task templates available for quick creation.
 - [MISSING] `load_active_tasks(user_id)` - No description
 - [MISSING] `load_completed_tasks(user_id)` - No description
 - [OK] `parse_relative_date(date_str, now_dt)` - Convert relative task due-date strings to YYYY-MM-DD where possible.
@@ -5578,6 +5626,17 @@ Returns:
 - [MISSING] `update_task(user_id, task_id, updates)` - No description
 **Classes:**
 - [OK] `PreparedTaskCreateData` - Normalized task fields for command-driven task creation.
+
+#### `tasks/task_templates.py`
+**Functions:**
+- [OK] `format_templates_for_help()` - Short bullet list for help text.
+- [OK] `get_template(template_id)` - Return a built-in template by canonical id, or None.
+- [OK] `list_builtin_templates()` - Return built-in templates in stable display order.
+- [OK] `lookup_builtin_template_id(name)` - Match a user-facing template name or synonym to a canonical built-in template_id.
+- [OK] `to_create_kwargs(self)` - Return non-empty template fields suitable for task creation.
+**Classes:**
+- [OK] `TaskTemplate` - Static defaults for a repeatable task type.
+  - [OK] `TaskTemplate.to_create_kwargs(self)` - Return non-empty template fields suitable for task creation.
 
 #### `tasks/task_validation.py`
 **Functions:**

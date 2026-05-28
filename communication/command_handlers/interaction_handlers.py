@@ -439,6 +439,7 @@ INTERACTION_HANDLERS: dict[str, InteractionHandler | None] = {
     "AnalyticsHandler": None,  # Lazy import
     "NotebookHandler": None,  # Will be imported below to avoid circular imports
     "AccountManagementHandler": None,  # Will be imported below to avoid circular imports
+    "CreateMenuHandler": None,
 }
 
 
@@ -519,6 +520,16 @@ def get_interaction_handler(intent: str) -> InteractionHandler | None:
             )
         except Exception as e:
             logger.warning(f"Could not import AccountManagementHandler: {e}")
+
+    if INTERACTION_HANDLERS.get("CreateMenuHandler") is None:
+        try:
+            from communication.command_handlers.create_menu_handler import (
+                CreateMenuHandler,
+            )
+
+            INTERACTION_HANDLERS["CreateMenuHandler"] = CreateMenuHandler()
+        except Exception as e:
+            logger.warning(f"Could not import CreateMenuHandler: {e}")
 
     for handler in INTERACTION_HANDLERS.values():
         if handler and handler.can_handle(intent):
@@ -603,5 +614,15 @@ def get_all_handlers() -> dict[str, InteractionHandler]:
             )
         except Exception as e:
             logger.warning(f"Could not import AccountManagementHandler: {e}")
+
+    if INTERACTION_HANDLERS.get("CreateMenuHandler") is None:
+        try:
+            from communication.command_handlers.create_menu_handler import (
+                CreateMenuHandler,
+            )
+
+            INTERACTION_HANDLERS["CreateMenuHandler"] = CreateMenuHandler()
+        except Exception as e:
+            logger.warning(f"Could not import CreateMenuHandler: {e}")
 
     return {k: v for k, v in INTERACTION_HANDLERS.items() if v is not None}

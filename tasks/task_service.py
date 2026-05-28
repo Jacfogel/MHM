@@ -13,6 +13,12 @@ from core import get_user_data
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full, parse_date_only
 from tasks.task_data_handlers import runtime_task_due_date
 from tasks.task_schemas import VALID_PRIORITIES
+from tasks.task_templates import (
+    TaskTemplate,
+    format_templates_for_help,
+    get_template,
+    list_builtin_templates,
+)
 
 
 @dataclass(frozen=True)
@@ -626,3 +632,98 @@ def find_most_urgent_task(tasks: list[dict[str, Any]]) -> dict[str, Any] | None:
             most_urgent = task
 
     return most_urgent
+
+
+@handle_errors("task service: list task templates", default_return=[])
+def list_task_templates() -> list[TaskTemplate]:
+    """Return built-in task templates available for quick creation."""
+    return list_builtin_templates()
+
+
+@handle_errors("task service: get built-in task template", default_return=None)
+def get_builtin_task_template(name_or_id: str) -> TaskTemplate | None:
+    """Return a built-in template by canonical id or user-facing name."""
+    return get_template(name_or_id)
+
+
+@handle_errors("task service: build task data from template", re_raise=True)
+def build_task_data_from_template(
+    user_id: str,
+    template_id: str,
+    *,
+    title: str | None = None,
+    description: str | None = None,
+    due_date: str | None = None,
+    due_time: str | None = None,
+    priority: str | None = None,
+    tags: list[str] | None = None,
+    group: str | None = None,
+    now_dt: datetime | None = None,
+) -> dict[str, Any] | None:
+    """Merge template defaults with optional overrides into create_task kwargs."""
+    template = get_template(template_id)
+    if not template:
+        return None
+
+    now_dt = now_dt or now_datetime_full()
+    task_data = template.to_create_kwargs()
+
+    if title:
+        task_data["title"] = title.strip()
+    if description is not None:
+        task_data["description"] = description
+    if priority and priority in VALID_PRIORITIES:
+        task_data["priority"] = priority
+    if group is not None:
+        task_data["group"] = group
+    if tags:
+        merged = list(dict.fromkeys([*(task_data.get("tags") or []), *tags]))
+        task_data["tags"] = merged
+
+    resolved_due_date = due_date
+    if not resolved_due_date and template.default_due_phrase:
+        resolved_due_date = parse_relative_date(template.default_due_phrase, now_dt=now_dt)
+
+    resolved_due_time = due_time or template.default_due_time
+    if resolved_due_date:
+        valid_due_date = (
+            resolved_due_date if parse_date_only(resolved_due_date) is not None else None
+        )
+        if valid_due_date:
+            task_data["due_date"] = valid_due_date
+            if resolved_due_time:
+                parsed_time = parse_time_string(resolved_due_time)
+                if parsed_time:
+                    task_data["due_time"] = parsed_time
+
+    if template.recurrence_pattern and not task_data.get("recurrence_pattern"):
+        recurring_settings = get_recurring_task_defaults(user_id)
+        task_data["recurrence_pattern"] = template.recurrence_pattern
+        task_data["recurrence_interval"] = template.recurrence_interval
+        task_data["repeat_after_completion"] = recurring_settings.get(
+            "default_repeat_after_completion", True
+        )
+
+    return task_data
+
+
+@handle_errors("task service: create task from template", default_return=None)
+def create_task_from_template(
+    user_id: str,
+    template_id: str,
+    **overrides: Any,
+) -> str | None:
+    """Create a task from a built-in template with optional field overrides."""
+    task_data = build_task_data_from_template(user_id, template_id, **overrides)
+    if not task_data:
+        return None
+    title = task_data.pop("title", None)
+    if not title:
+        return None
+    return create_task(user_id=user_id, **task_data, title=title)
+
+
+@handle_errors("task service: format templates for help", default_return="")
+def get_task_templates_help_text() -> str:
+    """Help snippet listing available task templates."""
+    return format_templates_for_help()

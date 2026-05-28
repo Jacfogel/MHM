@@ -33,6 +33,15 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-05-27 - Task templates and Discord create hub **COMPLETED**
+- **Feature**: Built-in task templates so common task types can be created with one short command instead of spelling out every field. Discord **create hub** (`create` / `new` / `add`) adds buttons for all five templates plus **Custom task**, **Quick note**, and **New note** modals using shared fields (title, body, group, tags, due for tasks).
+- **Technical**: Added `tasks/task_templates.py` with `TaskTemplate` and five built-ins (medication, appointment, phone_call, cleaning, paperwork). Extended `tasks/task_service.py` with `build_task_data_from_template`, `create_task_from_template`, and `list_task_templates`. Wired `create_task_from_template` and `list_task_templates` intents in `command_parser.py` and `task_handler.py`; updated `TASK_HELP_TEXT`. Excluded `task template` from the generic `^task\s+` create pattern.
+- **Commands**: `task template medication`, `create task from template appointment`, `list task templates` (optional title override on the same line).
+- **Tests**: `tests/unit/test_task_templates.py`; behavior coverage in `tests/behavior/test_task_handler_behavior.py`.
+- **Docs**: Updated [TASKS_PLAN.md](TASKS_PLAN.md) Section 3 (Discord quick-add buttons remain open).
+- **Discord UI**: `communication/communication_channels/discord/create_item_ui.py`, `item_form_shared.py`, `create_menu_handler.py`; `rich_data.interaction_view=create_hub` attaches the button menu on Discord.
+- **Impact**: Faster task and note capture from a phone; follow-up flows (due/priority/reminders, note body) still run when defaults leave gaps.
+
 ### 2026-05-26 - Pytest storage marker and domain-marker batch retag **COMPLETED**
 - **Marker registration**: Added `storage` to [`pytest.ini`](../pytest.ini) feature markers (aligned with `domain_mapper` `storage` domain). Updated paired guides [`AI_TESTING_GUIDE.md`](../ai_development_docs/AI_TESTING_GUIDE.md) and [`TESTING_GUIDE.md`](../tests/TESTING_GUIDE.md).
 - **Check-ins / storage**: Retagged check-in tests `@core` -> `@checkins`; storage-focused tests `@core` / `@user_management` -> `@storage` (`test_validation`, `test_user_data_manager`, `test_user_item_storage`, `test_user_data_validation_user_id`, `test_user_data_read_scenarios`, and related check-in files).

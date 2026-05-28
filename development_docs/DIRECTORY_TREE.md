@@ -2,16 +2,15 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-25 16:13:29
+> **Last Generated**: 2026-05-27 19:34:53
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 000000A9 5EAC:07BC
+Volume serial number is 00000028 5EAC:07BC
 C:.
-|   .coverage
 |   .ruff.toml
 |   ARCHITECTURE.md
 |   CONFIGURATION_REFERENCE.md
@@ -130,6 +129,7 @@ C:.
 |   |   |   base_handler.py
 |   |   |   checkin_analytics_handler.py
 |   |   |   checkin_handler.py
+|   |   |   create_menu_handler.py
 |   |   |   interaction_handlers.py
 |   |   |   notebook_handler.py
 |   |   |   profile_handler.py
@@ -155,9 +155,12 @@ C:.
 |   |   |   |   api_client.py
 |   |   |   |   bot.py
 |   |   |   |   checkin_view.py
+|   |   |   |   create_item_ui.py
 |   |   |   |   DISCORD_GUIDE.md
+|   |   |   |   discord_response_delivery.py
 |   |   |   |   event_handler.py
 |   |   |   |   interaction_views.py
+|   |   |   |   item_form_shared.py
 |   |   |   |   task_reminder_view.py
 |   |   |   |   webhook_handler.py
 |   |   |   |   webhook_server.py
@@ -519,6 +522,7 @@ C:.
 |   |   task_data_manager.py
 |   |   task_schemas.py
 |   |   task_service.py
+|   |   task_templates.py
 |   |   task_validation.py
 |   |   __init__.py
 |   |
@@ -577,6 +581,7 @@ C:.
 |   |   |   test_conversation_flow_manager_behavior.py
 |   |   |   test_core_message_management_coverage_expansion.py
 |   |   |   test_core_service_coverage_expansion.py
+|   |   |   test_create_menu_handler.py
 |   |   |   test_discord_advanced_automation.py
 |   |   |   test_discord_automation_complete.py
 |   |   |   test_discord_bot_behavior.py
@@ -908,6 +913,7 @@ C:.
 |   |   |   test_generate_ui_files_script.py
 |   |   |   test_interaction_handlers_helpers.py
 |   |   |   test_interaction_handlers_help_and_registry.py
+|   |   |   test_item_form_shared.py
 |   |   |   test_lm_studio_manager.py
 |   |   |   test_logger_unit.py
 |   |   |   test_logging_components.py
@@ -941,6 +947,7 @@ C:.
 |   |   |   test_tags_gap_coverage.py
 |   |   |   test_task_service.py
 |   |   |   test_task_short_ids.py
+|   |   |   test_task_templates.py
 |   |   |   test_test_policy_guards.py
 |   |   |   test_test_user_factory.py
 |   |   |   test_time_utilities.py

@@ -70,7 +70,7 @@ class EnhancedCommandParser:
                 r"^ctask\s+(.+)$",
                 r"^createtask\s+(.+)$",
                 r"^createt\s+(.+)$",
-                r"^task\s+(?!stats\b|statistics\b|analytics\b|analysis\b|summary\b|summaries\b|insights\b|trends\b)(.+)$",
+                r"^task\s+(?!stats\b|statistics\b|analytics\b|analysis\b|summary\b|summaries\b|insights\b|trends\b|template\b|templates\b)(.+)$",
                 r"create\s+(?:a\s+)?task\s+(?:to\s+)?(.+)",
                 r"add\s+(?:a\s+)?task\s+(?:to\s+)?(.+)",
                 r"new\s+task\s+(?:to\s+)?(.+)",
@@ -79,6 +79,21 @@ class EnhancedCommandParser:
                 r"call\s+(.+?)(?:\s+tomorrow|\s+next\s+week|\s+this\s+week|\s+tonight|\s+before\s+\w+|\s+by\s+\w+|\s+on\s+\w+)",
                 r"buy\s+(.+?)(?:\s+tomorrow|\s+next\s+week|\s+this\s+week|\s+tonight|\s+before\s+\w+|\s+by\s+\w+|\s+on\s+\w+)",
                 r"schedule\s+(.+?)(?:\s+tomorrow|\s+next\s+week|\s+this\s+week|\s+tonight|\s+before\s+\w+|\s+by\s+\w+|\s+on\s+\w+)",
+            ],
+            "show_create_hub": [
+                r"^create$",
+                r"^new$",
+                r"^add$",
+                r"^create\s+menu$",
+            ],
+            "create_task_from_template": [
+                r"^task\s+template\s+([a-z][a-z0-9_\s-]*?)(?:\s+(.+))?$",
+                r"^(?:create|new|add)\s+task\s+from\s+template\s+([a-z][a-z0-9_\s-]*?)(?:\s+(.+))?$",
+            ],
+            "list_task_templates": [
+                r"^task\s+templates?$",
+                r"^list\s+task\s+templates?$",
+                r"^show\s+task\s+templates?$",
             ],
             "list_tasks": [
                 r"^show\s+my\s+tasks?$",  # Match "show my tasks" first (more specific)
@@ -1223,6 +1238,16 @@ class EnhancedCommandParser:
                 entities.update(task_entities)
             return True
 
+        if intent == "create_task_from_template":
+            if match.groups():
+                entities["template_ref"] = match.group(1).strip()
+                if len(match.groups()) > 1 and match.group(2):
+                    extra = match.group(2).strip()
+                    task_entities = self._extract_task_entities(extra)
+                    entities["title"] = task_entities.pop("clean_title", extra)
+                    entities.update(task_entities)
+            return True
+
         if intent in ["complete_task", "delete_task", "update_task"]:
             if match.groups():
                 identifier = match.group(1).strip()
@@ -1923,6 +1948,8 @@ class EnhancedCommandParser:
             # Map common AI response patterns to intents
             intent_mappings = {
                 "create task": "create_task",
+                "task template": "create_task_from_template",
+                "list task templates": "list_task_templates",
                 "list tasks": "list_tasks",
                 "complete task": "complete_task",
                 "delete task": "delete_task",

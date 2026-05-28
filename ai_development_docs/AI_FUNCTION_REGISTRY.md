@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-25 16:13:18
+> **Last Generated**: 2026-05-27 19:34:43
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 92.4% [!] GOOD**
-- **Total Functions**: 1956
-- **Total Methods**: 1273
-- **Documented**: 2985/3229
-- **Files Scanned**: 178
+### **Documentation Coverage: 92.0% [!] GOOD**
+- **Total Functions**: 1985
+- **Total Methods**: 1281
+- **Documented**: 3006/3266
+- **Files Scanned**: 183
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -60,7 +60,7 @@ Core System Decision Tree:
 
 ## [PATTERNS] **Key Function Patterns**
 
-### **Handler Pattern** (9 found)
+### **Handler Pattern** (10 found)
 **Purpose**: Handle specific user intents or operations
 **Location**: `communication/command_handlers/account_handler.py`, `communication/command_handlers/analytics_handler.py`, `communication/command_handlers/base_handler.py`
 **Pattern**: 
@@ -72,7 +72,7 @@ Core System Decision Tree:
 - `AccountManagementHandler` (communication/command_handlers/account_handler.py)
 - `AnalyticsHandler` (communication/command_handlers/analytics_handler.py)
 - `InteractionHandler` (communication/command_handlers/base_handler.py)
-- ... and 6 more
+- ... and 7 more
 
 ### **Widget Pattern** (7 found)
 **Purpose**: Reusable UI components
@@ -162,14 +162,13 @@ Core System Decision Tree:
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
 - `storage/user_data_registry.py` - 11/22 functions undocumented (50% coverage)
 - `tasks/task_schemas.py` - 10/10 functions undocumented (0% coverage)
-- `tasks/task_service.py` - 10/26 functions undocumented (62% coverage)
+- `tasks/task_service.py` - 10/31 functions undocumented (68% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
 - `storage/user_data_validation.py` - 3/12 functions undocumented (75% coverage)
 - `ai/fallback_responses/conversational.py` - 2/4 functions undocumented (50% coverage)
-- `communication/communication_channels/discord/interaction_views.py` - 2/4 functions undocumented (50% coverage)
 - `core/user_lookup.py` - 1/3 functions undocumented (67% coverage)
 
 
@@ -191,7 +190,7 @@ Most complex functions (may need refactoring):
 2. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2960
 3. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2788
 4. [OK] `run_tests.py::main()` - Complexity: 2693
-5. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2506
+5. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2514
 
 
 ### **Pattern Recognition**
@@ -203,12 +202,12 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (26 files, 265 functions)
 - `checkins/` -  (6 files, 135 functions)
-- `communication/` - Communication channels and message processing (53 files, 962 functions)
+- `communication/` - Communication channels and message processing (57 files, 988 functions)
 - `core/` - System utilities and data management (27 files, 546 functions)
 - `messages/` -  (5 files, 38 functions)
 - `scheduler/` -  (6 files, 94 functions)
 - `storage/` -  (11 files, 150 functions)
-- `tasks/` - Task management system (6 files, 86 functions)
+- `tasks/` - Task management system (7 files, 97 functions)
 - `ui/` - User interface components (30 files, 837 functions)
 - `user/` - User context and preferences (5 files, 66 functions)
 

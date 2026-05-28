@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-27 - Task templates and Discord create hub **COMPLETED**
+- Five built-in templates (medication, appointment, phone call, cleaning, paperwork) with prefilled defaults.
+- Discord/text: `task template <name>`, `list task templates`, or `create` / `new` / `add` for button menu + modals (shared title/body/group/tags fields).
+- Legacy alignment: no `LEGACY COMPATIBILITY` bridges; removed thin `resolve_template_id` wrapper in favor of `get_builtin_task_template()` returning a `TaskTemplate` (canonical lookup stays in `task_templates.lookup_builtin_template_id`).
+- Tests: `test_task_templates.py`, `test_item_form_shared.py`, `test_create_menu_handler.py`.
+
 ### 2026-05-26 - Test domain markers (refactor alignment) **Progressed**
 - Registered `@pytest.mark.storage` in `pytest.ini` and paired testing guides (`AI_TESTING_GUIDE.md`, `TESTING_GUIDE.md`).
 - Retagged check-in and storage tests from `@core` (or redundant `@user_management`) to `@checkins` / `@storage`.
@@ -154,12 +160,6 @@ Guidelines:
 - Kept MHM-specific quick-status files/directories in `development_tools_config.json`; generic defaults no longer embed `run_mhm.py` or `core/*` project files
 - Backup health/drill now skip cleanly when an external project has no `core.backup_manager`
 - Added minimal external-repo smoke tests and policy tests for no direct `core.*` imports; validation: targeted portability/policy tests passed, affected 144-test selection passed, `audit --quick` passed, and `audit --full --dev-tools-only` passed cleanly
-
-### 2026-05-17 - AI_PRIORITIES Accuracy, Doc Links, Ruff Test Flake **COMPLETED**
-- Fixed Tier 2 `AI_PRIORITIES` falsely reporting Tier 3 test failures when coverage cache lacked real `tier3_test_outcome`; lower tiers still show **cached** actionable Tier 3 issues with a refresh hint (`report_generation.py` + unit tests)
-- Corrected 39 broken markdown link targets (V5 archive paths -> V6, V6 `development_tools/` hrefs, dead test links in changelog); `doc-sync` clean
-- Fixed parallel-suite flake in `test_analyze_ruff_keyboard_interrupt_returns_warn` by isolating Ruff shard cache like Pyright
-- **Note**: `no_parallel` pytest exit code 5 with all tests deselected is normal when no `no_parallel` tests match; log warnings are diagnostic noise
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

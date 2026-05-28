@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Current roadmap for task-system usability, Discord task creation, follow-up flows, and advanced task features  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-05-22 (§2 NLP + §2.1 task help shipped; per-user timeframe defaults backlog)  
+> **Last Updated**: 2026-05-27 (§3 task templates data model + commands shipped; Discord quick-add buttons deferred)  
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -96,21 +96,21 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 
 ### 3. Task templates and quick actions
 
-**Status**: Planned  
+**Status**: Partial (2026-05-27) — data model, built-ins, commands, and tests shipped; Discord quick-add buttons deferred  
 **Priority**: Medium/High  
 **Why it matters**: Templates reduce friction for repeated task types, especially health, household, appointments, and chores.
 
-**Implement**:
-- [ ] Define a small template model before adding UI/button complexity.
-- [ ] Add built-in templates for common categories:
-  - medication
-  - appointment
-  - phone call
-  - cleaning/chores
-  - paperwork/forms
-- [ ] Allow templates to prefill title, description, priority, due/reminder defaults, tags, and group.
-- [ ] Add Discord quick-add options only after the template data model is stable.
-- [ ] Add tests for creating a task from a template.
+**Shipped (2026-05-27)**:
+- [x] Template model in `tasks/task_templates.py` (`TaskTemplate`, aliases, five built-ins).
+- [x] Built-in templates: medication, appointment, phone_call, cleaning, paperwork.
+- [x] Prefill title, description, priority, due/time defaults, tags, group, recurrence (medication daily).
+- [x] Service helpers: `build_task_data_from_template`, `create_task_from_template`, `list_task_templates`.
+- [x] Commands: `task template <name>`, `create task from template <name>`, `list task templates`; help text updated.
+- [x] Tests: `tests/unit/test_task_templates.py`, behavior tests in `test_task_handler_behavior.py`.
+
+**Remaining**:
+- [ ] Live Discord validation of create hub buttons and modals (2026-05-27: hub shipped in `create_item_ui.py`).
+- [ ] Optional: user-defined custom templates (storage + settings UX).
 
 **Acceptance**:
 - Common tasks can be created with fewer words/clicks than a normal task.

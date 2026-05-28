@@ -69,6 +69,12 @@ Manage tasks with natural language or short commands.
 
 **Due phrases:** `tomorrow`, `tonight`, `this week`, `before Friday`, `after work` / `after school` (weekend `this week` means the coming week)
 
+**Templates** (quick-add with defaults):
+• `create` / `new` / `add` — Discord button menu (templates + custom task + notes)
+• `task template medication` / `task template appointment`
+• `create task from template phone_call Call dentist`
+• `list task templates` — see all built-in templates
+
 **After create:** If due/priority/reminders are missing, I may ask follow-up questions — reply with a date/time, priority, or `skip` / `cancel`.
 
 **More:** `help tasks`, `examples tasks`, or `/tasks`"""
@@ -105,6 +111,8 @@ class TaskManagementHandler(InteractionHandler):
         """Check if this handler can handle the given intent."""
         return intent in [
             "create_task",
+            "create_task_from_template",
+            "list_task_templates",
             "list_tasks",
             "complete_task",
             "uncomplete_task",
@@ -128,6 +136,10 @@ class TaskManagementHandler(InteractionHandler):
 
         if intent == "create_task":
             return self._handle_create_task(user_id, entities)
+        elif intent == "create_task_from_template":
+            return self._handle_create_task_from_template(user_id, entities)
+        elif intent == "list_task_templates":
+            return self._handle_list_task_templates(user_id, entities)
         elif intent == "list_tasks":
             return self._handle_list_tasks(user_id, entities)
         elif intent == "complete_task":
@@ -272,6 +284,85 @@ class TaskManagementHandler(InteractionHandler):
             return InteractionResponse(
                 "❌ Failed to create task. Please try again.", True
             )
+
+    @handle_errors(
+        "handling task creation from template",
+        default_return=InteractionResponse(
+            "I'm having trouble creating that task from a template. Please try again.", True
+        ),
+    )
+    def _handle_create_task_from_template(
+        self, user_id: str, entities: dict[str, Any]
+    ) -> InteractionResponse:
+        """Create a task using a built-in template plus optional overrides."""
+        template_ref = entities.get("template_ref") or entities.get("template_id")
+        if not template_ref:
+            return InteractionResponse(
+                "Which template would you like? Try `list task templates`.",
+                completed=False,
+                suggestions=["list task templates", "task template medication"],
+            )
+
+        template = _task_service().get_builtin_task_template(str(template_ref))
+        if not template:
+            help_text = _task_service().get_task_templates_help_text()
+            return InteractionResponse(
+                f"I don't recognize template '{template_ref}'.\n\nAvailable templates:\n{help_text}",
+                completed=True,
+            )
+
+        task_data = _task_service().build_task_data_from_template(
+            user_id,
+            template.template_id,
+            title=entities.get("title"),
+            description=entities.get("description"),
+            due_date=entities.get("due_date"),
+            due_time=entities.get("due_time"),
+            priority=entities.get("priority"),
+            tags=entities.get("tags"),
+            group=entities.get("group"),
+            now_dt=now_datetime_full(),
+        )
+        if not task_data:
+            return InteractionResponse(
+                "❌ Failed to build task from template. Please try again.", True
+            )
+
+        merged_entities: dict[str, Any] = {
+            "title": task_data.get("title"),
+            "description": task_data.get("description", ""),
+            "priority": task_data.get("priority"),
+            "tags": task_data.get("tags", []),
+            "group": task_data.get("group", ""),
+        }
+        if task_data.get("due_date"):
+            merged_entities["due_date"] = task_data["due_date"]
+        if task_data.get("due_time"):
+            merged_entities["due_time"] = task_data["due_time"]
+        if task_data.get("recurrence_pattern"):
+            merged_entities["recurrence_pattern"] = task_data["recurrence_pattern"]
+            merged_entities["recurrence_interval"] = task_data.get("recurrence_interval", 1)
+
+        return self._handle_create_task(user_id, merged_entities)
+
+    @handle_errors(
+        "listing task templates",
+        default_return=InteractionResponse(
+            "I'm having trouble listing task templates. Please try again.", True
+        ),
+    )
+    def _handle_list_task_templates(
+        self, user_id: str, entities: dict[str, Any]
+    ) -> InteractionResponse:
+        """List built-in task templates."""
+        lines = [
+            "**Task templates** — use `task template <name>` or `create task from template <name>`:",
+            "",
+            _task_service().get_task_templates_help_text(),
+            "",
+            "Optional title override: `task template phone_call Call dentist`",
+        ]
+        return InteractionResponse("\n".join(lines), completed=True)
 
     @handle_errors("parsing time string", default_return=None)
     def _parse_time_string(self, time_str: str) -> str | None:
@@ -829,4 +920,7 @@ class TaskManagementHandler(InteractionHandler):
             "update task 2 priority urgent due friday",
             "task stats",
             "how am I doing with my tasks this week?",
+            "task template medication",
+            "create task from template appointment",
+            "list task templates",
         ]

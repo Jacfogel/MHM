@@ -132,7 +132,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 **Priority**: Medium  
 **Started**: 2025-11-20
 
-**Use / fit**: Error-handling validation helps because this is a beginner/AI-assisted codebase. The practical goal is not theoretical perfection; it is clearer failures, less noisy logs, and better user-facing messages.
+**Use / fit**: Error-handling validation helps because this is a beginner/AI-assisted codebase. The practical goal is not theoretical perfection; it is clearer failures, useful but not overly noisy logs, and better user-facing messages.
 
 **Completed baseline**:
 

@@ -16,6 +16,17 @@ def create_checkin_view(user_id: str, **kwargs: Any) -> Any | None:
     return _defer_if_no_running_loop(get_checkin_view, user_id)
 
 
+@handle_errors("creating Discord create hub view", default_return=None)
+def create_create_hub_view(user_id: str, **kwargs: Any) -> Any | None:
+    from communication.communication_channels.discord.create_item_ui import (
+        get_create_hub_view,
+    )
+
+    return _defer_if_no_running_loop(
+        get_create_hub_view, user_id, kwargs.get("discord_bot")
+    )
+
+
 @handle_errors("creating Discord task reminder view", default_return=None)
 def create_task_reminder_view(user_id: str, **kwargs: Any) -> Any | None:
     from communication.communication_channels.discord.task_reminder_view import (

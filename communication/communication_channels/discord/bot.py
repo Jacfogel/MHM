@@ -1031,6 +1031,10 @@ class DiscordBot(BaseChannel):
                         # We just need to let it pass through
                         return
 
+                    # Handle create hub buttons (template / modal triggers)
+                    elif custom_id.startswith("create_hub_"):
+                        return
+
                     # Handle suggestion buttons (from InteractionResponse suggestions)
                     elif custom_id.startswith("suggestion_"):
                         try:
@@ -1636,16 +1640,17 @@ class DiscordBot(BaseChannel):
                         response.message, response.rich_data
                     )
 
-                # Create view with buttons if suggestions or pagination metadata are provided
-                view = None
-                button_labels, button_payloads = self._get_action_row_inputs(
-                    response.suggestions, response.rich_data
-                )
-                if button_labels:
-                    view = self._create_action_row(
-                        button_labels,
-                        button_payloads,
+                # Create view with buttons if suggestions or custom interaction view
+                view = self._resolve_interaction_view_from_rich_data(response.rich_data)
+                if not view:
+                    button_labels, button_payloads = self._get_action_row_inputs(
+                        response.suggestions, response.rich_data
                     )
+                    if button_labels:
+                        view = self._create_action_row(
+                            button_labels,
+                            button_payloads,
+                        )
 
                 # Send response with embed and/or view
                 if embed and view:
@@ -1903,13 +1908,14 @@ class DiscordBot(BaseChannel):
         if self._has_display_rich_data(rich_data):
             embed = self._create_discord_embed(message, rich_data)
 
-        # Create view with buttons if suggestions or pagination metadata are provided
-        view = None
-        button_labels, button_payloads = self._get_action_row_inputs(
-            suggestions, rich_data
-        )
-        if button_labels:
-            view = self._create_action_row(button_labels, button_payloads)
+        # Create view: custom interaction view (create hub, etc.) or suggestion buttons
+        view = self._resolve_interaction_view_from_rich_data(rich_data)
+        if not view:
+            button_labels, button_payloads = self._get_action_row_inputs(
+                suggestions, rich_data
+            )
+            if button_labels:
+                view = self._create_action_row(button_labels, button_payloads)
 
         # Send to the channel
         if embed and view:
@@ -2264,6 +2270,32 @@ class DiscordBot(BaseChannel):
         entities["limit"] = limit
         payload = {"intent": str(action_name), "entities": entities}
         return f"Show More ({button_count} more)", payload
+
+    @handle_errors("resolving Discord interaction view from rich data", default_return=None)
+    def _resolve_interaction_view_from_rich_data(
+        self, rich_data: dict[str, Any] | None
+    ) -> Any | None:
+        """Attach channel-specific views (e.g. create hub) when rich_data requests them."""
+        if not rich_data or not isinstance(rich_data, dict):
+            return None
+        view_type = rich_data.get("interaction_view")
+        user_id = rich_data.get("user_id")
+        if not view_type or not user_id:
+            return None
+        from communication.communication_channels.interaction_view_factory import (
+            create_interaction_view,
+        )
+
+        view = create_interaction_view(
+            "discord", str(view_type), str(user_id), discord_bot=self
+        )
+        if callable(view) and not isinstance(view, type):
+            try:
+                return view()
+            except Exception as exc:
+                logger.error(f"Error creating interaction view '{view_type}': {exc}")
+                return None
+        return view
 
     @handle_errors("building Discord action row inputs", default_return=([], None))
     def _get_action_row_inputs(
