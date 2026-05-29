@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-05-28 - Dev-tools complexity thresholds and test hygiene **COMPLETED**
+- **Feature (audit thresholds)**: Tuned `analyze_module_refactor_candidates` in [`development_tools_config.json`](../development_tools/config/development_tools_config.json): `max_lines_per_module` 2000, `max_total_complexity_per_module` 4000, `high_plus_critical_threshold` 10 (reduces refactor-candidate noise from 66 to ~31 modules). Added `analyze_functions` section with `moderate_complexity_threshold` 100, `high_complexity_threshold` 200, `critical_complexity_threshold` 300 (critical function count ~80 vs ~160 at 200).
+- **Reporting**: [`report_generation.py`](../development_tools/shared/service/report_generation.py) no longer hardcodes `>199 nodes` / `100-199 nodes` in AI_PRIORITIES; uses threshold-agnostic wording so priority text stays accurate when config changes.
+- **Documentation hygiene**: Added docstrings for `normalize_string_list` in [`user_data_v2_base.py`](../storage/user_data_v2_base.py) and `_valid_time` in [`schemas.py`](../core/schemas.py) (clears missing-docstring audit item).
+- **Tests**: Added `pytestmark = pytest.mark.no_parallel` to [`test_discord_task_reminder_followup.py`](../tests/behavior/test_discord_task_reminder_followup.py); aligns with [`test_task_reminder_followup_behavior.py`](../tests/behavior/test_task_reminder_followup_behavior.py) and prevents parallel Tier 3 flakes on global `conversation_manager.user_states`.
+- **Impact**: AI_PRIORITIES and consolidated reports focus on fewer, higher-signal refactor/complexity targets; docstring gap closed; Discord reminder follow-up behavior tests stable under xdist after a full audit refresh.
+
 ### 2026-05-27 - Task templates and Discord create hub **COMPLETED**
 - **Feature**: Built-in task templates so common task types can be created with one short command instead of spelling out every field. Discord **create hub** (`create` / `new` / `add`) adds buttons for all five templates plus **Custom task**, **Quick note**, and **New note** modals using shared fields (title, body, group, tags, due for tasks).
 - **Technical**: Added `tasks/task_templates.py` with `TaskTemplate` and five built-ins (medication, appointment, phone_call, cleaning, paperwork). Extended `tasks/task_service.py` with `build_task_data_from_template`, `create_task_from_template`, and `list_task_templates`. Wired `create_task_from_template` and `list_task_templates` intents in `command_parser.py` and `task_handler.py`; updated `TASK_HELP_TEXT`. Excluded `task template` from the generic `^task\s+` create pattern.

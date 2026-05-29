@@ -5438,7 +5438,7 @@ class ReportGenerationMixin:
                 complexity_bullets.insert(2, details_line)
             if high_complex and high_complex > 0 and critical_complex <= 10:
                 complexity_bullets.append(
-                    f"Then address {high_complex} high-complexity functions (100-199 nodes)."
+                    f"Then address {high_complex} high-complexity functions (between high and critical thresholds)."
                 )
             complexity_bullets.append(
                 "Action: Break down complex functions into smaller, focused functions with single responsibilities"
@@ -5446,7 +5446,7 @@ class ReportGenerationMixin:
             add_priority(
                 tier=3,  # Tier 3: Medium
                 title="Refactor high-complexity functions",
-                reason=f"{critical_complex} critical-complexity functions (>199 nodes) need immediate attention.",
+                reason=f"{critical_complex} critical-complexity functions (at or above the critical threshold) need immediate attention.",
                 bullets=complexity_bullets,
             )
         elif high_complex and high_complex > 0:
@@ -5490,7 +5490,7 @@ class ReportGenerationMixin:
             add_priority(
                 tier=3,  # Tier 3: Medium
                 title="Refactor high-complexity functions",
-                reason=f"{high_complex} high-complexity functions (100-199 nodes) should be simplified.",
+                reason=f"{high_complex} high-complexity functions (between high and critical thresholds) should be simplified.",
                 bullets=high_complexity_bullets,
             )
 

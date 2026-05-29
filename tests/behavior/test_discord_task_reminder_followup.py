@@ -19,6 +19,9 @@ from communication.message_processing.conversation_flow_manager import (
 )
 from tests.test_helpers.test_utilities import TestUserFactory
 
+# Global conversation_manager.user_states is process-wide; parallel workers can interleave flows.
+pytestmark = pytest.mark.no_parallel
+
 
 class TestDiscordTaskReminderFollowup:
     """Test Discord task reminder follow-up flow."""

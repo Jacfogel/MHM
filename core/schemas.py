@@ -348,6 +348,7 @@ class PeriodModel(BaseModel):
     @field_validator("start_time", "end_time")
     @classmethod
     def _valid_time(cls, v: str) -> str:
+        """Validate HH:MM schedule times; empty or invalid values normalize to ``00:00``."""
         # NOTE: Pydantic validators should not have try-except blocks.
         # Pydantic handles exceptions internally and will raise ValidationError if needed.
         # This validator performs simple regex matching which cannot raise exceptions.

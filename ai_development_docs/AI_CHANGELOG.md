@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-28 - Dev-tools complexity thresholds and test hygiene **COMPLETED**
+- Raised module refactor thresholds (2000 lines, 4000 total complexity, 10 high+critical functions) and function complexity bands (100/200/300); AI_PRIORITIES wording no longer hardcodes node ranges.
+- Docstrings added for `normalize_string_list` and `_valid_time` (audit docstring gap cleared).
+- `test_discord_task_reminder_followup.py` marked `no_parallel` for shared `conversation_manager` state (fixes parallel-only Tier 3 flake).
+
 ### 2026-05-27 - Task templates and Discord create hub **COMPLETED**
 - Five built-in templates (medication, appointment, phone call, cleaning, paperwork) with prefilled defaults.
 - Discord/text: `task template <name>`, `list task templates`, or `create` / `new` / `add` for button menu + modals (shared title/body/group/tags fields).

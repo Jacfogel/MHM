@@ -70,6 +70,7 @@ class BaseItemModel(BaseModel):
     @field_validator("tags", "linked_item_ids", mode="before")
     @classmethod
     def normalize_string_list(cls, value: Any) -> list[str]:
+        """Coerce tags or linked_item_ids to a list of stripped, non-empty strings."""
         if value is None:
             return []
         if not isinstance(value, list):
