@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-27 19:34:43
+> **Last Generated**: 2026-05-29 18:18:39
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 92.0% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 92.2% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 183
-- **Functions Found**: 1985
+- **Functions Found**: 1986
 - **Methods Found**: 1281
 - **Classes Found**: 197
-- **Total Items**: 3266
-- **Functions Documented**: 1800
-- **Methods Documented**: 1206
+- **Total Items**: 3267
+- **Functions Documented**: 1803
+- **Methods Documented**: 1208
 - **Classes Documented**: 149
-- **Total Documented**: 3006
+- **Total Documented**: 3011
 - **Template-Generated**: 26
-- **Last Updated**: 2026-05-27
+- **Last Updated**: 2026-05-29
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -515,6 +515,7 @@ Returns:
 
 #### `ai/fallback_responses/checkin_summary.py`
 **Functions:**
+- [OK] `_prompt_mentions_breakfast(prompt_lower)` - Return True when the prompt asks about breakfast/eating, not substring noise.
 - [OK] `try_checkin_summary_response(prompt_lower, analysis, name_prefix)` - Return a check-in summary fallback when prompt and data align.
 
 ``analysis`` must come from ``ContextBuilder.analyze_context`` or
@@ -4127,7 +4128,7 @@ Args:
 Returns:
     Literal["enabled", "disabled"]: Normalized flag value
 - [MISSING] `_valid_days(cls, v)` - No description
-- [MISSING] `_valid_time(cls, v)` - No description
+- [OK] `_valid_time(cls, v)` - Validate HH:MM schedule times; empty or invalid values normalize to ``00:00``.
 - [OK] `_validate_categories(cls, v)` - Validate that all categories are in the allowed list.
 - [OK] `_validate_discord_id(cls, v)` - Validate and normalize Discord user ID.
 
@@ -4175,7 +4176,7 @@ Returns:
     Literal["enabled", "disabled"]: Normalized flag value
 - [MISSING] `PeriodModel` - No description
   - [MISSING] `PeriodModel._valid_days(cls, v)` - No description
-  - [MISSING] `PeriodModel._valid_time(cls, v)` - No description
+  - [OK] `PeriodModel._valid_time(cls, v)` - Validate HH:MM schedule times; empty or invalid values normalize to ``00:00``.
 - [MISSING] `PreferencesModel` - No description
   - [OK] `PreferencesModel._validate_categories(cls, v)` - Validate that all categories are in the allowed list.
 - [MISSING] `SchedulesModel` - No description
@@ -5374,14 +5375,14 @@ Returns:
 **Functions:**
 - [OK] `_stable_uuid(value)` - Return value as a UUID, deriving a deterministic UUID when the string is not UUID-shaped.
 - [OK] `generate_short_id(record_id, kind, length)` - Generate a mobile-friendly no-dash short ID from a UUID-like value.
-- [MISSING] `normalize_string_list(cls, value)` - No description
+- [OK] `normalize_string_list(cls, value)` - Coerce tags or linked_item_ids to a list of stripped, non-empty strings.
 - [OK] `v2_schema_validation_error(message)` - Build a Pydantic-native validation error without generic exception raises.
 - [MISSING] `validate_optional_timestamp_fields(cls, value)` - No description
 - [MISSING] `validate_optional_v2_timestamp(value, field_name)` - No description
 - [MISSING] `validate_required_timestamp(cls, value)` - No description
 **Classes:**
 - [OK] `BaseItemModel` - Shared item fields for v2 task, notebook, list, and journal records.
-  - [MISSING] `BaseItemModel.normalize_string_list(cls, value)` - No description
+  - [OK] `BaseItemModel.normalize_string_list(cls, value)` - Coerce tags or linked_item_ids to a list of stripped, non-empty strings.
   - [MISSING] `BaseItemModel.validate_optional_timestamp_fields(cls, value)` - No description
   - [MISSING] `BaseItemModel.validate_required_timestamp(cls, value)` - No description
 - [OK] `SourceModel` - Best-known origin of a persisted record.

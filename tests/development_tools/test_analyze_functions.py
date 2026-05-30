@@ -557,13 +557,13 @@ class TestCategorizeFunctions:
     @pytest.mark.unit
     def test_categorize_by_complexity(self):
         """Test categorization by complexity."""
-        # Test moderate complexity
+        # Test moderate complexity (100-199 with current thresholds)
         functions = [
             {
                 "name": "moderate_func",
                 "is_handler": False,
                 "is_test": False,
-                "complexity": 75,
+                "complexity": 150,
                 "is_special": False,
                 "docstring": "Doc",
             },
@@ -574,13 +574,13 @@ class TestCategorizeFunctions:
             len(categories["moderate_complex"]) == 1
         ), "Should categorize moderate complexity"
 
-        # Test high complexity
+        # Test high complexity (200-299)
         functions = [
             {
                 "name": "high_func",
                 "is_handler": False,
                 "is_test": False,
-                "complexity": 150,
+                "complexity": 250,
                 "is_special": False,
                 "docstring": "Doc",
             },
@@ -589,13 +589,13 @@ class TestCategorizeFunctions:
         categories = categorize_functions(functions)
         assert len(categories["high_complex"]) == 1, "Should categorize high complexity"
 
-        # Test critical complexity
+        # Test critical complexity (300+)
         functions = [
             {
                 "name": "critical_func",
                 "is_handler": False,
                 "is_test": False,
-                "complexity": 250,
+                "complexity": 350,
                 "is_special": False,
                 "docstring": "Doc",
             },

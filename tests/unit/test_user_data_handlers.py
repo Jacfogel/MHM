@@ -334,15 +334,28 @@ class TestUserDataHandlersConvenienceFunctions:
         assert result is False, "Should return False for whitespace-only user_id"
 
     def test_get_all_user_ids_returns_list(self, test_data_dir):
-        """Test get_all_user_ids returns a list."""
-        # Create some test users
-        TestUserFactory.create_basic_user("user1", test_data_dir=test_data_dir)
-        TestUserFactory.create_basic_user("user2", test_data_dir=test_data_dir)
-        
-        user_ids = get_all_user_ids()
-        
-        assert isinstance(user_ids, list), "Should return a list"
-        assert len(user_ids) >= 2, "Should include created users"
+        """Test get_all_user_ids returns created users by UUID directory name."""
+        from tests.test_helpers.test_support.test_helpers import wait_until
+
+        user_a = f"test_list_user_{uuid.uuid4().hex[:8]}"
+        user_b = f"test_list_user_{uuid.uuid4().hex[:8]}"
+        assert TestUserFactory.create_basic_user(user_a, test_data_dir=test_data_dir)
+        assert TestUserFactory.create_basic_user(user_b, test_data_dir=test_data_dir)
+        actual_a = _resolve_actual_user_id(test_data_dir, user_a)
+        actual_b = _resolve_actual_user_id(test_data_dir, user_b)
+        assert actual_a and actual_b
+
+        def _created_users_listed():
+            user_ids = get_all_user_ids()
+            return (
+                isinstance(user_ids, list)
+                and actual_a in user_ids
+                and actual_b in user_ids
+            )
+
+        assert wait_until(_created_users_listed, timeout_seconds=2.0), (
+            "get_all_user_ids should include UUID dirs with account.json for created users"
+        )
 
     def test_register_data_loader_valid_input(self, test_data_dir):
         """Test register_data_loader with valid input."""

@@ -69,3 +69,52 @@ class TestContextAnalyticsSharedSource:
         assert "66" in text or "67" in text
         assert analysis.breakfast_count == 2
         assert analysis.total_entries == 3
+
+    def test_try_checkin_summary_does_not_match_breakfast_inside_other_words(self):
+        from ai.context_builder import ContextAnalysis
+
+        # "lately" contains "ate"; must not trigger breakfast handling.
+        analysis = ContextAnalysis(total_entries=3, breakfast_rate=80.0)
+        result = try_checkin_summary_response("tell me lately", analysis, "")
+        assert result is None
+
+    def test_try_checkin_summary_mood_branches(self):
+        from ai.context_builder import ContextAnalysis
+        from ai.fallback_responses.categories import FallbackCategory
+
+        positive = ContextAnalysis(
+            total_entries=5,
+            avg_mood=4.5,
+            avg_energy=4.2,
+        )
+        text, category = try_checkin_summary_response("how is my mood lately", positive, "Hi. ")
+        assert category == FallbackCategory.CHECKIN_SUMMARY
+        assert "4.5" in text
+
+        low = ContextAnalysis(total_entries=5, avg_mood=1.5, avg_energy=2.0)
+        text, category = try_checkin_summary_response("how have i been feeling", low, "")
+        assert "challenging" in text.lower() or "1.5" in text
+
+    def test_try_checkin_summary_progress_and_frequency(self):
+        from ai.context_builder import ContextAnalysis
+        from ai.fallback_responses.categories import FallbackCategory
+
+        analysis = ContextAnalysis(
+            total_entries=10,
+            breakfast_count=8,
+            breakfast_rate=80.0,
+            avg_mood=4.0,
+            avg_energy=3.5,
+        )
+        text, category = try_checkin_summary_response("how am i doing recently", analysis, "")
+        assert category == FallbackCategory.CHECKIN_SUMMARY
+        assert "good work" in text.lower() or "well" in text.lower()
+
+        text, category = try_checkin_summary_response(
+            "how many times was my mood recorded", analysis, ""
+        )
+        assert "4.0/5" in text or "average mood" in text.lower()
+
+        missing_mood = ContextAnalysis(total_entries=3, avg_mood=None)
+        text, category = try_checkin_summary_response("how many times mood", missing_mood, "")
+        assert category == FallbackCategory.DATA_UNAVAILABLE

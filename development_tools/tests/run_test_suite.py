@@ -598,19 +598,40 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
             cached_per_file = suite_cache.get_all_cached_suite_results(
                 exclude_domains=changed_domains
             )
-            if not test_files_to_run and (full_snapshot or cached_per_file):
+            if (
+                not test_files_to_run
+                and suite_cache.can_reuse_full_suite_cache()
+            ):
                 run_pytest = False
                 cache_mode = "cache_hit"
                 if _suite_logger:
                     _suite_logger.info(
                         "run_test_suite using cache only (no pytest): snapshot=%s cached_files=%s",
-                        bool(full_snapshot),
+                        True,
                         len(cached_per_file),
                     )
                 phases = _aggregate_cached_phases(
                     suite_cache,
                     junit_dir,
                     full_snapshot=full_snapshot,
+                    per_file_cached=cached_per_file,
+                )
+            elif (
+                not test_files_to_run
+                and cached_per_file
+                and suite_cache.can_reuse_full_suite_cache()
+            ):
+                run_pytest = False
+                cache_mode = "cache_hit"
+                if _suite_logger:
+                    _suite_logger.info(
+                        "run_test_suite using per-file cache only (no pytest): cached_files=%s",
+                        len(cached_per_file),
+                    )
+                phases = _aggregate_cached_phases(
+                    suite_cache,
+                    junit_dir,
+                    full_snapshot=None,
                     per_file_cached=cached_per_file,
                 )
             elif test_files_to_run:
@@ -737,6 +758,13 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
                         _suite_logger.info(
                             "run_test_suite cached full suite snapshot (mode=%s)",
                             cache_mode,
+                        )
+                else:
+                    suite_cache.clear_full_suite_cache()
+                    if _suite_logger:
+                        _suite_logger.info(
+                            "run_test_suite cleared full suite snapshot after state=%s",
+                            outcome_preview["state"],
                         )
     finally:
         if hasattr(signal, "SIGINT") and previous_handler is not None:

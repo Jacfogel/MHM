@@ -583,6 +583,7 @@ class TestTaskManagementDialogRealBehavior:
     
     @pytest.mark.ui
     @pytest.mark.behavior
+    @pytest.mark.no_parallel  # shared user index and test_data_dir under xdist
     def test_on_enable_task_management_toggled_adds_default_period_when_enabled(self, test_user, test_data_dir, qapp):
         """Test that on_enable_task_management_toggled adds default period when enabled."""
         # Arrange

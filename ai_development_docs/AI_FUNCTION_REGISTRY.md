@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-27 19:34:43
+> **Last Generated**: 2026-05-29 18:18:39
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 92.0% [!] GOOD**
-- **Total Functions**: 1985
+### **Documentation Coverage: 92.2% [!] GOOD**
+- **Total Functions**: 1986
 - **Total Methods**: 1281
-- **Documented**: 3006/3266
+- **Documented**: 3011/3267
 - **Files Scanned**: 183
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -155,9 +155,9 @@ Core System Decision Tree:
 ### **High Priority** (Missing Documentation)
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
 - `communication/core/channel_orchestrator.py` - 18/83 functions undocumented (78% coverage)
-- `core/schemas.py` - 17/27 functions undocumented (37% coverage)
 - `communication/delivery/message_dispatcher.py` - 15/17 functions undocumented (12% coverage)
 - `storage/user_data_write.py` - 15/19 functions undocumented (21% coverage)
+- `core/schemas.py` - 15/27 functions undocumented (44% coverage)
 - `core/service_requests.py` - 14/34 functions undocumented (59% coverage)
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
 - `storage/user_data_registry.py` - 11/22 functions undocumented (50% coverage)
@@ -200,7 +200,7 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `ai/` - AI chatbot functionality (26 files, 265 functions)
+- `ai/` - AI chatbot functionality (26 files, 266 functions)
 - `checkins/` -  (6 files, 135 functions)
 - `communication/` - Communication channels and message processing (57 files, 988 functions)
 - `core/` - System utilities and data management (27 files, 546 functions)

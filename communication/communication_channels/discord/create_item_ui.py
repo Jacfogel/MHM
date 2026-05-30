@@ -82,6 +82,7 @@ async def _hub_run_template_task(
     await deliver_handler_response(interaction, response, discord_bot, ephemeral=False)
 
 
+@handle_errors("binding create hub template button callback", default_return=None)
 def _bind_template_button_callback(
     template_id: str, discord_bot: DiscordBot | None
 ):
@@ -92,6 +93,7 @@ def _bind_template_button_callback(
     return callback
 
 
+@handle_errors("binding create hub modal button callback", default_return=None)
 def _bind_modal_button_callback(
     label: str,
     discord_bot: DiscordBot | None,

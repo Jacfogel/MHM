@@ -35,19 +35,19 @@ class TestBackupManagerBehavior:
     """Test BackupManager behavior with real file system operations."""
 
     @pytest.fixture(autouse=True)
-    def setup_backup_manager(self, test_data_dir, monkeypatch):
-        """Set up backup manager with test data directory."""
+    def setup_backup_manager(self, test_path_factory, monkeypatch):
+        """Set up backup manager with an isolated per-test data directory."""
         # Guard against leaked env mutations from earlier tests in the same
         # no_parallel process; force test-mode backups to use directory format.
         monkeypatch.setenv("MHM_TESTING", "1")
 
-        self.test_data_dir = test_data_dir
+        self.test_data_dir = test_path_factory
         # Use a per-test unique backup directory to avoid cross-test file-lock
         # collisions under Windows when different phases run back-to-back.
         self.backup_dir = os.path.join(
-            test_data_dir, "backups", f"test_backup_{uuid.uuid4().hex[:8]}"
+            self.test_data_dir, "backups", f"test_backup_{uuid.uuid4().hex[:8]}"
         )
-        self.user_data_dir = os.path.join(test_data_dir, "users")
+        self.user_data_dir = os.path.join(self.test_data_dir, "users")
 
         # Create test directories
         os.makedirs(self.backup_dir, exist_ok=True)
@@ -55,7 +55,7 @@ class TestBackupManagerBehavior:
 
         # Create test user data
         self.test_data_factory = TestDataFactory()
-        self.test_user_id = "test-backup-user-123"
+        self.test_user_id = f"test-backup-user-{uuid.uuid4().hex[:8]}"
 
         # Create test config files
         self._create_test_config_files()
@@ -107,24 +107,13 @@ class TestBackupManagerBehavior:
         with open(req_path, "w") as f:
             f.write("pytest==7.0.0\n")
 
-        # Create user_index.json with flat lookup structure
-        user_index_path = os.path.join(self.test_data_dir, "user_index.json")
-        with open(user_index_path, "w") as f:
-            json.dump(
-                {
-                    "last_updated": "2025-01-01T00:00:00",
-                    "testuser": self.test_user_id,  # username → UUID
-                },
-                f,
-            )
+        # user_index.json is maintained by TestUserFactory.create_basic_user
 
     def _cleanup_test_files(self):
-        """Clean up test files and directories."""
+        """Clean up the isolated per-test data directory."""
         try:
-            if os.path.exists(self.backup_dir):
-                shutil.rmtree(self.backup_dir, ignore_errors=True)
-            if os.path.exists(self.user_data_dir):
-                shutil.rmtree(self.user_data_dir, ignore_errors=True)
+            if os.path.exists(self.test_data_dir):
+                shutil.rmtree(self.test_data_dir, ignore_errors=True)
         except Exception:
             pass
 
@@ -654,6 +643,7 @@ class TestBackupManagerBehavior:
         # Verify validation passes
         assert is_valid is True
 
+    @pytest.mark.no_parallel  # removes shared tests/data/users tree
     def test_validate_system_state_with_missing_user_dir_real_behavior(self):
         """Test system state validation with missing user directory."""
         # Remove user directory (robustly under parallel runs on Windows)
@@ -873,6 +863,7 @@ class TestBackupManagerBehavior:
         # The backup manager may still create the backup even with invalid paths
         assert backup_path is not None or backup_path is None
 
+    @pytest.mark.no_parallel  # clears shared tests/data/users tree for empty-dir scenario
     def test_backup_manager_with_empty_user_directory_real_behavior(self):
         """Test backup manager with empty user directory."""
         # Remove all user data

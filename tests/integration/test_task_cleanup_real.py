@@ -8,24 +8,55 @@ Following testing guidelines:
 - Verify side effects and data persistence
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
-from pathlib import Path
 import json
+import uuid
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 from tasks import (
-    create_task, complete_task, delete_task, update_task,
-    load_active_tasks, load_completed_tasks, get_task_by_id
+    complete_task,
+    create_task,
+    delete_task,
+    get_task_by_id,
+    load_active_tasks,
+    load_completed_tasks,
+    update_task,
 )
+from tests.test_helpers.test_support.test_helpers import wait_until
 from tests.test_helpers.test_utilities import TestUserFactory
+
+
+def _tasks_json_path(user_id: str) -> Path:
+    from core.config import get_user_data_dir
+
+    return Path(get_user_data_dir(user_id)) / "tasks" / "tasks.json"
+
+
+def _read_task_from_disk(user_id: str, task_id: str) -> dict | None:
+    task_file = _tasks_json_path(user_id)
+    if not task_file.exists():
+        return None
+    with open(task_file, encoding="utf-8") as handle:
+        file_data = json.load(handle)
+    return next(
+        (t for t in file_data.get("tasks", []) if t.get("id") == task_id),
+        None,
+    )
 
 
 class TestTaskCleanupReal:
     """Test task cleanup with real system calls - verifies actual behavior."""
-    
+
     def _create_test_user(self, user_id: str, test_data_dir: str | None = None) -> bool:
         """Create a test user with proper account setup."""
-        return TestUserFactory.create_basic_user(user_id, enable_checkins=False, test_data_dir=test_data_dir)
+        return TestUserFactory.create_basic_user(
+            user_id, enable_checkins=False, test_data_dir=test_data_dir
+        )
+
+    def _unique_user_id(self, prefix: str) -> str:
+        return f"{prefix}_{uuid.uuid4().hex[:8]}"
     
     @pytest.mark.integration
     @pytest.mark.tasks
@@ -38,7 +69,7 @@ class TestTaskCleanupReal:
         Verifies actual system changes per testing guidelines.
         """
         # Arrange: Create user and task
-        user_id = "test_user_complete_verify"
+        user_id = self._unique_user_id("test_user_complete_verify")
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         task_id = create_task(
@@ -108,7 +139,7 @@ class TestTaskCleanupReal:
         Verifies actual system changes per testing guidelines.
         """
         # Arrange: Create user and task
-        user_id = "test_user_delete_verify"
+        user_id = self._unique_user_id("test_user_delete_verify")
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         task_id = create_task(
@@ -164,6 +195,7 @@ class TestTaskCleanupReal:
     @pytest.mark.integration
     @pytest.mark.tasks
     @pytest.mark.file_io
+    @pytest.mark.no_parallel  # shared tests/data tasks.json persistence under xdist load
     def test_update_task_verifies_actual_changes_persist(self, test_data_dir):
         """
         Test: Updating a task modifies task data and persists to file system.
@@ -171,8 +203,7 @@ class TestTaskCleanupReal:
         Verifies actual system changes per testing guidelines.
         """
         # Arrange: Create user and task
-        import uuid
-        user_id = f"test_user_update_verify_{uuid.uuid4().hex[:8]}"
+        user_id = self._unique_user_id("test_user_update_verify")
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         task_id = create_task(
@@ -208,29 +239,30 @@ class TestTaskCleanupReal:
         
         # Assert: Verify actual system changes
         assert result is True, "Task update should succeed"
-        
-        # Verify task updated in memory
-        task_after = get_task_by_id(user_id, task_id)
-        assert task_after['title'] == 'Updated Title', "Title should be updated"
-        assert task_after['description'] == 'Updated description', "Description should be updated"
-        assert task_after['priority'] == 'high', "Priority should be updated"
-        assert task_after.get("updated_at") is not None, "Task should have updated_at timestamp"
-        
-        # Verify file persistence - reload from disk
-        from core.config import get_user_data_dir
-        user_dir = Path(get_user_data_dir(user_id))
-        task_file = user_dir / "tasks" / "tasks.json"
-        assert task_file.exists(), "tasks.json should exist"
 
-        with open(task_file) as f:
-            file_data = json.load(f)
-            file_task = next(
-                (t for t in file_data.get("tasks", []) if t.get("id") == task_id),
-                None,
+        def _update_visible_in_memory_and_on_disk() -> bool:
+            task_after = get_task_by_id(user_id, task_id)
+            if not task_after:
+                return False
+            if task_after.get("title") != "Updated Title":
+                return False
+            if task_after.get("description") != "Updated description":
+                return False
+            if task_after.get("priority") != "high":
+                return False
+            if not task_after.get("updated_at"):
+                return False
+            file_task = _read_task_from_disk(user_id, task_id)
+            if not file_task:
+                return False
+            return (
+                file_task.get("title") == "Updated Title"
+                and file_task.get("priority") == "high"
             )
-            assert file_task is not None, "Task should exist in file"
-            assert file_task['title'] == 'Updated Title', "Title should persist in file"
-            assert file_task['priority'] == 'high', "Priority should persist in file"
+
+        assert wait_until(_update_visible_in_memory_and_on_disk, timeout_seconds=2.0), (
+            "Updated task fields should persist in memory and on disk"
+        )
     
     @pytest.mark.integration
     @pytest.mark.tasks

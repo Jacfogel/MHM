@@ -137,6 +137,11 @@ class TestFileSuiteCache:
             if current_hash:
                 self.cache_data["tool_hash"] = current_hash
             return self._all_domains()
+        if (
+            self.cache_data.get("last_run_ok") is False
+            or self.cache_data.get("last_parallel_ok") is False
+        ):
+            return self._domains_for_previous_suite_failure()
         self.last_invalidation_reason = getattr(
             self.coverage_cache, "last_invalidation_reason", None
         )
@@ -148,6 +153,46 @@ class TestFileSuiteCache:
     def get_full_suite_cache(self) -> dict[str, Any] | None:
         snapshot = self.cache_data.get(self.FULL_SUITE_KEY)
         return snapshot if isinstance(snapshot, dict) else None
+
+    def clear_full_suite_cache(self) -> None:
+        """Drop the cached full-suite snapshot after a non-clean pytest run."""
+        if self.FULL_SUITE_KEY in self.cache_data:
+            self.cache_data.pop(self.FULL_SUITE_KEY, None)
+            self._save_cache()
+
+    def can_reuse_full_suite_cache(self) -> bool:
+        """Return True only when the last suite run succeeded and a snapshot exists."""
+        if self.cache_data.get("last_run_ok") is False:
+            return False
+        if self.cache_data.get("last_parallel_ok") is False:
+            return False
+        return self.get_full_suite_cache() is not None
+
+    def _domains_for_previous_suite_failure(self) -> set[str]:
+        failed_domains = {
+            d
+            for d in (self.cache_data.get("last_failed_domains") or [])
+            if isinstance(d, str) and d
+        }
+        if failed_domains:
+            self.last_invalidation_reason = (
+                "previous_suite_run_failed: failed domains from previous suite run"
+            )
+            return failed_domains
+        run_domains = {
+            d
+            for d in (self.cache_data.get("last_run_domains") or [])
+            if isinstance(d, str) and d
+        }
+        if run_domains:
+            self.last_invalidation_reason = (
+                "previous_suite_run_failed: run domains from previous suite run"
+            )
+            return run_domains
+        self.last_invalidation_reason = (
+            "previous_suite_run_failed: no failed-domain mapping available"
+        )
+        return self._all_domains()
 
     def cache_full_suite(self, snapshot: dict[str, Any]) -> None:
         self.cache_data[self.FULL_SUITE_KEY] = snapshot

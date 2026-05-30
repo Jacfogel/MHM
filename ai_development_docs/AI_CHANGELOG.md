@@ -34,6 +34,15 @@ Guidelines:
 - Raised module refactor thresholds (2000 lines, 4000 total complexity, 10 high+critical functions) and function complexity bands (100/200/300); AI_PRIORITIES wording no longer hardcodes node ranges.
 - Docstrings added for `normalize_string_list` and `_valid_time` (audit docstring gap cleared).
 - `test_discord_task_reminder_followup.py` marked `no_parallel` for shared `conversation_manager` state (fixes parallel-only Tier 3 flake).
+- Coverage sweep (AI_PRIORITIES #1): new unit tests for `scheduler/jobs.py`, `checkin_schemas.py`, `checkin_analytics.py` (helpers + energy/basic analytics/completion paths), and `schedule_document_defaults.py` legacy migration.
+- Audit follow-up: dev-tools complexity/decision-support tests and config example synced to 100/200/300 thresholds; UI task-management toggle test marked `no_parallel`; added checkin data manager, communication lazy-import, and checkin_summary fallback coverage.
+- Word-boundary fix in `checkin_summary._prompt_mentions_breakfast()` (`\b` patterns; fixes "lately" -> "ate" false match).
+- Suite cache invalidation: failed `run_test_suite` runs bust full-suite snapshot reuse even when coverage cache reports success; cache hits require `can_reuse_full_suite_cache()`.
+- Error handling on `_prompt_mentions_breakfast` and create-hub button binders; function registry regenerated; AI_CHANGELOG ASCII fix.
+- Parallel flake fix for `test_get_all_user_ids_returns_list`; scheduler task-reminder weight/selection unit tests added.
+- Coverage sweep (sub-80% domains): storage tests for `validate_v2_document`, presets, and `_apply_fields_filter`; communication tests for Discord `interaction_views`; scheduler tests for `schedule_task_reminder_at_time`.
+- Tier 3 parallel flake: `test_update_task_verifies_actual_changes_persist` uses unique user IDs, `wait_until` for disk persistence, and `no_parallel`; Pyright warnings cleared in `test_user_data_read_fields.py`.
+- Backup manager parallel crash: [`test_backup_manager_behavior.py`](../tests/behavior/test_backup_manager_behavior.py) fixture uses isolated `test_path_factory` dirs instead of wiping shared `tests/data/users`; unique backup user IDs per test.
 
 ### 2026-05-27 - Task templates and Discord create hub **COMPLETED**
 - Five built-in templates (medication, appointment, phone call, cleaning, paperwork) with prefilled defaults.
@@ -159,12 +168,6 @@ Guidelines:
 - Added test-run config/metadata/docs plus strict-mode/reporting updates so Tier 3 outcomes come from test-suite state (`clean`, `test_failures`, `crashed`, `infra_cleanup_error`) instead of coverage state
 - Hardened test execution against stale results and wrong Python resolution: `{python}`/`python` now resolves to the audit interpreter, stale JSON/JUnit artifacts are ignored, and pytest startup failures classify as crashes
 - Fixed follow-up Tier 3 failures in env-mutation policy and consolidated-report tests; validation included focused pytest runs, Ruff, Pyright, py_compile, doc-sync, and config key checks
-
-### 2026-05-17 - Dev-tools Minimal-Repo Portability **COMPLETED**
-- Made `development_tools/` honor a supplied external `project_root`: config auto-load, script wrapper lookup, and `analyze_config` relative-root handling now target the copied project instead of the MHM checkout
-- Kept MHM-specific quick-status files/directories in `development_tools_config.json`; generic defaults no longer embed `run_mhm.py` or `core/*` project files
-- Backup health/drill now skip cleanly when an external project has no `core.backup_manager`
-- Added minimal external-repo smoke tests and policy tests for no direct `core.*` imports; validation: targeted portability/policy tests passed, affected 144-test selection passed, `audit --quick` passed, and `audit --full --dev-tools-only` passed cleanly
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

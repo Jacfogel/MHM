@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-27 19:34:53
+> **Last Generated**: 2026-05-29 18:18:50
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 00000028 5EAC:07BC
+Volume serial number is 00000034 5EAC:07BC
 C:.
 |   .ruff.toml
 |   ARCHITECTURE.md
@@ -876,8 +876,11 @@ C:.
 |   |   |   test_channel_orchestrator.py
 |   |   |   test_channel_orchestrator_message_selection.py
 |   |   |   test_checkin_analytics_conversion.py
+|   |   |   test_checkin_analytics_coverage.py
+|   |   |   test_checkin_data_manager_coverage.py
 |   |   |   test_checkin_management_dialog.py
 |   |   |   test_checkin_runtime_timestamp.py
+|   |   |   test_checkin_schemas.py
 |   |   |   test_checkin_service.py
 |   |   |   test_checkin_view.py
 |   |   |   test_cleanup.py
@@ -889,6 +892,7 @@ C:.
 |   |   |   test_command_prompt_injection_live_path.py
 |   |   |   test_command_registry.py
 |   |   |   test_communication_core_init.py
+|   |   |   test_communication_core_lazy_imports.py
 |   |   |   test_communication_init.py
 |   |   |   test_config.py
 |   |   |   test_config_branch_coverage.py
@@ -935,7 +939,9 @@ C:.
 |   |   |   test_rich_formatter.py
 |   |   |   test_run_tests_interrupts.py
 |   |   |   test_scheduler_delivery_port.py
+|   |   |   test_scheduler_jobs.py
 |   |   |   test_scheduler_user_timezone.py
+|   |   |   test_schedule_document_defaults.py
 |   |   |   test_schedule_editor_dialog_helpers.py
 |   |   |   test_schedule_management.py
 |   |   |   test_schedule_task_reminder_at_datetime.py

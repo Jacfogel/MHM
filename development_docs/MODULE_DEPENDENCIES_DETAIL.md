@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-27 19:34:44
+> **Last Generated**: 2026-05-29 18:18:40
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 181
-- **Total Imports Found**: 1729
+- **Total Imports Found**: 1730
 - **Dependencies Documented**: 181 (100% coverage)
-- **Standard Library Imports**: 507 (29.3%)
+- **Standard Library Imports**: 508 (29.4%)
 - **Third-Party Imports**: 212 (12.3%)
 - **Local Imports**: 1010 (58.4%)
-- **Last Updated**: 2026-05-27
+- **Last Updated**: 2026-05-29
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,7 +29,7 @@
 
 ## Import Statistics
 
-- **Standard Library**: 507 imports (29.3%)
+- **Standard Library**: 508 imports (29.4%)
 - **Third-Party**: 212 imports (12.3%)
 - **Local**: 1010 imports (58.4%)
 
@@ -345,6 +345,8 @@
     - `ai.context_builder (ContextAnalysis)` (NEW)
     - `ai.fallback_responses.categories (FallbackCategory)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `re`
 - **Used by**:
   - `ai/fallback_responses/coordinator.py`
 

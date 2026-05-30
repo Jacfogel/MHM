@@ -2,9 +2,23 @@
 
 """Check-in data-aware fallback responses (separate from generic keyword support)."""
 
+import re
+
 from ai.context_builder import ContextAnalysis
 from ai.fallback_responses.categories import FallbackCategory
 from core.error_handling import handle_errors
+
+_BREAKFAST_WORD_PATTERNS = (
+    re.compile(r"\bbreakfast\b"),
+    re.compile(r"\beat(?:ing|s)?\b"),
+    re.compile(r"\bate\b"),
+)
+
+
+@handle_errors("checking breakfast mention in prompt", default_return=False)
+def _prompt_mentions_breakfast(prompt_lower: str) -> bool:
+    """Return True when the prompt asks about breakfast/eating, not substring noise."""
+    return any(pattern.search(prompt_lower) for pattern in _BREAKFAST_WORD_PATTERNS)
 
 
 @handle_errors("building check-in summary fallback", default_return=None)
@@ -16,7 +30,7 @@ def try_checkin_summary_response(
     ``analysis`` must come from ``ContextBuilder.analyze_context`` or
     ``analyze_recent_checkin_rows`` so metrics match conversational context.
     """
-    if any(word in prompt_lower for word in ["breakfast", "eat", "ate"]):
+    if _prompt_mentions_breakfast(prompt_lower):
         if analysis.breakfast_rate >= 80:
             return (
                 f"{name_prefix}Great news! You've been eating breakfast {analysis.breakfast_rate:.0f}% of the time in your recent check-ins. "

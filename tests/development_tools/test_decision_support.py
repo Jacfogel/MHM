@@ -34,9 +34,9 @@ class TestFindComplexityFunctions:
     def test_find_complexity_functions_moderate(self):
         """Test detection of moderate complexity functions."""
         functions = [
-            {'name': 'func1', 'complexity': 50, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
-            {'name': 'func2', 'complexity': 75, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
-            {'name': 'func3', 'complexity': 99, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
+            {'name': 'func1', 'complexity': 100, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
+            {'name': 'func2', 'complexity': 150, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
+            {'name': 'func3', 'complexity': 199, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
         ]
         moderate, high, critical = find_complexity_functions(functions)
         assert len(moderate) == 3
@@ -48,9 +48,9 @@ class TestFindComplexityFunctions:
     def test_find_complexity_functions_high(self):
         """Test detection of high complexity functions."""
         functions = [
-            {'name': 'func1', 'complexity': 100, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
-            {'name': 'func2', 'complexity': 150, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
-            {'name': 'func3', 'complexity': 199, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
+            {'name': 'func1', 'complexity': 200, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
+            {'name': 'func2', 'complexity': 250, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
+            {'name': 'func3', 'complexity': 299, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
         ]
         moderate, high, critical = find_complexity_functions(functions)
         assert len(moderate) == 0
@@ -62,8 +62,8 @@ class TestFindComplexityFunctions:
     def test_find_complexity_functions_critical(self):
         """Test detection of critical complexity functions."""
         functions = [
-            {'name': 'func1', 'complexity': 200, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
-            {'name': 'func2', 'complexity': 300, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
+            {'name': 'func1', 'complexity': 300, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
+            {'name': 'func2', 'complexity': 350, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
         ]
         moderate, high, critical = find_complexity_functions(functions)
         assert len(moderate) == 0
@@ -75,8 +75,8 @@ class TestFindComplexityFunctions:
     def test_find_complexity_functions_excludes_tests(self):
         """Test that test functions are excluded from complexity counts."""
         functions = [
-            {'name': 'test_func', 'complexity': 200, 'is_test': True, 'is_handler': False, 'is_special': False, 'docstring': ''},
-            {'name': 'normal_func', 'complexity': 200, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
+            {'name': 'test_func', 'complexity': 300, 'is_test': True, 'is_handler': False, 'is_special': False, 'docstring': ''},
+            {'name': 'normal_func', 'complexity': 300, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
         ]
         moderate, high, critical = find_complexity_functions(functions)
         assert len(critical) == 1
@@ -86,12 +86,12 @@ class TestFindComplexityFunctions:
     def test_find_complexity_functions_mixed_levels(self):
         """Test detection with mixed complexity levels."""
         functions = [
-            {'name': 'moderate1', 'complexity': 50, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
-            {'name': 'moderate2', 'complexity': 75, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
-            {'name': 'high1', 'complexity': 100, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
-            {'name': 'high2', 'complexity': 150, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
-            {'name': 'critical1', 'complexity': 200, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
-            {'name': 'critical2', 'complexity': 300, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
+            {'name': 'moderate1', 'complexity': 110, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
+            {'name': 'moderate2', 'complexity': 150, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
+            {'name': 'high1', 'complexity': 200, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
+            {'name': 'high2', 'complexity': 250, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
+            {'name': 'critical1', 'complexity': 300, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
+            {'name': 'critical2', 'complexity': 350, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
         ]
         moderate, high, critical = find_complexity_functions(functions)
         assert len(moderate) == 2
@@ -199,9 +199,9 @@ class TestPrintDashboard:
     def test_print_dashboard_with_complexity(self, capsys):
         """Test dashboard with complexity functions."""
         functions = [
-            {'name': 'critical_func', 'complexity': 250, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': '', 'file': 'test.py'},
-            {'name': 'high_func', 'complexity': 150, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': '', 'file': 'test.py'},
-            {'name': 'moderate_func', 'complexity': 75, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': '', 'file': 'test.py'},
+            {'name': 'critical_func', 'complexity': 350, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': '', 'file': 'test.py'},
+            {'name': 'high_func', 'complexity': 250, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': '', 'file': 'test.py'},
+            {'name': 'moderate_func', 'complexity': 120, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': '', 'file': 'test.py'},
         ]
         print_dashboard(functions)
         output = capsys.readouterr().out
