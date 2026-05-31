@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-29 18:18:39
+> **Last Generated**: 2026-05-30 15:30:18
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 92.2% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 183
-- **Functions Found**: 1986
-- **Methods Found**: 1281
-- **Classes Found**: 197
-- **Total Items**: 3267
-- **Functions Documented**: 1803
-- **Methods Documented**: 1208
-- **Classes Documented**: 149
-- **Total Documented**: 3011
+- **Files Scanned**: 189
+- **Functions Found**: 2004
+- **Methods Found**: 1296
+- **Classes Found**: 198
+- **Total Items**: 3300
+- **Functions Documented**: 1818
+- **Methods Documented**: 1223
+- **Classes Documented**: 150
+- **Total Documented**: 3041
 - **Template-Generated**: 26
-- **Last Updated**: 2026-05-29
+- **Last Updated**: 2026-05-30
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (396)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (529)
+### **Communication Functions** (547)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (436)
@@ -1846,7 +1846,6 @@ Returns:
   - [OK] `DiscordBot.initialize__register_events(self)` - Register Discord event handlers
   - [OK] `DiscordBot.initialize__run_bot_in_thread(self)` - Run Discord bot in completely isolated thread with its own event loop
   - [OK] `DiscordBot.is_actually_connected(self)` - Check if the Discord bot is actually connected, regardless of initialization status
-- [OK] `DiscordConnectionStatus` - Detailed Discord connection status for better error reporting
 
 #### `communication/communication_channels/discord/checkin_view.py`
 **Functions:**
@@ -1890,6 +1889,50 @@ Args:
 - [MISSING] `NewNoteModal` - No description
 - [MISSING] `QuickNoteModal` - No description
 
+#### `communication/communication_channels/discord/discord_connection_status.py`
+**Classes:**
+- [OK] `DiscordConnectionStatus` - Detailed Discord connection status for better error reporting.
+
+#### `communication/communication_channels/discord/discord_guild_handlers.py`
+
+#### `communication/communication_channels/discord/discord_handler_protocol.py`
+**Functions:**
+- [OK] `_check_dns_resolution(self, hostname)` - Return whether DNS resolution succeeds for the given hostname.
+- [OK] `_check_network_connectivity(self, hostname, port, timeout)` - Return whether a TCP connection to the host/port succeeds within timeout.
+- [OK] `_create_action_row(self, button_labels, button_payloads)` - Create a Discord UI view containing the given suggestion or pagination buttons.
+- [OK] `_create_discord_embed(self, message, rich_data)` - Build a Discord embed from a plain-text message and optional rich_data payload.
+- [OK] `_get_action_row_inputs(self, suggestions, rich_data)` - Derive button labels and payloads for suggestion or pagination action rows.
+- [OK] `_has_display_rich_data(self, rich_data)` - Return whether rich_data contains fields that should render in a Discord embed.
+- [OK] `_schedule_ready_tasks(self, bot)` - Schedule post-ready maintenance such as slash-command sync after login.
+- [OK] `_set_status(self, status, reason)` - Update channel lifecycle status, optionally recording a human-readable reason.
+- [OK] `_shared__update_connection_status(self, status, error_info)` - Record detailed Discord connection status and optional diagnostic metadata.
+- [OK] `_start_discord_webhook_server_for_ready(self)` - Start the Discord webhook server once the bot connection is ready.
+- [OK] `get_status(self)` - Return the channel lifecycle status for this Discord bot instance.
+**Classes:**
+- [OK] `DiscordHandlerHost` - Structural typing surface of ``DiscordBot`` used by extracted handler modules.
+  - [OK] `DiscordHandlerHost._check_dns_resolution(self, hostname)` - Return whether DNS resolution succeeds for the given hostname.
+  - [OK] `DiscordHandlerHost._check_network_connectivity(self, hostname, port, timeout)` - Return whether a TCP connection to the host/port succeeds within timeout.
+  - [OK] `DiscordHandlerHost._create_action_row(self, button_labels, button_payloads)` - Create a Discord UI view containing the given suggestion or pagination buttons.
+  - [OK] `DiscordHandlerHost._create_discord_embed(self, message, rich_data)` - Build a Discord embed from a plain-text message and optional rich_data payload.
+  - [OK] `DiscordHandlerHost._get_action_row_inputs(self, suggestions, rich_data)` - Derive button labels and payloads for suggestion or pagination action rows.
+  - [OK] `DiscordHandlerHost._has_display_rich_data(self, rich_data)` - Return whether rich_data contains fields that should render in a Discord embed.
+  - [OK] `DiscordHandlerHost._schedule_ready_tasks(self, bot)` - Schedule post-ready maintenance such as slash-command sync after login.
+  - [OK] `DiscordHandlerHost._set_status(self, status, reason)` - Update channel lifecycle status, optionally recording a human-readable reason.
+  - [OK] `DiscordHandlerHost._shared__update_connection_status(self, status, error_info)` - Record detailed Discord connection status and optional diagnostic metadata.
+  - [OK] `DiscordHandlerHost._start_discord_webhook_server_for_ready(self)` - Start the Discord webhook server once the bot connection is ready.
+  - [OK] `DiscordHandlerHost.get_status(self)` - Return the channel lifecycle status for this Discord bot instance.
+
+#### `communication/communication_channels/discord/discord_interaction_router.py`
+**Functions:**
+- [MISSING] `_build_suggestion_button_response(bot, custom_id, button_label, internal_user_id)` - No description
+- [MISSING] `_extract_suggestion_button_label(interaction, custom_id)` - No description
+
+#### `communication/communication_channels/discord/discord_message_handler.py`
+**Functions:**
+- [MISSING] `_sync_discord_user_id(internal_user_id, discord_user_id)` - No description
+
+#### `communication/communication_channels/discord/discord_ready_handlers.py`
+
 #### `communication/communication_channels/discord/discord_response_delivery.py`
 
 #### `communication/communication_channels/discord/event_handler.py`
@@ -1901,7 +1944,7 @@ Args:
 - [OK] `add_error_handler(self, handler)` - Add a custom error handler
 - [OK] `add_message_handler(self, handler)` - Add a custom message handler
 - [OK] `add_ready_handler(self, handler)` - Add a custom ready handler
-- [OK] `get_discord_event_handler(bot)` - Get a Discord event handler instance
+- [OK] `get_discord_event_handler(bot)` - Get a Discord event handler instance (deprecated; use DiscordBot event registration).
 - [OK] `register_events(self, bot)` - Register all event handlers with a Discord bot
 **Classes:**
 - [OK] `DiscordEventHandler` - Handles Discord events and routes them to appropriate handlers
@@ -2481,8 +2524,10 @@ and initializes rule-based intent patterns for common commands.
 - [OK] `_calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
 - [OK] `_extract_entities_from_ai_response(self, ai_response)` - Extract entities from AI response text
 - [OK] `_extract_entities_rule_based(self, intent, match, message)` - Extract entities using rule-based patterns
-- [OK] `_extract_history_analytics_entities_rule_based(self, intent, message, entities)` - Extract check-in history and analytics entities.
+- [OK] `_extract_help_entities_rule_based(self, intent, match, message, entities)` - Extract help and examples entities.
+- [OK] `_extract_history_analytics_entities_rule_based(self, intent, match, message, entities)` - Extract check-in history and analytics entities.
 - [OK] `_extract_intent_from_ai_response(self, ai_response)` - Extract intent from AI response text
+- [OK] `_extract_notebook_entities_rule_based(self, intent, match, message, entities)` - Extract notebook and list-related entities.
 - [OK] `_extract_recurrence_entities(self, title)` - Extract recurrence fields from natural task text.
 - [OK] `_extract_schedule_entities_rule_based(self, intent, match, message, entities)` - Extract schedule-related entities and return whether intent was handled.
 - [OK] `_extract_task_entities(self, title)` - Extract task-related entities from title
@@ -2495,7 +2540,9 @@ and initializes rule-based intent patterns for common commands.
 - [OK] `_normalize_task_title(self, title)` - Normalize whitespace and dangling connectors after entity extraction.
 - [OK] `_parse_key_value_format(self, response)` - Parse key-value format (ACTION: ..., TITLE: ..., etc.)
 Returns (intent, entities) tuple
+- [OK] `_parse_tags_from_tag_text(tag_text)` - Parse #tags and space-separated tags from tag text.
 - [OK] `_parse_time_period(self, time_period)` - Parse a time period string (e.g. 'this week', 'last week', '3 days') into days and period_name.
+- [OK] `_parse_title_body_from_content(content)` - Split note/journal content into title and optional body.
 - [OK] `_recurrence_unit_to_pattern(self, unit)` - Map a plural natural-language recurrence unit to a task recurrence pattern.
 - [OK] `_remove_task_phrase(self, title, phrase)` - Remove a parsed metadata phrase from a task title.
 - [OK] `_rule_based_parse(self, message)` - Parse using rule-based patterns
@@ -2518,8 +2565,10 @@ and initializes rule-based intent patterns for common commands.
   - [OK] `EnhancedCommandParser._calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
   - [OK] `EnhancedCommandParser._extract_entities_from_ai_response(self, ai_response)` - Extract entities from AI response text
   - [OK] `EnhancedCommandParser._extract_entities_rule_based(self, intent, match, message)` - Extract entities using rule-based patterns
-  - [OK] `EnhancedCommandParser._extract_history_analytics_entities_rule_based(self, intent, message, entities)` - Extract check-in history and analytics entities.
+  - [OK] `EnhancedCommandParser._extract_help_entities_rule_based(self, intent, match, message, entities)` - Extract help and examples entities.
+  - [OK] `EnhancedCommandParser._extract_history_analytics_entities_rule_based(self, intent, match, message, entities)` - Extract check-in history and analytics entities.
   - [OK] `EnhancedCommandParser._extract_intent_from_ai_response(self, ai_response)` - Extract intent from AI response text
+  - [OK] `EnhancedCommandParser._extract_notebook_entities_rule_based(self, intent, match, message, entities)` - Extract notebook and list-related entities.
   - [OK] `EnhancedCommandParser._extract_recurrence_entities(self, title)` - Extract recurrence fields from natural task text.
   - [OK] `EnhancedCommandParser._extract_schedule_entities_rule_based(self, intent, match, message, entities)` - Extract schedule-related entities and return whether intent was handled.
   - [OK] `EnhancedCommandParser._extract_task_entities(self, title)` - Extract task-related entities from title
@@ -2531,7 +2580,9 @@ and initializes rule-based intent patterns for common commands.
   - [OK] `EnhancedCommandParser._normalize_task_title(self, title)` - Normalize whitespace and dangling connectors after entity extraction.
   - [OK] `EnhancedCommandParser._parse_key_value_format(self, response)` - Parse key-value format (ACTION: ..., TITLE: ..., etc.)
 Returns (intent, entities) tuple
+  - [OK] `EnhancedCommandParser._parse_tags_from_tag_text(tag_text)` - Parse #tags and space-separated tags from tag text.
   - [OK] `EnhancedCommandParser._parse_time_period(self, time_period)` - Parse a time period string (e.g. 'this week', 'last week', '3 days') into days and period_name.
+  - [OK] `EnhancedCommandParser._parse_title_body_from_content(content)` - Split note/journal content into title and optional body.
   - [OK] `EnhancedCommandParser._recurrence_unit_to_pattern(self, unit)` - Map a plural natural-language recurrence unit to a task recurrence pattern.
   - [OK] `EnhancedCommandParser._remove_task_phrase(self, title, phrase)` - Remove a parsed metadata phrase from a task title.
   - [OK] `EnhancedCommandParser._rule_based_parse(self, message)` - Parse using rule-based patterns

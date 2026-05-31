@@ -64,6 +64,17 @@
   },
   "active_or_candidate_inventory": [
     {
+      "id": "discord_event_handler_class",
+      "status": "deprecated_in_use",
+      "search_terms": [
+        "DiscordEventHandler",
+        "communication/communication_channels/discord/event_handler.py",
+        "get_discord_event_handler"
+      ],
+      "exit_criteria": "All production Discord event routing uses bot.py extracted handlers (discord_ready_handlers, discord_interaction_router, discord_message_handler, discord_guild_handlers); tests migrated; --verify clean for DiscordEventHandler.",
+      "notes": "2026-05-30: Parallel event-handler pattern superseded by bot.initialize__register_events delegating to discord_* handler modules. fix_legacy_references --verify (2026-05-30): NOT READY — active code: communication/__init__.py lazy exports; tests: test_communication_init.py, test_discord_event_handler.py. get_discord_event_handler logs LEGACY COMPATIBILITY on use."
+    },
+    {
       "id": "root_ruff_compat_mirror",
       "status": "active_bridge",
       "search_terms": [],

@@ -10,13 +10,15 @@ from collections.abc import Awaitable
 import queue
 import time
 import socket
-import enum
 import contextlib
 import subprocess
 import shutil
 import os
 import psutil
 
+from communication.communication_channels.discord.discord_connection_status import (
+    DiscordConnectionStatus,
+)
 from core.config import DISCORD_BOT_TOKEN, DISCORD_APPLICATION_ID
 from core.logger import get_component_logger
 from communication.communication_channels.base.base_channel import (
@@ -35,21 +37,6 @@ logger = discord_logger
 intents = discord.Intents.default()
 intents.messages = True
 intents.message_content = True
-
-
-class DiscordConnectionStatus(enum.Enum):
-    """Detailed Discord connection status for better error reporting"""
-
-    UNINITIALIZED = "uninitialized"
-    INITIALIZING = "initializing"
-    CONNECTED = "connected"
-    DISCONNECTED = "disconnected"
-    DNS_FAILURE = "dns_failure"
-    NETWORK_FAILURE = "network_failure"
-    AUTH_FAILURE = "authentication_failure"
-    RATE_LIMITED = "rate_limited"
-    GATEWAY_ERROR = "gateway_error"
-    UNKNOWN_ERROR = "unknown_error"
 
 
 class DiscordBot(BaseChannel):
@@ -868,721 +855,73 @@ class DiscordBot(BaseChannel):
         if self._events_registered or not self.bot:
             return
 
-        # Create the on_ready handler function
-        @handle_errors(
-            "Discord bot on_ready internal handler",
-            user_friendly=False,
-            default_return=None,
+        from communication.communication_channels.discord.discord_guild_handlers import (
+            handle_guild_join,
         )
-        async def _on_ready_internal():
-            # Prevent duplicate execution if already called
-            if self._on_ready_fired:
-                return
+        from communication.communication_channels.discord.discord_interaction_router import (
+            handle_discord_interaction,
+        )
+        from communication.communication_channels.discord.discord_message_handler import (
+            handle_discord_message,
+        )
+        from communication.communication_channels.discord.discord_ready_handlers import (
+            handle_disconnect,
+            handle_error,
+            run_on_ready_internal,
+        )
 
-            self._on_ready_fired = True
-            bot = self.bot
-            if not bot:
-                return
-            # Single consolidated log message
-            logger.info(f"Discord Bot logged in as {bot.user}")
-            print(f"Discord Bot is online as {bot.user}")
-
-            # Reset reconnect attempts on successful connection
-            self._reconnect_attempts = 0
-            self._set_status(ChannelStatus.READY)
-            self._shared__update_connection_status(DiscordConnectionStatus.CONNECTED)
-
-            self._schedule_ready_tasks(bot)
-            self._start_discord_webhook_server_for_ready()
-
-        # Wrap with error handling decorator
         @self.bot.event
         @handle_errors(
             "Discord bot ready event", user_friendly=False, default_return=None
         )
         async def on_ready():
-            await _on_ready_internal()
+            await run_on_ready_internal(self)
 
         @self.bot.event
         @handle_errors("handling Discord disconnect event", default_return=None)
         async def on_disconnect():
-            logger.warning("Discord bot disconnected")
-            # Use component logger for Discord disconnection events
-            discord_logger.warning(
-                "Discord bot disconnected",
-                bot_name=(
-                    str(self.bot.user) if self.bot and self.bot.user else "unknown"
-                ),
-                reconnect_attempts=self._reconnect_attempts,
-            )
-            # Don't change status to INITIALIZING - keep it as READY or ERROR
-            # This prevents the bot from getting stuck in INITIALIZING state
-            current_status = self.get_status()
-            if current_status == ChannelStatus.READY:
-                # Only change to ERROR if we were previously ready
-                self._set_status(ChannelStatus.ERROR, "Disconnected")
-            self._shared__update_connection_status(DiscordConnectionStatus.DISCONNECTED)
-
-            # Let Discord.py handle reconnection, but log our status
-            logger.info("Discord.py will handle automatic reconnection")
+            await handle_disconnect(self)
 
         @self.bot.event
         @handle_errors("handling Discord error event", default_return=None)
         async def on_error(event, *args, **kwargs):
-            logger.error(f"Discord bot error in event {event}: {args} {kwargs}")
-
-            # Use component logger for Discord error events
-            error_str = str(args) + str(kwargs)
-            discord_logger.error(
-                "Discord bot error",
-                event=event,
-                error_details=error_str[:200],  # Truncate long errors
-                bot_name=(
-                    str(self.bot.user) if self.bot and self.bot.user else "unknown"
-                ),
-            )
-
-            # Check if this is a connection-related error
-            if any(
-                keyword in error_str.lower()
-                for keyword in ["connection", "dns", "timeout", "network"]
-            ):
-                logger.warning(
-                    "Connection-related error detected - checking network status"
-                )
-                discord_logger.warning("Connection-related error detected", event=event)
-                if not self._check_dns_resolution():
-                    logger.error("DNS resolution failed during error recovery")
-                    discord_logger.error("DNS resolution failed during error recovery")
-                    self._shared__update_connection_status(
-                        DiscordConnectionStatus.DNS_FAILURE
-                    )
-                if not self._check_network_connectivity():
-                    logger.error("Network connectivity failed during error recovery")
-                    discord_logger.error(
-                        "Network connectivity failed during error recovery"
-                    )
-                    self._shared__update_connection_status(
-                        DiscordConnectionStatus.NETWORK_FAILURE
-                    )
-
-            # Let discord.py handle reconnection for most errors
+            await handle_error(self, event, *args, **kwargs)
 
         @self.bot.event
         @handle_errors("handling Discord interaction event", default_return=None)
         async def on_interaction(interaction: discord.Interaction):
-            """Handle Discord interactions (slash commands, buttons, etc.)"""
-            # Handle button clicks (component interactions)
-            if interaction.type == discord.InteractionType.component:
-                # Check if this is a welcome message button
-                if interaction.data and "custom_id" in interaction.data:
-                    custom_id = interaction.data["custom_id"]
-                    if custom_id.startswith("welcome_create_") or custom_id.startswith(
-                        "welcome_link_"
-                    ):
-                        # Extract Discord user ID from custom_id
-                        # Format: welcome_create_<discord_user_id> or welcome_link_<discord_user_id>
-                        parts = custom_id.split("_", 2)
-                        if len(parts) >= 3:
-                            discord_user_id = parts[2]
-
-                            from communication.communication_channels.discord.account_flow_handler import (
-                                start_account_creation_flow,
-                                start_account_linking_flow,
-                            )
-
-                            # Get Discord username if available
-                            discord_username = (
-                                interaction.user.name if interaction.user else None
-                            )
-
-                            # Validate interaction type before proceeding
-                            if not isinstance(interaction, discord.Interaction):
-                                discord_logger.error(
-                                    f"Invalid interaction type for welcome button: {type(interaction)}"
-                                )
-                                await interaction.response.send_message(
-                                    "❌ An error occurred. Please try again.",
-                                    ephemeral=True,
-                                )
-                                return
-
-                            if custom_id.startswith("welcome_create_"):
-                                await start_account_creation_flow(
-                                    interaction, discord_user_id, discord_username
-                                )
-                            elif custom_id.startswith("welcome_link_"):
-                                await start_account_linking_flow(
-                                    interaction, discord_user_id
-                                )
-                            return
-
-                    # Handle check-in buttons
-                    elif custom_id.startswith("checkin_"):
-                        # Check-in buttons are handled by the view's callback methods
-                        # The view is attached to the message, so discord.py will handle it automatically
-                        # We just need to let it pass through
-                        return
-
-                    # Handle task reminder buttons
-                    elif custom_id.startswith("task_"):
-                        # Task reminder buttons are handled by the view's callback methods
-                        # The view is attached to the message, so discord.py will handle it automatically
-                        # We just need to let it pass through
-                        return
-
-                    # Handle create hub buttons (template / modal triggers)
-                    elif custom_id.startswith("create_hub_"):
-                        return
-
-                    # Handle suggestion buttons (from InteractionResponse suggestions)
-                    elif custom_id.startswith("suggestion_"):
-                        try:
-                            # Acknowledge the interaction first (required by Discord)
-                            await interaction.response.defer()
-
-                            # Get the button label from the interaction component
-                            button_label = None
-                            comp = getattr(interaction, "component", None)
-                            if comp:
-                                button_label = getattr(comp, "label", None)
-                            # Fallback: try to get label from interaction data
-                            if not button_label and interaction.data:
-                                button_label = interaction.data.get("label")
-                            # If we still don't have the label, try to get it from the message components
-                            if not button_label and interaction.message:
-                                for component in interaction.message.components:
-                                    children = getattr(component, "children", None)
-                                    if children:
-                                        for child in children:
-                                            if (
-                                                hasattr(child, "custom_id")
-                                                and child.custom_id == custom_id
-                                            ):
-                                                button_label = getattr(
-                                                    child, "label", None
-                                                )
-                                                break
-                                    if button_label:
-                                        break
-
-                            discord_logger.info(
-                                f"Processing suggestion button '{button_label}' (custom_id: {custom_id})"
-                            )
-
-                            if button_label:
-                                # Get internal user ID
-                                discord_user_id = str(interaction.user.id)
-                                from core import (
-                                    get_user_id_by_identifier,
-                                )
-
-                                internal_user_id = get_user_id_by_identifier(
-                                    discord_user_id
-                                )
-
-                                if internal_user_id:
-                                    payload = self._suggestion_button_payloads.get(
-                                        custom_id
-                                    )
-                                    if isinstance(payload, dict) and payload.get(
-                                        "intent"
-                                    ):
-                                        from communication.command_handlers.interaction_handlers import (
-                                            get_interaction_handler,
-                                        )
-                                        from communication.command_handlers.shared_types import (
-                                            ParsedCommand,
-                                            InteractionResponse,
-                                        )
-
-                                        intent = str(payload["intent"])
-                                        entities = payload.get("entities", {})
-                                        if not isinstance(entities, dict):
-                                            entities = {}
-                                        handler = get_interaction_handler(intent)
-                                        if handler:
-                                            response = handler.handle(
-                                                internal_user_id,
-                                                ParsedCommand(
-                                                    intent=intent,
-                                                    entities=entities,
-                                                    confidence=1.0,
-                                                    original_message=button_label,
-                                                ),
-                                            )
-                                        else:
-                                            response = InteractionResponse(
-                                                "I could not continue that notebook page. Please try the command again.",
-                                                True,
-                                            )
-                                    else:
-                                        # Process the button label as a user message.
-                                        # Flow handlers handle simple labels like skip/cancel.
-                                        button_message = (
-                                            str(payload)
-                                            if isinstance(payload, str)
-                                            else button_label.lower().strip()
-                                        )
-                                        discord_logger.info(
-                                            f"Processing button click as message '{button_message}' for user {internal_user_id}"
-                                        )
-
-                                        from communication.message_processing.interaction_manager import (
-                                            handle_user_message,
-                                        )
-
-                                        response = handle_user_message(
-                                            internal_user_id,
-                                            button_message,
-                                            "discord",
-                                        )
-
-                                    # Send the response using followup (since we already deferred)
-                                    # Create embed if rich_data is provided
-                                    embed = None
-                                    if self._has_display_rich_data(
-                                        response.rich_data
-                                    ):
-                                        embed = self._create_discord_embed(
-                                            response.message, response.rich_data
-                                        )
-
-                                    # Create view with buttons if suggestions or pagination metadata are provided
-                                    view = None
-                                    button_labels, button_payloads = (
-                                        self._get_action_row_inputs(
-                                            response.suggestions, response.rich_data
-                                        )
-                                    )
-                                    if button_labels:
-                                        view = self._create_action_row(
-                                            button_labels,
-                                            button_payloads,
-                                        )
-
-                                    # Send response via followup
-                                    if embed and view:
-                                        await interaction.followup.send(
-                                            content=response.message or "",
-                                            embed=embed,
-                                            view=view,
-                                        )
-                                    elif embed:
-                                        await interaction.followup.send(
-                                            content=response.message or "", embed=embed
-                                        )
-                                    elif view:
-                                        await interaction.followup.send(
-                                            content=response.message, view=view
-                                        )
-                                    else:
-                                        await interaction.followup.send(
-                                            content=response.message
-                                        )
-                                else:
-                                    discord_logger.warning(
-                                        f"No internal user ID found for Discord user {discord_user_id}"
-                                    )
-                                    await interaction.followup.send(
-                                        "❌ User account not found. Please try again.",
-                                        ephemeral=True,
-                                    )
-                            else:
-                                discord_logger.warning(
-                                    f"Could not extract button label from suggestion button {custom_id}"
-                                )
-                                await interaction.followup.send(
-                                    "❌ Could not process button click. Please try typing the command instead.",
-                                    ephemeral=True,
-                                )
-                        except Exception as e:
-                            discord_logger.error(
-                                f"Error handling suggestion button (custom_id: {custom_id}): {e}",
-                                exc_info=True,
-                            )
-                            try:
-                                await interaction.followup.send(
-                                    "❌ An error occurred processing your button click. Please try typing the command instead.",
-                                    ephemeral=True,
-                                )
-                            except Exception as followup_error:
-                                discord_logger.error(
-                                    f"Error sending followup message: {followup_error}",
-                                    exc_info=True,
-                                )
-                        return
-
-                # Let other component interactions fall through to default handling
-                # (buttons from other parts of the system)
-                return
-
-            # Handle application commands (slash commands)
-            if interaction.type == discord.InteractionType.application_command:
-                discord_user_id = str(interaction.user.id)
-                command_name = (
-                    interaction.command.name
-                    if hasattr(interaction, "command") and interaction.command
-                    else "unknown"
-                )
-                discord_logger.debug(
-                    f"DISCORD_INTERACTION: user_id={discord_user_id}, command={command_name}"
-                )
-
-                # Check if this is a new user who hasn't been welcomed
-                from communication.communication_channels.discord.welcome_handler import (
-                    has_been_welcomed,
-                    mark_as_welcomed,
-                    get_welcome_message,
-                )
-                from core import get_user_id_by_identifier
-
-                internal_user_id = get_user_id_by_identifier(discord_user_id)
-
-                # Special handling for /start command (explicit welcome trigger)
-                if command_name == "start" and not internal_user_id:
-                    welcome_msg = get_welcome_message(
-                        discord_user_id, is_authorization=True
-                    )
-                    try:
-                        # Send welcome DM
-                        await interaction.user.send(welcome_msg)
-                        mark_as_welcomed(discord_user_id)
-                        if not interaction.response.is_done():
-                            await interaction.response.send_message(
-                                "👋 Welcome! I've sent you setup instructions via DM. Check your direct messages!",
-                                ephemeral=True,
-                            )
-                        discord_logger.info(
-                            f"Sent welcome DM to newly authorized Discord user via /start: {discord_user_id}"
-                        )
-                        return  # Don't process the command further
-                    except discord.Forbidden:
-                        # User has DMs disabled - respond in interaction instead
-                        mark_as_welcomed(discord_user_id)
-                        if not interaction.response.is_done():
-                            await interaction.response.send_message(
-                                f"👋 Welcome! I see you've authorized MHM. However, I can't send you a direct message.\n\n"
-                                f"**Your Discord ID:** `{discord_user_id}`\n\n"
-                                f"**To get started:**\n"
-                                f"- Create a new account via the MHM application UI with your Discord ID, or\n"
-                                f"- Ask an administrator to link your Discord ID to an existing account",
-                                ephemeral=True,
-                            )
-                        discord_logger.info(
-                            f"Welcomed user {discord_user_id} via /start (DM blocked)"
-                        )
-                        return
-                    except Exception as e:
-                        discord_logger.warning(
-                            f"Error sending welcome DM to {discord_user_id}: {e}"
-                        )
-
-                # For any other command, check if user needs welcome
-                if not internal_user_id and not has_been_welcomed(discord_user_id):
-                    # User has authorized the app (they can use slash commands) but hasn't been welcomed
-                    welcome_msg = get_welcome_message(
-                        discord_user_id, is_authorization=True
-                    )
-
-                    try:
-                        # Send welcome DM (non-blocking - don't interfere with command processing)
-                        await interaction.user.send(welcome_msg)
-                        mark_as_welcomed(discord_user_id)
-                        discord_logger.info(
-                            f"Sent welcome DM to newly authorized Discord user via interaction: {discord_user_id}"
-                        )
-                    except discord.Forbidden:
-                        # User has DMs disabled - mark as welcomed but don't interrupt command flow
-                        mark_as_welcomed(discord_user_id)
-                        discord_logger.info(
-                            f"User {discord_user_id} has DMs disabled, marked as welcomed"
-                        )
-                    except Exception as e:
-                        discord_logger.warning(
-                            f"Error sending welcome DM to {discord_user_id}: {e}"
-                        )
+            await handle_discord_interaction(self, interaction)
 
         @self.bot.event
         @handle_errors("handling Discord guild join event", default_return=None)
         async def on_guild_join(guild):
-            """Handle when the bot is added to a new Discord server"""
-            discord_logger.info(f"Bot added to server: {guild.name} (ID: {guild.id})")
-
-            # Try to find a suitable channel to send welcome message
-            # Prefer system channel, then first text channel the bot can send to
-            welcome_channel = None
-
-            # Try system channel first (where Discord sends system messages)
-            if (
-                guild.system_channel
-                and guild.system_channel.permissions_for(guild.me).send_messages
-            ):
-                welcome_channel = guild.system_channel
-                discord_logger.debug(
-                    f"Using system channel: {guild.system_channel.name}"
-                )
-            else:
-                # Find first text channel the bot can send to
-                for channel in guild.text_channels:
-                    if channel.permissions_for(guild.me).send_messages:
-                        welcome_channel = channel
-                        discord_logger.debug(f"Using text channel: {channel.name}")
-                        break
-
-            if welcome_channel:
-                welcome_msg = (
-                    f"👋 **Hello {guild.name}!**\n\n"
-                    f"I'm **MHM (Mental Health Manager)**, your mental health assistant bot. "
-                    f"I'm here to help you manage tasks, check-ins, reminders, and provide personalized support.\n\n"
-                    f"**To get started:**\n"
-                    f"1. Send me a message to get your Discord ID\n"
-                    f"2. Create or link a MHM account with that Discord ID\n"
-                    f"3. Start using commands like `/help` to see what I can do!\n\n"
-                    f"**Quick Commands:**\n"
-                    f"- `/help` - See all available commands\n"
-                    f"- `create task [description]` - Create a new task\n"
-                    f"- `show my tasks` - View your tasks\n"
-                    f"- `show my profile` - View your profile (once linked)\n\n"
-                    f"Feel free to ask me anything! I'm here to help. 🚀"
-                )
-
-                try:
-                    await welcome_channel.send(welcome_msg)
-                    discord_logger.info(
-                        f"Sent welcome message to {guild.name} in channel {welcome_channel.name}"
-                    )
-                except Exception as e:
-                    discord_logger.warning(
-                        f"Could not send welcome message to {guild.name}: {e}"
-                    )
-            else:
-                discord_logger.warning(
-                    f"Could not find a suitable channel to send welcome message in {guild.name}"
-                )
+            await handle_guild_join(guild)
 
         @self.bot.event
         @handle_errors("handling Discord message", default_return=None)
         async def on_message(message):
-            # COMPREHENSIVE LOGGING: Log ALL messages received
-            discord_logger.debug(
-                f"DISCORD_MESSAGE_RECEIVED: author_id={message.author.id}, content='{message.content[:100]}', channel={message.channel.id}, guild={message.guild.id if message.guild else 'DM'}"
-            )
+            await handle_discord_message(self, message)
 
-            # Don't respond to ourselves
-            if self.bot and message.author == self.bot.user:
-                discord_logger.debug(
-                    "DISCORD_MESSAGE_IGNORED: Message from bot itself, ignoring"
-                )
-                return
+        @handle_errors(
+            "Discord bot on_ready manual handler",
+            user_friendly=False,
+            default_return=None,
+        )
+        async def _on_ready_handler():
+            await run_on_ready_internal(self)
 
-            # Process explicit commands (starting with "!" or "/") through our interaction manager
-            # Note: We don't call bot.process_commands() because we handle commands through our own system
-
-            # Process regular messages (not commands) through the interaction manager
-            # This prevents Discord from automatically trying to match commands to regular messages
-            # Map Discord user ID to internal user ID
-            discord_user_id = str(message.author.id)
-            discord_logger.debug(
-                f"DISCORD_MESSAGE_PROCESS: Looking up user for Discord ID {discord_user_id}"
-            )
-            internal_user_id = get_user_id_by_identifier(discord_user_id)
-
-            if not internal_user_id:
-                discord_logger.warning(
-                    f"DISCORD_MESSAGE_UNRECOGNIZED: No internal user found for Discord ID {discord_user_id}"
-                )
-
-                # Send welcome message if this is the first time
-                from communication.communication_channels.discord.welcome_handler import (
-                    has_been_welcomed,
-                    mark_as_welcomed,
-                    get_welcome_message,
-                )
-
-                # Check if this is a DM (user-installable app authorization)
-                is_dm = isinstance(message.channel, discord.DMChannel)
-
-                if not has_been_welcomed(discord_user_id):
-                    # Determine if this is an app authorization (DM) or server message
-                    welcome_msg = get_welcome_message(
-                        discord_user_id, is_authorization=is_dm
-                    )
-
-                    if is_dm:
-                        # User-installable app: user has authorized and sent first DM
-                        # Send welcome message as DM proactively
-                        try:
-                            await message.author.send(welcome_msg)
-                            mark_as_welcomed(discord_user_id)
-                            discord_logger.info(
-                                f"Sent welcome DM to newly authorized Discord user: {discord_user_id}"
-                            )
-                        except discord.Forbidden:
-                            # User has DMs disabled or blocked bot - send in the channel instead
-                            await message.channel.send(
-                                f"I see you've authorized MHM! However, I can't send you a direct message. "
-                                f"Here's your Discord ID to get started: `{discord_user_id}`\n\n"
-                                f"**To get started:**\n"
-                                f"- Create a new account via the MHM application UI with your Discord ID, or\n"
-                                f"- Ask an administrator to link your Discord ID to an existing account"
-                            )
-                            mark_as_welcomed(discord_user_id)
-                            discord_logger.info(
-                                f"Welcomed user {discord_user_id} via channel (DM blocked)"
-                            )
-                    else:
-                        # Server message - but user might have authorized the app
-                        # Try to send welcome DM first, fallback to channel
-                        try:
-                            await message.author.send(welcome_msg)
-                            mark_as_welcomed(discord_user_id)
-                            discord_logger.info(
-                                f"Sent welcome DM to new Discord user (from server message): {discord_user_id}"
-                            )
-                        except discord.Forbidden:
-                            # Can't DM - send in channel instead
-                            await message.channel.send(welcome_msg)
-                            mark_as_welcomed(discord_user_id)
-                            discord_logger.info(
-                                f"Sent welcome message to new Discord user in channel: {discord_user_id}"
-                            )
-                else:
-                    # User has been welcomed before
-                    if is_dm:
-                        # DM reminder - send as DM
-                        try:
-                            await message.author.send(
-                                f"I don't recognize you yet! To use MHM, you need to create or link a MHM account.\n\n"
-                                f"**Your Discord ID:** `{discord_user_id}`\n\n"
-                                f"**To get started:**\n"
-                                f"- Create a new account via the MHM application UI, or\n"
-                                f"- Ask an administrator to link your Discord ID to an existing account\n\n"
-                                f"Once your account is linked, I'll be able to help you with tasks, reminders, and more!"
-                            )
-                        except discord.Forbidden:
-                            # Fallback to channel if DM blocked
-                            await message.channel.send(
-                                f"Your Discord ID: `{discord_user_id}` - Please create or link a MHM account to get started!"
-                            )
-                    else:
-                        # Server reminder - send in channel
-                        await message.channel.send(
-                            f"I don't recognize you yet! To use MHM, you need to create or link a MHM account.\n\n"
-                            f"**Your Discord ID:** `{discord_user_id}`\n\n"
-                            f"**To get started:**\n"
-                            f"- Create a new account via the MHM application UI, or\n"
-                            f"- Ask an administrator to link your Discord ID to an existing account\n\n"
-                            f"Once your account is linked, I'll be able to help you with tasks, reminders, and more!"
-                        )
-
-                return
-
-            discord_logger.info(
-                f"DISCORD_MESSAGE_USER_IDENTIFIED: Discord ID {discord_user_id} → Internal user {internal_user_id}"
-            )
-
-            # Validate that the stored Discord user ID is still accessible
-            # This helps catch cases where the user's Discord account was deleted or they blocked the bot
-            stored_discord_id = None
-            try:
-                from core import get_user_data
-
-                user_data_result = get_user_data(internal_user_id, "account")
-                account_data = user_data_result.get("account", {})
-                stored_discord_id = account_data.get("discord_user_id")
-
-                if stored_discord_id and str(stored_discord_id) != discord_user_id:
-                    # The user's Discord ID has changed - update it
-                    logger.info(
-                        f"Updating Discord user ID for user {internal_user_id} from {stored_discord_id} to {discord_user_id}"
-                    )
-                    account_data["discord_user_id"] = discord_user_id
-                    from core import save_user_data
-
-                    save_user_data(internal_user_id, "account", account_data)
-
-            except Exception as e:
-                logger.warning(
-                    f"Error validating Discord user ID for {internal_user_id}: {e}"
-                )
-
-            # Use the new interaction manager for enhanced user interactions
-            try:
-                from communication.message_processing.interaction_manager import (
-                    handle_user_message,
-                )
-
-                discord_logger.info(
-                    f"DISCORD_BOT: Calling handle_user_message for user {internal_user_id} with message: '{message.content[:50]}...'"
-                )
-                response = handle_user_message(
-                    internal_user_id, message.content, "discord"
-                )
-
-                if response.message:
-                    # Send response directly to the channel (bypass _send_message_internal to avoid DM attempts)
-                    send_success = await self._send_to_channel(
-                        message.channel,
-                        response.message,
-                        response.rich_data,
-                        response.suggestions,
-                    )
-
-                    if send_success:
-                        # Log successful message handling
-                        discord_logger.info(
-                            "Discord message handled successfully",
-                            user_id=internal_user_id,
-                            message_length=len(message.content),
-                            response_length=len(response.message),
-                            suggestions_count=(
-                                len(response.suggestions) if response.suggestions else 0
-                            ),
-                            has_rich_data=bool(response.rich_data),
-                        )
-                    else:
-                        # Message send failed - could be due to user not being accessible
-                        discord_logger.warning(
-                            "Discord message send failed for user",
-                            user_id=internal_user_id,
-                            discord_user_id=discord_user_id,
-                        )
-
-            except Exception as e:
-                logger.error(
-                    f"Error in enhanced interaction for user {internal_user_id}: {e}"
-                )
-                discord_logger.error(
-                    "Discord message handling failed",
-                    user_id=internal_user_id,
-                    error=str(e),
-                    fallback_used=True,
-                )
-                # Don't fall back to conversation manager - interaction manager handles this internally
-                # Just send a generic error message
-                await message.channel.send(
-                    "I'm having trouble processing your message right now. Please try again in a moment."
-                )
-
-        # Store reference to the handler so we can call it manually if on_ready() doesn't fire
-        # Store as a callable that creates the coroutine, not the coroutine itself
-        # This prevents unawaited coroutine warnings in test environments
-        self._on_ready_handler = _on_ready_internal
+        self._on_ready_handler = _on_ready_handler
 
         self._events_registered = True
 
-        # If bot is already ready when we register events, on_ready won't fire
-        # So we need to manually trigger the webhook server startup
         if self.bot and self.bot.is_ready():
             try:
-                # Only create task if loop is running and not closed
                 if (
                     hasattr(self.bot, "loop")
                     and self.bot.loop
                     and not self.bot.loop.is_closed()
                 ):
-                    self.bot.loop.create_task(_on_ready_internal())
+                    self.bot.loop.create_task(_on_ready_handler())
                 else:
                     discord_logger.debug(
                         "Bot loop not available for manual on_ready trigger"

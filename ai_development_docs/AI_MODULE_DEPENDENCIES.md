@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-29 18:18:48
+> **Last Generated**: 2026-05-30 15:30:32
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 181
-- **Total Imports**: 1730
-- **Standard Library**: 508 (29.4%)
-- **Third-Party**: 212 (12.3%)
-- **Local Imports**: 1010 (58.4%)
+- **Files Scanned**: 187
+- **Total Imports**: 1760
+- **Standard Library**: 514 (29.2%)
+- **Third-Party**: 216 (12.3%)
+- **Local Imports**: 1030 (58.5%)
 
 ## Dependency Decision Trees
 
@@ -121,12 +121,12 @@ External libraries provide channel and UI support.
 - `communication/message_processing/conversation_flow_manager.py` -> 36 local dependencies (heavy coupling)
 - `communication/core/channel_orchestrator.py` -> 28 local dependencies (heavy coupling)
 - `communication/command_handlers/interaction_handlers.py` -> 26 local dependencies (heavy coupling)
-- `communication/communication_channels/discord/bot.py` -> 23 local dependencies (heavy coupling)
+- `ui/dialogs/account_creator_dialog.py` -> 23 local dependencies (heavy coupling)
 
 ### Third-Party Risks
 - `ui/ui_app_qt.py` -> PySide6.QtWidgets (31 modules use this)
 - `ui/ui_app_qt.py` -> PySide6.QtCore (19 modules use this)
-- `communication/communication_channels/base/command_registry.py` -> discord (13 modules use this)
+- `communication/communication_channels/base/command_registry.py` -> discord (17 modules use this)
 - `ai/chatbot.py` -> psutil (7 modules use this)
 - `core/schemas.py` -> pytz (6 modules use this)
 

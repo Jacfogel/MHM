@@ -1352,7 +1352,11 @@ class EnhancedCommandParser:
 
     @handle_errors("extracting history and analytics entities", default_return=False)
     def _extract_history_analytics_entities_rule_based(
-        self, intent: str, message: str, entities: dict[str, Any]
+        self,
+        intent: str,
+        match: re.Match,
+        message: str,
+        entities: dict[str, Any],
     ) -> bool:
         """Extract check-in history and analytics entities."""
         if intent == "checkin_history":
@@ -1411,157 +1415,138 @@ class EnhancedCommandParser:
 
         return False
 
-    @handle_errors("extracting entities from rule-based patterns")
-    def _extract_entities_rule_based(
-        self, intent: str, match: re.Match, message: str
-    ) -> dict[str, Any]:
-        """Extract entities using rule-based patterns"""
-        entities = {}
+    @staticmethod
+    @handle_errors("parsing title/body from content", default_return=("", None))
+    def _parse_title_body_from_content(content: str) -> tuple[str, str | None]:
+        """Split note/journal content into title and optional body."""
+        if ":" in content and "\n" not in content:
+            parts = content.split(":", 1)
+            return parts[0].strip(), parts[1].strip() if len(parts) > 1 else None
+        if "\n" in content:
+            lines = content.split("\n", 1)
+            return lines[0].strip(), lines[1].strip() if len(lines) > 1 else None
+        return content, None
 
-        if self._extract_task_entities_rule_based(intent, match, message, entities):
-            return entities
-        if self._extract_schedule_entities_rule_based(intent, match, message, entities):
-            return entities
-        if self._extract_history_analytics_entities_rule_based(intent, message, entities):
-            return entities
+    @staticmethod
+    @handle_errors("parsing tags from tag text", default_return=[])
+    def _parse_tags_from_tag_text(tag_text: str) -> list[str]:
+        """Parse #tags and space-separated tags from tag text."""
+        tags: list[str] = []
+        tags.extend(re.findall(r"#(\w+)", tag_text))
+        remaining = re.sub(r"#\w+", "", tag_text).strip()
+        if remaining:
+            tags.extend(remaining.split())
+        return tags
 
-        elif intent == "help":
-            # Extract help topic
+    @handle_errors("extracting help entities from rule-based patterns", default_return=False)
+    def _extract_help_entities_rule_based(
+        self,
+        intent: str,
+        match: re.Match,
+        message: str,
+        entities: dict[str, Any],
+    ) -> bool:
+        """Extract help and examples entities."""
+        if intent == "help":
             if match.groups():
-                topic = match.group(1).strip()
-                entities["topic"] = topic
+                entities["topic"] = match.group(1).strip()
+            return True
 
-        elif intent == "examples":
-            # Extract example category
+        if intent == "examples":
             if match.groups():
-                category = match.group(1).strip()
-                entities["category"] = category
+                entities["category"] = match.group(1).strip()
+            return True
 
-        # Notebook Entity Extraction
-        elif intent == "create_note":
+        return False
+
+    @handle_errors("extracting notebook entities from rule-based patterns", default_return=False)
+    def _extract_notebook_entities_rule_based(
+        self,
+        intent: str,
+        match: re.Match,
+        message: str,
+        entities: dict[str, Any],
+    ) -> bool:
+        """Extract notebook and list-related entities."""
+        if intent == "create_note":
             if match.groups():
-                # Check if this is the "titled ... with body ..." format (has 2 capture groups)
-                # The patterns with "titled" have 2 groups: title and optional body
-                # Check if the pattern that matched is one of the "titled" patterns by checking group count
                 if len(match.groups()) >= 2:
-                    # Pattern: create note titled "X" with body "Y" (or just "X" without body)
                     entities["title"] = (
                         match.group(1).strip() if match.group(1) else None
                     )
-                    # Group 2 might be None if "with body" part wasn't present, but if it is, use it
                     if match.group(2) is not None and match.group(2).strip():
                         entities["description"] = match.group(2).strip()
                     else:
                         entities["description"] = None
                 else:
-                    # Standard format - single group with content
                     content = match.group(1).strip()
-                    # Check for title : body format or newline separator
-                    if ":" in content and "\n" not in content:
-                        # Single line with colon separator
-                        parts = content.split(":", 1)
-                        entities["title"] = parts[0].strip()
-                        entities["description"] = parts[1].strip() if len(parts) > 1 else None
-                    elif "\n" in content:
-                        # Multi-line: first line is title, rest is body
-                        lines = content.split("\n", 1)
-                        entities["title"] = lines[0].strip()
-                        entities["description"] = lines[1].strip() if len(lines) > 1 else None
-                    else:
-                        # Just title/body, no separator - will prompt for body in flow
-                        entities["title"] = content
-                        entities["description"] = None
+                    title, description = self._parse_title_body_from_content(content)
+                    entities["title"] = title
+                    entities["description"] = description
+            return True
 
-        elif intent == "create_quick_note":
-            # Quick notes: optional title, no body expected
+        if intent == "create_quick_note":
             if match.groups():
                 title = match.group(1).strip() if match.group(1) else None
-                # If title is empty or just whitespace, use None
                 entities["title"] = title if title else None
             else:
                 entities["title"] = None
-            # Quick notes never have description text
             entities["description"] = None
+            return True
 
-        elif intent in ["list_recent_entries", "list_recent_notes"]:
+        if intent in ["list_recent_entries", "list_recent_notes"]:
             if match.groups():
-                limit = match.group(1)
                 try:
-                    entities["limit"] = int(limit)
+                    entities["limit"] = int(match.group(1))
                 except (ValueError, TypeError):
                     entities["limit"] = 5
             else:
                 entities["limit"] = 5
+            return True
 
-        elif intent == "show_entry":
+        if intent == "show_entry":
             if match.groups():
                 entities["entry_ref"] = match.group(1).strip()
+            return True
 
-        elif intent in ("append_to_entry", "set_entry_body"):
+        if intent in ("append_to_entry", "set_entry_body"):
             if len(match.groups()) >= 2:
                 entities["entry_ref"] = match.group(1).strip()
                 entities["text"] = match.group(2).strip()
+            return True
 
-        elif intent == "create_journal":
+        if intent == "create_journal":
             if match.groups():
                 content = match.group(1).strip()
-                # Check for title : body format or newline separator (same as note)
-                if ":" in content and "\n" not in content:
-                    parts = content.split(":", 1)
-                    entities["title"] = parts[0].strip()
-                    entities["description"] = parts[1].strip() if len(parts) > 1 else None
-                elif "\n" in content:
-                    lines = content.split("\n", 1)
-                    entities["title"] = lines[0].strip()
-                    entities["description"] = lines[1].strip() if len(lines) > 1 else None
-                else:
-                    entities["title"] = content
-                    entities["description"] = None
+                title, description = self._parse_title_body_from_content(content)
+                entities["title"] = title
+                entities["description"] = description
+            return True
 
-        elif intent == "add_tags_to_entry":
+        if intent in ("add_tags_to_entry", "remove_tags_from_entry"):
             if len(match.groups()) >= 2:
                 entities["entry_ref"] = match.group(1).strip()
-                # Parse tags from text (supports #tag and space-separated)
-                tag_text = match.group(2).strip()
-                tags = []
-                # Extract #tags
-                tags.extend(re.findall(r"#(\w+)", tag_text))
-                # Extract space-separated tags
-                remaining = re.sub(r"#\w+", "", tag_text).strip()
-                if remaining:
-                    tags.extend(remaining.split())
-                entities["tags"] = tags
+                entities["tags"] = self._parse_tags_from_tag_text(match.group(2).strip())
+            return True
 
-        elif intent == "remove_tags_from_entry":
-            if len(match.groups()) >= 2:
-                entities["entry_ref"] = match.group(1).strip()
-                tag_text = match.group(2).strip()
-                tags = []
-                tags.extend(re.findall(r"#(\w+)", tag_text))
-                remaining = re.sub(r"#\w+", "", tag_text).strip()
-                if remaining:
-                    tags.extend(remaining.split())
-                entities["tags"] = tags
-
-        elif intent == "search_entries":
+        if intent == "search_entries":
             if match.groups():
                 entities["query"] = match.group(1).strip()
+            return True
 
-        elif intent in ["pin_entry", "unpin_entry", "archive_entry", "unarchive_entry"]:
+        if intent in ["pin_entry", "unpin_entry", "archive_entry", "unarchive_entry"]:
             if match.groups():
                 entities["entry_ref"] = match.group(1).strip()
+            return True
 
-        elif intent == "create_list":
+        if intent == "create_list":
             if match.groups():
                 content = match.group(1).strip()
-                # Check for title : items or newline separator
                 if ":" in content and "\n" not in content:
-                    # Single line with colon separator
                     parts = content.split(":", 1)
                     title = parts[0].strip()
                     items_text = parts[1].strip() if len(parts) > 1 else ""
-                    # Parse items (comma, semicolon separated)
-                    items = []
+                    items: list[str] = []
                     if "," in items_text:
                         items = [item.strip() for item in items_text.split(",")]
                     elif ";" in items_text:
@@ -1570,60 +1555,80 @@ class EnhancedCommandParser:
                         items = [items_text]
                     entities["items"] = items
                 elif "\n" in content:
-                    # Multi-line: first line is title, rest are items
                     lines = content.split("\n")
                     title = lines[0].strip()
-                    items = [line.strip() for line in lines[1:] if line.strip()]
-                    entities["items"] = items
+                    entities["items"] = [
+                        line.strip() for line in lines[1:] if line.strip()
+                    ]
                 else:
-                    # Just title, no items - will prompt in flow
                     title = content
                     entities["items"] = []
 
-                # Parse title and tags
                 from core.tags import parse_tags_from_text
 
                 title, tags = parse_tags_from_text(title)
                 entities["title"] = title
                 if tags:
                     entities["tags"] = tags
+            return True
 
-        elif intent == "add_list_item":
+        if intent == "add_list_item":
             if len(match.groups()) >= 2:
                 entities["entry_ref"] = match.group(1).strip()
                 entities["item_text"] = match.group(2).strip()
+            return True
 
-        elif intent in ["toggle_list_item_done", "toggle_list_item_undone"]:
+        if intent in ["toggle_list_item_done", "toggle_list_item_undone"]:
             if len(match.groups()) >= 2:
                 entities["entry_ref"] = match.group(1).strip()
                 with suppress(ValueError, TypeError):
                     entities["item_index"] = int(match.group(2))
-                # For undone, set done=False
                 if intent == "toggle_list_item_undone":
                     entities["done"] = False
+            return True
 
-        elif intent == "remove_list_item":
+        if intent == "remove_list_item":
             if len(match.groups()) >= 2:
                 entities["entry_ref"] = match.group(1).strip()
                 with suppress(ValueError, TypeError):
                     entities["item_index"] = int(match.group(2))
+            return True
 
-        elif intent == "set_entry_group":
+        if intent == "set_entry_group":
             if len(match.groups()) >= 2:
                 entities["entry_ref"] = match.group(1).strip()
                 entities["group"] = match.group(2).strip()
+            return True
 
-        elif intent == "list_entries_by_group":
+        if intent == "list_entries_by_group":
             if match.groups():
                 entities["group"] = match.group(1).strip()
+            return True
 
-        elif intent == "list_entries_by_tag":
+        if intent == "list_entries_by_tag":
             if match.groups():
                 entities["tag"] = match.group(1).strip()
+            return True
 
-        elif intent == "list_archived_entries":
-            # No entities needed, just list all archived
-            pass
+        return intent == "list_archived_entries"
+
+    @handle_errors("extracting entities from rule-based patterns")
+    def _extract_entities_rule_based(
+        self, intent: str, match: re.Match, message: str
+    ) -> dict[str, Any]:
+        """Extract entities using rule-based patterns"""
+        entities: dict[str, Any] = {}
+
+        extractors = (
+            self._extract_task_entities_rule_based,
+            self._extract_schedule_entities_rule_based,
+            self._extract_history_analytics_entities_rule_based,
+            self._extract_help_entities_rule_based,
+            self._extract_notebook_entities_rule_based,
+        )
+        for extractor in extractors:
+            if extractor(intent, match, message, entities):
+                return entities
 
         return entities
 

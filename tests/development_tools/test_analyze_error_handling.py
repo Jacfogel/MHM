@@ -125,6 +125,29 @@ def excluded_function():
                 assert func.get('excluded', False)
     
     @pytest.mark.unit
+    def test_should_exclude_protocol_ellipsis_stubs(self, tmp_path):
+        """Test that typing.Protocol method stubs are excluded from missing-decorator reports."""
+        test_file = tmp_path / "protocol_module.py"
+        test_file.write_text("""
+from typing import Protocol
+
+class Host(Protocol):
+    def do_work(self) -> bool: ...
+
+    def documented_work(self) -> bool:
+        \"\"\"Protocol surface with docstring before ellipsis.\"\"\"
+        ...
+""")
+        analyzer = ErrorHandlingAnalyzer(project_root=str(tmp_path))
+        result = analyzer.analyze_file(test_file)
+
+        for func in result.get("functions", []):
+            if func.get("name") in ("do_work", "documented_work"):
+                assert func.get("excluded", False), (
+                    f"{func.get('name')} should be excluded as a Protocol stub"
+                )
+
+    @pytest.mark.unit
     def test_analyze_file_phase1_candidates(self, tmp_path):
         """Test detection of Phase 1 candidates (try-except without decorator)."""
         test_file = tmp_path / "test_module.py"

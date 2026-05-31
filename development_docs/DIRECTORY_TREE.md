@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-29 18:18:50
+> **Last Generated**: 2026-05-30 15:30:33
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 00000034 5EAC:07BC
+Volume serial number is 00000006 5EAC:07BC
 C:.
 |   .ruff.toml
 |   ARCHITECTURE.md
@@ -156,7 +156,13 @@ C:.
 |   |   |   |   bot.py
 |   |   |   |   checkin_view.py
 |   |   |   |   create_item_ui.py
+|   |   |   |   discord_connection_status.py
 |   |   |   |   DISCORD_GUIDE.md
+|   |   |   |   discord_guild_handlers.py
+|   |   |   |   discord_handler_protocol.py
+|   |   |   |   discord_interaction_router.py
+|   |   |   |   discord_message_handler.py
+|   |   |   |   discord_ready_handlers.py
 |   |   |   |   discord_response_delivery.py
 |   |   |   |   event_handler.py
 |   |   |   |   interaction_views.py
@@ -192,6 +198,7 @@ C:.
 |   |   |   message_router.py
 |   |   |   __init__.py
 |   |   |
+|   |   +---flows
 |   +---reminders
 |   |   |   checkin_prompt_dispatcher.py
 |   |   |   reminder_dispatcher.py
@@ -904,6 +911,7 @@ C:.
 |   |   |   test_discord_api_client.py
 |   |   |   test_discord_bot_helpers.py
 |   |   |   test_discord_event_handler.py
+|   |   |   test_discord_interaction_views.py
 |   |   |   test_email_bot_body_extraction.py
 |   |   |   test_email_bot_gap_coverage.py
 |   |   |   test_enhanced_checkin_responses.py
@@ -940,11 +948,13 @@ C:.
 |   |   |   test_run_tests_interrupts.py
 |   |   |   test_scheduler_delivery_port.py
 |   |   |   test_scheduler_jobs.py
+|   |   |   test_scheduler_task_reminder_weights.py
 |   |   |   test_scheduler_user_timezone.py
 |   |   |   test_schedule_document_defaults.py
 |   |   |   test_schedule_editor_dialog_helpers.py
 |   |   |   test_schedule_management.py
 |   |   |   test_schedule_task_reminder_at_datetime.py
+|   |   |   test_schedule_task_reminder_at_time.py
 |   |   |   test_schemas_validation.py
 |   |   |   test_schema_validation_helpers.py
 |   |   |   test_service_utilities_network.py
@@ -963,6 +973,8 @@ C:.
 |   |   |   test_user_data_loader_idempotency.py
 |   |   |   test_user_data_loader_order_insensitivity.py
 |   |   |   test_user_data_manager.py
+|   |   |   test_user_data_presets.py
+|   |   |   test_user_data_read_fields.py
 |   |   |   test_user_data_v2_runtime.py
 |   |   |   test_user_data_validation_user_id.py
 |   |   |   test_user_item_storage.py

@@ -1,4 +1,7 @@
 # event_handler.py
+# LEGACY COMPATIBILITY: DiscordEventHandler is deprecated in favor of bot.py handlers
+# (discord_ready_handlers, discord_interaction_router, discord_message_handler,
+# discord_guild_handlers). Retained for lazy export and unit tests until search-and-close removal.
 
 import discord
 import time
@@ -346,9 +349,15 @@ class DiscordEventHandler:
 
 
 # Factory function to get Discord event handler
+# LEGACY COMPATIBILITY: prefer bot.initialize__register_events extracted handlers.
+# devtools: ignore[facade-shims]: retained legacy factory; tracked in DEPRECATION_INVENTORY (discord_event_handler_class)
 @handle_errors("getting Discord event handler")
 def get_discord_event_handler(
     bot: discord.Client | None = None,
 ) -> DiscordEventHandler:
-    """Get a Discord event handler instance"""
+    """Get a Discord event handler instance (deprecated; use DiscordBot event registration)."""
+    event_logger.warning(
+        "LEGACY COMPATIBILITY: get_discord_event_handler invoked; "
+        "DiscordBot.initialize__register_events is the canonical event path"
+    )
     return DiscordEventHandler(bot)

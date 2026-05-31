@@ -30,6 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-30 - Communication refactor stabilization **COMPLETED**
+- Restored `conversation_flow_manager.py` after a failed flow-split patch (fixes pytest import/collection crash across communication behavior tests).
+- Discord event handlers stay extracted (`discord_*_handler.py` modules); added `@handle_errors` on bot event wrappers and helper functions; moved `DiscordConnectionStatus` to `discord_connection_status.py` to reduce bot/handler circular imports.
+- Introduced `discord_handler_protocol.py` (`DiscordHandlerHost`) so handler modules no longer import `bot.py`; added `@handle_errors` on `_on_ready_handler`; legacy `get_discord_event_handler` now logs on use and carries `# devtools: ignore[facade-shims]` after review. Dev-tools error-handling scan excludes Protocol stubs with docstring+ellipsis bodies (not just inline `...`).
+- `command_parser` notebook entity helpers retained with `@handle_errors` on shared parse helpers; removed broken incomplete flow-split modules and one-off extraction scripts.
+- Changelog ASCII/link quick wins applied via doc-fix and doc-sync.
+
 ### 2026-05-28 - Dev-tools complexity thresholds and test hygiene **COMPLETED**
 - Raised module refactor thresholds (2000 lines, 4000 total complexity, 10 high+critical functions) and function complexity bands (100/200/300); AI_PRIORITIES wording no longer hardcodes node ranges.
 - Docstrings added for `normalize_string_list` and `_valid_time` (audit docstring gap cleared).
@@ -162,12 +169,6 @@ Guidelines:
 - Documented **Phase 5 (collapse facade delegates)** in `SYSTEM_AI_OVERHAUL_PLAN.md` Section 8.1 and [PLANS.md](../development_docs/PLANS.md) Section 5.0
 - Audit quick wins: ASCII in [PLANS.md](../development_docs/PLANS.md), markdown links in changelog; hardened `test_domain_attribution_summary_via_analyzer_ast_scan` (instance-scoped `find_test_files` patch)
 - Dev-tools log rotation: `AuditDeferredRotatingFileHandler` defers `ai_dev_tools.log` rollover for 15 minutes while audit/coverage lock files are active (avoids Windows rename errors during Tier 3); Ruff SIM105 fix in `logging.py`
-
-### 2026-05-18 - Tier 3 Test Suite Runner and Audit Stability **COMPLETED**
-- Replaced Tier 3 coverage execution with portable `run_test_suite`, which runs pytest without coverage, excludes `e2e`, splits normal vs `no_parallel` tests, and uses coverage only through the explicit `coverage` command
-- Added test-run config/metadata/docs plus strict-mode/reporting updates so Tier 3 outcomes come from test-suite state (`clean`, `test_failures`, `crashed`, `infra_cleanup_error`) instead of coverage state
-- Hardened test execution against stale results and wrong Python resolution: `{python}`/`python` now resolves to the audit interpreter, stale JSON/JUnit artifacts are ignored, and pytest startup failures classify as crashes
-- Fixed follow-up Tier 3 failures in env-mutation policy and consolidated-report tests; validation included focused pytest runs, Ruff, Pyright, py_compile, doc-sync, and config key checks
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

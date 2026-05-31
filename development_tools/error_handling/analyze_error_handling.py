@@ -437,8 +437,31 @@ class ErrorHandlingAnalyzer:
         if file_path and "time_utilities.py" in file_path.replace("\\", "/"):
             if func_node.name in ("_guard", "wrapper", "decorator"):
                 return True
-        
-        return False
+
+        # typing.Protocol stubs use docstring and/or ellipsis-only bodies; not runtime callables
+        return self._body_is_typing_protocol_stub(func_node)
+
+    @staticmethod
+    def _body_is_typing_protocol_stub(
+        func_node: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> bool:
+        """Return True when the function body contains only a docstring and/or Protocol stub markers."""
+        stub_markers: list[str] = []
+        for stmt in func_node.body:
+            if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Constant):
+                value = stmt.value.value
+                if isinstance(value, str):
+                    continue
+                if value is Ellipsis:
+                    stub_markers.append("ellipsis")
+                    continue
+            if isinstance(stmt, ast.Pass):
+                stub_markers.append("pass")
+                continue
+            return False
+        return bool(stub_markers) and all(
+            marker in ("ellipsis", "pass") for marker in stub_markers
+        )
 
     def _analyze_raise_statement(self, raise_node: ast.Raise, content: str, file_path: Path) -> dict[str, Any] | None:
         """Phase 2: Analyze a raise statement for generic exceptions."""

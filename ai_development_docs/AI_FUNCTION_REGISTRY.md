@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-29 18:18:39
+> **Last Generated**: 2026-05-30 15:30:18
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,10 +11,10 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 92.2% [!] GOOD**
-- **Total Functions**: 1986
-- **Total Methods**: 1281
-- **Documented**: 3011/3267
-- **Files Scanned**: 183
+- **Total Functions**: 2004
+- **Total Methods**: 1296
+- **Documented**: 3041/3300
+- **Files Scanned**: 189
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -33,7 +33,7 @@ User Data Operations Decision Tree:
 AI Operations Decision Tree:
 +-- `ai/chatbot.py` - Main AI implementation (65 functions)
 +-- `user/context_manager.py` - Context for AI (24 functions)
-+-- `communication/message_processing/command_parser.py` - Natural language parsing (52 functions)
++-- `communication/message_processing/command_parser.py` - Natural language parsing (60 functions)
 +-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
 `-- `communication/message_processing/interaction_manager.py` - Main interaction flow (48/50 functions)```
 
@@ -190,7 +190,7 @@ Most complex functions (may need refactoring):
 2. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2960
 3. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2788
 4. [OK] `run_tests.py::main()` - Complexity: 2693
-5. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2514
+5. [OK] `storage/user_data_read.py::get_user_data()` - Complexity: 1622
 
 
 ### **Pattern Recognition**
@@ -202,7 +202,7 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (26 files, 266 functions)
 - `checkins/` -  (6 files, 135 functions)
-- `communication/` - Communication channels and message processing (57 files, 988 functions)
+- `communication/` - Communication channels and message processing (63 files, 1021 functions)
 - `core/` - System utilities and data management (27 files, 546 functions)
 - `messages/` -  (5 files, 38 functions)
 - `scheduler/` -  (6 files, 94 functions)
