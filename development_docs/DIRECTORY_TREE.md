@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-30 15:30:33
+> **Last Generated**: 2026-05-31 23:08:59
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 00000006 5EAC:07BC
+Volume serial number is 0000007C 5EAC:07BC
 C:.
 |   .ruff.toml
 |   ARCHITECTURE.md
@@ -164,7 +164,6 @@ C:.
 |   |   |   |   discord_message_handler.py
 |   |   |   |   discord_ready_handlers.py
 |   |   |   |   discord_response_delivery.py
-|   |   |   |   event_handler.py
 |   |   |   |   interaction_views.py
 |   |   |   |   item_form_shared.py
 |   |   |   |   task_reminder_view.py
@@ -910,7 +909,6 @@ C:.
 |   |   |   test_dialog_helpers.py
 |   |   |   test_discord_api_client.py
 |   |   |   test_discord_bot_helpers.py
-|   |   |   test_discord_event_handler.py
 |   |   |   test_discord_interaction_views.py
 |   |   |   test_email_bot_body_extraction.py
 |   |   |   test_email_bot_gap_coverage.py

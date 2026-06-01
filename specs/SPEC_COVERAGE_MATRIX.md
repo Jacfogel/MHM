@@ -42,10 +42,10 @@ Spec: [discord-connection-and-webhook-lifecycle.md](discord-connection-and-webho
 | Valid token and network available | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py) |
 | Missing token | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py) |
 | DNS or network failure | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py) |
-| First ready event | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py), [tests/unit/test_discord_event_handler.py](../tests/unit/test_discord_event_handler.py) |
+| First ready event | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py) |
 | Duplicate ready event | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py) |
 | Events registered while bot is already ready | Partial | Ready/manual-trigger behavior is represented in bot tests; add a direct test for already-ready registration with unavailable loop if this regresses again. |
-| Disconnect from ready state | Automated | [tests/unit/test_discord_event_handler.py](../tests/unit/test_discord_event_handler.py), [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py) |
+| Disconnect from ready state | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py) |
 | Connection-related error | Partial | Error hooks and network-health helpers are tested; add a direct `on_error` DNS/network classification test if needed. |
 | Manual reconnect | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py) |
 | Bot is actually connected | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py), [tests/unit/test_discord_bot_helpers.py](../tests/unit/test_discord_bot_helpers.py) |
@@ -66,9 +66,9 @@ Spec: [discord-message-and-command-routing.md](discord-message-and-command-routi
 
 | Scenario | Status | Evidence / next action |
 |---|---|---|
-| Recognized Discord message | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py), [tests/unit/test_discord_event_handler.py](../tests/unit/test_discord_event_handler.py) |
+| Recognized Discord message | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py) |
 | Unrecognized Discord message | Partial | Account lookup and welcome paths are tested separately; add direct `on_message` unlinked-user coverage. |
-| Bot-authored message is ignored | Automated | [tests/unit/test_discord_event_handler.py](../tests/unit/test_discord_event_handler.py) |
+| Bot-authored message is ignored | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py) |
 | Slash command registration | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py) |
 | Slash command from linked user | Automated | [tests/behavior/test_discord_bot_behavior.py](../tests/behavior/test_discord_bot_behavior.py), [tests/behavior/test_discord_automation_complete.py](../tests/behavior/test_discord_automation_complete.py) |
 | Slash command from unlinked user | Partial | User lookup and welcome/account guidance are tested separately; add direct generated-slash unlinked coverage. |

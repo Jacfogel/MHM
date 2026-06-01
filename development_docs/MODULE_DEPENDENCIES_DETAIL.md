@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-30 15:30:20
+> **Last Generated**: 2026-05-31 23:08:48
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 187
-- **Total Imports Found**: 1760
-- **Dependencies Documented**: 187 (100% coverage)
-- **Standard Library Imports**: 514 (29.2%)
-- **Third-Party Imports**: 216 (12.3%)
-- **Local Imports**: 1030 (58.5%)
-- **Last Updated**: 2026-05-30
+- **Files Scanned**: 186
+- **Total Imports Found**: 1744
+- **Dependencies Documented**: 186 (100% coverage)
+- **Standard Library Imports**: 509 (29.2%)
+- **Third-Party Imports**: 211 (12.1%)
+- **Local Imports**: 1024 (58.7%)
+- **Last Updated**: 2026-05-31
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 514 imports (29.2%)
-- **Third-Party**: 216 imports (12.3%)
-- **Local**: 1030 imports (58.5%)
+- **Standard Library**: 509 imports (29.2%)
+- **Third-Party**: 211 imports (12.1%)
+- **Local**: 1024 imports (58.7%)
 
 ## Module Dependencies by Directory
 
@@ -755,7 +755,6 @@
     - `communication_channels.discord.api_client (DiscordAPIClient, MessageData, SendMessageOptions, get_discord_api_client)`
     - `communication_channels.discord.bot (DiscordBot)`
     - `communication_channels.discord.discord_connection_status (DiscordConnectionStatus)`
-    - `communication_channels.discord.event_handler (DiscordEventHandler, EventContext, EventType, get_discord_event_handler)`
     - `communication_channels.email.bot (EmailBot, EmailBotError)`
     - `message_processing.command_parser (EnhancedCommandParser, ParsingResult, get_enhanced_command_parser, parse_command)`
     - `message_processing.conversation_flow_manager (ConversationManager, conversation_manager)`
@@ -1193,7 +1192,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger
-- Removed: communication/communication_channels/discord/bot.py, communication/communication_channels/discord/discord_ready_handlers.py, communication/communication_channels/email/bot.py, communication/core/channel_monitor.py, communication/core/channel_orchestrator.py, communication/core/factory.py
+- Removed: communication/communication_channels/discord/bot.py, communication/communication_channels/discord/discord_handler_protocol.py, communication/communication_channels/discord/discord_ready_handlers.py, communication/communication_channels/email/bot.py, communication/core/channel_monitor.py, communication/core/channel_orchestrator.py, communication/core/factory.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -1250,8 +1249,7 @@
     - `typing (Any)`
   - **Third-party**:
     - `discord`
-- **Used by**:
-  - `communication/communication_channels/discord/event_handler.py`
+- **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger
@@ -1350,7 +1348,7 @@
 
 **Dependency Changes**:
 - Added: communication.communication_channels.discord.discord_connection_status, communication.communication_channels.discord.discord_guild_handlers, communication.communication_channels.discord.discord_interaction_router, communication.communication_channels.discord.discord_message_handler, communication.communication_channels.discord.discord_ready_handlers, communication.communication_channels.interaction_view_factory, core, core.config, core.error_handling, core.logger
-- Removed: collections.abc, communication/communication_channels/discord/create_item_ui.py, communication/communication_channels/discord/discord_interaction_router.py, communication/communication_channels/discord/discord_message_handler.py, communication/communication_channels/discord/discord_ready_handlers.py, communication/communication_channels/discord/discord_response_delivery.py, discord.ext, dns.resolver
+- Removed: collections.abc, communication/communication_channels/discord/create_item_ui.py, communication/communication_channels/discord/discord_response_delivery.py, discord.ext, dns.resolver
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -1418,7 +1416,7 @@
   - `communication/communication_channels/discord/discord_ready_handlers.py`
 
 **Dependency Changes**:
-- Removed: communication/communication_channels/discord/bot.py, communication/communication_channels/discord/discord_ready_handlers.py
+- Removed: communication/communication_channels/discord/bot.py, communication/communication_channels/discord/discord_handler_protocol.py, communication/communication_channels/discord/discord_ready_handlers.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -1461,6 +1459,7 @@
 
 **Dependency Changes**:
 - Added: communication.communication_channels.base.base_channel, communication.communication_channels.discord.discord_connection_status
+- Removed: communication/communication_channels/discord/discord_interaction_router.py, communication/communication_channels/discord/discord_message_handler.py, communication/communication_channels/discord/discord_ready_handlers.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -1560,33 +1559,6 @@
 **Dependency Changes**:
 - Added: communication.command_handlers.shared_types, communication.communication_channels.discord.bot, core.error_handling
 - Removed: communication/communication_channels/discord/create_item_ui.py
-
-<!-- MANUAL_ENHANCEMENT_START -->
-<!-- Add any additional context, key functions, or special considerations here -->
-<!-- MANUAL_ENHANCEMENT_END -->
-
-#### `communication/communication_channels/discord/event_handler.py`
-- **Purpose**: Communication channel implementation for event_handler
-- **Dependencies**:
-  - **Local**:
-    - `communication.communication_channels.base.rich_formatter (get_rich_formatter)`
-    - `communication.message_processing.interaction_manager (handle_user_message)`
-    - `core (get_user_id_by_identifier)` (NEW)
-    - `core.error_handling (handle_errors)` (NEW)
-    - `core.logger (get_component_logger)` (NEW)
-  - **Standard Library**:
-    - `collections.abc (Callable)`
-    - `dataclasses (dataclass)`
-    - `enum (Enum)`
-    - `time`
-    - `typing (Any)`
-  - **Third-party**:
-    - `discord`
-- **Used by**: None (not imported by other modules)
-
-**Dependency Changes**:
-- Added: core, core.error_handling, core.logger
-- Removed: collections.abc
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2183,7 +2155,6 @@
   - `communication/communication_channels/discord/checkin_view.py`
   - `communication/communication_channels/discord/discord_interaction_router.py`
   - `communication/communication_channels/discord/discord_message_handler.py`
-  - `communication/communication_channels/discord/event_handler.py`
   - `communication/communication_channels/discord/task_reminder_view.py`
   - `communication/communication_channels/email/inbound_processor.py`
 
@@ -2501,7 +2472,6 @@
   - `communication/communication_channels/discord/discord_message_handler.py`
   - `communication/communication_channels/discord/discord_ready_handlers.py`
   - `communication/communication_channels/discord/discord_response_delivery.py`
-  - `communication/communication_channels/discord/event_handler.py`
   - `communication/communication_channels/discord/interaction_views.py`
   - `communication/communication_channels/discord/item_form_shared.py`
   - `communication/communication_channels/discord/task_reminder_view.py`
@@ -2790,7 +2760,6 @@
   - `communication/communication_channels/discord/discord_interaction_router.py`
   - `communication/communication_channels/discord/discord_message_handler.py`
   - `communication/communication_channels/discord/discord_ready_handlers.py`
-  - `communication/communication_channels/discord/event_handler.py`
   - `communication/communication_channels/discord/task_reminder_view.py`
   - `communication/communication_channels/discord/webhook_handler.py`
   - `communication/communication_channels/discord/webhook_server.py`

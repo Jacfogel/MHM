@@ -337,22 +337,6 @@ class TestCommunicationLazyImports:
     
     @pytest.mark.communication
     @pytest.mark.unit
-    def test_discord_event_handler_lazy_import(self):
-        """Test: DiscordEventHandler can be imported lazily"""
-        # Arrange: Import communication module
-        import communication
-        
-        # Act: Access DiscordEventHandler (should trigger lazy import)
-        handler = communication.DiscordEventHandler
-        get_handler = communication.get_discord_event_handler
-        
-        # Assert: Should be importable
-        assert handler is not None, "DiscordEventHandler should be importable via lazy import"
-        assert get_handler is not None, "get_discord_event_handler should be importable via lazy import"
-        assert callable(get_handler), "get_discord_event_handler should be callable"
-    
-    @pytest.mark.communication
-    @pytest.mark.unit
     def test_discord_api_client_lazy_import(self):
         """Test: DiscordAPIClient can be imported lazily"""
         # Arrange: Import communication module
@@ -366,21 +350,6 @@ class TestCommunicationLazyImports:
         assert client is not None, "DiscordAPIClient should be importable via lazy import"
         assert get_client is not None, "get_discord_api_client should be importable via lazy import"
         assert callable(get_client), "get_discord_api_client should be callable"
-    
-    @pytest.mark.communication
-    @pytest.mark.unit
-    def test_event_context_lazy_import(self):
-        """Test: EventContext and EventType can be imported lazily"""
-        # Arrange: Import communication module
-        import communication
-        
-        # Act: Access EventContext and EventType (should trigger lazy import)
-        context = communication.EventContext
-        event_type = communication.EventType
-        
-        # Assert: Should be importable
-        assert context is not None, "EventContext should be importable via lazy import"
-        assert event_type is not None, "EventType should be importable via lazy import"
     
     @pytest.mark.communication
     @pytest.mark.unit

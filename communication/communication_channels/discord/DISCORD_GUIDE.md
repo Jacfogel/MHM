@@ -34,7 +34,8 @@ The Discord implementation is split into clear responsibilities:
   - `communication/communication_channels/discord/api_client.py` - Lower-level wrapper for REST calls to Discord where needed.
 
 - **Event wiring**
-  - `communication/communication_channels/discord/event_handler.py` - `DiscordEventHandler` wires Discord events (`on_ready`, `on_message`, etc.) to the channel-agnostic pipeline and any custom handlers. :contentReference[oaicite:6]{index=6}  
+  - `communication/communication_channels/discord/bot.py` - `DiscordBot.initialize__register_events` registers Discord events on the client.
+  - `discord_ready_handlers.py`, `discord_message_handler.py`, `discord_interaction_router.py`, `discord_guild_handlers.py` - Extracted handlers delegate to the channel-agnostic pipeline.
 
 - **Views (UI adapters)**
   - `communication/communication_channels/discord/checkin_view.py` - Builds `discord.ui.View` for check-in buttons (cancel, skip, more info). :contentReference[oaicite:7]{index=7}  
@@ -63,9 +64,7 @@ At startup:
    - `DISCORD_APPLICATION_ID` - Application ID used for slash command registration (optional but recommended).  
    - Webhook-related settings (see section 7).
 
-2. The Discord client is created and wired with:
-   - `DiscordEventHandler` (for core events). :contentReference[oaicite:9]{index=9}  
-   - Any additional handlers that need to subscribe to events.
+2. The Discord client is created and `initialize__register_events` wires core events to the extracted handler modules.
 
 3. When `on_ready` fires:
    - The bot logs that it is ready.  
@@ -75,10 +74,10 @@ At startup:
 
 ### 3.2. Shutdown and Disconnects
 
-The Discord event handler also tracks:
+Bot event wrappers also track:
 
-- `on_disconnect` - Logs disconnects and runs any registered cleanup. :contentReference[oaicite:11]{index=11}  
-- `on_error` - Logs Discord-level errors; inner exceptions should still be managed via the shared error-handling system. :contentReference[oaicite:12]{index=12}  
+- `on_disconnect` - Logs disconnects and runs cleanup where registered.
+- `on_error` - Logs Discord-level errors; inner exceptions should still be managed via the shared error-handling system.
 
 When modifying shutdown behavior, follow the patterns in section 2. "Architecture Overview" and section 3. "Usage Patterns" in [ERROR_HANDLING_GUIDE.md](../../../core/ERROR_HANDLING_GUIDE.md).
 
@@ -88,32 +87,16 @@ When modifying shutdown behavior, follow the patterns in section 2. "Architectur
 
 ### 4.1. Messages
 
-Discord messages are handled by `DiscordEventHandler.on_message`:
+Discord messages are handled by `handle_discord_message` in `discord_message_handler.py`:
 
-1. Ignores messages from the bot itself or messages without content. :contentReference[oaicite:13]{index=13}  
-2. Builds an `EventContext` containing:
-   - Event type (MESSAGE).
-   - User, channel, guild, message IDs.
-   - Content, attachments, and embeds. :contentReference[oaicite:14]{index=14}  
-3. Optionally passes the message through a set of custom message handlers. :contentReference[oaicite:15]{index=15}  
-4. Resolves the internal user ID using `core.get_user_id_by_identifier(...)`. :contentReference[oaicite:16]{index=16}  
-5. Routes the content through `handle_user_message(internal_user_id, message.content, "discord")` in the interaction manager. :contentReference[oaicite:17]{index=17}  
-6. Sends the response to the channel via `_send_response(...)`. :contentReference[oaicite:18]{index=18}  
-
-`_send_response`:
-
-- Builds a Discord embed from `response.rich_data` using a rich formatter, if present.  
-- Builds an interactive `discord.ui.View` from `response.suggestions`, if present.  
-- Sends the appropriate combination of content, embed, and view. :contentReference[oaicite:19]{index=19}  
+1. Ignores messages from the bot itself.
+2. Resolves the internal user ID using `core.get_user_id_by_identifier(...)`.
+3. Routes content through `handle_user_message(internal_user_id, message.content, "discord")` in the interaction manager.
+4. Sends the response to the channel (embeds/views from rich formatter and suggestions as applicable).
 
 ### 4.2. Reactions and Membership Events
 
-Additional methods on `DiscordEventHandler` handle:
-
-- `on_reaction_add` / `on_reaction_remove` - Currently log reactions; can be expanded for reaction-based flows. :contentReference[oaicite:20]{index=20}  
-- `on_member_join` / `on_member_remove` - Log member joins/leaves and their context. :contentReference[oaicite:21]{index=21}  
-
-These events still follow the same pattern: minimal logging + channel-agnostic integration where it makes sense.
+Guild and interaction events are handled in `discord_guild_handlers.py` and `discord_interaction_router.py` (minimal logging plus channel-agnostic integration where applicable).
 
 ### 4.3. UI Views and Button Callbacks
 
@@ -290,8 +273,7 @@ When changing or adding configuration:
 
 Discord modules should log through component-specific loggers:
 
-- `get_component_logger('discord')` - For general Discord operations.   
-- `get_component_logger('discord_events')` - For event-specific logging in `event_handler.py`. :contentReference[oaicite:27]{index=27}  
+- `get_component_logger('discord')` - For general Discord operations and extracted event handlers.
 
 Use log levels consistently:
 
@@ -307,7 +289,7 @@ See section 2. "Logging Architecture" and section 4. "Component Log Files and La
 Most functions that touch Discord APIs or user-facing behavior should be wrapped with `handle_errors`:
 
 - Button callbacks in `checkin_view.py` and `task_reminder_view.py` already use `@handle_errors(...)`.   
-- Core events (`on_ready`, `on_message`, etc.) in `DiscordEventHandler` are decorated with `@handle_errors(...)` as well. :contentReference[oaicite:29]{index=29}  
+- Core events in `bot.py` and extracted handler modules use `@handle_errors(...)` on wrappers and helpers.
 
 Use clear context strings (e.g., `"creating check-in view"`, `"handling Discord message event"`) to make log messages and error categories easier to interpret.
 

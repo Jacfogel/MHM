@@ -67,9 +67,6 @@ def __getattr__(name: str):
             DiscordConnectionStatus,
         )
         return DiscordConnectionStatus
-    elif name == 'DiscordEventHandler':
-        from .communication_channels.discord.event_handler import DiscordEventHandler
-        return DiscordEventHandler
     elif name == 'DiscordAPIClient':
         from .communication_channels.discord.api_client import DiscordAPIClient
         return DiscordAPIClient
@@ -88,9 +85,6 @@ def __getattr__(name: str):
     elif name == 'get_message_router':
         from .message_processing.message_router import get_message_router
         return get_message_router
-    elif name == 'get_discord_event_handler':
-        from .communication_channels.discord.event_handler import get_discord_event_handler
-        return get_discord_event_handler
     elif name == 'get_rich_formatter':
         from .communication_channels.base.rich_formatter import get_rich_formatter
         return get_rich_formatter
@@ -130,12 +124,6 @@ def __getattr__(name: str):
     elif name == 'EmailCommandRegistry':
         from .communication_channels.base.command_registry import EmailCommandRegistry
         return EmailCommandRegistry
-    elif name == 'EventContext':
-        from .communication_channels.discord.event_handler import EventContext
-        return EventContext
-    elif name == 'EventType':
-        from .communication_channels.discord.event_handler import EventType
-        return EventType
     elif name == 'MessageData':
         from .communication_channels.discord.api_client import MessageData
         return MessageData
@@ -221,12 +209,8 @@ __all__ = [
     # Discord channel (low usage, lazy import)
     'DiscordBot',
     'DiscordConnectionStatus',
-    'DiscordEventHandler',
     'DiscordAPIClient',
-    'get_discord_event_handler',
     'get_discord_api_client',
-    'EventContext',
-    'EventType',
     'MessageData',
     'SendMessageOptions',
     # Email channel (low usage, lazy import)

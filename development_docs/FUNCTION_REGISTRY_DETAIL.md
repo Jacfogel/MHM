@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-30 15:30:18
+> **Last Generated**: 2026-05-31 23:08:47
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 92.2% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 189
-- **Functions Found**: 2004
-- **Methods Found**: 1296
-- **Classes Found**: 198
-- **Total Items**: 3300
-- **Functions Documented**: 1818
-- **Methods Documented**: 1223
-- **Classes Documented**: 150
-- **Total Documented**: 3041
+### **Function Documentation Coverage: 92.1% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 188
+- **Functions Found**: 1995
+- **Methods Found**: 1288
+- **Classes Found**: 195
+- **Total Items**: 3283
+- **Functions Documented**: 1809
+- **Methods Documented**: 1215
+- **Classes Documented**: 147
+- **Total Documented**: 3024
 - **Template-Generated**: 26
-- **Last Updated**: 2026-05-30
+- **Last Updated**: 2026-05-31
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (396)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (547)
+### **Communication Functions** (538)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (436)
@@ -1934,30 +1934,6 @@ Args:
 #### `communication/communication_channels/discord/discord_ready_handlers.py`
 
 #### `communication/communication_channels/discord/discord_response_delivery.py`
-
-#### `communication/communication_channels/discord/event_handler.py`
-**Functions:**
-- [OK] `__init__(self, bot)` - Initialize the Discord event handler
-- [OK] `__post_init__(self)` - Post-initialization setup
-- [OK] `_register_default_handlers(self)` - Register default event handlers
-- [OK] `add_disconnect_handler(self, handler)` - Add a custom disconnect handler
-- [OK] `add_error_handler(self, handler)` - Add a custom error handler
-- [OK] `add_message_handler(self, handler)` - Add a custom message handler
-- [OK] `add_ready_handler(self, handler)` - Add a custom ready handler
-- [OK] `get_discord_event_handler(bot)` - Get a Discord event handler instance (deprecated; use DiscordBot event registration).
-- [OK] `register_events(self, bot)` - Register all event handlers with a Discord bot
-**Classes:**
-- [OK] `DiscordEventHandler` - Handles Discord events and routes them to appropriate handlers
-  - [OK] `DiscordEventHandler.__init__(self, bot)` - Initialize the Discord event handler
-  - [OK] `DiscordEventHandler._register_default_handlers(self)` - Register default event handlers
-  - [OK] `DiscordEventHandler.add_disconnect_handler(self, handler)` - Add a custom disconnect handler
-  - [OK] `DiscordEventHandler.add_error_handler(self, handler)` - Add a custom error handler
-  - [OK] `DiscordEventHandler.add_message_handler(self, handler)` - Add a custom message handler
-  - [OK] `DiscordEventHandler.add_ready_handler(self, handler)` - Add a custom ready handler
-  - [OK] `DiscordEventHandler.register_events(self, bot)` - Register all event handlers with a Discord bot
-- [OK] `EventContext` - Context for Discord events
-  - [OK] `EventContext.__post_init__(self)` - Post-initialization setup
-- [OK] `EventType` - Types of Discord events
 
 #### `communication/communication_channels/discord/interaction_views.py`
 **Functions:**

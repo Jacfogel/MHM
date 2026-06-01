@@ -30,6 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-31 - Remove legacy DiscordEventHandler **COMPLETED**
+- Removed `event_handler.py`, `DiscordEventHandler`, `get_discord_event_handler`, and lazy exports (`EventContext`/`EventType`) from `communication/__init__.py` after production routing already used `DiscordBot.initialize__register_events` and `discord_*_handler` modules.
+- Deleted `tests/unit/test_discord_event_handler.py`; updated spec coverage matrix and `DEPRECATION_INVENTORY.json` (`discord_event_handler_class` -> removed). Regenerated function registry/module-deps docs; `doc-sync` clean after fixing changelog links to removed files.
+
 ### 2026-05-30 - Communication refactor stabilization **COMPLETED**
 - Restored `conversation_flow_manager.py` after a failed flow-split patch (fixes pytest import/collection crash across communication behavior tests).
 - Discord event handlers stay extracted (`discord_*_handler.py` modules); added `@handle_errors` on bot event wrappers and helper functions; moved `DiscordConnectionStatus` to `discord_connection_status.py` to reduce bot/handler circular imports.
@@ -158,17 +162,6 @@ Guidelines:
 - **Duplicate-function triage:** Shared `_discover_flag_request_files` in `core/service_requests.py`; collapsed `CommunicationManager.get_recipient_for_service` (removed private twin); removed `TaskSettingsWidget.get_available_tags` passthrough; `not_duplicate` only where behavior genuinely differs (dataclass defaults, channel status checks, parsers/processors)
 - **Audit quick wins:** `@handle_errors` on `_discover_flag_request_files`; registry regen via `docs`; ASCII fix in `PLANS.md`; TODO added for dedicated `MHMService._check_*__*` delegate removal pass
 - **Parallel test flake:** `test_create_account_updates_user_index` - `build_user_index` account.json fallback + retry alignment with `update_user_index`; test uses `wait_until` for index visibility
-
-### 2026-05-18 - System AI Overhaul Phases 1-4 **COMPLETED**
-- Named AI interaction types (`ai/interaction_types.py`) and added structured logging on generate/fallback paths
-- Extracted fallback, command interpretation, and conversational generation into `ai/fallback_responses.py`, `ai/command_interpreter.py`, and `ai/response_generator.py`; `ai/chatbot.py` remains the public facade
-- Wired clarification-specific command prompt text; dynamic command intent list via `ai/command_registry.py` and `get_rule_based_intent_names()`
-- Added boundary unit tests; updated [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md), [PLANS.md](../development_docs/PLANS.md), [TODO.md](../TODO.md), and [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md) header path
-- Audit follow-up: `@handle_errors` on facade delegates and module getters, Ruff unused-import cleanup, `response_generator` import fix, `not_duplicate` on context-prompt facade, `test_no_prints_policy` fix, docs/registry regeneration
-- Legacy-guide alignment: documented refactor facade vs `LEGACY COMPATIBILITY` bridges in `SYSTEM_AI_GUIDE.md`; clarified `DEPRECATION_INVENTORY` note for removed `_get_fallback_response` vs current `fallback_responses` path
-- Documented **Phase 5 (collapse facade delegates)** in `SYSTEM_AI_OVERHAUL_PLAN.md` Section 8.1 and [PLANS.md](../development_docs/PLANS.md) Section 5.0
-- Audit quick wins: ASCII in [PLANS.md](../development_docs/PLANS.md), markdown links in changelog; hardened `test_domain_attribution_summary_via_analyzer_ast_scan` (instance-scoped `find_test_files` patch)
-- Dev-tools log rotation: `AuditDeferredRotatingFileHandler` defers `ai_dev_tools.log` rollover for 15 minutes while audit/coverage lock files are active (avoids Windows rename errors during Tier 3); Ruff SIM105 fix in `logging.py`
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
