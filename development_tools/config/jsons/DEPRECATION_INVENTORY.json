@@ -73,6 +73,15 @@
   ],
   "removed_inventory": [
     {
+      "id": "per_user_backup_user_data_v2_directories",
+      "removed_at": "2026-05-31",
+      "search_terms": [
+        "_backup_user_data_v2_",
+        "backup_user_data_v2"
+      ],
+      "note": "Legacy per-user directory snapshots under data/backups/ without manifest.json (pre-BackupManager weekly directory policy). Removed by cleanup_manifest_less_backup_directories() after one-hour grace; canonical recovery uses weekly_backup_* or mhm_backup_* directories with manifest.json."
+    },
+    {
       "id": "discord_event_handler_class",
       "removed_at": "2026-05-31",
       "search_terms": [

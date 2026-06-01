@@ -70,3 +70,48 @@ def test_cleanup_old_backup_files_preserves_weekly_backups_in_separate_bucket(
     assert "weekly_backup_0" not in remaining
     assert "auto_backup_0" not in remaining
     assert "auto_backup_1" not in remaining
+
+
+@pytest.mark.unit
+@pytest.mark.core
+def test_cleanup_manifest_less_directories_respects_grace_period(backup_root):
+    import time
+
+    from core.backup_manager import cleanup_manifest_less_backup_directories
+
+    stale_mtime = 1_700_000_000
+    stale_orphan = backup_root / "user1_backup_user_data_v2_2026-01-01_02-00-00"
+    stale_orphan.mkdir(parents=True)
+    os.utime(stale_orphan, (stale_mtime, stale_mtime))
+
+    recent_orphan = backup_root / "mhm_backup_in_progress"
+    recent_orphan.mkdir(parents=True)
+    recent_mtime = time.time() - 120
+    os.utime(recent_orphan, (recent_mtime, recent_mtime))
+
+    _make_backup_dir(backup_root, "weekly_backup_keep", stale_mtime + 10)
+
+    removed = cleanup_manifest_less_backup_directories(
+        backup_root, grace_seconds=3600
+    )
+    assert removed == 1
+
+    remaining = {p.name for p in backup_root.iterdir() if p.is_dir()}
+    assert "weekly_backup_keep" in remaining
+    assert "mhm_backup_in_progress" in remaining
+    assert "user1_backup_user_data_v2_2026-01-01_02-00-00" not in remaining
+
+
+@pytest.mark.unit
+@pytest.mark.core
+def test_cleanup_old_backup_files_runs_manifest_less_cleanup_when_no_managed_backups(
+    backup_root, monkeypatch
+):
+    orphan = backup_root / "legacy_orphan_dir"
+    orphan.mkdir(parents=True)
+    (orphan / "data.txt").write_text("x", encoding="utf-8")
+    old_mtime = 1_700_000_000
+    os.utime(orphan, (old_mtime, old_mtime))
+
+    assert auto_cleanup.cleanup_old_backup_files() is True
+    assert not orphan.exists()

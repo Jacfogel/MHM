@@ -21,14 +21,14 @@ MHM uses multiple backup and archiving systems: log rotation, user data backups,
 **Where to look:**
 - Implementation: `core/logger.py` - `BackupDirectoryRotatingFileHandler`
 - Configuration: `core/config.py` - `LOG_BACKUP_COUNT`, `LOG_MAX_BYTES`
-- Retention protocol: 1 current + 7 backups + up to 7 archive copies; archive entries older than 30 days are deleted
+- Retention: rotated copies under `logs/backups/`; compress to `logs/archive/*.gz` after 7 days (02:00 job); delete archives older than 30 days
 
 **Key rules:**
 - Rotation happens at midnight (time-based) or when file exceeds 5MB (size-based)
 - Files under 5KB won't rotate (intentional to prevent rotating tiny files)
 - Files under 1 hour old won't rotate (intentional to prevent rotating new files)
-- Rotated files go to `logs/backups/`, compressed archives go to `logs/archive/`
-- Standard protocol: keep the current active file, keep 7 previous copies in backups, move older rotated copies to archive, keep up to 7 archive copies, and prune archive copies older than 30 days
+- Rotated files go to `logs/backups/`; age-based compress to `logs/archive/` (7+ days), not a strict "seven files then move" cap
+- Multiple log streams can produce more than seven files under `logs/backups/` without indicating failure
 
 **AI usage:**
 - Don't reimplement rotation - use existing handlers
@@ -53,6 +53,8 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 - Weekly scheduler logic keys off `weekly_backup_*` artifacts (not generic latest backup)
 - Weekly health checks are explicit: `weekly_backup_present`, `weekly_backup_recent_enough`
 - Retention keeps weekly artifacts in a separate keep window from non-weekly backups (`WEEKLY_BACKUP_MAX_KEEP`, default 4)
+- On-demand per-user zips: `UserDataManager.backup_user_data()` -> `user_backup_{user_id}_{timestamp}.zip`
+- Manifest-less directories under `data/backups/` (no `manifest.json`, older than 1 hour) are removed by `cleanup_manifest_less_backup_directories()` during backup retention and monthly cleanup
 
 **AI usage:**
 - Use `BackupManager.create_backup()` for creating backups
@@ -62,10 +64,12 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 
 **Restore:** See BACKUP_GUIDE.md section 2.3 for restore procedures.
 
+---
+
 ## 3. Message Archives
 
 **Where to look:**
-- Implementation: `core/message_management.py` - `archive_old_messages()`
+- Implementation: `messages/message_data_manager.py` - `archive_old_messages()`
 - Scheduler: `core/auto_cleanup.py` - Monthly cleanup
 - Location: `data/users/{user_id}/messages/archives/`
 
@@ -211,6 +215,11 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 - Run `backup verify` and inspect `weekly_backup_present` + `weekly_backup_recent_enough`
 - Check disk space
 - Check logs for errors
+
+### 9.2.1. Orphan Directories in data/backups
+- Manifest-less dirs older than 1 hour are auto-removed (`cleanup_manifest_less_backup_directories`)
+- Legacy `*_backup_user_data_v2_*` folders are safe to delete once weekly backups exist
+- `backup verify` only counts managed artifacts (manifest or zip)
 
 ### 9.3. Message Archives Empty
 - **This is normal** if messages <365 days old

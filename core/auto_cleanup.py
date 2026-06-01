@@ -343,10 +343,13 @@ def cleanup_old_backup_files():
                 except Exception:
                     continue
 
-        if not backup_files:
-            return True
-
         removed_count = 0
+
+        if not backup_files:
+            from core.backup_manager import cleanup_manifest_less_backup_directories
+
+            cleanup_manifest_less_backup_directories(backup_dir)
+            return True
 
         # Age-based retention: remove files older than retention_days
         age_cutoff = now_ts - (backup_retention_days * 24 * 3600)
@@ -416,6 +419,14 @@ def cleanup_old_backup_files():
 
         if removed_count > 0:
             logger.info(f"Backup cleanup: removed {removed_count} old backup file(s)")
+
+        from core.backup_manager import cleanup_manifest_less_backup_directories
+
+        orphan_removed = cleanup_manifest_less_backup_directories(backup_dir)
+        if orphan_removed > 0:
+            logger.info(
+                f"Backup cleanup: removed {orphan_removed} manifest-less backup director(ies)"
+            )
 
         return True
     except Exception as e:

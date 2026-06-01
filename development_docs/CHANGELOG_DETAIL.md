@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-05-31 - Backup guide alignment and manifest-less cleanup **COMPLETED**
+- **Cleanup**: Added [`cleanup_manifest_less_backup_directories()`](../core/backup_manager.py) to remove `data/backups/` directories without `manifest.json` after a one-hour grace period (avoids deleting in-progress `BackupManager` creates). Wired into [`BackupManager._cleanup_old_backups`](../core/backup_manager.py) and [`cleanup_old_backup_files()`](../core/auto_cleanup.py), including the case where no managed backups exist.
+- **Docs**: Updated paired [`BACKUP_GUIDE.md`](BACKUP_GUIDE.md) and [`AI_BACKUP_GUIDE.md`](../ai_development_docs/AI_BACKUP_GUIDE.md) - log retention is age-based (7d compress, 30d archive prune), message archives point to `messages/message_data_manager.py`, documented on-demand `user_backup_*.zip` and orphan-directory troubleshooting.
+- **Inventory**: Registered legacy `*_backup_user_data_v2_*` backup dirs in [`DEPRECATION_INVENTORY.json`](../development_tools/config/jsons/DEPRECATION_INVENTORY.json).
+- **Tests**: Extended [`test_auto_cleanup_backup_retention.py`](../tests/unit/test_auto_cleanup_backup_retention.py) for manifest-less cleanup paths.
+- **Audit follow-up**: Fixed printf-style logger in [`auto_cleanup.py`](../core/auto_cleanup.py) (static logging check), Pyright narrowing for backup dir path, `# devtools: ignore[facade-shims]` on retention helper, ASCII/heading doc-fix for paired backup guides; regenerated function registry.
+
 ### 2026-05-31 - Remove legacy DiscordEventHandler **COMPLETED**
 - **Legacy removal**: Deleted `event_handler.py` (`DiscordEventHandler`, `get_discord_event_handler`, `EventType`, `EventContext`). Removed lazy exports from [`communication/__init__.py`](../communication/__init__.py). Moved `discord_event_handler_class` to `removed` in [`DEPRECATION_INVENTORY.json`](../development_tools/config/jsons/DEPRECATION_INVENTORY.json).
 - **Tests**: Deleted `test_discord_event_handler.py`; removed legacy lazy-import tests from [`test_communication_init.py`](../tests/unit/test_communication_init.py). Discord event behavior remains covered by [`test_discord_bot_behavior.py`](../tests/behavior/test_discord_bot_behavior.py).

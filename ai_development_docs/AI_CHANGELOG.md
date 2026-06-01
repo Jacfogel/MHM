@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-05-31 - Backup guide alignment and manifest-less cleanup **COMPLETED**
+- Added `cleanup_manifest_less_backup_directories()` so legacy `data/backups/` dirs without `manifest.json` are pruned after a 1-hour grace (runs on backup retention and monthly cleanup).
+- Paired backup guides now document age-based log archival, `messages/message_data_manager.py` for message archives, and on-demand `user_backup_*.zip` artifacts.
+- Audit follow-up: static logging check, Pyright, facade-shim annotation, doc-sync, and function registry regeneration.
+
 ### 2026-05-31 - Remove legacy DiscordEventHandler **COMPLETED**
 - Removed `event_handler.py`, `DiscordEventHandler`, `get_discord_event_handler`, and lazy exports (`EventContext`/`EventType`) from `communication/__init__.py` after production routing already used `DiscordBot.initialize__register_events` and `discord_*_handler` modules.
 - Deleted `tests/unit/test_discord_event_handler.py`; updated spec coverage matrix and `DEPRECATION_INVENTORY.json` (`discord_event_handler_class` -> removed). Regenerated function registry/module-deps docs; `doc-sync` clean after fixing changelog links to removed files.
@@ -140,28 +145,6 @@ Guidelines:
 - Lazy `command_registry` import fixes circular load with `command_parser`
 - Removed legacy context bullet helpers and `sections.py`; tests on `context_phraser`
 - Documented `command_registry` -> `command_parser` adapter; import-boundary tests under `test_ai_import_boundaries.py`
-
-### 2026-05-19 - Dev tools cache + AI fallback Phase 4.5 **COMPLETED**
-- **Conversational context split**: Extracted comprehensive prompt assembly from `response_generator.py` into `ai/conversational_context/` (sections, assembly, instructions); check-in aggregates reuse `ContextBuilder.analyze_context`; `ai/__init__.py` exports fallback package, command/response modules, and interaction types; `@handle_errors` on all section helpers (replaced ad-hoc try/except); function registry regenerated via `docs`
-- **Phase 4.5**: Split `ai/fallback_responses.py` into package (`coordinator`, `checkin_summary`, `conversational`, `personalized`, `profile_helpers`, `categories`); explicit `FallbackCategory`; ownership documented in `SYSTEM_AI_GUIDE.md`
-- Facade API unchanged (`get_fallback_responses().contextual` / `.personalized`); import-boundary and category tests in `test_fallback_responses.py`
-- Dev-tools logging: handled outcomes (audit lock block, internal interrupt signature, tool-guide timeout) now log at WARNING so Tier 3 pytest does not write false ERROR lines to `ai_dev_tools.log`
-- Tier 3: `verify_process_cleanup` runs after parallel groups (post-pytest) instead of alongside `run_test_suite` startup, avoiding Windows SIGINT/site-import subprocess failures during audits
-- Dev-tools pytest: preserve `MHM_TESTING=1` in `run_test_suite` subprocess; `MHM_TESTING=0` overrides pytest context for rotation tests; audit log bleed reduced
-- Audit priorities: Pyright clean on `ai/fallback_responses/`; docstrings on profile/conversational helpers; `@handle_errors` on full fallback package including `personalize_with_profile_name`; `SYSTEM_AI_GUIDE.md` path drift cleared (doc-sync PASS)
-- `test_file_suite_cache.py` shares domain invalidation with coverage cache; per-test-file JUnit outcomes + full snapshot skip
-- `run_test_suite --no-domain-cache` disables; cleanup removes `test_file_suite_cache.json`
-- Audit metadata reports `cache_mode` (cache_hit / selective_run / full_run)
-- Doc-sync path drift cleared (qualified `tests/test_file_*_cache.py` references); Ruff clean on suite cache module
-- Fixed selective suite run running full suite when per-file cache mapping was cold; pinned flaky domain attribution test
-- Persist pruned deleted test paths to disk so ghost entries (e.g. removed `test_directory_taxonomy_policy.py`) stop re-invalidating `development_tools` every audit
-- Fixed parallel-only flake in `test_get_user_data_fields_scalar_list_and_dict`: field-filtered reads skip test healing/shim full-document backfill
-- Failed-domain recording scoped to failing tests only; cache path keys normalized on Windows
-- Pyright: `update_run_status` callers pass sets, not sorted lists
-- **AI Phase 5:** Removed one-line facade delegates from `ai/chatbot.py`; orchestration calls `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()` directly; tests/docs updated (`SYSTEM_AI_GUIDE.md`, overhaul plan Section 8.1)
-- **Duplicate-function triage:** Shared `_discover_flag_request_files` in `core/service_requests.py`; collapsed `CommunicationManager.get_recipient_for_service` (removed private twin); removed `TaskSettingsWidget.get_available_tags` passthrough; `not_duplicate` only where behavior genuinely differs (dataclass defaults, channel status checks, parsers/processors)
-- **Audit quick wins:** `@handle_errors` on `_discover_flag_request_files`; registry regen via `docs`; ASCII fix in `PLANS.md`; TODO added for dedicated `MHMService._check_*__*` delegate removal pass
-- **Parallel test flake:** `test_create_account_updates_user_index` - `build_user_index` account.json fallback + retry alignment with `update_user_index`; test uses `wait_until` for index visibility
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

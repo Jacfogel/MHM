@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-05-31 23:08:47
+> **Last Generated**: 2026-06-01 00:02:40
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 92.1% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 188
-- **Functions Found**: 1995
+- **Functions Found**: 1996
 - **Methods Found**: 1288
 - **Classes Found**: 195
-- **Total Items**: 3283
-- **Functions Documented**: 1809
+- **Total Items**: 3284
+- **Functions Documented**: 1810
 - **Methods Documented**: 1215
 - **Classes Documented**: 147
-- **Total Documented**: 3024
+- **Total Documented**: 3025
 - **Template-Generated**: 26
-- **Last Updated**: 2026-05-31
+- **Last Updated**: 2026-06-01
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (396)
+### **Core System Functions** (397)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (538)
@@ -3091,6 +3091,10 @@ Sets up backup directory, maximum backup count, and ensures backup directory exi
 - [OK] `_validate_backup__validate_directory_backup(self, backup_path)` - Validate directory backup integrity and contents.
 - [OK] `_validate_system_state__ensure_user_data_directory()` - Ensure the user data directory exists, creating it if necessary.
 - [OK] `_validate_system_state__validate_user_index()` - Validate the user index file and corresponding user directories.
+- [OK] `cleanup_manifest_less_backup_directories(backup_dir)` - Remove backup directories under data/backups that lack manifest.json.
+
+Canonical BackupManager directory backups always include manifest.json.
+Legacy or failed partial directories are removed after grace_seconds (default 1 hour).
 - [OK] `create_automatic_backup(operation_name)` - Create an automatic backup before major operations.
 
 Args:

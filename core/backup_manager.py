@@ -26,6 +26,55 @@ from core.time_utilities import (
 logger = get_component_logger("file_ops")
 backup_logger = get_component_logger("main")
 
+# Grace period before deleting directories under data/backups/ without manifest.json
+# (manifest is written at end of BackupManager.create_backup; avoid removing in-progress dirs).
+MANIFEST_LESS_BACKUP_GRACE_SECONDS = 3600
+
+
+# devtools: ignore[facade-shims]: backup retention helper, not a legacy compatibility re-export
+@handle_errors("cleaning up manifest-less backup directories", default_return=0)
+def cleanup_manifest_less_backup_directories(
+    backup_dir: str | Path | None = None,
+    *,
+    grace_seconds: int = MANIFEST_LESS_BACKUP_GRACE_SECONDS,
+) -> int:
+    """
+    Remove backup directories under data/backups that lack manifest.json.
+
+    Canonical BackupManager directory backups always include manifest.json.
+    Legacy or failed partial directories are removed after grace_seconds (default 1 hour).
+    """
+    resolved_dir: str | Path = (
+        backup_dir if backup_dir is not None else core.config.get_backups_dir()
+    )
+    backup_path = Path(resolved_dir)
+    if not backup_path.is_dir():
+        return 0
+
+    now_ts = time.time()
+    removed_count = 0
+    for child in backup_path.iterdir():
+        if not child.is_dir():
+            continue
+        if (child / "manifest.json").is_file():
+            continue
+        try:
+            mtime = child.stat().st_mtime
+        except OSError:
+            continue
+        if now_ts - mtime < grace_seconds:
+            logger.debug(
+                f"Skipping manifest-less backup directory (within grace period): {child}"
+            )
+            continue
+        try:
+            shutil.rmtree(child, ignore_errors=True)
+            logger.info(f"Removed manifest-less backup directory: {child}")
+            removed_count += 1
+        except Exception as e:
+            logger.warning(f"Failed to remove manifest-less backup {child}: {e}")
+    return removed_count
+
 
 class BackupManager:
     """Manages automatic backups and rollback operations."""
@@ -443,6 +492,8 @@ class BackupManager:
                         )
                 except Exception as e:
                     logger.warning(f"Failed to remove old backup {file_path}: {e}")
+
+            cleanup_manifest_less_backup_directories(self.backup_dir)
         except Exception as e:
             logger.warning(f"Backup cleanup encountered an error: {e}")
 

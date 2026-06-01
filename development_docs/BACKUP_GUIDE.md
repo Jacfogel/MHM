@@ -39,14 +39,15 @@ This guide covers both how the systems work and how to restore from backups.
 - Files must be at least **5KB** to rotate (prevents rotating tiny files)
 - Files must be at least **1 hour old** to rotate (prevents rotating newly created files)
 - Rotated files are moved to `logs/backups/` with date suffix
-- When backups exceed 7, older rotated copies move to `logs/archive/`
-- Old backups are compressed to `.gz` format after 7 days
-- Archived copies older than 30 days are deleted
+- **Age-based archival (not a strict file count)**: Daily job at 02:00 compresses rotated copies in `logs/backups/` that are **older than 7 days** into `logs/archive/*.gz` and removes the uncompressed backup copy
+- Archived `.gz` copies older than **30 days** are deleted
+- Multiple active log streams (for example `app.log`, `errors.log`) mean more than seven files can appear under `logs/backups/` without indicating a failure
 
 **Retention:**
-- **Protocol (default)**: Keep 1 current active file + 7 backup files + up to 7 archive copies
-- **Archive pruning**: Delete archived copies older than 30 days
-- **Effective target**: Up to 15 most recent copies retained (1 current + 7 backups + 7 archive)
+- **Active log**: One current file per logger stream
+- **Backups directory**: Recent rotated copies (typically under 7 days old, uncompressed)
+- **Archive directory**: Compressed copies from the 7-day archival step; pruned after 30 days
+- `LOG_BACKUP_COUNT` (default 7) configures handler rotation behavior; long-term retention is driven by the 7-day compress and 30-day archive prune steps above
 
 **Configuration:**
 - `LOG_MAX_BYTES`: Maximum file size before rotation (default: 5242880 = 5MB)
@@ -130,6 +131,14 @@ This guide covers both how the systems work and how to restore from backups.
 - Format: `mhm_backup_YYYYMMDD_HHMMSS` or `weekly_backup_YYYYMMDD_HHMMSS` (directory by default)
 - Historical zip artifacts may still exist with `.zip` suffix
 
+**On-demand per-user zip backups:**
+- `storage.user_data_operations.UserDataManager.backup_user_data()` creates `user_backup_{user_id}_{timestamp}.zip` in `data/backups/` when saving user data with backup enabled (separate from weekly `BackupManager` directory backups)
+
+**Manifest-less directory cleanup:**
+- Canonical directory backups always include `manifest.json` (written at end of `BackupManager.create_backup`)
+- `cleanup_manifest_less_backup_directories()` in `core/backup_manager.py` removes directories under `data/backups/` that lack `manifest.json` and are older than one hour (avoids deleting in-progress creates)
+- Runs after `BackupManager` retention and during `core/auto_cleanup.cleanup_old_backup_files()` (monthly auto-cleanup)
+
 **Verification:**
 - Automatic verification after creation
 - Health monitoring in scheduler
@@ -202,7 +211,7 @@ This guide covers both how the systems work and how to restore from backups.
 
 ### 3.1. Location
 
-- **Code**: `core/message_management.py`, `core/auto_cleanup.py`
+- **Code**: `messages/message_data_manager.py` (`archive_old_messages()`), `core/auto_cleanup.py` (monthly orchestration)
 - **Active Messages**: `data/users/{user_id}/messages/sent_messages.json`
 - **Archives**: `data/users/{user_id}/messages/archives/sent_messages_archive_YYYYMMDD_HHMMSS.json`
 
@@ -544,6 +553,15 @@ Retention policies are configured in:
 - Run backup health verify: confirm `weekly_backup_present` and `weekly_backup_recent_enough` checks
 - Check disk space: Insufficient space may prevent backups
 - Check logs: Look for backup errors in `logs/file_ops.log`
+
+### 9.2.1. Orphan Directories in data/backups
+
+**Problem**: Extra directories under `data/backups/` (for example `*_backup_user_data_v2_*`) without `manifest.json`.
+
+**Solutions:**
+- **Expected cleanup**: Manifest-less directories older than one hour are removed automatically by backup retention (`BackupManager._cleanup_old_backups` and monthly `cleanup_old_backup_files`)
+- **Manual removal**: Safe to delete after confirming weekly `weekly_backup_*` artifacts exist
+- **Not counted by `backup verify`**: Health checks only list backups with `manifest.json` or `.zip` artifacts
 
 ### 9.3. Message Archives Empty
 
