@@ -57,6 +57,11 @@ def _users_dir_for_listing() -> Path | None:
     cfg_s = os.path.normpath(str(configured))
     imp_s = os.path.normpath(str(import_time_default))
     if cfg_s == imp_s:
+        if os.getenv("MHM_TESTING") == "1":
+            runtime_s = os.path.normpath(str(runtime_default_users))
+            if cfg_s != runtime_s:
+                # Patched isolated per-test tree (e.g. tests/data/tmp/<uuid>/users).
+                return configured
         return runtime_default_users
     return configured
 

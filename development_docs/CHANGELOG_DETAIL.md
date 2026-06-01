@@ -33,6 +33,10 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-06-01 - Fix slow backup behavior test (user listing path)
+- **Feature**: `core/user_management.py` — when `MHM_TESTING=1` and `USER_INFO_DIR_PATH` matches `BASE_DATA_DIR/users` but points at an isolated per-test directory (not canonical `TEST_DATA_DIR/users`), `_users_dir_for_listing()` returns that configured path so `get_all_user_ids()` and index rebuilds do not scan the entire shared `tests/data/users` tree. `tests/behavior/test_backup_manager_behavior.py` — simplified `test_backup_manager_with_large_user_data_real_behavior` to use `TestUserFactory.get_test_user_id_by_internal_username` and removed redundant `rebuild_user_index()` / sleep/retry work (same assertions: ≥60% users resolved, backup contains user files + manifest). `tests/unit/test_user_management.py` — `test_get_all_user_ids_lists_isolated_test_tree_when_patched`.
+- **Impact**: Serial suite no longer spends ~100s on one backup test when `tests/data/users` has accumulated many UUID dirs from prior serial tests; isolated `test_path_factory` backups remain correct.
+
 ### 2026-05-31 - Backup guide alignment and manifest-less cleanup **COMPLETED**
 - **Cleanup**: Added [`cleanup_manifest_less_backup_directories()`](../core/backup_manager.py) to remove `data/backups/` directories without `manifest.json` after a one-hour grace period (avoids deleting in-progress `BackupManager` creates). Wired into [`BackupManager._cleanup_old_backups`](../core/backup_manager.py) and [`cleanup_old_backup_files()`](../core/auto_cleanup.py), including the case where no managed backups exist.
 - **Docs**: Updated paired [`BACKUP_GUIDE.md`](BACKUP_GUIDE.md) and [`AI_BACKUP_GUIDE.md`](../ai_development_docs/AI_BACKUP_GUIDE.md) - log retention is age-based (7d compress, 30d archive prune), message archives point to `messages/message_data_manager.py`, documented on-demand `user_backup_*.zip` and orphan-directory troubleshooting.

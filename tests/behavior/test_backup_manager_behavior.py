@@ -703,124 +703,31 @@ class TestBackupManagerBehavior:
     @pytest.mark.no_parallel
     def test_backup_manager_with_large_user_data_real_behavior(self):
         """Test backup manager with large user data."""
-        # Create multiple users with substantial data
-        # Use unique identifiers to ensure each user gets a unique UUID
         import uuid
-        import logging
 
-        test_logger = logging.getLogger("mhm_tests")
+        from core import get_user_id_by_identifier
+        from core.config import get_user_data_dir
+
         created_user_ids = []
         for i in range(5):
-            # Use unique internal username to ensure each user gets a unique UUID
             user_id = f"large_user_{uuid.uuid4().hex[:8]}_{i}"
-
-            # Diagnostic: Check BASE_DATA_DIR before creating user
-            from core.config import BASE_DATA_DIR
-
-            test_logger.debug(
-                f"Before create_full_featured_user: user_id={user_id}, BASE_DATA_DIR={BASE_DATA_DIR}, test_data_dir={self.test_data_dir}, user_data_dir={self.user_data_dir}"
-            )
-
-            success = TestUserFactory.create_full_featured_user(
+            if TestUserFactory.create_full_featured_user(
                 user_id, test_data_dir=self.test_data_dir
-            )
-            if success:
+            ):
                 created_user_ids.append(user_id)
-                # Verify user directory was actually created (diagnostic)
-                from core import get_user_id_by_identifier
-                from tests.test_helpers.test_utilities import TestUserFactory as TUF
-                from core.config import get_user_data_dir
-                import os
-                import time
 
-                time.sleep(0.1)  # Brief delay for directory creation
-                resolved_uuid = get_user_id_by_identifier(
-                    user_id
-                ) or TUF.get_test_user_id_by_internal_username(
-                    user_id, self.test_data_dir
-                )
-                if resolved_uuid:
-                    uuid_dir = get_user_data_dir(resolved_uuid)
-                    # Check both expected locations
-                    expected_dir_via_test_data = os.path.join(
-                        self.test_data_dir, "users", resolved_uuid
-                    )
-                    expected_dir_via_base = os.path.join(
-                        BASE_DATA_DIR, "users", resolved_uuid
-                    )
-
-                    exists_via_test_data = os.path.exists(expected_dir_via_test_data)
-                    exists_via_base = os.path.exists(expected_dir_via_base)
-                    exists_via_get = os.path.exists(uuid_dir)
-
-                    test_logger.debug(
-                        f"After create_full_featured_user: user_id={user_id}, resolved_uuid={resolved_uuid}, uuid_dir={uuid_dir}, exists={exists_via_get}, test_data_dir_path={expected_dir_via_test_data}, exists_test_data={exists_via_test_data}, BASE_DATA_DIR_path={expected_dir_via_base}, exists_base={exists_via_base}"
-                    )
-
-                    if not exists_via_get:
-                        test_logger.warning(
-                            f"User directory not found immediately after create_full_featured_user: user_id={user_id}, resolved_uuid={resolved_uuid}, expected_dir={uuid_dir}, test_data_dir_path={expected_dir_via_test_data}, BASE_DATA_DIR_path={expected_dir_via_base}"
-                        )
-                else:
-                    test_logger.warning(f"Could not resolve UUID for user_id={user_id}")
-            else:
-                test_logger.warning(
-                    f"create_full_featured_user returned False for user_id={user_id}"
-                )
-
-        # Ensure users are fully written before creating backup (race condition fix)
-        import time
-
-        time.sleep(0.5)  # Longer delay to ensure all user files are flushed
-
-        # Rebuild index to ensure all users are indexed
-        from storage.user_data_operations import rebuild_user_index
-
-        rebuild_user_index()
-        time.sleep(0.2)
-
-        # Verify user directories exist before creating backup
-        # Count all user directories, not just the ones we created (parallel tests may create others)
-        # Ensure directory exists first
         os.makedirs(self.user_data_dir, exist_ok=True)
-
-        # Get actual UUIDs for created users (create_full_featured_user creates UUID-based users)
-        from core import get_user_id_by_identifier
-        from tests.test_helpers.test_utilities import TestUserFactory as TUF
-        from core.config import get_user_data_dir
 
         actual_user_uuids = []
         for user_id in created_user_ids:
-            # Retry to get UUID with index rebuild
-            uuid = None
-            for attempt in range(10):  # Increased retries
-                uuid = get_user_id_by_identifier(
-                    user_id
-                ) or TUF.get_test_user_id_by_internal_username(
-                    user_id, self.test_data_dir
-                )
-                if uuid and uuid != user_id:
-                    # Verify UUID directory exists
-                    uuid_dir = get_user_data_dir(uuid)
-                    if os.path.exists(uuid_dir):
-                        actual_user_uuids.append(uuid)
-                        break
-                # Rebuild index if lookup fails (race condition fix)
-                if attempt in [2, 5, 8]:  # Rebuild at multiple points
-                    rebuild_user_index()
-                    time.sleep(0.2)  # Give index time to update
-                if attempt < 9:
-                    import time
+            resolved_uuid = TestUserFactory.get_test_user_id_by_internal_username(
+                user_id, self.test_data_dir
+            ) or get_user_id_by_identifier(user_id)
+            if resolved_uuid and resolved_uuid != user_id:
+                uuid_dir = get_user_data_dir(resolved_uuid)
+                if os.path.exists(uuid_dir):
+                    actual_user_uuids.append(resolved_uuid)
 
-                    time.sleep(0.2)  # Increased delay between retries
-
-        # Rebuild index one more time before checking
-        rebuild_user_index()
-        time.sleep(0.3)  # Give index time to update
-
-        # We should have at least as many resolved UUID directories as users we successfully created.
-        # This avoids brittle assumptions about a single users/ path when config patches or cache state
-        # influence where get_user_data_dir resolves at runtime.
         min_expected = max(1, int(len(created_user_ids) * 0.6))
         assert (
             len(actual_user_uuids) >= min_expected

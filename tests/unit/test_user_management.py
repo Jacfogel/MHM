@@ -4,16 +4,22 @@ Tests for core user management module.
 Tests user data operations, user lookup, and user preferences.
 """
 
+import uuid
+
 import pytest
 import os
 import json
+from unittest.mock import patch
 
+import core.config
 from core import (
     get_all_user_ids,
     get_user_data,
     update_user_preferences,
     save_user_data,
 )
+from core.user_management import _users_dir_for_listing
+from tests.conftest import tests_data_dir
 from tests.test_helpers.test_utilities import TestUserFactory
 
 
@@ -43,6 +49,45 @@ class TestUserManagement:
         user_ids = get_all_user_ids()
         # If users exist, it should return a list
         assert isinstance(user_ids, list)
+
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
+    def test_get_all_user_ids_lists_isolated_test_tree_when_patched(
+        self, test_path_factory, mock_config
+    ):
+        """Patched per-test tmp trees must not fall back to shared tests/data/users."""
+        isolated_name = f"isolated-list-{uuid.uuid4().hex[:8]}"
+        shared_name = f"shared-list-{uuid.uuid4().hex[:8]}"
+
+        assert TestUserFactory.create_basic_user(
+            isolated_name, test_data_dir=test_path_factory
+        )
+        assert TestUserFactory.create_basic_user(
+            shared_name, test_data_dir=str(tests_data_dir)
+        )
+        isolated_uuid = TestUserFactory.get_test_user_id_by_internal_username(
+            isolated_name, test_path_factory
+        )
+        shared_uuid = TestUserFactory.get_test_user_id_by_internal_username(
+            shared_name, str(tests_data_dir)
+        )
+        assert isolated_uuid
+        assert shared_uuid
+
+        isolated_users_dir = os.path.join(test_path_factory, "users")
+        with (
+            patch.object(core.config, "BASE_DATA_DIR", test_path_factory),
+            patch.object(core.config, "USER_INFO_DIR_PATH", isolated_users_dir),
+        ):
+            resolved_dir = _users_dir_for_listing()
+            assert os.path.normpath(str(resolved_dir)) == os.path.normpath(
+                isolated_users_dir
+            )
+            listed_ids = get_all_user_ids()
+
+        assert isolated_uuid in listed_ids
+        assert shared_uuid not in listed_ids
 
     @pytest.mark.unit
     @pytest.mark.user_management

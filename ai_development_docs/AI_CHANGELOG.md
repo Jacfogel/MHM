@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-06-01 - Fix slow backup behavior test (user listing path) **COMPLETED**
+- `_users_dir_for_listing()` now honors isolated per-test `tests/data/tmp/<uuid>/users` trees under `MHM_TESTING` instead of always scanning shared `tests/data/users`.
+- `test_backup_manager_with_large_user_data_real_behavior` no longer calls `rebuild_user_index()` or long retry/sleep loops; resolves users via the isolated test index only.
+- Added `test_get_all_user_ids_lists_isolated_test_tree_when_patched` regression coverage.
+
 ### 2026-05-31 - Backup guide alignment and manifest-less cleanup **COMPLETED**
 - Added `cleanup_manifest_less_backup_directories()` so legacy `data/backups/` dirs without `manifest.json` are pruned after a 1-hour grace (runs on backup retention and monthly cleanup).
 - Paired backup guides now document age-based log archival, `messages/message_data_manager.py` for message archives, and on-demand `user_backup_*.zip` artifacts.
