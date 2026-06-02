@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tests for User Data Flow Architecture Refactoring
 
 Tests the two-phase save approach, in-memory cross-file invariants,
@@ -16,7 +16,7 @@ class TestCrossFileInvariants:
     """Test cross-file invariants with in-memory merged data."""
     
     @pytest.mark.behavior
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.file_io
     @pytest.mark.no_parallel
@@ -75,7 +75,7 @@ class TestCrossFileInvariants:
             "Preferences should have all categories saved"
     
     @pytest.mark.behavior
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.file_io
     @pytest.mark.no_parallel
@@ -120,7 +120,7 @@ class TestCrossFileInvariants:
             "Preferences should have categories"
     
     @pytest.mark.behavior
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.no_parallel  # Sensitive to file system state and cross-file invariants during parallel execution
     def test_cross_file_invariant_account_not_in_original_update(self, test_data_dir, mock_config):
@@ -204,7 +204,7 @@ class TestProcessingOrder:
     """Test explicit processing order for deterministic behavior."""
     
     @pytest.mark.behavior
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.no_parallel
     def test_processing_order_deterministic_regardless_of_input_order(self, test_data_dir, mock_config):
@@ -279,7 +279,7 @@ class TestProcessingOrder:
             "Context data should be saved correctly regardless of input order"
     
     @pytest.mark.behavior
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     def test_processing_order_account_before_preferences(self, test_data_dir, mock_config):
         """
@@ -334,7 +334,7 @@ class TestAtomicOperations:
     """Test atomic operation behavior."""
     
     @pytest.mark.behavior
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.no_parallel
     def test_atomic_operation_all_types_succeed(self, test_data_dir, mock_config):
@@ -381,7 +381,7 @@ class TestAtomicOperations:
             "Context should be written to disk"
     
     @pytest.mark.behavior
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     def test_atomic_operation_result_dict_indicates_per_type_success(self, test_data_dir, mock_config):
         """
@@ -418,7 +418,7 @@ class TestAtomicOperations:
         assert result['preferences'] is True, "Preferences status should be True for success"
     
     @pytest.mark.behavior
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     def test_atomic_operation_backup_created_before_writes(self, test_data_dir, mock_config):
         """
@@ -462,7 +462,7 @@ class TestNoNestedSaves:
     """Test that nested saves are eliminated."""
     
     @pytest.mark.behavior
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.file_io
     @pytest.mark.no_parallel
@@ -513,7 +513,7 @@ class TestNoNestedSaves:
             "Preferences should have all categories"
     
     @pytest.mark.behavior
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.no_parallel
     def test_no_nested_saves_save_user_data(self, test_data_dir, mock_config):
@@ -567,7 +567,7 @@ class TestTwoPhaseSave:
     """Test two-phase save approach."""
     
     @pytest.mark.behavior
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.no_parallel
     def test_two_phase_save_merge_before_write(self, test_data_dir, mock_config):
@@ -633,7 +633,7 @@ class TestTwoPhaseSave:
             "Cross-file invariant should update account in Phase 1, written in Phase 2"
     
     @pytest.mark.behavior
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     def test_two_phase_save_validation_before_backup(self, test_data_dir, mock_config):
         """

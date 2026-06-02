@@ -1,4 +1,4 @@
-"""
+﻿"""
 Interaction Handlers Behavior Tests
 
 Tests for communication/command_handlers/interaction_handlers.py focusing on real behavior and side effects.
@@ -99,7 +99,7 @@ class TestInteractionHandlersBehavior:
         assert not handler.can_handle('show_profile'), "CheckinHandler should not handle show_profile"
     
     @pytest.mark.behavior
-    @pytest.mark.user_management
+    @pytest.mark.user
     def test_profile_handler_can_handle_intents(self):
         """Test that ProfileHandler can handle all expected intents."""
         handler = ProfileHandler()

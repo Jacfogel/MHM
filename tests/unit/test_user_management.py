@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tests for core user management module.
 
 Tests user data operations, user lookup, and user preferences.
@@ -27,7 +27,7 @@ class TestUserManagement:
     """Test user management functions."""
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.smoke
     def test_get_all_user_ids_empty(self, test_data_dir):
         """Test getting user IDs when no users exist."""
@@ -38,7 +38,7 @@ class TestUserManagement:
         assert isinstance(user_ids, list)
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     def test_get_all_user_ids_with_users(
         self, test_data_dir, mock_user_data, mock_config
@@ -51,7 +51,7 @@ class TestUserManagement:
         assert isinstance(user_ids, list)
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     def test_get_all_user_ids_lists_isolated_test_tree_when_patched(
         self, test_path_factory, mock_config
@@ -90,7 +90,7 @@ class TestUserManagement:
         assert shared_uuid not in listed_ids
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     def test_get_user_preferences_success(self, mock_user_data, mock_config):
         """Test getting user preferences successfully."""
@@ -119,7 +119,7 @@ class TestUserManagement:
             pass
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     def test_get_user_preferences_nonexistent_user(self, mock_config):
         """Test getting preferences for non-existent user."""
@@ -132,7 +132,7 @@ class TestUserManagement:
         )  # Should return empty dict when no data exists and auto_create=False
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.no_parallel
     def test_get_user_context_success(self, mock_user_data, mock_config):
@@ -150,7 +150,7 @@ class TestUserManagement:
             pass
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     def test_get_user_context_nonexistent_user(self, mock_config):
         """Test getting context for non-existent user."""
@@ -163,7 +163,7 @@ class TestUserManagement:
         )  # Should return empty dict when no data exists and auto_create=False
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.no_parallel
     def test_hybrid_get_user_data_success(self, mock_user_data):
@@ -189,7 +189,7 @@ class TestUserManagement:
         assert "preferred_name" in user_data["context"]
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     def test_hybrid_get_user_data_nonexistent_user(self, mock_config):
         """Test loading non-existent user data using new hybrid API."""
@@ -206,7 +206,7 @@ class TestUserManagement:
         assert filtered == {}  # Should be empty for core types
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.file_io
     @pytest.mark.no_parallel
@@ -279,7 +279,7 @@ class TestUserManagement:
         assert loaded_data["context"]["preferred_name"] == "Test User"
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.file_io
     @pytest.mark.no_parallel  # shared tests/data + user_index.json (parallel race)
@@ -318,7 +318,7 @@ class TestUserManagement:
             assert os.path.isdir(actual_user_dir), "User directory should exist"
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     @pytest.mark.no_parallel
     def test_update_user_preferences_success(self, mock_user_data, mock_config):
@@ -336,7 +336,7 @@ class TestUserManagement:
         assert "health" in updated_preferences["categories"]
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.smoke
     def test_get_user_data_account_with_chat_id(self, mock_user_data, mock_config):
         """Test getting user account with chat_id field."""
@@ -366,7 +366,7 @@ class TestUserManagement:
         assert "chat_id" in account
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     def test_get_user_data_account_nonexistent_chat_id(self, mock_config):
         """Test getting user account for non-existent user."""
@@ -379,7 +379,7 @@ class TestUserManagement:
         )  # Should return empty dict when no data exists and auto_create=False
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.smoke
     @pytest.mark.no_parallel
     def test_get_user_data_account_with_discord_id(self, mock_user_data, mock_config):
@@ -411,7 +411,7 @@ class TestUserManagement:
         assert "discord_user_id" in account
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     def test_get_user_data_account_nonexistent_discord_id(self, mock_config):
         """Test getting user account for non-existent user."""
@@ -424,7 +424,7 @@ class TestUserManagement:
         )  # Should return empty dict when no data exists and auto_create=False
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.smoke
     @pytest.mark.file_io
     @pytest.mark.no_parallel
@@ -466,7 +466,7 @@ class TestUserManagement:
         assert account.get("email") is not None
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     def test_get_user_data_account_nonexistent_email(self, mock_config):
         """Test getting user account for non-existent user."""
@@ -483,7 +483,7 @@ class TestUserManagementEdgeCases:
     """Test edge cases and error conditions."""
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     @pytest.mark.file_io
     def test_get_user_preferences_corrupted_file(self, test_data_dir, mock_config):
@@ -513,7 +513,7 @@ class TestUserManagementEdgeCases:
             assert user_data == {}
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     def test_save_user_preferences_invalid_user_id(self):
         """Test saving preferences with invalid user ID."""
@@ -521,7 +521,7 @@ class TestUserManagementEdgeCases:
         assert result == {}  # Function returns empty dict for invalid user ID
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     def test_update_user_preferences_nonexistent_user(self, mock_config):
         """Test updating preferences for non-existent user."""
@@ -538,7 +538,7 @@ class TestUserManagementEdgeCases:
         assert user_data == {}  # Should return empty dict when user doesn't exist
 
     @pytest.mark.integration
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.file_io
     @pytest.mark.slow
@@ -861,7 +861,7 @@ class TestUserManagementEdgeCases:
             ), f"Directory should be writable in final state: {dir_path}"
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.smoke
     def test_get_user_data_single_type(self, mock_user_data, mock_config):
         """Test getting single data type using hybrid API."""
@@ -887,7 +887,7 @@ class TestUserManagementEdgeCases:
         assert "context" not in user_data
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     def test_get_user_data_multiple_types(self, mock_user_data, mock_config):
         """Test getting multiple data types using hybrid API."""
@@ -906,7 +906,7 @@ class TestUserManagementEdgeCases:
         assert "schedules" not in user_data
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     def test_get_user_data_invalid_type(self, mock_user_data, mock_config):
         """Test getting invalid data type using hybrid API."""
@@ -917,7 +917,7 @@ class TestUserManagementEdgeCases:
         assert user_data == {}  # Should return empty dict for invalid types
 
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     def test_get_user_data_nonexistent_user(self, mock_config):
         """Test getting data for nonexistent user using hybrid API."""

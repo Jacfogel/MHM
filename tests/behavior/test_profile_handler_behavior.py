@@ -1,4 +1,4 @@
-"""
+﻿"""
 Profile Handler Behavior Tests
 
 Tests for communication/command_handlers/profile_handler.py focusing on real behavior and side effects.
@@ -24,7 +24,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     def test_profile_handler_can_handle_intents(self):
         """Test that ProfileHandler can handle all expected intents."""
         handler = ProfileHandler()
@@ -39,7 +39,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     def test_profile_handler_get_help(self):
         """Test that ProfileHandler returns help text."""
         handler = ProfileHandler()
@@ -51,7 +51,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     def test_profile_handler_get_examples(self):
         """Test that ProfileHandler returns example commands."""
         handler = ProfileHandler()
@@ -64,7 +64,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     def test_profile_handler_unknown_intent(self):
         """Test that ProfileHandler handles unknown intents gracefully."""
         handler = ProfileHandler()
@@ -82,7 +82,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @patch('communication.command_handlers.profile_handler.get_user_data')
     def test_profile_handler_show_profile_success(self, mock_get_user_data, test_data_dir):
@@ -114,7 +114,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @patch('communication.command_handlers.profile_handler.get_user_data')
     def test_profile_handler_show_profile_empty(self, mock_get_user_data, test_data_dir):
@@ -143,7 +143,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @patch('communication.command_handlers.profile_handler.save_user_data')
     @patch('communication.command_handlers.profile_handler.get_user_data')
@@ -183,7 +183,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @patch('communication.command_handlers.profile_handler.save_user_data')
     @patch('communication.command_handlers.profile_handler.get_user_data')
@@ -221,7 +221,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @patch('communication.command_handlers.profile_handler.save_user_data')
     @patch('communication.command_handlers.profile_handler.get_user_data')
@@ -260,7 +260,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @patch('communication.command_handlers.profile_handler.save_user_data')
     @patch('communication.command_handlers.profile_handler.get_user_data')
@@ -299,7 +299,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @patch('communication.command_handlers.profile_handler.save_user_data')
     @patch('communication.command_handlers.profile_handler.get_user_data')
@@ -338,7 +338,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @patch('communication.command_handlers.profile_handler.save_user_data')
     @patch('communication.command_handlers.profile_handler.get_user_data')
@@ -377,7 +377,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @patch('communication.command_handlers.profile_handler.save_user_data')
     @patch('communication.command_handlers.profile_handler.get_user_data')
@@ -415,7 +415,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @patch('communication.command_handlers.profile_handler.save_user_data')
     @patch('communication.command_handlers.profile_handler.get_user_data')
@@ -452,7 +452,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     def test_profile_handler_update_profile_missing_entities(self):
         """Test that ProfileHandler asks for update fields when missing."""
         handler = ProfileHandler()
@@ -471,7 +471,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @patch('communication.command_handlers.profile_handler.save_user_data')
     @patch('communication.command_handlers.profile_handler.get_user_data')
@@ -497,7 +497,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @patch('communication.command_handlers.profile_handler.get_recent_checkins')
     @patch('tasks.get_user_task_stats')
@@ -534,7 +534,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @patch('communication.command_handlers.profile_handler.get_recent_checkins')
     @patch('tasks.get_user_task_stats')
@@ -567,7 +567,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @patch('communication.command_handlers.profile_handler.save_user_data')
     @patch('communication.command_handlers.profile_handler.get_user_data')
@@ -595,7 +595,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     def test_profile_handler_format_profile_text(self):
         """Test that ProfileHandler formats profile text correctly."""
         handler = ProfileHandler()
@@ -628,7 +628,7 @@ class TestProfileHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.user_management
+    @pytest.mark.user
     def test_profile_handler_format_profile_text_empty(self):
         """Test that ProfileHandler formats empty profile text gracefully."""
         handler = ProfileHandler()

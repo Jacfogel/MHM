@@ -44,7 +44,7 @@ def _default_domain_mapper_config() -> dict:
             "ui": [["tests/ui/"], ["ui"]],
             "tasks": [[], ["tasks"]],
             "ai": [["tests/ai/"], ["ai"]],
-            "user": [[], ["user_management"]],
+            "user": [[], ["user"]],
             "notebook": [[], ["notebook"]],
             "scheduler": [[], ["scheduler"]],
             "checkins": [[], ["checkins"]],

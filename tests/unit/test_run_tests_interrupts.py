@@ -1,4 +1,4 @@
-import signal
+﻿import signal
 import types
 
 import pytest
@@ -6,7 +6,7 @@ import pytest
 import run_tests as rt
 
 
-pytestmark = [pytest.mark.user_management]
+pytestmark = [pytest.mark.user]
 
 
 @pytest.fixture(autouse=True)
@@ -16,7 +16,7 @@ def _two_tap_stop_for_tests(monkeypatch):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 def test_interrupt_handler_single_sigint_ignored_with_message(monkeypatch, capsys):
     """First SIGINT should be ignored and show remaining tap count."""
     monkeypatch.setattr(rt, "_interrupt_requested", False, raising=False)
@@ -40,7 +40,7 @@ def test_interrupt_handler_single_sigint_ignored_with_message(monkeypatch, capsy
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 def test_interrupt_handler_burst_sigint_within_debounce_is_ignored(monkeypatch, capsys):
     """Duplicate SIGINT bursts (spurious on Windows) must not increment the tap count."""
     monkeypatch.setattr(rt, "_interrupt_requested", False, raising=False)
@@ -58,7 +58,7 @@ def test_interrupt_handler_burst_sigint_within_debounce_is_ignored(monkeypatch, 
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 def test_interrupt_handler_second_sigint_within_window_sets_interrupt(monkeypatch, capsys):
     """Second distinct SIGINT within the window should request interrupt (when taps=2)."""
     monkeypatch.setattr(rt, "_interrupt_requested", False, raising=False)
@@ -78,7 +78,7 @@ def test_interrupt_handler_second_sigint_within_window_sets_interrupt(monkeypatc
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 def test_interrupt_handler_sigint_after_window_resets_count(monkeypatch, capsys):
     """SIGINT after the window expires should restart the tap counter."""
     monkeypatch.setattr(rt, "_interrupt_requested", False, raising=False)
@@ -98,7 +98,7 @@ def test_interrupt_handler_sigint_after_window_resets_count(monkeypatch, capsys)
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 def test_interrupt_handler_five_taps_required_by_default(monkeypatch, capsys):
     """Production default needs five distinct taps before stopping."""
     monkeypatch.setattr(rt, "_SIGINT_TAPS_TO_STOP", 5, raising=False)

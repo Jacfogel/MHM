@@ -1,4 +1,4 @@
-"""Unit coverage for profile command service helpers."""
+﻿"""Unit coverage for profile command service helpers."""
 
 from unittest.mock import patch
 
@@ -8,7 +8,7 @@ from user import profile_service
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 def test_load_profile_sections_reads_expected_data_types():
     values = {
         "account": {"account": {"internal_username": "jules"}},
@@ -25,7 +25,7 @@ def test_load_profile_sections_reads_expected_data_types():
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 def test_apply_profile_updates_normalizes_lists_and_saves_context():
     saved = {}
 

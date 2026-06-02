@@ -30,10 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-06-01 - Fix slow backup behavior test (user listing path) **COMPLETED**
+### 2026-06-01 - Fix slow backup behavior test (user listing path); domain marker policy **COMPLETED**
 - `_users_dir_for_listing()` now honors isolated per-test `tests/data/tmp/<uuid>/users` trees under `MHM_TESTING` instead of always scanning shared `tests/data/users`.
 - `test_backup_manager_with_large_user_data_real_behavior` no longer calls `rebuild_user_index()` or long retry/sleep loops; resolves users via the isolated test index only.
 - Added `test_get_all_user_ids_lists_isolated_test_tree_when_patched` regression coverage.
+- Documented domain marker policy in paired testing guides (category / domain / optional layers). **`@pytest.mark.user`** is the user-domain marker; migrated suite off `user_management`; updated `domain_mapper` config defaults.
+- Module-scoped `temp_project_copy` for doc links/headings dev-tools tests (B-001); skipped `test_output_storage_archiving` (mutation-heavy).
+- Cleared example-marker hints in `TESTING_GUIDE.md` (renamed `6.2.7. Examples` heading); ASCII already fixed via `doc-fix --fix-ascii`.
 
 ### 2026-05-31 - Backup guide alignment and manifest-less cleanup **COMPLETED**
 - Added `cleanup_manifest_less_backup_directories()` so legacy `data/backups/` dirs without `manifest.json` are pruned after a 1-hour grace (runs on backup retention and monthly cleanup).
@@ -143,13 +146,6 @@ Guidelines:
 - Parallel Tier 3: `get_user_data` test-only assembly now runs the same finalize path as primary loads (`normalize_on_read`, schedules shape, `_metadata`); `_finalize_get_user_data_payload` helper in `storage/user_data_read.py`; `fix_user_data_loaders` autouse fixture resets canonical `USER_DATA_LOADERS` each test so stub loaders cannot leak across scenarios
 - Parallel flake remediation: `test_add_message_category` / removal-branch asserts now read preferences via `get_user_data(..., "preferences")` with cache clears (`integration/test_account_lifecycle.py`); `test_remove_message_category` aligns similarly; `test_create_account_updates_user_index` marked `@pytest.mark.no_parallel` like sibling checks-ins UI test and uses one `wait_until` for index + active (avoids shared `users_index` races under xdist with a redundant follow-up `build_user_index()`)
 - Tier 3 run_test_suite parallel crash: `task_management_user` fixture in [`test_task_management_dialog.py`](../tests/ui/test_task_management_dialog.py) failed setup when `internal_username` lookup lagged under load (~3s retry too short); now requires `create_basic_user` success and resolves UUID via `wait_until` up to 30s (matches other UI stabilization patterns)
-
-### 2026-05-19 - AI helpers, file prompts, context calculate/phrase split **COMPLETED**
-- Extracted LM Studio HTTP and response post-process from `chatbot.py` into `lm_studio_client` / `response_postprocess`
-- Companion and command prompts under `resources/prompts/`; `context_phraser.py` phrases facts from `ContextBuilder.analyze_context`
-- Lazy `command_registry` import fixes circular load with `command_parser`
-- Removed legacy context bullet helpers and `sections.py`; tests on `context_phraser`
-- Documented `command_registry` -> `command_parser` adapter; import-boundary tests under `test_ai_import_boundaries.py`
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

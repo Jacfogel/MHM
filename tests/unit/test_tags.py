@@ -1,4 +1,4 @@
-"""
+﻿"""
 Unit tests for `core.tags`, covering normalization, parsing, and user tag persistence.
 """
 
@@ -24,7 +24,7 @@ from core.tags import (
 
 pytestmark = [
     pytest.mark.unit,
-    pytest.mark.user_management,
+    pytest.mark.user,
     pytest.mark.regression,
 ]
 

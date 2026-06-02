@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Behavior tests for Core User Management coverage expansion.
 
@@ -44,7 +44,7 @@ import contextlib
 
 
 @pytest.mark.behavior
-@pytest.mark.user_management
+@pytest.mark.user
 class TestUserManagementCoverageExpansion:
     """Test Core User Management coverage expansion with real behavior verification."""
     
@@ -725,7 +725,7 @@ class TestUserManagementCoverageExpansion:
 
 
 @pytest.mark.behavior
-@pytest.mark.user_management
+@pytest.mark.user
 class TestUserManagementIntegration:
     """Test integration behavior of Core User Management."""
     
@@ -958,7 +958,7 @@ class TestUserManagementIntegration:
 
 
 @pytest.mark.behavior
-@pytest.mark.user_management
+@pytest.mark.user
 class TestUserDataManagerCoverageExpansion:
     """Test Core UserDataManager coverage expansion with real behavior verification."""
     

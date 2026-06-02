@@ -1,4 +1,4 @@
-"""
+﻿"""
 Expanded unit coverage for rule-based command parsing patterns.
 
 These tests exercise the pattern routing without invoking AI parsing.
@@ -308,7 +308,7 @@ class TestCommandParserCheckinPatterns:
 
 @pytest.mark.unit
 @pytest.mark.communication
-@pytest.mark.user_management
+@pytest.mark.user
 class TestCommandParserProfilePatterns:
     @pytest.mark.parametrize(
         "message",

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Comprehensive tests for account creation and management UI components.
 
 Tests the actual UI behavior, user interactions, and side effects for:
@@ -220,7 +220,7 @@ class TestAccountCreationDialogRealBehavior:
         dialog.deleteLater()
 
     @pytest.mark.ui
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.regression
     @pytest.mark.slow
@@ -270,7 +270,7 @@ class TestAccountCreationDialogRealBehavior:
         ], "Common timezone should be available"
 
     @pytest.mark.ui
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.regression
     @pytest.mark.slow
@@ -1381,7 +1381,7 @@ class TestAccountCreationErrorHandling:
         dialog.deleteLater()
 
 
-@pytest.mark.user_management
+@pytest.mark.user
 class TestAccountCreationIntegration:
     """Test integration scenarios for account creation and management."""
 

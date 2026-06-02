@@ -1,12 +1,12 @@
-import importlib
+﻿import importlib
 
 import pytest
 
 
-pytestmark = [pytest.mark.user_management]
+pytestmark = [pytest.mark.user]
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 def test_loader_registry_identity_and_idempotency():
     # Reload modules to ensure current state
     um = importlib.import_module('storage.user_data_registry')

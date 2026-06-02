@@ -1,4 +1,4 @@
-"""
+﻿"""
 User Context Tests
 
 Tests for user/user_context.py:
@@ -19,9 +19,9 @@ from user.user_context import UserContext
 from tests.test_helpers.test_utilities import TestUserFactory
 
 
-pytestmark = [pytest.mark.user_management]
+pytestmark = [pytest.mark.user]
 
-@pytest.mark.user_management
+@pytest.mark.user
 class TestUserContextSingleton:
     """Test UserContext singleton pattern"""
     
@@ -69,7 +69,7 @@ class TestUserContextSingleton:
         assert isinstance(instance.user_data, dict), "Should initialize user_data as dict"
 
 
-@pytest.mark.user_management
+@pytest.mark.user
 class TestUserContextUserID:
     """Test UserContext user_id methods"""
     
@@ -128,7 +128,7 @@ class TestUserContextUserID:
         assert result is None, "Should return None when not set"
 
 
-@pytest.mark.user_management
+@pytest.mark.user
 class TestUserContextInternalUsername:
     """Test UserContext internal_username methods"""
     
@@ -186,7 +186,7 @@ class TestUserContextInternalUsername:
         assert result is None, "Should return None when not set"
 
 
-@pytest.mark.user_management
+@pytest.mark.user
 class TestUserContextPreferredName:
     """Test UserContext preferred_name methods"""
     
@@ -231,7 +231,7 @@ class TestUserContextPreferredName:
         assert result is None, "Should return None when not set"
 
 
-@pytest.mark.user_management
+@pytest.mark.user
 class TestUserContextLoadSave:
     """Test UserContext load/save user data"""
     
@@ -304,7 +304,7 @@ class TestUserContextLoadSave:
             assert mock_save.call_count >= 3, "Should save account, preferences, and context"
 
 
-@pytest.mark.user_management
+@pytest.mark.user
 class TestUserContextGetInstanceContext:
     """Test UserContext get_instance_context method"""
     

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Comprehensive behavior tests for UI widgets.
 
 Tests real behavior, user interactions, and side effects for all widgets:
@@ -77,7 +77,7 @@ class TestTagWidgetBehavior:
     @pytest.mark.critical
     @pytest.mark.regression
     @pytest.mark.slow
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.tasks
     @pytest.mark.checkins
     def test_widget_initialization_real_behavior(self, widget):
@@ -96,7 +96,7 @@ class TestTagWidgetBehavior:
     @pytest.mark.critical
     @pytest.mark.regression
     @pytest.mark.slow
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.tasks
     @pytest.mark.checkins
     def test_tag_management_real_behavior(self, widget):
@@ -123,7 +123,7 @@ class TestTagWidgetBehavior:
     @pytest.mark.critical
     @pytest.mark.regression
     @pytest.mark.slow
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.tasks
     @pytest.mark.checkins
     def test_tag_selection_mode_real_behavior(self, qapp, test_data_dir, mock_config):

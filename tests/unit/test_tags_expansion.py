@@ -1,4 +1,4 @@
-"""
+﻿"""
 Expanded unit coverage for tag normalization, parsing, and storage helpers.
 """
 
@@ -29,7 +29,7 @@ def tag_env(test_data_dir, monkeypatch):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.parametrize(
     "input_tag, expected",
     [
@@ -52,7 +52,7 @@ def test_normalize_tag(input_tag, expected):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.parametrize(
     "input_tags, expected",
     [
@@ -71,7 +71,7 @@ def test_normalize_tags(input_tags, expected):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.parametrize(
     "input_tags",
     [
@@ -86,7 +86,7 @@ def test_normalize_tags_invalid_input(input_tags):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.parametrize(
     "tag",
     [
@@ -107,7 +107,7 @@ def test_validate_tag_valid(tag):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.parametrize(
     "tag",
     [
@@ -128,7 +128,7 @@ def test_validate_tag_invalid_returns_none(tag):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.parametrize(
     "text, expected_clean, expected_tags",
     [
@@ -157,7 +157,7 @@ def test_parse_tags_from_text(text, expected_clean, expected_tags):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.parametrize(
     "text",
     [
@@ -174,14 +174,14 @@ def test_parse_tags_from_text_invalid_input(text):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 def test_load_user_tags_invalid_user_id():
     assert tags_module.load_user_tags("") == {}
     assert tags_module.load_user_tags(None) == {}
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 def test_load_user_tags_creates_default_file(tag_env):
     user_id = tag_env["user_id"]
     tags_file = tag_env["tags_file"]
@@ -196,7 +196,7 @@ def test_load_user_tags_creates_default_file(tag_env):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 def test_load_user_tags_reinitializes_corrupt_file(tag_env):
     user_id = tag_env["user_id"]
     tags_file = tag_env["tags_file"]
@@ -210,7 +210,7 @@ def test_load_user_tags_reinitializes_corrupt_file(tag_env):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 def test_save_user_tags_updates_metadata(tag_env):
     user_id = tag_env["user_id"]
 
@@ -223,7 +223,7 @@ def test_save_user_tags_updates_metadata(tag_env):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 def test_get_user_tags_returns_list(tag_env):
     user_id = tag_env["user_id"]
     tags_module.save_user_tags(user_id, {"tags": ["alpha"]})
@@ -232,7 +232,7 @@ def test_get_user_tags_returns_list(tag_env):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.parametrize(
     "tag, expected",
     [
@@ -251,7 +251,7 @@ def test_add_user_tag(tag_env, tag, expected):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 def test_add_user_tag_deduplicates(tag_env):
     user_id = tag_env["user_id"]
 
@@ -263,7 +263,7 @@ def test_add_user_tag_deduplicates(tag_env):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.parametrize(
     "tag, expected",
     [
@@ -282,7 +282,7 @@ def test_remove_user_tag(tag_env, tag, expected):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 def test_ensure_tags_initialized_creates_file(tag_env):
     user_id = tag_env["user_id"]
     tags_file = tag_env["tags_file"]

@@ -1,12 +1,12 @@
-import os
+﻿import os
 
 import pytest
 
 
-pytestmark = [pytest.mark.user_management]
+pytestmark = [pytest.mark.user]
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 def test_no_print_calls_in_tests():
     """Policy: tests should not use print(); prefer logging or assertions."""
     root = os.path.join(os.path.dirname(__file__), '..')

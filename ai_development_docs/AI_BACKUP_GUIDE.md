@@ -216,12 +216,12 @@ Backup configuration semantics (paths, retention, feature flags) are defined in 
 - Check disk space
 - Check logs for errors
 
-### 9.2.1. Orphan Directories in data/backups
+### 9.3. Orphan Directories in data/backups
 - Manifest-less dirs older than 1 hour are auto-removed (`cleanup_manifest_less_backup_directories`)
 - Legacy `*_backup_user_data_v2_*` folders are safe to delete once weekly backups exist
 - `backup verify` only counts managed artifacts (manifest or zip)
 
-### 9.3. Message Archives Empty
+### 9.4. Message Archives Empty
 - **This is normal** if messages <365 days old
 - Check message ages to verify
 - Wait for monthly cleanup to run

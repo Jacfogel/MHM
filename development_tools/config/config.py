@@ -893,7 +893,7 @@ def domain_marker_union_from_domain_mapper() -> list[str]:
     """Union of product-domain pytest marks from ``source_to_test_mapping`` (sorted).
 
     Policy: marker lists for each domain should contain only product-area attribution marks
-    (for example ``core``, ``communication``, ``tasks``, ``ai``, ``user_management``,
+    (for example ``core``, ``communication``, ``tasks``, ``ai``, ``user``,
     ``notebook``, ``ui``), not suite category markers (``unit``, ``integration``, ``behavior``)
     or quality/tier markers (``critical``, ``smoke``, ``regression``).
     """
@@ -1726,7 +1726,7 @@ DOMAIN_MAPPER_DEFAULTS = {
         "ui": [["tests/ui/"], ["ui"]],
         "tasks": [[], ["tasks"]],
         "ai": [["tests/ai/"], ["ai"]],
-        "user": [[], ["user_management"]],
+        "user": [[], ["user"]],
         "notebook": [[], ["notebook"]],
         "scheduler": [[], ["scheduler"]],
         "checkins": [[], ["checkins"]],

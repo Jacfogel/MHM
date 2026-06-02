@@ -1,4 +1,4 @@
-"""Gap-coverage tests for core.tags error and fallback paths."""
+﻿"""Gap-coverage tests for core.tags error and fallback paths."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from core import tags as tags_module
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 class TestTagsGapCoverage:
     def test_ensure_user_dir_for_tags_exception(self, monkeypatch):
         monkeypatch.setattr(

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Comprehensive behavior tests for UI dialogs.
 
 Tests real behavior, user interactions, and side effects for all dialogs:
@@ -92,7 +92,7 @@ class TestUserProfileDialogBehavior:
     @pytest.mark.critical
     @pytest.mark.regression
     @pytest.mark.slow
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.tasks
     def test_dialog_initialization_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test dialog initializes correctly with proper UI state."""

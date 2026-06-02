@@ -2,6 +2,10 @@
 Tests for standardized output storage archiving.
 
 Verifies that file rotation and archiving work correctly for tool result JSON files.
+
+Uses function-scoped ``temp_project_copy`` (default from conftest): tests share one
+``docs/jsons/scopes/full/`` archive tree, delete archives, and run concurrent writes.
+Module-scoped copy caused order-dependent failures in prior perf work (see V6 B-001).
 """
 
 import pytest

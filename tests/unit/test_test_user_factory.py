@@ -1,4 +1,4 @@
-"""Tests for shared test user factory helpers."""
+﻿"""Tests for shared test user factory helpers."""
 
 import json
 import os
@@ -10,7 +10,7 @@ from tests.test_helpers.test_utilities import TestUserFactory
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.file_io
 def test_user_index_updates_preserve_concurrent_entries(test_path_factory):
     """Parallel test-user creation should not drop user_index entries."""

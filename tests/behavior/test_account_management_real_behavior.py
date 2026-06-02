@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Real Behavior Testing for Account Management - MHM
 Tests actual system changes, side effects, and integration scenarios
@@ -19,7 +19,7 @@ TEST_LOGGER = logging.getLogger("mhm_tests")
 
 # Do not modify sys.path; rely on package imports
 
-pytestmark = [pytest.mark.behavior, pytest.mark.user_management]
+pytestmark = [pytest.mark.behavior, pytest.mark.user]
 
 
 def setup_test_environment():
@@ -97,7 +97,7 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
 
 
 @pytest.mark.behavior
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.critical
 @pytest.mark.file_io
 @pytest.mark.no_parallel
@@ -227,7 +227,7 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
 
 
 @pytest.mark.behavior
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.critical
 @pytest.mark.file_io
 @pytest.mark.no_parallel
@@ -330,7 +330,7 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
 
 
 @pytest.mark.behavior
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.file_io
 @pytest.mark.regression
 @pytest.mark.no_parallel
@@ -439,7 +439,7 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
 
 
 @pytest.mark.behavior
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.scheduler
 @pytest.mark.file_io
 @pytest.mark.regression
@@ -568,7 +568,7 @@ def test_schedule_period_management_real_behavior(test_data_dir):
 @pytest.mark.no_parallel
 @pytest.mark.behavior
 @pytest.mark.integration
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.file_io
 @pytest.mark.slow
 def test_integration_scenarios_real_behavior(test_data_dir):
@@ -776,7 +776,7 @@ def test_integration_scenarios_real_behavior(test_data_dir):
 
 
 @pytest.mark.behavior
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.file_io
 @pytest.mark.regression
 @pytest.mark.no_parallel

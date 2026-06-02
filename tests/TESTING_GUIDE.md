@@ -505,35 +505,88 @@ When creating a new test:
 
 ### 6.2. Marker standards
 
-Markers are defined in the root `pytest.ini` file under the `[pytest]` section (not `[tool:pytest]`-that header is for `setup.cfg` only) and serve as the main mechanism for:
+Pytest markers fall into **three layers**. Do not mix category markers with domain markers or optional quality markers.
 
-- Selecting subsets of tests.
-- Describing test characteristics (feature area, speed, resource needs, quality).
+#### 6.2.1. Category markers (required - exactly one per test)
 
-Recommended pattern (subject to alignment with the actual `pytest.ini` markers list):
+Describe the **suite layer** (which subdirectory style the test belongs to):
 
-- **Category markers** (exactly one per test):
-  - `unit`, `integration`, `behavior`, `ui`.
+- `unit`, `integration`, `behavior`, `ui`
 
-- **Feature markers** (zero or more):
-  - `tasks`, `scheduler`, `checkins`, `messages`, `storage`, `analytics`,
-    `user_management`, `communication`, `ai`, `notebook`, etc.
+Every test function must have exactly one category marker (on the function, on the class, or via inherited class decoration).
 
-- **Speed markers**:
-  - `slow` (long-running > 1s, excluded from fast runs).
-  - `fast` (optional; for very quick tests).
+#### 6.2.2. Domain markers (required - at least one per non-exempt test)
 
-- **Resource markers**:
-  - `asyncio` (async tests).
-  - `no_parallel` (cannot be parallelized; see section 5.2).
-s  - `e2e` (end-to-end tests with real tool execution; slow, excluded from regular runs; see section 6.5).
+Describe the **product area** under test. Domain markers correspond to **top-level product packages** (directories with product code at the repo root):
 
-- **Quality markers**:
-  - `critical` (core flows).
-  - `regression` (regression tests).
-  - `smoke` (basic health checks).
+- `ai`, `checkins`, `communication`, `core`, `messages`, `notebook`, `scheduler`, `storage`, `tasks`, `ui`, `user`
 
-Example:
+**Canonical source of truth:** `domain_mapper.source_to_test_mapping` in `development_tools_config.json`. The analyzer derives the enforced marker list from that config (`test_markers.domain_markers`).
+
+Rules:
+
+- Use **at least one** domain marker on every test that is subject to domain policy.
+- Prefer the domain that owns the code under test (match the top-level package name).
+- Multiple domain markers are allowed when a test genuinely spans areas (for example `@pytest.mark.communication` and `@pytest.mark.tasks`).
+- Class-level domain markers inherit to methods (same as category markers).
+
+**Exempt paths** (domain marker not required):
+
+- `tests/development_tools/` - meta tooling tests (directory-only mapping in `domain_mapper`).
+- `tests/ai/` - excluded from domain-marker scans (manual AI quality tests; see `test_markers.ai_path_tokens`).
+
+#### 6.2.3. Optional quality, resource, and feature-slice markers
+
+These are **never** required by audit or policy guards:
+
+| Type | Examples | Purpose |
+|------|----------|---------|
+| Speed | `slow`, `fast` | Runtime filtering |
+| Resource | `asyncio`, `no_parallel`, `e2e` | Execution constraints |
+| Quality tier | `critical`, `regression`, `smoke` | Priority / tier selection |
+| Feature slice | `analytics`, `file_io` | Cross-cutting filters within a domain |
+
+Do **not** use optional markers as substitutes for domain markers. Example: `@pytest.mark.communication` + `@pytest.mark.analytics` - only `communication` satisfies domain policy; `analytics` is optional.
+
+**Legacy note:** `@pytest.mark.user_management` is **not** a domain marker. Use `@pytest.mark.user` for the user domain. Do not add new `user_management` marks.
+
+#### 6.2.4. Special cases
+
+**`ui` - category and domain share one name**
+
+- In `tests/ui/`, a single `@pytest.mark.ui` satisfies **both** the category requirement (UI suite) and the domain requirement (`ui/` package).
+- In `tests/unit/` or `tests/behavior/` when testing UI code, use **two** marks: e.g. `@pytest.mark.unit` and `@pytest.mark.ui` (same string, different roles).
+
+**`user` domain**
+
+- Domain marker: `@pytest.mark.user` (matches the top-level `user/` package).
+- Tests for `core/user_management.py` or cross-cutting account/profile flows still use `@pytest.mark.user` when the user domain owns the behavior under test, or `@pytest.mark.core` when exercising core infrastructure only.
+
+#### 6.2.5. Adding a new product domain
+
+When you add a top-level product package `foo/`:
+
+1. Add `domain_mapper.source_to_test_mapping` entry: `"foo": [["tests/foo/"], ["foo"]]`.
+2. Add `foo` to `constants.local_module_prefixes` (until auto-derived).
+3. Add `foo` to `development_tools/tests/coverage.ini` `[run] source=`.
+4. Add `foo*` to `pyproject.toml` setuptools `include` if the package should ship.
+5. Register the `foo` marker when marker registration is configured (`pytest.ini` or `[tool.pytest.ini_options]`).
+6. Mark tests with `@pytest.mark.<category>` + `@pytest.mark.foo`.
+
+Policy tests in `tests/development_tools/test_domain_mapper_product_packages.py` validate alignment between on-disk packages, `domain_mapper`, and coverage config.
+
+#### 6.2.6. Enforcement
+
+- `tests/unit/test_test_policy_guards.py` - category and domain marker compliance.
+- Tier 3 audits (`audit --full`) run `analyze_test_markers --check`; missing category or domain markers **fail** the audit.
+
+Verify locally:
+
+```powershell
+python development_tools/tests/analyze_test_markers.py --check
+```
+
+#### 6.2.7. Sample marker usage
 
 ```python
 import pytest
@@ -545,17 +598,32 @@ def test_create_task_valid_payload():
 
 @pytest.mark.integration
 @pytest.mark.communication
+@pytest.mark.analytics  # optional feature-slice filter
 @pytest.mark.slow
 @pytest.mark.no_parallel
-def test_discord_delivery_flow():
+def test_discord_analytics_flow():
+    ...
+
+@pytest.mark.ui  # category + domain in tests/ui/
+def test_dialog_opens():
+    ...
+
+@pytest.mark.unit
+@pytest.mark.ui  # category + domain when testing ui/ from tests/unit/
+def test_widget_helper():
+    ...
+
+@pytest.mark.unit
+@pytest.mark.user
+def test_profile_preferences_round_trip():
     ...
 ```
 
 Before adding new markers:
 
-- Update `pytest.ini` (`[pytest]` -> `markers =`) to define them.
-- Document their intended use in this section.
-- Keep the marker set small and purposeful.
+- Register them in the project's pytest marker config when present.
+- Document intended use in this section.
+- Domain markers must be added via `domain_mapper` config, not ad hoc in tests only.
 
 ### 6.3. Using fixtures and helpers
 

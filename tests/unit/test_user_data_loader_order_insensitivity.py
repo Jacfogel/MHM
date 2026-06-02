@@ -1,11 +1,11 @@
-
+﻿
 
 import importlib
 
 import pytest
 
 
-pytestmark = [pytest.mark.user_management]
+pytestmark = [pytest.mark.user]
 
 def _reload_in_order(first_module: str, second_module: str):
     first = importlib.import_module(first_module)
@@ -16,7 +16,7 @@ def _reload_in_order(first_module: str, second_module: str):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 def test_loader_registry_shared_and_complete_regardless_of_import_order():
     # Case 1: import then reload user_data_registry
     um1, udh1 = _reload_in_order('storage.user_data_registry', 'storage.user_data_registry')

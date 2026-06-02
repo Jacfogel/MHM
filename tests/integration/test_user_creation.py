@@ -1,4 +1,4 @@
-"""
+﻿"""
 Comprehensive tests for user creation and management scenarios.
 
 Tests all the possibilities and options for user creation, including:
@@ -29,7 +29,7 @@ class TestUserCreationScenarios:
     """Test comprehensive user creation scenarios."""
     
     @pytest.mark.integration
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.regression
     @pytest.mark.file_io
@@ -62,7 +62,7 @@ class TestUserCreationScenarios:
         assert loaded_data['account']['features']['task_management'] == 'enabled'
     
     @pytest.mark.integration
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.regression
     @pytest.mark.file_io
@@ -124,7 +124,7 @@ class TestUserCreationScenarios:
             assert loaded_data['context']['gender_identity'] == ['they/them']
     
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.no_parallel
     def test_user_with_custom_fields(self, test_data_dir, mock_config):
         """Test creating a user with extensive custom fields using enhanced test utilities."""
@@ -159,7 +159,7 @@ class TestUserCreationScenarios:
         assert 'Improve executive functioning' in loaded_data['context']['goals']
     
     @pytest.mark.unit
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.no_parallel
     def test_user_creation_with_schedules(self, test_data_dir, mock_config):
         """Test creating a user with schedule periods using enhanced test utilities."""
@@ -197,7 +197,7 @@ class TestUserCreationScenarios:
         assert loaded_data['schedules']['motivational']['periods']['Default']['start_time'] == '18:00'
 
 
-@pytest.mark.user_management
+@pytest.mark.user
 class TestUserCreationValidation:
     """Test validation scenarios during user creation."""
     
@@ -272,7 +272,7 @@ class TestUserCreationValidation:
         assert isinstance(result, dict), "Should return a result dictionary"
 
 
-@pytest.mark.user_management
+@pytest.mark.user
 class TestUserCreationErrorHandling:
     """Test error handling during user creation."""
     
@@ -350,7 +350,7 @@ class TestUserCreationErrorHandling:
         assert isinstance(loaded_data, dict)
 
 
-@pytest.mark.user_management
+@pytest.mark.user
 class TestUserCreationIntegration:
     """Test integration scenarios for user creation."""
     

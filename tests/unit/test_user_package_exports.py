@@ -1,4 +1,4 @@
-"""Unit tests for lazy exports in user package __init__."""
+﻿"""Unit tests for lazy exports in user package __init__."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import pytest
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 class TestUserPackageExports:
     def test_lazy_export_user_context_manager_and_singleton(self):
         user_pkg = importlib.import_module("user")

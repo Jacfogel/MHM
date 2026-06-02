@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Integration Tests for Account Lifecycle - MHM
 Tests complete account workflows: creation, modification, feature enablement, deletion
@@ -24,7 +24,7 @@ def _empty_v2_checkins_file_payload() -> dict:
 # Removed path hacks; rely on proper package imports
 
 
-@pytest.mark.user_management
+@pytest.mark.user
 class TestAccountLifecycle:
     """Test complete account lifecycle workflows with real behavior verification."""
     
@@ -146,7 +146,7 @@ class TestAccountLifecycle:
         yield
     
     @pytest.mark.integration
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.regression
     @pytest.mark.slow
@@ -207,7 +207,7 @@ class TestAccountLifecycle:
             # Note: create_minimal_user only creates motivational category, not health
     
     @pytest.mark.integration
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.regression
     @pytest.mark.slow
@@ -305,7 +305,7 @@ class TestAccountLifecycle:
             assert "evening" in schedules["health"]["periods"], "Evening period should exist"
     
     @pytest.mark.integration
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.regression
     @pytest.mark.slow
@@ -380,7 +380,7 @@ class TestAccountLifecycle:
         assert "morning_checkin" in updated_data["schedules"]["checkin"]["periods"], "Check-in period should exist"
     
     @pytest.mark.integration
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.regression
     @pytest.mark.slow
@@ -479,7 +479,7 @@ class TestAccountLifecycle:
         assert updated_data["account"]["features"]["checkins"] == "enabled", "Check-ins should still be enabled"
     
     @pytest.mark.integration
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.regression
     @pytest.mark.slow

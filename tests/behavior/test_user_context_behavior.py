@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 
 """
 test_user_context_behavior.py
@@ -15,12 +15,12 @@ from user.context_manager import UserContextManager
 
 
 @pytest.mark.behavior
-@pytest.mark.user_management
+@pytest.mark.user
 class TestUserContextManagerBehavior:
     """Test UserContextManager real behavior and side effects."""
     
     @pytest.mark.behavior
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -35,7 +35,7 @@ class TestUserContextManagerBehavior:
         assert len(manager.conversation_history) == 0, "conversation_history should be empty initially"
     
     @pytest.mark.behavior
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -58,7 +58,7 @@ class TestUserContextManagerBehavior:
             mock_user_context.get_user_id.assert_called_once()
             assert result is not None, "Should return context even with mocked user"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -80,7 +80,7 @@ class TestUserContextManagerBehavior:
             assert result is not None, "Should return minimal context even with no user"
             assert 'user_profile' in result, "Should have user_profile in minimal context"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -118,7 +118,7 @@ class TestUserContextManagerBehavior:
             assert 'mood_trends' in result, "Should have mood_trends"
             assert 'conversation_history' in result, "Should have conversation_history"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -143,7 +143,7 @@ class TestUserContextManagerBehavior:
             assert 'conversation_history' in result, "Should have conversation_history key"
             assert result['conversation_history'] == [], "conversation_history should be empty list"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -167,7 +167,7 @@ class TestUserContextManagerBehavior:
         assert exchange['ai_response'] == ai_response, "AI response should be stored correctly"
         assert 'timestamp' in exchange, "Should have timestamp"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -188,7 +188,7 @@ class TestUserContextManagerBehavior:
         assert len(manager.conversation_history[test_user_id]) <= 50, "History should not exceed limit"
         assert len(manager.conversation_history[test_user_id]) > 0, "Should still have some history"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -210,7 +210,7 @@ class TestUserContextManagerBehavior:
         assert history[0]['user_message'] == "Hello", "Should have correct user message"
         assert history[1]['ai_response'] == "I'm great!", "Should have correct AI response"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -226,7 +226,7 @@ class TestUserContextManagerBehavior:
         # Assert - Verify empty history handling
         assert history == [], "Should return empty list for new user"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -268,7 +268,7 @@ class TestUserContextManagerBehavior:
             assert 'motivational' in profile['active_categories'], "Should include categories from preferences"
             assert profile['messaging_service'] == "discord", "Should include channel type from preferences"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -304,7 +304,7 @@ class TestUserContextManagerBehavior:
             assert activity['recent_responses_count'] == 2, "Should have correct number of responses"
             assert activity['last_response_date'] == '2025-01-02', "Should have correct last response date"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -331,7 +331,7 @@ class TestUserContextManagerBehavior:
             assert insights['interaction_count'] == 3, "Should count all interactions"
             assert len(insights['recent_topics']) > 0, "Should have some topics"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -360,7 +360,7 @@ class TestUserContextManagerBehavior:
             assert trends['average_mood'] is not None, "Should calculate average mood"
             assert trends['average_energy'] is not None, "Should calculate average energy"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -400,7 +400,7 @@ class TestUserContextManagerBehavior:
         assert 'Evening' in active_schedules, "Should include Evening period"
         assert 'Afternoon' not in active_schedules, "Should not include inactive Afternoon period"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -450,7 +450,7 @@ class TestUserContextManagerBehavior:
         assert '3' in formatted, "Should include recent responses count"
         assert 'motivation' in formatted, "Should include recent topics"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -468,7 +468,7 @@ class TestUserContextManagerBehavior:
         assert len(formatted) > 0, "Should not be empty"
         assert "User context unavailable" in formatted, "Should indicate context unavailability"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -489,7 +489,7 @@ class TestUserContextManagerBehavior:
             assert result is not None, "Should return result even with errors"
             assert 'user_profile' in result, "Should have user_profile even with errors"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -526,7 +526,7 @@ class TestUserContextManagerBehavior:
             assert context['conversation_history'][0]['user_message'] == "Hello", "Should have correct user message"
             assert context['conversation_history'][0]['ai_response'] == "Hi there!", "Should have correct AI response"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -563,7 +563,7 @@ class TestUserContextManagerBehavior:
             assert context is not None, "Should return context under load"
             assert len(context['conversation_history']) <= 50, "Should maintain history limit under load"
     
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
@@ -587,7 +587,7 @@ class TestUserContextManagerBehavior:
 
 
 @pytest.mark.behavior
-@pytest.mark.user_management
+@pytest.mark.user
 class TestUserContextManagerIntegration:
     """Integration tests for UserContextManager with real user data."""
     

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Unit tests for user data handlers convenience functions.
 
 Tests for user data handlers (core.user_data_* modules) focusing on update convenience functions
@@ -65,7 +65,7 @@ def _resolve_actual_user_id(test_data_dir, internal_username):
 
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 class TestUserDataHandlersConvenienceFunctions:
     """Test convenience functions for updating user data."""
 

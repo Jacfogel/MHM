@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Systematic Account Management Testing Script for MHM
 Tests all account management functionality for editing existing users
@@ -13,7 +13,7 @@ import logging
 
 
 @pytest.mark.integration
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.critical
 @pytest.mark.regression
 @pytest.mark.file_io
@@ -48,7 +48,7 @@ def test_account_management_imports():
 
 
 @pytest.mark.integration
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.critical
 @pytest.mark.regression
 @pytest.mark.file_io
@@ -118,7 +118,7 @@ def test_account_management_functions():
 
 
 @pytest.mark.integration
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.critical
 @pytest.mark.regression
 @pytest.mark.file_io
@@ -244,7 +244,7 @@ def test_account_management_data_structures(test_data_dir, mock_config):
 
 
 @pytest.mark.integration
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.critical
 @pytest.mark.regression
 @pytest.mark.file_io
@@ -316,7 +316,7 @@ def test_account_management_validation():
 
 
 @pytest.mark.integration
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.critical
 @pytest.mark.regression
 @pytest.mark.file_io
@@ -424,7 +424,7 @@ def test_account_management_safe_operations():
 
 
 @pytest.mark.integration
-@pytest.mark.user_management
+@pytest.mark.user
 @pytest.mark.critical
 @pytest.mark.regression
 @pytest.mark.file_io

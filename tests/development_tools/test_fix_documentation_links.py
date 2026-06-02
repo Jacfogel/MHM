@@ -8,13 +8,23 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch
 
-from tests.development_tools.conftest import load_development_tools_module
+from tests.development_tools.conftest import (
+    load_development_tools_module,
+    temp_project_copy_paths,
+)
 
 
 # Load the module
 links_module = load_development_tools_module("docs.fix_documentation_links")
 DocumentationLinkFixer = links_module.DocumentationLinkFixer
 main = links_module.main
+
+
+@pytest.fixture(scope="module")
+def temp_project_copy():
+    """One demo-tree copy per module (avoids per-test copytree; tests rewrite test_doc.md each time)."""
+    fixture_path = Path(__file__).parent.parent / "fixtures" / "development_tools_demo"
+    yield from temp_project_copy_paths(fixture_path.resolve())
 
 
 class TestDocumentationLinkFixer:

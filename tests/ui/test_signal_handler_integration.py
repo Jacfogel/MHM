@@ -1,4 +1,4 @@
-"""
+﻿"""
 Signal handler integration tests for UI components.
 
 These tests verify that Qt signal handlers are correctly connected and can
@@ -120,7 +120,7 @@ class TestAccountCreatorDialogSignalHandlers:
             dialog.deleteLater()
     
     @pytest.mark.ui
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     @pytest.mark.critical
     def test_username_textChanged_signal_handler_accepts_parameter(self, dialog):
@@ -160,7 +160,7 @@ class TestAccountCreatorDialogSignalHandlers:
         assert dialog.username == "newusername", "Signal handler should update username when text changes"
     
     @pytest.mark.ui
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     @pytest.mark.critical
     def test_preferred_name_textChanged_signal_handler_accepts_parameter(self, dialog):
@@ -192,7 +192,7 @@ class TestAccountCreatorDialogSignalHandlers:
         assert dialog.preferred_name == "New Name", "Signal handler should update preferred name"
     
     @pytest.mark.ui
-    @pytest.mark.user_management
+    @pytest.mark.user
     @pytest.mark.regression
     def test_account_creator_dialog_imports_available(self, dialog):
         """Test that all required PySide6 imports are available.

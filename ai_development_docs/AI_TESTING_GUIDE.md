@@ -240,24 +240,25 @@ Placement rules:
 - Use the correct directory (`unit`, `integration`, `behavior`, `ui`) based on behavior.
 - Choose clear file and test names that describe what is being verified.
 
-Marker standards (must stay aligned with `pytest.ini` and section 6 in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md)):
+### 6.2. Marker standards
 
-- Every test must have **exactly one** category marker:
-  - `unit`, `integration`, `behavior`, or `ui`.
-- Add feature markers as needed, for example:
-  - `tasks`, `scheduler`, `checkins`, `messages`, `storage`, `analytics`,
-    `user_management`, `communication`, `ai`, `notebook`.
-- Use:
-  - `slow` for long-running tests.
-  - `fast` (optional) for very quick tests.
-  - `asyncio` for async tests.
-  - `no_parallel` when absolutely necessary (see section 5).
-  - `critical`, `regression`, `smoke` for quality tiers.
+Keep markers aligned with section 6.2 in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md). Three layers - do not mix them:
+
+**Category (required - exactly one):** `unit`, `integration`, `behavior`, `ui` - suite layer.
+
+**Domain (required - at least one on non-exempt tests):** top-level product packages - `ai`, `checkins`, `communication`, `core`, `messages`, `notebook`, `scheduler`, `storage`, `tasks`, `ui`, `user`.
+
+- **Source of truth:** `domain_mapper.source_to_test_mapping` in `development_tools_config.json` (derived into `test_markers.domain_markers`).
+- **Exempt:** `tests/development_tools/` (no domain mark); `tests/ai/` (excluded from scans).
+- **`ui` collision:** in `tests/ui/`, one `@pytest.mark.ui` covers category + domain; elsewhere use category + `@pytest.mark.ui` when testing the `ui/` package.
+- **`user` domain:** use `@pytest.mark.user` (not `user_management`). Legacy `user_management` is not a domain marker.
+
+**Optional (never required):** speed (`slow`, `fast`), resource (`asyncio`, `no_parallel`, `e2e`), quality (`critical`, `regression`, `smoke`), feature-slice (`analytics`, `file_io`). These filter runs; they do not satisfy domain policy.
 
 Policy guard tests:
 
 - Policy guardrails are enforced by tests in `tests/unit/test_test_policy_guards.py`.
-- When adding/refactoring tests, keep these policies green (for example, no direct `datetime.now()` in tests, no production-log path usage, no real-user-path writes, `no_parallel` reason requirements, **category** markers, and **product-domain** markers aligned with `development_tools/tests/analyze_test_markers.py` / `test_markers.domain_markers` in config).
+- When adding/refactoring tests, keep these policies green (no direct `datetime.now()` in tests, no production-log path usage, no real-user-path writes, `no_parallel` reason requirements, **category** markers, and **product-domain** markers aligned with `development_tools/tests/analyze_test_markers.py` / `test_markers.domain_markers` in config).
 - Tier 3 audits run `analyze_test_markers --check` and fail when category or domain marker gaps are reported.
 
 Examples (pattern only; do not copy literally):
@@ -272,16 +273,21 @@ def test_create_task_valid_payload():
 
 @pytest.mark.integration
 @pytest.mark.communication
+@pytest.mark.analytics  # optional; communication satisfies domain policy
 @pytest.mark.slow
 @pytest.mark.no_parallel
-def test_discord_delivery_flow():
+def test_discord_analytics_flow():
+    ...
+
+@pytest.mark.unit
+@pytest.mark.user
+def test_profile_preferences_round_trip():
     ...
 ```
 
-If you add or rename markers:
+If you add or rename **domain** markers, update `domain_mapper` in `development_tools_config.json` and the paired section in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md). Register optional markers in pytest config when present.
 
-- Update root `pytest.ini` under the `[pytest]` section (not `[tool:pytest]`).
-- Update this section and the equivalent part of [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md).
+### 6.3. Fixtures and helpers
 
 Use fixtures and helpers:
 

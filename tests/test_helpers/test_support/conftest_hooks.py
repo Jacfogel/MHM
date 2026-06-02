@@ -191,7 +191,7 @@ def pytest_configure(config):
         "markers", "analytics: mark test as analytics and reporting functionality"
     )
     config.addinivalue_line(
-        "markers", "user_management: mark test as user account management functionality"
+        "markers", "user: mark test as user-domain functionality"
     )
     config.addinivalue_line(
         "markers", "scheduler: mark test as scheduler functionality"

@@ -16,11 +16,12 @@ For fixing operations, use fix_test_markers.py.
 - **Domain** (product / source area): top-level packages in ``domain_mapper`` (``core``,
   ``communication``, ``ui``, ``tasks``, ``ai``, ``user``, ``notebook``, ``scheduler``,
   ``checkins``, ``messages``, ``storage``, ``development_tools``).
-  Typical **domain-attribution** pytest names include ``communication``, ``ai``, ``tasks``,
-  ``notebook``, ``user_management``, ``checkins``, ``messages``, ``storage``, etc. **Categories**
-  are ``unit``, ``integration``, ``behavior``, ``ui``; **tier** markers include ``critical``,
-  ``smoke``, ``regression``. Those are not the same thing as **product domains** (though ``ui``
-  doubles as a category label and a product area).
+  Typical **domain-attribution** pytest names match top-level product packages: ``communication``,
+  ``ai``, ``tasks``, ``notebook``, ``user``, ``checkins``, ``messages``, ``storage``, etc.
+  **Categories** are ``unit``, ``integration``, ``behavior``, ``ui``; **tier** markers include
+  ``critical``, ``smoke``, ``regression``. Those are not product domains (though ``ui`` doubles
+  as a category label and a product area). Optional cross-cutting markers such as ``analytics``
+  or legacy ``user_management`` are not domain markers.
 
 **Analyzer config:** ``get_test_markers_config()`` fills ``domain_markers`` from
 ``domain_marker_union_from_domain_mapper()``, which unions marker strings in

@@ -1,4 +1,4 @@
-"""
+﻿"""
 User Preferences Test Coverage Expansion
 
 This module provides comprehensive test coverage for user/user_preferences.py.
@@ -18,10 +18,10 @@ from unittest.mock import patch
 from user.user_preferences import UserPreferences
 
 
-pytestmark = [pytest.mark.user_management]
+pytestmark = [pytest.mark.user]
 
 @pytest.mark.unit
-@pytest.mark.user_management
+@pytest.mark.user
 class TestUserPreferences:
     """Comprehensive test coverage for UserPreferences class."""
     
