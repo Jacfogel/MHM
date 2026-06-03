@@ -699,6 +699,7 @@ def validate_personalization_data(data: dict[str, Any]) -> tuple[bool, list[str]
     # Optional list fields
     optional_lists = [
         "gender_identity",
+        "pronouns",
         "reminders_needed",
         "loved_ones",
         "interests",

@@ -99,6 +99,8 @@ def test_load_user_tags_initializes_defaults(user_dir, unique_user_id):
     result = load_user_tags(unique_user_id)
 
     assert tags_file.exists(), "tags.json should be created when missing"
+    on_disk = json.loads(tags_file.read_text(encoding="utf-8"))
+    assert on_disk.get("schema_version") == 2
     assert result["tags"] == tags_module._load_default_tags_from_resources()
     metadata = result.get("metadata", {})
     assert metadata.get("initialized_with_defaults", False)
@@ -119,6 +121,7 @@ def test_save_user_tags_normalizes_and_updates_metadata(user_dir, unique_user_id
     assert tags_file.exists()
 
     saved = json.loads(tags_file.read_text(encoding="utf-8"))
+    assert saved.get("schema_version") == 2
     assert saved["tags"] == ["work", "new:tag"]
     assert saved["metadata"]["created_at"] == "initial"
     assert "updated_at" in saved["metadata"]

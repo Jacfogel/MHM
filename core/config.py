@@ -81,24 +81,6 @@ if os.getenv("MHM_TESTING") == "1":
     # Force default messages dir during tests to avoid absolute path/env variance
     DEFAULT_MESSAGES_DIR_PATH = "resources/default_messages"
 
-# Profile JSON v2 envelope rollout (account, preferences, schedules, context, tags, chat)
-PROFILE_V2_WRITE = os.getenv("PROFILE_V2_WRITE", "false").lower() == "true"
-PROFILE_V2_ENFORCE = os.getenv("PROFILE_V2_ENFORCE", "false").lower() == "true"
-
-
-@handle_errors("reading PROFILE_V2_WRITE flag", default_return=False)
-def is_profile_v2_write_enabled() -> bool:
-    """When true, profile/tags/chat saves emit schema_version 2 envelopes."""
-    return PROFILE_V2_WRITE
-
-
-# devtools: ignore[facade-shims]: rollout gate for strict v2 validation fallback on save
-@handle_errors("reading PROFILE_V2_ENFORCE flag", default_return=False)
-def is_profile_v2_enforce_enabled() -> bool:
-    """When true, failed v2 validation on save falls back to legacy shape instead of raw v2."""
-    return PROFILE_V2_ENFORCE
-
-
 # LM Studio Configuration
 # SETUP INSTRUCTIONS:
 # 1. Download and install LM Studio from https://lmstudio.ai/

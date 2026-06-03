@@ -203,23 +203,43 @@ def load_user_tags(user_id: str) -> dict[str, Any]:
                     "initialized_with_defaults": True,
                 },
             }
-            # Save the initialized file
-            save_json_data(tags_data, str(tags_file))
-            logger.info(
-                f"Initialized tags file for user {user_id} with {len(default_tags)} default tags"
-            )
+            if _persist_tags_to_disk(user_id, tags_data):
+                logger.info(
+                    f"Initialized tags file for user {user_id} with {len(default_tags)} default tags"
+                )
             return tags_data
 
         # Load existing JSON data
-        data = load_json_data(str(tags_file))
-        if data is not None:
-            from core.profile_v2_io import prepare_profile_raw_on_load
+        raw = load_json_data(str(tags_file))
+        from core.profile_v2_io import is_profile_v2_envelope, prepare_profile_raw_on_load
 
-            prepared = prepare_profile_raw_on_load("tags", data)
-            if isinstance(prepared, dict):
-                data = prepared
+        if raw is None or raw == {} or (
+            isinstance(raw, dict)
+            and not is_profile_v2_envelope(raw)
+            and ("tags" not in raw or raw.get("file_type") == "generic_json")
+        ):
+            logger.warning(
+                f"Tags file corrupted for user {user_id}, reinitializing with defaults"
+            )
+            default_tags = _load_default_tags_from_resources()
+            tags_data = {
+                "tags": default_tags,
+                "metadata": {
+                    "created_at": now_timestamp_full(),
+                    "updated_at": now_timestamp_full(),
+                    "initialized_with_defaults": True,
+                    "reinitialized": True,
+                },
+            }
+            _persist_tags_to_disk(user_id, tags_data)
+            return tags_data
 
-        # If file doesn't exist or is corrupted, initialize with defaults
+        data = raw
+        prepared = prepare_profile_raw_on_load("tags", data)
+        if isinstance(prepared, dict):
+            data = prepared
+
+        # If unwrap yielded no usable tags payload, initialize with defaults
         if data is None:
             logger.warning(
                 f"Tags file corrupted for user {user_id}, reinitializing with defaults"
@@ -234,7 +254,7 @@ def load_user_tags(user_id: str) -> dict[str, Any]:
                     "reinitialized": True,
                 },
             }
-            save_json_data(tags_data, str(tags_file))
+            _persist_tags_to_disk(user_id, tags_data)
             return tags_data
 
         # Ensure structure has required fields
@@ -258,6 +278,24 @@ def load_user_tags(user_id: str) -> dict[str, Any]:
     except Exception as e:
         logger.error(f"Error loading tags for user {user_id}: {e}")
         return {}
+
+
+@handle_errors("persisting user tags to disk", default_return=False)
+def _persist_tags_to_disk(user_id: str, tags_data: dict[str, Any]) -> bool:
+    """Write tags through the profile v2 wrap path (shared by lazy init and save)."""
+    tags_file_path = get_user_file_path(user_id, "tags")
+    payload = dict(tags_data)
+    if "tags" in payload and isinstance(payload["tags"], list):
+        payload["tags"] = normalize_tags(payload["tags"])
+    if "metadata" not in payload:
+        payload["metadata"] = {}
+    payload["metadata"]["updated_at"] = now_timestamp_full()
+    if "created_at" not in payload["metadata"]:
+        payload["metadata"]["created_at"] = now_timestamp_full()
+    from core.profile_v2_io import wrap_profile_document_for_save
+
+    disk_payload = wrap_profile_document_for_save("tags", payload)
+    return save_json_data(disk_payload, tags_file_path)
 
 
 @handle_errors("saving user tags", default_return=False)
@@ -286,24 +324,7 @@ def save_user_tags(user_id: str, tags_data: dict[str, Any]) -> bool:
         # Ensure user directory exists (lazy creation)
         ensure_user_dir_for_tags(user_id)
 
-        # Use get_user_file_path to get the tags file path (consistent with checkins, schedules, etc.)
-        tags_file_path = get_user_file_path(user_id, "tags")
-
-        # Normalize tags before saving
-        if "tags" in tags_data and isinstance(tags_data["tags"], list):
-            tags_data["tags"] = normalize_tags(tags_data["tags"])
-
-        # Update metadata
-        if "metadata" not in tags_data:
-            tags_data["metadata"] = {}
-        tags_data["metadata"]["updated_at"] = now_timestamp_full()
-        if "created_at" not in tags_data["metadata"]:
-            tags_data["metadata"]["created_at"] = now_timestamp_full()
-
-        from core.profile_v2_io import wrap_profile_document_for_save
-
-        disk_payload = wrap_profile_document_for_save("tags", tags_data)
-        success = save_json_data(disk_payload, tags_file_path)
+        success = _persist_tags_to_disk(user_id, tags_data)
 
         if success:
             logger.debug(f"Saved tags for user {user_id}")

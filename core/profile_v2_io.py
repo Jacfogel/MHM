@@ -1,15 +1,14 @@
 """
-Load/save bridging for profile v2 envelopes vs legacy on-disk shapes.
+Load/save bridging for profile v2 envelopes vs in-memory application shapes.
 
-Unwrapped dicts/lists match existing application expectations; wrapping applies on
-save when PROFILE_V2_WRITE is enabled.
+On-disk JSON is always schema_version 2. Unwrapped dicts/lists match existing
+application expectations (for example flat schedule categories in memory).
 """
 
 from __future__ import annotations
 
 from typing import Any, Literal
 
-from core.config import is_profile_v2_enforce_enabled, is_profile_v2_write_enabled
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 from core.profile_v2_schemas import (
@@ -25,7 +24,8 @@ from core.schemas import (
     validate_preferences_dict,
     validate_schedules_dict,
 )
-from core.time_utilities import now_timestamp_full
+from core.time_format_constants import TIMESTAMP_FULL
+from core.time_utilities import format_timestamp, now_timestamp_full, parse_timestamp
 from storage.user_data_v2_base import SCHEMA_VERSION
 
 logger = get_component_logger("main")
@@ -40,7 +40,27 @@ ProfileDocumentType = Literal[
 ]
 
 _V2_ENVELOPE_KEYS = frozenset({"schema_version", "updated_at"})
-_LEGACY_SCHEDULE_RESERVED = frozenset({"schema_version", "updated_at", "categories"})
+_SCHEDULE_V2_RESERVED_KEYS = frozenset({"schema_version", "updated_at", "categories"})
+_CONTEXT_ACCOUNT_LEAK_KEYS = frozenset(
+    {
+        "user_id",
+        "internal_username",
+        "account_status",
+        "chat_id",
+        "phone",
+        "email",
+        "discord_user_id",
+        "discord_username",
+        "timezone",
+        "features",
+    }
+)
+_CUSTOM_FIELDS_LIST_KEYS = (
+    "health_conditions",
+    "medications_treatments",
+    "reminders_needed",
+    "allergies_sensitivities",
+)
 
 _VALIDATORS = {
     "account": validate_account_v2_document,
@@ -58,10 +78,11 @@ def is_profile_v2_envelope(data: Any) -> bool:
     return isinstance(data, dict) and data.get("schema_version") == SCHEMA_VERSION
 
 
-# devtools: ignore[facade-shims]: tolerant legacy normalizer during profile v2 dual-read
-@handle_errors("validating legacy profile document", default_return={})
-def _legacy_validate(document_type: ProfileDocumentType, inner: dict[str, Any]) -> dict[str, Any]:
-    """Apply ``core/schemas.py`` validators to unwrapped in-memory profile payloads."""
+@handle_errors("normalizing in-memory profile payload", default_return={})
+def _normalize_in_memory_profile(
+    document_type: ProfileDocumentType, inner: dict[str, Any]
+) -> dict[str, Any]:
+    """Apply tolerant in-memory validators after unwrapping a v2 on-disk envelope."""
     if document_type == "account":
         normalized, _ = validate_account_dict(inner)
         return normalized if isinstance(normalized, dict) else inner
@@ -74,30 +95,97 @@ def _legacy_validate(document_type: ProfileDocumentType, inner: dict[str, Any]) 
     return inner
 
 
-# devtools: ignore[facade-shims]: dual-read bridge from on-disk v2 or legacy JSON to in-memory shapes
+@handle_errors("normalizing context timestamp", default_return="")
+def _normalize_context_timestamp(value: Any) -> str:
+    """Coerce non-canonical ISO/microsecond timestamps to canonical TIMESTAMP_FULL."""
+    if not isinstance(value, str) or not value.strip():
+        return ""
+    parsed = parse_timestamp(
+        value.strip(),
+        allowed=("full", "minute", "microseconds", "external"),
+    )
+    if parsed is None:
+        return value.strip()
+    return format_timestamp(parsed, TIMESTAMP_FULL)
+
+
+@handle_errors("normalizing context profile payload", default_return={})
+def _normalize_context_inner(inner: dict[str, Any]) -> dict[str, Any]:
+    """Normalize context fields for in-memory use and v2 envelope build."""
+    payload = dict(inner)
+    stripped = [key for key in _CONTEXT_ACCOUNT_LEAK_KEYS if key in payload]
+    for key in stripped:
+        payload.pop(key, None)
+    if stripped:
+        logger.debug(f"Removed account fields from context payload: {stripped}")
+
+    raw_custom = payload.get("custom_fields")
+    custom: dict[str, Any] = dict(raw_custom) if isinstance(raw_custom, dict) else {}
+    for key in _CUSTOM_FIELDS_LIST_KEYS:
+        value = custom.get(key)
+        custom[key] = value if isinstance(value, list) else []
+
+    top_level_reminders = payload.pop("reminders_needed", None)
+    if isinstance(top_level_reminders, list):
+        merged = list(custom.get("reminders_needed") or [])
+        for item in top_level_reminders:
+            if item not in merged:
+                merged.append(item)
+        custom["reminders_needed"] = merged
+
+    payload["custom_fields"] = custom
+
+    pronouns = payload.get("pronouns")
+    payload["pronouns"] = pronouns if isinstance(pronouns, list) else []
+
+    for ts_key in ("created_at", "last_updated"):
+        if ts_key in payload:
+            payload[ts_key] = _normalize_context_timestamp(payload[ts_key])
+
+    return payload
+
+
+@handle_errors("building empty profile payload", default_return={})
+def _empty_profile_payload(
+    document_type: ProfileDocumentType,
+) -> dict[str, Any] | list[dict[str, Any]]:
+    """Return the in-memory empty shape for a profile document type after a failed v2 load."""
+    if document_type == "chat_interactions":
+        return []
+    if document_type == "tags":
+        return {"tags": [], "metadata": {}}
+    return {}
+
+
+@handle_errors("logging non-v2 profile on disk", default_return=None)
+def _warn_non_v2_on_disk(document_type: ProfileDocumentType, raw: Any) -> None:
+    """Log when on-disk JSON is not a v2 envelope (load path returns empty in-memory data)."""
+    if raw is None:
+        return
+    kind = type(raw).__name__
+    version = raw.get("schema_version") if isinstance(raw, dict) else None
+    logger.warning(
+        f"Expected v2 envelope for {document_type} on load (got {kind}"
+        + (f", schema_version={version!r}" if version is not None else "")
+        + "); returning empty in-memory payload"
+    )
+
+
 @handle_errors("unwrapping profile document", default_return={})
 def unwrap_profile_document_on_load(
     document_type: ProfileDocumentType, raw: Any
 ) -> dict[str, Any] | list[dict[str, Any]]:
-    """Normalize on-disk JSON (v2 envelope or legacy) to legacy in-memory shapes."""
+    """Unwrap a v2 on-disk envelope to in-memory application shapes."""
     if document_type == "chat_interactions":
-        if isinstance(raw, list):
-            return raw
-        if is_profile_v2_envelope(raw):
-            interactions = raw.get("interactions")
-            return interactions if isinstance(interactions, list) else []
-        return []
+        if not isinstance(raw, dict) or not is_profile_v2_envelope(raw):
+            _warn_non_v2_on_disk(document_type, raw)
+            return []
+        interactions = raw.get("interactions")
+        return interactions if isinstance(interactions, list) else []
 
-    if not isinstance(raw, dict):
-        return {} if document_type != "tags" else {"tags": [], "metadata": {}}
-
-    if not is_profile_v2_envelope(raw):
-        if document_type == "schedules":
-            from core.schedule_document_defaults import migrate_legacy_schedules_structure
-
-            migrated = migrate_legacy_schedules_structure(raw)
-            return _legacy_validate("schedules", migrated)
-        return _legacy_validate(document_type, raw)
+    if not isinstance(raw, dict) or not is_profile_v2_envelope(raw):
+        _warn_non_v2_on_disk(document_type, raw)
+        return _empty_profile_payload(document_type)  # type: ignore[return-value]
 
     if document_type == "account":
         inner = {k: v for k, v in raw.items() if k not in _V2_ENVELOPE_KEYS}
@@ -106,11 +194,11 @@ def unwrap_profile_document_on_load(
             for key, value in metadata.items():
                 if key not in inner:
                     inner[key] = value
-        return _legacy_validate("account", inner)
+        return _normalize_in_memory_profile("account", inner)
 
     if document_type == "preferences":
         inner = {k: v for k, v in raw.items() if k not in _V2_ENVELOPE_KEYS}
-        return _legacy_validate("preferences", inner)
+        return _normalize_in_memory_profile("preferences", inner)
 
     if document_type == "schedules":
         from core.schedule_document_defaults import migrate_legacy_schedules_structure
@@ -118,14 +206,14 @@ def unwrap_profile_document_on_load(
         categories = raw.get("categories")
         if isinstance(categories, dict):
             migrated = migrate_legacy_schedules_structure(categories)
-            return _legacy_validate("schedules", migrated)
+            return _normalize_in_memory_profile("schedules", migrated)
         return {}
 
     if document_type == "context":
         inner = {k: v for k, v in raw.items() if k not in _V2_ENVELOPE_KEYS}
         if "last_updated" not in inner and raw.get("updated_at"):
             inner["last_updated"] = raw["updated_at"]
-        return inner
+        return _normalize_context_inner(inner)
 
     if document_type == "tags":
         return {
@@ -133,7 +221,7 @@ def unwrap_profile_document_on_load(
             "metadata": raw.get("metadata") if isinstance(raw.get("metadata"), dict) else {},
         }
 
-    return raw
+    return {}
 
 
 _ACCOUNT_V2_KEYS = frozenset(
@@ -192,7 +280,7 @@ def _build_v2_envelope(document_type: ProfileDocumentType, inner: dict[str, Any]
         categories_raw = {
             key: value
             for key, value in inner.items()
-            if key not in _LEGACY_SCHEDULE_RESERVED
+            if key not in _SCHEDULE_V2_RESERVED_KEYS
         }
         categories = migrate_legacy_schedules_structure(categories_raw)
         return {
@@ -202,9 +290,13 @@ def _build_v2_envelope(document_type: ProfileDocumentType, inner: dict[str, Any]
         }
 
     if document_type == "context":
-        payload = dict(inner)
+        normalized = _normalize_context_inner(inner)
+        updated_at = _normalize_context_timestamp(
+            normalized.get("last_updated") or timestamp
+        ) or timestamp
+        payload = dict(normalized)
         payload["schema_version"] = SCHEMA_VERSION
-        payload["updated_at"] = payload.get("last_updated") or timestamp
+        payload["updated_at"] = updated_at
         return payload
 
     if document_type == "tags":
@@ -223,51 +315,42 @@ def _build_v2_envelope(document_type: ProfileDocumentType, inner: dict[str, Any]
     return inner
 
 
-@handle_errors("wrapping chat interactions for save", default_return=[])
-def wrap_chat_interactions_for_save(interactions: list[dict[str, Any]]) -> dict[str, Any] | list[dict[str, Any]]:
-    """Wrap interaction rows in a v2 envelope when ``PROFILE_V2_WRITE`` is enabled."""
-    if not is_profile_v2_write_enabled():
-        return interactions
+@handle_errors("wrapping chat interactions for save", default_return={})
+def wrap_chat_interactions_for_save(interactions: list[dict[str, Any]]) -> dict[str, Any]:
+    """Wrap interaction rows in a validated v2 on-disk envelope."""
     payload = {
         "schema_version": SCHEMA_VERSION,
         "updated_at": now_timestamp_full(),
         "interactions": interactions,
     }
     normalized, errors = validate_chat_interactions_v2_document(payload)
-    if errors and is_profile_v2_enforce_enabled():
-        logger.warning(f"chat_interactions v2 enforce failed: {errors[0]}")
-        return interactions
-    return normalized if not errors else payload
+    if errors:
+        logger.warning(f"chat_interactions v2 validation failed: {errors[0]}")
+        return payload
+    return normalized
 
 
 @handle_errors("wrapping profile document for save", default_return={})
 def wrap_profile_document_for_save(
     document_type: ProfileDocumentType, inner: dict[str, Any]
 ) -> dict[str, Any]:
-    """Build and optionally validate a v2 on-disk envelope from in-memory profile data."""
-    if not is_profile_v2_write_enabled():
-        return inner
+    """Build and validate a v2 on-disk envelope from in-memory profile data."""
     payload = _build_v2_envelope(document_type, inner)
     validator = _VALIDATORS.get(document_type)
     if validator is None:
-        return inner
+        return payload
     normalized, errors = validator(payload)
     if errors:
-        if is_profile_v2_enforce_enabled():
-            logger.warning(
-                f"profile v2 enforce failed for {document_type}: {errors[0]}; "
-                "saving legacy shape"
-            )
-            return inner
+        logger.warning(
+            f"profile v2 validation failed for {document_type}: {errors[0]}"
+        )
         return payload
     return normalized
 
 
-# devtools: ignore[facade-shims]: compatibility alias for loader call sites
 @handle_errors("preparing profile raw document", default_return={})
 def prepare_profile_raw_on_load(
     document_type: ProfileDocumentType, raw: Any
 ) -> dict[str, Any] | list[dict[str, Any]]:
-    """Alias for :func:`unwrap_profile_document_on_load` used by the registry loaders."""
+    """Unwrap a v2 on-disk profile document for registry loaders and tooling."""
     return unwrap_profile_document_on_load(document_type, raw)
-

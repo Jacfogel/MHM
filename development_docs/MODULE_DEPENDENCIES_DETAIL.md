@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-02 02:07:12
+> **Last Generated**: 2026-06-03 01:01:51
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -21,7 +21,7 @@
 - **Standard Library Imports**: 515 (29.0%)
 - **Third-Party Imports**: 213 (12.0%)
 - **Local Imports**: 1049 (59.0%)
-- **Last Updated**: 2026-06-02
+- **Last Updated**: 2026-06-03
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -2360,7 +2360,6 @@
   - `core/backup_manager.py`
   - `core/file_operations.py`
   - `core/logger.py`
-  - `core/profile_v2_io.py`
   - `core/service.py`
   - `core/service_utilities.py`
   - `core/tags.py`
@@ -2901,13 +2900,13 @@
 - **Purpose**: Core system module for profile_v2_io
 - **Dependencies**:
   - **Local**:
-    - `core.config (is_profile_v2_enforce_enabled, is_profile_v2_write_enabled)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.profile_v2_schemas (validate_account_v2_document, validate_chat_interactions_v2_document, validate_context_v2_document, validate_preferences_v2_document, validate_schedules_v2_document, validate_tags_v2_document)` (NEW)
     - `core.schedule_document_defaults (migrate_legacy_schedules_structure)` (NEW)
     - `core.schemas (validate_account_dict, validate_preferences_dict, validate_schedules_dict)` (NEW)
-    - `core.time_utilities (now_timestamp_full)` (NEW)
+    - `core.time_format_constants (TIMESTAMP_FULL)` (NEW)
+    - `core.time_utilities (format_timestamp, now_timestamp_full, parse_timestamp)` (NEW)
     - `storage.user_data_v2_base (SCHEMA_VERSION)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
@@ -2920,7 +2919,7 @@
   - `storage/user_data_write.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.logger, core.profile_v2_schemas, core.schedule_document_defaults, core.schemas, core.time_utilities, storage.user_data_v2_base
+- Added: core.error_handling, core.logger, core.profile_v2_schemas, core.schedule_document_defaults, core.schemas, core.time_format_constants, core.time_utilities, storage.user_data_v2_base
 - Removed: core/file_operations.py, core/response_tracking.py, core/tags.py, storage/user_data_registry.py, storage/user_data_write.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2940,7 +2939,7 @@
     - `re`
     - `typing (Any, Literal)`
   - **Third-party**:
-    - `pydantic (BaseModel, ConfigDict, Field, field_validator, model_validator)`
+    - `pydantic (BaseModel, ConfigDict, Field, field_validator)`
     - `pytz`
 - **Used by**:
   - `core/profile_v2_io.py`
@@ -3235,6 +3234,7 @@
 - **Dependencies**: None (no imports)
 - **Used by**:
   - `communication/message_processing/interaction_manager.py`
+  - `core/profile_v2_io.py`
   - `core/schedule_utilities.py`
   - `core/time_utilities.py`
 

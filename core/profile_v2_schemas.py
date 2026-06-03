@@ -270,6 +270,7 @@ class ContextV2EnvelopeModel(BaseModel):
     updated_at: str
     preferred_name: str = ""
     gender_identity: list[str] = Field(default_factory=list)
+    pronouns: list[str] = Field(default_factory=list)
     date_of_birth: str = ""
     custom_fields: CustomFieldsV2Model = Field(default_factory=CustomFieldsV2Model)
     interests: list[str] = Field(default_factory=list)

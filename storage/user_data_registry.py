@@ -214,7 +214,12 @@ def _get_user_data__load_impl(
         data = default_data_factory(user_id)
         if data is None:
             return None
-        save_json_data(data, file_path)
+        if file_key in _PROFILE_DOCUMENT_TYPES:
+            doc_type = "context" if file_key == "context" else file_key
+            disk_payload = wrap_profile_document_for_save(doc_type, data)  # type: ignore[arg-type]
+            save_json_data(disk_payload, file_path)
+        else:
+            save_json_data(data, file_path)
     else:
         ensure_user_directory(user_id)
         data = load_json_data(file_path)

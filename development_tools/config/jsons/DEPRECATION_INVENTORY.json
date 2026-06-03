@@ -70,16 +70,66 @@
       "exit_criteria": "Portability acceptance criteria met; root .ruff.toml deprecated or documented.",
       "notes": "2026-03-28: search_terms emptied while bridge remains — LEGACY_REFERENCE_REPORT uses inventory metadata only for this entry; grep-style hits duplicated module docstrings/CLI help and implied remediation work when none is required (V5 Phase 1). Re-add discrete terms only if a second mirror implementation must be detected. Bridge module: development_tools/config/sync_ruff_toml.py. Prior: 2026-03-26 phrase-only terms; 2026-03-27 logger migration."
     },
-    {
-      "id": "profile_json_legacy_on_disk_shapes",
-      "status": "active_bridge",
-      "search_terms": [],
-      "replacement": "core/profile_v2_io.py dual-read; strict envelopes in core/profile_v2_schemas.py when PROFILE_V2_WRITE=true",
-      "exit_criteria": "PROFILE_V2_WRITE default true fleet-wide; legacy tolerant-only save paths removed from storage/user_data_registry.py and core/schemas.py adapters retired",
-      "notes": "2026-06-02: search_terms emptied — profile v2 dual-read bridges use devtools: ignore[facade-shims] in profile_v2_io.py; flat schedule migration lives in migrate_legacy_schedules_structure (schedule_document_defaults.py). Removed redundant CategoryScheduleV2Model._normalize_periods_input after consolidating save-path migration in profile_v2_io._build_v2_envelope."
-    }
   ],
   "removed_inventory": [
+    {
+      "id": "profile_json_legacy_on_disk_shapes",
+      "removed_at": "2026-06-02",
+      "search_terms": [
+        "prepare_profile_raw_on_load",
+        "dual-read",
+        "bare list",
+        "legacy on-disk",
+        "_unwrap_disk_for_migration"
+      ],
+      "note": "Fleet on v2 envelopes; runtime v2-only load in core/profile_v2_io.py. Legacy migration script and dual-read paths removed."
+    },
+    {
+      "id": "core_profile_v2_audit_module",
+      "removed_at": "2026-06-02",
+      "search_terms": [
+        "core/profile_v2_audit.py",
+        "from core.profile_v2_audit",
+        "import core.profile_v2_audit"
+      ],
+      "note": "Fleet validated; profile v2 audit tooling removed from core and dev-tools."
+    },
+    {
+      "id": "profile_json_v2_devtools_audit",
+      "removed_at": "2026-06-02",
+      "search_terms": [
+        "profile-json-v2-audit",
+        "profile_json_v2_audit",
+        "analyze_profile_json_v2",
+        "development_tools/shared/profile_json_v2_audit.py",
+        "development_tools/data/analyze_profile_json_v2.py",
+        "audit_profile_json_v2"
+      ],
+      "note": "One-shot fleet compliance check complete; removed CLI command, scripts, and tests."
+    },
+    {
+      "id": "migrate_profile_json_v2_script",
+      "removed_at": "2026-06-02",
+      "search_terms": [
+        "migrate_profile_json_v2",
+        "scripts/migrate_profile_json_v2.py",
+        "_unwrap_disk_for_migration",
+        "profile_v2_migration_report"
+      ],
+      "note": "One-shot fleet migrator removed after production apply."
+    },
+    {
+      "id": "profile_v2_write_enforce_env_flags",
+      "removed_at": "2026-06-02",
+      "search_terms": [
+        "PROFILE_V2_WRITE",
+        "PROFILE_V2_ENFORCE",
+        "is_profile_v2_write_enabled",
+        "is_profile_v2_enforce_enabled",
+        "profile_v2_write_context"
+      ],
+      "note": "Profile v2 save is unconditional in core/profile_v2_io.py after fleet migration; env rollout flags removed from core/config.py."
+    },
     {
       "id": "per_user_backup_user_data_v2_directories",
       "removed_at": "2026-05-31",

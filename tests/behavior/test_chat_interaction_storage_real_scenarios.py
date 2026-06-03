@@ -21,7 +21,7 @@ class TestChatInteractionStorageRealScenarios:
     
     @staticmethod
     def _load_chat_rows(chat_file: str) -> list[dict]:
-        """Load chat_interactions.json and normalize both legacy list and v2 envelope shapes."""
+        """Load chat_interactions.json via v2 unwrap helper."""
         with open(chat_file, encoding='utf-8') as f:
             raw = json.load(f)
         rows = prepare_profile_raw_on_load("chat_interactions", raw)

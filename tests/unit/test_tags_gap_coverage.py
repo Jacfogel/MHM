@@ -89,12 +89,21 @@ class TestTagsGapCoverage:
 
         monkeypatch.setattr(tags_module, "ensure_user_dir_for_tags", lambda user_id: None)
         monkeypatch.setattr(tags_module, "get_user_file_path", lambda user_id, file_type: "/tmp/tags.json")
-        monkeypatch.setattr(tags_module, "save_json_data", lambda data, path: False)
+        saved_payloads: list[dict] = []
+
+        def capture_save(data, path):
+            saved_payloads.append(data)
+            return False
+
+        monkeypatch.setattr(tags_module, "save_json_data", capture_save)
 
         payload = {"tags": ["Work"]}
         assert tags_module.save_user_tags("u1", payload) is False
-        assert "metadata" in payload
-        assert payload["tags"] == ["work"]
+        assert len(saved_payloads) == 1
+        disk = saved_payloads[0]
+        assert disk.get("schema_version") == 2
+        assert "metadata" in disk
+        assert disk.get("tags") == ["work"]
 
         monkeypatch.setattr(
             tags_module,

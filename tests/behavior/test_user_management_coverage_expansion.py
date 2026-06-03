@@ -20,8 +20,16 @@ import os
 import json
 import time
 import uuid
+from typing import Any
 from unittest.mock import patch
 import core
+
+
+def _profile_v2_on_disk(document_type: str, inner: dict[str, Any]) -> dict[str, Any]:
+    """Build on-disk v2 envelope for profile JSON load tests."""
+    from core.profile_v2_io import wrap_profile_document_for_save
+
+    return wrap_profile_document_for_save(document_type, inner)  # type: ignore[arg-type]
 from core import (
     register_data_loader,
     get_available_data_types,
@@ -176,16 +184,21 @@ class TestUserManagementCoverageExpansion:
             "internal_username": "testuser",
             "account_status": "active",
             "created_at": "2024-01-01 00:00:00",
-            "updated_at": "2024-01-01 00:00:00"
+            "updated_at": "2024-01-01 00:00:00",
+            "features": {
+                "automated_messages": "disabled",
+                "checkins": "disabled",
+                "task_management": "disabled",
+            },
         }
         account_file = os.path.join(self.test_user_dir, "account.json")
-        with open(account_file, 'w') as f:
-            json.dump(test_account, f)
-        
+        with open(account_file, "w", encoding="utf-8") as f:
+            json.dump(_profile_v2_on_disk("account", test_account), f)
+
         # Act
-        with patch('storage.user_data_registry.get_user_file_path', return_value=account_file), \
-             patch('storage.user_data_registry.ensure_user_directory'), \
-             patch('storage.user_data_registry.load_json_data', return_value=test_account):
+        with patch(
+            "storage.user_data_registry.get_user_file_path", return_value=account_file
+        ), patch("storage.user_data_registry.ensure_user_directory"):
             result = _get_user_data__load_account(self.test_user_id)
         
         # Assert
@@ -304,13 +317,14 @@ class TestUserManagementCoverageExpansion:
             "checkin_settings": {"enabled": True}
         }
         preferences_file = os.path.join(self.test_user_dir, "preferences.json")
-        with open(preferences_file, 'w') as f:
-            json.dump(test_preferences, f)
-        
+        with open(preferences_file, "w", encoding="utf-8") as f:
+            json.dump(_profile_v2_on_disk("preferences", test_preferences), f)
+
         # Act
-        with patch('storage.user_data_registry.get_user_file_path', return_value=preferences_file), \
-             patch('storage.user_data_registry.ensure_user_directory'), \
-             patch('storage.user_data_registry.load_json_data', return_value=test_preferences):
+        with patch(
+            "storage.user_data_registry.get_user_file_path",
+            return_value=preferences_file,
+        ), patch("storage.user_data_registry.ensure_user_directory"):
             result = _get_user_data__load_preferences(self.test_user_id)
         
         # Assert
@@ -378,13 +392,13 @@ class TestUserManagementCoverageExpansion:
             "goals": ["Learn Python", "Stay healthy"]
         }
         context_file = os.path.join(self.test_user_dir, "user_context.json")
-        with open(context_file, 'w') as f:
-            json.dump(test_context, f)
-        
+        with open(context_file, "w", encoding="utf-8") as f:
+            json.dump(_profile_v2_on_disk("context", test_context), f)
+
         # Act
-        with patch('storage.user_data_registry.get_user_file_path', return_value=context_file), \
-             patch('storage.user_data_registry.ensure_user_directory'), \
-             patch('storage.user_data_registry.load_json_data', return_value=test_context):
+        with patch(
+            "storage.user_data_registry.get_user_file_path", return_value=context_file
+        ), patch("storage.user_data_registry.ensure_user_directory"):
             result = _get_user_data__load_context(self.test_user_id)
         
         # Assert
@@ -477,13 +491,13 @@ class TestUserManagementCoverageExpansion:
             },
         }
         schedules_file = os.path.join(self.test_user_dir, "schedules.json")
-        with open(schedules_file, 'w') as f:
-            json.dump(test_schedules, f)
-        
+        with open(schedules_file, "w", encoding="utf-8") as f:
+            json.dump(_profile_v2_on_disk("schedules", test_schedules), f)
+
         # Act
-        with patch('storage.user_data_registry.get_user_file_path', return_value=schedules_file), \
-             patch('storage.user_data_registry.ensure_user_directory'), \
-             patch('storage.user_data_registry.load_json_data', return_value=test_schedules):
+        with patch(
+            "storage.user_data_registry.get_user_file_path", return_value=schedules_file
+        ), patch("storage.user_data_registry.ensure_user_directory"):
             result = _get_user_data__load_schedules(self.test_user_id)
         
         # Assert
@@ -628,7 +642,10 @@ class TestUserManagementCoverageExpansion:
             mock_get_path.side_effect = mock_path
             
             with patch('storage.user_data_registry.ensure_user_directory'), \
-                 patch('storage.user_data_registry.load_json_data', return_value=test_account):
+                 patch(
+                     'storage.user_data_registry.load_json_data',
+                     return_value=_profile_v2_on_disk("account", test_account),
+                 ):
                 # First load - should populate cache
                 result1 = _get_user_data__load_account(self.test_user_id)
 
@@ -651,7 +668,10 @@ class TestUserManagementCoverageExpansion:
             mock_get_path.side_effect = mock_path
             
             with patch('storage.user_data_registry.ensure_user_directory'), \
-                 patch('storage.user_data_registry.load_json_data', return_value=test_account):
+                 patch(
+                     'storage.user_data_registry.load_json_data',
+                     return_value=_profile_v2_on_disk("account", test_account),
+                 ):
                 # First load - should populate cache
                 result1 = _get_user_data__load_account(self.test_user_id)
 
@@ -995,22 +1015,22 @@ class TestUserDataManagerCoverageExpansion:
         user_dir = self.test_dir / "users" / self.user_id
         user_dir.mkdir(parents=True, exist_ok=True)
         
-        # Create test user files
+        # Create test user files (v2 envelopes — runtime loads v2 only)
         account_data = {
+            "user_id": self.user_id,
             "internal_username": self.user_id,
             "enabled_features": ["messages", "tasks", "checkins"],
-            "created_at": "2024-01-01T00:00:00Z"
+            "created_at": "2024-01-01T00:00:00Z",
         }
-        with open(user_dir / "account.json", 'w') as f:
-            json.dump(account_data, f)
-        
+        with open(user_dir / "account.json", "w", encoding="utf-8") as f:
+            json.dump(_profile_v2_on_disk("account", account_data), f, indent=2)
+
         preferences_data = {
-            "timezone": "UTC",
-            "language": "en",
-            "notifications": True
+            "categories": ["motivational"],
+            "channel": {"type": "email", "contact": "test@example.com"},
         }
-        with open(user_dir / "preferences.json", 'w') as f:
-            json.dump(preferences_data, f)
+        with open(user_dir / "preferences.json", "w", encoding="utf-8") as f:
+            json.dump(_profile_v2_on_disk("preferences", preferences_data), f, indent=2)
         
         # Create messages directory and file
         messages_dir = user_dir / "messages"
@@ -1094,26 +1114,17 @@ class TestUserDataManagerCoverageExpansion:
     @pytest.mark.behavior
     def test_update_user_index_real_behavior(self, user_data_manager, test_path_factory):
         """Test updating user index."""
-        # Mock get_all_user_ids to return test users
-        # Note: update_user_index now uses safe_json_write from file_locking.py
-        with patch('storage.user_data_operations.get_all_user_ids', return_value=[self.user_id, "user2"]), \
-        patch('storage.user_data_operations.get_user_data_summary') as mock_summary, \
-        patch('core.file_locking.safe_json_write') as mock_save:
-
-            mock_summary.return_value = {
-                "user_id": self.user_id,
-                "summary_timestamp": "2024-01-01T00:00:00Z",
-                "data_types": ["messages"],
-                "counts": {"messages": 2}
-            }
-            # Mock safe_json_write to return True (success)
+        with patch(
+            "core.file_locking.safe_json_read", return_value={"last_updated": None}
+        ), patch("core.file_locking.safe_json_write") as mock_save:
             mock_save.return_value = True
 
             result = user_data_manager.update_user_index(self.user_id)
 
-            # Verify function was called
             assert result is True
             mock_save.assert_called_once()
+            index_payload = mock_save.call_args[0][1]
+            assert index_payload.get(self.user_id) == self.user_id
     
     @pytest.mark.behavior
     def test_export_user_data_error_handling_real_behavior(self, user_data_manager, test_path_factory):
@@ -1157,11 +1168,10 @@ class TestUserDataManagerCoverageExpansion:
     @pytest.mark.behavior
     def test_update_user_index_error_handling_real_behavior(self, user_data_manager, test_path_factory):
         """Test update user index error handling."""
-        # Mock get_all_user_ids to raise exception
-        with patch('storage.user_data_operations.get_all_user_ids', side_effect=Exception("Test error")):
-            
+        with patch(
+            "storage.user_data_operations.get_user_data",
+            side_effect=Exception("Test error"),
+        ):
             result = user_data_manager.update_user_index(self.user_id)
-            
-            # Verify error handling (actual implementation may handle errors differently)
-            # Just verify we get a boolean result
-            assert isinstance(result, bool)
+
+            assert result is False

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-02 02:07:10
+> **Last Generated**: 2026-06-03 01:01:49
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 91.5% [!] GOOD**
-- **Total Functions**: 2034
-- **Total Methods**: 1308
-- **Documented**: 3058/3342
+- **Total Functions**: 2036
+- **Total Methods**: 1307
+- **Documented**: 3059/3343
 - **Files Scanned**: 190
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -55,7 +55,7 @@ UI Operations Decision Tree:
 ```
 Core System Decision Tree:
 +-- `core/service.py` - Main service (73 functions)
-+-- `core/config.py` - Configuration (21 functions)
++-- `core/config.py` - Configuration (19 functions)
 `-- `scheduler/manager.py` - Scheduling (71/72 functions)```
 
 ## [PATTERNS] **Key Function Patterns**
@@ -153,7 +153,7 @@ Core System Decision Tree:
 ## [!] **Areas Needing Attention**
 
 ### **High Priority** (Missing Documentation)
-- `core/profile_v2_schemas.py` - 24/48 functions undocumented (50% coverage)
+- `core/profile_v2_schemas.py` - 24/46 functions undocumented (48% coverage)
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
 - `communication/core/channel_orchestrator.py` - 18/83 functions undocumented (78% coverage)
 - `communication/delivery/message_dispatcher.py` - 15/17 functions undocumented (12% coverage)
@@ -203,7 +203,7 @@ Most complex functions (may need refactoring):
 - `ai/` - AI chatbot functionality (26 files, 266 functions)
 - `checkins/` -  (6 files, 135 functions)
 - `communication/` - Communication channels and message processing (62 files, 1004 functions)
-- `core/` - System utilities and data management (29 files, 604 functions)
+- `core/` - System utilities and data management (29 files, 605 functions)
 - `messages/` -  (5 files, 38 functions)
 - `scheduler/` -  (6 files, 94 functions)
 - `storage/` -  (11 files, 151 functions)

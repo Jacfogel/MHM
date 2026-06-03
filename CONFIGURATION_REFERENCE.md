@@ -39,15 +39,9 @@ These variables control where MHM reads/writes local state.
   **Used for**: location for default message templates.  
   **Breaks if wrong**: categories may appear empty or message initialization may fail.
 
-### 2.1. Profile JSON v2 rollout
+### 2.1. Profile JSON v2
 
-- `PROFILE_V2_WRITE` (default `false`)  
-  **Used for**: when `true`, saves for account, preferences, schedules, context, tags, and chat interactions emit `schema_version: 2` envelopes (see [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) section 0).  
-  **Breaks if wrong**: off = legacy on-disk shapes remain; on = strict validation may reject malformed JSON on save.
-
-- `PROFILE_V2_ENFORCE` (default `false`)  
-  **Used for**: when `true` with `PROFILE_V2_WRITE`, failed strict validation falls back to legacy on-disk shape instead of writing invalid v2.  
-  **Breaks if wrong**: unexpected legacy files if validation fails silently; check logs when enabling.
+Profile files (`account.json`, `preferences.json`, `schedules.json`, `user_context.json`, `tags.json`, `chat_interactions.json`) are always `schema_version: 2` envelopes via `core/profile_v2_io.py`. Runtime load expects v2 on disk. See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) section 0.
 
 ---
 

@@ -28,9 +28,9 @@ One line per core module (plus related packages). **Read here first** when you a
 | `storage/user_data_read.py` | `get_user_data`, cache clearing, ID helpers on the read path. |
 | `storage/user_data_write.py` | `save_user_data`, transactions, and **centralised** `update_user_*` helpers (single save pipeline). |
 | `storage/user_data_validation.py` | Primitive checks (email, phone, time formats) and rules used by handlers. |
-| `core/schemas.py` | **Tolerant** legacy adapter for account/preferences/schedules in-memory shapes (coerce/normalize; `extra` may allow/ignore). |
+| `core/schemas.py` | **Tolerant** in-memory normalizer for account/preferences/schedules after v2 unwrap (coerce/normalize; `extra` may allow/ignore). |
 | `core/profile_v2_schemas.py` | **Strict** v2 envelope models for account, preferences, schedules (`categories` wrapper), context, tags, chat interactions. |
-| `core/profile_v2_io.py` | Dual-read unwrap and optional v2 wrap on save (`PROFILE_V2_WRITE` / `PROFILE_V2_ENFORCE` in `core/config.py`). |
+| `core/profile_v2_io.py` | Unwrap v2 on-disk envelopes to in-memory shapes; always wrap on save. |
 | `storage/user_data_v2_base.py` | **Strict** shared v2 item layer: `SCHEMA_VERSION`, `BaseItemModel`, `generate_short_id` (dependency **leaf**: no `tasks/` or `notebook/` imports). |
 | `storage/user_data_v2_envelopes.py` | **Strict** v2 **envelopes** for check-ins, messages, deliveries, and profile/tags/chat; `validate_v2_document` orchestration. |
 | `tasks/task_schemas.py`, `tasks/task_validation.py` | Task v2 disk models and `validate_tasks_v2_document`. |
@@ -52,11 +52,11 @@ One line per core module (plus related packages). **Read here first** when you a
 
 **Two validation layers (intentional):**
 
-1. **`schemas.py` (+ `storage/user_data_validation.py`)** - **tolerant / ergonomic** validation for **in-memory** profile shapes returned by `get_user_data` / `save_user_data`. Loaders unwrap v2 on-disk envelopes via `core/profile_v2_io.py` before applying these validators.
+1. **`schemas.py` (+ `storage/user_data_validation.py`)** - **tolerant / ergonomic** validation for **in-memory** profile shapes after v2 unwrap. Loaders apply these validators to unwrapped data from ``get_user_data`` / ``save_user_data``.
 
-2. **`profile_v2_schemas` + `user_data_v2_base` + `user_data_v2_envelopes` + domain validators** - **strict** validation for **versioned v2 on-disk documents**: tasks, notebook, check-ins, messages, deliveries, and (when `PROFILE_V2_WRITE=true`) profile/tags/chat files. Pydantic `extra="forbid"`, canonical timestamps; `validate_v2_document` for tooling and recovery.
+2. **`profile_v2_schemas` + `user_data_v2_base` + `user_data_v2_envelopes` + domain validators** - **strict** validation for **versioned v2 on-disk documents**: tasks, notebook, check-ins, messages, deliveries, and profile/tags/chat files. Pydantic `extra="forbid"`, canonical timestamps; `validate_v2_document` for tooling and recovery.
 
-**Profile v2 on disk (when enabled):** `account.json`, `preferences.json`, and `user_context.json` use flat envelopes (`schema_version`, `updated_at`, then payload fields). `schedules.json` nests category maps under `categories`. `tags.json` wraps `tags` + `metadata`. `chat_interactions.json` uses `interactions[]` (legacy bare arrays are still read). Set `PROFILE_V2_WRITE=true` to emit v2 on save; `PROFILE_V2_ENFORCE=true` falls back to legacy shape when strict validation fails.
+**Profile v2 on disk:** Runtime load expects v2 envelopes only. Saves always emit v2 via `core/profile_v2_io.py`.
 
 ---
 
@@ -89,25 +89,25 @@ Example (typical user directory):
 
 - `account.json`  
   User identity and feature enablement flags (for example, automated messages, check-ins, task management).  
-  Validation: tolerant `core/schemas.py` in memory; strict `core/profile_v2_schemas.py` on disk when v2 write is enabled.
+  Validation: tolerant `core/schemas.py` in memory; strict `core/profile_v2_schemas.py` on disk.
 
 - `preferences.json`  
   User preferences (presentation, defaults, and other user-tunable settings).  
-  Validation: tolerant `core/schemas.py` in memory; strict v2 envelope when enabled.
+  Validation: tolerant `core/schemas.py` in memory; strict v2 envelope on disk.
 
 - `schedules.json`  
   Schedule periods / time windows and schedule-related persisted configuration.  
   Validation: tolerant `core/schemas.py` + `core/schedule_document_defaults.py` in memory; v2 on-disk shape uses a `categories` map wrapper.
 
 - `tags.json`  
-  User tag taxonomy (`core/tags.py`). v2 envelope when write enabled.
+  User tag taxonomy (`core/tags.py`). v2 envelope on disk.
 
 - `user_context.json`  
   Persisted contextual/user-profile style data used by messaging/AI and other components.  
-  Validation: `storage/user_data_validation.py` for partial updates; strict v2 envelope when enabled.
+  Validation: `storage/user_data_validation.py` for partial updates; strict v2 envelope on disk.
 
 - `chat_interactions.json`  
-  Stored chat interaction history (`core/response_tracking.py`). v2 `interactions[]` envelope when write enabled; legacy root arrays still load.
+  Stored chat interaction history (`core/response_tracking.py`). v2 `interactions[]` envelope on disk.
 
 - `checkins.json`  
   Check-in history, responses, and state.

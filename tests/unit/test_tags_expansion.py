@@ -205,8 +205,8 @@ def test_load_user_tags_reinitializes_corrupt_file(tag_env):
 
     data = tags_module.load_user_tags(user_id)
 
-    assert data.get("data") == {}
-    assert data.get("file_type") == "generic_json"
+    assert data.get("tags") == ["home", "work"]
+    assert data.get("metadata", {}).get("reinitialized") is True
 
 
 @pytest.mark.unit

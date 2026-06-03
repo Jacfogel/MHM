@@ -202,10 +202,18 @@ class TestUserFactory:
         }
 
     @staticmethod
-    def _create_user_files_directly__save_json(file_path: str, data: dict):
-        """Save data to a JSON file."""
+    def _create_user_files_directly__save_json(
+        file_path: str, data: dict, profile_document_type: str | None = None
+    ):
+        """Save data to a JSON file (profile types as v2 envelopes)."""
+        if profile_document_type:
+            from core.profile_v2_io import wrap_profile_document_for_save
+
+            payload = wrap_profile_document_for_save(profile_document_type, data)
+        else:
+            payload = data
         with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
+            json.dump(payload, f, indent=2, ensure_ascii=False)
 
     @staticmethod
     def _create_user_files_directly__schedules_data(categories: list) -> dict:
@@ -336,13 +344,13 @@ class TestUserFactory:
         context_file = os.path.join(user_dir, "user_context.json")
 
         TestUserFactory._create_user_files_directly__save_json(
-            account_file, account_data
+            account_file, account_data, "account"
         )
         TestUserFactory._create_user_files_directly__save_json(
-            preferences_file, preferences_data
+            preferences_file, preferences_data, "preferences"
         )
         TestUserFactory._create_user_files_directly__save_json(
-            context_file, context_data
+            context_file, context_data, "context"
         )
 
         # Create schedules if categories exist
@@ -353,7 +361,7 @@ class TestUserFactory:
             )
             schedules_file = os.path.join(user_dir, "schedules.json")
             TestUserFactory._create_user_files_directly__save_json(
-                schedules_file, schedules_data
+                schedules_file, schedules_data, "schedules"
             )
 
         # Create message files

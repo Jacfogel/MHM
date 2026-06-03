@@ -22,6 +22,22 @@ from tests.test_helpers.test_support.conftest_cleanup_impl import _is_transient_
 import contextlib
 
 
+def _write_profile_v2_envelope(path: str, document_type: str, inner: dict | list) -> None:
+    """Write on-disk profile JSON as a v2 envelope (matches production layout)."""
+    from core.profile_v2_io import (
+        wrap_chat_interactions_for_save,
+        wrap_profile_document_for_save,
+    )
+
+    if document_type == "chat_interactions":
+        rows = inner if isinstance(inner, list) else inner.get("interactions", [])
+        payload = wrap_chat_interactions_for_save(rows)
+    else:
+        payload = wrap_profile_document_for_save(document_type, inner)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2)
+
+
 @pytest.fixture(scope="session")
 def test_data_dir():
     """Provide the repository-scoped test data directory for all tests."""
@@ -693,23 +709,22 @@ def mock_user_data(mock_config, test_data_dir, request):
     else:
         sent_messages_data = None
 
-    # Save all mock data
-    with open(os.path.join(user_dir, "account.json"), "w") as f:
-        json.dump(account_data, f, indent=2)
-
-    with open(os.path.join(user_dir, "preferences.json"), "w") as f:
-        json.dump(preferences_data, f, indent=2)
-
-    with open(os.path.join(user_dir, "user_context.json"), "w") as f:
-        json.dump(context_data, f, indent=2)
+    # Save all mock data (v2 envelopes on disk; return dicts keep in-memory shapes)
+    _write_profile_v2_envelope(os.path.join(user_dir, "account.json"), "account", account_data)
+    _write_profile_v2_envelope(
+        os.path.join(user_dir, "preferences.json"), "preferences", preferences_data
+    )
+    _write_profile_v2_envelope(
+        os.path.join(user_dir, "user_context.json"), "context", context_data
+    )
 
     with open(os.path.join(user_dir, "checkins.json"), "w") as f:
         json.dump(checkins_data, f, indent=2)
 
-    with open(os.path.join(user_dir, "chat_interactions.json"), "w") as f:
-        json.dump(chat_data, f, indent=2)
-    with open(os.path.join(user_dir, "schedules.json"), "w") as f:
-        json.dump(schedules_data, f, indent=2)
+    _write_profile_v2_envelope(
+        os.path.join(user_dir, "chat_interactions.json"), "chat_interactions", chat_data
+    )
+    _write_profile_v2_envelope(os.path.join(user_dir, "schedules.json"), "schedules", schedules_data)
 
     # Ensure user is discoverable via identifier lookups
     # Use file locking-aware update and retry if needed
@@ -845,21 +860,21 @@ def mock_user_data_with_messages(test_data_dir, mock_config, request):
 
     sent_messages_data = {"messages": [], "total_sent": 0, "last_sent": None}
 
-    # Save all mock data
-    with open(os.path.join(user_dir, "account.json"), "w") as f:
-        json.dump(account_data, f, indent=2)
-
-    with open(os.path.join(user_dir, "preferences.json"), "w") as f:
-        json.dump(preferences_data, f, indent=2)
-
-    with open(os.path.join(user_dir, "user_context.json"), "w") as f:
-        json.dump(context_data, f, indent=2)
+    # Save all mock data (v2 envelopes on disk)
+    _write_profile_v2_envelope(os.path.join(user_dir, "account.json"), "account", account_data)
+    _write_profile_v2_envelope(
+        os.path.join(user_dir, "preferences.json"), "preferences", preferences_data
+    )
+    _write_profile_v2_envelope(
+        os.path.join(user_dir, "user_context.json"), "context", context_data
+    )
 
     with open(os.path.join(user_dir, "checkins.json"), "w") as f:
         json.dump(checkins_data, f, indent=2)
 
-    with open(os.path.join(user_dir, "chat_interactions.json"), "w") as f:
-        json.dump(chat_data, f, indent=2)
+    _write_profile_v2_envelope(
+        os.path.join(user_dir, "chat_interactions.json"), "chat_interactions", chat_data
+    )
 
     with open(os.path.join(messages_dir, "sent_messages.json"), "w") as f:
         json.dump(sent_messages_data, f, indent=2)

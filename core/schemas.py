@@ -1,12 +1,15 @@
 """
-Pydantic models and helpers for top-level user profile JSON: account, preferences, and schedules.
+Pydantic models and helpers for in-memory user profile shapes: account, preferences, schedules.
+
+Used after unwrapping v2 on-disk envelopes in ``core/profile_v2_io.py``. On-disk profile
+JSON is always schema_version 2; this module normalizes the in-memory dicts the app uses.
 
 Per-user message templates, check-ins, tasks, notebook files, and sent-message logs use the
 strict versioned v2 path (`user_data_v2_envelopes` and domain validators), not this module.
 
 Design goals:
-- Be tolerant of existing on-disk shapes (no breaking changes).
-- Normalize when safe; log validation issues but do not raise by default.
+- Normalize in-memory profile payloads returned by ``get_user_data`` / ``save_user_data``.
+- Coerce when safe; log validation issues but do not raise by default.
 - Keep string-based timestamps and enumerations used by current JSON files.
 """
 

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-02 02:07:10
+> **Last Generated**: 2026-06-03 01:01:49
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 91.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 190
-- **Functions Found**: 2034
-- **Methods Found**: 1308
+- **Functions Found**: 2036
+- **Methods Found**: 1307
 - **Classes Found**: 208
-- **Total Items**: 3342
-- **Functions Documented**: 1835
-- **Methods Documented**: 1223
+- **Total Items**: 3343
+- **Functions Documented**: 1837
+- **Methods Documented**: 1222
 - **Classes Documented**: 147
-- **Total Documented**: 3058
+- **Total Documented**: 3059
 - **Template-Generated**: 26
-- **Last Updated**: 2026-06-02
+- **Last Updated**: 2026-06-03
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (434)
+### **Core System Functions** (436)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (538)
@@ -3205,8 +3205,6 @@ Returns:
     Dict[str, str]: Mapping of channel name to fully qualified class name
 - [OK] `get_user_data_dir(user_id)` - Get the data directory for a specific user.
 - [OK] `get_user_file_path(user_id, file_type)` - Get the file path for a specific user file type.
-- [OK] `is_profile_v2_enforce_enabled()` - When true, failed v2 validation on save falls back to legacy shape instead of raw v2.
-- [OK] `is_profile_v2_write_enabled()` - When true, profile/tags/chat saves emit schema_version 2 envelopes.
 - [OK] `print_configuration_report()` - Print a detailed configuration report to the console.
 - [OK] `validate_ai_configuration()` - Validate AI-related configuration settings.
 - [OK] `validate_all_configuration()` - Comprehensive configuration validation that checks all aspects of the configuration.
@@ -4012,12 +4010,16 @@ Args:
 #### `core/profile_v2_io.py`
 **Functions:**
 - [MISSING] `_build_v2_envelope(document_type, inner)` - No description
-- [OK] `_legacy_validate(document_type, inner)` - Apply ``core/schemas.py`` validators to unwrapped in-memory profile payloads.
+- [OK] `_empty_profile_payload(document_type)` - Return the in-memory empty shape for a profile document type after a failed v2 load.
+- [OK] `_normalize_context_inner(inner)` - Normalize context fields for in-memory use and v2 envelope build.
+- [OK] `_normalize_context_timestamp(value)` - Coerce non-canonical ISO/microsecond timestamps to canonical TIMESTAMP_FULL.
+- [OK] `_normalize_in_memory_profile(document_type, inner)` - Apply tolerant in-memory validators after unwrapping a v2 on-disk envelope.
+- [OK] `_warn_non_v2_on_disk(document_type, raw)` - Log when on-disk JSON is not a v2 envelope (load path returns empty in-memory data).
 - [OK] `is_profile_v2_envelope(data)` - Return True when ``data`` is a dict with ``schema_version`` equal to v2.
-- [OK] `prepare_profile_raw_on_load(document_type, raw)` - Alias for :func:`unwrap_profile_document_on_load` used by the registry loaders.
-- [OK] `unwrap_profile_document_on_load(document_type, raw)` - Normalize on-disk JSON (v2 envelope or legacy) to legacy in-memory shapes.
-- [OK] `wrap_chat_interactions_for_save(interactions)` - Wrap interaction rows in a v2 envelope when ``PROFILE_V2_WRITE`` is enabled.
-- [OK] `wrap_profile_document_for_save(document_type, inner)` - Build and optionally validate a v2 on-disk envelope from in-memory profile data.
+- [OK] `prepare_profile_raw_on_load(document_type, raw)` - Unwrap a v2 on-disk profile document for registry loaders and tooling.
+- [OK] `unwrap_profile_document_on_load(document_type, raw)` - Unwrap a v2 on-disk envelope to in-memory application shapes.
+- [OK] `wrap_chat_interactions_for_save(interactions)` - Wrap interaction rows in a validated v2 on-disk envelope.
+- [OK] `wrap_profile_document_for_save(document_type, inner)` - Build and validate a v2 on-disk envelope from in-memory profile data.
 
 #### `core/profile_v2_schemas.py`
 **Functions:**
@@ -4025,7 +4027,6 @@ Args:
 - [OK] `_normalize_discord_id(cls, value)` - Validate Discord snowflake IDs; invalid values become empty.
 - [OK] `_normalize_discord_username(cls, value)` - Trim and bound Discord username length for on-disk storage.
 - [OK] `_normalize_email(cls, value)` - Drop invalid email strings to empty for strict account envelopes.
-- [OK] `_normalize_periods_input(cls, data)` - Wrap flat period maps under a ``periods`` key for category schedules.
 - [OK] `_normalize_timezone(cls, value)` - Keep only IANA timezone names known to pytz when available.
 - [MISSING] `_require_updated_at(cls, value)` - No description
 - [MISSING] `_require_updated_at(cls, value)` - No description
@@ -4058,7 +4059,6 @@ Args:
   - [MISSING] `AccountV2EnvelopeModel._require_updated_at(cls, value)` - No description
   - [MISSING] `AccountV2EnvelopeModel._validate_created_at(cls, value)` - No description
 - [MISSING] `CategoryScheduleV2Model` - No description
-  - [OK] `CategoryScheduleV2Model._normalize_periods_input(cls, data)` - Wrap flat period maps under a ``periods`` key for category schedules.
 - [MISSING] `ChannelV2Model` - No description
 - [MISSING] `ChatInteractionV2Model` - No description
   - [MISSING] `ChatInteractionV2Model._validate_timestamp(cls, value)` - No description
@@ -4491,6 +4491,7 @@ Returns:
 
 Validates and normalizes tag, loads tags, applies add/remove, saves.
 Returns True on success or when no change was needed (already present/absent).
+- [OK] `_persist_tags_to_disk(user_id, tags_data)` - Write tags through the profile v2 wrap path (shared by lazy init and save).
 - [OK] `add_user_tag(user_id, tag)` - Add a tag to user's tag list (lazy initialization).
 
 Args:

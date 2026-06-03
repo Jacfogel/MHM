@@ -916,6 +916,7 @@ class TestAccountManagementRealBehavior:
         """REAL BEHAVIOR TEST: Test user index integration with real file operations."""
         from storage.user_data_operations import update_user_index, rebuild_user_index
         from tests.test_helpers.test_support.test_helpers import wait_until
+        from core.profile_v2_io import wrap_profile_document_for_save
         import uuid
 
         # Create test users for index testing
@@ -949,19 +950,27 @@ class TestAccountManagementRealBehavior:
             preferences_data_by_user[user_id] = preferences_data
 
             # Persist files directly to avoid cross-test handler side effects and
-            # keep this test focused on index behavior.
+            # keep this test focused on index behavior (v2 envelopes match production).
             with open(
                 os.path.join(user_dir, "account.json"),
                 "w",
                 encoding="utf-8",
             ) as f:
-                json.dump(account_data, f, indent=2)
+                json.dump(
+                    wrap_profile_document_for_save("account", account_data),
+                    f,
+                    indent=2,
+                )
             with open(
                 os.path.join(user_dir, "preferences.json"),
                 "w",
                 encoding="utf-8",
             ) as f:
-                json.dump({"preferences": preferences_data}, f, indent=2)
+                json.dump(
+                    wrap_profile_document_for_save("preferences", preferences_data),
+                    f,
+                    indent=2,
+                )
             test_users.append((user_id, internal_username))
 
         # Update user index for each user
@@ -1006,14 +1015,22 @@ class TestAccountManagementRealBehavior:
             if not os.path.exists(user_account_file):
                 os.makedirs(user_dir, exist_ok=True)
                 with open(user_account_file, "w", encoding="utf-8") as f:
-                    json.dump(account_data_by_user[user_id], f, indent=2)
+                    json.dump(
+                        wrap_profile_document_for_save(
+                            "account", account_data_by_user[user_id]
+                        ),
+                        f,
+                        indent=2,
+                    )
                 with open(
                     os.path.join(user_dir, "preferences.json"),
                     "w",
                     encoding="utf-8",
                 ) as f:
                     json.dump(
-                        {"preferences": preferences_data_by_user[user_id]},
+                        wrap_profile_document_for_save(
+                            "preferences", preferences_data_by_user[user_id]
+                        ),
                         f,
                         indent=2,
                     )

@@ -34,6 +34,7 @@ TIMESTAMP_WITH_MICROSECONDS = "%Y-%m-%d %H:%M:%S.%f"
 # External timestamp inputs we may encounter (parse-only; never emit)
 EXTERNAL_TIMESTAMP_VARIANTS: list[str] = [
     "%Y-%m-%dT%H:%M:%S",
+    "%Y-%m-%dT%H:%M:%S.%f",
     "%Y-%m-%dT%H:%M:%SZ",
     "%Y-%m-%dT%H:%M:%S.%fZ",
 ]

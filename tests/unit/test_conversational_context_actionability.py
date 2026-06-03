@@ -5,9 +5,8 @@ import pytest
 from ai.conversational_context.assembly import build_context_parts
 from ai.response_generator import get_response_generator
 from core import get_user_data, get_user_id_by_identifier
-from core.config import get_user_file_path
 from messages.message_data_manager import store_sent_message
-from core.file_operations import save_json_data
+from storage.user_data_write import update_user_account
 from tests.test_helpers.test_utilities import (
     TestUserFactory,
     cleanup_test_data_environment,
@@ -30,8 +29,7 @@ class TestConversationalContextActionability:
         account = account_result.get("account") or {}
         features = dict(account.get("features") or {})
         features["automated_messages"] = "enabled" if enabled else "disabled"
-        account["features"] = features
-        save_json_data(account, get_user_file_path(actual_id, "account"))
+        assert update_user_account(actual_id, {"features": features})
 
     def test_feature_enablement_lists_disabled_features(self, monkeypatch):
         monkeypatch.setenv("TEST_DATA_DIR", self.test_data_dir)

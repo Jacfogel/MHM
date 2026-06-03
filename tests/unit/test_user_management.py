@@ -227,8 +227,7 @@ class TestUserManagement:
         preferences_data = TestUserDataFactory.create_preferences_data(
             user_id=user_id,
             categories=["motivational", "health"],
-            test="data",
-            number=42,
+            channel={"type": "email", "contact": "test@example.com"},
         )
 
         context_data = TestUserDataFactory.create_context_data(
@@ -275,7 +274,11 @@ class TestUserManagement:
         assert "preferences" in loaded_data
         assert "context" in loaded_data
         assert loaded_data["account"]["email"] == "test@example.com"
-        assert loaded_data["preferences"]["number"] == 42
+        assert loaded_data["preferences"]["categories"] == [
+            "motivational",
+            "health",
+        ]
+        assert loaded_data["preferences"]["channel"]["type"] == "email"
         assert loaded_data["context"]["preferred_name"] == "Test User"
 
     @pytest.mark.unit
@@ -663,7 +666,6 @@ class TestUserManagementEdgeCases:
         # Modify preferences
         new_preferences = {
             "categories": ["motivational", "health"],
-            "timezone": "America/Regina",
             "checkin_settings": {"enabled": True},
             "task_settings": {"enabled": False},
         }
@@ -671,28 +673,42 @@ class TestUserManagementEdgeCases:
         result = update_user_preferences(actual_user_id, new_preferences)
         assert result is True
 
+        from storage.user_data_write import update_user_account
+
+        assert (
+            update_user_account(actual_user_id, {"timezone": "America/Regina"})
+            is True
+        )
+
         # [OK] VERIFY REAL BEHAVIOR: Check data was actually persisted
         updated_user_data = get_user_data(actual_user_id, "all")
         updated_preferences = updated_user_data["preferences"]
 
         assert updated_preferences["categories"] == ["motivational", "health"]
-        assert updated_preferences["timezone"] == "America/Regina"
+        assert updated_user_data["account"]["timezone"] == "America/Regina"
         assert updated_preferences["task_settings"]["enabled"] is False
 
         # [OK] VERIFY REAL BEHAVIOR: Check file was actually modified
         preferences_file_path = os.path.join(actual_user_dir, "preferences.json")
-        with open(preferences_file_path) as f:
-            file_preferences = json.load(f)
+        from core.profile_v2_io import prepare_profile_raw_on_load
+
+        with open(preferences_file_path, encoding="utf-8") as f:
+            file_preferences = prepare_profile_raw_on_load(
+                "preferences", json.load(f)
+            )
         # Check that categories are updated (might be different due to validation/merging)
-        # Categories might be in the 'data' section of the file structure
-        if "categories" in file_preferences:
+        if isinstance(file_preferences, dict) and "categories" in file_preferences:
             assert isinstance(
                 file_preferences["categories"], list
             ), "Categories should be a list"
             assert (
                 "motivational" in file_preferences["categories"]
             ), "Should contain motivational category"
-        elif "data" in file_preferences and "categories" in file_preferences["data"]:
+        elif (
+            isinstance(file_preferences, dict)
+            and "data" in file_preferences
+            and "categories" in file_preferences["data"]
+        ):
             assert isinstance(
                 file_preferences["data"]["categories"], list
             ), "Categories should be a list"
@@ -715,7 +731,7 @@ class TestUserManagementEdgeCases:
             "motivational" in consistency_data["preferences"]["categories"]
         ), "Should contain motivational category"
         # Note: 'health' category might be filtered out by validation logic
-        assert consistency_data["preferences"]["timezone"] == "America/Regina"
+        assert consistency_data["account"]["timezone"] == "America/Regina"
 
         # Step 5: Test partial updates
         # [OK] VERIFY REAL BEHAVIOR: Test partial preference updates
@@ -745,7 +761,7 @@ class TestUserManagementEdgeCases:
 
         # [OK] VERIFY REAL BEHAVIOR: Check existing user data is unaffected
         valid_data = get_user_data(actual_user_id, "all")
-        assert valid_data["preferences"]["timezone"] == "America/Regina"
+        assert valid_data["account"]["timezone"] == "America/Regina"
 
         # Step 7: Test file system integrity
         # [OK] VERIFY REAL BEHAVIOR: Check all files are valid JSON
@@ -773,8 +789,10 @@ class TestUserManagementEdgeCases:
         concurrent_results = []
         for _i in range(10):
             # Simulate concurrent reads
-            concurrent_data = get_user_data(actual_user_id, "preferences")
-            concurrent_results.append(concurrent_data["preferences"]["timezone"])
+            concurrent_data = get_user_data(actual_user_id, "account")
+            concurrent_results.append(
+                (concurrent_data.get("account") or {}).get("timezone")
+            )
 
         # [OK] VERIFY REAL BEHAVIOR: Check all concurrent reads return consistent data
         for result in concurrent_results:

@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-06-02 - Profile JSON v2 fleet + v2-only runtime **COMPLETED**
+- Fleet migrated to `schema_version: 2` profile envelopes; context normalization (`pronouns`, `reminders_needed`, account-field stripping, ISO timestamps) in `core/profile_v2_io.py`.
+- **Phases 4-5**: Unconditional v2 write; v2-only runtime load. Removed migrator, migration runbook, profile v2 audit tooling, and legacy on-disk dual-read/docs. `core/schemas.py` retained for in-memory normalization post-unwrap.
+- **Test suite (2026-06-03)**: Fixed remaining parallel failures - AI context tests use `update_user_account` (not flat JSON writes); user-index UI test writes v2 envelopes; tags corrupt-file reinit detects `generic_json` recovery placeholders; tag save gap test asserts v2 disk payload; `test_update_user_index_real_behavior` uses v2 fixtures and mocks aligned with current per-user index API.
+
 ### 2026-06-01 - Profile JSON v2 envelopes; backup test fix; domain markers **COMPLETED**
 - **Profile v2**: `core/profile_v2_schemas.py`, `core/profile_v2_io.py`, dispatcher branches in `storage/user_data_v2_envelopes.py`; dual-read/write for six files; `PROFILE_V2_WRITE` / `PROFILE_V2_ENFORCE` (default off). Schedules v2 uses `categories` wrapper; chat legacy arrays still load. Follow-up: logging f-strings, registry save helper, behavior test schedule shape, docstrings/error-handling audit items, TODO trimmed to phases 3-5.
 - **Legacy inventory fix**: Removed redundant `CategoryScheduleV2Model._normalize_periods_input` (false-positive legacy scan on the v2 schema class). Flat period migration consolidated to `migrate_legacy_schedules_structure` on load and `_build_v2_envelope` on save; `DEPRECATION_INVENTORY.json` search terms narrowed.
@@ -141,14 +146,6 @@ Guidelines:
 - Actionability audit: `is_automated_messages_enabled()` in `core/response_tracking.py`; gated recent sends and schedule context; guide Section 4.3; `tests/unit/test_conversational_context_actionability.py`
 - Audit priorities: fixed path drift in [TODO.md](../TODO.md) and [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md); registry regen for `is_automated_messages_enabled`; fixed `test_context_includes_recent_messages` for automated-messages gating; cleared completed TODO checkboxes (command list + actionability subtasks)
 - Parallel Tier 3 flake: hardened `test_get_user_data_fields_scalar_list_and_dict` with `clear_user_caches`, on-disk preferences guard; 8x `-n 8` file runs pass
-
-### 2026-05-20 - Shared check-in analytics and service request cleanup **COMPLETED**
-- Removed thin `MHMService._check_test_message_requests__*` / `_check_reschedule_requests__*` delegates; reschedule paths use `to_service_request_context()`; tests call `core.service_requests` directly
-- `analyze_recent_checkin_rows()` in `context_builder.py`; fallback `checkin_summary` uses `ContextAnalysis` (dropped duplicate `compute_checkin_metrics`); parity tests in `test_context_analytics_shared_source.py`
-- `SYSTEM_AI_GUIDE.md` updated; completed service/check-in items cleared from [TODO.md](../TODO.md); recovery default JSON unified in `error_handling.py` (`@handle_errors` on `_recovery_default_document_for_path`); intentional `not_duplicate` for schedule time conversion + account creator collect steps; `clear_user_caches()` in user-index UI test + parallel-hardened `test_remove_message_category` integration test; function registry lists recovery helper
-- Parallel Tier 3: `get_user_data` test-only assembly now runs the same finalize path as primary loads (`normalize_on_read`, schedules shape, `_metadata`); `_finalize_get_user_data_payload` helper in `storage/user_data_read.py`; `fix_user_data_loaders` autouse fixture resets canonical `USER_DATA_LOADERS` each test so stub loaders cannot leak across scenarios
-- Parallel flake remediation: `test_add_message_category` / removal-branch asserts now read preferences via `get_user_data(..., "preferences")` with cache clears (`integration/test_account_lifecycle.py`); `test_remove_message_category` aligns similarly; `test_create_account_updates_user_index` marked `@pytest.mark.no_parallel` like sibling checks-ins UI test and uses one `wait_until` for index + active (avoids shared `users_index` races under xdist with a redundant follow-up `build_user_index()`)
-- Tier 3 run_test_suite parallel crash: `task_management_user` fixture in [`test_task_management_dialog.py`](../tests/ui/test_task_management_dialog.py) failed setup when `internal_username` lookup lagged under load (~3s retry too short); now requires `create_basic_user` success and resolves UUID via `wait_until` up to 30s (matches other UI stabilization patterns)
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

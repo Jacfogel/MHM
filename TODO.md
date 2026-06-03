@@ -56,12 +56,8 @@ No active high-priority TODOs are currently tracked here. Keep completed archite
 
 ### User data (versioned schemas)
 
-**Profile/tags/chat v2 envelopes (phases 1-2 done)** - Shipped 2026-06-01; see [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) and [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) section 0. Modules: `core/profile_v2_schemas.py`, `core/profile_v2_io.py`. Enable on-disk v2 with `PROFILE_V2_WRITE=true` ([CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md) section 2.1).
-
-**Remaining (phases 3-5)**
-- [ ] Fleet rollout: enable `PROFILE_V2_WRITE`, then `PROFILE_V2_ENFORCE` after validation
-- [ ] Resolve open questions: `custom_fields` typing, legacy account key inventory, dev-tools `schema_version` audit
-- [ ] Retire `core/schemas.py` tolerant-only paths after enforce phase
+**Optional: retire `core/schemas.py` in-memory profile validators** - Only if replaced by stricter models post-v2. Shipped profile v2 work is in [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) (2026-06-02) and [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) section 0.
+- *Estimated effort*: Large
 
 ### Documentation
 

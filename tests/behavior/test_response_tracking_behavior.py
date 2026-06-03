@@ -227,20 +227,26 @@ class TestResponseTrackingBehavior:
                 "user_message": "Hello",
                 "ai_response": "Hi there!",
                 "context_used": False,
-                "timestamp": "2025-01-01 14:00:00"
+                "timestamp": "2025-01-01 14:00:00",
+                "message_length": 5,
+                "response_length": 9,
             },
             {
                 "user_message": "How are you?",
                 "ai_response": "I'm doing well!",
                 "context_used": True,
-                "timestamp": "2025-01-02 14:00:00"
+                "timestamp": "2025-01-02 14:00:00",
+                "message_length": 12,
+                "response_length": 15,
             }
         ]
-        
+
+        from core.profile_v2_io import wrap_chat_interactions_for_save
+
         chat_file = os.path.join(test_data_dir, "users", user_id, "chat_interactions.json")
         os.makedirs(os.path.dirname(chat_file), exist_ok=True)
         with open(chat_file, 'w', encoding='utf-8') as f:
-            json.dump(test_chats, f)
+            json.dump(wrap_chat_interactions_for_save(test_chats), f)
         
         # Act - Get recent chat interactions with mocked file path
         with patch('core.response_tracking.get_user_file_path', return_value=chat_file):
