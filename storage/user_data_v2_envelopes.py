@@ -39,6 +39,14 @@ from tasks.task_schemas import (
     TaskV2Model,
 )
 from tasks.task_validation import validate_tasks_v2_document
+from core.profile_v2_schemas import (
+    validate_account_v2_document,
+    validate_chat_interactions_v2_document,
+    validate_context_v2_document,
+    validate_preferences_v2_document,
+    validate_schedules_v2_document,
+    validate_tags_v2_document,
+)
 
 # Re-exports so ``from storage.user_data_v2_envelopes import â€¦`` stays stable; task/notebook models live in domain packages.
 __all__ = [
@@ -73,4 +81,16 @@ def validate_v2_document(document_type: str, data: dict[str, Any]) -> tuple[dict
         return validate_messages_v2_document(data)
     if document_type == "deliveries":
         return validate_deliveries_v2_document(data)
+    if document_type == "account":
+        return validate_account_v2_document(data)
+    if document_type == "preferences":
+        return validate_preferences_v2_document(data)
+    if document_type == "schedules":
+        return validate_schedules_v2_document(data)
+    if document_type == "context":
+        return validate_context_v2_document(data)
+    if document_type == "tags":
+        return validate_tags_v2_document(data)
+    if document_type == "chat_interactions":
+        return validate_chat_interactions_v2_document(data)
     return data, [f"Unknown v2 document type: {document_type}"]

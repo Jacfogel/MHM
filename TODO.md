@@ -56,15 +56,12 @@ No active high-priority TODOs are currently tracked here. Keep completed archite
 
 ### User data (versioned schemas)
 
-**Plan: versioned v2-style schemas for profile JSON (account, preferences, schedules, context)**
-- *What it means*: Today `account.json`, `preferences.json`, `schedules.json`, and `user_context.json` are validated mainly through tolerant `core/schemas.py` (and related helpers) on the normal load/save path, while tasks, notebook, check-ins, message templates, and deliveries use strict `schema_version` v2 envelopes. **This task is planning only:** produce a written plan (for example a new subsection in [PLANS.md](development_docs/PLANS.md) or an appendix in [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md)) for how to introduce versioned v2 envelopes for those remaining files (migration steps, backward compatibility, whether `validate_v2_document` grows a dispatcher or profile types live beside envelopes, test and rollback strategy) **without implementing the migration yet.**
-- *Why it helps*: One clear mental model for on-disk contracts, easier tooling and audits, and explicit migration boundaries instead of indefinite tolerant-only profile shapes.
-- *Estimated effort*: Small for the **plan document**; Large for a future execution pass (separate tasks after the plan exists).
-- *Created*: 2026-05-01
-- *Subtasks*:
-  - [ ] Draft the plan doc (scope each file, target envelope shape, compatibility with existing `core/schemas.py` consumers).
-  - [ ] List open questions (e.g. `user_context.json` not in `core/schemas.py` today; schedules vs `schedule_document_defaults`; single vs split modules).
-  - [ ] After review, split follow-up implementation tasks (not part of this item).
+**Profile/tags/chat v2 envelopes (phases 1-2 done)** - Shipped 2026-06-01; see [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) and [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) section 0. Modules: `core/profile_v2_schemas.py`, `core/profile_v2_io.py`. Enable on-disk v2 with `PROFILE_V2_WRITE=true` ([CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md) section 2.1).
+
+**Remaining (phases 3-5)**
+- [ ] Fleet rollout: enable `PROFILE_V2_WRITE`, then `PROFILE_V2_ENFORCE` after validation
+- [ ] Resolve open questions: `custom_fields` typing, legacy account key inventory, dev-tools `schema_version` audit
+- [ ] Retire `core/schemas.py` tolerant-only paths after enforce phase
 
 ### Documentation
 

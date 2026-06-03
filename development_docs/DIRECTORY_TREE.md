@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-01 00:03:16
+> **Last Generated**: 2026-06-02 02:07:22
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 000000FC 5EAC:07BC
+Volume serial number is 00000006 5EAC:07BC
 C:.
 |   .ruff.toml
 |   ARCHITECTURE.md
@@ -217,6 +217,8 @@ C:.
 |   |   logger.py
 |   |   network_probe.py
 |   |   pagination.py
+|   |   profile_v2_io.py
+|   |   profile_v2_schemas.py
 |   |   response_tracking.py
 |   |   schedule_document_defaults.py
 |   |   schedule_runtime.py
@@ -318,6 +320,10 @@ C:.
 |   |   |   generate_error_handling_report.py
 |   |   |   __init__.py
 |   |   |
+|   |   +---development_tools
+|   |   |   \---error_handling
+|   |   |       \---jsons
+    (JSON files created by development tools)
 |   |   +---jsons
     (JSON files created by development tools)
 |   +---functions
@@ -940,6 +946,7 @@ C:.
 |   |   |   test_profile_handler.py
 |   |   |   test_profile_handler_gap_coverage.py
 |   |   |   test_profile_service.py
+|   |   |   test_profile_v2_schemas.py
 |   |   |   test_prompt_manager.py
 |   |   |   test_recurring_tasks.py
 |   |   |   test_rich_formatter.py

@@ -386,6 +386,9 @@ def _save_user_data__write_all_types(
     user_id: str, merged_data: dict[str, dict[str, Any]], valid_types: list[str]
 ) -> dict[str, bool]:
     from core.file_operations import save_json_data
+    from core.profile_v2_io import wrap_profile_document_for_save
+
+    _profile_types = frozenset({"account", "preferences", "schedules", "context", "tags"})
     result = {}
     for dt in valid_types:
         if dt not in merged_data:
@@ -395,7 +398,10 @@ def _save_user_data__write_all_types(
             user_dir = get_user_data_dir(user_id)
             os.makedirs(user_dir, exist_ok=True)
             file_path = get_user_file_path(user_id, dt)
-            success = save_json_data(merged_data[dt], file_path)
+            payload = merged_data[dt]
+            if dt in _profile_types and isinstance(payload, dict):
+                payload = wrap_profile_document_for_save(dt, payload)  # type: ignore[arg-type]
+            success = save_json_data(payload, file_path)
             result[dt] = success
             logger.debug(f"Wrote {dt} data for user {user_id}: success={success}")
         except Exception as e:

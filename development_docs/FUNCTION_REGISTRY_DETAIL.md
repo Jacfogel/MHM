@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-01 00:02:40
+> **Last Generated**: 2026-06-02 02:07:10
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 92.1% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 188
-- **Functions Found**: 1996
-- **Methods Found**: 1288
-- **Classes Found**: 195
-- **Total Items**: 3284
-- **Functions Documented**: 1810
-- **Methods Documented**: 1215
+### **Function Documentation Coverage: 91.5% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 190
+- **Functions Found**: 2034
+- **Methods Found**: 1308
+- **Classes Found**: 208
+- **Total Items**: 3342
+- **Functions Documented**: 1835
+- **Methods Documented**: 1223
 - **Classes Documented**: 147
-- **Total Documented**: 3025
+- **Total Documented**: 3058
 - **Template-Generated**: 26
-- **Last Updated**: 2026-06-01
+- **Last Updated**: 2026-06-02
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (397)
+### **Core System Functions** (434)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (538)
@@ -3205,6 +3205,8 @@ Returns:
     Dict[str, str]: Mapping of channel name to fully qualified class name
 - [OK] `get_user_data_dir(user_id)` - Get the data directory for a specific user.
 - [OK] `get_user_file_path(user_id, file_type)` - Get the file path for a specific user file type.
+- [OK] `is_profile_v2_enforce_enabled()` - When true, failed v2 validation on save falls back to legacy shape instead of raw v2.
+- [OK] `is_profile_v2_write_enabled()` - When true, profile/tags/chat saves emit schema_version 2 envelopes.
 - [OK] `print_configuration_report()` - Print a detailed configuration report to the console.
 - [OK] `validate_ai_configuration()` - Validate AI-related configuration settings.
 - [OK] `validate_all_configuration()` - Comprehensive configuration validation that checks all aspects of the configuration.
@@ -4006,6 +4008,81 @@ Args:
   - [OK] `PageRequest.from_values(cls)` - Build a request from untrusted pagination inputs.
 - [OK] `PageResult` - Result of applying a page request to a sequence.
   - [OK] `PageResult.remaining_count(self)` - Number of items after this page.
+
+#### `core/profile_v2_io.py`
+**Functions:**
+- [MISSING] `_build_v2_envelope(document_type, inner)` - No description
+- [OK] `_legacy_validate(document_type, inner)` - Apply ``core/schemas.py`` validators to unwrapped in-memory profile payloads.
+- [OK] `is_profile_v2_envelope(data)` - Return True when ``data`` is a dict with ``schema_version`` equal to v2.
+- [OK] `prepare_profile_raw_on_load(document_type, raw)` - Alias for :func:`unwrap_profile_document_on_load` used by the registry loaders.
+- [OK] `unwrap_profile_document_on_load(document_type, raw)` - Normalize on-disk JSON (v2 envelope or legacy) to legacy in-memory shapes.
+- [OK] `wrap_chat_interactions_for_save(interactions)` - Wrap interaction rows in a v2 envelope when ``PROFILE_V2_WRITE`` is enabled.
+- [OK] `wrap_profile_document_for_save(document_type, inner)` - Build and optionally validate a v2 on-disk envelope from in-memory profile data.
+
+#### `core/profile_v2_schemas.py`
+**Functions:**
+- [OK] `_coerce_flag(cls, value)` - Normalize feature flag inputs to enabled/disabled literals.
+- [OK] `_normalize_discord_id(cls, value)` - Validate Discord snowflake IDs; invalid values become empty.
+- [OK] `_normalize_discord_username(cls, value)` - Trim and bound Discord username length for on-disk storage.
+- [OK] `_normalize_email(cls, value)` - Drop invalid email strings to empty for strict account envelopes.
+- [OK] `_normalize_periods_input(cls, data)` - Wrap flat period maps under a ``periods`` key for category schedules.
+- [OK] `_normalize_timezone(cls, value)` - Keep only IANA timezone names known to pytz when available.
+- [MISSING] `_require_updated_at(cls, value)` - No description
+- [MISSING] `_require_updated_at(cls, value)` - No description
+- [OK] `_valid_days(cls, value)` - Filter schedule days to the allowed set, defaulting to ALL.
+- [OK] `_valid_time(cls, value)` - Normalize schedule period times to HH:MM or 00:00 when invalid.
+- [MISSING] `_validate_categories(cls, value)` - No description
+- [MISSING] `_validate_created_at(cls, value)` - No description
+- [MISSING] `_validate_dob(cls, value)` - No description
+- [OK] `_validate_envelope(model_cls, data)` - Validate ``data`` against a profile v2 envelope model and return JSON-safe output.
+- [OK] `_validate_full_timestamp(value)` - Require canonical full timestamp strings for v2 envelope metadata fields.
+- [MISSING] `_validate_optional_timestamps(cls, value)` - No description
+- [MISSING] `_validate_tags(cls, value)` - No description
+- [MISSING] `_validate_timestamp(cls, value)` - No description
+- [MISSING] `_validate_updated_at(cls, value)` - No description
+- [MISSING] `_validate_updated_at(cls, value)` - No description
+- [MISSING] `_validate_updated_at(cls, value)` - No description
+- [MISSING] `_validate_updated_at(cls, value)` - No description
+- [OK] `validate_account_v2_document(data)` - Validate a v2 account.json envelope.
+- [OK] `validate_chat_interactions_v2_document(data)` - Validate a v2 chat_interactions.json envelope.
+- [OK] `validate_context_v2_document(data)` - Validate a v2 user_context.json envelope.
+- [OK] `validate_preferences_v2_document(data)` - Validate a v2 preferences file envelope.
+- [OK] `validate_schedules_v2_document(data)` - Validate a v2 schedules.json envelope (``categories`` wrapper).
+- [OK] `validate_tags_v2_document(data)` - Validate a v2 tags.json envelope.
+**Classes:**
+- [MISSING] `AccountV2EnvelopeModel` - No description
+  - [OK] `AccountV2EnvelopeModel._normalize_discord_id(cls, value)` - Validate Discord snowflake IDs; invalid values become empty.
+  - [OK] `AccountV2EnvelopeModel._normalize_discord_username(cls, value)` - Trim and bound Discord username length for on-disk storage.
+  - [OK] `AccountV2EnvelopeModel._normalize_email(cls, value)` - Drop invalid email strings to empty for strict account envelopes.
+  - [OK] `AccountV2EnvelopeModel._normalize_timezone(cls, value)` - Keep only IANA timezone names known to pytz when available.
+  - [MISSING] `AccountV2EnvelopeModel._require_updated_at(cls, value)` - No description
+  - [MISSING] `AccountV2EnvelopeModel._validate_created_at(cls, value)` - No description
+- [MISSING] `CategoryScheduleV2Model` - No description
+  - [OK] `CategoryScheduleV2Model._normalize_periods_input(cls, data)` - Wrap flat period maps under a ``periods`` key for category schedules.
+- [MISSING] `ChannelV2Model` - No description
+- [MISSING] `ChatInteractionV2Model` - No description
+  - [MISSING] `ChatInteractionV2Model._validate_timestamp(cls, value)` - No description
+- [MISSING] `ChatInteractionsV2EnvelopeModel` - No description
+  - [MISSING] `ChatInteractionsV2EnvelopeModel._validate_updated_at(cls, value)` - No description
+- [MISSING] `ContextV2EnvelopeModel` - No description
+  - [MISSING] `ContextV2EnvelopeModel._require_updated_at(cls, value)` - No description
+  - [MISSING] `ContextV2EnvelopeModel._validate_dob(cls, value)` - No description
+  - [MISSING] `ContextV2EnvelopeModel._validate_optional_timestamps(cls, value)` - No description
+- [MISSING] `CustomFieldsV2Model` - No description
+- [MISSING] `FeaturesV2Model` - No description
+  - [OK] `FeaturesV2Model._coerce_flag(cls, value)` - Normalize feature flag inputs to enabled/disabled literals.
+- [MISSING] `PeriodV2Model` - No description
+  - [OK] `PeriodV2Model._valid_days(cls, value)` - Filter schedule days to the allowed set, defaulting to ALL.
+  - [OK] `PeriodV2Model._valid_time(cls, value)` - Normalize schedule period times to HH:MM or 00:00 when invalid.
+- [MISSING] `PreferencesV2EnvelopeModel` - No description
+  - [MISSING] `PreferencesV2EnvelopeModel._validate_categories(cls, value)` - No description
+  - [MISSING] `PreferencesV2EnvelopeModel._validate_updated_at(cls, value)` - No description
+- [MISSING] `SchedulesV2EnvelopeModel` - No description
+  - [MISSING] `SchedulesV2EnvelopeModel._validate_updated_at(cls, value)` - No description
+- [MISSING] `TagsMetadataV2Model` - No description
+- [MISSING] `TagsV2EnvelopeModel` - No description
+  - [MISSING] `TagsV2EnvelopeModel._validate_tags(cls, value)` - No description
+  - [MISSING] `TagsV2EnvelopeModel._validate_updated_at(cls, value)` - No description
 
 #### `core/response_tracking.py`
 **Functions:**
@@ -5390,6 +5467,7 @@ Returns:
 - [MISSING] `_get_user_data__load_schedules(user_id, auto_create)` - No description
 - [MISSING] `_get_user_data__load_tags(user_id, auto_create)` - No description
 - [OK] `_preferences_default_data(user_id)` - Return default preferences dict for a user (e.g. when auto-creating).
+- [OK] `_save_user_data__persist_validated_profile_file(user_id, file_key, document_type, payload, cache_dict, cache_key_prefix, validate_fn, log_name)` - Shared save path for account/preferences profile JSON (validate, v2 wrap, cache, index).
 - [MISSING] `_save_user_data__save_account(user_id, account_data)` - No description
 - [MISSING] `_save_user_data__save_context(user_id, context_data)` - No description
 - [MISSING] `_save_user_data__save_preferences(user_id, preferences_data)` - No description

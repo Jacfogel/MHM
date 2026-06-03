@@ -18,10 +18,18 @@ from core.error_handling import handle_errors
 from core.config import ensure_user_directory, get_user_file_path
 from core.file_operations import load_json_data, save_json_data
 from core.time_utilities import now_timestamp_full
+from core.profile_v2_io import (
+    prepare_profile_raw_on_load,
+    wrap_profile_document_for_save,
+)
 from core.schemas import (
     validate_account_dict,
     validate_preferences_dict,
     validate_schedules_dict,
+)
+
+_PROFILE_DOCUMENT_TYPES = frozenset(
+    {"account", "preferences", "schedules", "context", "tags"}
 )
 
 logger = get_component_logger("main")
@@ -213,6 +221,11 @@ def _get_user_data__load_impl(
         if data is None and not auto_create:
             return None
         data = data or {}
+        if file_key in _PROFILE_DOCUMENT_TYPES and data is not None:
+            doc_type = "context" if file_key == "context" else file_key
+            prepared = prepare_profile_raw_on_load(doc_type, data)  # type: ignore[arg-type]
+            if isinstance(prepared, dict):
+                data = prepared
         if normalize_after_load and isinstance(data, dict):
             data = normalize_after_load(data)
     if validate_fn and isinstance(data, dict):
@@ -285,27 +298,56 @@ def _get_user_data__load_account(
     )
 
 
-@handle_errors("saving user account data")
-def _save_user_data__save_account(user_id: str, account_data: dict[str, Any]) -> bool:
+@handle_errors("persisting validated profile file")
+def _save_user_data__persist_validated_profile_file(
+    user_id: str,
+    file_key: str,
+    document_type: str,
+    payload: dict[str, Any],
+    cache_dict: dict,
+    cache_key_prefix: str,
+    validate_fn: Callable[..., tuple[dict[str, Any], list[str]]],
+    log_name: str,
+    *,
+    stamp_updated_at: bool = False,
+) -> bool:
+    """Shared save path for account/preferences profile JSON (validate, v2 wrap, cache, index)."""
     if not user_id:
-        logger.error("_save_user_data__save_account called with None user_id")
+        logger.error(f"_save_user_data__save_{file_key} called with None user_id")
         return False
     ensure_user_directory(user_id)
-    account_file = get_user_file_path(user_id, "account")
-    account_data["updated_at"] = now_timestamp_full()
+    file_path = get_user_file_path(user_id, file_key)
+    if stamp_updated_at:
+        payload["updated_at"] = now_timestamp_full()
     with contextlib.suppress(Exception):
-        account_data, _errs = validate_account_dict(account_data)
-    save_json_data(account_data, account_file)
-    cache_key = f"account_{user_id}"
-    _user_account_cache[cache_key] = (account_data, time.time())
+        payload, _errs = validate_fn(payload)
+    disk_payload = wrap_profile_document_for_save(document_type, payload)  # type: ignore[arg-type]
+    save_json_data(disk_payload, file_path)
+    cache_key = f"{cache_key_prefix}_{user_id}"
+    cache_dict[cache_key] = (payload, time.time())
     try:
         importlib.import_module("storage.user_data_operations").update_user_index(user_id)
     except Exception as e:
         logger.warning(
-            f"Failed to update user index after account update for user {user_id}: {e}"
+            f"Failed to update user index after {log_name} update for user {user_id}: {e}"
         )
-    logger.debug(f"Account data saved for user {user_id}")
+    logger.debug(f"{log_name} data saved for user {user_id}")
     return True
+
+
+@handle_errors("saving user account data")
+def _save_user_data__save_account(user_id: str, account_data: dict[str, Any]) -> bool:
+    return _save_user_data__persist_validated_profile_file(
+        user_id,
+        "account",
+        "account",
+        account_data,
+        _user_account_cache,
+        "account",
+        validate_account_dict,
+        "Account",
+        stamp_updated_at=True,
+    )
 
 
 @handle_errors("building default preferences data", default_return=None)
@@ -343,24 +385,16 @@ def _get_user_data__load_preferences(
 def _save_user_data__save_preferences(
     user_id: str, preferences_data: dict[str, Any]
 ) -> bool:
-    if not user_id:
-        logger.error("_save_user_data__save_preferences called with None user_id")
-        return False
-    ensure_user_directory(user_id)
-    preferences_file = get_user_file_path(user_id, "preferences")
-    with contextlib.suppress(Exception):
-        preferences_data, _perrs = validate_preferences_dict(preferences_data)
-    save_json_data(preferences_data, preferences_file)
-    cache_key = f"preferences_{user_id}"
-    _user_preferences_cache[cache_key] = (preferences_data, time.time())
-    try:
-        importlib.import_module("storage.user_data_operations").update_user_index(user_id)
-    except Exception as e:
-        logger.warning(
-            f"Failed to update user index after preferences update for user {user_id}: {e}"
-        )
-    logger.debug(f"Preferences data saved for user {user_id}")
-    return True
+    return _save_user_data__persist_validated_profile_file(
+        user_id,
+        "preferences",
+        "preferences",
+        preferences_data,
+        _user_preferences_cache,
+        "preferences",
+        validate_preferences_dict,
+        "Preferences",
+    )
 
 
 @handle_errors("building default context data", default_return=None)
@@ -415,7 +449,8 @@ def _save_user_data__save_context(user_id: str, context_data: dict[str, Any]) ->
     ensure_user_directory(user_id)
     context_file = get_user_file_path(user_id, "context")
     context_data["last_updated"] = now_timestamp_full()
-    save_json_data(context_data, context_file)
+    disk_payload = wrap_profile_document_for_save("context", context_data)
+    save_json_data(disk_payload, context_file)
     cache_key = f"context_{user_id}"
     _user_context_cache[cache_key] = (context_data, time.time())
     try:
@@ -469,7 +504,8 @@ def _save_user_data__save_schedules(
             f"Schedules validation reported {len(errors)} issue(s); saving normalized data"
         )
     schedules_data = normalized or {}
-    save_json_data(schedules_data, schedules_file)
+    disk_payload = wrap_profile_document_for_save("schedules", schedules_data)
+    save_json_data(disk_payload, schedules_file)
     cache_key = f"schedules_{user_id}"
     _user_schedules_cache[cache_key] = (schedules_data, time.time())
     logger.debug(f"Schedules data saved for user {user_id}")
@@ -534,3 +570,4 @@ def clear_user_caches(user_id: str | None = None) -> None:
         _user_context_cache.clear()
         _user_schedules_cache.clear()
         logger.debug("Cleared all user caches")
+

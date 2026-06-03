@@ -212,6 +212,12 @@ def load_user_tags(user_id: str) -> dict[str, Any]:
 
         # Load existing JSON data
         data = load_json_data(str(tags_file))
+        if data is not None:
+            from core.profile_v2_io import prepare_profile_raw_on_load
+
+            prepared = prepare_profile_raw_on_load("tags", data)
+            if isinstance(prepared, dict):
+                data = prepared
 
         # If file doesn't exist or is corrupted, initialize with defaults
         if data is None:
@@ -294,8 +300,10 @@ def save_user_tags(user_id: str, tags_data: dict[str, Any]) -> bool:
         if "created_at" not in tags_data["metadata"]:
             tags_data["metadata"]["created_at"] = now_timestamp_full()
 
-        # Use save_json_data directly (this is called by save_user_data internally)
-        success = save_json_data(tags_data, tags_file_path)
+        from core.profile_v2_io import wrap_profile_document_for_save
+
+        disk_payload = wrap_profile_document_for_save("tags", tags_data)
+        success = save_json_data(disk_payload, tags_file_path)
 
         if success:
             logger.debug(f"Saved tags for user {user_id}")

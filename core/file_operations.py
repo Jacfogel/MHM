@@ -454,7 +454,11 @@ def _create_user_files__account_file(
                 "task_management": "enabled" if tasks_enabled else "disabled",
             },
         }
-        save_json_data(account_data, account_file)
+        from core.profile_v2_io import wrap_profile_document_for_save
+
+        save_json_data(
+            wrap_profile_document_for_save("account", account_data), account_file
+        )
         logger.debug(f"Created account file for user {user_id}")
     except Exception as e:
         logger.error(f"Error creating account file for user {user_id}: {e}")
@@ -504,7 +508,12 @@ def _create_user_files__preferences_file(
             if tasks_enabled:
                 default_preferences["task_settings"] = {}
 
-        save_json_data(default_preferences, preferences_file)
+        from core.profile_v2_io import wrap_profile_document_for_save
+
+        save_json_data(
+            wrap_profile_document_for_save("preferences", default_preferences),
+            preferences_file,
+        )
         logger.debug(f"Created preferences file for user {user_id}")
     except Exception as e:
         logger.error(f"Error creating preferences file for user {user_id}: {e}")
@@ -551,7 +560,11 @@ def _create_user_files__context_file(user_id, user_prefs):
             "created_at": current_time,
             "last_updated": current_time,
         }
-        save_json_data(context_data, context_file)
+        from core.profile_v2_io import wrap_profile_document_for_save
+
+        save_json_data(
+            wrap_profile_document_for_save("context", context_data), context_file
+        )
         logger.debug(f"Created user_context file for user {user_id}")
     except Exception as e:
         logger.error(f"Error creating context file for user {user_id}: {e}")
@@ -612,7 +625,11 @@ def _create_user_files__schedules_file(
                 schedules_data["checkin"] = {"periods": checkin_time_periods}
                 logger.debug(f"Created check-in schedule periods for user {user_id}")
 
-        save_json_data(schedules_data, schedules_file)
+        from core.profile_v2_io import wrap_profile_document_for_save
+
+        save_json_data(
+            wrap_profile_document_for_save("schedules", schedules_data), schedules_file
+        )
         logger.debug(f"Created schedules file for user {user_id}")
     except Exception as e:
         logger.error(f"Error creating schedules file for user {user_id}: {e}")

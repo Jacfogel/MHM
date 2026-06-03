@@ -455,8 +455,26 @@ class TestUserManagementCoverageExpansion:
         """Test loading schedules data with real behavior."""
         # Arrange - Create test schedules file
         test_schedules = {
-            "morning": {"time": "09:00", "enabled": True},
-            "evening": {"time": "18:00", "enabled": False}
+            "morning": {
+                "periods": {
+                    "Default": {
+                        "active": True,
+                        "days": ["ALL"],
+                        "start_time": "09:00",
+                        "end_time": "10:00",
+                    }
+                }
+            },
+            "evening": {
+                "periods": {
+                    "Default": {
+                        "active": False,
+                        "days": ["ALL"],
+                        "start_time": "18:00",
+                        "end_time": "19:00",
+                    }
+                }
+            },
         }
         schedules_file = os.path.join(self.test_user_dir, "schedules.json")
         with open(schedules_file, 'w') as f:
@@ -470,10 +488,10 @@ class TestUserManagementCoverageExpansion:
         
         # Assert
         assert result is not None, "Should return schedules data"
-        assert result["morning"]["time"] == "09:00", "Should have correct morning time"
-        assert result["morning"]["enabled"] is True, "Should have correct morning enabled status"
-        assert result["evening"]["time"] == "18:00", "Should have correct evening time"
-        assert result["evening"]["enabled"] is False, "Should have correct evening enabled status"
+        assert result["morning"]["periods"]["Default"]["start_time"] == "09:00"
+        assert result["morning"]["periods"]["Default"]["active"] is True
+        assert result["evening"]["periods"]["Default"]["start_time"] == "18:00"
+        assert result["evening"]["periods"]["Default"]["active"] is False
     
     def test_load_schedules_data_auto_create_real_behavior(self):
         """Test auto-creating schedules data when file doesn't exist."""

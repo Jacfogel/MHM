@@ -69,6 +69,14 @@
       "search_terms": [],
       "exit_criteria": "Portability acceptance criteria met; root .ruff.toml deprecated or documented.",
       "notes": "2026-03-28: search_terms emptied while bridge remains — LEGACY_REFERENCE_REPORT uses inventory metadata only for this entry; grep-style hits duplicated module docstrings/CLI help and implied remediation work when none is required (V5 Phase 1). Re-add discrete terms only if a second mirror implementation must be detected. Bridge module: development_tools/config/sync_ruff_toml.py. Prior: 2026-03-26 phrase-only terms; 2026-03-27 logger migration."
+    },
+    {
+      "id": "profile_json_legacy_on_disk_shapes",
+      "status": "active_bridge",
+      "search_terms": [],
+      "replacement": "core/profile_v2_io.py dual-read; strict envelopes in core/profile_v2_schemas.py when PROFILE_V2_WRITE=true",
+      "exit_criteria": "PROFILE_V2_WRITE default true fleet-wide; legacy tolerant-only save paths removed from storage/user_data_registry.py and core/schemas.py adapters retired",
+      "notes": "2026-06-02: search_terms emptied — profile v2 dual-read bridges use devtools: ignore[facade-shims] in profile_v2_io.py; flat schedule migration lives in migrate_legacy_schedules_structure (schedule_document_defaults.py). Removed redundant CategoryScheduleV2Model._normalize_periods_input after consolidating save-path migration in profile_v2_io._build_v2_envelope."
     }
   ],
   "removed_inventory": [
@@ -242,6 +250,16 @@
       "id": "core_user_data_module_renames_and_updates_merge_2026_05_01",
       "removed_at": "2026-05-01",
       "note": "Renamed modules: core/user_data_v2.py -> user_data_v2_envelopes.py; user_data_manager.py -> user_data_operations.py; schedule_management.py -> schedule_runtime.py; user_data_schedule_defaults.py -> schedule_document_defaults.py. Removed core/user_data_updates.py (update_user_* merged into user_data_write.py). get_user_info_for_schedule_management -> get_user_info_for_schedule_runtime. Module-level singleton in user_data_operations remains named user_data_manager for API stability."
+    },
+    {
+      "id": "profile_v2_schedules_wrap_legacy_periods_bridge",
+      "removed_at": "2026-06-02",
+      "search_terms": [
+        "_wrap_legacy_periods",
+        "_normalize_periods_input",
+        "CategoryScheduleV2Model"
+      ],
+      "note": "Removed redundant CategoryScheduleV2Model._normalize_periods_input validator from core/profile_v2_schemas.py. Flat period migration consolidated to migrate_legacy_schedules_structure in schedule_document_defaults.py (load path) and profile_v2_io._build_v2_envelope (save path). CategoryScheduleV2Model is the permanent v2 schema, not legacy code."
     }
   ],
   "global_sweep_keywords": [

@@ -44,15 +44,21 @@ def store_user_response(
     else:
         log_file = get_user_file_path(user_id, f"{response_type}_log")
 
-    existing_data = load_json_data(log_file)
+    from core.profile_v2_io import (
+        prepare_profile_raw_on_load,
+        wrap_chat_interactions_for_save,
+    )
+
+    raw = load_json_data(log_file)
+    existing_data = prepare_profile_raw_on_load("chat_interactions", raw)
+    if not isinstance(existing_data, list):
+        existing_data = []
     if "timestamp" not in response_data:
         response_data["timestamp"] = now_timestamp_full()
 
-    if not isinstance(existing_data, list):
-        existing_data = []
     existing_data.append(response_data)
 
-    save_json_data(existing_data, log_file)
+    save_json_data(wrap_chat_interactions_for_save(existing_data), log_file)
     logger.debug(f"Stored {response_type} response for user {user_id}")
 
 
@@ -88,7 +94,10 @@ def get_recent_responses(
     else:
         log_file = get_user_file_path(user_id, f"{response_type}_log")
 
-    data = load_json_data(log_file) or []
+    from core.profile_v2_io import prepare_profile_raw_on_load
+
+    raw = load_json_data(log_file)
+    data = prepare_profile_raw_on_load("chat_interactions", raw)
     if not isinstance(data, list):
         return []
     return sorted(data, key=_get_response_timestamp_for_sorting, reverse=True)[:limit]

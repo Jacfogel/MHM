@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-01 00:03:13
+> **Last Generated**: 2026-06-02 02:07:21
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 186
-- **Total Imports**: 1746
-- **Standard Library**: 509 (29.2%)
-- **Third-Party**: 211 (12.1%)
-- **Local Imports**: 1026 (58.8%)
+- **Files Scanned**: 188
+- **Total Imports**: 1777
+- **Standard Library**: 515 (29.0%)
+- **Third-Party**: 213 (12.0%)
+- **Local Imports**: 1049 (59.0%)
 
 ## Dependency Decision Trees
 
@@ -26,7 +26,7 @@ Core System Dependencies:
   - core/config.py <- standard library (contextlib, logging, os, pathlib), third-party (dotenv), error_handling
   - core/logger.py <- standard library (contextlib, glob, gzip, json), error_handling, time_utilities, config
 - Data Management
-  - core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+2 more)
+  - core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+3 more)
 - Error Handling
   - core/error_handling.py <- standard library (asyncio, collections.abc, contextlib, functools), network_probe, time_utilities
 
@@ -104,7 +104,7 @@ External libraries provide channel and UI support.
 - `run_headless_service.py` -> standard library (argparse, sys, typing), error_handling, headless_service, logger (main application entry)
 
 ### Data Flow
-- file_operations.py: core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+2 more)
+- file_operations.py: core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+3 more)
 - user_data_operations.py: storage/user_data_operations.py <- standard library (collections.abc, importlib, json, os), logger, config, file_operations, user_data_read, user_management (+8 more)
 - user_data_presets.py: storage/user_data_presets.py <- standard library (json, pathlib), third-party (pytz), logger, error_handling
 
@@ -128,7 +128,7 @@ External libraries provide channel and UI support.
 - `ui/ui_app_qt.py` -> PySide6.QtCore (19 modules use this)
 - `communication/communication_channels/base/command_registry.py` -> discord (16 modules use this)
 - `ai/chatbot.py` -> psutil (7 modules use this)
-- `core/schemas.py` -> pytz (6 modules use this)
+- `core/profile_v2_schemas.py` -> pytz (7 modules use this)
 
 
 ## Quick Reference for AI

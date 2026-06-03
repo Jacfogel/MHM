@@ -30,7 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-06-01 - Fix slow backup behavior test (user listing path); domain marker policy **COMPLETED**
+### 2026-06-01 - Profile JSON v2 envelopes; backup test fix; domain markers **COMPLETED**
+- **Profile v2**: `core/profile_v2_schemas.py`, `core/profile_v2_io.py`, dispatcher branches in `storage/user_data_v2_envelopes.py`; dual-read/write for six files; `PROFILE_V2_WRITE` / `PROFILE_V2_ENFORCE` (default off). Schedules v2 uses `categories` wrapper; chat legacy arrays still load. Follow-up: logging f-strings, registry save helper, behavior test schedule shape, docstrings/error-handling audit items, TODO trimmed to phases 3-5.
+- **Legacy inventory fix**: Removed redundant `CategoryScheduleV2Model._normalize_periods_input` (false-positive legacy scan on the v2 schema class). Flat period migration consolidated to `migrate_legacy_schedules_structure` on load and `_build_v2_envelope` on save; `DEPRECATION_INVENTORY.json` search terms narrowed.
+- **Test fix**: `test_store_chat_interaction_creates_chat_log` uses `prepare_profile_raw_on_load` so it passes when `PROFILE_V2_WRITE=true` (v2 envelope on disk vs legacy bare list).
 - `_users_dir_for_listing()` now honors isolated per-test `tests/data/tmp/<uuid>/users` trees under `MHM_TESTING` instead of always scanning shared `tests/data/users`.
 - `test_backup_manager_with_large_user_data_real_behavior` no longer calls `rebuild_user_index()` or long retry/sleep loops; resolves users via the isolated test index only.
 - Added `test_get_all_user_ids_lists_isolated_test_tree_when_patched` regression coverage.

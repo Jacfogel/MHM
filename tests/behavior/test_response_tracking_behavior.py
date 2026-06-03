@@ -16,6 +16,7 @@ from core.response_tracking import (
     get_user_info_for_tracking,
     track_user_response,
 )
+from core.profile_v2_io import prepare_profile_raw_on_load
 from checkins.checkin_data_manager import (
     get_recent_checkins,
     is_user_checkins_enabled,
@@ -117,10 +118,12 @@ class TestResponseTrackingBehavior:
         
         # Assert - Verify chat interactions file was created
         assert os.path.exists(chat_file), "Chat interactions file should be created"
-        
+
         with open(chat_file, encoding='utf-8') as f:
-            data = json.load(f)
-        
+            raw = json.load(f)
+
+        data = prepare_profile_raw_on_load("chat_interactions", raw)
+        assert isinstance(data, list), "Chat interactions should normalize to a list"
         assert len(data) == 1, "Should have one chat interaction entry"
         assert data[0]["user_message"] == user_message, "User message should be stored"
         assert data[0]["ai_response"] == ai_response, "AI response should be stored"
