@@ -555,6 +555,70 @@ def test_recent_tier3_log_files_selects_latest_per_track(temp_project_copy: Path
 
 
 @pytest.mark.unit
+def test_tier3_detail_log_files_prefer_outcome_track_log_file(
+    temp_project_copy: Path,
+) -> None:
+    """Track log_file from tier3_test_outcome wins over newer stdout logs on disk."""
+    service = AIToolsService(project_root=str(temp_project_copy))
+    logs = temp_project_copy / "development_tools" / "tests" / "logs"
+    logs.mkdir(parents=True, exist_ok=True)
+    stdout = logs / "pytest_parallel_stdout_newer.log"
+    stdout.write_text("stdout", encoding="utf-8")
+    junit = (
+        temp_project_copy
+        / "development_tools"
+        / "tests"
+        / "jsons"
+        / "test_suite_junit"
+        / "parallel.xml"
+    )
+    junit.parent.mkdir(parents=True, exist_ok=True)
+    junit.write_text("<testsuites/>", encoding="utf-8")
+
+    outcome = {
+        "state": "test_failures",
+        "parallel": {
+            "classification": "failed",
+            "failed_count": 1,
+            "log_file": str(junit),
+        },
+    }
+    selected = service._get_tier3_detail_log_files(
+        outcome,
+        include_parallel=True,
+        include_no_parallel=False,
+        include_dev_tools=False,
+    )
+
+    assert selected == ["development_tools/tests/jsons/test_suite_junit/parallel.xml"]
+    assert all("pytest_parallel_stdout" not in item for item in selected)
+
+
+@pytest.mark.unit
+def test_tier3_detail_log_files_fall_back_to_stdout_when_track_has_no_log_file(
+    temp_project_copy: Path,
+) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+    logs = temp_project_copy / "development_tools" / "tests" / "logs"
+    logs.mkdir(parents=True, exist_ok=True)
+    stdout = logs / "pytest_parallel_stdout_only.log"
+    stdout.write_text("stdout", encoding="utf-8")
+
+    outcome = {
+        "state": "test_failures",
+        "parallel": {"classification": "failed", "failed_count": 1},
+    }
+    selected = service._get_tier3_detail_log_files(
+        outcome,
+        include_parallel=True,
+        include_no_parallel=False,
+        include_dev_tools=False,
+    )
+
+    assert selected == ["development_tools/tests/logs/pytest_parallel_stdout_only.log"]
+
+
+@pytest.mark.unit
 def test_verify_process_cleanup_lines_cover_platform_and_candidates(
     temp_project_copy: Path,
 ) -> None:

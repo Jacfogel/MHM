@@ -33,6 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-06-04 - Priorities fixes: tests, aiohttp, doc links
+- **Tier 3 log paths**: [`report_generation.py`](../development_tools/shared/service/report_generation.py) - `_get_tier3_detail_log_files()` prefers track `log_file` from `tier3_test_outcome` before stdout log fallback; scoped `verify_process_cleanup_results.json` lookup first.
+- **Test fix**: Removed trailing comma after last `active_or_candidate_inventory` entry in [`DEPRECATION_INVENTORY.json`](../development_tools/config/jsons/DEPRECATION_INVENTORY.json) (`JSONDecodeError` at line 73).
+- **Security**: `aiohttp>=3.14.0` in [`requirements.txt`](../requirements.txt) (pip-audit CVE-2026-34993, CVE-2026-47265).
+- **Docs**: `doc-sync` clean for markdown link targets (`analyze_path_drift` / `analyze_documentation_sync` report 0 hints).
+
 ### 2026-06-02 - Profile JSON v2 fleet + v2-only runtime
 - **Fleet migration (removed)**: One-shot `scripts/migrate_profile_json_v2.py` applied v2 envelopes to production `data/users/` (22 files, 4 users); script and tests removed after fleet apply (see `DEPRECATION_INVENTORY.json` `migrate_profile_json_v2_script`).
 - **Context normalization**: [`core/profile_v2_io.py`](../core/profile_v2_io.py) `_normalize_context_inner` - `pronouns` on [`ContextV2EnvelopeModel`](../core/profile_v2_schemas.py); `reminders_needed` into `custom_fields`; account-field leaks stripped; ISO timestamps via [`EXTERNAL_TIMESTAMP_VARIANTS`](../core/time_format_constants.py). Tests: [`test_context_in_memory_extra_keys_normalize_on_save`](../tests/unit/test_profile_v2_schemas.py).

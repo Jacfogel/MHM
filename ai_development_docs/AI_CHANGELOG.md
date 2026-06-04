@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-06-04 - Priorities fixes: tests, aiohttp, doc links **COMPLETED**
+- `report_generation._get_tier3_detail_log_files()` prefers each track's `log_file` from `tier3_test_outcome` (e.g. JUnit XML from `run_test_suite`); falls back to latest `pytest_*_stdout_*.log` only when a track has no `log_file`.
+- Fixed invalid JSON in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` (trailing comma in `active_or_candidate_inventory`) - restores `test_deprecation_inventory_loads_and_root_ruff_bridge_active`.
+- Raised `aiohttp>=3.14.0` in `requirements.txt` (CVE-2026-34993, CVE-2026-47265).
+- `verify_process_cleanup` machine-readable link resolves scoped JSON first; `doc-sync` reports 0 markdown link target hints.
+
 ### 2026-06-02 - Profile JSON v2 fleet + v2-only runtime **COMPLETED**
 - Fleet migrated to `schema_version: 2` profile envelopes; context normalization (`pronouns`, `reminders_needed`, account-field stripping, ISO timestamps) in `core/profile_v2_io.py`.
 - **Phases 4-5**: Unconditional v2 write; v2-only runtime load. Removed migrator, migration runbook, profile v2 audit tooling, and legacy on-disk dual-read/docs. `core/schemas.py` retained for in-memory normalization post-unwrap.
@@ -137,15 +143,6 @@ Guidelines:
 - Task command discovery (Section 2.1): `TASK_HELP_TEXT`, richer `get_examples()`, `help tasks` / `examples tasks` delegate to `TaskManagementHandler`
 - Test/doc hygiene: fixed 3 Tier-3 failures (task `group` in prepare_create_task_data, NL title stripping, discord help tasks); `doc-fix --fix-ascii` on changelogs
 - Security/docs: `idna>=3.15` floor (CVE-2026-45409); regenerated `verify_process_cleanup_results.json` for dev-tools report link target
-
-### 2026-05-21 - System AI overhaul closed; post-overhaul work started **COMPLETED**
-- Marked [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md) and [PLANS.md](../development_docs/PLANS.md) Section 5.0 **COMPLETED**; added active Section 5.0.1 post-overhaul AI quality plan
-- [TODO.md](../TODO.md): NLP, command list, response times, and actionability sprint moved from deferred to active
-- First implementation increment: expanded `command_interpreter` mode-detection vocabulary, simplified `command.txt` actions placeholder, actionability instructions in `conversational_context/instructions.py`, regression tests
-- Command list: documented live injection paths in [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md) Section 3.4; added `tests/unit/test_command_prompt_injection_live_path.py`
-- Actionability audit: `is_automated_messages_enabled()` in `core/response_tracking.py`; gated recent sends and schedule context; guide Section 4.3; `tests/unit/test_conversational_context_actionability.py`
-- Audit priorities: fixed path drift in [TODO.md](../TODO.md) and [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md); registry regen for `is_automated_messages_enabled`; fixed `test_context_includes_recent_messages` for automated-messages gating; cleared completed TODO checkboxes (command list + actionability subtasks)
-- Parallel Tier 3 flake: hardened `test_get_user_data_fields_scalar_list_and_dict` with `clear_user_caches`, on-disk preferences guard; 8x `-n 8` file runs pass
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

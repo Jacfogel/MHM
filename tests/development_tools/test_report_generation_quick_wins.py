@@ -266,6 +266,7 @@ def test_ai_priorities_include_tier3_failed_tests_in_immediate_focus(temp_projec
                         "error_count": 0,
                         "skipped_count": 0,
                         "return_code": 1,
+                        "log_file": "development_tools/tests/jsons/test_suite_junit/parallel.xml",
                         "failed_node_ids": [
                             "tests/behavior/test_a.py::TestA::test_one",
                         ],
@@ -278,6 +279,7 @@ def test_ai_priorities_include_tier3_failed_tests_in_immediate_focus(temp_projec
                         "error_count": 0,
                         "skipped_count": 0,
                         "return_code": 1,
+                        "log_file": "development_tools/tests/jsons/test_suite_junit/no_parallel.xml",
                         "failed_node_ids": [
                             "tests/behavior/test_b.py::TestB::test_two",
                         ],
@@ -308,13 +310,10 @@ def test_ai_priorities_include_tier3_failed_tests_in_immediate_focus(temp_projec
     assert "Parallel tests failed=1: tests/behavior/test_a.py::test_one." in doc
     assert "No-parallel tests failed=1: tests/behavior/test_b.py::test_two." in doc
     assert "Failing/erroring test(s):" not in doc
-    assert "Review for details:" in doc
     assert (
-        "stdout files in development_tools/tests/logs" in doc
-        or "development_tools/tests/logs/pytest_parallel_stdout_" in doc
-        or "development_tools/tests/logs/pytest_no_parallel_stdout_" in doc
-        or "development_tools/tests/logs/pytest_dev_tools_stdout_" in doc
-    )
+        "Review for details: development_tools/tests/jsons/test_suite_junit/parallel.xml, "
+        "development_tools/tests/jsons/test_suite_junit/no_parallel.xml"
+    ) in doc
     assert "## Immediate Focus Ranked" in doc
 
 

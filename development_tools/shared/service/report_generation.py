@@ -702,6 +702,74 @@ class ReportGenerationMixin:
             return "unknown"
         return "unknown"
 
+    def _normalize_tier3_log_file_ref(self, log_file: Any) -> str | None:
+        """Return a repo-relative forward-slash path for a track log_file, or None."""
+        if not isinstance(log_file, str):
+            return None
+        raw = log_file.strip()
+        if not raw:
+            return None
+        path = Path(raw)
+        if not path.is_absolute():
+            path = self.project_root / path
+        try:
+            rel = path.resolve().relative_to(self.project_root.resolve())
+            return str(rel).replace("\\", "/")
+        except ValueError:
+            return raw.replace("\\", "/")
+
+    def _get_tier3_detail_log_files(
+        self,
+        outcome: dict[str, Any],
+        *,
+        include_parallel: bool = False,
+        include_no_parallel: bool = False,
+        include_dev_tools: bool = False,
+    ) -> list[str]:
+        """Prefer each track's log_file from tier3_test_outcome; fall back to latest stdout logs."""
+        if not isinstance(outcome, dict):
+            outcome = {}
+
+        track_specs: list[tuple[bool, str]] = [
+            (include_parallel, "parallel"),
+            (include_no_parallel, "no_parallel"),
+            (include_dev_tools, "development_tools"),
+        ]
+        selections: list[str] = []
+        seen: set[str] = set()
+        fallback_parallel = False
+        fallback_no_parallel = False
+        fallback_dev_tools = False
+
+        for include_track, outcome_key in track_specs:
+            if not include_track:
+                continue
+            track = outcome.get(outcome_key)
+            if not isinstance(track, dict):
+                track = {}
+            normalized = self._normalize_tier3_log_file_ref(track.get("log_file"))
+            if normalized:
+                if normalized not in seen:
+                    selections.append(normalized)
+                    seen.add(normalized)
+            elif outcome_key == "parallel":
+                fallback_parallel = True
+            elif outcome_key == "no_parallel":
+                fallback_no_parallel = True
+            else:
+                fallback_dev_tools = True
+
+        if fallback_parallel or fallback_no_parallel or fallback_dev_tools:
+            for path in self._get_recent_tier3_log_files(
+                include_parallel=fallback_parallel,
+                include_no_parallel=fallback_no_parallel,
+                include_dev_tools=fallback_dev_tools,
+            ):
+                if path not in seen:
+                    selections.append(path)
+                    seen.add(path)
+        return selections
+
     def _get_recent_tier3_log_files(
         self,
         include_parallel: bool = False,
@@ -877,25 +945,21 @@ class ReportGenerationMixin:
             "- **Note**: Primary detection uses Windows command-line inspection via CIM; "
             "the fallback path is less informative when command lines are unavailable."
         )
-        json_path = (
+        json_candidates = [
             self.project_root
             / "development_tools"
             / "tests"
             / "jsons"
-            / "verify_process_cleanup_results.json"
-        )
-        if not json_path.exists():
-            scoped = (
-                self.project_root
-                / "development_tools"
-                / "tests"
-                / "jsons"
-                / "scopes"
-                / "full"
-                / "verify_process_cleanup_results.json"
-            )
-            if scoped.exists():
-                json_path = scoped
+            / "scopes"
+            / ("dev_tools" if self._is_dev_tools_scoped_report() else "full")
+            / "verify_process_cleanup_results.json",
+            self.project_root
+            / "development_tools"
+            / "tests"
+            / "jsons"
+            / "verify_process_cleanup_results.json",
+        ]
+        json_path = next((p for p in json_candidates if p.exists()), json_candidates[0])
         if json_path.exists():
             href = self._markdown_href_from_dev_tools_report(json_path)
             out.append(
@@ -5655,7 +5719,8 @@ class ReportGenerationMixin:
                     f"{tier3_reason} "
                     "(cached from last Tier 3 run; re-run `audit --full` to refresh)."
                 )
-            tier3_log_files = self._get_recent_tier3_log_files(
+            tier3_log_files = self._get_tier3_detail_log_files(
+                tier3_outcome,
                 include_parallel=include_parallel_logs,
                 include_no_parallel=include_no_parallel_logs,
                 include_dev_tools=include_dev_tools_logs,

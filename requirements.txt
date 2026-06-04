@@ -1,6 +1,6 @@
 # Core dependencies
 # Security floors (pip-audit): aiohttp is pulled by discord.py; explicit floor for known CVEs.
-aiohttp>=3.13.4
+aiohttp>=3.14.0
 discord.py>=2.3.0  # For Discord bot functionality
 schedule>=1.2.0  # For task scheduling
 python-dotenv>=1.2.2  # For environment variable management; CVE-2026-28684 / GHSA-mf9w-mj56-hr94 (symlink rewrite)

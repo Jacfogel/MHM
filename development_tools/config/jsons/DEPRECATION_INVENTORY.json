@@ -69,7 +69,7 @@
       "search_terms": [],
       "exit_criteria": "Portability acceptance criteria met; root .ruff.toml deprecated or documented.",
       "notes": "2026-03-28: search_terms emptied while bridge remains — LEGACY_REFERENCE_REPORT uses inventory metadata only for this entry; grep-style hits duplicated module docstrings/CLI help and implied remediation work when none is required (V5 Phase 1). Re-add discrete terms only if a second mirror implementation must be detected. Bridge module: development_tools/config/sync_ruff_toml.py. Prior: 2026-03-26 phrase-only terms; 2026-03-27 logger migration."
-    },
+    }
   ],
   "removed_inventory": [
     {
