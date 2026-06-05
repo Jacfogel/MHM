@@ -46,6 +46,33 @@ class TestChannelOrchestratorHelpers:
         assert 'discord' in channels, "Should include discord"
         assert 'email' in channels, "Should include email"
 
+    def test_channel_send_failure_detail_uses_get_error(self):
+        """Channel get_error should provide the send failure reason."""
+        channel = Mock()
+        channel.get_error.return_value = "SMTP recipient refused"
+
+        detail = self.manager._channel_send_failure_detail(channel)
+
+        assert detail == "SMTP recipient refused"
+
+    def test_channel_send_failure_detail_uses_error_message_fallback(self):
+        """Channel error_message should be used when get_error has no detail."""
+        channel = Mock()
+        channel.get_error.return_value = None
+        channel.error_message = "Discord DM forbidden"
+
+        detail = self.manager._channel_send_failure_detail(channel)
+
+        assert detail == "Discord DM forbidden"
+
+    def test_channel_send_failure_detail_ignores_non_string_mock_values(self):
+        """Unconfigured mock attributes should not leak into failure logs."""
+        channel = Mock()
+
+        detail = self.manager._channel_send_failure_detail(channel)
+
+        assert detail == ""
+
     def test_get_configured_channels_returns_list(self):
         """Test get_configured_channels returns a list."""
         with patch('core.config.get_available_channels', return_value=['discord', 'email']):
@@ -660,3 +687,34 @@ class TestChannelOrchestratorHelpers:
 
         mock_get_user_id.assert_not_called()
         mock_send_response.assert_not_called()
+
+    def test_email_poll_once_treats_none_as_no_messages(self):
+        """Polling should tolerate async bridge returning None."""
+        email_channel = Mock()
+        email_channel.receive_messages.return_value = "email-coro"
+        processor = self.manager.email_inbound_processor
+        processor._run_async_sync = Mock(return_value=None)
+
+        with patch.object(processor, "process_incoming_email") as mock_process:
+            processor._poll_once(email_channel)
+
+        processor._run_async_sync.assert_called_once_with("email-coro")
+        mock_process.assert_not_called()
+
+    def test_email_poll_once_skips_malformed_payloads(self):
+        """Polling should skip non-dict email payloads without aborting the batch."""
+        email_channel = Mock()
+        email_channel.receive_messages.return_value = "email-coro"
+        processor = self.manager.email_inbound_processor
+        valid_email = {
+            "imap_email_id": "message-1",
+            "from": "person@example.com",
+            "subject": "hello",
+            "body": "hi",
+        }
+        processor._run_async_sync = Mock(return_value=[None, "bad", valid_email])
+
+        with patch.object(processor, "process_incoming_email") as mock_process:
+            processor._poll_once(email_channel)
+
+        mock_process.assert_called_once_with(valid_email)

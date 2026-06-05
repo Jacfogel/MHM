@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-06-05 - Runtime delivery error hardening **COMPLETED**
+- Email inbound polling now treats `None` from the async receive bridge as no messages and skips malformed payloads instead of logging repeated `NoneType` iteration errors.
+- `CommunicationManager.send_message()` now logs channel-provided failure details (`get_error()` / `error_message`) when a channel returns `False`, and logs exception type/message before shared network/communication error handling.
+- Added focused regression coverage in `tests/unit/test_channel_orchestrator.py`; verified with `pytest tests/unit/test_channel_orchestrator.py -q` (`48 passed`) and `py_compile` on touched files.
+
 ### 2026-06-04 - Priorities fixes: tests, aiohttp, doc links **COMPLETED**
 - `report_generation._get_tier3_detail_log_files()` prefers each track's `log_file` from `tier3_test_outcome` (e.g. JUnit XML from `run_test_suite`); falls back to latest `pytest_*_stdout_*.log` only when a track has no `log_file`.
 - Fixed invalid JSON in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` (trailing comma in `active_or_candidate_inventory`) - restores `test_deprecation_inventory_loads_and_root_ruff_bridge_active`.

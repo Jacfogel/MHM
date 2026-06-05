@@ -101,7 +101,20 @@ class EmailInboundProcessor:
         """Receive available email messages once and process unseen message IDs."""
         try:
             emails = self._run_async_sync(email_channel.receive_messages())
+            if emails is None:
+                logger.debug("Email receive returned no messages")
+                return
+            if not isinstance(emails, list):
+                logger.warning(
+                    f"Email receive returned unexpected payload type: {type(emails).__name__}"
+                )
+                return
             for email_msg in emails:
+                if not isinstance(email_msg, dict):
+                    logger.warning(
+                        f"Skipping malformed email payload: {type(email_msg).__name__}"
+                    )
+                    continue
                 email_id = email_msg.get("imap_email_id")
                 if email_id and email_id not in self._processed_email_ids:
                     self.process_incoming_email(email_msg)

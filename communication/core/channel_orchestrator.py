@@ -630,8 +630,10 @@ class CommunicationManager:
                 # Log will be handled by the deduplication logic below
                 return True
             elif success is False or not success:
+                failure_detail = self._channel_send_failure_detail(channel)
+                detail_suffix = f": {failure_detail}" if failure_detail else ""
                 logger.warning(
-                    f"Channel {channel_name} returned False for message send to {recipient}"
+                    f"Channel {channel_name} returned False for message send to {recipient}{detail_suffix}"
                 )
                 return False
             else:
@@ -645,6 +647,9 @@ class CommunicationManager:
         except ConnectionError as e:
             from core.error_handling import handle_network_error
 
+            logger.error(
+                f"Message send via {channel_name} raised {type(e).__name__}: {e}"
+            )
             handle_network_error(
                 e, f"message send via {channel_name}", kwargs.get("user_id")
             )
@@ -652,6 +657,9 @@ class CommunicationManager:
         except TimeoutError as e:
             from core.error_handling import handle_network_error
 
+            logger.error(
+                f"Message send via {channel_name} raised {type(e).__name__}: {e}"
+            )
             handle_network_error(
                 e, f"message send via {channel_name}", kwargs.get("user_id")
             )
@@ -659,6 +667,9 @@ class CommunicationManager:
         except Exception as e:
             from core.error_handling import handle_communication_error
 
+            logger.error(
+                f"Message send via {channel_name} raised {type(e).__name__}: {e}"
+            )
             handle_communication_error(
                 e, channel_name, f"message send to {recipient}", kwargs.get("user_id")
             )
@@ -703,6 +714,24 @@ class CommunicationManager:
         if callable(can_send):
             return bool(can_send(channel))
         return channel.is_ready()
+
+    @handle_errors("getting channel send failure detail", default_return="")
+    def _channel_send_failure_detail(self, channel: BaseChannel | None) -> str:
+        """Return a concise channel-provided failure reason, when available."""
+        if not channel:
+            return ""
+
+        get_error = getattr(channel, "get_error", None)
+        if callable(get_error):
+            error = get_error()
+            if isinstance(error, str) and error.strip():
+                return error.strip()
+
+        error_message = getattr(channel, "error_message", None)
+        if isinstance(error_message, str) and error_message.strip():
+            return error_message.strip()
+
+        return ""
 
     # not_duplicate: send_message_sync_pair
     @handle_errors("sending message (sync)", default_return=False)

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-03 01:01:49
+> **Last Generated**: 2026-06-04 18:08:16
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 91.5% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 190
-- **Functions Found**: 2036
-- **Methods Found**: 1307
+- **Functions Found**: 2037
+- **Methods Found**: 1308
 - **Classes Found**: 208
-- **Total Items**: 3343
-- **Functions Documented**: 1837
-- **Methods Documented**: 1222
+- **Total Items**: 3345
+- **Functions Documented**: 1838
+- **Methods Documented**: 1223
 - **Classes Documented**: 147
-- **Total Documented**: 3059
+- **Total Documented**: 3061
 - **Template-Generated**: 26
-- **Last Updated**: 2026-06-03
+- **Last Updated**: 2026-06-04
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (436)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (538)
+### **Communication Functions** (539)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (436)
@@ -2188,6 +2188,7 @@ to avoid circular dependencies with error handling infrastructure.
 - [OK] `__init____setup_event_loop(self)` - Set up a dedicated event loop for async operations
 - [OK] `__new__(cls)` - Ensure that only one instance of the CommunicationManager exists (Singleton pattern).
 - [OK] `_channel_can_send(self, channel)` - Return whether a channel is ready to send using its capability if present.
+- [OK] `_channel_send_failure_detail(self, channel)` - Return a concise channel-provided failure reason, when available.
 - [OK] `_check_logging_health(self)` - Check if logging is still working and recover if needed.
 
 Verifies that the logging system is functional and attempts to restart it if issues are detected.
@@ -2276,6 +2277,7 @@ Returns:
   - [OK] `CommunicationManager.__init____setup_event_loop(self)` - Set up a dedicated event loop for async operations
   - [OK] `CommunicationManager.__new__(cls)` - Ensure that only one instance of the CommunicationManager exists (Singleton pattern).
   - [OK] `CommunicationManager._channel_can_send(self, channel)` - Return whether a channel is ready to send using its capability if present.
+  - [OK] `CommunicationManager._channel_send_failure_detail(self, channel)` - Return a concise channel-provided failure reason, when available.
   - [OK] `CommunicationManager._check_logging_health(self)` - Check if logging is still working and recover if needed.
 
 Verifies that the logging system is functional and attempts to restart it if issues are detected.

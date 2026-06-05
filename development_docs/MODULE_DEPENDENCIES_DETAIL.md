@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-03 01:01:51
+> **Last Generated**: 2026-06-04 18:08:17
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -21,7 +21,7 @@
 - **Standard Library Imports**: 515 (29.0%)
 - **Third-Party Imports**: 213 (12.0%)
 - **Local Imports**: 1049 (59.0%)
-- **Last Updated**: 2026-06-03
+- **Last Updated**: 2026-06-04
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -2380,7 +2380,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling
-- Removed: ai/cache_manager.py, ai/chatbot.py, ai/lm_studio_client.py, ai/lm_studio_manager.py, ai/prompt_manager.py, ai/response_generator.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/webhook_server.py, communication/communication_channels/email/bot.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/welcome_manager.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, core/auto_cleanup.py, core/backup_manager.py, core/file_operations.py, core/logger.py, core/profile_v2_io.py, core/service.py, core/service_utilities.py, core/tags.py, core/user_lookup.py, core/user_management.py, messages/message_data_manager.py, scheduler/manager.py, storage/runtime_state_storage.py, storage/user_data_operations.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_validation.py, storage/user_data_write.py, storage/user_item_storage.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/ui_app_qt.py
+- Removed: ai/cache_manager.py, ai/chatbot.py, ai/lm_studio_client.py, ai/lm_studio_manager.py, ai/prompt_manager.py, ai/response_generator.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/webhook_server.py, communication/communication_channels/email/bot.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/welcome_manager.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, core/auto_cleanup.py, core/backup_manager.py, core/file_operations.py, core/logger.py, core/service.py, core/service_utilities.py, core/tags.py, core/user_lookup.py, core/user_management.py, messages/message_data_manager.py, scheduler/manager.py, storage/runtime_state_storage.py, storage/user_data_operations.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_validation.py, storage/user_data_write.py, storage/user_item_storage.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Configuration management and validation
@@ -3206,7 +3206,7 @@
     - `core.error_handling (ValidationError, handle_errors)` (NEW)
     - `core.file_operations (load_json_data, save_json_data)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.profile_v2_io (prepare_profile_raw_on_load, wrap_profile_document_for_save)` (NEW)
+    - `core.profile_v2_io (is_profile_v2_envelope, prepare_profile_raw_on_load, wrap_profile_document_for_save)` (NEW)
     - `core.time_utilities (now_timestamp_full)` (NEW)
   - **Standard Library**:
     - `json`
@@ -3239,7 +3239,7 @@
   - `core/time_utilities.py`
 
 **Dependency Changes**:
-- Removed: communication/message_processing/interaction_manager.py, core/schedule_utilities.py, core/time_utilities.py
+- Removed: communication/message_processing/interaction_manager.py, core/profile_v2_io.py, core/schedule_utilities.py, core/time_utilities.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

@@ -33,6 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-06-05 - Runtime delivery error hardening
+- **Email polling**: [`inbound_processor.py`](../communication/communication_channels/email/inbound_processor.py) `_poll_once()` now treats `None` from the async receive bridge as no messages, warns and exits on non-list payloads, and skips malformed list entries. This prevents repeated `TypeError - 'NoneType' object is not iterable` errors during email polling when a channel returns no payload.
+- **Delivery diagnostics**: [`channel_orchestrator.py`](../communication/core/channel_orchestrator.py) adds `_channel_send_failure_detail()` to extract concise failure context from `channel.get_error()` or `channel.error_message`. `send_message()` now includes that detail when a channel returns `False`, and logs exception type/message before delegating to shared network/communication error handlers.
+- **Tests**: [`test_channel_orchestrator.py`](../tests/unit/test_channel_orchestrator.py) covers `None` email polling, malformed email payloads, channel failure-detail extraction, and unconfigured mock safeguards. Verification: `python -m pytest tests/unit/test_channel_orchestrator.py -q` (`48 passed`) and `python -m py_compile communication/core/channel_orchestrator.py communication/communication_channels/email/inbound_processor.py tests/unit/test_channel_orchestrator.py`.
+- **Impact**: Runtime delivery errors should be less noisy and more actionable: expected empty email polls no longer show as errors, malformed inbound payloads do not abort a poll batch, and outbound send failures preserve enough channel context to distinguish provider/network/config problems from application logic.
+
 ### 2026-06-04 - Priorities fixes: tests, aiohttp, doc links
 - **Tier 3 log paths**: [`report_generation.py`](../development_tools/shared/service/report_generation.py) - `_get_tier3_detail_log_files()` prefers track `log_file` from `tier3_test_outcome` before stdout log fallback; scoped `verify_process_cleanup_results.json` lookup first.
 - **Test fix**: Removed trailing comma after last `active_or_candidate_inventory` entry in [`DEPRECATION_INVENTORY.json`](../development_tools/config/jsons/DEPRECATION_INVENTORY.json) (`JSONDecodeError` at line 73).

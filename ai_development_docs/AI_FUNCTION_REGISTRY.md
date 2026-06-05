@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-03 01:01:49
+> **Last Generated**: 2026-06-04 18:08:16
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 91.5% [!] GOOD**
-- **Total Functions**: 2036
-- **Total Methods**: 1307
-- **Documented**: 3059/3343
+- **Total Functions**: 2037
+- **Total Methods**: 1308
+- **Documented**: 3061/3345
 - **Files Scanned**: 190
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -40,7 +40,7 @@ AI Operations Decision Tree:
 ### **[COMM] Need Communication/Channels?**
 ```
 Communication Decision Tree:
-+-- `communication/core/channel_orchestrator.py` - Main communication (65/83 functions)
++-- `communication/core/channel_orchestrator.py` - Main communication (67/85 functions)
 +-- `communication/communication_channels/base/base_channel.py` - Channel base class (14 functions)
 `-- `communication/core/factory.py` - Channel creation (6 functions)```
 
@@ -146,7 +146,7 @@ Core System Decision Tree:
 - **File Operations**: `core/file_operations.py` - File I/O (16 functions)
 
 ### **Communication Patterns**
-- **Message Sending**: `communication/core/channel_orchestrator.py::_send_ai_generated_message()`
+- **Message Sending**: `communication/core/channel_orchestrator.py::_channel_send_failure_detail()`
 - **Channel Status**: `core/response_tracking.py::is_automated_messages_enabled()`
 - **Command Parsing**: `communication/message_processing/command_parser.py::parse_command()`
 
@@ -155,7 +155,7 @@ Core System Decision Tree:
 ### **High Priority** (Missing Documentation)
 - `core/profile_v2_schemas.py` - 24/46 functions undocumented (48% coverage)
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
-- `communication/core/channel_orchestrator.py` - 18/83 functions undocumented (78% coverage)
+- `communication/core/channel_orchestrator.py` - 18/85 functions undocumented (79% coverage)
 - `communication/delivery/message_dispatcher.py` - 15/17 functions undocumented (12% coverage)
 - `storage/user_data_write.py` - 15/19 functions undocumented (21% coverage)
 - `core/schemas.py` - 15/27 functions undocumented (44% coverage)
@@ -202,7 +202,7 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (26 files, 266 functions)
 - `checkins/` -  (6 files, 135 functions)
-- `communication/` - Communication channels and message processing (62 files, 1004 functions)
+- `communication/` - Communication channels and message processing (62 files, 1006 functions)
 - `core/` - System utilities and data management (29 files, 605 functions)
 - `messages/` -  (5 files, 38 functions)
 - `scheduler/` -  (6 files, 94 functions)
