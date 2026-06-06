@@ -9,7 +9,8 @@ from PySide6.QtWidgets import QApplication
 from tests.conftest import ensure_qt_runtime
 
 # Import the main UI application
-from ui.ui_app_qt import MHMManagerUI, ServiceManager
+from ui.ui_app_qt import MHMManagerUI
+from ui.service_manager import ServiceManager
 
 ensure_qt_runtime()
 
@@ -75,9 +76,9 @@ class TestUIAppBehavior:
         }
         
         # Act - Test configuration validation
-        with patch('ui.ui_app_qt.validate_all_configuration', return_value=mock_validation_result), \
-             patch('ui.ui_app_qt.QMessageBox.critical') as mock_critical, \
-             patch('ui.ui_app_qt.QMessageBox.warning') as mock_warning:
+        with patch('ui.service_manager.validate_all_configuration', return_value=mock_validation_result), \
+             patch('ui.service_manager.QMessageBox.critical') as mock_critical, \
+             patch('ui.service_manager.QMessageBox.warning') as mock_warning:
             service_manager = ServiceManager()
             result = service_manager.validate_configuration_before_start()
         
@@ -100,9 +101,9 @@ class TestUIAppBehavior:
         }
         
         # Act - Test configuration validation
-        with patch('ui.ui_app_qt.validate_all_configuration', return_value=mock_validation_result), \
-             patch('ui.ui_app_qt.QMessageBox.critical') as mock_critical, \
-             patch('ui.ui_app_qt.QMessageBox.warning') as mock_warning:
+        with patch('ui.service_manager.validate_all_configuration', return_value=mock_validation_result), \
+             patch('ui.service_manager.QMessageBox.critical') as mock_critical, \
+             patch('ui.service_manager.QMessageBox.warning') as mock_warning:
             service_manager = ServiceManager()
             result = service_manager.validate_configuration_before_start()
         
@@ -119,7 +120,7 @@ class TestUIAppBehavior:
         mock_process.is_running.return_value = True
         
         # Act - Test service status check
-        with patch('ui.ui_app_qt.psutil.process_iter', return_value=[mock_process]):
+        with patch('ui.service_manager.psutil.process_iter', return_value=[mock_process]):
             service_manager = ServiceManager()
             is_running, process_info = service_manager.is_service_running()
         
@@ -134,7 +135,7 @@ class TestUIAppBehavior:
         mock_process.info = {'pid': 12345, 'name': 'python.exe', 'cmdline': ['python', 'other_script.py']}
         
         # Act - Test service status check
-        with patch('ui.ui_app_qt.psutil.process_iter', return_value=[mock_process]):
+        with patch('ui.service_manager.psutil.process_iter', return_value=[mock_process]):
             service_manager = ServiceManager()
             is_running, process_info = service_manager.is_service_running()
         
@@ -311,14 +312,14 @@ class TestUIAppBehavior:
         # Arrange - Test various error conditions
         
         # Test 1: Configuration validation error
-        with patch('ui.ui_app_qt.validate_all_configuration', side_effect=Exception("Config error")), \
-             patch('ui.ui_app_qt.QMessageBox.critical'):
+        with patch('ui.service_manager.validate_all_configuration', side_effect=Exception("Config error")), \
+             patch('ui.service_manager.QMessageBox.critical'):
             service_manager = ServiceManager()
             result = service_manager.validate_configuration_before_start()
             assert result is False, "Should handle configuration error gracefully"
         
         # Test 2: Service status check error
-        with patch('ui.ui_app_qt.psutil.process_iter', side_effect=Exception("Process error")):
+        with patch('ui.service_manager.psutil.process_iter', side_effect=Exception("Process error")):
             service_manager = ServiceManager()
             is_running, process_info = service_manager.is_service_running()
             assert is_running is False, "Should handle process error gracefully"
@@ -406,7 +407,7 @@ class TestUIAppIntegration:
     def test_ui_app_error_recovery_with_real_operations(self, test_data_dir):
         """Test error recovery when working with real operations."""
         # Test 1: Service manager error recovery
-        with patch('ui.ui_app_qt.psutil.process_iter') as mock_process_iter:
+        with patch('ui.service_manager.psutil.process_iter') as mock_process_iter:
             # Simulate process monitoring failure then recovery
             mock_process_iter.side_effect = [
                 Exception("Process error"),  # First call fails

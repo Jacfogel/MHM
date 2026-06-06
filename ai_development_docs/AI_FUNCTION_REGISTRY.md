@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-04 18:08:16
+> **Last Generated**: 2026-06-06 03:18:42
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 91.5% [!] GOOD**
-- **Total Functions**: 2037
-- **Total Methods**: 1308
-- **Documented**: 3061/3345
-- **Files Scanned**: 190
+### **Documentation Coverage: 91.7% [!] GOOD**
+- **Total Functions**: 2085
+- **Total Methods**: 1331
+- **Documented**: 3131/3416
+- **Files Scanned**: 196
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -47,7 +47,7 @@ Communication Decision Tree:
 ### **[UI] Need UI/User Interface?**
 ```
 UI Operations Decision Tree:
-+-- `ui/ui_app_qt.py` - Main admin interface (136/138 functions)
++-- `ui/ui_app_qt.py` - Main admin interface (113/114 functions)
 +-- `ui/dialogs/task_crud_dialog.py` - Task CRUD (28 functions)
 `-- `ui/widgets/task_settings_widget.py` - Task settings (32/35 functions)```
 
@@ -88,19 +88,19 @@ Core System Decision Tree:
 - `TagWidget` (ui/widgets/tag_widget.py)
 - ... and 4 more
 
-### **Dialog Pattern** (15 found)
+### **Dialog Pattern** (16 found)
 **Purpose**: Modal user interaction windows
-**Location**: `ui/dialogs/account_creator_dialog.py`, `ui/dialogs/admin_panel.py`, `ui/dialogs/checkin_management_dialog.py`
+**Location**: `ui/dialog_actions.py`, `ui/dialogs/account_creator_dialog.py`, `ui/dialogs/admin_panel.py`
 **Pattern**: 
 - Inherit from QDialog
 - Use widgets for data entry
 - Return result on accept/reject
 
 **Examples**:
+- `DialogActions` (ui/dialog_actions.py)
 - `AccountCreatorDialog` (ui/dialogs/account_creator_dialog.py)
 - `AdminPanelDialog` (ui/dialogs/admin_panel.py)
-- `CheckinManagementDialog` (ui/dialogs/checkin_management_dialog.py)
-- ... and 12 more
+- ... and 13 more
 
 ### **Context Manager Pattern** (1 found)
 **Purpose**: Safe resource management
@@ -208,7 +208,7 @@ Most complex functions (may need refactoring):
 - `scheduler/` -  (6 files, 94 functions)
 - `storage/` -  (11 files, 151 functions)
 - `tasks/` - Task management system (7 files, 97 functions)
-- `ui/` - User interface components (30 files, 837 functions)
+- `ui/` - User interface components (36 files, 908 functions)
 - `user/` - User context and preferences (5 files, 66 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**

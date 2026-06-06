@@ -10,7 +10,8 @@ for the administrative interface.
 # but we provide package-level exports for consistency
 
 # Main UI application
-from .ui_app_qt import MHMManagerUI, ServiceManager
+from .ui_app_qt import MHMManagerUI
+from .service_manager import ServiceManager
 
 # Dialogs (commonly used)
 from .dialogs.account_creator_dialog import AccountCreatorDialog

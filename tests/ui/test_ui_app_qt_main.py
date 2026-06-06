@@ -12,7 +12,7 @@ from unittest.mock import patch, Mock, mock_open, MagicMock
 from PySide6.QtWidgets import QApplication
 
 # Import the main UI application
-from ui.ui_app_qt import ServiceManager
+from ui.service_manager import ServiceManager
 
 
 # Create QApplication instance for testing
@@ -45,8 +45,8 @@ class TestMHMManagerUIServiceManager:
         """Test configuration validation when valid."""
         service_manager = ServiceManager()
         
-        with patch('ui.ui_app_qt.validate_all_configuration') as mock_validate:
-            with patch('ui.ui_app_qt.QMessageBox'):
+        with patch('ui.service_manager.validate_all_configuration') as mock_validate:
+            with patch('ui.service_manager.QMessageBox'):
                 mock_validate.return_value = {
                     'valid': True,
                     'errors': [],
@@ -63,8 +63,8 @@ class TestMHMManagerUIServiceManager:
         """Test configuration validation when errors exist."""
         service_manager = ServiceManager()
         
-        with patch('ui.ui_app_qt.validate_all_configuration') as mock_validate:
-            with patch('ui.ui_app_qt.QMessageBox.critical') as mock_critical:
+        with patch('ui.service_manager.validate_all_configuration') as mock_validate:
+            with patch('ui.service_manager.QMessageBox.critical') as mock_critical:
                 mock_validate.return_value = {
                     'valid': False,
                     'errors': ['Critical configuration error'],
@@ -84,10 +84,10 @@ class TestMHMManagerUIServiceManager:
 
         with patch.object(service_manager, 'validate_configuration_before_start') as mock_validate:
             with patch.object(service_manager, 'is_service_running') as mock_running:
-                with patch('ui.ui_app_qt.subprocess.Popen') as mock_popen:
-                    with patch('ui.ui_app_qt.time.sleep') as mock_sleep:
-                        with patch('ui.ui_app_qt.os.path.exists') as mock_exists:
-                            with patch('ui.ui_app_qt.QMessageBox.information') as mock_info:
+                with patch('ui.service_manager.subprocess.Popen') as mock_popen:
+                    with patch('ui.service_manager.time.sleep') as mock_sleep:
+                        with patch('ui.service_manager.os.path.exists') as mock_exists:
+                            with patch('ui.service_manager.QMessageBox.information') as mock_info:
                                 mock_validate.return_value = True
                                 # First call: not running, second call: running after start
                                 mock_running.side_effect = [(False, None), (True, 12345)]
@@ -111,9 +111,9 @@ class TestMHMManagerUIServiceManager:
 
         with patch.object(service_manager, 'validate_configuration_before_start') as mock_validate:
             with patch.object(service_manager, 'is_service_running') as mock_running:
-                with patch('ui.ui_app_qt.subprocess.Popen') as mock_popen:
-                    with patch('ui.ui_app_qt.time.sleep'):
-                        with patch('ui.ui_app_qt.os.path.exists') as mock_exists:
+                with patch('ui.service_manager.subprocess.Popen') as mock_popen:
+                    with patch('ui.service_manager.time.sleep'):
+                        with patch('ui.service_manager.os.path.exists') as mock_exists:
                             mock_validate.return_value = True
                             mock_running.return_value = (False, None)  # Not running initially
                             mock_exists.return_value = True  # venv python exists
@@ -129,10 +129,10 @@ class TestMHMManagerUIServiceManager:
         service_manager = ServiceManager()
 
         with patch.object(service_manager, 'is_service_running') as mock_running:
-            with patch('ui.ui_app_qt.psutil.process_iter') as mock_process_iter:
-                with patch('ui.ui_app_qt.open', mock_open()) as mock_file:
-                    with patch('ui.ui_app_qt.time.sleep'):
-                        with patch('ui.ui_app_qt.QMessageBox.information') as mock_info:
+            with patch('ui.service_manager.psutil.process_iter') as mock_process_iter:
+                with patch('builtins.open', mock_open()) as mock_file:
+                    with patch('ui.service_manager.time.sleep'):
+                        with patch('ui.service_manager.QMessageBox.information') as mock_info:
                             # Multiple calls to is_service_running in the stop_service method
                             # First call: service is running, subsequent calls: service is stopped
                             mock_running.side_effect = [(True, 12345), (False, None), (False, None)]
@@ -182,7 +182,7 @@ class TestMHMManagerUIServiceManager:
         """Test service running check when service is running."""
         service_manager = ServiceManager()
         
-        with patch('ui.ui_app_qt.psutil.process_iter') as mock_process_iter:
+        with patch('ui.service_manager.psutil.process_iter') as mock_process_iter:
             mock_proc = Mock()
             mock_proc.info = {'pid': 12345, 'name': 'python.exe', 'cmdline': ['python', 'service.py']}
             mock_proc.is_running.return_value = True
@@ -196,7 +196,7 @@ class TestMHMManagerUIServiceManager:
         """Test service running check when service is not running."""
         service_manager = ServiceManager()
         
-        with patch('ui.ui_app_qt.psutil.process_iter') as mock_process_iter:
+        with patch('ui.service_manager.psutil.process_iter') as mock_process_iter:
             mock_process_iter.return_value = []  # No processes found
             
             result = service_manager.is_service_running()
@@ -207,7 +207,7 @@ class TestMHMManagerUIServiceManager:
         """Test service running check when no process exists."""
         service_manager = ServiceManager()
         
-        with patch('ui.ui_app_qt.psutil.process_iter') as mock_process_iter:
+        with patch('ui.service_manager.psutil.process_iter') as mock_process_iter:
             mock_process_iter.return_value = []  # No processes found
             
             result = service_manager.is_service_running()

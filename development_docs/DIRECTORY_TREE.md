@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-04 18:08:27
+> **Last Generated**: 2026-06-06 03:18:57
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 0000005F 5EAC:07BC
+Volume serial number is 000000B7 5EAC:07BC
 C:.
 |   .ruff.toml
 |   ARCHITECTURE.md
@@ -854,11 +854,14 @@ C:.
 |   |   |   test_channel_status_log_merge.py
 |   |   |   test_checkin_settings_widget_question_counts.py
 |   |   |   test_dialogs.py
+|   |   |   test_dialog_actions.py
 |   |   |   test_dialog_behavior.py
 |   |   |   test_dialog_coverage_expansion.py
 |   |   |   test_message_editor_dialog.py
 |   |   |   test_process_watcher_dialog.py
+|   |   |   test_scheduler_actions.py
 |   |   |   test_signal_handler_integration.py
+|   |   |   test_status_provider.py
 |   |   |   test_task_crud_dialog.py
 |   |   |   test_task_management_dialog.py
 |   |   |   test_task_settings_widget.py
@@ -870,6 +873,7 @@ C:.
 |   |   |   test_ui_user_combo_helpers.py
 |   |   |   test_ui_widgets_coverage_expansion.py
 |   |   |   test_user_analytics_dialog.py
+|   |   |   test_user_list_provider.py
 |   |   |   test_user_profile_dialog_coverage_expansion.py
 |   |   |   test_widget_behavior.py
 |   |   |   test_widget_behavior_simple.py
@@ -992,10 +996,16 @@ C:.
 |   |   |   test_webhook_handler_gap_coverage.py
 |   |   |
 +---ui
+|   |   dialog_actions.py
 |   |   generate_ui_files.py
+|   |   lazy_dependencies.py
 |   |   period_row_management.py
+|   |   scheduler_actions.py
+|   |   service_manager.py
+|   |   status_provider.py
 |   |   ui_app_qt.py
 |   |   UI_GUIDE.md
+|   |   user_list_provider.py
 |   |   __init__.py
 |   |
 |   +---designs

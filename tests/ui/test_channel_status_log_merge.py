@@ -2,7 +2,7 @@
 
 import pytest
 
-from ui.ui_app_qt import _merge_rotated_channel_log_lines
+from ui.status_provider import merge_rotated_channel_log_lines
 
 
 pytestmark = [pytest.mark.ui]
@@ -23,7 +23,7 @@ def test_merge_rotated_channel_log_lines_includes_backup_with_init(tmp_path):
         "2026-04-01 10:00:00 - mhm.email - INFO - EmailBot initialized successfully.\n",
         encoding="utf-8",
     )
-    lines = _merge_rotated_channel_log_lines(primary, backup_dir)
+    lines = merge_rotated_channel_log_lines(primary, backup_dir)
     assert any("EmailBot initialized successfully" in ln for ln in lines)
 
 
@@ -32,6 +32,6 @@ def test_merge_rotated_channel_log_lines_includes_backup_with_init(tmp_path):
 def test_merge_rotated_channel_log_lines_primary_only(tmp_path):
     primary = tmp_path / "discord.log"
     primary.write_text("2026-04-02 12:00:00 - mhm.discord - INFO - ok\n", encoding="utf-8")
-    lines = _merge_rotated_channel_log_lines(primary, tmp_path / "missing_backups")
+    lines = merge_rotated_channel_log_lines(primary, tmp_path / "missing_backups")
     assert len(lines) == 1
     assert "ok" in lines[0]

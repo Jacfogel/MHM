@@ -30,12 +30,39 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-06-06 - UI dialog orchestration extraction (Stage 5) **COMPLETED**
+- Moved `create_new_user`, all `manage_*` dialog openers, and message/schedule editor orchestration from `ui/ui_app_qt.py` into `ui/dialog_actions.py` (`DialogActions`).
+- `MHMManagerUI` keeps thin delegators; lazy dialog imports stay behind `ui.lazy_dependencies._load_attr`.
+- Added `tests/ui/test_dialog_actions.py`; `ui_app_qt.py` down to ~1421 lines.
+- AI_PRIORITIES follow-up: `@handle_errors` on `user_list_provider`/`dialog_actions` helpers; consolidated duplicate `edit_user_*` paths via `edit_user_category`; removed dead `_prepare_current_user_category_editor` and inlined `_edit_user_category_content`; `doc-fix --fix-ascii` + `docs` regen.
+
+### 2026-06-06 - UI user list provider + ServiceManager bridge removal **COMPLETED**
+- Moved user/category combo loading and display-name helpers from `ui/ui_app_qt.py` into `ui/user_list_provider.py`; `MHMManagerUI` delegates via `UserListProvider`.
+- Removed the temporary `ui.ui_app_qt.ServiceManager` re-export; callers/tests now import from `ui.service_manager` (package `__init__` unchanged).
+- Added `tests/ui/test_user_list_provider.py` and updated combo-helper tests; `ui_app_qt.py` down to ~1719 lines.
+
+### 2026-06-06 - UI scheduler action extraction **COMPLETED**
+- Moved full/user/category scheduler calls and UI delivery-factory setup from `ui/ui_app_qt.py` into `ui/scheduler_actions.py`.
+- Added focused scheduler action tests while leaving selection validation and final Qt messages in `MHMManagerUI`.
+- Standard audit remains at 0 circular chains and 65 high-coupling modules; `ui_app_qt.py` dropped to 2136 lines / total complexity 9112.
+
+### 2026-06-06 - UI status provider extraction **COMPLETED**
+- Moved service/channel/tunnel status detection from `ui/ui_app_qt.py` into `ui/status_provider.py`; `MHMManagerUI.update_service_status()` now delegates status decisions and only updates Qt labels.
+- Added focused UI tests for Discord activity parsing, Email rotated-log initialization, ngrok process detection, and service-stopped gating.
+- Standard audit remains at 0 circular chains and 65 high-coupling modules; `ui_app_qt.py` dropped to 2156 lines / 63 functions / total complexity 9179.
+
+### 2026-06-05 - UI ServiceManager extraction **COMPLETED**
+- Moved UI-managed service process control from `ui/ui_app_qt.py` to `ui/service_manager.py`; `MHMManagerUI` now delegates service start/stop/restart/status checks.
+- Added temporary `ui.ui_app_qt.ServiceManager` import bridge (removed 2026-06-06 once tests/callers used `ui.service_manager.ServiceManager`).
+- Final audit remains at 0 circular chains and 65 high-coupling modules; `ui_app_qt.py` stays out of the high-coupling list and `service_manager.py` is not a new high-coupling offender.
+
 ### 2026-06-05 - Runtime delivery error hardening **COMPLETED**
 - Email inbound polling now treats `None` from the async receive bridge as no messages and skips malformed payloads instead of logging repeated `NoneType` iteration errors.
 - `CommunicationManager.send_message()` now logs channel-provided failure details (`get_error()` / `error_message`) when a channel returns `False`, and logs exception type/message before shared network/communication error handling.
 - Added focused regression coverage in `tests/unit/test_channel_orchestrator.py`; verified with `pytest tests/unit/test_channel_orchestrator.py -q` (`48 passed`) and `py_compile` on touched files.
 
 ### 2026-06-04 - Priorities fixes: tests, aiohttp, doc links **COMPLETED**
+- Stabilized `test_add_schedule_period` / `test_remove_schedule_period` (`@pytest.mark.no_parallel`, `update_user_index_for_test`, targeted schedules read + `clear_user_caches`) - fixes parallel `KeyError: motivational`.
 - `report_generation._get_tier3_detail_log_files()` prefers each track's `log_file` from `tier3_test_outcome` (e.g. JUnit XML from `run_test_suite`); falls back to latest `pytest_*_stdout_*.log` only when a track has no `log_file`.
 - Fixed invalid JSON in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` (trailing comma in `active_or_candidate_inventory`) - restores `test_deprecation_inventory_loads_and_root_ruff_bridge_active`.
 - Raised `aiohttp>=3.14.0` in `requirements.txt` (CVE-2026-34993, CVE-2026-47265).
@@ -101,53 +128,6 @@ Guidelines:
 - Regenerated `audit_tool_matrix.json` and `tool_cache_inventory.json` for Tier 3 `analyze_test_markers`; fixed ASCII arrows in changelog entries.
 - Extended `development_tools/tests/coverage.ini` `[run] source=` to include `checkins`, `messages`, and `storage` (and full product package list); added policy test; regenerated `TEST_COVERAGE_REPORT.md` scope (rerun coverage for per-domain numbers).
 - Coverage cache invalidation now includes `coverage.ini` in tool_hash (fixes stale full-cache reuse after `source=` changes); clears stored full coverage JSON on tool/config bust. Fixed ASCII in changelog; doc-sync clean.
-
-### 2026-05-25 - Tier 3 coverage and parallel test cleanup **COMPLETED**
-- Fixed dev-tools coverage reporting so cache-only payloads include canonical `coverage_outcome`, clean collected coverage is not reported as failed after Windows interrupt handling, and low-coverage priorities count all below-target domains.
-- Cleaned test domain markers for scheduler coverage tests and verified `analyze_test_markers.py --check`.
-- Stabilized parallel tests by locking test user index updates and giving Discord task-reminder behavior tests unique per-test users with explicit setup assertions.
-- Added first-class `checkins`, `messages`, and `storage` product domains in `domain_mapper` / `local_module_prefixes` (marker-only test mapping like `tasks`), aligned code defaults, Bandit roots, setuptools includes, and a package policy test.
-- Cleared AI_PRIORITIES error-handling noise: `error_handling_exclude` on `_apply_fields_filter` and v2 schema validators; shared `timestamp_sort_key_from_dict` for sort helpers; `duplicate_functions_exclude` on intentional delegates.
-- Fixed check-in analytics test failures by restoring `parse_timestamp_full` in `checkin_data_manager` (regression from sort-key refactor), correcting check-in test `get_user_file_path` patches, and clearing Ruff unused-import findings.
-- Regenerated function registry via `run_development_tools.py docs`; Tier 3 parallel failures (`test_remove_schedule_period`, `test_user_data_access`) pass locally (stale audit log).
-- Focused verification passed for dev-tools coverage/audit helpers, scheduler marker tests, and Discord reminder follow-up behavior under normal, seeded, and xdist runs.
-
-### 2026-05-24 - Communication architecture cleanup **COMPLETED**
-- Scheduler now resolves account `timezone` (fallback America/Regina) for messages, check-ins, and task reminders; one-time reminders use aware past/future checks via `scheduler/user_timezone.py`
-- Added unit tests for timezone resolution and `schedule_task_reminder_at_datetime` past/future behavior
-- Reviewed and acted on `communication/` channel-agnostic boundaries, with focus on `CommunicationManager`, email inbound handling, Discord send/health behavior, reminders, and shared help text
-- Moved inbound email polling/replies to `communication/communication_channels/email/inbound_processor.py`, recipient lookup to `communication/delivery/recipient_resolver.py`, and rich view creation through channel-local interaction-view factories
-- Removed Discord direct-send shortcuts and `get_discord_connectivity_status()` from `CommunicationManager`; callers now use generic channel status, and tests target new adapter APIs instead of preserving compatibility wrappers
-- Addressed current audit items for missing docstrings, email inbound error handling, function registry sync, duplicate status methods, and stale behavior test patch targets
-
-### 2026-05-23 - Message and check-in domain packages **COMPLETED**
-- Created first-class `messages/` and `checkins/` packages for automated message storage/analytics/preview, check-in storage/service/dynamic questions/analytics, and their v2 schemas
-- Removed `core.message_*` and `core.checkin_*` modules; production imports now point directly at the domain packages, with `core.response_tracking` reduced to generic chat/response tracking plus check-in delegation
-- Moved message/check-in schema ownership out of `storage.user_data_v2_envelopes.py` while preserving validation dispatch and compatibility re-exports
-- Focused verification passed for message/check-in storage, analytics, schema validation, command handlers, and AI recent-message context
-
-### 2026-05-23 - Post-refactor architecture decisions closed **COMPLETED**
-- Closed the deferred service/scheduler/dispatcher cleanup TODOs after reviewing current startup, scheduler delivery ports, service request delivery, retry ownership, and package boundaries
-- Documented decisions in [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md): keep `CommunicationManager` as runtime owner/singleton, keep retry queueing in `communication/core/retry_manager.py` for now, and avoid new top-level message/check-in packages until concrete ownership pressure appears
-- Confirmed task-reminder scheduling bodies are already split into `scheduler/task_reminders.py`; retained only public wrappers/call sites in `scheduler/manager.py`
-- Cleared the completed high-priority architecture cleanup block from [TODO.md](../TODO.md)
-
-### 2026-05-23 - Analytics handler split and audit cleanup **COMPLETED**
-- Split `AnalyticsHandler` into check-in, trend, task, and shared formatting handlers; removed duplicated task-stats implementation from `TaskManagementHandler`
-- Updated analytics/task behavior tests to assert current canonical behavior instead of legacy compatibility paths
-- Fixed documentation drift from the archived system AI overhaul plan and regenerated docs/registry/report outputs
-- Stabilized audit tooling: pip-audit uses a temp cache and full Tier 3 audit now passes with test suite, doc-sync, and static-analysis signals clean
-
-### 2026-05-22 - Conversational boundaries and task NLP parsing **COMPLETED**
-- Audit hygiene: `@handle_errors` on `action_boundaries.py`; Ruff `re.Pattern` import; path drift in [TODO.md](../TODO.md); doc-sync clean after link fixes
-- Added `ai/conversational_context/action_boundaries.py` (false CRUD claim detection) and **ACTION BOUNDARIES** rules in `instructions.py`
-- New `tests/behavior/test_conversational_action_boundaries.py`: prompt contract, safe vs unsafe samples, `AIResponseValidator` integration, fallback regression
-- Tasks Section 2: expanded `_extract_task_entities` (due phrases, title cleanup, priority/tags/group); `parse_relative_date` for tonight/this week/before-by weekday; tests in `test_command_parser_task_entities_expansion.py`
-- Task due tweaks: `this week` on Sat/Sun -> end of coming week; `tonight` default time 18:00 (not 21:00)
-- [TASKS_PLAN.md](../development_docs/TASKS_PLAN.md) Section 5.1: backlog for per-user customizable NL timeframes (`tonight`, after work/school, time-of-day defaults); parser accepts `after school` same as `after work`
-- Task command discovery (Section 2.1): `TASK_HELP_TEXT`, richer `get_examples()`, `help tasks` / `examples tasks` delegate to `TaskManagementHandler`
-- Test/doc hygiene: fixed 3 Tier-3 failures (task `group` in prepare_create_task_data, NL title stripping, discord help tasks); `doc-fix --fix-ascii` on changelogs
-- Security/docs: `idna>=3.15` floor (CVE-2026-45409); regenerated `verify_process_cleanup_results.json` for dev-tools report link target
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

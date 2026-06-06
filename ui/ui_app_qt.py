@@ -1,16 +1,11 @@
 import sys
 import os
-import subprocess
-import psutil
-import time
-import re
 import pathlib
+from importlib import import_module
 from pathlib import Path
 
 # Add parent directory to path so we can import from core
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from core.launch_env import prepare_launch_environment, resolve_python_interpreter
 
 # PySide6 imports
 from PySide6.QtWidgets import (
@@ -28,413 +23,51 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QFont
 
-from core.time_utilities import (
-    now_datetime_full,
-    now_timestamp_full,
-    parse_timestamp_full,
-)
 
-# Set up logging
-from core.logger import setup_logging, get_component_logger
+def _load_attr(module_name: str, attr_name: str):
+    """Load a project attribute through the UI lazy dependency boundary."""
+    # ERROR_HANDLING_EXCLUDE: low-level lazy import helper; callers are decorated or fail fast.
+    return _lazy_dependencies.load_attr(module_name, attr_name)
+
+
+_lazy_dependencies = import_module("ui.lazy_dependencies")
+handle_errors = _lazy_dependencies.handle_errors
+now_datetime_full = _lazy_dependencies.now_datetime_full
+now_timestamp_full = _lazy_dependencies.now_timestamp_full
+setup_logging = _lazy_dependencies.setup_logging
+get_component_logger = _lazy_dependencies.get_component_logger
 
 setup_logging()
 logger = get_component_logger("ui")
 ui_logger = logger
 
-# Import configuration validation
-from core.config import validate_all_configuration
-
-# Import comprehensive error handling
-from core.error_handling import DataError, handle_errors
-from core.service_utilities import get_flags_dir
-
-from user.user_context import UserContext
-from core import get_all_user_ids
-from core import get_user_data
-from storage.user_data_validation import _shared__title_case
-import core.config
-
-# Import generated UI for main window
-from ui.generated.admin_panel_pyqt import Ui_ui_app_mainwindow
+core_config = import_module("core.config")
 import contextlib
 
-
-@handle_errors(
-    "reading tail of channel log file for status",
-    default_return=[],
+validate_all_configuration = _lazy_dependencies.validate_all_configuration
+get_flags_dir = _lazy_dependencies.get_flags_dir
+UserContext = _lazy_dependencies.UserContext
+get_all_user_ids = _lazy_dependencies.get_all_user_ids
+get_user_data = _lazy_dependencies.get_user_data
+Ui_ui_app_mainwindow = _lazy_dependencies.Ui_ui_app_mainwindow
+StatusProvider = import_module("ui.status_provider").StatusProvider
+UserListProvider = import_module("ui.user_list_provider").UserListProvider
+DialogActions = import_module("ui.dialog_actions").DialogActions
+USER_COMBO_PLACEHOLDER = import_module("ui.user_list_provider").USER_COMBO_PLACEHOLDER
+CATEGORY_COMBO_PLACEHOLDER = (
+    import_module("ui.user_list_provider").CATEGORY_COMBO_PLACEHOLDER
 )
-def _tail_file_lines(path: Path, max_lines: int) -> list[str]:
-    """Return up to the last max_lines lines from a text file (for status heuristics)."""
-    if not path.is_file():
-        return []
-    with open(path, encoding="utf-8", errors="ignore") as f:
-        lines = f.readlines()
-    if len(lines) <= max_lines:
-        return lines
-    return lines[-max_lines:]
+scheduler_actions = import_module("ui.scheduler_actions")
 
 
-@handle_errors(
-    "merging rotated channel log files for status",
-    default_return=[],
-)
-def _merge_rotated_channel_log_lines(
-    primary: Path,
-    backup_dir: Path,
-    *,
-    max_lines_per_file: int = 2500,
-) -> list[str]:
-    """
-    Merge recent lines from the primary channel log and TimedRotating backups.
+@handle_errors("creating communication manager for UI action", re_raise=True)
+def _create_communication_manager():
+    """Create a communication manager without importing it at UI module load time."""
+    CommunicationManager = _load_attr(
+        "communication.core.channel_orchestrator", "CommunicationManager"
+    )
 
-    Rotated files use ``{primary.name}.{date_suffix}`` under ``backup_dir`` (see
-    ``BackupDirectoryRotatingFileHandler``). Order is oldest backup â†’ newest â†’
-    primary so the combined sequence is roughly chronological.
-    """
-    merged: list[str] = []
-    name = primary.name
-    bdir = Path(backup_dir)
-    if bdir.is_dir():
-        rotated = sorted(
-            bdir.glob(f"{name}.*"),
-            key=lambda p: (p.stat().st_mtime, p.name),
-        )
-        for rot_path in rotated:
-            merged.extend(_tail_file_lines(rot_path, max_lines_per_file))
-    merged.extend(_tail_file_lines(primary, max_lines_per_file))
-    return merged
-
-
-class ServiceManager:
-    """Manages the MHM backend service process"""
-
-    @handle_errors("initializing service manager", default_return=None)
-    def __init__(self):
-        """Initialize the object."""
-        self.service_process = None
-
-    @handle_errors("validating configuration before start", default_return=False)
-    def validate_configuration_before_start(self):
-        """Validate configuration before attempting to start the service."""
-        result = validate_all_configuration()
-
-        if not result["valid"]:
-            error_message = "Configuration validation failed:\n\n"
-            for error in result["errors"]:
-                error_message += f"â€¢ {error}\n"
-
-            if result["warnings"]:
-                error_message += "\nWarnings:\n"
-                for warning in result["warnings"]:
-                    error_message += f"â€¢ {warning}\n"
-
-            QMessageBox.critical(None, "Configuration Error", error_message)
-            return False
-
-        # Filter out non-critical warnings that don't need popup
-        critical_warnings = []
-        for warning in result["warnings"]:
-            # Skip warnings about default values and auto-creation settings
-            if any(
-                skip_phrase in warning.lower()
-                for skip_phrase in [
-                    "using default",
-                    "auto_create_user_dirs is enabled",
-                    "not set (using default)",
-                ]
-            ):
-                # Log these warnings but don't show popup
-                logger.info(f"Configuration note: {warning}")
-                continue
-            critical_warnings.append(warning)
-
-        # Only show popup for critical warnings
-        if critical_warnings:
-            warning_message = "Configuration warnings:\n\n"
-            for warning in critical_warnings:
-                warning_message += f"â€¢ {warning}\n"
-            warning_message += (
-                "\nThe service will start, but you may want to address these warnings."
-            )
-            QMessageBox.warning(None, "Configuration Warnings", warning_message)
-
-        if not result["available_channels"]:
-            QMessageBox.warning(
-                None,
-                "No Communication Channels",
-                "No communication channels are configured. The service will start but won't be able to send messages.",
-            )
-
-        return True
-
-    # not_duplicate: service_status_detection_variants
-    @handle_errors("checking service status", default_return=(False, None))
-    def is_service_running(self):
-        """
-        Check if the MHM service is running with validation.
-
-        Returns:
-            tuple: (is_running, process_info)
-        """
-        """Check if the MHM service is running"""
-        # Look for python processes running service.py as their main script
-        service_pids = []
-        for proc in psutil.process_iter(["pid", "name", "cmdline"]):
-            # Skip if process info is not accessible (already terminated)
-            if not proc.info["name"] or "python" not in proc.info["name"].lower():
-                continue
-
-            cmdline = proc.info.get("cmdline", [])
-            # Only detect processes that are actually running service.py as their main script
-            # Check if the last argument in cmdline is service.py (the main script being run)
-            if (
-                cmdline
-                and len(cmdline) >= 2
-                and cmdline[-1].endswith("service.py")
-                and "service.py" in cmdline[-1]
-            ):
-                # Double-check process is still running
-                if proc.is_running():
-                    service_pids.append(proc.info["pid"])
-
-        if service_pids:
-            return True, service_pids[0]  # Return first PID
-        return False, None
-
-    @handle_errors("starting service", default_return=False)
-    def start_service(self):
-        """
-        Start the MHM backend service with validation.
-
-        Returns:
-            bool: True if successful, False if failed
-        """
-        """Start the MHM backend service"""
-        # Validate configuration before starting
-        if not self.validate_configuration_before_start():
-            return False
-
-        is_running, pid = self.is_service_running()
-        if is_running:
-            logger.debug(f"Service already running with PID {pid}")
-            QMessageBox.information(
-                None, "Service Status", f"MHM Service is already running (PID: {pid})"
-            )
-            return True
-
-        # Start the service - updated path
-        service_path = Path(__file__).parent.parent / "core" / "service.py"
-
-        logger.debug(f"Service path: {service_path}")
-
-        # Ensure we use the venv Python explicitly
-        script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        python_executable = resolve_python_interpreter(script_dir)
-
-        logger.debug(f"Using Python: {python_executable}")
-
-        # Set up environment to ensure venv is used
-        env = prepare_launch_environment(script_dir)
-        env["MHM_UI_MANAGED_SERVICE"] = "1"
-        env["MHM_SERVICE_TYPE"] = "ui"
-
-        # Run the service in the background without showing a console window
-        if os.name == "nt":  # Windows
-            # Run without showing console window
-            self.service_process = subprocess.Popen(
-                [python_executable, service_path],
-                env=env,
-                cwd=script_dir,
-                creationflags=subprocess.CREATE_NO_WINDOW,
-            )
-        else:  # Unix/Linux/Mac
-            # Run in background
-            self.service_process = subprocess.Popen(
-                [python_executable, service_path],
-                env=env,
-                cwd=script_dir,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-
-        logger.debug("Service process started, waiting for initialization...")
-        # Give it a moment to start
-        time.sleep(2)
-
-        is_running, pid = self.is_service_running()
-        if is_running:
-            logger.info(f"Service started with PID {pid}")
-            QMessageBox.information(
-                None, "Service Status", f"MHM Service started successfully (PID: {pid})"
-            )
-            return True
-        else:
-            logger.error("Failed to start service")
-            QMessageBox.critical(None, "Service Error", "Failed to start MHM Service")
-            return False
-
-    @handle_errors("stopping service", default_return=False)
-    def stop_service(self):
-        """
-        Stop the MHM backend service with validation.
-
-        Returns:
-            bool: True if successful, False if failed
-        """
-        """Stop the MHM backend service"""
-        is_running, pid = self.is_service_running()
-        if not is_running:
-            logger.info("Stop service requested but service is not running")
-            QMessageBox.information(
-                None, "Service Status", "MHM Service is not running"
-            )
-            return True
-
-        logger.info(f"Stop service requested for PID: {pid}")
-
-        # Create shutdown request file
-        shutdown_file = get_flags_dir() / "shutdown_request.flag"
-        try:
-            with open(shutdown_file, "w") as f:
-                f.write(f"SHUTDOWN_REQUESTED_BY_UI_{time.time()}")
-            logger.info(f"Created shutdown request file: {shutdown_file}")
-        except Exception as e:
-            logger.warning(f"Could not create shutdown file: {e}")
-
-        # Wait for graceful shutdown (service checks shutdown file every 2 seconds)
-        # Give it time to detect the file and shut down gracefully
-        # Discord bot shutdown can take time (closing connections, stopping ngrok, etc.)
-        logger.info("Waiting for graceful shutdown...")
-        max_wait_time = (
-            20  # Wait up to 20 seconds for graceful shutdown (Discord can take time)
-        )
-        wait_interval = 0.5
-        waited = 0
-
-        while waited < max_wait_time:
-            is_running, current_pid = self.is_service_running()
-            if not is_running:
-                logger.info("Service stopped gracefully")
-                QMessageBox.information(
-                    None, "Service Status", "MHM Service stopped successfully"
-                )
-                return True
-            time.sleep(wait_interval)
-            waited += wait_interval
-            # Log progress every 5 seconds
-            if int(waited) % 5 == 0:
-                logger.debug(
-                    f"Still waiting for graceful shutdown... ({int(waited)}s elapsed)"
-                )
-
-        # If graceful shutdown didn't work, force terminate
-        logger.warning("Graceful shutdown timeout - forcing termination")
-
-        # Try to terminate ALL service processes
-        found_processes = []
-        for proc in psutil.process_iter(["pid", "name", "cmdline"]):
-            try:
-                if not proc.info["name"] or "python" not in proc.info["name"].lower():
-                    continue
-                cmdline = proc.info.get("cmdline", [])
-                # Only detect processes that are actually running service.py as their main script
-                # Check if the last argument in cmdline is service.py (the main script being run)
-                if (
-                    cmdline
-                    and len(cmdline) >= 2
-                    and cmdline[-1].endswith("service.py")
-                    and "service.py" in cmdline[-1]
-                ) and proc.is_running():
-                    found_processes.append(proc)
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                continue
-
-        if not found_processes:
-            # Service already stopped
-            logger.info("Service is not running - stop operation successful")
-            QMessageBox.information(
-                None, "Service Status", "Service is already stopped"
-            )
-            return True
-        else:
-            if len(found_processes) > 1:
-                logger.info(
-                    f"Found {len(found_processes)} service processes, cleaning up all instances"
-                )
-            else:
-                logger.info(
-                    f"Found {len(found_processes)} service process, terminating"
-                )
-
-            for proc in found_processes:
-                proc_pid = proc.info["pid"]
-                try:
-                    proc.terminate()
-                    logger.debug(f"Terminated process {proc_pid}")
-                except (psutil.NoSuchProcess, psutil.AccessDenied):
-                    logger.debug(
-                        f"Process {proc_pid} already terminated or access denied"
-                    )
-                    continue
-
-            # Wait for processes to terminate
-            time.sleep(2)
-
-            # Force kill if still running
-            for proc in found_processes:
-                try:
-                    if proc.is_running():
-                        proc.kill()
-                        logger.debug(f"Force killed process {proc.info['pid']}")
-                except (psutil.NoSuchProcess, psutil.AccessDenied):
-                    continue
-
-            # Final check
-            time.sleep(0.5)
-            is_running, current_pid = self.is_service_running()
-            if not is_running:
-                logger.info("Service stopped successfully (force termination)")
-                QMessageBox.information(
-                    None, "Service Status", "MHM Service stopped successfully"
-                )
-                return True
-            else:
-                logger.warning(
-                    f"Service still running with PID {current_pid} after termination attempts"
-                )
-                QMessageBox.warning(
-                    None,
-                    "Service Status",
-                    f"Service may still be running (PID: {current_pid})",
-                )
-                return False
-
-    @handle_errors("restarting service", default_return=False)
-    def restart_service(self):
-        """
-        Restart the MHM backend service with validation.
-
-        Returns:
-            bool: True if successful, False if failed
-        """
-        """Restart the MHM backend service"""
-        logger.info("Restart service requested")
-
-        # Stop the service
-        if not self.stop_service():
-            logger.error("Failed to stop service during restart")
-            return False
-
-        # Wait a moment for cleanup
-        time.sleep(1)
-
-        # Start the service
-        if not self.start_service():
-            logger.error("Failed to start service during restart")
-            return False
-
-        logger.info("Service restart completed successfully")
-        return True
+    return CommunicationManager()
 
 
 class MHMManagerUI(QMainWindow):
@@ -444,7 +77,10 @@ class MHMManagerUI(QMainWindow):
     def __init__(self):
         """Initialize the object."""
         super().__init__()
-        self.service_manager = ServiceManager()
+        self.service_manager = import_module("ui.service_manager").ServiceManager()
+        self.status_provider = StatusProvider(self.service_manager)
+        self.user_list_provider = UserListProvider()
+        self.dialog_actions = DialogActions()
         self.current_user = None
         self.current_user_categories = []
         # Load the generated UI
@@ -569,7 +205,9 @@ class MHMManagerUI(QMainWindow):
     @handle_errors("updating user index on startup", default_return=None)
     def update_user_index_on_startup(self):
         """Automatically update the user index when the admin panel starts"""
-        from storage.user_data_operations import rebuild_user_index
+        rebuild_user_index = _load_attr(
+            "storage.user_data_operations", "rebuild_user_index"
+        )
 
         logger.info("Admin Panel: Updating user index on startup...")
 
@@ -582,7 +220,7 @@ class MHMManagerUI(QMainWindow):
     @handle_errors("updating service status", default_return=None)
     def update_service_status(self):
         """Update the service status display"""
-        is_running, pid = self.service_manager.is_service_running()
+        is_running, pid = self.status_provider.check_service_status()
 
         if is_running:
             self.ui.label_service_status.setText(
@@ -596,7 +234,7 @@ class MHMManagerUI(QMainWindow):
             self.ui.label_service_status.setStyleSheet("color: red; font-weight: bold;")
 
         # Update Discord channel status
-        discord_running = self._check_discord_status()
+        discord_running = self.status_provider.check_discord_status()
         if discord_running:
             self.ui.label_discord_status.setText("Discord Channel: Running")
             self.ui.label_discord_status.setStyleSheet(
@@ -607,7 +245,7 @@ class MHMManagerUI(QMainWindow):
             self.ui.label_discord_status.setStyleSheet("color: red; font-weight: bold;")
 
         # Update Email channel status
-        email_running = self._check_email_status()
+        email_running = self.status_provider.check_email_status()
         if email_running:
             self.ui.label_email_status.setText("Email Channel: Running")
             self.ui.label_email_status.setStyleSheet("color: green; font-weight: bold;")
@@ -616,7 +254,7 @@ class MHMManagerUI(QMainWindow):
             self.ui.label_email_status.setStyleSheet("color: red; font-weight: bold;")
 
         # Update ngrok tunnel status
-        ngrok_status = self._check_ngrok_status()
+        ngrok_status = self.status_provider.check_ngrok_status()
         if ngrok_status["running"]:
             pid_text = f" (PID: {ngrok_status['pid']})" if ngrok_status["pid"] else ""
             self.ui.label_ngrok_status.setText(f"ngrok tunnel: Running{pid_text}")
@@ -624,385 +262,6 @@ class MHMManagerUI(QMainWindow):
         else:
             self.ui.label_ngrok_status.setText("ngrok tunnel: Stopped")
             self.ui.label_ngrok_status.setStyleSheet("color: red; font-weight: bold;")
-
-    # not_duplicate: channel_status_detection_variants
-    @handle_errors("checking Discord channel status", default_return=False)
-    def _check_discord_status(self) -> bool:
-        """Check if Discord channel is actually running and connected
-
-        IMPORTANT: This will NEVER return True if the service is stopped.
-        Channels cannot run without the service, so we check service status first.
-
-        Checks for:
-        1. Initialization messages ("Discord bot initialized successfully" or "Discord connection status changed to: connected")
-        2. Recent activity (messages received/sent, "Discord healthy" status)
-        3. Falls back to assuming running if service is running and Discord is configured
-        """
-        try:
-            # First check if service is running - channels can't run without the service
-            is_running, service_pid = self.service_manager.is_service_running()
-            if not is_running:
-                return False  # Service stopped = channel stopped (guaranteed)
-
-            # Check if Discord is configured
-            from core.config import DISCORD_BOT_TOKEN
-
-            if not DISCORD_BOT_TOKEN:
-                return False
-
-            # Check logs: if service is running, look for initialization message
-            # and check if there's a shutdown message after it
-            # Also check for recent activity as evidence Discord is running
-            try:
-                discord_log_file = Path(core.config.LOG_DISCORD_FILE)
-                lines = _merge_rotated_channel_log_lines(
-                    discord_log_file,
-                    Path(core.config.LOG_BACKUP_DIR),
-                )
-                if lines:
-                    # Find the most recent initialization message
-                    last_init_time = None
-                    last_shutdown_time = None
-                    last_activity_time = None
-
-                    # Check for recent activity indicators (messages, health checks)
-                    activity_indicators = [
-                        "DISCORD_MESSAGE_RECEIVED",
-                        "DISCORD_MESSAGE_PROCESS",
-                        "Discord message handled successfully",
-                        "Discord channel message sent",
-                        "Discord healthy",
-                    ]
-
-                    for line in reversed(lines):
-                        # Look for initialization messages
-                        if (
-                            "Discord bot initialized successfully" in line
-                            or "Discord connection status changed to: connected" in line
-                        ):
-                            timestamp_match = re.search(
-                                r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})", line
-                            )
-                            if timestamp_match and last_init_time is None:
-                                try:
-                                    last_init_time = parse_timestamp_full(
-                                        timestamp_match.group(1)
-                                    )
-                                    if last_init_time is None:
-                                        raise DataError(
-                                            "Invalid Discord initialization timestamp"
-                                        )
-                                except DataError:
-                                    pass
-
-                        # Look for shutdown messages
-                        if "Discord bot shutdown completed" in line:
-                            timestamp_match = re.search(
-                                r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})", line
-                            )
-                            if timestamp_match and last_shutdown_time is None:
-                                try:
-                                    last_shutdown_time = parse_timestamp_full(
-                                        timestamp_match.group(1)
-                                    )
-                                    if last_shutdown_time is None:
-                                        raise DataError(
-                                            "Invalid Discord shutdown timestamp"
-                                        )
-                                except DataError:
-                                    pass
-
-                        # Look for recent activity
-                        if any(indicator in line for indicator in activity_indicators):
-                            timestamp_match = re.search(
-                                r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})", line
-                            )
-                            if timestamp_match and last_activity_time is None:
-                                try:
-                                    last_activity_time = parse_timestamp_full(
-                                        timestamp_match.group(1)
-                                    )
-                                    if last_activity_time is None:
-                                        raise DataError(
-                                            "Invalid Discord activity timestamp"
-                                        )
-                                except DataError:
-                                    pass
-
-                    # If we found recent activity (within last 5 minutes), Discord is definitely running
-                    if last_activity_time:
-                        time_since_activity = (
-                            now_datetime_full() - last_activity_time
-                        ).total_seconds()
-                        if time_since_activity < 300:  # Within last 5 minutes
-                            return True
-
-                    # If we found an initialization, check if shutdown happened after it
-                    if last_init_time:
-                        # Check if initialization is recent (within last hour) to handle improper shutdowns
-                        time_since_init = (
-                            now_datetime_full() - last_init_time
-                        ).total_seconds()
-
-                        if (
-                            last_shutdown_time is None
-                            or last_shutdown_time < last_init_time
-                        ):
-                            # Initialized and not shut down (or shutdown was before initialization)
-                            if time_since_init < 3600:  # Within last hour
-                                return True
-                            # Old initialization - check if service PID suggests a restart
-                            # If service PID changed, this is a new service instance
-                            # We can't easily check this, so assume running if service is running
-                            # (Better to show running than stopped if uncertain)
-                            return True
-                        # Shutdown happened after initialization - check if it's been restarted since
-                        # Look for any initialization after the shutdown
-                        for line in lines:
-                            if (
-                                "Discord bot initialized successfully" in line
-                                or "Discord connection status changed to: connected"
-                                in line
-                            ):
-                                timestamp_match = re.search(
-                                    r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})", line
-                                )
-                                if timestamp_match:
-                                    try:
-                                        init_time = parse_timestamp_full(
-                                            timestamp_match.group(1)
-                                        )
-                                        if init_time is None:
-                                            raise DataError(
-                                                "Invalid Discord restart timestamp"
-                                            )
-                                        if init_time > last_shutdown_time:
-                                            # Check if this restart is recent
-                                            time_since_restart = (
-                                                now_datetime_full() - init_time
-                                            ).total_seconds()
-                                            if (
-                                                time_since_restart < 3600
-                                            ):  # Within last hour
-                                                return True
-                                    except DataError:
-                                        pass
-                    else:
-                        # No initialization found - but if we have recent activity, Discord is running
-                        if last_activity_time:
-                            time_since_activity = (
-                                now_datetime_full() - last_activity_time
-                            ).total_seconds()
-                            if time_since_activity < 3600:  # Within last hour
-                                return True
-                        # No initialization and no recent activity - channel likely not running
-                        # But fall through to fallback logic below
-                        pass
-            except Exception as e:
-                logger.debug(f"Error checking Discord logs: {e}")
-                # Fallback: if service is running and Discord is configured, assume it's running
-                # This handles cases where logs are unavailable
-                return True
-
-            # Fallback: if service is running and Discord is configured, assume it's running
-            # This handles cases where logs don't have the expected messages but Discord is working
-            return True
-        except Exception as e:
-            logger.debug(f"Error checking Discord status: {e}")
-            return False
-
-    # not_duplicate: channel_status_detection_variants
-    @handle_errors("checking Email channel status", default_return=False)
-    def _check_email_status(self) -> bool:
-        """Check if Email channel is actually initialized and running
-
-        IMPORTANT: This will NEVER return True if the service is stopped.
-        Channels cannot run without the service, so we check service status first.
-        """
-        try:
-            # First check if service is running - channels can't run without the service
-            is_running, service_pid = self.service_manager.is_service_running()
-            if not is_running:
-                return False  # Service stopped = channel stopped (guaranteed)
-
-            # Check if Email is configured
-            from core.config import (
-                EMAIL_SMTP_SERVER,
-                EMAIL_IMAP_SERVER,
-                EMAIL_SMTP_USERNAME,
-                EMAIL_SMTP_PASSWORD,
-            )
-
-            if not all(
-                [
-                    EMAIL_SMTP_SERVER,
-                    EMAIL_IMAP_SERVER,
-                    EMAIL_SMTP_USERNAME,
-                    EMAIL_SMTP_PASSWORD,
-                ]
-            ):
-                return False
-
-            # Check logs: primary file plus rotated backups (init line often lands in backups
-            # after midnight rotation). Also use IMAP/send activity like Discord uses traffic.
-            try:
-                email_log_file = Path(core.config.LOG_EMAIL_FILE)
-                lines = _merge_rotated_channel_log_lines(
-                    email_log_file,
-                    Path(core.config.LOG_BACKUP_DIR),
-                )
-                if lines:
-                    last_init_time = None
-                    last_shutdown_time = None
-                    last_activity_time = None
-
-                    activity_indicators = [
-                        "Email sent to",
-                        "Received ",
-                        "new email(s)",
-                        "Processing ",
-                        " new emails",
-                    ]
-
-                    for line in reversed(lines):
-                        if "EmailBot initialized successfully" in line:
-                            timestamp_match = re.search(
-                                r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})", line
-                            )
-                            if timestamp_match and last_init_time is None:
-                                try:
-                                    last_init_time = parse_timestamp_full(
-                                        timestamp_match.group(1)
-                                    )
-                                    if last_init_time is None:
-                                        raise DataError(
-                                            "Invalid Email initialization timestamp"
-                                        )
-                                except DataError:
-                                    pass
-
-                        if "EmailBot stopped" in line:
-                            timestamp_match = re.search(
-                                r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})", line
-                            )
-                            if timestamp_match and last_shutdown_time is None:
-                                try:
-                                    last_shutdown_time = parse_timestamp_full(
-                                        timestamp_match.group(1)
-                                    )
-                                    if last_shutdown_time is None:
-                                        raise DataError(
-                                            "Invalid Email shutdown timestamp"
-                                        )
-                                except DataError:
-                                    pass
-
-                        if any(indicator in line for indicator in activity_indicators):
-                            timestamp_match = re.search(
-                                r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})", line
-                            )
-                            if timestamp_match and last_activity_time is None:
-                                try:
-                                    last_activity_time = parse_timestamp_full(
-                                        timestamp_match.group(1)
-                                    )
-                                    if last_activity_time is None:
-                                        raise DataError(
-                                            "Invalid Email activity timestamp"
-                                        )
-                                except DataError:
-                                    pass
-
-                    if last_activity_time:
-                        time_since_activity = (
-                            now_datetime_full() - last_activity_time
-                        ).total_seconds()
-                        if time_since_activity < 300:
-                            return True
-
-                    if last_init_time:
-                        time_since_init = (
-                            now_datetime_full() - last_init_time
-                        ).total_seconds()
-                        if (
-                            last_shutdown_time is None
-                            or last_shutdown_time < last_init_time
-                        ):
-                            if time_since_init < 3600:
-                                return True
-                            return True
-                        for line in lines:
-                            if "EmailBot initialized successfully" in line:
-                                timestamp_match = re.search(
-                                    r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})", line
-                                )
-                                if timestamp_match:
-                                    try:
-                                        init_time = parse_timestamp_full(
-                                            timestamp_match.group(1)
-                                        )
-                                        if init_time is None:
-                                            raise DataError(
-                                                "Invalid Email restart timestamp"
-                                            )
-                                        if init_time > last_shutdown_time:
-                                            time_since_restart = (
-                                                now_datetime_full() - init_time
-                                            ).total_seconds()
-                                            if time_since_restart < 3600:
-                                                return True
-                                    except DataError:
-                                        pass
-                    else:
-                        if last_activity_time:
-                            time_since_activity = (
-                                now_datetime_full() - last_activity_time
-                            ).total_seconds()
-                            if time_since_activity < 3600:
-                                return True
-            except Exception as e:
-                logger.debug(f"Error checking Email logs: {e}")
-                return True
-
-            # Match Discord: service up + email configured but no parseable log lines â†’ assume running
-            return True
-        except Exception as e:
-            logger.debug(f"Error checking Email status: {e}")
-            return False
-
-    @handle_errors(
-        "checking ngrok tunnel status", default_return={"running": False, "pid": None}
-    )
-    def _check_ngrok_status(self) -> dict:
-        """Check if ngrok tunnel is running and return PID"""
-        try:
-            # Look for ngrok processes
-            for proc in psutil.process_iter(["pid", "name", "cmdline"]):
-                try:
-                    if not proc.info["name"]:
-                        continue
-
-                    # Check if process name contains 'ngrok'
-                    proc_name = proc.info["name"].lower()
-                    if "ngrok" in proc_name:
-                        # Check if it's actually running
-                        if proc.is_running():
-                            # Verify it's an HTTP tunnel (check cmdline)
-                            cmdline = proc.info.get("cmdline", [])
-                            if cmdline and "http" in " ".join(cmdline).lower():
-                                return {"running": True, "pid": proc.info["pid"]}
-                except (
-                    psutil.NoSuchProcess,
-                    psutil.AccessDenied,
-                    psutil.ZombieProcess,
-                ):
-                    continue
-
-            return {"running": False, "pid": None}
-        except Exception as e:
-            logger.debug(f"Error checking ngrok status: {e}")
-            return {"running": False, "pid": None}
-
     @handle_errors("starting service", default_return=None)
     def start_service(self):
         """Start the MHM service"""
@@ -1024,15 +283,7 @@ class MHMManagerUI(QMainWindow):
     @handle_errors("running full scheduler", default_return=None)
     def run_full_scheduler(self):
         """Run the full scheduler for all users"""
-        from communication.core.channel_orchestrator import CommunicationManager
-        from scheduler.manager import (
-            run_full_scheduler_standalone,
-            set_scheduler_delivery_factory,
-        )
-
-        logger.info("UI: Running full scheduler for all users")
-        set_scheduler_delivery_factory(CommunicationManager)
-        success = run_full_scheduler_standalone()
+        success = scheduler_actions.run_full_scheduler(_create_communication_manager)
 
         if success:
             QMessageBox.information(
@@ -1048,10 +299,7 @@ class MHMManagerUI(QMainWindow):
             QMessageBox.warning(None, "Scheduler", "Please select a user first")
             return
 
-        from scheduler.manager import run_user_scheduler_standalone
-
-        logger.info(f"UI: Running scheduler for user {self.current_user}")
-        success = run_user_scheduler_standalone(self.current_user)
+        success = scheduler_actions.run_user_scheduler(self.current_user)
 
         if success:
             QMessageBox.information(
@@ -1078,12 +326,7 @@ class MHMManagerUI(QMainWindow):
             QMessageBox.warning(None, "Scheduler", "Please select a category first")
             return
 
-        from scheduler.manager import run_category_scheduler_standalone
-
-        logger.info(
-            f"UI: Running category scheduler for user {self.current_user}, category {category}"
-        )
-        success = run_category_scheduler_standalone(self.current_user, category)
+        success = scheduler_actions.run_category_scheduler(self.current_user, category)
 
         if success:
             QMessageBox.information(
@@ -1128,110 +371,24 @@ class MHMManagerUI(QMainWindow):
     def _reset_user_combo_box(self):
         """Clear user combo and add placeholder entry."""
         self.ui.comboBox_users.clear()
-        self.ui.comboBox_users.addItem("Select a user...")
-
-    @handle_errors("building enabled user features", default_return=[])
-    def _build_enabled_features(self, user_account: dict, user_preferences: dict) -> list:
-        """Return enabled feature markers for a user."""
-        features = user_account.get("features", {})
-        enabled_features = []
-        if features.get("automated_messages") == "enabled":
-            enabled_features.append("automated_messages")
-            enabled_features.extend(user_preferences.get("categories", []))
-        if features.get("checkins") == "enabled":
-            enabled_features.append("checkins")
-        if features.get("task_management") == "enabled":
-            enabled_features.append("task_management")
-        return enabled_features
-
-    @handle_errors("collecting active users for combo", default_return=[])
-    def _collect_active_users_for_combo(self) -> list[dict]:
-        """Load active users and normalized display metadata."""
-        users_data = []
-        for user_id in get_all_user_ids():
-            user_data_result = get_user_data(user_id, ["account", "preferences", "context"])
-            user_account = user_data_result.get("account", {})
-            user_preferences = user_data_result.get("preferences", {})
-            user_context = user_data_result.get("context", {})
-
-            if not user_account or user_account.get("account_status") != "active":
-                continue
-
-            users_data.append(
-                {
-                    "user_id": user_id,
-                    "internal_username": user_account.get("internal_username", "Unknown"),
-                    "preferred_name": user_context.get("preferred_name", ""),
-                    "channel_type": user_preferences.get("channel", {}).get("type", "unknown"),
-                    "enabled_features": self._build_enabled_features(
-                        user_account, user_preferences
-                    ),
-                }
-            )
-        return sorted(
-            users_data,
-            key=lambda item: (
-                item["preferred_name"] or item["internal_username"],
-                item["internal_username"],
-            ),
-        )
-
-    @handle_errors("building user display name", default_return="Unknown")
-    def _build_user_combo_display_name(self, user_data: dict) -> str:
-        """Create user dropdown display text including channel/features."""
-        user_id = user_data["user_id"]
-        internal_username = user_data["internal_username"]
-        channel_type = user_data["channel_type"]
-        enabled_features = user_data["enabled_features"]
-
-        feature_summary = []
-        if "automated_messages" in enabled_features:
-            categories = [
-                feature
-                for feature in enabled_features
-                if feature not in ["automated_messages", "checkins", "task_management"]
-            ]
-            if categories:
-                formatted_categories = [
-                    _shared__title_case(cat.replace("_", " ")) for cat in categories
-                ]
-                feature_summary.append(f"Messages: {', '.join(formatted_categories)}")
-        if "checkins" in enabled_features:
-            feature_summary.append("Check-ins")
-        if "task_management" in enabled_features:
-            feature_summary.append("Tasks")
-
-        feature_text = f" [{', '.join(feature_summary)}]" if feature_summary else ""
-        return f"{internal_username} ({channel_type}){feature_text} - {user_id}"
+        self.ui.comboBox_users.addItem(USER_COMBO_PLACEHOLDER)
 
     @handle_errors("populating active users in combo box", default_return=None)
     def _populate_active_users_in_combo_box(self):
         """Populate user combo box from active user metadata."""
         self._reset_user_combo_box()
-        for user_data in self._collect_active_users_for_combo():
-            self.ui.comboBox_users.addItem(self._build_user_combo_display_name(user_data))
+        provider = self.user_list_provider
+        for user_data in provider.collect_active_users_for_combo():
+            self.ui.comboBox_users.addItem(
+                provider.build_user_combo_display_name(user_data)
+            )
 
     @handle_errors("refreshing user list fallback", default_return=None)
     def _refresh_user_list_fallback(self, original_error: Exception):
         """Fallback user list refresh using minimal account/context reads."""
         try:
             self._reset_user_combo_box()
-            for user_id in get_all_user_ids():
-                user_data_result = get_user_data(user_id, "account")
-                user_account = user_data_result.get("account")
-                internal_username = (
-                    user_account.get("internal_username", "Unknown")
-                    if user_account
-                    else "Unknown"
-                )
-                context_result = get_user_data(user_id, "context")
-                user_context = context_result.get("context")
-                preferred_name = user_context.get("preferred_name", "") if user_context else ""
-                display_name = (
-                    f"{preferred_name} ({internal_username}) - {user_id}"
-                    if preferred_name
-                    else f"{internal_username} - {user_id}"
-                )
+            for display_name in self.user_list_provider.collect_fallback_display_names():
                 self.ui.comboBox_users.addItem(display_name)
         except Exception as fallback_error:
             logger.error(f"Fallback user list refresh also failed: {fallback_error}")
@@ -1242,15 +399,16 @@ class MHMManagerUI(QMainWindow):
     @handle_errors("reselecting previously active user", default_return=None)
     def _reselect_user_if_present(self, current_user_id: str | None):
         """Reselect prior active user if still present in combo list."""
-        if not current_user_id:
+        item_texts = [
+            self.ui.comboBox_users.itemText(index)
+            for index in range(self.ui.comboBox_users.count())
+        ]
+        index = UserListProvider.find_reselect_index(item_texts, current_user_id)
+        if index is None:
             return
-        for index in range(self.ui.comboBox_users.count()):
-            item_text = self.ui.comboBox_users.itemText(index)
-            if f" - {current_user_id}" not in item_text:
-                continue
-            self.ui.comboBox_users.setCurrentIndex(index)
-            self.on_user_selected(item_text)
-            break
+        item_text = self.ui.comboBox_users.itemText(index)
+        self.ui.comboBox_users.setCurrentIndex(index)
+        self.on_user_selected(item_text)
 
     @handle_errors("handling user selection", default_return=None)
     def on_user_selected(self, user_display):
@@ -1274,36 +432,35 @@ class MHMManagerUI(QMainWindow):
         if not user_display.strip():
             # Empty or whitespace-only string - expected during refresh, return silently
             return None
-        """Handle user selection from combo box"""
-        if not user_display or user_display == "Select a user...":
+
+        if user_display == USER_COMBO_PLACEHOLDER:
             self.current_user = None
             self.disable_content_management()
             return
 
         try:
-            # Extract user_id from display name (format: "Name - user_id")
-            if " - " in user_display:
-                user_id = user_display.split(" - ")[-1]
+            user_id = UserListProvider.parse_user_id_from_display(user_display)
+            if not user_id:
+                logger.warning(
+                    "Admin Panel: Could not parse user_id from selected_display: "
+                    f"'{user_display}'"
+                )
+                self.disable_content_management()
+                return
+
             self.current_user = user_id
-            # Get user account
             user_data_result = get_user_data(user_id, "account")
             user_account = user_data_result.get("account")
             if user_account:
-                # Load user categories
                 self.load_user_categories(user_id)
                 self.enable_content_management()
                 logger.info(
-                    f"Admin Panel: User selected for management: {user_id} ({user_account.get('internal_username', 'Unknown')})"
+                    f"Admin Panel: User selected for management: {user_id} "
+                    f"({user_account.get('internal_username', 'Unknown')})"
                 )
             else:
                 QMessageBox.warning(
                     self, "User Error", f"Could not load user account for {user_id}"
-                )
-                self.disable_content_management()
-                return
-            if " - " not in user_display:
-                logger.warning(
-                    f"Admin Panel: Could not parse user_id from selected_display: '{user_display}'"
                 )
                 self.disable_content_management()
                 return
@@ -1316,30 +473,18 @@ class MHMManagerUI(QMainWindow):
     @handle_errors("loading user categories", user_friendly=False, default_return=None)
     def load_user_categories(self, user_id):
         """Load categories for the selected user"""
-        # Load user preferences
-        prefs_result = get_user_data(user_id, "preferences")
-        prefs = prefs_result.get("preferences") or {}
-        if prefs and "categories" in prefs:
-            categories = prefs["categories"]
-            # Handle both list and dictionary formats
-            if isinstance(categories, dict):
-                self.current_user_categories = list(categories.keys())
-            elif isinstance(categories, list):
-                self.current_user_categories = categories
-            else:
-                self.current_user_categories = []
-        else:
-            self.current_user_categories = []
+        self.current_user_categories = self.user_list_provider.load_category_names(
+            user_id
+        )
 
-        # Update category combo box
         self.ui.comboBox_user_categories.clear()
-        self.ui.comboBox_user_categories.addItem("Select a category...")
+        self.ui.comboBox_user_categories.addItem(CATEGORY_COMBO_PLACEHOLDER)
 
         for category in self.current_user_categories:
-            # Store the original category name as data, display the formatted name
-            # Replace underscores with spaces before applying title_case
-            formatted_category = _shared__title_case(category.replace("_", " "))
-            self.ui.comboBox_user_categories.addItem(formatted_category, category)
+            self.ui.comboBox_user_categories.addItem(
+                UserListProvider.format_category_display(category),
+                category,
+            )
 
     @handle_errors("handling category selection", default_return=None)
     def on_category_selected(self, category):
@@ -1353,7 +498,7 @@ class MHMManagerUI(QMainWindow):
 
         # Enable/disable category action buttons based on selection
         has_category = bool(
-            actual_category and actual_category != "Select a category..."
+            actual_category and actual_category != CATEGORY_COMBO_PLACEHOLDER
         )
 
         self.ui.pushButton_edit_messages.setEnabled(has_category)
@@ -1405,435 +550,104 @@ class MHMManagerUI(QMainWindow):
 
     @handle_errors("creating new user", default_return=None)
     def create_new_user(self):
-        """
-        Create new user with validation.
-
-        Returns:
-            None: Always returns None
-        """
-        """Open dialog to create a new user"""
-        logger.info("Admin Panel: Opening create new user dialog")
-        try:
-            from ui.dialogs.account_creator_dialog import AccountCreatorDialog
-            from communication.core.channel_orchestrator import CommunicationManager
-
-            temp_comm_manager = CommunicationManager()
-            dialog = AccountCreatorDialog(self, temp_comm_manager)
-            dialog.user_changed.connect(self.refresh_user_list)
-            dialog.exec()
-            try:
-                temp_comm_manager.stop_all()
-            except Exception as cleanup_error:
-                logger.warning(
-                    f"Error cleaning up temporary communication manager: {cleanup_error}"
-                )
-        except Exception as e:
-            logger.error(f"Error opening create account dialog: {e}")
-            QMessageBox.critical(
-                self, "Error", f"Failed to open create account dialog: {str(e)}"
-            )
+        """Open dialog to create a new user."""
+        self.dialog_actions.create_new_user(
+            self,
+            refresh_user_list=self.refresh_user_list,
+            create_comm_manager=_create_communication_manager,
+        )
 
     @handle_errors("managing communication settings", default_return=None)
     def manage_communication_settings(self):
-        """
-        Manage communication settings with validation.
-
-        Returns:
-            None: Always returns None
-        """
-        # Validate current_user
-        if not self.current_user:
-            logger.error("No current user selected")
-            return None
-        if not self.current_user:
-            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
-            return
-        logger.info(
-            f"Admin Panel: Opening communication settings for user {self.current_user}"
+        """Open channel management for the selected user."""
+        self.dialog_actions.manage_communication_settings(
+            self,
+            self.current_user,
+            on_user_changed=self.refresh_user_list,
         )
-        try:
-            from ui.dialogs.channel_management_dialog import ChannelManagementDialog
-
-            dialog = ChannelManagementDialog(self, user_id=self.current_user)
-            dialog.user_changed.connect(self.refresh_user_list)
-            dialog.setWindowTitle(f"Channel Settings - {self.current_user}")
-            dialog.exec()
-        except Exception as e:
-            logger.error(f"Error opening communication settings dialog: {e}")
-            QMessageBox.critical(
-                self, "Error", f"Failed to open communication settings: {str(e)}"
-            )
 
     @handle_errors("managing categories", default_return=None)
     def manage_categories(self):
-        """
-        Manage categories with validation.
-
-        Returns:
-            None: Always returns None
-        """
-        # Validate current_user
-        if not self.current_user:
-            logger.error("No current user selected")
-            return None
-        if not self.current_user:
-            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
-            return
-        logger.info(
-            f"Admin Panel: Opening category management for user {self.current_user}"
+        """Open category management for the selected user."""
+        self.dialog_actions.manage_categories(
+            self,
+            self.current_user,
+            on_user_changed=self.refresh_user_list,
+            reload_categories=lambda: self.load_user_categories(self.current_user),
         )
-        try:
-            from ui.dialogs.category_management_dialog import CategoryManagementDialog
-
-            dialog = CategoryManagementDialog(self, self.current_user)
-            dialog.user_changed.connect(self.refresh_user_list)
-            dialog.setWindowTitle(f"Category Settings - {self.current_user}")
-            dialog.exec()
-            self.load_user_categories(self.current_user)
-        except Exception as e:
-            logger.error(f"Error opening category management dialog: {e}")
-            QMessageBox.critical(
-                self, "Error", f"Failed to open category management: {str(e)}"
-            )
 
     @handle_errors("managing checkins", default_return=None)
     def manage_checkins(self):
-        """
-        Manage checkins with validation.
-
-        Returns:
-            None: Always returns None
-        """
-        # Validate current_user
-        if not self.current_user:
-            logger.error("No current user selected")
-            return None
-        if not self.current_user:
-            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
-            return
-        logger.info(
-            f"Admin Panel: Opening check-in management for user {self.current_user}"
+        """Open check-in management for the selected user."""
+        self.dialog_actions.manage_checkins(
+            self,
+            self.current_user,
+            on_user_changed=self.refresh_user_list,
         )
-        try:
-            from ui.dialogs.checkin_management_dialog import CheckinManagementDialog
-
-            dialog = CheckinManagementDialog(self, self.current_user)
-            dialog.user_changed.connect(self.refresh_user_list)
-            dialog.setWindowTitle(f"Check-in Management - {self.current_user}")
-            dialog.exec()
-        except Exception as e:
-            logger.error(f"Error opening check-in management: {e}")
-            QMessageBox.critical(
-                self, "Error", f"Failed to open check-in management: {str(e)}"
-            )
 
     @handle_errors("managing tasks", default_return=None)
     def manage_tasks(self):
-        """
-        Manage tasks with validation.
-
-        Returns:
-            None: Always returns None
-        """
-        # Validate current_user
-        if not self.current_user:
-            logger.error("No current user selected")
-            return None
-        if not self.current_user:
-            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
-            return
-        logger.info(
-            f"Admin Panel: Opening task management for user {self.current_user}"
+        """Open task management for the selected user."""
+        self.dialog_actions.manage_tasks(
+            self,
+            self.current_user,
+            on_user_changed=self.refresh_user_list,
         )
-        try:
-            from ui.dialogs.task_management_dialog import TaskManagementDialog
-
-            dialog = TaskManagementDialog(self, self.current_user)
-            dialog.user_changed.connect(self.refresh_user_list)
-            dialog.setWindowTitle(f"Task Management - {self.current_user}")
-            dialog.exec()
-        except Exception as e:
-            logger.error(f"Error opening task management dialog: {e}")
-            QMessageBox.critical(
-                self, "Error", f"Failed to open task management: {str(e)}"
-            )
 
     @handle_errors("managing task CRUD", default_return=None)
     def manage_task_crud(self):
-        """
-        Manage task CRUD with validation.
-
-        Returns:
-            None: Always returns None
-        """
-        # Validate current_user
-        if not self.current_user:
-            logger.error("No current user selected")
-            return None
-        if not self.current_user:
-            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
-            return
-        logger.info(f"Admin Panel: Opening task CRUD for user {self.current_user}")
-        try:
-            from ui.dialogs.task_crud_dialog import TaskCrudDialog
-
-            dialog = TaskCrudDialog(self, self.current_user)
-            dialog.setWindowTitle(f"Task CRUD - {self.current_user}")
-            dialog.exec()
-        except Exception as e:
-            logger.error(f"Error opening task CRUD dialog: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to open task CRUD: {str(e)}")
+        """Open task CRUD for the selected user."""
+        self.dialog_actions.manage_task_crud(self, self.current_user)
 
     @handle_errors("managing personalization", default_return=None)
     def manage_personalization(self):
-        """
-        Manage personalization with validation.
-
-        Returns:
-            None: Always returns None
-        """
-        # Validate current_user
-        if not self.current_user:
-            logger.error("No current user selected")
-            return None
-        if not self.current_user:
-            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
-            return
-        logger.info(
-            f"Admin Panel: Opening personalization management for user {self.current_user}"
+        """Open personalization settings for the selected user."""
+        self.dialog_actions.manage_personalization(
+            self,
+            self.current_user,
+            on_user_changed=self.refresh_user_list,
         )
-        try:
-            from ui.dialogs.user_profile_dialog import UserProfileDialog
-            from core import get_user_data
-
-            # Load user context and account data
-            user_data = get_user_data(self.current_user, ["context", "account"])
-            context_data = user_data.get("context", {})
-            account_data = user_data.get("account", {})
-            # Merge timezone from account.json into context_data for the dialog
-            if "timezone" in account_data:
-                context_data["timezone"] = account_data["timezone"]
-
-            # Custom save handler to split timezone
-            # ERROR_HANDLING_EXCLUDE: Nested callback function (already wrapped in try-except by parent)
-            def on_save(data):
-                tz = data.pop("timezone", None)
-                # Use centralized save_user_data for both context and account updates
-                from core import save_user_data
-
-                updates = {"context": data}
-                if tz is not None:
-                    updates["account"] = {"timezone": tz}
-                save_user_data(self.current_user, updates)
-
-            dialog = UserProfileDialog(
-                self, self.current_user, on_save, existing_data=context_data
-            )
-            dialog.user_changed.connect(self.refresh_user_list)
-            dialog.setWindowTitle(f"Personalization Settings - {self.current_user}")
-            dialog.exec()
-        except Exception as e:
-            logger.error(f"Error opening personalization dialog: {e}")
-            QMessageBox.critical(
-                self, "Error", f"Failed to open personalization settings: {str(e)}"
-            )
 
     @handle_errors("managing user analytics", default_return=None)
     def manage_user_analytics(self):
-        """
-        Manage user analytics with validation.
+        """Open user analytics for the selected user."""
+        self.dialog_actions.manage_user_analytics(self, self.current_user)
 
-        Returns:
-            None: Always returns None
-        """
-        # Validate current_user
-        if not self.current_user:
-            logger.error("No current user selected")
-            return None
-        """Open user analytics interface for selected user"""
-        if not self.current_user:
-            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
-            return
-        logger.info(f"Admin Panel: Opening user analytics for user {self.current_user}")
-        try:
-            from ui.dialogs.user_analytics_dialog import open_user_analytics_dialog
-
-            open_user_analytics_dialog(self, self.current_user)
-        except Exception as e:
-            logger.error(f"Error opening user analytics: {e}")
-            QMessageBox.critical(
-                self, "Error", f"Failed to open user analytics: {str(e)}"
-            )
-
-    @handle_errors("preparing selected user category editor", default_return=None)
-    def _prepare_current_user_category_editor(self, editor_label: str):
-        """Validate the current user/category and load user context for an editor."""
-        if not self.current_user:
-            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
-            return None
-
-        current_index = self.ui.comboBox_user_categories.currentIndex()
-        if current_index <= 0:
-            QMessageBox.warning(
-                self,
-                "No Category Selected",
-                "Please select a category from the dropdown first.",
-            )
-            return None
-
-        selected_category = self.ui.comboBox_user_categories.itemData(current_index)
-        logger.info(
-            f"Admin Panel: Opening {editor_label} editor for user {self.current_user}, category {selected_category}"
+    @handle_errors("delegating user category editor", default_return=None)
+    def _open_user_category_editor(self, editor_label: str) -> None:
+        """Delegate message or schedule editing for the selected user/category."""
+        self.dialog_actions.edit_user_category(
+            self,
+            self.current_user,
+            self.ui.comboBox_user_categories,
+            editor_label,
         )
-
-        UserContext().get_user_id()
-        UserContext().set_user_id(self.current_user)
-
-        user_data_result = get_user_data(self.current_user, "account")
-        user_account = user_data_result.get("account")
-        context_result = get_user_data(self.current_user, "context")
-        user_context = context_result.get("context")
-        if user_account:
-            UserContext().set_internal_username(
-                user_account.get("internal_username", "")
-            )
-            if user_context:
-                UserContext().set_preferred_name(user_context.get("preferred_name", ""))
-            UserContext().load_user_data(self.current_user)
-
-        return selected_category
 
     # not_duplicate: user_category_editor_actions
     @handle_errors("editing user messages", default_return=None)
     def edit_user_messages(self):
-        """
-        Edit user messages with validation.
-
-        Returns:
-            None: Always returns None
-        """
-        # Validate current_user
-        if not self.current_user:
-            logger.error("No current user selected")
-            return None
-        """Open message editing interface for selected user"""
-        selected_category = self._prepare_current_user_category_editor("message")
-        if not selected_category:
-            return
-
-        # Open the message editor directly with the selected category
-        self.open_message_editor(None, selected_category)
+        """Open message editing for the selected user/category."""
+        self._open_user_category_editor("message")
 
     @handle_errors("opening message editor", default_return=None)
     def open_message_editor(self, parent_dialog, category):
-        """
-        Open message editor with validation.
-
-        Returns:
-            None: Always returns None
-        """
-        # Validate category
-        if not category or not isinstance(category, str):
-            logger.error(f"Invalid category: {category}")
-            return None
-
-        if not category.strip():
-            logger.error("Empty category provided")
-            return None
-        """Open the message editing window for a specific category"""
-        logger.info(
-            f"Admin Panel: Opening message editor for user {self.current_user}, category {category}"
+        """Open the message editor for a category."""
+        self.dialog_actions.open_message_editor(
+            self, self.current_user, parent_dialog, category
         )
-
-        # Close parent dialog if it exists
-        if parent_dialog:
-            parent_dialog.accept()
-
-        try:
-            from ui.dialogs.message_editor_dialog import open_message_editor_dialog
-
-            open_message_editor_dialog(self, self.current_user, category)
-
-        except Exception as e:
-            logger.error(f"Error opening message editor: {e}")
-            QMessageBox.critical(
-                self, "Error", f"Failed to open message editor: {str(e)}"
-            )
 
     # not_duplicate: user_category_editor_actions
     @handle_errors("editing user schedules", default_return=None)
     def edit_user_schedules(self):
-        """
-        Edit user schedules with validation.
-
-        Returns:
-            None: Always returns None
-        """
-        # Validate current_user
-        if not self.current_user:
-            logger.error("No current user selected")
-            return None
-        """Open schedule editing interface for selected user"""
-        selected_category = self._prepare_current_user_category_editor("schedule")
-        if not selected_category:
-            return
-
-        # Open the schedule editor directly with the selected category
-        self.open_schedule_editor(None, selected_category)
+        """Open schedule editing for the selected user/category."""
+        self._open_user_category_editor("schedule")
 
     @handle_errors("opening schedule editor", default_return=None)
     def open_schedule_editor(self, parent_dialog, category):
-        """
-        Open schedule editor with validation.
-
-        Returns:
-            None: Always returns None
-        """
-        # Validate category
-        if not category or not isinstance(category, str):
-            logger.error(f"Invalid category: {category}")
-            return None
-
-        if not category.strip():
-            logger.error("Empty category provided")
-            return None
-        """Open the schedule editing window for a specific category"""
-        logger.info(
-            f"Admin Panel: Opening schedule editor for user {self.current_user}, category {category}"
+        """Open the schedule editor for a category."""
+        self.dialog_actions.open_schedule_editor(
+            self, self.current_user, parent_dialog, category
         )
-
-        # Close parent dialog if it exists
-        if parent_dialog:
-            parent_dialog.accept()
-
-        try:
-            from ui.dialogs.schedule_editor_dialog import open_schedule_editor
-
-            # ERROR_HANDLING_EXCLUDE: Nested callback function (already wrapped in try-except by parent)
-            def on_schedule_save():
-                """Callback when schedule is saved."""
-                logger.info(
-                    f"Schedule saved for user {self.current_user}, category {category}"
-                )
-
-            success = open_schedule_editor(
-                self, self.current_user, category, on_schedule_save
-            )
-
-            if success:
-                logger.info(
-                    f"Schedule editor completed successfully for user {self.current_user}, category {category}"
-                )
-            else:
-                logger.info(
-                    f"Schedule editor cancelled for user {self.current_user}, category {category}"
-                )
-
-        except Exception as e:
-            logger.error(f"Error opening schedule editor: {e}")
-            QMessageBox.critical(
-                self, "Error", f"Failed to open schedule editor: {str(e)}"
-            )
 
     @handle_errors("validating user selection", default_return=False)
     def _send_test_message__validate_user_selection(self):
@@ -1989,8 +803,6 @@ class MHMManagerUI(QMainWindow):
             time.sleep(0.1)  # Wait 100ms between checks
 
         # Get channel name for dialog
-        from core import get_user_data
-
         prefs_result = get_user_data(
             self.current_user, "preferences", normalize_on_read=True
         )
@@ -2070,8 +882,6 @@ class MHMManagerUI(QMainWindow):
         logger.info(f"Admin Panel: Sending check-in prompt to user {self.current_user}")
 
         # Get user preferences to determine messaging service and recipient
-        from core import get_user_data
-
         prefs_result = get_user_data(
             self.current_user, "preferences", normalize_on_read=True
         )
@@ -2177,16 +987,17 @@ class MHMManagerUI(QMainWindow):
 
         try:
             # Get user preferences first (needed for channel check)
-            from core import get_user_data
-
             prefs_result = get_user_data(
                 self.current_user, "preferences", normalize_on_read=True
             )
             preferences = prefs_result.get("preferences")
 
             # Check if tasks are enabled for this user
-            from tasks import are_tasks_enabled, load_active_tasks
-            from tasks.task_data_handlers import runtime_task_is_completed
+            are_tasks_enabled = _load_attr("tasks", "are_tasks_enabled")
+            load_active_tasks = _load_attr("tasks", "load_active_tasks")
+            runtime_task_is_completed = _load_attr(
+                "tasks.task_data_handlers", "runtime_task_is_completed"
+            )
 
             if not are_tasks_enabled(self.current_user):
                 QMessageBox.warning(
@@ -2221,11 +1032,10 @@ class MHMManagerUI(QMainWindow):
             # Use scheduler's weighted selection for proper priority-based semi-random selection
             # Note: We create a temporary scheduler manager just for task selection
             # The actual sending will be done by the service when it processes the request file
-            from scheduler.manager import SchedulerManager
-            from communication.core.channel_orchestrator import CommunicationManager
+            SchedulerManager = _load_attr("scheduler.manager", "SchedulerManager")
 
             # Create temporary instances for task selection only
-            temp_comm_manager = CommunicationManager()
+            temp_comm_manager = _create_communication_manager()
             scheduler_manager = SchedulerManager(temp_comm_manager)
 
             # Select task using priority-based weighting (considers priority, due dates, etc.)
@@ -2293,7 +1103,7 @@ class MHMManagerUI(QMainWindow):
     @handle_errors("toggling logging verbosity", default_return=None)
     def toggle_logging_verbosity(self):
         """Toggle logging verbosity and update menu."""
-        from core.logger import toggle_verbose_logging
+        toggle_verbose_logging = _load_attr("core.logger", "toggle_verbose_logging")
 
         is_verbose = toggle_verbose_logging()
 
@@ -2317,7 +1127,7 @@ class MHMManagerUI(QMainWindow):
         """
         """Open the log file in the default text editor."""
         import webbrowser
-        from core.config import LOG_MAIN_FILE
+        LOG_MAIN_FILE = _load_attr("core.config", "LOG_MAIN_FILE")
 
         webbrowser.open(LOG_MAIN_FILE)
 
@@ -2331,7 +1141,9 @@ class MHMManagerUI(QMainWindow):
         """
         """Open the process watcher dialog."""
         try:
-            from ui.dialogs.process_watcher_dialog import ProcessWatcherDialog
+            ProcessWatcherDialog = _load_attr(
+                "ui.dialogs.process_watcher_dialog", "ProcessWatcherDialog"
+            )
 
             dialog = ProcessWatcherDialog(self)
             dialog.show()
@@ -2349,12 +1161,10 @@ class MHMManagerUI(QMainWindow):
             None: Always returns None
         """
         """Show cache cleanup status and information."""
-        from core.auto_cleanup import (
-            get_cleanup_status,
-            find_pycache_dirs,
-            find_pyc_files,
-            calculate_cache_size,
-        )
+        get_cleanup_status = _load_attr("core.auto_cleanup", "get_cleanup_status")
+        find_pycache_dirs = _load_attr("core.auto_cleanup", "find_pycache_dirs")
+        find_pyc_files = _load_attr("core.auto_cleanup", "find_pyc_files")
+        calculate_cache_size = _load_attr("core.auto_cleanup", "calculate_cache_size")
 
         # Get cleanup status
         status = get_cleanup_status()
@@ -2387,9 +1197,9 @@ Days since cleanup: {status['days_since']}
 Next cleanup: {status['next_cleanup']}
 
 Current cache files found:
-â€¢ {len(pycache_dirs)} __pycache__ directories
-â€¢ {len(pyc_files)} standalone .pyc files
-â€¢ Total size: {current_size / 1024:.1f} KB ({current_size / (1024 * 1024):.2f} MB)"""
+ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ {len(pycache_dirs)} __pycache__ directories
+ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ {len(pyc_files)} standalone .pyc files
+ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ Total size: {current_size / 1024:.1f} KB ({current_size / (1024 * 1024):.2f} MB)"""
 
         status_text.setPlainText(status_content)
         layout.addWidget(status_text)
@@ -2420,7 +1230,10 @@ Current cache files found:
             None: Always returns None
         """
         """Force cache cleanup regardless of schedule."""
-        from core.auto_cleanup import perform_cleanup, update_cleanup_timestamp
+        perform_cleanup = _load_attr("core.auto_cleanup", "perform_cleanup")
+        update_cleanup_timestamp = _load_attr(
+            "core.auto_cleanup", "update_cleanup_timestamp"
+        )
 
         # Ask for confirmation
         result = QMessageBox.question(
@@ -2450,7 +1263,6 @@ Current cache files found:
             None: Always returns None
         """
         """Show detailed configuration validation report."""
-        from core.config import validate_all_configuration
         from PySide6.QtWidgets import QTabWidget, QTextEdit
 
         result = validate_all_configuration()
@@ -2472,10 +1284,10 @@ Current cache files found:
         summary_text = result["summary"]
         if result["valid"]:
             summary_color = "green"
-            summary_icon = "âœ“"
+            summary_icon = "ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“"
         else:
             summary_color = "red"
-            summary_icon = "âœ—"
+            summary_icon = "ÃƒÂ¢Ã…â€œÃ¢â‚¬â€"
 
         summary_label = QLabel(f"{summary_icon} {summary_text}")
         summary_label.setFont(QFont("Arial", 12, QFont.Weight.Bold))
@@ -2536,18 +1348,16 @@ Current cache files found:
         config_text.setReadOnly(True)
 
         # Add current configuration values
-        from core.config import (
-            BASE_DATA_DIR,
-            LOG_MAIN_FILE,
-            LOG_LEVEL,
-            LM_STUDIO_BASE_URL,
-            AI_TIMEOUT_SECONDS,
-            SCHEDULER_INTERVAL,
-            EMAIL_SMTP_SERVER,
-            EMAIL_IMAP_SERVER,
-            EMAIL_SMTP_USERNAME,
-            DISCORD_BOT_TOKEN,
-        )
+        BASE_DATA_DIR = _load_attr("core.config", "BASE_DATA_DIR")
+        LOG_MAIN_FILE = _load_attr("core.config", "LOG_MAIN_FILE")
+        LOG_LEVEL = _load_attr("core.config", "LOG_LEVEL")
+        LM_STUDIO_BASE_URL = _load_attr("core.config", "LM_STUDIO_BASE_URL")
+        AI_TIMEOUT_SECONDS = _load_attr("core.config", "AI_TIMEOUT_SECONDS")
+        SCHEDULER_INTERVAL = _load_attr("core.config", "SCHEDULER_INTERVAL")
+        EMAIL_SMTP_SERVER = _load_attr("core.config", "EMAIL_SMTP_SERVER")
+        EMAIL_IMAP_SERVER = _load_attr("core.config", "EMAIL_IMAP_SERVER")
+        EMAIL_SMTP_USERNAME = _load_attr("core.config", "EMAIL_SMTP_USERNAME")
+        DISCORD_BOT_TOKEN = _load_attr("core.config", "DISCORD_BOT_TOKEN")
 
         config_values = [
             ("Base Data Directory", BASE_DATA_DIR),
@@ -2759,7 +1569,7 @@ For detailed setup instructions, see the ui/UI_GUIDE.md file.
         # Check service status
         is_running, pid = self.service_manager.is_service_running()
         text_widget.append(
-            f"âœ“ Service Status: {'Running' if is_running else 'Stopped'}"
+            f"ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“ Service Status: {'Running' if is_running else 'Stopped'}"
         )
         if is_running:
             text_widget.append(f" (PID: {pid})")
@@ -2768,10 +1578,8 @@ For detailed setup instructions, see the ui/UI_GUIDE.md file.
         # Check Discord connectivity status if service is running
         if is_running:
             try:
-                # Import communication manager to check Discord status
-                from communication.core.channel_orchestrator import CommunicationManager
-
-                comm_manager = CommunicationManager()
+                # Create communication manager to check Discord status
+                comm_manager = _create_communication_manager()
                 discord_status = comm_manager.get_channel_connectivity_status("discord")
 
                 if discord_status:
@@ -2782,11 +1590,11 @@ For detailed setup instructions, see the ui/UI_GUIDE.md file.
                         latency = discord_status.get("latency", "unknown")
                         guild_count = discord_status.get("guild_count", "unknown")
                         text_widget.append(
-                            f"âœ“ Discord Status: Connected (Latency: {latency}s, Guilds: {guild_count})\n"
+                            f"ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“ Discord Status: Connected (Latency: {latency}s, Guilds: {guild_count})\n"
                         )
                     else:
                         text_widget.append(
-                            f"âš  Discord Status: {connection_status.title()}\n"
+                            f"ÃƒÂ¢Ã…Â¡Ã‚Â  Discord Status: {connection_status.title()}\n"
                         )
 
                         # Show detailed error information
@@ -2808,13 +1616,13 @@ For detailed setup instructions, see the ui/UI_GUIDE.md file.
 
         # Check user count
         user_ids = get_all_user_ids()
-        text_widget.append(f"âœ“ Total Users: {len(user_ids)}\n")
+        text_widget.append(f"ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“ Total Users: {len(user_ids)}\n")
 
         # Check data directories
-        required_dirs = [core.config.BASE_DATA_DIR, core.config.USER_INFO_DIR_PATH]
+        required_dirs = [core_config.BASE_DATA_DIR, core_config.USER_INFO_DIR_PATH]
         for dir_path in required_dirs:
             exists = os.path.exists(dir_path)
-            status = "âœ“" if exists else "âœ—"
+            status = "ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“" if exists else "ÃƒÂ¢Ã…â€œÃ¢â‚¬â€"
             text_widget.append(
                 f"{status} Directory {dir_path}: {'Exists' if exists else 'Missing'}\n"
             )
@@ -2823,9 +1631,9 @@ For detailed setup instructions, see the ui/UI_GUIDE.md file.
         text_widget.append("\nChecking for common issues...\n")
 
         # Check for orphaned message files
-        if os.path.exists(core.config.USER_INFO_DIR_PATH):
+        if os.path.exists(core_config.USER_INFO_DIR_PATH):
             orphaned_files = 0
-            for _root, _dirs, files in os.walk(core.config.USER_INFO_DIR_PATH):
+            for _root, _dirs, files in os.walk(core_config.USER_INFO_DIR_PATH):
                 for file in files:
                     if file.endswith(".json"):
                         # Extract user_id from filename
@@ -2834,9 +1642,9 @@ For detailed setup instructions, see the ui/UI_GUIDE.md file.
                             orphaned_files += 1
 
             if orphaned_files == 0:
-                text_widget.append("âœ“ No orphaned message files found\n")
+                text_widget.append("ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“ No orphaned message files found\n")
             else:
-                text_widget.append(f"âš  Found {orphaned_files} orphaned message files\n")
+                text_widget.append(f"ÃƒÂ¢Ã…Â¡Ã‚Â  Found {orphaned_files} orphaned message files\n")
 
         text_widget.append("\nHealth check complete.\n")
 

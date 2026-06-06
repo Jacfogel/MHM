@@ -747,9 +747,10 @@ class TestAccountLifecycle:
         assert "motivational" in updated_cats, "Motivational should remain"
     
     @pytest.mark.integration
-    def test_add_schedule_period(self):
+    @pytest.mark.no_parallel
+    def test_add_schedule_period(self, update_user_index_for_test):
         """Test adding a new schedule period to user schedules."""
-        from core import get_user_data
+        from core import get_user_data, clear_user_caches
         
         # Arrange - Create user with basic schedule
         user_id = "test-add-period"
@@ -794,6 +795,7 @@ class TestAccountLifecycle:
         assert actual_user_id is not None
         if actual_user_id:
             update_user_index(actual_user_id)
+            update_user_index_for_test(actual_user_id)
         
         # Act - Add new period via public API (optimization: materialize once at start)
         self._materialize_and_verify(actual_user_id)
@@ -806,20 +808,23 @@ class TestAccountLifecycle:
         }
         from core import update_user_schedules
         update_user_schedules(actual_user_id, curr)
+        update_user_index(actual_user_id)
+        update_user_index_for_test(actual_user_id)
         
-        # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify)
-        updated_data = get_user_data(actual_user_id)
-        # Ensure motivational category exists for order robustness
-        if "motivational" not in updated_data.get("schedules", {}):
-            from core import save_user_data as _save
-            schedules_now = updated_data.get("schedules", {})
-            schedules_now.setdefault("motivational", {"periods": {}})
-            _save(actual_user_id, {"schedules": schedules_now})
-            updated_data = get_user_data(actual_user_id)
-        assert len(updated_data["schedules"]["motivational"]["periods"]) == 2, "Should have 2 periods"
+        # Assert - targeted schedules read + cache clear (parallel "all" loads can omit keys briefly)
+        clear_user_caches(actual_user_id)
+        schedules_block = get_user_data(actual_user_id, "schedules")
+        schedules = (
+            schedules_block.get("schedules", schedules_block)
+            if isinstance(schedules_block, dict)
+            else {}
+        )
+        motivational = schedules.get("motivational", {})
+        periods = motivational.get("periods", {})
+        assert len(periods) == 2, "Should have 2 periods"
         
-        assert "evening" in updated_data["schedules"]["motivational"]["periods"], "Evening period should exist"
-        evening_period = updated_data["schedules"]["motivational"]["periods"]["evening"]
+        assert "evening" in periods, "Evening period should exist"
+        evening_period = periods["evening"]
         assert evening_period["start_time"] == "18:00", "Evening period should have correct start time"
         assert evening_period["end_time"] == "21:00", "Evening period should have correct end time"
     
@@ -890,9 +895,10 @@ class TestAccountLifecycle:
         assert updated_morning["days"] == ["ALL"], "Days should be normalized to ['ALL'] when all days selected"
     
     @pytest.mark.integration
-    def test_remove_schedule_period(self):
+    @pytest.mark.no_parallel
+    def test_remove_schedule_period(self, update_user_index_for_test):
         """Test removing a schedule period from user schedules."""
-        from core import get_user_data
+        from core import get_user_data, clear_user_caches
         
         # Arrange - Create user with multiple periods
         user_id = "test-remove-period"
@@ -942,6 +948,7 @@ class TestAccountLifecycle:
         assert actual_user_id is not None
         if actual_user_id:
             update_user_index(actual_user_id)
+            update_user_index_for_test(actual_user_id)
         
         # Act - Remove period via public API (optimization: materialize once at start)
         self._materialize_and_verify(actual_user_id)
@@ -949,13 +956,22 @@ class TestAccountLifecycle:
         schedules_now.setdefault("motivational", {}).setdefault("periods", {}).pop("evening", None)
         from core import update_user_schedules
         update_user_schedules(actual_user_id, schedules_now)
+        update_user_index(actual_user_id)
+        update_user_index_for_test(actual_user_id)
         
-        # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify)
-        updated_data = get_user_data(actual_user_id)
-        assert len(updated_data["schedules"]["motivational"]["periods"]) == 1, "Should have 1 period"
+        # Assert - targeted schedules read + cache clear (parallel "all" loads can omit keys briefly)
+        clear_user_caches(actual_user_id)
+        schedules_block = get_user_data(actual_user_id, "schedules")
+        schedules = (
+            schedules_block.get("schedules", schedules_block)
+            if isinstance(schedules_block, dict)
+            else {}
+        )
+        periods = schedules.get("motivational", {}).get("periods", {})
+        assert len(periods) == 1, "Should have 1 period"
         
-        assert "evening" not in updated_data["schedules"]["motivational"]["periods"], "Evening period should be removed"
-        assert "morning" in updated_data["schedules"]["motivational"]["periods"], "Morning period should remain"
+        assert "evening" not in periods, "Evening period should be removed"
+        assert "morning" in periods, "Morning period should remain"
     
     @pytest.mark.integration
     @pytest.mark.slow
