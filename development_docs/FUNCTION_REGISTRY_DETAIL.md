@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-06 03:18:42
+> **Last Generated**: 2026-06-06 14:07:53
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,15 +15,15 @@
 ## Overview
 
 ### **Function Documentation Coverage: 91.7% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 196
-- **Functions Found**: 2085
-- **Methods Found**: 1331
-- **Classes Found**: 211
-- **Total Items**: 3416
-- **Functions Documented**: 1885
-- **Methods Documented**: 1246
-- **Classes Documented**: 150
-- **Total Documented**: 3131
+- **Files Scanned**: 198
+- **Functions Found**: 2105
+- **Methods Found**: 1343
+- **Classes Found**: 213
+- **Total Items**: 3448
+- **Functions Documented**: 1905
+- **Methods Documented**: 1258
+- **Classes Documented**: 152
+- **Total Documented**: 3163
 - **Template-Generated**: 28
 - **Last Updated**: 2026-06-06
 
@@ -45,7 +45,7 @@ Core system utilities, configuration, error handling, and data management functi
 ### **Communication Functions** (539)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (484)
+### **User Interface Functions** (504)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (35)
@@ -5766,9 +5766,40 @@ Returns:
 
 #### `ui/__init__.py`
 
+#### `ui/admin_actions.py`
+**Functions:**
+- [OK] `_build_all_users_summary(self, user_ids)` - Build the plain-text all-users summary body.
+- [OK] `_build_system_health_report(self)` - Build the system health report text.
+- [OK] `_configuration_values(self)` - Return display-ready configuration values for the validation dialog.
+- [OK] `_discord_health_lines(self, create_communication_manager)` - Return Discord connectivity health lines.
+- [OK] `_load_attr(module_name, attr_name)` - Load a project attribute through the UI lazy dependency boundary.
+- [OK] `force_clean_cache(self, parent)` - Force cache cleanup regardless of schedule.
+- [OK] `open_process_watcher(self, parent)` - Open the process watcher dialog.
+- [OK] `show_configuration_help(self, parent_window)` - Show help for fixing configuration issues.
+- [OK] `system_health_check(self, parent)` - Perform a basic system health check.
+- [OK] `toggle_logging_verbosity(self, parent, menu_action)` - Toggle logging verbosity, update the menu action, and notify the user.
+- [OK] `validate_configuration(self, parent)` - Show detailed configuration validation report.
+- [OK] `view_all_users_summary(self, parent)` - Show a summary of all users in the system.
+- [OK] `view_cache_status(self, parent)` - Show cache cleanup status and information.
+- [OK] `view_log_file(self)` - Open the main log file in the default text editor.
+**Classes:**
+- [OK] `AdminActions` - Run admin/system actions that are not core Qt shell responsibilities.
+  - [OK] `AdminActions._build_all_users_summary(self, user_ids)` - Build the plain-text all-users summary body.
+  - [OK] `AdminActions._build_system_health_report(self)` - Build the system health report text.
+  - [OK] `AdminActions._configuration_values(self)` - Return display-ready configuration values for the validation dialog.
+  - [OK] `AdminActions._discord_health_lines(self, create_communication_manager)` - Return Discord connectivity health lines.
+  - [OK] `AdminActions.force_clean_cache(self, parent)` - Force cache cleanup regardless of schedule.
+  - [OK] `AdminActions.open_process_watcher(self, parent)` - Open the process watcher dialog.
+  - [OK] `AdminActions.show_configuration_help(self, parent_window)` - Show help for fixing configuration issues.
+  - [OK] `AdminActions.system_health_check(self, parent)` - Perform a basic system health check.
+  - [OK] `AdminActions.toggle_logging_verbosity(self, parent, menu_action)` - Toggle logging verbosity, update the menu action, and notify the user.
+  - [OK] `AdminActions.validate_configuration(self, parent)` - Show detailed configuration validation report.
+  - [OK] `AdminActions.view_all_users_summary(self, parent)` - Show a summary of all users in the system.
+  - [OK] `AdminActions.view_cache_status(self, parent)` - Show cache cleanup status and information.
+  - [OK] `AdminActions.view_log_file(self)` - Open the main log file in the default text editor.
+
 #### `ui/dialog_actions.py`
 **Functions:**
-- [OK] `_edit_user_category_content(self, parent, current_user, category_combo, editor_label, open_editor)` - Validate selection and open the requested category editor.
 - [OK] `_load_attr(module_name, attr_name)` - Load a project attribute through the UI lazy dependency boundary.
 - [OK] `_require_current_user(parent, current_user)` - Return True when a user is selected; otherwise warn and return False.
 - [OK] `create_new_user(self, parent)` - Open the account creator dialog.
@@ -5789,7 +5820,6 @@ Returns:
 - [OK] `prepare_current_user_category_editor(self, parent, current_user, category_combo, editor_label)` - Validate user/category selection and load user context for an editor.
 **Classes:**
 - [OK] `DialogActions` - Opens admin dialogs and wires user-changed refresh callbacks.
-  - [OK] `DialogActions._edit_user_category_content(self, parent, current_user, category_combo, editor_label, open_editor)` - Validate selection and open the requested category editor.
   - [OK] `DialogActions.create_new_user(self, parent)` - Open the account creator dialog.
   - [OK] `DialogActions.edit_user_category(self, parent, current_user, category_combo, editor_label)` - Open the message or schedule editor for the selected user/category.
   - [OK] `DialogActions.edit_user_messages(self, parent, current_user, category_combo)` - Open the message editor for the selected user/category.
@@ -6474,6 +6504,19 @@ Returns:
 - [OK] `load_period_widgets_for_category(layout, user_id, category, parent_widget, widget_list, delete_callback)` - Load and display period widgets for a specific category.
 - [OK] `remove_period_row_from_layout(row_widget, layout, period_widgets, deleted_periods, guard_fn)` - Remove a period row from layout and list, storing data for undo.
 
+#### `ui/request_actions.py`
+**Functions:**
+- [OK] `_load_attr(module_name, attr_name)` - Load a project attribute through the UI lazy dependency boundary.
+- [OK] `_poll_response_file(response_file)` - Wait briefly for a service response flag and return its decoded payload.
+- [OK] `_schedule_stale_request_cleanup(request_file)` - Remove unprocessed test-message request files later in normal UI runs.
+- [OK] `_truncate_for_dialog(value, max_length)` - Truncate long service response text for message boxes.
+- [MISSING] `cleanup_old_requests()` - No description
+- [OK] `create_checkin_prompt_request(user_id)` - Create a check-in prompt request for the running service.
+- [OK] `create_task_reminder_request(user_id)` - Create a task reminder request for the running service.
+- [OK] `create_test_message_request(user_id, category)` - Create a test-message request for the running service.
+**Classes:**
+- [OK] `RequestActionOutcome` - UI-neutral result for a request action.
+
 #### `ui/scheduler_actions.py`
 **Functions:**
 - [OK] `_load_attr(module_name, attr_name)` - Load a project attribute through the UI lazy dependency boundary.
@@ -6551,14 +6594,13 @@ roughly chronological.
 - [OK] `_load_attr(module_name, attr_name)` - Load a project attribute through the UI lazy dependency boundary.
 - [OK] `_open_user_category_editor(self, editor_label)` - Delegate message or schedule editing for the selected user/category.
 - [OK] `_populate_active_users_in_combo_box(self)` - Populate user combo box from active user metadata.
-- [OK] `_prepare_current_user_category_editor(self, editor_label)` - Validate user/category selection and load user context for an editor.
 - [OK] `_refresh_user_list_fallback(self, original_error)` - Fallback user list refresh using minimal account/context reads.
 - [OK] `_reselect_user_if_present(self, current_user_id)` - Reselect prior active user if still present in combo list.
 - [OK] `_reset_user_combo_box(self)` - Clear user combo and add placeholder entry.
 - [OK] `_send_test_message__get_selected_category(self)` - Get and validate the selected category from the dropdown.
 - [OK] `_send_test_message__validate_service_running(self)` - Validate that the service is running.
 - [OK] `_send_test_message__validate_user_selection(self)` - Validate that a user is selected.
-- [MISSING] `cleanup_old_requests()` - No description
+- [OK] `_show_request_action_outcome(self, outcome)` - Display a UI-neutral request action outcome.
 - [OK] `closeEvent(self, event)` - Handle window close event
 - [OK] `connect_signals(self)` - Connect UI signals to slots
 - [OK] `create_new_user(self)` - Open dialog to create a new user.
@@ -6566,10 +6608,7 @@ roughly chronological.
 - [OK] `edit_user_messages(self)` - Open message editing for the selected user/category.
 - [OK] `edit_user_schedules(self)` - Open schedule editing for the selected user/category.
 - [OK] `enable_content_management(self)` - Enable content management buttons
-- [OK] `force_clean_cache(self)` - Force cache cleanup with validation.
-
-Returns:
-    None: Always returns None
+- [OK] `force_clean_cache(self)` - Force cache cleanup regardless of schedule.
 - [OK] `initialize_ui(self)` - Initialize the UI state
 - [OK] `load_theme(self)` - Load and apply the QSS theme from the styles directory
 - [OK] `load_ui(self)` - Load the UI from the .ui file
@@ -6588,10 +6627,7 @@ Returns:
 Returns:
     None: Always returns None
 - [OK] `open_message_editor(self, parent_dialog, category)` - Open the message editor for a category.
-- [OK] `open_process_watcher(self)` - Open process watcher with validation.
-
-Returns:
-    None: Always returns None
+- [OK] `open_process_watcher(self)` - Open the process watcher dialog.
 - [OK] `open_schedule_editor(self, parent_dialog, category)` - Open the schedule editor for a category.
 - [OK] `refresh_user_list(self)` - Refresh the user list with validation.
 
@@ -6601,18 +6637,9 @@ Returns:
 - [OK] `run_category_scheduler(self)` - Run scheduler for the selected user and category
 - [OK] `run_full_scheduler(self)` - Run the full scheduler for all users
 - [OK] `run_user_scheduler(self)` - Run scheduler for the selected user
-- [OK] `send_actual_test_message(self, category)` - Send actual test message with validation.
-
-Returns:
-    None: Always returns None
-- [OK] `send_checkin_prompt(self)` - Send a check-in prompt to the selected user for testing purposes.
-
-Returns:
-    None: Always returns None
-- [OK] `send_task_reminder(self)` - Send a task reminder to the selected user for testing purposes.
-
-Returns:
-    None: Always returns None
+- [OK] `send_actual_test_message(self, category)` - Create a service-handled test-message request.
+- [OK] `send_checkin_prompt(self)` - Create a service-handled check-in prompt request.
+- [OK] `send_task_reminder(self)` - Create a service-handled task reminder request.
 - [OK] `send_test_message(self)` - Send test message with validation.
 
 Returns:
@@ -6628,31 +6655,22 @@ Returns:
 - [OK] `toggle_logging_verbosity(self)` - Toggle logging verbosity and update menu.
 - [OK] `update_service_status(self)` - Update the service status display
 - [OK] `update_user_index_on_startup(self)` - Automatically update the user index when the admin panel starts
-- [OK] `validate_configuration(self)` - Validate configuration with validation.
-
-Returns:
-    None: Always returns None
+- [OK] `validate_configuration(self)` - Show detailed configuration validation report.
 - [OK] `view_all_users_summary(self)` - Show a summary of all users in the system.
-- [OK] `view_cache_status(self)` - View cache status with validation.
-
-Returns:
-    None: Always returns None
-- [OK] `view_log_file(self)` - View log file with validation.
-
-Returns:
-    None: Always returns None
+- [OK] `view_cache_status(self)` - Show cache cleanup status and information.
+- [OK] `view_log_file(self)` - Open the log file in the default text editor.
 **Classes:**
 - [OK] `MHMManagerUI` - Main MHM Management UI using PySide6
   - [OK] `MHMManagerUI.__init__(self)` - Initialize the object.
   - [OK] `MHMManagerUI._open_user_category_editor(self, editor_label)` - Delegate message or schedule editing for the selected user/category.
   - [OK] `MHMManagerUI._populate_active_users_in_combo_box(self)` - Populate user combo box from active user metadata.
-  - [OK] `MHMManagerUI._prepare_current_user_category_editor(self, editor_label)` - Validate user/category selection and load user context for an editor.
   - [OK] `MHMManagerUI._refresh_user_list_fallback(self, original_error)` - Fallback user list refresh using minimal account/context reads.
   - [OK] `MHMManagerUI._reselect_user_if_present(self, current_user_id)` - Reselect prior active user if still present in combo list.
   - [OK] `MHMManagerUI._reset_user_combo_box(self)` - Clear user combo and add placeholder entry.
   - [OK] `MHMManagerUI._send_test_message__get_selected_category(self)` - Get and validate the selected category from the dropdown.
   - [OK] `MHMManagerUI._send_test_message__validate_service_running(self)` - Validate that the service is running.
   - [OK] `MHMManagerUI._send_test_message__validate_user_selection(self)` - Validate that a user is selected.
+  - [OK] `MHMManagerUI._show_request_action_outcome(self, outcome)` - Display a UI-neutral request action outcome.
   - [OK] `MHMManagerUI.closeEvent(self, event)` - Handle window close event
   - [OK] `MHMManagerUI.connect_signals(self)` - Connect UI signals to slots
   - [OK] `MHMManagerUI.create_new_user(self)` - Open dialog to create a new user.
@@ -6660,10 +6678,7 @@ Returns:
   - [OK] `MHMManagerUI.edit_user_messages(self)` - Open message editing for the selected user/category.
   - [OK] `MHMManagerUI.edit_user_schedules(self)` - Open schedule editing for the selected user/category.
   - [OK] `MHMManagerUI.enable_content_management(self)` - Enable content management buttons
-  - [OK] `MHMManagerUI.force_clean_cache(self)` - Force cache cleanup with validation.
-
-Returns:
-    None: Always returns None
+  - [OK] `MHMManagerUI.force_clean_cache(self)` - Force cache cleanup regardless of schedule.
   - [OK] `MHMManagerUI.initialize_ui(self)` - Initialize the UI state
   - [OK] `MHMManagerUI.load_theme(self)` - Load and apply the QSS theme from the styles directory
   - [OK] `MHMManagerUI.load_ui(self)` - Load the UI from the .ui file
@@ -6681,10 +6696,7 @@ Returns:
 Returns:
     None: Always returns None
   - [OK] `MHMManagerUI.open_message_editor(self, parent_dialog, category)` - Open the message editor for a category.
-  - [OK] `MHMManagerUI.open_process_watcher(self)` - Open process watcher with validation.
-
-Returns:
-    None: Always returns None
+  - [OK] `MHMManagerUI.open_process_watcher(self)` - Open the process watcher dialog.
   - [OK] `MHMManagerUI.open_schedule_editor(self, parent_dialog, category)` - Open the schedule editor for a category.
   - [OK] `MHMManagerUI.refresh_user_list(self)` - Refresh the user list with validation.
 
@@ -6694,18 +6706,9 @@ Returns:
   - [OK] `MHMManagerUI.run_category_scheduler(self)` - Run scheduler for the selected user and category
   - [OK] `MHMManagerUI.run_full_scheduler(self)` - Run the full scheduler for all users
   - [OK] `MHMManagerUI.run_user_scheduler(self)` - Run scheduler for the selected user
-  - [OK] `MHMManagerUI.send_actual_test_message(self, category)` - Send actual test message with validation.
-
-Returns:
-    None: Always returns None
-  - [OK] `MHMManagerUI.send_checkin_prompt(self)` - Send a check-in prompt to the selected user for testing purposes.
-
-Returns:
-    None: Always returns None
-  - [OK] `MHMManagerUI.send_task_reminder(self)` - Send a task reminder to the selected user for testing purposes.
-
-Returns:
-    None: Always returns None
+  - [OK] `MHMManagerUI.send_actual_test_message(self, category)` - Create a service-handled test-message request.
+  - [OK] `MHMManagerUI.send_checkin_prompt(self)` - Create a service-handled check-in prompt request.
+  - [OK] `MHMManagerUI.send_task_reminder(self)` - Create a service-handled task reminder request.
   - [OK] `MHMManagerUI.send_test_message(self)` - Send test message with validation.
 
 Returns:
@@ -6721,19 +6724,10 @@ Returns:
   - [OK] `MHMManagerUI.toggle_logging_verbosity(self)` - Toggle logging verbosity and update menu.
   - [OK] `MHMManagerUI.update_service_status(self)` - Update the service status display
   - [OK] `MHMManagerUI.update_user_index_on_startup(self)` - Automatically update the user index when the admin panel starts
-  - [OK] `MHMManagerUI.validate_configuration(self)` - Validate configuration with validation.
-
-Returns:
-    None: Always returns None
+  - [OK] `MHMManagerUI.validate_configuration(self)` - Show detailed configuration validation report.
   - [OK] `MHMManagerUI.view_all_users_summary(self)` - Show a summary of all users in the system.
-  - [OK] `MHMManagerUI.view_cache_status(self)` - View cache status with validation.
-
-Returns:
-    None: Always returns None
-  - [OK] `MHMManagerUI.view_log_file(self)` - View log file with validation.
-
-Returns:
-    None: Always returns None
+  - [OK] `MHMManagerUI.view_cache_status(self)` - Show cache cleanup status and information.
+  - [OK] `MHMManagerUI.view_log_file(self)` - Open the log file in the default text editor.
 
 #### `ui/user_list_provider.py`
 **Functions:**

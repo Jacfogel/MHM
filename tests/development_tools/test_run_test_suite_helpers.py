@@ -146,6 +146,68 @@ def test_pytest_startup_failure_without_junit_is_crashed(tmp_path: Path):
 
 
 @pytest.mark.unit
+def test_xdist_teardown_interrupt_retries_parallel_phase_serially(monkeypatch, tmp_path: Path):
+    monkeypatch.setattr(runner, "_has_xdist", lambda: True)
+    runner_any = cast(Any, runner)
+    runner_any._STOP_REQUESTED = False
+
+    calls: list[tuple[str, bool]] = []
+
+    def fake_run_phase(name, cfg, junit_dir, *, force_serial=False, test_paths=None):
+        calls.append((name, force_serial))
+        if name == "parallel" and not force_serial:
+            return runner.PhaseResult(
+                name="parallel",
+                command=["pytest", "-n", "auto"],
+                return_code=1,
+                duration_seconds=0.1,
+                counts={
+                    "total": 1,
+                    "passed": 1,
+                    "failed": 0,
+                    "errors": 0,
+                    "skipped": 0,
+                },
+                failed_node_ids=[],
+                output_tail=(
+                    "File site-packages\\xdist\\dsession.py, line 99, in "
+                    "pytest_sessionfinish\n"
+                    "nm.teardown_nodes()\n"
+                    "File site-packages\\execnet\\multi.py\n"
+                    "KeyboardInterrupt"
+                ),
+                junit_xml=str(junit_dir / "parallel.xml"),
+            )
+        return runner.PhaseResult(
+            name=name,
+            command=["pytest"],
+            return_code=0,
+            duration_seconds=0.1,
+            counts={"total": 1, "passed": 1, "failed": 0, "errors": 0, "skipped": 0},
+            failed_node_ids=[],
+            output_tail="1 passed",
+            junit_xml=str(junit_dir / f"{name}.xml"),
+        )
+
+    monkeypatch.setattr(runner, "_run_phase", fake_run_phase)
+
+    result = runner.run_suite(
+        _cfg(junit_dir=str(tmp_path)),
+        use_domain_cache=False,
+    )
+
+    assert calls == [
+        ("parallel", False),
+        ("parallel", True),
+        ("no_parallel", True),
+    ]
+    assert result["details"]["tier3_test_outcome"]["state"] == "clean"
+    parallel = result["details"]["phases"][0]
+    assert parallel["classification"] == "passed"
+    assert "reran phase serially" in parallel["output_tail"]
+
+
+@pytest.mark.unit
 def test_parse_junit_by_test_file_groups_counts(tmp_path: Path):
     xml = tmp_path / "results.xml"
     xml.write_text(

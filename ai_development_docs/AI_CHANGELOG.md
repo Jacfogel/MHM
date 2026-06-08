@@ -30,6 +30,17 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-06-06 - UI admin action extraction (Stage 7) **COMPLETED**
+- Moved admin menu/system actions from `ui/ui_app_qt.py` into `ui/admin_actions.py`, including cache status/cleanup, config validation/help, all-users summary, log opening, verbose logging, process watcher opening, and system health reporting.
+- `MHMManagerUI` now keeps signal-compatible wrappers that delegate to `AdminActions`; `ui_app_qt.py` is down to ~888 lines.
+- Added `tests/ui/test_admin_actions.py`; targeted UI main/core/behavior suites pass after the extraction.
+
+### 2026-06-06 - UI request action extraction (Stage 6) **COMPLETED**
+- Moved test-message, check-in prompt, and task-reminder request-file creation/polling from `ui/ui_app_qt.py` into `ui/request_actions.py`.
+- `MHMManagerUI` now keeps selection/service validation and final Qt message display while request actions return UI-neutral outcomes.
+- Added `tests/ui/test_request_actions.py`; updated stale behavior-test patching to the new request-action owner.
+- Verification: `py_compile`, focused request-action tests, and targeted UI main/core/behavior suites pass.
+
 ### 2026-06-06 - UI dialog orchestration extraction (Stage 5) **COMPLETED**
 - Moved `create_new_user`, all `manage_*` dialog openers, and message/schedule editor orchestration from `ui/ui_app_qt.py` into `ui/dialog_actions.py` (`DialogActions`).
 - `MHMManagerUI` keeps thin delegators; lazy dialog imports stay behind `ui.lazy_dependencies._load_attr`.
@@ -99,35 +110,6 @@ Guidelines:
 - Introduced `discord_handler_protocol.py` (`DiscordHandlerHost`) so handler modules no longer import `bot.py`; added `@handle_errors` on `_on_ready_handler`; legacy `get_discord_event_handler` now logs on use and carries `# devtools: ignore[facade-shims]` after review. Dev-tools error-handling scan excludes Protocol stubs with docstring+ellipsis bodies (not just inline `...`).
 - `command_parser` notebook entity helpers retained with `@handle_errors` on shared parse helpers; removed broken incomplete flow-split modules and one-off extraction scripts.
 - Changelog ASCII/link quick wins applied via doc-fix and doc-sync.
-
-### 2026-05-28 - Dev-tools complexity thresholds and test hygiene **COMPLETED**
-- Raised module refactor thresholds (2000 lines, 4000 total complexity, 10 high+critical functions) and function complexity bands (100/200/300); AI_PRIORITIES wording no longer hardcodes node ranges.
-- Docstrings added for `normalize_string_list` and `_valid_time` (audit docstring gap cleared).
-- `test_discord_task_reminder_followup.py` marked `no_parallel` for shared `conversation_manager` state (fixes parallel-only Tier 3 flake).
-- Coverage sweep (AI_PRIORITIES #1): new unit tests for `scheduler/jobs.py`, `checkin_schemas.py`, `checkin_analytics.py` (helpers + energy/basic analytics/completion paths), and `schedule_document_defaults.py` legacy migration.
-- Audit follow-up: dev-tools complexity/decision-support tests and config example synced to 100/200/300 thresholds; UI task-management toggle test marked `no_parallel`; added checkin data manager, communication lazy-import, and checkin_summary fallback coverage.
-- Word-boundary fix in `checkin_summary._prompt_mentions_breakfast()` (`\b` patterns; fixes "lately" -> "ate" false match).
-- Suite cache invalidation: failed `run_test_suite` runs bust full-suite snapshot reuse even when coverage cache reports success; cache hits require `can_reuse_full_suite_cache()`.
-- Error handling on `_prompt_mentions_breakfast` and create-hub button binders; function registry regenerated; AI_CHANGELOG ASCII fix.
-- Parallel flake fix for `test_get_all_user_ids_returns_list`; scheduler task-reminder weight/selection unit tests added.
-- Coverage sweep (sub-80% domains): storage tests for `validate_v2_document`, presets, and `_apply_fields_filter`; communication tests for Discord `interaction_views`; scheduler tests for `schedule_task_reminder_at_time`.
-- Tier 3 parallel flake: `test_update_task_verifies_actual_changes_persist` uses unique user IDs, `wait_until` for disk persistence, and `no_parallel`; Pyright warnings cleared in `test_user_data_read_fields.py`.
-- Backup manager parallel crash: [`test_backup_manager_behavior.py`](../tests/behavior/test_backup_manager_behavior.py) fixture uses isolated `test_path_factory` dirs instead of wiping shared `tests/data/users`; unique backup user IDs per test.
-
-### 2026-05-27 - Task templates and Discord create hub **COMPLETED**
-- Five built-in templates (medication, appointment, phone call, cleaning, paperwork) with prefilled defaults.
-- Discord/text: `task template <name>`, `list task templates`, or `create` / `new` / `add` for button menu + modals (shared title/body/group/tags fields).
-- Legacy alignment: no `LEGACY COMPATIBILITY` bridges; removed thin `resolve_template_id` wrapper in favor of `get_builtin_task_template()` returning a `TaskTemplate` (canonical lookup stays in `task_templates.lookup_builtin_template_id`).
-- Tests: `test_task_templates.py`, `test_item_form_shared.py`, `test_create_menu_handler.py`.
-
-### 2026-05-26 - Test domain markers (refactor alignment) **Progressed**
-- Registered `@pytest.mark.storage` in `pytest.ini` and paired testing guides (`AI_TESTING_GUIDE.md`, `TESTING_GUIDE.md`).
-- Retagged check-in and storage tests from `@core` (or redundant `@user_management`) to `@checkins` / `@storage`.
-- Second pass: aligned markers with code moved out of `core` into domain packages (`messages`, `user`, `tasks`, `scheduler`, `ui`, `notebook`) and removed stale file/class `@core` where `user_management` / `scheduler` / `ui` already applied. Left `@communication` unchanged except `test_core_message_management_coverage_expansion` -> `@messages` (tests `messages.*`, not channels).
-- Added `test_pytest_tests_have_required_domain_marker` (mirrors `analyze_test_markers` / config domain list). Wired `analyze_test_markers` into Tier 3 audit; `--check` now fails the audit when marker gaps exist.
-- Regenerated `audit_tool_matrix.json` and `tool_cache_inventory.json` for Tier 3 `analyze_test_markers`; fixed ASCII arrows in changelog entries.
-- Extended `development_tools/tests/coverage.ini` `[run] source=` to include `checkins`, `messages`, and `storage` (and full product package list); added policy test; regenerated `TEST_COVERAGE_REPORT.md` scope (rerun coverage for per-domain numbers).
-- Coverage cache invalidation now includes `coverage.ini` in tool_hash (fixes stale full-cache reuse after `source=` changes); clears stored full coverage JSON on tool/config bust. Fixed ASCII in changelog; doc-sync clean.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

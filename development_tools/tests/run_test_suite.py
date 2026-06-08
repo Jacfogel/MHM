@@ -297,6 +297,20 @@ def _parse_junit(xml_path: Path) -> tuple[dict[str, int], list[str]]:
     return counts, sorted(set(failed_nodes))
 
 
+def _is_xdist_teardown_interrupt_output(output: str) -> bool:
+    """Detect local xdist/execnet teardown hangs after test execution completes."""
+    lowered = output.lower()
+    return all(
+        marker in lowered
+        for marker in (
+            "xdist",
+            "teardown_nodes",
+            "execnet",
+            "keyboardinterrupt",
+        )
+    )
+
+
 def _run_phase(
     name: str,
     cfg: dict[str, Any],
@@ -651,6 +665,25 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
                 force_serial=force_serial,
                 test_paths=test_filter_paths,
             )
+            if (
+                not force_serial
+                and parallel_phase.classification in {"crashed", "failed"}
+                and _is_xdist_teardown_interrupt_output(parallel_phase.output_tail)
+            ):
+                retry_phase = _run_phase(
+                    "parallel",
+                    cfg,
+                    junit_dir,
+                    force_serial=True,
+                    test_paths=test_filter_paths,
+                )
+                retry_phase.output_tail = (
+                    "[RETRY] Parallel pytest hit xdist/execnet teardown interrupt; "
+                    "reran phase serially.\n"
+                    f"[XDIST OUTPUT TAIL]\n{parallel_phase.output_tail}\n"
+                    f"[SERIAL OUTPUT TAIL]\n{retry_phase.output_tail}"
+                )
+                parallel_phase = retry_phase
             if use_domain_cache and suite_cache and test_filter_paths and cached_per_file:
                 parallel_phase = _merge_phase_with_cache(
                     parallel_phase, cached_per_file, "parallel"

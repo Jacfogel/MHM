@@ -4,7 +4,7 @@ Tests real behavior and side effects of the main UI application.
 """
 from contextlib import suppress
 import pytest
-from unittest.mock import patch, MagicMock, mock_open
+from unittest.mock import patch, MagicMock
 from PySide6.QtWidgets import QApplication
 from tests.conftest import ensure_qt_runtime
 
@@ -145,12 +145,8 @@ class TestUIAppBehavior:
     
     def test_ui_app_user_list_refresh_loads_actual_user_data(self, qt_app, test_data_dir):
         """Test that user list refresh loads actual user data."""
-        # Arrange - Create test user data
-        test_users = ["user1", "user2", "user3"]
-        
         # Act - Test user list refresh
-        with patch('ui.ui_app_qt.get_all_user_ids', return_value=test_users), \
-             patch('ui.ui_app_qt.MHMManagerUI.load_ui'), \
+        with patch('ui.ui_app_qt.MHMManagerUI.load_ui'), \
              patch('ui.ui_app_qt.MHMManagerUI.connect_signals'), \
              patch('ui.ui_app_qt.MHMManagerUI.initialize_ui'), \
              patch('ui.ui_app_qt.MHMManagerUI.update_service_status'), \
@@ -675,7 +671,9 @@ class TestUIAppIntegrationExtended:
     @pytest.mark.behavior
     @pytest.mark.ui
     @pytest.mark.critical
-    def test_send_actual_test_message_creates_request_file_real_behavior(self, qt_app, test_data_dir):
+    def test_send_actual_test_message_creates_request_file_real_behavior(
+        self, qt_app, test_data_dir, tmp_path
+    ):
         """REAL BEHAVIOR TEST: Test send_actual_test_message creates request file."""
         # [OK] VERIFY REAL BEHAVIOR: Mock UI components and file operations
         with patch('ui.ui_app_qt.Ui_ui_app_mainwindow'), \
@@ -688,20 +686,29 @@ class TestUIAppIntegrationExtended:
                                 app = MHMManagerUI()
                                 app.current_user = "test-user"
                                 
-                                # Mock UserContext
-                                with patch('ui.ui_app_qt.UserContext') as mock_user_context:
+                                # Mock UserContext at the request-action owner.
+                                with patch('ui.request_actions.UserContext') as mock_user_context:
                                     mock_context_instance = MagicMock()
                                     mock_user_context.return_value = mock_context_instance
                                     
-                                    # Mock file operations
-                                    with patch('ui.ui_app_qt.open', mock_open()) as mock_file, \
-                                         patch('ui.ui_app_qt.os.path.dirname') as mock_dirname:
-                                        mock_dirname.return_value = "/test/mhm"
+                                    with patch('ui.request_actions.get_flags_dir') as mock_flags_dir, \
+                                         patch('ui.request_actions.get_user_data') as mock_get_user_data, \
+                                         patch('ui.request_actions._poll_response_file', return_value={}):
+                                        mock_flags_dir.return_value = tmp_path
+                                        mock_get_user_data.return_value = {
+                                            "preferences": {
+                                                "channel": {"type": "discord"}
+                                            }
+                                        }
                                         
                                         app.send_actual_test_message("motivational")
                                         
                                         # [OK] VERIFY REAL BEHAVIOR: Should create request file
-                                        mock_file.assert_called_once()
+                                        request_file = (
+                                            tmp_path
+                                            / "test_message_request_test-user_motivational.flag"
+                                        )
+                                        assert request_file.exists()
                                         # [OK] VERIFY REAL BEHAVIOR: Should call set_user_id (may be called multiple times for context switching)
                                         assert mock_context_instance.set_user_id.call_count >= 1
 

@@ -962,6 +962,14 @@
             "Main admin interface"
           ],
           [
+            "ui/admin_actions.py",
+            "Admin system/menu actions"
+          ],
+          [
+            "ui/request_actions.py",
+            "Admin request-file actions"
+          ],
+          [
             "ui/dialogs/task_crud_dialog.py",
             "Task CRUD"
           ],

@@ -25,11 +25,24 @@ from unittest.mock import patch
 import core
 
 
+_PROFILE_FILE_NAMES = {
+    "account": "account.json",
+    "preferences": "preferences.json",
+    "context": "user_context.json",
+    "schedules": "schedules.json",
+}
+
+
 def _profile_v2_on_disk(document_type: str, inner: dict[str, Any]) -> dict[str, Any]:
     """Build on-disk v2 envelope for profile JSON load tests."""
     from core.profile_v2_io import wrap_profile_document_for_save
 
     return wrap_profile_document_for_save(document_type, inner)  # type: ignore[arg-type]
+
+
+def _registry_profile_path(user_dir: str, file_type: str) -> str:
+    """Mirror storage registry file names (context -> user_context.json)."""
+    return os.path.join(user_dir, _PROFILE_FILE_NAMES.get(file_type, f"{file_type}.json"))
 from core import (
     register_data_loader,
     get_available_data_types,
@@ -59,6 +72,9 @@ class TestUserManagementCoverageExpansion:
     @pytest.fixture(autouse=True)
     def _setup(self, test_path_factory, monkeypatch):
         """Set up test environment with per-test directory and path patches."""
+        from core import clear_user_caches
+
+        clear_user_caches()
         self.test_dir = test_path_factory
         self.test_user_id = f"test_user_{uuid.uuid4().hex[:8]}"
         self.test_user_dir = os.path.join(self.test_dir, "data", "users", self.test_user_id)
@@ -66,12 +82,18 @@ class TestUserManagementCoverageExpansion:
 
         # Patch file path resolution and directory ensure (registry imports these from config)
         def mock_path(user_id, file_type):
-            return os.path.join(self.test_user_dir, f"{file_type}.json")
-        monkeypatch.setattr('storage.user_data_registry.get_user_file_path', mock_path, raising=False)
+            return _registry_profile_path(self.test_user_dir, file_type)
+
+        monkeypatch.setattr(
+            "storage.user_data_registry.get_user_file_path", mock_path, raising=False
+        )
         monkeypatch.setattr('storage.user_data_registry.ensure_user_directory', lambda uid: True, raising=False)
     
     def teardown_method(self):
         """Clean up test environment."""
+        from core import clear_user_caches
+
+        clear_user_caches()
         if os.path.exists(self.test_dir):
             import shutil
             with contextlib.suppress(Exception):
@@ -308,28 +330,28 @@ class TestUserManagementCoverageExpansion:
         # Assert
         assert result is False, "Should return False for invalid user ID"
     
+    @pytest.mark.no_parallel  # module-level user data caches and get_user_file_path patches race under xdist
     def test_load_preferences_data_real_behavior(self):
         """Test loading preferences data with real behavior."""
-        # Arrange - Create test preferences file
+        from core import clear_user_caches
+
+        # Arrange - Create test preferences file (categories must match test CATEGORIES env)
         test_preferences = {
-            "categories": ["health", "tasks"],
+            "categories": ["health", "motivational"],
             "channel": {"type": "email"},
             "checkin_settings": {"enabled": True}
         }
-        preferences_file = os.path.join(self.test_user_dir, "preferences.json")
+        preferences_file = _registry_profile_path(self.test_user_dir, "preferences")
         with open(preferences_file, "w", encoding="utf-8") as f:
             json.dump(_profile_v2_on_disk("preferences", test_preferences), f)
 
         # Act
-        with patch(
-            "storage.user_data_registry.get_user_file_path",
-            return_value=preferences_file,
-        ), patch("storage.user_data_registry.ensure_user_directory"):
-            result = _get_user_data__load_preferences(self.test_user_id)
-        
+        clear_user_caches(self.test_user_id)
+        result = _get_user_data__load_preferences(self.test_user_id)
+
         # Assert
         assert result is not None, "Should return preferences data"
-        assert result["categories"] == ["health", "tasks"], "Should have correct categories"
+        assert result["categories"] == ["health", "motivational"], "Should have correct categories"
         assert result["channel"]["type"] == "email", "Should have correct channel type"
         assert result["checkin_settings"]["enabled"] is True, "Should have correct checkin settings"
     
@@ -382,8 +404,11 @@ class TestUserManagementCoverageExpansion:
         assert mock_save.called, "Should call save_json_data"
         assert mock_validate.called, "Should validate preferences data"
     
+    @pytest.mark.no_parallel  # module-level user data caches and get_user_file_path patches race under xdist
     def test_load_context_data_real_behavior(self):
         """Test loading context data with real behavior."""
+        from core import clear_user_caches
+
         # Arrange - Create test context file
         test_context = {
             "preferred_name": "Test User",
@@ -391,15 +416,13 @@ class TestUserManagementCoverageExpansion:
             "interests": ["programming", "reading"],
             "goals": ["Learn Python", "Stay healthy"]
         }
-        context_file = os.path.join(self.test_user_dir, "user_context.json")
+        context_file = _registry_profile_path(self.test_user_dir, "context")
         with open(context_file, "w", encoding="utf-8") as f:
             json.dump(_profile_v2_on_disk("context", test_context), f)
 
         # Act
-        with patch(
-            "storage.user_data_registry.get_user_file_path", return_value=context_file
-        ), patch("storage.user_data_registry.ensure_user_directory"):
-            result = _get_user_data__load_context(self.test_user_id)
+        clear_user_caches(self.test_user_id)
+        result = _get_user_data__load_context(self.test_user_id)
         
         # Assert
         assert result is not None, "Should return context data"
@@ -465,8 +488,11 @@ class TestUserManagementCoverageExpansion:
         assert "last_updated" in saved_data, "Should add last_updated timestamp"
         assert saved_data["preferred_name"] == "Updated User", "Should preserve original data"
     
+    @pytest.mark.no_parallel  # module-level user data caches and get_user_file_path patches race under xdist
     def test_load_schedules_data_real_behavior(self):
         """Test loading schedules data with real behavior."""
+        from core import clear_user_caches
+
         # Arrange - Create test schedules file
         test_schedules = {
             "morning": {
@@ -490,15 +516,13 @@ class TestUserManagementCoverageExpansion:
                 }
             },
         }
-        schedules_file = os.path.join(self.test_user_dir, "schedules.json")
+        schedules_file = _registry_profile_path(self.test_user_dir, "schedules")
         with open(schedules_file, "w", encoding="utf-8") as f:
             json.dump(_profile_v2_on_disk("schedules", test_schedules), f)
 
         # Act
-        with patch(
-            "storage.user_data_registry.get_user_file_path", return_value=schedules_file
-        ), patch("storage.user_data_registry.ensure_user_directory"):
-            result = _get_user_data__load_schedules(self.test_user_id)
+        clear_user_caches(self.test_user_id)
+        result = _get_user_data__load_schedules(self.test_user_id)
         
         # Assert
         assert result is not None, "Should return schedules data"

@@ -33,6 +33,11 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-06-07 - Parallel load test stabilization
+- **Root cause**: Full parallel suite returned empty/default profile payloads (`categories: []`, missing `preferred_name`/`morning`) when `get_user_file_path` mocks disagreed on `context.json` vs `user_context.json`, module caches retained stale entries, and nested `patch()` calls raced with autouse monkeypatch.
+- **Fix**: [`test_user_management_coverage_expansion.py`](../tests/behavior/test_user_management_coverage_expansion.py) — `_registry_profile_path()` mirrors registry file names; autouse `_setup` uses it; three `test_load_*_data_real_behavior` tests clear per-user caches before load, drop redundant patches, use valid `CATEGORIES` (`motivational` not `tasks`), and mark `@pytest.mark.no_parallel` with reason.
+- **Verification**: `python -m pytest tests/behavior/test_user_management_coverage_expansion.py -k "test_load_context_data_real_behavior or test_load_preferences_data_real_behavior or test_load_schedules_data_real_behavior" -q` (`3 passed`).
+
 ### 2026-06-06 - UI dialog orchestration extraction (Stage 5)
 - **Dialog actions**: Added [`ui/dialog_actions.py`](../ui/dialog_actions.py) with `DialogActions` - account creator, channel/category/check-in/task/personalization/analytics dialogs, category-editor prep, and message/schedule editor openers. Shared `_require_current_user()` consolidates duplicate no-user validation.
 - **UI delegation**: [`ui/ui_app_qt.py`](../ui/ui_app_qt.py) instantiates `DialogActions` and delegates `create_new_user`, `manage_*`, `edit_user_messages`, `open_message_editor`, `edit_user_schedules`, `open_schedule_editor`, and `_prepare_current_user_category_editor`. Removed unused `save_user_data` lazy import from the shell module.

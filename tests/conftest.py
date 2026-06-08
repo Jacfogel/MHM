@@ -236,6 +236,14 @@ warnings.filterwarnings(
 project_root = Path(__file__).parent.parent
 
 
+def pytest_runtest_setup(item):
+    """Recover worker cwd if a parallel temp directory was removed mid-run."""
+    try:
+        Path.cwd()
+    except FileNotFoundError:
+        os.chdir(project_root)
+
+
 # CRITICAL: Set up logging isolation BEFORE importing any core modules
 def setup_logging_isolation():
     """Set up logging isolation before any core modules are imported."""
@@ -481,6 +489,4 @@ def _add_test_run_start_markers():
 
 # Standalone helpers wait_until and materialize_user_minimal_via_public_apis live in
 # tests.test_helpers.test_support.test_helpers; import from there in test code.
-
-
 

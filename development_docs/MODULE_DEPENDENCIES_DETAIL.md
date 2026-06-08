@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-06 03:18:44
+> **Last Generated**: 2026-06-06 14:07:54
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,12 +15,12 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 194
-- **Total Imports Found**: 1748
-- **Dependencies Documented**: 194 (100% coverage)
-- **Standard Library Imports**: 529 (30.3%)
+- **Files Scanned**: 196
+- **Total Imports Found**: 1754
+- **Dependencies Documented**: 196 (100% coverage)
+- **Standard Library Imports**: 535 (30.5%)
 - **Third-Party Imports**: 217 (12.4%)
-- **Local Imports**: 1002 (57.3%)
+- **Local Imports**: 1002 (57.1%)
 - **Last Updated**: 2026-06-06
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 529 imports (30.3%)
+- **Standard Library**: 535 imports (30.5%)
 - **Third-Party**: 217 imports (12.4%)
-- **Local**: 1002 imports (57.3%)
+- **Local**: 1002 imports (57.1%)
 
 ## Module Dependencies by Directory
 
@@ -4197,6 +4197,25 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `ui/admin_actions.py`
+- **Purpose**: User interface component for admin_actions
+- **Dependencies**:
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `collections.abc (Callable)`
+    - `importlib (import_module)`
+    - `os`
+    - `typing (Any)`
+    - `webbrowser`
+  - **Third-party**:
+    - `PySide6.QtGui (QFont)`
+    - `PySide6.QtWidgets (QDialog, QHBoxLayout, QLabel, QMessageBox, QPushButton, QTabWidget, QTextEdit, QVBoxLayout, QWidget)`
+- **Used by**: None (not imported by other modules)
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `ui/dialog_actions.py`
 - **Purpose**: User interface component for dialog_actions
 - **Dependencies**:
@@ -4207,6 +4226,9 @@
   - **Third-party**:
     - `PySide6.QtWidgets (QMessageBox, QWidget)`
 - **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Removed: PySide6.QtWidgets, collections.abc
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -4666,6 +4688,26 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `ui/request_actions.py`
+- **Purpose**: User interface component for request_actions
+- **Dependencies**:
+  - **Standard Library**:
+    - `contextlib`
+    - `dataclasses (dataclass, field)`
+    - `importlib (import_module)`
+    - `json`
+    - `os`
+    - `pathlib (Path)`
+    - `sys`
+    - `threading`
+    - `time`
+    - `typing (Any)`
+- **Used by**: None (not imported by other modules)
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `ui/scheduler_actions.py`
 - **Purpose**: User interface component for scheduler_actions
 - **Dependencies**:
@@ -4721,19 +4763,13 @@
 - **Purpose**: Main UI application (PyQt6)
 - **Dependencies**:
   - **Standard Library**:
-    - `contextlib`
     - `importlib (import_module)`
-    - `json`
     - `os`
     - `pathlib (Path, pathlib)`
     - `sys`
-    - `threading`
-    - `time`
-    - `webbrowser`
   - **Third-party**:
     - `PySide6.QtCore (QTimer)`
-    - `PySide6.QtGui (QFont)`
-    - `PySide6.QtWidgets (QApplication, QDialog, QHBoxLayout, QLabel, QMainWindow, QMessageBox, QPushButton, QTabWidget, QTextEdit, QVBoxLayout, QWidget)`
+    - `PySide6.QtWidgets (QApplication, QMainWindow, QMessageBox)`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:

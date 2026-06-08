@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-06 03:18:57
+> **Last Generated**: 2026-06-06 14:08:06
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 000000B7 5EAC:07BC
+Volume serial number is 000000E8 5EAC:07BC
 C:.
 |   .ruff.toml
 |   ARCHITECTURE.md
@@ -849,6 +849,7 @@ C:.
 |   +---ui
 |   |   |   test_account_creation_ui.py
 |   |   |   test_account_creator_dialog_validation.py
+|   |   |   test_admin_actions.py
 |   |   |   test_category_management_dialog.py
 |   |   |   test_channel_management_dialog_coverage_expansion.py
 |   |   |   test_channel_status_log_merge.py
@@ -859,6 +860,7 @@ C:.
 |   |   |   test_dialog_coverage_expansion.py
 |   |   |   test_message_editor_dialog.py
 |   |   |   test_process_watcher_dialog.py
+|   |   |   test_request_actions.py
 |   |   |   test_scheduler_actions.py
 |   |   |   test_signal_handler_integration.py
 |   |   |   test_status_provider.py
@@ -996,10 +998,12 @@ C:.
 |   |   |   test_webhook_handler_gap_coverage.py
 |   |   |
 +---ui
+|   |   admin_actions.py
 |   |   dialog_actions.py
 |   |   generate_ui_files.py
 |   |   lazy_dependencies.py
 |   |   period_row_management.py
+|   |   request_actions.py
 |   |   scheduler_actions.py
 |   |   service_manager.py
 |   |   status_provider.py
