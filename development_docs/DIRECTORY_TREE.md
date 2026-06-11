@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-06 14:08:06
+> **Last Generated**: 2026-06-09 20:56:51
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 000000E8 5EAC:07BC
+Volume serial number is 5EAC-07BC
 C:.
 |   .ruff.toml
 |   ARCHITECTURE.md
@@ -1007,9 +1007,11 @@ C:.
 |   |   scheduler_actions.py
 |   |   service_manager.py
 |   |   status_provider.py
+|   |   status_view_updater.py
 |   |   ui_app_qt.py
 |   |   UI_GUIDE.md
 |   |   user_list_provider.py
+|   |   user_selection_controller.py
 |   |   __init__.py
 |   |
 |   +---designs

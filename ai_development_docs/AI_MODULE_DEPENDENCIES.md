@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-06 14:08:04
+> **Last Generated**: 2026-06-09 20:56:49
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 196
-- **Total Imports**: 1754
-- **Standard Library**: 535 (30.5%)
-- **Third-Party**: 217 (12.4%)
-- **Local Imports**: 1002 (57.1%)
+- **Files Scanned**: 198
+- **Total Imports**: 1759
+- **Standard Library**: 538 (30.6%)
+- **Third-Party**: 219 (12.5%)
+- **Local Imports**: 1002 (57.0%)
 
 ## Dependency Decision Trees
 
@@ -59,7 +59,7 @@ Communication Dependencies:
 ### Need UI Dependencies?
 UI Dependencies:
 - Main Application
-  - ui/ui_app_qt.py <- standard library (importlib, os, pathlib, sys), third-party (PySide6.QtCore, PySide6.QtWidgets)
+  - ui/ui_app_qt.py <- standard library (functools, importlib, os, pathlib), third-party (PySide6.QtCore, PySide6.QtWidgets)
 - Dialogs
   - ui/dialog_actions.py <- standard library (collections.abc, importlib, typing), third-party (PySide6.QtWidgets)
   - ui/dialogs/account_creator_dialog.py <- standard library (contextlib, pathlib, time, typing), third-party (PySide6.QtCore, PySide6.QtWidgets), logger, user_data_validation, core, error_handling, dialog_helpers (+11 more)
@@ -122,7 +122,7 @@ External libraries provide channel and UI support.
 - `communication/message_processing/interaction_manager.py` -> 22 local dependencies (heavy coupling)
 
 ### Third-Party Risks
-- `ui/admin_actions.py` -> PySide6.QtWidgets (33 modules use this)
+- `ui/admin_actions.py` -> PySide6.QtWidgets (35 modules use this)
 - `ui/ui_app_qt.py` -> PySide6.QtCore (19 modules use this)
 - `communication/communication_channels/base/command_registry.py` -> discord (16 modules use this)
 - `ai/chatbot.py` -> psutil (8 modules use this)

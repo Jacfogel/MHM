@@ -11,6 +11,8 @@ from importlib import import_module
 from pathlib import Path
 from typing import Any
 
+from PySide6.QtWidgets import QMessageBox
+
 
 _lazy_dependencies = import_module("ui.lazy_dependencies")
 handle_errors = _lazy_dependencies.handle_errors
@@ -36,6 +38,169 @@ class RequestActionOutcome:
     message: str
     request_file: Path | None = None
     data: dict[str, Any] = field(default_factory=dict)
+
+
+@handle_errors("showing request action outcome", default_return=None)
+def show_request_action_outcome(
+    parent_window,
+    outcome: RequestActionOutcome | None,
+    *,
+    message_box=None,
+):
+    """Display a UI-neutral request action outcome."""
+    if outcome is None:
+        return
+    message_box = message_box or QMessageBox
+    if outcome.level == "info":
+        message_box.information(parent_window, outcome.title, outcome.message)
+    elif outcome.level == "warning":
+        message_box.warning(parent_window, outcome.title, outcome.message)
+    elif outcome.level == "critical":
+        message_box.critical(parent_window, outcome.title, outcome.message)
+
+
+@handle_errors("validating selected user for request action", default_return=False)
+def validate_selected_user(
+    parent_window,
+    user_id: str | None,
+    *,
+    message_box=None,
+) -> bool:
+    """Validate that a user is selected before a request-file action."""
+    if user_id:
+        return True
+    message_box = message_box or QMessageBox
+    message_box.warning(parent_window, "No User Selected", "Please select a user first.")
+    return False
+
+
+@handle_errors("validating running service for request action", default_return=False)
+def validate_service_running(
+    parent_window,
+    service_manager,
+    action_label: str,
+    *,
+    message_box=None,
+) -> bool:
+    """Validate that the backend service is running for a request-file action."""
+    is_running, _pid = service_manager.is_service_running()
+    if is_running:
+        return True
+    message_box = message_box or QMessageBox
+
+    message_box.warning(
+        parent_window,
+        "Service Not Running",
+        f"MHM Service is not running. {action_label} require the service to be active.\n\n"
+        f"To send {action_label.lower()}:\n"
+        "1. Click 'Start Service' above\n"
+        "2. Wait for service to initialize\n"
+        f"3. Try sending {action_label.lower()} again",
+    )
+    return False
+
+
+@handle_errors("getting selected request category", default_return=None)
+def get_selected_category(
+    parent_window,
+    category_combo_box,
+    *,
+    message_box=None,
+) -> str | None:
+    """Return selected category data or warn when selection is invalid."""
+    current_index = category_combo_box.currentIndex()
+    message_box = message_box or QMessageBox
+    if current_index <= 0:
+        message_box.warning(
+            parent_window,
+            "No Category Selected",
+            "Please select a category from the dropdown above.",
+        )
+        return None
+
+    category = category_combo_box.itemData(current_index)
+    if not category:
+        message_box.warning(
+            parent_window,
+            "Invalid Category",
+            "Please select a valid category from the dropdown.",
+        )
+        return None
+    return category
+
+
+@handle_errors("sending test message request from UI", default_return=None)
+def send_test_message_request(
+    parent_window,
+    user_id,
+    service_manager,
+    category_combo_box,
+    *,
+    message_box=None,
+):
+    """Validate UI state, create a test-message request, and show the outcome."""
+    if not validate_selected_user(parent_window, user_id, message_box=message_box):
+        return None
+    if not validate_service_running(
+        parent_window, service_manager, "Test messages", message_box=message_box
+    ):
+        return None
+    category = get_selected_category(
+        parent_window, category_combo_box, message_box=message_box
+    )
+    if not category:
+        return None
+
+    logger.info(
+        f"Admin Panel: Preparing test message for user {user_id}, category {category}"
+    )
+    outcome = create_test_message_request(user_id, category)
+    show_request_action_outcome(parent_window, outcome, message_box=message_box)
+    return outcome
+
+
+@handle_errors("sending check-in prompt request from UI", default_return=None)
+def send_checkin_prompt_request(
+    parent_window,
+    user_id,
+    service_manager,
+    *,
+    message_box=None,
+):
+    """Validate UI state, create a check-in prompt request, and show the outcome."""
+    if not validate_selected_user(parent_window, user_id, message_box=message_box):
+        return None
+    if not validate_service_running(
+        parent_window, service_manager, "Check-in prompts", message_box=message_box
+    ):
+        return None
+    outcome = create_checkin_prompt_request(user_id)
+    show_request_action_outcome(parent_window, outcome, message_box=message_box)
+    return outcome
+
+
+@handle_errors("sending task reminder request from UI", default_return=None)
+def send_task_reminder_request(
+    parent_window,
+    user_id,
+    service_manager,
+    *,
+    create_communication_manager,
+    message_box=None,
+):
+    """Validate UI state, create a task reminder request, and show the outcome."""
+    if not validate_selected_user(parent_window, user_id, message_box=message_box):
+        return None
+    if not validate_service_running(
+        parent_window, service_manager, "Task reminders", message_box=message_box
+    ):
+        return None
+    outcome = create_task_reminder_request(
+        user_id,
+        create_communication_manager=create_communication_manager,
+    )
+    show_request_action_outcome(parent_window, outcome, message_box=message_box)
+    return outcome
 
 
 @handle_errors("truncating request action dialog text", user_friendly=False)

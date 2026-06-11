@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-06 14:07:54
+> **Last Generated**: 2026-06-09 20:56:39
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 196
-- **Total Imports Found**: 1754
-- **Dependencies Documented**: 196 (100% coverage)
-- **Standard Library Imports**: 535 (30.5%)
-- **Third-Party Imports**: 217 (12.4%)
-- **Local Imports**: 1002 (57.1%)
-- **Last Updated**: 2026-06-06
+- **Files Scanned**: 198
+- **Total Imports Found**: 1759
+- **Dependencies Documented**: 198 (100% coverage)
+- **Standard Library Imports**: 538 (30.6%)
+- **Third-Party Imports**: 219 (12.5%)
+- **Local Imports**: 1002 (57.0%)
+- **Last Updated**: 2026-06-09
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 535 imports (30.5%)
-- **Third-Party**: 217 imports (12.4%)
-- **Local**: 1002 imports (57.1%)
+- **Standard Library**: 538 imports (30.6%)
+- **Third-Party**: 219 imports (12.5%)
+- **Local**: 1002 imports (57.0%)
 
 ## Module Dependencies by Directory
 
@@ -4212,6 +4212,9 @@
     - `PySide6.QtWidgets (QDialog, QHBoxLayout, QLabel, QMessageBox, QPushButton, QTabWidget, QTextEdit, QVBoxLayout, QWidget)`
 - **Used by**: None (not imported by other modules)
 
+**Dependency Changes**:
+- Removed: PySide6.QtGui, PySide6.QtWidgets, collections.abc
+
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
@@ -4702,7 +4705,12 @@
     - `threading`
     - `time`
     - `typing (Any)`
+  - **Third-party**:
+    - `PySide6.QtWidgets (QMessageBox)`
 - **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Removed: PySide6.QtWidgets
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -4759,10 +4767,22 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `ui/status_view_updater.py`
+- **Purpose**: User interface component for status_view_updater
+- **Dependencies**:
+  - **Standard Library**:
+    - `importlib (import_module)`
+- **Used by**: None (not imported by other modules)
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `ui/ui_app_qt.py`
 - **Purpose**: Main UI application (PyQt6)
 - **Dependencies**:
   - **Standard Library**:
+    - `functools (partial)`
     - `importlib (import_module)`
     - `os`
     - `pathlib (Path, pathlib)`
@@ -4773,7 +4793,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Removed: PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets
+- Removed: PySide6.QtCore, PySide6.QtWidgets
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -4786,6 +4806,22 @@
     - `importlib (import_module)`
     - `typing (Any)`
 - **Used by**: None (not imported by other modules)
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `ui/user_selection_controller.py`
+- **Purpose**: User interface component for user_selection_controller
+- **Dependencies**:
+  - **Standard Library**:
+    - `importlib (import_module)`
+  - **Third-party**:
+    - `PySide6.QtWidgets (QMessageBox)`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Removed: PySide6.QtWidgets
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

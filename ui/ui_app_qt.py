@@ -1,6 +1,7 @@
 import sys
 import os
 import pathlib
+from functools import partial
 from importlib import import_module
 from pathlib import Path
 
@@ -36,14 +37,13 @@ get_user_data = _lazy_dependencies.get_user_data
 Ui_ui_app_mainwindow = _lazy_dependencies.Ui_ui_app_mainwindow
 AdminActions = import_module("ui.admin_actions").AdminActions
 StatusProvider = import_module("ui.status_provider").StatusProvider
-UserListProvider = import_module("ui.user_list_provider").UserListProvider
 DialogActions = import_module("ui.dialog_actions").DialogActions
-USER_COMBO_PLACEHOLDER = import_module("ui.user_list_provider").USER_COMBO_PLACEHOLDER
-CATEGORY_COMBO_PLACEHOLDER = (
-    import_module("ui.user_list_provider").CATEGORY_COMBO_PLACEHOLDER
-)
+UserSelectionController = import_module(
+    "ui.user_selection_controller"
+).UserSelectionController
 scheduler_actions = import_module("ui.scheduler_actions")
 request_actions = import_module("ui.request_actions")
+status_view_updater = import_module("ui.status_view_updater")
 
 
 @handle_errors("creating communication manager for UI action", re_raise=True)
@@ -56,6 +56,13 @@ def _create_communication_manager():
     return CommunicationManager()
 
 
+@handle_errors("copying user selection state to UI shell", default_return=None)
+def _copy_user_selection_state(window):
+    """Copy controller selection state onto shell attributes."""
+    window.current_user = window.user_selection.current_user
+    window.current_user_categories = window.user_selection.current_user_categories
+
+
 class MHMManagerUI(QMainWindow):
     """Main MHM Management UI using PySide6"""
 
@@ -65,14 +72,16 @@ class MHMManagerUI(QMainWindow):
         super().__init__()
         self.service_manager = import_module("ui.service_manager").ServiceManager()
         self.status_provider = StatusProvider(self.service_manager)
-        self.user_list_provider = UserListProvider()
         self.dialog_actions = DialogActions()
         self.admin_actions = AdminActions()
-        self.current_user = None
-        self.current_user_categories = []
         # Load the generated UI
         self.ui = Ui_ui_app_mainwindow()
         self.ui.setupUi(self)
+        self.user_selection = UserSelectionController(
+            self.ui, get_user_data_func=get_user_data
+        )
+        self.current_user = self.user_selection.current_user
+        self.current_user_categories = self.user_selection.current_user_categories
         # Load the UI file (theme, etc.)
         self.load_ui()
         # Connect signals
@@ -86,6 +95,14 @@ class MHMManagerUI(QMainWindow):
             self.status_timer.start(5000)  # Update every 5 seconds
             # Initial status update
             self.update_service_status()
+
+    @handle_errors("resolving delegated UI action", re_raise=True)
+    def __getattr__(self, name):
+        """Resolve thin UI action delegates without defining each as a method."""
+        delegated_action = DELEGATED_UI_ACTIONS.get(name)
+        if delegated_action is None:
+            raise AttributeError(name)
+        return partial(delegated_action, self)
 
     @handle_errors("loading UI", default_return=None)
     def load_ui(self):
@@ -207,48 +224,8 @@ class MHMManagerUI(QMainWindow):
     @handle_errors("updating service status", default_return=None)
     def update_service_status(self):
         """Update the service status display"""
-        is_running, pid = self.status_provider.check_service_status()
+        status_view_updater.update_status_labels(self.ui, self.status_provider)
 
-        if is_running:
-            self.ui.label_service_status.setText(
-                f"Service Status: Running (PID: {pid})"
-            )
-            self.ui.label_service_status.setStyleSheet(
-                "color: green; font-weight: bold;"
-            )
-        else:
-            self.ui.label_service_status.setText("Service Status: Stopped")
-            self.ui.label_service_status.setStyleSheet("color: red; font-weight: bold;")
-
-        # Update Discord channel status
-        discord_running = self.status_provider.check_discord_status()
-        if discord_running:
-            self.ui.label_discord_status.setText("Discord Channel: Running")
-            self.ui.label_discord_status.setStyleSheet(
-                "color: green; font-weight: bold;"
-            )
-        else:
-            self.ui.label_discord_status.setText("Discord Channel: Stopped")
-            self.ui.label_discord_status.setStyleSheet("color: red; font-weight: bold;")
-
-        # Update Email channel status
-        email_running = self.status_provider.check_email_status()
-        if email_running:
-            self.ui.label_email_status.setText("Email Channel: Running")
-            self.ui.label_email_status.setStyleSheet("color: green; font-weight: bold;")
-        else:
-            self.ui.label_email_status.setText("Email Channel: Stopped")
-            self.ui.label_email_status.setStyleSheet("color: red; font-weight: bold;")
-
-        # Update ngrok tunnel status
-        ngrok_status = self.status_provider.check_ngrok_status()
-        if ngrok_status["running"]:
-            pid_text = f" (PID: {ngrok_status['pid']})" if ngrok_status["pid"] else ""
-            self.ui.label_ngrok_status.setText(f"ngrok tunnel: Running{pid_text}")
-            self.ui.label_ngrok_status.setStyleSheet("color: green; font-weight: bold;")
-        else:
-            self.ui.label_ngrok_status.setText("ngrok tunnel: Stopped")
-            self.ui.label_ngrok_status.setStyleSheet("color: red; font-weight: bold;")
     @handle_errors("starting service", default_return=None)
     def start_service(self):
         """Start the MHM service"""
@@ -330,210 +307,36 @@ class MHMManagerUI(QMainWindow):
 
     @handle_errors("refreshing user list", default_return=None)
     def refresh_user_list(self):
-        """
-        Refresh the user list with validation.
-
-        Returns:
-            None: Always returns None
-        """
-        # Remember the currently selected user before any operations
-        current_user_id = self.current_user
-
-        # Block signals during refresh to prevent empty string errors
-        self.ui.comboBox_users.blockSignals(True)
-        try:
-            self._populate_active_users_in_combo_box()
-
-        except Exception as e:
-            logger.error(f"Error refreshing user list: {e}")
-            self._refresh_user_list_fallback(e)
-        finally:
-            # Always re-enable signals, even if an error occurred
-            self.ui.comboBox_users.blockSignals(False)
-
-        # Reselect the previously selected user if it still exists
-        self._reselect_user_if_present(current_user_id)
-
-    @handle_errors("resetting user combo box", default_return=None)
-    def _reset_user_combo_box(self):
-        """Clear user combo and add placeholder entry."""
-        self.ui.comboBox_users.clear()
-        self.ui.comboBox_users.addItem(USER_COMBO_PLACEHOLDER)
-
-    @handle_errors("populating active users in combo box", default_return=None)
-    def _populate_active_users_in_combo_box(self):
-        """Populate user combo box from active user metadata."""
-        self._reset_user_combo_box()
-        provider = self.user_list_provider
-        for user_data in provider.collect_active_users_for_combo():
-            self.ui.comboBox_users.addItem(
-                provider.build_user_combo_display_name(user_data)
-            )
-
-    @handle_errors("refreshing user list fallback", default_return=None)
-    def _refresh_user_list_fallback(self, original_error: Exception):
-        """Fallback user list refresh using minimal account/context reads."""
-        try:
-            self._reset_user_combo_box()
-            for display_name in self.user_list_provider.collect_fallback_display_names():
-                self.ui.comboBox_users.addItem(display_name)
-        except Exception as fallback_error:
-            logger.error(f"Fallback user list refresh also failed: {fallback_error}")
-            QMessageBox.warning(
-                self, "Error", f"Failed to refresh user list: {original_error}"
-            )
-
-    @handle_errors("reselecting previously active user", default_return=None)
-    def _reselect_user_if_present(self, current_user_id: str | None):
-        """Reselect prior active user if still present in combo list."""
-        item_texts = [
-            self.ui.comboBox_users.itemText(index)
-            for index in range(self.ui.comboBox_users.count())
-        ]
-        index = UserListProvider.find_reselect_index(item_texts, current_user_id)
-        if index is None:
-            return
-        item_text = self.ui.comboBox_users.itemText(index)
-        self.ui.comboBox_users.setCurrentIndex(index)
-        self.on_user_selected(item_text)
+        """Refresh the user list with validation."""
+        self.user_selection.refresh_user_list(self)
+        _copy_user_selection_state(self)
 
     @handle_errors("handling user selection", default_return=None)
     def on_user_selected(self, user_display):
-        """
-        Handle user selection with validation.
-
-        Returns:
-            None: Always returns None
-        """
-        # Validate user_display
-        # Empty strings are expected during combo box refresh, so handle gracefully
-        if not user_display:
-            return None
-
-        if not isinstance(user_display, str):
-            logger.error(
-                f"Invalid user_display type: {type(user_display)}, value: {user_display}"
-            )
-            return None
-
-        if not user_display.strip():
-            # Empty or whitespace-only string - expected during refresh, return silently
-            return None
-
-        if user_display == USER_COMBO_PLACEHOLDER:
-            self.current_user = None
-            self.disable_content_management()
-            return
-
-        try:
-            user_id = UserListProvider.parse_user_id_from_display(user_display)
-            if not user_id:
-                logger.warning(
-                    "Admin Panel: Could not parse user_id from selected_display: "
-                    f"'{user_display}'"
-                )
-                self.disable_content_management()
-                return
-
-            self.current_user = user_id
-            user_data_result = get_user_data(user_id, "account")
-            user_account = user_data_result.get("account")
-            if user_account:
-                self.load_user_categories(user_id)
-                self.enable_content_management()
-                logger.info(
-                    f"Admin Panel: User selected for management: {user_id} "
-                    f"({user_account.get('internal_username', 'Unknown')})"
-                )
-            else:
-                QMessageBox.warning(
-                    self, "User Error", f"Could not load user account for {user_id}"
-                )
-                self.disable_content_management()
-                return
-
-        except Exception as e:
-            logger.error(f"Error handling user selection: {e}")
-            QMessageBox.warning(self, "Error", f"Failed to load user: {e}")
-            self.disable_content_management()
+        """Handle user selection with validation."""
+        self.user_selection.on_user_selected(user_display, parent_window=self)
+        _copy_user_selection_state(self)
 
     @handle_errors("loading user categories", user_friendly=False, default_return=None)
     def load_user_categories(self, user_id):
-        """Load categories for the selected user"""
-        self.current_user_categories = self.user_list_provider.load_category_names(
-            user_id
-        )
-
-        self.ui.comboBox_user_categories.clear()
-        self.ui.comboBox_user_categories.addItem(CATEGORY_COMBO_PLACEHOLDER)
-
-        for category in self.current_user_categories:
-            self.ui.comboBox_user_categories.addItem(
-                UserListProvider.format_category_display(category),
-                category,
-            )
+        """Load categories for the selected user."""
+        self.user_selection.load_user_categories(user_id)
+        _copy_user_selection_state(self)
 
     @handle_errors("handling category selection", default_return=None)
     def on_category_selected(self, category):
         """Handle category selection"""
-        # Get the actual category value from the combo box data
-        current_index = self.ui.comboBox_user_categories.currentIndex()
-        if current_index > 0:  # Skip the "Select a category..." item
-            actual_category = self.ui.comboBox_user_categories.itemData(current_index)
-        else:
-            actual_category = None
-
-        # Enable/disable category action buttons based on selection
-        has_category = bool(
-            actual_category and actual_category != CATEGORY_COMBO_PLACEHOLDER
-        )
-
-        self.ui.pushButton_edit_messages.setEnabled(has_category)
-        self.ui.pushButton_edit_schedules.setEnabled(has_category)
-        self.ui.pushButton_send_test_message.setEnabled(has_category)
+        self.user_selection.on_category_selected()
 
     @handle_errors("enabling content management", default_return=None)
     def enable_content_management(self):
         """Enable content management buttons"""
-        self.ui.pushButton_communication_settings.setEnabled(True)
-        self.ui.pushButton_personalization.setEnabled(True)
-        self.ui.pushButton_category_management.setEnabled(True)
-        self.ui.pushButton_checkin_settings.setEnabled(True)
-        self.ui.pushButton_task_management.setEnabled(True)
-        self.ui.pushButton_task_crud.setEnabled(True)
-        self.ui.pushButton_user_analytics.setEnabled(True)
-        self.ui.pushButton_run_user_scheduler.setEnabled(True)
-
-        # Enable category actions group
-        self.ui.groupBox_category_actions.setEnabled(True)
-
-        # Enable user actions group
-        self.ui.groupBox_user_actions.setEnabled(True)
+        self.user_selection.enable_content_management()
 
     @handle_errors("disabling content management", default_return=None)
     def disable_content_management(self):
         """Disable content management buttons"""
-        self.ui.pushButton_communication_settings.setEnabled(False)
-        self.ui.pushButton_personalization.setEnabled(False)
-        self.ui.pushButton_category_management.setEnabled(False)
-        self.ui.pushButton_checkin_settings.setEnabled(False)
-        self.ui.pushButton_task_management.setEnabled(False)
-        self.ui.pushButton_task_crud.setEnabled(False)
-        self.ui.pushButton_user_analytics.setEnabled(False)
-        self.ui.pushButton_run_user_scheduler.setEnabled(False)
-
-        # Disable category actions group
-        self.ui.groupBox_category_actions.setEnabled(False)
-
-        # Disable user actions group
-        self.ui.groupBox_user_actions.setEnabled(False)
-
-        # Clear category combo box
-        self.ui.comboBox_user_categories.clear()
-        self.ui.comboBox_user_categories.addItem("Select a category...")
-
-    # Placeholder methods for user actions - these will need to be implemented
-    # based on your existing functionality from the Tkinter version
+        self.user_selection.disable_content_management()
 
     @handle_errors("creating new user", default_return=None)
     def create_new_user(self):
@@ -544,189 +347,26 @@ class MHMManagerUI(QMainWindow):
             create_comm_manager=_create_communication_manager,
         )
 
-    @handle_errors("managing communication settings", default_return=None)
-    def manage_communication_settings(self):
-        """Open channel management for the selected user."""
-        self.dialog_actions.manage_communication_settings(
-            self,
-            self.current_user,
-            on_user_changed=self.refresh_user_list,
-        )
-
-    @handle_errors("managing categories", default_return=None)
-    def manage_categories(self):
-        """Open category management for the selected user."""
-        self.dialog_actions.manage_categories(
-            self,
-            self.current_user,
-            on_user_changed=self.refresh_user_list,
-            reload_categories=lambda: self.load_user_categories(self.current_user),
-        )
-
-    @handle_errors("managing checkins", default_return=None)
-    def manage_checkins(self):
-        """Open check-in management for the selected user."""
-        self.dialog_actions.manage_checkins(
-            self,
-            self.current_user,
-            on_user_changed=self.refresh_user_list,
-        )
-
-    @handle_errors("managing tasks", default_return=None)
-    def manage_tasks(self):
-        """Open task management for the selected user."""
-        self.dialog_actions.manage_tasks(
-            self,
-            self.current_user,
-            on_user_changed=self.refresh_user_list,
-        )
-
-    @handle_errors("managing task CRUD", default_return=None)
-    def manage_task_crud(self):
-        """Open task CRUD for the selected user."""
-        self.dialog_actions.manage_task_crud(self, self.current_user)
-
-    @handle_errors("managing personalization", default_return=None)
-    def manage_personalization(self):
-        """Open personalization settings for the selected user."""
-        self.dialog_actions.manage_personalization(
-            self,
-            self.current_user,
-            on_user_changed=self.refresh_user_list,
-        )
-
-    @handle_errors("managing user analytics", default_return=None)
-    def manage_user_analytics(self):
-        """Open user analytics for the selected user."""
-        self.dialog_actions.manage_user_analytics(self, self.current_user)
-
-    @handle_errors("delegating user category editor", default_return=None)
-    def _open_user_category_editor(self, editor_label: str) -> None:
-        """Delegate message or schedule editing for the selected user/category."""
-        self.dialog_actions.edit_user_category(
-            self,
-            self.current_user,
-            self.ui.comboBox_user_categories,
-            editor_label,
-        )
-
-    # not_duplicate: user_category_editor_actions
-    @handle_errors("editing user messages", default_return=None)
-    def edit_user_messages(self):
-        """Open message editing for the selected user/category."""
-        self._open_user_category_editor("message")
-
-    @handle_errors("opening message editor", default_return=None)
-    def open_message_editor(self, parent_dialog, category):
-        """Open the message editor for a category."""
-        self.dialog_actions.open_message_editor(
-            self, self.current_user, parent_dialog, category
-        )
-
-    # not_duplicate: user_category_editor_actions
-    @handle_errors("editing user schedules", default_return=None)
-    def edit_user_schedules(self):
-        """Open schedule editing for the selected user/category."""
-        self._open_user_category_editor("schedule")
-
-    @handle_errors("opening schedule editor", default_return=None)
-    def open_schedule_editor(self, parent_dialog, category):
-        """Open the schedule editor for a category."""
-        self.dialog_actions.open_schedule_editor(
-            self, self.current_user, parent_dialog, category
-        )
-
-    @handle_errors("validating user selection", default_return=False)
-    def _send_test_message__validate_user_selection(self):
-        """Validate that a user is selected."""
-        if not self.current_user:
-            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
-            return False
-        return True
-
-    @handle_errors("validating service status", default_return=False)
-    def _send_test_message__validate_service_running(self):
-        """Validate that the service is running."""
-        is_running, pid = self.service_manager.is_service_running()
-        if not is_running:
-            QMessageBox.warning(
-                self,
-                "Service Not Running",
-                "MHM Service is not running. Test messages require the service to be active.\n\n"
-                "To send a test message:\n"
-                "1. Click 'Start Service' above\n"
-                "2. Wait for service to initialize\n"
-                "3. Try sending the test message again\n\n"
-                "The admin panel does not create its own communication channels.",
-            )
-            return False
-        return True
-
-    @handle_errors("getting selected category", default_return=None)
-    def _send_test_message__get_selected_category(self):
-        """Get and validate the selected category from the dropdown."""
-        current_index = self.ui.comboBox_user_categories.currentIndex()
-        if (
-            current_index <= 0
-        ):  # No category selected or "Select a category..." is selected
-            QMessageBox.warning(
-                self,
-                "No Category Selected",
-                "Please select a category from the dropdown above.",
-            )
-            return None
-
-        category = self.ui.comboBox_user_categories.itemData(current_index)
-        if not category:
-            QMessageBox.warning(
-                self,
-                "Invalid Category",
-                "Please select a valid category from the dropdown.",
-            )
-            return None
-
-        return category
-
     @handle_errors("sending test message", default_return=None)
     def send_test_message(self):
-        """
-        Send test message with validation.
-
-        Returns:
-            None: Always returns None
-        """
         """Send a test message to the selected user"""
-        # Validate user selection
-        if not self._send_test_message__validate_user_selection():
+        if not request_actions.validate_selected_user(
+            self, self.current_user, message_box=QMessageBox
+        ):
             return
-
-        # Validate service is running
-        if not self._send_test_message__validate_service_running():
+        if not request_actions.validate_service_running(
+            self, self.service_manager, "Test messages", message_box=QMessageBox
+        ):
             return
-
-        # Get and validate selected category
-        category = self._send_test_message__get_selected_category()
+        category = request_actions.get_selected_category(
+            self, self.ui.comboBox_user_categories, message_box=QMessageBox
+        )
         if not category:
             return
-
         logger.info(
             f"Admin Panel: Preparing test message for user {self.current_user}, category {category}"
         )
-
-        # Send the test message directly (no confirmation needed)
         self.send_actual_test_message(category)
-
-    @handle_errors("showing request action outcome", default_return=None)
-    def _show_request_action_outcome(self, outcome):
-        """Display a UI-neutral request action outcome."""
-        if outcome is None:
-            return
-        if outcome.level == "info":
-            QMessageBox.information(self, outcome.title, outcome.message)
-        elif outcome.level == "warning":
-            QMessageBox.warning(self, outcome.title, outcome.message)
-        elif outcome.level == "critical":
-            QMessageBox.critical(self, outcome.title, outcome.message)
 
     @handle_errors("sending test message", default_return=None)
     def send_actual_test_message(self, category):
@@ -735,111 +375,26 @@ class MHMManagerUI(QMainWindow):
             self.current_user,
             category,
         )
-        self._show_request_action_outcome(outcome)
+        request_actions.show_request_action_outcome(
+            self, outcome, message_box=QMessageBox
+        )
 
     @handle_errors("sending check-in prompt", default_return=None)
     def send_checkin_prompt(self):
         """Create a service-handled check-in prompt request."""
-        if not self.current_user:
-            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
-            return
-
-        is_running, pid = self.service_manager.is_service_running()
-        if not is_running:
-            QMessageBox.warning(
-                self,
-                "Service Not Running",
-                "MHM Service is not running. Check-in prompts require the service to be active.\n\n"
-                "To send a check-in prompt:\n"
-                "1. Click 'Start Service' above\n"
-                "2. Wait for service to initialize\n"
-                "3. Try sending the check-in prompt again",
-            )
-            return
-
-        outcome = request_actions.create_checkin_prompt_request(self.current_user)
-        self._show_request_action_outcome(outcome)
+        request_actions.send_checkin_prompt_request(
+            self, self.current_user, self.service_manager, message_box=QMessageBox
+        )
 
     @handle_errors("sending task reminder", default_return=None)
     def send_task_reminder(self):
         """Create a service-handled task reminder request."""
-        if not self.current_user:
-            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
-            return
-
-        is_running, pid = self.service_manager.is_service_running()
-        if not is_running:
-            QMessageBox.warning(
-                self,
-                "Service Not Running",
-                "MHM Service is not running. Task reminders require the service to be active.\n\n"
-                "To send a task reminder:\n"
-                "1. Click 'Start Service' above\n"
-                "2. Wait for service to initialize\n"
-                "3. Try sending the task reminder again",
-            )
-            return
-
-        outcome = request_actions.create_task_reminder_request(
+        request_actions.send_task_reminder_request(
+            self,
             self.current_user,
+            self.service_manager,
             create_communication_manager=_create_communication_manager,
-        )
-        self._show_request_action_outcome(outcome)
-
-    @handle_errors("toggling logging verbosity", default_return=None)
-    def toggle_logging_verbosity(self):
-        """Toggle logging verbosity and update menu."""
-        self.admin_actions.toggle_logging_verbosity(
-            self, self.ui.actionToggle_Verbose_Logging
-        )
-
-    @handle_errors("viewing log file", default_return=None)
-    def view_log_file(self):
-        """Open the log file in the default text editor."""
-        self.admin_actions.view_log_file()
-
-    @handle_errors("opening process watcher", default_return=None)
-    def open_process_watcher(self):
-        """Open the process watcher dialog."""
-        self.admin_actions.open_process_watcher(self)
-
-    @handle_errors("viewing cache status", default_return=None)
-    def view_cache_status(self):
-        """Show cache cleanup status and information."""
-        self.admin_actions.view_cache_status(
-            self,
-            force_clean_cache=self.force_clean_cache,
-        )
-
-    @handle_errors("forcing cache cleanup", default_return=None)
-    def force_clean_cache(self):
-        """Force cache cleanup regardless of schedule."""
-        self.admin_actions.force_clean_cache(self)
-
-    @handle_errors("validating configuration", default_return=None)
-    def validate_configuration(self):
-        """Show detailed configuration validation report."""
-        self.admin_actions.validate_configuration(self)
-
-    @handle_errors("showing configuration help", default_return=None)
-    def show_configuration_help(self, parent_window):
-        """Show help for fixing configuration issues."""
-        self.admin_actions.show_configuration_help(parent_window)
-
-    @handle_errors("viewing all users summary", user_friendly=True, default_return=None)
-    def view_all_users_summary(self):
-        """Show a summary of all users in the system."""
-        self.admin_actions.view_all_users_summary(self)
-
-    @handle_errors(
-        "performing system health check", user_friendly=True, default_return=None
-    )
-    def system_health_check(self):
-        """Perform a basic system health check."""
-        self.admin_actions.system_health_check(
-            self,
-            service_manager=self.service_manager,
-            create_communication_manager=_create_communication_manager,
+            message_box=QMessageBox,
         )
 
     @handle_errors("handling window close event", default_return=None)
@@ -862,6 +417,84 @@ class MHMManagerUI(QMainWindow):
             "Admin panel cleanup complete - no communication channels to stop."
         )
         logger.info("Admin panel shutdown complete.")
+
+
+DELEGATED_UI_ACTIONS = {
+    "manage_communication_settings": lambda self: self.dialog_actions.manage_communication_settings(
+        self,
+        self.current_user,
+        on_user_changed=self.refresh_user_list,
+    ),
+    "manage_categories": lambda self: self.dialog_actions.manage_categories(
+        self,
+        self.current_user,
+        on_user_changed=self.refresh_user_list,
+        reload_categories=lambda: self.load_user_categories(self.current_user),
+    ),
+    "manage_checkins": lambda self: self.dialog_actions.manage_checkins(
+        self,
+        self.current_user,
+        on_user_changed=self.refresh_user_list,
+    ),
+    "manage_tasks": lambda self: self.dialog_actions.manage_tasks(
+        self,
+        self.current_user,
+        on_user_changed=self.refresh_user_list,
+    ),
+    "manage_task_crud": lambda self: self.dialog_actions.manage_task_crud(
+        self, self.current_user
+    ),
+    "manage_personalization": lambda self: self.dialog_actions.manage_personalization(
+        self,
+        self.current_user,
+        on_user_changed=self.refresh_user_list,
+    ),
+    "manage_user_analytics": lambda self: self.dialog_actions.manage_user_analytics(
+        self, self.current_user
+    ),
+    "edit_user_messages": lambda self: self.dialog_actions.edit_user_category(
+        self,
+        self.current_user,
+        self.ui.comboBox_user_categories,
+        "message",
+    ),
+    "open_message_editor": lambda self, parent_dialog, category: self.dialog_actions.open_message_editor(
+        self, self.current_user, parent_dialog, category
+    ),
+    "edit_user_schedules": lambda self: self.dialog_actions.edit_user_category(
+        self,
+        self.current_user,
+        self.ui.comboBox_user_categories,
+        "schedule",
+    ),
+    "open_schedule_editor": lambda self, parent_dialog, category: self.dialog_actions.open_schedule_editor(
+        self, self.current_user, parent_dialog, category
+    ),
+    "toggle_logging_verbosity": lambda self: self.admin_actions.toggle_logging_verbosity(
+        self, self.ui.actionToggle_Verbose_Logging
+    ),
+    "view_log_file": lambda self: self.admin_actions.view_log_file(),
+    "open_process_watcher": lambda self: self.admin_actions.open_process_watcher(self),
+    "view_cache_status": lambda self: self.admin_actions.view_cache_status(
+        self,
+        force_clean_cache=self.force_clean_cache,
+    ),
+    "force_clean_cache": lambda self: self.admin_actions.force_clean_cache(self),
+    "validate_configuration": lambda self: self.admin_actions.validate_configuration(
+        self
+    ),
+    "show_configuration_help": lambda self, parent_window: self.admin_actions.show_configuration_help(
+        parent_window
+    ),
+    "view_all_users_summary": lambda self: self.admin_actions.view_all_users_summary(
+        self
+    ),
+    "system_health_check": lambda self: self.admin_actions.system_health_check(
+        self,
+        service_manager=self.service_manager,
+        create_communication_manager=_create_communication_manager,
+    ),
+}
 
 
 @handle_errors("starting UI application")

@@ -33,9 +33,16 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-06-10 - UI shell refactor batch finalized
+- **UI shell thinning**: Finalized the staged UI coupling refactor by moving user selection/state handling into [`ui/user_selection_controller.py`](../ui/user_selection_controller.py), status label rendering into [`ui/status_view_updater.py`](../ui/status_view_updater.py), and request validation/display wrappers into [`ui/request_actions.py`](../ui/request_actions.py). [`ui/ui_app_qt.py`](../ui/ui_app_qt.py) is now a thin Qt shell that loads generated UI, connects signals, delegates work, and mirrors selected user/category state for existing callers.
+- **Compatibility cleanup**: Removed the remaining `_sync_user_selection_state` facade/shim signal by renaming the helper to `_copy_user_selection_state`; replaced the Pyright-only dynamic `setattr` workaround with a normal `load_user_categories()` method so Ruff and Pyright both pass.
+- **Audit outcome**: The refactor removes `ui_app_qt.py` from the high-coupling and module-refactor-candidate outputs. Current generated status shows Ruff `PASS`, Pyright `PASS`, static analysis `CLEAN`, and facade/shim candidates at `0`; repo-wide high-coupling remains in non-UI modules.
+- **Verification**: `python -m ruff check .`, `python -m pyright`, `python -m py_compile ui\ui_app_qt.py`, focused UI/behavior tests (`90 passed`), and standard `python development_tools\run_development_tools.py audit` passed after refreshing stale static-analysis caches.
+- **Impact**: Completes the UI-only refactor wave from service/status/scheduler/request/dialog/admin extraction through final state/rendering cleanup. Remaining priorities move to coverage and non-UI coupling hotspots rather than `ui_app_qt.py`.
+
 ### 2026-06-07 - Parallel load test stabilization
 - **Root cause**: Full parallel suite returned empty/default profile payloads (`categories: []`, missing `preferred_name`/`morning`) when `get_user_file_path` mocks disagreed on `context.json` vs `user_context.json`, module caches retained stale entries, and nested `patch()` calls raced with autouse monkeypatch.
-- **Fix**: [`test_user_management_coverage_expansion.py`](../tests/behavior/test_user_management_coverage_expansion.py) — `_registry_profile_path()` mirrors registry file names; autouse `_setup` uses it; three `test_load_*_data_real_behavior` tests clear per-user caches before load, drop redundant patches, use valid `CATEGORIES` (`motivational` not `tasks`), and mark `@pytest.mark.no_parallel` with reason.
+- **Fix**: [`test_user_management_coverage_expansion.py`](../tests/behavior/test_user_management_coverage_expansion.py) - `_registry_profile_path()` mirrors registry file names; autouse `_setup` uses it; three `test_load_*_data_real_behavior` tests clear per-user caches before load, drop redundant patches, use valid `CATEGORIES` (`motivational` not `tasks`), and mark `@pytest.mark.no_parallel` with reason.
 - **Verification**: `python -m pytest tests/behavior/test_user_management_coverage_expansion.py -k "test_load_context_data_real_behavior or test_load_preferences_data_real_behavior or test_load_schedules_data_real_behavior" -q` (`3 passed`).
 
 ### 2026-06-06 - UI dialog orchestration extraction (Stage 5)

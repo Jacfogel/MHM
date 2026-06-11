@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from ui.ui_app_qt import MHMManagerUI
+from ui.user_selection_controller import UserSelectionController
 from ui.user_list_provider import USER_COMBO_PLACEHOLDER, UserListProvider
 
 
@@ -30,43 +30,41 @@ class _FakeComboBox:
 
 
 @pytest.fixture
-def ui_instance():
-    obj = MHMManagerUI.__new__(MHMManagerUI)
-    obj.ui = cast(Any, SimpleNamespace(comboBox_users=_FakeComboBox()))
-    obj.user_list_provider = UserListProvider()
-    obj.on_user_selected = Mock()
-    return obj
+def controller():
+    ui = cast(Any, SimpleNamespace(comboBox_users=_FakeComboBox()))
+    return UserSelectionController(ui, UserListProvider())
 
 
 @pytest.mark.ui
 class TestUIUserComboHelpers:
-    def test_reset_user_combo_box(self, ui_instance):
-        ui_instance.ui.comboBox_users.addItem("old")
-        ui_instance._reset_user_combo_box()
-        assert ui_instance.ui.comboBox_users.items == [USER_COMBO_PLACEHOLDER]
+    def test_reset_user_combo_box(self, controller):
+        controller.ui.comboBox_users.addItem("old")
+        controller.reset_user_combo_box()
+        assert controller.ui.comboBox_users.items == [USER_COMBO_PLACEHOLDER]
 
-    def test_reselect_user_if_present_selects_and_calls_handler(self, ui_instance):
-        combo = ui_instance.ui.comboBox_users
+    def test_reselect_user_if_present_selects_and_calls_handler(self, controller):
+        combo = controller.ui.comboBox_users
         combo.items = [
             USER_COMBO_PLACEHOLDER,
             "alpha (email) - user-alpha",
             "beta (discord) - user-beta",
         ]
 
-        ui_instance._reselect_user_if_present("user-beta")
+        with patch.object(controller, "on_user_selected") as selected:
+            controller.reselect_user_if_present("user-beta")
 
         assert combo.current_index == 2
-        ui_instance.on_user_selected.assert_called_once_with("beta (discord) - user-beta")
+        selected.assert_called_once_with("beta (discord) - user-beta", parent_window=None)
 
-    def test_refresh_user_list_fallback_populates_display_names(self, ui_instance):
+    def test_refresh_user_list_fallback_populates_display_names(self, controller):
         with patch.object(
-            ui_instance.user_list_provider,
+            controller.provider,
             "collect_fallback_display_names",
             return_value=["Preferred (name-u1) - u1", "name-u2 - u2"],
         ):
-            ui_instance._refresh_user_list_fallback(Exception("primary failed"))
+            controller.refresh_user_list_fallback(Mock(), Exception("primary failed"))
 
-        assert ui_instance.ui.comboBox_users.items == [
+        assert controller.ui.comboBox_users.items == [
             USER_COMBO_PLACEHOLDER,
             "Preferred (name-u1) - u1",
             "name-u2 - u2",

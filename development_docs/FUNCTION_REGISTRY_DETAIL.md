@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-06 14:07:53
+> **Last Generated**: 2026-06-09 20:56:38
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 91.7% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 198
-- **Functions Found**: 2105
-- **Methods Found**: 1343
-- **Classes Found**: 213
-- **Total Items**: 3448
-- **Functions Documented**: 1905
-- **Methods Documented**: 1258
-- **Classes Documented**: 152
-- **Total Documented**: 3163
-- **Template-Generated**: 28
-- **Last Updated**: 2026-06-06
+- **Files Scanned**: 200
+- **Functions Found**: 2099
+- **Methods Found**: 1327
+- **Classes Found**: 214
+- **Total Items**: 3426
+- **Functions Documented**: 1899
+- **Methods Documented**: 1242
+- **Classes Documented**: 153
+- **Total Documented**: 3141
+- **Template-Generated**: 30
+- **Last Updated**: 2026-06-09
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -45,7 +45,7 @@ Core system utilities, configuration, error handling, and data management functi
 ### **Communication Functions** (539)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (504)
+### **User Interface Functions** (498)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (35)
@@ -6514,6 +6514,13 @@ Returns:
 - [OK] `create_checkin_prompt_request(user_id)` - Create a check-in prompt request for the running service.
 - [OK] `create_task_reminder_request(user_id)` - Create a task reminder request for the running service.
 - [OK] `create_test_message_request(user_id, category)` - Create a test-message request for the running service.
+- [OK] `get_selected_category(parent_window, category_combo_box)` - Return selected category data or warn when selection is invalid.
+- [OK] `send_checkin_prompt_request(parent_window, user_id, service_manager)` - Validate UI state, create a check-in prompt request, and show the outcome.
+- [OK] `send_task_reminder_request(parent_window, user_id, service_manager)` - Validate UI state, create a task reminder request, and show the outcome.
+- [OK] `send_test_message_request(parent_window, user_id, service_manager, category_combo_box)` - Validate UI state, create a test-message request, and show the outcome.
+- [OK] `show_request_action_outcome(parent_window, outcome)` - Display a UI-neutral request action outcome.
+- [OK] `validate_selected_user(parent_window, user_id)` - Validate that a user is selected before a request-file action.
+- [OK] `validate_service_running(parent_window, service_manager, action_label)` - Validate that the backend service is running for a request-file action.
 **Classes:**
 - [OK] `RequestActionOutcome` - UI-neutral result for a request action.
 
@@ -6587,52 +6594,31 @@ roughly chronological.
   - [OK] `StatusProvider.check_ngrok_status(self)` - Check if ngrok tunnel is running and return PID.
   - [OK] `StatusProvider.check_service_status(self)` - Return the current backend service process status.
 
+#### `ui/status_view_updater.py`
+**Functions:**
+- [OK] `_set_status_label(label, text)` - Set text and visual state for a status label.
+- [OK] `update_status_labels(ui, status_provider)` - Render service, channel, and tunnel status labels from a provider.
+
 #### `ui/ui_app_qt.py`
 **Functions:**
+- [OK] `__getattr__(self, name)` - Resolve thin UI action delegates without defining each as a method.
 - [OK] `__init__(self)` - Initialize the object.
+- [OK] `_copy_user_selection_state(window)` - Copy controller selection state onto shell attributes.
 - [OK] `_create_communication_manager()` - Create a communication manager without importing it at UI module load time.
 - [OK] `_load_attr(module_name, attr_name)` - Load a project attribute through the UI lazy dependency boundary.
-- [OK] `_open_user_category_editor(self, editor_label)` - Delegate message or schedule editing for the selected user/category.
-- [OK] `_populate_active_users_in_combo_box(self)` - Populate user combo box from active user metadata.
-- [OK] `_refresh_user_list_fallback(self, original_error)` - Fallback user list refresh using minimal account/context reads.
-- [OK] `_reselect_user_if_present(self, current_user_id)` - Reselect prior active user if still present in combo list.
-- [OK] `_reset_user_combo_box(self)` - Clear user combo and add placeholder entry.
-- [OK] `_send_test_message__get_selected_category(self)` - Get and validate the selected category from the dropdown.
-- [OK] `_send_test_message__validate_service_running(self)` - Validate that the service is running.
-- [OK] `_send_test_message__validate_user_selection(self)` - Validate that a user is selected.
-- [OK] `_show_request_action_outcome(self, outcome)` - Display a UI-neutral request action outcome.
 - [OK] `closeEvent(self, event)` - Handle window close event
 - [OK] `connect_signals(self)` - Connect UI signals to slots
 - [OK] `create_new_user(self)` - Open dialog to create a new user.
 - [OK] `disable_content_management(self)` - Disable content management buttons
-- [OK] `edit_user_messages(self)` - Open message editing for the selected user/category.
-- [OK] `edit_user_schedules(self)` - Open schedule editing for the selected user/category.
 - [OK] `enable_content_management(self)` - Enable content management buttons
-- [OK] `force_clean_cache(self)` - Force cache cleanup regardless of schedule.
 - [OK] `initialize_ui(self)` - Initialize the UI state
 - [OK] `load_theme(self)` - Load and apply the QSS theme from the styles directory
 - [OK] `load_ui(self)` - Load the UI from the .ui file
-- [OK] `load_user_categories(self, user_id)` - Load categories for the selected user
+- [OK] `load_user_categories(self, user_id)` - Load categories for the selected user.
 - [OK] `main()` - Main entry point for the Qt-based UI application
-- [OK] `manage_categories(self)` - Open category management for the selected user.
-- [OK] `manage_checkins(self)` - Open check-in management for the selected user.
-- [OK] `manage_communication_settings(self)` - Open channel management for the selected user.
-- [OK] `manage_personalization(self)` - Open personalization settings for the selected user.
-- [OK] `manage_task_crud(self)` - Open task CRUD for the selected user.
-- [OK] `manage_tasks(self)` - Open task management for the selected user.
-- [OK] `manage_user_analytics(self)` - Open user analytics for the selected user.
 - [OK] `on_category_selected(self, category)` - Handle category selection
 - [OK] `on_user_selected(self, user_display)` - Handle user selection with validation.
-
-Returns:
-    None: Always returns None
-- [OK] `open_message_editor(self, parent_dialog, category)` - Open the message editor for a category.
-- [OK] `open_process_watcher(self)` - Open the process watcher dialog.
-- [OK] `open_schedule_editor(self, parent_dialog, category)` - Open the schedule editor for a category.
 - [OK] `refresh_user_list(self)` - Refresh the user list with validation.
-
-Returns:
-    None: Always returns None
 - [OK] `restart_service(self)` - Restart the MHM service
 - [OK] `run_category_scheduler(self)` - Run scheduler for the selected user and category
 - [OK] `run_full_scheduler(self)` - Run the full scheduler for all users
@@ -6640,68 +6626,31 @@ Returns:
 - [OK] `send_actual_test_message(self, category)` - Create a service-handled test-message request.
 - [OK] `send_checkin_prompt(self)` - Create a service-handled check-in prompt request.
 - [OK] `send_task_reminder(self)` - Create a service-handled task reminder request.
-- [OK] `send_test_message(self)` - Send test message with validation.
-
-Returns:
-    None: Always returns None
-- [OK] `show_configuration_help(self, parent_window)` - Show help for fixing configuration issues.
+- [OK] `send_test_message(self)` - Send a test message to the selected user
 - [OK] `shutdown_ui_components(self)` - Shutdown UI components with validation.
 
 Returns:
     None: Always returns None
 - [OK] `start_service(self)` - Start the MHM service
 - [OK] `stop_service(self)` - Stop the MHM service
-- [OK] `system_health_check(self)` - Perform a basic system health check.
-- [OK] `toggle_logging_verbosity(self)` - Toggle logging verbosity and update menu.
 - [OK] `update_service_status(self)` - Update the service status display
 - [OK] `update_user_index_on_startup(self)` - Automatically update the user index when the admin panel starts
-- [OK] `validate_configuration(self)` - Show detailed configuration validation report.
-- [OK] `view_all_users_summary(self)` - Show a summary of all users in the system.
-- [OK] `view_cache_status(self)` - Show cache cleanup status and information.
-- [OK] `view_log_file(self)` - Open the log file in the default text editor.
 **Classes:**
 - [OK] `MHMManagerUI` - Main MHM Management UI using PySide6
+  - [OK] `MHMManagerUI.__getattr__(self, name)` - Resolve thin UI action delegates without defining each as a method.
   - [OK] `MHMManagerUI.__init__(self)` - Initialize the object.
-  - [OK] `MHMManagerUI._open_user_category_editor(self, editor_label)` - Delegate message or schedule editing for the selected user/category.
-  - [OK] `MHMManagerUI._populate_active_users_in_combo_box(self)` - Populate user combo box from active user metadata.
-  - [OK] `MHMManagerUI._refresh_user_list_fallback(self, original_error)` - Fallback user list refresh using minimal account/context reads.
-  - [OK] `MHMManagerUI._reselect_user_if_present(self, current_user_id)` - Reselect prior active user if still present in combo list.
-  - [OK] `MHMManagerUI._reset_user_combo_box(self)` - Clear user combo and add placeholder entry.
-  - [OK] `MHMManagerUI._send_test_message__get_selected_category(self)` - Get and validate the selected category from the dropdown.
-  - [OK] `MHMManagerUI._send_test_message__validate_service_running(self)` - Validate that the service is running.
-  - [OK] `MHMManagerUI._send_test_message__validate_user_selection(self)` - Validate that a user is selected.
-  - [OK] `MHMManagerUI._show_request_action_outcome(self, outcome)` - Display a UI-neutral request action outcome.
   - [OK] `MHMManagerUI.closeEvent(self, event)` - Handle window close event
   - [OK] `MHMManagerUI.connect_signals(self)` - Connect UI signals to slots
   - [OK] `MHMManagerUI.create_new_user(self)` - Open dialog to create a new user.
   - [OK] `MHMManagerUI.disable_content_management(self)` - Disable content management buttons
-  - [OK] `MHMManagerUI.edit_user_messages(self)` - Open message editing for the selected user/category.
-  - [OK] `MHMManagerUI.edit_user_schedules(self)` - Open schedule editing for the selected user/category.
   - [OK] `MHMManagerUI.enable_content_management(self)` - Enable content management buttons
-  - [OK] `MHMManagerUI.force_clean_cache(self)` - Force cache cleanup regardless of schedule.
   - [OK] `MHMManagerUI.initialize_ui(self)` - Initialize the UI state
   - [OK] `MHMManagerUI.load_theme(self)` - Load and apply the QSS theme from the styles directory
   - [OK] `MHMManagerUI.load_ui(self)` - Load the UI from the .ui file
-  - [OK] `MHMManagerUI.load_user_categories(self, user_id)` - Load categories for the selected user
-  - [OK] `MHMManagerUI.manage_categories(self)` - Open category management for the selected user.
-  - [OK] `MHMManagerUI.manage_checkins(self)` - Open check-in management for the selected user.
-  - [OK] `MHMManagerUI.manage_communication_settings(self)` - Open channel management for the selected user.
-  - [OK] `MHMManagerUI.manage_personalization(self)` - Open personalization settings for the selected user.
-  - [OK] `MHMManagerUI.manage_task_crud(self)` - Open task CRUD for the selected user.
-  - [OK] `MHMManagerUI.manage_tasks(self)` - Open task management for the selected user.
-  - [OK] `MHMManagerUI.manage_user_analytics(self)` - Open user analytics for the selected user.
+  - [OK] `MHMManagerUI.load_user_categories(self, user_id)` - Load categories for the selected user.
   - [OK] `MHMManagerUI.on_category_selected(self, category)` - Handle category selection
   - [OK] `MHMManagerUI.on_user_selected(self, user_display)` - Handle user selection with validation.
-
-Returns:
-    None: Always returns None
-  - [OK] `MHMManagerUI.open_message_editor(self, parent_dialog, category)` - Open the message editor for a category.
-  - [OK] `MHMManagerUI.open_process_watcher(self)` - Open the process watcher dialog.
-  - [OK] `MHMManagerUI.open_schedule_editor(self, parent_dialog, category)` - Open the schedule editor for a category.
   - [OK] `MHMManagerUI.refresh_user_list(self)` - Refresh the user list with validation.
-
-Returns:
-    None: Always returns None
   - [OK] `MHMManagerUI.restart_service(self)` - Restart the MHM service
   - [OK] `MHMManagerUI.run_category_scheduler(self)` - Run scheduler for the selected user and category
   - [OK] `MHMManagerUI.run_full_scheduler(self)` - Run the full scheduler for all users
@@ -6709,25 +6658,15 @@ Returns:
   - [OK] `MHMManagerUI.send_actual_test_message(self, category)` - Create a service-handled test-message request.
   - [OK] `MHMManagerUI.send_checkin_prompt(self)` - Create a service-handled check-in prompt request.
   - [OK] `MHMManagerUI.send_task_reminder(self)` - Create a service-handled task reminder request.
-  - [OK] `MHMManagerUI.send_test_message(self)` - Send test message with validation.
-
-Returns:
-    None: Always returns None
-  - [OK] `MHMManagerUI.show_configuration_help(self, parent_window)` - Show help for fixing configuration issues.
+  - [OK] `MHMManagerUI.send_test_message(self)` - Send a test message to the selected user
   - [OK] `MHMManagerUI.shutdown_ui_components(self)` - Shutdown UI components with validation.
 
 Returns:
     None: Always returns None
   - [OK] `MHMManagerUI.start_service(self)` - Start the MHM service
   - [OK] `MHMManagerUI.stop_service(self)` - Stop the MHM service
-  - [OK] `MHMManagerUI.system_health_check(self)` - Perform a basic system health check.
-  - [OK] `MHMManagerUI.toggle_logging_verbosity(self)` - Toggle logging verbosity and update menu.
   - [OK] `MHMManagerUI.update_service_status(self)` - Update the service status display
   - [OK] `MHMManagerUI.update_user_index_on_startup(self)` - Automatically update the user index when the admin panel starts
-  - [OK] `MHMManagerUI.validate_configuration(self)` - Show detailed configuration validation report.
-  - [OK] `MHMManagerUI.view_all_users_summary(self)` - Show a summary of all users in the system.
-  - [OK] `MHMManagerUI.view_cache_status(self)` - Show cache cleanup status and information.
-  - [OK] `MHMManagerUI.view_log_file(self)` - Open the log file in the default text editor.
 
 #### `ui/user_list_provider.py`
 **Functions:**
@@ -6749,6 +6688,35 @@ Returns:
   - [OK] `UserListProvider.format_category_display(category)` - Format stored category key for combo display.
   - [OK] `UserListProvider.load_category_names(self, user_id)` - Return category names for the selected user.
   - [OK] `UserListProvider.parse_user_id_from_display(user_display)` - Extract trailing user id from combo display text.
+
+#### `ui/user_selection_controller.py`
+**Functions:**
+- [OK] `__init__(self, ui, provider, get_user_data_func)` - Special Python method
+- [OK] `_set_content_controls_enabled(self, enabled)` - Set all user/content action controls to the same enabled state.
+- [OK] `disable_content_management(self)` - Disable content management controls and reset the category combo.
+- [OK] `enable_content_management(self)` - Enable content management controls.
+- [OK] `load_user_categories(self, user_id)` - Load categories for the selected user into the category combo.
+- [OK] `on_category_selected(self)` - Update category action enablement and return selected category data.
+- [OK] `on_user_selected(self, user_display, parent_window)` - Handle user combo selection and return the selected user id.
+- [OK] `populate_active_users(self)` - Populate user combo box from active user metadata.
+- [OK] `refresh_user_list(self, parent_window)` - Refresh the user combo box while preserving selection when possible.
+- [OK] `refresh_user_list_fallback(self, parent_window, original_error)` - Fallback user list refresh using minimal account/context reads.
+- [OK] `reselect_user_if_present(self, current_user_id)` - Reselect prior active user if still present in combo list.
+- [OK] `reset_user_combo_box(self)` - Clear user combo and add placeholder entry.
+**Classes:**
+- [OK] `UserSelectionController` - Own user/category combo state transitions for the admin UI shell.
+  - [OK] `UserSelectionController.__init__(self, ui, provider, get_user_data_func)` - Special Python method
+  - [OK] `UserSelectionController._set_content_controls_enabled(self, enabled)` - Set all user/content action controls to the same enabled state.
+  - [OK] `UserSelectionController.disable_content_management(self)` - Disable content management controls and reset the category combo.
+  - [OK] `UserSelectionController.enable_content_management(self)` - Enable content management controls.
+  - [OK] `UserSelectionController.load_user_categories(self, user_id)` - Load categories for the selected user into the category combo.
+  - [OK] `UserSelectionController.on_category_selected(self)` - Update category action enablement and return selected category data.
+  - [OK] `UserSelectionController.on_user_selected(self, user_display, parent_window)` - Handle user combo selection and return the selected user id.
+  - [OK] `UserSelectionController.populate_active_users(self)` - Populate user combo box from active user metadata.
+  - [OK] `UserSelectionController.refresh_user_list(self, parent_window)` - Refresh the user combo box while preserving selection when possible.
+  - [OK] `UserSelectionController.refresh_user_list_fallback(self, parent_window, original_error)` - Fallback user list refresh using minimal account/context reads.
+  - [OK] `UserSelectionController.reselect_user_if_present(self, current_user_id)` - Reselect prior active user if still present in combo list.
+  - [OK] `UserSelectionController.reset_user_combo_box(self)` - Clear user combo and add placeholder entry.
 
 #### `ui/widgets/__init__.py`
 

@@ -392,52 +392,29 @@ class TestMHMManagerUI:
                             # Assert
                             mock_msgbox.information.assert_called()
     
-    def test_send_test_message_validation_checks_user(self, qapp):
-        """Test that _send_test_message__validate_user_selection validates user selection."""
-        from ui.ui_app_qt import MHMManagerUI
-        
-        with patch('ui.ui_app_qt.Ui_ui_app_mainwindow') as mock_ui:
-            with patch('ui.ui_app_qt.QTimer') as mock_timer:
-                with patch('ui.ui_app_qt.Path') as mock_path:
-                    with patch('ui.ui_app_qt.QMessageBox') as mock_msgbox:
-                        mock_ui_instance = Mock()
-                        mock_ui.return_value = mock_ui_instance
-                        mock_timer_instance = Mock()
-                        mock_timer.return_value = mock_timer_instance
-                        mock_path.return_value.exists.return_value = True
-                        
-                        ui = MHMManagerUI()
-                        
-                        # Act - Test with no user selected
-                        result = ui._send_test_message__validate_user_selection()
-                        
-                        # Assert
-                        assert result is False, "Should return False when no user selected"
-                        mock_msgbox.warning.assert_called()
-    
-    def test_send_test_message_validation_checks_service(self, qapp):
-        """Test that _send_test_message__validate_service_running validates service."""
-        from ui.ui_app_qt import MHMManagerUI
-        
-        with patch('ui.ui_app_qt.Ui_ui_app_mainwindow') as mock_ui:
-            with patch('ui.ui_app_qt.QTimer') as mock_timer:
-                with patch('ui.ui_app_qt.Path') as mock_path:
-                    with patch('ui.ui_app_qt.QMessageBox') as mock_msgbox:
-                        mock_ui_instance = Mock()
-                        mock_ui.return_value = mock_ui_instance
-                        mock_timer_instance = Mock()
-                        mock_timer.return_value = mock_timer_instance
-                        mock_path.return_value.exists.return_value = True
-                        
-                        ui = MHMManagerUI()
-                        
-                        # Act - Test with service not running
-                        with patch.object(ui.service_manager, 'is_service_running', return_value=(False, None)):
-                            result = ui._send_test_message__validate_service_running()
-                            
-                            # Assert
-                            assert result is False, "Should return False when service not running"
-                            mock_msgbox.warning.assert_called()
+    def test_send_test_message_validation_checks_user(self):
+        """Test request action user selection validation."""
+        from ui import request_actions
+
+        with patch("ui.request_actions.QMessageBox") as mock_msgbox:
+            result = request_actions.validate_selected_user(Mock(), None)
+
+        assert result is False, "Should return False when no user selected"
+        mock_msgbox.warning.assert_called()
+
+    def test_send_test_message_validation_checks_service(self):
+        """Test request action service status validation."""
+        from ui import request_actions
+
+        service_manager = Mock()
+        service_manager.is_service_running.return_value = (False, None)
+        with patch("ui.request_actions.QMessageBox") as mock_msgbox:
+            result = request_actions.validate_service_running(
+                Mock(), service_manager, "Test messages"
+            )
+
+        assert result is False, "Should return False when service not running"
+        mock_msgbox.warning.assert_called()
     
     @pytest.mark.no_parallel
     def test_refresh_user_list_loads_users(self, test_data_dir, qapp):

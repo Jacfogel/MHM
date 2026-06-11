@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-06-10 - UI shell refactor finalized **COMPLETED**
+- Finalized the UI-only coupling refactor: `ui_app_qt.py` is now a thin Qt shell delegating selection, status rendering, request actions, scheduler/admin/dialog actions, and service control to focused UI modules.
+- Added/finalized `ui/user_selection_controller.py` and `ui/status_view_updater.py`; request validation/display wrappers now live in `ui/request_actions.py`.
+- Cleared the `_sync_user_selection_state` facade/shim candidate and the Ruff/Pyright conflict around dynamic `load_user_categories` assignment.
+- Verification: Ruff PASS, Pyright PASS, facade/shim candidates 0, focused UI/behavior tests 90 passed, standard audit passed; `ui_app_qt.py` is no longer a high-coupling or module-refactor candidate.
+
 ### 2026-06-06 - UI admin action extraction (Stage 7) **COMPLETED**
 - Moved admin menu/system actions from `ui/ui_app_qt.py` into `ui/admin_actions.py`, including cache status/cleanup, config validation/help, all-users summary, log opening, verbose logging, process watcher opening, and system health reporting.
 - `MHMManagerUI` now keeps signal-compatible wrappers that delegate to `AdminActions`; `ui_app_qt.py` is down to ~888 lines.
