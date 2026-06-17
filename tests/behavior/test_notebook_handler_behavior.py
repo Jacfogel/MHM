@@ -20,10 +20,10 @@ from communication.command_handlers.shared_types import (
 )
 from communication.message_processing.interaction_manager import InteractionManager
 from communication.message_processing.command_parser import EnhancedCommandParser
-from communication.message_processing.conversation_flow_manager import (
-    conversation_manager,
-    FLOW_NOTE_BODY,
+from communication.message_processing.conversation_flow_manager import conversation_manager
+from communication.message_processing.flows.flow_constants import (
     FLOW_LIST_ITEMS,
+    FLOW_NOTE_BODY,
 )
 from tests.test_helpers.test_utilities import TestUserFactory
 

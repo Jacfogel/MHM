@@ -1,0 +1,62 @@
+# communication/message_processing/flows/flow_constants.py
+
+"""Flow and check-in state constants for conversation flows."""
+
+# We'll define 'flow' constants
+FLOW_NONE = 0
+FLOW_CHECKIN = 1
+FLOW_TASK_REMINDER = 2
+FLOW_NOTE_BODY = 3
+FLOW_LIST_ITEMS = 4
+FLOW_TASK_DUE_DATE = 5
+FLOW_TASK_PRIORITY = 6
+
+
+# We'll define states for check-in - now dynamic based on user preferences
+CHECKIN_START = 100
+CHECKIN_MOOD = 101
+CHECKIN_BREAKFAST = 102
+CHECKIN_ENERGY = 103
+CHECKIN_TEETH = 104
+CHECKIN_SLEEP_QUALITY = 105
+CHECKIN_SLEEP_SCHEDULE = 106
+CHECKIN_ANXIETY = 107
+CHECKIN_FOCUS = 108
+CHECKIN_MEDICATION = 109
+CHECKIN_EXERCISE = 110
+CHECKIN_HYDRATION = 111
+CHECKIN_SOCIAL = 112
+CHECKIN_STRESS = 113
+CHECKIN_REFLECTION = 114
+CHECKIN_HOPELESSNESS = 115
+CHECKIN_IRRITABILITY = 116
+CHECKIN_MOTIVATION = 117
+CHECKIN_TREATMENT = 118
+CHECKIN_COMPLETE = 200
+
+# Idle expiry threshold for check-in flows (2 hours)
+CHECKIN_INACTIVITY_MINUTES = 120
+# Post-flow cooldown to delay scheduled automations after flow completion
+POST_FLOW_COOLDOWN_MINUTES = 10
+
+# Question mapping for dynamic flow
+QUESTION_STATES = {
+    "mood": CHECKIN_MOOD,
+    "ate_breakfast": CHECKIN_BREAKFAST,
+    "energy": CHECKIN_ENERGY,
+    "brushed_teeth": CHECKIN_TEETH,
+    "sleep_quality": CHECKIN_SLEEP_QUALITY,
+    "sleep_schedule": CHECKIN_SLEEP_SCHEDULE,
+    "anxiety_level": CHECKIN_ANXIETY,
+    "focus_level": CHECKIN_FOCUS,
+    "medication_taken": CHECKIN_MEDICATION,
+    "exercise": CHECKIN_EXERCISE,
+    "hydration": CHECKIN_HYDRATION,
+    "social_interaction": CHECKIN_SOCIAL,
+    "stress_level": CHECKIN_STRESS,
+    "daily_reflection": CHECKIN_REFLECTION,
+    "hopelessness_level": CHECKIN_HOPELESSNESS,
+    "irritability_level": CHECKIN_IRRITABILITY,
+    "motivation_level": CHECKIN_MOTIVATION,
+    "treatment_adherence": CHECKIN_TREATMENT,
+}

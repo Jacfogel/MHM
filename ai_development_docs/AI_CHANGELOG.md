@@ -30,11 +30,15 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-06-10 - UI shell refactor finalized **COMPLETED**
+### 2026-06-10 - UI shell + communication coupling refactor **COMPLETED**
 - Finalized the UI-only coupling refactor: `ui_app_qt.py` is now a thin Qt shell delegating selection, status rendering, request actions, scheduler/admin/dialog actions, and service control to focused UI modules.
-- Added/finalized `ui/user_selection_controller.py` and `ui/status_view_updater.py`; request validation/display wrappers now live in `ui/request_actions.py`.
-- Cleared the `_sync_user_selection_state` facade/shim candidate and the Ruff/Pyright conflict around dynamic `load_user_categories` assignment.
-- Verification: Ruff PASS, Pyright PASS, facade/shim candidates 0, focused UI/behavior tests 90 passed, standard audit passed; `ui_app_qt.py` is no longer a high-coupling or module-refactor candidate.
+- Split `conversation_flow_manager.py` into mixin modules under `communication/message_processing/flows/` (state, check-in, task, note flows); public API unchanged; preserved legacy persisted-state migration bridge.
+- Centralized handler lazy-loading in `handler_registry.py`; trimmed duplicate imports in `interaction_handlers.py`, `channel_orchestrator.py`, and `interaction_manager.py`.
+- Post-split cleanup: fixed missing `timedelta` import in `note_flow.py` (notebook flow test failures), removed 23 unused constant re-exports from `conversation_flow_manager.py` (constants now imported from `flow_constants`), and pointed tests/callers at `flow_constants` via search-and-close.
+- Follow-up fixes: resolved `ParsedCommand` UnboundLocalError in `interaction_manager.py` (shortcut paths for "complete task" / "confirm delete"); regenerated function registry; doc-sync/ASCII quick wins.
+- Dev-tools: high-coupling metric now uses **unique local module fan-out** (not raw duplicate import statements); bumped `aiohttp>=3.14.1` to clear pip-audit CVEs.
+- Pyright: flow domain mixins inherit `FlowStateMixin` for typed shared state API; moved `clear_stuck_flows` to `flow_state.py` (55 warnings -> 0). ASCII fix in `CHANGELOG_DETAIL.md`.
+- Duplicate-function triage: `# not_duplicate: task_due_date_natural_language_parsers` on `_parse_date_time_from_text` / `_parse_time_from_text` in `task_flow.py` (intentional date+time parser decomposition).
 
 ### 2026-06-06 - UI admin action extraction (Stage 7) **COMPLETED**
 - Moved admin menu/system actions from `ui/ui_app_qt.py` into `ui/admin_actions.py`, including cache status/cleanup, config validation/help, all-users summary, log opening, verbose logging, process watcher opening, and system health reporting.

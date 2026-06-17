@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-09 20:56:51
+> **Last Generated**: 2026-06-16 22:23:25
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -130,6 +130,7 @@ C:.
 |   |   |   checkin_analytics_handler.py
 |   |   |   checkin_handler.py
 |   |   |   create_menu_handler.py
+|   |   |   handler_registry.py
 |   |   |   interaction_handlers.py
 |   |   |   notebook_handler.py
 |   |   |   profile_handler.py
@@ -198,6 +199,13 @@ C:.
 |   |   |   __init__.py
 |   |   |
 |   |   +---flows
+|   |   |   |   checkin_flow.py
+|   |   |   |   flow_constants.py
+|   |   |   |   flow_state.py
+|   |   |   |   note_flow.py
+|   |   |   |   task_flow.py
+|   |   |   |   __init__.py
+|   |   |   |
 |   +---reminders
 |   |   |   checkin_prompt_dispatcher.py
 |   |   |   reminder_dispatcher.py

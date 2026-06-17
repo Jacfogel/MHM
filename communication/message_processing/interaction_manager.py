@@ -47,6 +47,14 @@ logger = get_component_logger("communication_manager")
 interaction_logger = logger
 
 
+@handle_errors("getting task management handler", user_friendly=False)
+def _get_task_management_handler():
+    """Lazy import to avoid circular imports with command handlers."""
+    from communication.command_handlers.task_handler import TaskManagementHandler
+
+    return TaskManagementHandler()
+
+
 @dataclass
 class CommandDefinition:
     """
@@ -637,12 +645,7 @@ class InteractionManager:
         # Simple confirm-delete shortcut: bypass parsing
         if message.strip().lower() == "confirm delete":
             try:
-                from communication.command_handlers.task_handler import (
-                    TaskManagementHandler,
-                )
-                from communication.command_handlers.shared_types import ParsedCommand
-
-                handler = TaskManagementHandler()
+                handler = _get_task_management_handler()
                 resp = handler._handle_delete_task(user_id, {"task_identifier": None})
                 return self._augment_suggestions(
                     ParsedCommand("delete_task", {}, 1.0, message), resp
@@ -653,12 +656,7 @@ class InteractionManager:
         # Simple complete-task prompt shortcut (no identifier provided)
         if message.strip().lower() == "complete task":
             try:
-                from communication.command_handlers.task_handler import (
-                    TaskManagementHandler,
-                )
-                from communication.command_handlers.shared_types import ParsedCommand
-
-                handler = TaskManagementHandler()
+                handler = _get_task_management_handler()
                 resp = handler._handle_complete_task(user_id, {})
                 return self._augment_suggestions(
                     ParsedCommand("complete_task", {}, 1.0, message), resp
@@ -751,10 +749,6 @@ class InteractionManager:
                 if coerced_entities.get("task_identifier") and any(
                     k in coerced_entities for k in ["due_date", "priority", "title"]
                 ):
-                    from communication.command_handlers.shared_types import (
-                        ParsedCommand,
-                    )
-
                     parsing_result.parsed_command = ParsedCommand(
                         "update_task", coerced_entities, 0.9, message
                     )
@@ -773,10 +767,6 @@ class InteractionManager:
             try:
                 low_msg = message.lower().strip()
                 if low_msg.startswith("update task"):
-                    from communication.command_handlers.shared_types import (
-                        ParsedCommand,
-                    )
-
                     # Build minimal entities if needed
                     import re
 

@@ -12,8 +12,8 @@ import pytest
 from communication.message_processing.interaction_manager import InteractionManager
 from tasks import load_active_tasks
 from tasks.task_data_handlers import runtime_task_scheduled_reminder_periods
-from communication.message_processing.conversation_flow_manager import (
-    conversation_manager,
+from communication.message_processing.conversation_flow_manager import conversation_manager
+from communication.message_processing.flows.flow_constants import (
     FLOW_TASK_PRIORITY,
     FLOW_TASK_REMINDER,
 )

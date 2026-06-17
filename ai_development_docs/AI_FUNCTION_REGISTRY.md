@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-09 20:56:38
+> **Last Generated**: 2026-06-16 22:23:13
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 91.7% [!] GOOD**
-- **Total Functions**: 2099
-- **Total Methods**: 1327
-- **Documented**: 3141/3426
-- **Files Scanned**: 200
+### **Documentation Coverage: 91.6% [!] GOOD**
+- **Total Functions**: 2107
+- **Total Methods**: 1328
+- **Documented**: 3148/3435
+- **Files Scanned**: 207
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -35,12 +35,12 @@ AI Operations Decision Tree:
 +-- `user/context_manager.py` - Context for AI (24 functions)
 +-- `communication/message_processing/command_parser.py` - Natural language parsing (60 functions)
 +-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
-`-- `communication/message_processing/interaction_manager.py` - Main interaction flow (48/50 functions)```
+`-- `communication/message_processing/interaction_manager.py` - Main interaction flow (49/51 functions)```
 
 ### **[COMM] Need Communication/Channels?**
 ```
 Communication Decision Tree:
-+-- `communication/core/channel_orchestrator.py` - Main communication (67/85 functions)
++-- `communication/core/channel_orchestrator.py` - Main communication (68/86 functions)
 +-- `communication/communication_channels/base/base_channel.py` - Channel base class (14 functions)
 `-- `communication/core/factory.py` - Channel creation (6 functions)```
 
@@ -157,7 +157,7 @@ Core System Decision Tree:
 ### **High Priority** (Missing Documentation)
 - `core/profile_v2_schemas.py` - 24/46 functions undocumented (48% coverage)
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
-- `communication/core/channel_orchestrator.py` - 18/85 functions undocumented (79% coverage)
+- `communication/core/channel_orchestrator.py` - 18/86 functions undocumented (79% coverage)
 - `communication/delivery/message_dispatcher.py` - 15/17 functions undocumented (12% coverage)
 - `storage/user_data_write.py` - 15/19 functions undocumented (21% coverage)
 - `core/schemas.py` - 15/27 functions undocumented (44% coverage)
@@ -171,6 +171,7 @@ Core System Decision Tree:
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
 - `storage/user_data_validation.py` - 3/12 functions undocumented (75% coverage)
 - `ai/fallback_responses/conversational.py` - 2/4 functions undocumented (50% coverage)
+- `communication/command_handlers/handler_registry.py` - 2/5 functions undocumented (60% coverage)
 - `core/user_lookup.py` - 1/3 functions undocumented (67% coverage)
 
 
@@ -190,7 +191,7 @@ Core System Decision Tree:
 Most complex functions (may need refactoring):
 1. [OK] `run_tests.py::run_command()` - Complexity: 3215
 2. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2960
-3. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2788
+3. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2776
 4. [OK] `run_tests.py::main()` - Complexity: 2693
 5. [OK] `storage/user_data_read.py::get_user_data()` - Complexity: 1622
 
@@ -204,7 +205,7 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (26 files, 266 functions)
 - `checkins/` -  (6 files, 135 functions)
-- `communication/` - Communication channels and message processing (62 files, 1006 functions)
+- `communication/` - Communication channels and message processing (69 files, 1015 functions)
 - `core/` - System utilities and data management (29 files, 605 functions)
 - `messages/` -  (5 files, 38 functions)
 - `scheduler/` -  (6 files, 94 functions)

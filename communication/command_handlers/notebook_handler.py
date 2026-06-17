@@ -275,9 +275,9 @@ class NotebookHandler(InteractionHandler):
     ) -> InteractionResponse:
         """Handle note creation."""
         from communication.message_processing.conversation_flow_manager import (
-            FLOW_NOTE_BODY,
             conversation_manager,
         )
+        from communication.message_processing.flows.flow_constants import FLOW_NOTE_BODY
 
         title = entities.get("title")
         description = entities.get("description")
@@ -372,9 +372,9 @@ class NotebookHandler(InteractionHandler):
     ) -> InteractionResponse:
         """Handle list creation."""
         from communication.message_processing.conversation_flow_manager import (
-            FLOW_LIST_ITEMS,
             conversation_manager,
         )
+        from communication.message_processing.flows.flow_constants import FLOW_LIST_ITEMS
 
         title = entities.get("title")
         tags = entities.get("tags", [])

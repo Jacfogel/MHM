@@ -4788,14 +4788,20 @@ class ReportGenerationMixin:
                 if isinstance(high_coupling, list) and high_coupling:
                     sorted_coupling = sorted(
                         [item for item in high_coupling if isinstance(item, dict)],
-                        key=lambda item: to_int(item.get("import_count")) or 0,
+                        key=lambda item: to_int(item.get("unique_module_count"))
+                        or to_int(item.get("import_count"))
+                        or 0,
                         reverse=True,
                     )[:3]
                     coupling_examples = []
                     for item in sorted_coupling:
                         file_name = Path(str(item.get("file", "unknown"))).name
-                        import_count = to_int(item.get("import_count")) or 0
-                        coupling_examples.append(f"{file_name} ({import_count})")
+                        unique_count = (
+                            to_int(item.get("unique_module_count"))
+                            or to_int(item.get("import_count"))
+                            or 0
+                        )
+                        coupling_examples.append(f"{file_name} ({unique_count})")
                     if coupling_examples:
                         dep_bullets.append(
                             f"Top high-coupling modules: {self._format_list_for_display(coupling_examples, limit=3)}"
@@ -8762,15 +8768,21 @@ class ReportGenerationMixin:
                                 for item in high_coupling_modules
                                 if isinstance(item, dict)
                             ],
-                            key=lambda item: to_int(item.get("import_count")) or 0,
+                            key=lambda item: to_int(item.get("unique_module_count"))
+                        or to_int(item.get("import_count"))
+                        or 0,
                             reverse=True,
                         )[:3]
                         top_high_coupling_modules = []
                         for module in coupling_records:
                             module_name = Path(str(module.get("file", "unknown"))).name
-                            import_count = to_int(module.get("import_count")) or 0
+                            unique_count = (
+                                to_int(module.get("unique_module_count"))
+                                or to_int(module.get("import_count"))
+                                or 0
+                            )
                             top_high_coupling_modules.append(
-                                f"{module_name} ({import_count})"
+                                f"{module_name} ({unique_count})"
                             )
                         if top_high_coupling_modules:
                             lines.append(

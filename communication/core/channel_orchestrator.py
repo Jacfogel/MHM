@@ -35,6 +35,16 @@ comm_logger = get_component_logger("channel_orchestrator")
 logger = comm_logger
 
 
+@handle_errors("getting conversation manager", user_friendly=False)
+def _get_conversation_manager():
+    """Lazy import to avoid import cycles with message processing."""
+    from communication.message_processing.conversation_flow_manager import (
+        conversation_manager,
+    )
+
+    return conversation_manager
+
+
 class BotInitializationError(Exception):
     """Custom exception for bot initialization failures."""
 
@@ -1044,11 +1054,7 @@ class CommunicationManager:
 
         # Scheduled sends should defer if user is mid-flow or just completed one.
         if is_scheduled_trigger and allow_deferral:
-            from communication.message_processing.conversation_flow_manager import (
-                conversation_manager,
-            )
-
-            block_reason = conversation_manager.get_flow_block_reason(user_id)
+            block_reason = _get_conversation_manager().get_flow_block_reason(user_id)
             if block_reason:
                 logger.info(
                     f"Deferring scheduled message for user {user_id}, category {category}, reason={block_reason}"
@@ -1125,11 +1131,9 @@ class CommunicationManager:
 
         if not is_scheduled_message:
             # This is a response to user input - expire any active check-in flow
-            from communication.message_processing.conversation_flow_manager import (
-                conversation_manager,
+            _get_conversation_manager().expire_checkin_flow_due_to_unrelated_outbound(
+                user_id
             )
-
-            conversation_manager.expire_checkin_flow_due_to_unrelated_outbound(user_id)
             logger.debug(
                 f"Expired check-in flow for user {user_id} due to unrelated response message"
             )

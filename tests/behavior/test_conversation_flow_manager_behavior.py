@@ -16,11 +16,13 @@ from unittest.mock import patch, MagicMock
 from communication.message_processing.conversation_flow_manager import (
     ConversationManager,
     conversation_manager,
-    FLOW_NONE,
-    FLOW_CHECKIN,
-    FLOW_TASK_REMINDER,
-    CHECKIN_MOOD,
+)
+from communication.message_processing.flows.flow_constants import (
     CHECKIN_INACTIVITY_MINUTES,
+    CHECKIN_MOOD,
+    FLOW_CHECKIN,
+    FLOW_NONE,
+    FLOW_TASK_REMINDER,
 )
 from core.time_utilities import (
     now_datetime_full,
@@ -75,7 +77,7 @@ class TestConversationFlowManagerBehavior:
     @pytest.mark.communication
     @pytest.mark.file_io
     @patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled')
-    @patch('communication.message_processing.conversation_flow_manager.get_user_data')
+    @patch('communication.message_processing.flows.checkin_flow.get_user_data')
     def test_conversation_manager_start_checkin_not_enabled(self, mock_get_user_data, mock_is_enabled, test_data_dir):
         """Test that ConversationManager rejects check-in when not enabled."""
         manager = ConversationManager()
@@ -98,7 +100,7 @@ class TestConversationFlowManagerBehavior:
     @pytest.mark.communication
     @pytest.mark.file_io
     @patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled')
-    @patch('communication.message_processing.conversation_flow_manager.get_user_data')
+    @patch('communication.message_processing.flows.checkin_flow.get_user_data')
     def test_conversation_manager_start_checkin_success(self, mock_get_user_data, mock_is_enabled, test_data_dir):
         """Test that ConversationManager starts check-in successfully."""
         manager = ConversationManager()
@@ -140,7 +142,7 @@ class TestConversationFlowManagerBehavior:
     @pytest.mark.communication
     @pytest.mark.file_io
     @patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled')
-    @patch('communication.message_processing.conversation_flow_manager.get_user_data')
+    @patch('communication.message_processing.flows.checkin_flow.get_user_data')
     def test_conversation_manager_start_checkin_already_active(self, mock_get_user_data, mock_is_enabled, test_data_dir):
         """Test that ConversationManager handles already active check-in."""
         manager = ConversationManager()
@@ -177,7 +179,7 @@ class TestConversationFlowManagerBehavior:
     @pytest.mark.communication
     @pytest.mark.file_io
     @patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled')
-    @patch('communication.message_processing.conversation_flow_manager.get_user_data')
+    @patch('communication.message_processing.flows.checkin_flow.get_user_data')
     def test_conversation_manager_restart_checkin(self, mock_get_user_data, mock_is_enabled, test_data_dir):
         """Test that ConversationManager restarts check-in correctly."""
         manager = ConversationManager()
@@ -307,7 +309,7 @@ class TestConversationFlowManagerBehavior:
     @pytest.mark.communication
     @pytest.mark.file_io
     @patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled')
-    @patch('communication.message_processing.conversation_flow_manager.get_user_data')
+    @patch('communication.message_processing.flows.checkin_flow.get_user_data')
     def test_conversation_manager_handle_inbound_message_checkin_command(self, mock_get_user_data, mock_is_enabled, test_data_dir):
         """Test that ConversationManager handles /checkin command correctly."""
         manager = ConversationManager()
@@ -376,7 +378,7 @@ class TestConversationFlowManagerBehavior:
     @pytest.mark.communication
     @pytest.mark.file_io
     @patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled')
-    @patch('communication.message_processing.conversation_flow_manager.get_user_data')
+    @patch('communication.message_processing.flows.checkin_flow.get_user_data')
     def test_conversation_manager_expire_checkin_flow(self, mock_get_user_data, mock_is_enabled, test_data_dir):
         """Test that ConversationManager expires check-in flow correctly."""
         manager = ConversationManager()
@@ -432,7 +434,7 @@ class TestConversationFlowManagerBehavior:
     @pytest.mark.communication
     @pytest.mark.file_io
     @patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled')
-    @patch('communication.message_processing.conversation_flow_manager.get_user_data')
+    @patch('communication.message_processing.flows.checkin_flow.get_user_data')
     @patch('communication.core.channel_orchestrator.get_user_data')
     def test_checkin_flow_expires_after_unrelated_outbound(self, mock_channel_get_user_data, mock_conv_get_user_data, mock_is_enabled, test_data_dir, monkeypatch):
         """Ensure outbound non-check-in messages expire active check-in flows."""
@@ -477,7 +479,7 @@ class TestConversationFlowManagerBehavior:
     @pytest.mark.communication
     @pytest.mark.file_io
     @patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled')
-    @patch('communication.message_processing.conversation_flow_manager.get_user_data')
+    @patch('communication.message_processing.flows.checkin_flow.get_user_data')
     def test_conversation_manager_handle_checkin_flow_progression(self, mock_get_user_data, mock_is_enabled, test_data_dir):
         """Test that ConversationManager progresses check-in flow correctly."""
         manager = ConversationManager()
@@ -528,7 +530,7 @@ class TestConversationFlowManagerBehavior:
     @pytest.mark.communication
     @pytest.mark.file_io
     @patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled')
-    @patch('communication.message_processing.conversation_flow_manager.get_user_data')
+    @patch('communication.message_processing.flows.checkin_flow.get_user_data')
     def test_conversation_manager_handle_checkin_complete(self, mock_get_user_data, mock_is_enabled, test_data_dir):
         """Test that ConversationManager completes check-in flow correctly."""
         manager = ConversationManager()
@@ -679,7 +681,7 @@ class TestConversationFlowManagerBehavior:
         # Force now beyond inactivity threshold so the state expires.
         forced_now = last_dt + timedelta(minutes=CHECKIN_INACTIVITY_MINUTES + 1)
         monkeypatch.setattr(
-            "communication.message_processing.conversation_flow_manager.now_datetime_full",
+            "communication.message_processing.flows.flow_state.now_datetime_full",
             lambda: forced_now,
         )
 

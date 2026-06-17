@@ -19,6 +19,10 @@ from communication.command_handlers.shared_types import (
     ParsedCommand,
 )
 from communication.command_handlers.base_handler import InteractionHandler
+from communication.command_handlers.handler_registry import (
+    get_handler_for_intent,
+    get_loaded_handlers,
+)
 
 # Pending confirmations (simple in-memory store)
 PENDING_DELETIONS: dict[str, str] = {}
@@ -446,183 +450,10 @@ INTERACTION_HANDLERS: dict[str, InteractionHandler | None] = {
 @handle_errors("getting interaction handler", default_return=None)
 def get_interaction_handler(intent: str) -> InteractionHandler | None:
     """Get the appropriate handler for an intent"""
-    # Lazy import handlers to avoid circular imports
-    if INTERACTION_HANDLERS["TaskManagementHandler"] is None:
-        try:
-            from communication.command_handlers.task_handler import (
-                TaskManagementHandler,
-            )
-
-            INTERACTION_HANDLERS["TaskManagementHandler"] = TaskManagementHandler()
-        except Exception as e:
-            logger.warning(f"Could not import TaskManagementHandler: {e}")
-
-    if INTERACTION_HANDLERS["CheckinHandler"] is None:
-        try:
-            from communication.command_handlers.checkin_handler import CheckinHandler
-
-            INTERACTION_HANDLERS["CheckinHandler"] = CheckinHandler()
-        except Exception as e:
-            logger.warning(f"Could not import CheckinHandler: {e}")
-
-    if INTERACTION_HANDLERS["ProfileHandler"] is None:
-        try:
-            from communication.command_handlers.profile_handler import ProfileHandler
-
-            INTERACTION_HANDLERS["ProfileHandler"] = ProfileHandler()
-        except Exception as e:
-            logger.warning(f"Could not import ProfileHandler: {e}")
-
-    if INTERACTION_HANDLERS["ScheduleManagementHandler"] is None:
-        try:
-            from communication.command_handlers.schedule_handler import (
-                ScheduleManagementHandler,
-            )
-
-            INTERACTION_HANDLERS["ScheduleManagementHandler"] = (
-                ScheduleManagementHandler()
-            )
-        except Exception as e:
-            logger.warning(f"Could not import ScheduleManagementHandler: {e}")
-
-    if INTERACTION_HANDLERS["AnalyticsHandler"] is None:
-        try:
-            from communication.command_handlers.analytics_handler import (
-                AnalyticsHandler,
-            )
-
-            INTERACTION_HANDLERS["AnalyticsHandler"] = AnalyticsHandler()
-        except Exception as e:
-            logger.warning(f"Could not import AnalyticsHandler: {e}")
-
-    if (
-        "NotebookHandler" not in INTERACTION_HANDLERS
-        or INTERACTION_HANDLERS["NotebookHandler"] is None
-    ):
-        try:
-            from communication.command_handlers.notebook_handler import NotebookHandler
-
-            INTERACTION_HANDLERS["NotebookHandler"] = NotebookHandler()
-        except Exception as e:
-            logger.warning(f"Could not import NotebookHandler: {e}")
-
-    if (
-        "AccountManagementHandler" not in INTERACTION_HANDLERS
-        or INTERACTION_HANDLERS["AccountManagementHandler"] is None
-    ):
-        try:
-            from communication.command_handlers.account_handler import (
-                AccountManagementHandler,
-            )
-
-            INTERACTION_HANDLERS["AccountManagementHandler"] = (
-                AccountManagementHandler()
-            )
-        except Exception as e:
-            logger.warning(f"Could not import AccountManagementHandler: {e}")
-
-    if INTERACTION_HANDLERS.get("CreateMenuHandler") is None:
-        try:
-            from communication.command_handlers.create_menu_handler import (
-                CreateMenuHandler,
-            )
-
-            INTERACTION_HANDLERS["CreateMenuHandler"] = CreateMenuHandler()
-        except Exception as e:
-            logger.warning(f"Could not import CreateMenuHandler: {e}")
-
-    for handler in INTERACTION_HANDLERS.values():
-        if handler and handler.can_handle(intent):
-            return handler
-    return None
+    return get_handler_for_intent(INTERACTION_HANDLERS, intent)
 
 
 @handle_errors("getting all handlers", default_return={})
 def get_all_handlers() -> dict[str, InteractionHandler]:
     """Get all registered handlers"""
-    # Ensure handlers are loaded
-    if INTERACTION_HANDLERS["TaskManagementHandler"] is None:
-        try:
-            from communication.command_handlers.task_handler import (
-                TaskManagementHandler,
-            )
-
-            INTERACTION_HANDLERS["TaskManagementHandler"] = TaskManagementHandler()
-        except Exception as e:
-            logger.warning(f"Could not import TaskManagementHandler: {e}")
-
-    if INTERACTION_HANDLERS["CheckinHandler"] is None:
-        try:
-            from communication.command_handlers.checkin_handler import CheckinHandler
-
-            INTERACTION_HANDLERS["CheckinHandler"] = CheckinHandler()
-        except Exception as e:
-            logger.warning(f"Could not import CheckinHandler: {e}")
-
-    if INTERACTION_HANDLERS["ProfileHandler"] is None:
-        try:
-            from communication.command_handlers.profile_handler import ProfileHandler
-
-            INTERACTION_HANDLERS["ProfileHandler"] = ProfileHandler()
-        except Exception as e:
-            logger.warning(f"Could not import ProfileHandler: {e}")
-
-    if INTERACTION_HANDLERS["ScheduleManagementHandler"] is None:
-        try:
-            from communication.command_handlers.schedule_handler import (
-                ScheduleManagementHandler,
-            )
-
-            INTERACTION_HANDLERS["ScheduleManagementHandler"] = (
-                ScheduleManagementHandler()
-            )
-        except Exception as e:
-            logger.warning(f"Could not import ScheduleManagementHandler: {e}")
-
-    if INTERACTION_HANDLERS["AnalyticsHandler"] is None:
-        try:
-            from communication.command_handlers.analytics_handler import (
-                AnalyticsHandler,
-            )
-
-            INTERACTION_HANDLERS["AnalyticsHandler"] = AnalyticsHandler()
-        except Exception as e:
-            logger.warning(f"Could not import AnalyticsHandler: {e}")
-
-    if (
-        "NotebookHandler" not in INTERACTION_HANDLERS
-        or INTERACTION_HANDLERS["NotebookHandler"] is None
-    ):
-        try:
-            from communication.command_handlers.notebook_handler import NotebookHandler
-
-            INTERACTION_HANDLERS["NotebookHandler"] = NotebookHandler()
-        except Exception as e:
-            logger.warning(f"Could not import NotebookHandler: {e}")
-
-    if (
-        "AccountManagementHandler" not in INTERACTION_HANDLERS
-        or INTERACTION_HANDLERS["AccountManagementHandler"] is None
-    ):
-        try:
-            from communication.command_handlers.account_handler import (
-                AccountManagementHandler,
-            )
-
-            INTERACTION_HANDLERS["AccountManagementHandler"] = (
-                AccountManagementHandler()
-            )
-        except Exception as e:
-            logger.warning(f"Could not import AccountManagementHandler: {e}")
-
-    if INTERACTION_HANDLERS.get("CreateMenuHandler") is None:
-        try:
-            from communication.command_handlers.create_menu_handler import (
-                CreateMenuHandler,
-            )
-
-            INTERACTION_HANDLERS["CreateMenuHandler"] = CreateMenuHandler()
-        except Exception as e:
-            logger.warning(f"Could not import CreateMenuHandler: {e}")
-
-    return {k: v for k, v in INTERACTION_HANDLERS.items() if v is not None}
+    return get_loaded_handlers(INTERACTION_HANDLERS)

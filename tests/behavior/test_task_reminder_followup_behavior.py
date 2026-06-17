@@ -10,10 +10,10 @@ from unittest.mock import patch, MagicMock
 from datetime import timedelta
 import uuid
 
-from communication.message_processing.conversation_flow_manager import (
-    conversation_manager,
-    FLOW_TASK_REMINDER,
+from communication.message_processing.conversation_flow_manager import conversation_manager
+from communication.message_processing.flows.flow_constants import (
     FLOW_TASK_PRIORITY,
+    FLOW_TASK_REMINDER,
 )
 from communication.command_handlers.task_handler import TaskManagementHandler
 from tasks import create_task, get_task_by_id

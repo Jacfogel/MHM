@@ -24,6 +24,40 @@ def _build_imports_payload(local_modules=None, third_party_modules=None, stdlib_
 
 
 @pytest.mark.unit
+def test_high_coupling_uses_unique_module_count_not_duplicate_imports():
+    """Duplicate import statements must not inflate high-coupling detection."""
+    analyzer = DependencyPatternAnalyzer()
+    inflated = {
+        "core/inflated.py": _build_imports_payload(
+            local_modules=["core.a", "core.b", "core.c"] * 4,
+        ),
+    }
+    patterns = analyzer.analyze_dependency_patterns(inflated)
+    assert not any(
+        item["file"] == "core/inflated.py" for item in patterns["high_coupling"]
+    )
+
+    genuinely_coupled = {
+        "core/coupled.py": _build_imports_payload(
+            local_modules=[
+                "core.a",
+                "core.b",
+                "core.c",
+                "core.d",
+                "core.e",
+                "core.f",
+            ],
+        ),
+    }
+    patterns = analyzer.analyze_dependency_patterns(genuinely_coupled)
+    item = next(
+        x for x in patterns["high_coupling"] if x["file"] == "core/coupled.py"
+    )
+    assert item["unique_module_count"] == 6
+    assert item["import_count"] == 6
+
+
+@pytest.mark.unit
 def test_analyze_dependency_patterns_categorizes_and_flags_high_coupling():
     """Analyzer should split dependencies by area and detect high coupling."""
     analyzer = DependencyPatternAnalyzer()

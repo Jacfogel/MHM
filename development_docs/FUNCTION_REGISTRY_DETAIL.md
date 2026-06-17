@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-09 20:56:38
+> **Last Generated**: 2026-06-16 22:23:13
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 91.7% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 200
-- **Functions Found**: 2099
-- **Methods Found**: 1327
-- **Classes Found**: 214
-- **Total Items**: 3426
-- **Functions Documented**: 1899
-- **Methods Documented**: 1242
+### **Function Documentation Coverage: 91.6% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 207
+- **Functions Found**: 2107
+- **Methods Found**: 1328
+- **Classes Found**: 219
+- **Total Items**: 3435
+- **Functions Documented**: 1905
+- **Methods Documented**: 1243
 - **Classes Documented**: 153
-- **Total Documented**: 3141
-- **Template-Generated**: 30
-- **Last Updated**: 2026-06-09
+- **Total Documented**: 3148
+- **Template-Generated**: 32
+- **Last Updated**: 2026-06-16
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (436)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (539)
+### **Communication Functions** (547)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (498)
@@ -1222,6 +1222,16 @@ Returns:
   - [MISSING] `CreateMenuHandler.get_help(self)` - No description
   - [MISSING] `CreateMenuHandler.handle(self, user_id, parsed_command)` - No description
 
+#### `communication/command_handlers/handler_registry.py`
+**Functions:**
+- [MISSING] `_import_handler_class(spec)` - No description
+- [MISSING] `_load_handler(registry_key, handlers)` - No description
+- [OK] `ensure_handlers_loaded(handlers)` - Load handler modules once.
+- [OK] `get_handler_for_intent(handlers, intent)` - Return the first registered handler that accepts the intent.
+- [OK] `get_loaded_handlers(handlers)` - Return all non-None handler instances, loading any that are still unset.
+**Classes:**
+- [MISSING] `_HandlerSpec` - No description
+
 #### `communication/command_handlers/interaction_handlers.py`
 **Functions:**
 - [OK] `_handle_commands_list(self, user_id)` - Handle commands list request
@@ -2199,6 +2209,7 @@ Returns:
 - [MISSING] `_deduplicate_candidate_messages(self, user_id, category, all_messages)` - No description
 - [OK] `_expire_checkin_flow_if_needed(self, user_id, category)` - Expire check-in flow if this is a non-scheduled message.
 - [MISSING] `_filter_messages_by_day_and_period(self, messages, current_days, matching_periods)` - No description
+- [OK] `_get_conversation_manager()` - Lazy import to avoid import cycles with message processing.
 - [OK] `_get_default_channel_configs(self)` - Get default channel configurations
 - [MISSING] `_handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - No description
 - [OK] `_initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
@@ -2573,93 +2584,14 @@ Returns:
 
 #### `communication/message_processing/conversation_flow_manager.py`
 **Functions:**
-- [OK] `__init__(self)` - Initialize the object.
-- [OK] `_build_future_reminder_period(self, due_datetime, start_delta, end_delta)` - Create reminder period dict when reminder window is in the future.
-- [OK] `_build_reminder_deltas(self, unit, start_val, end_val)` - Return start/end timedeltas for a parsed reminder range.
-- [OK] `_cache_expired_checkin_order(self, user_id, user_state)` - Cache the question order for a same-day restart after expiration.
-- [OK] `_clear_flow_state(self, user_id, mark_completion)` - Clear user flow state and optionally mark completion timestamp.
-- [OK] `_complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
-- [OK] `_continue_after_task_priority(self, user_id, task_id, ask_reminders)` - Advance from optional priority setup to reminders when useful.
-- [OK] `_date_str(dt)` - Return YYYY-MM-DD without sprinkling strftime format strings.
-- [OK] `_expire_inactive_checkins(self, user_id)` - Remove stale check-in flows that have been idle beyond the allowed window.
-- [OK] `_generate_completion_message(self, user_id, data)` - Generate a personalized completion message based on responses
-- [OK] `_generate_context_aware_reminder_suggestions(self, user_id, task_id)` - Generate reminder period suggestions based on task's due date/time.
-
-Examples:
-- Task due in 6 days (no time) -> "1 to 2 days before", "3 to 4 days before"
-- Task due in 12 days at 10:00 AM -> "1 to 2 hours before", "1 to 2 days before", "3 to 5 days before"
-- [OK] `_get_cached_checkin_order(self, user_id)` - Return same-day cached question order if present and valid.
-- [OK] `_get_next_question(self, user_id, user_state)` - Get the next question in the check-in flow
-- [OK] `_get_personalized_welcome(self, user_id, question_count)` - Generate a personalized welcome message based on user history
-- [OK] `_get_question_text(self, question_key, previous_data, user_id)` - Get appropriate question text based on question type and previous responses
-- [OK] `_get_reminder_parse_patterns(self)` - Return ordered regex patterns for reminder phrase parsing.
-- [OK] `_get_task_due_datetime_for_reminders(self, user_id, task_id)` - Resolve task due datetime for reminder calculations.
-- [OK] `_get_task_flow_identifier(self, user_state)` - Get canonical task identifier from flow state.
-- [OK] `_handle_checkin(self, user_id, user_state, message_text)` - Enhanced check-in flow with dynamic questions and better validation
-- [OK] `_handle_command_during_checkin(self, user_id, message_text)` - Handle common commands while user is in a checkin flow
-- [OK] `_handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
-- [OK] `_handle_note_body_flow(self, user_id, user_state, message_text)` - Handle continuation of note body flow.
-- [OK] `_handle_task_due_date_flow(self, user_id, user_state, message_text)` - Handle continuation of task due date/time flow.
-- [OK] `_handle_task_priority_flow(self, user_id, user_state, message_text)` - Handle optional priority follow-up after task creation.
-- [OK] `_handle_task_reminder_followup(self, user_id, user_state, message_text)` - Handle user's response to reminder period question after task creation.
-
-Parses natural language responses like:
-- "30 minutes to an hour before"
-- "3 to 5 hours before"
-- "1 to 2 days before"
-- "No reminders needed" / "No" / "Skip"
-- [OK] `_load_user_states(self)` - Load user states from disk with comprehensive logging
-- [OK] `_mark_flow_completion(self, user_id)` - Record when a user flow completed to enforce post-flow cooldown.
-- [OK] `_normalize_loaded_flow_task_identifiers(self)` - Move persisted legacy task key flow data to ``task_identifier`` and save once.
-- [OK] `_normalize_reminder_text(self, text)` - Normalize reminder text variants before regex matching.
-- [OK] `_parse_date_time_from_text(self, text)` - Parse date and time from natural language text.
-
-Returns: (date_str in YYYY-MM-DD format, time_str in HH:MM format or None)
-- [OK] `_parse_reminder_periods_from_text(self, user_id, task_id, text)` - Parse reminder periods from natural language text.
-
-Examples:
-- "30 minutes to an hour before" -> reminder 30-60 min before due time
-- "3 to 5 hours before" -> reminder 3-5 hours before due time
-- "1 to 2 days before" -> reminder 1-2 days before due date
-
-Returns list of reminder period dicts with date, start_time, end_time.
-- [OK] `_parse_reminder_range(self, match)` - Parse first and optional second numeric range from regex match.
-- [OK] `_parse_time_from_text(self, text)` - Parse time from natural language text.
-
-Examples:
-- "10am", "10:00am", "10:30am" -> "10:00", "10:30"
-- "2pm", "14:00" -> "14:00"
-- "at 3pm" -> "15:00"
-- [OK] `_save_user_states(self)` - Save user states to disk with comprehensive logging and error handling
-- [OK] `_select_checkin_questions_with_weighting(self, user_id, enabled_questions)` - Select check-in questions using weighted randomization with always/sometimes and min/max configuration.
-
-Args:
-    user_id: User ID
-    enabled_questions: Dictionary of enabled questions from user preferences
-        Each question can have:
-        - 'enabled': bool (whether question is enabled)
-        - 'always_include': bool (whether to always include this question)
-        - 'sometimes_include': bool (whether to sometimes include this question)
-
-Returns:
-    List of question keys in selected order
-- [OK] `_start_dynamic_checkin(self, user_id)` - Start a dynamic check-in flow based on user preferences with weighted question selection
-- [OK] `_start_task_followup_flow(self, user_id, task_id, flow, extra_data, log_label)` - Persist a task follow-up flow with shared task identifier state.
-- [OK] `_validate_response(self, question_key, response, user_id)` - Validate user response based on question type using dynamic manager
+- [OK] `__init__(self)` - Special Python method
 - [OK] `clear_all_states(self)` - Clear all user states - primarily for testing.
-- [OK] `clear_stuck_flows(self, user_id)` - Clear any stuck conversation flows for a user.
-This is a safety mechanism to reset flow state when it gets stuck.
-- [OK] `expire_checkin_flow_due_to_unrelated_outbound(self, user_id)` - Expire an active check-in flow when an unrelated outbound message is sent.
-Safe no-op if no flow or different flow is active.
-- [OK] `get_flow_block_reason(self, user_id, cooldown_minutes)` - Return active flow or cooldown block reason for scheduled sends.
 - [OK] `handle_contextual_question(self, user_id, message_text)` - Handle a single contextual question without entering a conversation flow.
 Perfect for one-off questions that benefit from user context.
 - [OK] `handle_inbound_message(self, user_id, message_text)` - Primary entry point. Takes user's message and returns a (reply_text, completed).
 
 Now defaults to contextual chat for all messages unless user is in a specific flow
 or uses a special command.
-- [OK] `has_active_flow(self, user_id)` - Return True when user currently has an active non-zero flow.
-- [OK] `is_within_post_flow_cooldown(self, user_id, cooldown_minutes)` - Return True if user is still within post-flow cooldown window.
 - [OK] `restart_checkin(self, user_id)` - Force restart a check-in flow, clearing any existing checkin state.
 This should be used when user explicitly wants to start over.
 - [OK] `start_analytics_flow(self, user_id)` - Start the analytics flow for a user.
@@ -2686,100 +2618,17 @@ Returns:
     tuple[str, bool]: Response message and completion status (always True for this flow)
 - [MISSING] `start_profile_flow(self, user_id)` - No description
 - [MISSING] `start_schedule_flow(self, user_id)` - No description
-- [OK] `start_task_due_date_flow(self, user_id, task_id, ask_priority)` - Start a task due date/time flow.
-Called by task handler after creating a task without a due date.
-- [OK] `start_task_priority_flow(self, user_id, task_id, ask_reminders)` - Start a priority follow-up after task creation.
-- [OK] `start_task_reminder_followup(self, user_id, task_id)` - Start a task reminder follow-up flow.
-Called by task handler after creating a task with a due date.
 - [OK] `start_tasks_flow(self, user_id)` - Starter for a future tasks multi-step flow (placeholder).
 **Classes:**
 - [MISSING] `ConversationManager` - No description
-  - [OK] `ConversationManager.__init__(self)` - Initialize the object.
-  - [OK] `ConversationManager._build_future_reminder_period(self, due_datetime, start_delta, end_delta)` - Create reminder period dict when reminder window is in the future.
-  - [OK] `ConversationManager._build_reminder_deltas(self, unit, start_val, end_val)` - Return start/end timedeltas for a parsed reminder range.
-  - [OK] `ConversationManager._cache_expired_checkin_order(self, user_id, user_state)` - Cache the question order for a same-day restart after expiration.
-  - [OK] `ConversationManager._clear_flow_state(self, user_id, mark_completion)` - Clear user flow state and optionally mark completion timestamp.
-  - [OK] `ConversationManager._complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
-  - [OK] `ConversationManager._continue_after_task_priority(self, user_id, task_id, ask_reminders)` - Advance from optional priority setup to reminders when useful.
-  - [OK] `ConversationManager._expire_inactive_checkins(self, user_id)` - Remove stale check-in flows that have been idle beyond the allowed window.
-  - [OK] `ConversationManager._generate_completion_message(self, user_id, data)` - Generate a personalized completion message based on responses
-  - [OK] `ConversationManager._generate_context_aware_reminder_suggestions(self, user_id, task_id)` - Generate reminder period suggestions based on task's due date/time.
-
-Examples:
-- Task due in 6 days (no time) -> "1 to 2 days before", "3 to 4 days before"
-- Task due in 12 days at 10:00 AM -> "1 to 2 hours before", "1 to 2 days before", "3 to 5 days before"
-  - [OK] `ConversationManager._get_cached_checkin_order(self, user_id)` - Return same-day cached question order if present and valid.
-  - [OK] `ConversationManager._get_next_question(self, user_id, user_state)` - Get the next question in the check-in flow
-  - [OK] `ConversationManager._get_personalized_welcome(self, user_id, question_count)` - Generate a personalized welcome message based on user history
-  - [OK] `ConversationManager._get_question_text(self, question_key, previous_data, user_id)` - Get appropriate question text based on question type and previous responses
-  - [OK] `ConversationManager._get_reminder_parse_patterns(self)` - Return ordered regex patterns for reminder phrase parsing.
-  - [OK] `ConversationManager._get_task_due_datetime_for_reminders(self, user_id, task_id)` - Resolve task due datetime for reminder calculations.
-  - [OK] `ConversationManager._get_task_flow_identifier(self, user_state)` - Get canonical task identifier from flow state.
-  - [OK] `ConversationManager._handle_checkin(self, user_id, user_state, message_text)` - Enhanced check-in flow with dynamic questions and better validation
-  - [OK] `ConversationManager._handle_command_during_checkin(self, user_id, message_text)` - Handle common commands while user is in a checkin flow
-  - [OK] `ConversationManager._handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
-  - [OK] `ConversationManager._handle_note_body_flow(self, user_id, user_state, message_text)` - Handle continuation of note body flow.
-  - [OK] `ConversationManager._handle_task_due_date_flow(self, user_id, user_state, message_text)` - Handle continuation of task due date/time flow.
-  - [OK] `ConversationManager._handle_task_priority_flow(self, user_id, user_state, message_text)` - Handle optional priority follow-up after task creation.
-  - [OK] `ConversationManager._handle_task_reminder_followup(self, user_id, user_state, message_text)` - Handle user's response to reminder period question after task creation.
-
-Parses natural language responses like:
-- "30 minutes to an hour before"
-- "3 to 5 hours before"
-- "1 to 2 days before"
-- "No reminders needed" / "No" / "Skip"
-  - [OK] `ConversationManager._load_user_states(self)` - Load user states from disk with comprehensive logging
-  - [OK] `ConversationManager._mark_flow_completion(self, user_id)` - Record when a user flow completed to enforce post-flow cooldown.
-  - [OK] `ConversationManager._normalize_loaded_flow_task_identifiers(self)` - Move persisted legacy task key flow data to ``task_identifier`` and save once.
-  - [OK] `ConversationManager._normalize_reminder_text(self, text)` - Normalize reminder text variants before regex matching.
-  - [OK] `ConversationManager._parse_date_time_from_text(self, text)` - Parse date and time from natural language text.
-
-Returns: (date_str in YYYY-MM-DD format, time_str in HH:MM format or None)
-  - [OK] `ConversationManager._parse_reminder_periods_from_text(self, user_id, task_id, text)` - Parse reminder periods from natural language text.
-
-Examples:
-- "30 minutes to an hour before" -> reminder 30-60 min before due time
-- "3 to 5 hours before" -> reminder 3-5 hours before due time
-- "1 to 2 days before" -> reminder 1-2 days before due date
-
-Returns list of reminder period dicts with date, start_time, end_time.
-  - [OK] `ConversationManager._parse_reminder_range(self, match)` - Parse first and optional second numeric range from regex match.
-  - [OK] `ConversationManager._parse_time_from_text(self, text)` - Parse time from natural language text.
-
-Examples:
-- "10am", "10:00am", "10:30am" -> "10:00", "10:30"
-- "2pm", "14:00" -> "14:00"
-- "at 3pm" -> "15:00"
-  - [OK] `ConversationManager._save_user_states(self)` - Save user states to disk with comprehensive logging and error handling
-  - [OK] `ConversationManager._select_checkin_questions_with_weighting(self, user_id, enabled_questions)` - Select check-in questions using weighted randomization with always/sometimes and min/max configuration.
-
-Args:
-    user_id: User ID
-    enabled_questions: Dictionary of enabled questions from user preferences
-        Each question can have:
-        - 'enabled': bool (whether question is enabled)
-        - 'always_include': bool (whether to always include this question)
-        - 'sometimes_include': bool (whether to sometimes include this question)
-
-Returns:
-    List of question keys in selected order
-  - [OK] `ConversationManager._start_dynamic_checkin(self, user_id)` - Start a dynamic check-in flow based on user preferences with weighted question selection
-  - [OK] `ConversationManager._start_task_followup_flow(self, user_id, task_id, flow, extra_data, log_label)` - Persist a task follow-up flow with shared task identifier state.
-  - [OK] `ConversationManager._validate_response(self, question_key, response, user_id)` - Validate user response based on question type using dynamic manager
+  - [OK] `ConversationManager.__init__(self)` - Special Python method
   - [OK] `ConversationManager.clear_all_states(self)` - Clear all user states - primarily for testing.
-  - [OK] `ConversationManager.clear_stuck_flows(self, user_id)` - Clear any stuck conversation flows for a user.
-This is a safety mechanism to reset flow state when it gets stuck.
-  - [OK] `ConversationManager.expire_checkin_flow_due_to_unrelated_outbound(self, user_id)` - Expire an active check-in flow when an unrelated outbound message is sent.
-Safe no-op if no flow or different flow is active.
-  - [OK] `ConversationManager.get_flow_block_reason(self, user_id, cooldown_minutes)` - Return active flow or cooldown block reason for scheduled sends.
   - [OK] `ConversationManager.handle_contextual_question(self, user_id, message_text)` - Handle a single contextual question without entering a conversation flow.
 Perfect for one-off questions that benefit from user context.
   - [OK] `ConversationManager.handle_inbound_message(self, user_id, message_text)` - Primary entry point. Takes user's message and returns a (reply_text, completed).
 
 Now defaults to contextual chat for all messages unless user is in a specific flow
 or uses a special command.
-  - [OK] `ConversationManager.has_active_flow(self, user_id)` - Return True when user currently has an active non-zero flow.
-  - [OK] `ConversationManager.is_within_post_flow_cooldown(self, user_id, cooldown_minutes)` - Return True if user is still within post-flow cooldown window.
   - [OK] `ConversationManager.restart_checkin(self, user_id)` - Force restart a check-in flow, clearing any existing checkin state.
 This should be used when user explicitly wants to start over.
   - [OK] `ConversationManager.start_analytics_flow(self, user_id)` - Start the analytics flow for a user.
@@ -2806,12 +2655,198 @@ Returns:
     tuple[str, bool]: Response message and completion status (always True for this flow)
   - [MISSING] `ConversationManager.start_profile_flow(self, user_id)` - No description
   - [MISSING] `ConversationManager.start_schedule_flow(self, user_id)` - No description
-  - [OK] `ConversationManager.start_task_due_date_flow(self, user_id, task_id, ask_priority)` - Start a task due date/time flow.
-Called by task handler after creating a task without a due date.
-  - [OK] `ConversationManager.start_task_priority_flow(self, user_id, task_id, ask_reminders)` - Start a priority follow-up after task creation.
-  - [OK] `ConversationManager.start_task_reminder_followup(self, user_id, task_id)` - Start a task reminder follow-up flow.
-Called by task handler after creating a task with a due date.
   - [OK] `ConversationManager.start_tasks_flow(self, user_id)` - Starter for a future tasks multi-step flow (placeholder).
+
+#### `communication/message_processing/flows/__init__.py`
+
+#### `communication/message_processing/flows/checkin_flow.py`
+**Functions:**
+- [OK] `_complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
+- [OK] `_generate_completion_message(self, user_id, data)` - Generate a personalized completion message based on responses
+- [OK] `_get_next_question(self, user_id, user_state)` - Get the next question in the check-in flow
+- [OK] `_get_personalized_welcome(self, user_id, question_count)` - Generate a personalized welcome message based on user history
+- [OK] `_get_question_text(self, question_key, previous_data, user_id)` - Get appropriate question text based on question type and previous responses
+- [OK] `_handle_checkin(self, user_id, user_state, message_text)` - Enhanced check-in flow with dynamic questions and better validation
+- [OK] `_handle_command_during_checkin(self, user_id, message_text)` - Handle common commands while user is in a checkin flow
+- [OK] `_select_checkin_questions_with_weighting(self, user_id, enabled_questions)` - Select check-in questions using weighted randomization with always/sometimes and min/max configuration.
+
+Args:
+    user_id: User ID
+    enabled_questions: Dictionary of enabled questions from user preferences
+        Each question can have:
+        - 'enabled': bool (whether question is enabled)
+        - 'always_include': bool (whether to always include this question)
+        - 'sometimes_include': bool (whether to sometimes include this question)
+
+Returns:
+    List of question keys in selected order
+- [OK] `_start_dynamic_checkin(self, user_id)` - Start a dynamic check-in flow based on user preferences with weighted question selection
+- [OK] `_validate_response(self, question_key, response, user_id)` - Validate user response based on question type using dynamic manager
+**Classes:**
+- [MISSING] `CheckinFlowMixin` - No description
+  - [OK] `CheckinFlowMixin._complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
+  - [OK] `CheckinFlowMixin._generate_completion_message(self, user_id, data)` - Generate a personalized completion message based on responses
+  - [OK] `CheckinFlowMixin._get_next_question(self, user_id, user_state)` - Get the next question in the check-in flow
+  - [OK] `CheckinFlowMixin._get_personalized_welcome(self, user_id, question_count)` - Generate a personalized welcome message based on user history
+  - [OK] `CheckinFlowMixin._get_question_text(self, question_key, previous_data, user_id)` - Get appropriate question text based on question type and previous responses
+  - [OK] `CheckinFlowMixin._handle_checkin(self, user_id, user_state, message_text)` - Enhanced check-in flow with dynamic questions and better validation
+  - [OK] `CheckinFlowMixin._handle_command_during_checkin(self, user_id, message_text)` - Handle common commands while user is in a checkin flow
+  - [OK] `CheckinFlowMixin._select_checkin_questions_with_weighting(self, user_id, enabled_questions)` - Select check-in questions using weighted randomization with always/sometimes and min/max configuration.
+
+Args:
+    user_id: User ID
+    enabled_questions: Dictionary of enabled questions from user preferences
+        Each question can have:
+        - 'enabled': bool (whether question is enabled)
+        - 'always_include': bool (whether to always include this question)
+        - 'sometimes_include': bool (whether to sometimes include this question)
+
+Returns:
+    List of question keys in selected order
+  - [OK] `CheckinFlowMixin._start_dynamic_checkin(self, user_id)` - Start a dynamic check-in flow based on user preferences with weighted question selection
+  - [OK] `CheckinFlowMixin._validate_response(self, question_key, response, user_id)` - Validate user response based on question type using dynamic manager
+
+#### `communication/message_processing/flows/flow_constants.py`
+
+#### `communication/message_processing/flows/flow_state.py`
+**Functions:**
+- [OK] `_cache_expired_checkin_order(self, user_id, user_state)` - Cache the question order for a same-day restart after expiration.
+- [OK] `_clear_flow_state(self, user_id, mark_completion)` - Clear user flow state and optionally mark completion timestamp.
+- [OK] `_expire_inactive_checkins(self, user_id)` - Remove stale check-in flows that have been idle beyond the allowed window.
+- [OK] `_get_cached_checkin_order(self, user_id)` - Return same-day cached question order if present and valid.
+- [OK] `_get_task_flow_identifier(self, user_state)` - Get canonical task identifier from flow state.
+- [OK] `_load_user_states(self)` - Load user states from disk with comprehensive logging
+- [OK] `_mark_flow_completion(self, user_id)` - Record when a user flow completed to enforce post-flow cooldown.
+- [OK] `_normalize_loaded_flow_task_identifiers(self)` - Move persisted legacy task key flow data to ``task_identifier`` and save once.
+- [OK] `_save_user_states(self)` - Save user states to disk with comprehensive logging and error handling
+- [OK] `clear_stuck_flows(self, user_id)` - Clear any stuck conversation flows for a user.
+- [OK] `expire_checkin_flow_due_to_unrelated_outbound(self, user_id)` - Expire an active check-in flow when an unrelated outbound message is sent.
+Safe no-op if no flow or different flow is active.
+- [OK] `get_flow_block_reason(self, user_id, cooldown_minutes)` - Return active flow or cooldown block reason for scheduled sends.
+- [OK] `has_active_flow(self, user_id)` - Return True when user currently has an active non-zero flow.
+- [OK] `init_flow_state(self)` - Initialize flow state storage and load persisted user states.
+- [OK] `is_within_post_flow_cooldown(self, user_id, cooldown_minutes)` - Return True if user is still within post-flow cooldown window.
+**Classes:**
+- [MISSING] `FlowStateMixin` - No description
+  - [OK] `FlowStateMixin._cache_expired_checkin_order(self, user_id, user_state)` - Cache the question order for a same-day restart after expiration.
+  - [OK] `FlowStateMixin._clear_flow_state(self, user_id, mark_completion)` - Clear user flow state and optionally mark completion timestamp.
+  - [OK] `FlowStateMixin._expire_inactive_checkins(self, user_id)` - Remove stale check-in flows that have been idle beyond the allowed window.
+  - [OK] `FlowStateMixin._get_cached_checkin_order(self, user_id)` - Return same-day cached question order if present and valid.
+  - [OK] `FlowStateMixin._get_task_flow_identifier(self, user_state)` - Get canonical task identifier from flow state.
+  - [OK] `FlowStateMixin._load_user_states(self)` - Load user states from disk with comprehensive logging
+  - [OK] `FlowStateMixin._mark_flow_completion(self, user_id)` - Record when a user flow completed to enforce post-flow cooldown.
+  - [OK] `FlowStateMixin._normalize_loaded_flow_task_identifiers(self)` - Move persisted legacy task key flow data to ``task_identifier`` and save once.
+  - [OK] `FlowStateMixin._save_user_states(self)` - Save user states to disk with comprehensive logging and error handling
+  - [OK] `FlowStateMixin.clear_stuck_flows(self, user_id)` - Clear any stuck conversation flows for a user.
+  - [OK] `FlowStateMixin.expire_checkin_flow_due_to_unrelated_outbound(self, user_id)` - Expire an active check-in flow when an unrelated outbound message is sent.
+Safe no-op if no flow or different flow is active.
+  - [OK] `FlowStateMixin.get_flow_block_reason(self, user_id, cooldown_minutes)` - Return active flow or cooldown block reason for scheduled sends.
+  - [OK] `FlowStateMixin.has_active_flow(self, user_id)` - Return True when user currently has an active non-zero flow.
+  - [OK] `FlowStateMixin.init_flow_state(self)` - Initialize flow state storage and load persisted user states.
+  - [OK] `FlowStateMixin.is_within_post_flow_cooldown(self, user_id, cooldown_minutes)` - Return True if user is still within post-flow cooldown window.
+
+#### `communication/message_processing/flows/note_flow.py`
+**Functions:**
+- [OK] `_handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
+- [OK] `_handle_note_body_flow(self, user_id, user_state, message_text)` - Handle continuation of note body flow.
+**Classes:**
+- [MISSING] `NoteFlowMixin` - No description
+  - [OK] `NoteFlowMixin._handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
+  - [OK] `NoteFlowMixin._handle_note_body_flow(self, user_id, user_state, message_text)` - Handle continuation of note body flow.
+
+#### `communication/message_processing/flows/task_flow.py`
+**Functions:**
+- [OK] `_build_future_reminder_period(self, due_datetime, start_delta, end_delta)` - Create reminder period dict when reminder window is in the future.
+- [OK] `_build_reminder_deltas(self, unit, start_val, end_val)` - Return start/end timedeltas for a parsed reminder range.
+- [OK] `_continue_after_task_priority(self, user_id, task_id, ask_reminders)` - Advance from optional priority setup to reminders when useful.
+- [OK] `_date_str(dt)` - Return YYYY-MM-DD without sprinkling strftime format strings.
+- [OK] `_generate_context_aware_reminder_suggestions(self, user_id, task_id)` - Generate reminder period suggestions based on task's due date/time.
+
+Examples:
+- Task due in 6 days (no time) -> "1 to 2 days before", "3 to 4 days before"
+- Task due in 12 days at 10:00 AM -> "1 to 2 hours before", "1 to 2 days before", "3 to 5 days before"
+- [OK] `_get_reminder_parse_patterns(self)` - Return ordered regex patterns for reminder phrase parsing.
+- [OK] `_get_task_due_datetime_for_reminders(self, user_id, task_id)` - Resolve task due datetime for reminder calculations.
+- [OK] `_handle_task_due_date_flow(self, user_id, user_state, message_text)` - Handle continuation of task due date/time flow.
+- [OK] `_handle_task_priority_flow(self, user_id, user_state, message_text)` - Handle optional priority follow-up after task creation.
+- [OK] `_handle_task_reminder_followup(self, user_id, user_state, message_text)` - Handle user's response to reminder period question after task creation.
+
+Parses natural language responses like:
+- "30 minutes to an hour before"
+- "3 to 5 hours before"
+- "1 to 2 days before"
+- "No reminders needed" / "No" / "Skip"
+- [OK] `_normalize_reminder_text(self, text)` - Normalize reminder text variants before regex matching.
+- [OK] `_parse_date_time_from_text(self, text)` - Parse date and time from natural language text.
+
+Returns: (date_str in YYYY-MM-DD format, time_str in HH:MM format or None)
+- [OK] `_parse_reminder_periods_from_text(self, user_id, task_id, text)` - Parse reminder periods from natural language text.
+
+Examples:
+- "30 minutes to an hour before" -> reminder 30-60 min before due time
+- "3 to 5 hours before" -> reminder 3-5 hours before due time
+- "1 to 2 days before" -> reminder 1-2 days before due date
+
+Returns list of reminder period dicts with date, start_time, end_time.
+- [OK] `_parse_reminder_range(self, match)` - Parse first and optional second numeric range from regex match.
+- [OK] `_parse_time_from_text(self, text)` - Parse time from natural language text.
+
+Examples:
+- "10am", "10:00am", "10:30am" -> "10:00", "10:30"
+- "2pm", "14:00" -> "14:00"
+- "at 3pm" -> "15:00"
+- [OK] `_start_task_followup_flow(self, user_id, task_id, flow, extra_data, log_label)` - Persist a task follow-up flow with shared task identifier state.
+- [OK] `start_task_due_date_flow(self, user_id, task_id, ask_priority)` - Start a task due date/time flow.
+Called by task handler after creating a task without a due date.
+- [OK] `start_task_priority_flow(self, user_id, task_id, ask_reminders)` - Start a priority follow-up after task creation.
+- [OK] `start_task_reminder_followup(self, user_id, task_id)` - Start a task reminder follow-up flow.
+Called by task handler after creating a task with a due date.
+**Classes:**
+- [MISSING] `TaskFlowMixin` - No description
+  - [OK] `TaskFlowMixin._build_future_reminder_period(self, due_datetime, start_delta, end_delta)` - Create reminder period dict when reminder window is in the future.
+  - [OK] `TaskFlowMixin._build_reminder_deltas(self, unit, start_val, end_val)` - Return start/end timedeltas for a parsed reminder range.
+  - [OK] `TaskFlowMixin._continue_after_task_priority(self, user_id, task_id, ask_reminders)` - Advance from optional priority setup to reminders when useful.
+  - [OK] `TaskFlowMixin._generate_context_aware_reminder_suggestions(self, user_id, task_id)` - Generate reminder period suggestions based on task's due date/time.
+
+Examples:
+- Task due in 6 days (no time) -> "1 to 2 days before", "3 to 4 days before"
+- Task due in 12 days at 10:00 AM -> "1 to 2 hours before", "1 to 2 days before", "3 to 5 days before"
+  - [OK] `TaskFlowMixin._get_reminder_parse_patterns(self)` - Return ordered regex patterns for reminder phrase parsing.
+  - [OK] `TaskFlowMixin._get_task_due_datetime_for_reminders(self, user_id, task_id)` - Resolve task due datetime for reminder calculations.
+  - [OK] `TaskFlowMixin._handle_task_due_date_flow(self, user_id, user_state, message_text)` - Handle continuation of task due date/time flow.
+  - [OK] `TaskFlowMixin._handle_task_priority_flow(self, user_id, user_state, message_text)` - Handle optional priority follow-up after task creation.
+  - [OK] `TaskFlowMixin._handle_task_reminder_followup(self, user_id, user_state, message_text)` - Handle user's response to reminder period question after task creation.
+
+Parses natural language responses like:
+- "30 minutes to an hour before"
+- "3 to 5 hours before"
+- "1 to 2 days before"
+- "No reminders needed" / "No" / "Skip"
+  - [OK] `TaskFlowMixin._normalize_reminder_text(self, text)` - Normalize reminder text variants before regex matching.
+  - [OK] `TaskFlowMixin._parse_date_time_from_text(self, text)` - Parse date and time from natural language text.
+
+Returns: (date_str in YYYY-MM-DD format, time_str in HH:MM format or None)
+  - [OK] `TaskFlowMixin._parse_reminder_periods_from_text(self, user_id, task_id, text)` - Parse reminder periods from natural language text.
+
+Examples:
+- "30 minutes to an hour before" -> reminder 30-60 min before due time
+- "3 to 5 hours before" -> reminder 3-5 hours before due time
+- "1 to 2 days before" -> reminder 1-2 days before due date
+
+Returns list of reminder period dicts with date, start_time, end_time.
+  - [OK] `TaskFlowMixin._parse_reminder_range(self, match)` - Parse first and optional second numeric range from regex match.
+  - [OK] `TaskFlowMixin._parse_time_from_text(self, text)` - Parse time from natural language text.
+
+Examples:
+- "10am", "10:00am", "10:30am" -> "10:00", "10:30"
+- "2pm", "14:00" -> "14:00"
+- "at 3pm" -> "15:00"
+  - [OK] `TaskFlowMixin._start_task_followup_flow(self, user_id, task_id, flow, extra_data, log_label)` - Persist a task follow-up flow with shared task identifier state.
+  - [OK] `TaskFlowMixin.start_task_due_date_flow(self, user_id, task_id, ask_priority)` - Start a task due date/time flow.
+Called by task handler after creating a task without a due date.
+  - [OK] `TaskFlowMixin.start_task_priority_flow(self, user_id, task_id, ask_reminders)` - Start a priority follow-up after task creation.
+  - [OK] `TaskFlowMixin.start_task_reminder_followup(self, user_id, task_id)` - Start a task reminder follow-up flow.
+Called by task handler after creating a task with a due date.
 
 #### `communication/message_processing/intent_validation.py`
 **Functions:**
@@ -2836,6 +2871,7 @@ Returns:
 - [OK] `_extract_intent_from_text(self, text)` - Extract intent from AI text response
 - [OK] `_get_commands_response(self)` - Return a concise, channel-agnostic commands list for quick discovery.
 - [OK] `_get_help_response(self, user_id, message)` - Get a help response when command parsing fails
+- [OK] `_get_task_management_handler()` - Lazy import to avoid circular imports with command handlers.
 - [OK] `_handle_contextual_chat(self, user_id, message, channel_type)` - Handle contextual chat using AI chatbot with mixed intent support
 - [OK] `_handle_structured_command(self, user_id, parsing_result, channel_type)` - Handle a structured command using interaction handlers
 - [OK] `_is_ai_command_response(self, ai_response)` - Check if AI response indicates this was a command

@@ -1,9 +1,9 @@
 from datetime import timedelta
 
-from communication.message_processing.conversation_flow_manager import (
-    conversation_manager,
-    FLOW_CHECKIN,
+from communication.message_processing.conversation_flow_manager import conversation_manager
+from communication.message_processing.flows.flow_constants import (
     CHECKIN_INACTIVITY_MINUTES,
+    FLOW_CHECKIN,
 )
 from tests.test_helpers.test_utilities import (
     setup_test_data_environment,

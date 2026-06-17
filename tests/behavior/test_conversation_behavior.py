@@ -13,8 +13,14 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from communication.message_processing.conversation_flow_manager import ConversationManager, FLOW_CHECKIN, CHECKIN_START, CHECKIN_MOOD, CHECKIN_REFLECTION
-from communication.message_processing.conversation_flow_manager import QUESTION_STATES
+from communication.message_processing.conversation_flow_manager import ConversationManager
+from communication.message_processing.flows.flow_constants import (
+    CHECKIN_MOOD,
+    CHECKIN_REFLECTION,
+    CHECKIN_START,
+    FLOW_CHECKIN,
+    QUESTION_STATES,
+)
 
 
 @pytest.mark.behavior
@@ -109,7 +115,7 @@ class TestConversationManagerBehavior:
         
         # Mock check-in enabled
         with patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled') as mock_enabled, \
-             patch('communication.message_processing.conversation_flow_manager.get_user_data') as mock_get_data:
+             patch('communication.message_processing.flows.checkin_flow.get_user_data') as mock_get_data:
             
             mock_enabled.return_value = True
             mock_get_data.return_value = {
@@ -433,7 +439,7 @@ class TestConversationManagerBehavior:
         
         # Mock response tracking functions
         with patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled') as mock_enabled, \
-             patch('communication.message_processing.conversation_flow_manager.get_user_data') as mock_get_data, \
+             patch('communication.message_processing.flows.checkin_flow.get_user_data') as mock_get_data, \
              patch('checkins.checkin_data_manager.store_checkin_response') as mock_store:
             
             mock_enabled.return_value = True
@@ -488,7 +494,7 @@ class TestConversationManagerBehavior:
         
         # Mock check-in enabled
         with patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled') as mock_enabled, \
-             patch('communication.message_processing.conversation_flow_manager.get_user_data') as mock_get_data:
+             patch('communication.message_processing.flows.checkin_flow.get_user_data') as mock_get_data:
             
             mock_enabled.return_value = True
             mock_get_data.return_value = {
@@ -571,7 +577,7 @@ class TestConversationManagerIntegration:
         
         # Mock response tracking functions
         with patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled') as mock_enabled, \
-             patch('communication.message_processing.conversation_flow_manager.get_user_data') as mock_get_data:
+             patch('communication.message_processing.flows.checkin_flow.get_user_data') as mock_get_data:
             
             mock_enabled.return_value = True
             mock_get_data.return_value = {

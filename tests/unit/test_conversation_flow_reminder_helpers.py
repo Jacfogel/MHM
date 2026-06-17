@@ -54,7 +54,7 @@ class TestConversationFlowReminderHelpers:
     def test_build_future_reminder_period_skips_past_windows(self, manager, monkeypatch):
         due = datetime(2026, 3, 10, 12, 0, 0)
         monkeypatch.setattr(
-            "communication.message_processing.conversation_flow_manager.now_datetime_full",
+            "communication.message_processing.flows.task_flow.now_datetime_full",
             lambda: datetime(2026, 3, 10, 11, 59, 0),
         )
         period = manager._build_future_reminder_period(
@@ -67,7 +67,7 @@ class TestConversationFlowReminderHelpers:
     def test_build_future_reminder_period_returns_formatted_window(self, manager, monkeypatch):
         due = datetime(2026, 3, 10, 12, 0, 0)
         monkeypatch.setattr(
-            "communication.message_processing.conversation_flow_manager.now_datetime_full",
+            "communication.message_processing.flows.task_flow.now_datetime_full",
             lambda: datetime(2026, 3, 10, 9, 0, 0),
         )
         period = manager._build_future_reminder_period(
@@ -95,7 +95,7 @@ class TestConversationFlowReminderHelpers:
                 "tasks.get_task_by_id",
                 return_value={"due": {"date": "2026-03-12", "time": "14:30"}},
             ),
-            patch("communication.message_processing.conversation_flow_manager.parse_date_and_time_minute", return_value=due),
+            patch("communication.message_processing.flows.task_flow.parse_date_and_time_minute", return_value=due),
         ):
             resolved = manager._get_task_due_datetime_for_reminders("u1", "t1")
 
@@ -108,8 +108,8 @@ class TestConversationFlowReminderHelpers:
                 "tasks.get_task_by_id",
                 return_value={"due": {"date": "2026-04-01", "time": ""}},
             ),
-            patch("communication.message_processing.conversation_flow_manager.parse_date_and_time_minute", return_value=None),
-            patch("communication.message_processing.conversation_flow_manager.parse_date_only", return_value=date_only),
+            patch("communication.message_processing.flows.task_flow.parse_date_and_time_minute", return_value=None),
+            patch("communication.message_processing.flows.task_flow.parse_date_only", return_value=date_only),
         ):
             resolved = manager._get_task_due_datetime_for_reminders("u1", "t1")
 
@@ -121,8 +121,8 @@ class TestConversationFlowReminderHelpers:
                 "tasks.get_task_by_id",
                 return_value={"due": {"date": "bad-date", "time": "12:00"}},
             ),
-            patch("communication.message_processing.conversation_flow_manager.parse_date_and_time_minute", return_value=None),
-            patch("communication.message_processing.conversation_flow_manager.parse_date_only", return_value=None),
+            patch("communication.message_processing.flows.task_flow.parse_date_and_time_minute", return_value=None),
+            patch("communication.message_processing.flows.task_flow.parse_date_only", return_value=None),
         ):
             resolved = manager._get_task_due_datetime_for_reminders("u1", "t1")
 
@@ -137,7 +137,7 @@ class TestConversationFlowReminderHelpers:
         with (
             patch.object(manager, "_get_task_due_datetime_for_reminders", return_value=due),
             patch(
-                "communication.message_processing.conversation_flow_manager.now_datetime_full",
+                "communication.message_processing.flows.task_flow.now_datetime_full",
                 return_value=datetime(2026, 3, 12, 10, 0, 0),
             ),
         ):

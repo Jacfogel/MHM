@@ -31,9 +31,44 @@ config.load_external_config()
 
 logger = get_dev_tools_logger("development_tools")
 
+# Flag modules with more than this many distinct local (first-party) imports.
+HIGH_COUPLING_UNIQUE_THRESHOLD = 5
+
 
 class DependencyPatternAnalyzer:
     """Analyzes dependency patterns, circular dependencies, and risk areas."""
+
+    @staticmethod
+    def _unique_local_module_names(local_imports: list[dict[str, Any]]) -> list[str]:
+        """Return local import module paths in first-seen order, deduplicated."""
+        return list(dict.fromkeys(imp["module"] for imp in local_imports))
+
+    @staticmethod
+    def coupling_sort_count(item: dict[str, Any]) -> int:
+        """Primary sort key for high-coupling records (unique fan-out)."""
+        unique = item.get("unique_module_count")
+        if unique is not None:
+            return int(unique)
+        return int(item.get("import_count", 0))
+
+    def _high_coupling_record(
+        self, file_path: str, local_imports: list[dict[str, Any]]
+    ) -> dict[str, Any] | None:
+        """Build a high-coupling entry when unique local fan-out exceeds threshold."""
+        unique_modules = self._unique_local_module_names(local_imports)
+        unique_count = len(unique_modules)
+        if unique_count <= HIGH_COUPLING_UNIQUE_THRESHOLD:
+            return None
+        raw_count = len(local_imports)
+        record: dict[str, Any] = {
+            "file": file_path,
+            "unique_module_count": unique_count,
+            "import_count": raw_count,
+            "modules": unique_modules,
+        }
+        if raw_count > unique_count:
+            record["duplicate_import_count"] = raw_count - unique_count
+        return record
 
     def analyze_dependency_patterns(
         self, actual_imports: dict[str, dict]
@@ -86,15 +121,10 @@ class DependencyPatternAnalyzer:
                     }
                 )
 
-            # High coupling detection
-            if len(local_imports) > 5:
-                patterns["high_coupling"].append(
-                    {
-                        "file": file_path,
-                        "import_count": len(local_imports),
-                        "modules": [imp["module"] for imp in local_imports],
-                    }
-                )
+            # High coupling: unique local module fan-out (not raw import statement count).
+            coupling_record = self._high_coupling_record(file_path, local_imports)
+            if coupling_record is not None:
+                patterns["high_coupling"].append(coupling_record)
 
             # Third-party dependencies
             if third_party_imports:
@@ -153,10 +183,21 @@ class DependencyPatternAnalyzer:
         if high_coupling:
             lines.append("### High Coupling")
             for item in sorted(
-                high_coupling, key=lambda x: x["import_count"], reverse=True
+                high_coupling,
+                key=self.coupling_sort_count,
+                reverse=True,
             )[:5]:
+                unique_count = item.get("unique_module_count", item.get("import_count"))
+                dup_note = ""
+                raw_count = item.get("import_count")
+                if (
+                    isinstance(raw_count, int)
+                    and isinstance(unique_count, int)
+                    and raw_count > unique_count
+                ):
+                    dup_note = f" ({raw_count} import statements; {raw_count - unique_count} duplicate)"
                 lines.append(
-                    f"- `{item['file']}` -> {item['import_count']} local dependencies (heavy coupling)"
+                    f"- `{item['file']}` -> {unique_count} unique local dependencies (heavy coupling){dup_note}"
                 )
             lines.append("")
 
