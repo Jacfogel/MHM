@@ -78,7 +78,7 @@ class CheckinPromptDispatcher:
             return
 
         if self.should_send_checkin_prompt(user_id, checkin_prefs):
-            self._cm.send_checkin_prompt(user_id, messaging_service, recipient)
+            self.send_checkin_prompt(user_id, messaging_service, recipient)
             logger.info(f"Sent scheduled check-in prompt to user {user_id}")
         else:
             logger.debug(f"Check-in not due yet for user {user_id}")

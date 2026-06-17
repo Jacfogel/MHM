@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-16 22:23:13
+> **Last Generated**: 2026-06-16 23:02:58
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 91.6% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 92.1% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 207
-- **Functions Found**: 2107
-- **Methods Found**: 1328
+- **Functions Found**: 2097
+- **Methods Found**: 1318
 - **Classes Found**: 219
-- **Total Items**: 3435
-- **Functions Documented**: 1905
-- **Methods Documented**: 1243
+- **Total Items**: 3415
+- **Functions Documented**: 1904
+- **Methods Documented**: 1242
 - **Classes Documented**: 153
-- **Total Documented**: 3148
+- **Total Documented**: 3146
 - **Template-Generated**: 32
 - **Last Updated**: 2026-06-16
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (436)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (547)
+### **Communication Functions** (537)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (498)
@@ -2202,27 +2202,14 @@ to avoid circular dependencies with error handling infrastructure.
 - [OK] `_check_logging_health(self)` - Check if logging is still working and recover if needed.
 
 Verifies that the logging system is functional and attempts to restart it if issues are detected.
-- [OK] `_create_task_reminder_message(self, task)` - Create a formatted task reminder message.
-
-Returns:
-    str: Task reminder message, default if failed
-- [MISSING] `_deduplicate_candidate_messages(self, user_id, category, all_messages)` - No description
 - [OK] `_expire_checkin_flow_if_needed(self, user_id, category)` - Expire check-in flow if this is a non-scheduled message.
-- [MISSING] `_filter_messages_by_day_and_period(self, messages, current_days, matching_periods)` - No description
 - [OK] `_get_conversation_manager()` - Lazy import to avoid import cycles with message processing.
 - [OK] `_get_default_channel_configs(self)` - Get default channel configurations
-- [MISSING] `_handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - No description
 - [OK] `_initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
-- [MISSING] `_load_predefined_messages_library(self, user_id, category)` - No description
-- [MISSING] `_normalize_message_selection_periods(self, matching_periods, valid_periods)` - No description
-- [MISSING] `_select_weighted_message(self, available_messages, matching_periods)` - No description
 - [OK] `_send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using contextual AI.
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
-- [MISSING] `_send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - No description
-- [MISSING] `_send_predefined_message(self, user_id, category, messaging_service, recipient)` - No description
-- [MISSING] `_should_send_checkin_prompt(self, user_id, checkin_prefs)` - No description
 - [OK] `_shutdown_sync(self)` - Synchronous shutdown method for all channels.
 
 Stops all communication channels and cleans up resources.
@@ -2292,26 +2279,13 @@ Returns:
   - [OK] `CommunicationManager._check_logging_health(self)` - Check if logging is still working and recover if needed.
 
 Verifies that the logging system is functional and attempts to restart it if issues are detected.
-  - [OK] `CommunicationManager._create_task_reminder_message(self, task)` - Create a formatted task reminder message.
-
-Returns:
-    str: Task reminder message, default if failed
-  - [MISSING] `CommunicationManager._deduplicate_candidate_messages(self, user_id, category, all_messages)` - No description
   - [OK] `CommunicationManager._expire_checkin_flow_if_needed(self, user_id, category)` - Expire check-in flow if this is a non-scheduled message.
-  - [MISSING] `CommunicationManager._filter_messages_by_day_and_period(self, messages, current_days, matching_periods)` - No description
   - [OK] `CommunicationManager._get_default_channel_configs(self)` - Get default channel configurations
-  - [MISSING] `CommunicationManager._handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - No description
   - [OK] `CommunicationManager._initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
-  - [MISSING] `CommunicationManager._load_predefined_messages_library(self, user_id, category)` - No description
-  - [MISSING] `CommunicationManager._normalize_message_selection_periods(self, matching_periods, valid_periods)` - No description
-  - [MISSING] `CommunicationManager._select_weighted_message(self, available_messages, matching_periods)` - No description
   - [OK] `CommunicationManager._send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using contextual AI.
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
-  - [MISSING] `CommunicationManager._send_and_store_predefined_message(self, user_id, category, messaging_service, recipient, message_to_send, matching_periods)` - No description
-  - [MISSING] `CommunicationManager._send_predefined_message(self, user_id, category, messaging_service, recipient)` - No description
-  - [MISSING] `CommunicationManager._should_send_checkin_prompt(self, user_id, checkin_prefs)` - No description
   - [OK] `CommunicationManager._shutdown_sync(self)` - Synchronous shutdown method for all channels.
 
 Stops all communication channels and cleans up resources.

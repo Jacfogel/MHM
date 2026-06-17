@@ -566,7 +566,7 @@ class TestCommunicationManagerCoverageExpansion:
         
         # Test checkin prompt logic
         checkin_prefs = {'enabled': True, 'frequency': 'daily'}
-        result = comm_manager._should_send_checkin_prompt(user_id, checkin_prefs)
+        result = comm_manager.checkin_dispatcher.should_send_checkin_prompt(user_id, checkin_prefs)
         
         # Verify logic was evaluated
         assert isinstance(result, bool)
@@ -585,7 +585,7 @@ class TestCommunicationManagerCoverageExpansion:
         with patch('communication.core.channel_orchestrator.get_user_data', return_value={'preferences': {'checkin_enabled': True}}), \
              patch.object(comm_manager, 'send_checkin_prompt'):
             # Test scheduled checkin
-            comm_manager._handle_scheduled_checkin(user_id, 'discord', 'test_recipient')
+            comm_manager.checkin_dispatcher.handle_scheduled_checkin(user_id, 'discord', 'test_recipient')
             
             # Verify checkin was handled (may not be called if logic doesn't match expected)
             # The method handles missing data gracefully, so we just verify it doesn't crash
@@ -648,7 +648,7 @@ class TestCommunicationManagerCoverageExpansion:
         # Mock send_message_sync (message path resolution is via load_user_messages / user data dir).
         with patch.object(comm_manager, 'send_message_sync', return_value=True):
             # Test sending predefined message
-            comm_manager._send_predefined_message(user_id, 'motivational', 'discord', 'test_recipient')
+            comm_manager.predefined_dispatcher.send_predefined_message(user_id, 'motivational', 'discord', 'test_recipient')
             
             # Verify message was sent (may not be called if logic doesn't match expected)
             # The method handles missing data gracefully, so we just verify it doesn't crash
@@ -693,7 +693,7 @@ class TestCommunicationManagerCoverageExpansion:
         }
         
         # Test creating reminder message
-        result = comm_manager._create_task_reminder_message(task)
+        result = comm_manager.task_reminder_dispatcher.create_task_reminder_message(task)
         
         # Verify message was created
         assert isinstance(result, str)
@@ -832,7 +832,7 @@ class TestCommunicationManagerCoverageExpansion:
         matching_periods = ['MORNING', 'ALL']
         
         # Act
-        selected = comm_manager._select_weighted_message(available_messages, matching_periods)
+        selected = comm_manager.predefined_dispatcher.select_weighted_message(available_messages, matching_periods)
         
         # Assert
         # The method returns a message dict, not just the message string
@@ -849,7 +849,7 @@ class TestCommunicationManagerCoverageExpansion:
         matching_periods = ['MORNING']
         
         # Act
-        selected = comm_manager._select_weighted_message(available_messages, matching_periods)
+        selected = comm_manager.predefined_dispatcher.select_weighted_message(available_messages, matching_periods)
         
         # Assert
         assert selected == "", "Should return empty string for empty messages"
@@ -857,19 +857,19 @@ class TestCommunicationManagerCoverageExpansion:
     def test_select_weighted_message_handles_invalid_inputs(self, comm_manager):
         """Test that _select_weighted_message handles invalid inputs."""
         # Act & Assert - Test with None messages
-        result = comm_manager._select_weighted_message(None, ['MORNING'])
+        result = comm_manager.predefined_dispatcher.select_weighted_message(None, ['MORNING'])
         assert result == "", "Should return empty string for None messages"
         
         # Test with None periods
-        result = comm_manager._select_weighted_message([{'message': 'Test'}], None)
+        result = comm_manager.predefined_dispatcher.select_weighted_message([{'message': 'Test'}], None)
         assert result == "", "Should return empty string for None periods"
         
         # Test with non-list messages
-        result = comm_manager._select_weighted_message("not a list", ['MORNING'])
+        result = comm_manager.predefined_dispatcher.select_weighted_message("not a list", ['MORNING'])
         assert result == "", "Should return empty string for non-list messages"
         
         # Test with non-list periods
-        result = comm_manager._select_weighted_message([{'message': 'Test'}], "not a list")
+        result = comm_manager.predefined_dispatcher.select_weighted_message([{'message': 'Test'}], "not a list")
         assert result == "", "Should return empty string for non-list periods"
     
     def test_stop_all_real_behavior(self, comm_manager, realistic_mock_channel):

@@ -468,7 +468,11 @@ class TestConversationFlowManagerBehavior:
         mock_channel_get_user_data.return_value = {'preferences': {'channel': {'type': 'discord'}}}
         monkeypatch.setattr(comm_manager, 'get_recipient_for_service', lambda *_, **__: 'recipient')
         monkeypatch.setattr(comm_manager, '_send_ai_generated_message', lambda *_, **__: (True, "test message"))
-        monkeypatch.setattr(comm_manager, '_send_predefined_message', lambda *_, **__: (True, "test message"))
+        monkeypatch.setattr(
+            comm_manager.predefined_dispatcher,
+            'send_predefined_message',
+            lambda *_, **__: (True, "test message"),
+        )
 
         # Send a non-scheduled message and verify the active check-in is expired
         comm_manager.handle_message_sending(user_id, 'personalized')

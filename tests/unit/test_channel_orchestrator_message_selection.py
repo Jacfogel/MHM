@@ -25,15 +25,16 @@ class TestChannelOrchestratorMessageSelectionHelpers:
         CommunicationManager._instance = None
         setattr(CommunicationManager, "_initialized", False)  # noqa: B010
         self.manager = CommunicationManager()
+        self.dispatcher = self.manager.predefined_dispatcher
 
     def test_normalize_periods_removes_all_when_specific_periods_exist(self):
-        result = self.manager._normalize_message_selection_periods(
+        result = self.dispatcher.normalize_message_selection_periods(
             ["ALL", "morning", "evening"], ["ALL", "morning", "evening"]
         )
         assert result == ["morning", "evening"]
 
     def test_normalize_periods_falls_back_to_all(self):
-        result = self.manager._normalize_message_selection_periods([], ["ALL", "morning"])
+        result = self.dispatcher.normalize_message_selection_periods([], ["ALL", "morning"])
         assert result == ["ALL"]
 
     def test_load_predefined_messages_library_returns_none_when_missing_messages(self):
@@ -41,7 +42,7 @@ class TestChannelOrchestratorMessageSelectionHelpers:
             "communication.delivery.message_dispatcher.load_user_messages",
             return_value=[],
         ):
-            assert self.manager._load_predefined_messages_library("u1", "motivation") is None
+            assert self.dispatcher.load_predefined_messages_library("u1", "motivation") is None
 
     def test_load_predefined_messages_library_uses_runtime_messages_loader(self):
         runtime_messages = [_runtime_template("normalized", ["ALL"], ["ALL"])]
@@ -49,7 +50,7 @@ class TestChannelOrchestratorMessageSelectionHelpers:
             "communication.delivery.message_dispatcher.load_user_messages",
             return_value=runtime_messages,
         ):
-            result = self.manager._load_predefined_messages_library("u1", "motivation")
+            result = self.dispatcher.load_predefined_messages_library("u1", "motivation")
 
         assert result == {"messages": runtime_messages}
 
@@ -59,7 +60,7 @@ class TestChannelOrchestratorMessageSelectionHelpers:
             _runtime_template("b", ["TUESDAY"], ["morning"], "2"),
             _runtime_template("c", ["MONDAY"], ["evening"], "3"),
         ]
-        result = self.manager._filter_messages_by_day_and_period(messages, ["MONDAY"], ["morning"])
+        result = self.dispatcher.filter_messages_by_day_and_period(messages, ["MONDAY"], ["morning"])
         assert result == [messages[0]]
 
     def test_filter_messages_treats_all_days_and_periods_as_wildcards(self):
@@ -71,7 +72,7 @@ class TestChannelOrchestratorMessageSelectionHelpers:
             _runtime_template("wrong-period", ["MONDAY"], ["evening"], "wrong-period"),
         ]
 
-        result = self.manager._filter_messages_by_day_and_period(
+        result = self.dispatcher.filter_messages_by_day_and_period(
             messages, ["MONDAY"], ["morning"]
         )
 
@@ -86,7 +87,7 @@ class TestChannelOrchestratorMessageSelectionHelpers:
             "communication.delivery.message_dispatcher.get_recent_messages",
             return_value=[{"sent_text": "hello there", "sent_at": "2026-01-01 12:00:00"}],
         ):
-            result = self.manager._deduplicate_candidate_messages("u1", "motivation", all_messages)
+            result = self.dispatcher.deduplicate_candidate_messages("u1", "motivation", all_messages)
 
         assert result == [all_messages[1]]
 
@@ -96,7 +97,7 @@ class TestChannelOrchestratorMessageSelectionHelpers:
             "communication.delivery.message_dispatcher.get_recent_messages",
             return_value=[{"sent_text": " repeated ", "sent_at": "2026-01-01 12:00:00"}],
         ):
-            result = self.manager._deduplicate_candidate_messages("u1", "motivation", all_messages)
+            result = self.dispatcher.deduplicate_candidate_messages("u1", "motivation", all_messages)
 
         assert result == all_messages
 
@@ -108,7 +109,7 @@ class TestChannelOrchestratorMessageSelectionHelpers:
                 "communication.delivery.message_dispatcher.store_sent_message"
             ) as mock_store,
         ):
-            success, content = self.manager._send_and_store_predefined_message(
+            success, content = self.dispatcher.send_and_store_predefined_message(
                 "u1", "motivation", "email", "u@example.com", message, ["morning"]
             )
 
@@ -128,7 +129,7 @@ class TestChannelOrchestratorMessageSelectionHelpers:
                 return_value=None,
             ),
         ):
-            success, content = self.manager._send_predefined_message("u1", "motivation", "email", "u@example.com")
+            success, content = self.dispatcher.send_predefined_message("u1", "motivation", "email", "u@example.com")
 
         assert success is False
         assert content is None
@@ -150,7 +151,7 @@ class TestChannelOrchestratorMessageSelectionHelpers:
                 return_value=data,
             ),
         ):
-            success, content = self.manager._send_predefined_message("u1", "motivation", "email", "u@example.com")
+            success, content = self.dispatcher.send_predefined_message("u1", "motivation", "email", "u@example.com")
 
         assert success is False
         assert content is None
@@ -188,7 +189,7 @@ class TestChannelOrchestratorMessageSelectionHelpers:
                 return_value=(True, "x"),
             ),
         ):
-            success, content = self.manager._send_predefined_message("u1", "motivation", "email", "u@example.com")
+            success, content = self.dispatcher.send_predefined_message("u1", "motivation", "email", "u@example.com")
 
         assert success is True
         assert content == "x"
@@ -226,7 +227,7 @@ class TestChannelOrchestratorMessageSelectionHelpers:
                 side_effect=RuntimeError("send boom"),
             ),
         ):
-            success, content = self.manager._send_predefined_message("u1", "motivation", "email", "u@example.com")
+            success, content = self.dispatcher.send_predefined_message("u1", "motivation", "email", "u@example.com")
 
         assert success is False
         assert content is None

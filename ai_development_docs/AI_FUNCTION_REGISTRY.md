@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-16 22:23:13
+> **Last Generated**: 2026-06-16 23:02:58
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 91.6% [!] GOOD**
-- **Total Functions**: 2107
-- **Total Methods**: 1328
-- **Documented**: 3148/3435
+### **Documentation Coverage: 92.1% [!] GOOD**
+- **Total Functions**: 2097
+- **Total Methods**: 1318
+- **Documented**: 3146/3415
 - **Files Scanned**: 207
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -40,7 +40,7 @@ AI Operations Decision Tree:
 ### **[COMM] Need Communication/Channels?**
 ```
 Communication Decision Tree:
-+-- `communication/core/channel_orchestrator.py` - Main communication (68/86 functions)
++-- `communication/core/channel_orchestrator.py` - Main communication (66 functions)
 +-- `communication/communication_channels/base/base_channel.py` - Channel base class (14 functions)
 `-- `communication/core/factory.py` - Channel creation (6 functions)```
 
@@ -157,7 +157,6 @@ Core System Decision Tree:
 ### **High Priority** (Missing Documentation)
 - `core/profile_v2_schemas.py` - 24/46 functions undocumented (48% coverage)
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
-- `communication/core/channel_orchestrator.py` - 18/86 functions undocumented (79% coverage)
 - `communication/delivery/message_dispatcher.py` - 15/17 functions undocumented (12% coverage)
 - `storage/user_data_write.py` - 15/19 functions undocumented (21% coverage)
 - `core/schemas.py` - 15/27 functions undocumented (44% coverage)
@@ -165,6 +164,7 @@ Core System Decision Tree:
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
 - `storage/user_data_registry.py` - 11/23 functions undocumented (52% coverage)
 - `tasks/task_schemas.py` - 10/10 functions undocumented (0% coverage)
+- `tasks/task_service.py` - 10/31 functions undocumented (68% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
@@ -205,7 +205,7 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (26 files, 266 functions)
 - `checkins/` -  (6 files, 135 functions)
-- `communication/` - Communication channels and message processing (69 files, 1015 functions)
+- `communication/` - Communication channels and message processing (69 files, 995 functions)
 - `core/` - System utilities and data management (29 files, 605 functions)
 - `messages/` -  (5 files, 38 functions)
 - `scheduler/` -  (6 files, 94 functions)

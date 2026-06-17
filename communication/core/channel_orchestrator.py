@@ -1085,7 +1085,9 @@ class CommunicationManager:
 
         # Handle check-in category specially
         if category == "checkin":
-            self._handle_scheduled_checkin(user_id, messaging_service, recipient)
+            self.checkin_dispatcher.handle_scheduled_checkin(
+                user_id, messaging_service, recipient
+            )
             return MessageSendResult.sent(user_id, category)
 
         # Handle AI-generated messages and track if message was actually sent
@@ -1096,8 +1098,10 @@ class CommunicationManager:
                 user_id, category, messaging_service, recipient
             )
         else:
-            message_sent, sent_message_content = self._send_predefined_message(
-                user_id, category, messaging_service, recipient
+            message_sent, sent_message_content = (
+                self.predefined_dispatcher.send_predefined_message(
+                    user_id, category, messaging_service, recipient
+                )
             )
 
         # CRITICAL: Only expire check-in flows if a message was actually sent and delivered
@@ -1154,23 +1158,6 @@ class CommunicationManager:
         """
         return self.recipient_resolver.get_recipient_for_service(
             user_id, messaging_service, preferences
-        )
-
-    # not_duplicate: checkin_prompt_delivery_boundary
-    @handle_errors("determining if check-in prompt should be sent", default_return=True)
-    def _should_send_checkin_prompt(self, user_id: str, checkin_prefs: dict) -> bool:
-        return self.checkin_dispatcher.should_send_checkin_prompt(
-            user_id, checkin_prefs
-        )
-
-    @handle_errors(
-        "handling scheduled check-in", user_friendly=False, default_return=None
-    )
-    def _handle_scheduled_checkin(
-        self, user_id: str, messaging_service: str, recipient: str
-    ):
-        self.checkin_dispatcher.handle_scheduled_checkin(
-            user_id, messaging_service, recipient
         )
 
     # not_duplicate: checkin_prompt_delivery_boundary
@@ -1250,70 +1237,6 @@ class CommunicationManager:
         except Exception as e:
             logger.error(f"Error sending AI-generated message for user {user_id}: {e}")
             return False, None
-
-    @handle_errors("normalizing message-selection time periods", default_return=[])
-    def _normalize_message_selection_periods(
-        self, matching_periods: list[str], valid_periods: list[str]
-    ) -> list[str]:
-        return self.predefined_dispatcher.normalize_message_selection_periods(
-            matching_periods, valid_periods
-        )
-
-    @handle_errors("loading predefined messages library", default_return=None)
-    def _load_predefined_messages_library(
-        self, user_id: str, category: str
-    ) -> dict | None:
-        return self.predefined_dispatcher.load_predefined_messages_library(
-            user_id, category
-        )
-
-    @handle_errors("filtering messages by day and period", default_return=[])
-    def _filter_messages_by_day_and_period(
-        self,
-        messages: list[dict],
-        current_days: list[str],
-        matching_periods: list[str],
-    ) -> list[dict]:
-        return self.predefined_dispatcher.filter_messages_by_day_and_period(
-            messages, current_days, matching_periods
-        )
-
-    @handle_errors("deduplicating candidate messages", default_return=[])
-    def _deduplicate_candidate_messages(
-        self, user_id: str, category: str, all_messages: list[dict]
-    ) -> list[dict]:
-        return self.predefined_dispatcher.deduplicate_candidate_messages(
-            user_id, category, all_messages
-        )
-
-    # not_duplicate: orch_predefined_dispatcher_thin
-    @handle_errors("sending and storing predefined message", default_return=(False, None))
-    def _send_and_store_predefined_message(
-        self,
-        user_id: str,
-        category: str,
-        messaging_service: str,
-        recipient: str,
-        message_to_send: dict,
-        matching_periods: list[str],
-    ) -> tuple[bool, str | None]:
-        return self.predefined_dispatcher.send_and_store_predefined_message(
-            user_id,
-            category,
-            messaging_service,
-            recipient,
-            message_to_send,
-            matching_periods,
-        )
-
-    # not_duplicate: orch_predefined_dispatcher_thin
-    @handle_errors("sending predefined message", default_return=(False, None))
-    def _send_predefined_message(
-        self, user_id: str, category: str, messaging_service: str, recipient: str
-    ) -> tuple[bool, str | None]:
-        return self.predefined_dispatcher.send_predefined_message(
-            user_id, category, messaging_service, recipient
-        )
 
     # NEW METHODS: More specific channel management methods
     @handle_errors("getting active channels", default_return=[])
@@ -1397,19 +1320,3 @@ class CommunicationManager:
             The task ID of the last reminder, or None if no reminder was sent
         """
         return self._last_task_reminders.get(user_id)
-
-    @handle_errors("creating task reminder message", default_return="Task reminder")
-    def _create_task_reminder_message(self, task: dict) -> str:
-        """
-        Create a formatted task reminder message.
-
-        Returns:
-            str: Task reminder message, default if failed
-        """
-        return self.task_reminder_dispatcher.create_task_reminder_message(task)
-
-    @handle_errors("selecting weighted message", default_return="")
-    def _select_weighted_message(self, available_messages, matching_periods):
-        return self.predefined_dispatcher.select_weighted_message(
-            available_messages, matching_periods
-        )

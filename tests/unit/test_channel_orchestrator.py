@@ -152,7 +152,7 @@ class TestChannelOrchestratorHelpers:
             "id": "task_123",
         }
         
-        message = self.manager._create_task_reminder_message(task)
+        message = self.manager.task_reminder_dispatcher.create_task_reminder_message(task)
         
         assert isinstance(message, str), "Should return string"
         assert 'Test Task' in message, "Should include task title"
@@ -168,22 +168,22 @@ class TestChannelOrchestratorHelpers:
             "priority": "high",
             "id": "task_1",
         }
-        message = self.manager._create_task_reminder_message(task)
+        message = self.manager.task_reminder_dispatcher.create_task_reminder_message(task)
         assert '🔴' in message, "Should include red emoji for high priority"
         
         # Test low priority
         task['priority'] = 'low'
-        message = self.manager._create_task_reminder_message(task)
+        message = self.manager.task_reminder_dispatcher.create_task_reminder_message(task)
         assert '🟢' in message, "Should include green emoji for low priority"
         
         # Test medium priority
         task['priority'] = 'medium'
-        message = self.manager._create_task_reminder_message(task)
+        message = self.manager.task_reminder_dispatcher.create_task_reminder_message(task)
         assert '🟡' in message, "Should include yellow emoji for medium priority"
         
         # Test critical priority
         task['priority'] = 'critical'
-        message = self.manager._create_task_reminder_message(task)
+        message = self.manager.task_reminder_dispatcher.create_task_reminder_message(task)
         assert '🚨' in message, "Should include alert emoji for critical priority"
 
     def test_create_task_reminder_message_minimal_task(self):
@@ -192,7 +192,7 @@ class TestChannelOrchestratorHelpers:
             'title': 'Minimal Task'
         }
         
-        message = self.manager._create_task_reminder_message(task)
+        message = self.manager.task_reminder_dispatcher.create_task_reminder_message(task)
         
         assert isinstance(message, str), "Should return string"
         assert 'Minimal Task' in message, "Should include task title"
@@ -201,15 +201,15 @@ class TestChannelOrchestratorHelpers:
     def test_create_task_reminder_message_invalid_input(self):
         """Test _create_task_reminder_message with invalid input."""
         # Test None
-        message = self.manager._create_task_reminder_message(None)
+        message = self.manager.task_reminder_dispatcher.create_task_reminder_message(None)
         assert message == "Task reminder", "Should return default message for None"
         
         # Test non-dict
-        message = self.manager._create_task_reminder_message("not a dict")
+        message = self.manager.task_reminder_dispatcher.create_task_reminder_message("not a dict")
         assert message == "Task reminder", "Should return default message for non-dict"
         
         # Test empty dict
-        message = self.manager._create_task_reminder_message({})
+        message = self.manager.task_reminder_dispatcher.create_task_reminder_message({})
         assert isinstance(message, str), "Should return string even for empty dict"
 
     def test_get_recipient_for_service_discord(self):
@@ -285,7 +285,7 @@ class TestChannelOrchestratorHelpers:
         user_id = "test_user"
         checkin_prefs = {'frequency': 'none'}
         
-        result = self.manager._should_send_checkin_prompt(user_id, checkin_prefs)
+        result = self.manager.checkin_dispatcher.should_send_checkin_prompt(user_id, checkin_prefs)
         
         assert result is False, "Should return False for frequency 'none'"
 
@@ -294,7 +294,7 @@ class TestChannelOrchestratorHelpers:
         user_id = "test_user"
         checkin_prefs = {'frequency': 'manual'}
         
-        result = self.manager._should_send_checkin_prompt(user_id, checkin_prefs)
+        result = self.manager.checkin_dispatcher.should_send_checkin_prompt(user_id, checkin_prefs)
         
         assert result is False, "Should return False for frequency 'manual'"
 
@@ -303,7 +303,7 @@ class TestChannelOrchestratorHelpers:
         user_id = "test_user"
         checkin_prefs = {'frequency': 'daily'}
         
-        result = self.manager._should_send_checkin_prompt(user_id, checkin_prefs)
+        result = self.manager.checkin_dispatcher.should_send_checkin_prompt(user_id, checkin_prefs)
         
         assert result is True, "Should return True for frequency 'daily'"
 
@@ -311,11 +311,11 @@ class TestChannelOrchestratorHelpers:
         """Test _should_send_checkin_prompt handles errors gracefully."""
         user_id = "test_user"
         # Test with None checkin_prefs
-        result = self.manager._should_send_checkin_prompt(user_id, None)
+        result = self.manager.checkin_dispatcher.should_send_checkin_prompt(user_id, None)
         assert result is True, "Should default to True on error"
         
         # Test with missing frequency
-        result = self.manager._should_send_checkin_prompt(user_id, {})
+        result = self.manager.checkin_dispatcher.should_send_checkin_prompt(user_id, {})
         assert result is True, "Should default to True when frequency missing"
 
     def test_select_weighted_message_with_messages(self):
@@ -327,7 +327,7 @@ class TestChannelOrchestratorHelpers:
         ]
         matching_periods = ['Morning']
         
-        result = self.manager._select_weighted_message(available_messages, matching_periods)
+        result = self.manager.predefined_dispatcher.select_weighted_message(available_messages, matching_periods)
         
         # Function returns the selected message dict, not a string
         assert isinstance(result, dict), "Should return dict (message object)"
@@ -337,19 +337,19 @@ class TestChannelOrchestratorHelpers:
     def test_select_weighted_message_invalid_input(self):
         """Test _select_weighted_message with invalid input."""
         # Test None available_messages
-        result = self.manager._select_weighted_message(None, ['Morning'])
+        result = self.manager.predefined_dispatcher.select_weighted_message(None, ['Morning'])
         assert result == "", "Should return empty string for None available_messages"
         
         # Test empty available_messages
-        result = self.manager._select_weighted_message([], ['Morning'])
+        result = self.manager.predefined_dispatcher.select_weighted_message([], ['Morning'])
         assert result == "", "Should return empty string for empty available_messages"
         
         # Test None matching_periods
-        result = self.manager._select_weighted_message([{'text': 'Test', 'schedule': {"days": ["ALL"], "periods": ["ALL"]}}], None)
+        result = self.manager.predefined_dispatcher.select_weighted_message([{'text': 'Test', 'schedule': {"days": ["ALL"], "periods": ["ALL"]}}], None)
         assert result == "", "Should return empty string for None matching_periods"
         
         # Test non-list available_messages
-        result = self.manager._select_weighted_message("not a list", ['Morning'])
+        result = self.manager.predefined_dispatcher.select_weighted_message("not a list", ['Morning'])
         assert result == "", "Should return empty string for non-list available_messages"
 
     def test_select_weighted_message_prefers_specific_periods_when_weight_hits(self):
@@ -363,7 +363,7 @@ class TestChannelOrchestratorHelpers:
             patch("random.random", return_value=0.1),
             patch("random.choice", side_effect=lambda items: items[0]),
         ):
-            result = self.manager._select_weighted_message(
+            result = self.manager.predefined_dispatcher.select_weighted_message(
                 available_messages, ["Morning"]
             )
 
@@ -380,7 +380,7 @@ class TestChannelOrchestratorHelpers:
             patch("random.random", return_value=0.95),
             patch("random.choice", side_effect=lambda items: items[0]),
         ):
-            result = self.manager._select_weighted_message(
+            result = self.manager.predefined_dispatcher.select_weighted_message(
                 available_messages, ["Morning"]
             )
 
@@ -394,7 +394,7 @@ class TestChannelOrchestratorHelpers:
             patch("random.random", return_value=0.95),
             patch("random.choice", side_effect=lambda items: items[0]),
         ):
-            result = self.manager._select_weighted_message(
+            result = self.manager.predefined_dispatcher.select_weighted_message(
                 available_messages, ["Morning"]
             )
 
@@ -451,8 +451,8 @@ class TestChannelOrchestratorHelpers:
                 return_value="person@example.com",
             ),
             patch.object(
-                self.manager,
-                "_create_task_reminder_message",
+                self.manager.task_reminder_dispatcher,
+                "create_task_reminder_message",
                 return_value="Reminder body",
             ),
             patch.object(self.manager, "send_message_sync", return_value=True),
@@ -646,7 +646,9 @@ class TestChannelOrchestratorHelpers:
                 self.manager, "get_recipient_for_service", return_value="discord_user"
             ),
             patch.object(
-                self.manager, "_send_predefined_message", return_value=(True, "hello")
+                self.manager.predefined_dispatcher,
+                "send_predefined_message",
+                return_value=(True, "hello"),
             ),
             patch.object(self.manager, "_expire_checkin_flow_if_needed") as mock_expire,
         ):

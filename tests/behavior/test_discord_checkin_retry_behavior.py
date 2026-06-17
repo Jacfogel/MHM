@@ -176,7 +176,7 @@ class TestDiscordCheckinRetryBehavior:
             }
 
         with (
-            patch.object(comm_manager, "_should_send_checkin_prompt", return_value=True),
+            patch.object(comm_manager.checkin_dispatcher, "should_send_checkin_prompt", return_value=True),
             patch.object(
                 conversation_manager,
                 "_start_dynamic_checkin",

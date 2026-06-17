@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-16 22:23:14
+> **Last Generated**: 2026-06-16 23:02:59
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -2165,7 +2165,7 @@
 
 **Dependency Changes**:
 - Added: communication.message_processing.flows.flow_constants, core.config, core.error_handling, core.logger, core.time_utilities, storage.runtime_state_storage
-- Removed: communication/message_processing/conversation_flow_manager.py
+- Removed: communication/message_processing/flows/checkin_flow.py, communication/message_processing/flows/note_flow.py, communication/message_processing/flows/task_flow.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
