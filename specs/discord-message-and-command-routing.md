@@ -7,7 +7,7 @@
 > **Last Updated**: 2026-05-16  
 > **Implementation**: `communication/communication_channels/discord/bot.py`, `communication/message_processing/interaction_manager.py`, `communication/message_processing/command_parser.py`, `communication/command_handlers/interaction_handlers.py`, `communication/command_handlers/shared_types.py`  
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [discord-welcome-and-onboarding.md](discord-welcome-and-onboarding.md)  
-> **Automated tests**: `tests/behavior/test_discord_bot_behavior.py`, `tests/behavior/test_discord_automation_complete.py`, `tests/behavior/test_discord_advanced_automation.py`, `tests/behavior/test_communication_interaction_manager_behavior.py`, `tests/behavior/test_message_router_behavior.py`  
+> **Automated tests**: `tests/behavior/test_discord_bot_behavior.py`, `tests/behavior/test_discord_automation_complete.py`, `tests/behavior/test_discord_advanced_automation.py`, `tests/behavior/test_communication_interaction_manager_behavior.py`, `tests/behavior/test_message_route_classifier_behavior.py`  
 > **Coverage matrix**: [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md#discord-message-and-command-routing)
 
 ## 1. Purpose

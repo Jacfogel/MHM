@@ -499,69 +499,7 @@ class TestInteractionManagerBehavior:
         # Assert - Verify suggestions structure
         assert isinstance(suggestions, list), "Suggestions should be a list"
         assert len(suggestions) <= 5, "Suggestions should be limited to 5"
-    
-    def test_is_ai_command_response_detects_json_commands(self, test_data_dir):
-        """Test that _is_ai_command_response detects JSON command responses."""
-        # Arrange
-        interaction_manager = _create_fast_interaction_manager()
-        
-        # Act & Assert - Test JSON command detection
-        json_command = '{"action": "create_task", "intent": "create_task"}'
-        assert interaction_manager._is_ai_command_response(json_command) is True, \
-            "Should detect JSON command response"
-        
-        # Test non-command response
-        regular_response = "I can help you with that!"
-        assert interaction_manager._is_ai_command_response(regular_response) is False, \
-            "Should not detect regular response as command"
-    
-    def test_parse_ai_command_response_parses_json(self, test_data_dir):
-        """Test that _parse_ai_command_response parses JSON command responses."""
-        # Arrange
-        interaction_manager = _create_fast_interaction_manager()
-        original_message = "create a task"
-        
-        # Act - Test JSON parsing
-        json_command = '{"intent": "create_task", "entities": {}, "confidence": 0.8}'
-        parsed = interaction_manager._parse_ai_command_response(json_command, original_message)
-        
-        # Assert - Verify parsing
-        assert parsed is not None, "Should parse JSON command"
-        assert parsed.intent == "create_task", "Should extract correct intent"
-        assert parsed.original_message == original_message, "Should preserve original message"
-    
-    def test_is_clarification_request_detects_clarification(self, test_data_dir):
-        """Test that _is_clarification_request detects clarification requests."""
-        # Arrange
-        interaction_manager = _create_fast_interaction_manager()
-        
-        # Act & Assert - Test clarification detection
-        clarification = "Could you clarify what you mean?"
-        assert interaction_manager._is_clarification_request(clarification) is True, \
-            "Should detect clarification request"
-        
-        # Test non-clarification response
-        regular_response = "I can help you with that!"
-        assert interaction_manager._is_clarification_request(regular_response) is False, \
-            "Should not detect regular response as clarification"
-    
-    def test_extract_intent_from_text_extracts_intent(self, test_data_dir):
-        """Test that _extract_intent_from_text extracts intent from text."""
-        # Arrange
-        interaction_manager = _create_fast_interaction_manager()
-        
-        # Act & Assert - Test intent extraction
-        text = "I want to create a task"
-        intent = interaction_manager._extract_intent_from_text(text)
-        # May return None if pattern doesn't match exactly
-        assert intent == "create_task" or intent is None, "Should extract create_task intent or return None"
-        
-        # Test another intent
-        text2 = "Show me my tasks"
-        intent2 = interaction_manager._extract_intent_from_text(text2)
-        # May return None if pattern doesn't match exactly
-        assert intent2 == "list_tasks" or intent2 is None, "Should extract list_tasks intent or return None"
-    
+
     def test_is_valid_intent_checks_intent_validity(self, test_data_dir):
         """Test that _is_valid_intent checks if intent is valid."""
         # Arrange

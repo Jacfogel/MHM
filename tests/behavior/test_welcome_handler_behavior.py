@@ -25,9 +25,10 @@ class TestWelcomeHandlerBehavior:
         """Parallel-safe: each test gets its own welcome_manager BASE_DATA_DIR root."""
         d = tmp_path / f"wh_{uuid.uuid4().hex[:8]}"
         d.mkdir()
-        with patch(
-            "communication.core.welcome_manager.BASE_DATA_DIR",
-            str(d.resolve()),
+        isolated = str(d.resolve())
+        with (
+            patch("communication.core.welcome_manager.BASE_DATA_DIR", isolated),
+            patch("core.config.BASE_DATA_DIR", isolated),
         ):
             yield
 
@@ -37,7 +38,7 @@ class TestWelcomeHandlerBehavior:
     @pytest.mark.file_io
     def test_has_been_welcomed_delegates_to_manager(self):
         """Test: has_been_welcomed delegates to welcome_manager with discord channel type."""
-        discord_user_id = 'discord_user_123'
+        discord_user_id = f"discord_user_123_{uuid.uuid4().hex[:8]}"
 
         mark_as_welcomed(discord_user_id)
 
@@ -51,15 +52,14 @@ class TestWelcomeHandlerBehavior:
     @pytest.mark.file_io
     def test_mark_as_welcomed_delegates_to_manager(self):
         """Test: mark_as_welcomed delegates to welcome_manager with discord channel type."""
-        discord_user_id = 'discord_user_456'
+        discord_user_id = f"discord_user_456_{uuid.uuid4().hex[:8]}"
 
         result = mark_as_welcomed(discord_user_id)
 
         assert result is True, "Should mark as welcomed successfully"
-
-        from communication.core.welcome_manager import has_been_welcomed as manager_has_been_welcomed
-
-        assert manager_has_been_welcomed(discord_user_id, channel_type='discord'), "Manager should confirm user is welcomed"
+        assert has_been_welcomed(discord_user_id), (
+            "Handler should confirm user is welcomed after mark_as_welcomed"
+        )
     
     @pytest.mark.behavior
     @pytest.mark.communication

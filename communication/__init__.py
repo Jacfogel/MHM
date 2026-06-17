@@ -73,18 +73,6 @@ def __getattr__(name: str):
     elif name == 'EmailBotError':
         from .communication_channels.email.bot import EmailBotError
         return EmailBotError
-    elif name == 'MessageRouter':
-        from .message_processing.message_router import MessageRouter
-        return MessageRouter
-    elif name == 'MessageType':
-        from .message_processing.message_router import MessageType
-        return MessageType
-    elif name == 'RoutingResult':
-        from .message_processing.message_router import RoutingResult
-        return RoutingResult
-    elif name == 'get_message_router':
-        from .message_processing.message_router import get_message_router
-        return get_message_router
     elif name == 'get_rich_formatter':
         from .communication_channels.base.rich_formatter import get_rich_formatter
         return get_rich_formatter
@@ -176,11 +164,6 @@ __all__ = [
     # Conversation flow manager (high usage)
     'conversation_manager',
     'ConversationManager',
-    # Message router (low usage, lazy import)
-    'MessageRouter',
-    'MessageType',
-    'RoutingResult',
-    'get_message_router',
     # Core orchestration (high usage, lazy import)
     'CommunicationManager',
     # Core factory (medium usage, lazy import)

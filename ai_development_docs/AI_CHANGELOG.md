@@ -30,11 +30,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-06-16 - Channel orchestrator private delegator cleanup **COMPLETED**
+### 2026-06-16 - Channel orchestrator cleanup + interaction_manager decomposition **COMPLETED**
 - Removed ~10 thin private `_` methods from `channel_orchestrator.py` that only forwarded to owned dispatchers; `handle_message_sending` now calls `checkin_dispatcher` and `predefined_dispatcher` directly.
 - Kept public delivery-port facades (`send_checkin_prompt`, `handle_task_reminder`, `get_recipient_for_service`) per `SchedulerDeliveryPort` / `ServiceRequestDeliveryPort`.
 - Fixed check-in round-trip: `CheckinPromptDispatcher.handle_scheduled_checkin` calls `self.send_checkin_prompt` instead of bouncing through `CommunicationManager`.
-- Tests retargeted to dispatchers (search-and-close; no legacy compatibility bridges added).
+- Decomposed `interaction_manager.py` (~1647 -> ~283 lines) into `command_registry`, `prefix_command_processor`, `flow_message_dispatcher`, `parsing_shortcuts`, `structured_command_dispatcher`, `response_enhancer`, `help_responses`, `user_suggestions`; public API unchanged.
+- Removed `message_router.py` shim; classification tests now use `message_route_classifier.py`; `message_router_shim` closed in deprecation inventory.
+- Fixed parallel flake in `test_mark_as_welcomed_delegates_to_manager` (isolated welcome tracking paths + unique user IDs).
 
 ### 2026-06-10 - UI shell + communication coupling refactor **COMPLETED**
 - Finalized the UI-only coupling refactor: `ui_app_qt.py` is now a thin Qt shell delegating selection, status rendering, request actions, scheduler/admin/dialog actions, and service control to focused UI modules.

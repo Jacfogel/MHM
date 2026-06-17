@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-16 23:02:58
+> **Last Generated**: 2026-06-16 23:42:02
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,17 +14,17 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 92.1% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 207
-- **Functions Found**: 2097
-- **Methods Found**: 1318
-- **Classes Found**: 219
+### **Function Documentation Coverage: 91.3% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 215
+- **Functions Found**: 2107
+- **Methods Found**: 1308
+- **Classes Found**: 221
 - **Total Items**: 3415
-- **Functions Documented**: 1904
-- **Methods Documented**: 1242
-- **Classes Documented**: 153
-- **Total Documented**: 3146
-- **Template-Generated**: 32
+- **Functions Documented**: 1896
+- **Methods Documented**: 1222
+- **Classes Documented**: 155
+- **Total Documented**: 3118
+- **Template-Generated**: 34
 - **Last Updated**: 2026-06-16
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
@@ -42,7 +42,7 @@
 ### **Core System Functions** (436)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (537)
+### **Communication Functions** (547)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (498)
@@ -2556,6 +2556,25 @@ Returns:
     ParsingResult with parsed command, confidence, and method used
 - [OK] `ParsingResult` - Result of command parsing with confidence and method used
 
+#### `communication/message_processing/command_registry.py`
+**Functions:**
+- [OK] `build_analytics_alias_commands()` - Return analytics command aliases mapped to canonical prompts.
+- [OK] `build_base_command_definitions()` - Return channel-agnostic base commands.
+- [OK] `build_command_definitions()` - Build complete command definitions with base commands and analytics aliases.
+- [OK] `build_slash_command_map(command_definitions)` - Return dict like {'tasks': 'show my tasks', ...} for Discord registration.
+- [OK] `command_definitions_as_dicts(command_definitions)` - Return canonical command definitions as dicts for channel registration.
+- [OK] `get_mapped_message(self)` - Get the mapped message, defaulting to !{name} if not specified.
+- [OK] `lookup_command_definition(command_definitions, cmd_name)` - Find a command definition by name.
+**Classes:**
+- [OK] `CommandDefinition` - Canonical command definition.
+
+- name: The slash/bang command name without prefix (e.g. "tasks")
+- mapped_message: The internal message text to feed the parser/handlers (e.g. "show my tasks")
+    - Use None for "discoverability-only" commands (no mapping/translation)
+- description: Human-facing help text
+- is_flow: Whether this command should invoke a flow starter directly
+  - [OK] `CommandDefinition.get_mapped_message(self)` - Get the mapped message, defaulting to !{name} if not specified.
+
 #### `communication/message_processing/conversation_flow_manager.py`
 **Functions:**
 - [OK] `__init__(self)` - Special Python method
@@ -2630,6 +2649,14 @@ Returns:
   - [MISSING] `ConversationManager.start_profile_flow(self, user_id)` - No description
   - [MISSING] `ConversationManager.start_schedule_flow(self, user_id)` - No description
   - [OK] `ConversationManager.start_tasks_flow(self, user_id)` - Starter for a future tasks multi-step flow (placeholder).
+
+#### `communication/message_processing/flow_message_dispatcher.py`
+**Functions:**
+- [OK] `dispatch_flow_message(user_id, message, command_parser)` - Handle message routing when user is in an active conversation flow.
+
+Returns early response, rule_based_override for bypassed flow, or continue_parsing.
+**Classes:**
+- [OK] `FlowDispatchResult` - Result of flow dispatch for an in-flow user.
 
 #### `communication/message_processing/flows/__init__.py`
 
@@ -2822,6 +2849,11 @@ Called by task handler after creating a task without a due date.
   - [OK] `TaskFlowMixin.start_task_reminder_followup(self, user_id, task_id)` - Start a task reminder follow-up flow.
 Called by task handler after creating a task with a due date.
 
+#### `communication/message_processing/help_responses.py`
+**Functions:**
+- [OK] `get_commands_response(command_definitions)` - Return a concise, channel-agnostic commands list for quick discovery.
+- [OK] `get_help_response(user_id, message)` - Get a help response when command parsing fails.
+
 #### `communication/message_processing/intent_validation.py`
 **Functions:**
 - [OK] `is_valid_intent(intent, interaction_handlers)` - Return True if any handler can handle the given intent.
@@ -2837,164 +2869,92 @@ Returns:
 #### `communication/message_processing/interaction_manager.py`
 **Functions:**
 - [OK] `__init__(self)` - Special Python method
-- [MISSING] `_augment_suggestions(self, parsed_command, response)` - No description
-- [OK] `_build_analytics_alias_commands(self)` - Return analytics command aliases mapped to canonical prompts.
-- [OK] `_build_base_command_definitions(self)` - Return channel-agnostic base commands.
-- [OK] `_build_command_definitions(self)` - Build complete command definitions with base commands and analytics aliases.
-- [OK] `_enhance_response_with_ai(self, user_id, response, parsed_command)` - Enhance a structured response with AI contextual information
-- [OK] `_extract_intent_from_text(self, text)` - Extract intent from AI text response
-- [OK] `_get_commands_response(self)` - Return a concise, channel-agnostic commands list for quick discovery.
-- [OK] `_get_help_response(self, user_id, message)` - Get a help response when command parsing fails
-- [OK] `_get_task_management_handler()` - Lazy import to avoid circular imports with command handlers.
-- [OK] `_handle_contextual_chat(self, user_id, message, channel_type)` - Handle contextual chat using AI chatbot with mixed intent support
-- [OK] `_handle_structured_command(self, user_id, parsing_result, channel_type)` - Handle a structured command using interaction handlers
-- [OK] `_is_ai_command_response(self, ai_response)` - Check if AI response indicates this was a command
-- [OK] `_is_clarification_request(self, ai_response)` - Check if AI response is asking for clarification
-- [OK] `_is_valid_intent(self, intent)` - Check if intent is supported by any handler
-- [OK] `_parse_ai_command_response(self, ai_response, original_message)` - Parse AI command response into ParsedCommand
-- [OK] `_try_ai_command_parsing(self, user_id, message, channel_type)` - Attempt to parse ambiguous messages using AI command parsing.
-- [OK] `add_suggestion(text)` - Add a suggestion if it is unique and space remains.
-- [OK] `get_available_commands(self, user_id)` - Get list of available commands for the user
-- [OK] `get_command_definitions(self)` - Return canonical command definitions: name, mapped_message, description.
-- [OK] `get_interaction_manager()` - Get the global interaction manager instance
-- [OK] `get_mapped_message(self)` - Get the mapped message, defaulting to !{name} if not specified.
-- [OK] `get_slash_command_map(self)` - Expose slash command mappings without coupling callers to internals.
-Returns a dict like {'tasks': 'show my tasks', ...} suitable for Discord registration.
-- [OK] `get_user_suggestions(self, user_id, context)` - Get personalized suggestions for the user
+- [OK] `_augment_suggestions(self, parsed_command, response)` - Add context-aware follow-up suggestions to an interaction response.
+- [OK] `_get_commands_response(self)` - Return the channel-agnostic slash-command discovery list.
+- [OK] `_get_help_response(self, user_id, message)` - Return contextual help text and parser suggestions.
+- [MISSING] `_handle_contextual_chat(self, user_id, message, channel_type)` - No description
+- [OK] `_handle_structured_command(self, user_id, parsing_result, channel_type)` - Delegate structured command handling to the shared dispatcher.
+- [MISSING] `_is_valid_intent(self, intent)` - No description
+- [MISSING] `get_available_commands(self, user_id)` - No description
+- [MISSING] `get_command_definitions(self)` - No description
+- [MISSING] `get_interaction_manager()` - No description
+- [MISSING] `get_slash_command_map(self)` - No description
+- [MISSING] `get_user_suggestions(self, user_id, context)` - No description
 - [OK] `handle_message(self, user_id, message, channel_type)` - Main entry point for handling user messages.
-
-Args:
-    user_id: The user's ID
-    message: The user's message
-    channel_type: Type of channel (discord, email)
-
-Returns:
-    InteractionResponse with appropriate response
-- [OK] `handle_user_message(user_id, message, channel_type)` - Convenience function to handle a user message
-- [OK] `parse_due(task)` - Parse due date/time into a datetime for sorting.
-Uses canonical parsers from time_utilities (no inline parsing).
+- [MISSING] `handle_user_message(user_id, message, channel_type)` - No description
 - [OK] `slash_command_map(self)` - Backward-compatible property exposing the canonical slash command map.
 **Classes:**
-- [OK] `CommandDefinition` - Canonical command definition.
-
-- name: The slash/bang command name without prefix (e.g. "tasks")
-- mapped_message: The internal message text to feed the parser/handlers (e.g. "show my tasks")
-    - Use None for "discoverability-only" commands (no mapping/translation)
-- description: Human-facing help text
-- is_flow: Whether this command should invoke a flow starter directly
-  - [OK] `CommandDefinition.get_mapped_message(self)` - Get the mapped message, defaulting to !{name} if not specified.
-- [OK] `InteractionManager` - Main manager for handling user interactions across all channels
+- [OK] `InteractionManager` - Main manager for handling user interactions across all channels.
   - [OK] `InteractionManager.__init__(self)` - Special Python method
-  - [MISSING] `InteractionManager._augment_suggestions(self, parsed_command, response)` - No description
-  - [OK] `InteractionManager._build_analytics_alias_commands(self)` - Return analytics command aliases mapped to canonical prompts.
-  - [OK] `InteractionManager._build_base_command_definitions(self)` - Return channel-agnostic base commands.
-  - [OK] `InteractionManager._build_command_definitions(self)` - Build complete command definitions with base commands and analytics aliases.
-  - [OK] `InteractionManager._enhance_response_with_ai(self, user_id, response, parsed_command)` - Enhance a structured response with AI contextual information
-  - [OK] `InteractionManager._extract_intent_from_text(self, text)` - Extract intent from AI text response
-  - [OK] `InteractionManager._get_commands_response(self)` - Return a concise, channel-agnostic commands list for quick discovery.
-  - [OK] `InteractionManager._get_help_response(self, user_id, message)` - Get a help response when command parsing fails
-  - [OK] `InteractionManager._handle_contextual_chat(self, user_id, message, channel_type)` - Handle contextual chat using AI chatbot with mixed intent support
-  - [OK] `InteractionManager._handle_structured_command(self, user_id, parsing_result, channel_type)` - Handle a structured command using interaction handlers
-  - [OK] `InteractionManager._is_ai_command_response(self, ai_response)` - Check if AI response indicates this was a command
-  - [OK] `InteractionManager._is_clarification_request(self, ai_response)` - Check if AI response is asking for clarification
-  - [OK] `InteractionManager._is_valid_intent(self, intent)` - Check if intent is supported by any handler
-  - [OK] `InteractionManager._parse_ai_command_response(self, ai_response, original_message)` - Parse AI command response into ParsedCommand
-  - [OK] `InteractionManager._try_ai_command_parsing(self, user_id, message, channel_type)` - Attempt to parse ambiguous messages using AI command parsing.
-  - [OK] `InteractionManager.get_available_commands(self, user_id)` - Get list of available commands for the user
-  - [OK] `InteractionManager.get_command_definitions(self)` - Return canonical command definitions: name, mapped_message, description.
-  - [OK] `InteractionManager.get_slash_command_map(self)` - Expose slash command mappings without coupling callers to internals.
-Returns a dict like {'tasks': 'show my tasks', ...} suitable for Discord registration.
-  - [OK] `InteractionManager.get_user_suggestions(self, user_id, context)` - Get personalized suggestions for the user
+  - [OK] `InteractionManager._augment_suggestions(self, parsed_command, response)` - Add context-aware follow-up suggestions to an interaction response.
+  - [OK] `InteractionManager._get_commands_response(self)` - Return the channel-agnostic slash-command discovery list.
+  - [OK] `InteractionManager._get_help_response(self, user_id, message)` - Return contextual help text and parser suggestions.
+  - [MISSING] `InteractionManager._handle_contextual_chat(self, user_id, message, channel_type)` - No description
+  - [OK] `InteractionManager._handle_structured_command(self, user_id, parsing_result, channel_type)` - Delegate structured command handling to the shared dispatcher.
+  - [MISSING] `InteractionManager._is_valid_intent(self, intent)` - No description
+  - [MISSING] `InteractionManager.get_available_commands(self, user_id)` - No description
+  - [MISSING] `InteractionManager.get_command_definitions(self)` - No description
+  - [MISSING] `InteractionManager.get_slash_command_map(self)` - No description
+  - [MISSING] `InteractionManager.get_user_suggestions(self, user_id, context)` - No description
   - [OK] `InteractionManager.handle_message(self, user_id, message, channel_type)` - Main entry point for handling user messages.
-
-Args:
-    user_id: The user's ID
-    message: The user's message
-    channel_type: Type of channel (discord, email)
-
-Returns:
-    InteractionResponse with appropriate response
   - [OK] `InteractionManager.slash_command_map(self)` - Backward-compatible property exposing the canonical slash command map.
 
-#### `communication/message_processing/message_router.py`
+#### `communication/message_processing/message_route_classifier.py`
 **Functions:**
-- [OK] `__init__(self)` - Initialize the message router
-- [OK] `_route_bang_command(self, message)` - Route a bang command with validation.
-
-Returns:
-    RoutingResult: Routing result, UNKNOWN if failed
-- [OK] `_route_slash_command(self, message)` - Route a slash command with validation.
-
-Returns:
-    RoutingResult: Routing result, UNKNOWN if failed
-- [OK] `get_bang_command_map(self)` - Get bang command map with validation.
-
-Returns:
-    Dict[str, str]: Bang command map, empty dict if failed
-- [OK] `get_command_definitions(self)` - Get command definitions with validation.
-
-Returns:
-    List[Dict[str, str]]: Command definitions, empty list if failed
-- [OK] `get_command_mapping(self, command_name)` - Get command mapping with validation.
-
-Returns:
-    Optional[str]: Command mapping, None if failed
-- [OK] `get_message_router()` - Get the global message router instance
-- [OK] `get_slash_command_map(self)` - Get slash command map with validation.
-
-Returns:
-    Dict[str, str]: Slash command map, empty dict if failed
-- [OK] `is_flow_command(self, command_name)` - Check if command is flow command with validation.
-
-Returns:
-    bool: True if flow command, False otherwise
-- [OK] `route_message(self, message)` - Route a message to determine its type and appropriate handling.
-
-Args:
-    message: The user's message
-    
-Returns:
-    RoutingResult with message type and routing information
+- [OK] `__init__(self)` - Special Python method
+- [OK] `_route_prefixed_command(self, message, prefix)` - Classify a slash or bang command with validation.
+- [MISSING] `get_bang_command_map(self)` - No description
+- [MISSING] `get_command_definitions(self)` - No description
+- [MISSING] `get_command_mapping(self, command_name)` - No description
+- [MISSING] `get_slash_command_map(self)` - No description
+- [MISSING] `is_flow_command(self, command_name)` - No description
+- [OK] `route_message(self, message)` - Classify a message and return routing metadata.
 **Classes:**
-- [OK] `MessageRouter` - Routes messages to appropriate handlers based on message type and content
-  - [OK] `MessageRouter.__init__(self)` - Initialize the message router
-  - [OK] `MessageRouter._route_bang_command(self, message)` - Route a bang command with validation.
+- [OK] `MessageRouteClassifier` - Classify messages by slash/bang prefix using the canonical command registry.
+  - [OK] `MessageRouteClassifier.__init__(self)` - Special Python method
+  - [OK] `MessageRouteClassifier._route_prefixed_command(self, message, prefix)` - Classify a slash or bang command with validation.
+  - [MISSING] `MessageRouteClassifier.get_bang_command_map(self)` - No description
+  - [MISSING] `MessageRouteClassifier.get_command_definitions(self)` - No description
+  - [MISSING] `MessageRouteClassifier.get_command_mapping(self, command_name)` - No description
+  - [MISSING] `MessageRouteClassifier.get_slash_command_map(self)` - No description
+  - [MISSING] `MessageRouteClassifier.is_flow_command(self, command_name)` - No description
+  - [OK] `MessageRouteClassifier.route_message(self, message)` - Classify a message and return routing metadata.
+- [OK] `MessageType` - Types of messages for routing classification.
+- [OK] `RoutingResult` - Result of message route classification.
 
-Returns:
-    RoutingResult: Routing result, UNKNOWN if failed
-  - [OK] `MessageRouter._route_slash_command(self, message)` - Route a slash command with validation.
+#### `communication/message_processing/parsing_shortcuts.py`
+**Functions:**
+- [OK] `_extract_update_task_entities(message)` - Extract task_identifier and field updates from an update-task message.
+- [OK] `_get_task_management_handler()` - Lazy import to avoid circular imports with command handlers.
+- [OK] `coerce_unknown_update_task(parsing_result, message)` - Coerce update_task when parser returned unknown but message clearly asks to update.
+- [OK] `reinforce_update_task_parsing(parsing_result, message)` - Guard and augment update_task entities when confidence is high enough.
+- [OK] `try_parsing_shortcuts(user_id, message, channel_type, handle_structured_command, augment_suggestions)` - Try shortcut paths that bypass the main parser.
 
-Returns:
-    RoutingResult: Routing result, UNKNOWN if failed
-  - [OK] `MessageRouter.get_bang_command_map(self)` - Get bang command map with validation.
+#### `communication/message_processing/prefix_command_processor.py`
+**Functions:**
+- [MISSING] `_convert_mapped_command(message_stripped, cmd_name, cmd_def, prefix)` - No description
+- [MISSING] `_process_prefixed_command(user_id, message_stripped, user_state, command_definitions, prefix)` - No description
+- [MISSING] `_start_flow_command(user_id, cmd_name)` - No description
+- [OK] `process_prefix_command(user_id, message_stripped, user_state, command_definitions)` - Process slash or bang prefixed commands.
 
-Returns:
-    Dict[str, str]: Bang command map, empty dict if failed
-  - [OK] `MessageRouter.get_command_definitions(self)` - Get command definitions with validation.
+Returns an early InteractionResponse or a converted message for continued parsing.
+**Classes:**
+- [OK] `PrefixCommandResult` - Result of prefix command processing.
 
-Returns:
-    List[Dict[str, str]]: Command definitions, empty list if failed
-  - [OK] `MessageRouter.get_command_mapping(self, command_name)` - Get command mapping with validation.
+#### `communication/message_processing/response_enhancer.py`
+**Functions:**
+- [OK] `enhance_response_with_ai(user_id, response, parsed_command)` - Enhance a structured response with AI contextual information.
 
-Returns:
-    Optional[str]: Command mapping, None if failed
-  - [OK] `MessageRouter.get_slash_command_map(self)` - Get slash command map with validation.
+#### `communication/message_processing/structured_command_dispatcher.py`
+**Functions:**
+- [OK] `dispatch_structured_command(user_id, parsing_result, channel_type)` - Handle a structured command using interaction handlers.
 
-Returns:
-    Dict[str, str]: Slash command map, empty dict if failed
-  - [OK] `MessageRouter.is_flow_command(self, command_name)` - Check if command is flow command with validation.
-
-Returns:
-    bool: True if flow command, False otherwise
-  - [OK] `MessageRouter.route_message(self, message)` - Route a message to determine its type and appropriate handling.
-
-Args:
-    message: The user's message
-    
-Returns:
-    RoutingResult with message type and routing information
-- [OK] `MessageType` - Types of messages that can be routed
-- [OK] `RoutingResult` - Result of message routing
+#### `communication/message_processing/user_suggestions.py`
+**Functions:**
+- [MISSING] `add_suggestion(text)` - No description
+- [MISSING] `augment_suggestions(parsed_command, response)` - No description
+- [OK] `get_user_suggestions(user_id, context)` - Get personalized suggestions for the user.
+- [MISSING] `parse_due(task)` - No description
 
 #### `communication/reminders/__init__.py`
 

@@ -746,13 +746,6 @@ def cleanup_singletons():
             pass
 
         try:
-            import communication.message_processing.message_router as router_module
-
-            original_instances["message_router"] = router_module._message_router
-        except (ImportError, AttributeError):
-            pass
-
-        try:
             import ai.cache_manager as cache_module
 
             original_instances["response_cache"] = getattr(
@@ -775,14 +768,6 @@ def cleanup_singletons():
                 if AIChatBotSingleton._instance is not None:
                     if hasattr(AIChatBotSingleton._instance, "_locks_by_user"):
                         AIChatBotSingleton._instance._locks_by_user.clear()
-        except (ImportError, AttributeError):
-            pass
-
-        try:
-            import communication.message_processing.message_router as router_module
-
-            if "message_router" in original_instances:
-                router_module._message_router = original_instances["message_router"]
         except (ImportError, AttributeError):
             pass
 

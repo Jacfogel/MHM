@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-16 23:03:16
+> **Last Generated**: 2026-06-16 23:42:17
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 000000A8 5EAC:07BC
+Volume serial number is 000000A3 5EAC:07BC
 C:.
 |   .ruff.toml
 |   ARCHITECTURE.md
@@ -192,10 +192,18 @@ C:.
 |   |   |
 |   +---message_processing
 |   |   |   command_parser.py
+|   |   |   command_registry.py
 |   |   |   conversation_flow_manager.py
+|   |   |   flow_message_dispatcher.py
+|   |   |   help_responses.py
 |   |   |   intent_validation.py
 |   |   |   interaction_manager.py
-|   |   |   message_router.py
+|   |   |   message_route_classifier.py
+|   |   |   parsing_shortcuts.py
+|   |   |   prefix_command_processor.py
+|   |   |   response_enhancer.py
+|   |   |   structured_command_dispatcher.py
+|   |   |   user_suggestions.py
 |   |   |   __init__.py
 |   |   |
 |   |   +---flows
@@ -621,7 +629,7 @@ C:.
 |   |   |   test_logger_coverage_expansion_phase3_simple.py
 |   |   |   test_message_analytics_behavior.py
 |   |   |   test_message_behavior.py
-|   |   |   test_message_router_behavior.py
+|   |   |   test_message_route_classifier_behavior.py
 |   |   |   test_natural_language_command_detection.py
 |   |   |   test_notebook_handler_behavior.py
 |   |   |   test_observability_logging.py

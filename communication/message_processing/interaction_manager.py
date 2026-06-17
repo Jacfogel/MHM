@@ -3,85 +3,56 @@
 """
 Interaction Manager - Main integration layer for user interactions.
 
-This module provides a unified interface for handling user interactions by:
-1. Parsing user messages using the enhanced command parser
-2. Routing to appropriate interaction handlers
-3. Integrating with existing AI chatbot for contextual responses
-4. Managing the flow between structured commands and conversational chat
+Thin orchestrator composing command registry, prefix routing, flow dispatch,
+parsing shortcuts, structured command dispatch, and response helpers.
 """
 
 from typing import Any
-from datetime import datetime
-from dataclasses import dataclass
-from core.logger import get_component_logger
-from core.error_handling import handle_errors
-from core.config import AI_MAX_RESPONSE_LENGTH
-from core.time_format_constants import DATE_DISPLAY_MONTH_DAY
-from core.time_utilities import (
-    format_timestamp,
-    parse_date_and_time_minute,
-    parse_date_only,
-    parse_timestamp_full,
-    now_datetime_full,
-)
-from communication.message_processing.command_parser import (
-    get_enhanced_command_parser,
-    ParsingResult,
-)
-from communication.command_handlers.shared_types import (
-    InteractionResponse,
-    ParsedCommand,
-)
-from communication.command_handlers.interaction_handlers import (
-    get_interaction_handler,
-    get_all_handlers,
-)
+
 from ai.chatbot import get_ai_chatbot
-from communication.message_processing.conversation_flow_manager import (
-    conversation_manager,
-    FLOW_TASK_REMINDER,
+from core.error_handling import handle_errors
+from core.logger import get_component_logger
+from communication.command_handlers.interaction_handlers import get_all_handlers
+from communication.command_handlers.shared_types import InteractionResponse
+from communication.message_processing.command_parser import get_enhanced_command_parser
+from communication.message_processing.command_registry import (
+    CommandDefinition,
+    build_command_definitions,
+    build_slash_command_map,
+    command_definitions_as_dicts,
 )
+from communication.message_processing.conversation_flow_manager import conversation_manager
+from communication.message_processing.flow_message_dispatcher import dispatch_flow_message
+from communication.message_processing.help_responses import get_help_response
 from communication.message_processing.intent_validation import is_valid_intent
+from communication.message_processing.parsing_shortcuts import (
+    coerce_unknown_update_task,
+    reinforce_update_task_parsing,
+    try_parsing_shortcuts,
+)
+from communication.message_processing.prefix_command_processor import process_prefix_command
+from communication.message_processing.structured_command_dispatcher import (
+    dispatch_structured_command,
+)
+from communication.message_processing.user_suggestions import (
+    augment_suggestions,
+    get_user_suggestions,
+)
 
 logger = get_component_logger("communication_manager")
 interaction_logger = logger
 
-
-@handle_errors("getting task management handler", user_friendly=False)
-def _get_task_management_handler():
-    """Lazy import to avoid circular imports with command handlers."""
-    from communication.command_handlers.task_handler import TaskManagementHandler
-
-    return TaskManagementHandler()
-
-
-@dataclass
-class CommandDefinition:
-    """
-    Canonical command definition.
-
-    - name: The slash/bang command name without prefix (e.g. "tasks")
-    - mapped_message: The internal message text to feed the parser/handlers (e.g. "show my tasks")
-        - Use None for "discoverability-only" commands (no mapping/translation)
-    - description: Human-facing help text
-    - is_flow: Whether this command should invoke a flow starter directly
-    """
-
-    name: str
-    description: str
-    mapped_message: str | None = None
-    is_flow: bool = False
-
-    @handle_errors("getting mapped message", default_return="!unknown")
-    def get_mapped_message(self) -> str:
-        """Get the mapped message, defaulting to !{name} if not specified."""
-        if self.mapped_message is not None:
-            return self.mapped_message
-        return f"!{self.name}"
+# Public API facade re-exports
+__all__ = [
+    "CommandDefinition",
+    "InteractionManager",
+    "get_interaction_manager",
+    "handle_user_message",
+]
 
 
 class InteractionManager:
-    """Main manager for handling user interactions across all channels"""
+    """Main manager for handling user interactions across all channels."""
 
     @handle_errors("initializing interaction manager")
     def __init__(self):
@@ -89,179 +60,13 @@ class InteractionManager:
             self.command_parser = get_enhanced_command_parser()
             self.ai_chatbot = get_ai_chatbot()
             self.interaction_handlers = get_all_handlers()
-
-            # Configuration
-            self.min_command_confidence = 0.3  # Lowered from 0.6 to catch more commands
-            self.enable_ai_enhancement = (
-                True  # Enable AI enhancement for better command parsing
-            )
-            self.fallback_to_chat = True  # Whether to fall back to contextual chat
-
-            self._command_definitions = self._build_command_definitions()
-
+            self.min_command_confidence = 0.3
+            self.enable_ai_enhancement = True
+            self.fallback_to_chat = True
+            self._command_definitions = build_command_definitions()
         except Exception as e:
             logger.error(f"Error initializing interaction manager: {e}")
             raise
-
-    @handle_errors("building command definitions", default_return=[])
-    def _build_command_definitions(self) -> list[CommandDefinition]:
-        """Build complete command definitions with base commands and analytics aliases."""
-        command_definitions = self._build_base_command_definitions()
-        command_definitions.extend(self._build_analytics_alias_commands())
-        return command_definitions
-
-    @handle_errors("building base command definitions", default_return=[])
-    def _build_base_command_definitions(self) -> list[CommandDefinition]:
-        """Return channel-agnostic base commands."""
-        return [
-            CommandDefinition("start", "Get started with MHM", mapped_message="start"),
-            CommandDefinition("help", "Show help and examples", mapped_message="help"),
-            CommandDefinition(
-                "status", "Show system/user status", mapped_message="status"
-            ),
-            CommandDefinition("tasks", "Show your tasks", mapped_message="show my tasks"),
-            CommandDefinition(
-                "profile", "Show your profile", mapped_message="show profile"
-            ),
-            CommandDefinition(
-                "schedule", "Show your schedules", mapped_message="show schedule"
-            ),
-            CommandDefinition(
-                "messages", "Show your messages", mapped_message="show messages"
-            ),
-            CommandDefinition(
-                "analytics", "Show wellness analytics", mapped_message="show analytics"
-            ),
-            CommandDefinition(
-                "checkin",
-                "Start a check-in",
-                mapped_message="start checkin",
-                is_flow=True,
-            ),
-            CommandDefinition(
-                "restart",
-                "Restart check-in",
-                mapped_message="restart checkin",
-                is_flow=True,
-            ),
-            CommandDefinition(
-                "clear",
-                "Clear stuck conversation flows",
-                mapped_message="clear flows",
-                is_flow=True,
-            ),
-            CommandDefinition("cancel", "Cancel current flow", mapped_message="cancel"),
-            CommandDefinition("n", "Create a note", mapped_message=None),
-            CommandDefinition("note", "Create a note", mapped_message=None),
-            CommandDefinition("task", "Create a task", mapped_message=None),
-            CommandDefinition("l", "Create or manage a list", mapped_message=None),
-            CommandDefinition("list", "Create a list", mapped_message=None),
-            CommandDefinition("show", "Show an entry by ID or title", mapped_message=None),
-            CommandDefinition("recent", "Show recent entries", mapped_message=None),
-            CommandDefinition("r", "Show recent entries", mapped_message=None),
-            CommandDefinition("pinned", "Show pinned entries", mapped_message=None),
-            CommandDefinition("inbox", "Show inbox entries", mapped_message=None),
-            CommandDefinition("recentn", "Show recent notes", mapped_message=None),
-            CommandDefinition("rnote", "Show recent notes", mapped_message=None),
-            CommandDefinition("append", "Append text to an entry", mapped_message=None),
-            CommandDefinition("add", "Add text to an entry", mapped_message=None),
-            CommandDefinition("addto", "Add text to an entry", mapped_message=None),
-            CommandDefinition("tag", "Add tags or view entries by tag", mapped_message=None),
-            CommandDefinition("untag", "Remove tags from an entry", mapped_message=None),
-            CommandDefinition("t", "Show entries by tag", mapped_message=None),
-            CommandDefinition("group", "Set or view entries by group", mapped_message=None),
-            CommandDefinition("search", "Search entries", mapped_message=None),
-            CommandDefinition("s", "Search entries", mapped_message=None),
-            CommandDefinition("pin", "Pin an entry", mapped_message=None),
-            CommandDefinition("unpin", "Unpin an entry", mapped_message=None),
-            CommandDefinition("archive", "Archive an entry", mapped_message=None),
-            CommandDefinition("unarchive", "Unarchive an entry", mapped_message=None),
-            CommandDefinition("complete", "Complete a task", mapped_message=None),
-            CommandDefinition("uncomplete", "Uncomplete a task", mapped_message=None),
-        ]
-
-    # devtools: ignore[facade-shims]: analytics aliases are intentional command vocabulary
-    @handle_errors("building analytics alias command definitions", default_return=[])
-    def _build_analytics_alias_commands(self) -> list[CommandDefinition]:
-        """Return analytics command aliases mapped to canonical prompts."""
-        analytics_aliases = [
-            ("show-analytics", "Show check-in analytics", "show analytics"),
-            ("showanalytics", "Show check-in analytics", "show analytics"),
-            ("show-trends", "Show check-in analytics", "show analytics"),
-            ("showtrends", "Show check-in analytics", "show analytics"),
-            ("checkin-trends", "Show check-in trends", "checkin trends"),
-            ("checkintrends", "Show check-in trends", "checkin trends"),
-            ("checkin-analysis", "Show check-in analysis", "checkin analysis"),
-            ("checkinanalysis", "Show check-in analysis", "checkin analysis"),
-            ("checkin-history", "Show check-in history", "checkin history"),
-            ("checkinhistory", "Show check-in history", "checkin history"),
-            ("show-checkin-trends", "Show check-in trends", "checkin trends"),
-            ("showcheckintrends", "Show check-in trends", "checkin trends"),
-            ("show-checkin-analysis", "Show check-in analysis", "checkin analysis"),
-            ("showcheckinanalysis", "Show check-in analysis", "checkin analysis"),
-            ("show-checkin-history", "Show check-in history", "checkin history"),
-            ("showcheckinhistory", "Show check-in history", "checkin history"),
-            ("habit-analysis", "Show habit analysis", "habit analysis"),
-            ("habitanalysis", "Show habit analysis", "habit analysis"),
-            ("habit-trends", "Show habit trends", "habit trends"),
-            ("habittrends", "Show habit trends", "habit trends"),
-            ("habit-history", "Show habit history", "habit history"),
-            ("habithistory", "Show habit history", "habit history"),
-            ("show-habit-analysis", "Show habit analysis", "habit analysis"),
-            ("showhabitanalysis", "Show habit analysis", "habit analysis"),
-            ("show-habit-trends", "Show habit trends", "habit trends"),
-            ("showhabittrends", "Show habit trends", "habit trends"),
-            ("show-habit-history", "Show habit history", "habit history"),
-            ("showhabithistory", "Show habit history", "habit history"),
-            ("sleep-analysis", "Show sleep analysis", "sleep analysis"),
-            ("sleepanalysis", "Show sleep analysis", "sleep analysis"),
-            ("sleep-trends", "Show sleep trends", "sleep trends"),
-            ("sleeptrends", "Show sleep trends", "sleep trends"),
-            ("sleep-history", "Show sleep history", "sleep history"),
-            ("sleephistory", "Show sleep history", "sleep history"),
-            ("show-sleep-analysis", "Show sleep analysis", "sleep analysis"),
-            ("showsleepanalysis", "Show sleep analysis", "sleep analysis"),
-            ("show-sleep-trends", "Show sleep trends", "sleep trends"),
-            ("showsleeptrends", "Show sleep trends", "sleep trends"),
-            ("show-sleep-history", "Show sleep history", "sleep history"),
-            ("showsleephistory", "Show sleep history", "sleep history"),
-            ("energy-trends", "Show energy trends", "energy trends"),
-            ("energytrends", "Show energy trends", "energy trends"),
-            ("energy-analysis", "Show energy analysis", "energy analysis"),
-            ("energyanalysis", "Show energy analysis", "energy analysis"),
-            ("energy-history", "Show energy history", "energy history"),
-            ("energyhistory", "Show energy history", "energy history"),
-            ("energy-graphs", "Show energy graphs", "energy graphs"),
-            ("energygraphs", "Show energy graphs", "energy graphs"),
-            ("show-energy-trends", "Show energy trends", "energy trends"),
-            ("showenergytrends", "Show energy trends", "energy trends"),
-            ("show-energy-analysis", "Show energy analysis", "energy analysis"),
-            ("showenergyanalysis", "Show energy analysis", "energy analysis"),
-            ("show-energy-history", "Show energy history", "energy history"),
-            ("showenergyhistory", "Show energy history", "energy history"),
-            ("show-energy-graphs", "Show energy graphs", "energy graphs"),
-            ("showenergygraphs", "Show energy graphs", "energy graphs"),
-            ("mood-trends", "Show mood trends", "mood trends"),
-            ("moodtrends", "Show mood trends", "mood trends"),
-            ("mood-analysis", "Show mood analysis", "mood analysis"),
-            ("moodanalysis", "Show mood analysis", "mood analysis"),
-            ("mood-history", "Show mood history", "mood history"),
-            ("moodhistory", "Show mood history", "mood history"),
-            ("mood-graphs", "Show mood graphs", "mood graphs"),
-            ("moodgraphs", "Show mood graphs", "mood graphs"),
-            ("show-mood-trends", "Show mood trends", "mood trends"),
-            ("showmoodtrends", "Show mood trends", "mood trends"),
-            ("show-mood-analysis", "Show mood analysis", "mood analysis"),
-            ("showmoodanalysis", "Show mood analysis", "mood analysis"),
-            ("show-mood-history", "Show mood history", "mood history"),
-            ("showmoodhistory", "Show mood history", "mood history"),
-            ("show-mood-graphs", "Show mood graphs", "mood graphs"),
-            ("showmoodgraphs", "Show mood graphs", "mood graphs"),
-        ]
-        return [
-            CommandDefinition(name, description, mapped_message=mapped_message)
-            for name, description, mapped_message in analytics_aliases
-        ]
 
     @handle_errors(
         "handling user interaction",
@@ -273,619 +78,91 @@ class InteractionManager:
     def handle_message(
         self, user_id: str, message: str, channel_type: str = "discord"
     ) -> InteractionResponse:
-        """
-        Main entry point for handling user messages.
-
-        Args:
-            user_id: The user's ID
-            message: The user's message
-            channel_type: Type of channel (discord, email)
-
-        Returns:
-            InteractionResponse with appropriate response
-        """
+        """Main entry point for handling user messages."""
         if not message or not message.strip():
             return InteractionResponse(
                 "I didn't receive a message. How can I help you today?", True
             )
 
-        # Handle explicit slash-commands first to preserve legacy flow behavior
-        rule_based_override: ParsingResult | None = None
-        message_stripped = message.strip() if message else ""
+        rule_based_override = None
+        message_stripped = message.strip()
         logger.info(
-            f"COMMAND_DETECTION: Processing message '{message_stripped[:50]}...' for user {user_id}"
+            f"COMMAND_DETECTION: Processing message '{message_stripped[:50]}...' "
+            f"for user {user_id}"
         )
 
-        # Check if user is in an active conversation flow
         user_state = conversation_manager.user_states.get(
             user_id, {"flow": 0, "state": 0, "data": {}}
         )
         logger.info(
-            f"FLOW_CHECK: User {user_id} flow state: {user_state.get('flow', 'None')} (type: {type(user_state.get('flow'))})"
+            f"FLOW_CHECK: User {user_id} flow state: {user_state.get('flow', 'None')} "
+            f"(type: {type(user_state.get('flow'))})"
         )
 
-        # Optional prefix processing for channel-agnostic handling
-        if message_stripped.startswith("/"):
-            logger.info(
-                f"SLASH_COMMAND: Detected slash command '{message_stripped}' for user {user_id}"
-            )
-            lowered = message_stripped.lower()
-            # Extract the command name after '/'
-            parts = lowered.split()
-            cmd_name = parts[0][1:] if parts and parts[0].startswith("/") else ""
-
-            # /cancel, /skip, /end, /endlist are flow keywords - handle them via conversation manager
-            if cmd_name in ["cancel", "skip", "end", "endlist", "endl"]:
-                # Always delegate to conversation manager (handles both in-flow and not-in-flow cases)
-                reply_text, completed = conversation_manager.handle_inbound_message(
-                    user_id, message_stripped
-                )
-                return InteractionResponse(reply_text, completed)
-
-            # If message starts with / or !, it's a command - clear any active flow first
-            # (but skip/cancel/end were handled above)
-            if user_state["flow"] != 0 and cmd_name not in [
-                "cancel",
-                "skip",
-                "end",
-                "endlist",
-                "endl",
-            ]:
-                logger.info(
-                    f"User {user_id} in flow {user_state['flow']} but sent command '{message_stripped}', clearing flow"
-                )
-                conversation_manager.user_states.pop(user_id, None)
-                conversation_manager._save_user_states()
-
-            # Look up command definition
-            cmd_def = next(
-                (c for c in self._command_definitions if c.name == cmd_name), None
-            )
-
-            # Flow-marked commands delegate to conversation manager starters
-            if cmd_def and cmd_def.is_flow:
-                if cmd_name == "checkin":
-                    reply_text, completed = conversation_manager.start_checkin(user_id)
-                    return InteractionResponse(reply_text, completed)
-                elif cmd_name == "restart":
-                    reply_text, completed = conversation_manager.restart_checkin(
-                        user_id
-                    )
-                    return InteractionResponse(reply_text, completed)
-                elif cmd_name == "clear":
-                    reply_text, completed = conversation_manager.clear_stuck_flows(
-                        user_id
-                    )
-                    return InteractionResponse(reply_text, completed)
-                starter_name = f"start_{cmd_name}_flow"
-                starter_fn = getattr(conversation_manager, starter_name, None)
-                if callable(starter_fn):
-                    result = starter_fn(user_id)
-                    if isinstance(result, (list, tuple)) and len(result) >= 2:
-                        reply_text, completed = result[0], result[1]
-                    else:
-                        reply_text, completed = "", True
-                    return InteractionResponse(reply_text, completed)
-                else:
-                    return InteractionResponse(
-                        f"Flow '{cmd_name}' is not available yet.", True
-                    )
-
-            # If command is registered, use mapped message preserving arguments
-            if cmd_def:
-                # If mapped_message is None, the command definition is just for discoverability
-                # Drop the prefix and continue parsing (don't recursively convert)
-                if cmd_def.mapped_message is None:
-                    # Command definition exists but no mapping - drop prefix and parse normally
-                    message = message_stripped[1:]  # Drop the '/' prefix
-                else:
-                    # Use mapped message and append args if present
-                    if len(message_stripped) > len(cmd_name) + 1:
-                        args = message_stripped[
-                            len(cmd_name) + 1 :
-                        ].strip()  # Everything after "/command"
-                        converted_message = cmd_def.get_mapped_message()
-                        # Strip ! prefix if present (parser expects messages without prefix)
-                        if converted_message.startswith("!"):
-                            converted_message = converted_message[1:]
-                        if args:
-                            converted_message += " " + args
-                    else:
-                        converted_message = cmd_def.get_mapped_message()
-                        # Strip ! prefix if present (parser expects messages without prefix)
-                        if converted_message.startswith("!"):
-                            converted_message = converted_message[1:]
-                    # Continue parsing with converted message
-                    message = converted_message
-            else:
-                # Unknown slash command → drop prefix and continue to structured parsing below
-                message = message_stripped[1:]
-
-        elif message_stripped.startswith("!"):
-            # Handle bang-prefixed commands (like !tasks, !help, etc.)
-            logger.info(
-                f"BANG_COMMAND: Detected bang command '{message_stripped}' for user {user_id}"
-            )
-            lowered = message_stripped.lower()
-            # Extract the command name after '!'
-            parts = lowered.split()
-            cmd_name = parts[0][1:] if parts and parts[0].startswith("!") else ""
-
-            # !cancel, !skip, !end, !endlist are flow keywords - handle them via conversation manager
-            if cmd_name in ["cancel", "skip", "end", "endlist", "endl"]:
-                # Always delegate to conversation manager (handles both in-flow and not-in-flow cases)
-                reply_text, completed = conversation_manager.handle_inbound_message(
-                    user_id, message_stripped
-                )
-                return InteractionResponse(reply_text, completed)
-
-            # If message starts with !, it's a command - clear any active flow first
-            # (but skip/cancel/end were handled above)
-            if user_state["flow"] != 0 and cmd_name not in [
-                "cancel",
-                "skip",
-                "end",
-                "endlist",
-                "endl",
-            ]:
-                logger.info(
-                    f"User {user_id} in flow {user_state['flow']} but sent command '{message_stripped}', clearing flow"
-                )
-                conversation_manager.user_states.pop(user_id, None)
-                conversation_manager._save_user_states()
-
-            # Look up command definition
-            cmd_def = next(
-                (c for c in self._command_definitions if c.name == cmd_name), None
-            )
-
-            # Flow-marked commands delegate to conversation manager starters
-            if cmd_def and cmd_def.is_flow:
-                if cmd_name == "checkin":
-                    reply_text, completed = conversation_manager.start_checkin(user_id)
-                    return InteractionResponse(reply_text, completed)
-                elif cmd_name == "restart":
-                    reply_text, completed = conversation_manager.restart_checkin(
-                        user_id
-                    )
-                    return InteractionResponse(reply_text, completed)
-                elif cmd_name == "clear":
-                    reply_text, completed = conversation_manager.clear_stuck_flows(
-                        user_id
-                    )
-                    return InteractionResponse(reply_text, completed)
-                starter_name = f"start_{cmd_name}_flow"
-                starter_fn = getattr(conversation_manager, starter_name, None)
-                if callable(starter_fn):
-                    result = starter_fn(user_id)
-                    if isinstance(result, (list, tuple)) and len(result) >= 2:
-                        reply_text, completed = result[0], result[1]
-                    else:
-                        reply_text, completed = "", True
-                    return InteractionResponse(reply_text, completed)
-                else:
-                    return InteractionResponse(
-                        f"Flow '{cmd_name}' is not available yet.", True
-                    )
-
-            # For non-flow commands, convert and continue parsing in this same call
-            # (match slash-command behavior and avoid recursive re-entry)
-            elif cmd_def:
-                # If mapped_message is None, the command definition is just for discoverability
-                # Drop the prefix and continue parsing
-                if cmd_def.mapped_message is None:
-                    # Command definition exists but no mapping - drop prefix and parse normally
-                    message = message_stripped[1:]  # Drop the '!' prefix
-                else:
-                    # Use mapped message and append args if present
-                    if len(message_stripped) > len(cmd_name) + 1:
-                        args = message_stripped[
-                            len(cmd_name) + 1 :
-                        ].strip()  # Everything after "!command"
-                        converted_message = cmd_def.get_mapped_message()
-                        # Strip ! prefix if present (parser expects messages without prefix)
-                        if converted_message.startswith("!"):
-                            converted_message = converted_message[1:]
-                        if args:
-                            converted_message += " " + args
-                    else:
-                        converted_message = cmd_def.get_mapped_message()
-                        # Strip ! prefix if present (parser expects messages without prefix)
-                        if converted_message.startswith("!"):
-                            converted_message = converted_message[1:]
-                    # Continue parsing with converted message
-                    message = converted_message
-
-            else:
-                # Unknown bang command → drop prefix and continue to structured parsing below
-                message = message_stripped[1:]
-
-        # Check if user is in an active conversation flow
-        user_state = conversation_manager.user_states.get(
-            user_id, {"flow": 0, "state": 0, "data": {}}
+        prefix_result = process_prefix_command(
+            user_id, message_stripped, user_state, self._command_definitions
         )
-        logger.info(
-            f"FLOW_CHECK: User {user_id} flow state: {user_state.get('flow', 'None')} (type: {type(user_state.get('flow'))})"
-        )
-        if user_state["flow"] != 0:
-            # User is in a flow - check for flow keywords first (skip, cancel, end)
-            message_lower = message.strip().lower()
+        if prefix_result.response is not None:
+            return prefix_result.response
+        message = prefix_result.message if prefix_result.message is not None else message
 
-            # Flow keywords should always be handled by conversation manager, not parsed as commands
-            # Include both with and without prefixes since message may have prefix stripped
-            flow_keywords = [
-                "skip",
-                "cancel",
-                "end",
-                "endlist",
-                "endl",
-                "!end",
-                "/end",
-                "!endlist",
-                "/endlist",
-                "!endl",
-                "/endl",
-            ]
-            if message_lower in flow_keywords or any(
-                message_lower == keyword for keyword in flow_keywords
-            ):
-                # User is using a flow keyword - let conversation manager handle it
-                logger.info(
-                    f"User {user_id} in flow {user_state['flow']} used flow keyword '{message_lower}', delegating to conversation manager"
-                )
-                reply_text, completed = conversation_manager.handle_inbound_message(
-                    user_id, message
-                )
-                return InteractionResponse(reply_text, completed)
-
-            # If the message matches a known command, bypass the flow.
-            try:
-                rule_based_result = self.command_parser._rule_based_parse(message)
-            except Exception:
-                rule_based_result = None
-
-            if (
-                rule_based_result is not None
-                and rule_based_result.parsed_command.intent != "unknown"
-            ):
-                logger.info(
-                    f"User {user_id} in flow {user_state['flow']} issued command intent "
-                    f"'{rule_based_result.parsed_command.intent}', clearing flow"
-                )
-                conversation_manager.user_states.pop(user_id, None)
-                conversation_manager._save_user_states()
-                rule_based_override = rule_based_result
-            else:
-                rule_based_result = None
-
-            # Check if they're trying to issue a command (other than flow keywords)
-            # Commands should bypass the flow and be processed normally
-            command_keywords = [
-                "update task",
-                "complete task",
-                "delete task",
-                "show tasks",
-                "list tasks",
-                "create task",
-                "add task",
-                "new task",
-                "/n ",
-                "!n ",
-                "n ",
-                "/note ",
-                "!note ",
-                "note ",
-                "/nn ",
-                "!nn ",
-                "nn ",
-                "/newn ",
-                "!newn ",
-                "newn ",
-                "/newnote ",
-                "!newnote ",
-                "newnote ",
-                "/show ",
-                "!show ",
-                "show ",
-                "/recent",
-                "!recent",
-                "recent",
-                "/r ",
-                "!r ",
-                "r ",
-            ]
-            is_command = any(
-                message_lower == keyword or message_lower.startswith(keyword + " ")
-                for keyword in command_keywords
-            )
-
-            if rule_based_override is None and is_command:
-                # User is issuing a command, clear the flow and process the command
-                logger.info(
-                    f"User {user_id} in flow {user_state['flow']} but issued command, clearing flow and processing command"
-                )
-                conversation_manager.user_states.pop(user_id, None)
-                conversation_manager._save_user_states()
-            elif rule_based_override is None:
-                # User is in a flow and not issuing a command, let conversation manager handle it
-                logger.info(
-                    f"User {user_id} in active flow {user_state['flow']}, delegating to conversation manager"
-                )
-                reply_text, completed = conversation_manager.handle_inbound_message(
-                    user_id, message
-                )
-                response = InteractionResponse(reply_text, completed)
-
-                # Refresh user state after conversation manager may have updated it
-                updated_user_state = conversation_manager.user_states.get(
-                    user_id, {"flow": 0, "state": 0, "data": {}}
-                )
-
-                # Add context-aware suggestions for reminder flow
-                # Check both if currently in reminder flow OR if response contains reminder prompt
-                if updated_user_state.get("flow") == FLOW_TASK_REMINDER or (
-                    not completed
-                    and "Would you like to set custom reminder periods" in reply_text
-                ):
-                    state_data = updated_user_state.get("data", {})
-                    task_id = state_data.get("task_identifier")
-                    if task_id:
-                        reminder_suggestions = conversation_manager._generate_context_aware_reminder_suggestions(
-                            user_id, task_id
-                        )
-                        if reminder_suggestions:
-                            response.suggestions = reminder_suggestions
-
-                return response
+        flow_result = dispatch_flow_message(user_id, message, self.command_parser)
+        if flow_result.response is not None:
+            return flow_result.response
+        if flow_result.rule_based_override is not None:
+            rule_based_override = flow_result.rule_based_override
 
         logger.info(
-            f"User {user_id} not in active flow or command detected, proceeding with command parsing"
+            f"User {user_id} not in active flow or command detected, "
+            "proceeding with command parsing"
         )
 
-        # Simple confirm-delete shortcut: bypass parsing
-        if message.strip().lower() == "confirm delete":
-            try:
-                handler = _get_task_management_handler()
-                resp = handler._handle_delete_task(user_id, {"task_identifier": None})
-                return self._augment_suggestions(
-                    ParsedCommand("delete_task", {}, 1.0, message), resp
-                )
-            except Exception:
-                pass
+        shortcut_response = try_parsing_shortcuts(
+            user_id,
+            message,
+            channel_type,
+            self._handle_structured_command,
+            augment_suggestions,
+        )
+        if shortcut_response is not None:
+            return shortcut_response
 
-        # Simple complete-task prompt shortcut (no identifier provided)
-        if message.strip().lower() == "complete task":
-            try:
-                handler = _get_task_management_handler()
-                resp = handler._handle_complete_task(user_id, {})
-                return self._augment_suggestions(
-                    ParsedCommand("complete_task", {}, 1.0, message), resp
-                )
-            except Exception:
-                pass
-
-        # Schedule edit shortcut: recognize edit period without times and coerce intent
-        try:
-            import re
-
-            low = message.lower().strip()
-            m1 = re.search(
-                r"^edit\s+schedule\s+period\s+([\w\-]+)\s+(tasks?|check.?ins?|messages?)",
-                low,
-                re.IGNORECASE,
-            )
-            m2 = re.search(
-                r"^edit\s+(?:the\s+)?([\w\-]+)\s+period\s+in\s+my\s+(tasks?|check.?ins?|messages?)\s+schedule",
-                low,
-                re.IGNORECASE,
-            )
-            m = m1 or m2
-            if m:
-                period_name = m.group(1)
-                category = m.group(2)
-
-                parsed_cmd = ParsedCommand(
-                    "edit_schedule_period",
-                    {"period_name": period_name, "category": category},
-                    0.95,
-                    message,
-                )
-                parsing_result = ParsingResult(
-                    parsed_command=parsed_cmd, confidence=0.95, method="rule_based"
-                )
-                resp = self._handle_structured_command(
-                    user_id, parsing_result, channel_type
-                )
-                return self._augment_suggestions(parsed_cmd, resp)
-        except Exception:
-            pass
-
-        # Parse the message to determine intent
         if rule_based_override is not None:
             parsing_result = rule_based_override
         else:
             parsing_result = self.command_parser.parse(message, user_id)
 
-        # Safety: if user clearly asked to update a task but parser was unsure, coerce minimal entities
-        try:
-            if (
-                parsing_result.parsed_command.intent == "unknown"
-                and message.lower().strip().startswith("update task")
-            ):
-                import re
-
-                coerced_entities = {}
-                # identifier right after 'update task' - extract number or first word/phrase
-                # Match: "update task <identifier>" where identifier is a number or word(s) before field keywords
-                # For "update task 1 priority high", we want identifier="1"
-                m_id = re.search(
-                    r"^update\s+task\s+(\d+|\w+)(?=\s+(?:title|priority|due|description)|$)",
-                    message,
-                    re.IGNORECASE,
-                )
-                if m_id:
-                    ident = m_id.group(1).strip().strip('"')
-                    coerced_entities["task_identifier"] = ident
-                # fields
-                m_due = re.search(r"(?:due\s+date|due)\s+(.+)", message, re.IGNORECASE)
-                if m_due:
-                    coerced_entities["due_date"] = m_due.group(1).strip()
-                m_pri = re.search(
-                    r"priority\s+(?:to\s+)?(high|medium|low|urgent|critical)",
-                    message,
-                    re.IGNORECASE,
-                )
-                if m_pri:
-                    coerced_entities["priority"] = m_pri.group(1).lower()
-                m_title = re.search(
-                    r'(?:title\s+"([^"]+)"|title\s+([^\n]+)|rename\s+(?:task\s+)?(?:to\s+)?"?([^"\n]+)"?)',
-                    message,
-                    re.IGNORECASE,
-                )
-                if m_title:
-                    new_title = m_title.group(1) or m_title.group(2) or m_title.group(3)
-                    if new_title:
-                        coerced_entities["title"] = new_title.strip()
-                if coerced_entities.get("task_identifier") and any(
-                    k in coerced_entities for k in ["due_date", "priority", "title"]
-                ):
-                    parsing_result.parsed_command = ParsedCommand(
-                        "update_task", coerced_entities, 0.9, message
-                    )
-                    parsing_result.confidence = 0.9
-        except Exception:
-            pass
+        parsing_result = coerce_unknown_update_task(parsing_result, message)
         logger.info(
-            f"INTERACTION_MANAGER: Parsed message for user {user_id}: {parsing_result.method} method, "
+            f"INTERACTION_MANAGER: Parsed message for user {user_id}: "
+            f"{parsing_result.method} method, "
             f"intent: {parsing_result.parsed_command.intent}, "
             f"confidence: {parsing_result.confidence}"
         )
 
-        # Handle structured commands
         if parsing_result.confidence >= self.min_command_confidence:
-            # Guard against misclassification: "update task ..." should never be treated as completion
-            try:
-                low_msg = message.lower().strip()
-                if low_msg.startswith("update task"):
-                    # Build minimal entities if needed
-                    import re
-
-                    coerced_entities = parsing_result.parsed_command.entities.copy()
-                    if "task_identifier" not in coerced_entities:
-                        # Extract identifier (number or word) before field keywords
-                        m_id = re.search(
-                            r"^update\s+task\s+(\d+|\w+)(?=\s+(?:title|priority|due|description)|$)",
-                            message,
-                            re.IGNORECASE,
-                        )
-                        if m_id:
-                            ident = m_id.group(1).strip().strip('"')
-                            coerced_entities["task_identifier"] = ident
-                    if "due_date" not in coerced_entities:
-                        m_due = re.search(
-                            r"(?:due\s+date|due)\s+(.+)", message, re.IGNORECASE
-                        )
-                        if m_due:
-                            coerced_entities["due_date"] = m_due.group(1).strip()
-                    if "priority" not in coerced_entities:
-                        # Match priority values: high, medium, low, urgent, critical
-                        # Pattern allows for "priority high", "priority to high", etc.
-                        m_pri = re.search(
-                            r"priority\s+(?:to\s+)?(high|medium|low|urgent|critical)",
-                            message,
-                            re.IGNORECASE,
-                        )
-                        if m_pri:
-                            coerced_entities["priority"] = m_pri.group(1).lower()
-                    if "title" not in coerced_entities:
-                        m_title = re.search(
-                            r'(?:title\s+"([^"]+)"|title\s+([^\n]+)|rename\s+(?:task\s+)?(?:to\s+)?"?([^"\n]+)"?)',
-                            message,
-                            re.IGNORECASE,
-                        )
-                        if m_title:
-                            new_title = (
-                                m_title.group(1) or m_title.group(2) or m_title.group(3)
-                            )
-                            if new_title:
-                                coerced_entities["title"] = new_title.strip()
-                    parsing_result.parsed_command = ParsedCommand(
-                        "update_task", coerced_entities, 0.95, message
-                    )
-                    parsing_result.confidence = 0.95
-            except Exception:
-                pass
-            # Quick augmentation for update_task: extract fields if missing
-            try:
-                if (
-                    parsing_result.parsed_command.intent == "update_task"
-                    and "due_date" not in parsing_result.parsed_command.entities
-                ):
-                    import re
-
-                    m = re.search(
-                        r"(?:due\s+date|due)\s+(.+)",
-                        parsing_result.parsed_command.original_message,
-                        re.IGNORECASE,
-                    )
-                    if m:
-                        parsing_result.parsed_command.entities["due_date"] = m.group(1)
-                if (
-                    parsing_result.parsed_command.intent == "update_task"
-                    and "priority" not in parsing_result.parsed_command.entities
-                ):
-                    import re
-
-                    # Match priority values: high, medium, low, urgent, critical
-                    # Pattern allows for "priority high", "priority to high", etc.
-                    p = re.search(
-                        r"priority\s+(?:to\s+)?(high|medium|low|urgent|critical)",
-                        parsing_result.parsed_command.original_message,
-                        re.IGNORECASE,
-                    )
-                    if p:
-                        parsing_result.parsed_command.entities["priority"] = p.group(
-                            1
-                        ).lower()
-                if (
-                    parsing_result.parsed_command.intent == "update_task"
-                    and "title" not in parsing_result.parsed_command.entities
-                ):
-                    import re
-
-                    # Accept: title New Name  OR  title "New Name"  OR rename to New Name
-                    t = re.search(
-                        r'(?:title\s+"?([^"\n]+)"?$|rename\s+(?:task\s+)?(?:to\s+)?"?([^"\n]+)"?$)',
-                        parsing_result.parsed_command.original_message,
-                        re.IGNORECASE,
-                    )
-                    if t:
-                        new_title = t.group(1) or t.group(2)
-                        if new_title:
-                            parsing_result.parsed_command.entities["title"] = (
-                                new_title.strip()
-                            )
-            except Exception:
-                pass
+            parsing_result = reinforce_update_task_parsing(parsing_result, message)
             logger.info(
-                f"INTERACTION_MANAGER: Handling as structured command: {parsing_result.parsed_command.intent}"
+                f"INTERACTION_MANAGER: Handling as structured command: "
+                f"{parsing_result.parsed_command.intent}"
             )
-            resp = self._handle_structured_command(
-                user_id, parsing_result, channel_type
-            )
-            # Augment suggestions for targeted prompts
-            return self._augment_suggestions(parsing_result.parsed_command, resp)
+            resp = self._handle_structured_command(user_id, parsing_result, channel_type)
+            return augment_suggestions(parsing_result.parsed_command, resp)
 
-        # Fall back to contextual chat
         if self.fallback_to_chat:
             logger.info(
-                f"INTERACTION_MANAGER: Handling as contextual chat: confidence {parsing_result.confidence} < {self.min_command_confidence}"
+                f"INTERACTION_MANAGER: Handling as contextual chat: confidence "
+                f"{parsing_result.confidence} < {self.min_command_confidence}"
             )
             return self._handle_contextual_chat(user_id, message, channel_type)
 
-        # No fallback, return help
         logger.debug("No fallback to chat, returning help")
-        return self._get_help_response(user_id, message)
+        return get_help_response(
+            user_id,
+            message,
+            command_parser=self.command_parser,
+            command_definitions=self._command_definitions,
+        )
 
     @property
     @handle_errors("getting slash command map property", default_return={})
@@ -895,33 +172,11 @@ class InteractionManager:
 
     @handle_errors("getting slash command map")
     def get_slash_command_map(self) -> dict[str, str]:
-        """Expose slash command mappings without coupling callers to internals.
-        Returns a dict like {'tasks': 'show my tasks', ...} suitable for Discord registration.
-        """
-        try:
-            result = {}
-            for c in self._command_definitions:
-                result[c.name] = c.get_mapped_message()
-            return result
-        except Exception as e:
-            logger.error(f"Error getting slash command map: {e}")
-            return {}
+        return build_slash_command_map(self._command_definitions)
 
     @handle_errors("getting command definitions")
     def get_command_definitions(self) -> list[dict[str, str]]:
-        """Return canonical command definitions: name, mapped_message, description."""
-        try:
-            return [
-                {
-                    "name": c.name,
-                    "mapped_message": c.get_mapped_message(),
-                    "description": c.description,
-                }
-                for c in self._command_definitions
-            ]
-        except Exception as e:
-            logger.error(f"Error getting command definitions: {e}")
-            return []
+        return command_definitions_as_dicts(self._command_definitions)
 
     @handle_errors(
         "handling structured command",
@@ -930,47 +185,17 @@ class InteractionManager:
             True,
         ),
     )
-    def _handle_structured_command(
-        self, user_id: str, parsing_result: ParsingResult, channel_type: str
-    ) -> InteractionResponse:
-        """Handle a structured command using interaction handlers"""
-        parsed_command = parsing_result.parsed_command
-        intent = parsed_command.intent
-
-        # Built-in intents that don't use a specific handler (no AI enhancement needed)
-        if intent in ["help"]:
-            return self._get_help_response(user_id, parsed_command.original_message)
-        if intent in ["commands"]:
-            return self._get_commands_response()
-
-        # Get the appropriate handler
-        handler = get_interaction_handler(intent)
-        if not handler:
-            logger.warning(f"No handler found for intent: {intent}")
-            return InteractionResponse(
-                f"I understand you want to {intent}, but I'm not sure how to help with that yet. "
-                "Try 'help' to see what I can do!",
-                True,
-            )
-
-        # Handle the command
-        response = handler.handle(user_id, parsed_command)
-
-        # Enhance response with AI if enabled
-        if self.enable_ai_enhancement and self.ai_chatbot.is_ai_available():
-            response = self._enhance_response_with_ai(user_id, response, parsed_command)
-
-        # Add suggestions only when helpful; suppress for targeted prompts like update_task
-        if (
-            not response.completed
-            and intent not in ["start_checkin", "update_task"]
-            and (response.suggestions is None)
-        ):
-            response.suggestions = self.command_parser.get_suggestions(
-                parsed_command.original_message
-            )
-
-        return response
+    def _handle_structured_command(self, user_id, parsing_result, channel_type):
+        """Delegate structured command handling to the shared dispatcher."""
+        return dispatch_structured_command(
+            user_id,
+            parsing_result,
+            channel_type,
+            command_parser=self.command_parser,
+            ai_chatbot=self.ai_chatbot,
+            enable_ai_enhancement=self.enable_ai_enhancement,
+            command_definitions=self._command_definitions,
+        )
 
     @handle_errors(
         "handling contextual chat",
@@ -982,240 +207,14 @@ class InteractionManager:
     def _handle_contextual_chat(
         self, user_id: str, message: str, channel_type: str
     ) -> InteractionResponse:
-        """Handle contextual chat using AI chatbot with mixed intent support"""
-        # Generate a single AI response that can handle both conversational and actionable content
-        ai_chatbot = get_ai_chatbot()
-        response = ai_chatbot.generate_response(message, user_id=user_id, mode="chat")
+        response = self.ai_chatbot.generate_response(
+            message, user_id=user_id, mode="chat"
+        )
         return InteractionResponse(response, True)
-
-    @handle_errors("enhancing response with AI")
-    def _enhance_response_with_ai(
-        self, user_id: str, response: InteractionResponse, parsed_command: ParsedCommand
-    ) -> InteractionResponse:
-        """Enhance a structured response with AI contextual information"""
-        # If enhancement fails, return original response (handled by inner try/except and function always returns response)
-        try:
-            # Only enhance certain types of responses
-            if not self.enable_ai_enhancement:
-                return response
-
-            # Don't enhance well-structured or report-style responses (avoid length limits/truncation)
-            # Includes help/commands, task ops, check-ins, profile/schedule/analytics/status/messages, notebook, and stats
-            excluded_intents = {
-                "help",
-                "commands",
-                "examples",
-                "checkin_history",
-                "checkin_analysis",
-                "start_checkin",
-                "checkin_status",
-                "completion_rate",
-                "task_weekly_stats",
-                "task_stats",
-                "task_analytics",
-                "list_tasks",
-                "list_task_templates",
-                "show_create_hub",
-                "create_task",
-                "create_task_from_template",
-                "complete_task",
-                "delete_task",
-                "update_task",
-                "show_profile",
-                "profile_stats",
-                "show_schedule",
-                "schedule_status",
-                "show_analytics",
-                "mood_trends",
-                "energy_trends",
-                "habit_analysis",
-                "sleep_analysis",
-                "quant_summary",
-                "wellness_score",
-                "analytics",
-                "messages",
-                "show_messages",
-                "status",
-                # Notebook intents - structured responses that shouldn't be AI-enhanced
-                "create_note",
-                "create_quick_note",
-                "create_list",
-                "create_journal",
-                "list_recent_entries",
-                "show_entry",
-                "append_to_entry",
-                "set_entry_body",
-                "add_tags_to_entry",
-                "remove_tags_from_entry",
-                "search_entries",
-                "pin_entry",
-                "unpin_entry",
-                "archive_entry",
-                "unarchive_entry",
-                "add_list_item",
-                "toggle_list_item_done",
-                "remove_list_item",
-                "set_entry_group",
-                "list_entries_by_group",
-                "list_pinned_entries",
-                "list_inbox_entries",
-                "list_entries_by_tag",
-            }
-            intent = parsed_command.intent or ""
-            if intent in excluded_intents or any(
-                k in intent for k in ["profile", "schedule", "analytics", "messages"]
-            ):
-                return response
-
-            # Create a context prompt for AI enhancement
-            context_prompt = f"""
-User requested: {parsed_command.original_message}
-Current response: {response.message}
-
-Please enhance this response to be more personal and contextual for the user, 
-while keeping the core information intact. Make it warm and encouraging.
-Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
-"""
-
-            enhanced_text = self.ai_chatbot.generate_response(
-                context_prompt,
-                user_id=user_id,
-                timeout=3,  # Short timeout for enhancement
-            )
-
-            # Validate enhanced response - check for common issues
-            if enhanced_text and len(enhanced_text) > 10:
-                # Check for system prompt leakage
-                system_indicators = [
-                    "System response:",
-                    "Exercise",
-                    "You are a chatbot",
-                    "Your job is to",
-                    "Please enhance",
-                    "Return ONLY",
-                    "```python",
-                    "```json",
-                    "{'action':",
-                    '{"action":',
-                ]
-
-                has_system_content = any(
-                    indicator in enhanced_text for indicator in system_indicators
-                )
-
-                if not has_system_content:
-                    # Apply length guard only for AI chat-like enhancements; report-style are excluded above
-                    # Use centralized response length limits
-                    if len(enhanced_text) > AI_MAX_RESPONSE_LENGTH:
-                        # Smart truncation at sentence boundary
-                        cut = enhanced_text[:AI_MAX_RESPONSE_LENGTH]
-                        for mark in (". ", "! ", "? "):
-                            idx = cut.rfind(mark)
-                            if idx >= 0 and idx > AI_MAX_RESPONSE_LENGTH * 0.6:
-                                enhanced_text = cut[: idx + 1]
-                                break
-                        else:
-                            enhanced_text = cut.rstrip() + "..."
-                    response.message = enhanced_text.strip()
-                else:
-                    logger.debug(
-                        "AI enhancement returned system content, keeping original response"
-                    )
-
-        except Exception as e:
-            logger.debug(f"AI enhancement failed: {e}")
-            # Keep original response if enhancement fails
-
-        return response
-
-    @handle_errors(
-        "getting help response",
-        default_return=InteractionResponse(
-            "I'm here to help! Try asking about tasks, check-ins, or your profile.",
-            True,
-        ),
-    )
-    def _get_help_response(self, user_id: str, message: str) -> InteractionResponse:
-        """Get a help response when command parsing fails"""
-        # Try to provide contextual help based on the message
-        suggestions = self.command_parser.get_suggestions(message)
-
-        help_text = (
-            "I'm not sure what you'd like to do. Here are some things you can try:\n\n"
-            "📋 **Task Management:**\n"
-            "• Create a task: 'I need to call mom tomorrow'\n"
-            "• List tasks: 'Show me my tasks'\n"
-            "• Complete tasks: 'Complete task 1'\n\n"
-            "✅ **Check-ins:**\n"
-            "• Start check-in: 'I want to check in'\n"
-            "• View history: 'Show my check-ins'\n\n"
-            "👤 **Profile:**\n"
-            "• View profile: 'Show my profile'\n"
-            "• Update info: 'Update my name to Julie'\n\n"
-            "📅 **Schedule Management:**\n"
-            "• View schedule: 'Show my schedule'\n"
-            "• Check status: 'Schedule status'\n"
-            "• Enable/disable: 'Enable my task schedule'\n\n"
-            "📊 **Analytics & Insights:**\n"
-            "• View analytics: 'Show my analytics'\n"
-            "• Mood trends: 'Mood trends for 7 days'\n"
-            "• Habit analysis: 'Habit analysis'\n\n"
-            "Try one of these or ask for 'help' to learn more!"
-        )
-
-        # Append concise command list for quick discovery
-        try:
-            defs = self.get_command_definitions()
-            names = [f"/{d['name']}" for d in defs]
-            if names:
-                help_text += "\n\nQuick commands: " + ", ".join(names)
-        except Exception:
-            pass
-
-        return InteractionResponse(help_text, True, suggestions=suggestions)
-
-    @handle_errors(
-        "getting commands response",
-        default_return=InteractionResponse("Error getting commands", False),
-    )
-    def _get_commands_response(self) -> InteractionResponse:
-        """Return a concise, channel-agnostic commands list for quick discovery."""
-        defs = self.get_command_definitions()
-        # Order with flows and common actions first
-        preferred = [
-            "checkin",
-            "tasks",
-            "profile",
-            "schedule",
-            "messages",
-            "analytics",
-            "status",
-            "help",
-            "cancel",
-        ]
-        sorted_defs = sorted(
-            defs,
-            key=lambda d: preferred.index(d["name"]) if d["name"] in preferred else 999,
-        )
-
-        lines: list[str] = ["**Available Commands**"]
-        lines.append("Slash commands (where supported):")
-        for d in sorted_defs:
-            slash = f"/{d['name']}"
-            lines.append(f"- {slash} — {d['description']}")
-        lines.append("")
-        lines.append(
-            "Classic commands (if enabled): !tasks, !profile, !schedule, !messages, !analytics, !status"
-        )
-
-        text = "\n".join(lines)
-        return InteractionResponse(text, True)
 
     @handle_errors("getting available commands", default_return={})
     def get_available_commands(self, user_id: str) -> dict[str, Any]:
-        """Get list of available commands for the user"""
         commands = {}
-
         for handler_name, handler in self.interaction_handlers.items():
             commands[handler_name] = {
                 "help": handler.get_help(),
@@ -1241,395 +240,57 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
                     if handler.can_handle(intent)
                 ],
             }
-
         return commands
 
     @handle_errors("getting user suggestions", default_return=[])
     def get_user_suggestions(self, user_id: str, context: str = "") -> list:
-        """Get personalized suggestions for the user"""
+        return get_user_suggestions(user_id, context)
 
-        suggestions: list[str] = []
-        now = now_datetime_full()
-
-        @handle_errors("adding suggestion", default_return=None)
-        def add_suggestion(text: str) -> None:
-            """Add a suggestion if it is unique and space remains."""
-            if text and text not in suggestions and len(suggestions) < 5:
-                suggestions.append(text)
-
-        # Get task-related suggestions if user has tasks
-        try:
-            from tasks import load_active_tasks
-
-            tasks = load_active_tasks(user_id) or []
-
-            from tasks.task_data_handlers import runtime_task_due_date, runtime_task_due_time
-
-            @handle_errors("parsing due date", default_return=None)
-            def parse_due(task: dict) -> datetime | None:
-                """
-                Parse due date/time into a datetime for sorting.
-                Uses canonical parsers from time_utilities (no inline parsing).
-                """
-                due_date = runtime_task_due_date(task)
-                due_time = runtime_task_due_time(task)
-
-                if not due_date:
-                    return None
-
-                # Canonical stored formats are DATE_ONLY and TIME_ONLY_MINUTE.
-                if due_time:
-                    return parse_date_and_time_minute(due_date, due_time)
-
-                return parse_date_only(due_date)
-
-            if tasks:
-                dated_tasks = [(task, parse_due(task)) for task in tasks]
-                dated_tasks.sort(key=lambda item: item[1] or datetime.max)
-                top_task, due_at = dated_tasks[0]
-                title = top_task.get("title") or "your top task"
-
-                if due_at:
-                    # Display-only: month/day is never parsed or persisted.
-                    due_display = format_timestamp(due_at, DATE_DISPLAY_MONTH_DAY)
-
-                    if due_at.date() < now.date():
-                        add_suggestion(f'Catch up on "{title}" (was due {due_display})')
-                    elif due_at.date() == now.date():
-                        add_suggestion(f'Finish "{title}" due today')
-                    else:
-                        add_suggestion(f'Plan for "{title}" due {due_display}')
-                else:
-                    add_suggestion(f'Work on "{title}" from your task list')
-
-                if len(tasks) > 1:
-                    add_suggestion("Show my tasks")
-            else:
-                add_suggestion("Add a new task for today")
-
-        except Exception:
-            add_suggestion("Show my tasks")
-
-        # Get check-in suggestions
-        try:
-            from checkins.checkin_data_manager import (
-                checkin_runtime_timestamp,
-                get_recent_checkins,
-                is_user_checkins_enabled,
-            )
-
-            if is_user_checkins_enabled(user_id):
-                recent_checkins = get_recent_checkins(user_id, limit=3) or []
-                if recent_checkins:
-                    latest = recent_checkins[0]
-                    timestamp_str = checkin_runtime_timestamp(latest)
-
-                    # Internal persisted state: strict canonical parse.
-                    timestamp = (
-                        parse_timestamp_full(timestamp_str) if timestamp_str else None
-                    )
-
-                    # If last check-in was 2+ days ago, prompt a new one.
-                    if timestamp and (now.date() - timestamp.date()).days >= 2:
-                        add_suggestion("Log a quick check-in for today")
-                    else:
-                        add_suggestion("Review your recent check-ins")
-
-                    mood = latest.get("mood")
-                    if mood:
-                        add_suggestion(
-                            f"See your mood trend after feeling {mood.lower()}"
-                        )
-                else:
-                    add_suggestion("Start your first check-in")
-        except Exception:
-            add_suggestion("Start a check-in")
-
-        # Get schedule suggestions
-        try:
-            from core import get_user_categories
-
-            categories = get_user_categories(user_id)
-            if categories:
-                add_suggestion(f"Review your {categories[0]} schedule")
-                if len(categories) > 1:
-                    add_suggestion("Schedule status")
-        except Exception:
-            add_suggestion("Show my schedule")
-
-        # Get analytics suggestions
-        try:
-            from checkins.checkin_data_manager import get_recent_checkins
-
-            checkins = get_recent_checkins(user_id, limit=5)
-            if checkins and len(checkins) >= 3:
-                add_suggestion("View mood trends from this week")
-        except Exception:
-            add_suggestion("Show my analytics")
-
-        # Add general suggestions if space remains
-        add_suggestion("Show my profile")
-        add_suggestion("Help with tasks")
-
-        return suggestions
-
-    @handle_errors("checking if AI response is command")
-    def _is_ai_command_response(self, ai_response: str) -> bool:
-        """Check if AI response indicates this was a command"""
-        try:
-            # Look for JSON structure or command indicators
-            if ai_response.strip().startswith("{") and ai_response.strip().endswith(
-                "}"
-            ):
-                return True
-
-            # Look for command action keywords
-            command_indicators = [
-                "action",
-                "intent",
-                "command",
-                "task",
-                "checkin",
-                "profile",
-                "schedule",
-            ]
-            return any(
-                indicator in ai_response.lower() for indicator in command_indicators
-            )
-        except Exception as e:
-            logger.error(f"Error checking if AI response is command: {e}")
-            return False
-
-    @handle_errors("parsing AI command response")
-    def _parse_ai_command_response(
-        self, ai_response: str, original_message: str
-    ) -> ParsedCommand | None:
-        """Parse AI command response into ParsedCommand"""
-        try:
-            import json
-
-            # Try to parse as JSON first
-            if ai_response.strip().startswith("{") and ai_response.strip().endswith(
-                "}"
-            ):
-                data = json.loads(ai_response)
-                return ParsedCommand(
-                    intent=data.get("intent", "unknown"),
-                    entities=data.get("entities", {}),
-                    confidence=data.get("confidence", 0.7),
-                    original_message=original_message,
-                )
-
-            # Fallback: try to extract intent from text response
-            ai_response_lower = ai_response.lower()
-            if "checkin" in ai_response_lower:
-                return ParsedCommand(
-                    intent="start_checkin",
-                    entities={},
-                    confidence=0.6,
-                    original_message=original_message,
-                )
-            elif "task" in ai_response_lower:
-                return ParsedCommand(
-                    intent="list_tasks",
-                    entities={},
-                    confidence=0.6,
-                    original_message=original_message,
-                )
-            elif "profile" in ai_response_lower:
-                return ParsedCommand(
-                    intent="show_profile",
-                    entities={},
-                    confidence=0.6,
-                    original_message=original_message,
-                )
-            elif "mood" in ai_response_lower or "analytics" in ai_response_lower:
-                return ParsedCommand(
-                    intent="show_analytics",
-                    entities={},
-                    confidence=0.6,
-                    original_message=original_message,
-                )
-
-            return None
-        except Exception as e:
-            logger.error(f"Error parsing AI command response: {e}")
-            return None
-
-    @handle_errors("checking if AI response is clarification request")
-    def _is_clarification_request(self, ai_response: str) -> bool:
-        """Check if AI response is asking for clarification"""
-        try:
-            clarification_indicators = [
-                "could you clarify",
-                "can you clarify",
-                "please clarify",
-                "what do you mean",
-                "could you be more specific",
-                "are you asking",
-                "do you want",
-                "would you like",
-                "i'm not sure what you mean",
-                "i need more information",
-                "which one",
-                "what type",
-                "when",
-                "how",
-            ]
-
-            response_lower = ai_response.lower()
-            return any(
-                indicator in response_lower for indicator in clarification_indicators
-            )
-        except Exception as e:
-            logger.error(f"Error checking if AI response is clarification request: {e}")
-            return False
-
-    @handle_errors("extracting intent from text")
-    def _extract_intent_from_text(self, text: str) -> str | None:
-        """Extract intent from AI text response"""
-        try:
-            # Map common AI response patterns to intents
-            intent_mappings = {
-                "create task": "create_task",
-                "list tasks": "list_tasks",
-                "complete task": "complete_task",
-                "delete task": "delete_task",
-                "update task": "update_task",
-                "task stats": "task_stats",
-                "start checkin": "start_checkin",
-                "checkin status": "checkin_status",
-                "checkin history": "checkin_history",
-                "checkin analysis": "checkin_analysis",
-                "show profile": "show_profile",
-                "update profile": "update_profile",
-                "profile stats": "profile_stats",
-                "mood trends": "mood_trends",
-                "energy trends": "energy_trends",
-                "habit analysis": "habit_analysis",
-                "sleep analysis": "sleep_analysis",
-                "wellness score": "wellness_score",
-                "show analytics": "show_analytics",
-                "help": "help",
-                "commands": "commands",
-                "examples": "examples",
-            }
-
-            text_lower = text.lower()
-            for pattern, intent in intent_mappings.items():
-                if pattern in text_lower:
-                    return intent
-
-            return None
-        except Exception as e:
-            logger.error(f"Error extracting intent from text: {e}")
-            return None
-
-    # not_duplicate: intent_validation_delegates
     @handle_errors("checking if intent is valid", default_return=False)
     def _is_valid_intent(self, intent: str) -> bool:
-        """Check if intent is supported by any handler"""
         return is_valid_intent(intent, self.interaction_handlers)
 
-    @handle_errors("trying AI command parsing")
-    def _try_ai_command_parsing(
-        self, user_id: str, message: str, channel_type: str
-    ) -> InteractionResponse | None:
-        """Attempt to parse ambiguous messages using AI command parsing."""
-        try:
-            # First try regular command parsing
-            ai_response = self.ai_chatbot.generate_response(
-                message, mode="command", timeout=5  # Short timeout for command parsing
-            )
-
-            # Check if AI detected this as a command
-            if self._is_ai_command_response(ai_response):
-                # AI thinks this is a command, try to parse it
-                parsed_command = self._parse_ai_command_response(ai_response, message)
-                if parsed_command and parsed_command.intent != "unknown":
-                    logger.debug(f"AI detected command: {parsed_command.intent}")
-                    return self._handle_structured_command(
-                        user_id,
-                        ParsingResult(parsed_command, 0.7, "ai_command"),
-                        channel_type,
-                    )
-
-            # If regular command parsing didn't work, try clarification mode
-            clarification_response = self.ai_chatbot.generate_response(
-                message,
-                mode="command_with_clarification",
-                timeout=8,  # Slightly longer timeout for clarification
-            )
-
-            # Check if AI is asking for clarification
-            if self._is_clarification_request(clarification_response):
-                return InteractionResponse(clarification_response, True)
-
-            # If clarification mode found a command, handle it
-            if self._is_ai_command_response(clarification_response):
-                parsed_command = self._parse_ai_command_response(
-                    clarification_response, message
-                )
-                if parsed_command and parsed_command.intent != "unknown":
-                    logger.debug(
-                        f"AI detected command in clarification mode: {parsed_command.intent}"
-                    )
-                    return self._handle_structured_command(
-                        user_id,
-                        ParsingResult(parsed_command, 0.6, "ai_command_clarified"),
-                        channel_type,
-                    )
-
-        except Exception as e:
-            logger.error(f"Error trying AI command parsing: {e}")
-
-        return None
-
     @handle_errors("augmenting suggestions")
-    def _augment_suggestions(
-        self, parsed_command: ParsedCommand, response: InteractionResponse
-    ) -> InteractionResponse:
-        if response.completed:
-            return response
-        msg = (response.message or "").lower()
-        suggestions: list[str] = []
-        if "multiple matching tasks" in msg:
-            suggestions = ["list tasks", "cancel"]
-        elif "confirm delete" in msg:
-            suggestions = ["confirm delete", "cancel"]
-        elif "did you want to complete this task" in msg:
-            suggestions = ["complete task 1", "cancel"]
-        elif "what would you like to update for" in msg:
-            if parsed_command.intent == "edit_schedule_period":
-                suggestions = ["from 9am to 11am", "active off"]
-            else:
-                suggestions = ["due date tomorrow", "priority high"]
-        elif (
-            parsed_command.intent in ["update_task", "complete_task", "delete_task"]
-            and "which task" in msg
-        ):
-            suggestions = ["list tasks", "cancel"]
-        # Cap at 2
-        if suggestions:
-            response.suggestions = suggestions[:2]
-        return response
+    def _augment_suggestions(self, parsed_command, response):
+        """Add context-aware follow-up suggestions to an interaction response."""
+        return augment_suggestions(parsed_command, response)
+
+    @handle_errors(
+        "getting help response",
+        default_return=InteractionResponse(
+            "I'm here to help! Try asking about tasks, check-ins, or your profile.",
+            True,
+        ),
+    )
+    def _get_help_response(self, user_id: str, message: str) -> InteractionResponse:
+        """Return contextual help text and parser suggestions."""
+        return get_help_response(
+            user_id,
+            message,
+            command_parser=self.command_parser,
+            command_definitions=self._command_definitions,
+        )
+
+    @handle_errors(
+        "getting commands response",
+        default_return=InteractionResponse("Error getting commands", False),
+    )
+    def _get_commands_response(self) -> InteractionResponse:
+        """Return the channel-agnostic slash-command discovery list."""
+        from communication.message_processing.help_responses import get_commands_response
+
+        return get_commands_response(self._command_definitions)
 
 
-# Global instance
 _interaction_manager_instance = None
 
 
 @handle_errors("getting interaction manager")
 def get_interaction_manager() -> InteractionManager:
-    """Get the global interaction manager instance"""
-    try:
-        global _interaction_manager_instance
-        if _interaction_manager_instance is None:
-            _interaction_manager_instance = InteractionManager()
-        return _interaction_manager_instance
-    except Exception as e:
-        logger.error(f"Error getting interaction manager: {e}")
-        raise
+    global _interaction_manager_instance
+    if _interaction_manager_instance is None:
+        _interaction_manager_instance = InteractionManager()
+    return _interaction_manager_instance
 
 
 @handle_errors(
@@ -1642,6 +303,4 @@ def get_interaction_manager() -> InteractionManager:
 def handle_user_message(
     user_id: str, message: str, channel_type: str = "discord"
 ) -> InteractionResponse:
-    """Convenience function to handle a user message"""
-    manager = get_interaction_manager()
-    return manager.handle_message(user_id, message, channel_type)
+    return get_interaction_manager().handle_message(user_id, message, channel_type)

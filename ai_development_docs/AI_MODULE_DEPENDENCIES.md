@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-16 23:03:14
+> **Last Generated**: 2026-06-16 23:42:16
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 205
-- **Total Imports**: 1774
-- **Standard Library**: 546 (30.8%)
-- **Third-Party**: 219 (12.3%)
-- **Local Imports**: 1009 (56.9%)
+- **Files Scanned**: 213
+- **Total Imports**: 1806
+- **Standard Library**: 544 (30.1%)
+- **Third-Party**: 215 (11.9%)
+- **Local Imports**: 1047 (58.0%)
 
 ## Dependency Decision Trees
 
@@ -54,7 +54,7 @@ Communication Dependencies:
   - communication/communication_channels/discord/api_client.py <- standard library (asyncio, dataclasses, time, typing), third-party (discord), logger, error_handling
 - Conversation Flow
   - communication/message_processing/conversation_flow_manager.py <- standard library (importlib), chatbot, checkin_data_manager, error_handling, logger, checkin_flow (+3 more)
-  - communication/communication_channels/discord/account_flow_handler.py <- standard library (contextlib), third-party (discord), logger, error_handling, shared_types, account_handler, user_data_presets
+  - communication/message_processing/flow_message_dispatcher.py <- standard library (dataclasses), error_handling, logger, shared_types, command_parser, conversation_flow_manager
 
 ### Need UI Dependencies?
 UI Dependencies:
@@ -116,8 +116,8 @@ External libraries provide channel and UI support.
 
 ### High Coupling
 - `communication/core/channel_orchestrator.py` -> 19 unique local dependencies (heavy coupling) (27 import statements; 8 duplicate)
-- `communication/message_processing/interaction_manager.py` -> 16 unique local dependencies (heavy coupling) (17 import statements; 1 duplicate)
 - `ui/dialogs/account_creator_dialog.py` -> 16 unique local dependencies (heavy coupling) (23 import statements; 7 duplicate)
+- `communication/message_processing/interaction_manager.py` -> 15 unique local dependencies (heavy coupling) (16 import statements; 1 duplicate)
 - `ai/chatbot.py` -> 14 unique local dependencies (heavy coupling)
 - `communication/communication_channels/discord/bot.py` -> 13 unique local dependencies (heavy coupling) (17 import statements; 4 duplicate)
 

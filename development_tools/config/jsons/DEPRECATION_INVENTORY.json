@@ -73,6 +73,18 @@
   ],
   "removed_inventory": [
     {
+      "id": "message_router_shim",
+      "removed_at": "2026-06-16",
+      "search_terms": [
+        "message_router",
+        "MessageRouter",
+        "get_message_router",
+        "communication.message_processing.message_router"
+      ],
+      "replacement": "communication.message_processing.prefix_command_processor, communication.message_processing.command_registry, communication.message_processing.message_route_classifier",
+      "notes": "Shim removed after interaction_manager decomposition; routing classification lives in message_route_classifier.py; production path uses prefix_command_processor."
+    },
+    {
       "id": "profile_json_legacy_on_disk_shapes",
       "removed_at": "2026-06-02",
       "search_terms": [

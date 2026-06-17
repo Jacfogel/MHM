@@ -224,59 +224,6 @@ class TestCommunicationLazyImports:
     
     @pytest.mark.communication
     @pytest.mark.unit
-    def test_message_router_lazy_import(self):
-        """Test: MessageRouter can be imported lazily"""
-        # Arrange: Import communication module
-        import communication
-        
-        # Act: Access MessageRouter (should trigger lazy import)
-        router = communication.MessageRouter
-        
-        # Assert: Should be importable
-        assert router is not None, "MessageRouter should be importable via lazy import"
-    
-    @pytest.mark.communication
-    @pytest.mark.unit
-    def test_message_type_lazy_import(self):
-        """Test: MessageType can be imported lazily"""
-        # Arrange: Import communication module
-        import communication
-        
-        # Act: Access MessageType (should trigger lazy import)
-        msg_type = communication.MessageType
-        
-        # Assert: Should be importable
-        assert msg_type is not None, "MessageType should be importable via lazy import"
-    
-    @pytest.mark.communication
-    @pytest.mark.unit
-    def test_routing_result_lazy_import(self):
-        """Test: RoutingResult can be imported lazily"""
-        # Arrange: Import communication module
-        import communication
-        
-        # Act: Access RoutingResult (should trigger lazy import)
-        result = communication.RoutingResult
-        
-        # Assert: Should be importable
-        assert result is not None, "RoutingResult should be importable via lazy import"
-    
-    @pytest.mark.communication
-    @pytest.mark.unit
-    def test_get_message_router_lazy_import(self):
-        """Test: get_message_router can be imported lazily"""
-        # Arrange: Import communication module
-        import communication
-        
-        # Act: Access get_message_router (should trigger lazy import)
-        func = communication.get_message_router
-        
-        # Assert: Should be importable
-        assert func is not None, "get_message_router should be importable via lazy import"
-        assert callable(func), "get_message_router should be callable"
-    
-    @pytest.mark.communication
-    @pytest.mark.unit
     def test_rich_formatter_lazy_import(self):
         """Test: RichFormatter classes can be imported lazily"""
         # Arrange: Import communication module

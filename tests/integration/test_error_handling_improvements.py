@@ -19,7 +19,7 @@ from core import get_user_data, save_user_data
 from storage.user_data_operations import UserDataManager
 from core.backup_manager import BackupManager
 from communication.communication_channels.discord.bot import DiscordBot
-from communication.message_processing.message_router import MessageRouter
+from communication.message_processing.message_route_classifier import MessageRouteClassifier
 from communication.core.channel_orchestrator import CommunicationManager
 pytestmark = [pytest.mark.core]
 
@@ -186,28 +186,28 @@ class TestErrorHandlingImprovements:
         result = bot._check_network_connectivity("discord.com", -1)
         assert not result
         
-    def test_message_router_validation(self):
-        """Test message router with improved validation."""
-        router = MessageRouter()
-        
+    def test_message_route_classifier_validation(self):
+        """Test message route classifier with improved validation."""
+        classifier = MessageRouteClassifier()
+
         # Test route_message with invalid inputs
-        result = router.route_message(None)
+        result = classifier.route_message(None)
         assert result.message_type.value == "unknown"
-        
-        result = router.route_message("")
+
+        result = classifier.route_message("")
         assert result.message_type.value == "unknown"
-        
-        result = router.route_message(123)
+
+        result = classifier.route_message(123)
         assert result.message_type.value == "unknown"
-        
-        # Test _route_slash_command with invalid inputs
-        result = router._route_slash_command(None)
+
+        # Test _route_prefixed_command with invalid inputs
+        result = classifier._route_prefixed_command(None, "/")
         assert result.message_type.value == "unknown"
-        
-        result = router._route_slash_command("")
+
+        result = classifier._route_prefixed_command("", "/")
         assert result.message_type.value == "unknown"
-        
-        result = router._route_slash_command(123)
+
+        result = classifier._route_prefixed_command(123, "/")
         assert result.message_type.value == "unknown"
         
     def test_channel_orchestrator_validation(self):
