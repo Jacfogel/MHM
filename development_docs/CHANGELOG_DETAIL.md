@@ -33,6 +33,14 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-06-17 - Admin account provisioning extraction
+- **Refactor**: Moved admin UI account provisioning from [`account_creator_dialog.py`](../ui/dialogs/account_creator_dialog.py) into [`admin_account_provisioning.py`](../core/admin_account_provisioning.py). New module owns `provision_admin_account`, `build_user_preferences_from_account_data`, task-tag setup, file-readiness wait, index retry, and scheduler registration.
+- **Dialog boundary**: `AccountCreatorDialog` calls `provision_admin_account` from `_validate_and_accept__create_account`; no `create_account()` method on the dialog.
+- **Exports**: `provision_admin_account` and `build_user_preferences_from_account_data` added to [`core/__init__.py`](../core/__init__.py) lazy exports.
+- **Tests**: Provisioning persistence tests in [`test_admin_account_provisioning.py`](../tests/unit/test_admin_account_provisioning.py) call `provision_admin_account` directly.
+- **Hygiene**: Provisioning tests tagged `@pytest.mark.user`; `no_parallel` decorators include reason comments; Ruff unused-import fix in dialog; function registry regenerated via `run_development_tools.py docs`.
+- **Legacy**: No compatibility bridge (per search-and-close guidance); channel-path `create_new_user` unchanged for now.
+
 ### 2026-06-16 - Channel orchestrator private delegator cleanup + interaction_manager decomposition
 - **Search-and-close removal**: Deleted ~10 private one-line delegators from [`channel_orchestrator.py`](../communication/core/channel_orchestrator.py) (`_normalize_message_selection_periods`, `_load_predefined_messages_library`, `_filter_messages_by_day_and_period`, `_deduplicate_candidate_messages`, `_send_and_store_predefined_message`, `_send_predefined_message`, `_should_send_checkin_prompt`, `_handle_scheduled_checkin`, `_create_task_reminder_message`, `_select_weighted_message`). These were leftovers from the dispatcher extraction; production logic already lived in `PredefinedMessageDispatcher`, `CheckinPromptDispatcher`, and `TaskReminderDispatcher`.
 - **Direct dispatcher calls**: `handle_message_sending` now invokes `checkin_dispatcher.handle_scheduled_checkin` and `predefined_dispatcher.send_predefined_message` without an orchestrator shim layer.

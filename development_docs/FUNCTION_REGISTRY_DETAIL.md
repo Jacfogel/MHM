@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-16 23:42:02
+> **Last Generated**: 2026-06-17 22:28:26
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 91.3% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 215
+- **Files Scanned**: 216
 - **Functions Found**: 2107
-- **Methods Found**: 1308
+- **Methods Found**: 1300
 - **Classes Found**: 221
-- **Total Items**: 3415
+- **Total Items**: 3407
 - **Functions Documented**: 1896
-- **Methods Documented**: 1222
+- **Methods Documented**: 1214
 - **Classes Documented**: 155
-- **Total Documented**: 3118
+- **Total Documented**: 3110
 - **Template-Generated**: 34
-- **Last Updated**: 2026-06-16
+- **Last Updated**: 2026-06-17
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,13 +39,13 @@
 
 ## Function Categories
 
-### **Core System Functions** (436)
+### **Core System Functions** (444)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (547)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (498)
+### **User Interface Functions** (490)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (35)
@@ -2996,6 +2996,19 @@ value ``get_task_by_id`` accepts.
 **Functions:**
 - [OK] `__getattr__(name)` - Lazy import handler for package-level facade exports.
 
+#### `core/admin_account_provisioning.py`
+**Functions:**
+- [OK] `build_features_dict(features_enabled)` - Build features dictionary in the account.json format.
+- [OK] `build_user_preferences_from_account_data(account_data)` - Build the user_preferences dict passed to create_user_files.
+- [OK] `determine_chat_id(channel_type, email, phone, discord_user_id)` - Determine chat_id based on channel type.
+- [OK] `provision_admin_account(account_data)` - Create a full admin-provisioned user account from collected dialog data.
+
+Returns the new user_id on success, or None on failure.
+- [OK] `schedule_new_user_if_available(user_id)` - Register the new user with the scheduler when the service is running.
+- [OK] `setup_task_tags_for_new_user(user_id, account_data)` - Set up custom or default task tags when task management is enabled.
+- [OK] `update_user_index_with_retry(user_id, max_retries)` - Update user index with retries to handle parallel test race conditions.
+- [OK] `wait_for_user_files_ready(user_id, max_wait_attempts)` - Wait until account.json and preferences.json are readable with expected data.
+
 #### `core/auto_cleanup.py`
 **Functions:**
 - [OK] `_calculate_cache_size__calculate_pyc_files_size(pyc_files)` - Calculate total size of standalone .pyc files.
@@ -5810,28 +5823,20 @@ Returns:
 #### `ui/dialogs/account_creator_dialog.py`
 **Functions:**
 - [OK] `__init__(self, parent, communication_manager)` - Initialize the account creator dialog.
-- [OK] `_build_features_dict(self, features_enabled)` - Build features dictionary in the correct format.
-- [OK] `_determine_chat_id(self, channel_type, email, phone, discord_user_id)` - Determine chat_id based on channel type.
-- [OK] `_validate_and_accept__add_feature_settings(self, user_preferences, account_data, features_enabled)` - Add feature-specific settings to user preferences.
 - [OK] `_validate_and_accept__build_account_data(self, username, preferred_name, timezone, channel_data, contact_info, categories, task_settings, checkin_settings, messages_enabled, tasks_enabled, checkins_enabled)` - Build the complete account data structure.
-- [OK] `_validate_and_accept__build_user_preferences(self, account_data)` - Build user preferences data structure.
 - [OK] `_validate_and_accept__collect_basic_user_info(self)` - Collect basic user information from UI fields.
 - [OK] `_validate_and_accept__collect_channel_data(self)` - Collect channel and contact information from widgets.
 - [OK] `_validate_and_accept__collect_data(self)` - Collect all data from UI and build account data structure.
 - [OK] `_validate_and_accept__collect_feature_settings(self)` - Collect feature enablement states from UI.
 - [OK] `_validate_and_accept__collect_widget_data(self)` - Collect data from all widgets.
-- [OK] `_validate_and_accept__create_account(self, account_data)` - Create the account and set up all necessary components.
+- [OK] `_validate_and_accept__create_account(self, account_data)` - Create the account via the shared provisioning service.
 - [OK] `_validate_and_accept__handle_success(self, username)` - Handle successful account creation.
 - [OK] `_validate_and_accept__input_errors(self)` - Validate input and show error dialog if validation fails.
-- [OK] `_validate_and_accept__schedule_new_user(self, user_id)` - Schedule the new user in the scheduler.
-- [OK] `_validate_and_accept__setup_task_tags(self, user_id, account_data)` - Set up task tags for the new user.
 - [OK] `_validate_and_accept__show_error_dialog(self, title, message)` - Show an error dialog with the given title and message.
 - [OK] `_validate_and_accept__show_success_dialog(self, username)` - Show a success dialog for account creation.
-- [OK] `_validate_and_accept__update_user_index(self, user_id)` - Update user index for the new user.
 - [OK] `accept(self)` - Override accept to prevent automatic dialog closing.
 - [OK] `center_dialog(self)` - Center the dialog on the parent window.
 - [OK] `close_dialog(self)` - Close the dialog properly.
-- [OK] `create_account(self, account_data)` - Create the user account.
 - [OK] `create_account_dialog(parent, communication_manager)` - Create and show the account creation dialog.
 - [OK] `get_account_data(self)` - Get the account data from the form.
 - [OK] `keyPressEvent(self, event)` - Handle key press events for the dialog.
@@ -5868,28 +5873,20 @@ Args:
 **Classes:**
 - [OK] `AccountCreatorDialog` - Account creation dialog using existing UI files.
   - [OK] `AccountCreatorDialog.__init__(self, parent, communication_manager)` - Initialize the account creator dialog.
-  - [OK] `AccountCreatorDialog._build_features_dict(self, features_enabled)` - Build features dictionary in the correct format.
-  - [OK] `AccountCreatorDialog._determine_chat_id(self, channel_type, email, phone, discord_user_id)` - Determine chat_id based on channel type.
-  - [OK] `AccountCreatorDialog._validate_and_accept__add_feature_settings(self, user_preferences, account_data, features_enabled)` - Add feature-specific settings to user preferences.
   - [OK] `AccountCreatorDialog._validate_and_accept__build_account_data(self, username, preferred_name, timezone, channel_data, contact_info, categories, task_settings, checkin_settings, messages_enabled, tasks_enabled, checkins_enabled)` - Build the complete account data structure.
-  - [OK] `AccountCreatorDialog._validate_and_accept__build_user_preferences(self, account_data)` - Build user preferences data structure.
   - [OK] `AccountCreatorDialog._validate_and_accept__collect_basic_user_info(self)` - Collect basic user information from UI fields.
   - [OK] `AccountCreatorDialog._validate_and_accept__collect_channel_data(self)` - Collect channel and contact information from widgets.
   - [OK] `AccountCreatorDialog._validate_and_accept__collect_data(self)` - Collect all data from UI and build account data structure.
   - [OK] `AccountCreatorDialog._validate_and_accept__collect_feature_settings(self)` - Collect feature enablement states from UI.
   - [OK] `AccountCreatorDialog._validate_and_accept__collect_widget_data(self)` - Collect data from all widgets.
-  - [OK] `AccountCreatorDialog._validate_and_accept__create_account(self, account_data)` - Create the account and set up all necessary components.
+  - [OK] `AccountCreatorDialog._validate_and_accept__create_account(self, account_data)` - Create the account via the shared provisioning service.
   - [OK] `AccountCreatorDialog._validate_and_accept__handle_success(self, username)` - Handle successful account creation.
   - [OK] `AccountCreatorDialog._validate_and_accept__input_errors(self)` - Validate input and show error dialog if validation fails.
-  - [OK] `AccountCreatorDialog._validate_and_accept__schedule_new_user(self, user_id)` - Schedule the new user in the scheduler.
-  - [OK] `AccountCreatorDialog._validate_and_accept__setup_task_tags(self, user_id, account_data)` - Set up task tags for the new user.
   - [OK] `AccountCreatorDialog._validate_and_accept__show_error_dialog(self, title, message)` - Show an error dialog with the given title and message.
   - [OK] `AccountCreatorDialog._validate_and_accept__show_success_dialog(self, username)` - Show a success dialog for account creation.
-  - [OK] `AccountCreatorDialog._validate_and_accept__update_user_index(self, user_id)` - Update user index for the new user.
   - [OK] `AccountCreatorDialog.accept(self)` - Override accept to prevent automatic dialog closing.
   - [OK] `AccountCreatorDialog.center_dialog(self)` - Center the dialog on the parent window.
   - [OK] `AccountCreatorDialog.close_dialog(self)` - Close the dialog properly.
-  - [OK] `AccountCreatorDialog.create_account(self, account_data)` - Create the user account.
   - [OK] `AccountCreatorDialog.get_account_data(self)` - Get the account data from the form.
   - [OK] `AccountCreatorDialog.keyPressEvent(self, event)` - Handle key press events for the dialog.
   - [OK] `AccountCreatorDialog.load_category_widget(self)` - Load the category selection widget.

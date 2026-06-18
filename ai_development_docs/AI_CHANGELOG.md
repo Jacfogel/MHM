@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-06-17 - Admin account provisioning extraction **COMPLETED**
+- Extracted account creation business logic from `ui/dialogs/account_creator_dialog.py` into `core/admin_account_provisioning.py` (`provision_admin_account`, preference building, task tags, index retry, scheduler hook).
+- Dialog calls `provision_admin_account` directly from `_validate_and_accept__create_account`; removed `create_account()` wrapper (not kept for tests).
+- Provisioning behavior tests moved to `tests/unit/test_admin_account_provisioning.py`; UI tests no longer depend on a dialog provisioning method.
+- Hygiene follow-up: added `@pytest.mark.user` and `no_parallel` reason comments on provisioning tests; removed unused `typing.Any` import; regenerated function registry (`docs`).
+
 ### 2026-06-16 - Channel orchestrator cleanup + interaction_manager decomposition **COMPLETED**
 - Removed ~10 thin private `_` methods from `channel_orchestrator.py` that only forwarded to owned dispatchers; `handle_message_sending` now calls `checkin_dispatcher` and `predefined_dispatcher` directly.
 - Kept public delivery-port facades (`send_checkin_prompt`, `handle_task_reminder`, `get_recipient_for_service`) per `SchedulerDeliveryPort` / `ServiceRequestDeliveryPort`.
@@ -120,10 +126,6 @@ Guidelines:
 - Added `cleanup_manifest_less_backup_directories()` so legacy `data/backups/` dirs without `manifest.json` are pruned after a 1-hour grace (runs on backup retention and monthly cleanup).
 - Paired backup guides now document age-based log archival, `messages/message_data_manager.py` for message archives, and on-demand `user_backup_*.zip` artifacts.
 - Audit follow-up: static logging check, Pyright, facade-shim annotation, doc-sync, and function registry regeneration.
-
-### 2026-05-31 - Remove legacy DiscordEventHandler **COMPLETED**
-- Removed `event_handler.py`, `DiscordEventHandler`, `get_discord_event_handler`, and lazy exports (`EventContext`/`EventType`) from `communication/__init__.py` after production routing already used `DiscordBot.initialize__register_events` and `discord_*_handler` modules.
-- Deleted `tests/unit/test_discord_event_handler.py`; updated spec coverage matrix and `DEPRECATION_INVENTORY.json` (`discord_event_handler_class` -> removed). Regenerated function registry/module-deps docs; `doc-sync` clean after fixing changelog links to removed files.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

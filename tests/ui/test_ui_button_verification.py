@@ -221,14 +221,12 @@ class TestUIIntegrationPoints:
         assert hasattr(AccountCreatorDialog, 'validate_and_accept')
         assert hasattr(AccountCreatorDialog, 'accept')
         assert hasattr(AccountCreatorDialog, 'reject')
-        assert hasattr(AccountCreatorDialog, 'create_account')
         
         # Test that the methods are callable
         assert callable(AccountCreatorDialog.get_account_data)
         assert callable(AccountCreatorDialog.validate_and_accept)
         assert callable(AccountCreatorDialog.accept)
         assert callable(AccountCreatorDialog.reject)
-        assert callable(AccountCreatorDialog.create_account)
     
     def test_checkin_management_integration_points(self):
         """Test that CheckinManagementDialog has proper integration points."""

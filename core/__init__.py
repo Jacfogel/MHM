@@ -116,6 +116,14 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     # User lifecycle
     "get_all_user_ids": ("core.user_management", "get_all_user_ids"),
     "create_new_user": ("core.user_management", "create_new_user"),
+    "provision_admin_account": (
+        "core.admin_account_provisioning",
+        "provision_admin_account",
+    ),
+    "build_user_preferences_from_account_data": (
+        "core.admin_account_provisioning",
+        "build_user_preferences_from_account_data",
+    ),
     "get_user_categories": ("core.user_management", "get_user_categories"),
     "get_user_id_by_identifier": ("core.user_lookup", "get_user_id_by_identifier"),
     # File operations
@@ -359,6 +367,8 @@ __all__ = [
     "ensure_all_categories_have_schedules",
     "get_user_id_by_identifier",
     "create_new_user",
+    "provision_admin_account",
+    "build_user_preferences_from_account_data",
     "get_timezone_options",
     "get_predefined_options",
     "add_schedule_period",

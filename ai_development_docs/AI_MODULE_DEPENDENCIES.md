@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-16 23:42:16
+> **Last Generated**: 2026-06-17 22:28:41
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 213
-- **Total Imports**: 1806
-- **Standard Library**: 544 (30.1%)
+- **Files Scanned**: 214
+- **Total Imports**: 1810
+- **Standard Library**: 545 (30.1%)
 - **Third-Party**: 215 (11.9%)
-- **Local Imports**: 1047 (58.0%)
+- **Local Imports**: 1050 (58.0%)
 
 ## Dependency Decision Trees
 
@@ -62,7 +62,7 @@ UI Dependencies:
   - ui/ui_app_qt.py <- standard library (functools, importlib, os, pathlib), third-party (PySide6.QtCore, PySide6.QtWidgets)
 - Dialogs
   - ui/dialog_actions.py <- standard library (collections.abc, importlib, typing), third-party (PySide6.QtWidgets)
-  - ui/dialogs/account_creator_dialog.py <- standard library (contextlib, pathlib, time, typing), third-party (PySide6.QtCore, PySide6.QtWidgets), logger, user_data_validation, core, error_handling, dialog_helpers (+11 more)
+  - ui/dialogs/account_creator_dialog.py <- standard library (contextlib, uuid, warnings), third-party (PySide6.QtCore, PySide6.QtWidgets), logger, user_data_validation, core, error_handling, dialog_helpers (+7 more)
   - ui/dialogs/admin_panel.py <- third-party (PySide6.QtCore, PySide6.QtWidgets), logger, error_handling
 - Widgets
   - ui/widgets/category_selection_widget.py <- third-party (PySide6.QtWidgets), category_selection_widget_pyqt, user_data_validation, error_handling, logger
@@ -116,10 +116,10 @@ External libraries provide channel and UI support.
 
 ### High Coupling
 - `communication/core/channel_orchestrator.py` -> 19 unique local dependencies (heavy coupling) (27 import statements; 8 duplicate)
-- `ui/dialogs/account_creator_dialog.py` -> 16 unique local dependencies (heavy coupling) (23 import statements; 7 duplicate)
 - `communication/message_processing/interaction_manager.py` -> 15 unique local dependencies (heavy coupling) (16 import statements; 1 duplicate)
 - `ai/chatbot.py` -> 14 unique local dependencies (heavy coupling)
 - `communication/communication_channels/discord/bot.py` -> 13 unique local dependencies (heavy coupling) (17 import statements; 4 duplicate)
+- `core/service.py` -> 13 unique local dependencies (heavy coupling) (16 import statements; 3 duplicate)
 
 ### Third-Party Risks
 - `ui/admin_actions.py` -> PySide6.QtWidgets (35 modules use this)
