@@ -33,6 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-06-18 - Scheduler domain coverage above 80% target
+- **Tests**: Added [`test_scheduler_manager_coverage.py`](../tests/unit/test_scheduler_manager_coverage.py) covering `reset_and_reschedule_daily_messages`, random-time scheduling success paths, skipped message handling, standalone clear/process helpers, and `task_reminders` retry/inactive-period branches.
+- **Tests**: Extended [`test_scheduler_jobs.py`](../tests/unit/test_scheduler_jobs.py) for `register_full_daily_maintenance_jobs` import-failure path; [`test_scheduler_maintenance.py`](../tests/core/test_scheduler_maintenance.py) for schtasks delete stderr logging.
+- **Coverage**: Scheduler-focused pytest run reports **83%** package coverage (up from ~76%); `scheduler/manager.py` 81%, `scheduler/task_reminders.py` 82%.
+- **Hygiene**: Replaced `datetime.now()` with `now_datetime_full()` in scheduler coverage test; removed unused `MagicMock` import (fixes Ruff F401 and `test_no_datetime_now_in_tests`).
+
 ### 2026-06-17 - Admin account provisioning extraction
 - **Refactor**: Moved admin UI account provisioning from [`account_creator_dialog.py`](../ui/dialogs/account_creator_dialog.py) into [`admin_account_provisioning.py`](../core/admin_account_provisioning.py). New module owns `provision_admin_account`, `build_user_preferences_from_account_data`, task-tag setup, file-readiness wait, index retry, and scheduler registration.
 - **Dialog boundary**: `AccountCreatorDialog` calls `provision_admin_account` from `_validate_and_accept__create_account`; no `create_account()` method on the dialog.

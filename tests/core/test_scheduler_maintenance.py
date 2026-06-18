@@ -46,6 +46,26 @@ def test_cleanup_scheduler_wake_tasks_deletes_matching_user_tasks(monkeypatch: p
 @pytest.mark.unit
 @pytest.mark.core
 @pytest.mark.scheduler
+def test_cleanup_scheduler_wake_tasks_logs_nonzero_delete_stderr(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    def _fake_run(args, **_kwargs):
+        if args[:2] == ["schtasks", "/query"]:
+            return MagicMock(
+                returncode=0,
+                stdout="TaskName: \\Wake_user-a\n",
+                stderr="",
+            )
+        return MagicMock(returncode=1, stdout="", stderr="already gone")
+
+    monkeypatch.setattr("core.get_all_user_ids", lambda: ["user-a"])
+    monkeypatch.setattr("subprocess.run", _fake_run)
+    scheduler_maintenance.cleanup_scheduler_wake_tasks()
+
+
+@pytest.mark.unit
+@pytest.mark.core
+@pytest.mark.scheduler
 def test_cleanup_scheduler_wake_tasks_handles_query_and_delete_failures(
     monkeypatch: pytest.MonkeyPatch,
 ):
