@@ -5,6 +5,7 @@ Tests focus on real behavior and side effects of validation operations.
 
 import pytest
 import os
+import uuid
 from unittest.mock import patch
 import core
 
@@ -404,7 +405,7 @@ class TestUserUpdateValidation:
     @pytest.mark.critical
     def test_validate_user_update_schedules_success(self, test_data_dir):
         """Test successful schedules update validation."""
-        user_id = "test-user"
+        user_id = f"test-user-schedules-{uuid.uuid4().hex[:8]}"
         updates = {
             "tasks": {
                 "periods": {
@@ -428,7 +429,7 @@ class TestUserUpdateValidation:
     @pytest.mark.regression
     def test_validate_user_update_schedules_invalid_time_format(self, test_data_dir):
         """Test schedules update validation with invalid time format."""
-        user_id = "test-user"
+        user_id = f"test-user-schedules-{uuid.uuid4().hex[:8]}"
         updates = {
             "tasks": {
                 "periods": {
@@ -453,7 +454,7 @@ class TestUserUpdateValidation:
     @pytest.mark.regression
     def test_validate_user_update_schedules_invalid_time_order(self, test_data_dir):
         """Test schedules update validation with invalid time ordering."""
-        user_id = "test-user"
+        user_id = f"test-user-schedules-{uuid.uuid4().hex[:8]}"
         updates = {
             "tasks": {
                 "periods": {
@@ -478,7 +479,7 @@ class TestUserUpdateValidation:
     @pytest.mark.regression
     def test_validate_user_update_schedules_invalid_days(self, test_data_dir):
         """Test schedules update validation with invalid days."""
-        user_id = "test-user"
+        user_id = f"test-user-schedules-{uuid.uuid4().hex[:8]}"
         updates = {
             "tasks": {
                 "periods": {
@@ -497,6 +498,47 @@ class TestUserUpdateValidation:
         # Pydantic validation filters invalid days instead of failing
         # The test expectation was based on old validation logic
         assert is_valid is True, f"Schedules update should be valid with Pydantic validation, got errors: {errors}"
+
+    @pytest.mark.unit
+    @pytest.mark.user
+    @pytest.mark.regression
+    def test_validate_user_update_schedules_ignores_v2_envelope_metadata(self, test_data_dir):
+        """Partial schedule updates must not fail when cached schedules include v2 envelope keys."""
+        user_id = f"test-user-schedules-{uuid.uuid4().hex[:8]}"
+        updates = {
+            "tasks": {
+                "periods": {
+                    "Morning": {
+                        "start_time": "09:00",
+                        "end_time": "10:00",
+                        "days": ["Monday"],
+                        "active": True,
+                    }
+                }
+            }
+        }
+        polluted_current = {
+            "schema_version": 2,
+            "updated_at": "2026-06-17 14:15:32",
+            "tasks": {
+                "periods": {
+                    "Evening": {
+                        "start_time": "18:00",
+                        "end_time": "19:00",
+                        "days": ["Friday"],
+                        "active": True,
+                    }
+                }
+            },
+        }
+
+        with patch(
+            "storage.user_data_read.get_user_data",
+            return_value={"schedules": polluted_current},
+        ):
+            is_valid, errors = validate_user_update(user_id, "schedules", updates)
+
+        assert is_valid is True, f"Envelope metadata should be stripped before validation: {errors}"
 
 
 @pytest.mark.storage

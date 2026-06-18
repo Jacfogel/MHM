@@ -24,6 +24,11 @@ if _project_root in sys.path:
 sys.path.insert(0, _project_root)
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
+# Keep temp-file helpers under tests/data/tmp (was pytest.ini `env` via pytest-env).
+_tests_early_tmp = str((_tests_dir / "data" / "tmp").resolve())
+Path(_tests_early_tmp).mkdir(parents=True, exist_ok=True)
+for _temp_key in ("TMPDIR", "TEMP", "TMP"):
+    os.environ.setdefault(_temp_key, _tests_early_tmp)
 # On Windows, force software OpenGL so Qt UI tests don't access-violate on some GPU/driver combos.
 if os.name == "nt":
     os.environ["QT_OPENGL"] = "software"
@@ -234,6 +239,32 @@ warnings.filterwarnings(
 
 # Ensure project root is on sys.path ONCE for all tests
 project_root = Path(__file__).parent.parent
+
+# Collection ignores belong in conftest (not pytest.ini): pytest 9.1+ with
+# --strict-config rejects the invalid ini key and exits with code 4.
+collect_ignore = [
+    "data",
+    "fixtures",
+    "logs",
+    "temp",
+    "ai/test_ai_core.py",
+    "ai/test_ai_integration.py",
+    "ai/test_ai_errors.py",
+    "ai/test_ai_cache.py",
+    "ai/test_ai_performance.py",
+    "ai/test_ai_quality.py",
+    "ai/test_ai_advanced.py",
+    str(project_root / "development_tools" / "tests" / "analyze_test_coverage.py"),
+    str(project_root / "development_tools" / "tests" / "generate_test_coverage_report.py"),
+]
+collect_ignore_glob = [
+    "data/pytest-tmp-*",
+    "data/pytest-of-*",
+    "**/__pycache__",
+    "**/.pytest_cache",
+    "**/*.pyc",
+    "**/*.pyo",
+]
 
 
 def pytest_runtest_setup(item):
