@@ -200,6 +200,29 @@ def test_missing_marker_finder_handles_fixtures_and_nested_tests():
 
 
 @pytest.mark.unit
+def test_missing_marker_finder_honors_module_pytestmark():
+    with _workspace_temp_project() as project_root:
+        test_file = project_root / "tests" / "ui" / "test_module_mark.py"
+        test_file.parent.mkdir(parents=True, exist_ok=True)
+        _write(
+            test_file,
+            (
+                "import pytest\n\n"
+                "pytestmark = [pytest.mark.ui, pytest.mark.unit]\n\n"
+                "def test_inherits_module_markers():\n"
+                "    pass\n"
+            ),
+        )
+
+        finder = MissingMarkerFinder()
+        finder.analyze_file(test_file)
+
+        missing_names = {entry[2] for entry in finder.missing}
+        assert "test_inherits_module_markers" not in missing_names
+        assert finder.missing == []
+
+
+@pytest.mark.unit
 def test_missing_marker_finder_skips_syntax_errors():
     with _workspace_temp_project() as project_root:
         bad_file = project_root / "tests" / "unit" / "test_bad.py"

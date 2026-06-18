@@ -38,6 +38,7 @@ When adding new changes, follow this format:
 - **Tests**: Extended [`test_scheduler_jobs.py`](../tests/unit/test_scheduler_jobs.py) for `register_full_daily_maintenance_jobs` import-failure path; [`test_scheduler_maintenance.py`](../tests/core/test_scheduler_maintenance.py) for schtasks delete stderr logging.
 - **Coverage**: Scheduler-focused pytest run reports **83%** package coverage (up from ~76%); `scheduler/manager.py` 81%, `scheduler/task_reminders.py` 82%.
 - **Hygiene**: Replaced `datetime.now()` with `now_datetime_full()` in scheduler coverage test; removed unused `MagicMock` import (fixes Ruff F401 and `test_no_datetime_now_in_tests`).
+- **Dev tools**: Updated [`analyze_test_markers.py`](../development_tools/tests/analyze_test_markers.py) `MissingMarkerFinder` to inherit category/domain markers from module-level `pytestmark`, aligning with [`test_test_policy_guards.py`](../tests/unit/test_test_policy_guards.py); added regression test in [`test_analyze_test_markers.py`](../tests/development_tools/test_analyze_test_markers.py).
 
 ### 2026-06-17 - Admin account provisioning extraction
 - **Refactor**: Moved admin UI account provisioning from [`account_creator_dialog.py`](../ui/dialogs/account_creator_dialog.py) into [`admin_account_provisioning.py`](../core/admin_account_provisioning.py). New module owns `provision_admin_account`, `build_user_preferences_from_account_data`, task-tag setup, file-readiness wait, index retry, and scheduler registration.

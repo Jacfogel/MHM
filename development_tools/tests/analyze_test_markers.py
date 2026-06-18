@@ -603,6 +603,33 @@ class MissingMarkerFinder:
                     inherited_domain=class_has_dom,
                 )
 
+    def _iter_pytestmark_nodes(self, node: ast.AST):
+        if isinstance(node, ast.List):
+            for elt in node.elts:
+                yield from self._iter_pytestmark_nodes(elt)
+            return
+        if isinstance(node, ast.Call):
+            yield node.func
+            return
+        yield node
+
+    def _module_pytestmark_flags(self, tree: ast.Module) -> tuple[bool, bool]:
+        """Return category/domain inheritance flags from module-level pytestmark."""
+        for node in tree.body:
+            if not isinstance(node, ast.Assign):
+                continue
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == "pytestmark":
+                    has_cat = False
+                    has_dom = False
+                    for mark_node in self._iter_pytestmark_nodes(node.value):
+                        if self.has_category_marker([mark_node]):
+                            has_cat = True
+                        if self.has_domain_marker([mark_node]):
+                            has_dom = True
+                    return has_cat, has_dom
+        return False, False
+
     def analyze_file(self, file_path):
         try:
             # Use utf-8-sig so BOM-prefixed files do not trigger SyntaxError.
@@ -610,11 +637,22 @@ class MissingMarkerFinder:
         except SyntaxError as exc:
             logger.warning(f"Skipping {file_path} due to syntax error: {exc}")
             return
+        module_has_cat, module_has_dom = self._module_pytestmark_flags(tree)
         for node in tree.body:
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                self.process_function(node, file_path)
+                self.process_function(
+                    node,
+                    file_path,
+                    inherited_category=module_has_cat,
+                    inherited_domain=module_has_dom,
+                )
             elif isinstance(node, ast.ClassDef):
-                self.process_class(node, file_path)
+                self.process_class(
+                    node,
+                    file_path,
+                    inherited_category=module_has_cat,
+                    inherited_domain=module_has_dom,
+                )
 
 
 def main():
