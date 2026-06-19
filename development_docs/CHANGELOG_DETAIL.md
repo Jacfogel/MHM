@@ -33,10 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
-### 2026-06-18 - Scheduler domain coverage above 80% target
+### 2026-06-18 - Scheduler and storage domain coverage
 - **Tests**: Added [`test_scheduler_manager_coverage.py`](../tests/unit/test_scheduler_manager_coverage.py) covering `reset_and_reschedule_daily_messages`, random-time scheduling success paths, skipped message handling, standalone clear/process helpers, and `task_reminders` retry/inactive-period branches.
 - **Tests**: Extended [`test_scheduler_jobs.py`](../tests/unit/test_scheduler_jobs.py) for `register_full_daily_maintenance_jobs` import-failure path; [`test_scheduler_maintenance.py`](../tests/core/test_scheduler_maintenance.py) for schtasks delete stderr logging.
 - **Coverage**: Scheduler-focused pytest run reports **83%** package coverage (up from ~76%); `scheduler/manager.py` 81%, `scheduler/task_reminders.py` 82%.
+- **Tests**: Added [`test_storage_scenarios.py`](../tests/core/test_storage_scenarios.py) - 17 scenario tests for `storage/user_data_read.py` (normalization, ID repair, early returns), `storage/user_data_write.py` (merge, cross-file invariants, transaction index failure), and `storage/user_data_operations.py` (module-level wrapper validation, analytics, index/message summary paths).
+- **Impact**: Addresses AI priority #1 storage gap (`user_data_read`, `user_data_write`, `user_data_operations`); domain was 79.8% overall - re-run `python development_tools/run_development_tools.py audit --full` to refresh consolidated coverage metrics.
 - **Hygiene**: Replaced `datetime.now()` with `now_datetime_full()` in scheduler coverage test; removed unused `MagicMock` import (fixes Ruff F401 and `test_no_datetime_now_in_tests`).
 - **Dev tools**: Updated [`analyze_test_markers.py`](../development_tools/tests/analyze_test_markers.py) `MissingMarkerFinder` to inherit category/domain markers from module-level `pytestmark`, aligning with [`test_test_policy_guards.py`](../tests/unit/test_test_policy_guards.py); added regression test in [`test_analyze_test_markers.py`](../tests/development_tools/test_analyze_test_markers.py).
 

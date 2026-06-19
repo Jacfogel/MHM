@@ -30,10 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-06-18 - Scheduler domain coverage above 80% target **COMPLETED**
+### 2026-06-18 - Scheduler and storage domain coverage **COMPLETED**
 - Added `tests/unit/test_scheduler_manager_coverage.py` with scenario tests for `reset_and_reschedule_daily_messages`, `schedule_message_at_random_time`, deferred/skipped send paths, standalone helpers, and `task_reminders` module branches.
 - Extended `tests/unit/test_scheduler_jobs.py` (cleanup import failure) and `tests/core/test_scheduler_maintenance.py` (nonzero delete stderr path).
 - Scheduler package coverage on scheduler-focused tests: **83%** (was ~76%); `manager.py` **81%**, `task_reminders.py` **82%**.
+- Added `tests/core/test_storage_scenarios.py` (17 tests) for `user_data_read` normalization/ID repair, `user_data_write` merge/cross-file invariants/transactions, and `user_data_operations` module wrappers, analytics, and index helpers.
+- Storage priority targets: read/write/operations scenario paths that were below the 80% domain goal; re-run `audit --full` to refresh `TEST_COVERAGE_REPORT.md`.
 - Hygiene: fixed `datetime.now()` policy violation and unused `MagicMock` import in scheduler coverage tests (Ruff F401 + `test_no_datetime_now_in_tests`).
 - Dev tools: `MissingMarkerFinder` now honors module-level `pytestmark` (fixes false-positive "16 missing category markers" for UI action tests that already had `pytestmark = [pytest.mark.ui, pytest.mark.unit]`).
 
