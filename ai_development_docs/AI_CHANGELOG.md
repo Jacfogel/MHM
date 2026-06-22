@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-06-21 - Communication coverage expansion and test hygiene **COMPLETED**
+- Added [`test_communication_coverage_expansion.py`](../tests/communication/test_communication_coverage_expansion.py) (39 tests) targeting AI priority #1 gaps: `discord_interaction_router.py`, `create_item_ui.py`, `checkin_flow.py`, and `task_flow.py` reminder/flow edge paths.
+- Extended [`test_message_processing_scenarios.py`](../tests/communication/test_message_processing_scenarios.py) with `discord_response_delivery` embed-only, view-only, and ephemeral branches; extended [`test_status_provider.py`](../tests/ui/test_status_provider.py) with Discord/email/ngrok status and `tail_file_lines` paths.
+- Focused coverage on targeted modules: `discord_interaction_router` ~77%, `create_item_ui` ~61% (up from ~17% / ~25%); all **167** tests under `tests/communication/` pass.
+- Hygiene: removed unused `ParsedCommand` import (Ruff F401); `_discord_interaction()` uses `MagicMock(spec=discord.Interaction)`; guarded `await_args` before `.args[0]` (Pyright 0 warnings on the file).
+
 ### 2026-06-18 - Scheduler, storage, and communication domain coverage **COMPLETED**
 - Added `tests/unit/test_scheduler_manager_coverage.py` with scenario tests for `reset_and_reschedule_daily_messages`, `schedule_message_at_random_time`, deferred/skipped send paths, standalone helpers, and `task_reminders` module branches.
 - Extended `tests/unit/test_scheduler_jobs.py` (cleanup import failure) and `tests/core/test_scheduler_maintenance.py` (nonzero delete stderr path).

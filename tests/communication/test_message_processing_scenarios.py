@@ -864,6 +864,45 @@ class TestDiscordResponseDelivery:
         )
 
     @pytest.mark.asyncio
+    async def test_embed_only_response(self):
+        from communication.communication_channels.discord.discord_response_delivery import (
+            deliver_handler_response,
+        )
+
+        mock_bot = MagicMock()
+        mock_bot._has_display_rich_data.return_value = True
+        mock_bot._create_discord_embed.return_value = MagicMock()
+        mock_bot._get_action_row_inputs.return_value = ([], [])
+        interaction = AsyncMock()
+        response = InteractionResponse(
+            "Stats reply.",
+            rich_data={"title": "Stats"},
+        )
+        await deliver_handler_response(interaction, response, mock_bot)
+        interaction.followup.send.assert_awaited_once()
+        kwargs = interaction.followup.send.await_args.kwargs
+        assert kwargs["embed"] is not None
+        assert "view" not in kwargs
+
+    @pytest.mark.asyncio
+    async def test_view_only_response(self):
+        from communication.communication_channels.discord.discord_response_delivery import (
+            deliver_handler_response,
+        )
+
+        mock_bot = MagicMock()
+        mock_bot._has_display_rich_data.return_value = False
+        mock_bot._get_action_row_inputs.return_value = (["Done"], [{"action": "ok"}])
+        mock_bot._create_action_row.return_value = MagicMock()
+        interaction = AsyncMock()
+        response = InteractionResponse("Pick one.", suggestions=["Done"])
+        await deliver_handler_response(interaction, response, mock_bot)
+        interaction.followup.send.assert_awaited_once()
+        kwargs = interaction.followup.send.await_args.kwargs
+        assert kwargs["view"] is not None
+        assert "embed" not in kwargs
+
+    @pytest.mark.asyncio
     async def test_embed_and_view_response(self):
         from communication.communication_channels.discord.discord_response_delivery import (
             deliver_handler_response,
@@ -885,6 +924,21 @@ class TestDiscordResponseDelivery:
         kwargs = interaction.followup.send.await_args.kwargs
         assert kwargs["embed"] is not None
         assert kwargs["view"] is not None
+
+    @pytest.mark.asyncio
+    async def test_ephemeral_flag_passed_through(self):
+        from communication.communication_channels.discord.discord_response_delivery import (
+            deliver_handler_response,
+        )
+
+        interaction = AsyncMock()
+        response = InteractionResponse("Private note.")
+        await deliver_handler_response(
+            interaction, response, discord_bot=None, ephemeral=True
+        )
+        interaction.followup.send.assert_awaited_once_with(
+            content="Private note.", ephemeral=True
+        )
 
 
 @pytest.mark.unit

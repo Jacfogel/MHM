@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-06-21 - Communication coverage expansion and test hygiene
+- **Tests**: Added [`test_communication_coverage_expansion.py`](../tests/communication/test_communication_coverage_expansion.py) - 39 scenario tests for communication AI priority #1: `discord_interaction_router.py` (component/application routing, welcome buttons, suggestion buttons, `/start` welcome), `create_item_ui.py` (hub view, template/modal callbacks, handler delegation), `checkin_flow.py` (personalized welcome, `/cancel`, inactivity expiry, no-questions path), and `task_flow.py` reminder follow-up edges (missing task ID, skip, unrelated command, timeout, no due date).
+- **Tests**: Extended [`test_message_processing_scenarios.py`](../tests/communication/test_message_processing_scenarios.py) - `TestDiscordResponseDelivery` embed-only, view-only, and ephemeral branches; extended [`test_status_provider.py`](../tests/ui/test_status_provider.py) - missing-token path, init/activity log detection, email credential gaps, ngrok not-running, `tail_file_lines` helpers.
+- **Coverage**: Focused pytest runs report `discord_interaction_router` ~77% and `create_item_ui` ~61% (was ~17% / ~25% in stale [`TEST_COVERAGE_REPORT.md`](TEST_COVERAGE_REPORT.md)). Re-run `python development_tools/run_development_tools.py audit --full` to refresh communication domain total toward the **80%** goal.
+- **Verification**: `pytest tests/communication/` - 167 passed.
+- **Hygiene**: Removed unused `ParsedCommand` import in coverage expansion test (Ruff F401); `_discord_interaction()` helper uses `MagicMock(spec=discord.Interaction)` instead of `__class__` assignment; DM-forbidden assertion guards `await_args is not None` before `.args[0]` (Pyright 0 errors, 0 warnings on file).
+
 ### 2026-06-18 - Scheduler, storage, and communication domain coverage
 - **Tests**: Added [`test_scheduler_manager_coverage.py`](../tests/unit/test_scheduler_manager_coverage.py) covering `reset_and_reschedule_daily_messages`, random-time scheduling success paths, skipped message handling, standalone clear/process helpers, and `task_reminders` retry/inactive-period branches.
 - **Tests**: Extended [`test_scheduler_jobs.py`](../tests/unit/test_scheduler_jobs.py) for `register_full_daily_maintenance_jobs` import-failure path; [`test_scheduler_maintenance.py`](../tests/core/test_scheduler_maintenance.py) for schtasks delete stderr logging.
