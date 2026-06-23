@@ -203,19 +203,19 @@ This is a high-level capability map, not a complete alias list. Exact command al
 
 ### 4.2 Improve notebook command discovery
 
-**Status**: Active  
+**Status**: Active (help text shipped 2026-06-22; live validation ongoing)  
 **Priority**: High
 
 **Problem**: Notebook has many useful commands, but discovery is weak. `NotebookHandler.get_help()` is currently too short to serve as the main user guide.
 
 **Tasks**:
 
-- [ ] Add or improve `!help notebook` / notebook-specific help output.
-- [ ] Group commands by capture, retrieve, modify, lists, and organization.
-- [ ] Include examples for the commands most useful on a phone.
-- [ ] Mention current inbox semantics in help text.
-- [ ] Mention group vs tag distinction briefly.
-- [ ] Add tests for the help/discovery output.
+- [x] Add or improve `!help notebook` / notebook-specific help output.
+- [x] Group commands by capture, retrieve, modify, lists, and organization.
+- [x] Include examples for the commands most useful on a phone.
+- [x] Mention current inbox semantics in help text.
+- [x] Mention group vs tag distinction briefly.
+- [x] Add tests for the help/discovery output.
 
 **Acceptance**:
 

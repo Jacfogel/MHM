@@ -16,7 +16,6 @@ from core.time_utilities import (
     parse_date_and_time_minute,
     parse_date_only,
     parse_time_only_minute,
-    parse_timestamp_full,
 )
 from tasks.task_data_handlers import runtime_task_due_date, runtime_task_due_time
 
@@ -25,12 +24,155 @@ from communication.message_processing.flows.flow_constants import (
     FLOW_TASK_PRIORITY,
     FLOW_TASK_REMINDER,
 )
-from communication.message_processing.flows.flow_state import FlowStateMixin
+from communication.message_processing.flows.flow_command_helpers import (
+    TASK_NOT_SAVED_MESSAGE,
+    TASK_SAVED_MESSAGE,
+    TASK_STEP_BACK_MESSAGE,
+    is_skip_all_message,
+    is_skip_question_message,
+    is_task_flow_delete_in_progress_message,
+    is_task_flow_step_back_message,
+    is_task_flow_undo_creation_message,
+    is_unrelated_task_due_date_message,
+    is_unrelated_task_priority_message,
+    is_unrelated_task_reminder_message,
+)
+from communication.message_processing.flows.flow_control_mixin import FlowControlMixin
 
 logger = get_component_logger("communication_manager")
 
 
-class TaskFlowMixin(FlowStateMixin):
+class TaskFlowMixin(FlowControlMixin):
+    # error_handling_exclude: called from decorated flow handlers
+    def _task_flow_skip_all(self, user_id: str) -> tuple[str, bool]:
+        """Finish task follow-up with defaults (Skip All / timeout)."""
+        self._clear_flow_state(user_id, mark_completion=True)
+        return (TASK_SAVED_MESSAGE, True)
+
+    # error_handling_exclude: orchestrates decorated callbacks
+    def _try_task_flow_control_command(
+        self,
+        user_id: str,
+        user_state: dict,
+        message_lower: str,
+        *,
+        unrelated_checker,
+        on_skip_question,
+        flow_label: str = "task follow-up",
+    ) -> tuple[str, bool] | None:
+        """Handle shared skip/undo/back/delete commands for task follow-up flows."""
+        handlers = self._build_flow_control_handlers(
+            on_skip_all=lambda: self._task_flow_skip_all(user_id),
+            on_skip_question=on_skip_question,
+            on_undo_creation=lambda: self._task_flow_undo_creation(user_id, user_state),
+            on_step_back=lambda: self._task_flow_step_back(user_id, user_state),
+            is_unrelated=unrelated_checker,
+            on_timeout_unrelated=lambda: self._task_flow_skip_all(user_id),
+            skip_all_checker=is_skip_all_message,
+            skip_question_checker=is_skip_question_message,
+            undo_creation_checker=is_task_flow_undo_creation_message,
+            delete_in_progress_checker=is_task_flow_delete_in_progress_message,
+            step_back_checker=is_task_flow_step_back_message,
+            is_expired=lambda state: self._is_flow_expired(state),
+        )
+        return self._try_flow_control_command(
+            user_id,
+            user_state,
+            message_lower,
+            handlers,
+            flow_label=flow_label,
+        )
+
+    # error_handling_exclude: called from decorated flow handlers
+    def _task_flow_undo_creation(self, user_id: str, user_state: dict) -> tuple[str, bool]:
+        """Delete in-progress task and abandon follow-up (cancel / undo creation)."""
+        task_id = self._get_task_flow_identifier(user_state)
+        self._clear_flow_state(user_id, mark_completion=True)
+        if task_id:
+            from tasks import delete_task
+
+            if delete_task(user_id, task_id):
+                return (TASK_NOT_SAVED_MESSAGE, True)
+        return (
+            "Task not saved. Couldn't remove the task, but setup was cancelled.",
+            True,
+        )
+
+    # error_handling_exclude: static prompt text; no I/O
+    def _task_flow_due_date_prompt(self) -> str:
+        """User-facing prompt for the due date/time follow-up step."""
+        return "What would you like to add as the due date and/or time for this task?"
+
+    # error_handling_exclude: static prompt text; no I/O
+    def _task_flow_priority_prompt(self) -> str:
+        """User-facing prompt for the priority follow-up step."""
+        return "What priority should this task have?"
+
+    # error_handling_exclude: state restore only; caller is decorated
+    def _restore_task_followup_flow(
+        self,
+        user_id: str,
+        task_id: str,
+        flow: int,
+        extra_data: dict[str, Any],
+        flow_history: list[int],
+    ) -> None:
+        """Re-enter a prior task follow-up step after back/undo navigation."""
+        self.user_states[user_id] = {
+            "flow": flow,
+            "state": 0,
+            "data": {
+                "task_identifier": task_id,
+                "flow_history": flow_history,
+                **extra_data,
+            },
+            "started_at": now_timestamp_full(),
+        }
+        self._save_user_states()
+
+    # error_handling_exclude: called from decorated flow handlers
+    def _task_flow_step_back(
+        self, user_id: str, user_state: dict
+    ) -> tuple[str, bool]:
+        """Go back one task follow-up step using ``flow_history``."""
+        history = list(user_state.get("data", {}).get("flow_history", []))
+        task_id = self._get_task_flow_identifier(user_state)
+        if not task_id:
+            return self._task_flow_undo_creation(user_id, user_state)
+
+        if not history:
+            return self._task_flow_undo_creation(user_id, user_state)
+
+        prev_flow = history.pop()
+        flow_data = dict(user_state.get("data", {}))
+
+        if prev_flow == FLOW_TASK_DUE_DATE:
+            ask_priority = bool(flow_data.get("ask_priority", False))
+            self._restore_task_followup_flow(
+                user_id,
+                task_id,
+                FLOW_TASK_DUE_DATE,
+                {"ask_priority": ask_priority},
+                history,
+            )
+            return (f"{TASK_STEP_BACK_MESSAGE}\n\n{self._task_flow_due_date_prompt()}", False)
+
+        if prev_flow == FLOW_TASK_PRIORITY:
+            ask_reminders = bool(flow_data.get("ask_reminders", True))
+            self._restore_task_followup_flow(
+                user_id,
+                task_id,
+                FLOW_TASK_PRIORITY,
+                {"ask_reminders": ask_reminders},
+                history,
+            )
+            return (
+                f"{TASK_STEP_BACK_MESSAGE}\n\n{self._task_flow_priority_prompt()}",
+                False,
+            )
+
+        return self._task_flow_undo_creation(user_id, user_state)
+
     @handle_errors(
         "handling task reminder follow-up",
         default_return=(
@@ -64,41 +206,25 @@ class TaskFlowMixin(FlowStateMixin):
                     True,
                 )
 
-            # Check for timeout first (10 minutes)
-            started_at_str = user_state.get("started_at")
-            if started_at_str:
-                # started_at is internal persisted state (string timestamp).
-                # Parse strictly using canonical helper.
-                started_at = parse_timestamp_full(started_at_str)
-                if started_at is not None and (
-                    now_datetime_full() - started_at
-                ) > timedelta(minutes=10):
-                    self._clear_flow_state(user_id, mark_completion=True)
-                    return (
-                        "⏱️ Reminder flow expired. Task was created successfully. You can add reminders later by updating the task.",
-                        True,
-                    )
-
             message_lower = message_text.lower().strip()
 
-            # Check if message is clearly unrelated to reminder flow (commands or unrelated content)
-            unrelated_patterns = [
-                r"^/(n|note|nn|newn|newnote|task|t|nt|ntask|newt|newtask|ct|ctask|createtask|createt|l|list|newl|newlist|cl|createlist|createl)",
-                r"^!(n|note|nn|newn|newnote|task|t|nt|ntask|newt|newtask|ct|ctask|createtask|createt|l|list|newl|newlist|cl|createlist|createl)",
-                r"^(create|add|new|show|list|complete|delete|update).*(task|note|list)",
-                r"^(hi|hello|hey|thanks|thank you|bye|goodbye)",
-            ]
-            import re
-
-            if any(re.match(pattern, message_lower) for pattern in unrelated_patterns):
-                # Message is clearly unrelated - clear flow and let it be processed normally
-                logger.info(
-                    f"User {user_id} in reminder flow sent unrelated message '{message_text}', clearing flow"
-                )
+            # error_handling_exclude: nested helper; caller is decorated
+            def _skip_reminders() -> tuple[str, bool]:
+                """Skip reminder setup and finalize the task."""
                 self._clear_flow_state(user_id, mark_completion=True)
-                return ("", True)  # Empty response to let command be processed normally
+                return ("Task saved. No reminders set.", True)
 
-            # Check if user wants to skip reminders
+            control_response = self._try_task_flow_control_command(
+                user_id,
+                user_state,
+                message_lower,
+                unrelated_checker=is_unrelated_task_reminder_message,
+                on_skip_question=_skip_reminders,
+            )
+            if control_response is not None:
+                return control_response
+
+            # Check if user wants to skip reminders (natural phrasing)
             skip_patterns = [
                 "no reminders",
                 "no reminder",
@@ -492,10 +618,20 @@ class TaskFlowMixin(FlowStateMixin):
         log_label: str,
     ) -> None:
         """Persist a task follow-up flow with shared task identifier state."""
+        existing = self.user_states.get(user_id, {})
+        old_flow = existing.get("flow")
+        history = list(existing.get("data", {}).get("flow_history", []))
+        if old_flow in (FLOW_TASK_DUE_DATE, FLOW_TASK_PRIORITY, FLOW_TASK_REMINDER):
+            history.append(old_flow)
+
         self.user_states[user_id] = {
             "flow": flow,
             "state": 0,
-            "data": {"task_identifier": task_id, **extra_data},
+            "data": {
+                "task_identifier": task_id,
+                "flow_history": history,
+                **extra_data,
+            },
             "started_at": now_timestamp_full(),
         }
         self._save_user_states()
@@ -523,7 +659,7 @@ class TaskFlowMixin(FlowStateMixin):
 
         self._clear_flow_state(user_id, mark_completion=True)
         return (
-            "Task setup finished. You can update priority, due date, or reminders later from the task list.",
+            TASK_SAVED_MESSAGE,
             True,
         )
     @handle_errors(
@@ -549,40 +685,28 @@ class TaskFlowMixin(FlowStateMixin):
                 True,
             )
 
-        started_at_str = user_state.get("started_at")
-        if started_at_str:
-            started_at = parse_timestamp_full(started_at_str)
-            if started_at is not None and (
-                now_datetime_full() - started_at
-            ) > timedelta(minutes=10):
-                self._clear_flow_state(user_id, mark_completion=True)
-                return (
-                    "Priority setup expired. Task was created with normal priority.",
-                    True,
-                )
-
         message_lower = message_text.lower().strip()
-        skip_all_keywords = ["skip all", "!skip all", "/skip all"]
-        skip_keywords = ["skip", "!skip", "/skip", "medium", "normal", "none"]
-        cancel_keywords = ["cancel", "!cancel", "/cancel"]
 
-        if any(message_lower == keyword for keyword in skip_all_keywords):
-            self._clear_flow_state(user_id, mark_completion=True)
-            return (
-                "Task setup finished. You can update priority, due date, or reminders later from the task list.",
-                True,
-            )
-
-        if any(message_lower == keyword for keyword in cancel_keywords):
+        # error_handling_exclude: nested helper; caller is decorated
+        def _skip_priority_question() -> tuple[str, bool]:
+            """Skip priority and continue to reminders or finish."""
             return self._continue_after_task_priority(user_id, task_id, ask_reminders)
 
-        if any(message_lower == keyword for keyword in skip_keywords):
-            return self._continue_after_task_priority(user_id, task_id, ask_reminders)
+        control_response = self._try_task_flow_control_command(
+            user_id,
+            user_state,
+            message_lower,
+            unrelated_checker=is_unrelated_task_priority_message,
+            on_skip_question=_skip_priority_question,
+        )
+        if control_response is not None:
+            return control_response
 
         priority = message_lower
         if priority not in VALID_PRIORITIES:
             return (
-                "I'm not sure which priority you want. Choose low, medium, high, or critical. You can also say skip or skip all.",
+                "I'm not sure which priority you want. Choose Low, Medium, High, or Critical "
+                "(or use Skip Question, Skip All, back/undo, or cancel).",
                 False,
             )
 
@@ -716,80 +840,25 @@ class TaskFlowMixin(FlowStateMixin):
 
         message_lower = message_text.lower().strip()
 
-        # Check for timeout first (10 minutes)
-        started_at_str = user_state.get("started_at")
-        if started_at_str:
-            # started_at is internal persisted state (string timestamp).
-            # Parse strictly using canonical helper.
-            started_at = parse_timestamp_full(started_at_str)
-            if started_at is not None and (
-                now_datetime_full() - started_at
-            ) > timedelta(minutes=10):
-                self._clear_flow_state(user_id, mark_completion=True)
-                return (
-                    "⏱️ Due date flow expired. Task was created without a due date. You can add one later by updating the task.",
-                    True,
-                )
-
-        # Check for skip/cancel commands
-        skip_all_keywords = ["skip all", "!skip all", "/skip all"]
-        skip_keywords = ["skip", "!skip", "/skip"]
-        cancel_keywords = ["cancel", "!cancel", "/cancel"]
-
-        if any(message_lower == keyword for keyword in skip_all_keywords):
-            self._clear_flow_state(user_id, mark_completion=True)
-            return (
-                "Task setup finished. You can update due date, priority, or reminders later from the task list.",
-                True,
-            )
-
-        # Handle cancel - abort due date setting
-        if any(
-            message_lower == keyword or message_lower.startswith(keyword + " ")
-            for keyword in cancel_keywords
-        ):
-            task_id = self._get_task_flow_identifier(user_state)
-            self._clear_flow_state(user_id, mark_completion=True)
-            return (
-                "❌ Due date setting cancelled. Task was created without a due date.",
-                True,
-            )
-
-        # Handle skip - continue without due date
-        if any(
-            message_lower == keyword or message_lower.startswith(keyword + " ")
-            for keyword in skip_keywords
-        ):
+        # error_handling_exclude: nested helper; caller is decorated
+        def _skip_due_date_question() -> tuple[str, bool]:
+            """Skip due date; go to priority or finish without reminders."""
             task_id = self._get_task_flow_identifier(user_state)
             ask_priority = bool(user_state.get("data", {}).get("ask_priority", False))
             if ask_priority and task_id:
                 self.start_task_priority_flow(user_id, task_id, ask_reminders=False)
-                return (
-                    "Task created without a due date.\n\nWhat priority should this task have? [Low] [Medium] [High] [Critical] [Skip] [Skip All]",
-                    False,
-                )
-            self._clear_flow_state(user_id, mark_completion=True)
-            return (
-                "✅ Task created without a due date. You can add one later by updating the task.",
-                True,
-            )
+                return (self._task_flow_priority_prompt(), False)
+            return self._task_flow_skip_all(user_id)
 
-        # Check if message is clearly unrelated to due date flow (commands or unrelated content)
-        unrelated_patterns = [
-            r"^/(n|note|nn|newn|newnote|task|t|nt|ntask|newt|newtask|ct|ctask|createtask|createt|l|list|newl|newlist|cl|createlist|createl)",
-            r"^!(n|note|nn|newn|newnote|task|t|nt|ntask|newt|newtask|ct|ctask|createtask|createt|l|list|newl|newlist|cl|createlist|createl)",
-            r"^(create|add|new|show|list|complete|delete|update).*(task|note|list)",
-            r"^(hi|hello|hey|thanks|thank you|bye|goodbye)",
-        ]
-        import re
-
-        if any(re.match(pattern, message_lower) for pattern in unrelated_patterns):
-            # Message is clearly unrelated - clear flow and let it be processed normally
-            logger.info(
-                f"User {user_id} in due date flow sent unrelated message '{message_text}', clearing flow"
-            )
-            self._clear_flow_state(user_id, mark_completion=True)
-            return ("", True)  # Empty response to let command be processed normally
+        control_response = self._try_task_flow_control_command(
+            user_id,
+            user_state,
+            message_lower,
+            unrelated_checker=is_unrelated_task_due_date_message,
+            on_skip_question=_skip_due_date_question,
+        )
+        if control_response is not None:
+            return control_response
 
         # Parse date/time from user input
         task_id = self._get_task_flow_identifier(user_state)
@@ -808,7 +877,7 @@ class TaskFlowMixin(FlowStateMixin):
                 "- 'next week'\n"
                 "- 'Monday at 2pm'\n"
                 "- '2026-01-15 10:00'\n"
-                "- Or say 'skip' to continue without a due date",
+                "- Or tap **Skip Question** to continue without a due date",
                 False,
             )
 
@@ -834,7 +903,7 @@ class TaskFlowMixin(FlowStateMixin):
             if ask_priority:
                 self.start_task_priority_flow(user_id, task_id, ask_reminders=True)
                 return (
-                    f"Due date set: {due_text}\n\nWhat priority should this task have? [Low] [Medium] [High] [Critical] [Skip] [Skip All]",
+                    f"Due date set: {due_text}\n\nWhat priority should this task have?",
                     False,
                 )
 

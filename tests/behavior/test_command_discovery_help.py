@@ -144,6 +144,57 @@ class TestCommandDiscoveryHelp:
         assert "after work" in message and "after school" in message
         assert "group:" in message
 
+    def test_category_specific_help_notebook(self, test_data_dir):
+        """Test category-specific help for notebook."""
+        handler = HelpHandler()
+        user_id = "test_user_help_notebook"
+
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+
+        parsed_command = ParsedCommand(
+            intent="help",
+            entities={"topic": "notebook"},
+            confidence=0.9,
+            original_message="help notebook",
+        )
+
+        response = handler.handle(user_id, parsed_command)
+
+        assert isinstance(response, InteractionResponse)
+        assert response.completed is True
+
+        message = response.message
+        assert "**Notebook Help:**" in message
+        assert "Show More" in message
+        assert "inbox" in message.lower()
+        assert "groups vs tags" in message.lower()
+        assert "!s project" in message or "`!s project`" in message
+
+    def test_examples_by_category_notebook(self, test_data_dir):
+        """Test examples response for notebook category."""
+        handler = HelpHandler()
+        user_id = "test_user_examples_notebook"
+
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+
+        parsed_command = ParsedCommand(
+            intent="examples",
+            entities={"category": "notebook"},
+            confidence=0.9,
+            original_message="examples notebook",
+        )
+
+        response = handler.handle(user_id, parsed_command)
+
+        assert isinstance(response, InteractionResponse)
+        assert response.completed is True
+
+        message = response.message
+        assert "**Notebook Examples:**" in message
+        assert "!recent" in message
+        assert "!s project" in message
+        assert "!inbox" in message
+
     def test_category_specific_help_checkin(self, test_data_dir):
         """Test category-specific help for check-ins."""
         handler = HelpHandler()

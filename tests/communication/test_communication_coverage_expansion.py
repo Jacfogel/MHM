@@ -731,7 +731,7 @@ class TestTaskFlowExpansion:
         assert "doesn't have a due date" in reply.lower()
         assert user_id not in flow_manager.user_states
 
-    def test_reminder_followup_timeout_expires_flow(self, flow_manager):
+    def test_reminder_followup_timeout_unrelated_skips_all(self, flow_manager):
         user_id = _unique_user("reminder_timeout")
         flow_manager.user_states[user_id] = {
             "flow": FLOW_TASK_REMINDER,
@@ -740,23 +740,10 @@ class TestTaskFlowExpansion:
             "started_at": _past_timestamp(15),
         }
         reply, completed = flow_manager._handle_task_reminder_followup(
-            user_id, flow_manager.user_states[user_id], "1 hour before"
+            user_id, flow_manager.user_states[user_id], "hello"
         )
         assert completed
-        assert "expired" in reply.lower()
-        assert user_id not in flow_manager.user_states
-        user_id = _unique_user("reminder_timeout")
-        flow_manager.user_states[user_id] = {
-            "flow": FLOW_TASK_REMINDER,
-            "state": 0,
-            "data": {"task_identifier": "task-1"},
-            "started_at": _past_timestamp(15),
-        }
-        reply, completed = flow_manager._handle_task_reminder_followup(
-            user_id, flow_manager.user_states[user_id], "1 hour before"
-        )
-        assert completed
-        assert "expired" in reply.lower()
+        assert "task saved" in reply.lower()
         assert user_id not in flow_manager.user_states
 
 

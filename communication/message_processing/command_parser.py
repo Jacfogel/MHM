@@ -231,7 +231,7 @@ class EnhancedCommandParser:
             ],
             "help": [
                 r"^help$",  # Exact match for "help" - check first
-                r"^help\s+(tasks?|check.?in|profile)$",
+                r"^help\s+(tasks?|check.?in|profile|notebook|notes?)$",
                 r"^what\s+can\s+you\s+do$",
                 r"^how\s+do\s+i\s+use\s+this$",
                 r"^how\s+do\s+i\s+create\s+a\s+task$",
@@ -247,7 +247,7 @@ class EnhancedCommandParser:
             ],
             "examples": [
                 r"examples?",
-                r"examples?\s+(tasks?|check.?in|profile)",
+                r"examples?\s+(tasks?|check.?in|profile|notebook|notes?|schedule|analytics)",
                 r"show\s+examples?",
                 r"give\s+me\s+examples?",
             ],

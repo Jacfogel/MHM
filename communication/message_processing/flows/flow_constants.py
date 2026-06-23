@@ -10,6 +10,7 @@ FLOW_NOTE_BODY = 3
 FLOW_LIST_ITEMS = 4
 FLOW_TASK_DUE_DATE = 5
 FLOW_TASK_PRIORITY = 6
+FLOW_JOURNAL_BODY = 7
 
 
 # We'll define states for check-in - now dynamic based on user preferences
@@ -38,6 +39,28 @@ CHECKIN_COMPLETE = 200
 CHECKIN_INACTIVITY_MINUTES = 120
 # Post-flow cooldown to delay scheduled automations after flow completion
 POST_FLOW_COOLDOWN_MINUTES = 10
+# Idle expiry for multi-step create flows (tasks, notes, lists, future events)
+CONVERSATION_FLOW_TIMEOUT_MINUTES = 10
+
+# Discord/channel suggestion buttons for task creation follow-ups
+FLOW_CONTROL_SKIP_LABELS = frozenset(
+    {"Skip", "Skip Question", "Skip All", "End List"}
+)
+FLOW_UNDO_BUTTON_PREFIX = "Undo "
+
+TASK_DUE_DATE_SUGGESTIONS = ["Skip Question", "Skip All", "Undo Task Creation"]
+TASK_PRIORITY_SUGGESTIONS = [
+    "Low",
+    "Medium",
+    "High",
+    "Critical",
+    "Skip Question",
+    "Skip All",
+    "Undo Task Creation",
+]
+NOTEBOOK_BODY_SUGGESTIONS = ["Skip Question", "Undo Note Creation"]
+JOURNAL_BODY_SUGGESTIONS = ["Skip Question", "Undo Entry Creation"]
+LIST_ITEMS_SUGGESTIONS = ["End List", "Undo List Creation"]
 
 # Question mapping for dynamic flow
 QUESTION_STATES = {

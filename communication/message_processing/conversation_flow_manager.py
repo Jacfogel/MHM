@@ -26,6 +26,7 @@ from core.logger import get_component_logger
 from communication.message_processing.flows.checkin_flow import CheckinFlowMixin
 from communication.message_processing.flows.flow_constants import (
     FLOW_CHECKIN,
+    FLOW_JOURNAL_BODY,
     FLOW_LIST_ITEMS,
     FLOW_NONE,
     FLOW_NOTE_BODY,
@@ -132,6 +133,8 @@ class ConversationManager(CheckinFlowMixin, TaskFlowMixin, NoteFlowMixin):
             )
         elif flow == FLOW_NOTE_BODY:
             return self._handle_note_body_flow(user_id, user_state, message_text)
+        elif flow == FLOW_JOURNAL_BODY:
+            return self._handle_journal_body_flow(user_id, user_state, message_text)
         elif flow == FLOW_LIST_ITEMS:
             return self._handle_list_items_flow(user_id, user_state, message_text)
         elif flow == FLOW_TASK_DUE_DATE:

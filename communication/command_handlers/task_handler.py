@@ -16,6 +16,10 @@ from core.error_handling import handle_errors
 from core.time_utilities import now_datetime_full
 from .base_handler import InteractionHandler, InteractionResponse, ParsedCommand
 from .task_analytics_handler import TaskAnalyticsHandler
+from communication.message_processing.flows.flow_constants import (
+    TASK_DUE_DATE_SUGGESTIONS,
+    TASK_PRIORITY_SUGGESTIONS,
+)
 
 from tasks.task_data_handlers import (
     runtime_task_due_date,
@@ -75,7 +79,7 @@ Manage tasks with natural language or short commands.
 • `create task from template phone_call Call dentist`
 • `list task templates` — see all built-in templates
 
-**After create:** If due/priority/reminders are missing, I may ask follow-up questions — reply with a date/time, priority, or `skip` / `cancel`.
+**After create:** If due/priority/reminders are missing, I may ask follow-up questions — use the buttons or reply with a date/time, priority, **Skip Question**, **Skip All**, **back**/**undo** (one step back), or **cancel**/**Undo Task Creation** (delete the new task).
 
 **More:** `help tasks`, `examples tasks`, or `/tasks`"""
 
@@ -246,9 +250,11 @@ class TaskManagementHandler(InteractionHandler):
                 conversation_manager.start_task_due_date_flow(
                     user_id, task_id, ask_priority=not priority_was_provided
                 )
-                response += "\n\nWhat would you like to add as the due date and/or time for this task? [Skip] [Cancel]"
+                response += "\n\nWhat would you like to add as the due date and/or time for this task?"
                 return InteractionResponse(
-                    response, completed=False, suggestions=["Skip", "Skip All", "Cancel"]
+                    response,
+                    completed=False,
+                    suggestions=list(TASK_DUE_DATE_SUGGESTIONS),
                 )
             elif not priority_was_provided:
                 logger.debug(
@@ -257,11 +263,11 @@ class TaskManagementHandler(InteractionHandler):
                 conversation_manager.start_task_priority_flow(
                     user_id, task_id, ask_reminders=True
                 )
-                response += "\n\nWhat priority should this task have? [Low] [Medium] [High] [Critical] [Skip] [Skip All]"
+                response += "\n\nWhat priority should this task have?"
                 return InteractionResponse(
                     response,
                     completed=False,
-                    suggestions=["Low", "Medium", "High", "Critical", "Skip", "Skip All"],
+                    suggestions=list(TASK_PRIORITY_SUGGESTIONS),
                 )
             else:
                 # Task has valid due date - ask about reminder periods with context-aware options

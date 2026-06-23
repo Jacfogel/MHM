@@ -19,6 +19,10 @@ import psutil
 from communication.communication_channels.discord.discord_connection_status import (
     DiscordConnectionStatus,
 )
+from communication.message_processing.flows.flow_constants import (
+    FLOW_CONTROL_SKIP_LABELS,
+    FLOW_UNDO_BUTTON_PREFIX,
+)
 from core.config import DISCORD_BOT_TOKEN, DISCORD_APPLICATION_ID
 from core.logger import get_component_logger
 from communication.communication_channels.base.base_channel import (
@@ -1660,7 +1664,17 @@ class DiscordBot(BaseChannel):
 
         if not labels:
             return [], None
-        return labels[:5], payloads[:5]
+        # Discord allows up to 5 action rows (25 buttons); View wraps automatically.
+        return labels[:25], payloads[:25]
+
+    # error_handling_exclude: pure label lookup; caller _create_action_row is decorated
+    def _discord_button_style_for_suggestion(self, label: str) -> discord.ButtonStyle:
+        """Flow control buttons use grey/red; data suggestions (priority, dates) stay blue."""
+        if label.startswith(FLOW_UNDO_BUTTON_PREFIX):
+            return discord.ButtonStyle.danger
+        if label in FLOW_CONTROL_SKIP_LABELS:
+            return discord.ButtonStyle.secondary
+        return discord.ButtonStyle.primary
 
     @handle_errors("creating Discord action row", default_return=None)
     def _create_action_row(
@@ -1686,8 +1700,7 @@ class DiscordBot(BaseChannel):
         # Use discord.ui.View instead of ActionRow for discord.py v2.x compatibility
         view = discord.ui.View()
 
-        # Limit to 5 buttons (Discord limit)
-        for i, suggestion in enumerate(suggestions[:5]):
+        for i, suggestion in enumerate(suggestions[:25]):
             self._suggestion_button_counter += 1
             custom_id = f"suggestion_{self._suggestion_button_counter}_{i}"
             if (
@@ -1696,12 +1709,14 @@ class DiscordBot(BaseChannel):
                 and suggestion_payloads[i] is not None
             ):
                 self._suggestion_button_payloads[custom_id] = suggestion_payloads[i]
-                if len(self._suggestion_button_payloads) > 500:
-                    oldest_key = next(iter(self._suggestion_button_payloads))
-                    self._suggestion_button_payloads.pop(oldest_key, None)
+            else:
+                self._suggestion_button_payloads[custom_id] = suggestion
+            if len(self._suggestion_button_payloads) > 500:
+                oldest_key = next(iter(self._suggestion_button_payloads))
+                self._suggestion_button_payloads.pop(oldest_key, None)
             # Create a button with a unique custom_id
             button = discord.ui.Button(
-                style=discord.ButtonStyle.primary,
+                style=self._discord_button_style_for_suggestion(suggestion),
                 label=suggestion[:80],  # Discord button label limit
                 custom_id=custom_id,
             )

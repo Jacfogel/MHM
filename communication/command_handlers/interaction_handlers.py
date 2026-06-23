@@ -102,6 +102,12 @@ class HelpHandler(InteractionHandler):
                 "• Profile stats: 'profile stats' or 'my statistics'",
                 True,
             )
+        elif topic in ("notebook", "note", "notes"):
+            from communication.command_handlers.notebook_handler import (
+                NotebookHandler,
+            )
+
+            return InteractionResponse(NotebookHandler().get_help(), True)
         else:
             return InteractionResponse(
                 "**MHM Bot Commands** 🌟\n\n"
@@ -129,6 +135,11 @@ class HelpHandler(InteractionHandler):
                 '• "show my schedule" - View time periods\n'
                 '• "add schedule period..." - Create new periods\n'
                 "• Or use: /schedule (also !schedule)\n\n"
+                "**Notebook**:\n"
+                '• "!n My thought" - Quick capture\n'
+                '• "!recent" / "!s project" - Browse and search\n'
+                '• "!inbox" / "!pinned" - Organized views\n'
+                "• Or say: help notebook\n\n"
                 "**Need More Help?**\n"
                 '• Say "examples" for more natural language examples\n'
                 '• Say "commands" for a complete command list\n'
@@ -176,6 +187,17 @@ class HelpHandler(InteractionHandler):
         response += "• Explicit: show_schedule, update_schedule, schedule_status, add_schedule_period, edit_schedule_period\n"
         response += "• Slash: /schedule (also !schedule)\n\n"
 
+        # Notebook commands
+        response += "📓 **Notebook:**\n"
+        response += (
+            '• Natural: "!n My thought", "!recent", "!s project", "!inbox", "!l Groceries"\n'
+        )
+        response += (
+            "• Explicit: create_note, search_entries, list_inbox_entries, "
+            "append_to_entry, add_list_item\n"
+        )
+        response += "• Long lists: tap **Show More** to continue paging\n\n"
+
         # Analytics commands
         response += "📊 **Analytics & Insights:**\n"
         response += '• Natural: "show my analytics", "what are my mood trends?", "how am I doing with habits?"\n'
@@ -207,7 +229,7 @@ class HelpHandler(InteractionHandler):
         response += "**Need More Help?**\n"
         response += '• Say "examples" for natural language examples\n'
         response += (
-            '• Say "help [topic]" for specific help (tasks, checkin, profile, etc.)\n'
+            '• Say "help [topic]" for specific help (tasks, notebook, checkin, profile, etc.)\n'
         )
         response += "• Visit DISCORD_GUIDE.md for complete documentation"
 
@@ -261,6 +283,17 @@ class HelpHandler(InteractionHandler):
                 "• 'How am I doing overall?'",
                 True,
             )
+        elif category in ("notebook", "note", "notes"):
+            from communication.command_handlers.notebook_handler import (
+                NotebookHandler,
+            )
+
+            examples = NotebookHandler().get_examples()
+            lines = [
+                "**Notebook Examples:**",
+                *(f"• `{example}`" for example in examples),
+            ]
+            return InteractionResponse("\n".join(lines), True)
         else:
             return InteractionResponse(
                 "**General Examples:**\n"
@@ -272,7 +305,7 @@ class HelpHandler(InteractionHandler):
                 "• 'How am I doing with tasks?'\n"
                 "• 'Show my schedule'\n"
                 "• 'Mood trends'\n\n"
-                "Try 'examples tasks', 'examples schedule', or 'examples analytics' for specific examples!",
+                "Try 'examples tasks', 'examples notebook', 'examples schedule', or 'examples analytics' for specific examples!",
                 True,
             )
 

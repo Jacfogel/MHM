@@ -27,7 +27,11 @@ from communication.message_processing.flow_message_dispatcher import (
 )
 from communication.message_processing.flows.flow_constants import (
     FLOW_CHECKIN,
+    FLOW_TASK_DUE_DATE,
+    FLOW_TASK_PRIORITY,
     FLOW_TASK_REMINDER,
+    TASK_DUE_DATE_SUGGESTIONS,
+    TASK_PRIORITY_SUGGESTIONS,
 )
 from communication.message_processing.parsing_shortcuts import (
     coerce_unknown_update_task,
@@ -831,6 +835,50 @@ class TestFlowMessageDispatcher:
             ]
             result = dispatch_flow_message("user-1", "yes", mock_parser)
         assert result.response.suggestions == ["1 hour before", "1 day before"]
+
+    def test_task_priority_flow_adds_suggestions(self, mock_parser):
+        with patch(
+            "communication.message_processing.flow_message_dispatcher.conversation_manager"
+        ) as mgr:
+            mgr.user_states = {
+                "user-1": {
+                    "flow": FLOW_TASK_DUE_DATE,
+                    "state": 1,
+                    "data": {"task_identifier": "task-99", "ask_priority": True},
+                }
+            }
+            mgr.handle_inbound_message.return_value = (
+                "What priority should this task have?",
+                False,
+            )
+            mgr.user_states = {
+                "user-1": {
+                    "flow": FLOW_TASK_PRIORITY,
+                    "state": 1,
+                    "data": {"task_identifier": "task-99", "ask_reminders": False},
+                }
+            }
+            result = dispatch_flow_message("user-1", "skip", mock_parser)
+        assert result.response.message == "What priority should this task have?"
+        assert result.response.suggestions == list(TASK_PRIORITY_SUGGESTIONS)
+
+    def test_task_due_date_flow_adds_suggestions(self, mock_parser):
+        with patch(
+            "communication.message_processing.flow_message_dispatcher.conversation_manager"
+        ) as mgr:
+            mgr.user_states = {
+                "user-1": {
+                    "flow": FLOW_TASK_DUE_DATE,
+                    "state": 1,
+                    "data": {"task_identifier": "task-99", "ask_priority": True},
+                }
+            }
+            mgr.handle_inbound_message.return_value = (
+                "I'm not sure what date/time you'd like.",
+                False,
+            )
+            result = dispatch_flow_message("user-1", "maybe tomorrow", mock_parser)
+        assert result.response.suggestions == list(TASK_DUE_DATE_SUGGESTIONS)
 
     def test_rule_based_parse_failure_still_routes_flow(self, mock_parser):
         mock_parser._rule_based_parse.side_effect = RuntimeError("parse fail")

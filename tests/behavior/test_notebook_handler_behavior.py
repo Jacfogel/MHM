@@ -9,7 +9,7 @@ import pytest
 from unittest.mock import patch
 import uuid
 
-from core.time_utilities import now_datetime_full
+from core.time_utilities import TIMESTAMP_FULL, format_timestamp, now_datetime_full
 from storage.user_data_v2_base import generate_short_id
 
 from communication.command_handlers.notebook_handler import NotebookHandler
@@ -141,15 +141,17 @@ class TestNotebookHandlerBehavior:
         ), "NotebookHandler should not handle start_checkin"
 
     def test_notebook_handler_get_help(self):
-        """Test that NotebookHandler returns help text."""
+        """Test that NotebookHandler returns comprehensive help text."""
         handler = NotebookHandler()
         help_text = handler.get_help()
 
         assert isinstance(help_text, str), "Should return help text as string"
-        assert len(help_text) > 0, "Help text should not be empty"
-        assert (
-            "note" in help_text.lower() or "list" in help_text.lower()
-        ), "Help text should mention notes/lists"
+        assert len(help_text) > 200, "Help text should be comprehensive"
+        assert "**Notebook Help:**" in help_text
+        assert "Show More" in help_text
+        assert "inbox" in help_text.lower()
+        assert "groups vs tags" in help_text.lower()
+        assert "!recent" in help_text or "`!recent`" in help_text
 
     def test_notebook_handler_get_examples(self):
         """Test that NotebookHandler returns example commands."""
@@ -187,8 +189,9 @@ class TestNotebookHandlerBehavior:
         assert not response.completed, "Should prompt for body text"
         assert "body text" in response.message.lower(), "Should ask for body text"
         assert (
-            "Skip" in (response.suggestions or []) or "skip" in response.message
-        ), "Should offer Skip option"
+            "Skip Question" in (response.suggestions or [])
+            or "skip" in response.message.lower()
+        ), "Should offer Skip Question option"
 
     @pytest.mark.file_io
     def test_create_note_with_title_and_body(self, test_data_dir):
@@ -211,7 +214,9 @@ class TestNotebookHandlerBehavior:
             response, InteractionResponse
         ), "Should return InteractionResponse"
         assert response.completed, "Should complete note creation"
-        assert "created" in response.message.lower(), "Should indicate note was created"
+        assert (
+            "saved" in response.message.lower() or "created" in response.message.lower()
+        ), "Should indicate note was created"
         assert "Meeting Notes" in response.message, "Should include note title"
         # Short ID format is now n123abc (no dash) for easier mobile typing
         assert any(
@@ -300,7 +305,8 @@ class TestNotebookHandlerBehavior:
             response.completed
         ), f"Should complete list creation, got: {response.message}"
         assert (
-            "created" in response.message.lower()
+            "saved" in response.message.lower()
+            or "created" in response.message.lower()
             or "shopping" in response.message.lower()
         ), f"Should indicate list was created, got: {response.message}"
         assert "Shopping" in response.message, "Should include list title"
@@ -802,7 +808,7 @@ class TestNotebookHandlerBehavior:
 
         assert completed, f"Flow should complete, got: {reply_text}"
         assert (
-            "created" in reply_text.lower()
+            "saved" in reply_text.lower() or "created" in reply_text.lower()
         ), f"Should indicate note was created, got: {reply_text}"
 
         # Verify flow state was cleared (user_state might be empty dict if flow completed)
@@ -849,7 +855,7 @@ class TestNotebookHandlerBehavior:
 
         assert completed, f"Flow should complete, got: {reply_text}"
         assert (
-            "created" in reply_text.lower()
+            "saved" in reply_text.lower() or "created" in reply_text.lower()
         ), f"Should indicate list was created, got: {reply_text}"
 
         # Verify flow state was cleared (user_state might be empty dict if flow completed)
@@ -998,6 +1004,7 @@ class TestNotebookCommandParsing:
             # Note creation might prompt for body, so completed could be False
             assert (
                 "note" in response.message.lower()
+                or "saved" in response.message.lower()
                 or "created" in response.message.lower()
                 or "body text" in response.message.lower()
             ), f"Should handle note creation for '{command}', got: {response.message}"
@@ -1122,7 +1129,8 @@ class TestNotebookCommandParsing:
             response.completed
         ), f"Should complete list creation, got: {response.message}"
         assert (
-            "created" in response.message.lower()
+            "saved" in response.message.lower()
+            or "created" in response.message.lower()
         ), f"Should indicate list was created, got: {response.message}"
 
         # Verify flow is cleared (user_state might be empty dict if flow completed)
@@ -1327,13 +1335,38 @@ class TestNotebookFlowStateEdgeCases:
 
         assert completed, f"Flow should complete, got: {reply_text}"
         assert (
-            "created" in reply_text.lower()
+            "saved" in reply_text.lower() or "created" in reply_text.lower()
         ), f"Should indicate note was created, got: {reply_text}"
 
         # Verify flow is cleared
         user_state = conversation_manager.user_states.get(user_id, {})
         flow_value = user_state.get("flow") if user_state else 0
         assert flow_value == 0 or flow_value is None, "Flow should be cleared"
+
+    @pytest.mark.file_io
+    def test_journal_body_flow_skip_saves_title_only(self, test_data_dir):
+        """Journal with title only starts body flow; skip saves title-only entry."""
+        handler = NotebookHandler()
+        user_id = "test_user_journal_flow"
+        assert self._create_test_user(
+            user_id, test_data_dir=test_data_dir
+        ), "Failed to create test user"
+
+        parsed_command = ParsedCommand(
+            intent="create_journal",
+            entities={"title": "Reflection"},
+            confidence=0.9,
+            original_message="!j Reflection",
+        )
+        response = handler.handle(user_id, parsed_command)
+        assert not response.completed
+        assert "journal" in response.message.lower()
+
+        reply_text, completed = conversation_manager.handle_inbound_message(
+            user_id, "skip question"
+        )
+        assert completed
+        assert "journal entry saved" in reply_text.lower()
 
     @pytest.mark.file_io
     def test_cancel_note_body_flow(self, test_data_dir):
@@ -1477,7 +1510,7 @@ class TestNotebookFlowStateEdgeCases:
         )
         assert completed, f"Flow should complete, got: {reply_text}"
         assert (
-            "created" in reply_text.lower()
+            "saved" in reply_text.lower() or "created" in reply_text.lower()
         ), f"Should indicate list was created, got: {reply_text}"
 
         # Verify all items were added
@@ -1496,6 +1529,35 @@ class TestNotebookFlowStateEdgeCases:
         assert (
             len(list_entry.items) >= 4
         ), f"Should have at least 4 items, got {len(list_entry.items)}"
+
+    @pytest.mark.file_io
+    def test_list_back_removes_last_message_batch(self, test_data_dir):
+        """Back should undo the entire last items message, not one item."""
+        handler = NotebookHandler()
+        user_id = "test_user_list_back_batch"
+        assert self._create_test_user(
+            user_id, test_data_dir=test_data_dir
+        ), "Failed to create test user"
+
+        parsed_command = ParsedCommand(
+            intent="create_list",
+            entities={"title": "Groceries"},
+            confidence=0.9,
+            original_message="!l Groceries",
+        )
+        handler.handle(user_id, parsed_command)
+
+        conversation_manager.handle_inbound_message(user_id, "milk, eggs, potatoes")
+        reply_text, completed = conversation_manager.handle_inbound_message(
+            user_id, "back"
+        )
+
+        assert not completed
+        assert "3 item" in reply_text.lower()
+        assert "no items yet" in reply_text.lower()
+
+        user_state = conversation_manager.user_states.get(user_id, {})
+        assert user_state.get("data", {}).get("items") == []
 
     @pytest.mark.file_io
     def test_list_flow_with_empty_items(self, test_data_dir):
@@ -1524,7 +1586,7 @@ class TestNotebookFlowStateEdgeCases:
 
         assert completed, f"Flow should complete, got: {reply_text}"
         assert (
-            "created" in reply_text.lower()
+            "saved" in reply_text.lower() or "created" in reply_text.lower()
         ), f"Should indicate list was created, got: {reply_text}"
 
         # Verify list was created (with placeholder item if needed)
@@ -1559,24 +1621,28 @@ class TestNotebookFlowStateEdgeCases:
         # Simulate timeout by setting started_at to 11 minutes ago
         from datetime import timedelta
 
+        from notebook.notebook_data_manager import list_recent
+
         user_state = conversation_manager.user_states.get(user_id, {})
-        user_state["started_at"] = (
-            now_datetime_full() - timedelta(minutes=11)
-        ).isoformat()
+        user_state["started_at"] = format_timestamp(
+            now_datetime_full() - timedelta(minutes=11), TIMESTAMP_FULL
+        )
         conversation_manager.user_states[user_id] = user_state
         conversation_manager._save_user_states()
 
-        # Try to continue flow - should expire
+        # Try to continue flow - unrelated message after timeout should skip-all finalize
         reply_text, completed = conversation_manager.handle_inbound_message(
-            user_id, "Body text"
+            user_id, "hello"
         )
 
-        assert completed, f"Flow should complete (expired), got: {reply_text}"
+        assert completed, f"Flow should complete, got: {reply_text}"
         assert (
-            "expired" in reply_text.lower()
-            or "timeout" in reply_text.lower()
-            or "start over" in reply_text.lower()
-        ), f"Should indicate flow expired, got: {reply_text}"
+            "note saved" in reply_text.lower() or "note created" in reply_text.lower()
+        ), f"Should save title-only note, got: {reply_text}"
+        entries = list_recent(user_id, n=5)
+        assert any(
+            e.title == "Timeout Test" for e in entries
+        ), "Note should be saved with title only after timeout skip-all"
 
 
 @pytest.mark.behavior
@@ -1803,7 +1869,8 @@ class TestNotebookErrorHandling:
         # Should handle special characters gracefully
         if response.completed:
             assert (
-                "created" in response.message.lower()
+                "saved" in response.message.lower()
+            or "created" in response.message.lower()
             ), "Should indicate note was created"
 
     @pytest.mark.file_io

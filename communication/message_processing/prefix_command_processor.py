@@ -13,7 +13,21 @@ from communication.message_processing.conversation_flow_manager import conversat
 
 logger = get_component_logger("communication_manager")
 
-FLOW_KEYWORDS = frozenset(["cancel", "skip", "end", "endlist", "endl"])
+FLOW_KEYWORDS = frozenset(
+    {
+        "skip",
+        "cancel",
+        "stop",
+        "quit",
+        "exit",
+        "abort",
+        "back",
+        "undo",
+        "end",
+        "endlist",
+        "endl",
+    }
+)
 
 
 @dataclass

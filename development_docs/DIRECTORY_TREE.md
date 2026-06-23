@@ -2,15 +2,16 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-17 22:28:44
+> **Last Generated**: 2026-06-22 21:33:02
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 0000000D 5EAC:07BC
+Volume serial number is 000000E7 5EAC:07BC
 C:.
+|   .coverage
 |   .ruff.toml
 |   ARCHITECTURE.md
 |   CONFIGURATION_REFERENCE.md
@@ -208,7 +209,9 @@ C:.
 |   |   |
 |   |   +---flows
 |   |   |   |   checkin_flow.py
+|   |   |   |   flow_command_helpers.py
 |   |   |   |   flow_constants.py
+|   |   |   |   flow_control_mixin.py
 |   |   |   |   flow_state.py
 |   |   |   |   note_flow.py
 |   |   |   |   task_flow.py
@@ -667,6 +670,9 @@ C:.
 |   |   |
 |   +---communication
 |   |   |   test_channel_monitor.py
+|   |   |   test_communication_coverage_expansion.py
+|   |   |   test_flow_command_helpers.py
+|   |   |   test_message_processing_scenarios.py
 |   |   |   test_retry_manager.py
 |   |   |
 |   +---core
@@ -678,6 +684,7 @@ C:.
 |   |   |   test_schedule_utilities.py
 |   |   |   test_service_message_content_helpers.py
 |   |   |   test_service_request_helpers.py
+|   |   |   test_storage_scenarios.py
 |   |   |   test_user_data_read_scenarios.py
 |   |   |
 |   +---data
@@ -979,6 +986,7 @@ C:.
 |   |   |   test_run_tests_interrupts.py
 |   |   |   test_scheduler_delivery_port.py
 |   |   |   test_scheduler_jobs.py
+|   |   |   test_scheduler_manager_coverage.py
 |   |   |   test_scheduler_task_reminder_weights.py
 |   |   |   test_scheduler_user_timezone.py
 |   |   |   test_schedule_document_defaults.py

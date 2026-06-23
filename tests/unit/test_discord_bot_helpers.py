@@ -76,7 +76,7 @@ def test_action_row_inputs_limit_buttons_and_store_payloads(monkeypatch: pytest.
         },
     )
 
-    assert labels == ["A", "B", "C", "D", "E"]
+    assert labels == ["A", "B", "C", "D", "E", "F", "Show More (10 more)"]
     assert payloads[:2] == ["payload-a", None]
 
     class _FakeView:
@@ -99,10 +99,28 @@ def test_action_row_inputs_limit_buttons_and_store_payloads(monkeypatch: pytest.
 
     view = bot._create_action_row(labels, payloads)
     assert view is not None
-    assert len(view.children) == 5
+    assert len(view.children) == 7
     first_custom_id = view.children[0].custom_id
     assert bot._suggestion_button_payloads[first_custom_id] == "payload-a"
     assert bot._create_action_row([]) is None
+
+
+@pytest.mark.unit
+@pytest.mark.communication
+def test_discord_button_style_for_flow_suggestions(monkeypatch):
+    """Skip/undo flow buttons use secondary/danger; data suggestions stay primary."""
+    import communication.communication_channels.discord.bot as bot_module
+
+    bot = DiscordBot()
+    danger = bot_module.discord.ButtonStyle.danger
+    secondary = bot_module.discord.ButtonStyle.secondary
+    primary = bot_module.discord.ButtonStyle.primary
+
+    assert bot._discord_button_style_for_suggestion("Skip Question") == secondary
+    assert bot._discord_button_style_for_suggestion("Skip All") == secondary
+    assert bot._discord_button_style_for_suggestion("End List") == secondary
+    assert bot._discord_button_style_for_suggestion("Undo Task Creation") == danger
+    assert bot._discord_button_style_for_suggestion("High") == primary
 
 
 @pytest.mark.unit

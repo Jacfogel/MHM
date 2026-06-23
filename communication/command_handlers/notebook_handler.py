@@ -52,6 +52,38 @@ from notebook.notebook_validation import format_short_id
 logger = get_component_logger("communication_manager")
 handlers_logger = logger
 
+# Channel-neutral notebook help (single source for `help notebook` and handler.get_help).
+NOTEBOOK_HELP_TEXT = """**Notebook Help:**
+Capture notes, lists, and journal entries from Discord.
+
+**Capture:**
+• `!n My thought` / `note: Title | body text`
+• `!qn` or `quick note Grocery idea` — saves to Quick Notes group
+• `!j Today I felt...` — journal entry
+• `!l Groceries` / `!l new Groceries Milk, Bread #home`
+
+**Retrieve** (long lists show a **Show More** button):
+• `!recent` — recent entries
+• `!show n123abc` — by short ID, UUID, or title
+• `!s project` — search titles, bodies, list items (archived excluded)
+• `!inbox` — active untagged entries updated in the last 30 days
+• `!pinned` / `!archived` / `!t work` / `!group Home`
+
+**Modify:**
+• `!append EntryRef | more text`
+• `!set EntryRef new body` / `!tag EntryRef #idea #work`
+• `!pin` / `!unpin` / `!archive` / `!unarchive`
+• `!group EntryRef Home` — set entry group (`!group Home` lists that group)
+
+**Lists:**
+• `!l add Groceries Milk`
+• `!l done Groceries 1` / `!l undo Groceries 1`
+• `!l remove Groceries 2`
+
+**Groups vs tags:** Groups are folder-like names; tags are labels (`#work`). Inbox means untagged active entries from the last 30 days — not "no group".
+
+**More:** `help notebook`, `examples notebook`, or DISCORD_GUIDE.md"""
+
 DEFAULT_PAGE_SIZE = 5
 MAX_PAGE_SIZE = 25
 MAX_NOTEBOOK_RESULTS = 100
@@ -277,7 +309,10 @@ class NotebookHandler(InteractionHandler):
         from communication.message_processing.conversation_flow_manager import (
             conversation_manager,
         )
-        from communication.message_processing.flows.flow_constants import FLOW_NOTE_BODY
+        from communication.message_processing.flows.flow_constants import (
+            FLOW_NOTE_BODY,
+            NOTEBOOK_BODY_SUGGESTIONS,
+        )
 
         title = entities.get("title")
         description = entities.get("description")
@@ -317,9 +352,9 @@ class NotebookHandler(InteractionHandler):
             }
             conversation_manager._save_user_states()
             return InteractionResponse(
-                f"📝 Note title: '{title}'\n\nWhat would you like to add as the body text? [Skip] [Cancel]",
+                f"📝 Note title: '{title}'\n\nWhat would you like to add as the body text?",
                 False,
-                suggestions=["Skip", "Cancel"],
+                suggestions=list(NOTEBOOK_BODY_SUGGESTIONS),
             )
 
         result = create_note_from_command(
@@ -374,7 +409,10 @@ class NotebookHandler(InteractionHandler):
         from communication.message_processing.conversation_flow_manager import (
             conversation_manager,
         )
-        from communication.message_processing.flows.flow_constants import FLOW_LIST_ITEMS
+        from communication.message_processing.flows.flow_constants import (
+            FLOW_LIST_ITEMS,
+            LIST_ITEMS_SUGGESTIONS,
+        )
 
         title = entities.get("title")
         tags = entities.get("tags", [])
@@ -396,14 +434,20 @@ class NotebookHandler(InteractionHandler):
             conversation_manager.user_states[user_id] = {
                 "flow": FLOW_LIST_ITEMS,
                 "state": 0,
-                "data": {"title": title, "tags": tags, "group": group, "items": []},
+                "data": {
+                    "title": title,
+                    "tags": tags,
+                    "group": group,
+                    "items": [],
+                    "item_batches": [],
+                },
                 "started_at": now_timestamp_full(),
             }
             conversation_manager._save_user_states()
             return InteractionResponse(
                 f"📋 List: '{title}'\n\nAdd list items (separated by commas, semicolons, or new lines). Type `!end`, `/end`, or 'end' to finish.",
                 False,
-                suggestions=["End List", "Cancel"],
+                suggestions=list(LIST_ITEMS_SUGGESTIONS),
             )
 
         result = create_list_from_command(
@@ -430,21 +474,64 @@ class NotebookHandler(InteractionHandler):
         self, user_id: str, entities: dict[str, Any]
     ) -> InteractionResponse:
         """Handle journal entry creation."""
-        result = create_journal_from_command(user_id, entities)
+        from communication.message_processing.conversation_flow_manager import (
+            conversation_manager,
+        )
+        from communication.message_processing.flows.flow_constants import (
+            FLOW_JOURNAL_BODY,
+            JOURNAL_BODY_SUGGESTIONS,
+        )
+
+        title = entities.get("title")
+        description = entities.get("description")
+        tags = entities.get("tags", [])
+        group = entities.get("group")
+
+        if not title and not description:
+            return InteractionResponse(
+                "📔 What would you like to name this journal entry?",
+                False,
+            )
+
+        if not description and title:
+            title, parsed_tags = parse_tags_from_text(title)
+            tags.extend(parsed_tags)
+
+            conversation_manager.user_states[user_id] = {
+                "flow": FLOW_JOURNAL_BODY,
+                "state": 0,
+                "data": {"title": title, "tags": tags, "group": group},
+                "started_at": now_timestamp_full(),
+            }
+            conversation_manager._save_user_states()
+            return InteractionResponse(
+                f"📔 Journal entry: '{title}'\n\nWhat would you like to write?",
+                False,
+                suggestions=list(JOURNAL_BODY_SUGGESTIONS),
+            )
+
+        result = create_journal_from_command(
+            user_id,
+            {
+                "title": title,
+                "description": description,
+                "tags": tags,
+                "group": group,
+            },
+        )
         entry = result.entry if result else None
 
         if entry:
             short_id = self._format_entry_id(entry)
             response = (
-                f"✅ Journal entry created: '{entry.title or 'Untitled'}' ({short_id})"
+                f"Journal entry saved: '{entry.title or 'Untitled'}' ({short_id})"
             )
             if entry.tags:
                 response += f"\nTags: {', '.join(entry.tags)}"
             return InteractionResponse(response, True)
-        else:
-            return InteractionResponse(
-                "❌ Failed to create journal entry. Please try again.", True
-            )
+        return InteractionResponse(
+            "Failed to save journal entry. Please try again.", True
+        )
 
     # Read handlers
     @handle_errors("handling list recent")
@@ -1126,11 +1213,11 @@ class NotebookHandler(InteractionHandler):
         return "\n".join(response_parts)
 
     @handle_errors(
-        "getting notebook help", default_return="Notebook commands help unavailable"
+        "getting notebook help", default_return=NOTEBOOK_HELP_TEXT
     )
     def get_help(self) -> str:
         """Get help text for notebook commands."""
-        return "Manage your personal notes, lists, and journal entries. Use `!n` to create notes, `!l` for lists, `!recent` to see recent entries, and `!s` to search."
+        return NOTEBOOK_HELP_TEXT
 
     @handle_errors("getting notebook examples", default_return=[])
     def get_examples(self) -> list[str]:

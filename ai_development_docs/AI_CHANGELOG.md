@@ -30,6 +30,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-06-22 - Notebook help + task follow-up button fix **COMPLETED**
+- Added `NOTEBOOK_HELP_TEXT` in [`notebook_handler.py`](../communication/command_handlers/notebook_handler.py) - capture/retrieve/modify/lists sections, inbox semantics, groups vs tags, and Show More paging note.
+- Wired `help notebook` / `examples notebook` through [`interaction_handlers.py`](../communication/command_handlers/interaction_handlers.py) and parser patterns in [`command_parser.py`](../communication/message_processing/command_parser.py); general help and commands list now mention notebook.
+- **Fix**: Task priority step after due-date Skip lacked Discord buttons - [`flow_message_dispatcher.py`](../communication/message_processing/flow_message_dispatcher.py) now attaches `TASK_DUE_DATE_SUGGESTIONS` / `TASK_PRIORITY_SUGGESTIONS` for active flows; [`bot.py`](../communication/communication_channels/discord/bot.py) stores suggestion label as button payload.
+- **UX**: Due-date buttons are **Skip Question**, **Skip All**, **Undo Task Creation**; **cancel**/**delete task** delete the in-progress task; **undo**/**back** go one step back; timeout (10 min) + unrelated message acts like **Skip All** across task/notebook flows.
+- **Architecture**: Shared flow control in `flow_command_helpers.py`, `flow_control_mixin.py` - universal keywords, timeout, unrelated detection, and `try_flow_control_command()` for tasks, notes, lists; ready for journal/events/checkins.
+- **Flows**: Step-aware unrelated detection; cancel synonyms; explicit outcome messages; journal multi-step body flow; priority buttons aligned with due-date set. Live-test fixes: no reminder prompt without due date; Discord control buttons grey (skip) / red (undo) vs blue suggestions; note/journal last step without Skip All; list End List + Undo List Creation every step.
+- Docs: [`NOTES_PLAN.md`](../development_docs/NOTES_PLAN.md) Section 4.2 closed; [`MANUAL_DISCORD_TEST_GUIDE.md`](../tests/MANUAL_DISCORD_TEST_GUIDE.md) pagination note updated.
+- **Audit hygiene**: Restored `DISCORD_BOT_TOKEN` import; Ruff/Pyright clean; fixed parallel test failures; `@handle_errors` on `_attach_flow_suggestions`; function registry regenerated; ASCII changelog fix applied. Flow audit: docstrings on task/note flow helpers; `# error_handling_exclude` on pure keyword predicates; removed thin-wrapper `is_task_flow_skip_*` facades. Security/docs: pinned `msgpack>=1.2.1` (GHSA-6v7p-g79w-8964); report generator uses plain paths for gitignored audit JSON links.
+
 ### 2026-06-21 - Communication coverage expansion and test hygiene **COMPLETED**
 - Added [`test_communication_coverage_expansion.py`](../tests/communication/test_communication_coverage_expansion.py) (39 tests) targeting AI priority #1 gaps: `discord_interaction_router.py`, `create_item_ui.py`, `checkin_flow.py`, and `task_flow.py` reminder/flow edge paths.
 - Extended [`test_message_processing_scenarios.py`](../tests/communication/test_message_processing_scenarios.py) with `discord_response_delivery` embed-only, view-only, and ephemeral branches; extended [`test_status_provider.py`](../tests/ui/test_status_provider.py) with Discord/email/ngrok status and `tail_file_lines` paths.
@@ -121,22 +131,6 @@ Guidelines:
 - Fixed invalid JSON in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` (trailing comma in `active_or_candidate_inventory`) - restores `test_deprecation_inventory_loads_and_root_ruff_bridge_active`.
 - Raised `aiohttp>=3.14.0` in `requirements.txt` (CVE-2026-34993, CVE-2026-47265).
 - `verify_process_cleanup` machine-readable link resolves scoped JSON first; `doc-sync` reports 0 markdown link target hints.
-
-### 2026-06-02 - Profile JSON v2 fleet + v2-only runtime **COMPLETED**
-- Fleet migrated to `schema_version: 2` profile envelopes; context normalization (`pronouns`, `reminders_needed`, account-field stripping, ISO timestamps) in `core/profile_v2_io.py`.
-- **Phases 4-5**: Unconditional v2 write; v2-only runtime load. Removed migrator, migration runbook, profile v2 audit tooling, and legacy on-disk dual-read/docs. `core/schemas.py` retained for in-memory normalization post-unwrap.
-- **Test suite (2026-06-03)**: Fixed remaining parallel failures - AI context tests use `update_user_account` (not flat JSON writes); user-index UI test writes v2 envelopes; tags corrupt-file reinit detects `generic_json` recovery placeholders; tag save gap test asserts v2 disk payload; `test_update_user_index_real_behavior` uses v2 fixtures and mocks aligned with current per-user index API.
-
-### 2026-06-01 - Profile JSON v2 envelopes; backup test fix; domain markers **COMPLETED**
-- **Profile v2**: `core/profile_v2_schemas.py`, `core/profile_v2_io.py`, dispatcher branches in `storage/user_data_v2_envelopes.py`; dual-read/write for six files; `PROFILE_V2_WRITE` / `PROFILE_V2_ENFORCE` (default off). Schedules v2 uses `categories` wrapper; chat legacy arrays still load. Follow-up: logging f-strings, registry save helper, behavior test schedule shape, docstrings/error-handling audit items, TODO trimmed to phases 3-5.
-- **Legacy inventory fix**: Removed redundant `CategoryScheduleV2Model._normalize_periods_input` (false-positive legacy scan on the v2 schema class). Flat period migration consolidated to `migrate_legacy_schedules_structure` on load and `_build_v2_envelope` on save; `DEPRECATION_INVENTORY.json` search terms narrowed.
-- **Test fix**: `test_store_chat_interaction_creates_chat_log` uses `prepare_profile_raw_on_load` so it passes when `PROFILE_V2_WRITE=true` (v2 envelope on disk vs legacy bare list).
-- `_users_dir_for_listing()` now honors isolated per-test `tests/data/tmp/<uuid>/users` trees under `MHM_TESTING` instead of always scanning shared `tests/data/users`.
-- `test_backup_manager_with_large_user_data_real_behavior` no longer calls `rebuild_user_index()` or long retry/sleep loops; resolves users via the isolated test index only.
-- Added `test_get_all_user_ids_lists_isolated_test_tree_when_patched` regression coverage.
-- Documented domain marker policy in paired testing guides (category / domain / optional layers). **`@pytest.mark.user`** is the user-domain marker; migrated suite off `user_management`; updated `domain_mapper` config defaults.
-- Module-scoped `temp_project_copy` for doc links/headings dev-tools tests (B-001); skipped `test_output_storage_archiving` (mutation-heavy).
-- Cleared example-marker hints in `TESTING_GUIDE.md` (renamed `6.2.7. Examples` heading); ASCII already fixed via `doc-fix --fix-ascii`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

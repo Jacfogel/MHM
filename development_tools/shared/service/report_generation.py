@@ -961,10 +961,19 @@ class ReportGenerationMixin:
         ]
         json_path = next((p for p in json_candidates if p.exists()), json_candidates[0])
         if json_path.exists():
-            href = self._markdown_href_from_dev_tools_report(json_path)
-            out.append(
-                f"- **Machine-readable**: [verify_process_cleanup_results.json]({href})"
-            )
+            rel_from_root = json_path.relative_to(self.project_root).as_posix()
+            # Audit JSON under development_tools/**/jsons/ is gitignored; avoid markdown
+            # links to ephemeral targets (doc-sync flags them as missing).
+            if "/jsons/" in rel_from_root.replace("\\", "/"):
+                out.append(
+                    f"- **Machine-readable**: `{rel_from_root}` "
+                    "(audit output; regenerated each Tier 3 run)"
+                )
+            else:
+                href = self._markdown_href_from_dev_tools_report(json_path)
+                out.append(
+                    f"- **Machine-readable**: [verify_process_cleanup_results.json]({href})"
+                )
         if isinstance(offenders, list) and offenders:
             out.append("- **Candidates** (PID and flags; command line may be empty):")
             for off in offenders[:20]:

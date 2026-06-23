@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-17 22:28:26
+> **Last Generated**: 2026-06-22 21:32:50
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 91.3% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 216
-- **Functions Found**: 2107
-- **Methods Found**: 1300
-- **Classes Found**: 221
-- **Total Items**: 3407
-- **Functions Documented**: 1896
-- **Methods Documented**: 1214
-- **Classes Documented**: 155
-- **Total Documented**: 3110
+### **Function Documentation Coverage: 89.9% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 218
+- **Functions Found**: 2159
+- **Methods Found**: 1323
+- **Classes Found**: 223
+- **Total Items**: 3482
+- **Functions Documented**: 1910
+- **Methods Documented**: 1221
+- **Classes Documented**: 157
+- **Total Documented**: 3131
 - **Template-Generated**: 34
-- **Last Updated**: 2026-06-17
+- **Last Updated**: 2026-06-22
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (444)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (547)
+### **Communication Functions** (599)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (490)
@@ -1769,6 +1769,7 @@ Returns:
 
 Returns:
     discord.Embed: Created embed, None if failed
+- [OK] `_discord_button_style_for_suggestion(self, label)` - Flow control buttons use grey/red; data suggestions (priority, dates) stay blue.
 - [OK] `_drain_ngrok_stderr()` - Read ngrok stderr in a loop so a full pipe cannot block the child process.
 - [OK] `_get_action_row_inputs(self, suggestions, rich_data)` - Combine handler suggestions with Discord-rendered pagination buttons.
 - [OK] `_get_detailed_connection_status(self)` - Get detailed connection status information
@@ -1823,6 +1824,7 @@ Returns:
 
 Returns:
     discord.Embed: Created embed, None if failed
+  - [OK] `DiscordBot._discord_button_style_for_suggestion(self, label)` - Flow control buttons use grey/red; data suggestions (priority, dates) stay blue.
   - [OK] `DiscordBot._get_action_row_inputs(self, suggestions, rich_data)` - Combine handler suggestions with Discord-rendered pagination buttons.
   - [OK] `DiscordBot._get_detailed_connection_status(self)` - Get detailed connection status information
   - [OK] `DiscordBot._get_pagination_actions(self, rich_data)` - Extract channel-neutral pagination actions from response rich data.
@@ -2652,6 +2654,7 @@ Returns:
 
 #### `communication/message_processing/flow_message_dispatcher.py`
 **Functions:**
+- [OK] `_attach_flow_suggestions(response, user_id, reply_text, completed)` - Attach follow-up buttons for active multi-step flows.
 - [OK] `dispatch_flow_message(user_id, message, command_parser)` - Handle message routing when user is in an active conversation flow.
 
 Returns early response, rule_based_override for bypassed flow, or continue_parsing.
@@ -2707,7 +2710,57 @@ Returns:
   - [OK] `CheckinFlowMixin._start_dynamic_checkin(self, user_id)` - Start a dynamic check-in flow based on user preferences with weighted question selection
   - [OK] `CheckinFlowMixin._validate_response(self, question_key, response, user_id)` - Validate user response based on question type using dynamic manager
 
+#### `communication/message_processing/flows/flow_command_helpers.py`
+**Functions:**
+- [MISSING] `_checker(message_lower)` - No description
+- [MISSING] `_entity_prefix_patterns(entity)` - No description
+- [MISSING] `_expand_keyword_variants(base_words)` - No description
+- [MISSING] `_matches_other_entity_commands(message_lower, current_focus)` - No description
+- [MISSING] `_natural_language_create_pattern(entities)` - No description
+- [MISSING] `_prefix_variants(word)` - No description
+- [OK] `build_unrelated_checker(current_focus, step)` - Return a closure that checks unrelated messages for a focus + step pair.
+- [MISSING] `is_cancel_message(message_lower)` - No description
+- [MISSING] `is_delete_in_progress_message(message_lower)` - No description
+- [MISSING] `is_finish_list_message(message_lower)` - No description
+- [OK] `is_flow_expired(user_state)` - Return True when the flow has been idle longer than *timeout_minutes*.
+- [MISSING] `is_journal_flow_step_back_message(message_lower)` - No description
+- [MISSING] `is_note_flow_step_back_message(message_lower)` - No description
+- [MISSING] `is_skip_all_message(message_lower)` - No description
+- [MISSING] `is_skip_question_message(message_lower)` - No description
+- [OK] `is_step_back_message(message_lower)` - Step back one question; excludes explicit undo-creation phrases.
+- [MISSING] `is_task_flow_delete_in_progress_message(message_lower)` - No description
+- [MISSING] `is_task_flow_skip_all_message(message_lower)` - No description
+- [MISSING] `is_task_flow_skip_question_message(message_lower)` - No description
+- [MISSING] `is_task_flow_step_back_message(message_lower)` - No description
+- [MISSING] `is_task_flow_undo_creation_message(message_lower)` - No description
+- [OK] `is_unrelated_flow_message(message_lower)` - Return True when *message_lower* looks like a context switch, not a step answer.
+
+* ``FLOW_STEP_FREE_TEXT`` — only slash/bang commands and greetings are unrelated
+  (journal/note body text may contain words like "create" or "new").
+* Structured steps (date/time, priority, reminder) — also treat natural-language
+  commands for other entities as unrelated; step answers stay in-flow.
+- [OK] `message_matches_keyword(message_lower, keywords)` - Return True when *message_lower* equals or starts with a keyword phrase.
+- [OK] `try_flow_control_command(message_lower, user_state, handlers)` - Handle universal flow control keywords before step-specific parsing.
+
+Returns ``(reply, completed)`` when a control command matched, else ``None``.
+**Classes:**
+- [OK] `FlowControlHandlers` - Callbacks for shared multi-step flow control commands.
+
 #### `communication/message_processing/flows/flow_constants.py`
+
+#### `communication/message_processing/flows/flow_control_mixin.py`
+**Functions:**
+- [OK] `_build_flow_control_handlers(self)` - Factory for ``FlowControlHandlers`` used by entity-specific flows.
+- [OK] `_clear_flow_silent(self, user_id)` - Clear flow without user-facing message (hand off to next handler).
+- [MISSING] `_is_flow_expired(self, user_state)` - No description
+- [MISSING] `_logged_clear()` - No description
+- [OK] `_try_flow_control_command(self, user_id, user_state, message_lower, handlers)` - Run shared control-command handling with default silent clear on unrelated.
+**Classes:**
+- [OK] `FlowControlMixin` - Common timeout and control-command handling for entity creation flows.
+  - [OK] `FlowControlMixin._build_flow_control_handlers(self)` - Factory for ``FlowControlHandlers`` used by entity-specific flows.
+  - [OK] `FlowControlMixin._clear_flow_silent(self, user_id)` - Clear flow without user-facing message (hand off to next handler).
+  - [MISSING] `FlowControlMixin._is_flow_expired(self, user_state)` - No description
+  - [OK] `FlowControlMixin._try_flow_control_command(self, user_id, user_state, message_lower, handlers)` - Run shared control-command handling with default silent clear on unrelated.
 
 #### `communication/message_processing/flows/flow_state.py`
 **Functions:**
@@ -2748,12 +2801,34 @@ Safe no-op if no flow or different flow is active.
 
 #### `communication/message_processing/flows/note_flow.py`
 **Functions:**
+- [MISSING] `_cancel_journal_creation(self, user_id, user_state)` - No description
+- [MISSING] `_cancel_list_creation(self, user_id, user_state)` - No description
+- [MISSING] `_cancel_note_creation(self, user_id, user_state)` - No description
+- [MISSING] `_entry_short_id(self, entry)` - No description
+- [MISSING] `_finalize_journal_without_body(self, user_id, user_state)` - No description
+- [MISSING] `_finalize_list_from_state(self, user_id, user_state)` - No description
+- [MISSING] `_finalize_note_without_body(self, user_id, user_state)` - No description
+- [OK] `_handle_journal_body_flow(self, user_id, user_state, message_text)` - Handle continuation of journal body flow.
 - [OK] `_handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
 - [OK] `_handle_note_body_flow(self, user_id, user_state, message_text)` - Handle continuation of note body flow.
+- [MISSING] `_journal_body_step_back(self, user_id, user_state)` - No description
+- [MISSING] `_list_items_step_back(self, user_id, user_state)` - No description
+- [OK] `_note_body_step_back(self, user_id, user_state)` - Body step is the only interactive step — back saves title only.
 **Classes:**
 - [MISSING] `NoteFlowMixin` - No description
+  - [MISSING] `NoteFlowMixin._cancel_journal_creation(self, user_id, user_state)` - No description
+  - [MISSING] `NoteFlowMixin._cancel_list_creation(self, user_id, user_state)` - No description
+  - [MISSING] `NoteFlowMixin._cancel_note_creation(self, user_id, user_state)` - No description
+  - [MISSING] `NoteFlowMixin._entry_short_id(self, entry)` - No description
+  - [MISSING] `NoteFlowMixin._finalize_journal_without_body(self, user_id, user_state)` - No description
+  - [MISSING] `NoteFlowMixin._finalize_list_from_state(self, user_id, user_state)` - No description
+  - [MISSING] `NoteFlowMixin._finalize_note_without_body(self, user_id, user_state)` - No description
+  - [OK] `NoteFlowMixin._handle_journal_body_flow(self, user_id, user_state, message_text)` - Handle continuation of journal body flow.
   - [OK] `NoteFlowMixin._handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
   - [OK] `NoteFlowMixin._handle_note_body_flow(self, user_id, user_state, message_text)` - Handle continuation of note body flow.
+  - [MISSING] `NoteFlowMixin._journal_body_step_back(self, user_id, user_state)` - No description
+  - [MISSING] `NoteFlowMixin._list_items_step_back(self, user_id, user_state)` - No description
+  - [OK] `NoteFlowMixin._note_body_step_back(self, user_id, user_state)` - Body step is the only interactive step — back saves title only.
 
 #### `communication/message_processing/flows/task_flow.py`
 **Functions:**
@@ -2796,7 +2871,17 @@ Examples:
 - "10am", "10:00am", "10:30am" -> "10:00", "10:30"
 - "2pm", "14:00" -> "14:00"
 - "at 3pm" -> "15:00"
+- [MISSING] `_restore_task_followup_flow(self, user_id, task_id, flow, extra_data, flow_history)` - No description
+- [MISSING] `_skip_due_date_question()` - No description
+- [MISSING] `_skip_priority_question()` - No description
+- [MISSING] `_skip_reminders()` - No description
 - [OK] `_start_task_followup_flow(self, user_id, task_id, flow, extra_data, log_label)` - Persist a task follow-up flow with shared task identifier state.
+- [MISSING] `_task_flow_due_date_prompt(self)` - No description
+- [MISSING] `_task_flow_priority_prompt(self)` - No description
+- [MISSING] `_task_flow_skip_all(self, user_id)` - No description
+- [MISSING] `_task_flow_step_back(self, user_id, user_state)` - No description
+- [MISSING] `_task_flow_undo_creation(self, user_id, user_state)` - No description
+- [OK] `_try_task_flow_control_command(self, user_id, user_state, message_lower)` - Handle shared skip/undo/back/delete commands for task follow-up flows.
 - [OK] `start_task_due_date_flow(self, user_id, task_id, ask_priority)` - Start a task due date/time flow.
 Called by task handler after creating a task without a due date.
 - [OK] `start_task_priority_flow(self, user_id, task_id, ask_reminders)` - Start a priority follow-up after task creation.
@@ -2842,7 +2927,14 @@ Examples:
 - "10am", "10:00am", "10:30am" -> "10:00", "10:30"
 - "2pm", "14:00" -> "14:00"
 - "at 3pm" -> "15:00"
+  - [MISSING] `TaskFlowMixin._restore_task_followup_flow(self, user_id, task_id, flow, extra_data, flow_history)` - No description
   - [OK] `TaskFlowMixin._start_task_followup_flow(self, user_id, task_id, flow, extra_data, log_label)` - Persist a task follow-up flow with shared task identifier state.
+  - [MISSING] `TaskFlowMixin._task_flow_due_date_prompt(self)` - No description
+  - [MISSING] `TaskFlowMixin._task_flow_priority_prompt(self)` - No description
+  - [MISSING] `TaskFlowMixin._task_flow_skip_all(self, user_id)` - No description
+  - [MISSING] `TaskFlowMixin._task_flow_step_back(self, user_id, user_state)` - No description
+  - [MISSING] `TaskFlowMixin._task_flow_undo_creation(self, user_id, user_state)` - No description
+  - [OK] `TaskFlowMixin._try_task_flow_control_command(self, user_id, user_state, message_lower)` - Handle shared skip/undo/back/delete commands for task follow-up flows.
   - [OK] `TaskFlowMixin.start_task_due_date_flow(self, user_id, task_id, ask_priority)` - Start a task due date/time flow.
 Called by task handler after creating a task without a due date.
   - [OK] `TaskFlowMixin.start_task_priority_flow(self, user_id, task_id, ask_reminders)` - Start a priority follow-up after task creation.

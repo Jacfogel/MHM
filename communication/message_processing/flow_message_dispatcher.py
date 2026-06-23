@@ -10,24 +10,26 @@ from communication.command_handlers.shared_types import InteractionResponse
 from communication.message_processing.command_parser import ParsingResult
 from communication.message_processing.conversation_flow_manager import (
     conversation_manager,
+)
+from communication.message_processing.flows.flow_constants import (
+    FLOW_JOURNAL_BODY,
+    FLOW_LIST_ITEMS,
+    FLOW_NOTE_BODY,
+    FLOW_TASK_DUE_DATE,
+    FLOW_TASK_PRIORITY,
     FLOW_TASK_REMINDER,
+    JOURNAL_BODY_SUGGESTIONS,
+    LIST_ITEMS_SUGGESTIONS,
+    NOTEBOOK_BODY_SUGGESTIONS,
+    TASK_DUE_DATE_SUGGESTIONS,
+    TASK_PRIORITY_SUGGESTIONS,
+)
+
+from communication.message_processing.flows.flow_command_helpers import (
+    FLOW_DISPATCH_KEYWORDS,
 )
 
 logger = get_component_logger("communication_manager")
-
-FLOW_KEYWORDS = [
-    "skip",
-    "cancel",
-    "end",
-    "endlist",
-    "endl",
-    "!end",
-    "/end",
-    "!endlist",
-    "/endlist",
-    "!endl",
-    "/endl",
-]
 
 COMMAND_KEYWORDS = [
     "update task",
@@ -74,6 +76,59 @@ class FlowDispatchResult:
     continue_parsing: bool = True
 
 
+@handle_errors("attaching flow suggestions", default_return=None)
+def _attach_flow_suggestions(
+    response: InteractionResponse,
+    user_id: str,
+    reply_text: str,
+    completed: bool,
+) -> InteractionResponse:
+    """Attach follow-up buttons for active multi-step flows."""
+    if completed or response.suggestions:
+        return response
+
+    user_state = conversation_manager.user_states.get(
+        user_id, {"flow": 0, "state": 0, "data": {}}
+    )
+    flow = user_state.get("flow")
+
+    if flow == FLOW_TASK_DUE_DATE:
+        response.suggestions = list(TASK_DUE_DATE_SUGGESTIONS)
+        return response
+
+    if flow == FLOW_TASK_PRIORITY:
+        response.suggestions = list(TASK_PRIORITY_SUGGESTIONS)
+        return response
+
+    if flow == FLOW_NOTE_BODY:
+        response.suggestions = list(NOTEBOOK_BODY_SUGGESTIONS)
+        return response
+
+    if flow == FLOW_JOURNAL_BODY:
+        response.suggestions = list(JOURNAL_BODY_SUGGESTIONS)
+        return response
+
+    if flow == FLOW_LIST_ITEMS:
+        response.suggestions = list(LIST_ITEMS_SUGGESTIONS)
+        return response
+
+    if flow == FLOW_TASK_REMINDER or (
+        not completed and "Would you like to set custom reminder periods" in reply_text
+    ):
+        state_data = user_state.get("data", {})
+        task_id = state_data.get("task_identifier")
+        if task_id:
+            reminder_suggestions = (
+                conversation_manager._generate_context_aware_reminder_suggestions(
+                    user_id, task_id
+                )
+            )
+            if reminder_suggestions:
+                response.suggestions = reminder_suggestions
+
+    return response
+
+
 @handle_errors("dispatching flow message", default_return=FlowDispatchResult())
 def dispatch_flow_message(
     user_id: str,
@@ -98,9 +153,7 @@ def dispatch_flow_message(
 
     message_lower = message.strip().lower()
 
-    if message_lower in FLOW_KEYWORDS or any(
-        message_lower == keyword for keyword in FLOW_KEYWORDS
-    ):
+    if message_lower in FLOW_DISPATCH_KEYWORDS:
         logger.info(
             f"User {user_id} in flow {user_state['flow']} used flow keyword "
             f"'{message_lower}', delegating to conversation manager"
@@ -108,8 +161,14 @@ def dispatch_flow_message(
         reply_text, completed = conversation_manager.handle_inbound_message(
             user_id, message
         )
+        response = InteractionResponse(reply_text, completed)
+        updated = _attach_flow_suggestions(
+            response, user_id, reply_text, completed
+        )
+        if updated is not None:
+            response = updated
         return FlowDispatchResult(
-            response=InteractionResponse(reply_text, completed),
+            response=response,
             continue_parsing=False,
         )
 
@@ -154,25 +213,11 @@ def dispatch_flow_message(
             user_id, message
         )
         response = InteractionResponse(reply_text, completed)
-
-        updated_user_state = conversation_manager.user_states.get(
-            user_id, {"flow": 0, "state": 0, "data": {}}
+        updated = _attach_flow_suggestions(
+            response, user_id, reply_text, completed
         )
-
-        if updated_user_state.get("flow") == FLOW_TASK_REMINDER or (
-            not completed
-            and "Would you like to set custom reminder periods" in reply_text
-        ):
-            state_data = updated_user_state.get("data", {})
-            task_id = state_data.get("task_identifier")
-            if task_id:
-                reminder_suggestions = (
-                    conversation_manager._generate_context_aware_reminder_suggestions(
-                        user_id, task_id
-                    )
-                )
-                if reminder_suggestions:
-                    response.suggestions = reminder_suggestions
+        if updated is not None:
+            response = updated
 
         return FlowDispatchResult(
             response=response,

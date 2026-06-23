@@ -12,6 +12,7 @@ import uuid
 
 from communication.message_processing.conversation_flow_manager import conversation_manager
 from communication.message_processing.flows.flow_constants import (
+    FLOW_TASK_DUE_DATE,
     FLOW_TASK_PRIORITY,
     FLOW_TASK_REMINDER,
 )
@@ -21,6 +22,7 @@ from tasks.task_data_handlers import runtime_task_scheduled_reminder_periods
 from tests.test_helpers.test_utilities import TestUserFactory
 from core.time_utilities import (
     DATE_ONLY,
+    TIMESTAMP_FULL,
     format_timestamp,
     parse_date_only,
     now_datetime_full,
@@ -145,12 +147,145 @@ class TestTaskReminderFollowupBehavior:
         )
 
         reply, completed = conversation_manager._handle_task_due_date_flow(
-            user_id, conversation_manager.user_states[user_id], "skip"
+            user_id, conversation_manager.user_states[user_id], "Skip Question"
         )
 
         assert not completed
         assert "priority" in reply.lower()
         assert conversation_manager.user_states[user_id]["flow"] == FLOW_TASK_PRIORITY
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    def test_due_date_undo_deletes_task(self, test_data_dir):
+        """Undo Task Creation removes the task created during follow-up."""
+        user_id = "test_due_date_undo_task"
+        TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        task_id = create_task(user_id=user_id, title="Undo me")
+        conversation_manager.start_task_due_date_flow(
+            user_id, task_id, ask_priority=True
+        )
+
+        reply, completed = conversation_manager._handle_task_due_date_flow(
+            user_id,
+            conversation_manager.user_states[user_id],
+            "cancel",
+        )
+
+        assert completed
+        assert "not saved" in reply.lower()
+        assert user_id not in conversation_manager.user_states
+        assert get_task_by_id(user_id, task_id) is None
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    def test_priority_back_returns_to_due_date_flow(self, test_data_dir):
+        """Typed back/undo returns one step to the due-date question."""
+        user_id = "test_priority_back_flow"
+        TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        task_id = create_task(user_id=user_id, title="Back flow task")
+        conversation_manager.start_task_due_date_flow(
+            user_id, task_id, ask_priority=True
+        )
+        conversation_manager._handle_task_due_date_flow(
+            user_id, conversation_manager.user_states[user_id], "skip question"
+        )
+
+        reply, completed = conversation_manager._handle_task_priority_flow(
+            user_id, conversation_manager.user_states[user_id], "back"
+        )
+
+        assert not completed
+        assert "due date" in reply.lower()
+        assert conversation_manager.user_states[user_id]["flow"] == FLOW_TASK_DUE_DATE
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    def test_due_date_delete_task_removes_in_progress_task(self, test_data_dir):
+        user_id = "test_due_date_delete_task"
+        TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        task_id = create_task(user_id=user_id, title="Delete me")
+        conversation_manager.start_task_due_date_flow(
+            user_id, task_id, ask_priority=True
+        )
+
+        reply, completed = conversation_manager._handle_task_due_date_flow(
+            user_id, conversation_manager.user_states[user_id], "delete task"
+        )
+
+        assert completed
+        assert "not saved" in reply.lower()
+        assert get_task_by_id(user_id, task_id) is None
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    def test_priority_timeout_unrelated_skips_all_without_priority(self, test_data_dir):
+        user_id = "test_priority_timeout_unrelated"
+        TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        task_id = create_task(user_id=user_id, title="Timeout priority task")
+        conversation_manager.start_task_priority_flow(user_id, task_id, ask_reminders=False)
+        user_state = conversation_manager.user_states[user_id]
+        user_state["started_at"] = format_timestamp(
+            now_datetime_full() - timedelta(minutes=11), TIMESTAMP_FULL
+        )
+        conversation_manager.user_states[user_id] = user_state
+
+        reply, completed = conversation_manager._handle_task_priority_flow(
+            user_id, conversation_manager.user_states[user_id], "hello"
+        )
+
+        assert completed
+        assert "task saved" in reply.lower()
+        task = get_task_by_id(user_id, task_id)
+        assert task is not None
+        assert task.get("priority") in (None, "", "medium")
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    def test_skip_due_date_then_priority_skips_reminders_without_due_date(
+        self, test_data_dir
+    ):
+        """Skipping due date then setting priority should save task without reminder prompt."""
+        user_id = "test_priority_then_reminders"
+        TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        task_id = create_task(user_id=user_id, title="buy milk")
+        conversation_manager.start_task_due_date_flow(
+            user_id, task_id, ask_priority=True
+        )
+
+        reply, completed = conversation_manager._handle_task_due_date_flow(
+            user_id,
+            conversation_manager.user_states[user_id],
+            "skip question",
+        )
+        assert not completed
+        assert "priority" in reply.lower()
+
+        reply, completed = conversation_manager._handle_task_priority_flow(
+            user_id,
+            conversation_manager.user_states[user_id],
+            "high",
+        )
+        assert completed, f"Should finish without reminder prompt, got: {reply}"
+        assert "task saved" in reply.lower()
+        assert conversation_manager.user_states.get(user_id, {}).get("flow", 0) in (
+            0,
+            None,
+        )
 
     @pytest.mark.behavior
     @pytest.mark.communication

@@ -376,7 +376,7 @@ find work tasks
 - [ ] Very long content
 - [ ] Invalid entry references
 - [ ] Invalid list item indices
-- [ ] Pagination buttons (known issue - state not preserved)
+- [ ] Pagination buttons (Show More preserves query/filter/offset; re-run original command if button missing)
 
 ### 4.7. Verification
 - [ ] Verify entries.json structure and data
@@ -388,7 +388,7 @@ find work tasks
 
 ## 5. Known Issues
 
-- **Pagination Buttons**: "Show More" button click handler doesn't preserve pagination state. Users must re-run the original command to see more results.
+- **Pagination Buttons**: Implemented via generic pagination metadata and Show More buttons. Validate live that repeated clicks preserve the original query/filter. If a button expires, re-run the original command.
 
 ---
 
