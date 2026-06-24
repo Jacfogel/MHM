@@ -676,13 +676,14 @@ class TestTaskManagementHandlerHelpers:
         result = self.handler._handle_list_tasks__format_list(tasks)
         assert "Test description" in result[0], "Should include description"
 
-    def test_format_list_limits_to_10(self):
-        """Test _handle_list_tasks__format_list limits to 10 tasks."""
+    def test_format_list_uses_start_index_for_numbering(self):
+        """Test _handle_list_tasks__format_list numbers tasks using page offset."""
         tasks = [
             {"id": f"abc{i}", "title": f"Task {i}", "priority": "medium"}
-            for i in range(15)
+            for i in range(3)
         ]
 
-        result = self.handler._handle_list_tasks__format_list(tasks)
-        assert len(result) == 10, "Should limit to 10 tasks"
+        result = self.handler._handle_list_tasks__format_list(tasks, start_index=10)
+        assert len(result) == 3, "Should format every task on the page"
+        assert result[0].startswith("11."), "First line should use start_index + 1"
 

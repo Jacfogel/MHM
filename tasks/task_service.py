@@ -11,7 +11,11 @@ from typing import Any
 from core.error_handling import handle_errors
 from core import get_user_data
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full, parse_date_only
-from tasks.task_data_handlers import runtime_task_due_date
+from tasks.task_data_handlers import (
+    runtime_task_due_date,
+    runtime_task_due_time,
+    runtime_task_scheduled_reminder_periods,
+)
 from tasks.task_schemas import VALID_PRIORITIES
 from tasks.task_templates import (
     TaskTemplate,
@@ -555,18 +559,74 @@ def sort_tasks_by_priority_and_due_date(
 
 @handle_errors("task service: formatting due date", default_return="")
 def format_due_date_status(
-    due_date: str | None, now_dt: datetime | None = None
+    due_date: str | None,
+    now_dt: datetime | None = None,
+    due_time: str | None = None,
 ) -> str:
     """Format due-date status for command display."""
     if not due_date:
         return ""
 
+    time_suffix = f" at {due_time}" if due_time else ""
     today = format_timestamp(now_dt or now_datetime_full(), DATE_ONLY)
     if due_date < today:
-        return f" (OVERDUE: {due_date})"
+        return f" (OVERDUE: {due_date}{time_suffix})"
     if due_date == today:
-        return f" (due TODAY: {due_date})"
-    return f" (due: {due_date})"
+        return f" (due TODAY: {due_date}{time_suffix})"
+    return f" (due: {due_date}{time_suffix})"
+
+
+@handle_errors("task service: formatting task detail", default_return="Task details unavailable.")
+def format_task_detail_display(task: dict[str, Any], now_dt: datetime | None = None) -> str:
+    """Format a single task for Discord detail / ephemeral views."""
+    now_dt = now_dt or now_datetime_full()
+    title = str(task.get("title") or "Untitled")
+    lines = [f"**{title}**"]
+
+    description = str(task.get("description") or "").strip()
+    if description:
+        preview = description if len(description) <= 240 else f"{description[:237]}..."
+        lines.append(preview)
+
+    priority = task.get("priority") or "medium"
+    lines.append(f"**Priority:** {priority}")
+
+    due_date = runtime_task_due_date(task)
+    due_time = runtime_task_due_time(task)
+    if due_date:
+        status = format_due_date_status(due_date, now_dt=now_dt, due_time=due_time).strip()
+        if status.startswith("(") and status.endswith(")"):
+            status = status[1:-1]
+        lines.append(f"**Due:** {status}")
+    else:
+        lines.append("**Due:** not set")
+
+    periods = runtime_task_scheduled_reminder_periods(task)
+    if periods:
+        reminder_bits = []
+        for period in periods[:3]:
+            date_part = period.get("date", "")
+            start = period.get("start_time", "")
+            end = period.get("end_time", "")
+            if start and end:
+                reminder_bits.append(f"{date_part} {start}-{end}")
+            elif date_part:
+                reminder_bits.append(str(date_part))
+        extra = len(periods) - 3
+        summary = ", ".join(reminder_bits)
+        if extra > 0:
+            summary += f" (+{extra} more)"
+        lines.append(f"**Reminders:** {summary}")
+    else:
+        lines.append("**Reminders:** none")
+
+    tags = task.get("tags") or []
+    if tags:
+        lines.append(f"**Tags:** {', '.join(str(t) for t in tags)}")
+
+    short_id = str(task.get("short_id") or task.get("id", "")[:8])
+    lines.append(f"**ID:** `{short_id}`")
+    return "\n".join(lines)
 
 
 @handle_errors("task service: contextual task suggestion", default_return=None)

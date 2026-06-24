@@ -1693,6 +1693,8 @@ class EnhancedCommandParser:
                 r"in\s+(\d+)\s+days?",  # "in 11 days", "in 1 day", "in 6 days"
                 r"in\s+(\d+)\s+weeks?",  # "in 2 weeks", "in 1 week"
                 r"tomorrow\s+(?:morning|afternoon|evening|night)",
+                r"tomorrow\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?|noon|midnight)",
+                r"today\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?|noon|midnight)",
                 r"next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?|noon|midnight)",
                 r"next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)",
                 r"(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?|noon|midnight)",
@@ -1740,6 +1742,16 @@ class EnhancedCommandParser:
                 elif len(best_match.groups()) >= 2 and best_match.group(2):
                     time_str = best_match.group(2).strip()
                     entities["due_time"] = time_str
+                elif len(best_match.groups()) >= 1 and best_match.group(1):
+                    time_only_match = re.match(
+                        r"(\d{1,2}(?::\d{2})?\s*(?:am|pm)?|noon|midnight)",
+                        best_match.group(1).strip(),
+                        re.IGNORECASE,
+                    )
+                    if time_only_match and re.search(
+                        r"\bat\s+", matched_phrase, re.IGNORECASE
+                    ):
+                        entities["due_time"] = time_only_match.group(1)
                 elif matched_phrase.lower() == "tonight":
                     entities["due_time"] = "18:00"
                 elif re.match(r"after\s+(?:work|school)", matched_phrase, re.IGNORECASE):
@@ -1800,6 +1812,18 @@ class EnhancedCommandParser:
             clean_title, tags = parse_tags_from_text(clean_title)
             if tags:
                 entities["tags"] = tags
+
+            if "due_time" not in entities:
+                time_match = re.search(
+                    r"\bat\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?|noon|midnight)\b",
+                    clean_title,
+                    re.IGNORECASE,
+                )
+                if time_match:
+                    entities["due_time"] = time_match.group(1)
+                    clean_title = self._remove_task_phrase(
+                        clean_title, time_match.group(0)
+                    )
 
             clean_title = self._normalize_task_title(clean_title)
             if clean_title:

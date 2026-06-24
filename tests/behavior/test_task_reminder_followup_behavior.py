@@ -18,7 +18,10 @@ from communication.message_processing.flows.flow_constants import (
 )
 from communication.command_handlers.task_handler import TaskManagementHandler
 from tasks import create_task, get_task_by_id
-from tasks.task_data_handlers import runtime_task_scheduled_reminder_periods
+from tasks.task_data_handlers import (
+    runtime_task_due_date,
+    runtime_task_scheduled_reminder_periods,
+)
 from tests.test_helpers.test_utilities import TestUserFactory
 from core.time_utilities import (
     DATE_ONLY,
@@ -153,6 +156,29 @@ class TestTaskReminderFollowupBehavior:
         assert not completed
         assert "priority" in reply.lower()
         assert conversation_manager.user_states[user_id]["flow"] == FLOW_TASK_PRIORITY
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    def test_due_date_flow_accepts_space_separated_iso_date(self, test_data_dir):
+        """Due-date follow-up accepts YYYY MM DD (common mobile typing)."""
+        user_id = "test_due_date_spaces"
+        TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        task_id = create_task(user_id=user_id, title="Set due date")
+        conversation_manager.start_task_due_date_flow(
+            user_id, task_id, ask_priority=False
+        )
+
+        reply, completed = conversation_manager._handle_task_due_date_flow(
+            user_id, conversation_manager.user_states[user_id], "2026 07 01"
+        )
+
+        assert not completed
+        assert "Due date set" in reply
+        task = get_task_by_id(user_id, task_id)
+        assert runtime_task_due_date(task) == "2026-07-01"
 
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -483,20 +509,23 @@ class TestTaskReminderFollowupBehavior:
         task = get_task_by_id(actual_user_id, task_id)
         periods = runtime_task_scheduled_reminder_periods(task)
         assert periods, "Task should have scheduled reminder periods"
+        assert len(periods) == 1, "1-2 days before should create one reminder"
+
+        due_dt = parse_date_only(due_date)
+        assert due_dt is not None
+        due_date_obj = due_dt.date()
         reminder = periods[0]
 
-        # Should be 1-2 days before due date
         reminder_dt = parse_date_only(reminder["date"])
-        due_dt = parse_date_only(due_date)
         assert reminder_dt is not None
-        assert due_dt is not None
-        reminder_date = reminder_dt.date()
-        due_date_obj = due_dt.date()
-        days_before = (due_date_obj - reminder_date).days
-
+        days_before = (due_date_obj - reminder_dt.date()).days
         assert (
             1 <= days_before <= 2
         ), f"Reminder should be 1-2 days before, got {days_before} days"
+        assert (
+            reminder["start_time"] == "09:00" and reminder["end_time"] == "17:00"
+        ), f"Expected 09:00-17:00 daytime window, got {reminder['start_time']}-{reminder['end_time']}"
+        assert reminder["start_time"] != reminder["end_time"]
 
     @pytest.mark.behavior
     @pytest.mark.communication

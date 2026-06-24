@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import functools
 import logging
+import re
 import pytz
 import time as time_module
 from datetime import datetime, timezone
@@ -246,6 +247,38 @@ def parse_date_only(value: str) -> datetime | None:
         return datetime.strptime(value, DATE_ONLY)
     except (ValueError, TypeError):
         return None
+
+
+@_guard("parsing flexible date input", None)
+def parse_flexible_date_only(value: str) -> str | None:
+    """
+    Parse common user-entered date variants into YYYY-MM-DD.
+
+    Accepts YYYY-MM-DD, YYYY/MM/DD, and YYYY MM DD (month/day may be 1-2 digits).
+    Returns None when the input is not a recognizable date.
+    """
+    if not value:
+        return None
+    text = value.strip()
+    if parse_date_only(text):
+        return text
+
+    match = re.search(
+        r"(?<!\d)(\d{4})[-/\s](\d{1,2})[-/\s](\d{1,2})(?!\d)",
+        text,
+    )
+    if not match:
+        return None
+    year, month, day = (
+        int(match.group(1)),
+        int(match.group(2)),
+        int(match.group(3)),
+    )
+    try:
+        parsed = datetime(year, month, day)
+    except ValueError:
+        return None
+    return format_timestamp(parsed, DATE_ONLY)
 
 
 def parse_time_only_minute(value: str) -> datetime | None:

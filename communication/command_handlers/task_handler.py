@@ -13,9 +13,11 @@ from typing import Any
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
+from core.pagination import PageRequest, paginate_items
 from core.time_utilities import now_datetime_full
 from .base_handler import InteractionHandler, InteractionResponse, ParsedCommand
 from .task_analytics_handler import TaskAnalyticsHandler
+from communication.command_handlers.shared_types import PaginationAction
 from communication.message_processing.flows.flow_constants import (
     TASK_DUE_DATE_SUGGESTIONS,
     TASK_PRIORITY_SUGGESTIONS,
@@ -23,6 +25,7 @@ from communication.message_processing.flows.flow_constants import (
 
 from tasks.task_data_handlers import (
     runtime_task_due_date,
+    runtime_task_due_time,
     runtime_task_recurrence_interval,
     runtime_task_recurrence_pattern,
 )
@@ -46,6 +49,9 @@ def _task_service():
 logger = get_component_logger("communication_manager")
 handlers_logger = logger
 TASK_ANALYTICS_HANDLER = TaskAnalyticsHandler()
+
+TASK_LIST_PAGE_SIZE = 10
+TASK_LIST_MAX_PAGE_SIZE = 25
 
 # Channel-neutral task help (single source for `help tasks` and handler.get_help).
 TASK_HELP_TEXT = """**Task Management Help:**
@@ -416,15 +422,23 @@ class TaskManagementHandler(InteractionHandler):
         # Sort tasks by priority and due date
         sorted_tasks = self._handle_list_tasks__sort_tasks(filtered_tasks)
 
-        # Format task list with enhanced details
-        task_list = self._handle_list_tasks__format_list(sorted_tasks)
+        page_request = PageRequest.from_values(
+            limit=entities.get("limit", TASK_LIST_PAGE_SIZE),
+            offset=entities.get("offset", 0),
+            default_limit=TASK_LIST_PAGE_SIZE,
+            max_limit=TASK_LIST_MAX_PAGE_SIZE,
+        )
+        page = paginate_items(sorted_tasks, page_request)
+
+        # Format task list with enhanced details (current page only)
+        task_list = self._handle_list_tasks__format_list(page.items, page.offset)
 
         # Build response with filter info
         filter_info = self._handle_list_tasks__build_filter_info(
             filter_type, priority_filter, tag_filter
         )
         response = self._handle_list_tasks__build_response(
-            task_list, filter_info, len(sorted_tasks)
+            task_list, filter_info, page, sorted_tasks
         )
 
         # Generate contextual suggestions
@@ -432,8 +446,15 @@ class TaskManagementHandler(InteractionHandler):
             sorted_tasks, filter_info
         )
 
-        # Create rich data for Discord embeds
-        rich_data = self._handle_list_tasks__create_rich_data(filter_info, sorted_tasks)
+        # Pagination + Discord task picker (select menu on list page)
+        rich_data = self._handle_list_tasks__build_list_rich_data(
+            user_id,
+            page,
+            page.items,
+            filter_type=filter_type,
+            priority_filter=priority_filter,
+            tag_filter=tag_filter,
+        )
 
         return InteractionResponse(
             response,
@@ -482,17 +503,22 @@ class TaskManagementHandler(InteractionHandler):
         return _task_service().sort_tasks_by_priority_and_due_date(tasks)
 
     @handle_errors("formatting task list")
-    def _handle_list_tasks__format_list(self, tasks):
+    def _handle_list_tasks__format_list(self, tasks, start_index: int = 0):
         """Format task list with enhanced details."""
         task_list = []
-        for i, task in enumerate(tasks[:10], 1):  # Limit to 10 tasks
-            priority_emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(
-                task.get("priority", "medium"), "🟡"
-            )
+        priority_emoji = {
+            "critical": "🔴",
+            "urgent": "🔴",
+            "high": "🔴",
+            "medium": "🟡",
+            "low": "🟢",
+        }
+        for i, task in enumerate(tasks, start_index + 1):
+            emoji = priority_emoji.get(task.get("priority", "medium"), "🟡")
 
-            # Format due date with urgency indicator
             due_info = self._handle_list_tasks__format_due_date(
-                runtime_task_due_date(task)
+                runtime_task_due_date(task),
+                runtime_task_due_time(task),
             )
 
             # Add recurring task indicator
@@ -518,16 +544,16 @@ class TaskManagementHandler(InteractionHandler):
             )
 
             task_list.append(
-                f"{i}. {priority_emoji} {task['title']}{due_info}{recurrence_info}{tags_info}{desc_info}"
+                f"{i}. {emoji} {task['title']}{due_info}{recurrence_info}{tags_info}{desc_info}"
             )
 
         return task_list
 
     @handle_errors("formatting due date")
-    def _handle_list_tasks__format_due_date(self, due_date):
-        """Format due date with urgency indicator."""
+    def _handle_list_tasks__format_due_date(self, due_date, due_time=None):
+        """Format due date with urgency indicator and optional time."""
         return _task_service().format_due_date_status(
-            due_date, now_dt=now_datetime_full()
+            due_date, now_dt=now_datetime_full(), due_time=due_time
         )
 
     @handle_errors("building filter info")
@@ -545,88 +571,114 @@ class TaskManagementHandler(InteractionHandler):
         return filter_info
 
     @handle_errors("building response")
-    def _handle_list_tasks__build_response(self, task_list, filter_info, total_tasks):
+    def _handle_list_tasks__build_response(
+        self, task_list, filter_info, page, all_tasks
+    ):
         """Build the main task list response."""
         response = "**Your Active Tasks"
         if filter_info:
             response += f" ({', '.join(filter_info)})"
         response += ":**\n" + "\n".join(task_list)
 
-        if total_tasks > 10:
-            response += f"\n... and {total_tasks - 10} more tasks"
+        if page.has_more:
+            response += f"\n... and {page.remaining_count} more tasks"
 
-        return response
-
-    @handle_errors("generating suggestions")
-    def _handle_list_tasks__generate_suggestions(self, tasks, filter_info):
-        """Generate contextual suggestions based on current state."""
-        suggestions = []
-
-        # Only add suggestions if we have tasks and no filters are applied
-        if not filter_info and len(tasks) > 0:
-            # Add one contextual "show" suggestion if available
-            contextual_suggestion = self._handle_list_tasks__get_suggestion(tasks)
-            if contextual_suggestion:
-                suggestions.append(contextual_suggestion)
-
-            # Add action-oriented suggestions (only relevant to listing context)
-            suggestions.append("Add a reminder to a task")
-            suggestions.append("Edit a task")
-
-        # If we don't have enough suggestions, add general ones
-        while len(suggestions) < 3:
-            if "Create a new task" not in suggestions:
-                suggestions.append("Create a new task")
-            elif "Show all tasks" not in suggestions:
-                suggestions.append("Show all tasks")
-            else:
-                break
-
-        # Limit to exactly 3 suggestions
-        return suggestions[:3]
-
-    @handle_errors("getting suggestion")
-    def _handle_list_tasks__get_suggestion(self, tasks):
-        """Get contextual show suggestion based on task analysis."""
-        return _task_service().get_contextual_task_suggestion(
-            tasks, now_dt=now_datetime_full()
-        )
-
-    @handle_errors("creating rich data")
-    def _handle_list_tasks__create_rich_data(self, filter_info, tasks):
-        """Create rich data for Discord embeds."""
-        rich_data = {"type": "task", "title": "Your Active Tasks", "fields": []}
-
-        # Add filter info as a field if filters are applied
-        if filter_info:
-            rich_data["fields"].append(
-                {
-                    "name": "Filters Applied",
-                    "value": ", ".join(filter_info),
-                    "inline": True,
-                }
-            )
-
-        # Add task count as a field
-        rich_data["fields"].append(
-            {"name": "Task Count", "value": f"{len(tasks)} tasks", "inline": True}
-        )
-
-        # Add priority breakdown as a field
-        priority_counts = {}
-        for task in tasks:
+        priority_counts: dict[str, int] = {}
+        for task in all_tasks:
             priority = task.get("priority", "medium")
             priority_counts[priority] = priority_counts.get(priority, 0) + 1
 
         if priority_counts:
             priority_str = ", ".join(
-                [f"{count} {priority}" for priority, count in priority_counts.items()]
+                f"{count} {priority}"
+                for priority, count in sorted(priority_counts.items())
             )
-            rich_data["fields"].append(
-                {"name": "Priority Breakdown", "value": priority_str, "inline": True}
-            )
+            response += f"\n\n_{page.total} tasks | {priority_str}_"
+        else:
+            response += f"\n\n_{page.total} tasks_"
 
-        return rich_data
+        if page.items:
+            response += "\n\n_Select a task below for details and actions._"
+
+        return response
+
+    @handle_errors("building list rich data", default_return=None)
+    def _handle_list_tasks__build_list_rich_data(
+        self,
+        user_id: str,
+        page,
+        page_tasks,
+        *,
+        filter_type=None,
+        priority_filter=None,
+        tag_filter=None,
+    ):
+        """Pagination metadata and Discord task-list picker payload."""
+        rich_data = self._handle_list_tasks__build_pagination_rich_data(
+            page,
+            filter_type=filter_type,
+            priority_filter=priority_filter,
+            tag_filter=tag_filter,
+        )
+        if not page_tasks:
+            return rich_data
+
+        picker_data = {
+            "interaction_view": "task_list",
+            "user_id": user_id,
+            "task_list_items": [
+                {
+                    "task_id": _task_identifier(task),
+                    "short_id": _task_short_identifier(task),
+                    "title": task.get("title") or "Untitled",
+                }
+                for task in page_tasks
+            ],
+        }
+        if rich_data:
+            return {**rich_data, **picker_data}
+        return picker_data
+
+    @handle_errors("building task list pagination metadata", default_return=None)
+    def _handle_list_tasks__build_pagination_rich_data(
+        self,
+        page,
+        *,
+        filter_type=None,
+        priority_filter=None,
+        tag_filter=None,
+    ):
+        """Return channel-neutral Show More metadata when more tasks exist."""
+        if not page.has_more or page.next_offset is None:
+            return None
+
+        params: dict[str, Any] = {}
+        if filter_type:
+            params["filter"] = filter_type
+        if priority_filter:
+            params["priority"] = priority_filter
+        if tag_filter:
+            params["tag"] = tag_filter
+
+        return {
+            "pagination_actions": [
+                PaginationAction(
+                    domain="tasks",
+                    action="list_tasks",
+                    params=params,
+                    limit=page.limit,
+                    offset=page.offset,
+                    next_offset=page.next_offset,
+                    remaining_count=page.remaining_count,
+                )
+            ]
+        }
+
+    @handle_errors("generating suggestions")
+    def _handle_list_tasks__generate_suggestions(self, tasks, filter_info):
+        """Task list uses Show More pagination only; no filter shortcut buttons."""
+        del tasks, filter_info
+        return []
 
     # not_duplicate: task_mutation_handlers
     @handle_errors("handling task completion")

@@ -3,6 +3,7 @@
 """Task reminder, due date, and priority flow mixin."""
 
 from datetime import datetime, timedelta
+import random
 from typing import Any
 
 from core.error_handling import handle_errors
@@ -23,7 +24,11 @@ from communication.message_processing.flows.flow_constants import (
     FLOW_TASK_DUE_DATE,
     FLOW_TASK_PRIORITY,
     FLOW_TASK_REMINDER,
+    TASK_REMINDER_DAY_WINDOW_END_HOUR,
+    TASK_REMINDER_DAY_WINDOW_START_HOUR,
 )
+
+_MIN_REMINDER_WINDOW = timedelta(hours=1)
 from communication.message_processing.flows.flow_command_helpers import (
     TASK_NOT_SAVED_MESSAGE,
     TASK_SAVED_MESSAGE,
@@ -415,7 +420,7 @@ class TaskFlowMixin(FlowControlMixin):
         Examples:
         - "30 minutes to an hour before" -> reminder 30-60 min before due time
         - "3 to 5 hours before" -> reminder 3-5 hours before due time
-        - "1 to 2 days before" -> reminder 1-2 days before due date
+        - "1 to 2 days before" -> one reminder on either 1 or 2 days before due date
 
         Returns list of reminder period dicts with date, start_time, end_time.
         """
@@ -444,6 +449,20 @@ class TaskFlowMixin(FlowControlMixin):
                 logger.debug(
                     f"Parsed values: start_val={start_val}, end_val={end_val}, unit={unit}"
                 )
+                if unit == "days":
+                    day_period = self._build_day_based_reminder_period(
+                        due_datetime, start_val, end_val
+                    )
+                    if day_period is None:
+                        continue
+                    reminder_periods.append(day_period)
+                    logger.debug(
+                        f"Parsed day-based reminder period for task {task_id}: "
+                        f"{day_period['date']} "
+                        f"{day_period['start_time']}-{day_period['end_time']}"
+                    )
+                    break
+
                 deltas = self._build_reminder_deltas(unit, start_val, end_val)
                 if deltas is None:
                     logger.debug(f"Unknown unit '{unit}', skipping")
@@ -545,6 +564,47 @@ class TaskFlowMixin(FlowControlMixin):
         if unit == "days":
             return timedelta(days=end_val), timedelta(days=start_val)
         return None
+    @handle_errors("building day-based reminder period", default_return=None)
+    def _build_day_based_reminder_period(
+        self, due_datetime: datetime, start_val: int, end_val: int
+    ) -> dict | None:
+        """Pick one day in the N..M days-before range with a daytime reminder window."""
+        if start_val > end_val:
+            start_val, end_val = end_val, start_val
+
+        now = now_datetime_full()
+        candidates = list(range(start_val, end_val + 1))
+        random.shuffle(candidates)
+
+        for days_before in candidates:
+            reminder_day = due_datetime - timedelta(days=days_before)
+            period_start = reminder_day.replace(
+                hour=TASK_REMINDER_DAY_WINDOW_START_HOUR,
+                minute=0,
+                second=0,
+                microsecond=0,
+            )
+            period_end = reminder_day.replace(
+                hour=TASK_REMINDER_DAY_WINDOW_END_HOUR,
+                minute=0,
+                second=0,
+                microsecond=0,
+            )
+            if period_end < now:
+                logger.debug(
+                    f"Day-based reminder window {period_start} to {period_end} is in the past, skipping"
+                )
+                continue
+            logger.debug(
+                f"Selected {days_before} day(s) before due for reminder on {period_start.date()}"
+            )
+            return {
+                "date": format_timestamp(period_start, DATE_ONLY),
+                "start_time": format_timestamp(period_start, TIME_ONLY_MINUTE),
+                "end_time": format_timestamp(period_end, TIME_ONLY_MINUTE),
+            }
+        return None
+
     @handle_errors("building future reminder period", default_return=None)
     def _build_future_reminder_period(
         self, due_datetime: datetime, start_delta: timedelta, end_delta: timedelta
@@ -552,6 +612,8 @@ class TaskFlowMixin(FlowControlMixin):
         """Create reminder period dict when reminder window is in the future."""
         reminder_start = due_datetime - start_delta
         reminder_end = due_datetime - end_delta
+        if reminder_end <= reminder_start:
+            reminder_start = reminder_end - _MIN_REMINDER_WINDOW
         logger.debug(
             f"Calculated reminder times: start={reminder_start}, end={reminder_end}"
         )
@@ -876,6 +938,7 @@ class TaskFlowMixin(FlowControlMixin):
                 "- 'tomorrow'\n"
                 "- 'next week'\n"
                 "- 'Monday at 2pm'\n"
+                "- '2026-07-01' or '2026 07 01'\n"
                 "- '2026-01-15 10:00'\n"
                 "- Or tap **Skip Question** to continue without a due date",
                 False,
@@ -936,6 +999,7 @@ class TaskFlowMixin(FlowControlMixin):
         #   and for date-only string output we use core.time_utilities.format_timestamp(..., DATE_ONLY).
         from core.time_utilities import (
             DATE_ONLY,
+            parse_flexible_date_only,
         )  # noqa: F401 (documented canonical)
 
         text_lower = (text or "").lower().strip()
@@ -1004,12 +1068,11 @@ class TaskFlowMixin(FlowControlMixin):
                 time_str = self._parse_time_from_text(text_lower)
                 return (_date_str(target_dt), time_str)
 
-        # Try to parse YYYY-MM-DD format (already canonical; don't reformat it)
-        date_match = re.search(r"(\d{4}-\d{2}-\d{2})", text or "")
-        if date_match:
-            date_str = date_match.group(1)
+        # YYYY-MM-DD, YYYY/MM/DD, YYYY MM DD, optional trailing time
+        flexible_date = parse_flexible_date_only(text or "")
+        if flexible_date:
             time_str = self._parse_time_from_text(text_lower)
-            return (date_str, time_str)
+            return (flexible_date, time_str)
 
         # Try to parse relative days like "in 3 days", "in 2 weeks"
         days_match = re.search(r"in\s+(\d+)\s+days?", text_lower)

@@ -81,6 +81,86 @@ class TestConversationFlowReminderHelpers:
         assert period["start_time"] == "09:00"
         assert period["end_time"] == "10:00"
 
+    def test_build_future_reminder_period_expands_zero_width_window(
+        self, manager, monkeypatch
+    ):
+        due = datetime(2026, 3, 10, 12, 0, 0)
+        monkeypatch.setattr(
+            "communication.message_processing.flows.task_flow.now_datetime_full",
+            lambda: datetime(2026, 3, 10, 9, 0, 0),
+        )
+        period = manager._build_future_reminder_period(
+            due,
+            timedelta(minutes=30),
+            timedelta(minutes=30),
+        )
+
+        assert period is not None
+        assert period["start_time"] == "10:30"
+        assert period["end_time"] == "11:30"
+        assert period["start_time"] != period["end_time"]
+
+    def test_build_day_based_reminder_period_picks_one_day_in_range(
+        self, manager, monkeypatch
+    ):
+        due = datetime(2026, 6, 28, 9, 0, 0)
+        monkeypatch.setattr(
+            "communication.message_processing.flows.task_flow.now_datetime_full",
+            lambda: datetime(2026, 6, 20, 9, 0, 0),
+        )
+        monkeypatch.setattr(
+            "communication.message_processing.flows.task_flow.random.shuffle",
+            lambda candidates: candidates.sort(reverse=True),
+        )
+        period = manager._build_day_based_reminder_period(due, 1, 2)
+
+        assert period is not None
+        assert period["date"] == "2026-06-26"
+        assert period["start_time"] == "09:00"
+        assert period["end_time"] == "17:00"
+
+    def test_build_day_based_reminder_period_falls_back_when_first_choice_past(
+        self, manager, monkeypatch
+    ):
+        due = datetime(2026, 6, 28, 9, 0, 0)
+        monkeypatch.setattr(
+            "communication.message_processing.flows.task_flow.now_datetime_full",
+            lambda: datetime(2026, 6, 27, 10, 0, 0),
+        )
+        monkeypatch.setattr(
+            "communication.message_processing.flows.task_flow.random.shuffle",
+            lambda candidates: candidates.sort(reverse=True),
+        )
+        period = manager._build_day_based_reminder_period(due, 1, 2)
+
+        assert period is not None
+        assert period["date"] == "2026-06-27"
+        assert period["start_time"] == "09:00"
+        assert period["end_time"] == "17:00"
+
+    def test_parse_reminder_periods_from_text_parses_days_range(self, manager):
+        due = datetime(2026, 6, 28, 9, 0, 0)
+        with (
+            patch.object(manager, "_get_task_due_datetime_for_reminders", return_value=due),
+            patch(
+                "communication.message_processing.flows.task_flow.now_datetime_full",
+                return_value=datetime(2026, 6, 20, 9, 0, 0),
+            ),
+            patch(
+                "communication.message_processing.flows.task_flow.random.shuffle",
+                lambda candidates: candidates.sort(reverse=True),
+            ),
+        ):
+            periods = manager._parse_reminder_periods_from_text(
+                "u1", "t1", "1 to 2 days before"
+            )
+
+        assert len(periods) == 1
+        assert periods[0]["date"] == "2026-06-26"
+        assert periods[0]["start_time"] == "09:00"
+        assert periods[0]["end_time"] == "17:00"
+        assert periods[0]["start_time"] != periods[0]["end_time"]
+
     def test_get_task_due_datetime_for_reminders_missing_task_or_due_date(self, manager):
         with patch("tasks.get_task_by_id", return_value=None):
             assert manager._get_task_due_datetime_for_reminders("u1", "t1") is None

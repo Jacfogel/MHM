@@ -500,6 +500,64 @@ class TestTaskHandlerBehavior:
     @pytest.mark.tasks
     @pytest.mark.file_io
     @patch("tasks.load_active_tasks")
+    def test_task_handler_list_tasks_pagination_and_due_time(
+        self, mock_load_tasks, test_data_dir
+    ):
+        """Task list paginates at 10 and includes due time when set."""
+        handler = TaskManagementHandler()
+        user_id = "test_user_task_pagination"
+        assert self._create_test_user(
+            user_id, test_data_dir=test_data_dir
+        ), "Failed to create test user"
+
+        mock_load_tasks.return_value = [
+            {
+                "title": f"Task {index}",
+                "priority": "medium",
+                "due": {"date": "2026-06-24", "time": "14:00"},
+                "id": f"task_{index}",
+            }
+            for index in range(1, 12)
+        ]
+
+        response = handler.handle(
+            user_id,
+            ParsedCommand("list_tasks", {}, 0.9, "show tasks"),
+        )
+
+        assert response.completed
+        assert response.message.count("Task ") == 10
+        assert "... and 1 more tasks" in response.message
+        assert "14:00" in response.message
+        assert "_11 tasks" in response.message
+        assert response.rich_data is not None
+        actions = response.rich_data.get("pagination_actions") or []
+        assert len(actions) == 1
+        assert actions[0].action == "list_tasks"
+        assert actions[0].next_offset == 10
+        assert "type" not in (response.rich_data or {})
+        assert response.rich_data.get("interaction_view") == "task_list"
+        assert len(response.rich_data.get("task_list_items") or []) == 10
+
+        page2 = handler.handle(
+            user_id,
+            ParsedCommand(
+                "list_tasks",
+                {"offset": 10, "limit": 10},
+                0.9,
+                "Show More",
+            ),
+        )
+        assert "Task 11" in page2.message
+        assert "10. " not in page2.message
+        assert page2.rich_data.get("interaction_view") == "task_list"
+        assert "pagination_actions" not in (page2.rich_data or {})
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    @pytest.mark.file_io
+    @patch("tasks.load_active_tasks")
     def test_task_handler_list_tasks_no_tasks(self, mock_load_tasks, test_data_dir):
         """Test that TaskManagementHandler handles no tasks gracefully."""
         handler = TaskManagementHandler()

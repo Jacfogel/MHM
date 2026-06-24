@@ -1551,7 +1551,13 @@ class DiscordBot(BaseChannel):
         """Return True when rich_data contains embed-facing fields."""
         if not isinstance(rich_data, dict):
             return False
-        metadata_only_keys = {"suggestion_payloads", "pagination_actions"}
+        metadata_only_keys = {
+            "suggestion_payloads",
+            "pagination_actions",
+            "interaction_view",
+            "user_id",
+            "task_list_items",
+        }
         return any(key not in metadata_only_keys for key in rich_data)
 
     @handle_errors("getting Discord suggestion payloads", default_return=None)
@@ -1630,7 +1636,12 @@ class DiscordBot(BaseChannel):
         )
 
         view = create_interaction_view(
-            "discord", str(view_type), str(user_id), discord_bot=self
+            "discord",
+            str(view_type),
+            str(user_id),
+            discord_bot=self,
+            task_list_items=rich_data.get("task_list_items"),
+            pagination_actions=rich_data.get("pagination_actions"),
         )
         if callable(view) and not isinstance(view, type):
             try:

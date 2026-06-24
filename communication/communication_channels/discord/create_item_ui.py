@@ -15,6 +15,9 @@ from communication.command_handlers.shared_types import InteractionResponse, Par
 from communication.communication_channels.discord.discord_response_delivery import (
     deliver_handler_response,
 )
+from communication.communication_channels.discord.discord_user_resolution import (
+    internal_user_id as _internal_user_id,
+)
 from communication.communication_channels.discord.item_form_shared import (
     entities_from_shared_fields,
 )
@@ -27,15 +30,6 @@ logger = get_component_logger("discord")
 
 CREATE_HUB_PREFIX = "create_hub_"
 CREATE_HUB_TIMEOUT_SECONDS = 600
-
-
-@handle_errors("resolving internal user from Discord interaction", default_return=None)
-def _internal_user_id(interaction: discord.Interaction) -> str | None:
-    from core import get_user_id_by_identifier
-
-    if not interaction.user:
-        return None
-    return get_user_id_by_identifier(str(interaction.user.id))
 
 
 @handle_errors("running handler for create hub action", default_return=None)

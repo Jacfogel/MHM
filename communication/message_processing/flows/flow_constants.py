@@ -48,6 +48,10 @@ FLOW_CONTROL_SKIP_LABELS = frozenset(
 )
 FLOW_UNDO_BUTTON_PREFIX = "Undo "
 
+# Default daytime window for day-based task reminders (date-only due dates)
+TASK_REMINDER_DAY_WINDOW_START_HOUR = 9
+TASK_REMINDER_DAY_WINDOW_END_HOUR = 17
+
 TASK_DUE_DATE_SUGGESTIONS = ["Skip Question", "Skip All", "Undo Task Creation"]
 TASK_PRIORITY_SUGGESTIONS = [
     "Low",

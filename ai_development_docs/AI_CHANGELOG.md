@@ -37,7 +37,12 @@ Guidelines:
 - **UX**: Due-date buttons are **Skip Question**, **Skip All**, **Undo Task Creation**; **cancel**/**delete task** delete the in-progress task; **undo**/**back** go one step back; timeout (10 min) + unrelated message acts like **Skip All** across task/notebook flows.
 - **Architecture**: Shared flow control in `flow_command_helpers.py`, `flow_control_mixin.py` - universal keywords, timeout, unrelated detection, and `try_flow_control_command()` for tasks, notes, lists; ready for journal/events/checkins.
 - **Flows**: Step-aware unrelated detection; cancel synonyms; explicit outcome messages; journal multi-step body flow; priority buttons aligned with due-date set. Live-test fixes: no reminder prompt without due date; Discord control buttons grey (skip) / red (undo) vs blue suggestions; note/journal last step without Skip All; list End List + Undo List Creation every step.
-- Docs: [`NOTES_PLAN.md`](../development_docs/NOTES_PLAN.md) Section 4.2 closed; [`MANUAL_DISCORD_TEST_GUIDE.md`](../tests/MANUAL_DISCORD_TEST_GUIDE.md) pagination note updated.
+- **Fix (live validation)**: Day-based reminders (`1 to 2 days before`) pick **one** day in range with a **09:00-17:00** window (not two reminders); minute/hour single-value phrases get at least a 1-hour window.
+- **Audit cleanup**: Shared `discord_user_resolution.internal_user_id`; error handling on task list UI inits; fixed stale list-format test; removed redundant due-date legacy regex; registry + ASCII doc-fix.
+- **Fix (live validation)**: `tomorrow at 2pm` now sets task `due_time`; reminder math uses parsed time instead of 09:00 default.
+- **Fix**: `show tasks` no longer duplicates the list; **Show More** pagination; due times in list; removed broken filter shortcut buttons.
+- **Feature**: Discord task picker select + detail view (due date / priority / reminders / complete / more flows).
+- **Fix**: Due-date flow accepts `YYYY MM DD` and `YYYY/MM/DD` in addition to `YYYY-MM-DD` (`parse_flexible_date_only` in `core/time_utilities.py`).
 - **Audit hygiene**: Restored `DISCORD_BOT_TOKEN` import; Ruff/Pyright clean; fixed parallel test failures; `@handle_errors` on `_attach_flow_suggestions`; function registry regenerated; ASCII changelog fix applied. Flow audit: docstrings on task/note flow helpers; `# error_handling_exclude` on pure keyword predicates; removed thin-wrapper `is_task_flow_skip_*` facades. Security/docs: pinned `msgpack>=1.2.1` (GHSA-6v7p-g79w-8964); report generator uses plain paths for gitignored audit JSON links.
 
 ### 2026-06-21 - Communication coverage expansion and test hygiene **COMPLETED**

@@ -42,6 +42,15 @@ def test_now_timestamp_utc_iso_uses_canonical_utc_now(monkeypatch):
 
 @pytest.mark.unit
 @pytest.mark.core
+def test_parse_flexible_date_only_accepts_common_variants():
+    assert time_utilities.parse_flexible_date_only("2026-07-01") == "2026-07-01"
+    assert time_utilities.parse_flexible_date_only("2026 07 01") == "2026-07-01"
+    assert time_utilities.parse_flexible_date_only("2026/07/01") == "2026-07-01"
+    assert time_utilities.parse_flexible_date_only("not a date") is None
+
+
+@pytest.mark.unit
+@pytest.mark.core
 def test_format_time_compact_hour_minute():
     value = datetime(2026, 5, 12, 4, 5, 6)
 

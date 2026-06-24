@@ -392,4 +392,83 @@ find work tasks
 
 ---
 
+## 6. Live Validation Session (task flows + notebook pagination)
+
+Use this checklist after flow-control or pagination changes. Prerequisites: headless service running (`python run_headless_service.py start`), bot online in your test server.
+
+**Tip**: Grey buttons = flow controls (Skip, Undo). Blue buttons = suggestions (priority levels, reminder options).
+
+### 6.1. Task creation follow-up flows
+
+**A. `nt call dentist` -> Skip due date -> priority buttons** (June 2026 regression)
+
+```
+nt call dentist
+```
+- [ ] Bot asks for due date/time
+- [ ] Grey buttons: **Skip Question**, **Skip All**, **Undo Task Creation** (not plain `[Skip]` text)
+- [ ] Tap **Skip Question**
+- [ ] Bot asks for priority
+- [ ] Blue priority buttons: **Low**, **Medium**, **High**, **Critical**
+- [ ] Grey buttons again: **Skip Question**, **Skip All**, **Undo Task Creation**
+- [ ] Tap **High** (or type `high`) -> task saved, **no** reminder prompt (no due date)
+
+**B. Full flow with due date**
+
+```
+create task to buy groceries tomorrow at 2pm
+```
+- [ ] Task created as **buy groceries** (not "buy groceries at 2pm"); due shows date **and time** (e.g. `at 14:00`)
+- [ ] Priority step appears (skip or pick one)
+- [ ] Reminder step appears after priority
+- [ ] `30 minutes to an hour before` sets reminder **13:00-13:30** (not 08:00-08:30)
+- [ ] `show my tasks` lists the new task **once** (no duplicate embed + text); **Show More** when more than 10 tasks
+
+**C. Flow control edge cases**
+
+```
+nt organize desk
+```
+- [ ] Due-date step -> tap **Undo Task Creation** -> task removed, flow cleared
+
+```
+nt test back flow
+```
+- [ ] Skip due date -> at priority step type `back` -> returns to due-date question
+
+```
+nt timeout test
+```
+- [ ] Start flow, wait 10+ minutes (or send unrelated message) -> flow auto-completes like Skip All
+
+### 6.2. Notebook Show More pagination
+
+Create enough entries first (run several `!qn pagination-test-1` through `!qn pagination-test-8` or use existing data).
+
+| Command | Check |
+|---------|-------|
+| `!recent` | [ ] Page 1 shows entries; **Show More** appears if more exist |
+| `!s pagination` | [ ] Search query preserved on page 2 |
+| `!inbox` | [ ] Inbox filter preserved |
+| `!pinned` | [ ] Pinned filter preserved |
+| `!archived` | [ ] Archived filter preserved |
+| `!t <tag>` | [ ] Tag filter preserved |
+| `!group <group>` | [ ] Group filter preserved |
+
+For each command that shows **Show More**:
+- [ ] Tap **Show More** -> page 2 shows different entries (not a repeat of page 1)
+- [ ] Tap **Show More** again until exhausted -> final page has **no** stale Show More button
+- [ ] Run a different notebook command, then return -> pagination still works
+
+### 6.3. Sign-off
+
+When all boxes pass, update:
+- [ ] [TASKS_PLAN.md](../development_docs/TASKS_PLAN.md) section 1 checkboxes
+- [ ] [NOTES_PLAN.md](../development_docs/NOTES_PLAN.md) section 4.1 checkboxes
+- [ ] Changelog follow-up note in [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) if this closes the June 2026 validation slice
+
+Record any failures with the exact message sent, what the bot replied, and whether buttons appeared.
+
+---
+
 **Note**: This guide focuses on Discord-specific manual testing. For general testing procedures, see [TESTING_GUIDE.md](TESTING_GUIDE.md).

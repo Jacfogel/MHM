@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-22 21:32:50
+> **Last Generated**: 2026-06-23 23:19:15
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 89.9% [!] GOOD**
-- **Total Functions**: 2159
-- **Total Methods**: 1323
-- **Documented**: 3131/3482
-- **Files Scanned**: 218
+### **Documentation Coverage: 91.4% [!] GOOD**
+- **Total Functions**: 2167
+- **Total Methods**: 1326
+- **Documented**: 3192/3493
+- **Files Scanned**: 220
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -157,19 +157,19 @@ Core System Decision Tree:
 ### **High Priority** (Missing Documentation)
 - `core/profile_v2_schemas.py` - 24/46 functions undocumented (48% coverage)
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
-- `communication/message_processing/flows/flow_command_helpers.py` - 18/24 functions undocumented (25% coverage)
-- `communication/message_processing/flows/note_flow.py` - 18/26 functions undocumented (31% coverage)
 - `communication/delivery/message_dispatcher.py` - 15/17 functions undocumented (12% coverage)
 - `storage/user_data_write.py` - 15/19 functions undocumented (21% coverage)
 - `core/schemas.py` - 15/27 functions undocumented (44% coverage)
-- `communication/message_processing/flows/task_flow.py` - 15/54 functions undocumented (72% coverage)
 - `communication/message_processing/interaction_manager.py` - 14/28 functions undocumented (50% coverage)
 - `core/service_requests.py` - 14/34 functions undocumented (59% coverage)
+- `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
+- `storage/user_data_registry.py` - 11/23 functions undocumented (52% coverage)
+- `tasks/task_schemas.py` - 10/10 functions undocumented (0% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
-- `communication/message_processing/flows/flow_control_mixin.py` - 3/9 functions undocumented (67% coverage)
+- `communication/communication_channels/discord/task_list_ui.py` - 3/9 functions undocumented (67% coverage)
 - `storage/user_data_validation.py` - 3/12 functions undocumented (75% coverage)
 - `ai/fallback_responses/conversational.py` - 2/4 functions undocumented (50% coverage)
 - `communication/command_handlers/handler_registry.py` - 2/5 functions undocumented (60% coverage)
@@ -206,12 +206,12 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (26 files, 266 functions)
 - `checkins/` -  (6 files, 135 functions)
-- `communication/` - Communication channels and message processing (79 files, 1070 functions)
-- `core/` - System utilities and data management (30 files, 613 functions)
+- `communication/` - Communication channels and message processing (81 files, 1079 functions)
+- `core/` - System utilities and data management (30 files, 614 functions)
 - `messages/` -  (5 files, 38 functions)
 - `scheduler/` -  (6 files, 94 functions)
 - `storage/` -  (11 files, 151 functions)
-- `tasks/` - Task management system (7 files, 97 functions)
+- `tasks/` - Task management system (7 files, 98 functions)
 - `ui/` - User interface components (40 files, 902 functions)
 - `user/` - User context and preferences (5 files, 66 functions)
 

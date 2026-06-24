@@ -27,6 +27,21 @@ def create_create_hub_view(user_id: str, **kwargs: Any) -> Any | None:
     )
 
 
+@handle_errors("creating Discord task list view", default_return=None)
+def create_task_list_view(user_id: str, **kwargs: Any) -> Any | None:
+    from communication.communication_channels.discord.task_list_ui import (
+        get_task_list_view,
+    )
+
+    return _defer_if_no_running_loop(
+        get_task_list_view,
+        user_id,
+        kwargs.get("task_list_items"),
+        kwargs.get("pagination_actions"),
+        kwargs.get("discord_bot"),
+    )
+
+
 @handle_errors("creating Discord task reminder view", default_return=None)
 def create_task_reminder_view(user_id: str, **kwargs: Any) -> Any | None:
     from communication.communication_channels.discord.task_reminder_view import (

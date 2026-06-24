@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-22 21:32:50
+> **Last Generated**: 2026-06-23 23:19:15
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.9% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 218
-- **Functions Found**: 2159
-- **Methods Found**: 1323
-- **Classes Found**: 223
-- **Total Items**: 3482
-- **Functions Documented**: 1910
-- **Methods Documented**: 1221
-- **Classes Documented**: 157
-- **Total Documented**: 3131
-- **Template-Generated**: 34
-- **Last Updated**: 2026-06-22
+### **Function Documentation Coverage: 91.4% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 220
+- **Functions Found**: 2167
+- **Methods Found**: 1326
+- **Classes Found**: 225
+- **Total Items**: 3493
+- **Functions Documented**: 1952
+- **Methods Documented**: 1240
+- **Classes Documented**: 159
+- **Total Documented**: 3192
+- **Template-Generated**: 38
+- **Last Updated**: 2026-06-23
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (444)
+### **Core System Functions** (445)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (599)
+### **Communication Functions** (605)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (490)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (35)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (91)
+### **Task Management Functions** (92)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -1448,12 +1448,12 @@ Returns:
 - [OK] `_handle_list_tasks(self, user_id, entities)` - Handle task listing with enhanced filtering and details
 - [OK] `_handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter)` - Apply filters to tasks and return filtered list.
 - [OK] `_handle_list_tasks__build_filter_info(self, filter_type, priority_filter, tag_filter)` - Build filter information list.
-- [OK] `_handle_list_tasks__build_response(self, task_list, filter_info, total_tasks)` - Build the main task list response.
-- [OK] `_handle_list_tasks__create_rich_data(self, filter_info, tasks)` - Create rich data for Discord embeds.
-- [OK] `_handle_list_tasks__format_due_date(self, due_date)` - Format due date with urgency indicator.
-- [OK] `_handle_list_tasks__format_list(self, tasks)` - Format task list with enhanced details.
-- [OK] `_handle_list_tasks__generate_suggestions(self, tasks, filter_info)` - Generate contextual suggestions based on current state.
-- [OK] `_handle_list_tasks__get_suggestion(self, tasks)` - Get contextual show suggestion based on task analysis.
+- [OK] `_handle_list_tasks__build_list_rich_data(self, user_id, page, page_tasks)` - Pagination metadata and Discord task-list picker payload.
+- [OK] `_handle_list_tasks__build_pagination_rich_data(self, page)` - Return channel-neutral Show More metadata when more tasks exist.
+- [OK] `_handle_list_tasks__build_response(self, task_list, filter_info, page, all_tasks)` - Build the main task list response.
+- [OK] `_handle_list_tasks__format_due_date(self, due_date, due_time)` - Format due date with urgency indicator and optional time.
+- [OK] `_handle_list_tasks__format_list(self, tasks, start_index)` - Format task list with enhanced details.
+- [OK] `_handle_list_tasks__generate_suggestions(self, tasks, filter_info)` - Task list uses Show More pagination only; no filter shortcut buttons.
 - [OK] `_handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter)` - Get appropriate response when no tasks match filters.
 - [OK] `_handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
 - [OK] `_handle_uncomplete_task(self, user_id, entities)` - Handle uncomplete/restore: move a completed task back to active.
@@ -1491,12 +1491,12 @@ Returns:
   - [OK] `TaskManagementHandler._handle_list_tasks(self, user_id, entities)` - Handle task listing with enhanced filtering and details
   - [OK] `TaskManagementHandler._handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter)` - Apply filters to tasks and return filtered list.
   - [OK] `TaskManagementHandler._handle_list_tasks__build_filter_info(self, filter_type, priority_filter, tag_filter)` - Build filter information list.
-  - [OK] `TaskManagementHandler._handle_list_tasks__build_response(self, task_list, filter_info, total_tasks)` - Build the main task list response.
-  - [OK] `TaskManagementHandler._handle_list_tasks__create_rich_data(self, filter_info, tasks)` - Create rich data for Discord embeds.
-  - [OK] `TaskManagementHandler._handle_list_tasks__format_due_date(self, due_date)` - Format due date with urgency indicator.
-  - [OK] `TaskManagementHandler._handle_list_tasks__format_list(self, tasks)` - Format task list with enhanced details.
-  - [OK] `TaskManagementHandler._handle_list_tasks__generate_suggestions(self, tasks, filter_info)` - Generate contextual suggestions based on current state.
-  - [OK] `TaskManagementHandler._handle_list_tasks__get_suggestion(self, tasks)` - Get contextual show suggestion based on task analysis.
+  - [OK] `TaskManagementHandler._handle_list_tasks__build_list_rich_data(self, user_id, page, page_tasks)` - Pagination metadata and Discord task-list picker payload.
+  - [OK] `TaskManagementHandler._handle_list_tasks__build_pagination_rich_data(self, page)` - Return channel-neutral Show More metadata when more tasks exist.
+  - [OK] `TaskManagementHandler._handle_list_tasks__build_response(self, task_list, filter_info, page, all_tasks)` - Build the main task list response.
+  - [OK] `TaskManagementHandler._handle_list_tasks__format_due_date(self, due_date, due_time)` - Format due date with urgency indicator and optional time.
+  - [OK] `TaskManagementHandler._handle_list_tasks__format_list(self, tasks, start_index)` - Format task list with enhanced details.
+  - [OK] `TaskManagementHandler._handle_list_tasks__generate_suggestions(self, tasks, filter_info)` - Task list uses Show More pagination only; no filter shortcut buttons.
   - [OK] `TaskManagementHandler._handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter)` - Get appropriate response when no tasks match filters.
   - [OK] `TaskManagementHandler._handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
   - [OK] `TaskManagementHandler._handle_uncomplete_task(self, user_id, entities)` - Handle uncomplete/restore: move a completed task back to active.
@@ -1892,7 +1892,6 @@ Args:
 - [MISSING] `_build_custom_task_modal(user_id, discord_bot)` - No description
 - [MISSING] `_build_new_note_modal(user_id, discord_bot)` - No description
 - [MISSING] `_build_quick_note_modal(user_id, discord_bot)` - No description
-- [MISSING] `_internal_user_id(interaction)` - No description
 - [MISSING] `_run_handler(user_id, intent, entities, original_message)` - No description
 - [OK] `create_hub_rich_data(user_id)` - Rich-data marker for attaching the create hub view when sending on Discord.
 - [OK] `get_create_hub_view(user_id, discord_bot)` - Return a button menu for task templates and note/task modals.
@@ -1947,11 +1946,16 @@ Args:
 
 #### `communication/communication_channels/discord/discord_response_delivery.py`
 
+#### `communication/communication_channels/discord/discord_user_resolution.py`
+**Functions:**
+- [OK] `internal_user_id(interaction)` - Map a Discord interaction to the internal MHM user id.
+
 #### `communication/communication_channels/discord/interaction_views.py`
 **Functions:**
 - [OK] `_defer_if_no_running_loop(factory)` - Return a view immediately when in an event loop, otherwise defer creation.
 - [MISSING] `create_checkin_view(user_id)` - No description
 - [MISSING] `create_create_hub_view(user_id)` - No description
+- [MISSING] `create_task_list_view(user_id)` - No description
 - [MISSING] `create_task_reminder_view(user_id)` - No description
 - [OK] `create_view()` - Create the Discord interaction view inside the channel loop.
 
@@ -1959,6 +1963,21 @@ Args:
 **Functions:**
 - [OK] `entities_from_shared_fields()` - Build handler entities dict from shared modal fields.
 - [OK] `parse_modal_tags(tags_value)` - Parse comma- or space-separated tags from a modal text field.
+
+#### `communication/communication_channels/discord/task_list_ui.py`
+**Functions:**
+- [OK] `__init__(self, user_id, task_id, discord_bot)` - Special Python method
+- [OK] `__init__(self, user_id, task_items, discord_bot)` - Special Python method
+- [MISSING] `_bind_show_more_callback(button, payload, discord_bot)` - No description
+- [MISSING] `_format_task_detail(user_id, task_id)` - No description
+- [MISSING] `_run_handler_intent(user_id, intent, entities, original_message)` - No description
+- [OK] `_task_flow_response(user_id, task_id, flow_kind)` - Start a task follow-up flow and return the first prompt.
+- [OK] `get_task_list_view(user_id, task_items, pagination_actions, discord_bot)` - Task picker select plus optional Show More button.
+**Classes:**
+- [OK] `TaskDetailView` - Ephemeral actions for one task.
+  - [OK] `TaskDetailView.__init__(self, user_id, task_id, discord_bot)` - Special Python method
+- [OK] `TaskListSelect` - Dropdown to pick a task from the current list page.
+  - [OK] `TaskListSelect.__init__(self, user_id, task_items, discord_bot)` - Special Python method
 
 #### `communication/communication_channels/discord/task_reminder_view.py`
 **Functions:**
@@ -2713,26 +2732,23 @@ Returns:
 #### `communication/message_processing/flows/flow_command_helpers.py`
 **Functions:**
 - [MISSING] `_checker(message_lower)` - No description
-- [MISSING] `_entity_prefix_patterns(entity)` - No description
-- [MISSING] `_expand_keyword_variants(base_words)` - No description
-- [MISSING] `_matches_other_entity_commands(message_lower, current_focus)` - No description
-- [MISSING] `_natural_language_create_pattern(entities)` - No description
-- [MISSING] `_prefix_variants(word)` - No description
+- [OK] `_entity_prefix_patterns(entity)` - Regex patterns for slash/bang and natural entity prefixes.
+- [OK] `_expand_keyword_variants(base_words)` - Expand each base word into all prefix variants for flow keyword lists.
+- [OK] `_natural_language_create_pattern(entities)` - Regex for natural-language commands that mention one of *entities*.
+- [OK] `_prefix_variants(word)` - Return bare, bang-prefixed, and slash-prefixed forms of a control word.
 - [OK] `build_unrelated_checker(current_focus, step)` - Return a closure that checks unrelated messages for a focus + step pair.
-- [MISSING] `is_cancel_message(message_lower)` - No description
-- [MISSING] `is_delete_in_progress_message(message_lower)` - No description
-- [MISSING] `is_finish_list_message(message_lower)` - No description
+- [OK] `is_cancel_message(message_lower)` - Return True when the user wants to abandon creation (cancel/stop/quit/etc.).
+- [OK] `is_delete_in_progress_message(message_lower)` - Return True when the user explicitly asked to delete the in-progress entity.
+- [OK] `is_finish_list_message(message_lower)` - Return True when the user wants to end list item entry.
 - [OK] `is_flow_expired(user_state)` - Return True when the flow has been idle longer than *timeout_minutes*.
-- [MISSING] `is_journal_flow_step_back_message(message_lower)` - No description
-- [MISSING] `is_note_flow_step_back_message(message_lower)` - No description
-- [MISSING] `is_skip_all_message(message_lower)` - No description
-- [MISSING] `is_skip_question_message(message_lower)` - No description
+- [OK] `is_journal_flow_step_back_message(message_lower)` - Step back one journal question; excludes undo-entry-creation phrases.
+- [OK] `is_note_flow_step_back_message(message_lower)` - Step back one note question; excludes undo-note-creation phrases.
+- [OK] `is_skip_all_message(message_lower)` - Return True when the user wants to finish with defaults for remaining steps.
+- [OK] `is_skip_question_message(message_lower)` - Return True when the user wants to skip only the current question.
 - [OK] `is_step_back_message(message_lower)` - Step back one question; excludes explicit undo-creation phrases.
-- [MISSING] `is_task_flow_delete_in_progress_message(message_lower)` - No description
-- [MISSING] `is_task_flow_skip_all_message(message_lower)` - No description
-- [MISSING] `is_task_flow_skip_question_message(message_lower)` - No description
-- [MISSING] `is_task_flow_step_back_message(message_lower)` - No description
-- [MISSING] `is_task_flow_undo_creation_message(message_lower)` - No description
+- [OK] `is_task_flow_delete_in_progress_message(message_lower)` - Return True when the user asked to delete the in-progress task.
+- [OK] `is_task_flow_step_back_message(message_lower)` - Step back one task question; excludes undo-task-creation phrases.
+- [OK] `is_task_flow_undo_creation_message(message_lower)` - Return True for undo-task-creation or cancel phrases during task flow.
 - [OK] `is_unrelated_flow_message(message_lower)` - Return True when *message_lower* looks like a context switch, not a step answer.
 
 * ``FLOW_STEP_FREE_TEXT`` — only slash/bang commands and greetings are unrelated
@@ -2752,14 +2768,14 @@ Returns ``(reply, completed)`` when a control command matched, else ``None``.
 **Functions:**
 - [OK] `_build_flow_control_handlers(self)` - Factory for ``FlowControlHandlers`` used by entity-specific flows.
 - [OK] `_clear_flow_silent(self, user_id)` - Clear flow without user-facing message (hand off to next handler).
-- [MISSING] `_is_flow_expired(self, user_state)` - No description
-- [MISSING] `_logged_clear()` - No description
+- [OK] `_is_flow_expired(self, user_state)` - Delegate to shared idle-timeout check for this flow's timestamp key.
+- [OK] `_logged_clear()` - Log unrelated-message flow clear then delegate to the flow handler.
 - [OK] `_try_flow_control_command(self, user_id, user_state, message_lower, handlers)` - Run shared control-command handling with default silent clear on unrelated.
 **Classes:**
 - [OK] `FlowControlMixin` - Common timeout and control-command handling for entity creation flows.
   - [OK] `FlowControlMixin._build_flow_control_handlers(self)` - Factory for ``FlowControlHandlers`` used by entity-specific flows.
   - [OK] `FlowControlMixin._clear_flow_silent(self, user_id)` - Clear flow without user-facing message (hand off to next handler).
-  - [MISSING] `FlowControlMixin._is_flow_expired(self, user_state)` - No description
+  - [OK] `FlowControlMixin._is_flow_expired(self, user_state)` - Delegate to shared idle-timeout check for this flow's timestamp key.
   - [OK] `FlowControlMixin._try_flow_control_command(self, user_id, user_state, message_lower, handlers)` - Run shared control-command handling with default silent clear on unrelated.
 
 #### `communication/message_processing/flows/flow_state.py`
@@ -2801,37 +2817,38 @@ Safe no-op if no flow or different flow is active.
 
 #### `communication/message_processing/flows/note_flow.py`
 **Functions:**
-- [MISSING] `_cancel_journal_creation(self, user_id, user_state)` - No description
-- [MISSING] `_cancel_list_creation(self, user_id, user_state)` - No description
-- [MISSING] `_cancel_note_creation(self, user_id, user_state)` - No description
-- [MISSING] `_entry_short_id(self, entry)` - No description
-- [MISSING] `_finalize_journal_without_body(self, user_id, user_state)` - No description
-- [MISSING] `_finalize_list_from_state(self, user_id, user_state)` - No description
-- [MISSING] `_finalize_note_without_body(self, user_id, user_state)` - No description
+- [OK] `_cancel_journal_creation(self, user_id, user_state)` - Abandon journal entry creation without saving.
+- [OK] `_cancel_list_creation(self, user_id, user_state)` - Abandon list creation without saving.
+- [OK] `_cancel_note_creation(self, user_id, user_state)` - Abandon note creation without saving.
+- [OK] `_entry_short_id(self, entry)` - Format a notebook entry short id for user-facing messages.
+- [OK] `_finalize_journal_without_body(self, user_id, user_state)` - Save journal entry with title/tags only (Skip / timeout on body step).
+- [OK] `_finalize_list_from_state(self, user_id, user_state)` - Persist collected list items and end the list flow.
+- [OK] `_finalize_note_without_body(self, user_id, user_state)` - Save note with title/tags only (Skip / timeout on body step).
 - [OK] `_handle_journal_body_flow(self, user_id, user_state, message_text)` - Handle continuation of journal body flow.
 - [OK] `_handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
 - [OK] `_handle_note_body_flow(self, user_id, user_state, message_text)` - Handle continuation of note body flow.
-- [MISSING] `_journal_body_step_back(self, user_id, user_state)` - No description
-- [MISSING] `_list_items_step_back(self, user_id, user_state)` - No description
+- [OK] `_journal_body_step_back(self, user_id, user_state)` - Body step is the only interactive step — back saves title only.
+- [OK] `_list_items_step_back(self, user_id, user_state)` - Remove the last item batch and prompt for more or end list.
 - [OK] `_note_body_step_back(self, user_id, user_state)` - Body step is the only interactive step — back saves title only.
 **Classes:**
 - [MISSING] `NoteFlowMixin` - No description
-  - [MISSING] `NoteFlowMixin._cancel_journal_creation(self, user_id, user_state)` - No description
-  - [MISSING] `NoteFlowMixin._cancel_list_creation(self, user_id, user_state)` - No description
-  - [MISSING] `NoteFlowMixin._cancel_note_creation(self, user_id, user_state)` - No description
-  - [MISSING] `NoteFlowMixin._entry_short_id(self, entry)` - No description
-  - [MISSING] `NoteFlowMixin._finalize_journal_without_body(self, user_id, user_state)` - No description
-  - [MISSING] `NoteFlowMixin._finalize_list_from_state(self, user_id, user_state)` - No description
-  - [MISSING] `NoteFlowMixin._finalize_note_without_body(self, user_id, user_state)` - No description
+  - [OK] `NoteFlowMixin._cancel_journal_creation(self, user_id, user_state)` - Abandon journal entry creation without saving.
+  - [OK] `NoteFlowMixin._cancel_list_creation(self, user_id, user_state)` - Abandon list creation without saving.
+  - [OK] `NoteFlowMixin._cancel_note_creation(self, user_id, user_state)` - Abandon note creation without saving.
+  - [OK] `NoteFlowMixin._entry_short_id(self, entry)` - Format a notebook entry short id for user-facing messages.
+  - [OK] `NoteFlowMixin._finalize_journal_without_body(self, user_id, user_state)` - Save journal entry with title/tags only (Skip / timeout on body step).
+  - [OK] `NoteFlowMixin._finalize_list_from_state(self, user_id, user_state)` - Persist collected list items and end the list flow.
+  - [OK] `NoteFlowMixin._finalize_note_without_body(self, user_id, user_state)` - Save note with title/tags only (Skip / timeout on body step).
   - [OK] `NoteFlowMixin._handle_journal_body_flow(self, user_id, user_state, message_text)` - Handle continuation of journal body flow.
   - [OK] `NoteFlowMixin._handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
   - [OK] `NoteFlowMixin._handle_note_body_flow(self, user_id, user_state, message_text)` - Handle continuation of note body flow.
-  - [MISSING] `NoteFlowMixin._journal_body_step_back(self, user_id, user_state)` - No description
-  - [MISSING] `NoteFlowMixin._list_items_step_back(self, user_id, user_state)` - No description
+  - [OK] `NoteFlowMixin._journal_body_step_back(self, user_id, user_state)` - Body step is the only interactive step — back saves title only.
+  - [OK] `NoteFlowMixin._list_items_step_back(self, user_id, user_state)` - Remove the last item batch and prompt for more or end list.
   - [OK] `NoteFlowMixin._note_body_step_back(self, user_id, user_state)` - Body step is the only interactive step — back saves title only.
 
 #### `communication/message_processing/flows/task_flow.py`
 **Functions:**
+- [OK] `_build_day_based_reminder_period(self, due_datetime, start_val, end_val)` - Pick one day in the N..M days-before range with a daytime reminder window.
 - [OK] `_build_future_reminder_period(self, due_datetime, start_delta, end_delta)` - Create reminder period dict when reminder window is in the future.
 - [OK] `_build_reminder_deltas(self, unit, start_val, end_val)` - Return start/end timedeltas for a parsed reminder range.
 - [OK] `_continue_after_task_priority(self, user_id, task_id, ask_reminders)` - Advance from optional priority setup to reminders when useful.
@@ -2861,7 +2878,7 @@ Returns: (date_str in YYYY-MM-DD format, time_str in HH:MM format or None)
 Examples:
 - "30 minutes to an hour before" -> reminder 30-60 min before due time
 - "3 to 5 hours before" -> reminder 3-5 hours before due time
-- "1 to 2 days before" -> reminder 1-2 days before due date
+- "1 to 2 days before" -> one reminder on either 1 or 2 days before due date
 
 Returns list of reminder period dicts with date, start_time, end_time.
 - [OK] `_parse_reminder_range(self, match)` - Parse first and optional second numeric range from regex match.
@@ -2871,16 +2888,16 @@ Examples:
 - "10am", "10:00am", "10:30am" -> "10:00", "10:30"
 - "2pm", "14:00" -> "14:00"
 - "at 3pm" -> "15:00"
-- [MISSING] `_restore_task_followup_flow(self, user_id, task_id, flow, extra_data, flow_history)` - No description
-- [MISSING] `_skip_due_date_question()` - No description
-- [MISSING] `_skip_priority_question()` - No description
-- [MISSING] `_skip_reminders()` - No description
+- [OK] `_restore_task_followup_flow(self, user_id, task_id, flow, extra_data, flow_history)` - Re-enter a prior task follow-up step after back/undo navigation.
+- [OK] `_skip_due_date_question()` - Skip due date; go to priority or finish without reminders.
+- [OK] `_skip_priority_question()` - Skip priority and continue to reminders or finish.
+- [OK] `_skip_reminders()` - Skip reminder setup and finalize the task.
 - [OK] `_start_task_followup_flow(self, user_id, task_id, flow, extra_data, log_label)` - Persist a task follow-up flow with shared task identifier state.
-- [MISSING] `_task_flow_due_date_prompt(self)` - No description
-- [MISSING] `_task_flow_priority_prompt(self)` - No description
-- [MISSING] `_task_flow_skip_all(self, user_id)` - No description
-- [MISSING] `_task_flow_step_back(self, user_id, user_state)` - No description
-- [MISSING] `_task_flow_undo_creation(self, user_id, user_state)` - No description
+- [OK] `_task_flow_due_date_prompt(self)` - User-facing prompt for the due date/time follow-up step.
+- [OK] `_task_flow_priority_prompt(self)` - User-facing prompt for the priority follow-up step.
+- [OK] `_task_flow_skip_all(self, user_id)` - Finish task follow-up with defaults (Skip All / timeout).
+- [OK] `_task_flow_step_back(self, user_id, user_state)` - Go back one task follow-up step using ``flow_history``.
+- [OK] `_task_flow_undo_creation(self, user_id, user_state)` - Delete in-progress task and abandon follow-up (cancel / undo creation).
 - [OK] `_try_task_flow_control_command(self, user_id, user_state, message_lower)` - Handle shared skip/undo/back/delete commands for task follow-up flows.
 - [OK] `start_task_due_date_flow(self, user_id, task_id, ask_priority)` - Start a task due date/time flow.
 Called by task handler after creating a task without a due date.
@@ -2889,6 +2906,7 @@ Called by task handler after creating a task without a due date.
 Called by task handler after creating a task with a due date.
 **Classes:**
 - [MISSING] `TaskFlowMixin` - No description
+  - [OK] `TaskFlowMixin._build_day_based_reminder_period(self, due_datetime, start_val, end_val)` - Pick one day in the N..M days-before range with a daytime reminder window.
   - [OK] `TaskFlowMixin._build_future_reminder_period(self, due_datetime, start_delta, end_delta)` - Create reminder period dict when reminder window is in the future.
   - [OK] `TaskFlowMixin._build_reminder_deltas(self, unit, start_val, end_val)` - Return start/end timedeltas for a parsed reminder range.
   - [OK] `TaskFlowMixin._continue_after_task_priority(self, user_id, task_id, ask_reminders)` - Advance from optional priority setup to reminders when useful.
@@ -2917,7 +2935,7 @@ Returns: (date_str in YYYY-MM-DD format, time_str in HH:MM format or None)
 Examples:
 - "30 minutes to an hour before" -> reminder 30-60 min before due time
 - "3 to 5 hours before" -> reminder 3-5 hours before due time
-- "1 to 2 days before" -> reminder 1-2 days before due date
+- "1 to 2 days before" -> one reminder on either 1 or 2 days before due date
 
 Returns list of reminder period dicts with date, start_time, end_time.
   - [OK] `TaskFlowMixin._parse_reminder_range(self, match)` - Parse first and optional second numeric range from regex match.
@@ -2927,13 +2945,13 @@ Examples:
 - "10am", "10:00am", "10:30am" -> "10:00", "10:30"
 - "2pm", "14:00" -> "14:00"
 - "at 3pm" -> "15:00"
-  - [MISSING] `TaskFlowMixin._restore_task_followup_flow(self, user_id, task_id, flow, extra_data, flow_history)` - No description
+  - [OK] `TaskFlowMixin._restore_task_followup_flow(self, user_id, task_id, flow, extra_data, flow_history)` - Re-enter a prior task follow-up step after back/undo navigation.
   - [OK] `TaskFlowMixin._start_task_followup_flow(self, user_id, task_id, flow, extra_data, log_label)` - Persist a task follow-up flow with shared task identifier state.
-  - [MISSING] `TaskFlowMixin._task_flow_due_date_prompt(self)` - No description
-  - [MISSING] `TaskFlowMixin._task_flow_priority_prompt(self)` - No description
-  - [MISSING] `TaskFlowMixin._task_flow_skip_all(self, user_id)` - No description
-  - [MISSING] `TaskFlowMixin._task_flow_step_back(self, user_id, user_state)` - No description
-  - [MISSING] `TaskFlowMixin._task_flow_undo_creation(self, user_id, user_state)` - No description
+  - [OK] `TaskFlowMixin._task_flow_due_date_prompt(self)` - User-facing prompt for the due date/time follow-up step.
+  - [OK] `TaskFlowMixin._task_flow_priority_prompt(self)` - User-facing prompt for the priority follow-up step.
+  - [OK] `TaskFlowMixin._task_flow_skip_all(self, user_id)` - Finish task follow-up with defaults (Skip All / timeout).
+  - [OK] `TaskFlowMixin._task_flow_step_back(self, user_id, user_state)` - Go back one task follow-up step using ``flow_history``.
+  - [OK] `TaskFlowMixin._task_flow_undo_creation(self, user_id, user_state)` - Delete in-progress task and abandon follow-up (cancel / undo creation).
   - [OK] `TaskFlowMixin._try_task_flow_control_command(self, user_id, user_state, message_lower)` - Handle shared skip/undo/back/delete commands for task follow-up flows.
   - [OK] `TaskFlowMixin.start_task_due_date_flow(self, user_id, task_id, ask_priority)` - Start a task due date/time flow.
 Called by task handler after creating a task without a due date.
@@ -4661,6 +4679,10 @@ Use for scheduler/UI state where minute precision is the canonical persisted sha
 - [OK] `parse_date_and_time_minute(date_str, time_str)` - Parse a DATE_ONLY + TIME_ONLY_MINUTE combination into a datetime.
 Returns None on invalid input.
 - [OK] `parse_date_only(value)` - Parse DATE_ONLY (date at 00:00). Returns None on invalid input.
+- [OK] `parse_flexible_date_only(value)` - Parse common user-entered date variants into YYYY-MM-DD.
+
+Accepts YYYY-MM-DD, YYYY/MM/DD, and YYYY MM DD (month/day may be 1-2 digits).
+Returns None when the input is not a recognizable date.
 - [OK] `parse_time_only_minute(value)` - Parse TIME_ONLY_MINUTE.
 Note: datetime.strptime() will produce a datetime with a default date (1900-01-01).
 Returns None on invalid input.
@@ -5792,7 +5814,8 @@ Returns:
 - [OK] `filter_tasks(user_id, tasks, filter_type, priority_filter, tag_filter, now_dt)` - Apply command task-list filters.
 - [OK] `find_most_urgent_task(tasks)` - Find the most urgent task based on overdue status, priority, and due date.
 - [OK] `find_task_by_identifier(tasks, identifier)` - Find a task by number, name, canonical id, or short_id.
-- [OK] `format_due_date_status(due_date, now_dt)` - Format due-date status for command display.
+- [OK] `format_due_date_status(due_date, now_dt, due_time)` - Format due-date status for command display.
+- [OK] `format_task_detail_display(task, now_dt)` - Format a single task for Discord detail / ephemeral views.
 - [OK] `get_builtin_task_template(name_or_id)` - Return a built-in template by canonical id or user-facing name.
 - [OK] `get_completed_task_candidates(tasks, identifier)` - Return completed-task candidates matching id, short_id, number, or title.
 - [OK] `get_contextual_task_suggestion(tasks, now_dt)` - Return a state-based suggestion for a task list.
