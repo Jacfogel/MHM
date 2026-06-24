@@ -33,6 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-06-24 - Task list UI tests + manual validation checklist
+- **Tests**: Added [`test_task_list_ui.py`](../tests/communication/test_task_list_ui.py) - 17 unit tests covering `_task_flow_response` (due date / priority / reminders guards), `_run_handler_intent`, `_format_task_detail`, `get_task_list_view` (select + Show More), and async `TaskListSelect` / `TaskDetailView` callback paths.
+- **Docs**: Added **section 6.1.D** to [`MANUAL_DISCORD_TEST_GUIDE.md`](../tests/MANUAL_DISCORD_TEST_GUIDE.md) - checklist for live Discord validation of task list dropdown, ephemeral detail view, and per-task action buttons.
+- **Impact**: Automated coverage for June 2026 task picker UI before manual sign-off; narrows live testing to UX confirmation only.
+- **Hygiene**: Removed unused `discord` import and fixed Pyright on `test_task_list_ui.py` complete-button test; replaced non-ASCII section sign and ellipsis in docs; marked storage schedule/cross-file tests and `test_schedule_period_lifecycle` as `no_parallel` with inline reason comments (policy-compliant); schedule lifecycle now uses `TestUserFactory` + full UUID user ids.
+
 ### 2026-06-22 - Notebook help + task follow-up button fix
 - **Feature**: Added `NOTEBOOK_HELP_TEXT` in [`notebook_handler.py`](../communication/command_handlers/notebook_handler.py) as the single source for `NotebookHandler.get_help()` and `help notebook`. Sections: capture, retrieve (with Show More note), modify, lists, groups vs tags, and inbox semantics (untagged active entries from last 30 days).
 - **Feature**: Routed `help notebook` / `help notes` and `examples notebook` through [`HelpHandler`](../communication/command_handlers/interaction_handlers.py); extended [`command_parser.py`](../communication/message_processing/command_parser.py) help/examples patterns; added notebook to general help and commands list.

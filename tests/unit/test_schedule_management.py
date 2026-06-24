@@ -50,10 +50,14 @@ class TestScheduleManagement:
 
     @pytest.mark.unit
     @pytest.mark.scheduler
-    def test_schedule_period_lifecycle(self, mock_user_data, mock_config):
+    @pytest.mark.no_parallel  # shared session tests/data dir and schedule cache races under xdist
+    def test_schedule_period_lifecycle(self, test_data_dir, mock_config):
         """Add, edit, deactivate, and delete a schedule period."""
-        user_id = mock_user_data["user_id"]
-        category = f"motivational_{uuid.uuid4().hex[:8]}"
+        user_id = f"schedule-user-{uuid.uuid4().hex}"
+        from tests.test_helpers.test_utilities import TestUserFactory
+
+        assert TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        category = f"motivational_{uuid.uuid4().hex}"
         clear_schedule_periods_cache(user_id, category)
 
         with patch("core.schedule_runtime.UserContext") as MockUserContext, \

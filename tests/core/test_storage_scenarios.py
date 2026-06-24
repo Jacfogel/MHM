@@ -109,11 +109,13 @@ class TestUserDataWriteScenarios:
         feats = account.get("features", {})
         assert feats.get("checkins") == "enabled"
 
+    @pytest.mark.no_parallel  # shared session tests/data dir races under xdist
     def test_save_user_data_cross_file_invariant_enables_messages(
         self, test_data_dir, mock_config
     ):
-        user_id = f"cross-file-{uuid.uuid4().hex[:8]}"
+        user_id = f"cross-file-{uuid.uuid4().hex}"
         assert TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        clear_user_caches(user_id)
         save_user_data(
             user_id,
             {
@@ -123,14 +125,17 @@ class TestUserDataWriteScenarios:
                 }
             },
         )
+        clear_user_caches(user_id)
         result = save_user_data(
             user_id,
             {"preferences": {"categories": ["motivational"]}},
         )
         assert result.get("preferences") is True
+        clear_user_caches(user_id)
         account = get_user_data(user_id, "account").get("account", {})
         assert account.get("features", {}).get("automated_messages") == "enabled"
 
+    @pytest.mark.no_parallel  # shared session tests/data dir races under xdist
     def test_save_and_read_schedules_with_normalize_on_read(
         self, mock_user_data_with_messages
     ):

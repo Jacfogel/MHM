@@ -441,6 +441,26 @@ nt timeout test
 ```
 - [ ] Start flow, wait 10+ minutes (or send unrelated message) -> flow auto-completes like Skip All
 
+**D. Task list picker and detail view**
+
+Create at least two tasks first, or use existing tasks:
+
+```
+show my tasks
+```
+- [ ] Task list appears **once** (no duplicate embed + plain text)
+- [ ] Dropdown **Select a task for details...** lists tasks with title + short ID
+- [ ] **Show More** appears when more than 10 tasks; tapping it loads the next page (same dropdown pattern)
+
+Select a task from the dropdown:
+- [ ] Ephemeral detail shows title, priority, due (or "not set"), reminders, and short ID
+- [ ] **Due Date** -> starts due-date follow-up flow for that task (grey skip / red undo buttons)
+- [ ] **Priority** -> starts priority follow-up (blue priority + grey control buttons)
+- [ ] **Reminders** on a task **without** due date -> message says set due date first (no flow trap)
+- [ ] **Reminders** on a task **with** due date -> reminder follow-up starts
+- [ ] **Complete** -> task marked complete; confirmation ephemeral
+- [ ] **More** -> shows update/delete command hints with short ID
+
 ### 6.2. Notebook Show More pagination
 
 Create enough entries first (run several `!qn pagination-test-1` through `!qn pagination-test-8` or use existing data).

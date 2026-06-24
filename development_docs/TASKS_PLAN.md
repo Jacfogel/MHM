@@ -26,7 +26,7 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 - Task list filtering supports due soon, overdue, high priority, priority, and tag filters.
 - Task statistics/analytics entry points exist, but advanced analytics remain long-term.
 
-**Not freshly verified here**: full audit status, live Discord behaviour, and current coverage numbers. Re-run focused task tests and a full audit before treating this as runtime validation.
+**Not freshly verified here**: live Discord behaviour for task picker/detail UI. Automated unit coverage in [`test_task_list_ui.py`](../tests/communication/test_task_list_ui.py); live steps in [`MANUAL_DISCORD_TEST_GUIDE.md`](../tests/MANUAL_DISCORD_TEST_GUIDE.md) §6.1.D.
 
 ---
 

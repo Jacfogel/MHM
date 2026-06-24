@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-06-24 - Task list UI tests + manual validation checklist **COMPLETED**
+- Added [`test_task_list_ui.py`](../tests/communication/test_task_list_ui.py) (17 tests) for Discord task picker/detail: flow starters (due date, priority, reminders), handler delegation, view factory, select callback, and detail button paths.
+- Added **section 6.1.D** to [`MANUAL_DISCORD_TEST_GUIDE.md`](../tests/MANUAL_DISCORD_TEST_GUIDE.md) for live validation of `show my tasks` dropdown, detail buttons, and Show More pagination.
+- **Audit hygiene**: Fixed Ruff/Pyright on task list UI tests; ASCII compliance in changelogs + manual guide; hardened parallel flakes in `test_storage_scenarios` and `test_schedule_period_lifecycle` (`no_parallel` + policy-compliant reason comments).
+
 ### 2026-06-22 - Notebook help + task follow-up button fix **COMPLETED**
 - Added `NOTEBOOK_HELP_TEXT` in [`notebook_handler.py`](../communication/command_handlers/notebook_handler.py) - capture/retrieve/modify/lists sections, inbox semantics, groups vs tags, and Show More paging note.
 - Wired `help notebook` / `examples notebook` through [`interaction_handlers.py`](../communication/command_handlers/interaction_handlers.py) and parser patterns in [`command_parser.py`](../communication/message_processing/command_parser.py); general help and commands list now mention notebook.
@@ -129,13 +134,6 @@ Guidelines:
 - Email inbound polling now treats `None` from the async receive bridge as no messages and skips malformed payloads instead of logging repeated `NoneType` iteration errors.
 - `CommunicationManager.send_message()` now logs channel-provided failure details (`get_error()` / `error_message`) when a channel returns `False`, and logs exception type/message before shared network/communication error handling.
 - Added focused regression coverage in `tests/unit/test_channel_orchestrator.py`; verified with `pytest tests/unit/test_channel_orchestrator.py -q` (`48 passed`) and `py_compile` on touched files.
-
-### 2026-06-04 - Priorities fixes: tests, aiohttp, doc links **COMPLETED**
-- Stabilized `test_add_schedule_period` / `test_remove_schedule_period` (`@pytest.mark.no_parallel`, `update_user_index_for_test`, targeted schedules read + `clear_user_caches`) - fixes parallel `KeyError: motivational`.
-- `report_generation._get_tier3_detail_log_files()` prefers each track's `log_file` from `tier3_test_outcome` (e.g. JUnit XML from `run_test_suite`); falls back to latest `pytest_*_stdout_*.log` only when a track has no `log_file`.
-- Fixed invalid JSON in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` (trailing comma in `active_or_candidate_inventory`) - restores `test_deprecation_inventory_loads_and_root_ruff_bridge_active`.
-- Raised `aiohttp>=3.14.0` in `requirements.txt` (CVE-2026-34993, CVE-2026-47265).
-- `verify_process_cleanup` machine-readable link resolves scoped JSON first; `doc-sync` reports 0 markdown link target hints.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
