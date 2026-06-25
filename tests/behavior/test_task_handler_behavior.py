@@ -46,6 +46,7 @@ class TestTaskHandlerBehavior:
             "complete_task",
             "delete_task",
             "update_task",
+            "append_note_to_task",
             "task_stats",
         ]
         for intent in expected_intents:
@@ -859,6 +860,113 @@ class TestTaskHandlerBehavior:
         assert (
             "what" in response.message.lower() or "update" in response.message.lower()
         ), "Should ask what to update"
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    @pytest.mark.file_io
+    @patch("tasks.task_service.append_task_description")
+    @patch("tasks.load_active_tasks")
+    def test_task_handler_append_note_to_task_success(
+        self, mock_load_tasks, mock_append_note, test_data_dir
+    ):
+        """Test that TaskManagementHandler appends notes to task descriptions."""
+        handler = TaskManagementHandler()
+        user_id = "test_user_task_append_note"
+        assert self._create_test_user(
+            user_id, test_data_dir=test_data_dir
+        ), "Failed to create test user"
+
+        mock_load_tasks.return_value = [
+            {"title": "Call dentist", "priority": "medium", "id": "task_1"}
+        ]
+        mock_append_note.return_value = True
+
+        parsed_command = ParsedCommand(
+            intent="append_note_to_task",
+            entities={
+                "task_identifier": "1",
+                "note_text": "Phone number is 555-1234",
+            },
+            confidence=0.9,
+            original_message="append note to task 1 Phone number is 555-1234",
+        )
+
+        response = handler.handle(user_id, parsed_command)
+        assert isinstance(response, InteractionResponse)
+        assert response.completed
+        assert "note added" in response.message.lower()
+
+        mock_append_note.assert_called_once_with(
+            user_id, "task_1", "Phone number is 555-1234"
+        )
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    @pytest.mark.file_io
+    @patch("tasks.load_active_tasks")
+    def test_task_handler_append_note_to_task_missing_text(
+        self, mock_load_tasks, test_data_dir
+    ):
+        """Test append note asks for note text when missing."""
+        handler = TaskManagementHandler()
+        user_id = "test_user_task_append_note_missing"
+        assert self._create_test_user(
+            user_id, test_data_dir=test_data_dir
+        ), "Failed to create test user"
+
+        mock_load_tasks.return_value = [
+            {"title": "Call dentist", "id": "task_1"},
+        ]
+
+        parsed_command = ParsedCommand(
+            intent="append_note_to_task",
+            entities={"task_identifier": "1"},
+            confidence=0.9,
+            original_message="append note to task 1",
+        )
+
+        response = handler.handle(user_id, parsed_command)
+        assert not response.completed
+        assert "note" in response.message.lower()
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    @pytest.mark.file_io
+    @patch("tasks.update_task")
+    @patch("tasks.load_active_tasks")
+    def test_task_handler_update_task_description(
+        self, mock_load_tasks, mock_update_task, test_data_dir
+    ):
+        """Test that update task can replace task notes via description field."""
+        handler = TaskManagementHandler()
+        user_id = "test_user_task_update_note"
+        assert self._create_test_user(
+            user_id, test_data_dir=test_data_dir
+        ), "Failed to create test user"
+
+        mock_load_tasks.return_value = [
+            {"title": "Appointment", "priority": "medium", "id": "task_1"}
+        ]
+        mock_update_task.return_value = True
+
+        parsed_command = ParsedCommand(
+            intent="update_task",
+            entities={
+                "task_identifier": "1",
+                "description": "Room 204, bring insurance card",
+            },
+            confidence=0.9,
+            original_message="update task 1 note Room 204, bring insurance card",
+        )
+
+        response = handler.handle(user_id, parsed_command)
+        assert response.completed
+        mock_update_task.assert_called_once()
+        updates = mock_update_task.call_args[0][2]
+        assert updates.get("description") == "Room 204, bring insurance card"
 
     @pytest.mark.behavior
     @pytest.mark.communication

@@ -155,3 +155,32 @@ def test_task_service_completed_task_candidates_support_partial_title():
     tasks = [{"id": "task-1", "short_id": "t1", "title": "Brush teeth"}]
 
     assert task_service.get_completed_task_candidates(tasks, "brush") == tasks
+
+
+@pytest.mark.unit
+@pytest.mark.tasks
+def test_task_service_append_task_description_merges_existing():
+    with patch("tasks.get_task_by_id") as mock_get, patch(
+        "tasks.update_task", return_value=True
+    ) as mock_update:
+        mock_get.return_value = {
+            "id": "task-1",
+            "description": "First note",
+        }
+        from tasks import task_service
+
+        assert task_service.append_task_description("u1", "task-1", "Second note") is True
+
+    mock_update.assert_called_once_with(
+        "u1",
+        "task-1",
+        {"description": "First note\n\nSecond note"},
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.tasks
+def test_task_service_append_task_description_empty_note_returns_false():
+    from tasks import task_service
+
+    assert task_service.append_task_description("u1", "task-1", "   ") is False

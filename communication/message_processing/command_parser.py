@@ -130,6 +130,10 @@ class EnhancedCommandParser:
                 r"change\s+(?:task\s+)?(\d+|[^0-9]+)\s+(.+)",
                 r"edit\s+(?:task\s+)?(\d+|[^0-9]+)\s+(.+)",
             ],
+            "append_note_to_task": [
+                r"^append\s+note\s+to\s+(?:task\s+)?(\d+|[^0-9]+)\s+(.+)$",
+                r"^add\s+note\s+to\s+(?:task\s+)?(\d+|[^0-9]+)\s+(.+)$",
+            ],
             "task_stats": [
                 r"task\s+stats",
                 r"task\s+statistics",
@@ -972,6 +976,7 @@ class EnhancedCommandParser:
             priority_intents = [
                 ("help", True),
                 ("list_tasks", True),
+                ("append_note_to_task", True),
                 ("task_stats", False),
                 ("task_analytics", False),
                 ("edit_schedule_period", False),
@@ -1248,7 +1253,7 @@ class EnhancedCommandParser:
                     entities.update(task_entities)
             return True
 
-        if intent in ["complete_task", "delete_task", "update_task"]:
+        if intent in ["complete_task", "delete_task", "update_task", "append_note_to_task"]:
             if match.groups():
                 identifier = match.group(1).strip()
                 if identifier.lower().startswith("task "):
@@ -1267,6 +1272,8 @@ class EnhancedCommandParser:
                 if intent == "update_task" and len(match.groups()) > 1:
                     update_text = match.group(2).strip()
                     entities.update(self._extract_update_entities(update_text))
+                elif intent == "append_note_to_task" and len(match.groups()) > 1:
+                    entities["note_text"] = match.group(2).strip()
             return True
 
         if intent == "update_profile":
@@ -1963,6 +1970,15 @@ class EnhancedCommandParser:
                 )
                 if new_title:
                     entities["title"] = new_title.strip()
+
+            # Extract description / note (replace, not append)
+            desc_match = re.search(
+                r"(?:description|note)\s+(?:to\s+)?(.+)",
+                update_text,
+                re.IGNORECASE,
+            )
+            if desc_match:
+                entities["description"] = desc_match.group(1).strip()
 
             return entities
         except Exception as e:

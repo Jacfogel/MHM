@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-23 23:19:15
+> **Last Generated**: 2026-06-24 18:28:55
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 91.4% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 220
-- **Functions Found**: 2167
-- **Methods Found**: 1326
+- **Functions Found**: 2169
+- **Methods Found**: 1327
 - **Classes Found**: 225
-- **Total Items**: 3493
-- **Functions Documented**: 1952
-- **Methods Documented**: 1240
+- **Total Items**: 3496
+- **Functions Documented**: 1954
+- **Methods Documented**: 1241
 - **Classes Documented**: 159
-- **Total Documented**: 3192
+- **Total Documented**: 3195
 - **Template-Generated**: 38
-- **Last Updated**: 2026-06-23
+- **Last Updated**: 2026-06-24
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (445)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (605)
+### **Communication Functions** (606)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (490)
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (35)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (92)
+### **Task Management Functions** (93)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -1438,6 +1438,7 @@ Args:
 Returns:
     Task dictionary if found, None otherwise
 - [OK] `_get_task_candidates(self, tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
+- [OK] `_handle_append_note_to_task(self, user_id, entities)` - Append text to a task description without replacing existing notes.
 - [OK] `_handle_complete_task(self, user_id, entities)` - Handle task completion
 - [OK] `_handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date
 - [OK] `_handle_create_task(self, user_id, entities)` - Handle task creation
@@ -1481,6 +1482,7 @@ Args:
 Returns:
     Task dictionary if found, None otherwise
   - [OK] `TaskManagementHandler._get_task_candidates(self, tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
+  - [OK] `TaskManagementHandler._handle_append_note_to_task(self, user_id, entities)` - Append text to a task description without replacing existing notes.
   - [OK] `TaskManagementHandler._handle_complete_task(self, user_id, entities)` - Handle task completion
   - [OK] `TaskManagementHandler._handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date
   - [OK] `TaskManagementHandler._handle_create_task(self, user_id, entities)` - Handle task creation
@@ -5805,6 +5807,7 @@ Returns:
 **Functions:**
 - [MISSING] `_tasks()` - No description
 - [OK] `add_one_calendar_month(dt)` - Advance *dt* by one calendar month, clamping the day if necessary.
+- [OK] `append_task_description(user_id, task_id, text)` - Append text to a task description (notes field), preserving existing content.
 - [OK] `build_task_data_from_template(user_id, template_id)` - Merge template defaults with optional overrides into create_task kwargs.
 - [MISSING] `complete_task(user_id, task_id)` - No description
 - [MISSING] `create_task(user_id)` - No description

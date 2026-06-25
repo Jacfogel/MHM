@@ -13,11 +13,10 @@ import uuid
 import pytest
 
 from core.file_operations import load_json_data
+from core import clear_user_caches, get_user_data
 from storage.user_data_operations import update_user_index
 from storage.user_data_read import (
-    clear_user_caches,
     ensure_unique_ids,
-    get_user_data,
     get_user_data_with_metadata,
     load_and_ensure_ids,
 )
@@ -105,6 +104,7 @@ class TestGetUserDataReadPath:
         uid = mock_user_data["user_id"]
         prefs_path = os.path.join(mock_user_data["user_dir"], "preferences.json")
         assert os.path.isfile(prefs_path), "preferences.json must exist for field-filter reads"
+        update_user_index(uid)
         clear_user_caches(uid)
 
         on_disk = load_json_data(prefs_path)

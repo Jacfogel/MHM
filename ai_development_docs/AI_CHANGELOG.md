@@ -30,10 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-06-24 - Task list UI tests + manual validation checklist **COMPLETED**
+### 2026-06-24 - Task list UI tests + task notes commands **COMPLETED**
 - Added [`test_task_list_ui.py`](../tests/communication/test_task_list_ui.py) (17 tests) for Discord task picker/detail: flow starters (due date, priority, reminders), handler delegation, view factory, select callback, and detail button paths.
 - Added **section 6.1.D** to [`MANUAL_DISCORD_TEST_GUIDE.md`](../tests/MANUAL_DISCORD_TEST_GUIDE.md) for live validation of `show my tasks` dropdown, detail buttons, and Show More pagination.
-- **Audit hygiene**: Fixed Ruff/Pyright on task list UI tests; ASCII compliance in changelogs + manual guide; hardened parallel flakes in `test_storage_scenarios` and `test_schedule_period_lifecycle` (`no_parallel` + policy-compliant reason comments).
+- **Task notes**: `append note to task` / `add note to task` commands (`append_note_to_task` intent), `update task ... note ...` replaces description; help text and examples updated in [`task_handler.py`](../communication/command_handlers/task_handler.py).
+- **Audit hygiene**: Fixed Ruff/Pyright on task list UI tests; ASCII compliance in changelogs + manual guide; hardened parallel flakes in `test_storage_scenarios`, `test_schedule_period_lifecycle`, and `test_get_user_data_fields_scalar_list_and_dict` (core `get_user_data` import + index refresh; v2 envelope fallback in test shim).
 
 ### 2026-06-22 - Notebook help + task follow-up button fix **COMPLETED**
 - Added `NOTEBOOK_HELP_TEXT` in [`notebook_handler.py`](../communication/command_handlers/notebook_handler.py) - capture/retrieve/modify/lists sections, inbox semantics, groups vs tags, and Show More paging note.

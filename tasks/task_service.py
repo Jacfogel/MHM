@@ -86,6 +86,20 @@ def update_task(user_id: str, task_id: str, updates: dict[str, Any]) -> bool:
     return _tasks().update_task(user_id, task_id, updates)
 
 
+@handle_errors("task service: append_task_description", user_friendly=False, re_raise=True)
+def append_task_description(user_id: str, task_id: str, text: str) -> bool:
+    """Append text to a task description (notes field), preserving existing content."""
+    note = str(text or "").strip()
+    if not note:
+        return False
+    task = _tasks().get_task_by_id(user_id, task_id)
+    if not task:
+        return False
+    existing = str(task.get("description") or "").strip()
+    combined = f"{existing}\n\n{note}" if existing else note
+    return update_task(user_id, task_id, {"description": combined})
+
+
 # duplicate_functions_intentional: task_stats_facade
 @handle_errors("task service: get_user_task_stats", user_friendly=False, re_raise=True)
 def get_user_task_stats(user_id: str):

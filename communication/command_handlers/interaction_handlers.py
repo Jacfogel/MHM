@@ -163,7 +163,7 @@ class HelpHandler(InteractionHandler):
         response += (
             '• Natural: "create a task to...", "remind me to take medication every morning at 8am", "show my tasks", "complete [task]"\n'
         )
-        response += "• Explicit: create_task, list_tasks, complete_task, delete_task, update_task, task_stats\n"
+        response += "• Explicit: create_task, list_tasks, complete_task, delete_task, update_task, append_note_to_task, task_stats\n"
         response += "• Slash: /tasks (also !tasks)\n\n"
 
         # Check-in commands

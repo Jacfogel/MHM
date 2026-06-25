@@ -72,6 +72,8 @@ Manage tasks with natural language or short commands.
 • `complete task 1` / `done Call mom`
 • `delete task 2` / `delete Buy groceries`
 • `update task 1 priority high due tomorrow`
+• `update task 1 note insurance form is on the counter` (replace notes)
+• `append note to task 1 call back before 5pm` (add to notes without replacing)
 
 **Shortcuts:** `nt`, `ntask`, `ct`, `ctask`, `createtask` + title (same as create)
 
@@ -128,6 +130,7 @@ class TaskManagementHandler(InteractionHandler):
             "uncomplete_task",
             "delete_task",
             "update_task",
+            "append_note_to_task",
             "task_stats",
         ]
 
@@ -160,6 +163,8 @@ class TaskManagementHandler(InteractionHandler):
             return self._handle_delete_task(user_id, entities)
         elif intent == "update_task":
             return self._handle_update_task(user_id, entities)
+        elif intent == "append_note_to_task":
+            return self._handle_append_note_to_task(user_id, entities)
         elif intent == "task_stats":
             return TASK_ANALYTICS_HANDLER.handle_task_stats(user_id, entities)
         else:
@@ -915,7 +920,13 @@ class TaskManagementHandler(InteractionHandler):
                 " priority high'\n"
                 "• 'update task "
                 f"{task_identifier}"
-                " title Brush your teeth tonight'"
+                " title Brush your teeth tonight'\n"
+                "• 'update task "
+                f"{task_identifier}"
+                " note Room 204, bring insurance card'\n"
+                "• 'append note to task "
+                f"{task_identifier}"
+                " call back before 5pm'"
             )
             return InteractionResponse(prompt, completed=False, suggestions=[])
 
@@ -926,6 +937,56 @@ class TaskManagementHandler(InteractionHandler):
             return InteractionResponse(
                 "❌ Failed to update task. Please try again.", True
             )
+
+    @handle_errors("handling append note to task")
+    def _handle_append_note_to_task(
+        self, user_id: str, entities: dict[str, Any]
+    ) -> InteractionResponse:
+        """Append text to a task description without replacing existing notes."""
+        task_identifier = entities.get("task_identifier")
+        note_text = entities.get("note_text")
+
+        if not task_identifier:
+            return InteractionResponse(
+                "Which task should I add a note to? Try: append note to task 1 your note here.",
+                completed=False,
+            )
+        if not note_text:
+            return InteractionResponse(
+                "What note should I add? Try: append note to task 1 your note here.",
+                completed=False,
+            )
+
+        tasks = _task_service().load_active_tasks(user_id)
+        candidates = self._get_task_candidates(tasks, task_identifier)
+        if len(candidates) > 1:
+            preview = "\n".join(
+                [f"{i + 1}. {t['title']}" for i, t in enumerate(candidates[:5])]
+            )
+            suffix = (
+                "\nIf you meant one of these, reply with "
+                "'append note to task <number> your note'."
+            )
+            return InteractionResponse(
+                f"I found multiple matching tasks:\n{preview}{suffix}",
+                completed=False,
+            )
+        task = candidates[0] if candidates else None
+
+        if not task:
+            return InteractionResponse(
+                "❌ Task not found. Please check the task number or name.", True
+            )
+
+        if _task_service().append_task_description(
+            user_id, _task_identifier(task), note_text
+        ):
+            return InteractionResponse(
+                f"✅ Note added to: {task['title']}", True
+            )
+        return InteractionResponse(
+            "❌ Failed to add note. Please try again.", True
+        )
 
 
     # not_duplicate: task_identifier_service_facade
@@ -976,6 +1037,8 @@ class TaskManagementHandler(InteractionHandler):
             "complete task 1",
             "delete task Buy groceries",
             "update task 2 priority urgent due friday",
+            "update task 1 note insurance form is on the counter",
+            "append note to task 1 call back before 5pm",
             "task stats",
             "how am I doing with my tasks this week?",
             "task template medication",

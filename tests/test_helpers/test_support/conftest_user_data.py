@@ -219,9 +219,20 @@ def shim_get_user_data_to_invoke_loaders():
             return None
         try:
             with open(file_path, encoding="utf-8") as fh:
-                return json.load(fh)
+                raw = json.load(fh)
         except Exception:
             return None
+        if key in ("account", "preferences", "context", "schedules"):
+            try:
+                from core.profile_v2_io import prepare_profile_raw_on_load
+
+                doc_type = "context" if key == "context" else key
+                prepared = prepare_profile_raw_on_load(doc_type, raw)  # type: ignore[arg-type]
+                if isinstance(prepared, dict):
+                    return prepared
+            except Exception:
+                pass
+        return raw if isinstance(raw, dict) else None
 
     def wrapped_get_user_data(user_id: str, data_type: str = "all", *args, **kwargs):
         auto_create = True

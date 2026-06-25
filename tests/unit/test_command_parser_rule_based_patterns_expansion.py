@@ -172,6 +172,7 @@ class TestCommandParserTaskPatterns:
             ("change task 8 rename to \"Review notes\"", "8", None, "review notes", None),
             ("edit task 9 due friday", "9", None, None, "friday"),
             ("update task 10 priority medium", "10", "medium", None, None),
+            ("update task 1 note Room 204 bring card", "1", None, None, None),
         ],
     )
     def test_update_task_patterns(
@@ -194,6 +195,43 @@ class TestCommandParserTaskPatterns:
             assert entities.get("title") == expected_title
         if expected_due is not None:
             assert entities.get("due_date") == expected_due
+        if "note room 204" in message.lower():
+            assert entities.get("description") == "room 204 bring card"
+
+
+@pytest.mark.unit
+@pytest.mark.communication
+@pytest.mark.tasks
+class TestCommandParserAppendNoteToTaskPatterns:
+    @pytest.mark.parametrize(
+        "message, expected_identifier, expected_note",
+        [
+            (
+                "append note to task 1 call back before 5pm",
+                "1",
+                "call back before 5pm",
+            ),
+            (
+                "add note to task 2 insurance form on counter",
+                "2",
+                "insurance form on counter",
+            ),
+            (
+                "append note to call dentist phone 555-1234",
+                "call dentist phone",
+                "555-1234",
+            ),
+        ],
+    )
+    def test_append_note_to_task_patterns(
+        self, command_parser, message, expected_identifier, expected_note
+    ):
+        result = _rule_parse(command_parser, message)
+
+        assert result.parsed_command.intent == "append_note_to_task"
+        entities = result.parsed_command.entities
+        assert entities.get("task_identifier") == expected_identifier
+        assert entities.get("note_text") == expected_note
 
 
 @pytest.mark.unit

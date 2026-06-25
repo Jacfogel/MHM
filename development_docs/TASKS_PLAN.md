@@ -124,8 +124,8 @@ The task system is no longer just basic CRUD. As of the May 16 snapshot, the cur
 **Why it matters**: Many tasks need context: a link, a phone number, a screenshot reference, a form name, or short notes.
 
 **Implement in stages**:
-- [ ] Treat `description` as the first version of task notes; improve commands/help around it.
-- [ ] Add `append note to task` / `add note to task` command support.
+- [x] Treat `description` as the first version of task notes; improve commands/help around it (2026-06-24: help text, `update task … note …`, detail display).
+- [x] Add `append note to task` / `add note to task` command support (2026-06-24).
 - [ ] Add URL/link capture as structured task metadata if `description` becomes insufficient.
 - [ ] Defer file/image attachments until storage and Discord upload handling are designed.
 
