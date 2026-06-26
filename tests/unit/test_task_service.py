@@ -144,6 +144,15 @@ def test_task_service_filter_and_sort_tasks():
 
     filtered = task_service.filter_tasks("u1", tasks, None, "medium", None)
     assert [task["id"] for task in filtered] == ["3"]
+
+    group_tasks = [
+        {"id": "1", "title": "A", "group": "work"},
+        {"id": "2", "title": "B", "group": "home"},
+        {"id": "3", "title": "C", "group": "Work"},
+    ]
+    group_filtered = task_service.filter_tasks("u1", group_tasks, None, None, None, "work")
+    assert [task["id"] for task in group_filtered] == ["1", "3"]
+
     assert [task["id"] for task in task_service.sort_tasks_by_priority_and_due_date(tasks)] == ["2", "3", "1"]
 
 

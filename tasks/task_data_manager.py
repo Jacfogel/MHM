@@ -146,6 +146,12 @@ def create_task(
         logger.error(f"Invalid tags type: {type(tags)}")
         return None
 
+    from core.tags import ensure_tags_initialized
+    from tasks.task_tag_helpers import sanitize_task_tags
+
+    ensure_tags_initialized(user_id)
+    sanitized_tags = sanitize_task_tags(tags)
+
     task_id = str(uuid.uuid4())
     short_id = generate_short_id(task_id, "task")
     reminders: list[dict[str, Any]] = []
@@ -162,7 +168,7 @@ def create_task(
         "description": description or "",
         "category": str(category or ""),
         "group": str(group or ""),
-        "tags": [str(tag) for tag in (tags or []) if isinstance(tag, str)],
+        "tags": sanitized_tags,
         "status": "active",
         "due": {"date": due_date, "time": due_time},
         "created_at": now_timestamp_full(),
@@ -220,6 +226,10 @@ def update_task(user_id: str, task_id: str, updates: dict[str, Any]) -> bool:
                     existing = [r for r in task.get("reminders", []) if isinstance(r, dict) and r.get("kind") == "scheduled"]
                     quick = [{"kind": "quick", "value": q} for q in (value if isinstance(value, list) else [])]
                     task["reminders"] = existing + quick
+                elif field == "tags":
+                    from tasks.task_tag_helpers import sanitize_task_tags
+
+                    task[field] = sanitize_task_tags(value if isinstance(value, list) else [])
                 elif field in {"recurrence_pattern", "recurrence_interval", "repeat_after_completion", "next_due_date"}:
                     recurrence = task.setdefault("recurrence", {})
                     key_map = {

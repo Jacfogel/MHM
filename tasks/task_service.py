@@ -16,6 +16,7 @@ from tasks.task_data_handlers import (
     runtime_task_due_time,
     runtime_task_scheduled_reminder_periods,
 )
+from tasks.task_tag_helpers import normalize_task_tag_filter, sanitize_task_tags
 from tasks.task_schemas import VALID_PRIORITIES
 from tasks.task_templates import (
     TaskTemplate,
@@ -143,45 +144,9 @@ def add_one_calendar_month(dt: datetime) -> datetime:
 @handle_errors("task service: parsing time string", default_return=None)
 def parse_time_string(time_str: str) -> str | None:
     """Parse user-facing time text into HH:MM format."""
-    time_str_lower = time_str.lower().strip()
+    from tasks.task_time_parsing import parse_time_string as _parse_time_string
 
-    if time_str_lower == "noon":
-        return "12:00"
-    if time_str_lower == "midnight":
-        return "00:00"
-
-    time_patterns = [
-        r"(\d{1,2}):(\d{2})\s*(am|pm)?",
-        r"(\d{1,2})\s*(am|pm)",
-    ]
-
-    for pattern in time_patterns:
-        match = re.search(pattern, time_str_lower)
-        if not match:
-            continue
-
-        groups = match.groups()
-        hour = int(groups[0])
-        minute = (
-            int(groups[1])
-            if len(groups) > 1 and groups[1] and groups[1].isdigit()
-            else 0
-        )
-
-        if len(groups) > 2 and groups[-1]:
-            am_pm = groups[-1].lower()
-            if am_pm == "pm" and hour != 12:
-                hour += 12
-            elif am_pm == "am" and hour == 12:
-                hour = 0
-        elif hour < 12 and "pm" in time_str_lower:
-            hour += 12
-        elif hour == 12 and "am" in time_str_lower:
-            hour = 0
-
-        return f"{hour:02d}:{minute:02d}"
-
-    return None
+    return _parse_time_string(time_str)
 
 
 @handle_errors("task service: defaulting recurring due date", default_return=None)
@@ -209,23 +174,42 @@ def default_due_date_for_recurring_time(
 
 
 @handle_errors("task service: parsing relative date")
-def parse_relative_date(date_str: str, now_dt: datetime | None = None) -> str:
+def parse_relative_date(
+    date_str: str,
+    now_dt: datetime | None = None,
+    *,
+    user_id: str | None = None,
+    nl_defaults: Any | None = None,
+) -> str:
     """Convert relative task due-date strings to YYYY-MM-DD where possible."""
+    from tasks.task_natural_language_defaults import (
+        TaskNaturalLanguageDefaults,
+        get_task_natural_language_defaults,
+        is_past_time_of_day,
+    )
+
     date_str_lower = date_str.lower().strip()
     now_dt = now_dt or now_datetime_full()
+    defaults: TaskNaturalLanguageDefaults = (
+        nl_defaults
+        if isinstance(nl_defaults, TaskNaturalLanguageDefaults)
+        else get_task_natural_language_defaults(user_id)
+    )
 
     if date_str_lower == "today":
         return format_timestamp(now_dt, DATE_ONLY)
     if date_str_lower == "tonight" or date_str_lower in ("after work", "after school"):
-        if date_str_lower in ("after work", "after school") and now_dt.hour >= 17:
+        if date_str_lower in ("after work", "after school") and is_past_time_of_day(
+            now_dt, defaults.after_work_school_time
+        ):
             return format_timestamp(now_dt + timedelta(days=1), DATE_ONLY)
         return format_timestamp(now_dt, DATE_ONLY)
     if date_str_lower == "tomorrow":
         return format_timestamp(now_dt + timedelta(days=1), DATE_ONLY)
     if date_str_lower == "this week":
-        # Mon–Fri: due end of the current calendar week (Sunday).
-        # Sat–Sun: "this week" means the coming week (Sunday at end of that week).
-        if now_dt.weekday() >= 5:
+        # Mon-Fri: due end of the current calendar week (Sunday).
+        # Sat-Sun: optionally mean the coming week (Sunday at end of that week).
+        if now_dt.weekday() >= 5 and defaults.weekend_this_week_means_coming_week:
             days_until_sunday = (6 - now_dt.weekday()) + 7
         else:
             days_until_sunday = 6 - now_dt.weekday()
@@ -322,7 +306,7 @@ def prepare_create_task_data(
     raw_priority = entities.get("priority")
     priority_was_provided = raw_priority in VALID_PRIORITIES
     priority = raw_priority or "medium"
-    tags = entities.get("tags", [])
+    tags = sanitize_task_tags(entities.get("tags", []))
     group = entities.get("group", "")
     recurrence_pattern = entities.get("recurrence_pattern")
     recurrence_interval = entities.get("recurrence_interval", 1)
@@ -353,7 +337,7 @@ def prepare_create_task_data(
             if parsed_time:
                 valid_due_time = parsed_time
             due_date = re.sub(r"\s+at\s+.*", "", due_date, flags=re.IGNORECASE)
-        due_date = parse_relative_date(due_date, now_dt=now_dt)
+        due_date = parse_relative_date(due_date, now_dt=now_dt, user_id=user_id)
 
     if due_time and not valid_due_time:
         parsed_time = parse_time_string(due_time)
@@ -526,6 +510,7 @@ def filter_tasks(
     filter_type: str | None,
     priority_filter: str | None,
     tag_filter: str | None,
+    group_filter: str | None = None,
     now_dt: datetime | None = None,
 ) -> list[dict[str, Any]]:
     """Apply command task-list filters."""
@@ -549,8 +534,21 @@ def filter_tasks(
         ]
 
     if tag_filter:
+        normalized_filter = normalize_task_tag_filter(tag_filter)
+        if normalized_filter:
+            filtered_tasks = [
+                task
+                for task in filtered_tasks
+                if normalized_filter
+                in {normalize_task_tag_filter(tag) for tag in task.get("tags", [])}
+            ]
+
+    if group_filter:
+        group_key = group_filter.strip().lower()
         filtered_tasks = [
-            task for task in filtered_tasks if tag_filter in task.get("tags", [])
+            task
+            for task in filtered_tasks
+            if str(task.get("group") or "").strip().lower() == group_key
         ]
 
     return filtered_tasks
@@ -637,6 +635,10 @@ def format_task_detail_display(task: dict[str, Any], now_dt: datetime | None = N
     tags = task.get("tags") or []
     if tags:
         lines.append(f"**Tags:** {', '.join(str(t) for t in tags)}")
+
+    group = str(task.get("group") or "").strip()
+    if group:
+        lines.append(f"**Group:** {group}")
 
     short_id = str(task.get("short_id") or task.get("id", "")[:8])
     lines.append(f"**ID:** `{short_id}`")
@@ -751,7 +753,9 @@ def build_task_data_from_template(
     if group is not None:
         task_data["group"] = group
     if tags:
-        merged = list(dict.fromkeys([*(task_data.get("tags") or []), *tags]))
+        merged = sanitize_task_tags(
+            list(dict.fromkeys([*(task_data.get("tags") or []), *tags]))
+        )
         task_data["tags"] = merged
 
     resolved_due_date = due_date

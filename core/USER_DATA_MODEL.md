@@ -93,7 +93,8 @@ Example (typical user directory):
 
 - `preferences.json`  
   User preferences (presentation, defaults, and other user-tunable settings).  
-  Validation: tolerant `core/schemas.py` in memory; strict v2 envelope on disk.
+  Validation: tolerant `core/schemas.py` in memory; strict v2 envelope on disk.  
+  **Task natural-language defaults** (optional, under `task_settings.natural_language_defaults`): `tonight_start_time` (default `18:00`), `after_work_school_time` (default `17:00`, used for both "after work" and "after school"), `time_of_day_defaults` (`morning`, `afternoon`, `evening`, `night`), and `weekend_this_week_means_coming_week` (boolean, default `true` for Sat/Sun "this week" parsing). Loaded by `tasks/task_natural_language_defaults.py` for Discord task due-date parsing.
 
 - `schedules.json`  
   Schedule periods / time windows and schedule-related persisted configuration.  

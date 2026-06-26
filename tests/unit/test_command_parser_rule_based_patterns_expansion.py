@@ -124,6 +124,22 @@ class TestCommandParserTaskPatterns:
         assert result.parsed_command.intent == "list_tasks"
 
     @pytest.mark.parametrize(
+        "message, expected_group",
+        [
+            ("show tasks in group work", "work"),
+            ("list tasks group:medical", "medical"),
+            ("tasks in group chores", "chores"),
+        ],
+    )
+    def test_list_tasks_group_filter_patterns(
+        self, command_parser, message, expected_group
+    ):
+        result = _rule_parse(command_parser, message)
+
+        assert result.parsed_command.intent == "list_tasks"
+        assert result.parsed_command.entities.get("group") == expected_group
+
+    @pytest.mark.parametrize(
         "message, expected_identifier",
         [
             ("complete 1", "1"),

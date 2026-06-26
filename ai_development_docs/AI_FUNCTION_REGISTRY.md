@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-24 18:28:56
+> **Last Generated**: 2026-06-25 23:27:34
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,10 +11,10 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 91.4% [!] GOOD**
-- **Total Functions**: 2169
-- **Total Methods**: 1327
-- **Documented**: 3195/3496
-- **Files Scanned**: 220
+- **Total Functions**: 2183
+- **Total Methods**: 1330
+- **Documented**: 3212/3513
+- **Files Scanned**: 223
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -164,7 +164,7 @@ Core System Decision Tree:
 - `core/service_requests.py` - 14/34 functions undocumented (59% coverage)
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
 - `storage/user_data_registry.py` - 11/23 functions undocumented (52% coverage)
-- `tasks/task_schemas.py` - 10/10 functions undocumented (0% coverage)
+- `tasks/task_schemas.py` - 10/12 functions undocumented (17% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
@@ -194,7 +194,7 @@ Most complex functions (may need refactoring):
 2. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2960
 3. [OK] `run_tests.py::main()` - Complexity: 2693
 4. [OK] `storage/user_data_read.py::get_user_data()` - Complexity: 1622
-5. [OK] `communication/message_processing/command_parser.py::_extract_notebook_entities_rule_based()` - Complexity: 1096
+5. [OK] `communication/message_processing/command_parser.py::_extract_notebook_entities_rule_based()` - Complexity: 1103
 
 
 ### **Pattern Recognition**
@@ -211,7 +211,7 @@ Most complex functions (may need refactoring):
 - `messages/` -  (5 files, 38 functions)
 - `scheduler/` -  (6 files, 94 functions)
 - `storage/` -  (11 files, 151 functions)
-- `tasks/` - Task management system (7 files, 99 functions)
+- `tasks/` - Task management system (10 files, 116 functions)
 - `ui/` - User interface components (40 files, 902 functions)
 - `user/` - User context and preferences (5 files, 66 functions)
 

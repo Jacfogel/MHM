@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-24 18:28:55
+> **Last Generated**: 2026-06-25 23:27:34
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 91.4% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 220
-- **Functions Found**: 2169
-- **Methods Found**: 1327
-- **Classes Found**: 225
-- **Total Items**: 3496
-- **Functions Documented**: 1954
-- **Methods Documented**: 1241
-- **Classes Documented**: 159
-- **Total Documented**: 3195
+- **Files Scanned**: 223
+- **Functions Found**: 2183
+- **Methods Found**: 1330
+- **Classes Found**: 226
+- **Total Items**: 3513
+- **Functions Documented**: 1968
+- **Methods Documented**: 1244
+- **Classes Documented**: 160
+- **Total Documented**: 3212
 - **Template-Generated**: 38
-- **Last Updated**: 2026-06-24
+- **Last Updated**: 2026-06-25
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (35)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (93)
+### **Task Management Functions** (107)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -1447,15 +1447,15 @@ Returns:
 - [OK] `_handle_delete_task(self, user_id, entities)` - Handle task deletion
 - [OK] `_handle_list_task_templates(self, user_id, entities)` - List built-in task templates.
 - [OK] `_handle_list_tasks(self, user_id, entities)` - Handle task listing with enhanced filtering and details
-- [OK] `_handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter)` - Apply filters to tasks and return filtered list.
-- [OK] `_handle_list_tasks__build_filter_info(self, filter_type, priority_filter, tag_filter)` - Build filter information list.
+- [OK] `_handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter, group_filter)` - Apply filters to tasks and return filtered list.
+- [OK] `_handle_list_tasks__build_filter_info(self, filter_type, priority_filter, tag_filter, group_filter)` - Build filter information list.
 - [OK] `_handle_list_tasks__build_list_rich_data(self, user_id, page, page_tasks)` - Pagination metadata and Discord task-list picker payload.
 - [OK] `_handle_list_tasks__build_pagination_rich_data(self, page)` - Return channel-neutral Show More metadata when more tasks exist.
 - [OK] `_handle_list_tasks__build_response(self, task_list, filter_info, page, all_tasks)` - Build the main task list response.
 - [OK] `_handle_list_tasks__format_due_date(self, due_date, due_time)` - Format due date with urgency indicator and optional time.
 - [OK] `_handle_list_tasks__format_list(self, tasks, start_index)` - Format task list with enhanced details.
 - [OK] `_handle_list_tasks__generate_suggestions(self, tasks, filter_info)` - Task list uses Show More pagination only; no filter shortcut buttons.
-- [OK] `_handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter)` - Get appropriate response when no tasks match filters.
+- [OK] `_handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter, group_filter)` - Get appropriate response when no tasks match filters.
 - [OK] `_handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
 - [OK] `_handle_uncomplete_task(self, user_id, entities)` - Handle uncomplete/restore: move a completed task back to active.
 - [OK] `_handle_update_task(self, user_id, entities)` - Handle task updates
@@ -1491,15 +1491,15 @@ Returns:
   - [OK] `TaskManagementHandler._handle_delete_task(self, user_id, entities)` - Handle task deletion
   - [OK] `TaskManagementHandler._handle_list_task_templates(self, user_id, entities)` - List built-in task templates.
   - [OK] `TaskManagementHandler._handle_list_tasks(self, user_id, entities)` - Handle task listing with enhanced filtering and details
-  - [OK] `TaskManagementHandler._handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter)` - Apply filters to tasks and return filtered list.
-  - [OK] `TaskManagementHandler._handle_list_tasks__build_filter_info(self, filter_type, priority_filter, tag_filter)` - Build filter information list.
+  - [OK] `TaskManagementHandler._handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter, group_filter)` - Apply filters to tasks and return filtered list.
+  - [OK] `TaskManagementHandler._handle_list_tasks__build_filter_info(self, filter_type, priority_filter, tag_filter, group_filter)` - Build filter information list.
   - [OK] `TaskManagementHandler._handle_list_tasks__build_list_rich_data(self, user_id, page, page_tasks)` - Pagination metadata and Discord task-list picker payload.
   - [OK] `TaskManagementHandler._handle_list_tasks__build_pagination_rich_data(self, page)` - Return channel-neutral Show More metadata when more tasks exist.
   - [OK] `TaskManagementHandler._handle_list_tasks__build_response(self, task_list, filter_info, page, all_tasks)` - Build the main task list response.
   - [OK] `TaskManagementHandler._handle_list_tasks__format_due_date(self, due_date, due_time)` - Format due date with urgency indicator and optional time.
   - [OK] `TaskManagementHandler._handle_list_tasks__format_list(self, tasks, start_index)` - Format task list with enhanced details.
   - [OK] `TaskManagementHandler._handle_list_tasks__generate_suggestions(self, tasks, filter_info)` - Task list uses Show More pagination only; no filter shortcut buttons.
-  - [OK] `TaskManagementHandler._handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter)` - Get appropriate response when no tasks match filters.
+  - [OK] `TaskManagementHandler._handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter, group_filter)` - Get appropriate response when no tasks match filters.
   - [OK] `TaskManagementHandler._handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
   - [OK] `TaskManagementHandler._handle_uncomplete_task(self, user_id, entities)` - Handle uncomplete/restore: move a completed task back to active.
   - [OK] `TaskManagementHandler._handle_update_task(self, user_id, entities)` - Handle task updates
@@ -2531,7 +2531,7 @@ Returns (intent, entities) tuple
 - [OK] `_parse_title_body_from_content(content)` - Split note/journal content into title and optional body.
 - [OK] `_recurrence_unit_to_pattern(self, unit)` - Map a plural natural-language recurrence unit to a task recurrence pattern.
 - [OK] `_remove_task_phrase(self, title, phrase)` - Remove a parsed metadata phrase from a task title.
-- [OK] `_rule_based_parse(self, message)` - Parse using rule-based patterns
+- [OK] `_rule_based_parse(self, message, user_id)` - Parse using rule-based patterns
 - [OK] `get_enhanced_command_parser()` - Get the global enhanced command parser instance
 - [OK] `get_rule_based_intent_names()` - Return sorted rule-based intent names for AI command prompts.
 - [OK] `get_suggestions(self, partial_message)` - Get command suggestions based on partial input
@@ -2571,7 +2571,7 @@ Returns (intent, entities) tuple
   - [OK] `EnhancedCommandParser._parse_title_body_from_content(content)` - Split note/journal content into title and optional body.
   - [OK] `EnhancedCommandParser._recurrence_unit_to_pattern(self, unit)` - Map a plural natural-language recurrence unit to a task recurrence pattern.
   - [OK] `EnhancedCommandParser._remove_task_phrase(self, title, phrase)` - Remove a parsed metadata phrase from a task title.
-  - [OK] `EnhancedCommandParser._rule_based_parse(self, message)` - Parse using rule-based patterns
+  - [OK] `EnhancedCommandParser._rule_based_parse(self, message, user_id)` - Parse using rule-based patterns
   - [OK] `EnhancedCommandParser.get_suggestions(self, partial_message)` - Get command suggestions based on partial input
   - [OK] `EnhancedCommandParser.parse(self, message, user_id)` - Parse a user message into a structured command.
 
@@ -5783,8 +5783,25 @@ Returns:
 - [OK] `setup_default_task_tags(user_id)` - Set up default tags for a user when task management is first enabled.
 - [OK] `update_task(user_id, task_id, updates)` - Update an existing task.
 
+#### `tasks/task_natural_language_defaults.py`
+**Functions:**
+- [OK] `_coerce_time_setting(value, fallback)` - Parse a preference time string, falling back when empty or invalid.
+- [OK] `_parse_preference_time(value)` - Parse a single preference time string when present and valid.
+- [OK] `_time_of_day_cutoff(now_dt, parsed_time)` - Build a datetime cutoff from HH:MM on the same calendar day as *now_dt*.
+- [OK] `build_builtin_task_natural_language_defaults()` - Construct built-in defaults (no user preferences applied).
+- [OK] `builtin(cls)` - Return built-in defaults when user preferences are unset or invalid.
+- [OK] `from_preferences(cls, data)` - Merge stored preference payload onto built-in defaults.
+- [OK] `get_task_natural_language_defaults(user_id)` - Load task natural-language defaults for a user (built-ins when unset).
+- [OK] `is_past_time_of_day(now_dt, time_setting)` - Return True when *now_dt* is at or after the configured time-of-day.
+- [OK] `merge_task_natural_language_preferences(data)` - Apply user preference overrides onto built-in natural-language defaults.
+**Classes:**
+- [OK] `TaskNaturalLanguageDefaults` - Resolved natural-language parsing defaults for one user.
+  - [OK] `TaskNaturalLanguageDefaults.builtin(cls)` - Return built-in defaults when user preferences are unset or invalid.
+  - [OK] `TaskNaturalLanguageDefaults.from_preferences(cls, data)` - Merge stored preference payload onto built-in defaults.
+
 #### `tasks/task_schemas.py`
 **Functions:**
+- [OK] `sanitize_tags(cls, value)` - Normalize and validate task tags before model construction.
 - [MISSING] `validate_completed_at(cls, value)` - No description
 - [MISSING] `validate_completion_status(self)` - No description
 - [MISSING] `validate_date(cls, value)` - No description
@@ -5801,6 +5818,7 @@ Returns:
 - [MISSING] `TaskCollectionV2Model` - No description
 - [OK] `TaskManagementError` - Custom exception for task management errors.
 - [MISSING] `TaskV2Model` - No description
+  - [OK] `TaskV2Model.sanitize_tags(cls, value)` - Normalize and validate task tags before model construction.
   - [MISSING] `TaskV2Model.validate_completion_status(self)` - No description
 
 #### `tasks/task_service.py`
@@ -5814,7 +5832,7 @@ Returns:
 - [OK] `create_task_from_template(user_id, template_id)` - Create a task from a built-in template with optional field overrides.
 - [OK] `default_due_date_for_recurring_time(due_time, now_dt)` - Return today for future recurring times, otherwise tomorrow.
 - [MISSING] `delete_task(user_id, task_id)` - No description
-- [OK] `filter_tasks(user_id, tasks, filter_type, priority_filter, tag_filter, now_dt)` - Apply command task-list filters.
+- [OK] `filter_tasks(user_id, tasks, filter_type, priority_filter, tag_filter, group_filter, now_dt)` - Apply command task-list filters.
 - [OK] `find_most_urgent_task(tasks)` - Find the most urgent task based on overdue status, priority, and due date.
 - [OK] `find_task_by_identifier(tasks, identifier)` - Find a task by number, name, canonical id, or short_id.
 - [OK] `format_due_date_status(due_date, now_dt, due_time)` - Format due-date status for command display.
@@ -5841,6 +5859,12 @@ Returns:
 **Classes:**
 - [OK] `PreparedTaskCreateData` - Normalized task fields for command-driven task creation.
 
+#### `tasks/task_tag_helpers.py`
+**Functions:**
+- [OK] `is_valid_normalized_task_tag(tag)` - Return True when tag matches core.tags validation rules.
+- [OK] `normalize_task_tag_filter(tag_filter)` - Normalize a tag filter value for list/search comparisons.
+- [OK] `sanitize_task_tags(tags)` - Normalize and validate task tags using the shared core.tags helpers.
+
 #### `tasks/task_templates.py`
 **Functions:**
 - [OK] `format_templates_for_help()` - Short bullet list for help text.
@@ -5851,6 +5875,10 @@ Returns:
 **Classes:**
 - [OK] `TaskTemplate` - Static defaults for a repeatable task type.
   - [OK] `TaskTemplate.to_create_kwargs(self)` - Return non-empty template fields suitable for task creation.
+
+#### `tasks/task_time_parsing.py`
+**Functions:**
+- [OK] `parse_time_string(time_str)` - Parse user-facing time text into HH:MM format.
 
 #### `tasks/task_validation.py`
 **Functions:**

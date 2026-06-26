@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-24 18:29:09
+> **Last Generated**: 2026-06-25 23:27:48
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 000000AC 5EAC:07BC
+Volume serial number is 0000009A 5EAC:07BC
 C:.
 |   .ruff.toml
 |   ARCHITECTURE.md
@@ -555,9 +555,12 @@ C:.
 +---tasks
 |   |   task_data_handlers.py
 |   |   task_data_manager.py
+|   |   task_natural_language_defaults.py
 |   |   task_schemas.py
 |   |   task_service.py
+|   |   task_tag_helpers.py
 |   |   task_templates.py
+|   |   task_time_parsing.py
 |   |   task_validation.py
 |   |   __init__.py
 |   |
@@ -1003,8 +1006,10 @@ C:.
 |   |   |   test_tags_expansion.py
 |   |   |   test_tags_gap_coverage.py
 |   |   |   test_task_detail_display.py
+|   |   |   test_task_natural_language_defaults.py
 |   |   |   test_task_service.py
 |   |   |   test_task_short_ids.py
+|   |   |   test_task_tag_normalization.py
 |   |   |   test_task_templates.py
 |   |   |   test_test_policy_guards.py
 |   |   |   test_test_user_factory.py

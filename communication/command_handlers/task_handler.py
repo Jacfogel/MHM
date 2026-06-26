@@ -66,6 +66,7 @@ Manage tasks with natural language or short commands.
 
 **List & stats:**
 • `show my tasks` / `list tasks` / `/tasks`
+• `show tasks in group work` / `list tasks group:medical`
 • `task stats` / `how am I doing with my tasks this week?`
 
 **Complete, delete, update:**
@@ -414,14 +415,15 @@ class TaskManagementHandler(InteractionHandler):
         filter_type = entities.get("filter")
         priority_filter = entities.get("priority")
         tag_filter = entities.get("tag")
+        group_filter = entities.get("group")
 
         # Apply filters and get filtered tasks
         filtered_tasks = self._handle_list_tasks__apply_filters(
-            user_id, tasks, filter_type, priority_filter, tag_filter
+            user_id, tasks, filter_type, priority_filter, tag_filter, group_filter
         )
         if not filtered_tasks:
             return self._handle_list_tasks__no_tasks_response(
-                filter_type, priority_filter, tag_filter
+                filter_type, priority_filter, tag_filter, group_filter
             )
 
         # Sort tasks by priority and due date
@@ -440,7 +442,7 @@ class TaskManagementHandler(InteractionHandler):
 
         # Build response with filter info
         filter_info = self._handle_list_tasks__build_filter_info(
-            filter_type, priority_filter, tag_filter
+            filter_type, priority_filter, tag_filter, group_filter
         )
         response = self._handle_list_tasks__build_response(
             task_list, filter_info, page, sorted_tasks
@@ -459,6 +461,7 @@ class TaskManagementHandler(InteractionHandler):
             filter_type=filter_type,
             priority_filter=priority_filter,
             tag_filter=tag_filter,
+            group_filter=group_filter,
         )
 
         return InteractionResponse(
@@ -470,7 +473,7 @@ class TaskManagementHandler(InteractionHandler):
 
     @handle_errors("applying task filters")
     def _handle_list_tasks__apply_filters(
-        self, user_id, tasks, filter_type, priority_filter, tag_filter
+        self, user_id, tasks, filter_type, priority_filter, tag_filter, group_filter
     ):
         """Apply filters to tasks and return filtered list."""
         return _task_service().filter_tasks(
@@ -479,12 +482,13 @@ class TaskManagementHandler(InteractionHandler):
             filter_type,
             priority_filter,
             tag_filter,
+            group_filter,
             now_dt=now_datetime_full(),
         )
 
     @handle_errors("handling no tasks response")
     def _handle_list_tasks__no_tasks_response(
-        self, filter_type, priority_filter, tag_filter
+        self, filter_type, priority_filter, tag_filter, group_filter
     ):
         """Get appropriate response when no tasks match filters."""
         if filter_type == "due_soon":
@@ -497,6 +501,8 @@ class TaskManagementHandler(InteractionHandler):
             return InteractionResponse(f"No {priority_filter} priority tasks! 🎉", True)
         elif tag_filter:
             return InteractionResponse(f"No tasks with tag '{tag_filter}'! 🎉", True)
+        elif group_filter:
+            return InteractionResponse(f"No tasks in group '{group_filter}'! 🎉", True)
         else:
             return InteractionResponse(
                 "You have no active tasks. Great job staying on top of things! 🎉", True
@@ -540,6 +546,9 @@ class TaskManagementHandler(InteractionHandler):
             tags = task.get("tags", [])
             tags_info = f" [tags: {', '.join(tags)}]" if tags else ""
 
+            group = str(task.get("group") or "").strip()
+            group_info = f" [group: {group}]" if group else ""
+
             # Add description preview if present
             description = task.get("description", "")
             desc_info = (
@@ -549,7 +558,7 @@ class TaskManagementHandler(InteractionHandler):
             )
 
             task_list.append(
-                f"{i}. {emoji} {task['title']}{due_info}{recurrence_info}{tags_info}{desc_info}"
+                f"{i}. {emoji} {task['title']}{due_info}{recurrence_info}{tags_info}{group_info}{desc_info}"
             )
 
         return task_list
@@ -563,7 +572,7 @@ class TaskManagementHandler(InteractionHandler):
 
     @handle_errors("building filter info")
     def _handle_list_tasks__build_filter_info(
-        self, filter_type, priority_filter, tag_filter
+        self, filter_type, priority_filter, tag_filter, group_filter
     ):
         """Build filter information list."""
         filter_info = []
@@ -573,6 +582,8 @@ class TaskManagementHandler(InteractionHandler):
             filter_info.append(f"priority: {priority_filter}")
         if tag_filter:
             filter_info.append(f"tag: {tag_filter}")
+        if group_filter:
+            filter_info.append(f"group: {group_filter}")
         return filter_info
 
     @handle_errors("building response")
@@ -617,6 +628,7 @@ class TaskManagementHandler(InteractionHandler):
         filter_type=None,
         priority_filter=None,
         tag_filter=None,
+        group_filter=None,
     ):
         """Pagination metadata and Discord task-list picker payload."""
         rich_data = self._handle_list_tasks__build_pagination_rich_data(
@@ -624,6 +636,7 @@ class TaskManagementHandler(InteractionHandler):
             filter_type=filter_type,
             priority_filter=priority_filter,
             tag_filter=tag_filter,
+            group_filter=group_filter,
         )
         if not page_tasks:
             return rich_data
@@ -652,6 +665,7 @@ class TaskManagementHandler(InteractionHandler):
         filter_type=None,
         priority_filter=None,
         tag_filter=None,
+        group_filter=None,
     ):
         """Return channel-neutral Show More metadata when more tasks exist."""
         if not page.has_more or page.next_offset is None:
@@ -664,6 +678,8 @@ class TaskManagementHandler(InteractionHandler):
             params["priority"] = priority_filter
         if tag_filter:
             params["tag"] = tag_filter
+        if group_filter:
+            params["group"] = group_filter
 
         return {
             "pagination_actions": [

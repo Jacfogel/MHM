@@ -10,6 +10,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from core.logger import get_component_logger
 from core.time_utilities import parse_date_only, parse_time_only_minute
 from storage.user_data_v2_base import (
     SCHEMA_VERSION,
@@ -52,6 +53,8 @@ ALLOWED_UPDATE_FIELDS: tuple[str, ...] = (
 )
 
 TASKS_V2_FILENAME = "tasks.json"
+
+logger = get_component_logger("tasks")
 
 TaskStatus = Literal["active", "completed", "cancelled", "archived", "deleted"]
 
@@ -115,6 +118,18 @@ class TaskV2Model(BaseItemModel):
     reminders: list[dict[str, Any]] = Field(default_factory=list)
     recurrence: RecurrenceModel = Field(default_factory=RecurrenceModel)
     completion: CompletionModel = Field(default_factory=CompletionModel)
+
+    @field_validator("tags", mode="before")
+    @classmethod
+    def sanitize_tags(cls, value: Any) -> list[str]:
+        """Normalize and validate task tags before model construction."""
+        from tasks.task_tag_helpers import sanitize_task_tags
+
+        if value is None:
+            return []
+        if not isinstance(value, list):
+            return sanitize_task_tags([str(value)] if value else [])
+        return sanitize_task_tags(value)
 
     @model_validator(mode="after")
     def validate_completion_status(self) -> TaskV2Model:

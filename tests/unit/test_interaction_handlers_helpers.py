@@ -131,7 +131,7 @@ class TestTaskManagementHandlerHelpers:
             return_value=[tasks[0]],
         ):
             result = self.handler._handle_list_tasks__apply_filters(
-                "user", tasks, "due_soon", None, None
+                "user", tasks, "due_soon", None, None, None
             )
             assert len(result) == 1, "Should return only due soon tasks"
             assert result[0]["title"] == "Task 1", "Should return correct task"
@@ -154,7 +154,7 @@ class TestTaskManagementHandlerHelpers:
             create=True,
         ):
             result = self.handler._handle_list_tasks__apply_filters(
-                "user", tasks, "overdue", None, None
+                "user", tasks, "overdue", None, None, None
             )
         assert len(result) == 1, "Should return only overdue tasks"
         assert result[0]["title"] == "Overdue Task", "Should return correct task"
@@ -167,7 +167,7 @@ class TestTaskManagementHandlerHelpers:
         ]
 
         result = self.handler._handle_list_tasks__apply_filters(
-            "user", tasks, "high_priority", None, None
+            "user", tasks, "high_priority", None, None, None
         )
         assert len(result) == 1, "Should return only high priority tasks"
         assert result[0]["title"] == "High Priority Task", "Should return correct task"
@@ -181,7 +181,7 @@ class TestTaskManagementHandlerHelpers:
         ]
 
         result = self.handler._handle_list_tasks__apply_filters(
-            "user", tasks, None, "medium", None
+            "user", tasks, None, "medium", None, None
         )
         assert len(result) == 1, "Should return only medium priority tasks"
         assert result[0]["title"] == "Medium Task", "Should return correct task"
@@ -194,7 +194,7 @@ class TestTaskManagementHandlerHelpers:
         ]
 
         result = self.handler._handle_list_tasks__apply_filters(
-            "user", tasks, None, None, "work"
+            "user", tasks, None, None, "work", None
         )
         assert len(result) == 1, "Should return only tasks with matching tag"
         assert result[0]["title"] == "Tagged Task", "Should return correct task"
@@ -208,10 +208,24 @@ class TestTaskManagementHandlerHelpers:
         ]
 
         result = self.handler._handle_list_tasks__apply_filters(
-            "user", tasks, None, "high", "work"
+            "user", tasks, None, "high", "work", None
         )
         assert len(result) == 1, "Should return tasks matching all filters"
         assert result[0]["title"] == "Task 1", "Should return correct task"
+
+    def test_apply_filters_group_filter(self):
+        """Test _handle_list_tasks__apply_filters with group filter."""
+        tasks = [
+            {"title": "Work Task", "group": "work"},
+            {"title": "Home Task", "group": "home"},
+            {"title": "Work Task 2", "group": "Work"},
+        ]
+
+        result = self.handler._handle_list_tasks__apply_filters(
+            "user", tasks, None, None, None, "work"
+        )
+        assert len(result) == 2
+        assert all(task["group"].lower() == "work" for task in result)
 
     def test_sort_tasks_by_priority(self):
         """Test _handle_list_tasks__sort_tasks sorts by priority."""
@@ -319,30 +333,31 @@ class TestTaskManagementHandlerHelpers:
     def test_build_filter_info_all_filters(self):
         """Test _handle_list_tasks__build_filter_info with all filters."""
         result = self.handler._handle_list_tasks__build_filter_info(
-            "due_soon", "high", "work"
+            "due_soon", "high", "work", "medical"
         )
-        assert len(result) == 3, "Should include all filter types"
+        assert len(result) == 4, "Should include all filter types"
         assert any("due_soon" in f for f in result), "Should include filter type"
         assert any("high" in f for f in result), "Should include priority"
         assert any("work" in f for f in result), "Should include tag"
+        assert any("medical" in f for f in result), "Should include group"
 
     def test_build_filter_info_partial(self):
         """Test _handle_list_tasks__build_filter_info with partial filters."""
         result = self.handler._handle_list_tasks__build_filter_info(
-            "overdue", None, None
+            "overdue", None, None, None
         )
         assert len(result) == 1, "Should include only provided filters"
         assert "overdue" in result[0], "Should include filter type"
 
     def test_build_filter_info_none(self):
         """Test _handle_list_tasks__build_filter_info with no filters."""
-        result = self.handler._handle_list_tasks__build_filter_info(None, None, None)
+        result = self.handler._handle_list_tasks__build_filter_info(None, None, None, None)
         assert result == [], "Should return empty list when no filters"
 
     def test_no_tasks_response_due_soon(self):
         """Test _handle_list_tasks__no_tasks_response for due_soon filter."""
         result = self.handler._handle_list_tasks__no_tasks_response(
-            "due_soon", None, None
+            "due_soon", None, None, None
         )
         assert isinstance(result.message, str), "Should return InteractionResponse"
         assert "due" in result.message.lower(), "Should mention due date"
@@ -350,23 +365,30 @@ class TestTaskManagementHandlerHelpers:
     def test_no_tasks_response_overdue(self):
         """Test _handle_list_tasks__no_tasks_response for overdue filter."""
         result = self.handler._handle_list_tasks__no_tasks_response(
-            "overdue", None, None
+            "overdue", None, None, None
         )
         assert "overdue" in result.message.lower(), "Should mention overdue"
 
     def test_no_tasks_response_priority(self):
         """Test _handle_list_tasks__no_tasks_response for priority filter."""
-        result = self.handler._handle_list_tasks__no_tasks_response(None, "high", None)
+        result = self.handler._handle_list_tasks__no_tasks_response(None, "high", None, None)
         assert "high" in result.message.lower(), "Should mention priority"
 
     def test_no_tasks_response_tag(self):
         """Test _handle_list_tasks__no_tasks_response for tag filter."""
-        result = self.handler._handle_list_tasks__no_tasks_response(None, None, "work")
+        result = self.handler._handle_list_tasks__no_tasks_response(None, None, "work", None)
         assert "work" in result.message.lower(), "Should mention tag"
+
+    def test_no_tasks_response_group(self):
+        """Test _handle_list_tasks__no_tasks_response for group filter."""
+        result = self.handler._handle_list_tasks__no_tasks_response(
+            None, None, None, "medical"
+        )
+        assert "medical" in result.message.lower()
 
     def test_no_tasks_response_default(self):
         """Test _handle_list_tasks__no_tasks_response with no filters."""
-        result = self.handler._handle_list_tasks__no_tasks_response(None, None, None)
+        result = self.handler._handle_list_tasks__no_tasks_response(None, None, None, None)
         assert (
             "no active tasks" in result.message.lower()
         ), "Should mention no active tasks"
