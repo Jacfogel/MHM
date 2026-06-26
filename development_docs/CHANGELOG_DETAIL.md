@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-06-26 - Journal entry visual distinction + NLP mode detection
+- **Feature**: Journal entries are visually distinct in notebook list and detail output - [`notebook_handler.py`](../communication/command_handlers/notebook_handler.py) adds `_format_journal_submitted_date_label()`, `_format_entry_list_line()`, and journal-specific detail header (`**Journal** - Jun 15`) using `submitted_at`.
+- **Feature**: NLP mode detection expanded in [`command_interpreter.py`](../ai/command_interpreter.py) - new keywords and `_COMMAND_PHRASE_HINTS` so notebook search/inbox/group, task note append, template, and group-filter phrasing route to command modes instead of chat; phrase hints avoid false positives on emotional messages (e.g. "update my feelings").
+- **Tests**: Journal formatting in [`test_notebook_handler_pagination_formatting.py`](../tests/unit/test_notebook_handler_pagination_formatting.py); NLP cases in [`test_command_interpreter.py`](../tests/unit/test_command_interpreter.py) and [`test_natural_language_command_detection.py`](../tests/behavior/test_natural_language_command_detection.py).
+- **Docs**: [NOTES_PLAN.md](NOTES_PLAN.md) section 4.5 marked complete.
+- **Impact**: Journal entries no longer look like generic notes; recent Discord command phrasing is less likely to be treated as casual chat by the AI layer.
+
 ### 2026-06-24 - Task list UI tests + task notes + group filter
 - **Tests**: Added [`test_task_list_ui.py`](../tests/communication/test_task_list_ui.py) - 17 unit tests covering `_task_flow_response` (due date / priority / reminders guards), `_run_handler_intent`, `_format_task_detail`, `get_task_list_view` (select + Show More), and async `TaskListSelect` / `TaskDetailView` callback paths.
 - **Feature**: Task notes via description field - new `append note to task` / `add note to task` commands (`append_note_to_task` intent in [`command_parser.py`](../communication/message_processing/command_parser.py)); `update task ... note ...` replaces description via extended `_extract_update_entities`; [`append_task_description()`](../tasks/task_service.py) merges notes with blank-line separator; handler, help text, and examples in [`task_handler.py`](../communication/command_handlers/task_handler.py).

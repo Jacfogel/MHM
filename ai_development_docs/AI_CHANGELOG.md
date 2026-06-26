@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-06-26 - Journal entry visual distinction + NLP mode detection **COMPLETED**
+- Journal list lines and detail view in [`notebook_handler.py`](../communication/command_handlers/notebook_handler.py) now show **Journal** label plus `submitted_at` date (`Jun 15` or `Mar 04, 2025` when not current year).
+- Centralized `_format_entry_list_line()` across inbox, search, group/tag, pinned, recent, and archived lists so journal entries use the journal icon consistently.
+- **NLP mode detection**: [`command_interpreter.py`](../ai/command_interpreter.py) expanded keywords (`append`, `inbox`, `group`, `template`, `search`, etc.) and `_COMMAND_PHRASE_HINTS` for `show inbox`, `search for`, `append note to task`, `tasks in group`, `help notebook` without misclassifying emotional chat.
+- Tests in [`test_notebook_handler_pagination_formatting.py`](../tests/unit/test_notebook_handler_pagination_formatting.py), [`test_command_interpreter.py`](../tests/unit/test_command_interpreter.py), [`test_natural_language_command_detection.py`](../tests/behavior/test_natural_language_command_detection.py); [NOTES_PLAN.md](../development_docs/NOTES_PLAN.md) section 4.5 marked complete.
+
 ### 2026-06-24 - Task list UI tests + task notes + group filter **COMPLETED**
 - Added [`test_task_list_ui.py`](../tests/communication/test_task_list_ui.py) (17 tests) for Discord task picker/detail: flow starters (due date, priority, reminders), handler delegation, view factory, select callback, and detail button paths.
 - Added **section 6.1.D** to [`MANUAL_DISCORD_TEST_GUIDE.md`](../tests/MANUAL_DISCORD_TEST_GUIDE.md) for live validation of `show my tasks` dropdown, detail buttons, and Show More pagination.
@@ -134,11 +140,6 @@ Guidelines:
 - Moved UI-managed service process control from `ui/ui_app_qt.py` to `ui/service_manager.py`; `MHMManagerUI` now delegates service start/stop/restart/status checks.
 - Added temporary `ui.ui_app_qt.ServiceManager` import bridge (removed 2026-06-06 once tests/callers used `ui.service_manager.ServiceManager`).
 - Final audit remains at 0 circular chains and 65 high-coupling modules; `ui_app_qt.py` stays out of the high-coupling list and `service_manager.py` is not a new high-coupling offender.
-
-### 2026-06-05 - Runtime delivery error hardening **COMPLETED**
-- Email inbound polling now treats `None` from the async receive bridge as no messages and skips malformed payloads instead of logging repeated `NoneType` iteration errors.
-- `CommunicationManager.send_message()` now logs channel-provided failure details (`get_error()` / `error_message`) when a channel returns `False`, and logs exception type/message before shared network/communication error handling.
-- Added focused regression coverage in `tests/unit/test_channel_orchestrator.py`; verified with `pytest tests/unit/test_channel_orchestrator.py -q` (`48 passed`) and `py_compile` on touched files.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

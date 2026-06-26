@@ -74,3 +74,28 @@ class TestNaturalLanguageCommandDetection:
         mode3 = get_command_interpreter().detect_mode("Tell me about yourself")
         assert mode3 == "chat", f"Expected 'chat', got '{mode3}'"
 
+    @pytest.mark.behavior
+    def test_notebook_and_task_phrase_commands_detected(self):
+        """Recent parser intents should not fall through to chat mode."""
+        interpreter = get_command_interpreter()
+        cases = {
+            "append note to task 1 Phone number is 555-1234": "command",
+            "show tasks in group work": "command",
+            "search for meeting notes": "command",
+            "show inbox": "command_with_clarification",
+            "show group work": "command_with_clarification",
+        }
+        for prompt, expected in cases.items():
+            mode = interpreter.detect_mode(prompt)
+            assert mode == expected, f"{prompt!r}: expected {expected!r}, got {mode!r}"
+
+    @pytest.mark.behavior
+    def test_emotional_chat_not_misclassified_by_new_phrases(self):
+        """Phrase hints must not route ordinary emotional chat to command mode."""
+        interpreter = get_command_interpreter()
+        for prompt in (
+            "I need to update my feelings about work",
+            "can you show me some support",
+        ):
+            assert interpreter.detect_mode(prompt) == "chat", prompt
+

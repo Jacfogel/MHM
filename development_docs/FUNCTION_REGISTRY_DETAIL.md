@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-25 23:27:34
+> **Last Generated**: 2026-06-26 12:41:32
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 91.4% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 223
-- **Functions Found**: 2183
-- **Methods Found**: 1330
+- **Functions Found**: 2185
+- **Methods Found**: 1331
 - **Classes Found**: 226
-- **Total Items**: 3513
-- **Functions Documented**: 1968
-- **Methods Documented**: 1244
+- **Total Items**: 3516
+- **Functions Documented**: 1970
+- **Methods Documented**: 1245
 - **Classes Documented**: 160
-- **Total Documented**: 3212
+- **Total Documented**: 3215
 - **Template-Generated**: 38
-- **Last Updated**: 2026-06-25
+- **Last Updated**: 2026-06-26
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (445)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (606)
+### **Communication Functions** (608)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (490)
@@ -1262,7 +1262,9 @@ Returns:
 - [OK] `_apply_entry_ref_mutation(self, user_id, entities, flag)` - Pin/unpin or archive/unarchive by entry_ref; shared helper for pin/archive handlers.
 - [OK] `_build_paginated_list_response(self, entries, header, offset, limit)` - Build a paginated list response for group/tag-style list handlers.
 - [OK] `_format_entry_id(self, entry)` - Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing).
+- [OK] `_format_entry_list_line(self, entry)` - Format one notebook entry for list/search/inbox output.
 - [OK] `_format_entry_response(self, entry)` - Formats a single entry for display.
+- [OK] `_format_journal_submitted_date_label(submitted_at)` - Format journal submitted_at for display (month/day, with year when not current).
 - [OK] `_format_no_group_hits_message(group)` - Build the user message when listing by group returns no entries.
 - [OK] `_format_no_search_hits_message(query)` - Build the Discord/user message when search has no matches.
 
@@ -1301,6 +1303,7 @@ Explains substring search, archived exclusion, and next-step commands.
   - [OK] `NotebookHandler._apply_entry_ref_mutation(self, user_id, entities, flag)` - Pin/unpin or archive/unarchive by entry_ref; shared helper for pin/archive handlers.
   - [OK] `NotebookHandler._build_paginated_list_response(self, entries, header, offset, limit)` - Build a paginated list response for group/tag-style list handlers.
   - [OK] `NotebookHandler._format_entry_id(self, entry)` - Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing).
+  - [OK] `NotebookHandler._format_entry_list_line(self, entry)` - Format one notebook entry for list/search/inbox output.
   - [OK] `NotebookHandler._format_entry_response(self, entry)` - Formats a single entry for display.
   - [OK] `NotebookHandler._handle_add_list_item(self, user_id, entities)` - Handle adding item to list.
   - [OK] `NotebookHandler._handle_add_tags(self, user_id, entities)` - Handle adding tags to entry.

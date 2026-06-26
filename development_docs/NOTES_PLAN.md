@@ -280,16 +280,16 @@ Single-word groups and short entry references can be ambiguous.
 
 ### 4.5 Improve journal visual distinction
 
-**Status**: Planned  
+**Status**: Completed (2026-06-26)  
 **Priority**: Low / Medium
 
 **Problem**: Journal entries can look too much like regular notes in list/show output.
 
 **Tasks**:
 
-- [ ] Make journal entries visually distinct in formatted responses.
-- [ ] Consider showing `submitted_at` or a date label for journal entries.
-- [ ] Add formatting tests.
+- [x] Make journal entries visually distinct in formatted responses (2026-06-26: journal label + submitted date in list/detail formatting).
+- [x] Consider showing `submitted_at` or a date label for journal entries.
+- [x] Add formatting tests.
 
 **Acceptance**:
 

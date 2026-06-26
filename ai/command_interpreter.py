@@ -19,6 +19,7 @@ _COMMAND_KEYWORDS = (
     "todo",
     "schedule",
     "add",
+    "append",
     "remove",
     "delete",
     "call",
@@ -40,6 +41,7 @@ _COMMAND_KEYWORDS = (
     "mood",
     "profile",
     "pin",
+    "unpin",
     "archive",
     "tag",
     "tags",
@@ -48,6 +50,54 @@ _COMMAND_KEYWORDS = (
     "done",
     "help",
     "commands",
+    "examples",
+    "inbox",
+    "group",
+    "template",
+    "templates",
+    "overdue",
+    "toggle",
+    "replace",
+    "search",
+)
+
+# Multi-word hints for intents where a bare keyword would false-positive on chat (e.g. "update my feelings").
+_COMMAND_PHRASE_HINTS = (
+    "show tasks",
+    "show task",
+    "show my tasks",
+    "show inbox",
+    "show group",
+    "show entry",
+    "show note",
+    "show notes",
+    "show schedule",
+    "show profile",
+    "show analytics",
+    "show archived",
+    "show checkin",
+    "show check-in",
+    "list inbox",
+    "list group",
+    "list tasks",
+    "list task",
+    "list pinned",
+    "list archived",
+    "search for",
+    "search entries",
+    "search notes",
+    "append note to task",
+    "add note to task",
+    "update task",
+    "update profile",
+    "update schedule",
+    "tasks in group",
+    "task group:",
+    "group:",
+    "in group",
+    "from template",
+    "help notebook",
+    "examples notebook",
 )
 
 _TASK_INTENT_PHRASES = (
@@ -126,7 +176,9 @@ class CommandInterpreter:
     @handle_errors("detecting command keyword", default_return=False)
     def has_command_keyword(self, prompt_lower: str) -> bool:
         """Return True when prompt appears command-oriented."""
-        return any(keyword in prompt_lower for keyword in _COMMAND_KEYWORDS)
+        if any(keyword in prompt_lower for keyword in _COMMAND_KEYWORDS):
+            return True
+        return any(phrase in prompt_lower for phrase in _COMMAND_PHRASE_HINTS)
 
     @handle_errors("detecting clarification need for command", default_return=True)
     def needs_command_clarification(
@@ -175,6 +227,12 @@ class CommandInterpreter:
             "list tasks",
             "show tasks",
             "show profile",
+            "show inbox",
+            "help notebook",
+            "append note to task",
+            "add note to task",
+            "list inbox",
+            "search for",
         }
 
         request_question_patterns = [

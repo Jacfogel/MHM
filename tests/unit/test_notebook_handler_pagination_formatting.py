@@ -1,5 +1,6 @@
 """Targeted unit coverage for notebook handler pagination and formatting helpers."""
 
+from datetime import datetime
 from uuid import uuid4
 from unittest.mock import patch
 
@@ -7,6 +8,7 @@ import pytest
 
 from communication.command_handlers.notebook_handler import (
     NotebookHandler,
+    _format_journal_submitted_date_label,
     _format_no_group_hits_message,
     _format_no_search_hits_message,
     _format_no_tag_hits_message,
@@ -219,6 +221,51 @@ class TestNotebookHandlerPaginationAndFormatting:
         assert "Archived" in response_text
         assert "Clean kitchen" in response_text
         assert "Laundry" in response_text
+
+    def test_format_entry_response_journal_shows_submitted_date(self):
+        handler = NotebookHandler()
+        entry = Entry(
+            kind="journal_entry",
+            id=uuid4(),
+            title="Reflection",
+            description="Today was good.",
+            submitted_at="2026-06-15 09:30:00",
+            short_id="jabc123",
+        )
+
+        response_text = handler._format_entry_response(entry)
+
+        assert "**Journal**" in response_text
+        assert "Jun 15" in response_text
+        assert "Reflection" in response_text
+        assert "Today was good." in response_text
+
+    def test_format_entry_list_line_journal_includes_date_and_icon(self):
+        handler = NotebookHandler()
+        entry = Entry(
+            kind="journal_entry",
+            id=uuid4(),
+            title="Morning pages",
+            description="text",
+            submitted_at="2026-06-10 08:00:00",
+            short_id="jdef456",
+        )
+
+        line = handler._format_entry_list_line(entry, bullet=True)
+
+        assert line.startswith("• 📔")
+        assert "Jun 10" in line
+        assert "Morning pages" in line
+        assert "jdef456" in line
+
+    def test_format_journal_submitted_date_label_includes_year_when_not_current(self):
+        with patch(
+            "communication.command_handlers.notebook_handler.now_datetime_full",
+            return_value=datetime(2026, 6, 26, 12, 0, 0),
+        ):
+            label = _format_journal_submitted_date_label("2025-03-04 10:00:00")
+
+        assert label == "Mar 04, 2025"
 
 
 @pytest.mark.unit

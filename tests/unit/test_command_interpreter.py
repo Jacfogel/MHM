@@ -63,6 +63,16 @@ class TestCommandInterpreter:
             ("list my journal entries", "command"),
             ("start check-in", "command_with_clarification"),
             ("how has my mood been", "command"),
+            ("append note to task 1 call dentist back", "command"),
+            ("add note to task 2 insurance form on counter", "command"),
+            ("show tasks in group work", "command"),
+            ("show group work", "command_with_clarification"),
+            ("search for dentist appointment", "command"),
+            ("show inbox", "command_with_clarification"),
+            ("help notebook", "command_with_clarification"),
+            ("create task from template grocery run", "command"),
+            ("I need to update my feelings about work", "chat"),
+            ("can you show me some support", "chat"),
         ],
     )
     def test_detect_mode_post_overhaul_nlp_patterns(self, interpreter, prompt, expected_mode):

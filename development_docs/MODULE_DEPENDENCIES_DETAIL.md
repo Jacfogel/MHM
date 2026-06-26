@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-25 23:27:35
+> **Last Generated**: 2026-06-26 12:41:33
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 221
-- **Total Imports Found**: 1882
+- **Total Imports Found**: 1883
 - **Dependencies Documented**: 221 (100% coverage)
 - **Standard Library Imports**: 561 (29.8%)
 - **Third-Party Imports**: 217 (11.5%)
-- **Local Imports**: 1104 (58.7%)
-- **Last Updated**: 2026-06-25
+- **Local Imports**: 1105 (58.7%)
+- **Last Updated**: 2026-06-26
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -31,7 +31,7 @@
 
 - **Standard Library**: 561 imports (29.8%)
 - **Third-Party**: 217 imports (11.5%)
-- **Local**: 1104 imports (58.7%)
+- **Local**: 1105 imports (58.7%)
 
 ## Module Dependencies by Directory
 
@@ -1004,7 +1004,8 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.pagination (PageRequest, paginate_items)` (NEW)
     - `core.tags (parse_tags_from_text)` (NEW)
-    - `core.time_utilities (now_timestamp_full)` (NEW)
+    - `core.time_format_constants (DATE_DISPLAY_MONTH_DAY)` (NEW)
+    - `core.time_utilities (format_timestamp, now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
     - `notebook.notebook_schemas (Entry)`
     - `notebook.notebook_service (add_entry_tags, add_item_to_list, append_entry_body, archive_notebook_entry, create_journal_from_command, create_list_from_command, create_note_from_command, create_quick_note_from_command, delete_list_item, get_entry, list_archived_entries, list_entries_by_group, list_entries_by_tag, list_inbox_entries, list_pinned_entries, list_recent_entries, pin_notebook_entry, remove_entry_tags, replace_entry_body, search_entries_for_display, set_entry_group, set_list_item_done)` (NEW)
     - `notebook.notebook_validation (format_short_id)`
@@ -1015,7 +1016,7 @@
   - `communication/command_handlers/interaction_handlers.py`
 
 **Dependency Changes**:
-- Added: communication.message_processing.flows.flow_constants, core.error_handling, core.logger, core.pagination, core.tags, core.time_utilities, notebook.notebook_service
+- Added: communication.message_processing.flows.flow_constants, core.error_handling, core.logger, core.pagination, core.tags, core.time_format_constants, core.time_utilities, notebook.notebook_service
 - Removed: collections.abc, communication/command_handlers/interaction_handlers.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3718,6 +3719,7 @@
 - **Purpose**: Core system module for time_format_constants
 - **Dependencies**: None (no imports)
 - **Used by**:
+  - `communication/command_handlers/notebook_handler.py`
   - `communication/message_processing/user_suggestions.py`
   - `core/profile_v2_io.py`
   - `core/schedule_utilities.py`
@@ -4659,7 +4661,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger, core.tags
-- Removed: tasks/task_data_manager.py, tasks/task_schemas.py, tasks/task_service.py, tasks/task_validation.py
+- Removed: tasks/task_data_manager.py, tasks/task_schemas.py, tasks/task_service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

@@ -13,7 +13,8 @@ from typing import Any
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.pagination import PageRequest, paginate_items
-from core.time_utilities import now_timestamp_full
+from core.time_format_constants import DATE_DISPLAY_MONTH_DAY
+from core.time_utilities import format_timestamp, now_datetime_full, now_timestamp_full, parse_timestamp_full
 from core.tags import parse_tags_from_text
 
 from communication.command_handlers.base_handler import InteractionHandler
@@ -51,6 +52,8 @@ from notebook.notebook_validation import format_short_id
 
 logger = get_component_logger("communication_manager")
 handlers_logger = logger
+
+_ENTRY_KIND_ICONS = {"note": "📄", "list": "📋", "journal_entry": "📔"}
 
 # Channel-neutral notebook help (single source for `help notebook` and handler.get_help).
 NOTEBOOK_HELP_TEXT = """**Notebook Help:**
@@ -156,6 +159,19 @@ def _format_no_search_hits_message(query: str) -> str:
         "For tags or groups, use !t <tag> or !group <name> instead of search.",
     ]
     return "\n".join(lines)
+
+
+@handle_errors("formatting journal submitted date label", default_return=None)
+def _format_journal_submitted_date_label(submitted_at: str | None) -> str | None:
+    """Format journal submitted_at for display (month/day, with year when not current)."""
+    if not submitted_at:
+        return None
+    dt = parse_timestamp_full(submitted_at)
+    if dt is None:
+        return None
+    if dt.year != now_datetime_full().year:
+        return format_timestamp(dt, f"{DATE_DISPLAY_MONTH_DAY}, %Y")
+    return format_timestamp(dt, DATE_DISPLAY_MONTH_DAY)
 
 
 # not_duplicate: notebook_empty_result_messages
@@ -562,12 +578,7 @@ class NotebookHandler(InteractionHandler):
             f"📝 Recent {'notes' if notes_only else 'entries'} ({len(entries)}):"
         ]
         for entry in page.items:
-            short_id = self._format_entry_id(entry)
-            title = entry.title or "Untitled"
-            kind_icon = {"note": "📄", "list": "📋", "journal_entry": "📔"}.get(
-                entry.kind, "📝"
-            )
-            response_parts.append(f"{kind_icon} {title} ({short_id})")
+            response_parts.append(self._format_entry_list_line(entry))
 
         rich_data = None
         if page.has_more:
@@ -728,9 +739,7 @@ class NotebookHandler(InteractionHandler):
 
         response_parts = [f"🔍 Found {page.total} entries:"]
         for entry in page.items:
-            short_id = self._format_entry_id(entry)
-            title = entry.title or "Untitled"
-            response_parts.append(f"• {title} ({short_id})")
+            response_parts.append(self._format_entry_list_line(entry, bullet=True))
 
         if page.has_more:
             remaining = page.remaining_count
@@ -969,8 +978,7 @@ class NotebookHandler(InteractionHandler):
 
         response_parts = [header]
         for entry in page.items:
-            short_id = self._format_entry_id(entry)
-            response_parts.append(f"• {entry.title or 'Untitled'} ({short_id})")
+            response_parts.append(self._format_entry_list_line(entry, bullet=True))
 
         if page.has_more:
             remaining = page.remaining_count
@@ -1043,8 +1051,7 @@ class NotebookHandler(InteractionHandler):
 
         response_parts = [f"📌 Pinned entries ({page.total}):"]
         for entry in page.items:
-            short_id = self._format_entry_id(entry)
-            response_parts.append(f"• {entry.title or 'Untitled'} ({short_id})")
+            response_parts.append(self._format_entry_list_line(entry, bullet=True))
 
         if page.has_more:
             remaining = page.remaining_count
@@ -1081,8 +1088,7 @@ class NotebookHandler(InteractionHandler):
 
         response_parts = [f"📥 Inbox ({page.total} entries):"]
         for entry in page.items:
-            short_id = self._format_entry_id(entry)
-            response_parts.append(f"• {entry.title or 'Untitled'} ({short_id})")
+            response_parts.append(self._format_entry_list_line(entry, bullet=True))
 
         if page.has_more:
             remaining = page.remaining_count
@@ -1144,13 +1150,7 @@ class NotebookHandler(InteractionHandler):
 
         response_parts = [f"🗄️ Archived entries ({page.total}):"]
         for entry in page.items:
-            short_id = self._format_entry_id(entry)
-            kind_icon = {"note": "📄", "list": "📋", "journal_entry": "📔"}.get(
-                entry.kind, "📝"
-            )
-            response_parts.append(
-                f"{kind_icon} {entry.title or 'Untitled'} ({short_id})"
-            )
+            response_parts.append(self._format_entry_list_line(entry))
 
         if page.has_more:
             remaining = page.remaining_count
@@ -1183,15 +1183,37 @@ class NotebookHandler(InteractionHandler):
             return f"{kind_prefix}{short_id_fragment}"
         return short_id
 
+    @handle_errors("formatting entry list line", default_return="• Untitled")
+    def _format_entry_list_line(self, entry: Entry, *, bullet: bool = False) -> str:
+        """Format one notebook entry for list/search/inbox output."""
+        short_id = self._format_entry_id(entry)
+        kind_icon = _ENTRY_KIND_ICONS.get(entry.kind, "📝")
+        title = entry.title or "Untitled"
+        prefix = "• " if bullet else ""
+        if entry.kind == "journal_entry":
+            date_label = _format_journal_submitted_date_label(entry.submitted_at)
+            if date_label:
+                return f"{prefix}{kind_icon} {date_label} — {title} ({short_id})"
+        return f"{prefix}{kind_icon} {title} ({short_id})"
+
     @handle_errors("formatting entry response", default_return="Error formatting entry")
     def _format_entry_response(self, entry: Entry) -> str:
         """Formats a single entry for display."""
         short_id = self._format_entry_id(entry)
-        kind_icon = {"note": "📄", "list": "📋", "journal_entry": "📔"}.get(
-            entry.kind, "📝"
-        )
+        kind_icon = _ENTRY_KIND_ICONS.get(entry.kind, "📝")
+        title = entry.title or "Untitled"
 
-        response_parts = [f"{kind_icon} **{entry.title or 'Untitled'}** ({short_id})"]
+        if entry.kind == "journal_entry":
+            date_label = _format_journal_submitted_date_label(entry.submitted_at)
+            if date_label:
+                response_parts = [
+                    f"{kind_icon} **Journal** · {date_label}",
+                    f"**{title}** ({short_id})",
+                ]
+            else:
+                response_parts = [f"{kind_icon} **Journal: {title}** ({short_id})"]
+        else:
+            response_parts = [f"{kind_icon} **{title}** ({short_id})"]
         if entry.group:
             response_parts.append(f"Group: {entry.group}")
         if entry.tags:
