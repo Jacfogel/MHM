@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-27 20:03:48
+> **Last Generated**: 2026-06-27 21:38:55
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 5EAC-07BC
+Volume serial number is 000000AE 5EAC:07BC
 C:.
 |   .ruff.toml
 |   ARCHITECTURE.md
@@ -131,6 +131,7 @@ C:.
 |   |   |   checkin_handler.py
 |   |   |   create_menu_handler.py
 |   |   |   handler_registry.py
+|   |   |   health_handler.py
 |   |   |   interaction_handlers.py
 |   |   |   natural_language_handler.py
 |   |   |   notebook_handler.py
@@ -236,6 +237,8 @@ C:.
 |   |   file_locking.py
 |   |   file_operations.py
 |   |   headless_service.py
+|   |   health_context_builder.py
+|   |   health_signals.py
 |   |   logger.py
 |   |   natural_language_defaults.py
 |   |   network_probe.py
@@ -266,6 +269,7 @@ C:.
 |   |   CHANGELOG_DETAIL.md
 |   |   DIRECTORY_TREE.md
 |   |   FUNCTION_REGISTRY_DETAIL.md
+|   |   HEALTH_INTEGRATION_PLAN.md
 |   |   LEGACY_REFERENCE_REPORT.md
 |   |   LIST_OF_LISTS.md
 |   |   MODULE_DEPENDENCIES_DETAIL.md
@@ -483,6 +487,20 @@ C:.
     (JSON files created by development tools)
 |   |   +---logs
     (log files)
++---integrations
+|   |   __init__.py
+|   |
+|   +---google_health
+|   |   |   auth.py
+|   |   |   client.py
+|   |   |   data_handlers.py
+|   |   |   GOOGLE_HEALTH_GUIDE.md
+|   |   |   personalization_rules.py
+|   |   |   schemas.py
+|   |   |   signal_builder.py
+|   |   |   sync_manager.py
+|   |   |   __init__.py
+|   |   |
 +---logs
     (log files)
 +---messages
@@ -522,6 +540,7 @@ C:.
 |           command.txt
 |
 +---scheduler
+|   |   health_sync_jobs.py
 |   |   jobs.py
 |   |   maintenance.py
 |   |   manager.py
@@ -632,6 +651,7 @@ C:.
 |   |   |   test_enhanced_command_parser_behavior.py
 |   |   |   test_error_handling_coverage_expansion_phase3_final.py
 |   |   |   test_headless_service_behavior.py
+|   |   |   test_health_handler_behavior.py
 |   |   |   test_interaction_handlers_behavior.py
 |   |   |   test_interaction_handlers_coverage_expansion.py
 |   |   |   test_logger_behavior.py
@@ -840,6 +860,7 @@ C:.
 |   |   |   test_account_lifecycle.py
 |   |   |   test_account_management.py
 |   |   |   test_error_handling_improvements.py
+|   |   |   test_health_scheduler_job.py
 |   |   |   test_notebook_validation_integration.py
 |   |   |   test_orphaned_reminder_cleanup.py
 |   |   |   test_task_cleanup_real.py
@@ -857,6 +878,17 @@ C:.
 |   |
 |   +---test_helpers
 |   |   |   __init__.py
+|   |   |
+|   |   +---fixtures
+|   |   |   \---google_health
+|   |   |           active_zone_response.json
+|   |   |           active_zone_rollup_response.json
+|   |   |           daily_hrv_response.json
+|   |   |           daily_hr_response.json
+|   |   |           sleep_response.json
+|   |   |           steps_response.json
+|   |   |           steps_rollup_response.json
+|   |   |           token_response.json
 |   |   |
 |   |   +---test_support
 |   |   |   |   conftest_cleanup.py
@@ -968,6 +1000,14 @@ C:.
 |   |   |   test_file_operations.py
 |   |   |   test_file_operations_branch_coverage.py
 |   |   |   test_generate_ui_files_script.py
+|   |   |   test_google_health_auth.py
+|   |   |   test_google_health_client.py
+|   |   |   test_google_health_config.py
+|   |   |   test_google_health_data_handlers.py
+|   |   |   test_google_health_sync_manager.py
+|   |   |   test_health_context_builder.py
+|   |   |   test_health_personalization_rules.py
+|   |   |   test_health_signal_builder.py
 |   |   |   test_interaction_handlers_helpers.py
 |   |   |   test_interaction_handlers_help_and_registry.py
 |   |   |   test_item_form_shared.py

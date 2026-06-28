@@ -37,6 +37,7 @@ class TestLogPathMocks:
             "ui_file": str(base_path / "ui.log"),
             "file_ops_file": str(base_path / "file_ops.log"),
             "scheduler_file": str(base_path / "scheduler.log"),
+            "google_health_file": str(base_path / "google_health.log"),
             "schedule_utilities_file": str(base_path / "schedule_utilities.log"),
             "analytics_file": str(base_path / "analytics.log"),
             "message_file": str(base_path / "message.log"),

@@ -63,6 +63,7 @@ Top-level routing only; do not duplicate full descriptions here.
 - `development_docs/` - human references (changelog, dependencies, plans).  
 - `notebook/` - notebook domain modules and service logic.
 - `scheduler/` - background job scheduling, maintenance jobs, and task-reminder loops.
+- `integrations/` - external API adapters (e.g. `integrations/google_health/` read-only wellness sync).
 - `tasks/` - reminder and task definitions.  
 - `tests/` - tests, fixtures, `tests/data/`, `tests/logs/`. See section 2. Test Layout and Discovery
   in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md).  

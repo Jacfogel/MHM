@@ -424,6 +424,25 @@ class TestResponseEnhancer:
         assert out.message == "Profile info"
         mock_bot.generate_response.assert_not_called()
 
+    def test_google_health_status_skips_enhancement(self):
+        original = (
+            "**Feature:** enabled\n"
+            "**Google account linked:** yes\n"
+            "**Last successful sync:** never"
+        )
+        response = InteractionResponse(original)
+        parsed = ParsedCommand("google_health_status", {}, 0.9, "health status")
+        mock_bot = MagicMock()
+        out = enhance_response_with_ai(
+            "user-1",
+            response,
+            parsed,
+            ai_chatbot=mock_bot,
+            enable_ai_enhancement=True,
+        )
+        assert out.message == original
+        mock_bot.generate_response.assert_not_called()
+
     def test_successful_enhancement_replaces_message(self):
         response = InteractionResponse("You did great.")
         parsed = ParsedCommand("encouragement", {}, 0.9, "cheer me up")

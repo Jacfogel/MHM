@@ -76,7 +76,12 @@ This section describes the top-level directories. It should match the actual pro
   Task and reminder definitions plus helpers for scheduling. This is where recurring work,
   reminder setup, and task orchestration live.
 
-- `tests/`  
+- `integrations/`  
+  External API integrations (for example `integrations/google_health/` for read-only
+  Google Health / Fitbit wellness data). Channel-agnostic sync and signal logic; channels
+  only surface commands or admin UI.
+
+- `tests/`
   Unit, integration, behavior, and UI tests plus fixtures. Test-only data lives under
   `tests/data/`. Logs from test runs may be collected under `tests/logs/`. See section 2.
   "Test Layout and Types" and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).

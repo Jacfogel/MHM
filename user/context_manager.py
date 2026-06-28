@@ -81,6 +81,7 @@ class UserContextManager:
             "conversation_insights": self._get_conversation_insights(user_id),
             "preferences": self._get_user_preferences(user_id),
             "mood_trends": self._get_mood_trends(user_id),
+            "health_guidance_summary": self._get_health_guidance_summary(user_id),
             "conversation_history": (
                 self._get_conversation_history(user_id)
                 if include_conversation_history
@@ -123,6 +124,12 @@ class UserContextManager:
                 schedules_data
             ),  # Pass schedules dict, not user_id
         }
+
+    @handle_errors("getting health guidance summary", default_return="")
+    def _get_health_guidance_summary(self, user_id: str) -> str:
+        from core.health_context_builder import build_safe_health_guidance_summary
+
+        return build_safe_health_guidance_summary(user_id)
 
     @handle_errors("getting recent activity", default_return={})
     def _get_recent_activity(self, user_id: str) -> dict[str, Any]:

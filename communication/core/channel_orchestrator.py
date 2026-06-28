@@ -1188,7 +1188,16 @@ class CommunicationManager:
             # Use contextual AI for richer, more personalized messages
             if category in ["personalized", "ai_personalized"]:
                 # Create a contextual prompt for personalized message generation
+                from core.health_signals import get_message_guidance
+                from integrations.google_health.personalization_rules import (
+                    build_scheduled_message_context_prefix,
+                )
+
+                guidance = get_message_guidance(user_id)
+                prefix = build_scheduled_message_context_prefix(guidance)
                 context_prompt = "Generate a supportive, personalized message based on my recent activity and mood."
+                if prefix:
+                    context_prompt = f"{prefix} {context_prompt}"
                 message_to_send = ai_bot.generate_contextual_response(
                     user_id, context_prompt, timeout=15
                 )

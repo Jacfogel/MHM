@@ -173,6 +173,22 @@ Sampling controls:
 
 **Breaks if wrong:** excessive API calls, stale context, delayed scheduling, or missing user directory creation.
 
+### 7.1. Google Health (read-only wellness integration)
+
+- `GOOGLE_HEALTH_ENABLED` - master switch (default `false`)
+- `GOOGLE_HEALTH_CLIENT_ID` / `GOOGLE_HEALTH_CLIENT_SECRET`
+- `GOOGLE_HEALTH_REDIRECT_URI` - local OAuth callback (default `http://127.0.0.1:8765/oauth/google-health/callback`)
+- `GOOGLE_HEALTH_SCOPES` - comma-separated scope suffixes or full URLs
+- `GOOGLE_HEALTH_SYNC_TIMES` - automated poll schedule (default `06:30,18:00`)
+- `GOOGLE_HEALTH_TOKEN_REFRESH_MARGIN_MINUTES` - refresh before expiry (default `10`)
+- `GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS` - idempotent re-fetch window (default `3`)
+- `GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD` - auto-pause after N failures (default `5`)
+- `LOG_GOOGLE_HEALTH_FILE` - component log path
+
+See [GOOGLE_HEALTH_GUIDE.md](integrations/google_health/GOOGLE_HEALTH_GUIDE.md).
+
+**Breaks if wrong:** sync never runs, OAuth connect fails, or tokens cannot refresh (user must reconnect once).
+
 ---
 
 ## 8. Categories

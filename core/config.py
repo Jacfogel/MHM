@@ -272,6 +272,9 @@ LOG_FILE_OPS_FILE = _normalize_path(
 LOG_SCHEDULER_FILE = _normalize_path(
     os.getenv("LOG_SCHEDULER_FILE", str(Path(LOGS_DIR) / "scheduler.log"))
 )  # Scheduler log
+LOG_GOOGLE_HEALTH_FILE = _normalize_path(
+    os.getenv("LOG_GOOGLE_HEALTH_FILE", str(Path(LOGS_DIR) / "google_health.log"))
+)  # Google Health integration log
 LOG_AI_DEV_TOOLS_FILE = _normalize_path(
     os.getenv("LOG_AI_DEV_TOOLS_FILE", str(Path(LOGS_DIR) / "ai_dev_tools.log"))
 )  # AI development tools log
@@ -367,6 +370,56 @@ def get_channel_class_mapping() -> dict[str, str]:
 
 # Scheduler Configuration
 SCHEDULER_INTERVAL = int(os.getenv("SCHEDULER_INTERVAL", "60"))
+
+# Google Health API (read-only wellness integration)
+GOOGLE_HEALTH_ENABLED = os.getenv("GOOGLE_HEALTH_ENABLED", "false").lower() in (
+    "true",
+    "1",
+    "yes",
+)
+GOOGLE_HEALTH_CLIENT_ID = os.getenv("GOOGLE_HEALTH_CLIENT_ID", "")
+GOOGLE_HEALTH_CLIENT_SECRET = os.getenv("GOOGLE_HEALTH_CLIENT_SECRET", "")
+GOOGLE_HEALTH_REDIRECT_URI = os.getenv(
+    "GOOGLE_HEALTH_REDIRECT_URI",
+    "http://127.0.0.1:8765/oauth/google-health/callback",
+)
+_GOOGLE_HEALTH_SCOPE_PREFIX = "https://www.googleapis.com/auth/"
+_DEFAULT_GOOGLE_HEALTH_SCOPES = ",".join(
+    [
+        f"{_GOOGLE_HEALTH_SCOPE_PREFIX}googlehealth.sleep.readonly",
+        f"{_GOOGLE_HEALTH_SCOPE_PREFIX}googlehealth.activity_and_fitness.readonly",
+        f"{_GOOGLE_HEALTH_SCOPE_PREFIX}googlehealth.health_metrics_and_measurements.readonly",
+    ]
+)
+GOOGLE_HEALTH_SCOPES = os.getenv(
+    "GOOGLE_HEALTH_SCOPES", _DEFAULT_GOOGLE_HEALTH_SCOPES
+).strip()
+GOOGLE_HEALTH_SYNC_TIMES = os.getenv("GOOGLE_HEALTH_SYNC_TIMES", "06:30,18:00")
+GOOGLE_HEALTH_TOKEN_REFRESH_MARGIN_MINUTES = int(
+    os.getenv("GOOGLE_HEALTH_TOKEN_REFRESH_MARGIN_MINUTES", "10")
+)
+GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS = int(
+    os.getenv("GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS", "3")
+)
+GOOGLE_HEALTH_API_BASE_URL = os.getenv(
+    "GOOGLE_HEALTH_API_BASE_URL", "https://health.googleapis.com/v4"
+)
+GOOGLE_HEALTH_OAUTH_CALLBACK_PORT = int(
+    os.getenv("GOOGLE_HEALTH_OAUTH_CALLBACK_PORT", "8765")
+)
+GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD = int(
+    os.getenv("GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD", "5")
+)
+GOOGLE_HEALTH_OAUTH_CALLBACK_TIMEOUT_SECONDS = int(
+    os.getenv("GOOGLE_HEALTH_OAUTH_CALLBACK_TIMEOUT_SECONDS", "300")
+)
+
+if GOOGLE_HEALTH_ENABLED and not all(
+    [GOOGLE_HEALTH_CLIENT_ID, GOOGLE_HEALTH_CLIENT_SECRET]
+):
+    logger.warning(
+        "Google Health enabled but client credentials incomplete — integration will be inert"
+    )
 
 
 # Configuration Validation Functions
@@ -538,6 +591,80 @@ def validate_communication_channels() -> tuple[bool, list[str], list[str]]:
     except Exception as e:
         logger.error(f"Error validating communication channels: {e}")
         return False, [f"Communication channels validation failed: {e}"], []
+
+
+@handle_errors(
+    "validating Google Health configuration",
+    default_return=(False, ["Validation failed"], []),
+)
+def validate_google_health_configuration() -> tuple[bool, list[str], list[str]]:
+    """Validate Google Health integration settings."""
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    if not GOOGLE_HEALTH_ENABLED:
+        return True, errors, warnings
+
+    if not GOOGLE_HEALTH_CLIENT_ID:
+        errors.append("GOOGLE_HEALTH_CLIENT_ID is required when GOOGLE_HEALTH_ENABLED=true")
+    if not GOOGLE_HEALTH_CLIENT_SECRET:
+        errors.append(
+            "GOOGLE_HEALTH_CLIENT_SECRET is required when GOOGLE_HEALTH_ENABLED=true"
+        )
+    if not GOOGLE_HEALTH_REDIRECT_URI.startswith(("http://", "https://")):
+        errors.append("GOOGLE_HEALTH_REDIRECT_URI must be a valid http(s) URL")
+
+    for time_str in parse_google_health_sync_times():
+        parts = time_str.split(":")
+        if len(parts) != 2:
+            errors.append(f"Invalid GOOGLE_HEALTH_SYNC_TIMES entry: {time_str}")
+            continue
+        try:
+            hour, minute = int(parts[0]), int(parts[1])
+            if not (0 <= hour <= 23 and 0 <= minute <= 59):
+                errors.append(f"Invalid sync time out of range: {time_str}")
+        except ValueError:
+            errors.append(f"Invalid sync time format: {time_str}")
+
+    if GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS < 1:
+        errors.append("GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS must be at least 1")
+    elif GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS > 30:
+        warnings.append("GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS is very high (> 30)")
+
+    if GOOGLE_HEALTH_TOKEN_REFRESH_MARGIN_MINUTES < 1:
+        errors.append("GOOGLE_HEALTH_TOKEN_REFRESH_MARGIN_MINUTES must be at least 1")
+
+    if "include_granted_scopes" in GOOGLE_HEALTH_SCOPES.lower():
+        warnings.append(
+            "Do not embed include_granted_scopes in GOOGLE_HEALTH_SCOPES — "
+            "it must not be sent to Google Health OAuth"
+        )
+
+    return len(errors) == 0, errors, warnings
+
+
+@handle_errors("parsing Google Health sync times", default_return=["06:30", "18:00"])
+def parse_google_health_sync_times() -> list[str]:
+    """Parse comma-separated HH:MM sync schedule times."""
+    raw = GOOGLE_HEALTH_SYNC_TIMES.strip()
+    if not raw:
+        return ["06:30", "18:00"]
+    return [part.strip() for part in raw.split(",") if part.strip()]
+
+
+@handle_errors("getting Google Health OAuth scopes", default_return=[])
+def get_google_health_oauth_scopes() -> list[str]:
+    """Return normalized full-scope URLs for OAuth."""
+    scopes: list[str] = []
+    for part in GOOGLE_HEALTH_SCOPES.split(","):
+        token = part.strip()
+        if not token:
+            continue
+        if token.startswith("http"):
+            scopes.append(token)
+        else:
+            scopes.append(f"{_GOOGLE_HEALTH_SCOPE_PREFIX}{token}")
+    return scopes
 
 
 @handle_errors(
@@ -716,6 +843,7 @@ def validate_all_configuration() -> dict[str, Any]:
             ("Core Paths", validate_core_paths),
             ("AI Configuration", validate_ai_configuration),
             ("Communication Channels", validate_communication_channels),
+            ("Google Health Configuration", validate_google_health_configuration),
             ("Logging Configuration", validate_logging_configuration),
             ("Scheduler Configuration", validate_scheduler_configuration),
             ("File Organization Settings", validate_file_organization_settings),

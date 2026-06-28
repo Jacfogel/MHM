@@ -30,6 +30,19 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-06-27 - Google Health read-only integration **COMPLETED**
+- Added `integrations/google_health/` package: OAuth connect, automated 1-2x daily sync, daily summaries, derived wellness signals, and deterministic message guidance (no raw metrics to AI).
+- Per-user storage under `data/users/{user_id}/health/`; feature flag `account.features.google_health` (`enabled` | `disabled` | `paused`).
+- Discord commands via [`health_handler.py`](../communication/command_handlers/health_handler.py); scheduler jobs in [`health_sync_jobs.py`](../scheduler/health_sync_jobs.py).
+- AI context: [`core/health_context_builder.py`](../core/health_context_builder.py) + `append_health_guidance` in conversational context assembly.
+- Tests: unit/behavior/integration under `tests/unit/test_google_health_*`, `tests/behavior/test_health_handler_behavior.py`, `tests/integration/test_health_scheduler_job.py`.
+- **Fix (same session):** Google Health API client now uses kebab-case endpoints and type-specific list filters (`sleep.interval.end_time`, `steps.interval.start_time`, `daily_*.date`); added pagination and richer response parsing so sync populates `daily_summaries.json`. Steps/HR/HRV/active-minutes parsing fixed for Google field names (`civilStartTime`, `beatsPerMinute`, `averageHeartRateVariabilityMilliseconds`, `activeZoneMinutes`). Long lookback: steps/active minutes use chunked `dailyRollUp` (14-day Google limit, correct civil range format); upsert merges fields; API errors re-raise so chunked list fallback runs.
+- **Discord fix**: Health commands excluded from AI response enhancement (deterministic status/connect text was being rewritten with wrong facts).
+- Docs: [GOOGLE_HEALTH_GUIDE.md](../integrations/google_health/GOOGLE_HEALTH_GUIDE.md), [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md) Section 2.3.5, [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md), [HEALTH_INTEGRATION_PLAN.md](../development_docs/HEALTH_INTEGRATION_PLAN.md) (V0 complete + V1/deferred backlog).
+- **Audit hygiene**: Docstrings + `@handle_errors` on health handler help methods and `response_enhancer._should_skip_ai_enhancement`; f-string logging fixes; test isolation for `GOOGLE_HEALTH_ENABLED`; schema/feature test updates for `google_health`; `google_health_file` in test log path mocks; function registry regenerated (`docs`).
+- **Audit follow-up**: `@handle_errors` on OAuth `_notify`; domain markers on Google Health tests; unused import cleanup; Ruff UP035/SIM105; doc-fix (ASCII, headings, links).
+- **Audit follow-up (2)**: `# devtools: ignore[facade-shims]` on Pydantic feature validators; fixed [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md) Google Health guide link; stabilized `test_validate_and_raise_if_invalid_failure` (mock + `GOOGLE_HEALTH_ENABLED` isolation).
+
 ### 2026-06-27 - Phrase settings generalization + admin UI **COMPLETED**
 - Moved natural-language defaults to `preferences.natural_language_defaults` (not task-only); logic in [`core/natural_language_defaults.py`](../core/natural_language_defaults.py); shipped defaults in [`resources/default_natural_language_defaults.json`](../resources/default_natural_language_defaults.json).
 - **Migration complete**: legacy `task_settings.natural_language_defaults` read bridge and one-time migration helpers removed (fleet verified clean). Old phrases (`show task language settings`, `set task tonight to 8pm`) still parse to canonical intents.
@@ -139,11 +152,6 @@ Guidelines:
 - Moved full/user/category scheduler calls and UI delivery-factory setup from `ui/ui_app_qt.py` into `ui/scheduler_actions.py`.
 - Added focused scheduler action tests while leaving selection validation and final Qt messages in `MHMManagerUI`.
 - Standard audit remains at 0 circular chains and 65 high-coupling modules; `ui_app_qt.py` dropped to 2136 lines / total complexity 9112.
-
-### 2026-06-06 - UI status provider extraction **COMPLETED**
-- Moved service/channel/tunnel status detection from `ui/ui_app_qt.py` into `ui/status_provider.py`; `MHMManagerUI.update_service_status()` now delegates status decisions and only updates Qt labels.
-- Added focused UI tests for Discord activity parsing, Email rotated-log initialization, ngrok process detection, and service-stopped gating.
-- Standard audit remains at 0 circular chains and 65 high-coupling modules; `ui_app_qt.py` dropped to 2156 lines / 63 functions / total complexity 9179.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

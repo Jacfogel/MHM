@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-27 20:03:34
+> **Last Generated**: 2026-06-27 21:37:56
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,12 +15,12 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 224
-- **Total Imports Found**: 1905
-- **Dependencies Documented**: 224 (100% coverage)
-- **Standard Library Imports**: 566 (29.7%)
-- **Third-Party Imports**: 220 (11.5%)
-- **Local Imports**: 1119 (58.7%)
+- **Files Scanned**: 228
+- **Total Imports Found**: 1939
+- **Dependencies Documented**: 228 (100% coverage)
+- **Standard Library Imports**: 573 (29.6%)
+- **Third-Party Imports**: 228 (11.8%)
+- **Local Imports**: 1138 (58.7%)
 - **Last Updated**: 2026-06-27
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 566 imports (29.7%)
-- **Third-Party**: 220 imports (11.5%)
-- **Local**: 1119 imports (58.7%)
+- **Standard Library**: 573 imports (29.6%)
+- **Third-Party**: 228 imports (11.8%)
+- **Local**: 1138 imports (58.7%)
 
 ## Module Dependencies by Directory
 
@@ -242,7 +242,7 @@
 - **Purpose**: Communication channel implementation for assembly
 - **Dependencies**:
   - **Local**:
-    - `ai.conversational_context.context_phraser (append_activity_and_mood_trends, append_checkin_summary, append_conversation_history, append_feature_enablement, append_profile_sections, append_recent_sent_messages, append_schedule_details, append_task_data, append_task_reminder, append_today_checkin_status)` (NEW)
+    - `ai.conversational_context.context_phraser (append_activity_and_mood_trends, append_checkin_summary, append_conversation_history, append_feature_enablement, append_health_guidance, append_profile_sections, append_recent_sent_messages, append_schedule_details, append_task_data, append_task_reminder, append_today_checkin_status)` (NEW)
     - `ai.conversational_context.instructions (CONVERSATIONAL_CONTEXT_INSTRUCTIONS)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `user.context_manager (user_context_manager)` (NEW)
@@ -267,6 +267,7 @@
     - `checkins.checkin_data_manager (checkin_runtime_timestamp, get_recent_checkins, is_user_checkins_enabled)`
     - `core (get_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.health_context_builder (build_safe_health_guidance_summary)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.time_utilities (TIME_ONLY_MINUTE, format_timestamp, parse_timestamp_full)` (NEW)
     - `messages.message_data_manager (get_recent_messages, is_automated_messages_enabled)`
@@ -279,7 +280,7 @@
   - `ai/conversational_context/assembly.py`
 
 **Dependency Changes**:
-- Added: ai.context_builder, core, core.error_handling, core.logger, core.time_utilities, tasks, tasks.task_data_handlers
+- Added: ai.context_builder, core, core.error_handling, core.health_context_builder, core.logger, core.time_utilities, tasks, tasks.task_data_handlers
 - Removed: ai/conversational_context/assembly.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -865,6 +866,7 @@
   - `communication/command_handlers/checkin_handler.py`
   - `communication/command_handlers/create_menu_handler.py`
   - `communication/command_handlers/handler_registry.py`
+  - `communication/command_handlers/health_handler.py`
   - `communication/command_handlers/interaction_handlers.py`
   - `communication/command_handlers/natural_language_handler.py`
   - `communication/command_handlers/notebook_handler.py`
@@ -955,6 +957,33 @@
 **Dependency Changes**:
 - Added: communication.command_handlers.base_handler, core.error_handling, core.logger
 - Removed: communication/command_handlers/interaction_handlers.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/command_handlers/health_handler.py`
+- **Purpose**: Communication channel implementation for health_handler
+- **Dependencies**:
+  - **Local**:
+    - `communication.command_handlers.base_handler (InteractionHandler)` (NEW)
+    - `communication.command_handlers.shared_types (InteractionResponse, ParsedCommand)` (NEW)
+    - `core (get_user_data, update_user_account)` (NEW)
+    - `core.config (GOOGLE_HEALTH_CLIENT_ID, GOOGLE_HEALTH_CLIENT_SECRET, GOOGLE_HEALTH_ENABLED)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `threading`
+    - `typing (Any)`
+  - **Third-party**:
+    - `integrations.google_health.auth (build_authorization_url, run_oauth_connect_flow)`
+    - `integrations.google_health.data_handlers (delete_user_health_data, has_valid_auth, load_sync_state)`
+    - `integrations.google_health.sync_manager (sync_user_health_data)`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: communication.command_handlers.base_handler, communication.command_handlers.shared_types, core, core.config, core.error_handling, core.logger
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -1101,6 +1130,7 @@
   - `communication/command_handlers/checkin_analytics_handler.py`
   - `communication/command_handlers/checkin_handler.py`
   - `communication/command_handlers/create_menu_handler.py`
+  - `communication/command_handlers/health_handler.py`
   - `communication/command_handlers/interaction_handlers.py`
   - `communication/command_handlers/natural_language_handler.py`
   - `communication/command_handlers/notebook_handler.py`
@@ -1942,6 +1972,7 @@
     - `core (get_user_data)` (NEW)
     - `core.config (DISCORD_BOT_TOKEN, EMAIL_SMTP_SERVER, get_available_channels)` (NEW)
     - `core.error_handling (handle_communication_error, handle_errors, handle_network_error)` (NEW)
+    - `core.health_signals (get_message_guidance)` (NEW)
     - `core.logger (force_restart_logging, get_component_logger)` (NEW)
     - `core.network_probe (wait_for_network)` (NEW)
     - `core.schedule_runtime (get_current_time_periods_with_validation)` (NEW)
@@ -1953,12 +1984,14 @@
     - `time`
     - `typing (Any)`
     - `uuid`
+  - **Third-party**:
+    - `integrations.google_health.personalization_rules (build_scheduled_message_context_prefix)`
 - **Used by**:
   - `communication/command_handlers/account_handler.py`
   - `core/service.py`
 
 **Dependency Changes**:
-- Added: communication.communication_channels.email.inbound_processor, communication.core.message_send_result, communication.delivery.message_dispatcher, communication.delivery.recipient_resolver, communication.reminders.checkin_prompt_dispatcher, communication.reminders.reminder_dispatcher, core, core.config, core.error_handling, core.logger, core.network_probe, core.schedule_runtime
+- Added: communication.communication_channels.email.inbound_processor, communication.core.message_send_result, communication.delivery.message_dispatcher, communication.delivery.recipient_resolver, communication.reminders.checkin_prompt_dispatcher, communication.reminders.reminder_dispatcher, core, core.config, core.error_handling, core.health_signals, core.logger, core.network_probe, core.schedule_runtime
 - Removed: communication/command_handlers/account_handler.py, core/service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2822,6 +2855,7 @@
   - `ai/lm_studio_manager.py`
   - `ai/prompt_manager.py`
   - `ai/response_generator.py`
+  - `communication/command_handlers/health_handler.py`
   - `communication/communication_channels/discord/bot.py`
   - `communication/communication_channels/discord/webhook_server.py`
   - `communication/communication_channels/email/bot.py`
@@ -2842,6 +2876,7 @@
   - `core/user_lookup.py`
   - `core/user_management.py`
   - `messages/message_data_manager.py`
+  - `scheduler/health_sync_jobs.py`
   - `scheduler/manager.py`
   - `storage/runtime_state_storage.py`
   - `storage/user_data_operations.py`
@@ -2854,7 +2889,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling
-- Removed: ai/cache_manager.py, ai/chatbot.py, ai/lm_studio_client.py, ai/lm_studio_manager.py, ai/prompt_manager.py, ai/response_generator.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/webhook_server.py, communication/communication_channels/email/bot.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/welcome_manager.py, communication/message_processing/command_parser.py, communication/message_processing/flows/flow_state.py, communication/message_processing/response_enhancer.py, core/admin_account_provisioning.py, core/auto_cleanup.py, core/backup_manager.py, core/file_operations.py, core/logger.py, core/natural_language_defaults.py, core/service.py, core/service_utilities.py, core/tags.py, core/user_lookup.py, core/user_management.py, messages/message_data_manager.py, scheduler/manager.py, storage/runtime_state_storage.py, storage/user_data_operations.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_validation.py, storage/user_data_write.py, storage/user_item_storage.py, ui/dialogs/schedule_editor_dialog.py
+- Removed: ai/cache_manager.py, ai/chatbot.py, ai/lm_studio_client.py, ai/lm_studio_manager.py, ai/prompt_manager.py, ai/response_generator.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/webhook_server.py, communication/communication_channels/email/bot.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/welcome_manager.py, communication/message_processing/command_parser.py, communication/message_processing/flows/flow_state.py, communication/message_processing/response_enhancer.py, core/admin_account_provisioning.py, core/auto_cleanup.py, core/backup_manager.py, core/file_operations.py, core/logger.py, core/service.py, core/service_utilities.py, core/tags.py, core/user_lookup.py, core/user_management.py, messages/message_data_manager.py, scheduler/manager.py, storage/runtime_state_storage.py, storage/user_data_operations.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_validation.py, storage/user_data_write.py, storage/user_item_storage.py, ui/dialogs/schedule_editor_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Configuration management and validation
@@ -2929,6 +2964,7 @@
   - `communication/command_handlers/checkin_handler.py`
   - `communication/command_handlers/create_menu_handler.py`
   - `communication/command_handlers/handler_registry.py`
+  - `communication/command_handlers/health_handler.py`
   - `communication/command_handlers/interaction_handlers.py`
   - `communication/command_handlers/natural_language_handler.py`
   - `communication/command_handlers/notebook_handler.py`
@@ -2995,6 +3031,8 @@
   - `core/file_locking.py`
   - `core/file_operations.py`
   - `core/headless_service.py`
+  - `core/health_context_builder.py`
+  - `core/health_signals.py`
   - `core/logger.py`
   - `core/natural_language_defaults.py`
   - `core/pagination.py`
@@ -3016,6 +3054,7 @@
   - `messages/message_data_manager.py`
   - `messages/message_service.py`
   - `run_headless_service.py`
+  - `scheduler/health_sync_jobs.py`
   - `scheduler/jobs.py`
   - `scheduler/maintenance.py`
   - `scheduler/manager.py`
@@ -3204,6 +3243,51 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `core/health_context_builder.py`
+- **Purpose**: Core system module for health_context_builder
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.health_signals (get_google_health_feature_state, get_today_signal)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+  - **Third-party**:
+    - `integrations.google_health.personalization_rules (GUIDANCE_AVOID_NAG, GUIDANCE_AVOID_PRESSURE, GUIDANCE_GENTLE, GUIDANCE_LIGHT_MOVEMENT, GUIDANCE_LOW_EFFORT, GUIDANCE_REINFORCE, GUIDANCE_SHORT_WALK, GUIDANCE_SMALL_EXPECTATIONS)`
+- **Used by**:
+  - `ai/conversational_context/context_phraser.py`
+  - `user/context_manager.py`
+
+**Dependency Changes**:
+- Added: core.error_handling, core.health_signals
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `core/health_signals.py`
+- **Purpose**: Core system module for health_signals
+- **Dependencies**:
+  - **Local**:
+    - `core (get_user_data)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `core.time_utilities (DATE_ONLY, now_datetime_full)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `typing (Any)`
+  - **Third-party**:
+    - `integrations.google_health.data_handlers (load_health_signals)`
+- **Used by**:
+  - `communication/core/channel_orchestrator.py`
+  - `core/health_context_builder.py`
+
+**Dependency Changes**:
+- Added: core, core.error_handling, core.logger, core.time_utilities
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `core/logger.py`
 - **Purpose**: Logging system configuration and management
 - **Dependencies**:
@@ -3242,6 +3326,7 @@
   - `communication/command_handlers/base_handler.py`
   - `communication/command_handlers/checkin_handler.py`
   - `communication/command_handlers/handler_registry.py`
+  - `communication/command_handlers/health_handler.py`
   - `communication/command_handlers/interaction_handlers.py`
   - `communication/command_handlers/natural_language_handler.py`
   - `communication/command_handlers/notebook_handler.py`
@@ -3297,6 +3382,7 @@
   - `core/file_locking.py`
   - `core/file_operations.py`
   - `core/headless_service.py`
+  - `core/health_signals.py`
   - `core/natural_language_defaults.py`
   - `core/profile_v2_io.py`
   - `core/response_tracking.py`
@@ -3313,6 +3399,7 @@
   - `messages/message_analytics.py`
   - `messages/message_data_manager.py`
   - `run_headless_service.py`
+  - `scheduler/health_sync_jobs.py`
   - `scheduler/jobs.py`
   - `scheduler/maintenance.py`
   - `scheduler/manager.py`
@@ -3830,6 +3917,7 @@
   - `core/backup_manager.py`
   - `core/error_handling.py`
   - `core/file_operations.py`
+  - `core/health_signals.py`
   - `core/logger.py`
   - `core/profile_v2_io.py`
   - `core/profile_v2_schemas.py`
@@ -4101,6 +4189,28 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `scheduler/health_sync_jobs.py`
+- **Purpose**: Core system module with heavy core dependencies
+- **Dependencies**:
+  - **Local**:
+    - `core.config (GOOGLE_HEALTH_ENABLED, parse_google_health_sync_times)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+  - **Standard Library**:
+    - `os`
+  - **Third-party**:
+    - `integrations.google_health.sync_manager (sync_all_enabled_users)`
+    - `schedule`
+- **Used by**:
+  - `scheduler/jobs.py`
+
+**Dependency Changes**:
+- Added: core.config, core.error_handling, core.logger
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `scheduler/jobs.py`
 - **Purpose**: Core system module with heavy core dependencies
 - **Dependencies**:
@@ -4108,12 +4218,13 @@
     - `core.auto_cleanup (cleanup_data_directory, cleanup_tests_data_directory)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
+    - `scheduler.health_sync_jobs (register_health_sync_jobs)` (NEW)
   - **Third-party**:
     - `schedule`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core.auto_cleanup, core.error_handling, core.logger
+- Added: core.auto_cleanup, core.error_handling, core.logger, scheduler.health_sync_jobs
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5730,6 +5841,7 @@
     - `checkins.checkin_data_manager (get_recent_checkins)`
     - `core (get_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.health_context_builder (build_safe_health_guidance_summary)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.response_tracking (get_recent_chat_interactions)` (NEW)
     - `core.schedule_utilities (get_active_schedules)` (NEW)
@@ -5744,7 +5856,7 @@
   - `ai/conversational_context/assembly.py`
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger, core.response_tracking, core.schedule_utilities, core.time_utilities
+- Added: core, core.error_handling, core.health_context_builder, core.logger, core.response_tracking, core.schedule_utilities, core.time_utilities
 - Removed: ai/chatbot.py, ai/context_builder.py, ai/conversational_context/assembly.py
 
 <!-- MANUAL_ENHANCEMENT_START -->

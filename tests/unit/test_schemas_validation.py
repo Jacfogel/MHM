@@ -37,6 +37,7 @@ def test_validate_account_dict_coerces_features_and_normalizes_email(base_accoun
         "automated_messages": "enabled",
         "checkins": "enabled",
         "task_management": "disabled",
+        "google_health": "disabled",
     }
 
 

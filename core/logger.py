@@ -130,6 +130,7 @@ def _get_log_paths_for_environment():
             "ui_file": str(base_dir / "ui.log"),
             "file_ops_file": str(base_dir / "file_ops.log"),
             "scheduler_file": str(base_dir / "scheduler.log"),
+            "google_health_file": str(base_dir / "google_health.log"),
             # Additional component loggers used in the codebase
             "schedule_utilities_file": str(base_dir / "schedule_utilities.log"),
             "analytics_file": str(base_dir / "analytics.log"),
@@ -158,6 +159,7 @@ def _get_log_paths_for_environment():
         "ui_file": config.LOG_UI_FILE,
         "file_ops_file": config.LOG_FILE_OPS_FILE,
         "scheduler_file": config.LOG_SCHEDULER_FILE,
+        "google_health_file": config.LOG_GOOGLE_HEALTH_FILE,
         # Additional component loggers used in the codebase
         "schedule_utilities_file": str(Path(config.LOGS_DIR) / "schedule_utilities.log"),
         "analytics_file": str(Path(config.LOGS_DIR) / "analytics.log"),
@@ -980,6 +982,7 @@ def get_component_logger(component_name: str) -> ComponentLogger:
             "ui": log_paths["ui_file"],
             "file_ops": log_paths["file_ops_file"],
             "scheduler": log_paths["scheduler_file"],
+            "google_health": log_paths["google_health_file"],
             "main": log_paths["main_file"],
             # Additional component loggers used in the codebase
             "schedule_utilities": log_paths["schedule_utilities_file"],

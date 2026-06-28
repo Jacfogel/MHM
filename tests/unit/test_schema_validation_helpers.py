@@ -38,6 +38,7 @@ def test_validate_account_dict_normalizes_features_when_validation_fails(feature
         "automated_messages": "enabled",
         "checkins": expected_checkins,
         "task_management": "disabled",
+        "google_health": "disabled",
     }
     assert normalized.get("extra_field") == "preserve"
 

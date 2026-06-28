@@ -18,6 +18,13 @@ def register_system_daily_jobs(scheduler_manager) -> None:
         "Scheduled full daily scheduler job at 01:00 (includes checkins, task reminders, cleanup, and backup check)"
     )
 
+    try:
+        from scheduler.health_sync_jobs import register_health_sync_jobs
+
+        register_health_sync_jobs()
+    except Exception as e:
+        logger.warning(f"Failed to register Google Health sync jobs: {e}")
+
 
 @handle_errors("registering full daily maintenance schedule jobs")
 def register_full_daily_maintenance_jobs(scheduler_manager) -> None:

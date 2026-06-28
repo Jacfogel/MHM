@@ -63,6 +63,7 @@ class FeaturesModel(BaseModel):
     automated_messages: Literal["enabled", "disabled"] = "disabled"
     checkins: Literal["enabled", "disabled"] = "disabled"
     task_management: Literal["enabled", "disabled"] = "disabled"
+    google_health: Literal["enabled", "disabled", "paused"] = "disabled"
 
     @classmethod
     @handle_errors("coercing boolean value", default_return="disabled")
@@ -83,23 +84,17 @@ class FeaturesModel(BaseModel):
 
     @field_validator("automated_messages", "checkins", "task_management", mode="before")
     @classmethod
-    def _normalize_flags(cls, v: Any) -> Literal["enabled", "disabled"]:
-        """
-        Normalize feature flag values to "enabled" or "disabled".
+    # devtools: ignore[facade-shims]: pydantic before-validator delegates to _coerce_bool
+    def _normalize_bool_flags(cls, v: Any) -> Literal["enabled", "disabled"]:
+        """Coerce legacy bool/string feature flags to enabled or disabled."""
+        return cls._coerce_bool(v)
 
-        Converts various input formats (boolean, string variants) to the standard
-        "enabled"/"disabled" literal values using the _coerce_bool helper.
-
-        Args:
-            v: Input value (bool, str, or other) to normalize
-
-        Returns:
-            Literal["enabled", "disabled"]: Normalized flag value
-        """
-        # NOTE: Pydantic validators should not have try-except blocks.
-        # Pydantic handles exceptions internally and will raise ValidationError if needed.
-        # Adding try-except here would interfere with Pydantic's validation flow.
-        # Error handling is provided by _coerce_bool's @handle_errors decorator.
+    @field_validator("google_health", mode="before")
+    @classmethod
+    def _normalize_google_health(cls, v: Any) -> Literal["enabled", "disabled", "paused"]:
+        """Coerce google_health to enabled, disabled, or paused (includes paused string)."""
+        if isinstance(v, str) and v.strip().lower() == "paused":
+            return "paused"
         return cls._coerce_bool(v)
 
 
@@ -467,6 +462,11 @@ def validate_account_dict(data: dict[str, Any]) -> tuple[dict[str, Any], list[st
             for k in ("automated_messages", "checkins", "task_management"):
                 v = feats.get(k)
                 feats[k] = FeaturesModel._coerce_bool(v)
+            gh = feats.get("google_health")
+            if isinstance(gh, str) and gh.strip().lower() == "paused":
+                feats["google_health"] = "paused"
+            else:
+                feats["google_health"] = FeaturesModel._coerce_bool(gh)
             fixed["features"] = feats
         return fixed, errors
     except Exception as e:

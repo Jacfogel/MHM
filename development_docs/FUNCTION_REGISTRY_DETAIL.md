@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-27 20:03:33
+> **Last Generated**: 2026-06-27 21:37:52
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 91.0% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 226
-- **Functions Found**: 2213
-- **Methods Found**: 1347
-- **Classes Found**: 230
-- **Total Items**: 3560
-- **Functions Documented**: 1989
-- **Methods Documented**: 1252
-- **Classes Documented**: 164
-- **Total Documented**: 3241
+### **Function Documentation Coverage: 90.5% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 230
+- **Functions Found**: 2242
+- **Methods Found**: 1361
+- **Classes Found**: 231
+- **Total Items**: 3603
+- **Functions Documented**: 2004
+- **Methods Documented**: 1257
+- **Classes Documented**: 165
+- **Total Documented**: 3261
 - **Template-Generated**: 42
 - **Last Updated**: 2026-06-27
 
@@ -39,16 +39,16 @@
 
 ## Function Categories
 
-### **Core System Functions** (466)
+### **Core System Functions** (477)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (615)
+### **Communication Functions** (629)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (499)
 UI dialogs, widgets, and user interaction functions.
 
-### **User Management Functions** (35)
+### **User Management Functions** (36)
 User context, preferences, and data management functions.
 
 ### **Task Management Functions** (98)
@@ -487,6 +487,7 @@ Returns:
 - [OK] `append_checkin_summary(parts, user_id)` - Recent check-in analytics phrased from ``ContextBuilder.analyze_context``.
 - [MISSING] `append_conversation_history(parts, context)` - No description
 - [OK] `append_feature_enablement(parts, user_id)` - Tell the model which product features are enabled for this user.
+- [OK] `append_health_guidance(parts, user_id)` - Append safe wellness guidance (no raw wearable metrics).
 - [OK] `append_profile_sections(parts, context)` - Profile, neurodivergent context, and goals from get_ai_context.
 - [OK] `append_recent_sent_messages(parts, user_id)` - Return full recent_sent list for task-reminder follow-up.
 - [MISSING] `append_schedule_details(parts, user_id, context)` - No description
@@ -1231,6 +1232,35 @@ Returns:
 - [OK] `get_loaded_handlers(handlers)` - Return all non-None handler instances, loading any that are still unset.
 **Classes:**
 - [MISSING] `_HandlerSpec` - No description
+
+#### `communication/command_handlers/health_handler.py`
+**Functions:**
+- [MISSING] `_handle_connect(self, user_id)` - No description
+- [MISSING] `_handle_delete(self, user_id)` - No description
+- [MISSING] `_handle_enable(self, user_id)` - No description
+- [MISSING] `_handle_pause(self, user_id)` - No description
+- [MISSING] `_handle_status(self, user_id)` - No description
+- [MISSING] `_handle_sync(self, user_id)` - No description
+- [OK] `_notify(url)` - Store the browser authorization URL from the local OAuth callback.
+- [OK] `_run()` - Run OAuth callback, first sync, and enable google_health in a background thread.
+- [MISSING] `can_handle(self, intent)` - No description
+- [OK] `get_examples(self)` - Return example phrases for Google Health commands.
+- [OK] `get_help(self)` - Return short help text for Google Health commands.
+- [OK] `get_help_text(self)` - Return formatted help for Google Health integration commands.
+- [MISSING] `handle(self, user_id, parsed_command)` - No description
+**Classes:**
+- [OK] `HealthHandler` - Handler for Google Health connect, status, pause, delete, and debug sync.
+  - [MISSING] `HealthHandler._handle_connect(self, user_id)` - No description
+  - [MISSING] `HealthHandler._handle_delete(self, user_id)` - No description
+  - [MISSING] `HealthHandler._handle_enable(self, user_id)` - No description
+  - [MISSING] `HealthHandler._handle_pause(self, user_id)` - No description
+  - [MISSING] `HealthHandler._handle_status(self, user_id)` - No description
+  - [MISSING] `HealthHandler._handle_sync(self, user_id)` - No description
+  - [MISSING] `HealthHandler.can_handle(self, intent)` - No description
+  - [OK] `HealthHandler.get_examples(self)` - Return example phrases for Google Health commands.
+  - [OK] `HealthHandler.get_help(self)` - Return short help text for Google Health commands.
+  - [OK] `HealthHandler.get_help_text(self)` - Return formatted help for Google Health integration commands.
+  - [MISSING] `HealthHandler.handle(self, user_id, parsed_command)` - No description
 
 #### `communication/command_handlers/interaction_handlers.py`
 **Functions:**
@@ -3077,6 +3107,7 @@ Returns an early InteractionResponse or a converted message for continued parsin
 
 #### `communication/message_processing/response_enhancer.py`
 **Functions:**
+- [OK] `_should_skip_ai_enhancement(intent)` - Return True when AI must not rewrite a deterministic command response.
 - [OK] `enhance_response_with_ai(user_id, response, parsed_command)` - Enhance a structured response with AI contextual information.
 
 #### `communication/message_processing/structured_command_dispatcher.py`
@@ -3322,8 +3353,10 @@ Returns tests/data/backups if testing, otherwise BASE_DATA_DIR/backups.
 
 Returns:
     Dict[str, str]: Mapping of channel name to fully qualified class name
+- [OK] `get_google_health_oauth_scopes()` - Return normalized full-scope URLs for OAuth.
 - [OK] `get_user_data_dir(user_id)` - Get the data directory for a specific user.
 - [OK] `get_user_file_path(user_id, file_type)` - Get the file path for a specific user file type.
+- [OK] `parse_google_health_sync_times()` - Parse comma-separated HH:MM sync schedule times.
 - [OK] `print_configuration_report()` - Print a detailed configuration report to the console.
 - [OK] `validate_ai_configuration()` - Validate AI-related configuration settings.
 - [OK] `validate_all_configuration()` - Comprehensive configuration validation that checks all aspects of the configuration.
@@ -3352,6 +3385,7 @@ Raises:
 - [OK] `validate_core_paths()` - Validate that all core paths are accessible and can be created if needed.
 - [OK] `validate_environment_variables()` - Check for common environment variable issues.
 - [OK] `validate_file_organization_settings()` - Validate file organization settings.
+- [OK] `validate_google_health_configuration()` - Validate Google Health integration settings.
 - [OK] `validate_logging_configuration()` - Validate logging configuration.
 - [OK] `validate_scheduler_configuration()` - Validate scheduler configuration.
 **Classes:**
@@ -3824,6 +3858,20 @@ Raises:
   - [OK] `HeadlessServiceManager.stop_headless_service(self)` - Stop the headless MHM service safely using the service's built-in shutdown mechanism.
   - [OK] `HeadlessServiceManager.stop_ui_services(self)` - Stop UI-managed services using the service's built-in shutdown mechanism.
 
+#### `core/health_context_builder.py`
+**Functions:**
+- [OK] `build_safe_health_guidance_summary(user_id)` - Return coarse wellness guidance for AI context.
+
+Never includes exact steps, HR, HRV, or device names.
+
+#### `core/health_signals.py`
+**Functions:**
+- [MISSING] `get_google_health_feature_state(user_id)` - No description
+- [MISSING] `get_message_guidance(user_id)` - No description
+- [MISSING] `get_today_signal(user_id)` - No description
+- [MISSING] `is_personalization_active(user_id)` - No description
+- [MISSING] `should_avoid_productivity_pressure(user_id)` - No description
+
 #### `core/logger.py`
 **Functions:**
 - [OK] `__init__(self, component_name, log_file_path, level)` - Initialize a component-specific logger.
@@ -4172,6 +4220,7 @@ Args:
 #### `core/profile_v2_schemas.py`
 **Functions:**
 - [OK] `_coerce_flag(cls, value)` - Normalize feature flag inputs to enabled/disabled literals.
+- [OK] `_coerce_google_health(cls, value)` - Normalize legacy bool/string values to enabled, disabled, or paused.
 - [OK] `_normalize_discord_id(cls, value)` - Validate Discord snowflake IDs; invalid values become empty.
 - [OK] `_normalize_discord_username(cls, value)` - Trim and bound Discord username length for on-disk storage.
 - [OK] `_normalize_email(cls, value)` - Drop invalid email strings to empty for strict account envelopes.
@@ -4219,6 +4268,7 @@ Args:
 - [MISSING] `CustomFieldsV2Model` - No description
 - [MISSING] `FeaturesV2Model` - No description
   - [OK] `FeaturesV2Model._coerce_flag(cls, value)` - Normalize feature flag inputs to enabled/disabled literals.
+  - [OK] `FeaturesV2Model._coerce_google_health(cls, value)` - Normalize legacy bool/string values to enabled, disabled, or paused.
 - [MISSING] `PeriodV2Model` - No description
   - [OK] `PeriodV2Model._valid_days(cls, value)` - Filter schedule days to the allowed set, defaulting to ALL.
   - [OK] `PeriodV2Model._valid_time(cls, value)` - Normalize schedule period times to HH:MM or 00:00 when invalid.
@@ -4371,18 +4421,10 @@ Args:
 Returns:
     dict: Data in the new format with 'periods' key
 - [MISSING] `_coerce_bool(cls, v)` - No description
+- [OK] `_normalize_bool_flags(cls, v)` - Coerce legacy bool/string feature flags to enabled or disabled.
 - [MISSING] `_normalize_contact(self)` - No description
 - [OK] `_normalize_discord_username(cls, v)` - Normalize Discord username while tolerating empty or legacy values.
-- [OK] `_normalize_flags(cls, v)` - Normalize feature flag values to "enabled" or "disabled".
-
-Converts various input formats (boolean, string variants) to the standard
-"enabled"/"disabled" literal values using the _coerce_bool helper.
-
-Args:
-    v: Input value (bool, str, or other) to normalize
-
-Returns:
-    Literal["enabled", "disabled"]: Normalized flag value
+- [OK] `_normalize_google_health(cls, v)` - Coerce google_health to enabled, disabled, or paused (includes paused string).
 - [MISSING] `_valid_days(cls, v)` - No description
 - [OK] `_valid_time(cls, v)` - Validate HH:MM schedule times; empty or invalid values normalize to ``00:00``.
 - [OK] `_validate_categories(cls, v)` - Validate that all categories are in the allowed list.
@@ -4420,16 +4462,8 @@ Returns:
   - [MISSING] `ChannelModel._normalize_contact(self)` - No description
 - [MISSING] `FeaturesModel` - No description
   - [MISSING] `FeaturesModel._coerce_bool(cls, v)` - No description
-  - [OK] `FeaturesModel._normalize_flags(cls, v)` - Normalize feature flag values to "enabled" or "disabled".
-
-Converts various input formats (boolean, string variants) to the standard
-"enabled"/"disabled" literal values using the _coerce_bool helper.
-
-Args:
-    v: Input value (bool, str, or other) to normalize
-
-Returns:
-    Literal["enabled", "disabled"]: Normalized flag value
+  - [OK] `FeaturesModel._normalize_bool_flags(cls, v)` - Coerce legacy bool/string feature flags to enabled or disabled.
+  - [OK] `FeaturesModel._normalize_google_health(cls, v)` - Coerce google_health to enabled, disabled, or paused (includes paused string).
 - [MISSING] `PeriodModel` - No description
   - [MISSING] `PeriodModel._valid_days(cls, v)` - No description
   - [OK] `PeriodModel._valid_time(cls, v)` - Validate HH:MM schedule times; empty or invalid values normalize to ``00:00``.
@@ -5141,6 +5175,11 @@ Returns:
 ### `scheduler/` - Unknown Directory
 
 #### `scheduler/__init__.py`
+
+#### `scheduler/health_sync_jobs.py`
+**Functions:**
+- [OK] `register_health_sync_jobs()` - Register 1–2 daily automated health sync times from config.
+- [OK] `run_scheduled_health_sync()` - Callback for schedule library — sync all enabled users.
 
 #### `scheduler/jobs.py`
 **Functions:**
@@ -7314,6 +7353,7 @@ Args:
 Sets up conversation history storage for tracking user interactions.
 - [OK] `_get_conversation_history(self, user_id)` - Get recent conversation history with this user.
 - [OK] `_get_conversation_insights(self, user_id)` - Get insights from recent chat interactions.
+- [MISSING] `_get_health_guidance_summary(self, user_id)` - No description
 - [OK] `_get_minimal_context(self, user_id)` - Fallback minimal context if full context generation fails.
 
 Args:
@@ -7360,6 +7400,7 @@ Returns:
 Sets up conversation history storage for tracking user interactions.
   - [OK] `UserContextManager._get_conversation_history(self, user_id)` - Get recent conversation history with this user.
   - [OK] `UserContextManager._get_conversation_insights(self, user_id)` - Get insights from recent chat interactions.
+  - [MISSING] `UserContextManager._get_health_guidance_summary(self, user_id)` - No description
   - [OK] `UserContextManager._get_minimal_context(self, user_id)` - Fallback minimal context if full context generation fails.
 
 Args:

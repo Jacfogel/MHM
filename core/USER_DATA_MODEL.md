@@ -136,7 +136,16 @@ Example (typical user directory):
 
 This file is the canonical v2 task collection. Active/completed state lives in each task's `status` and `completion`, not in separate files. Historical v1 files (`tasks/active_tasks.json`, `tasks/completed_tasks.json`, `tasks/task_schedules.json`) were replaced for migrated users and should not be recreated for migrated data. Access via `tasks.task_data_handlers` (which uses `storage.user_item_storage`). To add a new item type (e.g. events), use the same pattern: `ensure_user_subdir`, `load_user_json_file`, `save_user_json_file` from `storage.user_item_storage`, and `is_valid_user_id` from `storage.user_data_validation` (non-empty string, max length 100, alphanumeric plus `_` and `-` only, aligned with command-handler validation).
 
-### 2.4. Canonical v2 item model
+### 2.4. Health subtree (Google Health integration)
+
+- `health/google_health_auth.json` - OAuth tokens and refresh metadata (**sensitive**; never log token values).
+- `health/daily_summaries.json` - v2 collection of normalized daily raw metrics (sleep, steps, HR/HRV).
+- `health/health_signals.json` - v2 collection of derived wellness signals and `message_guidance` tokens.
+- `health/sync_state.json` - last sync timestamps, error counts, baseline metadata.
+
+Access via `integrations.google_health.data_handlers` (uses `storage.user_item_storage`). Feature flag: `account.json` -> `features.google_health` (`enabled` | `disabled` | `paused`). Delete all local health data with `delete_user_health_data()` in the same module.
+
+### 2.5. Canonical v2 item model
 
 Shared v2 item primitives live in `storage.user_data_v2_base`. Task and notebook/journal
 persistence models (`TaskV2Model`, `TaskCollectionV2Model`, `NotebookV2Model`,
@@ -181,11 +190,11 @@ Canonical v2 files:
 
 **Migration tooling:** There is **no** shipped migration or verification CLI under `scripts/` for user data. The tree is v2-native. Recover stale trees from backups or project history; validate in code with `storage.user_data_v2_envelopes.validate_v2_document` (or hand-fix using Section 2.6). Do not expect an in-repo one-click migrator.
 
-### 2.5. Schema validation (v2)
+### 2.6. Schema validation (v2)
 
 `storage.user_data_v2_envelopes.validate_v2_document` dispatches to domain validators for tasks and notebook files (`tasks.task_validation.validate_tasks_v2_document`, `notebook.notebook_validation.validate_notebook_v2_document`) and runs collection models for check-ins, templates, and deliveries. Unknown or misspelled keys fail validation like any other schema error. For allowed fields and shapes, use Section 2.5 and 2.7.
 
-### 2.6. Runtime contract (v2-native)
+### 2.7. Runtime contract (v2-native)
 
 On-disk user data and bundled message resources are **v2**. Runtime code treats v2 shapes as canonical: tasks in `tasks/tasks.json`, notebook entries with `description` / `journal_entry`, check-ins in `checkins.json` with `responses` and `submitted_at`, templates with `id`/`text`/`schedule`, and deliveries with `deliveries[]` (`message_template_id`, `sent_text`, `sent_at`, `status`). Check-in **writes** and **reads** require the v2 envelope (`schema_version: 2`, `checkins[]`). Legacy bare arrays or other non-v2 shapes are skipped on read and rejected on append (see logs). There is no in-repo check-in repair helper: restore `checkins.json` from backup or hand-edit JSON to this section's shape, run `validate_v2_document('checkins', data)`, then `core.file_operations.save_json_data`. New users get an empty v2 file from `core.file_operations._create_user_files__checkins_file`. Missing or corrupted `checkins.json` recreated by centralized recovery (`core.error_handling` file-not-found / JSON-decode strategies) uses that same empty v2 envelope, not a bare list. Broader legacy cleanup tracking (unrelated v1 terms, docs, and dev-tools mirrors) remains in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` and [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md).
 

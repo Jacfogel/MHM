@@ -8,6 +8,7 @@ from ai.conversational_context.instructions import CONVERSATIONAL_CONTEXT_INSTRU
 from ai.conversational_context.context_phraser import (
     append_activity_and_mood_trends,
     append_checkin_summary,
+    append_health_guidance,
     append_conversation_history,
     append_feature_enablement,
     append_profile_sections,
@@ -32,6 +33,7 @@ def build_context_parts(user_id: str) -> list[str]:
     append_profile_sections(parts, context)
     append_feature_enablement(parts, user_id)
     append_checkin_summary(parts, user_id)
+    append_health_guidance(parts, user_id)
     append_activity_and_mood_trends(parts, user_id, context)
     append_conversation_history(parts, context)
     append_today_checkin_status(parts, user_id)

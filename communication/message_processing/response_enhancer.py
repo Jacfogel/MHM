@@ -67,7 +67,32 @@ EXCLUDED_ENHANCEMENT_INTENTS = {
     "list_pinned_entries",
     "list_inbox_entries",
     "list_entries_by_tag",
+    "show_natural_language_defaults",
+    "update_natural_language_defaults",
+    "connect_google_health",
+    "google_health_status",
+    "pause_google_health",
+    "enable_google_health",
+    "delete_google_health_data",
+    "sync_google_health",
 }
+
+
+@handle_errors("checking AI enhancement skip", default_return=True)
+def _should_skip_ai_enhancement(intent: str) -> bool:
+    """Return True when AI must not rewrite a deterministic command response."""
+    if intent in EXCLUDED_ENHANCEMENT_INTENTS:
+        return True
+    skip_keywords = (
+        "profile",
+        "schedule",
+        "analytics",
+        "messages",
+        "google_health",
+        "natural_language",
+        "health_data",
+    )
+    return any(keyword in intent for keyword in skip_keywords)
 
 
 @handle_errors("enhancing response with AI")
@@ -85,9 +110,7 @@ def enhance_response_with_ai(
             return response
 
         intent = parsed_command.intent or ""
-        if intent in EXCLUDED_ENHANCEMENT_INTENTS or any(
-            k in intent for k in ["profile", "schedule", "analytics", "messages"]
-        ):
+        if _should_skip_ai_enhancement(intent):
             return response
 
         context_prompt = f"""

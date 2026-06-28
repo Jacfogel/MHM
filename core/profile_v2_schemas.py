@@ -50,8 +50,14 @@ class FeaturesV2Model(BaseModel):
     automated_messages: Literal["enabled", "disabled"] = "disabled"
     checkins: Literal["enabled", "disabled"] = "disabled"
     task_management: Literal["enabled", "disabled"] = "disabled"
+    google_health: Literal["enabled", "disabled", "paused"] = "disabled"
 
-    @field_validator("automated_messages", "checkins", "task_management", mode="before")
+    @field_validator(
+        "automated_messages",
+        "checkins",
+        "task_management",
+        mode="before",
+    )
     @classmethod
     def _coerce_flag(cls, value: Any) -> str:
         """Normalize feature flag inputs to enabled/disabled literals."""
@@ -61,6 +67,23 @@ class FeaturesV2Model(BaseModel):
             lowered = value.strip().lower()
             if lowered in ("enabled", "enable", "true", "yes", "1"):
                 return "enabled"
+            if lowered in ("disabled", "disable", "false", "no", "0"):
+                return "disabled"
+        return "disabled"
+
+    @field_validator("google_health", mode="before")
+    @classmethod
+    # devtools: ignore[facade-shims]: pydantic before-validator for google_health (supports paused)
+    def _coerce_google_health(cls, value: Any) -> str:
+        """Normalize google_health to enabled, disabled, or paused."""
+        if isinstance(value, bool):
+            return "enabled" if value else "disabled"
+        if isinstance(value, str):
+            lowered = value.strip().lower()
+            if lowered in ("enabled", "enable", "true", "yes", "1"):
+                return "enabled"
+            if lowered == "paused":
+                return "paused"
             if lowered in ("disabled", "disable", "false", "no", "0"):
                 return "disabled"
         return "disabled"

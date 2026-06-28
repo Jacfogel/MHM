@@ -110,6 +110,36 @@ class EnhancedCommandParser:
                 r"^(?:set|update)\s+(?:task\s+)?(morning|afternoon|evening|night)\s+(?:to\s+)?(.+)$",
                 r"^set\s+weekend\s+this\s+week\s+(?:to\s+)?(on|off|yes|no|true|false|coming|current)$",
             ],
+            "connect_google_health": [
+                r"^connect\s+google\s+health$",
+                r"^link\s+google\s+health$",
+                r"^connect\s+fitbit$",
+                r"^connect\s+health\s+data$",
+            ],
+            "google_health_status": [
+                r"^health\s+status$",
+                r"^google\s+health\s+status$",
+                r"^show\s+health\s+status$",
+            ],
+            "pause_google_health": [
+                r"^pause\s+health$",
+                r"^pause\s+google\s+health$",
+                r"^pause\s+health\s+personalization$",
+            ],
+            "enable_google_health": [
+                r"^enable\s+health$",
+                r"^enable\s+google\s+health$",
+                r"^resume\s+health$",
+            ],
+            "delete_google_health_data": [
+                r"^delete\s+health\s+data$",
+                r"^remove\s+health\s+data$",
+                r"^clear\s+health\s+data$",
+            ],
+            "sync_google_health": [
+                r"^sync\s+health$",
+                r"^sync\s+google\s+health$",
+            ],
             "list_tasks": [
                 r"^show\s+my\s+tasks?$",  # Match "show my tasks" first (more specific)
                 r"^show\s+tasks?$",  # Then match "show tasks"
@@ -2072,6 +2102,12 @@ class EnhancedCommandParser:
                 "show phrase settings": "show_natural_language_defaults",
                 "phrase settings": "show_natural_language_defaults",
                 "set tonight": "update_natural_language_defaults",
+                "connect google health": "connect_google_health",
+                "health status": "google_health_status",
+                "pause health": "pause_google_health",
+                "enable health": "enable_google_health",
+                "delete health data": "delete_google_health_data",
+                "sync health": "sync_google_health",
                 "list tasks": "list_tasks",
                 "complete task": "complete_task",
                 "delete task": "delete_task",
