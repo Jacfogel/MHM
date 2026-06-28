@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-26 12:41:32
+> **Last Generated**: 2026-06-27 20:03:33
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 91.4% [!] GOOD**
-- **Total Functions**: 2185
-- **Total Methods**: 1331
-- **Documented**: 3215/3516
-- **Files Scanned**: 223
+### **Documentation Coverage: 91.0% [!] GOOD**
+- **Total Functions**: 2213
+- **Total Methods**: 1347
+- **Documented**: 3241/3560
+- **Files Scanned**: 226
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -33,7 +33,7 @@ User Data Operations Decision Tree:
 AI Operations Decision Tree:
 +-- `ai/chatbot.py` - Main AI implementation (65 functions)
 +-- `user/context_manager.py` - Context for AI (24 functions)
-+-- `communication/message_processing/command_parser.py` - Natural language parsing (60 functions)
++-- `communication/message_processing/command_parser.py` - Natural language parsing (62 functions)
 +-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
 `-- `communication/message_processing/interaction_manager.py` - Main interaction flow (14/28 functions)```
 
@@ -62,7 +62,7 @@ Core System Decision Tree:
 
 ## [PATTERNS] **Key Function Patterns**
 
-### **Handler Pattern** (10 found)
+### **Handler Pattern** (11 found)
 **Purpose**: Handle specific user intents or operations
 **Location**: `communication/command_handlers/account_handler.py`, `communication/command_handlers/analytics_handler.py`, `communication/command_handlers/base_handler.py`
 **Pattern**: 
@@ -74,11 +74,11 @@ Core System Decision Tree:
 - `AccountManagementHandler` (communication/command_handlers/account_handler.py)
 - `AnalyticsHandler` (communication/command_handlers/analytics_handler.py)
 - `InteractionHandler` (communication/command_handlers/base_handler.py)
-- ... and 7 more
+- ... and 8 more
 
-### **Widget Pattern** (7 found)
+### **Widget Pattern** (8 found)
 **Purpose**: Reusable UI components
-**Location**: `ui/widgets/checkin_settings_widget.py`, `ui/widgets/period_row_widget.py`, `ui/widgets/tag_widget.py`
+**Location**: `ui/widgets/checkin_settings_widget.py`, `ui/widgets/natural_language_settings_widget.py`, `ui/widgets/period_row_widget.py`
 **Pattern**: 
 - Inherit from QWidget
 - Implement `get_*()` and `set_*()` methods
@@ -86,11 +86,11 @@ Core System Decision Tree:
 
 **Examples**:
 - `CheckinSettingsWidget` (ui/widgets/checkin_settings_widget.py)
+- `NaturalLanguageSettingsWidget` (ui/widgets/natural_language_settings_widget.py)
 - `PeriodRowWidget` (ui/widgets/period_row_widget.py)
-- `TagWidget` (ui/widgets/tag_widget.py)
-- ... and 4 more
+- ... and 5 more
 
-### **Dialog Pattern** (16 found)
+### **Dialog Pattern** (17 found)
 **Purpose**: Modal user interaction windows
 **Location**: `ui/dialog_actions.py`, `ui/dialogs/account_creator_dialog.py`, `ui/dialogs/admin_panel.py`
 **Pattern**: 
@@ -102,7 +102,7 @@ Core System Decision Tree:
 - `DialogActions` (ui/dialog_actions.py)
 - `AccountCreatorDialog` (ui/dialogs/account_creator_dialog.py)
 - `AdminPanelDialog` (ui/dialogs/admin_panel.py)
-- ... and 13 more
+- ... and 14 more
 
 ### **Context Manager Pattern** (1 found)
 **Purpose**: Safe resource management
@@ -162,9 +162,9 @@ Core System Decision Tree:
 - `core/schemas.py` - 15/27 functions undocumented (44% coverage)
 - `communication/message_processing/interaction_manager.py` - 14/28 functions undocumented (50% coverage)
 - `core/service_requests.py` - 14/34 functions undocumented (59% coverage)
+- `communication/command_handlers/natural_language_handler.py` - 12/12 functions undocumented (0% coverage)
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
 - `storage/user_data_registry.py` - 11/23 functions undocumented (52% coverage)
-- `tasks/task_schemas.py` - 10/12 functions undocumented (17% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
@@ -206,13 +206,13 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (26 files, 266 functions)
 - `checkins/` -  (6 files, 135 functions)
-- `communication/` - Communication channels and message processing (81 files, 1084 functions)
-- `core/` - System utilities and data management (30 files, 614 functions)
+- `communication/` - Communication channels and message processing (82 files, 1098 functions)
+- `core/` - System utilities and data management (31 files, 637 functions)
 - `messages/` -  (5 files, 38 functions)
 - `scheduler/` -  (6 files, 94 functions)
 - `storage/` -  (11 files, 151 functions)
-- `tasks/` - Task management system (10 files, 116 functions)
-- `ui/` - User interface components (40 files, 902 functions)
+- `tasks/` - Task management system (9 files, 105 functions)
+- `ui/` - User interface components (42 files, 920 functions)
 - `user/` - User context and preferences (5 files, 66 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**

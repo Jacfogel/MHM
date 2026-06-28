@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-26 12:41:45
+> **Last Generated**: 2026-06-27 20:03:48
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 00000085 5EAC:07BC
+Volume serial number is 5EAC-07BC
 C:.
 |   .ruff.toml
 |   ARCHITECTURE.md
@@ -132,6 +132,7 @@ C:.
 |   |   |   create_menu_handler.py
 |   |   |   handler_registry.py
 |   |   |   interaction_handlers.py
+|   |   |   natural_language_handler.py
 |   |   |   notebook_handler.py
 |   |   |   profile_handler.py
 |   |   |   schedule_handler.py
@@ -236,6 +237,7 @@ C:.
 |   |   file_operations.py
 |   |   headless_service.py
 |   |   logger.py
+|   |   natural_language_defaults.py
 |   |   network_probe.py
 |   |   pagination.py
 |   |   profile_v2_io.py
@@ -499,6 +501,7 @@ C:.
 |   |   __init__.py
 |   |
 +---resources
+|   |   default_natural_language_defaults.json
 |   |   default_tags.json
 |   |   presets.json
 |   |
@@ -555,7 +558,6 @@ C:.
 +---tasks
 |   |   task_data_handlers.py
 |   |   task_data_manager.py
-|   |   task_natural_language_defaults.py
 |   |   task_schemas.py
 |   |   task_service.py
 |   |   task_tag_helpers.py
@@ -639,6 +641,7 @@ C:.
 |   |   |   test_message_behavior.py
 |   |   |   test_message_route_classifier_behavior.py
 |   |   |   test_natural_language_command_detection.py
+|   |   |   test_natural_language_handler_behavior.py
 |   |   |   test_notebook_handler_behavior.py
 |   |   |   test_observability_logging.py
 |   |   |   test_profile_display_formatting.py
@@ -972,6 +975,7 @@ C:.
 |   |   |   test_logger_unit.py
 |   |   |   test_logging_components.py
 |   |   |   test_message_formatter.py
+|   |   |   test_natural_language_defaults.py
 |   |   |   test_notebook_data_manager_gap_coverage.py
 |   |   |   test_notebook_handler_edge_cases.py
 |   |   |   test_notebook_handler_pagination_formatting.py
@@ -1006,7 +1010,6 @@ C:.
 |   |   |   test_tags_expansion.py
 |   |   |   test_tags_gap_coverage.py
 |   |   |   test_task_detail_display.py
-|   |   |   test_task_natural_language_defaults.py
 |   |   |   test_task_service.py
 |   |   |   test_task_short_ids.py
 |   |   |   test_task_tag_normalization.py
@@ -1081,6 +1084,7 @@ C:.
 |   |   |   checkin_settings_widget.py
 |   |   |   dynamic_list_container.py
 |   |   |   dynamic_list_field.py
+|   |   |   natural_language_settings_widget.py
 |   |   |   period_row_widget.py
 |   |   |   tag_widget.py
 |   |   |   task_settings_widget.py

@@ -185,6 +185,7 @@ class UserSelectionController:
         for widget in [
             self.ui.pushButton_communication_settings,
             self.ui.pushButton_personalization,
+            self.ui.pushButton_phrase_settings,
             self.ui.pushButton_category_management,
             self.ui.pushButton_checkin_settings,
             self.ui.pushButton_task_management,

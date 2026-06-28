@@ -30,6 +30,15 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-06-27 - Phrase settings generalization + admin UI **COMPLETED**
+- Moved natural-language defaults to `preferences.natural_language_defaults` (not task-only); logic in [`core/natural_language_defaults.py`](../core/natural_language_defaults.py); shipped defaults in [`resources/default_natural_language_defaults.json`](../resources/default_natural_language_defaults.json).
+- **Migration complete**: legacy `task_settings.natural_language_defaults` read bridge and one-time migration helpers removed (fleet verified clean). Old phrases (`show task language settings`, `set task tonight to 8pm`) still parse to canonical intents.
+- Discord: dedicated [`natural_language_handler.py`](../communication/command_handlers/natural_language_handler.py) - `show phrase settings`, `set tonight to 8pm`.
+- Admin UI: **Phrase Settings** button + [`natural_language_settings_dialog.py`](../ui/dialogs/natural_language_settings_dialog.py) / [`natural_language_settings_widget.py`](../ui/widgets/natural_language_settings_widget.py) - separate from Task Management widget.
+- Tests: [`test_natural_language_defaults.py`](../tests/unit/test_natural_language_defaults.py), [`test_natural_language_handler_behavior.py`](../tests/behavior/test_natural_language_handler_behavior.py).
+- **Audit hygiene**: Regenerated function registry (`docs`); Ruff UP035/UP037 fix in [`core/natural_language_defaults.py`](../core/natural_language_defaults.py).
+- **Audit follow-up**: `@handle_errors` on `_get_cached_builtin_defaults`; f-string logging (static check); removed unused `tasks/task_natural_language_defaults.py` shim; fixed TASKS_PLAN and changelog link drift; doc-fix ASCII/links + doc-sync.
+
 ### 2026-06-26 - Journal entry visual distinction + NLP mode detection **COMPLETED**
 - Journal list lines and detail view in [`notebook_handler.py`](../communication/command_handlers/notebook_handler.py) now show **Journal** label plus `submitted_at` date (`Jun 15` or `Mar 04, 2025` when not current year).
 - Centralized `_format_entry_list_line()` across inbox, search, group/tag, pinned, recent, and archived lists so journal entries use the journal icon consistently.
@@ -42,7 +51,7 @@ Guidelines:
 - **Task notes**: `append note to task` / `add note to task` commands (`append_note_to_task` intent), `update task ... note ...` replaces description; help text and examples updated in [`task_handler.py`](../communication/command_handlers/task_handler.py).
 - **Task groups**: `show tasks in group work` / `list tasks group:medical` filter lists; group shown in list lines and detail view; Show More pagination preserves group filter.
 - **Task tags**: Task create/update/filter paths now use `core/tags.py` normalization (`sanitize_task_tags`, case-insensitive tag filter); `TaskV2Model` validates tags on load.
-- **Task NL defaults**: Per-user `task_settings.natural_language_defaults` (`tonight`, `after work/school`, time-of-day, weekend `this week`); loaded via [`task_natural_language_defaults.py`](../tasks/task_natural_language_defaults.py).
+- **Task NL defaults**: Per-user `task_settings.natural_language_defaults` (`tonight`, `after work/school`, time-of-day, weekend `this week`); loaded via [`core/natural_language_defaults.py`](../core/natural_language_defaults.py) (originally `tasks/task_natural_language_defaults.py`).
 - **Audit hygiene**: Broke task module cycles (`task_time_parsing.py`, `task_tag_helpers.py`); docstrings + error handling on new helpers; function registry regenerated; Phase 1 decorator migration on NL defaults; removed unused re-exports from `task_validation.py`.
 - **Audit hygiene**: Fixed Ruff/Pyright on task list UI tests; ASCII compliance in changelogs + manual guide; hardened parallel flakes in `test_storage_scenarios`, `test_schedule_period_lifecycle`, and `test_get_user_data_fields_scalar_list_and_dict` (core `get_user_data` import + index refresh; v2 envelope fallback in test shim).
 
@@ -135,11 +144,6 @@ Guidelines:
 - Moved service/channel/tunnel status detection from `ui/ui_app_qt.py` into `ui/status_provider.py`; `MHMManagerUI.update_service_status()` now delegates status decisions and only updates Qt labels.
 - Added focused UI tests for Discord activity parsing, Email rotated-log initialization, ngrok process detection, and service-stopped gating.
 - Standard audit remains at 0 circular chains and 65 high-coupling modules; `ui_app_qt.py` dropped to 2156 lines / 63 functions / total complexity 9179.
-
-### 2026-06-05 - UI ServiceManager extraction **COMPLETED**
-- Moved UI-managed service process control from `ui/ui_app_qt.py` to `ui/service_manager.py`; `MHMManagerUI` now delegates service start/stop/restart/status checks.
-- Added temporary `ui.ui_app_qt.ServiceManager` import bridge (removed 2026-06-06 once tests/callers used `ui.service_manager.ServiceManager`).
-- Final audit remains at 0 circular chains and 65 high-coupling modules; `ui_app_qt.py` stays out of the high-coupling list and `service_manager.py` is not a new high-coupling offender.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

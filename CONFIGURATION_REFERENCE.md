@@ -43,7 +43,7 @@ These variables control where MHM reads/writes local state.
 
 Profile files (`account.json`, `preferences.json`, `schedules.json`, `user_context.json`, `tags.json`, `chat_interactions.json`) are always `schema_version: 2` envelopes via `core/profile_v2_io.py`. Runtime load expects v2 on disk. See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) section 0.
 
-**Task natural-language defaults** (optional): set `preferences.task_settings.natural_language_defaults` to tune how phrases like `tonight`, `after work`, and `tomorrow morning` map to due times. Fields: `tonight_start_time`, `after_work_school_time`, `time_of_day_defaults` (object), `weekend_this_week_means_coming_week` (boolean). No UI yet; edit `preferences.json` or provision via account setup. See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) section 2.0.
+**Natural-language phrase defaults** (optional): set `preferences.natural_language_defaults` to tune how phrases like `tonight`, `after work`, and `tomorrow morning` map to times. Fields: `tonight_start_time`, `after_work_school_time`, `time_of_day_defaults` (object), `weekend_this_week_means_coming_week` (boolean). Shipped defaults: [`resources/default_natural_language_defaults.json`](resources/default_natural_language_defaults.json). Discord: `show phrase settings`, `set tonight to 8pm`, etc. Admin UI: **Phrase Settings** button (not under Task Management). See [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) section 2.0.
 
 ---
 

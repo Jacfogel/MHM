@@ -186,6 +186,13 @@
               </property>
              </widget>
             </item>
+            <item row="0" column="4">
+             <widget class="QPushButton" name="pushButton_phrase_settings">
+              <property name="text">
+               <string>Phrase Settings</string>
+              </property>
+             </widget>
+            </item>
             <item row="1" column="0">
              <widget class="QPushButton" name="pushButton_checkin_settings">
               <property name="text">

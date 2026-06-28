@@ -73,6 +73,28 @@
   ],
   "removed_inventory": [
     {
+      "id": "task_settings_natural_language_defaults_path",
+      "removed_at": "2026-06-27",
+      "search_terms": [
+        "task_settings.natural_language_defaults",
+        "show_task_language_defaults",
+        "update_task_language_defaults"
+      ],
+      "replacement": "preferences.natural_language_defaults; show_natural_language_defaults / update_natural_language_defaults intents",
+      "notes": "Legacy read bridge, task-scoped intent names, and one-time migration helpers removed after fleet verified clean (2026-06-27). Old phrases like 'show task language settings' still parse to canonical intents."
+    },
+    {
+      "id": "tasks_task_natural_language_defaults_shim",
+      "removed_at": "2026-06-27",
+      "search_terms": [
+        "tasks.task_natural_language_defaults",
+        "get_task_natural_language_defaults",
+        "tasks/task_natural_language_defaults.py"
+      ],
+      "replacement": "core.natural_language_defaults",
+      "notes": "Re-export shim deleted after verifying zero production imports; canonical module is core/natural_language_defaults.py."
+    },
+    {
       "id": "message_router_shim",
       "removed_at": "2026-06-16",
       "search_terms": [

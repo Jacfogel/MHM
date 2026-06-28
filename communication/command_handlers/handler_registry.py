@@ -45,6 +45,10 @@ _HANDLER_SPECS: dict[str, _HandlerSpec] = {
     "CreateMenuHandler": _HandlerSpec(
         "communication.command_handlers.create_menu_handler", "CreateMenuHandler"
     ),
+    "NaturalLanguageHandler": _HandlerSpec(
+        "communication.command_handlers.natural_language_handler",
+        "NaturalLanguageHandler",
+    ),
 }
 
 

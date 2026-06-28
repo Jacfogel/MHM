@@ -95,6 +95,21 @@ class EnhancedCommandParser:
                 r"^list\s+task\s+templates?$",
                 r"^show\s+task\s+templates?$",
             ],
+            "show_natural_language_defaults": [
+                r"^show\s+task\s+(?:language|time)\s+(?:settings|defaults)$",
+                r"^task\s+(?:language|time)\s+(?:settings|defaults)$",
+                r"^show\s+task\s+phrase\s+settings$",
+                r"^show\s+phrase\s+settings$",
+                r"^show\s+language\s+settings$",
+                r"^phrase\s+settings$",
+                r"^show\s+natural\s+language\s+settings$",
+            ],
+            "update_natural_language_defaults": [
+                r"^(?:set|update)\s+(?:task\s+)?tonight\s+(?:to\s+)?(.+)$",
+                r"^(?:set|update)\s+(?:task\s+)?after\s+(?:work|school)\s+(?:to\s+)?(.+)$",
+                r"^(?:set|update)\s+(?:task\s+)?(morning|afternoon|evening|night)\s+(?:to\s+)?(.+)$",
+                r"^set\s+weekend\s+this\s+week\s+(?:to\s+)?(on|off|yes|no|true|false|coming|current)$",
+            ],
             "list_tasks": [
                 r"^show\s+my\s+tasks?$",  # Match "show my tasks" first (more specific)
                 r"^show\s+tasks?$",  # Then match "show tasks"
@@ -1309,6 +1324,41 @@ class EnhancedCommandParser:
 
         return False
 
+    @handle_errors(
+        "extracting phrase-settings entities from rule-based patterns",
+        default_return=False,
+    )
+    def _extract_phrase_settings_entities_rule_based(
+        self,
+        intent: str,
+        match: re.Match,
+        message: str,
+        entities: dict[str, Any],
+        *,
+        user_id: str | None = None,
+    ) -> bool:
+        """Extract entities for natural-language phrase preference commands."""
+        if intent == "show_natural_language_defaults":
+            return True
+
+        if intent == "update_natural_language_defaults":
+            message_lower = message.lower()
+            if match.lastindex and match.lastindex >= 2:
+                entities["nl_field"] = match.group(1).strip().lower()
+                entities["nl_value"] = match.group(2).strip()
+            elif match.lastindex and match.lastindex >= 1:
+                value = match.group(1).strip()
+                entities["nl_value"] = value
+                if "tonight" in message_lower:
+                    entities["nl_field"] = "tonight"
+                elif re.search(r"after\s+(?:work|school)", message_lower):
+                    entities["nl_field"] = "after_work"
+                elif "weekend" in message_lower or "this week" in message_lower:
+                    entities["nl_field"] = "weekend_this_week"
+            return True
+
+        return False
+
     @handle_errors("extracting schedule entities from rule-based patterns", default_return=False)
     def _extract_schedule_entities_rule_based(
         self,
@@ -1652,6 +1702,7 @@ class EnhancedCommandParser:
         entities: dict[str, Any] = {}
 
         extractors = (
+            self._extract_phrase_settings_entities_rule_based,
             self._extract_task_entities_rule_based,
             self._extract_schedule_entities_rule_based,
             self._extract_history_analytics_entities_rule_based,
@@ -1710,11 +1761,9 @@ class EnhancedCommandParser:
     ) -> dict[str, Any]:
         """Extract task-related entities from title"""
         try:
-            from tasks.task_natural_language_defaults import (
-                get_task_natural_language_defaults,
-            )
+            from core.natural_language_defaults import get_natural_language_defaults
 
-            nl_defaults = get_task_natural_language_defaults(user_id)
+            nl_defaults = get_natural_language_defaults(user_id)
             time_defaults = nl_defaults.time_of_day_defaults
             entities: dict[str, Any] = {}
             clean_title = title
@@ -2020,6 +2069,9 @@ class EnhancedCommandParser:
                 "create task": "create_task",
                 "task template": "create_task_from_template",
                 "list task templates": "list_task_templates",
+                "show phrase settings": "show_natural_language_defaults",
+                "phrase settings": "show_natural_language_defaults",
+                "set tonight": "update_natural_language_defaults",
                 "list tasks": "list_tasks",
                 "complete task": "complete_task",
                 "delete task": "delete_task",

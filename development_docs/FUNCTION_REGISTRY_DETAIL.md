@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-26 12:41:32
+> **Last Generated**: 2026-06-27 20:03:33
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 91.4% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 223
-- **Functions Found**: 2185
-- **Methods Found**: 1331
-- **Classes Found**: 226
-- **Total Items**: 3516
-- **Functions Documented**: 1970
-- **Methods Documented**: 1245
-- **Classes Documented**: 160
-- **Total Documented**: 3215
-- **Template-Generated**: 38
-- **Last Updated**: 2026-06-26
+### **Function Documentation Coverage: 91.0% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 226
+- **Functions Found**: 2213
+- **Methods Found**: 1347
+- **Classes Found**: 230
+- **Total Items**: 3560
+- **Functions Documented**: 1989
+- **Methods Documented**: 1252
+- **Classes Documented**: 164
+- **Total Documented**: 3241
+- **Template-Generated**: 42
+- **Last Updated**: 2026-06-27
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,19 +39,19 @@
 
 ## Function Categories
 
-### **Core System Functions** (445)
+### **Core System Functions** (466)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (608)
+### **Communication Functions** (615)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (490)
+### **User Interface Functions** (499)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (35)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (107)
+### **Task Management Functions** (98)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -1256,6 +1256,23 @@ Returns:
   - [OK] `HelpHandler.get_examples(self)` - Get example commands for help.
   - [OK] `HelpHandler.get_help(self)` - Get help text for help commands.
   - [OK] `HelpHandler.handle(self, user_id, parsed_command)` - Handle help and command information interactions.
+
+#### `communication/command_handlers/natural_language_handler.py`
+**Functions:**
+- [MISSING] `_handle_show(self, user_id)` - No description
+- [MISSING] `_handle_update(self, user_id, entities)` - No description
+- [MISSING] `can_handle(self, intent)` - No description
+- [MISSING] `get_examples(self)` - No description
+- [MISSING] `get_help(self)` - No description
+- [MISSING] `handle(self, user_id, parsed_command)` - No description
+**Classes:**
+- [OK] `NaturalLanguageHandler` - Handler for natural-language phrase preference commands.
+  - [MISSING] `NaturalLanguageHandler._handle_show(self, user_id)` - No description
+  - [MISSING] `NaturalLanguageHandler._handle_update(self, user_id, entities)` - No description
+  - [MISSING] `NaturalLanguageHandler.can_handle(self, intent)` - No description
+  - [MISSING] `NaturalLanguageHandler.get_examples(self)` - No description
+  - [MISSING] `NaturalLanguageHandler.get_help(self)` - No description
+  - [MISSING] `NaturalLanguageHandler.handle(self, user_id, parsed_command)` - No description
 
 #### `communication/command_handlers/notebook_handler.py`
 **Functions:**
@@ -2517,6 +2534,7 @@ and initializes rule-based intent patterns for common commands.
 - [OK] `_extract_history_analytics_entities_rule_based(self, intent, match, message, entities)` - Extract check-in history and analytics entities.
 - [OK] `_extract_intent_from_ai_response(self, ai_response)` - Extract intent from AI response text
 - [OK] `_extract_notebook_entities_rule_based(self, intent, match, message, entities)` - Extract notebook and list-related entities.
+- [OK] `_extract_phrase_settings_entities_rule_based(self, intent, match, message, entities)` - Extract entities for natural-language phrase preference commands.
 - [OK] `_extract_recurrence_entities(self, title)` - Extract recurrence fields from natural task text.
 - [OK] `_extract_schedule_entities_rule_based(self, intent, match, message, entities)` - Extract schedule-related entities and return whether intent was handled.
 - [OK] `_extract_task_entities(self, title)` - Extract task-related entities from title
@@ -2558,6 +2576,7 @@ and initializes rule-based intent patterns for common commands.
   - [OK] `EnhancedCommandParser._extract_history_analytics_entities_rule_based(self, intent, match, message, entities)` - Extract check-in history and analytics entities.
   - [OK] `EnhancedCommandParser._extract_intent_from_ai_response(self, ai_response)` - Extract intent from AI response text
   - [OK] `EnhancedCommandParser._extract_notebook_entities_rule_based(self, intent, match, message, entities)` - Extract notebook and list-related entities.
+  - [OK] `EnhancedCommandParser._extract_phrase_settings_entities_rule_based(self, intent, match, message, entities)` - Extract entities for natural-language phrase preference commands.
   - [OK] `EnhancedCommandParser._extract_recurrence_entities(self, title)` - Extract recurrence fields from natural task text.
   - [OK] `EnhancedCommandParser._extract_schedule_entities_rule_based(self, intent, match, message, entities)` - Extract schedule-related entities and return whether intent was handled.
   - [OK] `EnhancedCommandParser._extract_task_entities(self, title)` - Extract task-related entities from title
@@ -4089,6 +4108,35 @@ Returns:
 
 Args:
     name: Logger name (unused, kept for interface compatibility)
+
+#### `core/natural_language_defaults.py`
+**Functions:**
+- [OK] `_build_nl_defaults_patch(field, value)` - Validate one field update and return a patch dict for natural_language_defaults.
+- [OK] `_coerce_time_setting(value, fallback)` - Parse a preference time string, falling back when empty or invalid.
+- [OK] `_defaults_dict_to_dataclass(data)` - Construct NaturalLanguageDefaults from a normalized defaults dict.
+- [OK] `_get_cached_builtin_defaults()` - Return cached built-in defaults loaded from resources.
+- [OK] `_load_builtin_defaults_dict()` - Load shipped defaults from resources/default_natural_language_defaults.json.
+- [OK] `_merge_nl_defaults_patch(existing, patch)` - Deep-merge one NL defaults patch onto stored natural_language_defaults.
+- [OK] `_parse_preference_time(value)` - Parse a single preference time string when present and valid.
+- [OK] `_read_stored_nl_dict(preferences)` - Read per-user NL defaults from preferences.natural_language_defaults.
+- [OK] `_time_of_day_cutoff(now_dt, parsed_time)` - Build a datetime cutoff from HH:MM on the same calendar day as *now_dt*.
+- [OK] `apply_natural_language_defaults_update(user_id, nl_field, nl_value)` - Apply one natural-language defaults change and persist under preferences.
+- [OK] `build_builtin_natural_language_defaults()` - Construct built-in defaults from resources/default_natural_language_defaults.json.
+- [OK] `builtin(cls)` - Return built-in defaults when user preferences are unset or invalid.
+- [OK] `format_natural_language_defaults_message(defaults)` - Build channel-neutral help text for current phrase-to-time mappings.
+- [OK] `from_preferences(cls, data)` - Merge stored preference payload onto built-in defaults.
+- [OK] `get_natural_language_defaults(user_id)` - Load natural-language defaults for a user (built-ins when unset).
+- [OK] `is_past_time_of_day(now_dt, time_setting)` - Return True when *now_dt* is at or after the configured time-of-day.
+- [OK] `merge_natural_language_preferences(data)` - Apply user preference overrides onto built-in natural-language defaults.
+- [OK] `natural_language_defaults_to_preferences_dict(defaults)` - Serialize resolved defaults for persistence under preferences.natural_language_defaults.
+- [OK] `normalize_nl_field_key(field)` - Map user-facing field names to stored preference keys.
+- [OK] `parse_weekend_this_week_flag(value)` - Parse on/off/coming/current style values for weekend `this week` behavior.
+- [OK] `save_natural_language_defaults_preferences(user_id, payload)` - Persist a full natural_language_defaults object under preferences.
+**Classes:**
+- [OK] `NaturalLanguageDefaults` - Resolved natural-language parsing defaults for one user.
+  - [OK] `NaturalLanguageDefaults.builtin(cls)` - Return built-in defaults when user preferences are unset or invalid.
+  - [OK] `NaturalLanguageDefaults.from_preferences(cls, data)` - Merge stored preference payload onto built-in defaults.
+- [OK] `NaturalLanguageDefaultsUpdateResult` - Outcome of applying one natural-language defaults change.
 
 #### `core/network_probe.py`
 **Functions:**
@@ -5786,22 +5834,6 @@ Returns:
 - [OK] `setup_default_task_tags(user_id)` - Set up default tags for a user when task management is first enabled.
 - [OK] `update_task(user_id, task_id, updates)` - Update an existing task.
 
-#### `tasks/task_natural_language_defaults.py`
-**Functions:**
-- [OK] `_coerce_time_setting(value, fallback)` - Parse a preference time string, falling back when empty or invalid.
-- [OK] `_parse_preference_time(value)` - Parse a single preference time string when present and valid.
-- [OK] `_time_of_day_cutoff(now_dt, parsed_time)` - Build a datetime cutoff from HH:MM on the same calendar day as *now_dt*.
-- [OK] `build_builtin_task_natural_language_defaults()` - Construct built-in defaults (no user preferences applied).
-- [OK] `builtin(cls)` - Return built-in defaults when user preferences are unset or invalid.
-- [OK] `from_preferences(cls, data)` - Merge stored preference payload onto built-in defaults.
-- [OK] `get_task_natural_language_defaults(user_id)` - Load task natural-language defaults for a user (built-ins when unset).
-- [OK] `is_past_time_of_day(now_dt, time_setting)` - Return True when *now_dt* is at or after the configured time-of-day.
-- [OK] `merge_task_natural_language_preferences(data)` - Apply user preference overrides onto built-in natural-language defaults.
-**Classes:**
-- [OK] `TaskNaturalLanguageDefaults` - Resolved natural-language parsing defaults for one user.
-  - [OK] `TaskNaturalLanguageDefaults.builtin(cls)` - Return built-in defaults when user preferences are unset or invalid.
-  - [OK] `TaskNaturalLanguageDefaults.from_preferences(cls, data)` - Merge stored preference payload onto built-in defaults.
-
 #### `tasks/task_schemas.py`
 **Functions:**
 - [OK] `sanitize_tags(cls, value)` - Normalize and validate task tags before model construction.
@@ -5942,6 +5974,7 @@ Returns:
 - [OK] `manage_checkins(self, parent, current_user)` - Open check-in management for the selected user.
 - [OK] `manage_communication_settings(self, parent, current_user)` - Open channel management for the selected user.
 - [OK] `manage_personalization(self, parent, current_user)` - Open personalization settings for the selected user.
+- [OK] `manage_phrase_settings(self, parent, current_user)` - Open natural-language phrase settings for the selected user.
 - [OK] `manage_task_crud(self, parent, current_user)` - Open task CRUD for the selected user.
 - [OK] `manage_tasks(self, parent, current_user)` - Open task management for the selected user.
 - [OK] `manage_user_analytics(self, parent, current_user)` - Open user analytics for the selected user.
@@ -5960,6 +5993,7 @@ Returns:
   - [OK] `DialogActions.manage_checkins(self, parent, current_user)` - Open check-in management for the selected user.
   - [OK] `DialogActions.manage_communication_settings(self, parent, current_user)` - Open channel management for the selected user.
   - [OK] `DialogActions.manage_personalization(self, parent, current_user)` - Open personalization settings for the selected user.
+  - [OK] `DialogActions.manage_phrase_settings(self, parent, current_user)` - Open natural-language phrase settings for the selected user.
   - [OK] `DialogActions.manage_task_crud(self, parent, current_user)` - Open task CRUD for the selected user.
   - [OK] `DialogActions.manage_tasks(self, parent, current_user)` - Open task management for the selected user.
   - [OK] `DialogActions.manage_user_analytics(self, parent, current_user)` - Open user analytics for the selected user.
@@ -6207,6 +6241,17 @@ Returns:
   - [OK] `MessageEditorDialog.setup_initial_state(self)` - Setup initial dialog state.
   - [OK] `MessageEditorDialog.show_no_messages_state(self)` - Show state when no messages are found.
   - [OK] `MessageEditorDialog.update_message_count(self)` - Update the message count label.
+
+#### `ui/dialogs/natural_language_settings_dialog.py`
+**Functions:**
+- [OK] `__init__(self, parent, user_id)` - Special Python method
+- [MISSING] `load_settings(self)` - No description
+- [MISSING] `save_settings(self)` - No description
+**Classes:**
+- [OK] `NaturalLanguageSettingsDialog` - Edit preferences.natural_language_defaults for one user.
+  - [OK] `NaturalLanguageSettingsDialog.__init__(self, parent, user_id)` - Special Python method
+  - [MISSING] `NaturalLanguageSettingsDialog.load_settings(self)` - No description
+  - [MISSING] `NaturalLanguageSettingsDialog.save_settings(self)` - No description
 
 #### `ui/dialogs/process_watcher_dialog.py`
 **Functions:**
@@ -7055,6 +7100,21 @@ Args:
     text: The new text from the textEdited signal (ignored, we read from widget)
   - [MISSING] `DynamicListField.set_checked(self, state)` - No description
   - [MISSING] `DynamicListField.set_text(self, text)` - No description
+
+#### `ui/widgets/natural_language_settings_widget.py`
+**Functions:**
+- [OK] `__init__(self, parent, user_id)` - Special Python method
+- [MISSING] `_build_ui(self)` - No description
+- [OK] `get_preferences_dict(self)` - Return preferences.natural_language_defaults payload from form fields.
+- [OK] `set_defaults(self, defaults)` - Populate fields from resolved defaults.
+- [OK] `validate_fields(self)` - Return an error message when any time field is invalid, else empty string.
+**Classes:**
+- [OK] `NaturalLanguageSettingsWidget` - Edit phrase-to-time mappings stored under preferences.natural_language_defaults.
+  - [OK] `NaturalLanguageSettingsWidget.__init__(self, parent, user_id)` - Special Python method
+  - [MISSING] `NaturalLanguageSettingsWidget._build_ui(self)` - No description
+  - [OK] `NaturalLanguageSettingsWidget.get_preferences_dict(self)` - Return preferences.natural_language_defaults payload from form fields.
+  - [OK] `NaturalLanguageSettingsWidget.set_defaults(self, defaults)` - Populate fields from resolved defaults.
+  - [OK] `NaturalLanguageSettingsWidget.validate_fields(self)` - Return an error message when any time field is invalid, else empty string.
 
 #### `ui/widgets/period_row_widget.py`
 **Functions:**

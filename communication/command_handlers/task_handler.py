@@ -80,7 +80,7 @@ Manage tasks with natural language or short commands.
 
 **Tags & groups:** `#health` in the message; `group:medical` or `in group:medical`
 
-**Due phrases:** `tomorrow`, `tonight`, `this week`, `before Friday`, `after work` / `after school` (weekend `this week` means the coming week)
+**Due phrases:** `tomorrow`, `tonight`, `this week`, `before Friday`, `after work` / `after school` (weekend `this week` means the coming week). Customize mappings: `show phrase settings` or admin **Phrase Settings**.
 
 **Templates** (quick-add with defaults):
 • `create` / `new` / `add` — Discord button menu (templates + custom task + notes)

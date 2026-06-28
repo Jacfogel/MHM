@@ -1,0 +1,15 @@
+{
+  "tonight_start_time": "18:00",
+  "after_work_school_time": "17:00",
+  "time_of_day_defaults": {
+    "morning": "9:00",
+    "afternoon": "14:00",
+    "evening": "18:00",
+    "night": "21:00"
+  },
+  "weekend_this_week_means_coming_week": true,
+  "metadata": {
+    "description": "Default phrase-to-time mappings for natural-language parsing (tonight, after work, morning, etc.)",
+    "version": 1
+  }
+}

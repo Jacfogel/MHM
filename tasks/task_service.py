@@ -182,18 +182,18 @@ def parse_relative_date(
     nl_defaults: Any | None = None,
 ) -> str:
     """Convert relative task due-date strings to YYYY-MM-DD where possible."""
-    from tasks.task_natural_language_defaults import (
-        TaskNaturalLanguageDefaults,
-        get_task_natural_language_defaults,
+    from core.natural_language_defaults import (
+        NaturalLanguageDefaults,
+        get_natural_language_defaults,
         is_past_time_of_day,
     )
 
     date_str_lower = date_str.lower().strip()
     now_dt = now_dt or now_datetime_full()
-    defaults: TaskNaturalLanguageDefaults = (
+    defaults: NaturalLanguageDefaults = (
         nl_defaults
-        if isinstance(nl_defaults, TaskNaturalLanguageDefaults)
-        else get_task_natural_language_defaults(user_id)
+        if isinstance(nl_defaults, NaturalLanguageDefaults)
+        else get_natural_language_defaults(user_id)
     )
 
     if date_str_lower == "today":

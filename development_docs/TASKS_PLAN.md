@@ -159,10 +159,10 @@ Notebook and tasks both use concepts like tags, groups, short IDs, search/list v
 
 **Implement later**:
 - [x] Add preference fields under task settings (for example in `preferences.json` / `task_settings`): `tonight_start_time`, `after_work_school_time` (shared default for “after work” and “after school”), `time_of_day_defaults` (morning/afternoon/evening/night), and optionally `weekend_this_week_means_coming_week` (boolean, default true) (2026-06-24).
-- [x] Load preferences in `task_service.parse_relative_date` and `command_parser._extract_task_entities` (or a shared `task_natural_language_defaults(user_id)` helper) instead of hard-coded constants (2026-06-24: [`task_natural_language_defaults.py`](../tasks/task_natural_language_defaults.py)).
-- [ ] Expose settings via Discord command and/or desktop task settings when UX is defined (defer UI until data model is stable).
+- [x] Load preferences in `task_service.parse_relative_date` and `command_parser._extract_task_entities` via [`core/natural_language_defaults.py`](../core/natural_language_defaults.py) instead of hard-coded constants (2026-06-24 core helper; 2026-06-27 moved to preferences root).
+- [x] Expose settings via Discord command and/or desktop UI (2026-06-27: `show phrase settings`, `set tonight to 8pm`; admin **Phrase Settings** dialog — not in task widget).
 - [x] Document new fields in [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md) and [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md) (2026-06-24).
-- [x] Add unit tests with mocked per-user preference payloads (2026-06-24: [`test_task_natural_language_defaults.py`](../tests/unit/test_task_natural_language_defaults.py)).
+- [x] Add unit tests with mocked per-user preference payloads (2026-06-24: [`test_natural_language_defaults.py`](../tests/unit/test_natural_language_defaults.py)).
 
 **Acceptance**:
 - A user can change what “tonight” and “after work/school” mean without code changes.

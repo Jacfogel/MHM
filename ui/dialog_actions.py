@@ -185,6 +185,36 @@ class DialogActions:
                 parent, "Error", f"Failed to open task management: {str(e)}"
             )
 
+    @handle_errors("managing phrase settings", default_return=None)
+    def manage_phrase_settings(
+        self,
+        parent: QWidget,
+        current_user: str | None,
+        *,
+        on_user_changed: Callable[[], None],
+    ) -> None:
+        """Open natural-language phrase settings for the selected user."""
+        if not _require_current_user(parent, current_user):
+            return
+        logger.info(
+            f"Admin Panel: Opening phrase settings for user {current_user}"
+        )
+        try:
+            NaturalLanguageSettingsDialog = _load_attr(
+                "ui.dialogs.natural_language_settings_dialog",
+                "NaturalLanguageSettingsDialog",
+            )
+
+            dialog = NaturalLanguageSettingsDialog(parent, current_user)
+            dialog.user_changed.connect(on_user_changed)
+            dialog.setWindowTitle(f"Phrase Settings - {current_user}")
+            dialog.exec()
+        except Exception as e:
+            logger.error(f"Error opening phrase settings dialog: {e}")
+            QMessageBox.critical(
+                parent, "Error", f"Failed to open phrase settings: {str(e)}"
+            )
+
     @handle_errors("managing task CRUD", default_return=None)
     def manage_task_crud(
         self,
