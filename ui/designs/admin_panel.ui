@@ -221,6 +221,13 @@
                </property>
               </widget>
              </item>
+             <item row="1" column="4">
+              <widget class="QPushButton" name="pushButton_google_health">
+               <property name="text">
+                <string>Google Health</string>
+               </property>
+              </widget>
+             </item>
           </layout>
          </item>
         </layout>

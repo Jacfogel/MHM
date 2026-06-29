@@ -179,8 +179,9 @@ Sampling controls:
 - `GOOGLE_HEALTH_CLIENT_ID` / `GOOGLE_HEALTH_CLIENT_SECRET`
 - `GOOGLE_HEALTH_REDIRECT_URI` - local OAuth callback (default `http://127.0.0.1:8765/oauth/google-health/callback`)
 - `GOOGLE_HEALTH_SCOPES` - comma-separated scope suffixes or full URLs
-- `GOOGLE_HEALTH_SYNC_TIMES` - automated poll schedule (default `06:30,18:00`)
+- `GOOGLE_HEALTH_SYNC_TIMES` - local wall-clock sync slots per user (default `06:30,18:00`; uses `account.timezone`; polled every 30 minutes)
 - `GOOGLE_HEALTH_TOKEN_REFRESH_MARGIN_MINUTES` - refresh before expiry (default `10`)
+- `GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY` - optional Fernet key; encrypts OAuth tokens in `google_health_auth.json` when set (generate via `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`)
 - `GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS` - idempotent re-fetch window (default `3`)
 - `GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD` - auto-pause after N failures (default `5`)
 - `LOG_GOOGLE_HEALTH_FILE` - component log path

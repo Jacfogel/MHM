@@ -18,6 +18,7 @@ idna>=3.15  # Transitive (requests); CVE-2026-45409 / GHSA-65pc-fj4g-8rjx DoS in
 pydantic>=2.7.0  # For JSON schema validation and parsing
 google-auth>=2.29.0  # Google Health OAuth token refresh
 google-auth-oauthlib>=1.2.0  # Google Health OAuth connect flow
+cryptography>=42.0.0  # Fernet encryption for Google Health tokens at rest
 
 # UI dependencies
 

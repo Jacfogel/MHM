@@ -104,6 +104,7 @@ class GoogleHealthAuthModel(BaseModel):
     connected_at: str = ""
     last_refresh_at: str = ""
     google_user_id: str = ""
+    tokens_encrypted: bool = False
 
 
 class SyncStateModel(BaseModel):
@@ -116,6 +117,7 @@ class SyncStateModel(BaseModel):
     last_error: str = ""
     consecutive_failures: int = 0
     reconnect_notice_sent: bool = False
+    last_scheduled_slot: str = ""
     baseline_metadata: dict[str, Any] = Field(default_factory=dict)
 
 

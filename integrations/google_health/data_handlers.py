@@ -20,6 +20,10 @@ from storage.user_item_storage import (
     save_user_json_file,
 )
 
+from integrations.google_health.token_crypto import (
+    prepare_auth_for_storage,
+    prepare_auth_for_use,
+)
 from integrations.google_health.schemas import (
     AUTH_FILENAME,
     DAILY_SUMMARIES_FILENAME,
@@ -90,7 +94,10 @@ def _load_or_default(
 def load_auth(user_id: str) -> dict[str, Any] | None:
     if not is_valid_user_id(user_id):
         return None
-    return _load_or_default(user_id, AUTH_FILENAME, empty_auth_document, GoogleHealthAuthModel)
+    raw = _load_or_default(user_id, AUTH_FILENAME, empty_auth_document, GoogleHealthAuthModel)
+    if raw is None:
+        return None
+    return prepare_auth_for_use(raw)
 
 
 @handle_errors("saving google health auth", default_return=False)
@@ -98,9 +105,10 @@ def save_auth(user_id: str, data: dict[str, Any]) -> bool:
     if not is_valid_user_id(user_id):
         return False
     ensure_health_directory(user_id)
-    payload = GoogleHealthAuthModel.model_validate(
-        {**data, "updated_at": _now()}
-    ).model_dump()
+    prepared = prepare_auth_for_storage({**data, "updated_at": _now()})
+    if prepared is None:
+        return False
+    payload = GoogleHealthAuthModel.model_validate(prepared).model_dump()
     return bool(save_user_json_file(user_id, HEALTH_SUBDIR, AUTH_FILENAME, payload))
 
 

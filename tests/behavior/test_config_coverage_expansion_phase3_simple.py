@@ -176,10 +176,31 @@ class TestConfigCoverageExpansionPhase3Simple:
         assert isinstance(result['valid'], bool)
 
     def test_validate_and_raise_if_invalid(self, tmp_path):
-        """Test validate_and_raise_if_invalid function"""
-        # This function should return a list of available channels
-        result = core.config.validate_and_raise_if_invalid()
+        """Test validate_and_raise_if_invalid returns channels when validation passes."""
+        mock_result = {
+            "valid": True,
+            "errors": [],
+            "warnings": [],
+            "available_channels": ["discord", "email"],
+            "summary": "Configuration validation passed",
+        }
+        with patch("core.config.validate_all_configuration", return_value=mock_result):
+            result = core.config.validate_and_raise_if_invalid()
         assert isinstance(result, list)
+        assert result == ["discord", "email"]
+
+    def test_validate_and_raise_if_invalid_raises_when_invalid(self, tmp_path):
+        """Test validate_and_raise_if_invalid raises when validation fails."""
+        mock_result = {
+            "valid": False,
+            "errors": ["Google Health: invalid encryption key"],
+            "warnings": [],
+            "available_channels": ["discord"],
+            "summary": "Configuration validation failed with 1 error(s) and 0 warning(s)",
+        }
+        with patch("core.config.validate_all_configuration", return_value=mock_result):
+            with pytest.raises(core.config.ConfigValidationError):
+                core.config.validate_and_raise_if_invalid()
 
     def test_print_configuration_report(self, tmp_path, capsys):
         """Test print_configuration_report function"""
@@ -288,9 +309,18 @@ class TestConfigCoverageExpansionPhase3Simple:
         assert isinstance(result.get('available_channels'), list)
 
     def test_validate_and_raise_if_invalid_returns_list(self, tmp_path):
-        """Test validate_and_raise_if_invalid returns available channels"""
-        result = core.config.validate_and_raise_if_invalid()
+        """Test validate_and_raise_if_invalid returns available channels (mocked for parallel isolation)."""
+        mock_result = {
+            "valid": True,
+            "errors": [],
+            "warnings": [],
+            "available_channels": ["email"],
+            "summary": "Configuration validation passed",
+        }
+        with patch("core.config.validate_all_configuration", return_value=mock_result):
+            result = core.config.validate_and_raise_if_invalid()
         assert isinstance(result, list)
+        assert result == ["email"]
 
     def test_environment_variable_loading(self, tmp_path):
         """Test environment variable loading and parsing"""

@@ -22,6 +22,26 @@ def test_require_current_user_passes_when_set():
     mock_msgbox.warning.assert_not_called()
 
 
+def test_manage_google_health_settings_opens_dialog():
+    actions = DialogActions()
+    parent = Mock()
+    on_user_changed = Mock()
+
+    mock_dialog = MagicMock()
+    mock_dialog_class = Mock(return_value=mock_dialog)
+    with patch("ui.dialog_actions._load_attr", return_value=mock_dialog_class):
+        with patch("ui.dialog_actions._require_current_user", return_value=True):
+            actions.manage_google_health_settings(
+                parent,
+                "user-1",
+                on_user_changed=on_user_changed,
+            )
+
+    mock_dialog_class.assert_called_once_with(parent, "user-1")
+    mock_dialog.user_changed.connect.assert_called_once_with(on_user_changed)
+    mock_dialog.exec.assert_called_once()
+
+
 def test_manage_categories_opens_dialog_and_reloads_categories():
     actions = DialogActions()
     parent = Mock()

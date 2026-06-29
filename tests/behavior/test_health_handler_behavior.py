@@ -15,15 +15,19 @@ def test_connect_google_health_returns_auth_url(test_data_dir, monkeypatch):
         "communication.command_handlers.health_handler.GOOGLE_HEALTH_ENABLED", True
     )
     monkeypatch.setattr(
-        "communication.command_handlers.health_handler.GOOGLE_HEALTH_CLIENT_ID", "test-client"
+        "integrations.google_health.user_settings.GOOGLE_HEALTH_CLIENT_ID", "test-client"
     )
     monkeypatch.setattr(
-        "communication.command_handlers.health_handler.GOOGLE_HEALTH_CLIENT_SECRET",
+        "integrations.google_health.user_settings.GOOGLE_HEALTH_CLIENT_SECRET",
         "test-secret",
     )
     monkeypatch.setattr(
-        "communication.command_handlers.health_handler.build_authorization_url",
+        "integrations.google_health.user_settings.build_authorization_url",
         lambda state="": "https://accounts.google.com/o/oauth2/v2/auth?client_id=test",
+    )
+    monkeypatch.setattr(
+        "communication.command_handlers.health_handler.run_connect_flow_async",
+        lambda user_id, on_finished: None,
     )
 
     user_id = "health-connect-user"

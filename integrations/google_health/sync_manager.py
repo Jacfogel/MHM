@@ -30,6 +30,7 @@ from integrations.google_health.data_handlers import (
     save_health_signals,
     save_sync_state,
 )
+from integrations.google_health.notifications import maybe_send_reconnect_notice
 from integrations.google_health.signal_builder import rebuild_signals_for_summaries
 
 logger = get_component_logger("google_health")
@@ -123,7 +124,12 @@ def pause_google_health_feature(user_id: str, *, reason: str = "") -> bool:
 
 
 @handle_errors("syncing user health data", default_return=False)
-def sync_user_health_data(user_id: str, *, force: bool = False) -> bool:
+def sync_user_health_data(
+    user_id: str,
+    *,
+    force: bool = False,
+    scheduled_slot_key: str | None = None,
+) -> bool:
     """
     Sync Google Health data for one user.
 
@@ -170,8 +176,11 @@ def sync_user_health_data(user_id: str, *, force: bool = False) -> bool:
                 "last_success_at": now,
                 "last_error": "",
                 "consecutive_failures": 0,
+                "reconnect_notice_sent": False,
             }
         )
+        if scheduled_slot_key:
+            sync_state["last_scheduled_slot"] = scheduled_slot_key
         save_sync_state(user_id, sync_state)
         logger.info(
             f"Google Health sync completed for user {user_id} ({len(incoming)} summaries)"
@@ -187,18 +196,21 @@ def sync_user_health_data(user_id: str, *, force: bool = False) -> bool:
                 "consecutive_failures": failures,
             }
         )
-        save_sync_state(user_id, sync_state)
         logger.warning(
             f"Google Health sync failed for user {user_id} (failure {failures}): {exc}"
         )
         if failures >= GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD:
             pause_google_health_feature(user_id, reason=str(exc)[:200])
+            sync_state = maybe_send_reconnect_notice(
+                user_id, sync_state, str(exc)
+            )
+        save_sync_state(user_id, sync_state)
         return False
 
 
 @handle_errors("syncing all enabled users", default_return=0)
 def sync_all_enabled_users() -> int:
-    """Run sync for every user with google_health enabled."""
+    """Run sync for every user with google_health enabled (ignores schedule slots)."""
     if not GOOGLE_HEALTH_ENABLED:
         return 0
     if _testing_mode():
@@ -208,6 +220,40 @@ def sync_all_enabled_users() -> int:
     for user_id in get_all_user_ids():
         if sync_user_health_data(user_id):
             count += 1
+    return count
+
+
+@handle_errors("syncing users due for scheduled health sync", default_return=0)
+def sync_users_due_for_schedule() -> int:
+    """Sync enabled users whose local wall-clock schedule slot is due."""
+    if not GOOGLE_HEALTH_ENABLED:
+        return 0
+    if _testing_mode():
+        return 0
+
+    from scheduler.health_sync_schedule import get_due_sync_slot_key
+
+    count = 0
+    for user_id in get_all_user_ids():
+        if not _google_health_feature_enabled(user_id):
+            continue
+        if not has_valid_auth(user_id):
+            continue
+
+        sync_state = load_sync_state(user_id) or {}
+        slot_key = get_due_sync_slot_key(
+            user_id,
+            last_scheduled_slot=str(sync_state.get("last_scheduled_slot") or ""),
+        )
+        if not slot_key:
+            continue
+
+        if sync_user_health_data(user_id, scheduled_slot_key=slot_key):
+            count += 1
+            logger.debug(
+                f"Completed scheduled Google Health sync for user {user_id} "
+                f"(slot {slot_key})"
+            )
     return count
 
 

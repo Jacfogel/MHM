@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-06-28 - Google Health V1 complete **COMPLETED**
+- Reconnect notice on auth auto-pause; per-user timezone sync (30-min poll); optional Fernet token encryption.
+- Admin UI **Google Health** connect panel ([`google_health_settings_dialog.py`](../ui/dialogs/google_health_settings_dialog.py)); shared [`user_settings.py`](../integrations/google_health/user_settings.py).
+- Tests: notifications, sync schedule, token crypto, user settings, dialog actions; health handler refactored.
+- **Audit hygiene**: GOOGLE_HEALTH_GUIDE path drift; error handling + docstrings; function registry regen; Ruff clean; stabilized `test_validate_and_raise_if_invalid` (mock); fixed `test_validate_and_raise_if_invalid_failure` reload/class mismatch flake; removed unused `ConfigValidationError` import in `test_config.py`.
+
 ### 2026-06-27 - Google Health read-only integration **COMPLETED**
 - Added `integrations/google_health/` package: OAuth connect, automated 1-2x daily sync, daily summaries, derived wellness signals, and deterministic message guidance (no raw metrics to AI).
 - Per-user storage under `data/users/{user_id}/health/`; feature flag `account.features.google_health` (`enabled` | `disabled` | `paused`).
@@ -147,11 +153,6 @@ Guidelines:
 - Moved user/category combo loading and display-name helpers from `ui/ui_app_qt.py` into `ui/user_list_provider.py`; `MHMManagerUI` delegates via `UserListProvider`.
 - Removed the temporary `ui.ui_app_qt.ServiceManager` re-export; callers/tests now import from `ui.service_manager` (package `__init__` unchanged).
 - Added `tests/ui/test_user_list_provider.py` and updated combo-helper tests; `ui_app_qt.py` down to ~1719 lines.
-
-### 2026-06-06 - UI scheduler action extraction **COMPLETED**
-- Moved full/user/category scheduler calls and UI delivery-factory setup from `ui/ui_app_qt.py` into `ui/scheduler_actions.py`.
-- Added focused scheduler action tests while leaving selection validation and final Qt messages in `MHMManagerUI`.
-- Standard audit remains at 0 circular chains and 65 high-coupling modules; `ui_app_qt.py` dropped to 2136 lines / total complexity 9112.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

@@ -41,12 +41,12 @@ See `.env.example` and `CONFIGURATION_REFERENCE.md`. Minimum:
 
 ## User flow
 
-1. User runs `connect google health` (Discord or future admin UI).
+1. User runs `connect google health` (Discord) or opens admin UI → **Google Health** for the selected user.
 2. MHM starts a local callback server on `127.0.0.1:8765`.
 3. User approves Google consent in the browser.
 4. Tokens saved to `data/users/{user_id}/health/google_health_auth.json`.
 5. First sync runs immediately; `features.google_health` set to `enabled`.
-6. Scheduler syncs 1–2× daily with automatic token refresh.
+6. Scheduler syncs 1–2× daily with automatic token refresh. Sync times (`GOOGLE_HEALTH_SYNC_TIMES`, default `06:30,18:00`) use the user's **account timezone**, checked every 30 minutes.
 
 ## Commands (optional — not required daily)
 
@@ -65,6 +65,17 @@ See `.env.example` and `CONFIGURATION_REFERENCE.md`. Minimum:
 - AI receives coarse guidance phrases only (`core/health_context_builder.py`).
 - API failures: log internally, fall back to normal messages.
 - After repeated auth failures, feature auto-pauses (`GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD`).
+- When auto-pause is triggered by token refresh failure, MHM sends **one** low-key reconnect message on the user's primary channel (`sync_state.reconnect_notice_sent` prevents repeats until the next successful sync).
+
+## Token encryption (optional)
+
+Set `GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY` to a [Fernet](https://cryptography.io/en/latest/fernet/) key to encrypt `access_token` and `refresh_token` in `google_health_auth.json`:
+
+```powershell
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+
+Add the output to `.env`. Existing plaintext tokens migrate automatically on the next save (connect, token refresh, or sync). **Keep the key backed up** — losing it requires running `connect google health` again.
 
 ## Troubleshooting
 
@@ -72,7 +83,7 @@ See `.env.example` and `CONFIGURATION_REFERENCE.md`. Minimum:
 |---------|--------|
 | **403 access_denied** — “has not completed the Google verification process” / “only accessed by developer-approved testers” | In [Google Cloud Console](https://console.cloud.google.com) → **APIs & Services** → **OAuth consent screen** → **Test users** → **Add users** → add the exact Gmail you use in the browser (e.g. `jacfogel@gmail.com`). Wait ~1 minute, then run `connect google health` again. Use the same Google account in Chrome that you added. |
 | 403 on data reads (after connect) | Reconnect; ensure no `include_granted_scopes`; request only `googlehealth.*` scopes |
-| Token refresh fails | Run `connect google health` once; check refresh token in auth file |
+| Token refresh fails | Run `connect google health` once; check refresh token in auth file. You should also receive a one-time reconnect notice on Discord/email when sync auto-pauses. |
 | No personalization | Check `health status`, signal confidence, and `features.google_health` |
 | **Sync succeeds but `daily_summaries.json` is empty** | Restart MHM after updating (`python run_headless_service.py restart`), then run `sync health`. Check `logs/google_health.log` for lines like `listed N data point(s) for sleep`. If N is 0 for all types, confirm Fitbit has synced into Google Health (Fitbit app open + device synced). If N > 0 but summaries still empty, report — date parsing may need adjustment for your device payload. |
 | **Steps/active minutes missing after long lookback** | Google `dailyRollUp` allows **max 14 civil days** per request (`INVALID_ROLLUP_QUERY_DURATION` if exceeded). MHM chunks rollups automatically; set `GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS` up to 14 per sync, or rely on accumulated history across daily syncs. Restart after updates, then `sync health`. |
@@ -84,9 +95,17 @@ For a **single-user MHM install**, keep the OAuth app in **Testing** mode and ad
 
 ## Module map
 
-- `auth.py` — OAuth and token refresh
-- `client.py` — API fetch + normalize
-- `sync_manager.py` — per-user sync orchestration
-- `signal_builder.py` — baselines and derived signals
-- `personalization_rules.py` — deterministic guidance tokens
-- `data_handlers.py` — on-disk I/O via `storage/user_item_storage`
+All paths relative to project root.
+
+- `integrations/google_health/auth.py` — OAuth and token refresh
+- `integrations/google_health/token_crypto.py` — optional Fernet encryption for auth tokens at rest
+- `integrations/google_health/client.py` — API fetch + normalize
+- `integrations/google_health/sync_manager.py` — per-user sync orchestration
+- `integrations/google_health/user_settings.py` — shared connect/status/pause/enable/delete/sync (Discord + admin UI)
+- `integrations/google_health/notifications.py` — one-time reconnect notice on auth auto-pause
+- `integrations/google_health/signal_builder.py` — baselines and derived signals
+- `integrations/google_health/personalization_rules.py` — deterministic guidance tokens
+- `integrations/google_health/data_handlers.py` — on-disk I/O via `storage/user_item_storage`
+- `scheduler/health_sync_schedule.py` — per-user local slot due logic
+- `scheduler/health_sync_jobs.py` — 30-minute poll registration
+- `ui/dialogs/google_health_settings_dialog.py` — admin connect panel

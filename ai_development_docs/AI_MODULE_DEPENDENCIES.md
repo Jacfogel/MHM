@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-27 21:38:49
+> **Last Generated**: 2026-06-28 14:09:59
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,18 +12,18 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 228
-- **Total Imports**: 1939
-- **Standard Library**: 573 (29.6%)
-- **Third-Party**: 228 (11.8%)
-- **Local Imports**: 1138 (58.7%)
+- **Files Scanned**: 230
+- **Total Imports**: 1950
+- **Standard Library**: 575 (29.5%)
+- **Third-Party**: 231 (11.8%)
+- **Local Imports**: 1144 (58.7%)
 
 ## Dependency Decision Trees
 
 ### Need Core System Access?
 Core System Dependencies:
 - Configuration and Setup
-  - core/config.py <- standard library (contextlib, logging, os, pathlib), third-party (dotenv), error_handling
+  - core/config.py <- standard library (contextlib, logging, os, pathlib), third-party (dotenv, integrations.google_health.token_crypto), error_handling
   - core/logger.py <- standard library (contextlib, glob, gzip, json), error_handling, time_utilities, config
 - Data Management
   - core/file_operations.py <- standard library (importlib, json, os, pathlib), logger, config, error_handling, time_utilities, file_auditor (+3 more)
@@ -122,8 +122,8 @@ External libraries provide channel and UI support.
 - `communication/command_handlers/notebook_handler.py` -> 13 unique local dependencies (heavy coupling) (18 import statements; 5 duplicate)
 
 ### Third-Party Risks
-- `ui/admin_actions.py` -> PySide6.QtWidgets (37 modules use this)
-- `ui/ui_app_qt.py` -> PySide6.QtCore (20 modules use this)
+- `ui/admin_actions.py` -> PySide6.QtWidgets (38 modules use this)
+- `ui/ui_app_qt.py` -> PySide6.QtCore (21 modules use this)
 - `communication/communication_channels/base/command_registry.py` -> discord (18 modules use this)
 - `ai/chatbot.py` -> psutil (8 modules use this)
 - `core/profile_v2_schemas.py` -> pytz (7 modules use this)

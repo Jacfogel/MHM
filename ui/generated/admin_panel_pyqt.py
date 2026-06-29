@@ -180,6 +180,11 @@ class Ui_ui_app_mainwindow(object):
 
         self.gridLayout_2.addWidget(self.pushButton_run_user_scheduler, 1, 3, 1, 1)
 
+        self.pushButton_google_health = QPushButton(self.groupBox_user_management)
+        self.pushButton_google_health.setObjectName(u"pushButton_google_health")
+
+        self.gridLayout_2.addWidget(self.pushButton_google_health, 1, 4, 1, 1)
+
 
         self.gridLayout_3.addLayout(self.gridLayout_2, 2, 0, 2, 4)
 
@@ -322,6 +327,7 @@ class Ui_ui_app_mainwindow(object):
         self.pushButton_task_management.setText(QCoreApplication.translate("ui_app_mainwindow", u"Task Management", None))
         self.pushButton_task_crud.setText(QCoreApplication.translate("ui_app_mainwindow", u"Task CRUD", None))
         self.pushButton_run_user_scheduler.setText(QCoreApplication.translate("ui_app_mainwindow", u"Run User Scheduler", None))
+        self.pushButton_google_health.setText(QCoreApplication.translate("ui_app_mainwindow", u"Google Health", None))
         self.groupBox_category_actions.setTitle(QCoreApplication.translate("ui_app_mainwindow", u"Category Actions", None))
         self.pushButton_send_test_message.setText(QCoreApplication.translate("ui_app_mainwindow", u"Send Test Message", None))
         self.label_select_category.setText(QCoreApplication.translate("ui_app_mainwindow", u"Select Category:", None))

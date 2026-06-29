@@ -185,6 +185,36 @@ class DialogActions:
                 parent, "Error", f"Failed to open task management: {str(e)}"
             )
 
+    @handle_errors("managing Google Health settings", default_return=None)
+    def manage_google_health_settings(
+        self,
+        parent: QWidget,
+        current_user: str | None,
+        *,
+        on_user_changed: Callable[[], None],
+    ) -> None:
+        """Open Google Health connect and status panel for the selected user."""
+        if not _require_current_user(parent, current_user):
+            return
+        logger.info(
+            f"Admin Panel: Opening Google Health settings for user {current_user}"
+        )
+        try:
+            GoogleHealthSettingsDialog = _load_attr(
+                "ui.dialogs.google_health_settings_dialog",
+                "GoogleHealthSettingsDialog",
+            )
+
+            dialog = GoogleHealthSettingsDialog(parent, current_user)
+            dialog.user_changed.connect(on_user_changed)
+            dialog.setWindowTitle(f"Google Health - {current_user}")
+            dialog.exec()
+        except Exception as e:
+            logger.error(f"Error opening Google Health settings dialog: {e}")
+            QMessageBox.critical(
+                parent, "Error", f"Failed to open Google Health settings: {str(e)}"
+            )
+
     @handle_errors("managing phrase settings", default_return=None)
     def manage_phrase_settings(
         self,

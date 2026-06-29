@@ -156,6 +156,7 @@ class MHMManagerUI(QMainWindow):
         )
         self.ui.pushButton_personalization.clicked.connect(self.manage_personalization)
         self.ui.pushButton_phrase_settings.clicked.connect(self.manage_phrase_settings)
+        self.ui.pushButton_google_health.clicked.connect(self.manage_google_health_settings)
         self.ui.pushButton_category_management.clicked.connect(self.manage_categories)
         self.ui.pushButton_user_analytics.clicked.connect(self.manage_user_analytics)
         self.ui.pushButton_checkin_settings.clicked.connect(self.manage_checkins)
@@ -451,6 +452,11 @@ DELEGATED_UI_ACTIONS = {
         on_user_changed=self.refresh_user_list,
     ),
     "manage_phrase_settings": lambda self: self.dialog_actions.manage_phrase_settings(
+        self,
+        self.current_user,
+        on_user_changed=self.refresh_user_list,
+    ),
+    "manage_google_health_settings": lambda self: self.dialog_actions.manage_google_health_settings(
         self,
         self.current_user,
         on_user_changed=self.refresh_user_list,

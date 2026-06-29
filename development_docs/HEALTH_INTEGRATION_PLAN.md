@@ -1,7 +1,7 @@
 # Health Integration Plan
 
 > **File**: `development_docs/HEALTH_INTEGRATION_PLAN.md`  
-> **Status**: V0 **COMPLETED** — monitoring live behavior; V1 items deferred below  
+> **Status**: V0 **COMPLETED** — V1 product backlog **COMPLETED** (2026-06-28); monitoring live behavior  
 > **Shipped**: 2026-06-27  
 > **Developer guide**: [integrations/google_health/GOOGLE_HEALTH_GUIDE.md](../integrations/google_health/GOOGLE_HEALTH_GUIDE.md)  
 > **Parent index**: [PLANS.md](PLANS.md) (Google Health row → **COMPLETED**)
@@ -42,8 +42,9 @@ flowchart LR
 | External API + OAuth | `integrations/google_health/` | Read-only fetch, sync, signals, rules |
 | Public API | `core/health_signals.py`, `core/health_context_builder.py` | Channel-agnostic guidance for AI and orchestrator |
 | Storage | `data/users/{user_id}/health/` | Auth, summaries, signals, sync state ([USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md) §2.3.5) |
-| Automation | `scheduler/health_sync_jobs.py` | Registers `GOOGLE_HEALTH_SYNC_TIMES` (default 06:30, 18:00) |
+| Automation | `scheduler/health_sync_jobs.py` | Polls every 30 min; sync when user's local `GOOGLE_HEALTH_SYNC_TIMES` slot is due (`account.timezone`) |
 | Commands | `communication/command_handlers/health_handler.py` | Connect, status, pause, enable, delete, debug sync |
+| Admin UI | `ui/dialogs/google_health_settings_dialog.py` | Connect panel (same OAuth flow as Discord) |
 | Feature flag | `account.features.google_health` | `enabled` \| `disabled` \| `paused` |
 
 **API:** [Google Health API](https://developers.google.com/health/migration) (`health.googleapis.com/v4/`) — **not** legacy Fitbit Web API.
@@ -75,7 +76,7 @@ Backups: `health/` is included automatically — `backup_user_data()` zips the f
 | **3** | `signal_builder`, baselines, confidence, `core/health_signals.py` | ✅ Done |
 | **4** | `personalization_rules.py`, scheduled-message hook in `channel_orchestrator` | ✅ Done |
 | **5** | `health_context_builder.py`, `append_health_guidance`, AI instruction guardrails | ✅ Done |
-| **6** | Discord commands (connect / status / pause / enable / delete / sync) | ✅ Done (Discord); admin UI deferred |
+| **6** | Discord commands (connect / status / pause / enable / delete / sync) | ✅ Done (Discord); admin UI connect panel ✅ Done 2026-06-28 |
 | **7** | Failure auto-pause, corrupt JSON recovery, tests, docs | ✅ Done |
 
 ### Post-ship fixes (2026-06-27, same session)
@@ -125,18 +126,18 @@ Live testing exposed API client issues; fixed in `integrations/google_health/cli
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| **Admin UI connect panel** | Medium | Plan Phase 6 optional; Discord `connect google health` works for V0 |
+| **Admin UI connect panel** | Medium | ✅ Shipped 2026-06-28 — **Google Health** button on admin panel; [`google_health_settings_dialog.py`](../ui/dialogs/google_health_settings_dialog.py) + shared [`user_settings.py`](../integrations/google_health/user_settings.py) |
 | **Admin UI “Sync now”** | Low | Debug via Discord `sync health` or CLI module |
-| **Per-user timezone sync times** | Medium | V0 uses service-local `GOOGLE_HEALTH_SYNC_TIMES`; align with `account.timezone` / `scheduler/user_timezone.py` |
+| **Per-user timezone sync times** | Medium | ✅ Shipped 2026-06-28 — `GOOGLE_HEALTH_SYNC_TIMES` interpreted in `account.timezone`; 30-min poll via `scheduler/health_sync_schedule.py`; `sync_state.last_scheduled_slot` dedupes per slot |
 | **`preferences.json` → `health_personalization`** | Low | Plan open question: `{ use_in_messages, use_in_chat }` — deferred; V0 uses account feature flag only |
-| **Reconnect user notification** | Medium | Plan: one low-key message when refresh permanently fails. Field `sync_state.reconnect_notice_sent` exists; **channel notification not wired yet** — feature auto-pauses and logs only |
+| **Reconnect user notification** | Medium | ✅ Shipped 2026-06-28 — one low-key channel message when auto-pause follows auth/token failures; `sync_state.reconnect_notice_sent` dedupes until next successful sync |
 | **`getIdentity` on connect** | Low | Populate `google_health_auth.json` → `google_user_id` for forward compatibility |
 
 ### V1 — security & scale
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| **Token encryption at rest** | Medium | `GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY` + Fernet (plan §4 V1) |
+| **Token encryption at rest** | Medium | ✅ Shipped 2026-06-28 — optional `GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY` (Fernet); `tokens_encrypted` on auth file; plaintext migrates on next save |
 | **Google OAuth verification** | Low | Required only for public app / >100 users; Testing mode + test users sufficient for personal MHM |
 
 ### V1 — performance & API (optional)
@@ -162,8 +163,8 @@ Live testing exposed API client issues; fixed in `integrations/google_health/cli
 - [ ] **7–14 days of sync history** — confirm `confidence` rises to `medium`/`high` and `message_guidance` populates
 - [ ] **HR/HRV baseline signals** — confirm `resting_hr_signal` / `hrv_signal` leave `unknown` once enough days exist
 - [ ] **Scheduled message tone** — observe scheduled sends with guidance prefix in logs (no raw metrics to user)
-- [ ] **Auth failure path** — if refresh fails, confirm auto-pause and decide whether to implement reconnect notice
-- [ ] **Automated scheduler runs** — confirm 06:30 / 18:00 sync entries in `logs/google_health.log` without manual `sync health`
+- [ ] **Auth failure path** — if refresh fails, confirm auto-pause and reconnect notice delivery (one-time message on primary channel)
+- [ ] **Automated scheduler runs** — confirm morning/evening sync entries in `logs/google_health.log` at user's local `GOOGLE_HEALTH_SYNC_TIMES` (poll every 30 min)
 
 **Operational tip:** Increase `GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS` (default `3`) temporarily to backfill more history for baselines faster.
 
@@ -175,7 +176,7 @@ Live testing exposed API client issues; fixed in `integrations/google_health/cli
 |---------|------------|
 | Clinical claims | Rules + AI instructions; no diagnosis language |
 | Raw metrics in AI | `health_context_builder` — guidance phrases only |
-| Token leakage | Never log token values; auth file in gitignored `data/` |
+| Token leakage | Never log token values; auth file in gitignored `data/`; optional Fernet encryption via `GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY` |
 | API failure | Silent fallback to normal messages; auto-pause after repeated failures |
 | User control | `pause health`, `enable health`, `delete health data` |
 | Testing | `MHM_TESTING=1` skips live API calls |
@@ -186,7 +187,7 @@ Live testing exposed API client issues; fixed in `integrations/google_health/cli
 
 | Command | Purpose |
 |---------|---------|
-| `connect google health` | One-time OAuth (required) |
+| `connect google health` | One-time OAuth (Discord or admin UI **Google Health** button) |
 | `health status` | Connection + last sync |
 | `pause health` / `enable health` | Stop / resume sync and personalization |
 | `delete health data` | Wipe local `health/` files |
@@ -206,6 +207,10 @@ Live testing exposed API client issues; fixed in `integrations/google_health/cli
 | `tests/unit/test_health_signal_builder.py` | Baselines, confidence |
 | `tests/unit/test_health_personalization_rules.py` | Rule matrix |
 | `tests/unit/test_health_context_builder.py` | AI-safe context |
+| `tests/unit/test_google_health_notifications.py` | Reconnect notice on auth auto-pause |
+| `tests/unit/test_google_health_token_crypto.py` | Fernet token encryption at rest |
+| `tests/unit/test_health_sync_schedule.py` | Per-user timezone slot due logic |
+| `tests/unit/test_google_health_user_settings.py` | Shared connect/status/settings ops |
 | `tests/behavior/test_health_handler_behavior.py` | Commands |
 | `tests/integration/test_health_scheduler_job.py` | Scheduler registration |
 
@@ -229,8 +234,8 @@ Fixtures: `tests/test_helpers/fixtures/google_health/`
 |---|----------|----------|
 | 1 | GCP project setup | **Testing mode + test users** — sufficient for personal MHM; document in GOOGLE_HEALTH_GUIDE |
 | 2 | `health_personalization` preferences envelope | **Deferred** — account `features.google_health` only in V0 |
-| 3 | Per-user timezone for sync | **Deferred to V1** — service-local times for V0 |
-| 4 | Admin UI vs Discord connect | **Discord + localhost callback shipped**; admin UI deferred |
+| 3 | Per-user timezone for sync | **Shipped 2026-06-28** — account timezone via `scheduler/user_timezone.py`; poll + slot dedupe |
+| 4 | Admin UI vs Discord connect | **Shipped 2026-06-28** — admin **Google Health** panel + Discord/localhost callback |
 | 5 | Google Health API endpoint names | **Resolved** during live testing — kebab-case paths + type-specific filters |
 
 ---
@@ -240,7 +245,7 @@ Fixtures: `tests/test_helpers/fixtures/google_health/`
 | Risk | Mitigation |
 |------|------------|
 | Google restricted-scope verification | Stay in Testing mode for personal use |
-| Refresh token loss / 6-month idle expiry | Auto-pause; reconnect via `connect google health` |
+| Refresh token loss / 6-month idle expiry | Auto-pause; one-time reconnect notice; reconnect via `connect google health` |
 | Mixed OAuth scopes break API | Never `include_granted_scopes`; only `googlehealth.*` |
 | Sparse baseline data | Require min history; `unknown` + normal messages until confident |
 | Sync latency (many step intervals) | Mitigated via `dailyRollUp`; chunked list fallback if rollUp fails |

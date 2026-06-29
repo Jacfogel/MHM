@@ -4,24 +4,20 @@
 
 from __future__ import annotations
 
-import threading
-from typing import Any
-
-from core import get_user_data, update_user_account
-from core.config import (
-    GOOGLE_HEALTH_CLIENT_ID,
-    GOOGLE_HEALTH_CLIENT_SECRET,
-    GOOGLE_HEALTH_ENABLED,
-)
+from core.config import GOOGLE_HEALTH_ENABLED
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
-from integrations.google_health.auth import build_authorization_url, run_oauth_connect_flow
-from integrations.google_health.data_handlers import (
-    delete_user_health_data,
-    has_valid_auth,
-    load_sync_state,
+from integrations.google_health.user_settings import (
+    delete_health_integration,
+    enable_health_integration,
+    format_status_text,
+    get_connect_authorization_url,
+    get_connect_readiness,
+    get_health_integration_status,
+    pause_health_integration,
+    run_connect_flow_async,
+    sync_health_integration,
 )
-from integrations.google_health.sync_manager import sync_user_health_data
 
 from communication.command_handlers.base_handler import InteractionHandler
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
@@ -79,38 +75,12 @@ class HealthHandler(InteractionHandler):
                 "Google Health integration is not enabled on this server.", True
             )
 
-        result: dict[str, Any] = {"url": "", "error": ""}
+        ready, error = get_connect_readiness()
+        if not ready:
+            return InteractionResponse(error, completed=True)
 
-        def _run() -> None:
-            """Run OAuth callback, first sync, and enable google_health in a background thread."""
-
-            try:
-
-                @handle_errors("capturing OAuth authorization URL")
-                def _notify(url: str) -> None:
-                    """Store the browser authorization URL from the local OAuth callback."""
-                    result["url"] = url
-
-                run_oauth_connect_flow(user_id, on_complete=_notify)
-                sync_user_health_data(user_id, force=True)
-                account = get_user_data(user_id, "account").get("account") or {}
-                features = dict(account.get("features") or {})
-                features["google_health"] = "enabled"
-                update_user_account(user_id, {"features": features})
-            except Exception as exc:
-                result["error"] = str(exc)
-
-        auth_url = build_authorization_url(state=user_id)
-        if not GOOGLE_HEALTH_CLIENT_ID or not GOOGLE_HEALTH_CLIENT_SECRET or not auth_url:
-            return InteractionResponse(
-                "Google Health is not configured on this server yet "
-                "(missing client ID in `.env`). Ask your admin to set "
-                "`GOOGLE_HEALTH_CLIENT_ID` and `GOOGLE_HEALTH_CLIENT_SECRET`.",
-                completed=True,
-            )
-
-        thread = threading.Thread(target=_run, daemon=True)
-        thread.start()
+        auth_url = get_connect_authorization_url(user_id)
+        run_connect_flow_async(user_id, lambda _ok, _err: None)
 
         return InteractionResponse(
             "**Connect Google Health (one-time)**\n\n"
@@ -129,37 +99,23 @@ class HealthHandler(InteractionHandler):
         default_return=InteractionResponse("Could not load health status.", True),
     )
     def _handle_status(self, user_id: str) -> InteractionResponse:
-        account = get_user_data(user_id, "account").get("account") or {}
-        state = (account.get("features") or {}).get("google_health", "disabled")
-        sync_state = load_sync_state(user_id) or {}
-        connected = has_valid_auth(user_id)
-        last_sync = sync_state.get("last_success_at") or "never"
-        lines = [
-            f"**Feature:** {state} (`enabled` = sync + personalization, `paused` = off, `disabled` = off)",
-            f"**Google account linked:** {'yes' if connected else 'no'}",
-            f"**Last successful sync:** {last_sync}",
-        ]
-        if state == "enabled" and connected and last_sync == "never":
-            lines.append(
-                "Sync is scheduled automatically — the first pull may happen shortly after connect."
-            )
-        elif state == "enabled" and not connected:
-            lines.append("Run `connect google health` to link your Google account.")
-        if sync_state.get("last_error"):
-            lines.append(
-                "A recent sync had an issue (logged internally). Messages stay normal until fixed."
-            )
-        return InteractionResponse("\n".join(lines), completed=True)
+        status = get_health_integration_status(user_id)
+        if status is None:
+            return InteractionResponse("Could not load health status.", True)
+        body = format_status_text(status)
+        text = (
+            body.replace("Feature:", "**Feature:**", 1)
+            .replace("Google account linked:", "**Google account linked:**", 1)
+            .replace("Last successful sync:", "**Last successful sync:**", 1)
+        )
+        return InteractionResponse(text, completed=True)
 
     @handle_errors(
         "pausing google health",
         default_return=InteractionResponse("Could not pause health personalization.", True),
     )
     def _handle_pause(self, user_id: str) -> InteractionResponse:
-        account = get_user_data(user_id, "account").get("account") or {}
-        features = dict(account.get("features") or {})
-        features["google_health"] = "paused"
-        update_user_account(user_id, {"features": features})
+        pause_health_integration(user_id)
         return InteractionResponse(
             "Health personalization paused. Your data is kept; sync and tone adjustments stop until you re-enable.",
             completed=True,
@@ -171,15 +127,13 @@ class HealthHandler(InteractionHandler):
         default_return=InteractionResponse("Could not enable health personalization.", True),
     )
     def _handle_enable(self, user_id: str) -> InteractionResponse:
-        if not has_valid_auth(user_id):
+        ok, message = enable_health_integration(user_id)
+        if not ok:
             return InteractionResponse(
-                "Connect Google Health first with `connect google health`.", True
+                message if message == "Connect Google Health first."
+                else message or "Could not enable health personalization.",
+                True,
             )
-        account = get_user_data(user_id, "account").get("account") or {}
-        features = dict(account.get("features") or {})
-        features["google_health"] = "enabled"
-        update_user_account(user_id, {"features": features})
-        sync_user_health_data(user_id, force=True)
         return InteractionResponse(
             "Health personalization enabled. Sync runs automatically on schedule.",
             completed=True,
@@ -190,11 +144,7 @@ class HealthHandler(InteractionHandler):
         default_return=InteractionResponse("Could not delete health data.", True),
     )
     def _handle_delete(self, user_id: str) -> InteractionResponse:
-        delete_user_health_data(user_id)
-        account = get_user_data(user_id, "account").get("account") or {}
-        features = dict(account.get("features") or {})
-        features["google_health"] = "disabled"
-        update_user_account(user_id, {"features": features})
+        delete_health_integration(user_id)
         return InteractionResponse(
             "Local Google Health data deleted and feature disabled.", completed=True
         )
@@ -204,7 +154,7 @@ class HealthHandler(InteractionHandler):
         default_return=InteractionResponse("Health sync failed.", True),
     )
     def _handle_sync(self, user_id: str) -> InteractionResponse:
-        ok = sync_user_health_data(user_id, force=True)
+        ok = sync_health_integration(user_id)
         if ok:
             return InteractionResponse(
                 "Health sync completed (debug). Normal operation is automatic.", completed=True

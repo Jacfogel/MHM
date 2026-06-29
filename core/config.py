@@ -413,6 +413,9 @@ GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD = int(
 GOOGLE_HEALTH_OAUTH_CALLBACK_TIMEOUT_SECONDS = int(
     os.getenv("GOOGLE_HEALTH_OAUTH_CALLBACK_TIMEOUT_SECONDS", "300")
 )
+GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY = os.getenv(
+    "GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY", ""
+).strip()
 
 if GOOGLE_HEALTH_ENABLED and not all(
     [GOOGLE_HEALTH_CLIENT_ID, GOOGLE_HEALTH_CLIENT_SECRET]
@@ -638,6 +641,21 @@ def validate_google_health_configuration() -> tuple[bool, list[str], list[str]]:
         warnings.append(
             "Do not embed include_granted_scopes in GOOGLE_HEALTH_SCOPES — "
             "it must not be sent to Google Health OAuth"
+        )
+
+    if GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY:
+        from integrations.google_health.token_crypto import is_valid_fernet_key
+
+        if not is_valid_fernet_key(GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY):
+            errors.append(
+                "GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY is not a valid Fernet key "
+                "(generate with: python -c \"from cryptography.fernet import Fernet; "
+                "print(Fernet.generate_key().decode())\")"
+            )
+    elif GOOGLE_HEALTH_ENABLED:
+        warnings.append(
+            "GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY is not set — "
+            "OAuth tokens are stored in plaintext under data/users/*/health/"
         )
 
     return len(errors) == 0, errors, warnings

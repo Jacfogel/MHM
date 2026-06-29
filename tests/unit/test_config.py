@@ -19,7 +19,6 @@ from core.config import (
     validate_environment_variables,
     validate_all_configuration,
     validate_and_raise_if_invalid,
-    ConfigValidationError,
     BASE_DATA_DIR,
     USER_INFO_DIR_PATH,
     DEFAULT_MESSAGES_DIR_PATH
@@ -215,6 +214,8 @@ class TestConfigValidation:
     @pytest.mark.critical
     def test_validate_and_raise_if_invalid_failure(self, test_data_dir, test_path_factory):
         """Test validation failure raises ConfigValidationError."""
+        import core.config as config_module
+
         temp_root = test_path_factory
         defaults_dir = os.path.join(temp_root, 'resources', 'default_messages')
         mock_result = {
@@ -225,21 +226,22 @@ class TestConfigValidation:
             'summary': 'Configuration validation failed with 1 error(s) and 0 warning(s)',
         }
 
-        with patch('core.config.BASE_DATA_DIR', test_data_dir):
-            with patch('core.config.USER_INFO_DIR_PATH', os.path.join(test_data_dir, 'users')):
-                with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', defaults_dir):
-                    with patch('core.config.GOOGLE_HEALTH_ENABLED', False):
+        with patch.object(config_module, 'BASE_DATA_DIR', test_data_dir):
+            with patch.object(config_module, 'USER_INFO_DIR_PATH', os.path.join(test_data_dir, 'users')):
+                with patch.object(config_module, 'DEFAULT_MESSAGES_DIR_PATH', defaults_dir):
+                    with patch.object(config_module, 'GOOGLE_HEALTH_ENABLED', False):
                         with patch.dict(os.environ, {
                             'LM_STUDIO_BASE_URL': 'http://localhost:1234/v1',
                             'LM_STUDIO_API_KEY': 'test_key',
                             'GOOGLE_HEALTH_ENABLED': 'false',
                         }, clear=False):
-                            with patch(
-                                'core.config.validate_all_configuration',
+                            with patch.object(
+                                config_module,
+                                'validate_all_configuration',
                                 return_value=mock_result,
                             ):
-                                with pytest.raises(ConfigValidationError) as exc_info:
-                                    validate_and_raise_if_invalid()
+                                with pytest.raises(config_module.ConfigValidationError) as exc_info:
+                                    config_module.validate_and_raise_if_invalid()
 
                                 assert exc_info.value.missing_configs
                                 assert any(

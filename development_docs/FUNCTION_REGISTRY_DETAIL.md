@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-27 21:37:52
+> **Last Generated**: 2026-06-28 14:09:44
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 90.5% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 230
-- **Functions Found**: 2242
-- **Methods Found**: 1361
-- **Classes Found**: 231
-- **Total Items**: 3603
-- **Functions Documented**: 2004
-- **Methods Documented**: 1257
-- **Classes Documented**: 165
-- **Total Documented**: 3261
-- **Template-Generated**: 42
-- **Last Updated**: 2026-06-27
+### **Function Documentation Coverage: 90.1% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 232
+- **Functions Found**: 2256
+- **Methods Found**: 1373
+- **Classes Found**: 233
+- **Total Items**: 3629
+- **Functions Documented**: 2009
+- **Methods Documented**: 1260
+- **Classes Documented**: 167
+- **Total Documented**: 3269
+- **Template-Generated**: 44
+- **Last Updated**: 2026-06-28
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,10 +42,10 @@
 ### **Core System Functions** (477)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (629)
+### **Communication Functions** (627)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (499)
+### **User Interface Functions** (511)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (36)
@@ -1241,8 +1241,6 @@ Returns:
 - [MISSING] `_handle_pause(self, user_id)` - No description
 - [MISSING] `_handle_status(self, user_id)` - No description
 - [MISSING] `_handle_sync(self, user_id)` - No description
-- [OK] `_notify(url)` - Store the browser authorization URL from the local OAuth callback.
-- [OK] `_run()` - Run OAuth callback, first sync, and enable google_health in a background thread.
 - [MISSING] `can_handle(self, intent)` - No description
 - [OK] `get_examples(self)` - Return example phrases for Google Health commands.
 - [OK] `get_help(self)` - Return short help text for Google Health commands.
@@ -4220,7 +4218,7 @@ Args:
 #### `core/profile_v2_schemas.py`
 **Functions:**
 - [OK] `_coerce_flag(cls, value)` - Normalize feature flag inputs to enabled/disabled literals.
-- [OK] `_coerce_google_health(cls, value)` - Normalize legacy bool/string values to enabled, disabled, or paused.
+- [OK] `_coerce_google_health(cls, value)` - Normalize google_health to enabled, disabled, or paused.
 - [OK] `_normalize_discord_id(cls, value)` - Validate Discord snowflake IDs; invalid values become empty.
 - [OK] `_normalize_discord_username(cls, value)` - Trim and bound Discord username length for on-disk storage.
 - [OK] `_normalize_email(cls, value)` - Drop invalid email strings to empty for strict account envelopes.
@@ -4268,7 +4266,7 @@ Args:
 - [MISSING] `CustomFieldsV2Model` - No description
 - [MISSING] `FeaturesV2Model` - No description
   - [OK] `FeaturesV2Model._coerce_flag(cls, value)` - Normalize feature flag inputs to enabled/disabled literals.
-  - [OK] `FeaturesV2Model._coerce_google_health(cls, value)` - Normalize legacy bool/string values to enabled, disabled, or paused.
+  - [OK] `FeaturesV2Model._coerce_google_health(cls, value)` - Normalize google_health to enabled, disabled, or paused.
 - [MISSING] `PeriodV2Model` - No description
   - [OK] `PeriodV2Model._valid_days(cls, value)` - Filter schedule days to the allowed set, defaulting to ALL.
   - [OK] `PeriodV2Model._valid_time(cls, value)` - Normalize schedule period times to HH:MM or 00:00 when invalid.
@@ -5178,8 +5176,18 @@ Returns:
 
 #### `scheduler/health_sync_jobs.py`
 **Functions:**
-- [OK] `register_health_sync_jobs()` - Register 1–2 daily automated health sync times from config.
-- [OK] `run_scheduled_health_sync()` - Callback for schedule library — sync all enabled users.
+- [OK] `register_health_sync_jobs()` - Register periodic poll for per-user timezone-aware health sync.
+- [OK] `run_scheduled_health_sync()` - Callback for schedule library — sync users due in their local timezone.
+
+#### `scheduler/health_sync_schedule.py`
+**Functions:**
+- [OK] `_slot_datetime_local(now_local, time_str)` - Build timezone-aware slot datetime on the same local calendar day as now_local.
+- [OK] `_sorted_sync_times(sync_times)` - Sort HH:MM sync times chronologically.
+- [OK] `build_sync_slot_key(local_date, time_str)` - Return a stable slot identifier: ``YYYY-MM-DD_HH:MM``.
+- [OK] `get_due_sync_slot_key(user_id)` - Return the latest due sync slot key for ``user_id``, or None if not due.
+
+Sync times from ``GOOGLE_HEALTH_SYNC_TIMES`` are interpreted in the user's
+account timezone (``account.timezone``).
 
 #### `scheduler/jobs.py`
 **Functions:**
@@ -6012,6 +6020,7 @@ Returns:
 - [OK] `manage_categories(self, parent, current_user)` - Open category management for the selected user.
 - [OK] `manage_checkins(self, parent, current_user)` - Open check-in management for the selected user.
 - [OK] `manage_communication_settings(self, parent, current_user)` - Open channel management for the selected user.
+- [OK] `manage_google_health_settings(self, parent, current_user)` - Open Google Health connect and status panel for the selected user.
 - [OK] `manage_personalization(self, parent, current_user)` - Open personalization settings for the selected user.
 - [OK] `manage_phrase_settings(self, parent, current_user)` - Open natural-language phrase settings for the selected user.
 - [OK] `manage_task_crud(self, parent, current_user)` - Open task CRUD for the selected user.
@@ -6031,6 +6040,7 @@ Returns:
   - [OK] `DialogActions.manage_categories(self, parent, current_user)` - Open category management for the selected user.
   - [OK] `DialogActions.manage_checkins(self, parent, current_user)` - Open check-in management for the selected user.
   - [OK] `DialogActions.manage_communication_settings(self, parent, current_user)` - Open channel management for the selected user.
+  - [OK] `DialogActions.manage_google_health_settings(self, parent, current_user)` - Open Google Health connect and status panel for the selected user.
   - [OK] `DialogActions.manage_personalization(self, parent, current_user)` - Open personalization settings for the selected user.
   - [OK] `DialogActions.manage_phrase_settings(self, parent, current_user)` - Open natural-language phrase settings for the selected user.
   - [OK] `DialogActions.manage_task_crud(self, parent, current_user)` - Open task CRUD for the selected user.
@@ -6237,6 +6247,34 @@ Args:
 
 Returns:
     True if the event was handled; False if the dialog should chain to super().
+
+#### `ui/dialogs/google_health_settings_dialog.py`
+**Functions:**
+- [OK] `__init__(self, user_id)` - Special Python method
+- [OK] `__init__(self, parent, user_id)` - Build the connect panel for ``user_id`` (admin UI).
+- [MISSING] `_on_connect_finished(self, success, error)` - No description
+- [MISSING] `_set_actions_enabled(self, enabled)` - No description
+- [MISSING] `delete_data(self)` - No description
+- [MISSING] `enable_health(self)` - No description
+- [MISSING] `pause_health(self)` - No description
+- [MISSING] `refresh_status(self)` - No description
+- [MISSING] `run(self)` - No description
+- [MISSING] `start_connect(self)` - No description
+- [MISSING] `sync_now(self)` - No description
+**Classes:**
+- [OK] `GoogleHealthSettingsDialog` - Per-user Google Health connect panel for the admin UI.
+  - [OK] `GoogleHealthSettingsDialog.__init__(self, parent, user_id)` - Build the connect panel for ``user_id`` (admin UI).
+  - [MISSING] `GoogleHealthSettingsDialog._on_connect_finished(self, success, error)` - No description
+  - [MISSING] `GoogleHealthSettingsDialog._set_actions_enabled(self, enabled)` - No description
+  - [MISSING] `GoogleHealthSettingsDialog.delete_data(self)` - No description
+  - [MISSING] `GoogleHealthSettingsDialog.enable_health(self)` - No description
+  - [MISSING] `GoogleHealthSettingsDialog.pause_health(self)` - No description
+  - [MISSING] `GoogleHealthSettingsDialog.refresh_status(self)` - No description
+  - [MISSING] `GoogleHealthSettingsDialog.start_connect(self)` - No description
+  - [MISSING] `GoogleHealthSettingsDialog.sync_now(self)` - No description
+- [OK] `_ConnectFlowWorker` - Background worker that runs the blocking OAuth connect flow.
+  - [OK] `_ConnectFlowWorker.__init__(self, user_id)` - Special Python method
+  - [MISSING] `_ConnectFlowWorker.run(self)` - No description
 
 #### `ui/dialogs/message_editor_dialog.py`
 **Functions:**

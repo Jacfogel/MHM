@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-27 21:37:52
+> **Last Generated**: 2026-06-28 14:09:44
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 90.5% [!] GOOD**
-- **Total Functions**: 2242
-- **Total Methods**: 1361
-- **Documented**: 3261/3603
-- **Files Scanned**: 230
+### **Documentation Coverage: 90.1% [!] GOOD**
+- **Total Functions**: 2256
+- **Total Methods**: 1373
+- **Documented**: 3269/3629
+- **Files Scanned**: 232
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -90,7 +90,7 @@ Core System Decision Tree:
 - `PeriodRowWidget` (ui/widgets/period_row_widget.py)
 - ... and 5 more
 
-### **Dialog Pattern** (17 found)
+### **Dialog Pattern** (19 found)
 **Purpose**: Modal user interaction windows
 **Location**: `ui/dialog_actions.py`, `ui/dialogs/account_creator_dialog.py`, `ui/dialogs/admin_panel.py`
 **Pattern**: 
@@ -102,7 +102,7 @@ Core System Decision Tree:
 - `DialogActions` (ui/dialog_actions.py)
 - `AccountCreatorDialog` (ui/dialogs/account_creator_dialog.py)
 - `AdminPanelDialog` (ui/dialogs/admin_panel.py)
-- ... and 14 more
+- ... and 16 more
 
 ### **Context Manager Pattern** (1 found)
 **Purpose**: Safe resource management
@@ -156,15 +156,15 @@ Core System Decision Tree:
 
 ### **High Priority** (Missing Documentation)
 - `core/profile_v2_schemas.py` - 24/48 functions undocumented (50% coverage)
+- `ui/dialogs/google_health_settings_dialog.py` - 18/22 functions undocumented (18% coverage)
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
-- `communication/command_handlers/health_handler.py` - 16/24 functions undocumented (33% coverage)
+- `communication/command_handlers/health_handler.py` - 16/22 functions undocumented (27% coverage)
 - `communication/delivery/message_dispatcher.py` - 15/17 functions undocumented (12% coverage)
 - `storage/user_data_write.py` - 15/19 functions undocumented (21% coverage)
 - `core/schemas.py` - 15/29 functions undocumented (48% coverage)
 - `communication/message_processing/interaction_manager.py` - 14/28 functions undocumented (50% coverage)
 - `core/service_requests.py` - 14/34 functions undocumented (59% coverage)
 - `communication/command_handlers/natural_language_handler.py` - 12/12 functions undocumented (0% coverage)
-- `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
@@ -206,13 +206,13 @@ Most complex functions (may need refactoring):
 ### **File Organization**
 - `ai/` - AI chatbot functionality (26 files, 267 functions)
 - `checkins/` -  (6 files, 135 functions)
-- `communication/` - Communication channels and message processing (83 files, 1123 functions)
+- `communication/` - Communication channels and message processing (83 files, 1121 functions)
 - `core/` - System utilities and data management (33 files, 650 functions)
 - `messages/` -  (5 files, 38 functions)
-- `scheduler/` -  (7 files, 96 functions)
+- `scheduler/` -  (8 files, 100 functions)
 - `storage/` -  (11 files, 151 functions)
 - `tasks/` - Task management system (9 files, 105 functions)
-- `ui/` - User interface components (42 files, 920 functions)
+- `ui/` - User interface components (43 files, 944 functions)
 - `user/` - User context and preferences (5 files, 68 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**
