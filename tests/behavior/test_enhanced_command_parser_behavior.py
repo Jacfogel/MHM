@@ -9,6 +9,39 @@ import json
 import pytest
 from unittest.mock import patch
 from communication.message_processing.command_parser import EnhancedCommandParser
+from ai.chatbot import AIChatBotSingleton
+
+
+def _fast_ai_command_response(message, mode="command", user_id=None, timeout=None):
+    """Deterministic stub for AI command parsing (avoids LM Studio timeouts in behavior tests)."""
+    msg = (message or "").lower()
+    action = "unknown"
+    details: dict = {}
+
+    if any(word in msg for word in ("complete", "done", "finished", "mark")) and "task" in msg:
+        action = "complete_task"
+        details = {"task_identifier": "1"}
+    elif "help" in msg or "how do" in msg or "how to" in msg or "what can you" in msg:
+        action = "help"
+    elif any(word in msg for word in ("show", "list", "what are my", "what do i have")) and "task" in msg:
+        action = "list_tasks"
+    elif "checkin" in msg or "check in" in msg:
+        action = "start_checkin"
+    elif "task" in msg or "remind" in msg or "create" in msg:
+        action = "create_task"
+        details = {"task_description": message or "", "title": message or ""}
+
+    return json.dumps({"action": action, "details": details})
+
+
+@pytest.fixture(autouse=True)
+def _mock_ai_unless_real_ai(request):
+    """Mock AI chatbot for behavior tests; @pytest.mark.ai tests use the real chatbot."""
+    if request.node.get_closest_marker("ai"):
+        yield
+        return
+    with patch.object(AIChatBotSingleton, "generate_response", side_effect=_fast_ai_command_response):
+        yield
 
 
 @pytest.mark.communication

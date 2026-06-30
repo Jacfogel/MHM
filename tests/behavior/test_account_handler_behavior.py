@@ -20,7 +20,13 @@ from communication.command_handlers.account_handler import (
 from communication.command_handlers.shared_types import ParsedCommand
 
 
-class TestAccountHandlerBehavior:
+def _snowflake() -> str:
+    """Unique numeric Discord snowflake-like ID for parallel-safe handler tests."""
+    return str(uuid.uuid4().int)[:18]
+
+
+def _unique_username(prefix: str = "user") -> str:
+    return f"{prefix}-{uuid.uuid4().hex[:8]}"
     """Test account handler real behavior and side effects."""
     
     @pytest.mark.behavior
@@ -63,26 +69,17 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_handle_create_account_with_valid_username(self, test_data_dir):
         """Test: Create account with valid username creates user and saves data."""
         handler = AccountManagementHandler()
-        
-        # Clear any existing user
-        discord_user_id = "111222333444555666"
-        existing_user_id = get_user_id_by_identifier(discord_user_id)
-        if existing_user_id:
-            from storage.user_data_operations import delete_user_completely, rebuild_user_index
-            delete_user_completely(existing_user_id, create_backup=False)
-            rebuild_user_index()  # Rebuild index to ensure user is removed
-            # Wait a moment for file system to sync
-            import time
-            time.sleep(0.1)
-        
+
+        discord_user_id = _snowflake()
+        username = _unique_username("newtestuser")
+
         parsed_command = ParsedCommand(
             intent='create_account',
             entities={
-                'username': 'newtestuser',
+                'username': username,
                 'channel_identifier': discord_user_id,
                 'channel_type': 'discord',
                 'tasks_enabled': True,
@@ -92,7 +89,7 @@ class TestAccountHandlerBehavior:
             confidence=0.9,
             original_message='create account'
         )
-        
+
         response = handler.handle(discord_user_id, parsed_command)
         
         # Assert: Should create account successfully
@@ -107,28 +104,23 @@ class TestAccountHandlerBehavior:
         user_data = get_user_data(created_user_id, 'account')
         assert user_data is not None, "User data should exist"
         account_data = user_data.get('account', {})
-        assert account_data.get('internal_username') == 'newtestuser', "Username should match"
+        assert account_data.get('internal_username') == username, "Username should match"
         assert account_data.get('discord_user_id') == discord_user_id, "Discord ID should be set"
     
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_handle_create_account_with_feature_selection(self, test_data_dir):
         """Test: Create account with feature selection parameters sets correct feature flags."""
         handler = AccountManagementHandler()
-        
-        # Clear any existing user
-        discord_user_id = "999888777666555444"
-        existing_user_id = get_user_id_by_identifier(discord_user_id)
-        if existing_user_id:
-            from storage.user_data_operations import delete_user_completely
-            delete_user_completely(existing_user_id, create_backup=False)
-        
+
+        discord_user_id = _snowflake()
+        username = _unique_username("featuretestuser")
+
         parsed_command = ParsedCommand(
             intent='create_account',
             entities={
-                'username': 'featuretestuser',
+                'username': username,
                 'channel_identifier': discord_user_id,
                 'channel_type': 'discord',
                 'tasks_enabled': False,
@@ -139,7 +131,7 @@ class TestAccountHandlerBehavior:
             confidence=0.9,
             original_message='create account'
         )
-        
+
         response = handler.handle(discord_user_id, parsed_command)
         
         # Assert: Should create account successfully
@@ -162,31 +154,24 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_handle_create_account_requires_feature_selection(self, test_data_dir):
         """Test: Create account without feature selection prompts for required flags."""
         handler = AccountManagementHandler()
-        
-        # Clear any existing user
-        discord_user_id = "888777666555444333"
-        existing_user_id = get_user_id_by_identifier(discord_user_id)
-        if existing_user_id:
-            from storage.user_data_operations import delete_user_completely
-            delete_user_completely(existing_user_id, create_backup=False)
-        
-        # Create account without feature selection parameters
+
+        discord_user_id = _snowflake()
+        username = _unique_username("defaulttestuser")
+
         parsed_command = ParsedCommand(
             intent='create_account',
             entities={
-                'username': 'defaulttestuser',
+                'username': username,
                 'channel_identifier': discord_user_id,
                 'channel_type': 'discord'
-                # No feature selection parameters - should use defaults
             },
             confidence=0.9,
             original_message='create account'
         )
-        
+
         response = handler.handle(discord_user_id, parsed_command)
         
         # Assert: Should require explicit feature selection
@@ -237,28 +222,20 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_handle_create_account_with_existing_username(self, test_data_dir):
         """Test: Create account with existing username rejects."""
         handler = AccountManagementHandler()
-        
-        # Create existing user first
-        existing_username = 'existinguser'
+
+        existing_username = _unique_username("existinguser")
         TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
-        
-        # Rebuild user index to ensure user is discoverable
-        from storage.user_data_operations import rebuild_user_index
-        rebuild_user_index()
-        import time
-        time.sleep(0.1)  # Brief delay for index to be written
-        
+
         parsed_command = ParsedCommand(
             intent='create_account',
             entities={'username': existing_username},
             confidence=0.9,
             original_message='create account'
         )
-        
+
         response = handler.handle('test_channel_id', parsed_command)
         
         # Assert: Should reject existing username
@@ -268,38 +245,30 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_handle_check_account_status_with_existing_user(self, test_data_dir):
         """Test: Check account status returns account info for existing user."""
         handler = AccountManagementHandler()
-        
-        # Create existing user
-        discord_user_id = "222333444555666777"
-        TestUserFactory.create_discord_user(discord_user_id, test_data_dir=test_data_dir)
-        
-        # Ensure user index is updated (race condition fix)
-        from storage.user_data_operations import rebuild_user_index
-        rebuild_user_index()
-        
-        # Retry lookup in case of race conditions
-        import time
-        internal_user_id = None
-        for attempt in range(5):
-            internal_user_id = get_user_id_by_identifier(discord_user_id)
-            if internal_user_id:
-                break
-            if attempt < 4:
-                time.sleep(0.1)
-        
+
+        internal_name = _unique_username("status-check")
+        discord_user_id = _snowflake()
+        TestUserFactory.create_discord_user(
+            internal_name,
+            discord_user_id=discord_user_id,
+            test_data_dir=test_data_dir,
+        )
+
+        internal_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+            internal_name, test_data_dir
+        )
         assert internal_user_id is not None, "User should exist"
-        
+
         parsed_command = ParsedCommand(
             intent='check_account_status',
             entities={},
             confidence=0.9,
             original_message='check account status'
         )
-        
+
         response = handler.handle(discord_user_id, parsed_command)
         
         # Assert: Should return account status
@@ -311,26 +280,19 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_handle_check_account_status_without_user(self, test_data_dir):
         """Test: Check account status indicates no account for new user."""
         handler = AccountManagementHandler()
-        
-        # Use a unique user ID to avoid collisions with other tests.
-        new_user_id = f"check-status-none-{uuid.uuid4().hex[:12]}"
-        existing_user_id = get_user_id_by_identifier(new_user_id)
-        if existing_user_id:
-            from storage.user_data_operations import delete_user_completely, rebuild_user_index
-            delete_user_completely(existing_user_id, create_backup=False)
-            rebuild_user_index()  # Rebuild index to ensure user is removed
-        
+
+        new_user_id = _snowflake()
+
         parsed_command = ParsedCommand(
             intent='check_account_status',
             entities={},
             confidence=0.9,
             original_message='check account status'
         )
-        
+
         response = handler.handle(new_user_id, parsed_command)
         
         # Assert: Should indicate no account
@@ -383,88 +345,71 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_handle_link_account_sends_confirmation_code(self, test_data_dir):
         """Test: Link account sends confirmation code for valid username."""
         handler = AccountManagementHandler()
-        
-        # Create existing user with email
-        existing_username = 'linktestuser'
+
+        existing_username = _unique_username("linktestuser")
         create_success = TestUserFactory.create_basic_user(
             existing_username, test_data_dir=test_data_dir
         )
         assert create_success is True, "Test user should be created"
 
-        # Rebuild user index to ensure user is discoverable
-        from storage.user_data_operations import rebuild_user_index
-        rebuild_user_index()
-        import time
-        time.sleep(0.1)  # Brief delay for index to be written
-
-        # Add email to user account
         from core import update_user_account
-        user_id = get_user_id_by_identifier(existing_username)
+        user_id = TestUserFactory.get_test_user_id_by_internal_username(
+            existing_username, test_data_dir
+        )
         assert user_id is not None, "Test user should be discoverable by username"
         update_user_account(user_id, {'email': 'test@example.com'})
 
-        # Clear pending operations
-        _pending_link_operations.clear()
+        discord_user_id = _snowflake()
+        try:
+            parsed_command = ParsedCommand(
+                intent='link_account',
+                entities={
+                    'username': existing_username,
+                    'channel_identifier': discord_user_id,
+                    'channel_type': 'discord'
+                },
+                confidence=0.9,
+                original_message='link account'
+            )
 
-        discord_user_id = "333444555666777888"
-        parsed_command = ParsedCommand(
-            intent='link_account',
-            entities={
-                'username': existing_username,
-                'channel_identifier': discord_user_id,
-                'channel_type': 'discord'
-            },
-            confidence=0.9,
-            original_message='link account'
-        )
+            with patch('communication.command_handlers.account_handler._send_confirmation_code') as mock_send:
+                mock_send.return_value = True
+                response = handler.handle(discord_user_id, parsed_command)
 
-        with patch('communication.command_handlers.account_handler._send_confirmation_code') as mock_send:
-            mock_send.return_value = True
-            response = handler.handle(discord_user_id, parsed_command)
+            assert response.completed is False, "Should not complete without code"
+            assert 'confirmation code' in response.message.lower(), "Should mention confirmation code"
+            assert mock_send.called, "Should call send confirmation code"
 
-        # Assert: Should send confirmation code
-        assert response.completed is False, "Should not complete without code"
-        assert 'confirmation code' in response.message.lower(), "Should mention confirmation code"
-        assert mock_send.called, "Should call send confirmation code"
-        
-        # Verify pending operation was created
-        assert discord_user_id in _pending_link_operations, "Should create pending operation"
-        pending = _pending_link_operations[discord_user_id]
-        assert pending['operation_type'] == 'link', "Should be link operation"
-        assert pending['username'] == existing_username, "Should store username"
+            assert discord_user_id in _pending_link_operations, "Should create pending operation"
+            pending = _pending_link_operations[discord_user_id]
+            assert pending['operation_type'] == 'link', "Should be link operation"
+            assert pending['username'] == existing_username, "Should store username"
+        finally:
+            _pending_link_operations.pop(discord_user_id, None)
     
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_handle_link_account_verifies_confirmation_code(self, test_data_dir):
         """Test: Link account verifies confirmation code and links account."""
         handler = AccountManagementHandler()
-        
-        # Create existing user with email
-        existing_username = 'linkverifyuser'
+
+        existing_username = _unique_username("linkverifyuser")
         TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
-        
-        # Rebuild user index to ensure user is discoverable
-        from storage.user_data_operations import rebuild_user_index
-        rebuild_user_index()
-        import time
-        time.sleep(0.1)  # Brief delay for index to be written
-        
-        user_id = get_user_id_by_identifier(existing_username)
+
+        user_id = TestUserFactory.get_test_user_id_by_internal_username(
+            existing_username, test_data_dir
+        )
         assert user_id is not None, "User should be created"
-        
-        # Add email to user account
+
         from core import update_user_account
         update_result = update_user_account(user_id, {'email': 'test@example.com'})
         assert update_result is True, "Email should be added"
-        
-        # Set up pending operation with known code
-        discord_user_id = "444555666777888999"
+
+        discord_user_id = _snowflake()
         confirmation_code = '123456'
         _pending_link_operations[discord_user_id] = {
             'operation_type': 'link',
@@ -473,32 +418,30 @@ class TestAccountHandlerBehavior:
             'confirmation_code': confirmation_code,
             'channel_type': 'discord'
         }
-        
-        parsed_command = ParsedCommand(
-            intent='link_account',
-            entities={
-                'username': existing_username,
-                'confirmation_code': confirmation_code,
-                'channel_identifier': discord_user_id,
-                'channel_type': 'discord'
-            },
-            confidence=0.9,
-            original_message='link account'
-        )
-        
-        with patch('communication.command_handlers.account_handler._send_confirmation_code'):
-            response = handler.handle(discord_user_id, parsed_command)
-        
-        # Assert: Should link account successfully
-        assert response.completed is True, f"Should complete linking, got: {response.message}"
-        assert 'linked successfully' in response.message.lower(), "Should indicate success"
-        
-        # Verify account was actually linked
-        linked_user_id = get_user_id_by_identifier(discord_user_id)
-        assert linked_user_id == user_id, "User should be linked"
-        
-        # Verify pending operation was cleared
-        assert discord_user_id not in _pending_link_operations, "Should clear pending operation"
+        try:
+            parsed_command = ParsedCommand(
+                intent='link_account',
+                entities={
+                    'username': existing_username,
+                    'confirmation_code': confirmation_code,
+                    'channel_identifier': discord_user_id,
+                    'channel_type': 'discord'
+                },
+                confidence=0.9,
+                original_message='link account'
+            )
+
+            with patch('communication.command_handlers.account_handler._send_confirmation_code'):
+                response = handler.handle(discord_user_id, parsed_command)
+
+            assert response.completed is True, f"Should complete linking, got: {response.message}"
+            assert 'linked successfully' in response.message.lower(), "Should indicate success"
+
+            linked_user_id = get_user_id_by_identifier(discord_user_id)
+            assert linked_user_id == user_id, "User should be linked"
+            assert discord_user_id not in _pending_link_operations, "Should clear pending operation"
+        finally:
+            _pending_link_operations.pop(discord_user_id, None)
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -546,60 +489,43 @@ class TestAccountHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.no_parallel
     def test_username_exists_checks_existing_username(self, test_data_dir):
         """Test: Username exists check finds existing username."""
         handler = AccountManagementHandler()
-        
-        # Create user with known username
-        existing_username = f'existscheckuser_{uuid.uuid4().hex[:8]}'
+
+        existing_username = _unique_username("existscheckuser")
         create_success = TestUserFactory.create_basic_user(
             existing_username, test_data_dir=test_data_dir
         )
         assert create_success is True, "Test user should be created"
-        
-        # Rebuild user index to ensure user is discoverable
-        from storage.user_data_operations import rebuild_user_index
-        rebuild_user_index()
-        import time
-        time.sleep(0.1)  # Brief delay for index to be written
-        
-        # Test username exists
+
         assert handler._username_exists(existing_username), "Should find existing username"
         assert handler._username_exists(existing_username.upper()), "Should be case-insensitive"
         assert not handler._username_exists('nonexistentuser123'), "Should not find nonexistent username"
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.no_parallel
     def test_get_user_id_by_username_returns_correct_id(self, test_data_dir):
         """Test: Get user ID by username returns correct user ID."""
         handler = AccountManagementHandler()
-        
-        # Create user with known username
-        existing_username = f'getiduser_{uuid.uuid4().hex[:8]}'
+
+        existing_username = _unique_username("getiduser")
         create_success = TestUserFactory.create_basic_user(
             existing_username, test_data_dir=test_data_dir
         )
         assert create_success is True, "Test user should be created"
-        
-        # Rebuild user index to ensure user is discoverable
-        from storage.user_data_operations import rebuild_user_index
-        rebuild_user_index()
-        import time
-        time.sleep(0.1)  # Brief delay for index to be written
-        
-        # Get actual user ID
-        user_id = get_user_id_by_identifier(existing_username)
+
+        user_id = TestUserFactory.get_test_user_id_by_internal_username(
+            existing_username, test_data_dir
+        )
         assert user_id is not None, "User should be created"
-        
-        # Test get user ID
+
         found_id = handler._get_user_id_by_username(existing_username)
         assert found_id == user_id, "Should return correct user ID"
-        
+
         found_id_upper = handler._get_user_id_by_username(existing_username.upper())
         assert found_id_upper == user_id, "Should be case-insensitive"
-        
+
         found_id_nonexistent = handler._get_user_id_by_username('nonexistentuser123')
         assert found_id_nonexistent is None, "Should return None for nonexistent username"
     
@@ -689,35 +615,24 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_handle_link_account_with_email_channel(self, test_data_dir):
         """Test: Link account works with email channel type."""
         handler = AccountManagementHandler()
-        
-        # Create existing user with different email (to test linking)
-        existing_username = 'emaillinkuser'
+
+        existing_username = _unique_username("emaillinkuser")
         create_success = TestUserFactory.create_basic_user(
             existing_username, test_data_dir=test_data_dir
         )
         assert create_success is True, "Test user should be created"
 
-        # Rebuild user index to ensure user is discoverable
-        from storage.user_data_operations import rebuild_user_index
-        rebuild_user_index()
-        import time
-        time.sleep(0.1)  # Brief delay for index to be written
-
-        # Add different email to user account (not the one we're linking)
         from core import update_user_account
-        user_id = get_user_id_by_identifier(existing_username)
+        user_id = TestUserFactory.get_test_user_id_by_internal_username(
+            existing_username, test_data_dir
+        )
         assert user_id is not None, "Test user should be discoverable by username"
         update_user_account(user_id, {'email': 'existing@example.com'})
 
-        # Clear pending operations
-        _pending_link_operations.clear()
-
-        # Try to link to new email (different from existing)
-        email_address = 'linktest@example.com'
+        email_address = f'linktest-{uuid.uuid4().hex[:8]}@example.com'
         parsed_command = ParsedCommand(
             intent='link_account',
             entities={
@@ -731,46 +646,34 @@ class TestAccountHandlerBehavior:
 
         response = handler.handle(email_address, parsed_command)
 
-        # Assert: Should reject if email already linked (or proceed if not)
-        # The handler checks if email is already linked to a different account
         assert response.completed is False, "Should not complete immediately"
-        # May reject if already linked, or proceed to confirmation code
         assert 'already linked' in response.message.lower() or 'confirmation code' in response.message.lower(), "Should indicate status"
     
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_handle_link_account_with_already_linked_discord(self, test_data_dir):
         """Test: Link account rejects when Discord account already linked to different user."""
         handler = AccountManagementHandler()
-        
-        # Create existing user with different Discord ID and email
-        import uuid
 
-        existing_username = f"alreadylinkeduser_{uuid.uuid4().hex[:8]}"
+        existing_username = _unique_username("alreadylinkeduser")
         create_success = TestUserFactory.create_basic_user(
             existing_username, test_data_dir=test_data_dir
         )
         assert create_success is True, "Test user should be created"
 
-        # Rebuild user index to ensure user is discoverable
-        from storage.user_data_operations import rebuild_user_index
-        rebuild_user_index()
-        import time
-        time.sleep(0.1)  # Brief delay for index to be written
-
-        # Link to different Discord ID and add email (needed for confirmation code)
         from core import update_user_account
-        user_id = get_user_id_by_identifier(existing_username)
+        user_id = TestUserFactory.get_test_user_id_by_internal_username(
+            existing_username, test_data_dir
+        )
         assert user_id is not None, "Test user should be discoverable by username"
+        linked_discord_id = _snowflake()
         update_user_account(user_id, {
-            'discord_user_id': '999888777666555444',
+            'discord_user_id': linked_discord_id,
             'email': 'test@example.com'
         })
 
-        # Try to link to new Discord ID (different from existing)
-        new_discord_id = "111222333444555666"
+        new_discord_id = _snowflake()
         parsed_command = ParsedCommand(
             intent='link_account',
             entities={
@@ -782,49 +685,32 @@ class TestAccountHandlerBehavior:
             original_message='link account'
         )
 
-        # The handler checks if Discord ID is already linked to a different account
-        # However, if the existing Discord ID is the same as the one being linked, it allows it
-        # In this test, we're linking a different Discord ID, so it should check
-        # But the actual behavior may allow linking if the check doesn't match exactly
         response = handler.handle(new_discord_id, parsed_command)
 
-        # Assert: The handler should either reject or proceed based on the check
-        # If it proceeds, it will try to send confirmation code (which may fail without email)
-        # If it rejects, it will show "already linked" message
         assert response.completed is False, "Should not complete immediately"
-        # The response may be "already linked" or "confirmation code sent" depending on implementation
-        # Both are valid behaviors - the important thing is it doesn't complete without verification
         assert 'already linked' in response.message.lower() or 'confirmation code' in response.message.lower() or 'could not send' in response.message.lower(), f"Should indicate status, got: {response.message}"
     
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_handle_link_account_with_already_linked_email(self, test_data_dir):
         """Test: Link account rejects when email already linked to different user."""
         handler = AccountManagementHandler()
-        
-        # Create existing user with different email
-        existing_username = 'alreadylinkedemailuser'
+
+        existing_username = _unique_username("alreadylinkedemailuser")
         create_success = TestUserFactory.create_basic_user(
             existing_username, test_data_dir=test_data_dir
         )
         assert create_success is True, "Test user should be created"
 
-        # Rebuild user index to ensure user is discoverable
-        from storage.user_data_operations import rebuild_user_index
-        rebuild_user_index()
-        import time
-        time.sleep(0.1)  # Brief delay for index to be written
-
-        # Link to different email
         from core import update_user_account
-        user_id = get_user_id_by_identifier(existing_username)
+        user_id = TestUserFactory.get_test_user_id_by_internal_username(
+            existing_username, test_data_dir
+        )
         assert user_id is not None, "Test user should be discoverable by username"
         update_user_account(user_id, {'email': 'existing@example.com'})
 
-        # Try to link to new email
-        new_email = 'newemail@example.com'
+        new_email = f'newemail-{uuid.uuid4().hex[:8]}@example.com'
         parsed_command = ParsedCommand(
             intent='link_account',
             entities={
@@ -838,71 +724,61 @@ class TestAccountHandlerBehavior:
 
         response = handler.handle(new_email, parsed_command)
 
-        # Assert: Should reject already linked account
         assert response.completed is False, "Should not complete with already linked account"
         assert 'already linked' in response.message.lower(), "Should indicate already linked"
     
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_handle_link_account_with_invalid_pending_operation(self, test_data_dir):
         """Test: Link account rejects when pending operation doesn't match."""
         handler = AccountManagementHandler()
-        
-        # Create existing user
-        existing_username = 'invalidpendinguser'
+
+        existing_username = _unique_username("invalidpendinguser")
         TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
 
-        # Rebuild user index to ensure user is discoverable
-        from storage.user_data_operations import rebuild_user_index
-        rebuild_user_index()
-        import time
-        time.sleep(0.1)  # Brief delay for index to be written
-
-        # Set up wrong pending operation
-        discord_user_id = "666777888999000111"
+        discord_user_id = _snowflake()
         _pending_link_operations[discord_user_id] = {
-            'operation_type': 'wrong_type',  # Wrong type
+            'operation_type': 'wrong_type',
             'username': 'wronguser',
             'user_id': 'wrong_id',
             'confirmation_code': '123456',
             'channel_type': 'discord'
         }
+        try:
+            parsed_command = ParsedCommand(
+                intent='link_account',
+                entities={
+                    'username': existing_username,
+                    'confirmation_code': '123456',
+                    'channel_identifier': discord_user_id,
+                    'channel_type': 'discord'
+                },
+                confidence=0.9,
+                original_message='link account'
+            )
 
-        parsed_command = ParsedCommand(
-            intent='link_account',
-            entities={
-                'username': existing_username,
-                'confirmation_code': '123456',
-                'channel_identifier': discord_user_id,
-                'channel_type': 'discord'
-            },
-            confidence=0.9,
-            original_message='link account'
-        )
+            response = handler.handle(discord_user_id, parsed_command)
 
-        response = handler.handle(discord_user_id, parsed_command)
-
-        # Assert: Should reject invalid pending operation
-        assert response.completed is False, "Should not complete with invalid pending operation"
-        assert 'no pending' in response.message.lower() or 'start over' in response.message.lower(), "Should indicate need to start over"
+            assert response.completed is False, "Should not complete with invalid pending operation"
+            assert 'no pending' in response.message.lower() or 'start over' in response.message.lower(), "Should indicate need to start over"
+        finally:
+            _pending_link_operations.pop(discord_user_id, None)
     
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_handle_create_account_with_email_channel(self, test_data_dir):
         """Test: Create account works with email channel type."""
         handler = AccountManagementHandler()
-        
-        # Use a unique email address to avoid conflicts
-        email_address = 'newemailuser@example.com'
-        
+
+        email_address = f'newemailuser-{uuid.uuid4().hex[:8]}@example.com'
+        username = _unique_username("newemailuser")
+
         parsed_command = ParsedCommand(
             intent='create_account',
             entities={
-                'username': 'newemailuser',
+                'username': username,
                 'channel_identifier': email_address,
                 'channel_type': 'email',
                 'tasks_enabled': True,
@@ -912,7 +788,7 @@ class TestAccountHandlerBehavior:
             confidence=0.9,
             original_message='create account'
         )
-        
+
         response = handler.handle(email_address, parsed_command)
         
         # Assert: Should create account successfully

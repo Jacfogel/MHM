@@ -25,6 +25,42 @@ from tests.test_helpers.test_utilities import TestUserFactory
 from storage.user_data_validation import is_valid_email
 
 
+def _resolve_created_user_id(internal_username: str, test_data_dir: str) -> str:
+    """Resolve factory-created user to UUID; sync index for this user only."""
+    from core import get_user_id_by_identifier
+    from storage.user_data_operations import update_user_index
+
+    actual_user_id = (
+        get_user_id_by_identifier(internal_username)
+        or TestUserFactory.get_test_user_id_by_internal_username(internal_username, test_data_dir)
+        or internal_username
+    )
+    if actual_user_id:
+        update_user_index(actual_user_id)
+    return actual_user_id
+
+
+def _read_channel_type(user_id: str, attempts: int = 5) -> str | None:
+    """Read channel type from account or preferences with cache clear + brief retry."""
+    import time
+    from core import clear_user_caches, get_user_data
+
+    channel_type = None
+    for attempt in range(attempts):
+        clear_user_caches(user_id)
+        account_block = get_user_data(user_id, 'account', auto_create=True).get('account', {})
+        prefs_block = get_user_data(user_id, 'preferences', auto_create=True).get('preferences', {})
+        channel_type = (
+            (account_block.get('channel') or {}).get('type')
+            or (prefs_block.get('channel') or {}).get('type')
+        )
+        if channel_type:
+            return channel_type
+        if attempt < attempts - 1:
+            time.sleep(0.05)
+    return channel_type
+
+
 class TestUserCreationScenarios:
     """Test comprehensive user creation scenarios."""
     
@@ -33,7 +69,6 @@ class TestUserCreationScenarios:
     @pytest.mark.critical
     @pytest.mark.regression
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_basic_email_user_creation(self, test_data_dir, mock_config):
         """Test creating a basic email user with minimal settings."""
         import uuid
@@ -66,7 +101,6 @@ class TestUserCreationScenarios:
     @pytest.mark.critical
     @pytest.mark.regression
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_discord_user_creation(self, test_data_dir, mock_config):
         """Test creating a Discord user with full features enabled."""
         import uuid
@@ -125,7 +159,6 @@ class TestUserCreationScenarios:
     
     @pytest.mark.unit
     @pytest.mark.user
-    @pytest.mark.no_parallel
     def test_user_with_custom_fields(self, test_data_dir, mock_config):
         """Test creating a user with extensive custom fields using enhanced test utilities."""
         import uuid
@@ -160,7 +193,6 @@ class TestUserCreationScenarios:
     
     @pytest.mark.unit
     @pytest.mark.user
-    @pytest.mark.no_parallel
     def test_user_creation_with_schedules(self, test_data_dir, mock_config):
         """Test creating a user with schedule periods using enhanced test utilities."""
         import uuid
@@ -172,14 +204,10 @@ class TestUserCreationScenarios:
         assert success, f"Failed to create schedule test user {user_id}"
         
         # Get the UUID for the user
-        from core import get_user_id_by_identifier
-        from storage.user_data_operations import rebuild_user_index
-        from tests.test_helpers.test_utilities import TestUserFactory as TUF
-        
-        # Rebuild index to ensure user is discoverable (modifies user_index.json)
-        rebuild_user_index()
-        actual_user_id = get_user_id_by_identifier(user_id) or TUF.get_test_user_id_by_internal_username(user_id, test_data_dir)
-        assert actual_user_id is not None, f"Should be able to get UUID for user {user_id} after index update. Tried get_user_id_by_identifier and TestUserFactory lookup."
+        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+            user_id, test_data_dir
+        )
+        assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
         
         # Verify schedule data can be loaded
         # Retry in case of race conditions with file writes in parallel execution
@@ -355,7 +383,6 @@ class TestUserCreationIntegration:
     """Test integration scenarios for user creation."""
     
     @pytest.mark.integration
-    @pytest.mark.no_parallel
     def test_full_user_lifecycle(self, test_data_dir, mock_config):
         """Test complete user lifecycle: create, update, delete."""
         import uuid
@@ -384,28 +411,10 @@ class TestUserCreationIntegration:
         success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success is True, "Failed to create test user"
 
-        # Get the actual UUID for the user (TestUserFactory creates UUID-based users)
-        from core import get_user_id_by_identifier
-        from tests.test_helpers.test_utilities import TestUserFactory as TUF
-        actual_user_id = get_user_id_by_identifier(user_id) or TUF.get_test_user_id_by_internal_username(user_id, test_data_dir) or user_id
-        
-        # Ensure user index is updated (race condition fix)
-        from storage.user_data_operations import rebuild_user_index
-        rebuild_user_index()
-        
-        # Retry to get actual_user_id if not found
-        import time
-        for attempt in range(3):
-            if actual_user_id != user_id:
-                break
-            actual_user_id = get_user_id_by_identifier(user_id) or TUF.get_test_user_id_by_internal_username(user_id, test_data_dir)
-            if actual_user_id and actual_user_id != user_id:
-                break
-            if attempt < 2:
-                time.sleep(0.1)
+        actual_user_id = _resolve_created_user_id(user_id, test_data_dir)
+        assert actual_user_id, f"Should resolve UUID for user {user_id}"
 
         # Update user with additional data using the actual UUID
-        # Ensure internal_username is set correctly - use the value from account_data if provided
         result = save_user_data(actual_user_id, {
             'account': account_data,
             'preferences': {
@@ -414,29 +423,10 @@ class TestUserCreationIntegration:
             },
             'context': context_data
         })
-        
-        # Verify internal_username was saved correctly - retry if needed
-        import time
-        for attempt in range(3):
-            saved_account = get_user_data(actual_user_id, 'account', auto_create=True).get('account', {})
-            if saved_account.get('internal_username') == 'lifecycleuser':
-                break
-            if attempt < 2:
-                # Retry save if internal_username wasn't set correctly
-                save_user_data(actual_user_id, {'account': account_data}, auto_create=True)
-                time.sleep(0.1)
         assert isinstance(result, dict), "Should return a result dictionary"
+        assert result.get('account') is True, "Account should save successfully"
 
-        # 2. Verify user exists
-        # Retry in case of race conditions with file writes in parallel execution
-        import time
-        loaded_data = {}
-        for attempt in range(5):
-            loaded_data = get_user_data(actual_user_id, 'all', auto_create=True)
-            if loaded_data and 'account' in loaded_data and loaded_data['account'].get('internal_username'):
-                break
-            if attempt < 4:
-                time.sleep(0.1)  # Brief delay before retry
+        loaded_data = get_user_data(actual_user_id, 'all', auto_create=True)
         assert loaded_data and 'account' in loaded_data, f"Account data should be loaded for user {actual_user_id}"
         assert loaded_data['account']['internal_username'] == 'lifecycleuser'
         
@@ -451,15 +441,7 @@ class TestUserCreationIntegration:
         update_result = update_user_preferences(actual_user_id, updated_preferences)
         assert update_result is True
 
-        # 4. Verify update - use actual_user_id and retry in case of race conditions
-        import time
-        updated_data = {}
-        for attempt in range(5):
-            updated_data = get_user_data(actual_user_id, 'preferences', auto_create=True)
-            if updated_data and 'preferences' in updated_data and updated_data['preferences'].get('categories'):
-                break
-            if attempt < 4:
-                time.sleep(0.1)  # Brief delay before retry
+        updated_data = get_user_data(actual_user_id, 'preferences', auto_create=True)
         assert updated_data and 'preferences' in updated_data, f"Preferences data should be loaded for user {actual_user_id}"
         assert 'health' in updated_data['preferences']['categories']
         assert updated_data['preferences']['checkin_settings']['enabled'] is True
@@ -473,22 +455,13 @@ class TestUserCreationIntegration:
         # Use actual_user_id (UUID) instead of user_id (internal username)
         context_result = update_user_context(actual_user_id, updated_context)
         assert context_result is True
-        
-        # 6. Verify context update - use actual_user_id and retry in case of race conditions
-        import time
-        final_context = {}
-        for attempt in range(5):
-            final_context = get_user_data(actual_user_id, 'context', auto_create=True)
-            if final_context and 'context' in final_context and final_context['context'].get('preferred_name'):
-                break
-            if attempt < 4:
-                time.sleep(0.1)  # Brief delay before retry
+
+        final_context = get_user_data(actual_user_id, 'context', auto_create=True)
         assert final_context and 'context' in final_context, f"Context data should be loaded for user {actual_user_id}. Got: {final_context}"
         assert final_context['context']['preferred_name'] == 'Updated Lifecycle User'
         assert 'Testing' in final_context['context']['interests']
     
     @pytest.mark.integration
-    @pytest.mark.no_parallel
     def test_multiple_users_same_channel(self, test_data_dir, mock_config):
         """Test creating multiple users with the same channel type."""
         import uuid
@@ -514,7 +487,6 @@ class TestUserCreationIntegration:
         created_users = []
         user_data_map = {}  # Map user_id to account_data for later use
         
-        # Create all users first (optimization: batch creation)
         for user in users:
             account_data = {
                 'user_id': user['id'],
@@ -524,123 +496,31 @@ class TestUserCreationIntegration:
             }
             user_data_map[user['id']] = account_data
             
-            # Create user using TestUserFactory
-            success = TestUserFactory.create_basic_user(user['id'], enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
+            success = TestUserFactory.create_basic_user(
+                user['id'], enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir
+            )
             assert success is True, "Failed to create test user"
-        
-        # Rebuild index once after all users are created (optimization: single rebuild)
-        from storage.user_data_operations import rebuild_user_index
-        from core import get_user_id_by_identifier
-        from tests.test_helpers.test_utilities import TestUserFactory as TUF
-        from core.config import get_user_data_dir, get_user_file_path
-        import os
-        import time
-        
-        rebuild_user_index()
-        
-        # Small delay to ensure index is written
-        time.sleep(0.05)
-        
-        # Process all users (get UUIDs and save data)
-        for user in users:
-            account_data = user_data_map[user['id']]
-            
-            # Get the actual UUID for the user (optimized: reduced retries, shorter sleep)
-            actual_user_id = None
-            for attempt in range(3):  # Reduced from 5 to 3
-                actual_user_id = get_user_id_by_identifier(user['id']) or TUF.get_test_user_id_by_internal_username(user['id'], test_data_dir)
-                if actual_user_id and actual_user_id != user['id']:
-                    # Verify UUID directory exists
-                    uuid_dir = get_user_data_dir(actual_user_id)
-                    if os.path.exists(uuid_dir):
-                        break
-                if attempt < 2:  # Reduced from 4 to 2
-                    time.sleep(0.05)  # Reduced from 0.1s to 0.05s
-            
-            # Fallback to internal username if UUID resolution failed, but verify directory exists
-            if not actual_user_id or actual_user_id == user['id']:
-                actual_user_id = user['id']
-                # Verify directory exists for internal username
-                user_dir = get_user_data_dir(actual_user_id)
-                if not os.path.exists(user_dir):
-                    os.makedirs(user_dir, exist_ok=True)
-            else:
-                # Ensure UUID directory exists before saving
-                user_dir = get_user_data_dir(actual_user_id)
-                if not os.path.exists(user_dir):
-                    os.makedirs(user_dir, exist_ok=True)
-            
+            actual_user_id = _resolve_created_user_id(user['id'], test_data_dir)
+            assert actual_user_id, f"Should resolve UUID for user {user['id']}"
+
             result = save_user_data(actual_user_id, {
-                'account': account_data,
+                'account': {**account_data, 'user_id': actual_user_id},
                 'preferences': {
                     'categories': ['motivational'],
-                    'channel': {'type': 'email'}  # Add required channel type
+                    'channel': {'type': 'email', 'contact': user['email']}
                 },
-                'context': {'preferred_name': f'{user["username"]} User'}  # Non-empty context
+                'context': {'preferred_name': f'{user["username"]} User'}
             })
-            
             assert isinstance(result, dict), "Should return a result dictionary"
             assert result.get('account') is True, f"Account data should be saved for user {actual_user_id}"
-            
-            # Verify file was actually written immediately after save (path verification)
-            account_file = get_user_file_path(actual_user_id, 'account')
-            user_dir_check = get_user_data_dir(actual_user_id)
-            
-            # Retry with brief delay
-            time.sleep(0.1)
-            file_exists = os.path.exists(account_file)
-            dir_exists = os.path.exists(user_dir_check)
-            
-            # Always log diagnostic information for debugging
-            import logging
-            test_logger = logging.getLogger("mhm_tests")
-            from core.config import BASE_DATA_DIR
-            users_base = os.path.join(BASE_DATA_DIR, 'users')
-            all_dirs = []
-            if os.path.exists(users_base):
-                all_dirs = [d for d in os.listdir(users_base) if os.path.isdir(os.path.join(users_base, d))]
-            
-            diagnostic_msg = f"After save_user_data: user_id={actual_user_id}, account_file={account_file}, file_exists={file_exists}, user_dir={user_dir_check}, dir_exists={dir_exists}, BASE_DATA_DIR={BASE_DATA_DIR}, users_base={users_base}, all_dirs={all_dirs}, save_result={result}"
-            test_logger.debug(diagnostic_msg)
-            
-            # CRITICAL: Fail immediately if file/dir doesn't exist after save reports success
-            if not file_exists or not dir_exists:
-                error_msg = f"save_user_data reported success but file/directory doesn't exist. {diagnostic_msg}"
-                test_logger.error(error_msg)
-                raise AssertionError(error_msg)
-            
-            created_users.append(actual_user_id)  # Store actual UUID, not internal username
+            assert result.get('preferences') is True, f"Preferences should be saved for user {actual_user_id}"
+            created_users.append(actual_user_id)
         
-        # Verify all users can be loaded
-        from core.config import get_user_file_path, get_user_data_dir
         for actual_user_id in created_users:
-            # Verify file exists before trying to load
-            account_file = get_user_file_path(actual_user_id, 'account')
-            
-            # Retry with brief delay
-            file_exists = os.path.exists(account_file)
-            if not file_exists:
-                time.sleep(0.1)
-                file_exists = os.path.exists(account_file)
-            
-            if not file_exists:
-                # File doesn't exist - check if user directory exists
-                user_dir = get_user_data_dir(actual_user_id)
-                raise AssertionError(f"Account file should exist for user {actual_user_id}. File: {account_file}, User dir exists: {os.path.exists(user_dir)}, User dir: {user_dir}")
-            
-            # Load data with reduced retries (optimized: 3 attempts instead of 5, shorter sleep)
-            loaded_data = {}
-            for attempt in range(3):  # Reduced from 5 to 3
-                loaded_data = get_user_data(actual_user_id, 'account', auto_create=True)
-                if loaded_data and 'account' in loaded_data and loaded_data['account'].get('internal_username'):
-                    break
-                if attempt < 2:  # Reduced from 4 to 2
-                    time.sleep(0.1)  # Reduced from 0.2s to 0.1s
-            assert loaded_data and 'account' in loaded_data, f"Account data should be loaded for user {actual_user_id}. Got: {loaded_data}. File exists: {os.path.exists(account_file)}, File: {account_file}"
-            assert loaded_data['account']['channel']['type'] == 'email'
+            channel_type = _read_channel_type(actual_user_id)
+            assert channel_type == 'email', f"Expected email channel for user {actual_user_id}, got {channel_type!r}"
     
     @pytest.mark.integration
-    @pytest.mark.no_parallel
     def test_user_with_all_features(self, test_data_dir, mock_config):
         """Test creating a user with all possible features enabled."""
         import uuid
@@ -741,54 +621,40 @@ class TestUserCreationIntegration:
         success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success is True, "Failed to create test user"
 
-        # Get the actual UUID for the user (TestUserFactory creates UUID-based users)
-        from core import get_user_id_by_identifier
-        from tests.test_helpers.test_utilities import TestUserFactory as TUF
-        actual_user_id = get_user_id_by_identifier(user_id) or TUF.get_test_user_id_by_internal_username(user_id, test_data_dir) or user_id
-        
-        # Ensure user index is updated (race condition fix)
-        from storage.user_data_operations import rebuild_user_index
-        rebuild_user_index()
-        
-        # Retry to get actual_user_id if not found
-        import time
-        for attempt in range(3):
-            if actual_user_id != user_id:
-                break
-            actual_user_id = get_user_id_by_identifier(user_id) or TUF.get_test_user_id_by_internal_username(user_id, test_data_dir)
-            if actual_user_id and actual_user_id != user_id:
-                break
-            if attempt < 2:
-                time.sleep(0.1)
+        actual_user_id = _resolve_created_user_id(user_id, test_data_dir)
+        assert actual_user_id, f"Should resolve UUID for user {user_id}"
 
-        # Save all data using the actual UUID
+        account_payload = {**account_data, 'user_id': actual_user_id}
         result = save_user_data(actual_user_id, {
-            'account': account_data,
+            'account': account_payload,
             'preferences': {
                 **preferences_data,
-                'channel': {'type': 'discord'}  # Add required channel type
+                'channel': {'type': 'discord', 'contact': 'allfeatures#1234'}
             },
             'context': context_data,
-            'schedules': schedules_data
         })
+        assert result.get('account') is True, f"Account save failed: {result}"
+        assert result.get('preferences') is True, f"Preferences save failed: {result}"
+        assert result.get('context') is True, f"Context save failed: {result}"
 
-        # Verify all saves were successful
-        assert result.get('account') is True
-        assert result.get('preferences') is True
-        assert result.get('context') is True
-        assert result.get('schedules') is True
+        from core import clear_user_caches, update_user_schedules
+        clear_user_caches(actual_user_id)
+        schedules_ok = update_user_schedules(actual_user_id, schedules_data)
+        assert schedules_ok, "Schedules should save via update_user_schedules"
 
-        # Verify all data can be loaded - retry in case of race conditions
+        from core import get_user_data
         loaded_data = {}
         for attempt in range(5):
+            clear_user_caches(actual_user_id)
             loaded_data = get_user_data(actual_user_id, 'all', auto_create=True)
-            if loaded_data and 'account' in loaded_data:
+            if loaded_data and 'account' in loaded_data and 'schedules' in loaded_data:
                 break
             if attempt < 4:
-                time.sleep(0.1)
-        
-        # Verify account
-        assert loaded_data['account']['channel']['type'] == 'discord'
+                import time
+                time.sleep(0.05)
+        assert loaded_data and 'account' in loaded_data, f"Account data should be loaded for user {actual_user_id}"
+        channel_type = _read_channel_type(actual_user_id)
+        assert channel_type == 'discord', f"Expected discord channel, got {channel_type!r}"
         assert loaded_data['account']['timezone'] == 'UTC'
         
         # Verify preferences

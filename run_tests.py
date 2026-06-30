@@ -2771,10 +2771,11 @@ def print_test_mode_info():
     print("  ui          - UI tests (excluding slow tests)")
     print("  slow        - Slow tests only")
     print("\nOptions:")
+    print("  --quick     - Fast iteration: quiet, skip static check/LM pause/failure reruns")
     print("  --verbose   - Verbose output")
     print("  --no-parallel - Disable parallel execution (parallel enabled by default)")
     print(
-        "  --workers N - Number of parallel workers (default: 2, or 'auto' for optimal)"
+        "  --workers N - Number of parallel workers (default: auto with loadscope grouping)"
     )
     print("  --coverage  - Run with coverage reporting")
     print("  --durations-all - Show timing for all tests")
@@ -2790,6 +2791,7 @@ def print_test_mode_info():
     print("  --no-post-failure-rerun - Disable auto detailed reruns on failures")
     print("\nExamples:")
     print("  python run_tests.py                    # Run all tests in parallel")
+    print("  python run_tests.py --quick             # Fast local iteration profile")
     print("  python run_tests.py --mode fast        # Quick unit tests only")
     print("  python run_tests.py --mode all --verbose # All tests with verbose output")
     print("  python run_tests.py --no-parallel      # Disable parallel execution")
@@ -3136,8 +3138,18 @@ def main():
         default=1,
         help="Detailed rerun attempts per failed nodeid (default: 1)",
     )
+    parser.add_argument(
+        "--quick",
+        action="store_true",
+        help="Fast iteration profile: quiet output, skip static logging check, LM Studio pause, and post-failure reruns",
+    )
 
     args = parser.parse_args()
+
+    if args.quick:
+        args.skip_static_logging_check = True
+        args.post_failure_rerun = False
+        args.pause_lm_studio = False
 
     # Set resource warnings flag
     global _resource_warnings_enabled
@@ -3236,12 +3248,12 @@ def main():
             import multiprocessing
 
             cpu_count = multiprocessing.cpu_count()
-            # Reduce workers to prevent memory issues - cap at 4 workers instead of 6
-            # For systems with 12+ CPUs, use 4 workers; for 8 CPUs use 3; for 4 CPUs use 2
-            max_workers = min(4, max(2, cpu_count // 3))
-            cmd.extend(["-n", str(max_workers)])
+            # Balance throughput vs memory: group fixture-heavy tests with loadscope,
+            # cap workers to reduce OOM risk on large suites.
+            max_workers = min(6, max(2, cpu_count // 2))
+            cmd.extend(["-n", str(max_workers), "--dist=loadscope"])
             worker_selection_note = (
-                f"Auto-detected {cpu_count} CPUs; using {max_workers} workers"
+                f"Auto-detected {cpu_count} CPUs; using {max_workers} workers (loadscope)"
             )
         else:
             try:
@@ -3251,18 +3263,25 @@ def main():
                     print(
                         f"[WARNING] Invalid worker count: {num_workers}. Using 2 instead."
                     )
-                    cmd.extend(["-n", "2"])
+                    cmd.extend(["-n", "2", "--dist=loadscope"])
                 else:
-                    cmd.extend(["-n", str(num_workers)])
+                    parallel_flags = ["-n", str(num_workers)]
+                    if num_workers > 1:
+                        parallel_flags.append("--dist=loadscope")
+                    cmd.extend(parallel_flags)
             except ValueError:
                 print(
                     f"[WARNING] Invalid worker value: {args.workers}. Using 2 instead."
                 )
-                cmd.extend(["-n", "2"])
+                cmd.extend(["-n", "2", "--dist=loadscope"])
 
-    # Add verbose output
+    # Output verbosity (pytest.ini defaults to quiet; runner controls per-run noise)
     if args.verbose:
         cmd.append("-v")
+    elif args.quick:
+        cmd.extend(["-q", "-o", "durations=0"])
+    else:
+        cmd.append("-q")
 
     # Set test environment variables
     os.environ["DISABLE_LOG_ROTATION"] = "1"  # Prevent log rotation issues during tests
@@ -3456,6 +3475,7 @@ def main():
     print(
         f"  Failure Rerun: {'on' if args.post_failure_rerun else 'off'} (limit={args.post_failure_rerun_max}, attempts={args.post_failure_rerun_attempts})"
     )
+    print(f"  Quick profile: {'on' if args.quick else 'off'}")
     print(f"  LM Studio Pause: {'on' if args.pause_lm_studio else 'off'}")
     if worker_selection_note:
         print(f"  Workers: {worker_selection_note}")
@@ -3486,6 +3506,7 @@ def main():
         "random_order": args.random_order,
         "process_priority": args.process_priority,
         "post_failure_rerun": args.post_failure_rerun,
+        "quick": args.quick,
     }
 
     pause_lm_studio_active = False

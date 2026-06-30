@@ -109,6 +109,56 @@ def _has_xdist() -> bool:
     return importlib.util.find_spec("xdist") is not None
 
 
+def _resolved_worker_count(workers_cfg: str | None) -> int:
+    """Match run_tests.py worker policy; leave headroom during Tier 3 audit contention."""
+    workers_text = str(workers_cfg or "auto").strip().lower()
+    if workers_text not in {"", "auto", "none"}:
+        try:
+            return max(1, int(workers_text))
+        except ValueError:
+            pass
+    import multiprocessing
+
+    cpu_count = multiprocessing.cpu_count()
+    if os.environ.get("MHM_TIER3_AUDIT") == "1":
+        return min(4, max(2, cpu_count // 3))
+    return min(6, max(2, cpu_count // 2))
+
+
+def _append_pytest_runtime_options(
+    command: list[str],
+    *,
+    force_serial: bool,
+    worker_count: int | None = None,
+) -> None:
+    """Apply the same runtime isolation/verbosity defaults as run_tests.py."""
+    command.extend(["-W", "ignore::DeprecationWarning"])
+    run_id = time.strftime("%Y%m%d_%H%M%S")
+    pytest_root = Path("tests/data/tmp/pytest_runner") / run_id
+    parallel_basetemp = pytest_root / "parallel"
+    serial_basetemp = pytest_root / "serial"
+    pytest_cache_dir = Path("tests/data/tmp/pytest_cache")
+    basetemp = serial_basetemp if force_serial else parallel_basetemp
+    basetemp.mkdir(parents=True, exist_ok=True)
+    pytest_cache_dir.mkdir(parents=True, exist_ok=True)
+    command.extend(
+        [
+            "--basetemp",
+            str(basetemp),
+            "-o",
+            f"cache_dir={pytest_cache_dir}",
+            "--ignore=tests/data",
+            "--ignore=tests/data/tmp",
+            "--ignore-glob=tests/data/tmp/**",
+            "-q",
+            "-o",
+            "durations=0",
+        ]
+    )
+    if not force_serial and worker_count and worker_count > 1:
+        command.extend(["-n", str(worker_count), "--dist=loadscope"])
+
+
 def _marker_expression(*, include_no_parallel: bool, cfg: dict[str, Any]) -> str:
     no_parallel = str(cfg.get("no_parallel_marker") or "no_parallel")
     parts: list[str] = [no_parallel if include_no_parallel else f"not {no_parallel}"]
@@ -139,10 +189,14 @@ def build_phase_command(
     command.extend(["--junitxml", str(junit_xml)])
     include_no_parallel = phase == "no_parallel"
     command.extend(["-m", _marker_expression(include_no_parallel=include_no_parallel, cfg=cfg)])
+    worker_count: int | None = None
     if phase == "parallel" and not force_serial and _has_xdist():
-        workers = str(cfg.get("workers") or "auto").strip()
-        if workers and workers.lower() != "none":
-            command.extend(["-n", workers])
+        worker_count = _resolved_worker_count(str(cfg.get("workers") or "auto"))
+    _append_pytest_runtime_options(
+        command,
+        force_serial=force_serial or worker_count in (None, 1),
+        worker_count=worker_count,
+    )
     paths = test_paths if test_paths is not None else (cfg.get("test_paths") or ["tests"])
     command.extend(str(path) for path in paths)
     return command
@@ -345,6 +399,7 @@ def _run_phase(
             # Keep pytest on test loggers (see tests/conftest.py); do not inherit
             # audit CLI MHM_TESTING=0 into workers.
             "MHM_TESTING": "1",
+            "MHM_TIER3_AUDIT": "1",
         },
     }
     if os.name == "nt":

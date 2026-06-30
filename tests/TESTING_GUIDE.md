@@ -328,6 +328,13 @@ Common commands:
   python run_tests.py --no-pause-lm-studio
   ```
 
+- Fast local iteration (quiet output, skip static logging check, LM Studio pause, and post-failure reruns):
+
+  ```bash
+  python run_tests.py --quick
+  python run_tests.py --quick --mode unit
+  ```
+
 - Run a specific test file or function with pytest:
 
   ```bash
@@ -354,6 +361,8 @@ Typical options:
 - `--no-pause-lm-studio` (LM Studio pause is enabled by default for run_tests.py modes).
 - `--no-post-failure-rerun` (detailed rerun is enabled by default; auto-skipped when failures exceed `--post-failure-rerun-max`).
 - `--post-failure-rerun-max N` and `--post-failure-rerun-attempts N` for rerun scope control.
+- `--quick` (fast iteration: quiet output, skip static logging check, LM Studio pause, and post-failure reruns).
+- `--verbose` (per-test output; default runs are quiet via `-q`).
 
 Prefer `python run_tests.py` over calling pytest directly when you want "normal" local or CI runs.
 
@@ -459,7 +468,12 @@ Guidelines:
 
 `run_tests.py` runs `no_parallel` tests in a separate serial phase after the parallel phase.
 
-Development-tools Tier 3 audits use their own portable pytest runner (`development_tools/tests/run_test_suite.py`) with the same parallel/serial split, but they do not use project-specific `run_tests.py` and do not collect coverage.
+Development-tools Tier 3 audits use `development_tools/tests/run_test_suite.py` with the same parallel/serial split. Differences from `run_tests.py`:
+
+- **Scope**: Tier 3 runs the full `tests/` tree (including `tests/development_tools/`). Default `run_tests.py` excludes development-tools tests unless you pass `--full`.
+- **Contention**: During `audit --full`, pytest runs concurrently with ruff, pyright, bandit, pip-audit, and legacy analysis. The Tier 3 runner caps workers at 4 to leave CPU headroom.
+- **Coverage**: Tier 3 test-suite execution does **not** collect coverage. The separate `coverage` command runs pytest again with `--cov`; budget extra time if you run both in one session.
+- **Caching**: Tier 3 may skip unchanged domains via the suite cache when source domains have not changed since the last full run.
 
 ### 5.3. Coverage
 

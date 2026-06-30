@@ -17,6 +17,7 @@ import os
 import json
 import zipfile
 import shutil
+import uuid
 
 from storage.user_data_operations import (
 
@@ -37,6 +38,10 @@ from storage.user_data_operations import (
 pytestmark = [pytest.mark.storage]
 
 from tests.test_helpers.test_utilities import TestUserFactory
+
+
+def _unique_username(prefix: str) -> str:
+    return f"{prefix}-{uuid.uuid4().hex[:8]}"
 
 
 @pytest.mark.storage
@@ -60,11 +65,9 @@ class TestUserDataManagerInitialization:
             assert os.path.exists(manager.backup_dir), "Backup directory should exist"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel  # shared backups dir under patched BASE_DATA_DIR
-    def test_manager_initialization_creates_backup_dir(self, test_data_dir):
+    def test_manager_initialization_creates_backup_dir(self, test_path_factory):
         """Test: UserDataManager creates backup directory if it doesn't exist"""
-        # Arrange: Set up test environment
-        backup_dir = os.path.join(test_data_dir, 'backups')
+        backup_dir = os.path.join(test_path_factory, 'backups')
         if os.path.exists(backup_dir):
             # Windows file locking: retry with delay if files are locked
             import time
@@ -84,7 +87,7 @@ class TestUserDataManagerInitialization:
                         with contextlib.suppress(PermissionError):
                             shutil.rmtree(backup_dir)
         
-        with patch('storage.user_data_operations.BASE_DATA_DIR', test_data_dir), \
+        with patch('storage.user_data_operations.BASE_DATA_DIR', test_path_factory), \
              patch('storage.user_data_operations.get_backups_dir', return_value=backup_dir):
             
             # Act: Create manager
@@ -108,7 +111,7 @@ class TestUserDataManagerMessageReferences:
     @pytest.fixture
     def test_user(self, test_data_dir):
         """Create test user with categories."""
-        user_id = "test_message_refs_user"
+        user_id = _unique_username("test_message_refs_user")
         TestUserFactory.create_basic_user(
             user_id, 
             enable_checkins=True, 
@@ -118,15 +121,14 @@ class TestUserDataManagerMessageReferences:
         from core import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
-            actual_user_id = user_id
+            actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir) or user_id
         
         return actual_user_id
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel  # shared user message files
     def test_update_message_references_success(self, manager, test_user, test_data_dir):
         """Test: update_message_references updates references successfully"""
-        # Arrange: User is created in fixture and this test runs serially because it touches shared files.
+        # Arrange: User is created in fixture
         result = manager.update_message_references(test_user)
         assert result is True, f"Should return True on success. Got: {result}"
     
@@ -206,7 +208,7 @@ class TestUserDataManagerBackup:
     @pytest.fixture
     def test_user(self, test_data_dir):
         """Create test user."""
-        user_id = "test_backup_user"
+        user_id = _unique_username("test_backup_user")
         TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
         
         from core import get_user_id_by_identifier
@@ -349,84 +351,30 @@ class TestUserDataManagerIndex:
     
     @pytest.fixture
     def test_user(self, test_data_dir):
-        """Create test user.
-        
-        Note: This fixture is used by tests marked @pytest.mark.no_parallel,
-        so serial execution ensures data is available without retry logic.
-        """
-        from core import get_user_id_by_identifier
-        from storage.user_data_operations import rebuild_user_index
-        from core import get_user_data
-        
-        user_id = "test_index_user"
-        TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
-        
-        # Rebuild index to ensure user is discoverable (serial execution ensures this works)
-        rebuild_user_index()
-        actual_user_id = get_user_id_by_identifier(user_id)
-        if actual_user_id is None:
-            actual_user_id = user_id
-        
-        # Verify account data exists (serial execution ensures data is available)
-        account_data = get_user_data(actual_user_id, 'account', auto_create=False)
-        if not account_data.get('account'):
-            # If account doesn't exist, try to get it with auto_create to ensure it's created
-            account_data = get_user_data(actual_user_id, 'account', auto_create=True)
-            # Rebuild index again after auto-creation
-            rebuild_user_index()
-        
-        return actual_user_id
+        """Create test user."""
+        user_id = _unique_username("test_index_user")
+        success, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(
+            user_id, test_data_dir=test_data_dir
+        )
+        assert success, f"Failed to create minimal user {user_id}"
+        return actual_user_id or user_id
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel  # shared user_index.json
     def test_update_user_index_success(self, manager, test_user, test_data_dir):
-        """Test: update_user_index updates index successfully
-        
-        Marked as no_parallel because it modifies user_index.json.
-        """
-        # Arrange: User is created in fixture
+        """Test: update_user_index updates index successfully"""
         from core import get_user_data
-        from storage.user_data_operations import rebuild_user_index
         
-        # Verify user account exists (serial execution ensures data is available)
-        # If account doesn't exist, try to ensure it's created
-        user_data = get_user_data(test_user, 'account', auto_create=False)
+        user_data = get_user_data(test_user, 'account', auto_create=True)
         user_account = user_data.get('account') or {}
-        if not user_account or not user_account.get('internal_username'):
-            # Account might not exist yet - try with auto_create
-            user_data = get_user_data(test_user, 'account', auto_create=True)
-            user_account = user_data.get('account') or {}
-            # Rebuild index after auto-creation
-            rebuild_user_index()
-            # Re-read to ensure data is fresh
-            user_data = get_user_data(test_user, 'account', auto_create=False)
-            user_account = user_data.get('account') or {}
-        
         assert user_account and user_account.get('internal_username'), \
             f"User account data not available for {test_user} (account keys: {list(user_account.keys())})"
         
-        # Act: Update user index (with retry for parallel execution)
-        import time
-        result = False
-        for attempt in range(3):
-            result = manager.update_user_index(test_user)
-            if result:
-                break
-            if attempt < 2:
-                time.sleep(0.1)  # Brief delay before retry
-                # Rebuild index and re-read account to ensure fresh data
-                rebuild_user_index()
-                user_data = get_user_data(test_user, 'account', auto_create=False)
-                user_account = user_data.get('account') or {}
+        result = manager.update_user_index(test_user)
+        assert result, f"Should return True on success. Got: {result} (user_id={test_user})"
         
-        # Assert: Should return True
-        assert result, f"Should return True on success. Got: {result} (user_id={test_user}, internal_username={user_account.get('internal_username')})"
-        
-        # Assert: Index file should exist and contain user
         if os.path.exists(manager.index_file):
             with open(manager.index_file, encoding='utf-8') as file_obj:
                 index_data = json.load(file_obj)
-            # Should have last_updated
             assert 'last_updated' in index_data, "Index should have last_updated"
     
     @pytest.mark.unit
@@ -442,7 +390,6 @@ class TestUserDataManagerIndex:
         assert not result, "Should return False for invalid user_id"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel  # shared user_index.json
     def test_remove_from_index_success(self, manager, test_user, test_data_dir):
         """Test: remove_from_index removes user from index successfully"""
         # Arrange: User is created in fixture, update index first
@@ -467,17 +414,22 @@ class TestUserDataManagerIndex:
         assert not result, "Should return False for invalid user_id"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel  # shared user_index.json
     def test_rebuild_full_index_success(self, manager, test_data_dir):
         """Test: rebuild_full_index rebuilds index successfully"""
-        # Arrange: Create test users
-        user1 = "test_rebuild_user1"
-        user2 = "test_rebuild_user2"
+        user1 = _unique_username("test_rebuild_user1")
+        user2 = _unique_username("test_rebuild_user2")
         TestUserFactory.create_minimal_user(user1, test_data_dir=test_data_dir)
         TestUserFactory.create_minimal_user(user2, test_data_dir=test_data_dir)
-        
-        # Act: Rebuild index
-        result = manager.rebuild_full_index()
+        from core import get_user_id_by_identifier
+
+        uid1 = get_user_id_by_identifier(user1)
+        uid2 = get_user_id_by_identifier(user2)
+        assert uid1 is not None and uid2 is not None
+
+        with patch(
+            "storage.user_data_operations.get_all_user_ids", return_value=[uid1, uid2]
+        ):
+            result = manager.rebuild_full_index()
         
         # Assert: Should return True
         assert result, "Should return True on success"
@@ -503,7 +455,7 @@ class TestUserDataManagerSearch:
     @pytest.fixture
     def test_user(self, test_data_dir):
         """Create test user."""
-        user_id = "test_search_user"
+        user_id = _unique_username("test_search_user")
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
         from core import get_user_id_by_identifier
@@ -624,7 +576,7 @@ class TestUserDataManagerConvenienceFunctions:
     @pytest.fixture
     def test_user(self, test_data_dir):
         """Create test user and return the actual UUID to avoid index timing issues."""
-        user_id = "test_conv_user"
+        user_id = _unique_username("test_conv_user")
         success, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(
             user_id,
             test_data_dir=test_data_dir
@@ -633,25 +585,16 @@ class TestUserDataManagerConvenienceFunctions:
         return actual_user_id or user_id
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel  # shared user message files
     def test_update_message_references_function(self, test_user, test_data_dir):
-        """Test: update_message_references convenience function works
-        
-        Marked as no_parallel because it modifies user message files.
-        """
-        # Arrange: User is created in fixture
+        """Test: update_message_references convenience function works"""
         from core import get_user_data
         
-        # Verify user account exists (serial execution ensures data is available)
-        user_data = get_user_data(test_user, 'account', auto_create=False)
+        user_data = get_user_data(test_user, 'account', auto_create=True)
         user_account = user_data.get('account') or {}
         assert user_account and user_account.get('internal_username'), \
             f"User account data not available for {test_user}"
         
-        # Act: Update message references
         result = update_message_references(test_user)
-        
-        # Assert: Should return True
         assert result, f"Should return True on success. Got: {result}"
     
     @pytest.mark.unit
@@ -688,7 +631,6 @@ class TestUserDataManagerConvenienceFunctions:
         assert isinstance(summary, dict), "Should return dict"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel  # shared user_index.json
     def test_update_user_index_function(self, test_user, test_data_dir):
         """Test: update_user_index convenience function works"""
         # Arrange: User is created in fixture
@@ -700,29 +642,26 @@ class TestUserDataManagerConvenienceFunctions:
         assert result, "Should return True on success"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel  # shared user_index.json
     def test_rebuild_user_index_function(self, test_data_dir):
         """Test: rebuild_user_index convenience function works"""
-        # Arrange: Create test users
-        user1 = "test_rebuild_conv_user1"
+        user1 = _unique_username("test_rebuild_conv_user1")
         TestUserFactory.create_minimal_user(user1, test_data_dir=test_data_dir)
-        
-        # Act: Rebuild index
-        result = rebuild_user_index()
+        from core import get_user_id_by_identifier
+
+        uid = get_user_id_by_identifier(user1)
+        assert uid is not None
+
+        with patch(
+            "storage.user_data_operations.get_all_user_ids", return_value=[uid]
+        ):
+            result = rebuild_user_index()
         
         # Assert: Should return True
         assert result, "Should return True on success"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel  # shared user data files
     def test_get_user_info_for_data_manager_function(self, test_user, test_data_dir):
-        """Test: get_user_info_for_data_manager convenience function works
-        
-        Marked as no_parallel because it reads user data files that may be modified by other tests.
-        """
-        # Arrange: User is created in fixture
-        
-        # Act: Get user info (serial execution ensures data is available)
+        """Test: get_user_info_for_data_manager convenience function works"""
         user_info = get_user_info_for_data_manager(test_user)
         
         # Assert: Should return user info
@@ -746,25 +685,27 @@ class TestUserDataManagerConvenienceFunctions:
     def test_build_user_index_function(self, test_data_dir):
         """Test: build_user_index convenience function works"""
         # Arrange: Create test users
-        user1 = "test_build_index_user1"
+        user1 = _unique_username("test_build_index_user1")
         TestUserFactory.create_minimal_user(user1, test_data_dir=test_data_dir)
-        
-        # Act: Build user index
-        index_data = build_user_index()
-        
+        from core import get_user_id_by_identifier
+
+        uid = get_user_id_by_identifier(user1)
+        assert uid is not None, "Expected created user to resolve to a UUID"
+
+        # Scope to this test's user only; build_user_index scans get_all_user_ids()
+        # and would otherwise walk the entire shared tests/data/users tree.
+        with patch(
+            "storage.user_data_operations.get_all_user_ids", return_value=[uid]
+        ):
+            index_data = build_user_index()
+
         # Assert: Should return index data
         assert isinstance(index_data, dict), "Should return dict"
+        assert uid in index_data, "Index should include the created user"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel  # shared user data files
     def test_get_user_summary_function(self, test_user, test_data_dir):
-        """Test: get_user_summary convenience function works
-        
-        Marked as no_parallel because it reads user data files that may be modified by other tests.
-        """
-        # Arrange: User is created in fixture
-        
-        # Act: Get user summary
+        """Test: get_user_summary convenience function works"""
         summary = get_user_summary(test_user)
 
         # Assert: Should return summary
@@ -775,22 +716,27 @@ class TestUserDataManagerConvenienceFunctions:
     def test_get_all_user_summaries_function(self, test_data_dir):
         """Test: get_all_user_summaries convenience function works"""
         # Arrange: Create test users
-        user1 = "test_all_summaries_user1"
+        user1 = _unique_username("test_all_summaries_user1")
         TestUserFactory.create_minimal_user(user1, test_data_dir=test_data_dir)
-        
-        # Act: Get all user summaries
-        summaries = get_all_user_summaries()
-        
+        from core import get_user_id_by_identifier
+
+        uid = get_user_id_by_identifier(user1)
+        assert uid is not None, "Expected created user to resolve to a UUID"
+
+        with patch(
+            "storage.user_data_operations.get_all_user_ids", return_value=[uid]
+        ):
+            summaries = get_all_user_summaries()
+
         # Assert: Should return list
         assert isinstance(summaries, list), "Should return list"
+        assert any(item.get("user_id") == uid for item in summaries), (
+            "Summaries should include the created user"
+        )
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel  # shared user data files
     def test_get_user_analytics_summary_function(self, test_user, test_data_dir):
         """Test: get_user_analytics_summary convenience function works"""
-        # Arrange: User is created in fixture
-        
-        # Act: Get analytics summary
         analytics = get_user_analytics_summary(test_user)
         
         # Assert: Should return analytics
@@ -812,7 +758,7 @@ class TestUserDataManagerDeleteUser:
     @pytest.fixture
     def test_user(self, test_data_dir):
         """Create test user."""
-        user_id = "test_delete_user"
+        user_id = _unique_username("test_delete_user")
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
         from core import get_user_id_by_identifier
@@ -823,7 +769,6 @@ class TestUserDataManagerDeleteUser:
         return actual_user_id
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel  # shared user tree under test_data_dir
     def test_delete_user_completely_with_backup(self, manager, test_user, test_data_dir):
         """Test: delete_user_completely deletes user with backup"""
         # Arrange: User is created in fixture
@@ -835,7 +780,6 @@ class TestUserDataManagerDeleteUser:
         assert result, "Should return True on success"
     
     @pytest.mark.unit
-    @pytest.mark.no_parallel  # shared user tree under test_data_dir
     def test_delete_user_completely_without_backup(self, manager, test_user, test_data_dir):
         """Test: delete_user_completely deletes user without backup"""
         # Arrange: User is created in fixture

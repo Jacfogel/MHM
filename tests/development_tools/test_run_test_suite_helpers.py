@@ -46,7 +46,9 @@ def test_parallel_command_uses_xdist_and_excludes_e2e_and_no_parallel(monkeypatc
     assert command[:3] == [sys.executable, "-m", "pytest"]
     assert _marker_arg(command) == "not no_parallel and not e2e"
     assert command[command.index("-n") + 1] == "4"
-    assert command[-1] == "tests"
+    assert "--dist=loadscope" in command
+    assert "-q" in command
+    assert "tests" in command
 
 
 @pytest.mark.unit

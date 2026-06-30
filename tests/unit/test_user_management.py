@@ -134,7 +134,6 @@ class TestUserManagement:
     @pytest.mark.unit
     @pytest.mark.user
     @pytest.mark.critical
-    @pytest.mark.no_parallel
     def test_get_user_context_success(self, mock_user_data, mock_config):
         """Test getting user context successfully."""
         context_result = get_user_data(mock_user_data["user_id"], "context")
@@ -165,7 +164,6 @@ class TestUserManagement:
     @pytest.mark.unit
     @pytest.mark.user
     @pytest.mark.critical
-    @pytest.mark.no_parallel
     def test_hybrid_get_user_data_success(self, mock_user_data):
         """Test loading user data successfully using new hybrid API."""
         user_id = mock_user_data["user_id"]
@@ -209,23 +207,25 @@ class TestUserManagement:
     @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_save_user_data_success(self, test_data_dir, mock_config):
         """Test saving user data successfully using centralized utilities."""
         from tests.test_helpers.test_utilities import TestUserDataFactory
 
-        user_id = "test-save-user-data-success"
+        internal_name = f"test-save-user-data-{uuid.uuid4().hex[:8]}"
+        success, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(
+            internal_name, test_data_dir=test_data_dir
+        )
+        assert success and actual_user_id
 
-        # Create test data using centralized utilities
         account_data = TestUserDataFactory.create_account_data(
-            user_id=user_id,
-            internal_username="testuser",
+            user_id=actual_user_id,
+            internal_username=internal_name,
             email="test@example.com",
             channel_type="email",
         )
 
         preferences_data = TestUserDataFactory.create_preferences_data(
-            user_id=user_id,
+            user_id=actual_user_id,
             categories=["motivational", "health"],
             channel={"type": "email", "contact": "test@example.com"},
         )
@@ -234,9 +234,8 @@ class TestUserManagement:
             preferred_name="Test User"
         )
 
-        # Save all data types using centralized save_user_data function
         result = save_user_data(
-            user_id,
+            actual_user_id,
             {
                 "account": account_data,
                 "preferences": preferences_data,
@@ -252,7 +251,7 @@ class TestUserManagement:
         # Get the actual user directory (UUID-based)
         from core.config import get_user_data_dir
 
-        actual_user_dir = get_user_data_dir(user_id)
+        actual_user_dir = get_user_data_dir(actual_user_id)
         account_file = os.path.join(actual_user_dir, "account.json")
         prefs_file = os.path.join(actual_user_dir, "preferences.json")
         context_file = os.path.join(actual_user_dir, "user_context.json")
@@ -269,7 +268,7 @@ class TestUserManagement:
         ), f"User context file should be created. User dir: {actual_user_dir}, Files: {os.listdir(actual_user_dir) if os.path.exists(actual_user_dir) else 'N/A'}"
 
         # Verify data can be loaded using the new hybrid function
-        loaded_data = get_user_data(user_id, "all")
+        loaded_data = get_user_data(actual_user_id, "all")
         assert "account" in loaded_data
         assert "preferences" in loaded_data
         assert "context" in loaded_data
@@ -285,7 +284,6 @@ class TestUserManagement:
     @pytest.mark.user
     @pytest.mark.critical
     @pytest.mark.file_io
-    @pytest.mark.no_parallel  # shared tests/data + user_index.json (parallel race)
     def test_create_user_files_success(self, test_data_dir, mock_config):
         """Test creating user files successfully."""
         import uuid
@@ -323,7 +321,6 @@ class TestUserManagement:
     @pytest.mark.unit
     @pytest.mark.user
     @pytest.mark.regression
-    @pytest.mark.no_parallel
     def test_update_user_preferences_success(self, mock_user_data, mock_config):
         """Test updating user preferences successfully."""
         new_preferences = {"categories": ["motivational", "health"]}
@@ -384,7 +381,6 @@ class TestUserManagement:
     @pytest.mark.unit
     @pytest.mark.user
     @pytest.mark.smoke
-    @pytest.mark.no_parallel
     def test_get_user_data_account_with_discord_id(self, mock_user_data, mock_config):
         """Test getting user account with discord_user_id field."""
         import time
@@ -430,27 +426,17 @@ class TestUserManagement:
     @pytest.mark.user
     @pytest.mark.smoke
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_get_user_data_account_with_email(self, test_data_dir, mock_config):
         """Test getting user account with email successfully."""
-        # Test creating a user with email and getting their account
-        user_id = "test-email-user"
-
-        # Create user using TestUserFactory (minimal user since we only test account updates)
-        success = TestUserFactory.create_minimal_user(
-            user_id, test_data_dir=test_data_dir
+        internal_name = f"test-email-user-{uuid.uuid4().hex[:8]}"
+        success, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(
+            internal_name, test_data_dir=test_data_dir
         )
-        assert success is True, "Failed to create test user"
-
-        # Get the actual user ID (UUID) that was created
-        from core import get_user_id_by_identifier
-
-        actual_user_id = get_user_id_by_identifier(user_id)
-        assert actual_user_id is not None, "Should be able to get UUID for created user"
+        assert success and actual_user_id
 
         account_data = {
             "user_id": actual_user_id,
-            "internal_username": "testuser",
+            "internal_username": internal_name,
             "email": "test@example.com",
             "account_status": "active",
             "channel": {"type": "email", "contact": "test@example.com"},
@@ -545,10 +531,9 @@ class TestUserManagementEdgeCases:
     @pytest.mark.critical
     @pytest.mark.file_io
     @pytest.mark.slow
-    @pytest.mark.no_parallel
     def test_user_lifecycle(self, test_data_dir, mock_config):
         """Test complete user lifecycle with real side effects and system state verification."""
-        user_id = "test-user-lifecycle-complete"
+        internal_name = f"test-user-lifecycle-{uuid.uuid4().hex[:8]}"
 
         # [OK] VERIFY INITIAL STATE: Check test environment
         assert os.path.exists(
@@ -560,28 +545,17 @@ class TestUserManagementEdgeCases:
 
         # Step 1: Test user creation with file creation
 
-        # [OK] VERIFY INITIAL STATE: Check user directory doesn't exist
-        user_dir = os.path.join(test_data_dir, "users", user_id)
-        os.path.exists(user_dir)
-
-        # Use TestUserFactory instead of create_user_files directly
         success = TestUserFactory.create_basic_user(
-            user_id,
+            internal_name,
             enable_checkins=True,
             enable_tasks=True,
             test_data_dir=test_data_dir,
         )
         assert success is True, "Failed to create test user"
 
-        # [OK] VERIFY REAL BEHAVIOR: Check user directory was created
-        # Get the actual user ID (UUID) that was created to find the correct directory
-        # Serial execution ensures index is updated before lookup
-        from core import get_user_id_by_identifier
-        from storage.user_data_operations import rebuild_user_index
-
-        # Rebuild index to ensure user is discoverable (serial execution ensures this works)
-        rebuild_user_index()
-        actual_user_id = get_user_id_by_identifier(user_id)
+        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+            internal_name, test_data_dir
+        )
         assert actual_user_id is not None, "Should be able to get UUID for created user"
         actual_user_dir = os.path.join(test_data_dir, "users", actual_user_id)
 

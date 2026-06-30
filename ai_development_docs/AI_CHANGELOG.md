@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-06-29 - Faster default test runs **COMPLETED**
+- `pytest.ini`: quiet defaults (removed always-on `--verbose`, disabled `log_cli`; consolidated file logs unchanged).
+- `run_tests.py`: `--quick` iteration profile; parallel runs use `--dist=loadscope` and up to 6 auto workers; default `-q` unless `--verbose`.
+- Slow tests: scope `build_user_index` / `get_all_user_summaries` to fixture users (fixes ~150s+ scan of shared `tests/data/users`).
+- Parallel isolation: ~35 tests refactored off `no_parallel` (account handler, user management, user creation, utilities demo) via UUID users and locked index helpers. **Batch 2** (~29): `test_account_lifecycle.py` (9), `test_account_management_real_behavior.py` (6), `test_user_data_manager.py` (14) — scoped rebuild patches, `test_path_factory` backup dirs, `_resolve_test_user_id` helper. **Batch 3**: `test_user_creation.py` integration tests drop full index rebuilds; parser behavior tests mock `AIChatBotSingleton.generate_response` except `@pytest.mark.ai`. Follow-up: `test_user_creation.py` parallel flake fixes (`_read_channel_type`, schedules via `update_user_schedules`).
+- Tier 3 audit: `run_test_suite.py` aligned with runner settings; 4-worker cap during audit to reduce contention with parallel static analysis.
+- Docs: paired testing guides updated with `--quick`, loadscope, and Tier 3 scope notes.
+
 ### 2026-06-28 - Google Health V1 complete **COMPLETED**
 - Reconnect notice on auth auto-pause; per-user timezone sync (30-min poll); optional Fernet token encryption.
 - Admin UI **Google Health** connect panel ([`google_health_settings_dialog.py`](../ui/dialogs/google_health_settings_dialog.py)); shared [`user_settings.py`](../integrations/google_health/user_settings.py).
@@ -154,11 +162,6 @@ Guidelines:
 - `MHMManagerUI` keeps thin delegators; lazy dialog imports stay behind `ui.lazy_dependencies._load_attr`.
 - Added `tests/ui/test_dialog_actions.py`; `ui_app_qt.py` down to ~1421 lines.
 - AI_PRIORITIES follow-up: `@handle_errors` on `user_list_provider`/`dialog_actions` helpers; consolidated duplicate `edit_user_*` paths via `edit_user_category`; removed dead `_prepare_current_user_category_editor` and inlined `_edit_user_category_content`; `doc-fix --fix-ascii` + `docs` regen.
-
-### 2026-06-06 - UI user list provider + ServiceManager bridge removal **COMPLETED**
-- Moved user/category combo loading and display-name helpers from `ui/ui_app_qt.py` into `ui/user_list_provider.py`; `MHMManagerUI` delegates via `UserListProvider`.
-- Removed the temporary `ui.ui_app_qt.ServiceManager` re-export; callers/tests now import from `ui.service_manager` (package `__init__` unchanged).
-- Added `tests/ui/test_user_list_provider.py` and updated combo-helper tests; `ui_app_qt.py` down to ~1719 lines.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

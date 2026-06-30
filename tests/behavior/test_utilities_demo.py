@@ -5,6 +5,7 @@ Demonstrates how to use the centralized test utilities to eliminate redundancy
 """
 
 import os
+import uuid
 import pytest
 import json
 import logging
@@ -138,72 +139,49 @@ class TestUtilitiesDemo:
         # Verify cleanup worked
         assert not os.path.exists(test_dir)
     
-    @pytest.mark.no_parallel
     def test_multiple_user_types_in_single_test(self, test_data_dir):
         """Test creating multiple different user types in a single test."""
-        # Create different types of users
-        assert TestUserFactory.create_basic_user("multi_basic", test_data_dir=test_data_dir), "Basic user should be created"
-        assert TestUserFactory.create_discord_user("multi_discord", test_data_dir=test_data_dir), "Discord user should be created"
-        assert TestUserFactory.create_full_featured_user("multi_full", test_data_dir=test_data_dir), "Full featured user should be created"
-        assert TestUserFactory.create_minimal_user("multi_minimal", test_data_dir=test_data_dir), "Minimal user should be created"
-        
-        # Verify all users were created by checking they can be found by internal username
-        from core import get_user_id_by_identifier
-        for user_id in ["multi_basic", "multi_discord", "multi_full", "multi_minimal"]:
-            actual_user_id = get_user_id_by_identifier(user_id)
-            if actual_user_id is None:
-                logging.getLogger("mhm_tests").warning(f"get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
-                # Skip the detailed assertions for now
-                assert True, "User creation succeeded, identifier lookup issue needs investigation"
-            else:
-                assert actual_user_id is not None, f"User should be found by internal username: {user_id}"
-                
-                # Verify user directory exists
-                from core.config import get_user_data_dir
-                user_dir = get_user_data_dir(actual_user_id)
-                assert os.path.exists(user_dir), f"User directory should exist for {user_id}"
-    
-    @pytest.mark.no_parallel  # shared user index and test_data_dir under xdist; user creation + lookup can race
-    def test_email_user_creation(self, test_data_dir):
-        """Test creating an email user with specific email address."""
-        import uuid
+        suffix = uuid.uuid4().hex[:8]
+        assert TestUserFactory.create_basic_user(f"multi_basic_{suffix}", test_data_dir=test_data_dir), "Basic user should be created"
+        assert TestUserFactory.create_discord_user(f"multi_discord_{suffix}", test_data_dir=test_data_dir), "Discord user should be created"
+        assert TestUserFactory.create_full_featured_user(f"multi_full_{suffix}", test_data_dir=test_data_dir), "Full featured user should be created"
+        assert TestUserFactory.create_minimal_user(f"multi_minimal_{suffix}", test_data_dir=test_data_dir), "Minimal user should be created"
 
-        user_id = f"test_email_user_{uuid.uuid4().hex[:8]}"
-        email = "test.email@example.com"
-        
-        success = TestUserFactory.create_email_user(user_id, email=email, test_data_dir=test_data_dir)
-        assert success, "Email user should be created successfully"
-        
-        # Verify user was created by checking internal username
         from core import get_user_id_by_identifier
-        actual_user_id = get_user_id_by_identifier(user_id)
-        if actual_user_id is None:
-            logging.getLogger("mhm_tests").warning(f"get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
-            # Skip the detailed assertions for now
-            assert True, "User creation succeeded, identifier lookup issue needs investigation"
-        else:
-            assert actual_user_id is not None, "User should be found by internal username"
-            
-            # Verify user directory exists
+        for user_id in [f"multi_basic_{suffix}", f"multi_discord_{suffix}", f"multi_full_{suffix}", f"multi_minimal_{suffix}"]:
+            actual_user_id = get_user_id_by_identifier(user_id) or TestUserFactory.get_test_user_id_by_internal_username(
+                user_id, test_data_dir
+            )
+            assert actual_user_id is not None, f"User should be found by internal username: {user_id}"
             from core.config import get_user_data_dir
             user_dir = get_user_data_dir(actual_user_id)
-            fallback_user_dir = os.path.join(test_data_dir, "users", actual_user_id)
-            assert (
-                os.path.exists(user_dir) or os.path.exists(fallback_user_dir)
-            ), "User directory should exist"
-            
-            # Verify account data contains email
-            from core import get_user_data
-            account_result = get_user_data(actual_user_id, 'account')
-            account_data = account_result.get('account', {})
-            if not account_data:
-                logging.getLogger("mhm_tests").warning(f"get_user_data returned empty account data for {actual_user_id}. This may indicate a data loader issue.")
-                # Skip the detailed assertions for now
-                assert True, "User creation succeeded, data loading issue needs investigation"
-            else:
-                assert account_data is not None, "Account data should be loadable"
-                assert account_data.get("email") == email, "Email should be saved correctly"
-                assert account_data.get("features", {}).get("automated_messages") == "enabled", "Messages should be enabled"
+            assert os.path.exists(user_dir), f"User directory should exist for {user_id}"
+    
+    def test_email_user_creation(self, test_data_dir):
+        """Test creating an email user with specific email address."""
+        user_id = f"test_email_user_{uuid.uuid4().hex[:8]}"
+        email = f"test.email.{uuid.uuid4().hex[:8]}@example.com"
+
+        success = TestUserFactory.create_email_user(user_id, email=email, test_data_dir=test_data_dir)
+        assert success, "Email user should be created successfully"
+
+        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(
+            user_id, test_data_dir
+        )
+        assert actual_user_id is not None, "User should be found by internal username"
+
+        from core.config import get_user_data_dir
+        from core import get_user_data
+
+        user_dir = get_user_data_dir(actual_user_id)
+        fallback_user_dir = os.path.join(test_data_dir, "users", actual_user_id)
+        assert os.path.exists(user_dir) or os.path.exists(fallback_user_dir), "User directory should exist"
+
+        account_result = get_user_data(actual_user_id, 'account')
+        account_data = account_result.get('account', {})
+        assert account_data, "Account data should be loadable"
+        assert account_data.get("email") == email, "Email should be saved correctly"
+        assert account_data.get("features", {}).get("automated_messages") == "enabled", "Messages should be enabled"
     
     def test_custom_fields_user_creation(self, test_data_dir):
         """Test creating a user with custom fields."""
@@ -243,10 +221,9 @@ class TestUtilitiesDemo:
             assert context_data.get("custom_fields", {}).get("health_conditions") == custom_fields["health_conditions"], "Custom fields should be saved correctly"
             assert context_data.get("interests") == ["Technology", "Gaming"], "Default interests should be set"
     
-    @pytest.mark.no_parallel  # shared user index and test_data_dir under xdist; preferences/schedules creation can race
     def test_scheduled_user_creation(self, test_data_dir):
         """Test creating a user with comprehensive schedules."""
-        user_id = "test_scheduled_user"
+        user_id = f"test_scheduled_user_{uuid.uuid4().hex[:8]}"
         schedule_config = {
             "motivational": {
                 "periods": {
@@ -305,25 +282,23 @@ class TestUtilitiesDemo:
             assert actual_morning_period.get("end_time") == expected_morning_period["end_time"], "End time should match"
             # Note: Days might be normalized to uppercase or different format, so we don't assert on that
 
-    @pytest.mark.no_parallel
     def test_comprehensive_user_types(self, test_data_dir):
         """Test all comprehensive user types to ensure they cover real user scenarios."""
         from tests.test_helpers.test_utilities import TestUserFactory
-        
-        # Test all user types
-        user_types = [
-            ("basic_user", TestUserFactory.create_basic_user, "test_basic"),
-            ("discord_user", TestUserFactory.create_discord_user, "test_discord"),
-            ("email_user", TestUserFactory.create_email_user, "test_email"),
 
-            ("full_featured_user", TestUserFactory.create_full_featured_user, "test_full"),
-            ("minimal_user", TestUserFactory.create_minimal_user, "test_minimal"),
-            ("health_focus_user", TestUserFactory.create_user_with_health_focus, "test_health"),
-            ("task_focus_user", TestUserFactory.create_user_with_task_focus, "test_task"),
-            ("disability_user", TestUserFactory.create_user_with_disabilities, "test_disability"),
-            ("complex_checkins_user", TestUserFactory.create_user_with_complex_checkins, "test_complex_checkins"),
-            ("limited_data_user", TestUserFactory.create_user_with_limited_data, "test_limited"),
-            ("inconsistent_data_user", TestUserFactory.create_user_with_inconsistent_data, "test_inconsistent"),
+        suffix = uuid.uuid4().hex[:8]
+        user_types = [
+            ("basic_user", TestUserFactory.create_basic_user, f"test_basic_{suffix}"),
+            ("discord_user", TestUserFactory.create_discord_user, f"test_discord_{suffix}"),
+            ("email_user", TestUserFactory.create_email_user, f"test_email_{suffix}"),
+            ("full_featured_user", TestUserFactory.create_full_featured_user, f"test_full_{suffix}"),
+            ("minimal_user", TestUserFactory.create_minimal_user, f"test_minimal_{suffix}"),
+            ("health_focus_user", TestUserFactory.create_user_with_health_focus, f"test_health_{suffix}"),
+            ("task_focus_user", TestUserFactory.create_user_with_task_focus, f"test_task_{suffix}"),
+            ("disability_user", TestUserFactory.create_user_with_disabilities, f"test_disability_{suffix}"),
+            ("complex_checkins_user", TestUserFactory.create_user_with_complex_checkins, f"test_complex_checkins_{suffix}"),
+            ("limited_data_user", TestUserFactory.create_user_with_limited_data, f"test_limited_{suffix}"),
+            ("inconsistent_data_user", TestUserFactory.create_user_with_inconsistent_data, f"test_inconsistent_{suffix}"),
         ]
         
         results = {}
@@ -332,7 +307,11 @@ class TestUtilitiesDemo:
             try:
                 # Create user with appropriate parameters
                 if user_type_name == "discord_user":
-                    success = factory_method(user_id, discord_user_id="123456789", test_data_dir=test_data_dir)
+                    success = factory_method(
+                        user_id,
+                        discord_user_id=str(uuid.uuid4().int)[:18],
+                        test_data_dir=test_data_dir,
+                    )
                 elif user_type_name == "email_user":
                     success = factory_method(user_id, email=f"{user_id}@example.com", test_data_dir=test_data_dir)
 
@@ -563,36 +542,30 @@ class TestUtilitiesDemo:
         
         logging.getLogger("mhm_tests").info("All edge case scenarios tested successfully")
     
-    @pytest.mark.no_parallel
     def test_user_data_consistency(self, test_data_dir):
         """Test that all user types produce consistent data structures."""
         from tests.test_helpers.test_utilities import TestUserFactory
         from core import get_user_data
-        from core import get_user_id_by_identifier
-        
-        # Test multiple user types and verify consistent structure
+
+        suffix = uuid.uuid4().hex[:8]
         test_users = [
-            ("consistency_basic", TestUserFactory.create_basic_user),
-            ("consistency_full", TestUserFactory.create_full_featured_user),
-            ("consistency_minimal", TestUserFactory.create_minimal_user),
-            ("consistency_health", TestUserFactory.create_user_with_health_focus),
-            ("consistency_task", TestUserFactory.create_user_with_task_focus),
+            (f"consistency_basic_{suffix}", TestUserFactory.create_basic_user),
+            (f"consistency_full_{suffix}", TestUserFactory.create_full_featured_user),
+            (f"consistency_minimal_{suffix}", TestUserFactory.create_minimal_user),
+            (f"consistency_health_{suffix}", TestUserFactory.create_user_with_health_focus),
+            (f"consistency_task_{suffix}", TestUserFactory.create_user_with_task_focus),
         ]
-        
+
         for user_id, factory_method in test_users:
             try:
-                # Create user
                 success = factory_method(user_id, test_data_dir=test_data_dir)
                 assert success, f"{user_id} should be created successfully"
-                
-                # Load user data - ensure we use the actual UUID if available
-                actual_user_id = get_user_id_by_identifier(user_id)
-                user_id_to_use = actual_user_id if actual_user_id else user_id
-                
-                # Try loading with a small delay to ensure files are written
-                import time
-                time.sleep(0.1)
-                
+
+                user_id_to_use = TestUserFactory.get_test_user_id_by_internal_username(
+                    user_id, test_data_dir
+                )
+                assert user_id_to_use is not None, f"{user_id} should resolve to UUID"
+
                 user_data = get_user_data(user_id_to_use, data_types='all', auto_create=False)
                 assert user_data is not None, f"{user_id} should have loadable data"
                 

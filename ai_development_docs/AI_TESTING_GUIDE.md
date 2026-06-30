@@ -179,6 +179,13 @@ Preferred commands (via `run_tests.py`):
   python run_tests.py --no-pause-lm-studio
   ```
 
+- Fast local iteration (quiet output, skip static logging check, LM Studio pause, and post-failure reruns):
+
+  ```bash
+  python run_tests.py --quick
+  python run_tests.py --quick --mode unit
+  ```
+
 When focusing on a small subset:
 
 - Use pytest directly:
@@ -197,7 +204,10 @@ If you add or change command-line options, update `run_tests.py`, `pytest.ini`, 
 
 Parallel execution:
 
-- Expected default: tests run in parallel using `pytest-xdist` (for example, `-n auto`).
+- Expected default: tests run in parallel using `pytest-xdist` with `--dist=loadscope` (fixture-heavy modules stay on one worker).
+- Auto worker count: up to 6 workers (`cpu_count // 2`, minimum 2).
+- Tier 3 audit (`audit --full`) uses `development_tools/tests/run_test_suite.py`, not `run_tests.py`. It runs the full `tests/` tree (including `tests/development_tools/`), caps workers at 4 while ruff/pyright/legacy tools run concurrently, and may reuse domain-cache results when source domains are unchanged.
+- The separate `coverage` command runs pytest again with coverage collection; that is additional time beyond Tier 3 test-suite execution.
 - Use `--no-parallel` for:
   - Debugging flaky tests.
   - Tests that touch shared resources and cannot be isolated easily.

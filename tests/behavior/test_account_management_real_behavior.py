@@ -17,6 +17,17 @@ from tests.test_helpers.test_utilities import TestUserFactory
 
 TEST_LOGGER = logging.getLogger("mhm_tests")
 
+
+def _resolve_test_user_id(internal_username: str, test_data_dir: str) -> str:
+    """Resolve internal username to UUID using index helpers (parallel-safe per user)."""
+    from core import get_user_id_by_identifier
+
+    return (
+        get_user_id_by_identifier(internal_username)
+        or TestUserFactory.get_test_user_id_by_internal_username(internal_username, test_data_dir)
+        or internal_username
+    )
+
 # Do not modify sys.path; rely on package imports
 
 pytestmark = [pytest.mark.behavior, pytest.mark.user]
@@ -100,12 +111,8 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
 @pytest.mark.user
 @pytest.mark.critical
 @pytest.mark.file_io
-@pytest.mark.no_parallel
 def test_user_data_loading_real_behavior(test_data_dir, mock_config):
-    """Test actual user data loading with file verification
-    
-    Marked as no_parallel because it modifies user data files and user_index.json.
-    """
+    """Test actual user data loading with file verification."""
     import logging
     logging.getLogger("mhm_tests").debug("Testing User Data Loading (Real Behavior)...")
     
@@ -122,21 +129,10 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
     
     try:
         from core import get_user_data
-        from core import get_user_id_by_identifier
         
-        # Get the UUID for the basic user (serial execution ensures index is updated)
-        from tests.test_helpers.test_utilities import TestUserFactory
-        from storage.user_data_operations import rebuild_user_index
+        basic_user_id = _resolve_test_user_id(f"test-user-basic-{test_id}", test_data_dir)
         
-        # Rebuild index to ensure user is discoverable
-        rebuild_user_index()
-        basic_user_id = (
-            get_user_id_by_identifier(f"test-user-basic-{test_id}")
-            or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
-            or f"test-user-basic-{test_id}"
-        )
-        
-        # Materialize and load basic user (serial execution ensures files are written)
+        # Materialize and load basic user
         from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis
         import time
         
@@ -167,16 +163,10 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
         
         logging.getLogger("mhm_tests").debug("Basic user data loading: Success")
         
-        # Get the UUID for the full user (serial execution ensures index is updated)
-        rebuild_user_index()
-        full_user_id = (
-            get_user_id_by_identifier(f"test-user-full-{test_id}")
-            or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-full-{test_id}", test_data_dir)
-            or f"test-user-full-{test_id}"
-        )
+        full_user_id = _resolve_test_user_id(f"test-user-full-{test_id}", test_data_dir)
         assert full_user_id is not None, "Should be able to get UUID for full user"
         
-        # Materialize and load full user (serial execution ensures files are written)
+        # Materialize and load full user
         materialize_user_minimal_via_public_apis(full_user_id)
         time.sleep(0.1)  # Small delay to ensure files are written
         full_data = get_user_data(full_user_id, "all", auto_create=True)
@@ -230,7 +220,6 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
 @pytest.mark.user
 @pytest.mark.critical
 @pytest.mark.file_io
-@pytest.mark.no_parallel
 def test_feature_enablement_real_behavior(test_data_dir, mock_config):
     """Test actual feature enablement with file creation/deletion"""
     import logging
@@ -244,21 +233,10 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
 
     try:
         from core import save_user_data, get_user_data
-        from core import get_user_id_by_identifier
         
-        # Get the UUID for the basic user (serial execution ensures index is updated)
-        from tests.test_helpers.test_utilities import TestUserFactory
-        from storage.user_data_operations import rebuild_user_index
+        basic_user_id = _resolve_test_user_id(f"test-user-basic-{test_id}", test_data_dir)
         
-        # Rebuild index to ensure user is discoverable
-        rebuild_user_index()
-        basic_user_id = (
-            get_user_id_by_identifier(f"test-user-basic-{test_id}")
-            or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
-            or f"test-user-basic-{test_id}"
-        )
-        
-        # Test enabling check-ins for basic user (serial execution ensures data is available)
+        # Test enabling check-ins for basic user
         basic_data = get_user_data(basic_user_id, "all", auto_create=True)
         
         # Ensure preferences exist
@@ -294,12 +272,10 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
         
         logging.getLogger("mhm_tests").debug("Enable check-ins: Success")
         
-        # Get the UUID for the full user (serial execution ensures index is updated)
-        rebuild_user_index()
-        full_user_id = get_user_id_by_identifier(f"test-user-full-{test_id}")
+        full_user_id = _resolve_test_user_id(f"test-user-full-{test_id}", test_data_dir)
         assert full_user_id is not None, "Should be able to get UUID for full user"
         
-        # Test disabling tasks for full user (serial execution ensures data is available)
+        # Test disabling tasks for full user
         full_data = get_user_data(full_user_id, "all", auto_create=True)
         
         # Ensure preferences exist
@@ -333,12 +309,8 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
 @pytest.mark.user
 @pytest.mark.file_io
 @pytest.mark.regression
-@pytest.mark.no_parallel
 def test_category_management_real_behavior(test_data_dir, mock_config):
-    """Test actual category management with file persistence
-    
-    Marked as no_parallel because it modifies user data files.
-    """
+    """Test actual category management with file persistence."""
     import logging
     import uuid
     test_id = str(uuid.uuid4())[:8]
@@ -352,8 +324,8 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
         from core import save_user_data, get_user_data
         from messages.message_data_manager import create_message_file_from_defaults
         
-        # Create test user
-        user_id = "test-user-category"
+        # Create test user with unique id
+        user_id = f"test-user-category-{test_id}"
         user_dir = os.path.join(test_data_dir, "users", user_id)
         os.makedirs(user_dir, exist_ok=True)
         
@@ -443,12 +415,8 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
 @pytest.mark.scheduler
 @pytest.mark.file_io
 @pytest.mark.regression
-@pytest.mark.no_parallel
 def test_schedule_period_management_real_behavior(test_data_dir):
-    """Test actual schedule period management with file persistence
-    
-    Marked as no_parallel because it modifies user data files and schedules.
-    """
+    """Test actual schedule period management with file persistence."""
     import logging
     logging.getLogger("mhm_tests").debug("Testing Schedule Period Management (Real Behavior)...")
     
@@ -461,21 +429,11 @@ def test_schedule_period_management_real_behavior(test_data_dir):
     
     try:
             from core import save_user_data, get_user_data
-            from core import get_user_id_by_identifier
-            from tests.test_helpers.test_utilities import TestUserFactory
             from tests.test_helpers.test_support.test_helpers import materialize_user_minimal_via_public_apis
             
-            # Get the UUID for the basic user (serial execution ensures index is updated)
-            from storage.user_data_operations import rebuild_user_index
+            basic_user_id = _resolve_test_user_id(f"test-user-basic-{test_id}", test_data_dir)
             
-            rebuild_user_index()
-            basic_user_id = (
-                get_user_id_by_identifier(f"test-user-basic-{test_id}")
-                or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
-                or f"test-user-basic-{test_id}"
-            )
-            
-            # Materialize user to ensure data exists (serial execution ensures files are written)
+            # Materialize user to ensure data exists
             import time
             materialize_user_minimal_via_public_apis(basic_user_id)
             time.sleep(0.1)  # Small delay to ensure files are written
@@ -565,17 +523,13 @@ def test_schedule_period_management_real_behavior(test_data_dir):
         raise
 
 
-@pytest.mark.no_parallel
 @pytest.mark.behavior
 @pytest.mark.integration
 @pytest.mark.user
 @pytest.mark.file_io
 @pytest.mark.slow
 def test_integration_scenarios_real_behavior(test_data_dir):
-    """Test complex integration scenarios with multiple operations
-    
-    Marked as no_parallel because it modifies user data files and user_index.json.
-    """
+    """Test complex integration scenarios with multiple operations."""
     import logging
     logging.getLogger("mhm_tests").debug("Testing Integration Scenarios (Real Behavior)...")
     
@@ -588,17 +542,8 @@ def test_integration_scenarios_real_behavior(test_data_dir):
 
     try:
             from core import save_user_data, get_user_data
-            from core import get_user_id_by_identifier
 
-            # Get the UUID for the basic user (serial execution ensures index is updated)
-            from storage.user_data_operations import rebuild_user_index
-            
-            rebuild_user_index()
-            basic_user_id = (
-                get_user_id_by_identifier(f"test-user-basic-{test_id}")
-                or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
-                or f"test-user-basic-{test_id}"
-            )
+            basic_user_id = _resolve_test_user_id(f"test-user-basic-{test_id}", test_data_dir)
             assert basic_user_id is not None, f"Should be able to get UUID for basic user (test_id: {test_id})"
 
             # Scenario 1: User opts into check-ins for the first time
@@ -672,16 +617,10 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             # Scenario 2: User disables task management and re-enables it
             logging.getLogger("mhm_tests").debug("Testing: User disables task management and re-enables it")
             
-            # Get the UUID for the full user (serial execution ensures index is updated)
-            rebuild_user_index()
-            full_user_id = (
-                get_user_id_by_identifier(f"test-user-full-{test_id}")
-                or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-full-{test_id}", test_data_dir)
-                or f"test-user-full-{test_id}"
-            )
+            full_user_id = _resolve_test_user_id(f"test-user-full-{test_id}", test_data_dir)
             assert full_user_id is not None, "Should be able to get UUID for full user"
             
-            # Load full data (serial execution ensures data is available)
+            # Load full data
             full_data = get_user_data(full_user_id, "all", auto_create=True)
             if "account" not in full_data:
                 import time
@@ -720,10 +659,7 @@ def test_integration_scenarios_real_behavior(test_data_dir):
 
             # Ensure task directory is created when tasks are enabled
             from tasks import ensure_task_directory
-            from core import get_user_id_by_identifier
-            actual_user_id = get_user_id_by_identifier(f"test-user-full-{test_id}")
-            if actual_user_id:
-                ensure_task_directory(actual_user_id)
+            ensure_task_directory(full_user_id)
 
             # Verify re-enabled state
             reenabled_data = get_user_data(full_user_id, "all", auto_create=True)
@@ -779,31 +715,14 @@ def test_integration_scenarios_real_behavior(test_data_dir):
 @pytest.mark.user
 @pytest.mark.file_io
 @pytest.mark.regression
-@pytest.mark.no_parallel
 def test_data_consistency_real_behavior(test_data_dir, mock_config):
-    """Test data consistency across multiple operations
-    
-    Marked as no_parallel because it modifies user data files.
-    """
+    """Test data consistency across multiple operations."""
     import logging
     import uuid
     test_id = str(uuid.uuid4())[:8]
     logging.getLogger("mhm_tests").debug("Testing Data Consistency (Real Behavior)...")
     
     # Setup test environment and create test users
-    # mock_config fixture already sets up the correct paths
-    
-    # Create user index with flat lookup structure
-    user_index = {
-        "last_updated": "2025-01-01T00:00:00",
-        f"test-user-basic-{test_id}": f"test-user-basic-{test_id}",  # username → UUID
-        f"test-user-full-{test_id}": f"test-user-full-{test_id}"      # username → UUID
-    }
-    
-    # Use file locking to prevent race conditions in parallel test execution
-    from core.file_locking import safe_json_write
-    safe_json_write(os.path.join(test_data_dir, "user_index.json"), user_index, indent=2)
-    
     create_test_user_data(f"test-user-basic-{test_id}", test_data_dir, "basic")
     create_test_user_data(f"test-user-full-{test_id}", test_data_dir, "full")
     
@@ -813,9 +732,7 @@ def test_data_consistency_real_behavior(test_data_dir, mock_config):
         # Test that user index stays consistent
         user_index_file = os.path.join(test_data_dir, "user_index.json")
         
-        # Perform multiple operations
-        from core import get_user_id_by_identifier
-        basic_uuid = get_user_id_by_identifier(f"test-user-basic-{test_id}") or f"test-user-basic-{test_id}"
+        basic_uuid = _resolve_test_user_id(f"test-user-basic-{test_id}", test_data_dir)
         import time
         materialize_user_minimal_via_public_apis(basic_uuid)
         time.sleep(0.1)  # Brief delay to ensure files are written

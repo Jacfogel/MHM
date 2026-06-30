@@ -302,7 +302,11 @@ class TestUserDataOperationsWrappers:
         self, mock_user_data_with_messages
     ):
         uid = mock_user_data_with_messages["user_id"]
-        index = build_user_index()
+        # Scope to fixture user; avoid scanning the full shared tests/data/users tree.
+        with patch(
+            "storage.user_data_operations.get_all_user_ids", return_value=[uid]
+        ):
+            index = build_user_index()
         assert isinstance(index, dict)
         assert uid in index
         entry = index[uid]

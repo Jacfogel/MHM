@@ -9,6 +9,7 @@ import pytest
 import os
 import json
 import shutil
+import uuid
 
 from core.time_utilities import now_timestamp_full
 from storage.user_data_v2_base import SCHEMA_VERSION
@@ -81,6 +82,10 @@ class TestAccountLifecycle:
         get_user_data(uid, 'context')
         return get_user_data(uid, 'all')
 
+    @staticmethod
+    def _unique_username(prefix: str) -> str:
+        return f"{prefix}-{uuid.uuid4().hex[:8]}"
+
     def _ensure_minimal_structure(self, uid):
         from core import get_user_data, save_user_data
         data = get_user_data(uid) or {}
@@ -151,21 +156,18 @@ class TestAccountLifecycle:
     @pytest.mark.regression
     @pytest.mark.slow
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_create_basic_account(self):
         """Test creating a basic account with only messages enabled."""
         from core import get_user_data
         
         # Arrange
-        user_id = "test-basic-user"
+        user_id = self._unique_username("test-basic-user")
         
         # Create test user using centralized utilities for consistent setup
         from tests.test_helpers.test_utilities import TestUserFactory
         success, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(user_id, self.test_data_dir)
         assert success, "Test user should be created successfully"
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
-        from storage.user_data_operations import rebuild_user_index
-        rebuild_user_index()
         
         # Update user data to match the test requirements
         from core import update_user_account, update_user_preferences
@@ -212,14 +214,13 @@ class TestAccountLifecycle:
     @pytest.mark.regression
     @pytest.mark.slow
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_create_full_account(self):
         """Test creating a full account with all features enabled."""
         from core import save_user_data, get_user_data
         from tests.test_helpers.test_utilities import TestUserFactory, TestDataFactory
         
         # Arrange - Create full user with all features using centralized utilities
-        user_id = "test-full-user"
+        user_id = self._unique_username("test-full-user")
         
         # Create full featured user
         success = TestUserFactory.create_full_featured_user(user_id, self.test_data_dir)
@@ -310,22 +311,18 @@ class TestAccountLifecycle:
     @pytest.mark.regression
     @pytest.mark.slow
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_enable_checkins_for_basic_user(self):
         """Test enabling check-ins for a user who only has messages enabled."""
         from core import get_user_data
-        import uuid
         
         # Arrange - Create basic user
-        user_id = f"test-enable-checkins-{uuid.uuid4().hex[:8]}"
+        user_id = self._unique_username("test-enable-checkins")
         
         # Create test user using centralized utilities for consistent setup
         from tests.test_helpers.test_utilities import TestUserFactory
         success, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(user_id, self.test_data_dir)
         assert success, "Test user should be created successfully"
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
-        from storage.user_data_operations import rebuild_user_index
-        rebuild_user_index()
         # Ensure minimal structure exists before mutation
         self._ensure_minimal_structure(actual_user_id)
         
@@ -385,13 +382,12 @@ class TestAccountLifecycle:
     @pytest.mark.regression
     @pytest.mark.slow
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_disable_tasks_for_full_user(self):
         """Test disabling tasks for a user who has all features enabled."""
         from core import get_user_data
         
         # Arrange - Create full user
-        user_id = "test-disable-tasks"
+        user_id = self._unique_username("test-disable-tasks")
         account_data = {
             "internal_username": user_id,
             "timezone": "America/New_York",
@@ -484,13 +480,12 @@ class TestAccountLifecycle:
     @pytest.mark.regression
     @pytest.mark.slow
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_reenable_tasks_for_user(self):
         """Test re-enabling tasks for a user who previously had them disabled."""
         from core import get_user_data
         
         # Arrange - Create user with tasks disabled
-        user_id = "test-reenable-tasks"
+        user_id = self._unique_username("test-reenable-tasks")
         account_data = {
             "internal_username": user_id,
             "timezone": "America/New_York",
@@ -528,10 +523,11 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, account_data)
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
-        from storage.user_data_operations import rebuild_user_index
-        rebuild_user_index()
+        from storage.user_data_operations import update_user_index
         from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
+        if actual_user_id:
+            update_user_index(actual_user_id)
         self._ensure_minimal_structure(actual_user_id)
         assert actual_user_id is not None
         from core.config import get_user_data_dir
@@ -592,7 +588,7 @@ class TestAccountLifecycle:
         from core import get_user_data, clear_user_caches
         
         # Arrange - Create user with automated_messages enabled and basic categories
-        user_id = "test-add-category"
+        user_id = self._unique_username("test-add-category")
         account_data = {
             "internal_username": user_id,
             "timezone": "America/New_York",
@@ -682,7 +678,7 @@ class TestAccountLifecycle:
         from core import get_user_data, clear_user_caches
         
         # Arrange - Create user with multiple categories
-        user_id = "test-remove-category"
+        user_id = self._unique_username("test-remove-category")
         account_data = {
             "internal_username": user_id,
             "timezone": "America/New_York",
@@ -747,13 +743,12 @@ class TestAccountLifecycle:
         assert "motivational" in updated_cats, "Motivational should remain"
     
     @pytest.mark.integration
-    @pytest.mark.no_parallel
     def test_add_schedule_period(self, update_user_index_for_test):
         """Test adding a new schedule period to user schedules."""
         from core import get_user_data, clear_user_caches
         
         # Arrange - Create user with basic schedule
-        user_id = "test-add-period"
+        user_id = self._unique_username("test-add-period")
         account_data = {
             "internal_username": user_id,
             "timezone": "America/New_York",
@@ -830,13 +825,12 @@ class TestAccountLifecycle:
     
     @pytest.mark.integration
     @pytest.mark.slow
-    @pytest.mark.no_parallel
     def test_modify_schedule_period(self):
         """Test modifying an existing schedule period."""
         from core import get_user_data
         
         # Arrange - Create user with schedule
-        user_id = "test-modify-period"
+        user_id = self._unique_username("test-modify-period")
         account_data = {
             "internal_username": user_id,
             "timezone": "America/New_York",
@@ -895,13 +889,12 @@ class TestAccountLifecycle:
         assert updated_morning["days"] == ["ALL"], "Days should be normalized to ['ALL'] when all days selected"
     
     @pytest.mark.integration
-    @pytest.mark.no_parallel
     def test_remove_schedule_period(self, update_user_index_for_test):
         """Test removing a schedule period from user schedules."""
         from core import get_user_data, clear_user_caches
         
         # Arrange - Create user with multiple periods
-        user_id = "test-remove-period"
+        user_id = self._unique_username("test-remove-period")
         account_data = {
             "internal_username": user_id,
             "timezone": "America/New_York",
@@ -975,13 +968,12 @@ class TestAccountLifecycle:
     
     @pytest.mark.integration
     @pytest.mark.slow
-    @pytest.mark.no_parallel
     def test_complete_account_lifecycle(self):
         """Test complete account lifecycle: create, modify, disable, re-enable, delete."""
         from core import save_user_data, get_user_data
         
         # 1. Create account
-        user_id = "test-lifecycle"
+        user_id = self._unique_username("test-lifecycle")
         account_data = {
             "internal_username": user_id,
             "timezone": "America/New_York",
@@ -1018,16 +1010,14 @@ class TestAccountLifecycle:
         if not os.path.exists(initial_user_dir):
             os.makedirs(initial_user_dir, exist_ok=True)
         
-        # Rebuild index with retry for race conditions
-        from storage.user_data_operations import rebuild_user_index
+        from storage.user_data_operations import update_user_index
         import time
-        rebuild_success = rebuild_user_index()
-        time.sleep(0.1)  # Brief delay to ensure index is written
-        
-        # Even if rebuild failed, try to find the user (directory scan fallback)
         from tests.test_helpers.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
+        if actual_user_id:
+            update_user_index(actual_user_id)
         assert actual_user_id is not None
+        time.sleep(0.1)  # Brief delay to ensure index is written
         
         user_dir = get_user_data_dir(actual_user_id)
         
@@ -1036,7 +1026,7 @@ class TestAccountLifecycle:
         time.sleep(0.1)  # Brief delay for directory creation
         dir_exists = os.path.exists(user_dir)
         
-        assert dir_exists, f"User directory should be created at {user_dir} (rebuild_success={rebuild_success}, actual_user_id={actual_user_id})"
+        assert dir_exists, f"User directory should be created at {user_dir} (actual_user_id={actual_user_id})"
         
         # 2. Enable features via public APIs
         self._materialize_and_verify(actual_user_id)
