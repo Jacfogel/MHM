@@ -49,3 +49,19 @@ def test_clear_full_suite_cache_removes_snapshot(tmp_path: Path):
 
     assert cache.get_full_suite_cache() is None
     assert not cache.can_reuse_full_suite_cache()
+
+
+@pytest.mark.unit
+def test_suite_profile_change_invalidates_full_cache(tmp_path: Path):
+    cache = _make_cache(tmp_path)
+    cache.cache_data["last_run_ok"] = True
+    cache.cache_data["last_parallel_ok"] = True
+    cache.cache_data["last_suite_profile"] = "quick"
+    cache.cache_full_suite({"parallel": {"counts": {}, "failed_node_ids": []}})
+
+    assert cache.can_reuse_full_suite_cache("quick")
+    assert not cache.can_reuse_full_suite_cache("full")
+
+    changed = cache.get_changed_domains("full")
+    assert changed == cache._all_domains()
+    assert "suite_profile_change" in str(cache.last_invalidation_reason)

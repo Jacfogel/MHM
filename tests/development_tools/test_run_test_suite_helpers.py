@@ -23,7 +23,7 @@ def _cfg(**overrides):
         "pytest_base_args": ["--tb=short"],
         "test_paths": ["tests"],
         "workers": "auto",
-        "exclude_markers": ["e2e"],
+        "exclude_markers": ["e2e", "slow"],
         "no_parallel_marker": "no_parallel",
         "sigint_taps_to_stop": 3,
         "sigint_window_seconds": 2.0,
@@ -44,7 +44,7 @@ def test_parallel_command_uses_xdist_and_excludes_e2e_and_no_parallel(monkeypatc
     )
 
     assert command[:3] == [sys.executable, "-m", "pytest"]
-    assert _marker_arg(command) == "not no_parallel and not e2e"
+    assert _marker_arg(command) == "not no_parallel and not e2e and not slow"
     assert command[command.index("-n") + 1] == "4"
     assert "--dist=loadscope" in command
     assert "-q" in command
@@ -62,7 +62,7 @@ def test_parallel_command_falls_back_to_serial_without_xdist(monkeypatch, tmp_pa
     )
 
     assert "-n" not in command
-    assert _marker_arg(command) == "not no_parallel and not e2e"
+    assert _marker_arg(command) == "not no_parallel and not e2e and not slow"
 
 
 @pytest.mark.unit
@@ -76,7 +76,7 @@ def test_no_parallel_phase_is_serial_and_marker_scoped(monkeypatch, tmp_path):
     )
 
     assert "-n" not in command
-    assert _marker_arg(command) == "no_parallel and not e2e"
+    assert _marker_arg(command) == "no_parallel and not e2e and not slow"
 
 
 @pytest.mark.unit
@@ -292,3 +292,36 @@ def test_sigint_threshold_ignores_until_confirmed(monkeypatch):
     assert runner._STOP_REQUESTED is True
 
     runner_any._ACTIVE_PROCESS = None
+
+
+@pytest.mark.unit
+def test_full_profile_excludes_only_e2e(monkeypatch, tmp_path):
+    monkeypatch.setattr(runner, "_has_xdist", lambda: True)
+
+    command = runner.build_phase_command(
+        phase="parallel",
+        cfg=_cfg(exclude_markers=["e2e"], suite_profile="full"),
+        junit_xml=tmp_path / "parallel.xml",
+    )
+
+    assert _marker_arg(command) == "not no_parallel and not e2e"
+
+
+@pytest.mark.unit
+def test_load_config_full_profile_excludes_slow_only(monkeypatch):
+    monkeypatch.setattr(
+        runner,
+        "_load_config",
+        lambda profile=None: {
+            "pytest_command": [sys.executable, "-m", "pytest"],
+            "exclude_markers": ["e2e"] if profile == "full" else ["e2e", "slow"],
+            "suite_profile": profile or "quick",
+            "test_paths": ["tests"],
+        },
+    )
+
+    quick = runner._load_config("quick")
+    full = runner._load_config("full")
+
+    assert quick["exclude_markers"] == ["e2e", "slow"]
+    assert full["exclude_markers"] == ["e2e"]

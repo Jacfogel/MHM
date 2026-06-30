@@ -1,0 +1,36 @@
+name: Nightly Full Test Suite
+
+on:
+  schedule:
+    # 06:00 UTC daily (~1 AM Eastern / 10 PM Pacific depending on DST)
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  nightly-full-suite:
+    name: Nightly Full Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run nightly full test suite
+        run: python development_tools/run_development_tools.py nightly-test-suite --strict
+
+      - name: Upload nightly results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-test-suite-results
+          path: |
+            development_tools/tests/jsons/run_test_suite_nightly_results.json
+            development_tools/tests/jsons/test_suite_junit/

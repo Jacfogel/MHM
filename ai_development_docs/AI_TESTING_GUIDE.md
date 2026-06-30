@@ -206,7 +206,8 @@ Parallel execution:
 
 - Expected default: tests run in parallel using `pytest-xdist` with `--dist=loadscope` (fixture-heavy modules stay on one worker).
 - Auto worker count: up to 6 workers (`cpu_count // 2`, minimum 2).
-- Tier 3 audit (`audit --full`) uses `development_tools/tests/run_test_suite.py`, not `run_tests.py`. It runs the full `tests/` tree (including `tests/development_tools/`), caps workers at 4 while ruff/pyright/legacy tools run concurrently, and may reuse domain-cache results when source domains are unchanged.
+- Tier 3 audit (`audit --full`) uses `development_tools/tests/run_test_suite.py` with the **quick** profile (`not e2e` and `not slow`), not `run_tests.py`. It runs the full `tests/` tree (including `tests/development_tools/`), caps workers at 4 while ruff/pyright/legacy tools run concurrently, and may reuse domain-cache results when source domains are unchanged (profile-aware cache).
+- **Nightly full suite**: `python development_tools/run_development_tools.py nightly-test-suite` runs the **full** profile (includes slow tests). Scheduled in `.github/workflows/nightly-tests.yml`.
 - The separate `coverage` command runs pytest again with coverage collection; that is additional time beyond Tier 3 test-suite execution.
 - Use `--no-parallel` for:
   - Debugging flaky tests.

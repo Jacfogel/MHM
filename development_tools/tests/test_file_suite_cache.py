@@ -73,6 +73,7 @@ class TestFileSuiteCache:
             "last_run_domains": [],
             "last_run_at": None,
             "last_updated": None,
+            "last_suite_profile": None,
         }
 
     def _load_cache(self) -> None:
@@ -129,8 +130,14 @@ class TestFileSuiteCache:
     def _all_domains(self) -> set[str]:
         return set(self.coverage_cache.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
 
-    def get_changed_domains(self) -> set[str]:
+    def get_changed_domains(self, suite_profile: str = "quick") -> set[str]:
         """Return domains that require re-running tests (suite + shared invalidation)."""
+        cached_profile = self.cache_data.get("last_suite_profile")
+        if cached_profile and str(cached_profile) != str(suite_profile):
+            self.last_invalidation_reason = (
+                f"suite_profile_change:{cached_profile}->{suite_profile}"
+            )
+            return self._all_domains()
         if self._suite_tool_changed():
             self.last_invalidation_reason = "suite_tool_change"
             current_hash = self._compute_tool_hash()
@@ -160,8 +167,10 @@ class TestFileSuiteCache:
             self.cache_data.pop(self.FULL_SUITE_KEY, None)
             self._save_cache()
 
-    def can_reuse_full_suite_cache(self) -> bool:
+    def can_reuse_full_suite_cache(self, suite_profile: str = "quick") -> bool:
         """Return True only when the last suite run succeeded and a snapshot exists."""
+        if self.cache_data.get("last_suite_profile") != suite_profile:
+            return False
         if self.cache_data.get("last_run_ok") is False:
             return False
         if self.cache_data.get("last_parallel_ok") is False:
@@ -246,6 +255,7 @@ class TestFileSuiteCache:
         no_parallel_coverage_present: bool | None = None,
         failed_domains: set[str] | None = None,
         run_domains: set[str] | None = None,
+        suite_profile: str | None = None,
     ) -> None:
         if parallel_ok is not None:
             self.cache_data["last_parallel_ok"] = bool(parallel_ok)
@@ -255,6 +265,8 @@ class TestFileSuiteCache:
             self.cache_data["last_failed_domains"] = sorted(failed_domains)
         if run_domains is not None:
             self.cache_data["last_run_domains"] = sorted(run_domains)
+        if suite_profile is not None:
+            self.cache_data["last_suite_profile"] = str(suite_profile)
         if parallel_ok is not None or no_parallel_ok is not None:
             self.cache_data["last_run_ok"] = bool(
                 (parallel_ok is True)

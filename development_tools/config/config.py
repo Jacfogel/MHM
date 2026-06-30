@@ -676,13 +676,20 @@ def get_coverage_tool_config() -> dict[str, Any]:
     return result
 
 
+SUITE_PROFILES: dict[str, dict[str, Any]] = {
+    "quick": {"exclude_markers": ["e2e", "slow"]},
+    "full": {"exclude_markers": ["e2e"]},
+}
+
 TEST_RUN_DEFAULTS: dict[str, Any] = {
     "pytest_command": ["{python}", "-m", "pytest"],
     "pytest_base_args": ["--tb=short", "--disable-warnings", "--maxfail=10"],
     "test_paths": None,
     "workers": "auto",
     "timeout_seconds": 1200,
-    "exclude_markers": ["e2e"],
+    "exclude_markers": ["e2e", "slow"],
+    "default_profile": "quick",
+    "profiles": copy.deepcopy(SUITE_PROFILES),
     "no_parallel_marker": "no_parallel",
     "sigint_taps_to_stop": 5,
     "sigint_window_seconds": 2.0,
@@ -691,8 +698,8 @@ TEST_RUN_DEFAULTS: dict[str, Any] = {
 }
 
 
-def get_test_run_config() -> dict[str, Any]:
-    """Portable pytest suite runner settings used by Tier 3 audits."""
+def get_test_run_config(profile: str | None = None) -> dict[str, Any]:
+    """Portable pytest suite runner settings used by Tier 3 audits and nightly runs."""
     external = _get_external_value("test_run", None)
     result = copy.deepcopy(TEST_RUN_DEFAULTS)
     if isinstance(external, dict):
@@ -701,6 +708,14 @@ def get_test_run_config() -> dict[str, Any]:
         paths = get_paths_config()
         tests_dir = str(paths.get("tests_dir", "tests")).strip().rstrip("/\\") or "tests"
         result["test_paths"] = [tests_dir]
+    profile_name = str(profile or result.get("default_profile") or "quick").strip().lower()
+    profiles = result.get("profiles")
+    if not isinstance(profiles, dict):
+        profiles = copy.deepcopy(SUITE_PROFILES)
+    profile_cfg = profiles.get(profile_name)
+    if isinstance(profile_cfg, dict) and profile_cfg.get("exclude_markers"):
+        result["exclude_markers"] = [str(marker) for marker in profile_cfg["exclude_markers"]]
+    result["suite_profile"] = profile_name
     return result
 
 

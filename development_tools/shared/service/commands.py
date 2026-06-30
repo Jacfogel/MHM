@@ -1006,8 +1006,7 @@ class CommandsMixin:
             return False
     
     def run_test_suite(self) -> dict:
-        """Run the portable pytest suite runner without coverage for Tier 3."""
-        logger.debug("Running Tier 3 pytest suite without coverage...")
+        """Run the portable pytest suite runner without coverage for Tier 3 (quick profile)."""
         output_file = (
             self.project_root
             / "development_tools"
@@ -1015,11 +1014,55 @@ class CommandsMixin:
             / "jsons"
             / "run_test_suite_results.json"
         )
-        args = ["run_test_suite", "--output-file", str(output_file)]
+        return self._run_test_suite_profile(
+            profile="quick",
+            output_file=output_file,
+            persist_tier3_outcome=True,
+            save_tool_name="run_test_suite",
+            log_label="Tier 3 quick pytest suite",
+        )
+
+    def run_nightly_test_suite(self, *, strict: bool = False) -> dict:
+        """Run the full pytest suite (includes slow tests) for nightly validation."""
+        output_file = (
+            self.project_root
+            / "development_tools"
+            / "tests"
+            / "jsons"
+            / "run_test_suite_nightly_results.json"
+        )
+        result = self._run_test_suite_profile(
+            profile="full",
+            output_file=output_file,
+            persist_tier3_outcome=False,
+            save_tool_name="run_test_suite_nightly",
+            log_label="Nightly full pytest suite",
+        )
+        if strict and str(result.get("state") or "crashed") != "clean":
+            result["strict_failure"] = True
+        return result
+
+    def _run_test_suite_profile(
+        self,
+        *,
+        profile: str,
+        output_file: Path,
+        persist_tier3_outcome: bool,
+        save_tool_name: str,
+        log_label: str,
+    ) -> dict:
+        logger.info(f"Running {log_label} (profile={profile})...")
+        args = [
+            "run_test_suite",
+            "--profile",
+            profile,
+            "--output-file",
+            str(output_file),
+        ]
         try:
             from ... import config as dt_config
 
-            cfg = dt_config.get_test_run_config()
+            cfg = dt_config.get_test_run_config(profile)
         except Exception:
             cfg = {}
         timeout = int(cfg.get("timeout_seconds", 1200) or 1200) + 120
@@ -1044,7 +1087,10 @@ class CommandsMixin:
             except Exception as exc:
                 logger.warning(f"Failed to parse run_test_suite output: {exc}")
         elif output_file.exists():
-            logger.warning("Ignoring stale run_test_suite output file from a previous audit.")
+            logger.warning(
+                "Ignoring stale run_test_suite output file from a previous run: %s",
+                output_file,
+            )
         if not isinstance(payload, dict):
             try:
                 payload = json.loads(result.get("output", "") or "{}")
@@ -1062,6 +1108,7 @@ class CommandsMixin:
             )
             outcome = {
                 "state": "crashed",
+                "suite_profile": profile,
                 "parallel": {
                     "state": "crashed",
                     "classification": "crashed",
@@ -1099,42 +1146,47 @@ class CommandsMixin:
                 "details": {"tier3_test_outcome": outcome},
             }
 
-        self.tier3_test_outcome = outcome
+        if persist_tier3_outcome:
+            self.tier3_test_outcome = outcome
         if not hasattr(self, "_tool_cache_metadata"):
             self._tool_cache_metadata = {}
         domain_cache = {}
         if isinstance(details, dict):
             domain_cache = details.get("domain_cache") or {}
+        cache_key = save_tool_name
         if isinstance(domain_cache, dict) and domain_cache:
-            self._tool_cache_metadata["run_test_suite"] = dict(domain_cache)
+            self._tool_cache_metadata[cache_key] = dict(domain_cache)
         else:
-            self._tool_cache_metadata["run_test_suite"] = {
+            self._tool_cache_metadata[cache_key] = {
                 "cache_mode": "cold_scan",
                 "source": "run_test_suite",
+                "suite_profile": profile,
                 "invalidation_reason": "structured_output_missing_domain_cache",
             }
         try:
             save_tool_result(
-                "run_test_suite",
+                save_tool_name,
                 "tests",
                 {
                     "summary": payload.get("summary", {}),
                     "details": payload.get("details", {}),
-                    "_cache_metadata": self._tool_cache_metadata["run_test_suite"],
+                    "_cache_metadata": self._tool_cache_metadata[cache_key],
                 },
                 project_root=self.project_root,
             )
         except Exception as exc:
-            logger.debug(f"Failed to save run_test_suite result: {exc}")
+            logger.debug(f"Failed to save {save_tool_name} result: {exc}")
 
         state = str(outcome.get("state", "crashed"))
+        run_completed = state in {"clean", "test_failures"}
         return {
-            "success": state in {"clean", "test_failures"},
+            "success": run_completed,
+            "state": state,
             "data": {
                 "summary": payload.get("summary", {}),
                 "details": payload.get("details", {}),
             },
-            "cache_metadata": self._tool_cache_metadata["run_test_suite"],
+            "cache_metadata": self._tool_cache_metadata[cache_key],
         }
 
     def run_coverage_regeneration(self):
@@ -2270,6 +2322,9 @@ class CommandsMixin:
             return self._execute_function_registry_task()
         elif task_type == 'module_dependencies':
             return self._execute_module_dependencies_task()
+        elif task_type in {"nightly-test-suite", "nightly-audit"}:
+            result = self.run_nightly_test_suite(strict=True)
+            return str(result.get("state") or "crashed") == "clean"
         else:
             logger.error(f"Unknown task type: {task_type}")
             return False

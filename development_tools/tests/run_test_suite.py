@@ -30,7 +30,9 @@ DEFAULT_TEST_RUN = {
     "test_paths": None,
     "workers": "auto",
     "timeout_seconds": 1200,
-    "exclude_markers": ["e2e"],
+    "exclude_markers": ["e2e", "slow"],
+    "default_profile": "quick",
+    "suite_profile": "quick",
     "no_parallel_marker": "no_parallel",
     "sigint_taps_to_stop": 5,
     "sigint_window_seconds": 2.0,
@@ -86,23 +88,22 @@ class PhaseResult:
         return "passed"
 
 
-def _load_config() -> dict[str, Any]:
+def _load_config(profile: str | None = None) -> dict[str, Any]:
     try:
         from development_tools import config
 
-        cfg = config.get_external_value("test_run", None)
-        paths = config.get_paths_config()
+        return config.get_test_run_config(profile)
     except Exception:
-        cfg = None
-        paths = {"tests_dir": "tests"}
-
-    result = dict(DEFAULT_TEST_RUN)
-    if isinstance(cfg, dict):
-        result.update(cfg)
-    if not result.get("test_paths"):
-        tests_dir = str(paths.get("tests_dir", "tests")).strip().rstrip("/\\") or "tests"
-        result["test_paths"] = [tests_dir]
-    return result
+        result = dict(DEFAULT_TEST_RUN)
+        profile_name = str(profile or result.get("default_profile") or "quick").strip().lower()
+        if profile_name == "full":
+            result["exclude_markers"] = ["e2e"]
+        else:
+            result["exclude_markers"] = ["e2e", "slow"]
+        result["suite_profile"] = profile_name
+        if not result.get("test_paths"):
+            result["test_paths"] = ["tests"]
+        return result
 
 
 def _has_xdist() -> bool:
@@ -490,6 +491,7 @@ def _build_cache_metadata(
     suite_cache: Any,
     *,
     cache_mode: str,
+    suite_profile: str,
     changed_domains: set[str] | None = None,
     test_files_to_run: int | None = None,
 ) -> dict[str, Any]:
@@ -497,6 +499,7 @@ def _build_cache_metadata(
     return {
         "cache_mode": cache_mode,
         "source": "run_test_suite",
+        "suite_profile": suite_profile,
         "invalidation_reason": getattr(suite_cache, "last_invalidation_reason", None)
         or ("domain_cache" if cache_mode != "cold_scan" else "full_run"),
         "changed_domains": sorted(changed_domains or []),
@@ -634,12 +637,13 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
     changed_domains: set[str] = set()
     test_files_to_run: list[Path] = []
     cache_mode = "cold_scan"
+    suite_profile = str(cfg.get("suite_profile") or cfg.get("default_profile") or "quick")
     if use_domain_cache:
         try:
             from development_tools.tests.test_file_suite_cache import TestFileSuiteCache
 
             suite_cache = TestFileSuiteCache(Path.cwd())
-            changed_domains = suite_cache.get_changed_domains()
+            changed_domains = suite_cache.get_changed_domains(suite_profile)
             test_files_to_run = suite_cache.get_test_files_to_run(changed_domains)
             if _suite_logger:
                 _suite_logger.info(
@@ -669,7 +673,7 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
             )
             if (
                 not test_files_to_run
-                and suite_cache.can_reuse_full_suite_cache()
+                and suite_cache.can_reuse_full_suite_cache(suite_profile)
             ):
                 run_pytest = False
                 cache_mode = "cache_hit"
@@ -688,7 +692,7 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
             elif (
                 not test_files_to_run
                 and cached_per_file
-                and suite_cache.can_reuse_full_suite_cache()
+                and suite_cache.can_reuse_full_suite_cache(suite_profile)
             ):
                 run_pytest = False
                 cache_mode = "cache_hit"
@@ -826,6 +830,7 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
                         or changed_domains
                         or suite_cache._all_domains()
                     ),
+                    suite_profile=suite_profile,
                 )
                 if outcome_preview["state"] == "clean":
                     suite_cache.cache_full_suite(
@@ -862,6 +867,7 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
         cache_metadata = _build_cache_metadata(
             suite_cache,
             cache_mode=cache_mode,
+            suite_profile=suite_profile,
             changed_domains=changed_domains,
             test_files_to_run=len(test_files_to_run),
         )
@@ -869,10 +875,12 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
         cache_metadata = {
             "cache_mode": "disabled",
             "source": "run_test_suite",
+            "suite_profile": suite_profile,
             "invalidation_reason": "domain_cache_disabled",
         }
 
     outcome = _aggregate(phases)
+    outcome["suite_profile"] = suite_profile
     return {
         "tool_name": "run_test_suite",
         "summary": {
@@ -908,12 +916,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--workers", default=None)
     parser.add_argument("--timeout", type=int, default=None)
     parser.add_argument(
+        "--profile",
+        choices=["quick", "full"],
+        default="quick",
+        help="quick: exclude e2e and slow (Tier 3 default); full: exclude e2e only (nightly).",
+    )
+    parser.add_argument(
         "--no-domain-cache",
         action="store_true",
         help="Disable domain-based test selection and suite result caching (runs all tests).",
     )
     args = parser.parse_args(argv)
-    cfg = _load_config()
+    cfg = _load_config(args.profile)
     if args.workers:
         cfg["workers"] = args.workers
     if args.timeout:

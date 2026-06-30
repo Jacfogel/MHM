@@ -303,8 +303,18 @@
     "test_paths": null,
     "workers": "auto",
     "timeout_seconds": 1200,
+    "default_profile": "quick",
+    "profiles": {
+      "quick": {
+        "exclude_markers": ["e2e", "slow"]
+      },
+      "full": {
+        "exclude_markers": ["e2e"]
+      }
+    },
     "exclude_markers": [
-      "e2e"
+      "e2e",
+      "slow"
     ],
     "no_parallel_marker": "no_parallel",
     "sigint_taps_to_stop": 5,

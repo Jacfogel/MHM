@@ -133,7 +133,8 @@ Pick the **smallest** command that answers your question; full Tier 3 can exceed
 |------|---------|
 | Fast health signal (Tier 1) | `python development_tools/run_development_tools.py audit --quick` |
 | Standard checks, no pytest/coverage (Tier 1 + 2) | `python development_tools/run_development_tools.py audit` |
-| Full evidence including tests and coverage (Tier 3) | `python development_tools/run_development_tools.py audit --full` |
+| Full evidence including quick tests (Tier 3; excludes slow) | `python development_tools/run_development_tools.py audit --full` |
+| Nightly full test suite (includes slow tests) | `python development_tools/run_development_tools.py nightly-test-suite` |
 | Tier 3 but only dev-tools tests/coverage + scoped DEV_TOOLS_* reports | `python development_tools/run_development_tools.py audit --full --dev-tools-only` |
 | Skip pip-audit subprocess (offline / CI) | Set environment variable `MHM_PIP_AUDIT_SKIP` (see [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)) |
 

@@ -48,6 +48,7 @@ python development_tools/run_development_tools.py help
 - `doc-fix` - Fix documentation issues (addresses, ASCII, headings, links). Alias: `--full` == `--all`.
 - `legacy` - Scan for legacy references
 - `coverage` - Regenerate coverage metrics, marker analysis, and [TEST_COVERAGE_REPORT.md](../development_docs/TEST_COVERAGE_REPORT.md)
+- `nightly-test-suite` - Run the full pytest suite (includes slow tests); scheduled nightly via `.github/workflows/nightly-tests.yml`
 - `unused-imports` - Detect unused imports (analysis only)
 - `unused-imports-report` - Generate unused imports report from analysis results
 - `config` - Check configuration consistency
@@ -109,7 +110,7 @@ python development_tools/run_development_tools.py help
 ### 3.3. Tier 3: Full Audit - `audit --full`
 - **Duration**: Environment-dependent; heaviest wall-clock is usually `run_test_suite`
 - **Tools**: Everything in Tier 1 & 2 PLUS tools >10s (or groups containing tools >10s):
-  - **Test suite group** - `run_test_suite` runs pytest directly without coverage. It discovers configured test paths (default `tests`), excludes `e2e` by default, runs normal tests in a parallel-capable phase excluding `no_parallel`, then runs `no_parallel` tests serially. It falls back to serial pytest when xdist is unavailable and does not use MHM's project-specific `run_tests.py`. Domain-based caching (`tests/test_file_suite_cache.py`, shared invalidation with coverage cache) skips unchanged domains; disable with `--no-domain-cache`.
+  - **Test suite group** - `run_test_suite` runs pytest directly without coverage using the **quick** profile (`not e2e` and `not slow`). It discovers configured test paths (default `tests`), runs normal tests in a parallel-capable phase excluding `no_parallel`, then runs `no_parallel` tests serially. It falls back to serial pytest when xdist is unavailable and does not use MHM's project-specific `run_tests.py`. Domain-based caching (`tests/test_file_suite_cache.py`, shared invalidation with coverage cache) skips unchanged domains; disable with `--no-domain-cache`. **Nightly full suite**: `nightly-test-suite` (or `workflow nightly-test-suite`) runs the **full** profile (`not e2e` only, includes slow tests); GitHub Actions runs this on a daily schedule (`.github/workflows/nightly-tests.yml`).
   - **Coverage** - not part of Tier 3. Run `python development_tools/run_development_tools.py coverage` less frequently when coverage metrics, marker analysis, or `development_docs/TEST_COVERAGE_REPORT.md` need refresh.
   - **Legacy group** (runs in parallel with the test suite):
     - `analyze_legacy_references` - Legacy code scanning (~62s, >10s)

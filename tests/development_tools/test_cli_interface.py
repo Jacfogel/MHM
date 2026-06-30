@@ -39,6 +39,7 @@ class _StubService:
         self.backup_drill_calls = []
         self.backup_verify_calls = []
         self.script_calls = []
+        self.nightly_result = {"success": True, "state": "clean"}
 
     def set_exclusion_config(self, include_tests=False, include_dev_tools=False):
         self.exclusion_calls.append((include_tests, include_dev_tools))
@@ -119,6 +120,14 @@ class _StubService:
     def run_coverage_regeneration(self):
         self.coverage_calls += 1
         return True
+
+    def run_nightly_test_suite(self, *, strict=False):
+        self.nightly_calls = getattr(self, "nightly_calls", 0) + 1
+        return getattr(
+            self,
+            "nightly_result",
+            {"success": True},
+        )
 
     def run_legacy_cleanup(self):
         self.legacy_calls += 1
@@ -292,8 +301,17 @@ def test_docs_command_argument_validation(cli_module):
 def test_workflow_command_requires_task_type(cli_module):
     service = _StubService()
     assert cli_module._workflow_command(service, []) == 2
-    assert cli_module._workflow_command(service, ["nightly-audit"]) == 0
-    assert service.workflow_calls == ["nightly-audit"]
+    assert cli_module._workflow_command(service, ["nightly-test-suite"]) == 0
+    assert service.workflow_calls == ["nightly-test-suite"]
+
+
+@pytest.mark.unit
+def test_nightly_test_suite_command_fails_on_non_clean_state(cli_module):
+    service = _StubService()
+    service.nightly_result = {"success": True, "state": "test_failures"}
+
+    code = cli_module._nightly_test_suite_command(service, [])
+    assert code == 1
 
 
 @pytest.mark.unit

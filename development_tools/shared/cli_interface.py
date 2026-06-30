@@ -41,7 +41,7 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     parser.add_argument(
         "--full",
         action="store_true",
-        help="Run comprehensive audit (Tier 3 - runs pytest suite without coverage).",
+        help="Run comprehensive audit (Tier 3 - runs quick pytest suite without slow tests).",
     )
     parser.add_argument(
         "--quick",
@@ -341,6 +341,26 @@ def _coverage_command(service: "AIToolsService", argv: Sequence[str]) -> int:
             else report_result
         )
     return 0 if success else 1
+
+
+def _nightly_test_suite_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    parser = argparse.ArgumentParser(prog="nightly-test-suite", add_help=False)
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Return non-zero when tests fail, crash, or cleanup fails.",
+    )
+
+    if any(arg in ("-h", "--help") for arg in argv):
+        _print_command_help(parser)
+        return 0
+
+    ns = parser.parse_args(list(argv))
+    result = service.run_nightly_test_suite(strict=ns.strict)
+    state = str(result.get("state") or "crashed")
+    if ns.strict or state != "clean":
+        return 0 if state == "clean" else 1
+    return 0 if result.get("success") else 1
 
 
 def _legacy_command(service: "AIToolsService", argv: Sequence[str]) -> int:
@@ -885,6 +905,14 @@ COMMAND_REGISTRY = OrderedDict(
             "coverage",
             CommandRegistration(
                 "coverage", _coverage_command, "Regenerate coverage metrics, marker analysis, and coverage report."
+            ),
+        ),
+        (
+            "nightly-test-suite",
+            CommandRegistration(
+                "nightly-test-suite",
+                _nightly_test_suite_command,
+                "Run the full pytest suite (includes slow tests) for nightly validation.",
             ),
         ),
         (

@@ -229,7 +229,7 @@ _TOOLS: dict[str, ToolInfo] = {
         path="development_tools/tests/run_test_suite.py",
         tier="core",
         trust="stable",
-        description="Runs the configured pytest suite without coverage for Tier 3 audits.",
+        description="Runs the configured quick pytest suite (excludes slow tests) for Tier 3 audits.",
     ),
     "analyze_test_coverage": ToolInfo(
         name="analyze_test_coverage",
@@ -502,6 +502,7 @@ COMMAND_GROUPS = OrderedDict(
                 "doc-fix",
                 "config",
                 "coverage",
+                "nightly-test-suite",
                 "legacy",
             ],
         },
