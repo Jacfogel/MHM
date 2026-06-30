@@ -42,10 +42,12 @@ class TestMessageCategories:
     @pytest.mark.critical
     def test_get_message_categories_success(self):
         """Test getting message categories successfully."""
-        with patch.dict(os.environ, {'MESSAGE_CATEGORIES': 'motivational,health,fun_facts'}):
+        env_value = (
+            "motivational,health,fun_facts,quotes_to_ponder,word_of_the_day,personalized"
+        )
+        with patch.dict(os.environ, {"CATEGORIES": env_value}, clear=False):
             categories = get_message_categories()
-            # Use set for unordered comparison
-            assert set(categories) == set(['motivational', 'health', 'fun_facts', 'quotes_to_ponder', 'word_of_the_day'])
+            assert set(categories) == set(env_value.split(","))
     
     @pytest.mark.messages
     @pytest.mark.regression

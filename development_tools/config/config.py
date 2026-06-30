@@ -1730,6 +1730,7 @@ DOMAIN_MAPPER_DEFAULTS = {
         "notebook": [[], ["notebook"]],
         "scheduler": [[], ["scheduler"]],
         "checkins": [[], ["checkins"]],
+        "integrations": [[], ["integrations"]],
         "messages": [[], ["messages"]],
         "storage": [[], ["storage"]],
         "development_tools": [["tests/development_tools/"], []],
@@ -1744,6 +1745,7 @@ DOMAIN_MAPPER_DEFAULTS = {
             "notebook",
             "scheduler",
             "checkins",
+            "integrations",
             "messages",
             "storage",
         ],
@@ -1757,6 +1759,7 @@ DOMAIN_MAPPER_DEFAULTS = {
         "checkins": ["communication", "user"],
         "messages": ["communication"],
         "storage": ["core", "user"],
+        "integrations": ["core", "communication", "scheduler"],
         "development_tools": [],
     },
     "keyword_map": {
@@ -1785,6 +1788,7 @@ DOMAIN_MAPPER_DEFAULTS = {
         "notebook": ["notebook", "note", "journal", "list"],
         "scheduler": ["scheduler", "schedule", "reminder"],
         "checkins": ["checkin", "checkins"],
+        "integrations": ["integration", "integrations", "google_health", "health_sync"],
         "messages": ["message", "messages", "delivery", "template"],
         "storage": ["storage", "user_data", "registry", "persistence"],
         "core": [

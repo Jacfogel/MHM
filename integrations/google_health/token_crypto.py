@@ -7,6 +7,7 @@ When ``GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY`` is set, ``access_token`` and
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from core.error_handling import handle_errors
@@ -15,14 +16,16 @@ from core.logger import get_component_logger
 logger = get_component_logger("google_health")
 
 _TOKEN_FIELDS = ("access_token", "refresh_token")
+_ENV_TOKEN_ENCRYPTION_KEY = "GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY"
 
 
+@handle_errors("reading Google Health token encryption key", default_return="")
 def _encryption_key() -> str:
-    from core.config import GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY
+    """Return configured Fernet key from environment (avoids importing core.config)."""
+    return (os.getenv(_ENV_TOKEN_ENCRYPTION_KEY) or "").strip()
 
-    return (GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY or "").strip()
 
-
+@handle_errors("checking token encryption enabled", default_return=False)
 def is_token_encryption_enabled() -> bool:
     """Return True when a Fernet key is configured."""
     return bool(_encryption_key())
@@ -125,7 +128,7 @@ def prepare_auth_for_use(data: dict[str, Any]) -> dict[str, Any] | None:
         decrypted = decrypt_token_value(value)
         if decrypted is None:
             logger.error(
-                "Failed to decrypt Google Health auth tokens — "
+                "Failed to decrypt Google Health auth tokens - "
                 "check GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY"
             )
             payload["access_token"] = ""

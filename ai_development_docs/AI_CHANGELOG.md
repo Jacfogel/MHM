@@ -35,6 +35,12 @@ Guidelines:
 - Admin UI **Google Health** connect panel ([`google_health_settings_dialog.py`](../ui/dialogs/google_health_settings_dialog.py)); shared [`user_settings.py`](../integrations/google_health/user_settings.py).
 - Tests: notifications, sync schedule, token crypto, user settings, dialog actions; health handler refactored.
 - **Audit hygiene**: GOOGLE_HEALTH_GUIDE path drift; error handling + docstrings; function registry regen; Ruff clean; stabilized `test_validate_and_raise_if_invalid` (mock); fixed `test_validate_and_raise_if_invalid_failure` reload/class mismatch flake; removed unused `ConfigValidationError` import in `test_config.py`.
+- **`personalized` category**: Added to `CATEGORIES`; consolidated `ai_personalized` alias (removed - same code path, never used). AI-generated at send time via `is_ai_generated_message_category()`; no message library file required.
+- **Category UI**: [`category_selection_widget.py`](../ui/widgets/category_selection_widget.py) now builds checkboxes from `get_message_categories()` instead of a hardcoded list.
+- **Audit hygiene**: Error handling on new helpers; test/domain-mapper/registry/ASCII fixes from dev-tools priorities.
+- **Google Health hygiene**: Full docstring + `@handle_errors` pass on `integrations/google_health/`; broke config/token_crypto import cycle; data_handlers Phase 1 migration.
+- **Google Health hygiene (2)**: Remaining docstrings (`_add_guidance`, async connect `_run`) and `@handle_errors` on schemas empty factories, notifications, token_crypto, data_handlers `_now`.
+- **Doc hygiene**: Fixed stale markdown link in `DEV_TOOLS_CONSOLIDATED_REPORT.md` (ephemeral audit JSON); `report_generation.py` always uses backtick paths for `jsons/` targets so doc-sync stays clean.
 
 ### 2026-06-27 - Google Health read-only integration **COMPLETED**
 - Added `integrations/google_health/` package: OAuth connect, automated 1-2x daily sync, daily summaries, derived wellness signals, and deterministic message guidance (no raw metrics to AI).

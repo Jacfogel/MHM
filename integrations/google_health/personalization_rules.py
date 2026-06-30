@@ -1,7 +1,7 @@
 """
 Deterministic message personalization rules from derived health signals.
 
-No diagnosis or medical claims — guidance tokens only.
+No diagnosis or medical claims - guidance tokens only.
 """
 
 from __future__ import annotations
@@ -20,7 +20,9 @@ GUIDANCE_AVOID_NAG = "avoid_nagging_movement_prompts"
 GUIDANCE_SMALL_EXPECTATIONS = "keep_expectations_small"
 
 
+@handle_errors("appending guidance token", default_return=None)
 def _add_guidance(tokens: list[str], *items: str) -> None:
+    """Append unique message_guidance tokens without duplicates."""
     for item in items:
         if item not in tokens:
             tokens.append(item)

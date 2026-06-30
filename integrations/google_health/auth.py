@@ -35,7 +35,9 @@ GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 
 
+@handle_errors("checking Google Health testing mode", default_return=False)
 def _testing_mode() -> bool:
+    """Return True when MHM_TESTING skips live OAuth network calls."""
     return os.getenv("MHM_TESTING") == "1"
 
 
@@ -106,7 +108,9 @@ def refresh_access_token(refresh_token: str) -> dict[str, Any] | None:
     return response.json()
 
 
+@handle_errors("computing token expiry timestamp", default_return="")
 def _expires_at_from_token_response(token_data: dict[str, Any]) -> str:
+    """Convert OAuth expires_in seconds to a local expiry timestamp string."""
     expires_in = token_data.get("expires_in")
     if isinstance(expires_in, (int, float)):
         when = datetime.now(timezone.utc) + timedelta(seconds=int(expires_in))
@@ -114,7 +118,9 @@ def _expires_at_from_token_response(token_data: dict[str, Any]) -> str:
     return ""
 
 
+@handle_errors("checking if access token needs refresh", default_return=True)
 def _token_needs_refresh(auth: dict[str, Any]) -> bool:
+    """Return True when the access token is missing, unparseable, or near expiry."""
     expires_at = auth.get("expires_at") or ""
     parsed = parse_timestamp_full(expires_at) if expires_at else None
     if parsed is None:
@@ -141,7 +147,7 @@ def ensure_valid_access_token(user_id: str) -> str | None:
         return access
 
     if not refresh:
-        logger.warning(f"No refresh token for user {user_id} — reconnect required")
+        logger.warning(f"No refresh token for user {user_id} - reconnect required")
         return None
 
     token_data = refresh_access_token(refresh)
@@ -185,10 +191,14 @@ class _OAuthCallbackHandler(BaseHTTPRequestHandler):
     auth_code: str | None = None
     error_message: str | None = None
 
+    @handle_errors("logging OAuth callback HTTP message", default_return=None)
     def log_message(self, format: str, *args: Any) -> None:
+        """Route HTTP server log lines to the google_health component logger."""
         logger.debug(f"OAuth callback: {format % args}")
 
+    @handle_errors("handling OAuth callback GET", default_return=None)
     def do_GET(self) -> None:
+        """Parse authorization code or error from the OAuth redirect query string."""
         parsed = urllib.parse.urlparse(self.path)
         params = urllib.parse.parse_qs(parsed.query)
         if "error" in params:
@@ -202,7 +212,9 @@ class _OAuthCallbackHandler(BaseHTTPRequestHandler):
         _OAuthCallbackHandler.auth_code = code
         self._respond(200, "Google Health connected. You can close this window.")
 
+    @handle_errors("responding to OAuth callback", default_return=None)
     def _respond(self, status: int, message: str) -> None:
+        """Send a minimal HTML response to the browser after OAuth redirect."""
         self.send_response(status)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.end_headers()

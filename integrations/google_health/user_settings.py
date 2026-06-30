@@ -101,7 +101,9 @@ def run_connect_flow_async(
 ) -> None:
     """Run connect flow in a background thread."""
 
+    @handle_errors("running async Google Health connect worker", default_return=None)
     def _run() -> None:
+        """Background thread target: complete OAuth connect and first sync."""
         success, error = run_connect_flow(user_id)
         on_finished(success, error)
 
@@ -143,6 +145,7 @@ def sync_health_integration(user_id: str) -> bool:
     return sync_user_health_data(user_id, force=True)
 
 
+@handle_errors("formatting Google Health status text", default_return="")
 def format_status_text(status: HealthIntegrationStatus) -> str:
     """Plain-text status block for UI or chat."""
     lines = [
@@ -152,7 +155,7 @@ def format_status_text(status: HealthIntegrationStatus) -> str:
     ]
     if status.feature_state == "enabled" and status.connected and status.last_success_at == "never":
         lines.append(
-            "Sync is scheduled automatically — the first pull may happen shortly after connect."
+            "Sync is scheduled automatically - the first pull may happen shortly after connect."
         )
     elif status.feature_state == "enabled" and not status.connected:
         lines.append("Connect Google Health to link your Google account.")

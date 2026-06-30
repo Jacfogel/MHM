@@ -13,7 +13,7 @@ from core.logger import get_component_logger
 logger = get_component_logger("google_health")
 
 RECONNECT_NOTICE_TEXT = (
-    "Heads up — I couldn't refresh your Google Health connection, "
+    "Heads up - I couldn't refresh your Google Health connection, "
     "so health sync is paused.\n\n"
     "When you're ready, run **connect google health** once to link again. "
     "No rush."
@@ -28,6 +28,7 @@ _AUTH_FAILURE_MARKERS = (
 )
 
 
+@handle_errors("checking auth sync failure", default_return=False)
 def is_auth_sync_failure(error: str) -> bool:
     """Return True when a sync error indicates OAuth/token refresh failure."""
     lowered = (error or "").lower()
@@ -45,14 +46,14 @@ def send_reconnect_notice(user_id: str) -> bool:
     preferences = prefs_result.get("preferences")
     if not preferences:
         logger.warning(
-            f"Cannot send Google Health reconnect notice — no preferences for {user_id}"
+            f"Cannot send Google Health reconnect notice - no preferences for {user_id}"
         )
         return False
 
     messaging_service = preferences.get("channel", {}).get("type")
     if not messaging_service:
         logger.warning(
-            f"Cannot send Google Health reconnect notice — no channel for {user_id}"
+            f"Cannot send Google Health reconnect notice - no channel for {user_id}"
         )
         return False
 
@@ -65,7 +66,7 @@ def send_reconnect_notice(user_id: str) -> bool:
     )
     if not recipient:
         logger.warning(
-            f"Cannot send Google Health reconnect notice — no recipient for {user_id}"
+            f"Cannot send Google Health reconnect notice - no recipient for {user_id}"
         )
         return False
 

@@ -54,7 +54,7 @@ def mock_config(test_data_dir):
     # Always patch to ensure consistent test environment
     # This ensures that even if patch_user_data_dirs is not active, we have a consistent config
     default_categories = (
-        '["motivational", "health", "quotes_to_ponder", "word_of_the_day", "fun_facts"]'
+        '["motivational", "health", "quotes_to_ponder", "word_of_the_day", "fun_facts", "personalized"]'
     )
 
     with (

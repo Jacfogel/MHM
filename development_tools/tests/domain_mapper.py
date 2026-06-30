@@ -48,6 +48,7 @@ def _default_domain_mapper_config() -> dict:
             "notebook": [[], ["notebook"]],
             "scheduler": [[], ["scheduler"]],
             "checkins": [[], ["checkins"]],
+            "integrations": [[], ["integrations"]],
             "messages": [[], ["messages"]],
             "storage": [[], ["storage"]],
             "development_tools": [["tests/development_tools/"], []],
@@ -62,6 +63,7 @@ def _default_domain_mapper_config() -> dict:
                 "notebook",
                 "scheduler",
                 "checkins",
+                "integrations",
                 "messages",
                 "storage",
             ],
@@ -75,6 +77,7 @@ def _default_domain_mapper_config() -> dict:
             "checkins": ["communication", "user"],
             "messages": ["communication"],
             "storage": ["core", "user"],
+            "integrations": ["core", "communication", "scheduler"],
             "development_tools": [],
         },
         "keyword_map": {
@@ -103,6 +106,7 @@ def _default_domain_mapper_config() -> dict:
             "notebook": ["notebook", "note", "journal", "list"],
             "scheduler": ["scheduler", "schedule", "reminder"],
             "checkins": ["checkin", "checkins"],
+            "integrations": ["integration", "integrations", "google_health", "health_sync"],
             "messages": ["message", "messages", "delivery", "template"],
             "storage": ["storage", "user_data", "registry", "persistence"],
             "core": [

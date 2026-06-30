@@ -1,7 +1,7 @@
 """
 Per-user Google Health sync orchestration.
 
-Automated polling path — idempotent daily upsert + signal rebuild.
+Automated polling path - idempotent daily upsert + signal rebuild.
 """
 
 from __future__ import annotations
@@ -36,11 +36,15 @@ from integrations.google_health.signal_builder import rebuild_signals_for_summar
 logger = get_component_logger("google_health")
 
 
+@handle_errors("checking Google Health testing mode", default_return=False)
 def _testing_mode() -> bool:
+    """Return True when automated sync should skip live API calls."""
     return os.getenv("MHM_TESTING") == "1"
 
 
+@handle_errors("checking google health feature enabled", default_return=False)
 def _google_health_feature_enabled(user_id: str) -> bool:
+    """Return True when account.features.google_health is enabled."""
     account = get_user_data(user_id, "account").get("account") or {}
     features = account.get("features") or {}
     return features.get("google_health") == "enabled"
@@ -57,6 +61,7 @@ _SCALAR_SUMMARY_FIELDS = (
 )
 
 
+@handle_errors("merging daily summary records", default_return={})
 def merge_summary_records(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
     """Merge one daily summary, keeping existing values when incoming omits them."""
     merged = dict(existing)
@@ -143,7 +148,7 @@ def sync_user_health_data(
     if not _google_health_feature_enabled(user_id):
         return False
     if not has_valid_auth(user_id):
-        logger.debug(f"No Google Health auth for user {user_id} — skipping sync")
+        logger.debug(f"No Google Health auth for user {user_id} - skipping sync")
         return False
 
     sync_state = load_sync_state(user_id) or {}
@@ -257,6 +262,7 @@ def sync_users_due_for_schedule() -> int:
     return count
 
 
+@handle_errors("running Google Health sync CLI", default_return=None)
 def main() -> None:
     """Dev entry: python -m integrations.google_health.sync_manager --user-id ID"""
     import argparse

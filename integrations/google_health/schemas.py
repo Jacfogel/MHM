@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
+from core.error_handling import handle_errors
 from pydantic import BaseModel, ConfigDict, Field
 
 from storage.user_data_v2_base import SCHEMA_VERSION
@@ -121,17 +122,25 @@ class SyncStateModel(BaseModel):
     baseline_metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+@handle_errors("creating empty auth document", default_return={})
 def empty_auth_document(updated_at: str) -> dict[str, Any]:
+    """Return an empty google_health_auth.json document."""
     return GoogleHealthAuthModel(updated_at=updated_at).model_dump()
 
 
+@handle_errors("creating empty daily summaries document", default_return={})
 def empty_daily_summaries_document(updated_at: str) -> dict[str, Any]:
+    """Return an empty daily_summaries.json document."""
     return DailySummariesCollectionModel(updated_at=updated_at).model_dump()
 
 
+@handle_errors("creating empty health signals document", default_return={})
 def empty_health_signals_document(updated_at: str) -> dict[str, Any]:
+    """Return an empty health_signals.json document."""
     return HealthSignalsCollectionModel(updated_at=updated_at).model_dump()
 
 
+@handle_errors("creating empty sync state document", default_return={})
 def empty_sync_state_document(updated_at: str) -> dict[str, Any]:
+    """Return an empty sync_state.json document."""
     return SyncStateModel(updated_at=updated_at).model_dump()

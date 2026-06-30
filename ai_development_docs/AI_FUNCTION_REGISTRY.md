@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-28 14:09:44
+> **Last Generated**: 2026-06-28 22:56:09
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 90.1% [!] GOOD**
-- **Total Functions**: 2256
-- **Total Methods**: 1373
-- **Documented**: 3269/3629
-- **Files Scanned**: 232
+### **Documentation Coverage: 89.7% [!] GOOD**
+- **Total Functions**: 2358
+- **Total Methods**: 1377
+- **Documented**: 3352/3735
+- **Files Scanned**: 244
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -136,6 +136,7 @@ Core System Decision Tree:
 - [OK] `ai/chatbot.py::generate_response()` - AI response generation
 - [OK] `core/headless_service.py::main()` - Application entry point
 - [OK] `core/service.py::main()` - Application entry point
+- [OK] `integrations/google_health/sync_manager.py::main()` - Application entry point
 - [OK] `ui/generate_ui_files.py::main()` - Application entry point
 - [OK] `ui/ui_app_qt.py::main()` - Application entry point
 - [OK] `run_headless_service.py::main()` - Application entry point
@@ -170,10 +171,12 @@ Core System Decision Tree:
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
 - `communication/communication_channels/discord/task_list_ui.py` - 3/9 functions undocumented (67% coverage)
+- `integrations/google_health/sync_manager.py` - 3/10 functions undocumented (70% coverage)
 - `storage/user_data_validation.py` - 3/12 functions undocumented (75% coverage)
 - `ai/fallback_responses/conversational.py` - 2/4 functions undocumented (50% coverage)
 - `communication/command_handlers/handler_registry.py` - 2/5 functions undocumented (60% coverage)
 - `core/user_lookup.py` - 1/3 functions undocumented (67% coverage)
+- `integrations/google_health/personalization_rules.py` - 1/3 functions undocumented (67% coverage)
 
 
 
@@ -208,11 +211,12 @@ Most complex functions (may need refactoring):
 - `checkins/` -  (6 files, 135 functions)
 - `communication/` - Communication channels and message processing (83 files, 1121 functions)
 - `core/` - System utilities and data management (33 files, 650 functions)
-- `messages/` -  (5 files, 38 functions)
+- `integrations/` -  (12 files, 102 functions)
+- `messages/` -  (5 files, 39 functions)
 - `scheduler/` -  (8 files, 100 functions)
 - `storage/` -  (11 files, 151 functions)
 - `tasks/` - Task management system (9 files, 105 functions)
-- `ui/` - User interface components (43 files, 944 functions)
+- `ui/` - User interface components (43 files, 947 functions)
 - `user/` - User context and preferences (5 files, 68 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**

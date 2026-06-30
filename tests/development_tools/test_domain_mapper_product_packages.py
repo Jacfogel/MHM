@@ -22,6 +22,7 @@ PRODUCT_PACKAGE_ROOTS: frozenset[str] = frozenset(
         "checkins",
         "communication",
         "core",
+        "integrations",
         "messages",
         "notebook",
         "scheduler",

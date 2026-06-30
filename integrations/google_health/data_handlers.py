@@ -1,7 +1,7 @@
 """
 Health data load/save helpers via storage.user_item_storage.
 
-No business logic — paths and I/O only.
+No business logic - paths and I/O only.
 """
 
 from __future__ import annotations
@@ -51,8 +51,37 @@ _INIT_FILES = {
 }
 
 
+@handle_errors("getting health document timestamp", default_return="")
 def _now() -> str:
+    """Return current timestamp for health document updates."""
     return now_timestamp_full()
+
+
+@handle_errors("validating health document", default_return=None)
+def _validate_health_document(raw: dict[str, Any], model_cls) -> dict[str, Any] | None:
+    """Validate raw JSON against a health Pydantic model."""
+    return model_cls.model_validate(raw).model_dump()
+
+
+@handle_errors("loading health document or default", default_return=None)
+def _load_or_default(
+    user_id: str,
+    filename: str,
+    default_factory,
+    model_cls,
+) -> dict[str, Any] | None:
+    """Load a health JSON file, returning schema-validated data or empty defaults."""
+    ensure_health_directory(user_id)
+    raw = load_user_json_file(user_id, HEALTH_SUBDIR, filename, default_factory(_now()))
+    if not isinstance(raw, dict):
+        return default_factory(_now())
+    validated = _validate_health_document(raw, model_cls)
+    if validated is not None:
+        return validated
+    logger.warning(
+        f"Invalid {filename} for user {user_id} - returning empty document"
+    )
+    return default_factory(_now())
 
 
 @handle_errors("ensuring health directory", default_return=False)
@@ -69,25 +98,6 @@ def ensure_health_directory(user_id: str) -> bool:
     }
     path = ensure_user_subdir(user_id, HEALTH_SUBDIR, init_files=init)
     return path is not None
-
-
-def _load_or_default(
-    user_id: str,
-    filename: str,
-    default_factory,
-    model_cls,
-) -> dict[str, Any]:
-    ensure_health_directory(user_id)
-    raw = load_user_json_file(user_id, HEALTH_SUBDIR, filename, default_factory(_now()))
-    if not isinstance(raw, dict):
-        return default_factory(_now())
-    try:
-        return model_cls.model_validate(raw).model_dump()
-    except Exception:
-        logger.warning(
-            f"Invalid {filename} for user {user_id} — returning empty document"
-        )
-        return default_factory(_now())
 
 
 @handle_errors("loading google health auth", default_return=None)
@@ -116,15 +126,12 @@ def save_auth(user_id: str, data: dict[str, Any]) -> bool:
 def load_daily_summaries(user_id: str) -> dict[str, Any] | None:
     if not is_valid_user_id(user_id):
         return None
-    try:
-        return _load_or_default(
-            user_id,
-            DAILY_SUMMARIES_FILENAME,
-            empty_daily_summaries_document,
-            DailySummariesCollectionModel,
-        )
-    except Exception:
-        return empty_daily_summaries_document(_now())
+    return _load_or_default(
+        user_id,
+        DAILY_SUMMARIES_FILENAME,
+        empty_daily_summaries_document,
+        DailySummariesCollectionModel,
+    )
 
 
 @handle_errors("saving daily summaries", default_return=False)

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-28 14:09:44
+> **Last Generated**: 2026-06-28 22:56:09
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 90.1% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 232
-- **Functions Found**: 2256
-- **Methods Found**: 1373
-- **Classes Found**: 233
-- **Total Items**: 3629
-- **Functions Documented**: 2009
-- **Methods Documented**: 1260
-- **Classes Documented**: 167
-- **Total Documented**: 3269
+### **Function Documentation Coverage: 89.7% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 244
+- **Functions Found**: 2358
+- **Methods Found**: 1377
+- **Classes Found**: 243
+- **Total Items**: 3735
+- **Functions Documented**: 2088
+- **Methods Documented**: 1264
+- **Classes Documented**: 172
+- **Total Documented**: 3352
 - **Template-Generated**: 44
 - **Last Updated**: 2026-06-28
 
@@ -45,7 +45,7 @@ Core system utilities, configuration, error handling, and data management functi
 ### **Communication Functions** (627)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (511)
+### **User Interface Functions** (513)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (36)
@@ -4838,6 +4838,170 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `get_all_user_ids()` - Get all user IDs from the system.
 - [OK] `get_user_categories(user_id)` - Get user's message categories using centralized data access.
 
+### `integrations/` - Unknown Directory
+
+#### `integrations/__init__.py`
+
+#### `integrations/google_health/__init__.py`
+
+#### `integrations/google_health/auth.py`
+**Functions:**
+- [OK] `_expires_at_from_token_response(token_data)` - Convert OAuth expires_in seconds to a local expiry timestamp string.
+- [OK] `_respond(self, status, message)` - Send a minimal HTML response to the browser after OAuth redirect.
+- [OK] `_testing_mode()` - Return True when MHM_TESTING skips live OAuth network calls.
+- [OK] `_token_needs_refresh(auth)` - Return True when the access token is missing, unparseable, or near expiry.
+- [OK] `build_authorization_url(state)` - Build OAuth authorization URL (never include include_granted_scopes).
+- [OK] `do_GET(self)` - Parse authorization code or error from the OAuth redirect query string.
+- [OK] `ensure_valid_access_token(user_id)` - Return a valid access token, refreshing automatically when needed.
+
+Updates google_health_auth.json on refresh.
+- [OK] `exchange_code_for_tokens(code)` - Exchange OAuth authorization code for access + refresh tokens.
+- [OK] `log_message(self, format)` - Route HTTP server log lines to the google_health component logger.
+- [OK] `refresh_access_token(refresh_token)` - Refresh an access token using a stored refresh token.
+- [OK] `run_oauth_connect_flow(user_id)` - Start local callback server, return authorization URL, wait for code, exchange tokens.
+
+Blocks until callback or timeout. Intended for one-time connect.
+- [OK] `save_tokens_for_user(user_id, token_data)` - Store token response after initial connect.
+**Classes:**
+- [OK] `_OAuthCallbackHandler` - Single-use OAuth callback handler.
+  - [OK] `_OAuthCallbackHandler._respond(self, status, message)` - Send a minimal HTML response to the browser after OAuth redirect.
+  - [OK] `_OAuthCallbackHandler.do_GET(self)` - Parse authorization code or error from the OAuth redirect query string.
+  - [OK] `_OAuthCallbackHandler.log_message(self, format)` - Route HTTP server log lines to the google_health component logger.
+
+#### `integrations/google_health/client.py`
+**Functions:**
+- [OK] `_append_completeness(summary, tag)` - Track which metric groups were populated for a daily summary.
+- [OK] `_append_record_id(summary, point)` - Record Google Health data point resource name for traceability.
+- [OK] `_build_civil_range(start_date, end_date)` - Civil date range for dailyRollUp (per Google Health API examples).
+- [OK] `_build_filter(filter_prefix, filter_mode)` - Build an AIP-160 filter for list dataPoints (type-specific fields).
+- [OK] `_civil_datetime(day)` - Build Google Health civil date-time starting at midnight UTC.
+- [OK] `_civil_end_of_day(day)` - Build Google Health civil date-time ending at 23:59:59 UTC.
+- [OK] `_coerce_float(value)` - Safely coerce API numeric values to float.
+- [OK] `_coerce_int(value)` - Safely coerce API numeric values to int.
+- [OK] `_date_from_civil_datetime(civil)` - Extract YYYY-MM-DD from a Google Health civil datetime object.
+- [OK] `_date_from_data_point(point)` - Extract calendar date from any supported Google Health data point shape.
+- [OK] `_date_from_interval(interval)` - Extract calendar date from a Google Health interval payload.
+- [MISSING] `_fetch_points_for_type(access_token, fetcher)` - No description
+- [OK] `_interval_duration_minutes(interval)` - Compute minutes between interval start and end timestamps.
+- [OK] `_list_daily_rollups_single(access_token, endpoint)` - Single dailyRollUp request for an inclusive civil date range (max ~14 days).
+- [OK] `_list_data_points_chunked(access_token, data_type)` - List interval data in smaller windows to avoid Google server errors on wide queries.
+- [OK] `_merge_active_minutes(summary, point)` - Merge active zone minutes into a daily summary dict.
+- [OK] `_merge_hrv(summary, point)` - Merge heart rate variability into a daily summary dict.
+- [OK] `_merge_resting_hr(summary, point)` - Merge resting heart rate into a daily summary dict.
+- [OK] `_merge_sleep_into_summary(summary, point)` - Merge sleep duration, efficiency, and stages into a daily summary dict.
+- [OK] `_merge_steps_into_summary(summary, point)` - Merge step counts into a daily summary dict.
+- [OK] `_parse_api_date(value)` - Normalize API date values to YYYY-MM-DD strings.
+- [OK] `_parse_duration_minutes(value)` - Parse Google Health duration fields into whole minutes.
+- [OK] `_parse_iso_datetime(raw)` - Parse ISO-8601 timestamps from Google Health API responses.
+- [OK] `_resolve_data_type_spec(data_type)` - Resolve endpoint slug and filter prefix for a data type key.
+- [OK] `_sleep_payload(point)` - Return nested sleep object or the point itself when sleep is top-level.
+- [OK] `_testing_mode()` - Return True when MHM_TESTING skips live Google Health API calls.
+- [OK] `fetch_daily_summaries(access_token)` - Fetch and normalize daily summaries for the lookback window.
+- [OK] `list_daily_rollups(access_token, data_type)` - Fetch daily rollup totals in <=14-day civil chunks (Google API limit).
+- [OK] `list_data_points(access_token, data_type)` - List data points for a data type (users/me).
+**Classes:**
+- [MISSING] `_Fetcher` - No description
+
+#### `integrations/google_health/data_handlers.py`
+**Functions:**
+- [OK] `_load_or_default(user_id, filename, default_factory, model_cls)` - Load a health JSON file, returning schema-validated data or empty defaults.
+- [OK] `_now()` - Return current timestamp for health document updates.
+- [OK] `_validate_health_document(raw, model_cls)` - Validate raw JSON against a health Pydantic model.
+- [OK] `delete_user_health_data(user_id)` - Remove entire health/ subdir for a user.
+- [MISSING] `ensure_health_directory(user_id)` - No description
+- [MISSING] `has_valid_auth(user_id)` - No description
+- [MISSING] `load_auth(user_id)` - No description
+- [MISSING] `load_daily_summaries(user_id)` - No description
+- [MISSING] `load_health_signals(user_id)` - No description
+- [MISSING] `load_sync_state(user_id)` - No description
+- [MISSING] `save_auth(user_id, data)` - No description
+- [MISSING] `save_daily_summaries(user_id, data)` - No description
+- [MISSING] `save_health_signals(user_id, data)` - No description
+- [MISSING] `save_sync_state(user_id, data)` - No description
+
+#### `integrations/google_health/notifications.py`
+**Functions:**
+- [OK] `is_auth_sync_failure(error)` - Return True when a sync error indicates OAuth/token refresh failure.
+- [OK] `maybe_send_reconnect_notice(user_id, sync_state, error)` - Send reconnect notice once when auto-pausing after auth failures.
+
+Returns updated sync_state (may set reconnect_notice_sent).
+- [OK] `send_reconnect_notice(user_id)` - Send a one-time low-key reconnect message on the user's primary channel.
+
+#### `integrations/google_health/personalization_rules.py`
+**Functions:**
+- [MISSING] `_add_guidance(tokens)` - No description
+- [OK] `apply_personalization_rules(signal)` - Map derived signal fields to message_guidance tokens.
+
+Returns empty list when confidence is low or data insufficient.
+- [OK] `build_scheduled_message_context_prefix(guidance)` - Optional prefix hints for scheduled AI messages (no raw metrics).
+
+#### `integrations/google_health/schemas.py`
+**Functions:**
+- [OK] `empty_auth_document(updated_at)` - Return an empty google_health_auth.json document.
+- [OK] `empty_daily_summaries_document(updated_at)` - Return an empty daily_summaries.json document.
+- [OK] `empty_health_signals_document(updated_at)` - Return an empty health_signals.json document.
+- [OK] `empty_sync_state_document(updated_at)` - Return an empty sync_state.json document.
+**Classes:**
+- [MISSING] `DailySummariesCollectionModel` - No description
+- [OK] `DailySummaryModel` - Normalized raw metrics for one calendar day (not for AI prompts).
+- [OK] `GoogleHealthAuthModel` - Per-user OAuth token document (sensitive — never log token values).
+- [OK] `HealthSignalModel` - Derived wellness signals for one day.
+- [MISSING] `HealthSignalsCollectionModel` - No description
+- [MISSING] `SleepStagesSummaryModel` - No description
+- [MISSING] `SyncStateModel` - No description
+
+#### `integrations/google_health/signal_builder.py`
+**Functions:**
+- [OK] `_confidence_from_baseline_days(days_used)` - Map baseline history length to signal confidence tier.
+- [OK] `_median(values)` - Return the statistical median or None when values is empty.
+- [OK] `build_signal_for_date(target_date, summaries)` - Build derived health signal for one calendar date.
+- [OK] `compute_baseline_stats(summaries)` - Rolling median baselines from prior daily summaries.
+- [OK] `rebuild_signals_for_summaries(summaries)` - Rebuild signals for given dates (or all summary dates).
+
+#### `integrations/google_health/sync_manager.py`
+**Functions:**
+- [OK] `_google_health_feature_enabled(user_id)` - Return True when account.features.google_health is enabled.
+- [OK] `_testing_mode()` - Return True when automated sync should skip live API calls.
+- [OK] `main()` - Dev entry: python -m integrations.google_health.sync_manager --user-id ID
+- [MISSING] `merge_health_signals(existing, rebuilt)` - No description
+- [OK] `merge_summary_records(existing, incoming)` - Merge one daily summary, keeping existing values when incoming omits them.
+- [MISSING] `pause_google_health_feature(user_id)` - No description
+- [OK] `sync_all_enabled_users()` - Run sync for every user with google_health enabled (ignores schedule slots).
+- [OK] `sync_user_health_data(user_id)` - Sync Google Health data for one user.
+
+Skips when globally disabled, testing mode, feature not enabled, or no auth.
+- [OK] `sync_users_due_for_schedule()` - Sync enabled users whose local wall-clock schedule slot is due.
+- [MISSING] `upsert_daily_summaries(existing, incoming)` - No description
+
+#### `integrations/google_health/token_crypto.py`
+**Functions:**
+- [OK] `_encryption_key()` - Return configured Fernet key from environment (avoids importing core.config).
+- [MISSING] `_fernet()` - No description
+- [OK] `decrypt_token_value(ciphertext)` - Decrypt a stored token value; return None on failure.
+- [OK] `encrypt_token_value(plaintext)` - Encrypt a token for storage; return plaintext unchanged when encryption is off.
+- [OK] `is_token_encryption_enabled()` - Return True when a Fernet key is configured.
+- [OK] `is_valid_fernet_key(key)` - Return True when ``key`` is a valid Fernet key string.
+- [OK] `prepare_auth_for_storage(data)` - Encrypt sensitive token fields before persisting to disk.
+- [OK] `prepare_auth_for_use(data)` - Decrypt token fields after loading from disk for runtime use.
+
+#### `integrations/google_health/user_settings.py`
+**Functions:**
+- [MISSING] `_run()` - No description
+- [MISSING] `delete_health_integration(user_id)` - No description
+- [MISSING] `enable_health_integration(user_id)` - No description
+- [OK] `format_status_text(status)` - Plain-text status block for UI or chat.
+- [OK] `get_connect_authorization_url(user_id)` - Return the browser OAuth URL for a one-time connect.
+- [OK] `get_connect_readiness()` - Return whether the server can start an OAuth connect flow.
+- [MISSING] `get_health_integration_status(user_id)` - No description
+- [MISSING] `pause_health_integration(user_id)` - No description
+- [OK] `run_connect_flow(user_id)` - Run OAuth callback, first sync, and enable google_health (blocking).
+
+Returns (success, error_message).
+- [OK] `run_connect_flow_async(user_id, on_finished)` - Run connect flow in a background thread.
+- [MISSING] `sync_health_integration(user_id)` - No description
+**Classes:**
+- [OK] `HealthIntegrationStatus` - Read-only snapshot for status displays.
+
 ### `messages/` - Unknown Directory
 
 #### `messages/__init__.py`
@@ -5003,6 +5167,7 @@ Args:
 
 Returns:
     float: Timestamp as float for sorting, or 0.0 for invalid items
+- [OK] `is_ai_generated_message_category(category)` - Return True when category content is generated by AI, not loaded from a library.
 - [OK] `is_automated_messages_enabled(user_id)` - Check if automated outbound messages are enabled for a user.
 - [OK] `load_default_messages(category)` - Load default messages for a specific category.
 - [OK] `load_user_messages(user_id, category)` - Load user's message templates for a specific category.
@@ -6961,11 +7126,14 @@ Returns:
 #### `ui/widgets/category_selection_widget.py`
 **Functions:**
 - [OK] `__init__(self, parent)` - Initialize the object.
+- [OK] `_build_category_checkboxes(self)` - Build checkboxes from CATEGORIES env (via get_message_categories).
+- [MISSING] `_category_display_label(category_key)` - No description
 - [MISSING] `get_selected_categories(self)` - No description
 - [MISSING] `set_selected_categories(self, categories)` - No description
 **Classes:**
 - [MISSING] `CategorySelectionWidget` - No description
   - [OK] `CategorySelectionWidget.__init__(self, parent)` - Initialize the object.
+  - [OK] `CategorySelectionWidget._build_category_checkboxes(self)` - Build checkboxes from CATEGORIES env (via get_message_categories).
   - [MISSING] `CategorySelectionWidget.get_selected_categories(self)` - No description
   - [MISSING] `CategorySelectionWidget.set_selected_categories(self, categories)` - No description
 

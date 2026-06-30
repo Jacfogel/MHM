@@ -34,7 +34,9 @@ HR_ELEVATED_DELTA_BPM = 5.0
 HRV_LOW_RATIO = 0.85
 
 
+@handle_errors("computing median", default_return=None)
 def _median(values: list[float]) -> float | None:
+    """Return the statistical median or None when values is empty."""
     if not values:
         return None
     return float(statistics.median(values))
@@ -79,7 +81,9 @@ def compute_baseline_stats(
     }
 
 
+@handle_errors("mapping baseline days to confidence", default_return="low")
 def _confidence_from_baseline_days(days_used: int) -> str:
+    """Map baseline history length to signal confidence tier."""
     if days_used >= MIN_BASELINE_DAYS_HIGH:
         return "high"
     if days_used >= MIN_BASELINE_DAYS_MEDIUM:

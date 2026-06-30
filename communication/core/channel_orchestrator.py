@@ -1093,7 +1093,9 @@ class CommunicationManager:
         # Handle AI-generated messages and track if message was actually sent
         message_sent = False
         sent_message_content = None
-        if category in ["personalized", "ai_personalized"]:
+        from messages.message_data_manager import is_ai_generated_message_category
+
+        if is_ai_generated_message_category(category):
             message_sent, sent_message_content = self._send_ai_generated_message(
                 user_id, category, messaging_service, recipient
             )
@@ -1185,25 +1187,21 @@ class CommunicationManager:
 
             ai_bot = get_ai_chatbot()
 
-            # Use contextual AI for richer, more personalized messages
-            if category in ["personalized", "ai_personalized"]:
-                # Create a contextual prompt for personalized message generation
-                from core.health_signals import get_message_guidance
-                from integrations.google_health.personalization_rules import (
-                    build_scheduled_message_context_prefix,
-                )
+            from core.health_signals import get_message_guidance
+            from integrations.google_health.personalization_rules import (
+                build_scheduled_message_context_prefix,
+            )
 
-                guidance = get_message_guidance(user_id)
-                prefix = build_scheduled_message_context_prefix(guidance)
-                context_prompt = "Generate a supportive, personalized message based on my recent activity and mood."
-                if prefix:
-                    context_prompt = f"{prefix} {context_prompt}"
-                message_to_send = ai_bot.generate_contextual_response(
-                    user_id, context_prompt, timeout=15
-                )
-            else:
-                # Fallback to standard personalized message
-                message_to_send = ai_bot.generate_personalized_message(user_id)
+            guidance = get_message_guidance(user_id)
+            prefix = build_scheduled_message_context_prefix(guidance)
+            context_prompt = (
+                "Generate a supportive, personalized message based on my recent activity and mood."
+            )
+            if prefix:
+                context_prompt = f"{prefix} {context_prompt}"
+            message_to_send = ai_bot.generate_contextual_response(
+                user_id, context_prompt, timeout=15
+            )
 
             import uuid
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from unittest.mock import patch
 
@@ -33,7 +34,7 @@ def test_is_valid_fernet_key_accepts_generated_key():
 @pytest.mark.unit
 @pytest.mark.core
 def test_encrypt_decrypt_round_trip():
-    with patch("core.config.GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY", TEST_KEY):
+    with patch.dict(os.environ, {"GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY": TEST_KEY}):
         encrypted = encrypt_token_value("secret-access-token")
         assert encrypted != "secret-access-token"
         assert decrypt_token_value(encrypted) == "secret-access-token"
@@ -50,7 +51,7 @@ def test_prepare_auth_for_use_requires_key_when_encrypted():
         "refresh_token": encrypted,
         "tokens_encrypted": True,
     }
-    with patch("core.config.GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY", ""):
+    with patch.dict(os.environ, {"GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY": ""}):
         result = prepare_auth_for_use(stored)
     assert result is not None
     assert result["access_token"] == ""
@@ -71,7 +72,7 @@ def test_save_auth_encrypts_tokens_on_disk(test_data_dir):
         "expires_at": "2099-01-01 00:00:00",
     }
 
-    with patch("core.config.GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY", TEST_KEY):
+    with patch.dict(os.environ, {"GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY": TEST_KEY}):
         assert save_auth(user_id, auth) is True
         loaded = load_auth(user_id)
 
@@ -101,7 +102,7 @@ def test_legacy_plaintext_auth_still_loads(test_data_dir):
         "tokens_encrypted": False,
     }
 
-    with patch("core.config.GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY", ""):
+    with patch.dict(os.environ, {"GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY": ""}):
         assert save_auth(user_id, auth) is True
         loaded = load_auth(user_id)
 
@@ -115,7 +116,7 @@ def test_plaintext_migrates_to_encrypted_on_save(test_data_dir):
     user_id = "health-crypto-user-003"
     TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
-    with patch("core.config.GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY", ""):
+    with patch.dict(os.environ, {"GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY": ""}):
         save_auth(
             user_id,
             {
@@ -126,7 +127,7 @@ def test_plaintext_migrates_to_encrypted_on_save(test_data_dir):
             },
         )
 
-    with patch("core.config.GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY", TEST_KEY):
+    with patch.dict(os.environ, {"GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY": TEST_KEY}):
         save_auth(
             user_id,
             {
@@ -152,7 +153,7 @@ def test_prepare_auth_for_storage_without_key_keeps_plaintext():
         "access_token": "plain",
         "refresh_token": "plain",
     }
-    with patch("core.config.GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY", ""):
+    with patch.dict(os.environ, {"GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY": ""}):
         result = prepare_auth_for_storage(data)
     assert result["tokens_encrypted"] is False
     assert result["access_token"] == "plain"

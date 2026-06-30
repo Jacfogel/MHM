@@ -10,7 +10,9 @@ from datetime import datetime, timezone
 from unittest.mock import patch
 
 from messages.message_data_manager import (
+    ensure_user_message_files,
     get_message_categories,
+    is_ai_generated_message_category,
     load_default_messages,
     _parse_message_timestamp,
     get_timestamp_for_sorting,
@@ -116,3 +118,26 @@ class TestCoreMessageManagementCoverageExpansion:
         # Should return 0.0 for invalid items
         assert isinstance(result, float)
         assert result == 0.0
+
+    @pytest.mark.behavior
+    def test_is_ai_generated_message_category_real_behavior(self):
+        """Test AI-generated category detection."""
+        assert is_ai_generated_message_category("personalized") is True
+        assert is_ai_generated_message_category("motivational") is False
+        assert is_ai_generated_message_category("ai_personalized") is False
+
+    @pytest.mark.behavior
+    def test_ensure_user_message_files_skips_ai_generated_category(self, test_data_dir):
+        """AI-generated categories do not require a message library file."""
+        user_id = "test-user-ai-category"
+        categories = ["motivational", "personalized"]
+
+        with patch(
+            "messages.message_data_manager.create_message_file_from_defaults",
+            return_value=True,
+        ) as mock_create:
+            result = ensure_user_message_files(user_id, categories)
+
+        assert result["success"] is True
+        assert mock_create.call_count == 1
+        assert mock_create.call_args[0][1] == "motivational"

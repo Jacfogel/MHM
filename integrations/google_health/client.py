@@ -52,10 +52,13 @@ class _Fetcher:
     source: FetchSource = "list"
 
 
+@handle_errors("checking Google Health testing mode", default_return=False)
 def _testing_mode() -> bool:
+    """Return True when MHM_TESTING skips live Google Health API calls."""
     return os.getenv("MHM_TESTING") == "1"
 
 
+@handle_errors("building Google Health list filter", default_return="")
 def _build_filter(
     filter_prefix: str,
     filter_mode: FilterMode,
@@ -81,6 +84,7 @@ def _build_filter(
     return f'{field} >= "{start_iso}" AND {field} < "{end_iso}"'
 
 
+@handle_errors("resolving Google Health data type spec", default_return=("", "", "interval_start"))
 def _resolve_data_type_spec(data_type: str) -> tuple[str, str, FilterMode]:
     """Resolve endpoint slug and filter prefix for a data type key."""
     legacy_map = {
@@ -151,20 +155,25 @@ def list_data_points(
     return collected
 
 
+@handle_errors("building civil datetime payload", default_return={})
 def _civil_datetime(day: date) -> dict[str, Any]:
+    """Build Google Health civil date-time starting at midnight UTC."""
     return {
         "date": {"year": day.year, "month": day.month, "day": day.day},
         "time": {"hours": 0, "minutes": 0, "seconds": 0, "nanos": 0},
     }
 
 
+@handle_errors("building civil end-of-day payload", default_return={})
 def _civil_end_of_day(day: date) -> dict[str, Any]:
+    """Build Google Health civil date-time ending at 23:59:59 UTC."""
     return {
         "date": {"year": day.year, "month": day.month, "day": day.day},
         "time": {"hours": 23, "minutes": 59, "seconds": 59, "nanos": 0},
     }
 
 
+@handle_errors("building civil date range payload", default_return={})
 def _build_civil_range(start_date: date, end_date: date) -> dict[str, Any]:
     """Civil date range for dailyRollUp (per Google Health API examples)."""
     return {
@@ -222,6 +231,7 @@ def _list_daily_rollups_single(
     return collected
 
 
+@handle_errors("listing Google Health daily rollups", default_return=[])
 def list_daily_rollups(
     access_token: str,
     data_type: str,
@@ -261,6 +271,7 @@ def list_daily_rollups(
     return collected
 
 
+@handle_errors("listing Google Health data points in chunks", default_return=[])
 def _list_data_points_chunked(
     access_token: str,
     data_type: str,
@@ -292,6 +303,7 @@ def _list_data_points_chunked(
     return collected
 
 
+@handle_errors("fetching Google Health points for data type", default_return=[])
 def _fetch_points_for_type(
     access_token: str,
     fetcher: _Fetcher,
@@ -332,7 +344,9 @@ def _fetch_points_for_type(
     )
 
 
+@handle_errors("parsing Google Health API date", default_return=None)
 def _parse_api_date(value: Any) -> str | None:
+    """Normalize API date values to YYYY-MM-DD strings."""
     if value is None:
         return None
     if isinstance(value, str):
@@ -345,7 +359,9 @@ def _parse_api_date(value: Any) -> str | None:
     return None
 
 
+@handle_errors("parsing duration to minutes", default_return=None)
 def _parse_duration_minutes(value: Any) -> int | None:
+    """Parse Google Health duration fields into whole minutes."""
     if value is None:
         return None
     if isinstance(value, (int, float)):
@@ -371,7 +387,9 @@ def _parse_duration_minutes(value: Any) -> int | None:
     return None
 
 
+@handle_errors("parsing ISO datetime", default_return=None)
 def _parse_iso_datetime(raw: str) -> datetime | None:
+    """Parse ISO-8601 timestamps from Google Health API responses."""
     if not raw:
         return None
     text = raw.replace("Z", "+00:00")
@@ -381,7 +399,9 @@ def _parse_iso_datetime(raw: str) -> datetime | None:
         return None
 
 
+@handle_errors("computing interval duration minutes", default_return=None)
 def _interval_duration_minutes(interval: dict[str, Any]) -> int | None:
+    """Compute minutes between interval start and end timestamps."""
     start_raw = interval.get("startTime") or interval.get("start_time")
     end_raw = interval.get("endTime") or interval.get("end_time")
     start = _parse_iso_datetime(str(start_raw)) if start_raw else None
@@ -391,13 +411,17 @@ def _interval_duration_minutes(interval: dict[str, Any]) -> int | None:
     return None
 
 
+@handle_errors("extracting date from civil datetime", default_return=None)
 def _date_from_civil_datetime(civil: Any) -> str | None:
+    """Extract YYYY-MM-DD from a Google Health civil datetime object."""
     if not isinstance(civil, dict):
         return None
     return _parse_api_date(civil.get("date"))
 
 
+@handle_errors("extracting date from interval", default_return=None)
 def _date_from_interval(interval: dict[str, Any]) -> str | None:
+    """Extract calendar date from a Google Health interval payload."""
     if not interval:
         return None
     for civil_key in (
@@ -420,7 +444,9 @@ def _date_from_interval(interval: dict[str, Any]) -> str | None:
     return None
 
 
+@handle_errors("extracting date from data point", default_return=None)
 def _date_from_data_point(point: dict[str, Any]) -> str | None:
+    """Extract calendar date from any supported Google Health data point shape."""
     for key in ("date", "civilDate"):
         parsed = _parse_api_date(point.get(key))
         if parsed:
@@ -451,11 +477,15 @@ def _date_from_data_point(point: dict[str, Any]) -> str | None:
     return _date_from_interval(point.get("interval") or {})
 
 
+@handle_errors("extracting sleep payload", default_return={})
 def _sleep_payload(point: dict[str, Any]) -> dict[str, Any]:
+    """Return nested sleep object or the point itself when sleep is top-level."""
     return point.get("sleep") or point
 
 
+@handle_errors("coercing integer metric", default_return=None)
 def _coerce_int(value: Any) -> int | None:
+    """Safely coerce API numeric values to int."""
     if value is None:
         return None
     try:
@@ -464,7 +494,9 @@ def _coerce_int(value: Any) -> int | None:
         return None
 
 
+@handle_errors("coercing float metric", default_return=None)
 def _coerce_float(value: Any) -> float | None:
+    """Safely coerce API numeric values to float."""
     if value is None:
         return None
     try:
@@ -473,19 +505,25 @@ def _coerce_float(value: Any) -> float | None:
         return None
 
 
+@handle_errors("appending completeness tag", default_return=None)
 def _append_completeness(summary: dict[str, Any], tag: str) -> None:
+    """Track which metric groups were populated for a daily summary."""
     summary.setdefault("completeness", [])
     if tag not in summary["completeness"]:
         summary["completeness"].append(tag)
 
 
+@handle_errors("appending API record id", default_return=None)
 def _append_record_id(summary: dict[str, Any], point: dict[str, Any]) -> None:
+    """Record Google Health data point resource name for traceability."""
     name = point.get("name") or point.get("dataPointName") or ""
     if name:
         summary.setdefault("api_record_ids", []).append(str(name))
 
 
+@handle_errors("merging sleep into daily summary", default_return=None)
 def _merge_sleep_into_summary(summary: dict[str, Any], point: dict[str, Any]) -> None:
+    """Merge sleep duration, efficiency, and stages into a daily summary dict."""
     sleep = _sleep_payload(point)
     interval = sleep.get("interval") or point.get("interval") or {}
     duration = _parse_duration_minutes(
@@ -529,7 +567,9 @@ def _merge_sleep_into_summary(summary: dict[str, Any], point: dict[str, Any]) ->
         _append_completeness(summary, "sleep")
 
 
+@handle_errors("merging steps into daily summary", default_return=None)
 def _merge_steps_into_summary(summary: dict[str, Any], point: dict[str, Any]) -> None:
+    """Merge step counts into a daily summary dict."""
     steps_obj = point.get("steps") or point
     value = (
         steps_obj.get("countSum")
@@ -548,7 +588,9 @@ def _merge_steps_into_summary(summary: dict[str, Any], point: dict[str, Any]) ->
     _append_record_id(summary, point)
 
 
+@handle_errors("merging active minutes into daily summary", default_return=None)
 def _merge_active_minutes(summary: dict[str, Any], point: dict[str, Any]) -> None:
+    """Merge active zone minutes into a daily summary dict."""
     azm = point.get("activeZoneMinutes") or point.get("active_zone_minutes") or point
     zone_keys = ("sumInCardioHeartZone", "sumInPeakHeartZone", "sumInFatBurnHeartZone")
     if any(azm.get(key) is not None for key in zone_keys):
@@ -571,7 +613,9 @@ def _merge_active_minutes(summary: dict[str, Any], point: dict[str, Any]) -> Non
     _append_record_id(summary, point)
 
 
+@handle_errors("merging resting heart rate into daily summary", default_return=None)
 def _merge_resting_hr(summary: dict[str, Any], point: dict[str, Any]) -> None:
+    """Merge resting heart rate into a daily summary dict."""
     hr = point.get("dailyRestingHeartRate") or point.get("heartRate") or point
     value = (
         hr.get("beatsPerMinute")
@@ -586,7 +630,9 @@ def _merge_resting_hr(summary: dict[str, Any], point: dict[str, Any]) -> None:
     _append_record_id(summary, point)
 
 
+@handle_errors("merging HRV into daily summary", default_return=None)
 def _merge_hrv(summary: dict[str, Any], point: dict[str, Any]) -> None:
+    """Merge heart rate variability into a daily summary dict."""
     hrv = point.get("dailyHeartRateVariability") or point
     value = (
         hrv.get("averageHeartRateVariabilityMilliseconds")

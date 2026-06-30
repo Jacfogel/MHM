@@ -64,7 +64,7 @@
 ## Pytest process cleanup (Windows)
 - **Summary**: status=PASS, `orphaned_processes_found`=False, candidate count=0 (heuristic on python.exe command lines).
 - **Note**: Primary detection uses Windows command-line inspection via CIM; the fallback path is less informative when command lines are unavailable.
-- **Machine-readable**: [verify_process_cleanup_results.json](tests/jsons/scopes/full/verify_process_cleanup_results.json)
+- **Machine-readable**: `development_tools/tests/jsons/scopes/full/verify_process_cleanup_results.json` (audit output; regenerated each Tier 3 run)
 
 ## Unused Imports
 - **Unused Imports**: CLEAN (no unused imports detected)
