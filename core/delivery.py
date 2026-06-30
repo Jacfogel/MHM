@@ -31,6 +31,7 @@ class SchedulerDeliveryPort(Protocol):
         category: str,
         is_scheduled_trigger: bool = False,
         allow_deferral: bool = True,
+        skip_ai_cache: bool = False,
     ) -> MessageSendOutcome:
         """Send a scheduled or manual category message."""
         ...

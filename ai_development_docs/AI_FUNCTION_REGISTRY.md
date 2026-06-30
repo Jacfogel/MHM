@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-28 22:56:09
+> **Last Generated**: 2026-06-30 13:13:24
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 89.7% [!] GOOD**
-- **Total Functions**: 2358
-- **Total Methods**: 1377
-- **Documented**: 3352/3735
+### **Documentation Coverage: 89.8% [!] GOOD**
+- **Total Functions**: 2371
+- **Total Methods**: 1380
+- **Documented**: 3367/3751
 - **Files Scanned**: 244
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -47,9 +47,9 @@ Communication Decision Tree:
 ### **[UI] Need UI/User Interface?**
 ```
 UI Operations Decision Tree:
-+-- `ui/ui_app_qt.py` - Main admin interface (58 functions)
++-- `ui/ui_app_qt.py` - Main admin interface (64 functions)
 +-- `ui/admin_actions.py` - Admin system/menu actions (27 functions)
-+-- `ui/request_actions.py` - Admin request-file actions (14/15 functions)
++-- `ui/request_actions.py` - Admin request-file actions (15/16 functions)
 +-- `ui/dialogs/task_crud_dialog.py` - Task CRUD (28 functions)
 `-- `ui/widgets/task_settings_widget.py` - Task settings (32/35 functions)```
 
@@ -174,9 +174,9 @@ Core System Decision Tree:
 - `integrations/google_health/sync_manager.py` - 3/10 functions undocumented (70% coverage)
 - `storage/user_data_validation.py` - 3/12 functions undocumented (75% coverage)
 - `ai/fallback_responses/conversational.py` - 2/4 functions undocumented (50% coverage)
+- `core/health_context_builder.py` - 2/4 functions undocumented (50% coverage)
 - `communication/command_handlers/handler_registry.py` - 2/5 functions undocumented (60% coverage)
 - `core/user_lookup.py` - 1/3 functions undocumented (67% coverage)
-- `integrations/google_health/personalization_rules.py` - 1/3 functions undocumented (67% coverage)
 
 
 
@@ -195,7 +195,7 @@ Core System Decision Tree:
 Most complex functions (may need refactoring):
 1. [OK] `run_tests.py::run_command()` - Complexity: 3215
 2. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2960
-3. [OK] `run_tests.py::main()` - Complexity: 2693
+3. [OK] `run_tests.py::main()` - Complexity: 2790
 4. [OK] `storage/user_data_read.py::get_user_data()` - Complexity: 1622
 5. [OK] `communication/message_processing/command_parser.py::_extract_notebook_entities_rule_based()` - Complexity: 1103
 
@@ -207,16 +207,16 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `ai/` - AI chatbot functionality (26 files, 267 functions)
+- `ai/` - AI chatbot functionality (26 files, 270 functions)
 - `checkins/` -  (6 files, 135 functions)
 - `communication/` - Communication channels and message processing (83 files, 1121 functions)
-- `core/` - System utilities and data management (33 files, 650 functions)
+- `core/` - System utilities and data management (33 files, 656 functions)
 - `integrations/` -  (12 files, 102 functions)
 - `messages/` -  (5 files, 39 functions)
 - `scheduler/` -  (8 files, 100 functions)
 - `storage/` -  (11 files, 151 functions)
 - `tasks/` - Task management system (9 files, 105 functions)
-- `ui/` - User interface components (43 files, 947 functions)
+- `ui/` - User interface components (43 files, 954 functions)
 - `user/` - User context and preferences (5 files, 68 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**

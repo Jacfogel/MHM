@@ -246,8 +246,23 @@ def process_valid_test_message_request(
     )
     if context.delivery:
         send_result = context.delivery.handle_message_sending(
-            user_id, category
+            user_id, category, skip_ai_cache=True
         )
+        if send_result.status != "sent":
+            logger.warning(
+                f"Test message not delivered for {user_id}, category={category}: "
+                f"status={send_result.status}"
+            )
+            write_test_message_response(
+                user_id,
+                category,
+                (
+                    "The test message could not be delivered. "
+                    "Check service logs and try again."
+                ),
+                base_dir=str(context.base_dir),
+            )
+            return
         logger.info(
             f"Test message sent successfully for {user_id}, category={category}"
         )

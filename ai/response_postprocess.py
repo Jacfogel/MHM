@@ -109,6 +109,81 @@ def clean_system_prompt_leaks(response: str) -> str:
     return cleaned.strip()
 
 
+_INSTRUCTION_TUNING_MARKERS = (
+    re.compile(r"##\s*INPUT\s*##\s*OUTPUT", re.IGNORECASE),
+    re.compile(r"##\s*INPUT\b", re.IGNORECASE),
+    re.compile(r"##\s*OUTPUT\b", re.IGNORECASE),
+    re.compile(r"###\s*Input\s*:", re.IGNORECASE),
+    re.compile(r"###\s*Output\s*:", re.IGNORECASE),
+)
+
+
+@handle_errors("stripping instruction-tuning markers", default_return="")
+def strip_instruction_tuning_markers(text: str) -> str:
+    """Remove fine-tuning delimiter leaks (e.g. '## INPUT ##OUTPUT') from model output."""
+    if not text:
+        return text
+
+    earliest = len(text)
+    for pattern in _INSTRUCTION_TUNING_MARKERS:
+        match = pattern.search(text)
+        if match and match.start() < earliest:
+            earliest = match.start()
+
+    if earliest < len(text):
+        return text[:earliest].strip()
+
+    return text.strip()
+
+
+_SIGNOFF_TAIL_LINE = re.compile(
+    r"^\s*(?:"
+    r"(?:take care|best wishes|warm regards|kind regards|sincerely|cheers|all the best|with care)"
+    r"[,\s]+"
+    r"(?:\[?\s*(?:your\s*name|name)\s*\]?|mh[m]?(?:\s+bot)?|assistant|wellness assistant)?"
+    r"|"
+    r"\[?\s*(?:your\s*name|name)\s*\]?"
+    r")\s*\.?\s*$",
+    re.IGNORECASE,
+)
+
+_INLINE_SIGNOFF = re.compile(
+    r"[,\s]+(?:take care|best wishes|warm regards|kind regards|sincerely|all the best|with care)"
+    r"[,\s]+\[?\s*(?:your\s*name|name)\s*\]?\s*\.?\s*$",
+    re.IGNORECASE,
+)
+
+_PERSONALIZED_GREETING_START = re.compile(
+    r"(?m)^(?:Dear|Hi|Hey)\s+\w+[!,]",
+)
+
+
+@handle_errors("keeping first personalized message block", default_return="")
+def keep_first_personalized_block(text: str) -> str:
+    """When the model returns multiple draft messages, keep only the first greeting block."""
+    if not text:
+        return text
+    matches = list(_PERSONALIZED_GREETING_START.finditer(text))
+    if len(matches) <= 1:
+        return text.strip()
+    return text[: matches[1].start()].strip()
+
+
+@handle_errors("stripping letter sign-offs", default_return="")
+def strip_letter_signoffs(text: str) -> str:
+    """Remove email-style closings and [Your Name] placeholders from short wellness messages."""
+    if not text:
+        return text
+
+    lines = [line for line in text.strip().split("\n")]
+    while lines and _SIGNOFF_TAIL_LINE.match(lines[-1]):
+        lines.pop()
+
+    result = "\n".join(lines).strip()
+    result = _INLINE_SIGNOFF.sub("", result)
+    return result.strip()
+
+
 @handle_errors("smart truncating response", default_return="...")
 def smart_truncate_response(
     text: str, max_chars: int, max_words: int | None = None

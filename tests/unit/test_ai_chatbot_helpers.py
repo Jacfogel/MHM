@@ -302,3 +302,98 @@ class TestAIChatBotHelpers:
             assert isinstance(result, str), "Should return string"
             assert len(result) > 0, "Should return non-empty message"
 
+    def test_personalized_generation_request_uses_personalized_mode(self, chatbot_instance):
+        """Personalized prompts must not use command mode (60-token limit)."""
+        prompt = (
+            "Create a brief, encouraging message for a user based on their recent wellness data. "
+            "Data: mood=3. Keep it supportive, personal, and under 100 words."
+        )
+        assert chatbot_instance._normalize_response_mode("personalized", prompt) == "personalized"
+
+        with patch("ai.fallback_responses.data_access.get_user_data", return_value={"context": {}}):
+            messages, max_tokens, _temperature = (
+                chatbot_instance._build_response_generation_request(
+                    "personalized", prompt, "user123"
+                )
+            )
+
+        assert max_tokens == 150
+        assert len(messages) == 2
+        assert messages[1]["content"] == prompt
+
+    def test_personalized_post_process_limits_words_without_command_extraction(
+        self, chatbot_instance
+    ):
+        """Personalized responses should complete as prose, not command output."""
+        long_response = " ".join(["word"] * 120)
+        result = chatbot_instance._post_process_generated_response(
+            "personalized", long_response
+        )
+        assert len(result.split()) <= 100
+        assert "ACTION:" not in result
+
+    def test_personalized_message_skip_cache_bypasses_response_cache(
+        self, chatbot_instance
+    ):
+        """Admin test sends should not reuse cached personalized text."""
+        chatbot_instance.lm_studio_available = True
+        with (
+            patch.object(chatbot_instance.response_cache, "get") as mock_get,
+            patch.object(chatbot_instance.response_cache, "set") as mock_set,
+            patch(
+                "core.health_context_builder.build_personalized_wellness_context",
+                return_value="sleep_recovery=high",
+            ),
+            patch.object(
+                chatbot_instance, "generate_response", return_value="Fresh test message."
+            ),
+        ):
+            result = chatbot_instance.generate_personalized_message(
+                "user123", skip_cache=True
+            )
+
+        assert result == "Fresh test message."
+        mock_get.assert_not_called()
+        mock_set.assert_not_called()
+
+    def test_post_process_keeps_first_personalized_block(self, chatbot_instance):
+        """Models sometimes return multiple drafts in one reply — keep the first only."""
+        raw = (
+            "Hi Julie! Gentle day today. Keep expectations smaller.\n\n"
+            "Dear Julie, sleep recovery looks below baseline. Take it easy.\n\n"
+            "Hi Julie, HRV suggests recovery is still catching up."
+        )
+        result = chatbot_instance._post_process_generated_response("personalized", raw)
+        assert result.startswith("Hi Julie! Gentle day")
+        assert "Dear Julie" not in result
+        assert "HRV" not in result
+
+    def test_post_process_strips_letter_signoffs(self, chatbot_instance):
+        """Personalized messages should not end with placeholder signatures."""
+        raw = (
+            "Hey Julie, your recovery looks good today. Keep listening to your body.\n\n"
+            "Take care, [Your Name]"
+        )
+        result = chatbot_instance._post_process_generated_response("personalized", raw)
+        assert result == (
+            "Hey Julie, your recovery looks good today. Keep listening to your body."
+        )
+        assert "[Your Name]" not in result
+
+    def test_post_process_strips_inline_letter_signoff(self, chatbot_instance):
+        raw = "Hi Julie, great job resting. Best wishes, [Your Name]"
+        result = chatbot_instance._post_process_generated_response("personalized", raw)
+        assert result == "Hi Julie, great job resting."
+        assert "Best wishes" not in result
+
+    def test_post_process_strips_instruction_tuning_markers(self, chatbot_instance):
+        """Fine-tuned models may leak INPUT/OUTPUT delimiters — keep only the user message."""
+        raw = (
+            "Hey Julie, I hope you're doing well. You've got this! 😊"
+            "## INPUT ##OUTPUT I'm sorry to hear that you may be feeling hopeless right now."
+        )
+        result = chatbot_instance._post_process_generated_response("personalized", raw)
+        assert result == "Hey Julie, I hope you're doing well. You've got this! 😊"
+        assert "INPUT" not in result
+        assert "hopeless" not in result
+

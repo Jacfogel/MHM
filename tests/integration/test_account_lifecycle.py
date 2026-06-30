@@ -743,6 +743,7 @@ class TestAccountLifecycle:
         assert "motivational" in updated_cats, "Motivational should remain"
     
     @pytest.mark.integration
+    @pytest.mark.no_parallel  # schedules read can be empty under xdist cache/index contention
     def test_add_schedule_period(self, update_user_index_for_test):
         """Test adding a new schedule period to user schedules."""
         from core import get_user_data, clear_user_caches
@@ -889,6 +890,7 @@ class TestAccountLifecycle:
         assert updated_morning["days"] == ["ALL"], "Days should be normalized to ['ALL'] when all days selected"
     
     @pytest.mark.integration
+    @pytest.mark.no_parallel  # schedules read can be empty under xdist cache/index contention
     def test_remove_schedule_period(self, update_user_index_for_test):
         """Test removing a schedule period from user schedules."""
         from core import get_user_data, clear_user_caches

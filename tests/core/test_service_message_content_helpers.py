@@ -172,7 +172,7 @@ class TestServiceMessageContentHelpers:
             service.check_test_message_requests()
 
         service.communication_manager.handle_message_sending.assert_called_once_with(
-            "u1", "motivational"
+            "u1", "motivational", skip_ai_cache=True
         )
         assert not request_path.exists()
 
@@ -200,7 +200,7 @@ class TestServiceMessageContentHelpers:
             service.check_test_message_requests()
 
         service.communication_manager.handle_message_sending.assert_called_once_with(
-            "u2", "health"
+            "u2", "health", skip_ai_cache=True
         )
         assert not invalid_path.exists()
         assert not valid_path.exists()

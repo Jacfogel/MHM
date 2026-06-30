@@ -35,7 +35,15 @@ Guidelines:
 - New `nightly-test-suite` command runs **full** profile (includes slow tests); GitHub Actions nightly workflow added.
 - Suite cache is profile-aware (`last_suite_profile`); config adds `test_run.profiles` quick/full.
 - **Fix**: `NameError` on `strict` in `_run_test_suite_profile` crashed audits after pytest; command doc/group parity for `nightly-test-suite`.
-- **Audit hygiene**: Pyright warning on `_StubService.nightly_result`; ASCII doc-fix + doc-sync on paired changelogs.
+- **Fix (`personalized` category)**: [`channel_orchestrator.py`](../communication/core/channel_orchestrator.py) now calls `generate_personalized_message()` instead of `generate_contextual_response()` - avoids generic chat fallback when LM Studio context overflows.
+- **Fix (personalized truncation + duplicate test sends)**: Explicit `mode="personalized"` in [`chatbot.py`](../ai/chatbot.py) - prompt word "message" no longer triggers command mode (60-token cutoff). Admin test button disables while sending.
+- **Fix (model format leaks + UI guard)**: Strip `## INPUT` / `## OUTPUT` training markers from AI output; stop sequences on personalized calls. Initialize `_test_message_in_flight` in UI `__init__` (was broken by `__getattr__` delegation).
+- **Fix (duplicate test sends + Google Health context)**: UI now polls up to ~60s for AI test messages. Personalized messages include coarse Google Health signals via `build_personalized_wellness_context()` with fallback to the latest synced signal when today's sync is missing.
+- **Fix (UI freeze + health priority)**: Test-message wait runs on a background `QThread` (no main-window freeze). When Google Health confidence is medium/high, stale check-ins are omitted from the personalized prompt.
+- **Fix (identical test personalized messages)**: Admin test sends pass `skip_ai_cache=True` so `generate_personalized_message()` bypasses the 5-minute response cache and requests fresh wording each time.
+- **Fix (placeholder sign-offs)**: Personalized prompts forbid letter-style closings; `strip_letter_signoffs()` removes trailing `Take care, [Your Name]` and similar leaks.
+- **Fix (multi-draft model output)**: `keep_first_personalized_block()` keeps only the first greeting block when LM Studio returns several complete messages in one reply.
+- **Audit hygiene**: Pyright warning on `_StubService.nightly_result`; ASCII doc-fix + doc-sync; function registry regen (`docs`); removed unused `get_recent_responses` import; `@handle_errors` + docstrings on `_TestMessageRequestWorker`; `test_add/remove_schedule_period` marked `no_parallel` (xdist schedules cache flake).
 - Docs updated across paired testing and dev-tools guides.
 
 ### 2026-06-29 - Faster default test runs **COMPLETED**

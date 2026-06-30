@@ -3,6 +3,7 @@
 import asyncio
 import threading
 import time
+import uuid
 from typing import Any
 
 from core.logger import get_component_logger
@@ -1037,6 +1038,7 @@ class CommunicationManager:
         category: str,
         is_scheduled_trigger: bool = False,
         allow_deferral: bool = True,
+        skip_ai_cache: bool = False,
     ) -> MessageSendResult:
         """
         Handle sending messages for a user and category with improved recipient resolution.
@@ -1097,7 +1099,11 @@ class CommunicationManager:
 
         if is_ai_generated_message_category(category):
             message_sent, sent_message_content = self._send_ai_generated_message(
-                user_id, category, messaging_service, recipient
+                user_id,
+                category,
+                messaging_service,
+                recipient,
+                skip_ai_cache=skip_ai_cache,
             )
         else:
             message_sent, sent_message_content = (
@@ -1174,36 +1180,38 @@ class CommunicationManager:
 
     @handle_errors("sending AI-generated message", default_return=(False, None))
     def _send_ai_generated_message(
-        self, user_id: str, category: str, messaging_service: str, recipient: str
+        self,
+        user_id: str,
+        category: str,
+        messaging_service: str,
+        recipient: str,
+        *,
+        skip_ai_cache: bool = False,
     ) -> tuple[bool, str | None]:
         """
-        Send an AI-generated personalized message using contextual AI.
+        Send an AI-generated personalized message using check-in context and optional health guidance.
 
         Returns:
             tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
         """
         try:
             from ai.chatbot import get_ai_chatbot
-
-            ai_bot = get_ai_chatbot()
-
+            from core.config import AI_PERSONALIZED_MESSAGE_TIMEOUT
             from core.health_signals import get_message_guidance
             from integrations.google_health.personalization_rules import (
                 build_scheduled_message_context_prefix,
             )
 
+            ai_bot = get_ai_chatbot()
+
             guidance = get_message_guidance(user_id)
             prefix = build_scheduled_message_context_prefix(guidance)
-            context_prompt = (
-                "Generate a supportive, personalized message based on my recent activity and mood."
+            message_to_send = ai_bot.generate_personalized_message(
+                user_id,
+                timeout=AI_PERSONALIZED_MESSAGE_TIMEOUT,
+                prompt_prefix=prefix or None,
+                skip_cache=skip_ai_cache,
             )
-            if prefix:
-                context_prompt = f"{prefix} {context_prompt}"
-            message_to_send = ai_bot.generate_contextual_response(
-                user_id, context_prompt, timeout=15
-            )
-
-            import uuid
 
             message_id = str(uuid.uuid4())
 
@@ -1234,7 +1242,7 @@ class CommunicationManager:
                     else message_to_send
                 )
                 logger.info(
-                    f"Sent contextual AI-generated message for user {user_id}, category {category} | Content: '{message_preview}'"
+                    f"Sent AI-generated personalized message for user {user_id}, category {category} | Content: '{message_preview}'"
                 )
                 return True, message_to_send
             else:

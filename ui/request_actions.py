@@ -212,7 +212,9 @@ def _truncate_for_dialog(value: str, max_length: int = 100) -> str:
 
 
 @handle_errors("polling request response file", default_return={})
-def _poll_response_file(response_file: Path, *, attempts: int = 30) -> dict[str, Any]:
+def _poll_response_file(
+    response_file: Path, *, attempts: int = 30, interval_seconds: float = 0.1
+) -> dict[str, Any]:
     """Wait briefly for a service response flag and return its decoded payload."""
     for _ in range(attempts):
         if response_file.exists():
@@ -224,8 +226,22 @@ def _poll_response_file(response_file: Path, *, attempts: int = 30) -> dict[str,
                 return response_data
             except Exception as e:
                 logger.debug(f"Could not read response file {response_file}: {e}")
-        time.sleep(0.1)
+        time.sleep(interval_seconds)
     return {}
+
+
+@handle_errors("resolving test message poll attempts", default_return=30)
+def _test_message_poll_attempts(category: str) -> int:
+    """AI-generated categories need longer waits than library message picks."""
+    try:
+        from core.config import AI_PERSONALIZED_MESSAGE_TIMEOUT
+        from messages.message_data_manager import is_ai_generated_message_category
+
+        if is_ai_generated_message_category(category):
+            return max(30, int((AI_PERSONALIZED_MESSAGE_TIMEOUT + 20) / 0.1))
+    except Exception as e:
+        logger.debug(f"Could not resolve AI test-message poll duration: {e}")
+    return 30
 
 
 @handle_errors(
@@ -277,6 +293,10 @@ def create_test_message_request(
 
         base_dir = get_flags_dir()
         request_file = base_dir / f"test_message_request_{user_id}_{category}.flag"
+        response_file = base_dir / f"test_message_response_{user_id}_{category}.flag"
+        with contextlib.suppress(Exception):
+            if response_file.exists():
+                os.remove(response_file)
         test_request = {
             "user_id": user_id,
             "category": category,
@@ -289,8 +309,9 @@ def create_test_message_request(
         logger.info(f"Admin Panel: Test message request file created: {request_file}")
 
         actual_message = "Message will be selected from your collection"
-        response_file = base_dir / f"test_message_response_{user_id}_{category}.flag"
-        response_data = _poll_response_file(response_file)
+        response_data = _poll_response_file(
+            response_file, attempts=_test_message_poll_attempts(category)
+        )
         actual_message = response_data.get("message", actual_message)
 
         prefs_result = get_user_data(user_id, "preferences", normalize_on_read=True)
@@ -305,6 +326,11 @@ def create_test_message_request(
             message=(
                 f"Test {category} message sent to {user_id} via {channel_name}.\n\n"
                 f"Message: {actual_message}"
+                + (
+                    "\n\n(AI-generated messages can take up to a minute; the window stays responsive while waiting.)"
+                    if _test_message_poll_attempts(category) > 30
+                    else ""
+                )
             ),
             request_file=request_file,
             data={"message": actual_message, "channel_name": channel_name},

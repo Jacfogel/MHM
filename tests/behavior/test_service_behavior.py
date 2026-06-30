@@ -335,7 +335,7 @@ class TestMHMService:
             service.check_test_message_requests()
 
             service.communication_manager.handle_message_sending.assert_called_once_with(
-                "user1", "motivational"
+                "user1", "motivational", skip_ai_cache=True
             )
             mock_remove.assert_called_once_with(request_file)
 
@@ -630,7 +630,7 @@ class TestMHMService:
             service.check_test_message_requests()
 
             service.communication_manager.handle_message_sending.assert_called_once_with(
-                "user1", "motivational"
+                "user1", "motivational", skip_ai_cache=True
             )
             mock_remove.assert_called_once_with(request_file)
 
@@ -673,7 +673,7 @@ class TestMHMService:
             assert not os.path.exists(request_file)
 
             service.communication_manager.handle_message_sending.assert_called_once_with(
-                "user1", "motivational"
+                "user1", "motivational", skip_ai_cache=True
             )
 
     @pytest.mark.behavior

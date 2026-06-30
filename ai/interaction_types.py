@@ -13,6 +13,7 @@ class AIInteractionType(StrEnum):
     CONVERSATIONAL = "conversational"
     COMMAND_INTERPRETATION = "command_interpretation"
     CLARIFICATION = "clarification"
+    PERSONALIZED_MESSAGE = "personalized_message"
     FALLBACK = "fallback"
 
 
@@ -31,6 +32,8 @@ def interaction_type_for_mode(mode: str | None) -> AIInteractionType:
         return AIInteractionType.CLARIFICATION
     if normalized == "chat":
         return AIInteractionType.CONVERSATIONAL
+    if normalized == "personalized":
+        return AIInteractionType.PERSONALIZED_MESSAGE
     if normalized.startswith("command"):
         return AIInteractionType.COMMAND_INTERPRETATION
     return AIInteractionType.CONVERSATIONAL

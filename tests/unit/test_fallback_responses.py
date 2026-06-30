@@ -67,6 +67,9 @@ class TestInteractionTypes:
     def test_interaction_type_for_none_defaults_to_conversational(self):
         assert interaction_type_for_mode(None) == AIInteractionType.CONVERSATIONAL
 
+    def test_interaction_type_for_personalized_mode(self):
+        assert interaction_type_for_mode("personalized") == AIInteractionType.PERSONALIZED_MESSAGE
+
 
 @pytest.mark.unit
 @pytest.mark.ai

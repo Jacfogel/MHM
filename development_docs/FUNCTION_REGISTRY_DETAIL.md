@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-28 22:56:09
+> **Last Generated**: 2026-06-30 13:13:24
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.7% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 89.8% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 244
-- **Functions Found**: 2358
-- **Methods Found**: 1377
-- **Classes Found**: 243
-- **Total Items**: 3735
-- **Functions Documented**: 2088
-- **Methods Documented**: 1264
-- **Classes Documented**: 172
-- **Total Documented**: 3352
+- **Functions Found**: 2371
+- **Methods Found**: 1380
+- **Classes Found**: 244
+- **Total Items**: 3751
+- **Functions Documented**: 2100
+- **Methods Documented**: 1267
+- **Classes Documented**: 173
+- **Total Documented**: 3367
 - **Template-Generated**: 44
-- **Last Updated**: 2026-06-28
+- **Last Updated**: 2026-06-30
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,13 +39,13 @@
 
 ## Function Categories
 
-### **Core System Functions** (477)
+### **Core System Functions** (483)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (627)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (513)
+### **User Interface Functions** (517)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (36)
@@ -142,6 +142,9 @@ Returns:
 Integrates with existing UserContext and UserPreferences systems.
 - [OK] `generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
 (check-in data). Uses longer timeout since this is not real-time.
+
+When skip_cache is True (admin test sends), bypass the response cache and
+ask the model for fresh wording so back-to-back tests are not identical.
 - [OK] `generate_quick_response(self, user_prompt, user_id)` - Generate a quick response for real-time chat (Discord, etc.).
 Uses shorter timeout optimized for responsiveness.
 - [OK] `generate_response(self, user_prompt, timeout, user_id, mode)` - Generate a basic AI response from user_prompt, using LM Studio API.
@@ -184,6 +187,9 @@ Returns:
 Integrates with existing UserContext and UserPreferences systems.
   - [OK] `AIChatBotSingleton.generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
 (check-in data). Uses longer timeout since this is not real-time.
+
+When skip_cache is True (admin test sends), bypass the response cache and
+ask the model for fresh wording so back-to-back tests are not identical.
   - [OK] `AIChatBotSingleton.generate_quick_response(self, user_prompt, user_id)` - Generate a quick response for real-time chat (Discord, etc.).
 Uses shorter timeout optimized for responsiveness.
   - [OK] `AIChatBotSingleton.generate_response(self, user_prompt, timeout, user_id, mode)` - Generate a basic AI response from user_prompt, using LM Studio API.
@@ -726,7 +732,10 @@ Adds engagement prompts if the response doesn't already have them.
 **Functions:**
 - [OK] `clean_system_prompt_leaks(response)` - Remove leaked system prompt metadata from AI responses.
 Prevents meta-text like "User Context:" from appearing in user-facing output.
+- [OK] `keep_first_personalized_block(text)` - When the model returns multiple draft messages, keep only the first greeting block.
 - [OK] `smart_truncate_response(text, max_chars, max_words)` - Truncate response to avoid mid-sentence cuts when possible.
+- [OK] `strip_instruction_tuning_markers(text)` - Remove fine-tuning delimiter leaks (e.g. '## INPUT ##OUTPUT') from model output.
+- [OK] `strip_letter_signoffs(text)` - Remove email-style closings and [Your Name] placeholders from short wellness messages.
 
 ### `checkins/` - Unknown Directory
 
@@ -2277,7 +2286,7 @@ Verifies that the logging system is functional and attempts to restart it if iss
 - [OK] `_get_conversation_manager()` - Lazy import to avoid import cycles with message processing.
 - [OK] `_get_default_channel_configs(self)` - Get default channel configurations
 - [OK] `_initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
-- [OK] `_send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using contextual AI.
+- [OK] `_send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using check-in context and optional health guidance.
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
@@ -2306,7 +2315,7 @@ Returns:
 
 Returns:
     List[str]: List of registered channels, empty list if failed
-- [OK] `handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral)` - Handle sending messages for a user and category with improved recipient resolution.
+- [OK] `handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral, skip_ai_cache)` - Handle sending messages for a user and category with improved recipient resolution.
 Now uses scheduled check-ins instead of random replacement.
 - [OK] `handle_task_reminder(self, user_id, task_identifier)` - Handle sending task reminders for a user.
 
@@ -2353,7 +2362,7 @@ Verifies that the logging system is functional and attempts to restart it if iss
   - [OK] `CommunicationManager._expire_checkin_flow_if_needed(self, user_id, category)` - Expire check-in flow if this is a non-scheduled message.
   - [OK] `CommunicationManager._get_default_channel_configs(self)` - Get default channel configurations
   - [OK] `CommunicationManager._initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
-  - [OK] `CommunicationManager._send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using contextual AI.
+  - [OK] `CommunicationManager._send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using check-in context and optional health guidance.
 
 Returns:
     tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
@@ -2382,7 +2391,7 @@ Returns:
 
 Returns:
     List[str]: List of registered channels, empty list if failed
-  - [OK] `CommunicationManager.handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral)` - Handle sending messages for a user and category with improved recipient resolution.
+  - [OK] `CommunicationManager.handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral, skip_ai_cache)` - Handle sending messages for a user and category with improved recipient resolution.
 Now uses scheduled check-ins instead of random replacement.
   - [OK] `CommunicationManager.handle_task_reminder(self, user_id, task_identifier)` - Handle sending task reminders for a user.
 
@@ -3393,7 +3402,7 @@ Raises:
 #### `core/delivery.py`
 **Functions:**
 - [OK] `get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve the channel recipient for a user.
-- [OK] `handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral)` - Send a scheduled or manual category message.
+- [OK] `handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral, skip_ai_cache)` - Send a scheduled or manual category message.
 - [OK] `handle_task_reminder(self, user_id, task_identifier)` - Send a task reminder.
 - [OK] `matches_request(self, user_id, category)` - Return True when this result belongs to a request identity.
 - [OK] `send_checkin_prompt(self, user_id, messaging_service, recipient)` - Send a check-in prompt for a user.
@@ -3401,7 +3410,7 @@ Raises:
 - [OK] `MessageSendOutcome` - Result shape returned by delivery sends.
   - [OK] `MessageSendOutcome.matches_request(self, user_id, category)` - Return True when this result belongs to a request identity.
 - [OK] `SchedulerDeliveryPort` - Delivery operations the scheduler needs.
-  - [OK] `SchedulerDeliveryPort.handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral)` - Send a scheduled or manual category message.
+  - [OK] `SchedulerDeliveryPort.handle_message_sending(self, user_id, category, is_scheduled_trigger, allow_deferral, skip_ai_cache)` - Send a scheduled or manual category message.
   - [OK] `SchedulerDeliveryPort.handle_task_reminder(self, user_id, task_identifier)` - Send a task reminder.
 - [OK] `ServiceRequestDeliveryPort` - Delivery operations needed by file-flag service requests.
   - [OK] `ServiceRequestDeliveryPort.get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve the channel recipient for a user.
@@ -3858,16 +3867,24 @@ Raises:
 
 #### `core/health_context_builder.py`
 **Functions:**
+- [MISSING] `_format_checkin_entry_for_prompt(entry)` - No description
+- [MISSING] `_format_health_signal_coarse(signal)` - No description
+- [OK] `build_personalized_wellness_context(user_id)` - Compact wellness context for scheduled personalized messages.
+
+Google Health signals take priority; stale check-ins are excluded.
 - [OK] `build_safe_health_guidance_summary(user_id)` - Return coarse wellness guidance for AI context.
 
 Never includes exact steps, HR, HRV, or device names.
 
 #### `core/health_signals.py`
 **Functions:**
+- [MISSING] `_parse_signal_date(date_value)` - No description
 - [MISSING] `get_google_health_feature_state(user_id)` - No description
+- [OK] `get_latest_usable_signal(user_id)` - Return the newest non-low-confidence signal within the recent window.
 - [MISSING] `get_message_guidance(user_id)` - No description
 - [MISSING] `get_today_signal(user_id)` - No description
 - [MISSING] `is_personalization_active(user_id)` - No description
+- [OK] `resolve_active_health_signal(user_id)` - Today's signal when synced; otherwise the latest usable recent signal.
 - [MISSING] `should_avoid_productivity_pressure(user_id)` - No description
 
 #### `core/logger.py`
@@ -4929,7 +4946,7 @@ Returns updated sync_state (may set reconnect_notice_sent).
 
 #### `integrations/google_health/personalization_rules.py`
 **Functions:**
-- [MISSING] `_add_guidance(tokens)` - No description
+- [OK] `_add_guidance(tokens)` - Append unique message_guidance tokens without duplicates.
 - [OK] `apply_personalization_rules(signal)` - Map derived signal fields to message_guidance tokens.
 
 Returns empty list when confidence is low or data insufficient.
@@ -4986,7 +5003,7 @@ Skips when globally disabled, testing mode, feature not enabled, or no auth.
 
 #### `integrations/google_health/user_settings.py`
 **Functions:**
-- [MISSING] `_run()` - No description
+- [OK] `_run()` - Background thread target: complete OAuth connect and first sync.
 - [MISSING] `delete_health_integration(user_id)` - No description
 - [MISSING] `enable_health_integration(user_id)` - No description
 - [OK] `format_status_text(status)` - Plain-text status block for UI or chat.
@@ -6912,6 +6929,7 @@ Returns:
 - [OK] `_load_attr(module_name, attr_name)` - Load a project attribute through the UI lazy dependency boundary.
 - [OK] `_poll_response_file(response_file)` - Wait briefly for a service response flag and return its decoded payload.
 - [OK] `_schedule_stale_request_cleanup(request_file)` - Remove unprocessed test-message request files later in normal UI runs.
+- [OK] `_test_message_poll_attempts(category)` - AI-generated categories need longer waits than library message picks.
 - [OK] `_truncate_for_dialog(value, max_length)` - Truncate long service response text for message boxes.
 - [MISSING] `cleanup_old_requests()` - No description
 - [OK] `create_checkin_prompt_request(user_id)` - Create a check-in prompt request for the running service.
@@ -7005,10 +7023,12 @@ roughly chronological.
 #### `ui/ui_app_qt.py`
 **Functions:**
 - [OK] `__getattr__(self, name)` - Resolve thin UI action delegates without defining each as a method.
+- [OK] `__init__(self, user_id, category)` - Bind user and category for a background admin-panel test send.
 - [OK] `__init__(self)` - Initialize the object.
 - [OK] `_copy_user_selection_state(window)` - Copy controller selection state onto shell attributes.
 - [OK] `_create_communication_manager()` - Create a communication manager without importing it at UI module load time.
 - [OK] `_load_attr(module_name, attr_name)` - Load a project attribute through the UI lazy dependency boundary.
+- [OK] `_on_test_message_request_finished(self, outcome)` - Show the result dialog and restore the send button on the UI thread.
 - [OK] `closeEvent(self, event)` - Handle window close event
 - [OK] `connect_signals(self)` - Connect UI signals to slots
 - [OK] `create_new_user(self)` - Open dialog to create a new user.
@@ -7023,10 +7043,11 @@ roughly chronological.
 - [OK] `on_user_selected(self, user_display)` - Handle user selection with validation.
 - [OK] `refresh_user_list(self)` - Refresh the user list with validation.
 - [OK] `restart_service(self)` - Restart the MHM service
+- [OK] `run(self)` - Create the test-message request flag and poll until the service responds.
 - [OK] `run_category_scheduler(self)` - Run scheduler for the selected user and category
 - [OK] `run_full_scheduler(self)` - Run the full scheduler for all users
 - [OK] `run_user_scheduler(self)` - Run scheduler for the selected user
-- [OK] `send_actual_test_message(self, category)` - Create a service-handled test-message request.
+- [OK] `send_actual_test_message(self, category)` - Create a service-handled test-message request (background thread).
 - [OK] `send_checkin_prompt(self)` - Create a service-handled check-in prompt request.
 - [OK] `send_task_reminder(self)` - Create a service-handled task reminder request.
 - [OK] `send_test_message(self)` - Send a test message to the selected user
@@ -7042,6 +7063,7 @@ Returns:
 - [OK] `MHMManagerUI` - Main MHM Management UI using PySide6
   - [OK] `MHMManagerUI.__getattr__(self, name)` - Resolve thin UI action delegates without defining each as a method.
   - [OK] `MHMManagerUI.__init__(self)` - Initialize the object.
+  - [OK] `MHMManagerUI._on_test_message_request_finished(self, outcome)` - Show the result dialog and restore the send button on the UI thread.
   - [OK] `MHMManagerUI.closeEvent(self, event)` - Handle window close event
   - [OK] `MHMManagerUI.connect_signals(self)` - Connect UI signals to slots
   - [OK] `MHMManagerUI.create_new_user(self)` - Open dialog to create a new user.
@@ -7058,7 +7080,7 @@ Returns:
   - [OK] `MHMManagerUI.run_category_scheduler(self)` - Run scheduler for the selected user and category
   - [OK] `MHMManagerUI.run_full_scheduler(self)` - Run the full scheduler for all users
   - [OK] `MHMManagerUI.run_user_scheduler(self)` - Run scheduler for the selected user
-  - [OK] `MHMManagerUI.send_actual_test_message(self, category)` - Create a service-handled test-message request.
+  - [OK] `MHMManagerUI.send_actual_test_message(self, category)` - Create a service-handled test-message request (background thread).
   - [OK] `MHMManagerUI.send_checkin_prompt(self)` - Create a service-handled check-in prompt request.
   - [OK] `MHMManagerUI.send_task_reminder(self)` - Create a service-handled task reminder request.
   - [OK] `MHMManagerUI.send_test_message(self)` - Send a test message to the selected user
@@ -7070,6 +7092,9 @@ Returns:
   - [OK] `MHMManagerUI.stop_service(self)` - Stop the MHM service
   - [OK] `MHMManagerUI.update_service_status(self)` - Update the service status display
   - [OK] `MHMManagerUI.update_user_index_on_startup(self)` - Automatically update the user index when the admin panel starts
+- [OK] `_TestMessageRequestWorker` - Run test-message flag + poll off the UI thread so the window stays responsive.
+  - [OK] `_TestMessageRequestWorker.__init__(self, user_id, category)` - Bind user and category for a background admin-panel test send.
+  - [OK] `_TestMessageRequestWorker.run(self)` - Create the test-message request flag and poll until the service responds.
 
 #### `ui/user_list_provider.py`
 **Functions:**

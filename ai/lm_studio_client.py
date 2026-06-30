@@ -54,6 +54,8 @@ def call_lm_studio_api(
     max_tokens: int = 100,
     temperature: float = 0.2,
     timeout: int | None = None,
+    *,
+    stop: list[str] | None = None,
 ) -> str | None:
     """Make a chat/completions request to LM Studio."""
     if timeout is None:
@@ -67,6 +69,8 @@ def call_lm_studio_api(
         "top_p": 0.7,
         "stream": False,
     }
+    if stop:
+        payload["stop"] = stop
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {LM_STUDIO_API_KEY}",

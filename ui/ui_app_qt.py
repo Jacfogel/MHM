@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMessageBox,
 )
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QTimer, QObject, QThread, Signal
 
 
 def _load_attr(module_name: str, attr_name: str):
@@ -63,6 +63,27 @@ def _copy_user_selection_state(window):
     window.current_user_categories = window.user_selection.current_user_categories
 
 
+class _TestMessageRequestWorker(QObject):
+    """Run test-message flag + poll off the UI thread so the window stays responsive."""
+
+    finished = Signal(object)
+
+    @handle_errors("initializing test message request worker", default_return=None)
+    def __init__(self, user_id: str, category: str):
+        """Bind user and category for a background admin-panel test send."""
+        super().__init__()
+        self.user_id = user_id
+        self.category = category
+
+    @handle_errors("running test message request worker", default_return=None)
+    def run(self):
+        """Create the test-message request flag and poll until the service responds."""
+        outcome = request_actions.create_test_message_request(
+            self.user_id, self.category
+        )
+        self.finished.emit(outcome)
+
+
 class MHMManagerUI(QMainWindow):
     """Main MHM Management UI using PySide6"""
 
@@ -95,6 +116,9 @@ class MHMManagerUI(QMainWindow):
             self.status_timer.start(5000)  # Update every 5 seconds
             # Initial status update
             self.update_service_status()
+        self._test_message_in_flight = False
+        self._test_message_thread: QThread | None = None
+        self._test_message_worker: _TestMessageRequestWorker | None = None
 
     @handle_errors("resolving delegated UI action", re_raise=True)
     def __getattr__(self, name):
@@ -372,14 +396,63 @@ class MHMManagerUI(QMainWindow):
 
     @handle_errors("sending test message", default_return=None)
     def send_actual_test_message(self, category):
-        """Create a service-handled test-message request."""
-        outcome = request_actions.create_test_message_request(
-            self.current_user,
-            category,
+        """Create a service-handled test-message request (background thread)."""
+        if self._test_message_in_flight:
+            logger.info(
+                "Admin Panel: Ignoring duplicate test message click while send is in progress"
+            )
+            return
+
+        button = self.ui.pushButton_send_test_message
+        self._test_message_button_default_text = button.text()
+        self._test_message_in_flight = True
+        button.setEnabled(False)
+        button.setText("Sending...")
+
+        if os.getenv("MHM_TESTING") == "1":
+            try:
+                outcome = request_actions.create_test_message_request(
+                    self.current_user,
+                    category,
+                )
+                request_actions.show_request_action_outcome(
+                    self, outcome, message_box=QMessageBox
+                )
+            finally:
+                self._test_message_in_flight = False
+                button.setEnabled(True)
+                button.setText(self._test_message_button_default_text)
+            return
+
+        self._test_message_thread = QThread(self)
+        self._test_message_worker = _TestMessageRequestWorker(
+            self.current_user, category
         )
-        request_actions.show_request_action_outcome(
-            self, outcome, message_box=QMessageBox
-        )
+        self._test_message_worker.moveToThread(self._test_message_thread)
+        self._test_message_thread.started.connect(self._test_message_worker.run)
+        self._test_message_worker.finished.connect(self._on_test_message_request_finished)
+        self._test_message_worker.finished.connect(self._test_message_thread.quit)
+        self._test_message_worker.finished.connect(self._test_message_worker.deleteLater)
+        self._test_message_thread.finished.connect(self._test_message_thread.deleteLater)
+        self._test_message_thread.start()
+
+    @handle_errors("finalizing test message request", default_return=None)
+    def _on_test_message_request_finished(self, outcome):
+        """Show the result dialog and restore the send button on the UI thread."""
+        self._test_message_thread = None
+        self._test_message_worker = None
+        button = self.ui.pushButton_send_test_message
+        try:
+            request_actions.show_request_action_outcome(
+                self, outcome, message_box=QMessageBox
+            )
+        finally:
+            self._test_message_in_flight = False
+            button.setEnabled(True)
+            default_text = getattr(
+                self, "_test_message_button_default_text", "Send Test Message"
+            )
+            button.setText(default_text)
 
     @handle_errors("sending check-in prompt", default_return=None)
     def send_checkin_prompt(self):

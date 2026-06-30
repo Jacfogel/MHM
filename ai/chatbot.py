@@ -12,6 +12,7 @@ import os
 import asyncio
 import threading
 import collections
+import uuid
 from core.logger import get_component_logger
 from core.config import (
     LM_STUDIO_BASE_URL,
@@ -30,10 +31,7 @@ from core.config import (
     AI_COMMAND_TEMPERATURE,
     AI_CLARIFICATION_TEMPERATURE,
 )
-from core.response_tracking import (
-    get_recent_responses,
-    store_chat_interaction,
-)
+from core.response_tracking import store_chat_interaction
 from user.context_manager import user_context_manager
 from ai.prompt_manager import get_prompt_manager
 from ai.cache_manager import get_response_cache
@@ -42,7 +40,13 @@ from ai.fallback_responses import get_fallback_responses
 from ai.interaction_types import AIInteractionType, interaction_type_for_mode
 from ai.response_generator import get_response_generator
 from ai.lm_studio_client import call_lm_studio_api, test_lm_studio_connection
-from ai.response_postprocess import clean_system_prompt_leaks, smart_truncate_response
+from ai.response_postprocess import (
+    clean_system_prompt_leaks,
+    smart_truncate_response,
+    strip_instruction_tuning_markers,
+    strip_letter_signoffs,
+    keep_first_personalized_block,
+)
 from core.error_handling import handle_errors
 
 
@@ -153,6 +157,8 @@ class AIChatBotSingleton:
         max_tokens: int = 100,
         temperature: float = 0.2,
         timeout: int | None = None,
+        *,
+        stop: list[str] | None = None,
     ) -> str | None:
         """Make an API call to LM Studio (delegates to ai.lm_studio_client)."""
         return call_lm_studio_api(
@@ -160,6 +166,7 @@ class AIChatBotSingleton:
             max_tokens=max_tokens,
             temperature=temperature,
             timeout=timeout,
+            stop=stop,
         )
 
     @handle_errors(
@@ -272,12 +279,18 @@ class AIChatBotSingleton:
         )
 
         try:
+            stop_sequences = (
+                ["## INPUT", "## OUTPUT", "### Input:", "### Output:"]
+                if mode == "personalized"
+                else None
+            )
             # Call LM Studio API with adaptive timeout
             result = self._call_lm_studio_api(
                 messages=messages,
                 max_tokens=max_tokens,
                 temperature=temperature,
                 timeout=timeout,
+                stop=stop_sequences,
             )
 
             if result:
@@ -330,12 +343,16 @@ class AIChatBotSingleton:
     @handle_errors("normalizing response mode", default_return="chat")
     def _normalize_response_mode(self, mode: str | None, user_prompt: str) -> str:
         """Normalize generation mode to supported values."""
+        if mode == "personalized":
+            return "personalized"
         resolved_mode = (
             mode if mode is not None else get_command_interpreter().detect_mode(user_prompt)
         )
         if resolved_mode is None:
             return "chat"
         resolved_mode = resolved_mode.lower()
+        if resolved_mode == "personalized":
+            return "personalized"
         if resolved_mode != "chat" and not resolved_mode.startswith("command"):
             return "chat"
         return resolved_mode
@@ -429,6 +446,34 @@ class AIChatBotSingleton:
                 120,
                 AI_CLARIFICATION_TEMPERATURE,
             )
+        if mode == "personalized":
+            from ai.fallback_responses import data_access
+            from ai.fallback_responses.profile_helpers import name_prefix_from_context
+
+            context_result = (
+                data_access.get_user_data(user_id, "context") if user_id else {}
+            )
+            user_context = (context_result or {}).get("context") or {}
+            name_prefix = name_prefix_from_context(user_context).strip().rstrip(",")
+
+            system_content = (
+                "You are a supportive wellness assistant writing a brief scheduled wellness message. "
+                "Write 2-4 complete sentences (under 100 words) using only the wellness data in the request. "
+                "Be warm and specific. End with a finished supportive sentence. "
+                "Do not add a letter-style sign-off or signature — no 'Best wishes', 'Take care', "
+                "or placeholder names like [Your Name]; you already greet the user at the start. "
+                "Return only the message text — no INPUT/OUTPUT markers, labels, or second replies."
+            )
+            if name_prefix:
+                system_content += f" Address the user as {name_prefix}."
+            return (
+                [
+                    {"role": "system", "content": system_content},
+                    {"role": "user", "content": user_prompt},
+                ],
+                150,
+                0.7,
+            )
 
         template = prompt_manager.get_prompt_template("wellness")
         max_tokens = (
@@ -450,9 +495,16 @@ class AIChatBotSingleton:
     def _post_process_generated_response(self, mode: str, result: str) -> str:
         """Post-process model output into final user-visible response."""
         response = result.strip()
+        response = strip_instruction_tuning_markers(response)
         response = clean_system_prompt_leaks(response)
         if mode == "command":
             response = get_command_interpreter().extract_command_from_response(response)
+        if mode == "personalized":
+            response = strip_letter_signoffs(response)
+            response = keep_first_personalized_block(response)
+            return smart_truncate_response(
+                response, AI_MAX_RESPONSE_LENGTH, max_words=100
+            )
         response = smart_truncate_response(
             response, AI_MAX_RESPONSE_LENGTH, AI_MAX_RESPONSE_WORDS
         )
@@ -575,11 +627,19 @@ class AIChatBotSingleton:
         default_return="Wishing you a wonderful day! Remember that every small step toward your wellbeing matters.",
     )
     def generate_personalized_message(
-        self, user_id: str, timeout: int | None = None
+        self,
+        user_id: str,
+        timeout: int | None = None,
+        *,
+        prompt_prefix: str | None = None,
+        skip_cache: bool = False,
     ) -> str:
         """
         Generate a personalized message by examining the user's recent responses
         (check-in data). Uses longer timeout since this is not real-time.
+
+        When skip_cache is True (admin test sends), bypass the response cache and
+        ask the model for fresh wording so back-to-back tests are not identical.
         """
         if timeout is None:
             timeout = AI_PERSONALIZED_MESSAGE_TIMEOUT
@@ -587,44 +647,47 @@ class AIChatBotSingleton:
         if not self.lm_studio_available:
             return get_fallback_responses().personalized(user_id)
 
-        recent_data = get_recent_responses(user_id, limit=3)  # Reduced for performance
-        summary_lines = []
-        for entry in recent_data:
-            line_parts = []
-            for k, v in entry.items():
-                if k == "timestamp":
-                    continue
-                line_parts.append(f"{k}={v}")
-            summary_lines.append(", ".join(line_parts))
+        from core.health_context_builder import build_personalized_wellness_context
 
-        user_summary = (
-            "\n".join(summary_lines) if summary_lines else "No recent data available."
+        user_summary = build_personalized_wellness_context(user_id)[:400]
+
+        instruction = (
+            "Create a brief, encouraging message based on the wellness data below. "
+            "When 'Primary source — wearable wellness' is present, base the message on "
+            "recovery and activity patterns only; do not mention check-ins or hopelessness. "
+            "Use coarse recovery language only (no exact hours, step counts, heart rate, or device names). "
+            f"Data: {user_summary}. "
+            "Keep it supportive, personal, and under 100 words. "
+            "Do not end with a sign-off or signature (no 'Best wishes', 'Take care', or [Your Name])."
+        )
+        if prompt_prefix:
+            instruction = f"{prompt_prefix} {instruction}"
+        if skip_cache:
+            instruction += (
+                f" Use fresh wording distinct from any prior message "
+                f"(variation: {uuid.uuid4().hex[:8]})."
+            )
+        prompt = instruction
+
+        if not skip_cache:
+            cached_response = self.response_cache.get(
+                prompt, user_id, prompt_type="personalized"
+            )
+            if cached_response:
+                return cached_response
+
+        response = self.generate_response(
+            prompt, timeout=timeout, user_id=user_id, mode="personalized"
         )
 
-        # Create a more concise prompt for better performance
-        prompt = (
-            f"Create a brief, encouraging message for a user based on their recent wellness data. "
-            f"Data: {user_summary[:200]}. "  # Limit context size
-            f"Keep it supportive, personal, and under 100 words."
-        )
-
-        # Check cache for personalized messages too
-        cached_response = self.response_cache.get(
-            prompt, user_id, prompt_type="personalized"
-        )
-        if cached_response:
-            return cached_response
-
-        response = self.generate_response(prompt, timeout=timeout, user_id=user_id)
-
-        # Cache the final response for personalized messages
-        self.response_cache.set(
-            prompt,
-            response,
-            user_id,
-            prompt_type="personalized",
-            metadata={"mode": "personalized"},
-        )
+        if not skip_cache:
+            self.response_cache.set(
+                prompt,
+                response,
+                user_id,
+                prompt_type="personalized",
+                metadata={"mode": "personalized"},
+            )
 
         return response
 

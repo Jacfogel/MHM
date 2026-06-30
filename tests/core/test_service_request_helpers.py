@@ -180,7 +180,7 @@ class TestServiceTaskAndMessageRequestHelpers:
             )
 
         service.communication_manager.handle_message_sending.assert_called_once_with(
-            "user-1", "motivational"
+            "user-1", "motivational", skip_ai_cache=True
         )
         response_path = base_dir / "test_message_response_user-1_motivational.flag"
         assert response_path.exists()
