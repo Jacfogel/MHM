@@ -322,6 +322,7 @@ class HelpHandler(InteractionHandler):
             True,
         ),
     )
+    # not_duplicate: command_handler_status_by_domain
     def _handle_status(self, user_id: str) -> InteractionResponse:
         """Handle status request with detailed system information"""
         from tasks import load_active_tasks

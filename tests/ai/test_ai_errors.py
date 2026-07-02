@@ -94,7 +94,7 @@ class TestAIErrors(AITestBase):
             context_info = self._build_context_info(None)
             context_info["note"] = "Non-contextual response with fallback (LM Studio unavailable)"
             
-            with patch('ai.chatbot.requests.get') as mock_get:
+            with patch('ai.chat.chatbot.requests.get') as mock_get:
                 mock_get.side_effect = requests.ConnectionError("Connection refused")
                 
                 original_available = self.chatbot.lm_studio_available
@@ -125,7 +125,7 @@ class TestAIErrors(AITestBase):
             context_info = self._build_context_info(None)
             context_info["note"] = "Non-contextual response with fallback (timeout scenario)"
             
-            with patch('ai.chatbot.requests.post') as mock_post:
+            with patch('ai.chat.chatbot.requests.post') as mock_post:
                 mock_post.side_effect = requests.Timeout("Request timed out")
                 
                 prompt = "Test timeout"
@@ -153,7 +153,7 @@ class TestAIErrors(AITestBase):
             context_info = self._build_context_info(None)
             context_info["note"] = "Non-contextual response with fallback (invalid API response)"
             
-            with patch('ai.chatbot.requests.post') as mock_post:
+            with patch('ai.chat.chatbot.requests.post') as mock_post:
                 mock_response = MagicMock()
                 mock_response.status_code = 200
                 mock_response.json.return_value = {"invalid": "structure"}
@@ -189,7 +189,7 @@ class TestAIErrors(AITestBase):
             context_info = self._build_context_info(None)
             context_info["note"] = "Non-contextual response with fallback (server error)"
             
-            with patch('ai.chatbot.requests.post') as mock_post:
+            with patch('ai.chat.chatbot.requests.post') as mock_post:
                 mock_response = MagicMock()
                 mock_response.status_code = 500
                 mock_response.text = "Internal Server Error"

@@ -1,18 +1,18 @@
-# ai/conversational_context/assembly.py
+# ai/context/assembly.py
 
 """Orchestrate natural-language context sections into LM Studio message arrays."""
 
 from typing import Any
 
-from ai.context_builder import ContextData, get_context_builder
-from ai.context_service import AIContextEnvelope, build_ai_context_envelope
-from ai.conversational_context.instructions import CONVERSATIONAL_CONTEXT_INSTRUCTIONS
-from ai.conversational_context.context_phraser import (
+from ai.context.builder import ContextData, get_context_builder
+from ai.context.service import AIContextEnvelope, build_ai_context_envelope
+from ai.context.phraser import (
     append_profile_sections,
     phrase_checkin_summary,
     _checkin_completed_today,
 )
-from ai.prompt_flows import get_product_ai_prompt_flow
+from ai.prompts.manager import get_prompt_manager
+from ai.prompts.flows import get_product_ai_prompt_flow
 from core.error_handling import handle_errors
 from tasks.task_data_handlers import runtime_task_due_date
 
@@ -50,18 +50,24 @@ def build_context_parts(
     return parts
 
 
+_MINIMAL_CHAT_SYSTEM_PROMPT = (
+    "You are a supportive wellness assistant. Keep responses helpful, "
+    "encouraging, and conversational."
+)
+
+
 @handle_errors(
     "assembling comprehensive conversational messages",
     default_return=[
         {
             "role": "system",
-            "content": "You are a supportive wellness assistant. Keep responses helpful, encouraging, and conversational.",
+            "content": _MINIMAL_CHAT_SYSTEM_PROMPT,
         },
         {"role": "user", "content": "Hello"},
     ],
 )
 def assemble_comprehensive_messages(
-    user_id: str, user_prompt: str, wellness_base_prompt: str
+    user_id: str, user_prompt: str
 ) -> list[dict[str, Any]]:
     """Build system + user messages for comprehensive conversational generation."""
     flow = get_product_ai_prompt_flow("chat_response")
@@ -76,10 +82,26 @@ def assemble_comprehensive_messages(
         "\n".join(context_parts) if context_parts else "New user with no data"
     )
 
-    instructions = CONVERSATIONAL_CONTEXT_INSTRUCTIONS.format(context_str=context_str)
+    prompt_manager = get_prompt_manager()
+    composed_prompt = (
+        prompt_manager.compose_product_prompt(
+            flow.name,
+            context_view={
+                "prompt_text": "User Context:\n" + context_str,
+                "structured": envelope.structured if envelope else {},
+            },
+        )
+        if prompt_manager
+        else None
+    )
+    instructions = (
+        composed_prompt.content
+        if composed_prompt
+        else f"{_MINIMAL_CHAT_SYSTEM_PROMPT}\n\nUser Context:\n{context_str}"
+    )
     system_message = {
         "role": "system",
-        "content": f"{wellness_base_prompt}\n{instructions}",
+        "content": instructions,
     }
     user_message = {"role": "user", "content": user_prompt}
     return [system_message, user_message]

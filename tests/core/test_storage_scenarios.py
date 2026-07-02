@@ -24,7 +24,7 @@ from storage.user_data_operations import (
     get_user_analytics_summary,
     get_user_data_summary,
     get_user_summary,
-    update_message_references,
+    user_data_manager,
     update_user_index,
 )
 from storage.user_data_read import (
@@ -189,13 +189,9 @@ class TestUserDataOperationsWrappers:
         assert get_user_data_summary("   ") == {"error": "Empty user_id provided"}
         assert update_user_index(None) is False
 
-    def test_update_message_references_module_handles_manager_failure(self):
-        with patch.object(
-            UserDataManager,
-            "update_message_references",
-            side_effect=RuntimeError("manager error"),
-        ):
-            assert update_message_references("some-user") is False
+    def test_update_message_references_singleton_delegates(self):
+        with patch.object(user_data_manager, "update_message_references", return_value=False):
+            assert user_data_manager.update_message_references("some-user") is False
 
     def test_get_user_message_files_fallback_builds_from_categories(
         self, mock_user_data_with_messages

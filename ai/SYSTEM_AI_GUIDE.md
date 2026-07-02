@@ -4,7 +4,7 @@
 > **Audience**: Developers and AI collaborators working on MHM's AI system
 > **Purpose**: Explain how the AI subsystem is structured, how it behaves at runtime, and how to extend it safely
 > **Style**: Technical, concise, system-level (hybrid of conceptual and concrete details)
-> **Last Updated**: 2026-05-21
+> **Last Updated**: 2026-07-02
 
 ## 1. Overview
 
@@ -26,38 +26,25 @@ This guide focuses on the AI implementation layer. For overall system design, se
 
 ### 2.1. Core components
 
-The AI subsystem lives primarily under `ai/` and collaborates with `user/` and `core/`:
+The AI subsystem lives primarily under `ai/` (pipeline subpackages) and collaborates with `user/` and `core/`:
 
-- `ai/chatbot.py`  
-  - Main AI chatbot logic (modes, LM Studio calls, caching, fallbacks).
-- `ai/prompt_manager.py`  
-  - Loads and manages the system prompt and prompt templates.
-- `ai/cache_manager.py`  
-  - Response and context caching with TTL and LRU cleanup.
-- `ai/context_builder.py`  
-  - Builds AI-ready context from user data and recent responses.
-- `ai/conversation_history.py`  
-  - Persists and retrieves per-user conversational history.
-- `ai/lm_studio_manager.py`  
-  - Detects LM Studio status and model readiness.
-- `ai/interaction_types.py`  
-  - Named interaction types (`conversational`, `command_interpretation`, `clarification`, `fallback`) mapped from `generate_response` modes.
-- `ai/fallback_responses/` (package)  
-  - Template and data-aware fallback responses when LM Studio is unavailable or API calls fail.  
-  - `ai/fallback_responses/coordinator.py` routes prompts; `ai/fallback_responses/checkin_summary.py` applies check-in-aware fallback copy using `ContextAnalysis` from `analyze_recent_checkin_rows` / `ContextBuilder.analyze_context` (same aggregates as conversational context); `ai/fallback_responses/conversational.py` handles keyword support; `ai/fallback_responses/personalized.py` and `ai/fallback_responses/profile_helpers.py` handle named greetings.  
-  - `ai/fallback_responses/categories.py` defines deterministic categories (`technical_unavailable`, `new_user_no_context`, `data_unavailable`, `checkin_summary`, `general_support`, `personalized_message`).  
-  - Public API unchanged: `get_fallback_responses().contextual(...)` / `.personalized(...)`.
-- `ai/command_interpreter.py`  
-  - Mode detection, command parsing prompts, and structured extraction from model output.
-- `ai/response_generator.py`  
-  - Comprehensive conversational context prompts and engagement post-processing.
-- `ai/command_registry.py`  
-  - Dynamic command intent list for the command system prompt (from rule-based parser patterns).
-- `communication/message_processing/command_parser.py`  
-  - Enhanced command parser combining rule-based and AI parsing.
+| Path | Role |
+|---|---|
+| `ai/chat/chatbot.py` | Main AI chatbot logic (modes, LM Studio calls, caching, fallbacks). |
+| `ai/prompts/manager.py` | Loads prompts and composes product-AI category prompts. |
+| `ai/client/cache_manager.py` | Response and context caching with TTL and LRU cleanup. |
+| `ai/context/service.py` | Canonical `AIContextEnvelope` for structured product-AI context. |
+| `ai/context/builder.py` | Adapts envelope data into `ContextData` for legacy callers. |
+| `ai/context/history.py` | Persists and retrieves per-user conversational history. |
+| `ai/client/lm_studio_manager.py` | Detects LM Studio status and model readiness. |
+| `ai/chat/interaction_types.py` | Named interaction types mapped from `generate_response` modes. |
+| `ai/fallback/` | Template and data-aware fallback responses when LM Studio is unavailable or API calls fail. Coordinator, check-in summary, conversational keyword support, personalized greetings, and categories live here. Public API: `get_fallback_responses().contextual(...)` / `.personalized(...)`. |
+| `ai/prompts/command_interpreter.py` | Mode detection, command parsing prompts, and structured extraction from model output. |
+| `ai/chat/response_generator.py` | Builds comprehensive conversational context prompts via `assemble_comprehensive_messages()`. |
+| `ai/prompts/command_registry.py` | Dynamic command intent list for the command system prompt (from rule-based parser patterns). |
+| `communication/message_processing/command_parser.py` | Enhanced command parser combining rule-based and AI parsing. |
 
-**Module ownership (Phase 5 complete):** `ai/chatbot.py` orchestrates LM Studio, locks, cache, and mode routing and calls `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()` directly. Channels import only `get_ai_chatbot()`; behavior tests that target module logic should use the canonical getters, not private chatbot delegates. See [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md) Section 8.1.
-
+**Module ownership:** `ai/chat/chatbot.py` orchestrates LM Studio, locks, cache, and mode routing and calls `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()` directly. Channels import only `get_ai_chatbot()`; behavior tests that target module logic should use the canonical getters, not private chatbot delegates. See [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md) Section 8.1.
 Supporting modules:
 
 - `user/context_manager.py`  
@@ -91,7 +78,7 @@ At a high level:
 
 ### 3.1. Main runtime entry points
 
-The core public entry points in `ai/chatbot.py` are:
+The core public entry points in `ai/chat/chatbot.py` are:
 
 - `generate_response(user_prompt, timeout=None, user_id=None, mode=None)`  
   - Core synchronous generation function used by other helpers.  
@@ -106,7 +93,7 @@ All of these are accessed via a singleton instance; use `get_ai_chatbot()` rathe
 
 ### 3.2. Interaction types and modes
 
-Per [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md), the system separates **why** AI is called from **what** happens with the output. `AIInteractionType` in `ai/interaction_types.py` is the canonical name; `generate_response(..., mode=...)` remains the runtime API.
+Per [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md), the system separates **why** AI is called from **what** happens with the output. `AIInteractionType` in `ai/chat/interaction_types.py` is the canonical name; `generate_response(..., mode=...)` remains the runtime API.
 
 | `AIInteractionType` | Typical `mode` | User-visible? | May execute actions? |
 |---------------------|----------------|---------------|----------------------|
@@ -123,15 +110,15 @@ Per [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md), the sys
 
 **Clarification mode** (`mode="command_with_clarification"`): follow-up questions when command fields are ambiguous; routed by `get_command_interpreter().detect_mode` / `interaction_manager._try_ai_command_parsing`.
 
-**Fallback**: `ai/fallback_responses/` supplies templates and check-in-aware text when LM Studio is down, the API is busy, or generation fails. Fallbacks must not pretend AI succeeded or invent data not retrieved deterministically.
+**Fallback**: `ai/fallback/` supplies templates and check-in-aware text when LM Studio is down, the API is busy, or generation fails. Fallbacks must not pretend AI succeeded or invent data not retrieved deterministically.
 
-**Fallback ownership boundary**: Fallback *content* and routing belong in `ai/fallback_responses/`. `communication/` adapters (Discord, email, etc.) format and deliver messages only; they must not own business fallback text or check-in-aware wording. See Phase 4.5 in [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md).
+**Fallback ownership boundary**: Fallback *content* and routing belong in `ai/fallback/`. `communication/` adapters (Discord, email, etc.) format and deliver messages only; they must not own business fallback text or check-in-aware wording. See Phase 4.5 in [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md).
 
 `get_command_interpreter().detect_mode(user_prompt)` chooses a mode when `generate_response` is called without `mode=`. Prefer explicit `mode=` from callers that already know the interaction type (for example command parsing).
 
 When you add new high-level capabilities, prefer:
 
-- Keeping **mode detection rules** in `ai/command_interpreter.py`, and
+- Keeping **mode detection rules** in `ai/prompts/command_interpreter.py`, and
 - Introducing **explicit mode override** where higher-level code already knows the correct mode.
 
 ### 3.3. Command parsing integration
@@ -165,13 +152,13 @@ Do not hard-code these thresholds in new code; use the values from `core/config.
 
 ### 3.4. Command intent list injection (live paths)
 
-The command system prompt must list the same intents as the rule-based parser. Do not maintain a second hardcoded list in `ai/chatbot.py` or channel code.
+The command system prompt must list the same intents as the rule-based parser. Do not maintain a second hardcoded list in `ai/chat/chatbot.py` or channel code.
 
 **Single source:** `EnhancedCommandParser.intent_patterns` in `communication/message_processing/command_parser.py`. On construction, the parser sets the module-global `RULE_BASEED_INTENT_PATTERNS`.
 
-**Bridge:** `ai/command_registry.py` exposes `get_command_intent_names()` and `inject_command_actions_into_prompt()`. The registry lazy-imports `get_rule_based_intent_names()` from the parser to avoid circular imports during package init.
+**Bridge:** `ai/prompts/command_registry.py` exposes `get_command_intent_names()` and `inject_command_actions_into_prompt()`. The registry lazy-imports `get_rule_based_intent_names()` from the parser to avoid circular imports during package init.
 
-**When injection runs:** `ai/prompt_manager.py` calls `inject_command_actions_into_prompt()` whenever `get_prompt("command")` is used. `ai/command_interpreter.py` builds command and clarification prompts through that path.
+**When injection runs:** `ai/prompts/manager.py` calls `inject_command_actions_into_prompt()` whenever `get_prompt("command")` is used. `ai/prompts/command_interpreter.py` builds command and clarification prompts through that path.
 
 **Production initialization (verified):**
 
@@ -200,7 +187,7 @@ Two layers collaborate to assemble context:
     - `messaging_service`
     - `active_schedules`
     - Recent activity and mood trends
-- `ai/context_builder.py` (`ContextBuilder`)  
+- `ai/context/builder.py` (`ContextBuilder`)  
   - Wraps the above plus response tracking and conversation history.
   - Decorated with `@handle_errors("building user context", default_return=ContextData())`.
   - Produces a `ContextData` object with:
@@ -213,7 +200,7 @@ If context cannot be built (for example, missing data, file corruption), the bui
 
 Conversation history lives through:
 
-- `ai/conversation_history.py`  
+- `ai/context/history.py`  
   - Handles storage and retrieval of messages per user.
   - Limits the number of entries used in prompts to keep context manageable (most recent interactions only).
 - `core/response_tracking.py`  
@@ -234,7 +221,19 @@ When you add new forms of tracked data, prefer:
 
 ### 4.3. Conversational context and actionability
 
-Comprehensive chat prompts are assembled in `ai/conversational_context/` (`ai/conversational_context/assembly.py` orchestrates; `ai/conversational_context/context_phraser.py` phrases facts; `ai/conversational_context/instructions.py` holds static rules). `ai/response_generator.py` calls `assemble_comprehensive_messages()` for `mode="chat"` / contextual generation.
+Comprehensive chat prompts are assembled in `ai/context/` (`ai/context/assembly.py` orchestrates; `ai/context/phraser.py` phrases facts; behavioral rules live in `resources/prompts/product_ai/*.txt` and are composed by `ai/prompts/manager.py`). `ai/chat/response_generator.py` calls `assemble_comprehensive_messages()` for `mode="chat"` / contextual generation.
+
+**`ai/` package layout (pipeline-aligned):**
+
+| Subpackage | Role |
+|---|---|
+| `ai/client/` | LM Studio API, connection manager, response cache |
+| `ai/context/` | `AIContextEnvelope`, context phrasing, chat message assembly |
+| `ai/prompts/` | Category composition, command interpretation helpers, action catalog |
+| `ai/chat/` | Chatbot orchestration, response post-processing, action-boundary checks |
+| `ai/fallback/` | Deterministic copy when the model is unavailable |
+
+Import paths use the subpackages above (`ai.chat.chatbot`, `ai.context.assembly`, `ai.prompts.manager`, etc.). Legacy flat modules (`ai.chatbot`, `ai.prompt_manager`, `ai.fallback_responses`, `ai.conversational_context`) were removed after migration.
 
 **Assembly order (high level):**
 
@@ -256,15 +255,15 @@ Comprehensive chat prompts are assembled in `ai/conversational_context/` (`ai/co
 | `task_management` | `are_tasks_enabled()` | Do not mention tasks, creation, or reminders |
 | `automated_messages` | `is_automated_messages_enabled()` | Do not mention scheduled categories, recent sends, or enabling automated messages |
 
-**Recent automated messages:** `append_recent_sent_messages` lists up to three non-checkin sends (full text for the most recent). Check-in outbound messages are excluded from this block. `ai/conversational_context/instructions.py` adds: do not suggest repeating the same category unless the user asks.
+**Recent automated messages:** `append_recent_sent_messages` lists up to three non-checkin sends (full text for the most recent). Check-in outbound messages are excluded from this block. `data_honesty.txt` adds: do not suggest repeating the same category unless the user asks.
 
 **Actionability boundaries:**
 
-- Context supplies facts; `ai/conversational_context/instructions.py` forbids fabricating data and claiming completed actions.
+- Context supplies facts; `data_honesty.txt` and `action_boundaries.txt` forbid fabricating data and claiming completed actions.
 - Disabled features must not appear in suggestions even if stale files exist on disk (sections are gated before reading sends/schedules).
 - Task reminder context is additive when a recent `task_reminders` send exists and tasks are enabled.
 
-**Tests:** `tests/ai/test_context_includes_recent_messages.py` (recent sends + task reminder); `tests/unit/test_conversational_context_actionability.py` (feature flags and messages-disabled gating); `tests/behavior/test_conversational_action_boundaries.py` (prompt ACTION BOUNDARIES rules, false-CRUD detection, validator integration, fallback regression). Shared detector: `ai/conversational_context/action_boundaries.py`.
+**Tests:** `tests/ai/test_context_includes_recent_messages.py` (recent sends + task reminder); `tests/unit/test_conversational_context_actionability.py` (feature flags and messages-disabled gating); `tests/behavior/test_conversational_action_boundaries.py` (prompt ACTION BOUNDARIES rules, false-CRUD detection, validator integration, fallback regression). Shared detector: `ai/chat/action_boundaries.py`.
 
 ---
 
@@ -272,7 +271,7 @@ Comprehensive chat prompts are assembled in `ai/conversational_context/` (`ai/co
 
 ### 5.1. Prompt manager
 
-The prompt layer in `ai/prompt_manager.py` is responsible for:
+The prompt layer in `ai/prompts/manager.py` is responsible for:
 
 - Loading the **system prompt** from `AI_SYSTEM_PROMPT_PATH` (by default `resources/prompts/assistant_system_prompt.txt`).
 - Respecting `AI_USE_CUSTOM_PROMPT` from `core/config.py` to enable/disable custom system prompts.
@@ -289,14 +288,14 @@ When you adjust behavior, prefer editing the system prompt file and `PromptTempl
 
 ### 5.2. LM Studio integration
 
-`ai/chatbot.py` delegates model interaction to LM Studio via HTTP:
+`ai/chat/chatbot.py` delegates model interaction to LM Studio via HTTP:
 
 - Uses LM Studio configuration from `core/config.py`:
   - `LM_STUDIO_BASE_URL`
   - `LM_STUDIO_API_KEY`
   - `LM_STUDIO_MODEL`
   - `AI_API_CALL_TIMEOUT` and related timeouts.
-- `ai/lm_studio_manager.py` provides helpers to:
+- `ai/client/lm_studio_manager.py` provides helpers to:
   - Check whether LM Studio is running.
   - Ensure the configured model is loaded.
   - Optionally auto-start LM Studio and auto-load the model based on:
@@ -319,7 +318,7 @@ Do not bypass these helpers or call LM Studio directly from other modules.
 
 ### 6.1. Response and context caches
 
-`ai/cache_manager.py` provides:
+`ai/client/cache_manager.py` provides:
 
 - `ResponseCache`:
   - Caches AI responses keyed by prompt, user_id, and prompt type.
@@ -454,21 +453,21 @@ If AI responses stop working or degrade:
 
 For quick navigation when working on the AI subsystem:
 
-- `ai/chatbot.py`  
+- `ai/chat/chatbot.py`  
   - Main AI entry points, modes, LM Studio calls, caching, and concurrency.
-- `ai/context_builder.py`  
+- `ai/context/builder.py`  
   - Assembles AI context from user data, recent activity, and conversation history.
 - `user/context_manager.py`  
   - Manages user profile, preferences, schedules, and insights; produces a structured AI context object.
 - `core/response_tracking.py`  
   - Stores and retrieves user responses, check-ins, and interactions.
-- `ai/prompt_manager.py`  
-  - System prompt and prompt templates; safety and style rules.
-- `ai/cache_manager.py`  
+- `ai/prompts/manager.py`  
+  - System prompt and product-AI category composition; safety and style rules.
+- `ai/client/cache_manager.py`  
   - Response and context caches (TTL and LRU).
-- `ai/conversation_history.py`  
+- `ai/context/history.py`  
   - Conversation history persistence; limits history passed into prompts.
-- `ai/lm_studio_manager.py`  
+- `ai/client/lm_studio_manager.py`  
   - LM Studio status checks, model readiness, and auto-start behavior.
 - `communication/message_processing/command_parser.py`  
   - Enhanced command parser using both rule-based and AI-assisted parsing.

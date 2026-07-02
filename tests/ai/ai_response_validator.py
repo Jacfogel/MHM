@@ -8,7 +8,7 @@ Used in manual AI functionality tests to automatically flag issues.
 import re
 from typing import Any
 
-from ai.conversational_context.action_boundaries import find_false_crud_claims
+from ai.chat.action_boundaries import find_false_crud_claims
 
 
 class AIResponseValidator:

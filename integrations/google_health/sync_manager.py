@@ -37,6 +37,7 @@ logger = get_component_logger("google_health")
 
 
 @handle_errors("checking Google Health testing mode", default_return=False)
+# not_duplicate: google_health_testing_mode_guard
 def _testing_mode() -> bool:
     """Return True when automated sync should skip live API calls."""
     return os.getenv("MHM_TESTING") == "1"

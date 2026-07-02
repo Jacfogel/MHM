@@ -12,7 +12,16 @@
       "from\\s+bot\\.email",
       "import\\s+bot\\.communication",
       "import\\s+bot\\.discord",
-      "import\\s+bot\\.email"
+      "import\\s+bot\\.email",
+      "from\\s+ai\\.chatbot",
+      "from\\s+ai\\.prompt_manager",
+      "from\\s+ai\\.fallback_responses",
+      "from\\s+ai\\.conversational_context",
+      "from\\s+ai\\.context_builder",
+      "from\\s+ai\\.context_service",
+      "import\\s+ai\\.chatbot",
+      "import\\s+ai\\.prompt_manager",
+      "import\\s+ai\\.fallback_responses"
     ],
     "historical_references": [
       "bot/communication",
@@ -72,6 +81,40 @@
     }
   ],
   "removed_inventory": [
+    {
+      "id": "update_message_references_module_facade",
+      "removed_at": "2026-07-02",
+      "search_terms": [
+        "from storage.user_data_operations import update_message_references",
+        "storage.user_data_operations.update_message_references(",
+        "from core import update_message_references"
+      ],
+      "replacement": "storage.user_data_operations.user_data_manager.update_message_references(user_id) or UserDataManager().update_message_references(user_id)",
+      "notes": "Removed module-level update_message_references convenience wrapper; method on UserDataManager / user_data_manager singleton is canonical."
+    },
+    {
+      "id": "ai_flat_module_import_shims",
+      "removed_at": "2026-07-02",
+      "search_terms": [
+        "from ai.chatbot",
+        "from ai.prompt_manager",
+        "from ai.fallback_responses",
+        "from ai.conversational_context",
+        "from ai.context_builder",
+        "from ai.context_service",
+        "from ai.cache_manager",
+        "from ai.command_interpreter",
+        "from ai.command_registry",
+        "from ai.response_generator",
+        "from ai.action_catalog",
+        "ai/chatbot.py",
+        "ai/prompt_manager.py",
+        "ai/fallback_responses/",
+        "ai/conversational_context/"
+      ],
+      "replacement": "ai.client.*, ai.context.*, ai.prompts.*, ai.chat.*, ai.fallback.*",
+      "notes": "Flat ai/*.py re-export shims and shim packages removed after import migration to pipeline subpackages."
+    },
     {
       "id": "task_settings_natural_language_defaults_path",
       "removed_at": "2026-06-27",

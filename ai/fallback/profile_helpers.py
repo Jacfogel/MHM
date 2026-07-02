@@ -2,7 +2,7 @@
 
 """User profile helpers for fallback text (names only; no channel logic)."""
 
-import ai.fallback_responses.data_access as data_access
+import ai.fallback.data_access as data_access
 from core.error_handling import handle_errors
 
 

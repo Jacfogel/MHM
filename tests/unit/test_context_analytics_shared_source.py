@@ -4,9 +4,9 @@ Confirm conversational phrasing uses the same check-in analytics as ContextBuild
 
 import pytest
 
-from ai.context_builder import ContextBuilder, ContextData, analyze_recent_checkin_rows
-from ai.conversational_context.context_phraser import phrase_checkin_summary
-from ai.fallback_responses.checkin_summary import try_checkin_summary_response
+from ai.context.builder import ContextBuilder, ContextData, analyze_recent_checkin_rows
+from ai.context.phraser import phrase_checkin_summary
+from ai.fallback.checkin_summary import try_checkin_summary_response
 
 
 @pytest.mark.unit
@@ -71,7 +71,7 @@ class TestContextAnalyticsSharedSource:
         assert analysis.total_entries == 3
 
     def test_try_checkin_summary_does_not_match_breakfast_inside_other_words(self):
-        from ai.context_builder import ContextAnalysis
+        from ai.context.builder import ContextAnalysis
 
         # "lately" contains "ate"; must not trigger breakfast handling.
         analysis = ContextAnalysis(total_entries=3, breakfast_rate=80.0)
@@ -79,8 +79,8 @@ class TestContextAnalyticsSharedSource:
         assert result is None
 
     def test_try_checkin_summary_mood_branches(self):
-        from ai.context_builder import ContextAnalysis
-        from ai.fallback_responses.categories import FallbackCategory
+        from ai.context.builder import ContextAnalysis
+        from ai.fallback.categories import FallbackCategory
 
         positive = ContextAnalysis(
             total_entries=5,
@@ -96,8 +96,8 @@ class TestContextAnalyticsSharedSource:
         assert "challenging" in text.lower() or "1.5" in text
 
     def test_try_checkin_summary_progress_and_frequency(self):
-        from ai.context_builder import ContextAnalysis
-        from ai.fallback_responses.categories import FallbackCategory
+        from ai.context.builder import ContextAnalysis
+        from ai.fallback.categories import FallbackCategory
 
         analysis = ContextAnalysis(
             total_entries=10,

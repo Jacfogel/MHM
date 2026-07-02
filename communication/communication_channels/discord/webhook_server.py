@@ -22,6 +22,7 @@ class DiscordWebhookHandler(BaseHTTPRequestHandler):
     bot_instance = None  # Will be set by WebhookServer
 
     @handle_errors("logging webhook message", default_return=None)
+    # not_duplicate: http_handler_log_message_stub
     def log_message(self, format, *args):
         """Override to use our logger instead of stderr"""
         logger.debug(f"Webhook {format % args}")

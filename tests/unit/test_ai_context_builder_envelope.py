@@ -6,8 +6,8 @@ from datetime import datetime
 
 import pytest
 
-from ai.context_builder import ContextBuilder, _context_data_from_ai_envelope
-from ai.context_service import AIContextEnvelope, AIContextSection
+from ai.context.builder import ContextBuilder, _context_data_from_ai_envelope
+from ai.context.service import AIContextEnvelope, AIContextSection
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.ai]
@@ -80,7 +80,7 @@ def test_context_builder_build_user_context_uses_canonical_envelope(monkeypatch)
         return envelope
 
     monkeypatch.setattr(
-        "ai.context_builder.build_ai_context_envelope", _fake_build_envelope
+        "ai.context.builder.build_ai_context_envelope", _fake_build_envelope
     )
 
     context = ContextBuilder().build_user_context(

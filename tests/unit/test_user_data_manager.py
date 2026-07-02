@@ -22,7 +22,7 @@ import uuid
 from storage.user_data_operations import (
 
     UserDataManager,
-    update_message_references,
+    user_data_manager,
     backup_user_data,
     export_user_data,
     get_user_data_summary,
@@ -585,16 +585,16 @@ class TestUserDataManagerConvenienceFunctions:
         return actual_user_id or user_id
     
     @pytest.mark.unit
-    def test_update_message_references_function(self, test_user, test_data_dir):
-        """Test: update_message_references convenience function works"""
+    def test_update_message_references_via_singleton(self, test_user, test_data_dir):
+        """Test: user_data_manager singleton delegates update_message_references."""
         from core import get_user_data
-        
+
         user_data = get_user_data(test_user, 'account', auto_create=True)
         user_account = user_data.get('account') or {}
         assert user_account and user_account.get('internal_username'), \
             f"User account data not available for {test_user}"
-        
-        result = update_message_references(test_user)
+
+        result = user_data_manager.update_message_references(test_user)
         assert result, f"Should return True on success. Got: {result}"
     
     @pytest.mark.unit

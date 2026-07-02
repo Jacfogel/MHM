@@ -9,7 +9,7 @@ import json
 import pytest
 from unittest.mock import patch
 from communication.message_processing.command_parser import EnhancedCommandParser
-from ai.chatbot import AIChatBotSingleton
+from ai.chat.chatbot import AIChatBotSingleton
 
 
 def _fast_ai_command_response(message, mode="command", user_id=None, timeout=None):

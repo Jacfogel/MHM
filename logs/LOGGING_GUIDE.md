@@ -315,7 +315,7 @@ To keep production logs readable and avoid debug-level repetition at INFO:
 - **Flow state load**: When conversation flow state is loaded and the result is "0 user states", the message is logged at DEBUG; when there are active user states it remains INFO so flow activity is visible.
 - **Scheduler heartbeat**: The periodic "Scheduler running: N total jobs" message is logged at DEBUG. Use DEBUG level in scheduler.log (or temporarily raise scheduler logger level) when diagnosing job counts; normal operation keeps INFO for actual sends and schedule changes.
 
-See `core/logger.py` (setup_logging), `ai/prompt_manager.py` (_load_custom_prompt), `communication/message_processing/conversation_flow_manager.py` (_load_user_states), and `scheduler/manager.py` (scheduler loop) for the current patterns.
+See `core/logger.py` (setup_logging), `ai/prompts/manager.py` (_load_custom_prompt), `communication/message_processing/conversation_flow_manager.py` (_load_user_states), and `scheduler/manager.py` (scheduler loop) for the current patterns.
 
 ### 9.8. CI enforcement for logging rules
 

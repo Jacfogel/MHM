@@ -5,7 +5,7 @@ Tests for ai/cache_manager.py - Cache eviction and expiry functionality.
 import pytest
 import time
 from unittest.mock import patch
-from ai.cache_manager import ResponseCache, ContextCache, CacheEntry, get_response_cache, get_context_cache
+from ai.client.cache_manager import ResponseCache, ContextCache, CacheEntry, get_response_cache, get_context_cache
 
 
 @pytest.mark.unit
@@ -91,7 +91,7 @@ class TestResponseCache:
     
     def test_cache_disabled(self):
         """Test cache behavior when disabled."""
-        with patch('ai.cache_manager.AI_CACHE_RESPONSES', False):
+        with patch('ai.client.cache_manager.AI_CACHE_RESPONSES', False):
             cache = ResponseCache()
             
             # Set should not store anything
@@ -372,15 +372,15 @@ class TestGlobalCacheInstances:
     
     def test_global_cache_configuration(self):
         """Test global cache configuration."""
-        import ai.cache_manager as cache_module
+        import ai.client.cache_manager as cache_module
         
         # Store original cache instances for cleanup
         original_response_cache = getattr(cache_module, '_response_cache', None)
         original_context_cache = getattr(cache_module, '_context_cache', None)
         
         try:
-            with patch('ai.cache_manager.AI_RESPONSE_CACHE_TTL', 600):
-                with patch('ai.cache_manager.CONTEXT_CACHE_TTL', 1800):
+            with patch('ai.client.cache_manager.AI_RESPONSE_CACHE_TTL', 600):
+                with patch('ai.client.cache_manager.CONTEXT_CACHE_TTL', 1800):
                     # Reset global instances
                     cache_module._response_cache = None
                     cache_module._context_cache = None

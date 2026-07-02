@@ -10,9 +10,9 @@ These were moved from manual AI functionality tests because they have determinis
 """
 
 import pytest
-from ai.chatbot import AIChatBotSingleton
-from ai.command_interpreter import get_command_interpreter
-from ai.cache_manager import ResponseCache, get_response_cache
+from ai.chat.chatbot import AIChatBotSingleton
+from ai.prompts.command_interpreter import get_command_interpreter
+from ai.client.cache_manager import ResponseCache, get_response_cache
 
 
 class TestAIModeDetection:

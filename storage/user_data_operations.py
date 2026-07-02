@@ -1238,39 +1238,6 @@ user_data_manager = UserDataManager()
 
 
 # Convenience functions
-@handle_errors("updating message references", default_return=False)
-def update_message_references(user_id: str) -> bool:
-    """
-    Update message references with validation.
-
-    Returns:
-        bool: True if successful, False if failed
-    """
-    # Validate user_id
-    if not user_id or not isinstance(user_id, str):
-        logger.error(f"Invalid user_id: {user_id}")
-        return False
-
-    if not user_id.strip():
-        logger.error("Empty user_id provided")
-        return False
-    """
-    Update message file references for a user.
-    
-    Args:
-        user_id: The user's ID
-        
-    Returns:
-        bool: True if references were updated successfully
-    """
-    try:
-        manager = UserDataManager()
-        return manager.update_message_references(user_id)
-    except Exception as e:
-        logger.error(f"Error updating message references: {e}")
-        return False
-
-
 # not_duplicate: user_data_manager_api
 @handle_errors("backing up user data", default_return="")
 def backup_user_data(user_id: str, include_messages: bool = True) -> str:

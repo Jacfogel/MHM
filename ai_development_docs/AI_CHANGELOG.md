@@ -31,10 +31,12 @@ Guidelines:
 ## Recent Changes (Most Recent First)
 
 ### 2026-07-02 - Product AI context foundation **COMPLETED**
-- Added canonical product-AI context envelope, metadata-only action catalog, and explicit prompt-flow ownership (`ai/context_service.py`, `ai/action_catalog.py`, `ai/prompt_flows.py`).
-- Migrated `ContextBuilder` and conversational context assembly to read from `AIContextEnvelope`, reducing duplicate product-AI data loading without duplicating `command_registry` or `conversational_context` ownership.
-- Updated `PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md` to reflect current status: planner/executor, `AIActionRequest -> ParsedCommand` routing, and full prompt-category composition remain future work.
-- Audit hygiene completed across doc-sync/registries, docstrings/error handling, duplicate-function findings, Pyright, scheduler/user-creation Tier 3 flakes, Discord handler sharing, schema/token helpers, and intentional duplicate markers; latest `audit --full` is clean.
+- Added canonical product-AI context envelope, metadata-only action catalog, and explicit prompt-flow ownership (`ai/context/service.py`, `ai/prompts/action_catalog.py`, `ai/prompts/flows.py`).
+- Migrated `ContextBuilder` and conversational context assembly to read from `AIContextEnvelope` (`ai/context/builder.py`, `ai/context/assembly.py`).
+- Consolidated product-AI prompts to four flow-aligned categories (`persona`, `reply_rules`, `data_honesty`, `action_boundaries`) plus runtime `available_actions` injection; removed duplicate `CONVERSATIONAL_CONTEXT_INSTRUCTIONS` and stopped stacking the 54-line assistant prompt on chat composition.
+- Reorganized `ai/` into pipeline subpackages (`client/`, `context/`, `prompts/`, `chat/`, `fallback/`) and migrated imports across communication, tests, and scripts; removed legacy flat-module shims.
+- Updated `PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md` to reflect current status: planner/executor, `AIActionRequest -> ParsedCommand` routing, and non-chat flow wiring remain future work.
+- Removed `enhance_conversational_engagement()` post-processing; follow-up behavior is prompt-owned via `reply_rules.txt`. Fixed import-boundary and function-registry tests for `ai/` subpackages; repaired doc path drift (`doc-fix`, `docs`, `doc-sync`). Marked nine intentional duplicate-function groups with `# not_duplicate:` markers (duplicate analyzer now reports 0 groups).
 
 ### 2026-06-30 - Tier 3 quick tests + nightly full suite **COMPLETED**
 - Tier 3 `audit --full` runs **quick** pytest profile (`not slow`) via `run_test_suite --profile quick`.
@@ -42,7 +44,7 @@ Guidelines:
 - Suite cache is profile-aware (`last_suite_profile`); config adds `test_run.profiles` quick/full.
 - **Fix**: `NameError` on `strict` in `_run_test_suite_profile` crashed audits after pytest; command doc/group parity for `nightly-test-suite`.
 - **Fix (`personalized` category)**: [`channel_orchestrator.py`](../communication/core/channel_orchestrator.py) now calls `generate_personalized_message()` instead of `generate_contextual_response()` - avoids generic chat fallback when LM Studio context overflows.
-- **Fix (personalized truncation + duplicate test sends)**: Explicit `mode="personalized"` in [`chatbot.py`](../ai/chatbot.py) - prompt word "message" no longer triggers command mode (60-token cutoff). Admin test button disables while sending.
+- **Fix (personalized truncation + duplicate test sends)**: Explicit `mode="personalized"` in [`chatbot.py`](../ai/chat/chatbot.py) - prompt word "message" no longer triggers command mode (60-token cutoff). Admin test button disables while sending.
 - **Fix (model format leaks + UI guard)**: Strip `## INPUT` / `## OUTPUT` training markers from AI output; stop sequences on personalized calls. Initialize `_test_message_in_flight` in UI `__init__` (was broken by `__getattr__` delegation).
 - **Fix (duplicate test sends + Google Health context)**: UI now polls up to ~60s for AI test messages. Personalized messages include coarse Google Health signals via `build_personalized_wellness_context()` with fallback to the latest synced signal when today's sync is missing.
 - **Fix (UI freeze + health priority)**: Test-message wait runs on a background `QThread` (no main-window freeze). When Google Health confidence is medium/high, stale check-ins are omitted from the personalized prompt.
@@ -97,7 +99,7 @@ Guidelines:
 ### 2026-06-26 - Journal entry visual distinction + NLP mode detection **COMPLETED**
 - Journal list lines and detail view in [`notebook_handler.py`](../communication/command_handlers/notebook_handler.py) now show **Journal** label plus `submitted_at` date (`Jun 15` or `Mar 04, 2025` when not current year).
 - Centralized `_format_entry_list_line()` across inbox, search, group/tag, pinned, recent, and archived lists so journal entries use the journal icon consistently.
-- **NLP mode detection**: [`command_interpreter.py`](../ai/command_interpreter.py) expanded keywords (`append`, `inbox`, `group`, `template`, `search`, etc.) and `_COMMAND_PHRASE_HINTS` for `show inbox`, `search for`, `append note to task`, `tasks in group`, `help notebook` without misclassifying emotional chat.
+- **NLP mode detection**: [`command_interpreter.py`](../ai/prompts/command_interpreter.py) expanded keywords (`append`, `inbox`, `group`, `template`, `search`, etc.) and `_COMMAND_PHRASE_HINTS` for `show inbox`, `search for`, `append note to task`, `tasks in group`, `help notebook` without misclassifying emotional chat.
 - Tests in [`test_notebook_handler_pagination_formatting.py`](../tests/unit/test_notebook_handler_pagination_formatting.py), [`test_command_interpreter.py`](../tests/unit/test_command_interpreter.py), [`test_natural_language_command_detection.py`](../tests/behavior/test_natural_language_command_detection.py); [NOTES_PLAN.md](../development_docs/NOTES_PLAN.md) section 4.5 marked complete.
 
 ### 2026-06-24 - Task list UI tests + task notes + group filter **COMPLETED**
@@ -172,12 +174,6 @@ Guidelines:
 - Moved admin menu/system actions from `ui/ui_app_qt.py` into `ui/admin_actions.py`, including cache status/cleanup, config validation/help, all-users summary, log opening, verbose logging, process watcher opening, and system health reporting.
 - `MHMManagerUI` now keeps signal-compatible wrappers that delegate to `AdminActions`; `ui_app_qt.py` is down to ~888 lines.
 - Added `tests/ui/test_admin_actions.py`; targeted UI main/core/behavior suites pass after the extraction.
-
-### 2026-06-06 - UI request action extraction (Stage 6) **COMPLETED**
-- Moved test-message, check-in prompt, and task-reminder request-file creation/polling from `ui/ui_app_qt.py` into `ui/request_actions.py`.
-- `MHMManagerUI` now keeps selection/service validation and final Qt message display while request actions return UI-neutral outcomes.
-- Added `tests/ui/test_request_actions.py`; updated stale behavior-test patching to the new request-action owner.
-- Verification: `py_compile`, focused request-action tests, and targeted UI main/core/behavior suites pass.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

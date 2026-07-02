@@ -4,7 +4,7 @@ Unit tests for ai/command_interpreter.py boundary behavior.
 
 import pytest
 
-from ai.command_interpreter import CommandInterpreter, get_command_interpreter
+from ai.prompts.command_interpreter import CommandInterpreter, get_command_interpreter
 
 
 @pytest.mark.unit

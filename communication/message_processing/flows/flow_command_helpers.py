@@ -316,6 +316,7 @@ def is_task_flow_delete_in_progress_message(message_lower: str) -> bool:
 
 
 # error_handling_exclude: pure keyword helper; no I/O
+# not_duplicate: flow_step_back_per_flow
 def is_task_flow_step_back_message(message_lower: str) -> bool:
     """Step back one task question; excludes undo-task-creation phrases."""
     return is_step_back_message(
@@ -325,6 +326,7 @@ def is_task_flow_step_back_message(message_lower: str) -> bool:
 
 
 # error_handling_exclude: pure keyword helper; no I/O
+# not_duplicate: flow_step_back_per_flow
 def is_note_flow_step_back_message(message_lower: str) -> bool:
     """Step back one note question; excludes undo-note-creation phrases."""
     return is_step_back_message(
@@ -334,6 +336,7 @@ def is_note_flow_step_back_message(message_lower: str) -> bool:
 
 
 # error_handling_exclude: pure keyword helper; no I/O
+# not_duplicate: flow_step_back_per_flow
 def is_journal_flow_step_back_message(message_lower: str) -> bool:
     """Step back one journal question; excludes undo-entry-creation phrases."""
     return is_step_back_message(

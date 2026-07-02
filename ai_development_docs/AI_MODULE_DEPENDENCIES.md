@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-01 18:25:21
+> **Last Generated**: 2026-07-01 23:56:49
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 246
-- **Total Imports**: 2091
-- **Standard Library**: 626 (29.9%)
-- **Third-Party**: 232 (11.1%)
-- **Local Imports**: 1233 (59.0%)
+- **Files Scanned**: 248
+- **Total Imports**: 2108
+- **Standard Library**: 627 (29.7%)
+- **Third-Party**: 217 (10.3%)
+- **Local Imports**: 1264 (60.0%)
 
 ## Dependency Decision Trees
 
@@ -33,8 +33,8 @@ Core System Dependencies:
 ### Need AI or Chatbot Support?
 AI System Dependencies:
 - AI Core
-  - ai/action_catalog.py <- standard library (__future__, dataclasses, typing), error_handling, command_registry
-  - ai/cache_manager.py <- standard library (dataclasses, hashlib, threading, time), logger, error_handling, config
+  - ai/__init__.py <- chatbot, cache_manager, action_catalog, command_interpreter, command_registry (+10 more)
+  - ai/chat/action_boundaries.py <- standard library (__future__, re), error_handling
 - Command Processing
   - communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_data_operations, base_handler (+2 more)
   - communication/command_handlers/analytics_formatting.py <- standard library (typing), checkin_data_manager, error_handling
@@ -74,9 +74,8 @@ UI Dependencies:
 
 ### Core -> Communication and AI (most common)
 Communication and AI modules depend on core system modules.
-- `ai/action_catalog.py` -> core.error_handling
-- `ai/cache_manager.py` -> core.logger, core.error_handling, core.config
-- `ai/chatbot.py` -> core.logger, core.config, core.response_tracking
+- `ai/chat/action_boundaries.py` -> core.error_handling
+- `ai/chat/chatbot.py` -> core.logger, core.config, core.response_tracking
 
 ### UI -> Core
 UI modules rely on core configuration and data access.
@@ -84,16 +83,16 @@ UI modules rely on core configuration and data access.
 
 ### Communication -> Communication
 Communication modules compose other communication utilities for complete flows.
-- `ai/action_catalog.py` -> ai.command_registry
-- `ai/chatbot.py` -> ai.prompt_manager, ai.cache_manager, ai.command_interpreter
+- `ai/__init__.py` -> ai.chat.chatbot, ai.client.cache_manager, ai.prompts.action_catalog
+- `ai/chat/chatbot.py` -> ai.prompts.manager, ai.client.cache_manager, ai.prompts.command_interpreter
 
 ### Third-Party Integration
 External libraries provide channel and UI support.
-- `ai/chatbot.py` -> psutil
-- `ai/lm_studio_client.py` -> requests
-- `ai/lm_studio_manager.py` -> requests
-- `ai/__init__.py` -> chatbot, cache_manager
+- `ai/chat/chatbot.py` -> psutil
+- `ai/client/lm_studio_client.py` -> requests
+- `ai/client/lm_studio_manager.py` -> requests
 - `checkins/checkin_schemas.py` -> pydantic
+- `checkins/__init__.py` -> checkin_analytics, checkin_data_manager
 
 
 ## Critical Dependencies for AI Context
@@ -116,16 +115,16 @@ External libraries provide channel and UI support.
 
 ### High Coupling
 - `communication/core/channel_orchestrator.py` -> 21 unique local dependencies (heavy coupling) (31 import statements; 10 duplicate)
-- `ai/chatbot.py` -> 16 unique local dependencies (heavy coupling) (17 import statements; 1 duplicate)
+- `ai/chat/chatbot.py` -> 16 unique local dependencies (heavy coupling) (17 import statements; 1 duplicate)
+- `ai/__init__.py` -> 15 unique local dependencies (heavy coupling)
 - `communication/message_processing/interaction_manager.py` -> 15 unique local dependencies (heavy coupling) (16 import statements; 1 duplicate)
 - `communication/communication_channels/discord/bot.py` -> 14 unique local dependencies (heavy coupling) (18 import statements; 4 duplicate)
-- `communication/command_handlers/notebook_handler.py` -> 13 unique local dependencies (heavy coupling) (18 import statements; 5 duplicate)
 
 ### Third-Party Risks
 - `ui/admin_actions.py` -> PySide6.QtWidgets (38 modules use this)
 - `ui/ui_app_qt.py` -> PySide6.QtCore (21 modules use this)
 - `communication/communication_channels/base/command_registry.py` -> discord (18 modules use this)
-- `ai/chatbot.py` -> psutil (8 modules use this)
+- `ai/chat/chatbot.py` -> psutil (8 modules use this)
 - `checkins/checkin_schemas.py` -> pydantic (7 modules use this)
 
 

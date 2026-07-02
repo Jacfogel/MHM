@@ -6,17 +6,17 @@ Tests for ai/chatbot.py focusing on helper methods and utility functions.
 
 import pytest
 from unittest.mock import patch
-from ai.chatbot import get_ai_chatbot
-from ai.command_interpreter import get_command_interpreter
-from ai.fallback_responses import get_fallback_responses
+from ai.chat.chatbot import get_ai_chatbot
+from ai.prompts.command_interpreter import get_command_interpreter
+from ai.fallback import get_fallback_responses
 
 
 @pytest.fixture(scope="module")
 def chatbot_instance():
     """Create chatbot instance once per module (shared across all tests in this file)."""
     # Mock LM Studio connection to avoid actual API calls
-    with patch('ai.chatbot.AIChatBotSingleton._test_lm_studio_connection'), \
-         patch('ai.lm_studio_manager.is_lm_studio_ready', return_value=False):
+    with patch('ai.chat.chatbot.AIChatBotSingleton._test_lm_studio_connection'), \
+         patch('ai.client.lm_studio_manager.is_lm_studio_ready', return_value=False):
         # Get or create singleton instance
         chatbot = get_ai_chatbot()
         chatbot.lm_studio_available = False  # Set to False to avoid actual API calls
@@ -227,7 +227,7 @@ class TestAIChatBotHelpers:
 
     def test_optimize_prompt_basic(self, chatbot_instance):
         """Test _optimize_prompt creates basic prompt structure."""
-        with patch('ai.chatbot.prompt_manager.get_prompt', return_value="System prompt"):
+        with patch('ai.chat.chatbot.prompt_manager.get_prompt', return_value="System prompt"):
             result = chatbot_instance._optimize_prompt("Hello")
             
             assert isinstance(result, list), "Should return list"
@@ -237,7 +237,7 @@ class TestAIChatBotHelpers:
 
     def test_optimize_prompt_with_context(self, chatbot_instance):
         """Test _optimize_prompt includes context when provided."""
-        with patch('ai.chatbot.prompt_manager.get_prompt', return_value="System prompt"):
+        with patch('ai.chat.chatbot.prompt_manager.get_prompt', return_value="System prompt"):
             result = chatbot_instance._optimize_prompt("Hello", context="User context")
             
             assert "Context:" in result[1]["content"], "Should include context in user message"
@@ -246,7 +246,7 @@ class TestAIChatBotHelpers:
     def test_optimize_prompt_context_too_large(self, chatbot_instance):
         """Test _optimize_prompt skips context if too large."""
         large_context = "x" * 300  # Larger than 200 char limit
-        with patch('ai.chatbot.prompt_manager.get_prompt', return_value="System prompt"):
+        with patch('ai.chat.chatbot.prompt_manager.get_prompt', return_value="System prompt"):
             result = chatbot_instance._optimize_prompt("Hello", context=large_context)
             
             assert "Context:" not in result[1]["content"], "Should skip context if too large"
@@ -254,8 +254,8 @@ class TestAIChatBotHelpers:
 
     def test_get_fallback_personalized_message_with_name(self, chatbot_instance):
         """Test _get_fallback_personalized_message includes user name."""
-        with patch('ai.fallback_responses.data_access.get_user_data') as mock_get_data, \
-             patch('ai.fallback_responses.data_access.get_recent_responses', return_value=[]):
+        with patch('ai.fallback.data_access.get_user_data') as mock_get_data, \
+             patch('ai.fallback.data_access.get_recent_responses', return_value=[]):
             mock_get_data.return_value = {
                 'context': {
                     'preferred_name': 'TestUser'
@@ -268,8 +268,8 @@ class TestAIChatBotHelpers:
 
     def test_get_fallback_personalized_message_with_mood(self, chatbot_instance):
         """Test _get_fallback_personalized_message adapts to mood."""
-        with patch('ai.fallback_responses.data_access.get_user_data') as mock_get_data, \
-             patch('ai.fallback_responses.data_access.get_recent_responses') as mock_recent:
+        with patch('ai.fallback.data_access.get_user_data') as mock_get_data, \
+             patch('ai.fallback.data_access.get_recent_responses') as mock_recent:
             mock_get_data.return_value = {'context': {}}
             mock_recent.return_value = [
                 {'mood': 5, 'energy': 5}
@@ -281,8 +281,8 @@ class TestAIChatBotHelpers:
 
     def test_get_fallback_personalized_message_low_mood(self, chatbot_instance):
         """Test _get_fallback_personalized_message adapts to low mood."""
-        with patch('ai.fallback_responses.data_access.get_user_data') as mock_get_data, \
-             patch('ai.fallback_responses.data_access.get_recent_responses') as mock_recent:
+        with patch('ai.fallback.data_access.get_user_data') as mock_get_data, \
+             patch('ai.fallback.data_access.get_recent_responses') as mock_recent:
             mock_get_data.return_value = {'context': {}}
             mock_recent.return_value = [
                 {'mood': 1, 'energy': 1}
@@ -294,8 +294,8 @@ class TestAIChatBotHelpers:
 
     def test_get_fallback_personalized_message_no_data(self, chatbot_instance):
         """Test _get_fallback_personalized_message with no user data."""
-        with patch('ai.fallback_responses.data_access.get_user_data', return_value={}), \
-             patch('ai.fallback_responses.data_access.get_recent_responses', return_value=[]):
+        with patch('ai.fallback.data_access.get_user_data', return_value={}), \
+             patch('ai.fallback.data_access.get_recent_responses', return_value=[]):
             
             result = get_fallback_responses().personalized("user123")
             
@@ -310,7 +310,7 @@ class TestAIChatBotHelpers:
         )
         assert chatbot_instance._normalize_response_mode("personalized", prompt) == "personalized"
 
-        with patch("ai.fallback_responses.data_access.get_user_data", return_value={"context": {}}):
+        with patch("ai.fallback.data_access.get_user_data", return_value={"context": {}}):
             messages, max_tokens, _temperature = (
                 chatbot_instance._build_response_generation_request(
                     "personalized", prompt, "user123"

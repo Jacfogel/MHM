@@ -129,7 +129,7 @@ def build_ai_context_envelope(
     sections["action_catalog"] = _section(
         "action_catalog",
         _build_action_catalog_context(),
-        source="ai.action_catalog",
+        source="ai.prompts.action_catalog",
     )
 
     selected_sections = _select_prompt_sections(prompt_request, sections)
@@ -364,7 +364,7 @@ def _build_conversation_context(
 @handle_errors("building action catalog context", default_return={})
 def _build_action_catalog_context() -> dict[str, Any]:
     """Build action catalog context for prompt/action planning."""
-    from ai.action_catalog import get_action_catalog
+    from ai.prompts.action_catalog import get_action_catalog
 
     catalog = get_action_catalog()
     return {**catalog.to_dict(), "summary": catalog.to_prompt_summary()}

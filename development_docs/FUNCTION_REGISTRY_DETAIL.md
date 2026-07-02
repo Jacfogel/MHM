@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-01 18:25:03
+> **Last Generated**: 2026-07-01 23:56:24
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,15 +15,15 @@
 ## Overview
 
 ### **Function Documentation Coverage: 89.9% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 248
-- **Functions Found**: 2423
+- **Files Scanned**: 250
+- **Functions Found**: 2429
 - **Methods Found**: 1389
 - **Classes Found**: 251
-- **Total Items**: 3812
-- **Functions Documented**: 2152
+- **Total Items**: 3818
+- **Functions Documented**: 2158
 - **Methods Documented**: 1276
 - **Classes Documented**: 180
-- **Total Documented**: 3428
+- **Total Documented**: 3434
 - **Template-Generated**: 44
 - **Last Updated**: 2026-07-01
 
@@ -63,31 +63,131 @@ Test functions and testing utilities.
 
 #### `ai/__init__.py`
 
-#### `ai/action_catalog.py`
-**Functions:**
-- [OK] `_fields_for_intent(intent)` - Return declared entity fields for an action intent.
-- [OK] `_get_live_intents()` - Return initialized parser intent names through the AI command registry.
-- [OK] `_handler_name_for_domain(domain)` - Return the existing communication handler class name for a domain.
-- [OK] `_infer_domain(intent)` - Infer product domain from canonical parser intent name.
-- [OK] `build_action_catalog()` - Build action metadata from live parser intents without importing handlers.
-- [OK] `get(self, action_name)` - Return a catalog action by canonical action name.
-- [OK] `get_action_catalog()` - Return a freshly built action catalog from live command infrastructure.
-- [OK] `required_fields(self)` - Return entity field names required before this action can execute.
-- [OK] `to_dict(self)` - Return a JSON-serializable representation for context envelopes.
-- [OK] `to_dict(self)` - Return a JSON-serializable catalog representation.
-- [OK] `to_prompt_summary(self)` - Return compact action metadata for model prompts.
-**Classes:**
-- [OK] `AIActionCatalog` - Collection of product-AI actions indexed by canonical action name.
-  - [OK] `AIActionCatalog.get(self, action_name)` - Return a catalog action by canonical action name.
-  - [OK] `AIActionCatalog.to_dict(self)` - Return a JSON-serializable catalog representation.
-  - [OK] `AIActionCatalog.to_prompt_summary(self)` - Return compact action metadata for model prompts.
-- [OK] `AIActionDefinition` - Catalog entry for one product action routed through existing command handlers.
-  - [OK] `AIActionDefinition.required_fields(self)` - Return entity field names required before this action can execute.
-  - [OK] `AIActionDefinition.to_dict(self)` - Return a JSON-serializable representation for context envelopes.
-- [OK] `AIActionField` - One action entity field expected by an existing handler.
-- [OK] `AIActionRequest` - Model-planned action request before communication-layer dispatch.
+#### `ai/chat/__init__.py`
 
-#### `ai/cache_manager.py`
+#### `ai/chat/action_boundaries.py`
+**Functions:**
+- [OK] `find_false_crud_claims(text)` - Return human-readable labels for false completed-action claims in *text*.
+- [OK] `response_has_false_crud_claim(text)` - True when *text* appears to claim a CRUD action completed without evidence.
+
+#### `ai/chat/chatbot.py`
+**Functions:**
+- [OK] `__init__(self)` - Initialize the object.
+- [OK] `__new__(cls)` - Create a new instance.
+- [OK] `_build_contextual_summary(self, context)` - Build a concise context summary used for logging and fallback personalization.
+- [OK] `_build_response_generation_request(self, mode, user_prompt, user_id)` - Build messages and generation parameters based on response mode.
+- [OK] `_cache_response_if_needed(self, mode, prompt_for_key, uid_for_key, ptype, response)` - Cache successful non-chat responses.
+- [OK] `_call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio (delegates to ai.client.lm_studio_client).
+- [OK] `_clean_system_prompt_leaks(self, response)` - Remove leaked system prompt metadata (delegates to ai.chat.response_postprocess).
+- [OK] `_detect_resource_constraints(self)` - Detect if system is resource-constrained.
+- [OK] `_ensure_lm_studio_available(self)` - Ensure LM Studio availability by retrying connection if needed.
+- [OK] `_fallback_response_for_unavailable_lm(self, user_prompt, user_id, mode)` - Return contextual fallback when LM Studio is unavailable.
+- [OK] `_get_adaptive_timeout(self, base_timeout)` - Get adaptive timeout based on system resources.
+- [OK] `_get_cached_non_chat_response(self, mode, prompt_for_key, uid_for_key, ptype, user_prompt, user_id)` - Return cached response for non-chat modes when eligible.
+- [OK] `_interaction_type_for_mode(self, mode)` - Map response mode to interaction type for structured logging.
+- [OK] `_is_data_analysis_question(self, user_prompt)` - Detect prompts that should bypass contextual cache for fresh data.
+- [OK] `_is_valid_timeout(self, timeout)` - Validate timeout input type for response generation.
+- [OK] `_make_cache_key_inputs(self, mode, user_prompt, user_id)` - Create consistent cache key inputs with validation.
+
+Returns:
+    tuple: (user_prompt, user_id, mode)
+- [OK] `_normalize_response_mode(self, mode, user_prompt)` - Normalize generation mode to supported values.
+- [OK] `_optimize_prompt(self, user_prompt, context)` - Create optimized messages array for LM Studio API.
+- [OK] `_post_process_generated_response(self, mode, result)` - Post-process model output into final user-visible response.
+- [OK] `_record_contextual_interaction(self, user_id, user_prompt, response)` - Persist contextual response and conversation history.
+- [OK] `_refresh_lm_studio_availability(self)` - Update lm_studio_available from a live connection test.
+- [OK] `_smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response (delegates to ai.chat.response_postprocess).
+- [OK] `_store_chat_mode_interaction(self, mode, user_id, user_prompt, response)` - Persist chat interactions for conversation context.
+- [OK] `_test_lm_studio_connection(self)` - Test connection to LM Studio (delegates to ai.client.lm_studio_client).
+- [OK] `generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
+Integrates with existing UserContext and UserPreferences systems.
+- [OK] `generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
+(check-in data). Uses longer timeout since this is not real-time.
+
+When skip_cache is True (admin test sends), bypass the response cache and
+ask the model for fresh wording so back-to-back tests are not identical.
+- [OK] `generate_quick_response(self, user_prompt, user_id)` - Generate a quick response for real-time chat (Discord, etc.).
+Uses shorter timeout optimized for responsiveness.
+- [OK] `generate_response(self, user_prompt, timeout, user_id, mode)` - Generate a basic AI response from user_prompt, using LM Studio API.
+Uses adaptive timeout to prevent blocking for too long with improved performance optimizations.
+- [OK] `get_ai_chatbot()` - Return the shared AIChatBot instance.
+- [OK] `get_ai_status(self)` - Get detailed status information about the AI system.
+- [OK] `is_ai_available(self)` - Check if the AI model is available and functional.
+- [OK] `reload_system_prompt(self)` - Reload the system prompt from file (useful for development and testing).
+- [OK] `test_system_prompt_integration(self)` - Test the system prompt integration and return status information.
+**Classes:**
+- [OK] `AIChatBotSingleton` - A Singleton container for LM Studio API client.
+  - [OK] `AIChatBotSingleton.__init__(self)` - Initialize the object.
+  - [OK] `AIChatBotSingleton.__new__(cls)` - Create a new instance.
+  - [OK] `AIChatBotSingleton._build_contextual_summary(self, context)` - Build a concise context summary used for logging and fallback personalization.
+  - [OK] `AIChatBotSingleton._build_response_generation_request(self, mode, user_prompt, user_id)` - Build messages and generation parameters based on response mode.
+  - [OK] `AIChatBotSingleton._cache_response_if_needed(self, mode, prompt_for_key, uid_for_key, ptype, response)` - Cache successful non-chat responses.
+  - [OK] `AIChatBotSingleton._call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio (delegates to ai.client.lm_studio_client).
+  - [OK] `AIChatBotSingleton._clean_system_prompt_leaks(self, response)` - Remove leaked system prompt metadata (delegates to ai.chat.response_postprocess).
+  - [OK] `AIChatBotSingleton._detect_resource_constraints(self)` - Detect if system is resource-constrained.
+  - [OK] `AIChatBotSingleton._ensure_lm_studio_available(self)` - Ensure LM Studio availability by retrying connection if needed.
+  - [OK] `AIChatBotSingleton._fallback_response_for_unavailable_lm(self, user_prompt, user_id, mode)` - Return contextual fallback when LM Studio is unavailable.
+  - [OK] `AIChatBotSingleton._get_adaptive_timeout(self, base_timeout)` - Get adaptive timeout based on system resources.
+  - [OK] `AIChatBotSingleton._get_cached_non_chat_response(self, mode, prompt_for_key, uid_for_key, ptype, user_prompt, user_id)` - Return cached response for non-chat modes when eligible.
+  - [OK] `AIChatBotSingleton._interaction_type_for_mode(self, mode)` - Map response mode to interaction type for structured logging.
+  - [OK] `AIChatBotSingleton._is_data_analysis_question(self, user_prompt)` - Detect prompts that should bypass contextual cache for fresh data.
+  - [OK] `AIChatBotSingleton._is_valid_timeout(self, timeout)` - Validate timeout input type for response generation.
+  - [OK] `AIChatBotSingleton._make_cache_key_inputs(self, mode, user_prompt, user_id)` - Create consistent cache key inputs with validation.
+
+Returns:
+    tuple: (user_prompt, user_id, mode)
+  - [OK] `AIChatBotSingleton._normalize_response_mode(self, mode, user_prompt)` - Normalize generation mode to supported values.
+  - [OK] `AIChatBotSingleton._optimize_prompt(self, user_prompt, context)` - Create optimized messages array for LM Studio API.
+  - [OK] `AIChatBotSingleton._post_process_generated_response(self, mode, result)` - Post-process model output into final user-visible response.
+  - [OK] `AIChatBotSingleton._record_contextual_interaction(self, user_id, user_prompt, response)` - Persist contextual response and conversation history.
+  - [OK] `AIChatBotSingleton._refresh_lm_studio_availability(self)` - Update lm_studio_available from a live connection test.
+  - [OK] `AIChatBotSingleton._smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response (delegates to ai.chat.response_postprocess).
+  - [OK] `AIChatBotSingleton._store_chat_mode_interaction(self, mode, user_id, user_prompt, response)` - Persist chat interactions for conversation context.
+  - [OK] `AIChatBotSingleton._test_lm_studio_connection(self)` - Test connection to LM Studio (delegates to ai.client.lm_studio_client).
+  - [OK] `AIChatBotSingleton.generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
+Integrates with existing UserContext and UserPreferences systems.
+  - [OK] `AIChatBotSingleton.generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
+(check-in data). Uses longer timeout since this is not real-time.
+
+When skip_cache is True (admin test sends), bypass the response cache and
+ask the model for fresh wording so back-to-back tests are not identical.
+  - [OK] `AIChatBotSingleton.generate_quick_response(self, user_prompt, user_id)` - Generate a quick response for real-time chat (Discord, etc.).
+Uses shorter timeout optimized for responsiveness.
+  - [OK] `AIChatBotSingleton.generate_response(self, user_prompt, timeout, user_id, mode)` - Generate a basic AI response from user_prompt, using LM Studio API.
+Uses adaptive timeout to prevent blocking for too long with improved performance optimizations.
+  - [OK] `AIChatBotSingleton.get_ai_status(self)` - Get detailed status information about the AI system.
+  - [OK] `AIChatBotSingleton.is_ai_available(self)` - Check if the AI model is available and functional.
+  - [OK] `AIChatBotSingleton.reload_system_prompt(self)` - Reload the system prompt from file (useful for development and testing).
+  - [OK] `AIChatBotSingleton.test_system_prompt_integration(self)` - Test the system prompt integration and return status information.
+
+#### `ai/chat/interaction_types.py`
+**Functions:**
+- [OK] `interaction_type_for_mode(mode)` - Map generate_response mode strings to interaction types.
+**Classes:**
+- [OK] `AIInteractionType` - Why the system is calling AI and what shape of output is expected.
+
+#### `ai/chat/response_generator.py`
+**Functions:**
+- [OK] `__init__(self)` - Special Python method
+- [OK] `create_comprehensive_context_prompt(self, user_id, user_prompt)` - Create a comprehensive context prompt with all user data for LM Studio.
+- [OK] `get_response_generator()` - Return the shared response generator.
+**Classes:**
+- [OK] `ResponseGenerator` - Build conversational prompts for LM Studio chat calls.
+  - [OK] `ResponseGenerator.__init__(self)` - Special Python method
+  - [OK] `ResponseGenerator.create_comprehensive_context_prompt(self, user_id, user_prompt)` - Create a comprehensive context prompt with all user data for LM Studio.
+
+#### `ai/chat/response_postprocess.py`
+**Functions:**
+- [OK] `clean_system_prompt_leaks(response)` - Remove leaked system prompt metadata from AI responses.
+Prevents meta-text like "User Context:" from appearing in user-facing output.
+- [OK] `keep_first_personalized_block(text)` - When the model returns multiple draft messages, keep only the first greeting block.
+- [OK] `smart_truncate_response(text, max_chars, max_words)` - Truncate response to avoid mid-sentence cuts when possible.
+- [OK] `strip_instruction_tuning_markers(text)` - Remove fine-tuning delimiter leaks (e.g. '## INPUT ##OUTPUT') from model output.
+- [OK] `strip_letter_signoffs(text)` - Remove email-style closings and [Your Name] placeholders from short wellness messages.
+
+#### `ai/client/__init__.py`
+
+#### `ai/client/cache_manager.py`
 **Functions:**
 - [OK] `__init__(self, max_size, ttl)` - Initialize the response cache
 - [OK] `__init__(self, ttl)` - Initialize the context cache
@@ -133,126 +233,50 @@ Test functions and testing utilities.
   - [OK] `ResponseCache.remove_user_entries(self, user_id)` - Remove all cache entries for a specific user
   - [OK] `ResponseCache.set(self, prompt, response, user_id, prompt_type, metadata)` - Cache a response
 
-#### `ai/chatbot.py`
+#### `ai/client/lm_studio_client.py`
 **Functions:**
-- [OK] `__init__(self)` - Initialize the object.
-- [OK] `__new__(cls)` - Create a new instance.
-- [OK] `_build_contextual_summary(self, context)` - Build a concise context summary used for logging and fallback personalization.
-- [OK] `_build_response_generation_request(self, mode, user_prompt, user_id)` - Build messages and generation parameters based on response mode.
-- [OK] `_cache_response_if_needed(self, mode, prompt_for_key, uid_for_key, ptype, response)` - Cache successful non-chat responses.
-- [OK] `_call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio (delegates to ai.lm_studio_client).
-- [OK] `_clean_system_prompt_leaks(self, response)` - Remove leaked system prompt metadata (delegates to ai.response_postprocess).
-- [OK] `_detect_resource_constraints(self)` - Detect if system is resource-constrained.
-- [OK] `_ensure_lm_studio_available(self)` - Ensure LM Studio availability by retrying connection if needed.
-- [OK] `_fallback_response_for_unavailable_lm(self, user_prompt, user_id, mode)` - Return contextual fallback when LM Studio is unavailable.
-- [OK] `_get_adaptive_timeout(self, base_timeout)` - Get adaptive timeout based on system resources.
-- [OK] `_get_cached_non_chat_response(self, mode, prompt_for_key, uid_for_key, ptype, user_prompt, user_id)` - Return cached response for non-chat modes when eligible.
-- [OK] `_interaction_type_for_mode(self, mode)` - Map response mode to interaction type for structured logging.
-- [OK] `_is_data_analysis_question(self, user_prompt)` - Detect prompts that should bypass contextual cache for fresh data.
-- [OK] `_is_valid_timeout(self, timeout)` - Validate timeout input type for response generation.
-- [OK] `_make_cache_key_inputs(self, mode, user_prompt, user_id)` - Create consistent cache key inputs with validation.
+- [OK] `call_lm_studio_api(messages, max_tokens, temperature, timeout)` - Make a chat/completions request to LM Studio.
+- [OK] `test_lm_studio_connection()` - Return True when the LM Studio /models endpoint responds successfully.
 
-Returns:
-    tuple: (user_prompt, user_id, mode)
-- [OK] `_normalize_response_mode(self, mode, user_prompt)` - Normalize generation mode to supported values.
-- [OK] `_optimize_prompt(self, user_prompt, context)` - Create optimized messages array for LM Studio API.
-- [OK] `_post_process_generated_response(self, mode, result)` - Post-process model output into final user-visible response.
-- [OK] `_record_contextual_interaction(self, user_id, user_prompt, response)` - Persist contextual response and conversation history.
-- [OK] `_refresh_lm_studio_availability(self)` - Update lm_studio_available from a live connection test.
-- [OK] `_smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response (delegates to ai.response_postprocess).
-- [OK] `_store_chat_mode_interaction(self, mode, user_id, user_prompt, response)` - Persist chat interactions for conversation context.
-- [OK] `_test_lm_studio_connection(self)` - Test connection to LM Studio (delegates to ai.lm_studio_client).
-- [OK] `generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
-Integrates with existing UserContext and UserPreferences systems.
-- [OK] `generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
-(check-in data). Uses longer timeout since this is not real-time.
-
-When skip_cache is True (admin test sends), bypass the response cache and
-ask the model for fresh wording so back-to-back tests are not identical.
-- [OK] `generate_quick_response(self, user_prompt, user_id)` - Generate a quick response for real-time chat (Discord, etc.).
-Uses shorter timeout optimized for responsiveness.
-- [OK] `generate_response(self, user_prompt, timeout, user_id, mode)` - Generate a basic AI response from user_prompt, using LM Studio API.
-Uses adaptive timeout to prevent blocking for too long with improved performance optimizations.
-- [OK] `get_ai_chatbot()` - Return the shared AIChatBot instance.
-- [OK] `get_ai_status(self)` - Get detailed status information about the AI system.
-- [OK] `is_ai_available(self)` - Check if the AI model is available and functional.
-- [OK] `reload_system_prompt(self)` - Reload the system prompt from file (useful for development and testing).
-- [OK] `test_system_prompt_integration(self)` - Test the system prompt integration and return status information.
+#### `ai/client/lm_studio_manager.py`
+**Functions:**
+- [OK] `__init__(self)` - Initialize LM Studio status detector
+- [OK] `ensure_lm_studio_ready()` - Ensure LM Studio is ready, attempting automatic model loading if needed
+- [OK] `get_lm_studio_manager()` - Get the global LM Studio manager instance
+- [OK] `is_lm_studio_ready()` - Check if LM Studio is ready for AI features
+- [OK] `is_lm_studio_running(self)` - Check if LM Studio process is running
+- [OK] `is_model_loaded(self)` - Check if the configured model is actually loaded (not just available) in LM Studio
+- [OK] `is_ready(self)` - Check if LM Studio is ready (server running and model loaded)
+- [OK] `is_server_responding(self)` - Check if LM Studio server is responding on the configured port
+- [OK] `load_model_automatically(self)` - Automatically load the configured model if server is running but no model is loaded
 **Classes:**
-- [OK] `AIChatBotSingleton` - A Singleton container for LM Studio API client.
-  - [OK] `AIChatBotSingleton.__init__(self)` - Initialize the object.
-  - [OK] `AIChatBotSingleton.__new__(cls)` - Create a new instance.
-  - [OK] `AIChatBotSingleton._build_contextual_summary(self, context)` - Build a concise context summary used for logging and fallback personalization.
-  - [OK] `AIChatBotSingleton._build_response_generation_request(self, mode, user_prompt, user_id)` - Build messages and generation parameters based on response mode.
-  - [OK] `AIChatBotSingleton._cache_response_if_needed(self, mode, prompt_for_key, uid_for_key, ptype, response)` - Cache successful non-chat responses.
-  - [OK] `AIChatBotSingleton._call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio (delegates to ai.lm_studio_client).
-  - [OK] `AIChatBotSingleton._clean_system_prompt_leaks(self, response)` - Remove leaked system prompt metadata (delegates to ai.response_postprocess).
-  - [OK] `AIChatBotSingleton._detect_resource_constraints(self)` - Detect if system is resource-constrained.
-  - [OK] `AIChatBotSingleton._ensure_lm_studio_available(self)` - Ensure LM Studio availability by retrying connection if needed.
-  - [OK] `AIChatBotSingleton._fallback_response_for_unavailable_lm(self, user_prompt, user_id, mode)` - Return contextual fallback when LM Studio is unavailable.
-  - [OK] `AIChatBotSingleton._get_adaptive_timeout(self, base_timeout)` - Get adaptive timeout based on system resources.
-  - [OK] `AIChatBotSingleton._get_cached_non_chat_response(self, mode, prompt_for_key, uid_for_key, ptype, user_prompt, user_id)` - Return cached response for non-chat modes when eligible.
-  - [OK] `AIChatBotSingleton._interaction_type_for_mode(self, mode)` - Map response mode to interaction type for structured logging.
-  - [OK] `AIChatBotSingleton._is_data_analysis_question(self, user_prompt)` - Detect prompts that should bypass contextual cache for fresh data.
-  - [OK] `AIChatBotSingleton._is_valid_timeout(self, timeout)` - Validate timeout input type for response generation.
-  - [OK] `AIChatBotSingleton._make_cache_key_inputs(self, mode, user_prompt, user_id)` - Create consistent cache key inputs with validation.
+- [OK] `LMStudioManager` - Detects LM Studio status and model availability
+  - [OK] `LMStudioManager.__init__(self)` - Initialize LM Studio status detector
+  - [OK] `LMStudioManager.is_lm_studio_running(self)` - Check if LM Studio process is running
+  - [OK] `LMStudioManager.is_model_loaded(self)` - Check if the configured model is actually loaded (not just available) in LM Studio
+  - [OK] `LMStudioManager.is_ready(self)` - Check if LM Studio is ready (server running and model loaded)
+  - [OK] `LMStudioManager.is_server_responding(self)` - Check if LM Studio server is responding on the configured port
+  - [OK] `LMStudioManager.load_model_automatically(self)` - Automatically load the configured model if server is running but no model is loaded
 
-Returns:
-    tuple: (user_prompt, user_id, mode)
-  - [OK] `AIChatBotSingleton._normalize_response_mode(self, mode, user_prompt)` - Normalize generation mode to supported values.
-  - [OK] `AIChatBotSingleton._optimize_prompt(self, user_prompt, context)` - Create optimized messages array for LM Studio API.
-  - [OK] `AIChatBotSingleton._post_process_generated_response(self, mode, result)` - Post-process model output into final user-visible response.
-  - [OK] `AIChatBotSingleton._record_contextual_interaction(self, user_id, user_prompt, response)` - Persist contextual response and conversation history.
-  - [OK] `AIChatBotSingleton._refresh_lm_studio_availability(self)` - Update lm_studio_available from a live connection test.
-  - [OK] `AIChatBotSingleton._smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response (delegates to ai.response_postprocess).
-  - [OK] `AIChatBotSingleton._store_chat_mode_interaction(self, mode, user_id, user_prompt, response)` - Persist chat interactions for conversation context.
-  - [OK] `AIChatBotSingleton._test_lm_studio_connection(self)` - Test connection to LM Studio (delegates to ai.lm_studio_client).
-  - [OK] `AIChatBotSingleton.generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
-Integrates with existing UserContext and UserPreferences systems.
-  - [OK] `AIChatBotSingleton.generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
-(check-in data). Uses longer timeout since this is not real-time.
+#### `ai/context/__init__.py`
 
-When skip_cache is True (admin test sends), bypass the response cache and
-ask the model for fresh wording so back-to-back tests are not identical.
-  - [OK] `AIChatBotSingleton.generate_quick_response(self, user_prompt, user_id)` - Generate a quick response for real-time chat (Discord, etc.).
-Uses shorter timeout optimized for responsiveness.
-  - [OK] `AIChatBotSingleton.generate_response(self, user_prompt, timeout, user_id, mode)` - Generate a basic AI response from user_prompt, using LM Studio API.
-Uses adaptive timeout to prevent blocking for too long with improved performance optimizations.
-  - [OK] `AIChatBotSingleton.get_ai_status(self)` - Get detailed status information about the AI system.
-  - [OK] `AIChatBotSingleton.is_ai_available(self)` - Check if the AI model is available and functional.
-  - [OK] `AIChatBotSingleton.reload_system_prompt(self)` - Reload the system prompt from file (useful for development and testing).
-  - [OK] `AIChatBotSingleton.test_system_prompt_integration(self)` - Test the system prompt integration and return status information.
-
-#### `ai/command_interpreter.py`
+#### `ai/context/assembly.py`
 **Functions:**
-- [OK] `__init__(self)` - Special Python method
-- [OK] `create_command_parsing_prompt(self, user_prompt)` - Create a prompt instructing the model to return structured command output.
-- [OK] `detect_mode(self, user_prompt)` - Detect whether the prompt is a command or a chat query.
-- [OK] `extract_command_from_response(self, response)` - Extract command structure from command mode responses.
-Handles JSON, key-value pairs (ACTION: ...), or natural language.
-- [OK] `get_command_interpreter()` - Return the shared command interpreter.
-- [OK] `has_command_keyword(self, prompt_lower)` - Return True when prompt appears command-oriented.
-- [OK] `is_natural_language_task_request(self, prompt_lower)` - Detect natural-language task intents that likely need clarification.
-- [OK] `needs_command_clarification(self, prompt_lower, words, stripped_prompt)` - Determine whether a command-like prompt is too ambiguous.
-**Classes:**
-- [OK] `CommandInterpreter` - Detect command-oriented prompts and extract structured command candidates.
-  - [OK] `CommandInterpreter.__init__(self)` - Special Python method
-  - [OK] `CommandInterpreter.create_command_parsing_prompt(self, user_prompt)` - Create a prompt instructing the model to return structured command output.
-  - [OK] `CommandInterpreter.detect_mode(self, user_prompt)` - Detect whether the prompt is a command or a chat query.
-  - [OK] `CommandInterpreter.extract_command_from_response(self, response)` - Extract command structure from command mode responses.
-Handles JSON, key-value pairs (ACTION: ...), or natural language.
-  - [OK] `CommandInterpreter.has_command_keyword(self, prompt_lower)` - Return True when prompt appears command-oriented.
-  - [OK] `CommandInterpreter.is_natural_language_task_request(self, prompt_lower)` - Detect natural-language task intents that likely need clarification.
-  - [OK] `CommandInterpreter.needs_command_clarification(self, prompt_lower, words, stripped_prompt)` - Determine whether a command-like prompt is too ambiguous.
+- [OK] `_append_activity_and_mood_trends_from_envelope(parts, structured)` - Append activity counts and mood trend summaries from envelope data.
+- [OK] `_append_checkin_summary_from_envelope(parts, structured)` - Append check-in summary text from envelope check-in data.
+- [OK] `_append_conversation_history_from_envelope(parts, structured)` - Append recent conversation history from envelope data.
+- [OK] `_append_feature_enablement_from_envelope(parts, structured)` - Append feature availability lines from envelope sections.
+- [OK] `_append_health_guidance_from_envelope(parts, structured)` - Append safe health guidance from envelope health data.
+- [OK] `_append_recent_sent_messages_from_envelope(parts, structured)` - Append recent automated message context from envelope message data.
+- [OK] `_append_schedule_details_from_envelope(parts, structured)` - Append active schedule details from envelope schedule data.
+- [OK] `_append_task_data_from_envelope(parts, structured)` - Append task summary context from envelope task data.
+- [OK] `_append_task_reminder_from_messages(parts, recent_sent_all)` - Append task-reminder context from recent sent messages.
+- [OK] `_append_today_checkin_status_from_envelope(parts, structured)` - Append today's check-in completion status from envelope data.
+- [OK] `_profile_context_from_envelope(envelope)` - Build the profile/context dict expected by existing phrasing helpers.
+- [OK] `assemble_comprehensive_messages(user_id, user_prompt)` - Build system + user messages for comprehensive conversational generation.
+- [OK] `build_context_parts(user_id, envelope)` - Assemble natural-language context lines for the system prompt.
 
-#### `ai/command_registry.py`
-**Functions:**
-- [OK] `format_command_actions_for_prompt()` - Format intent names for inclusion in the command system prompt.
-- [OK] `get_command_intent_names()` - Return sorted intent names from the rule-based command parser patterns.
-- [OK] `get_initialized_command_intent_names()` - Return live parser intent names, initializing the parser registry if needed.
-- [OK] `inject_command_actions_into_prompt(prompt_content)` - Replace the static 'Available actions:' list with the live registry.
-
-#### `ai/context_builder.py`
+#### `ai/context/builder.py`
 **Functions:**
 - [OK] `__init__(self)` - Initialize the context builder
 - [OK] `__post_init__(self)` - Post-initialization setup
@@ -309,40 +333,7 @@ Returns:
 - [OK] `ContextData` - Structured context data for AI interactions
   - [OK] `ContextData.__post_init__(self)` - Post-initialization setup
 
-#### `ai/context_service.py`
-**Functions:**
-- [OK] `_build_action_catalog_context()` - Build action catalog context for prompt/action planning.
-- [OK] `_build_analytics_context(sections)` - Build compact analytics summaries from already-loaded context sections.
-- [OK] `_build_checkin_context(user_id)` - Build structured check-in context through check-in service APIs.
-- [OK] `_build_conversation_context(user_id, include_conversation_history)` - Build recent conversation context when enabled.
-- [OK] `_build_health_context(user_id)` - Build safe AI-facing health guidance context.
-- [OK] `_build_message_context(user_id, preferences)` - Build structured message context through message data APIs.
-- [OK] `_build_notebook_context(user_id)` - Build structured notebook context through notebook service APIs.
-- [OK] `_build_schedule_context(schedules)` - Build structured schedule context and active schedule summary.
-- [OK] `_build_task_context(user_id)` - Build structured task context through task service APIs.
-- [OK] `_default_prompt_text(name, data)` - Build compact prompt text for a context section.
-- [OK] `_entry_to_dict(entry)` - Convert notebook entries or dict-like values to plain dictionaries.
-- [OK] `_format_account(account)` - Format account fields into compact prompt text.
-- [OK] `_format_personal_context(personal_context)` - Format personal context fields into compact prompt text.
-- [OK] `_format_preferences(preferences)` - Format preference fields into compact prompt text.
-- [OK] `_replace_included(section, included)` - Return a copy of a context section with a new inclusion flag.
-- [OK] `_section(name, data, prompt_text)` - Create a normalized context section with optional prompt text.
-- [OK] `_select_prompt_sections(prompt_request, sections)` - Select prompt sections relevant to the current user request.
-- [OK] `_unwrap_section(user_data, section_name)` - Return a normalized section payload from get_user_data output.
-- [OK] `build_ai_context_envelope(user_id)` - Build the canonical structured context envelope for product AI.
-- [OK] `included_sections(self)` - Return included section names in insertion order.
-- [OK] `prompt_sections(self)` - Return compact prompt text for included sections.
-- [OK] `structured(self)` - Return structured data keyed by section name.
-- [OK] `to_prompt_text(self)` - Join included prompt sections into a compact context block.
-**Classes:**
-- [OK] `AIContextEnvelope` - Structured product-AI context for a single user request.
-  - [OK] `AIContextEnvelope.included_sections(self)` - Return included section names in insertion order.
-  - [OK] `AIContextEnvelope.prompt_sections(self)` - Return compact prompt text for included sections.
-  - [OK] `AIContextEnvelope.structured(self)` - Return structured data keyed by section name.
-  - [OK] `AIContextEnvelope.to_prompt_text(self)` - Join included prompt sections into a compact context block.
-- [OK] `AIContextSection` - One normalized context section and its AI-facing prompt text.
-
-#### `ai/conversation_history.py`
+#### `ai/context/history.py`
 **Functions:**
 - [OK] `__init__(self, max_sessions_per_user, max_messages_per_session)` - Initialize the conversation history manager
 - [OK] `__post_init__(self)` - Post-initialization setup
@@ -532,30 +523,7 @@ Returns:
 - [OK] `ConversationSession` - A conversation session with multiple messages
   - [OK] `ConversationSession.__post_init__(self)` - Post-initialization setup
 
-#### `ai/conversational_context/__init__.py`
-
-#### `ai/conversational_context/action_boundaries.py`
-**Functions:**
-- [OK] `find_false_crud_claims(text)` - Return human-readable labels for false completed-action claims in *text*.
-- [OK] `response_has_false_crud_claim(text)` - True when *text* appears to claim a CRUD action completed without evidence.
-
-#### `ai/conversational_context/assembly.py`
-**Functions:**
-- [OK] `_append_activity_and_mood_trends_from_envelope(parts, structured)` - Append activity counts and mood trend summaries from envelope data.
-- [OK] `_append_checkin_summary_from_envelope(parts, structured)` - Append check-in summary text from envelope check-in data.
-- [OK] `_append_conversation_history_from_envelope(parts, structured)` - Append recent conversation history from envelope data.
-- [OK] `_append_feature_enablement_from_envelope(parts, structured)` - Append feature availability lines from envelope sections.
-- [OK] `_append_health_guidance_from_envelope(parts, structured)` - Append safe health guidance from envelope health data.
-- [OK] `_append_recent_sent_messages_from_envelope(parts, structured)` - Append recent automated message context from envelope message data.
-- [OK] `_append_schedule_details_from_envelope(parts, structured)` - Append active schedule details from envelope schedule data.
-- [OK] `_append_task_data_from_envelope(parts, structured)` - Append task summary context from envelope task data.
-- [OK] `_append_task_reminder_from_messages(parts, recent_sent_all)` - Append task-reminder context from recent sent messages.
-- [OK] `_append_today_checkin_status_from_envelope(parts, structured)` - Append today's check-in completion status from envelope data.
-- [OK] `_profile_context_from_envelope(envelope)` - Build the profile/context dict expected by existing phrasing helpers.
-- [OK] `assemble_comprehensive_messages(user_id, user_prompt, wellness_base_prompt)` - Build system + user messages for comprehensive conversational generation.
-- [OK] `build_context_parts(user_id, envelope)` - Assemble natural-language context lines for the system prompt.
-
-#### `ai/conversational_context/context_phraser.py`
+#### `ai/context/phraser.py`
 **Functions:**
 - [MISSING] `_checkin_completed_today(ts)` - No description
 - [MISSING] `_feature_status_lines(user_id)` - No description
@@ -572,9 +540,40 @@ Returns:
 - [MISSING] `append_today_checkin_status(parts, user_id)` - No description
 - [OK] `phrase_checkin_summary(analysis, recent_checkins)` - Turn ``ContextAnalysis`` check-in metrics into natural-language summary text.
 
-#### `ai/conversational_context/instructions.py`
+#### `ai/context/service.py`
+**Functions:**
+- [OK] `_build_action_catalog_context()` - Build action catalog context for prompt/action planning.
+- [OK] `_build_analytics_context(sections)` - Build compact analytics summaries from already-loaded context sections.
+- [OK] `_build_checkin_context(user_id)` - Build structured check-in context through check-in service APIs.
+- [OK] `_build_conversation_context(user_id, include_conversation_history)` - Build recent conversation context when enabled.
+- [OK] `_build_health_context(user_id)` - Build safe AI-facing health guidance context.
+- [OK] `_build_message_context(user_id, preferences)` - Build structured message context through message data APIs.
+- [OK] `_build_notebook_context(user_id)` - Build structured notebook context through notebook service APIs.
+- [OK] `_build_schedule_context(schedules)` - Build structured schedule context and active schedule summary.
+- [OK] `_build_task_context(user_id)` - Build structured task context through task service APIs.
+- [OK] `_default_prompt_text(name, data)` - Build compact prompt text for a context section.
+- [OK] `_entry_to_dict(entry)` - Convert notebook entries or dict-like values to plain dictionaries.
+- [OK] `_format_account(account)` - Format account fields into compact prompt text.
+- [OK] `_format_personal_context(personal_context)` - Format personal context fields into compact prompt text.
+- [OK] `_format_preferences(preferences)` - Format preference fields into compact prompt text.
+- [OK] `_replace_included(section, included)` - Return a copy of a context section with a new inclusion flag.
+- [OK] `_section(name, data, prompt_text)` - Create a normalized context section with optional prompt text.
+- [OK] `_select_prompt_sections(prompt_request, sections)` - Select prompt sections relevant to the current user request.
+- [OK] `_unwrap_section(user_data, section_name)` - Return a normalized section payload from get_user_data output.
+- [OK] `build_ai_context_envelope(user_id)` - Build the canonical structured context envelope for product AI.
+- [OK] `included_sections(self)` - Return included section names in insertion order.
+- [OK] `prompt_sections(self)` - Return compact prompt text for included sections.
+- [OK] `structured(self)` - Return structured data keyed by section name.
+- [OK] `to_prompt_text(self)` - Join included prompt sections into a compact context block.
+**Classes:**
+- [OK] `AIContextEnvelope` - Structured product-AI context for a single user request.
+  - [OK] `AIContextEnvelope.included_sections(self)` - Return included section names in insertion order.
+  - [OK] `AIContextEnvelope.prompt_sections(self)` - Return compact prompt text for included sections.
+  - [OK] `AIContextEnvelope.structured(self)` - Return structured data keyed by section name.
+  - [OK] `AIContextEnvelope.to_prompt_text(self)` - Join included prompt sections into a compact context block.
+- [OK] `AIContextSection` - One normalized context section and its AI-facing prompt text.
 
-#### `ai/fallback_responses/__init__.py`
+#### `ai/fallback/__init__.py`
 **Functions:**
 - [MISSING] `contextual(self, user_prompt, user_id)` - No description
 - [OK] `get_fallback_responses()` - Return the shared fallback responses helper.
@@ -586,11 +585,11 @@ Returns:
   - [MISSING] `FallbackResponses.personalize_with_profile_name(self, fallback_response, context_summary, profile)` - No description
   - [MISSING] `FallbackResponses.personalized(self, user_id)` - No description
 
-#### `ai/fallback_responses/categories.py`
+#### `ai/fallback/categories.py`
 **Classes:**
 - [OK] `FallbackCategory` - Explicit fallback kinds; avoids one undifferentiated keyword cascade.
 
-#### `ai/fallback_responses/checkin_summary.py`
+#### `ai/fallback/checkin_summary.py`
 **Functions:**
 - [OK] `_prompt_mentions_breakfast(prompt_lower)` - Return True when the prompt asks about breakfast/eating, not substring noise.
 - [OK] `try_checkin_summary_response(prompt_lower, analysis, name_prefix)` - Return a check-in summary fallback when prompt and data align.
@@ -598,79 +597,110 @@ Returns:
 ``analysis`` must come from ``ContextBuilder.analyze_context`` or
 ``analyze_recent_checkin_rows`` so metrics match conversational context.
 
-#### `ai/fallback_responses/conversational.py`
+#### `ai/fallback/conversational.py`
 **Functions:**
 - [OK] `default_contextual_response(name_prefix, is_new_user)` - Last-resort supportive fallback when no keyword or check-in path matched.
 - [OK] `try_conversational_support(prompt_lower, name_prefix, user_name)` - Keyword-based general support (no check-in calculations).
 - [MISSING] `try_new_user_no_context(prompt_lower, name_prefix, is_new_user)` - No description
 - [MISSING] `try_technical_unavailable(prompt_lower, name_prefix)` - No description
 
-#### `ai/fallback_responses/coordinator.py`
+#### `ai/fallback/coordinator.py`
 **Functions:**
 - [OK] `build_contextual_fallback(user_prompt, user_id)` - Provide contextually aware fallback responses based on user data and prompt analysis.
 Check-in analytics are handled separately from generic keyword support.
 
-#### `ai/fallback_responses/data_access.py`
+#### `ai/fallback/data_access.py`
 
-#### `ai/fallback_responses/personalized.py`
+#### `ai/fallback/personalized.py`
 **Functions:**
 - [OK] `build_personalized_message(user_id)` - Provide fallback personalized messages when AI model is not available.
 
-#### `ai/fallback_responses/profile_helpers.py`
+#### `ai/fallback/profile_helpers.py`
 **Functions:**
 - [OK] `load_user_context(user_id)` - Return the user's context dict, or empty dict when unavailable.
 - [OK] `name_prefix_from_context(user_context)` - Return a greeting prefix like ``'Alex, '`` when a preferred name exists.
 - [OK] `personalize_with_profile_name(fallback_response, context_summary, profile)` - Inject preferred name into greeting-based fallback responses when available.
 - [OK] `preferred_name_from_context(user_context)` - Return trimmed preferred name from a user context dict, or empty string.
 
-#### `ai/interaction_types.py`
+#### `ai/prompts/__init__.py`
+
+#### `ai/prompts/action_catalog.py`
 **Functions:**
-- [OK] `interaction_type_for_mode(mode)` - Map generate_response mode strings to interaction types.
+- [OK] `_fields_for_intent(intent)` - Return declared entity fields for an action intent.
+- [OK] `_get_live_intents()` - Return initialized parser intent names through the AI command registry.
+- [OK] `_handler_name_for_domain(domain)` - Return the existing communication handler class name for a domain.
+- [OK] `_infer_domain(intent)` - Infer product domain from canonical parser intent name.
+- [OK] `build_action_catalog()` - Build action metadata from live parser intents without importing handlers.
+- [OK] `get(self, action_name)` - Return a catalog action by canonical action name.
+- [OK] `get_action_catalog()` - Return a freshly built action catalog from live command infrastructure.
+- [OK] `required_fields(self)` - Return entity field names required before this action can execute.
+- [OK] `to_dict(self)` - Return a JSON-serializable representation for context envelopes.
+- [OK] `to_dict(self)` - Return a JSON-serializable catalog representation.
+- [OK] `to_prompt_summary(self)` - Return compact action metadata for model prompts.
 **Classes:**
-- [OK] `AIInteractionType` - Why the system is calling AI and what shape of output is expected.
+- [OK] `AIActionCatalog` - Collection of product-AI actions indexed by canonical action name.
+  - [OK] `AIActionCatalog.get(self, action_name)` - Return a catalog action by canonical action name.
+  - [OK] `AIActionCatalog.to_dict(self)` - Return a JSON-serializable catalog representation.
+  - [OK] `AIActionCatalog.to_prompt_summary(self)` - Return compact action metadata for model prompts.
+- [OK] `AIActionDefinition` - Catalog entry for one product action routed through existing command handlers.
+  - [OK] `AIActionDefinition.required_fields(self)` - Return entity field names required before this action can execute.
+  - [OK] `AIActionDefinition.to_dict(self)` - Return a JSON-serializable representation for context envelopes.
+- [OK] `AIActionField` - One action entity field expected by an existing handler.
+- [OK] `AIActionRequest` - Model-planned action request before communication-layer dispatch.
 
-#### `ai/lm_studio_client.py`
+#### `ai/prompts/command_interpreter.py`
 **Functions:**
-- [OK] `call_lm_studio_api(messages, max_tokens, temperature, timeout)` - Make a chat/completions request to LM Studio.
-- [OK] `test_lm_studio_connection()` - Return True when the LM Studio /models endpoint responds successfully.
-
-#### `ai/lm_studio_manager.py`
-**Functions:**
-- [OK] `__init__(self)` - Initialize LM Studio status detector
-- [OK] `ensure_lm_studio_ready()` - Ensure LM Studio is ready, attempting automatic model loading if needed
-- [OK] `get_lm_studio_manager()` - Get the global LM Studio manager instance
-- [OK] `is_lm_studio_ready()` - Check if LM Studio is ready for AI features
-- [OK] `is_lm_studio_running(self)` - Check if LM Studio process is running
-- [OK] `is_model_loaded(self)` - Check if the configured model is actually loaded (not just available) in LM Studio
-- [OK] `is_ready(self)` - Check if LM Studio is ready (server running and model loaded)
-- [OK] `is_server_responding(self)` - Check if LM Studio server is responding on the configured port
-- [OK] `load_model_automatically(self)` - Automatically load the configured model if server is running but no model is loaded
+- [OK] `__init__(self)` - Special Python method
+- [OK] `create_command_parsing_prompt(self, user_prompt)` - Create a prompt instructing the model to return structured command output.
+- [OK] `detect_mode(self, user_prompt)` - Detect whether the prompt is a command or a chat query.
+- [OK] `extract_command_from_response(self, response)` - Extract command structure from command mode responses.
+Handles JSON, key-value pairs (ACTION: ...), or natural language.
+- [OK] `get_command_interpreter()` - Return the shared command interpreter.
+- [OK] `has_command_keyword(self, prompt_lower)` - Return True when prompt appears command-oriented.
+- [OK] `is_natural_language_task_request(self, prompt_lower)` - Detect natural-language task intents that likely need clarification.
+- [OK] `needs_command_clarification(self, prompt_lower, words, stripped_prompt)` - Determine whether a command-like prompt is too ambiguous.
 **Classes:**
-- [OK] `LMStudioManager` - Detects LM Studio status and model availability
-  - [OK] `LMStudioManager.__init__(self)` - Initialize LM Studio status detector
-  - [OK] `LMStudioManager.is_lm_studio_running(self)` - Check if LM Studio process is running
-  - [OK] `LMStudioManager.is_model_loaded(self)` - Check if the configured model is actually loaded (not just available) in LM Studio
-  - [OK] `LMStudioManager.is_ready(self)` - Check if LM Studio is ready (server running and model loaded)
-  - [OK] `LMStudioManager.is_server_responding(self)` - Check if LM Studio server is responding on the configured port
-  - [OK] `LMStudioManager.load_model_automatically(self)` - Automatically load the configured model if server is running but no model is loaded
+- [OK] `CommandInterpreter` - Detect command-oriented prompts and extract structured command candidates.
+  - [OK] `CommandInterpreter.__init__(self)` - Special Python method
+  - [OK] `CommandInterpreter.create_command_parsing_prompt(self, user_prompt)` - Create a prompt instructing the model to return structured command output.
+  - [OK] `CommandInterpreter.detect_mode(self, user_prompt)` - Detect whether the prompt is a command or a chat query.
+  - [OK] `CommandInterpreter.extract_command_from_response(self, response)` - Extract command structure from command mode responses.
+Handles JSON, key-value pairs (ACTION: ...), or natural language.
+  - [OK] `CommandInterpreter.has_command_keyword(self, prompt_lower)` - Return True when prompt appears command-oriented.
+  - [OK] `CommandInterpreter.is_natural_language_task_request(self, prompt_lower)` - Detect natural-language task intents that likely need clarification.
+  - [OK] `CommandInterpreter.needs_command_clarification(self, prompt_lower, words, stripped_prompt)` - Determine whether a command-like prompt is too ambiguous.
 
-#### `ai/prompt_flows.py`
+#### `ai/prompts/command_registry.py`
+**Functions:**
+- [OK] `format_command_actions_for_prompt()` - Format intent names for inclusion in the command system prompt.
+- [OK] `get_command_intent_names()` - Return sorted intent names from the rule-based command parser patterns.
+- [OK] `get_initialized_command_intent_names()` - Return live parser intent names, initializing the parser registry if needed.
+- [OK] `inject_command_actions_into_prompt(prompt_content)` - Replace the static 'Available actions:' list with the live registry.
+
+#### `ai/prompts/flows.py`
 **Functions:**
 - [OK] `get_product_ai_prompt_flow(name)` - Return the prompt-flow contract for a named product-AI flow.
 **Classes:**
 - [OK] `ProductAIPromptFlow` - Declarative prompt-flow contract for product AI.
 
-#### `ai/prompt_manager.py`
+#### `ai/prompts/manager.py`
 **Functions:**
 - [OK] `__init__(self)` - Initialize the prompt manager
+- [OK] `_action_summary_from_dict(catalog)` - Return compact action capability text from serialized catalog data.
+- [OK] `_extract_action_summary(context_view, action_catalog)` - Return generated action capability text from a catalog or context view.
+- [OK] `_extract_context_prompt_text(context_view)` - Return prompt text from an AIContextEnvelope-like object or plain dict.
 - [OK] `_load_assistant_system_prompt_text()` - Load the main companion prompt from resources/prompts/assistant_system_prompt.txt.
 - [OK] `_load_command_prompt_text()` - Load the command-parser system prompt from resources/prompts/command.txt.
 - [OK] `_load_custom_prompt(self)` - Load the custom system prompt from file when AI_USE_CUSTOM_PROMPT is enabled.
+- [OK] `_load_product_ai_category_text(category)` - Load one product-AI prompt category file.
+- [OK] `_max_tokens_for_product_flow(flow_name)` - Return default max-token budget for a product-AI prompt flow.
 - [OK] `_read_prompt_file(path)` - Read UTF-8 prompt text from a file path.
+- [OK] `_temperature_for_product_flow(flow_name)` - Return default generation temperature for a product-AI prompt flow.
 - [OK] `add_prompt_template(self, template)` - Add a custom prompt template
 
 Args:
     template: PromptTemplate to add
+- [OK] `compose_product_prompt(self, flow_name)` - Compose a product-AI prompt from flow categories and supplied data.
 - [OK] `create_checkin_prompt(self, checkin_type, user_context)` - Create a check-in specific prompt
 
 Args:
@@ -734,6 +764,7 @@ Returns:
 
 Args:
     template: PromptTemplate to add
+  - [OK] `PromptManager.compose_product_prompt(self, flow_name)` - Compose a product-AI prompt from flow categories and supplied data.
   - [OK] `PromptManager.create_checkin_prompt(self, checkin_type, user_context)` - Create a check-in specific prompt
 
 Args:
@@ -789,29 +820,6 @@ Args:
 Returns:
     True if template was removed, False if not found
 - [OK] `PromptTemplate` - Template for AI prompts
-
-#### `ai/response_generator.py`
-**Functions:**
-- [OK] `__init__(self)` - Special Python method
-- [OK] `create_comprehensive_context_prompt(self, user_id, user_prompt)` - Create a comprehensive context prompt with all user data for LM Studio.
-- [OK] `enhance_conversational_engagement(self, response)` - Enhance response to ensure good conversational engagement.
-Adds engagement prompts if the response doesn't already have them.
-- [OK] `get_response_generator()` - Return the shared response generator.
-**Classes:**
-- [OK] `ResponseGenerator` - Build conversational prompts and post-process chat responses.
-  - [OK] `ResponseGenerator.__init__(self)` - Special Python method
-  - [OK] `ResponseGenerator.create_comprehensive_context_prompt(self, user_id, user_prompt)` - Create a comprehensive context prompt with all user data for LM Studio.
-  - [OK] `ResponseGenerator.enhance_conversational_engagement(self, response)` - Enhance response to ensure good conversational engagement.
-Adds engagement prompts if the response doesn't already have them.
-
-#### `ai/response_postprocess.py`
-**Functions:**
-- [OK] `clean_system_prompt_leaks(response)` - Remove leaked system prompt metadata from AI responses.
-Prevents meta-text like "User Context:" from appearing in user-facing output.
-- [OK] `keep_first_personalized_block(text)` - When the model returns multiple draft messages, keep only the first greeting block.
-- [OK] `smart_truncate_response(text, max_chars, max_words)` - Truncate response to avoid mid-sentence cuts when possible.
-- [OK] `strip_instruction_tuning_markers(text)` - Remove fine-tuning delimiter leaks (e.g. '## INPUT ##OUTPUT') from model output.
-- [OK] `strip_letter_signoffs(text)` - Remove email-style closings and [Your Name] placeholders from short wellness messages.
 
 ### `checkins/` - Unknown Directory
 

@@ -288,7 +288,7 @@ def setup_consolidated_test_logging():
         from scheduler.manager import SchedulerManager
         from core.service import MHMService
         from communication.core.channel_orchestrator import CommunicationManager
-        from ai.chatbot import AIChatBotSingleton
+        from ai.chat.chatbot import AIChatBotSingleton
         _ = (
             SchedulerManager,
             MHMService,

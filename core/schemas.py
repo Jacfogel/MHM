@@ -181,6 +181,7 @@ class AccountModel(BaseModel):
     # devtools: ignore[facade-shims]: accepts current and historical Discord username formats
     @field_validator("discord_username")
     @classmethod
+    # not_duplicate: schema_v1_v2_discord_validators
     def _normalize_discord_username(cls, v: str) -> str:
         """Normalize Discord username while tolerating empty or legacy values."""
         if not v or not isinstance(v, str):
@@ -363,6 +364,7 @@ class PeriodModel(BaseModel):
 
     @field_validator("days")
     @classmethod
+    # not_duplicate: schema_v1_v2_period_validators
     def _valid_days(cls, v: list[str]) -> list[str]:
         # NOTE: Pydantic validators should not have try-except blocks.
         # Pydantic handles exceptions internally and will raise ValidationError if needed.

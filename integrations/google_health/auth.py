@@ -36,6 +36,7 @@ GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 
 
 @handle_errors("checking Google Health testing mode", default_return=False)
+# not_duplicate: google_health_testing_mode_guard
 def _testing_mode() -> bool:
     """Return True when MHM_TESTING skips live OAuth network calls."""
     return os.getenv("MHM_TESTING") == "1"
@@ -192,6 +193,7 @@ class _OAuthCallbackHandler(BaseHTTPRequestHandler):
     error_message: str | None = None
 
     @handle_errors("logging OAuth callback HTTP message", default_return=None)
+    # not_duplicate: http_handler_log_message_stub
     def log_message(self, format: str, *args: Any) -> None:
         """Route HTTP server log lines to the google_health component logger."""
         logger.debug(f"OAuth callback: {format % args}")

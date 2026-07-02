@@ -524,7 +524,7 @@ class TestRegistryHelpers:
             content = registry_module.generate_entry_points_section(patterns, {})
 
         assert "communication/message_processing/interaction_manager.py::handle_message()" in content
-        assert "ai/chatbot.py::generate_response()" in content
+        assert "ai/chat/chatbot.py::generate_response()" in content
 
     @pytest.mark.unit
     def test_generate_entry_points_section_respects_priority_and_init_filter(self):
@@ -534,7 +534,7 @@ class TestRegistryHelpers:
                 {"file": "ui/ui_app_qt.py", "function": "__init__", "has_doc": True},
                 {"file": "misc/mod.py", "function": "other", "has_doc": True},
                 {"file": "communication/message_processing/interaction_manager.py", "function": "handle_message", "has_doc": True},
-                {"file": "ai/chatbot.py", "function": "generate_response", "has_doc": True},
+                {"file": "ai/chat/chatbot.py", "function": "generate_response", "has_doc": True},
             ]
         }
 
@@ -557,7 +557,7 @@ class TestRegistryHelpers:
         patterns = {
             "entry_points": [
                 {"file": "communication/message_processing/interaction_manager.py", "function": "handle_message"},
-                {"file": "ai/chatbot.py", "function": "generate_response"},
+                {"file": "ai/chat/chatbot.py", "function": "generate_response"},
                 {"file": "run_mhm.py", "function": "main"},
             ],
             "data_access": [

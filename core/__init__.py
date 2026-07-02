@@ -85,10 +85,7 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     "update_user_index": ("storage.user_data_operations", "update_user_index"),
     "rebuild_user_index": ("storage.user_data_operations", "rebuild_user_index"),
     "UserDataManager": ("storage.user_data_operations", "UserDataManager"),
-    "update_message_references": (
-        "storage.user_data_operations",
-        "update_message_references",
-    ),
+    "user_data_manager": ("storage.user_data_operations", "user_data_manager"),
     "backup_user_data": ("storage.user_data_operations", "backup_user_data"),
     "export_user_data": ("storage.user_data_operations", "export_user_data"),
     "delete_user_completely": (
@@ -441,7 +438,7 @@ __all__ = [
     "update_user_index",
     "rebuild_user_index",
     "UserDataManager",
-    "update_message_references",
+    "user_data_manager",
     "backup_user_data",
     "export_user_data",
     "delete_user_completely",

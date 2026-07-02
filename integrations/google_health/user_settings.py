@@ -111,6 +111,7 @@ def run_connect_flow_async(
 
 
 @handle_errors("pausing Google Health integration", default_return=False)
+# not_duplicate: google_health_feature_flag_mutators
 def pause_health_integration(user_id: str) -> bool:
     account = get_user_data(user_id, "account").get("account") or {}
     features = dict(account.get("features") or {})
@@ -119,6 +120,7 @@ def pause_health_integration(user_id: str) -> bool:
 
 
 @handle_errors("enabling Google Health integration", default_return=(False, ""))
+# not_duplicate: google_health_feature_flag_mutators
 def enable_health_integration(user_id: str) -> tuple[bool, str]:
     if not has_valid_auth(user_id):
         return False, "Connect Google Health first."
@@ -132,6 +134,7 @@ def enable_health_integration(user_id: str) -> tuple[bool, str]:
 
 
 @handle_errors("deleting Google Health integration data", default_return=False)
+# not_duplicate: google_health_feature_flag_mutators
 def delete_health_integration(user_id: str) -> bool:
     delete_user_health_data(user_id)
     account = get_user_data(user_id, "account").get("account") or {}

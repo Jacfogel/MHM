@@ -75,6 +75,7 @@ class CommunicationManager:
             return cls._instance
 
     @handle_errors("initializing channel orchestrator", default_return=None)
+    # not_duplicate: unrelated_singleton_constructors
     def __init__(self):
         """Initialize the CommunicationManager singleton"""
         # Check if already initialized
@@ -1195,7 +1196,7 @@ class CommunicationManager:
             tuple[bool, str | None]: (success, message_content) - True if sent successfully, and the message content that was sent
         """
         try:
-            from ai.chatbot import get_ai_chatbot
+            from ai.chat.chatbot import get_ai_chatbot
             from core.config import AI_PERSONALIZED_MESSAGE_TIMEOUT
             from core.health_signals import get_message_guidance
             from integrations.google_health.personalization_rules import (

@@ -4,7 +4,7 @@
 
 import json
 
-from ai.prompt_manager import get_prompt_manager
+from ai.prompts.manager import get_prompt_manager
 from core.error_handling import handle_errors
 
 _CLARIFICATION_PROMPT_SUFFIX = (

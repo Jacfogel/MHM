@@ -19,9 +19,9 @@ sys.path.insert(0, project_root)
 from unittest.mock import patch, MagicMock
 import requests
 
-from ai.chatbot import AIChatBotSingleton
-from ai.cache_manager import get_response_cache
-from ai.command_interpreter import get_command_interpreter
+from ai.chat.chatbot import AIChatBotSingleton
+from ai.client.cache_manager import get_response_cache
+from ai.prompts.command_interpreter import get_command_interpreter
 from tests.test_helpers.test_utilities import TestUserFactory
 from core.time_utilities import now_datetime_full, now_timestamp_filename
 from core.response_tracking import get_recent_chat_interactions
@@ -1329,7 +1329,7 @@ class AITestRunner:
 
         # Test 10.1: Connection error handling
         try:
-            with patch("ai.chatbot.requests.get") as mock_get:
+            with patch("ai.chat.chatbot.requests.get") as mock_get:
                 # Simulate connection error
                 mock_get.side_effect = requests.ConnectionError("Connection refused")
 
@@ -1380,7 +1380,7 @@ class AITestRunner:
 
         # Test 10.2: Timeout handling
         try:
-            with patch("ai.chatbot.requests.post") as mock_post:
+            with patch("ai.chat.chatbot.requests.post") as mock_post:
                 # Simulate timeout
                 mock_post.side_effect = requests.Timeout("Request timed out")
 
@@ -1430,7 +1430,7 @@ class AITestRunner:
 
         # Test 10.3: Invalid API response handling
         try:
-            with patch("ai.chatbot.requests.post") as mock_post:
+            with patch("ai.chat.chatbot.requests.post") as mock_post:
                 # Simulate invalid/malformed response
                 mock_response = MagicMock()
                 mock_response.status_code = 200
@@ -1493,7 +1493,7 @@ class AITestRunner:
 
         # Test 10.4: 5xx Server error handling
         try:
-            with patch("ai.chatbot.requests.post") as mock_post:
+            with patch("ai.chat.chatbot.requests.post") as mock_post:
                 # Simulate server error
                 mock_response = MagicMock()
                 mock_response.status_code = 500

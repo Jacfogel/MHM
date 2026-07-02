@@ -10,8 +10,9 @@ from pathlib import Path
 import pytest
 
 AI_PACKAGE_DIR = Path(__file__).resolve().parent.parent.parent / "ai"
-FALLBACK_PACKAGE_DIR = AI_PACKAGE_DIR / "fallback_responses"
-CONVERSATIONAL_CONTEXT_DIR = AI_PACKAGE_DIR / "conversational_context"
+FALLBACK_PACKAGE_DIR = AI_PACKAGE_DIR / "fallback"
+CONTEXT_PACKAGE_DIR = AI_PACKAGE_DIR / "context"
+COMMAND_REGISTRY_FILE = AI_PACKAGE_DIR / "prompts" / "command_registry.py"
 
 FORBIDDEN_COMMUNICATION_PREFIXES = (
     "communication.",
@@ -52,6 +53,10 @@ def _violations_for_dir(
     return violations
 
 
+def _iter_ai_python_files() -> list[Path]:
+    return sorted(AI_PACKAGE_DIR.rglob("*.py"))
+
+
 @pytest.mark.unit
 @pytest.mark.ai
 class TestAiImportBoundaries:
@@ -67,35 +72,35 @@ class TestAiImportBoundaries:
             + "\n".join(violations)
         )
 
-    def test_conversational_context_does_not_import_communication_or_channels(self):
+    def test_context_package_does_not_import_communication_or_channels(self):
         violations = _violations_for_dir(
-            CONVERSATIONAL_CONTEXT_DIR,
+            CONTEXT_PACKAGE_DIR,
             FORBIDDEN_COMMUNICATION_PREFIXES + FORBIDDEN_CHANNEL_PREFIXES,
         )
         assert not violations, (
-            "conversational_context must not import communication adapters:\n"
+            "context package must not import communication adapters:\n"
             + "\n".join(violations)
         )
 
     def test_command_registry_may_import_command_parser(self):
         """Documented adapter: ai -> communication for intent names only."""
-        registry_file = AI_PACKAGE_DIR / "command_registry.py"
-        imports = _collect_imports_from_file(registry_file)
+        imports = _collect_imports_from_file(COMMAND_REGISTRY_FILE)
         assert any(
             mod.startswith("communication.message_processing.command_parser")
             for mod in imports
         ), "command_registry should import command_parser for live intent names"
 
     def test_command_registry_is_only_ai_module_importing_communication_parser(self):
-        """Other ai/*.py files should not reach into communication.message_processing."""
+        """Other ai/**/*.py files should not reach into communication.message_processing."""
         violations: list[str] = []
-        for py_file in AI_PACKAGE_DIR.glob("*.py"):
-            if py_file.name == "command_registry.py":
+        for py_file in _iter_ai_python_files():
+            rel = py_file.relative_to(AI_PACKAGE_DIR)
+            if rel == Path("prompts") / "command_registry.py":
                 continue
             for module_name in _collect_imports_from_file(py_file):
                 if module_name.startswith("communication."):
-                    violations.append(f"{py_file.name}: {module_name}")
+                    violations.append(f"{rel}: {module_name}")
         assert not violations, (
-            "Only command_registry may import communication from ai/*.py:\n"
+            "Only prompts/command_registry.py may import communication from ai/:\n"
             + "\n".join(violations)
         )

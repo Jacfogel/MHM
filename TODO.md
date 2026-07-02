@@ -56,8 +56,17 @@ No active high-priority TODOs are currently tracked here. Keep completed archite
 
 ### User data (versioned schemas)
 
-**Optional: retire `core/schemas.py` in-memory profile validators** - Only if replaced by stricter models post-v2. Shipped profile v2 work is in [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) (2026-06-02) and [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) section 0.
+**Confirm and retire `core/schemas.py` in-memory profile validators** - Live `data/users/` (4 users) and the latest weekly backup are v2-only (`schema_version: 2` on account/profile/preferences envelopes; no legacy `profile.json` / `preferences.json` without v2). Runtime on-disk path is already v2 per [USER_DATA_MODEL.md](core/USER_DATA_MODEL.md). Remaining work: verify no code path still depends on v1 in-memory `AccountModel` / `PeriodModel` validators before removal.
+- *Created*: 2026-07-02
 - *Estimated effort*: Large
+
+### Integrations / refactor hygiene
+
+**Extract shared Google Health `_testing_mode()` helper** - `integrations/google_health/auth.py`, `client.py`, and `sync_manager.py` each define an identical `MHM_TESTING` guard. Add a small shared helper (e.g. `integrations/google_health/testing.py`) and replace the three copies without introducing circular imports.
+- *What it means*: One function owns the testing-mode check; modules import it instead of duplicating the body.
+- *Why it helps*: Removes real duplication while keeping the guard local to the Google Health package.
+- *Created*: 2026-07-02
+- *Estimated effort*: Small
 
 ### Documentation
 
@@ -128,7 +137,7 @@ No active high-priority TODOs are currently tracked here. Keep completed archite
 - *What it means*: Improve AI chat quality and enable robust task/message/profile CRUD, with awareness of recent automated messages and targeted, non-conflicting suggestions.
 - *Why it helps*: Addresses the user's biggest friction and increases real utility.
 - *Estimated effort*: Large
-- *Remaining*: Live LM Studio review of conversational replies under `tests/ai/run_ai_functionality_tests.py` (static boundaries shipped 2026-05-22). Shipped 2026-05-21: feature-flag audit, `is_automated_messages_enabled()`, gating in `ai/conversational_context/`; shipped 2026-05-22: [`ai/conversational_context/action_boundaries.py`](ai/conversational_context/action_boundaries.py), ACTION BOUNDARIES instructions, [`tests/behavior/test_conversational_action_boundaries.py`](tests/behavior/test_conversational_action_boundaries.py) - see [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) Section 4.3.
+- *Remaining*: Live LM Studio review of conversational replies under `tests/ai/run_ai_functionality_tests.py` (static boundaries shipped 2026-05-22). Shipped 2026-05-21: feature-flag audit, `is_automated_messages_enabled()`, gating in `ai/context/`; shipped 2026-05-22: [`ai/chat/action_boundaries.py`](ai/chat/action_boundaries.py), ACTION BOUNDARIES instructions, [`tests/behavior/test_conversational_action_boundaries.py`](tests/behavior/test_conversational_action_boundaries.py) - see [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) Section 4.3.
 
 **Differentiate Between New and Returning Users**
 - *What it means*: Implement logic to distinguish between users who are authorizing the app for the first time versus users who are returning after deauthorizing

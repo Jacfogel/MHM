@@ -2,8 +2,8 @@
 
 import pytest
 
-from ai.conversational_context.assembly import build_context_parts
-from ai.response_generator import get_response_generator
+from ai.context.assembly import build_context_parts
+from ai.chat.response_generator import get_response_generator
 from core import get_user_data, get_user_id_by_identifier
 from messages.message_data_manager import store_sent_message
 from storage.user_data_write import update_user_account

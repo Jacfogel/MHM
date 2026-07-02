@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from ai.context_service import AIContextEnvelope, AIContextSection
-from ai.conversational_context.assembly import (
+from ai.context.service import AIContextEnvelope, AIContextSection
+from ai.context.assembly import (
     assemble_comprehensive_messages,
     build_context_parts,
 )
@@ -88,18 +88,17 @@ def test_assemble_comprehensive_messages_uses_chat_response_flow(monkeypatch):
         return _envelope()
 
     monkeypatch.setattr(
-        "ai.conversational_context.assembly.build_ai_context_envelope",
+        "ai.context.assembly.build_ai_context_envelope",
         _fake_build_envelope,
     )
 
     messages = assemble_comprehensive_messages(
         "user-1",
         "hello",
-        "You are a supportive wellness assistant.",
     )
 
     assert messages[0]["role"] == "system"
-    assert "supportive wellness assistant" in messages[0]["content"]
+    assert "MHM's in-app assistant" in messages[0]["content"]
     assert "User Context:" in messages[0]["content"]
     assert messages[1] == {"role": "user", "content": "hello"}
     assert calls == [

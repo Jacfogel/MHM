@@ -12,8 +12,8 @@ from contextlib import ExitStack
 from unittest.mock import patch, MagicMock
 
 # Import the modules we're testing
-from ai.chatbot import AIChatBotSingleton
-from ai.command_interpreter import get_command_interpreter
+from ai.chat.chatbot import AIChatBotSingleton
+from ai.prompts.command_interpreter import get_command_interpreter
 from core.response_tracking import get_recent_chat_interactions, store_chat_interaction
 from core import save_user_data
 from core.config import AI_CLARIFICATION_TEMPERATURE
@@ -57,9 +57,9 @@ class TestAIChatBotBehavior:
 
         try:
             # Mock the AI_SYSTEM_PROMPT_PATH to use our temp file
-            with patch('ai.prompt_manager.AI_SYSTEM_PROMPT_PATH', prompt_file), \
-                 patch('ai.prompt_manager.AI_USE_CUSTOM_PROMPT', True):
-                from ai.prompt_manager import PromptManager
+            with patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', prompt_file), \
+                 patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', True):
+                from ai.prompts.manager import PromptManager
                 manager = PromptManager()
 
                 # Test that custom prompt is loaded
@@ -79,7 +79,7 @@ class TestAIChatBotBehavior:
     @pytest.mark.critical
     def test_response_cache_actually_stores_and_retrieves_data(self, test_data_dir):
         """Test that response cache actually stores and retrieves data."""
-        from ai.cache_manager import get_response_cache
+        from ai.client.cache_manager import get_response_cache
         cache = get_response_cache()
         
         # Test storing data
@@ -102,7 +102,7 @@ class TestAIChatBotBehavior:
     @pytest.mark.slow
     def test_response_cache_cleanup_actually_removes_entries(self, test_data_dir):
         """Test that response cache cleanup actually removes old entries."""
-        from ai.cache_manager import get_response_cache
+        from ai.client.cache_manager import get_response_cache
         cache = get_response_cache()
         
         # Note: The canonical cache is a singleton, so we test its behavior
@@ -267,7 +267,7 @@ class TestAIChatBotBehavior:
         with ExitStack() as stack:
             stack.enter_context(
                 patch(
-                    'ai.chatbot.get_command_interpreter',
+                    'ai.chat.chatbot.get_command_interpreter',
                     return_value=mock_interpreter,
                 )
             )
@@ -284,12 +284,6 @@ class TestAIChatBotBehavior:
                     '_smart_truncate_response',
                     side_effect=lambda text, *args, **kwargs: text,
                 )
-            )
-            mock_get_generator = stack.enter_context(
-                patch('ai.chatbot.get_response_generator')
-            )
-            mock_get_generator.return_value.enhance_conversational_engagement.side_effect = (
-                lambda text: text
             )
             response = chatbot.generate_response(
                 "Can you add a task?",
@@ -326,7 +320,7 @@ class TestAIChatBotBehavior:
         with ExitStack() as stack:
             stack.enter_context(
                 patch(
-                    'ai.chatbot.get_command_interpreter',
+                    'ai.chat.chatbot.get_command_interpreter',
                     return_value=mock_interpreter,
                 )
             )
@@ -343,12 +337,6 @@ class TestAIChatBotBehavior:
                     '_smart_truncate_response',
                     side_effect=lambda text, *args, **kwargs: text,
                 )
-            )
-            mock_get_generator = stack.enter_context(
-                patch('ai.chatbot.get_response_generator')
-            )
-            mock_get_generator.return_value.enhance_conversational_engagement.side_effect = (
-                lambda text: text
             )
             response = chatbot.generate_response(
                 ambiguous_prompt,

@@ -2,18 +2,18 @@
 
 """Orchestrates fallback routing: check-in data first, then keyword support."""
 
-import ai.fallback_responses.data_access as data_access
+import ai.fallback.data_access as data_access
 
-from ai.context_builder import analyze_recent_checkin_rows
-from ai.fallback_responses.categories import FallbackCategory
-from ai.fallback_responses.checkin_summary import try_checkin_summary_response
-from ai.fallback_responses.conversational import (
+from ai.context.builder import analyze_recent_checkin_rows
+from ai.fallback.categories import FallbackCategory
+from ai.fallback.checkin_summary import try_checkin_summary_response
+from ai.fallback.conversational import (
     default_contextual_response,
     try_conversational_support,
     try_new_user_no_context,
     try_technical_unavailable,
 )
-from ai.fallback_responses.profile_helpers import (
+from ai.fallback.profile_helpers import (
     load_user_context,
     name_prefix_from_context,
     preferred_name_from_context,

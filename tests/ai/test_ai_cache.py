@@ -6,7 +6,7 @@ Tests for response caching behavior, isolation, and performance.
 
 import time
 
-from ai.cache_manager import get_response_cache
+from ai.client.cache_manager import get_response_cache
 from tests.ai.ai_test_base import AITestBase
 
 

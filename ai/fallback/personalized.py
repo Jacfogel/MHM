@@ -2,10 +2,10 @@
 
 """Personalized fallback messages when the AI model is unavailable."""
 
-import ai.fallback_responses.data_access as data_access
+import ai.fallback.data_access as data_access
 
-from ai.fallback_responses.categories import FallbackCategory
-from ai.fallback_responses.profile_helpers import name_prefix_from_context
+from ai.fallback.categories import FallbackCategory
+from ai.fallback.profile_helpers import name_prefix_from_context
 from core.error_handling import handle_errors
 
 

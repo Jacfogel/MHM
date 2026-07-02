@@ -414,7 +414,7 @@ def generate_ai_function_registry_content(actual_functions: dict[str, dict]) -> 
         ("user/user_context.py", "User context management"),
     ]
     _fallback_ai = [
-        ("ai/chatbot.py", "Main AI implementation"),
+        ("ai/chat/chatbot.py", "Main AI implementation"),
         ("communication/message_processing/command_parser.py", "Natural language parsing"),
     ]
     _fallback_comm = [
@@ -866,7 +866,7 @@ def generate_entry_points_section(
     if len(entry_points) < 4:
         common_entry_points = [
             "[OK] `communication/message_processing/interaction_manager.py::handle_message()` - Main message entry point",
-            "[OK] `ai/chatbot.py::generate_response()` - AI response generation",
+            "[OK] `ai/chat/chatbot.py::generate_response()` - AI response generation",
             "[OK] `core/user_data_read.py::get_user_data()` - User data access",
             "[OK] `ui/ui_app_qt.py::__init__()` - UI application startup",
         ]

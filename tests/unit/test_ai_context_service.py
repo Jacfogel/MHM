@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from ai.context_service import build_ai_context_envelope
+from ai.context.service import build_ai_context_envelope
 from tests.test_helpers.test_utilities.test_user_factory import TestUserFactory
 
 

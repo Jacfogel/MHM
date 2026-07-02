@@ -7,7 +7,7 @@ Tests for basic AI response generation, mode detection, and contextual responses
 import os
 from unittest.mock import patch
 
-from ai.command_interpreter import get_command_interpreter
+from ai.prompts.command_interpreter import get_command_interpreter
 from tests.ai.ai_test_base import AITestBase
 from tests.test_helpers.test_utilities import TestUserFactory
 from core import get_user_id_by_identifier

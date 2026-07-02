@@ -5,9 +5,9 @@ Compute structured user context and check-in analytics for AI interactions.
 
 This module calculates facts (``analyze_context``, ``ContextAnalysis``).
 Natural-language phrasing for comprehensive chat prompts lives in
-``ai.conversational_context.context_phraser``.
+``ai.context.phraser``.
 
-Full conversational prompt assembly: ``ai.conversational_context.assembly``.
+Full conversational prompt assembly: ``ai.context.assembly``.
 """
 
 from typing import Any
@@ -17,7 +17,7 @@ from datetime import datetime
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.time_utilities import now_datetime_full
-from ai.context_service import AIContextEnvelope, build_ai_context_envelope
+from ai.context.service import AIContextEnvelope, build_ai_context_envelope
 
 # Route context builder logs to AI component
 context_logger = get_component_logger("ai_context")

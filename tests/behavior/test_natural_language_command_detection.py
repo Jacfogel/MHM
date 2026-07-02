@@ -6,7 +6,7 @@ are properly detected as command_with_clarification mode instead of chat mode.
 """
 
 import pytest
-from ai.command_interpreter import get_command_interpreter
+from ai.prompts.command_interpreter import get_command_interpreter
 @pytest.mark.ai
 
 

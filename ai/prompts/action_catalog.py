@@ -199,7 +199,7 @@ def get_action_catalog() -> AIActionCatalog:
 @handle_errors("getting live command intents", default_return=[])
 def _get_live_intents() -> list[str]:
     """Return initialized parser intent names through the AI command registry."""
-    from ai.command_registry import get_initialized_command_intent_names
+    from ai.prompts.command_registry import get_initialized_command_intent_names
 
     return get_initialized_command_intent_names()
 

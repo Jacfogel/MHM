@@ -18,7 +18,7 @@ Usage:
 
 import importlib
 
-from ai.chatbot import get_ai_chatbot
+from ai.chat.chatbot import get_ai_chatbot
 from checkins.checkin_data_manager import is_user_checkins_enabled
 from core.error_handling import handle_errors
 from core.logger import get_component_logger

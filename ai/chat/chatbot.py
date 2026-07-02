@@ -33,14 +33,14 @@ from core.config import (
 )
 from core.response_tracking import store_chat_interaction
 from user.context_manager import user_context_manager
-from ai.prompt_manager import get_prompt_manager
-from ai.cache_manager import get_response_cache
-from ai.command_interpreter import get_command_interpreter
-from ai.fallback_responses import get_fallback_responses
-from ai.interaction_types import AIInteractionType, interaction_type_for_mode
-from ai.response_generator import get_response_generator
-from ai.lm_studio_client import call_lm_studio_api, test_lm_studio_connection
-from ai.response_postprocess import (
+from ai.prompts.manager import get_prompt_manager
+from ai.client.cache_manager import get_response_cache
+from ai.prompts.command_interpreter import get_command_interpreter
+from ai.fallback import get_fallback_responses
+from ai.chat.interaction_types import AIInteractionType, interaction_type_for_mode
+from ai.chat.response_generator import get_response_generator
+from ai.client.lm_studio_client import call_lm_studio_api, test_lm_studio_connection
+from ai.chat.response_postprocess import (
     clean_system_prompt_leaks,
     smart_truncate_response,
     strip_instruction_tuning_markers,
@@ -74,6 +74,7 @@ class AIChatBotSingleton:
         return cls._instance
 
     @handle_errors("initializing AI chatbot", default_return=None)
+    # not_duplicate: unrelated_singleton_constructors
     def __init__(self):
         """Initialize the object."""
         if self._initialized:
@@ -92,7 +93,7 @@ class AIChatBotSingleton:
         # If connection failed, check LM Studio status
         if not self.lm_studio_available:
             try:
-                from ai.lm_studio_manager import is_lm_studio_ready
+                from ai.client.lm_studio_manager import is_lm_studio_ready
 
                 if is_lm_studio_ready():
                     logger.info("LM Studio is now ready - retrying connection")
@@ -140,7 +141,7 @@ class AIChatBotSingleton:
 
     @handle_errors("testing LM Studio connection", default_return=None)
     def _test_lm_studio_connection(self):
-        """Test connection to LM Studio (delegates to ai.lm_studio_client)."""
+        """Test connection to LM Studio (delegates to ai.client.lm_studio_client)."""
         self._refresh_lm_studio_availability()
 
     @handle_errors("refreshing LM Studio availability", default_return=None)
@@ -160,7 +161,7 @@ class AIChatBotSingleton:
         *,
         stop: list[str] | None = None,
     ) -> str | None:
-        """Make an API call to LM Studio (delegates to ai.lm_studio_client)."""
+        """Make an API call to LM Studio (delegates to ai.client.lm_studio_client)."""
         return call_lm_studio_api(
             messages,
             max_tokens=max_tokens,
@@ -447,8 +448,8 @@ class AIChatBotSingleton:
                 AI_CLARIFICATION_TEMPERATURE,
             )
         if mode == "personalized":
-            from ai.fallback_responses import data_access
-            from ai.fallback_responses.profile_helpers import name_prefix_from_context
+            from ai.fallback import data_access
+            from ai.fallback.profile_helpers import name_prefix_from_context
 
             context_result = (
                 data_access.get_user_data(user_id, "context") if user_id else {}
@@ -505,12 +506,9 @@ class AIChatBotSingleton:
             return smart_truncate_response(
                 response, AI_MAX_RESPONSE_LENGTH, max_words=100
             )
-        response = smart_truncate_response(
+        return smart_truncate_response(
             response, AI_MAX_RESPONSE_LENGTH, AI_MAX_RESPONSE_WORDS
         )
-        if mode != "command":
-            response = get_response_generator().enhance_conversational_engagement(response)
-        return response
 
     @handle_errors("caching response when needed", default_return=None)
     def _cache_response_if_needed(
@@ -894,14 +892,14 @@ class AIChatBotSingleton:
 
     @handle_errors("cleaning system prompt leaks", default_return="")
     def _clean_system_prompt_leaks(self, response: str) -> str:
-        """Remove leaked system prompt metadata (delegates to ai.response_postprocess)."""
+        """Remove leaked system prompt metadata (delegates to ai.chat.response_postprocess)."""
         return clean_system_prompt_leaks(response)
 
     @handle_errors("smart truncating response", default_return="...")
     def _smart_truncate_response(
         self, text: str, max_chars: int, max_words: int | None = None
     ) -> str:
-        """Smartly truncate response (delegates to ai.response_postprocess)."""
+        """Smartly truncate response (delegates to ai.chat.response_postprocess)."""
         return smart_truncate_response(text, max_chars, max_words)
 
     @handle_errors("getting adaptive timeout", default_return=15)

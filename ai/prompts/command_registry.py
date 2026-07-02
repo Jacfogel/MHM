@@ -4,21 +4,21 @@
 Bridge from AI command prompts to rule-based intent names.
 
 Dependency direction (intentional):
-  ``ai.command_registry`` -> ``communication.message_processing.command_parser``
+  ``ai.prompts.command_registry`` -> ``communication.message_processing.command_parser``
 
 The communication layer owns ``RULE_BASED_INTENT_PATTERNS`` and intent detection.
 The AI layer must not duplicate that list in prompt text. This module injects the
 live intent names into the command system prompt at runtime.
 
 Reverse coupling (separate concern):
-  ``communication`` modules call ``ai.chatbot.get_ai_chatbot`` for generation.
+  ``communication`` modules call ``ai.chat.chatbot.get_ai_chatbot`` for generation.
   That does not import ``command_registry``.
 
 If ``RULE_BASED_INTENT_PATTERNS`` is unset (parser never constructed), injection
 is a no-op and callers should use static fallback text in ``resources/prompts/command.txt``.
 
 Imports from ``command_parser`` are lazy (inside ``get_command_intent_names``) to avoid
-a circular import when ``command_parser`` loads ``ai.chatbot`` during package init.
+a circular import when ``command_parser`` loads ``ai.chat.chatbot`` during package init.
 """
 
 import re
@@ -30,7 +30,7 @@ from core.error_handling import handle_errors
 # not_duplicate: command_registry_raw_vs_initialized_intents
 def get_command_intent_names() -> list[str]:
     """Return sorted intent names from the rule-based command parser patterns."""
-    # Lazy import avoids circular load: command_parser imports ai.chatbot, which
+    # Lazy import avoids circular load: command_parser imports ai.chat.chatbot, which
     # loads ai.__init__ -> command_registry before command_parser finishes init.
     from communication.message_processing.command_parser import get_rule_based_intent_names
 

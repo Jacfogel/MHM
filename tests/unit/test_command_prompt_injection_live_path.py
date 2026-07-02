@@ -2,9 +2,9 @@
 
 import pytest
 
-from ai.command_interpreter import get_command_interpreter
-from ai.command_registry import get_command_intent_names
-from ai.prompt_manager import get_prompt_manager
+from ai.prompts.command_interpreter import get_command_interpreter
+from ai.prompts.command_registry import get_command_intent_names
+from ai.prompts.manager import get_prompt_manager
 import communication.message_processing.command_parser as command_parser_module
 from communication.message_processing.command_parser import get_enhanced_command_parser
 from communication.message_processing.interaction_manager import InteractionManager

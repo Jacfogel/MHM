@@ -8,14 +8,14 @@ from pathlib import Path
 import pytest
 from unittest.mock import patch
 
-from ai.conversational_context.action_boundaries import FALSE_CRUD_SUCCESS_SUBSTRINGS
-from ai.fallback_responses import (
+from ai.chat.action_boundaries import FALSE_CRUD_SUCCESS_SUBSTRINGS
+from ai.fallback import (
     FallbackCategory,
     FallbackResponses,
     build_contextual_fallback,
     get_fallback_responses,
 )
-from ai.interaction_types import AIInteractionType, interaction_type_for_mode
+from ai.chat.interaction_types import AIInteractionType, interaction_type_for_mode
 
 
 FALSE_SUCCESS_PHRASES = FALSE_CRUD_SUCCESS_SUBSTRINGS
@@ -98,8 +98,8 @@ class TestFallbackResponses:
     def fallback(self):
         return FallbackResponses()
 
-    @patch("ai.fallback_responses.data_access.get_user_data", return_value={})
-    @patch("ai.fallback_responses.data_access.get_recent_responses", return_value=[])
+    @patch("ai.fallback.data_access.get_user_data", return_value={})
+    @patch("ai.fallback.data_access.get_recent_responses", return_value=[])
     def test_contextual_returns_non_empty_for_chat_like_prompt(
         self, _mock_recent, _mock_user_data, fallback
     ):
@@ -108,8 +108,8 @@ class TestFallbackResponses:
         assert isinstance(response, str)
         assert len(response.strip()) > 0
 
-    @patch("ai.fallback_responses.data_access.get_user_data", return_value={})
-    @patch("ai.fallback_responses.data_access.get_recent_responses", return_value=[])
+    @patch("ai.fallback.data_access.get_user_data", return_value={})
+    @patch("ai.fallback.data_access.get_recent_responses", return_value=[])
     def test_contextual_returns_non_empty_for_command_like_prompt(
         self, _mock_recent, _mock_user_data, fallback
     ):
@@ -117,8 +117,8 @@ class TestFallbackResponses:
         assert response
         assert isinstance(response, str)
 
-    @patch("ai.fallback_responses.data_access.get_user_data", return_value={})
-    @patch("ai.fallback_responses.data_access.get_recent_responses", return_value=[])
+    @patch("ai.fallback.data_access.get_user_data", return_value={})
+    @patch("ai.fallback.data_access.get_recent_responses", return_value=[])
     def test_contextual_does_not_claim_action_success(
         self, _mock_recent, _mock_user_data, fallback
     ):
@@ -136,8 +136,8 @@ class TestFallbackResponses:
                     f"Fallback for '{prompt}' must not claim success: found '{phrase}'"
                 )
 
-    @patch("ai.fallback_responses.data_access.get_user_data", return_value={})
-    @patch("ai.fallback_responses.data_access.get_recent_responses", return_value=[])
+    @patch("ai.fallback.data_access.get_user_data", return_value={})
+    @patch("ai.fallback.data_access.get_recent_responses", return_value=[])
     def test_contextual_does_not_claim_ai_success_or_data_access(
         self, _mock_recent, _mock_user_data, fallback
     ):
@@ -154,25 +154,25 @@ class TestFallbackResponses:
                     f"Fallback for '{prompt}' must not claim capability: found '{phrase}'"
                 )
 
-    @patch("ai.fallback_responses.data_access.get_user_data", return_value={})
-    @patch("ai.fallback_responses.data_access.get_recent_responses", return_value=[])
+    @patch("ai.fallback.data_access.get_user_data", return_value={})
+    @patch("ai.fallback.data_access.get_recent_responses", return_value=[])
     def test_technical_prompt_uses_technical_category(
         self, _mock_recent, _mock_user_data
     ):
         _text, category = build_contextual_fallback("connection error", "user-test")
         assert category == FallbackCategory.TECHNICAL_UNAVAILABLE
 
-    @patch("ai.fallback_responses.data_access.get_user_data", return_value={})
-    @patch("ai.fallback_responses.data_access.get_recent_responses", return_value=[])
+    @patch("ai.fallback.data_access.get_user_data", return_value={})
+    @patch("ai.fallback.data_access.get_recent_responses", return_value=[])
     def test_new_user_progress_prompt_uses_new_user_category(
         self, _mock_recent, _mock_user_data
     ):
         _text, category = build_contextual_fallback("how am I doing lately", "user-test")
         assert category == FallbackCategory.NEW_USER_NO_CONTEXT
 
-    @patch("ai.fallback_responses.data_access.get_user_data", return_value={"context": {"preferred_name": "Sam"}})
+    @patch("ai.fallback.data_access.get_user_data", return_value={"context": {"preferred_name": "Sam"}})
     @patch(
-        "ai.fallback_responses.data_access.get_recent_responses",
+        "ai.fallback.data_access.get_recent_responses",
         return_value=[
             {"mood": 3, "energy": 3, "ate_breakfast": True},
             {"mood": 4, "energy": 4, "ate_breakfast": False},
@@ -184,9 +184,9 @@ class TestFallbackResponses:
         _text, category = build_contextual_fallback("did I eat breakfast", "user-test")
         assert category == FallbackCategory.CHECKIN_SUMMARY
 
-    @patch("ai.fallback_responses.data_access.get_user_data", return_value={"context": {}})
+    @patch("ai.fallback.data_access.get_user_data", return_value={"context": {}})
     @patch(
-        "ai.fallback_responses.data_access.get_recent_responses",
+        "ai.fallback.data_access.get_recent_responses",
         return_value=[{"mood": None, "energy": None}],
     )
     def test_mood_count_without_data_uses_data_unavailable_category(
@@ -195,17 +195,17 @@ class TestFallbackResponses:
         _text, category = build_contextual_fallback("how many times mood", "user-test")
         assert category == FallbackCategory.DATA_UNAVAILABLE
 
-    @patch("ai.fallback_responses.data_access.get_user_data", return_value={"context": {}})
-    @patch("ai.fallback_responses.data_access.get_recent_responses", return_value=[])
+    @patch("ai.fallback.data_access.get_user_data", return_value={"context": {}})
+    @patch("ai.fallback.data_access.get_recent_responses", return_value=[])
     def test_personalized_returns_non_empty(self, _mock_recent, _mock_user_data, fallback):
         response = fallback.personalized("user-test")
         assert response
         assert len(response.strip()) > 0
 
-    @patch("ai.fallback_responses.data_access.get_user_data", return_value={"context": {}})
-    @patch("ai.fallback_responses.data_access.get_recent_responses", return_value=[])
+    @patch("ai.fallback.data_access.get_user_data", return_value={"context": {}})
+    @patch("ai.fallback.data_access.get_recent_responses", return_value=[])
     def test_personalized_category(self, _mock_recent, _mock_user_data):
-        from ai.fallback_responses.personalized import build_personalized_message
+        from ai.fallback.personalized import build_personalized_message
 
         _text, category = build_personalized_message("user-test")
         assert category == FallbackCategory.PERSONALIZED_MESSAGE

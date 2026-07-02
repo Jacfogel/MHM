@@ -926,7 +926,7 @@
         "title": "AI Operations Decision Tree",
         "entries": [
           [
-            "ai/chatbot.py",
+            "ai/chat/chatbot.py",
             "Main AI implementation"
           ],
           [

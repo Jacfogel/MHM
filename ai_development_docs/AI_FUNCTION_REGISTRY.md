@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-01 18:25:03
+> **Last Generated**: 2026-07-01 23:56:24
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,10 +11,10 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 89.9% [!] GOOD**
-- **Total Functions**: 2423
+- **Total Functions**: 2429
 - **Total Methods**: 1389
-- **Documented**: 3428/3812
-- **Files Scanned**: 248
+- **Documented**: 3434/3818
+- **Files Scanned**: 250
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -31,7 +31,7 @@ User Data Operations Decision Tree:
 ### **[AI] Need AI/Chatbot Functionality?**
 ```
 AI Operations Decision Tree:
-+-- `ai/chatbot.py` - Main AI implementation (65 functions)
++-- `ai/chat/chatbot.py` - Main AI implementation (65 functions)
 +-- `user/context_manager.py` - Context for AI (24/26 functions)
 +-- `communication/message_processing/command_parser.py` - Natural language parsing (62 functions)
 +-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
@@ -133,7 +133,7 @@ Core System Decision Tree:
 
 ### **Entry Points** (Start Here)
 - [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Main message entry point
-- [OK] `ai/chatbot.py::generate_response()` - AI response generation
+- [OK] `ai/chat/chatbot.py::generate_response()` - AI response generation
 - [OK] `core/headless_service.py::main()` - Application entry point
 - [OK] `core/service.py::main()` - Application entry point
 - [OK] `integrations/google_health/sync_manager.py::main()` - Application entry point
@@ -173,7 +173,7 @@ Core System Decision Tree:
 - `communication/communication_channels/discord/task_list_ui.py` - 3/9 functions undocumented (67% coverage)
 - `integrations/google_health/sync_manager.py` - 3/10 functions undocumented (70% coverage)
 - `storage/user_data_validation.py` - 3/12 functions undocumented (75% coverage)
-- `ai/fallback_responses/conversational.py` - 2/4 functions undocumented (50% coverage)
+- `ai/fallback/conversational.py` - 2/4 functions undocumented (50% coverage)
 - `core/health_context_builder.py` - 2/4 functions undocumented (50% coverage)
 - `communication/command_handlers/handler_registry.py` - 2/5 functions undocumented (60% coverage)
 - `core/user_lookup.py` - 1/3 functions undocumented (67% coverage)
@@ -184,7 +184,7 @@ Core System Decision Tree:
 
 ### **Common Operations**
 1. **User Message**: `communication/message_processing/interaction_manager.py::handle_message()`
-2. **AI Response**: `ai/chatbot.py::generate_response()`
+2. **AI Response**: `ai/chat/chatbot.py::generate_response()`
 3. **Main Entry**: `run_headless_service.py::main()`
 4. **Command Parsing**: `communication/message_processing/command_parser.py::get_enhanced_command_parser()`
 5. **Error Handling**: `core/error_handling.py::handle_errors()`
@@ -207,7 +207,7 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `ai/` - AI chatbot functionality (29 files, 327 functions)
+- `ai/` - AI chatbot functionality (31 files, 333 functions)
 - `checkins/` -  (6 files, 135 functions)
 - `communication/` - Communication channels and message processing (84 files, 1122 functions)
 - `core/` - System utilities and data management (33 files, 657 functions)

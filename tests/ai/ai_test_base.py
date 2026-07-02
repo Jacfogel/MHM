@@ -8,7 +8,7 @@ import os
 
 from unittest.mock import patch
 
-from ai.chatbot import AIChatBotSingleton
+from ai.chat.chatbot import AIChatBotSingleton
 from tests.test_helpers.test_utilities import TestUserFactory
 from core import get_user_id_by_identifier
 from tests.ai.ai_response_validator import AIResponseValidator

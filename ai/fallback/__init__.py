@@ -1,9 +1,9 @@
-# ai/fallback_responses/__init__.py
+# ai/fallback/__init__.py
 
 """
 Fallback response generation when LM Studio or AI API calls are unavailable.
 
-Ownership: all fallback *content* and routing live under ai/fallback_responses/.
+Ownership: all fallback *content* and routing live under ai/fallback/.
 communication/ adapters format and deliver messages only; they must not own
 business fallback text or check-in-aware wording.
 """
@@ -11,12 +11,11 @@ business fallback text or check-in-aware wording.
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 
-from ai.fallback_responses.data_access import get_recent_responses, get_user_data
-
-from ai.fallback_responses.categories import FallbackCategory
-from ai.fallback_responses.coordinator import build_contextual_fallback
-from ai.fallback_responses.personalized import build_personalized_message
-from ai.fallback_responses.profile_helpers import personalize_with_profile_name
+from ai.fallback.data_access import get_recent_responses, get_user_data
+from ai.fallback.categories import FallbackCategory
+from ai.fallback.coordinator import build_contextual_fallback
+from ai.fallback.personalized import build_personalized_message
+from ai.fallback.profile_helpers import personalize_with_profile_name
 
 logger = get_component_logger("ai")
 

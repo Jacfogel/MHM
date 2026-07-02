@@ -10,7 +10,7 @@ from typing import cast
 
 import pytest
 
-from ai.context_builder import ContextBuilder, ContextData
+from ai.context.builder import ContextBuilder, ContextData
 from tests.test_helpers.test_utilities import TestUserFactory, TestDataFactory
 
 
@@ -192,7 +192,7 @@ class TestContextBuilderBehavior:
         dt2 = datetime(2026, 1, 20, 2, 23, 48)
 
         with patch(
-            "ai.context_builder.now_datetime_full", side_effect=[dt1, dt2], create=True
+            "ai.context.builder.now_datetime_full", side_effect=[dt1, dt2], create=True
         ):
             context1 = context_builder.build_user_context(user_id)
             context2 = context_builder.build_user_context(user_id)

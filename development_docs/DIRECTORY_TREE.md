@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-01 18:25:23
+> **Last Generated**: 2026-07-01 23:56:51
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 000000B8 5EAC:07BC
+Volume serial number is 00000065 5EAC:07BC
 C:.
 |   .ruff.toml
 |   ARCHITECTURE.md
@@ -65,33 +65,33 @@ C:.
 |           ui-guidelines.mdc
 |
 +---ai
-|   |   action_catalog.py
-|   |   cache_manager.py
-|   |   chatbot.py
-|   |   command_interpreter.py
-|   |   command_registry.py
-|   |   context_builder.py
-|   |   context_service.py
-|   |   conversation_history.py
-|   |   interaction_types.py
-|   |   lm_studio_client.py
-|   |   lm_studio_manager.py
 |   |   PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md
-|   |   prompt_flows.py
-|   |   prompt_manager.py
-|   |   response_generator.py
-|   |   response_postprocess.py
 |   |   SYSTEM_AI_GUIDE.md
 |   |   __init__.py
 |   |
-|   +---conversational_context
+|   +---chat
 |   |   |   action_boundaries.py
-|   |   |   assembly.py
-|   |   |   context_phraser.py
-|   |   |   instructions.py
+|   |   |   chatbot.py
+|   |   |   interaction_types.py
+|   |   |   response_generator.py
+|   |   |   response_postprocess.py
 |   |   |   __init__.py
 |   |   |
-|   +---fallback_responses
+|   +---client
+|   |   |   cache_manager.py
+|   |   |   lm_studio_client.py
+|   |   |   lm_studio_manager.py
+|   |   |   __init__.py
+|   |   |
+|   +---context
+|   |   |   assembly.py
+|   |   |   builder.py
+|   |   |   history.py
+|   |   |   phraser.py
+|   |   |   service.py
+|   |   |   __init__.py
+|   |   |
+|   +---fallback
 |   |   |   categories.py
 |   |   |   checkin_summary.py
 |   |   |   conversational.py
@@ -99,6 +99,14 @@ C:.
 |   |   |   data_access.py
 |   |   |   personalized.py
 |   |   |   profile_helpers.py
+|   |   |   __init__.py
+|   |   |
+|   +---prompts
+|   |   |   action_catalog.py
+|   |   |   command_interpreter.py
+|   |   |   command_registry.py
+|   |   |   flows.py
+|   |   |   manager.py
 |   |   |   __init__.py
 |   |   |
 +---ai_development_docs
@@ -545,8 +553,14 @@ C:.
 |   |       word_of_the_day.json
 |   |
 |   \---prompts
-|           assistant_system_prompt.txt
-|           command.txt
+|       |   assistant_system_prompt.txt
+|       |   command.txt
+|       |
+|       \---product_ai
+|               action_boundaries.txt
+|               data_honesty.txt
+|               persona.txt
+|               reply_rules.txt
 |
 +---scheduler
 |   |   health_sync_jobs.py
@@ -1042,6 +1056,7 @@ C:.
 |   |   |   test_notebook_validation_error_handling.py
 |   |   |   test_no_prints_policy.py
 |   |   |   test_pagination.py
+|   |   |   test_product_ai_prompt_composition.py
 |   |   |   test_profile_handler.py
 |   |   |   test_profile_handler_gap_coverage.py
 |   |   |   test_profile_service.py

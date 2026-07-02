@@ -2,7 +2,7 @@
 
 import pytest
 
-from ai.command_registry import (
+from ai.prompts.command_registry import (
     format_command_actions_for_prompt,
     get_command_intent_names,
     inject_command_actions_into_prompt,

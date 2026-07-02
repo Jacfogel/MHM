@@ -16,7 +16,7 @@ from unittest.mock import patch, MagicMock, Mock
 import subprocess
 import requests
 
-from ai.lm_studio_manager import (
+from ai.client.lm_studio_manager import (
     LMStudioManager,
     get_lm_studio_manager,
     is_lm_studio_ready,
@@ -106,9 +106,9 @@ class TestLMStudioManager:
         mock_response.status_code = 200
         
         with patch('requests.get', return_value=mock_response) as mock_get:
-            with patch('ai.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
-                with patch('ai.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
-                    with patch('ai.lm_studio_manager.AI_CONNECTION_TEST_TIMEOUT', 5):
+            with patch('ai.client.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
+                with patch('ai.client.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
+                    with patch('ai.client.lm_studio_manager.AI_CONNECTION_TEST_TIMEOUT', 5):
                         # Act
                         result = manager.is_server_responding()
                         
@@ -128,9 +128,9 @@ class TestLMStudioManager:
         mock_response.status_code = 404
         
         with patch('requests.get', return_value=mock_response):
-            with patch('ai.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
-                with patch('ai.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
-                    with patch('ai.lm_studio_manager.AI_CONNECTION_TEST_TIMEOUT', 5):
+            with patch('ai.client.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
+                with patch('ai.client.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
+                    with patch('ai.client.lm_studio_manager.AI_CONNECTION_TEST_TIMEOUT', 5):
                         # Act
                         result = manager.is_server_responding()
                         
@@ -143,9 +143,9 @@ class TestLMStudioManager:
         """Test: is_server_responding handles connection errors gracefully"""
         # Arrange
         with patch('requests.get', side_effect=requests.exceptions.ConnectionError("Connection error")):
-            with patch('ai.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
-                with patch('ai.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
-                    with patch('ai.lm_studio_manager.AI_CONNECTION_TEST_TIMEOUT', 5):
+            with patch('ai.client.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
+                with patch('ai.client.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
+                    with patch('ai.client.lm_studio_manager.AI_CONNECTION_TEST_TIMEOUT', 5):
                         # Act
                         result = manager.is_server_responding()
                         
@@ -158,9 +158,9 @@ class TestLMStudioManager:
         """Test: is_server_responding handles timeout gracefully"""
         # Arrange
         with patch('requests.get', side_effect=requests.exceptions.Timeout("Timeout")):
-            with patch('ai.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
-                with patch('ai.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
-                    with patch('ai.lm_studio_manager.AI_CONNECTION_TEST_TIMEOUT', 5):
+            with patch('ai.client.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
+                with patch('ai.client.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
+                    with patch('ai.client.lm_studio_manager.AI_CONNECTION_TEST_TIMEOUT', 5):
                         # Act
                         result = manager.is_server_responding()
                         
@@ -189,9 +189,9 @@ class TestLMStudioManager:
         
         with patch.object(manager, 'is_server_responding', return_value=True):
             with patch('requests.post', return_value=mock_response) as mock_post:
-                with patch('ai.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
-                    with patch('ai.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
-                        with patch('ai.lm_studio_manager.LM_STUDIO_MODEL', 'test_model'):
+                with patch('ai.client.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
+                    with patch('ai.client.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
+                        with patch('ai.client.lm_studio_manager.LM_STUDIO_MODEL', 'test_model'):
                             # Act
                             result = manager.is_model_loaded()
                             
@@ -212,9 +212,9 @@ class TestLMStudioManager:
         
         with patch.object(manager, 'is_server_responding', return_value=True):
             with patch('requests.post', return_value=mock_response):
-                with patch('ai.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
-                    with patch('ai.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
-                        with patch('ai.lm_studio_manager.LM_STUDIO_MODEL', 'test_model'):
+                with patch('ai.client.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
+                    with patch('ai.client.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
+                        with patch('ai.client.lm_studio_manager.LM_STUDIO_MODEL', 'test_model'):
                             # Act
                             result = manager.is_model_loaded()
                             
@@ -228,9 +228,9 @@ class TestLMStudioManager:
         # Arrange
         with patch.object(manager, 'is_server_responding', return_value=True):
             with patch('requests.post', side_effect=requests.exceptions.Timeout("Timeout")):
-                with patch('ai.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
-                    with patch('ai.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
-                        with patch('ai.lm_studio_manager.LM_STUDIO_MODEL', 'test_model'):
+                with patch('ai.client.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
+                    with patch('ai.client.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
+                        with patch('ai.client.lm_studio_manager.LM_STUDIO_MODEL', 'test_model'):
                             # Act
                             result = manager.is_model_loaded()
                             
@@ -244,9 +244,9 @@ class TestLMStudioManager:
         # Arrange
         with patch.object(manager, 'is_server_responding', return_value=True):
             with patch('requests.post', side_effect=Exception("Test error")):
-                with patch('ai.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
-                    with patch('ai.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
-                        with patch('ai.lm_studio_manager.LM_STUDIO_MODEL', 'test_model'):
+                with patch('ai.client.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
+                    with patch('ai.client.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
+                        with patch('ai.client.lm_studio_manager.LM_STUDIO_MODEL', 'test_model'):
                             # Act
                             result = manager.is_model_loaded()
                             
@@ -289,9 +289,9 @@ class TestLMStudioManager:
         with patch.object(manager, 'is_server_responding', return_value=True):
             with patch.object(manager, 'is_model_loaded', return_value=False):
                 with patch('requests.post', return_value=mock_response) as mock_post:
-                    with patch('ai.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
-                        with patch('ai.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
-                            with patch('ai.lm_studio_manager.LM_STUDIO_MODEL', 'test_model'):
+                    with patch('ai.client.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
+                        with patch('ai.client.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
+                            with patch('ai.client.lm_studio_manager.LM_STUDIO_MODEL', 'test_model'):
                                 # Act
                                 result = manager.load_model_automatically()
                                 
@@ -313,9 +313,9 @@ class TestLMStudioManager:
         with patch.object(manager, 'is_server_responding', return_value=True):
             with patch.object(manager, 'is_model_loaded', return_value=False):
                 with patch('requests.post', return_value=mock_response):
-                    with patch('ai.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
-                        with patch('ai.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
-                            with patch('ai.lm_studio_manager.LM_STUDIO_MODEL', 'test_model'):
+                    with patch('ai.client.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
+                        with patch('ai.client.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
+                            with patch('ai.client.lm_studio_manager.LM_STUDIO_MODEL', 'test_model'):
                                 # Act
                                 result = manager.load_model_automatically()
                                 
@@ -330,9 +330,9 @@ class TestLMStudioManager:
         with patch.object(manager, 'is_server_responding', return_value=True):
             with patch.object(manager, 'is_model_loaded', return_value=False):
                 with patch('requests.post', side_effect=requests.exceptions.Timeout("Timeout")):
-                    with patch('ai.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
-                        with patch('ai.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
-                            with patch('ai.lm_studio_manager.LM_STUDIO_MODEL', 'test_model'):
+                    with patch('ai.client.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
+                        with patch('ai.client.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
+                            with patch('ai.client.lm_studio_manager.LM_STUDIO_MODEL', 'test_model'):
                                 # Act
                                 result = manager.load_model_automatically()
                                 
@@ -347,9 +347,9 @@ class TestLMStudioManager:
         with patch.object(manager, 'is_server_responding', return_value=True):
             with patch.object(manager, 'is_model_loaded', return_value=False):
                 with patch('requests.post', side_effect=Exception("Test error")):
-                    with patch('ai.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
-                        with patch('ai.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
-                            with patch('ai.lm_studio_manager.LM_STUDIO_MODEL', 'test_model'):
+                    with patch('ai.client.lm_studio_manager.LM_STUDIO_BASE_URL', 'http://localhost:1234'):
+                        with patch('ai.client.lm_studio_manager.LM_STUDIO_API_KEY', 'test_key'):
+                            with patch('ai.client.lm_studio_manager.LM_STUDIO_MODEL', 'test_model'):
                                 # Act
                                 result = manager.load_model_automatically()
                                 
@@ -439,9 +439,9 @@ class TestGetLMStudioManager:
     def test_get_lm_studio_manager_resets_on_none(self):
         """Test: get_lm_studio_manager creates new instance if global is None"""
         # Arrange
-        import ai.lm_studio_manager
-        original_manager = ai.lm_studio_manager._lm_studio_manager
-        ai.lm_studio_manager._lm_studio_manager = None
+        import ai.client.lm_studio_manager
+        original_manager = ai.client.lm_studio_manager._lm_studio_manager
+        ai.client.lm_studio_manager._lm_studio_manager = None
         
         try:
             # Act
@@ -451,7 +451,7 @@ class TestGetLMStudioManager:
             assert isinstance(manager, LMStudioManager), "Should create new instance"
         finally:
             # Restore
-            ai.lm_studio_manager._lm_studio_manager = original_manager
+            ai.client.lm_studio_manager._lm_studio_manager = original_manager
 
 
 class TestIsLMStudioReady:
@@ -465,7 +465,7 @@ class TestIsLMStudioReady:
         mock_manager = MagicMock()
         mock_manager.is_ready.return_value = True
         
-        with patch('ai.lm_studio_manager.get_lm_studio_manager', return_value=mock_manager):
+        with patch('ai.client.lm_studio_manager.get_lm_studio_manager', return_value=mock_manager):
             # Act
             result = is_lm_studio_ready()
             
@@ -481,7 +481,7 @@ class TestIsLMStudioReady:
         mock_manager = MagicMock()
         mock_manager.is_ready.return_value = False
         
-        with patch('ai.lm_studio_manager.get_lm_studio_manager', return_value=mock_manager):
+        with patch('ai.client.lm_studio_manager.get_lm_studio_manager', return_value=mock_manager):
             # Act
             result = is_lm_studio_ready()
             
@@ -500,7 +500,7 @@ class TestEnsureLMStudioReady:
         mock_manager = MagicMock()
         mock_manager.is_ready.return_value = True
         
-        with patch('ai.lm_studio_manager.get_lm_studio_manager', return_value=mock_manager):
+        with patch('ai.client.lm_studio_manager.get_lm_studio_manager', return_value=mock_manager):
             # Act
             result = ensure_lm_studio_ready()
             
@@ -516,7 +516,7 @@ class TestEnsureLMStudioReady:
         mock_manager = MagicMock()
         mock_manager.is_ready.return_value = False
         
-        with patch('ai.lm_studio_manager.get_lm_studio_manager', return_value=mock_manager):
+        with patch('ai.client.lm_studio_manager.get_lm_studio_manager', return_value=mock_manager):
             # Act
             result = ensure_lm_studio_ready()
             

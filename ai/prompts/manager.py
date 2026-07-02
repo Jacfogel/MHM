@@ -4,6 +4,7 @@ import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
@@ -13,9 +14,16 @@ from core.config import AI_SYSTEM_PROMPT_PATH, AI_USE_CUSTOM_PROMPT
 prompt_logger = get_component_logger("ai_prompt")
 logger = prompt_logger
 
-_PROMPTS_DIR = Path(__file__).resolve().parent.parent / "resources" / "prompts"
+_PROMPTS_DIR = Path(__file__).resolve().parent.parent.parent / "resources" / "prompts"
+_PRODUCT_AI_PROMPTS_DIR = _PROMPTS_DIR / "product_ai"
 _ASSISTANT_PROMPT_FILENAME = "assistant_system_prompt.txt"
 _COMMAND_PROMPT_FILENAME = "command.txt"
+_PRODUCT_AI_CATEGORY_FILENAMES: dict[str, str] = {
+    "persona": "persona.txt",
+    "reply_rules": "reply_rules.txt",
+    "data_honesty": "data_honesty.txt",
+    "action_boundaries": "action_boundaries.txt",
+}
 
 # Short templates for legacy prompt_manager helpers (create_task_prompt / create_checkin_prompt).
 _INLINE_PROMPT_BODIES: dict[str, str] = {
@@ -57,12 +65,97 @@ def _load_assistant_system_prompt_text() -> str:
     """Load the main companion prompt from resources/prompts/assistant_system_prompt.txt."""
     path = Path(AI_SYSTEM_PROMPT_PATH)
     if not path.is_absolute():
-        path = Path(__file__).resolve().parent.parent / AI_SYSTEM_PROMPT_PATH
+        path = Path(__file__).resolve().parent.parent.parent / AI_SYSTEM_PROMPT_PATH
     if not path.is_file():
         logger.warning(f"Assistant system prompt file not found: {path}")
         return ""
     with open(path, encoding="utf-8") as f:
         return f.read().strip()
+
+
+@handle_errors("loading product AI prompt category", default_return="")
+def _load_product_ai_category_text(category: str) -> str:
+    """Load one product-AI prompt category file."""
+    filename = _PRODUCT_AI_CATEGORY_FILENAMES.get(category)
+    if not filename:
+        logger.warning(f"Unknown product AI prompt category: {category}")
+        return ""
+    return _read_prompt_file(_PRODUCT_AI_PROMPTS_DIR / filename)
+
+
+@handle_errors("extracting product AI context prompt text", default_return="")
+def _extract_context_prompt_text(context_view: Any) -> str:
+    """Return prompt text from an AIContextEnvelope-like object or plain dict."""
+    if context_view is None:
+        return ""
+    prompt_sections = getattr(context_view, "prompt_sections", None)
+    if isinstance(prompt_sections, dict):
+        return "\n".join(str(text) for text in prompt_sections.values() if text)
+    if isinstance(context_view, dict):
+        sections = context_view.get("prompt_sections")
+        if isinstance(sections, dict):
+            return "\n".join(str(text) for text in sections.values() if text)
+        prompt_text = context_view.get("prompt_text")
+        return str(prompt_text or "")
+    return str(context_view)
+
+
+@handle_errors("extracting product AI action summary", default_return="")
+def _extract_action_summary(context_view: Any, action_catalog: Any) -> str:
+    """Return generated action capability text from a catalog or context view."""
+    if action_catalog is not None:
+        to_prompt_summary = getattr(action_catalog, "to_prompt_summary", None)
+        if callable(to_prompt_summary):
+            return str(to_prompt_summary())
+        if isinstance(action_catalog, dict):
+            return _action_summary_from_dict(action_catalog)
+        return str(action_catalog)
+
+    structured = getattr(context_view, "structured", None)
+    if isinstance(structured, dict):
+        return _action_summary_from_dict(structured.get("action_catalog") or {})
+    if isinstance(context_view, dict):
+        structured = context_view.get("structured", {})
+        structured_catalog = (
+            structured.get("action_catalog") if isinstance(structured, dict) else {}
+        )
+        catalog = context_view.get("action_catalog") or structured_catalog
+        return _action_summary_from_dict(catalog or {})
+    return ""
+
+
+@handle_errors("formatting action summary from dict", default_return="")
+def _action_summary_from_dict(catalog: dict[str, Any]) -> str:
+    """Return compact action capability text from serialized catalog data."""
+    summary = catalog.get("summary")
+    if summary:
+        return str(summary)
+    available = catalog.get("available") or []
+    if available:
+        return "Actions: " + ", ".join(str(action) for action in available)
+    return ""
+
+
+@handle_errors("getting product AI prompt max tokens", default_return=None)
+def _max_tokens_for_product_flow(flow_name: str) -> int | None:
+    """Return default max-token budget for a product-AI prompt flow."""
+    return {
+        "chat_response": 250,
+        "action_interpretation": 180,
+        "action_result_response": 160,
+        "fallback_response": 140,
+    }.get(flow_name)
+
+
+@handle_errors("getting product AI prompt temperature", default_return=0.7)
+def _temperature_for_product_flow(flow_name: str) -> float:
+    """Return default generation temperature for a product-AI prompt flow."""
+    return {
+        "chat_response": 0.7,
+        "action_interpretation": 0.1,
+        "action_result_response": 0.4,
+        "fallback_response": 0.3,
+    }.get(flow_name, 0.7)
 
 
 @dataclass
@@ -84,8 +177,13 @@ class PromptManager:
         """Initialize the prompt manager"""
         self._custom_prompt = None
         self._prompt_templates: dict[str, PromptTemplate] = {}
+        self._product_ai_categories = {
+            category: _load_product_ai_category_text(category)
+            for category in _PRODUCT_AI_CATEGORY_FILENAMES
+        }
         self._assistant_prompt = _load_assistant_system_prompt_text()
-        wellness_body = self._assistant_prompt or _MINIMAL_WELLNESS_FALLBACK
+        persona_body = self._product_ai_categories.get("persona", "").strip()
+        wellness_body = persona_body or self._assistant_prompt or _MINIMAL_WELLNESS_FALLBACK
         command_body = _load_command_prompt_text()
         if not command_body:
             logger.error(
@@ -96,7 +194,7 @@ class PromptManager:
             "wellness": PromptTemplate(
                 name="wellness",
                 content=wellness_body,
-                description="Companion wellness prompt (resources/prompts/assistant_system_prompt.txt)",
+                description="Companion persona prompt (resources/prompts/product_ai/persona.txt)",
                 max_tokens=250,
                 temperature=0.7,
             ),
@@ -131,6 +229,55 @@ class PromptManager:
         }
 
         self._load_custom_prompt()
+
+    @handle_errors("composing product AI prompt", default_return=None)
+    def compose_product_prompt(
+        self,
+        flow_name: str,
+        *,
+        context_view: Any = None,
+        action_catalog: Any = None,
+        result_metadata: dict[str, Any] | None = None,
+    ) -> PromptTemplate | None:
+        """Compose a product-AI prompt from flow categories and supplied data."""
+        from ai.prompts.flows import (
+            RUNTIME_PROMPT_CATEGORIES,
+            get_product_ai_prompt_flow,
+        )
+
+        flow = get_product_ai_prompt_flow(flow_name)
+        content_sections: list[str] = [f"Product AI flow: {flow.name}"]
+
+        for category in flow.categories:
+            if category in RUNTIME_PROMPT_CATEGORIES:
+                if category == "available_actions":
+                    action_summary = _extract_action_summary(
+                        context_view, action_catalog
+                    )
+                    if action_summary:
+                        content_sections.append(
+                            "[available_actions]\n" + action_summary
+                        )
+                continue
+
+            category_text = self._product_ai_categories.get(category, "").strip()
+            if category_text:
+                content_sections.append(f"[{category}]\n{category_text}")
+
+        context_text = _extract_context_prompt_text(context_view)
+        if context_text:
+            content_sections.append("[selected_user_context]\n" + context_text)
+
+        if result_metadata:
+            content_sections.append("[action_result_metadata]\n" + str(result_metadata))
+
+        return PromptTemplate(
+            name=f"product_ai_{flow.name}",
+            content="\n\n".join(content_sections),
+            description=f"Composed product-AI prompt for {flow.name}",
+            max_tokens=_max_tokens_for_product_flow(flow.name),
+            temperature=_temperature_for_product_flow(flow.name),
+        )
 
     @handle_errors("loading custom prompt", default_return=None)
     def _load_custom_prompt(self):
@@ -187,7 +334,7 @@ class PromptManager:
             logger.debug(f"Using fallback prompt for type: {prompt_type}")
             content = template.content
             if prompt_type == "command":
-                from ai.command_registry import inject_command_actions_into_prompt
+                from ai.prompts.command_registry import inject_command_actions_into_prompt
 
                 content = inject_command_actions_into_prompt(content)
             return content
@@ -249,7 +396,8 @@ class PromptManager:
     def reload_custom_prompt(self):
         """Reload the custom prompt from file (useful for development)"""
         self._assistant_prompt = _load_assistant_system_prompt_text()
-        wellness_body = self._assistant_prompt or _MINIMAL_WELLNESS_FALLBACK
+        persona_body = self._product_ai_categories.get("persona", "").strip()
+        wellness_body = persona_body or self._assistant_prompt or _MINIMAL_WELLNESS_FALLBACK
         self._fallback_prompts["wellness"].content = wellness_body
         self._fallback_prompts["neurodivergent_support"].content = wellness_body
         self._load_custom_prompt()

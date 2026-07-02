@@ -8,8 +8,8 @@ from unittest.mock import patch
 
 import pytest
 
-from ai.context_builder import ContextAnalysis, ContextBuilder, ContextData
-from ai.conversational_context.context_phraser import (
+from ai.context.builder import ContextAnalysis, ContextBuilder, ContextData
+from ai.context.phraser import (
     append_checkin_summary,
     append_profile_sections,
     append_task_data,
@@ -80,8 +80,8 @@ class TestContextPhraser:
         assert "3.0" in text
         assert "100%" in text
 
-    @patch("ai.conversational_context.context_phraser.is_user_checkins_enabled", return_value=True)
-    @patch("ai.conversational_context.context_phraser.get_recent_checkins")
+    @patch("ai.context.phraser.is_user_checkins_enabled", return_value=True)
+    @patch("ai.context.phraser.get_recent_checkins")
     def test_append_checkin_summary_for_user(self, mock_recent, _mock_enabled, test_data_dir):
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
@@ -94,10 +94,10 @@ class TestContextPhraser:
         assert "Over the last" in text
         assert "average mood" in text
 
-    @patch("ai.conversational_context.context_phraser.are_tasks_enabled", return_value=True)
-    @patch("ai.conversational_context.context_phraser.get_user_task_stats")
-    @patch("ai.conversational_context.context_phraser.load_active_tasks", return_value=[])
-    @patch("ai.conversational_context.context_phraser.get_tasks_due_soon", return_value=[])
+    @patch("ai.context.phraser.are_tasks_enabled", return_value=True)
+    @patch("ai.context.phraser.get_user_task_stats")
+    @patch("ai.context.phraser.load_active_tasks", return_value=[])
+    @patch("ai.context.phraser.get_tasks_due_soon", return_value=[])
     def test_append_task_data_for_user(
         self, _mock_due, _mock_active, mock_stats, _mock_enabled, test_data_dir
     ):

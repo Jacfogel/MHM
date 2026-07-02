@@ -9,7 +9,7 @@ parsing shortcuts, structured command dispatch, and response helpers.
 
 from typing import Any
 
-from ai.chatbot import get_ai_chatbot
+from ai.chat.chatbot import get_ai_chatbot
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 from communication.command_handlers.interaction_handlers import get_all_handlers

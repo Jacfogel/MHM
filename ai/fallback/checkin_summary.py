@@ -4,8 +4,8 @@
 
 import re
 
-from ai.context_builder import ContextAnalysis
-from ai.fallback_responses.categories import FallbackCategory
+from ai.context.builder import ContextAnalysis
+from ai.fallback.categories import FallbackCategory
 from core.error_handling import handle_errors
 
 _BREAKFAST_WORD_PATTERNS = (

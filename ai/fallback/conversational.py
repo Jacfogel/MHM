@@ -8,7 +8,7 @@ Studio is unavailable. Do not add check-in analytics or new data-aware paths her
 keyword lists; prefer new FallbackCategory handlers in coordinator.py instead.
 """
 
-from ai.fallback_responses.categories import FallbackCategory
+from ai.fallback.categories import FallbackCategory
 from core.error_handling import handle_errors
 
 CONTEXT_REQUIRING_PROMPTS = [

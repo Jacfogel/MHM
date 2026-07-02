@@ -756,7 +756,7 @@ def _create_user_files__message_files(user_id, categories):
 def _create_user_files__update_user_references(user_id):
     """Auto-update message references and user index."""
     try:
-        importlib.import_module("storage.user_data_operations").update_message_references(
+        importlib.import_module("storage.user_data_operations").user_data_manager.update_message_references(
             user_id
         )
         # Skip user index update during initial file creation to avoid circular dependency

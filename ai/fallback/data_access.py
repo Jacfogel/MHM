@@ -1,6 +1,6 @@
 # ai/fallback_responses/data_access.py
 
-"""Data access for fallback modules (patchable in tests via ai.fallback_responses)."""
+"""Data access for fallback modules (patchable in tests via ai.fallback)."""
 
 from core import get_user_data
 from core.response_tracking import get_recent_responses

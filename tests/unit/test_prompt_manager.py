@@ -16,7 +16,7 @@ Coverage Areas:
 import pytest
 from unittest.mock import patch, mock_open
 
-from ai.prompt_manager import PromptManager, PromptTemplate, get_prompt_manager
+from ai.prompts.manager import PromptManager, PromptTemplate, get_prompt_manager
 
 
 pytestmark = [pytest.mark.ai]
@@ -36,12 +36,12 @@ class TestPromptManager:
     @pytest.fixture
     def prompt_manager(self):
         """Create a PromptManager instance."""
-        with patch('ai.prompt_manager.AI_USE_CUSTOM_PROMPT', False):
+        with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', False):
             return PromptManager()
     
     def test_prompt_manager_initialization_real_behavior(self):
         """Test PromptManager initialization."""
-        with patch('ai.prompt_manager.AI_USE_CUSTOM_PROMPT', False):
+        with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', False):
             manager = PromptManager()
             
             assert manager._custom_prompt is None
@@ -52,8 +52,8 @@ class TestPromptManager:
     
     def test_prompt_manager_initialization_with_custom_prompt_disabled_real_behavior(self, temp_prompt_file):
         """Test initialization when custom prompt is disabled."""
-        with patch('ai.prompt_manager.AI_USE_CUSTOM_PROMPT', False), \
-             patch('ai.prompt_manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file):
+        with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', False), \
+             patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file):
             manager = PromptManager()
             
             # Custom prompt should not be loaded when disabled
@@ -61,8 +61,8 @@ class TestPromptManager:
     
     def test_load_custom_prompt_file_exists_real_behavior(self, temp_prompt_file):
         """Test loading custom prompt when file exists."""
-        with patch('ai.prompt_manager.AI_USE_CUSTOM_PROMPT', True), \
-             patch('ai.prompt_manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
+        with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', True), \
+             patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
              patch('builtins.open', mock_open(read_data="Custom prompt content")):
             manager = PromptManager()
             
@@ -73,8 +73,8 @@ class TestPromptManager:
         """Test loading custom prompt when file doesn't exist."""
         non_existent_file = str(tmp_path / "nonexistent.txt")
         
-        with patch('ai.prompt_manager.AI_USE_CUSTOM_PROMPT', True), \
-             patch('ai.prompt_manager.AI_SYSTEM_PROMPT_PATH', non_existent_file):
+        with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', True), \
+             patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', non_existent_file):
             manager = PromptManager()
             
             # Custom prompt should be None when file doesn't exist
@@ -82,8 +82,8 @@ class TestPromptManager:
     
     def test_load_custom_prompt_error_handling_real_behavior(self, temp_prompt_file):
         """Test error handling when loading custom prompt fails."""
-        with patch('ai.prompt_manager.AI_USE_CUSTOM_PROMPT', True), \
-             patch('ai.prompt_manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
+        with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', True), \
+             patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
              patch('builtins.open', side_effect=PermissionError("Access denied")):
             manager = PromptManager()
             
@@ -110,8 +110,8 @@ class TestPromptManager:
         """Test getting prompt uses custom prompt for wellness type."""
         custom_content = "Custom wellness prompt"
         
-        with patch('ai.prompt_manager.AI_USE_CUSTOM_PROMPT', True), \
-             patch('ai.prompt_manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
+        with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', True), \
+             patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
              patch('builtins.open', mock_open(read_data=custom_content)):
             manager = PromptManager()
             prompt = manager.get_prompt('wellness')
@@ -122,8 +122,8 @@ class TestPromptManager:
         """Test getting prompt uses custom prompt for neurodivergent_support type."""
         custom_content = "Custom neurodivergent prompt"
         
-        with patch('ai.prompt_manager.AI_USE_CUSTOM_PROMPT', True), \
-             patch('ai.prompt_manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
+        with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', True), \
+             patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
              patch('builtins.open', mock_open(read_data=custom_content)):
             manager = PromptManager()
             prompt = manager.get_prompt('neurodivergent_support')
@@ -134,8 +134,8 @@ class TestPromptManager:
         """Test that custom prompt is not used for command type."""
         custom_content = "Custom prompt"
         
-        with patch('ai.prompt_manager.AI_USE_CUSTOM_PROMPT', True), \
-             patch('ai.prompt_manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
+        with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', True), \
+             patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
              patch('builtins.open', mock_open(read_data=custom_content)):
             manager = PromptManager()
             prompt = manager.get_prompt('command')
@@ -154,7 +154,7 @@ class TestPromptManager:
     
     def test_get_prompt_error_handling_real_behavior(self):
         """Test get_prompt error handling."""
-        with patch('ai.prompt_manager.AI_USE_CUSTOM_PROMPT', False):
+        with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', False):
             manager = PromptManager()
             # Simulate error accessing fallback prompts
             original_fallbacks = manager._fallback_prompts
@@ -323,8 +323,8 @@ class TestPromptManager:
         initial_content = "Initial content"
         updated_content = "Updated content"
         
-        with patch('ai.prompt_manager.AI_USE_CUSTOM_PROMPT', True), \
-             patch('ai.prompt_manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file):
+        with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', True), \
+             patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file):
             # Create manager with initial content
             with patch('builtins.open', mock_open(read_data=initial_content)):
                 manager = PromptManager()
@@ -345,8 +345,8 @@ class TestPromptManager:
     
     def test_has_custom_prompt_true_real_behavior(self, temp_prompt_file):
         """Test has_custom_prompt returns True when custom prompt exists."""
-        with patch('ai.prompt_manager.AI_USE_CUSTOM_PROMPT', True), \
-             patch('ai.prompt_manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
+        with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', True), \
+             patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
              patch('builtins.open', mock_open(read_data="Custom prompt")):
             manager = PromptManager()
             
@@ -368,8 +368,8 @@ class TestPromptManager:
         """Test custom_prompt_length returns correct length."""
         prompt_content = "Custom prompt content"
         
-        with patch('ai.prompt_manager.AI_USE_CUSTOM_PROMPT', True), \
-             patch('ai.prompt_manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
+        with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', True), \
+             patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
              patch('builtins.open', mock_open(read_data=prompt_content)):
             manager = PromptManager()
             
@@ -474,7 +474,7 @@ class TestPromptManager:
     def test_create_contextual_prompt_error_handling_real_behavior(self, prompt_manager):
         """Test create_contextual_prompt error handling."""
         # Avoid patching builtins.len (breaks unittest.mock internals); fail on debug log instead
-        with patch("ai.prompt_manager.logger.debug", side_effect=Exception("Error")):
+        with patch("ai.prompts.manager.logger.debug", side_effect=Exception("Error")):
             result = prompt_manager.create_contextual_prompt("base", "context", "input")
             # Should return empty string on error due to @handle_errors decorator
             assert result == ""
@@ -542,8 +542,8 @@ class TestPromptManager:
     def test_get_prompt_manager_singleton_real_behavior(self):
         """Test that get_prompt_manager returns singleton instance."""
         # Reset global instance
-        import ai.prompt_manager
-        ai.prompt_manager._prompt_manager = None
+        import ai.prompts.manager
+        ai.prompts.manager._prompt_manager = None
         
         manager1 = get_prompt_manager()
         manager2 = get_prompt_manager()
@@ -555,11 +555,11 @@ class TestPromptManager:
     def test_get_prompt_manager_error_handling_real_behavior(self):
         """Test get_prompt_manager error handling."""
         # Reset global instance
-        import ai.prompt_manager
-        ai.prompt_manager._prompt_manager = None
+        import ai.prompts.manager
+        ai.prompts.manager._prompt_manager = None
         
         # Simulate error in PromptManager initialization
-        with patch('ai.prompt_manager.PromptManager', side_effect=Exception("Error")):
+        with patch('ai.prompts.manager.PromptManager', side_effect=Exception("Error")):
             result = get_prompt_manager()
             # Should return None on error due to @handle_errors decorator
             assert result is None

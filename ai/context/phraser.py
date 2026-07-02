@@ -3,14 +3,14 @@
 """
 Format computed context facts into natural-language prompt sections.
 
-Analytics and aggregation live in ``ai.context_builder`` (``analyze_context``).
+Analytics and aggregation live in ``ai.context.builder`` (``analyze_context``).
 This module only phrases those facts for comprehensive conversational prompts.
 """
 
 from datetime import date
 from typing import Any
 
-from ai.context_builder import ContextAnalysis, ContextData, get_context_builder
+from ai.context.builder import ContextAnalysis, ContextData, get_context_builder
 from core import get_user_data
 from core.error_handling import handle_errors
 from core.logger import get_component_logger

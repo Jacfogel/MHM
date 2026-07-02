@@ -24,7 +24,7 @@ from core.config import (
     AI_AI_PARSING_PARTIAL_CONFIDENCE,
     AI_COMMAND_PARSING_TIMEOUT,
 )
-from ai.chatbot import get_ai_chatbot
+from ai.chat.chatbot import get_ai_chatbot
 from communication.command_handlers.shared_types import ParsedCommand
 from communication.command_handlers.interaction_handlers import get_all_handlers
 from communication.message_processing.intent_validation import is_valid_intent

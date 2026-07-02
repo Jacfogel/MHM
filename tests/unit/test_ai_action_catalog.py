@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from ai.action_catalog import (
+from ai.prompts.action_catalog import (
     AIActionRequest,
     build_action_catalog,
 )

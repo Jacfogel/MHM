@@ -14,14 +14,13 @@ This plan intentionally removes `safety_and_boundaries` as a standalone prompt c
 
 The target categories are:
 
-- `identity_and_tone`
-- `product_capabilities`
-- `context_data_access`
-- `context_selection_and_memory`
-- `conversation_behavior`
-- `action_interpretation`
-- `action_execution`
-- `fallback_behavior`
+- `persona`
+- `reply_rules`
+- `data_honesty`
+- `action_boundaries`
+- `available_actions` (runtime injection from `AIActionCatalog`, not a prompt file)
+
+Command parsing remains separate in `resources/prompts/command.txt`.
 
 ## 2. Current State
 
@@ -29,18 +28,18 @@ Product AI response behavior is currently influenced by:
 
 | Source | Current responsibility | Refactor concern |
 | --- | --- | --- |
-| `resources/prompts/assistant_system_prompt.txt` | Main companion prompt for chat-style generation. | Too broad and mixes identity, behavior, context rules, and capability claims. |
+| `resources/prompts/assistant_system_prompt.txt` | Legacy custom-prompt override path when `AI_USE_CUSTOM_PROMPT` is enabled. | Now mirrors `persona.txt`; chat composition no longer stacks this on top of category files. |
 | `resources/prompts/command.txt` | Structured command parsing prompt with live action injection. | Useful for command extraction, but separate from conversational context and result-aware responses. |
-| `ai/prompt_manager.py` | Loads prompts, templates, custom prompt file, and inline helper prompts. | Should become a category loader/composer instead of holding scattered prompt bodies. |
-| `ai/conversational_context/*` | Builds natural-language context sections for chat prompts. | Chat assembly now consumes `AIContextEnvelope`; remaining work is prompt-rule de-duplication and migration/reduction of `context_phraser.py` helper ownership. |
-| `user/context_manager.py` and `ai/context_builder.py` | Gather profile, preferences, recent activity, mood trends, health guidance, and conversation history. | `ai/context_builder.py` now adapts from `AIContextEnvelope`; `user/context_manager.py` remains a separate context surface to review before final cleanup. |
-| `ai/command_interpreter.py` and `ai/command_registry.py` | Mode detection, command prompts, clarification, command output cleanup, live action list injection. | Should evolve into action interpretation, not just command parsing. |
+| `ai/prompts/manager.py` | Loads prompts, templates, custom prompt file, and composes product-AI category prompts. | Category composition is in place; inline bodies for `create_task_prompt()` / `create_checkin_prompt()` remain temporary. |
+| `ai/context/assembly.py` and `ai/context/phraser.py` | Builds natural-language context sections for chat prompts from `AIContextEnvelope`. | `ai/context/phraser.py` helper ownership can still be reduced over time. |
+| `user/context_manager.py` and `ai/context/builder.py` | Gather profile, preferences, recent activity, mood trends, health guidance, and conversation history. | `ai/context/builder.py` adapts from `AIContextEnvelope`; `user/context_manager.py` remains a separate context surface to review before final cleanup. |
+| `ai/prompts/command_interpreter.py` and `ai/prompts/command_registry.py` | Mode detection, command prompts, clarification, command output cleanup, live action list injection. | Should evolve into action interpretation, not just command parsing. |
 | `communication/message_processing/interaction_manager.py` | Routes incoming messages through flows, command parsing, structured dispatch, and contextual chat. | Best existing integration point for AI-driven actions. |
 | `communication/message_processing/structured_command_dispatcher.py` | Dispatches parsed commands to registered handlers and optionally enhances responses. | Best initial action execution backend. |
 | `communication/command_handlers/*` | Domain handlers for tasks, check-ins, profile, schedules, analytics, notebooks, account, health, and natural language. | Existing action implementation surface should be reused first. |
 | `tasks/*`, `checkins/*`, `messages/*`, `storage/*`, `core/*` | Domain data APIs and persistence helpers. | AI must read/write through these APIs, not direct JSON file access. |
-| `ai/fallback_responses/*` | Deterministic copy when LM Studio is unavailable or generation fails. | Should align with the same context/action categories instead of being a parallel personality path. |
-| `ai/response_generator.py` and `ai/response_postprocess.py` | Prompt assembly, engagement appending, leak cleanup, truncation. | Post-processing should remain mechanical; action/result behavior should move into explicit flow. |
+| `ai/fallback/*` | Deterministic copy when LM Studio is unavailable or generation fails. | Should align with the same context/action categories instead of being a parallel personality path. |
+| `ai/chat/response_generator.py` and `ai/chat/response_postprocess.py` | Prompt assembly, leak cleanup, truncation. | Post-processing is mechanical only; engagement follow-ups are owned by `reply_rules.txt`. |
 | `core/config.py`, `.env.example`, `CONFIGURATION_REFERENCE.md` | AI prompt paths, LM Studio settings, response limits, temperatures, command thresholds. | New context/action controls need central config and docs. |
 | `tests/ai/*`, `tests/unit/*`, `tests/behavior/*` | Prompt manager, context, command injection, fallback, AI quality, action-boundary tests. | Tests must shift from exact prompt wording to context/action contracts. |
 
@@ -52,19 +51,35 @@ The first cleanup pass established the context and catalog foundation, but it di
 
 Completed:
 
-- `ai/context_service.py` owns the canonical `AIContextEnvelope` and builds structured context sections for account, preferences, personal context, schedules, tasks, check-ins, messages, notebooks, health, analytics, conversation, and action catalog data.
-- `ai/context_builder.py` now reads from `AIContextEnvelope` and converts to the existing `ContextData` shape for current callers.
-- `ai/conversational_context/assembly.py` now builds chat context from one envelope instead of loading domains directly through `user_context_manager`.
-- `ai/action_catalog.py` provides metadata for live parser intents without importing communication handlers or executing actions.
-- `ai/prompt_flows.py` names the major product-AI flows and records category ownership for chat, action interpretation, action-result response, and fallback response.
+- `ai/context/service.py` owns the canonical `AIContextEnvelope` and builds structured context sections for account, preferences, personal context, schedules, tasks, check-ins, messages, notebooks, health, analytics, conversation, and action catalog data.
+- `ai/context/builder.py` reads from `AIContextEnvelope` and converts to the existing `ContextData` shape for current callers.
+- `ai/context/assembly.py` builds chat context from one envelope instead of loading domains directly through `user_context_manager`.
+- `ai/prompts/action_catalog.py` provides metadata for live parser intents without importing communication handlers or executing actions.
+- `ai/prompts/flows.py` names the major product-AI flows and records category ownership for chat, action interpretation, action-result response, and fallback response.
+- Product-AI prompt categories consolidated to four files under `resources/prompts/product_ai/` (`persona`, `reply_rules`, `data_honesty`, `action_boundaries`) plus runtime `available_actions` injection. Removed `CONVERSATIONAL_CONTEXT_INSTRUCTIONS` and duplicate stacking of `assistant_system_prompt.txt` in chat assembly.
 
 Still not implemented:
 
 - No AI action planner exists yet.
 - No AI action executor exists yet.
 - No conversion from `AIActionRequest` to `ParsedCommand` has been wired into the communication/action-execution path.
-- `PromptManager` has not been converted into a full category composer.
-- `CONVERSATIONAL_CONTEXT_INSTRUCTIONS` and `assistant_system_prompt.txt` still need rule de-duplication.
+- `action_interpretation` and `action_result_response` flows are declared but not yet wired into runtime composition beyond tests.
+
+### 3.0.1 Prompt cleanup problem statement
+
+The next cleanup should reduce prompt sprawl before adding more AI behavior. Current prompt behavior is hard to reason about because the same instructions are split across the companion prompt, contextual chat instructions, command parsing prompt, inline fallback prompts, and response post-processing. This makes behavior harder to tune, and it encourages future features to add more prompt text in whichever file is closest.
+
+The prompt system should become easy to use and expand by making one clear rule true:
+
+> Product AI flows choose categories; categories own prompt text; runtime services provide data and actions.
+
+That means:
+
+- `PromptManager` should compose prompts from named categories instead of exposing broad prompt-type bodies as the primary API.
+- Context text should be supplied by `AIContextEnvelope` prompt sections, not handwritten directly into behavioral prompt rules.
+- Capability text should come from `AIActionCatalog` and feature state, not static claims in `assistant_system_prompt.txt`.
+- Chat behavior, action interpretation, action-result response, and fallback response should share category text where appropriate instead of duplicating wording.
+- Post-processing should only clean formatting/leaks, not compensate for unclear prompt ownership.
 
 This means the current code is a useful foundation slice, not the completed product-AI overhaul.
 
@@ -83,7 +98,7 @@ This keeps AI in the product loop without letting it bypass existing persistence
 
 ### 3.2 AIContextEnvelope
 
-Introduce a single structured context object owned by `ai/context_service.py` or a similarly named module:
+Introduce a single structured context object owned by `ai/context/service.py` or a similarly named module:
 
 - `metadata`: user id, current timestamp, timezone, active channel, requested intent, context version.
 - `account`: account/profile fields relevant to identity, enabled features, linked channels, and app settings.
@@ -147,16 +162,59 @@ Only add direct domain-service action executors when existing handlers cannot ex
 
 ## 4. Category Ownership
 
-| Category | Owns | Initial implementation home |
+| Category | Owns | Implementation home |
 | --- | --- | --- |
-| `identity_and_tone` | Assistant personality, style, response length defaults, naming. | Prompt category file loaded by `PromptManager`. |
-| `product_capabilities` | Accurate list of MHM features and actions the assistant can use. | Generated from handler/action registry plus feature flags. |
-| `context_data_access` | Which in-app data sources are loaded into `AIContextEnvelope`. | Implemented in `ai/context_service.py`; uses `storage`, `tasks`, `checkins`, `messages`, `notebooks`, `core` APIs. |
-| `context_selection_and_memory` | Request-aware context compression, summaries, expansion, and conversation/action history. | `ai/context_service.py` plus existing `core/response_tracking.py` and `ai/conversation_history.py`. |
-| `conversation_behavior` | Greeting/direct-answer behavior, concise wording, natural follow-ups. | Prompt category plus `response_generator`; remove conversational additions from post-processing where possible. |
-| `action_interpretation` | Decide whether to answer, clarify, or execute actions; normalize entities. | `ai/command_interpreter.py` evolved or a proposed action-planner module. |
-| `action_execution` | Execute planned app actions and report results. | Proposed action-executor module backed by `dispatch_structured_command` and command handlers. |
-| `fallback_behavior` | Deterministic responses when LM Studio or planning fails. | `ai/fallback_responses/`, updated to consume context/action categories. |
+| `persona` | Assistant personality, style, response length defaults, naming. | `resources/prompts/product_ai/persona.txt` |
+| `reply_rules` | Greeting/direct-answer behavior, concise wording, natural follow-ups. | `resources/prompts/product_ai/reply_rules.txt` |
+| `data_honesty` | Context visibility, data accuracy, feature availability, health personalization. | `resources/prompts/product_ai/data_honesty.txt` |
+| `action_boundaries` | No false CRUD claims; offer language for action-like chat. | `resources/prompts/product_ai/action_boundaries.txt` |
+| `available_actions` | Accurate list of MHM features and actions the assistant can use. | Runtime injection from `AIActionCatalog` / envelope (not a static file) |
+| User context data | Which in-app data is loaded and phrased for the model. | `ai/context/service.py` + `ai/context/assembly.py` |
+| Command parsing | Strict `ACTION:` extraction format. | `resources/prompts/command.txt` (separate from chat categories) |
+| Action execution | Execute planned app actions and report results. | Future planner/executor via `dispatch_structured_command` (not prompt text) |
+| Fallback copy | Deterministic responses when LM Studio or planning fails. | `ai/fallback/` using the same category contract where applicable |
+
+### 4.1 Current prompt-source inventory
+
+| Source | Status |
+| --- | --- |
+| `resources/prompts/product_ai/*.txt` | Four flow-aligned category files (`persona`, `reply_rules`, `data_honesty`, `action_boundaries`). |
+| `resources/prompts/assistant_system_prompt.txt` | Slim persona mirror; optional custom override when `AI_USE_CUSTOM_PROMPT` is enabled. Not stacked on chat composition. |
+| `resources/prompts/command.txt` | Command parse prompt with live action injection. Unchanged. |
+| Legacy instructions module (removed) | Rules moved into category files. |
+| `ai/prompts/manager.py` inline bodies | Temporary support for `create_task_prompt()` and `create_checkin_prompt()`. |
+| `ai/fallback/*` | Deterministic fallback logic; should align with category wording over time. |
+| `ai/chat/response_postprocess.py` | Leak cleanup, sign-off stripping, truncation only. |
+
+### 4.2 Category file layout
+
+```text
+resources/prompts/product_ai/
+- persona.txt
+- reply_rules.txt
+- data_honesty.txt
+- action_boundaries.txt
+```
+
+Runtime `available_actions` text is injected during composition from `AIActionCatalog` or envelope structured data.
+
+### 4.3 Prompt composition contract
+
+Add a category-oriented API while preserving current public calls during migration:
+
+```text
+PromptManager.compose_product_prompt(flow_name, *, context_view=None, action_catalog=None, result_metadata=None) -> PromptTemplate
+```
+
+The composed prompt should include:
+
+- flow name and category list from `ai/prompts/flows.py`
+- category text in a stable order
+- generated capability text from `AIActionCatalog` for flows that need it
+- selected context prompt sections from `AIContextEnvelope`, passed as data rather than loaded by `PromptManager`
+- optional action-result metadata for `action_result_response`
+
+Existing `get_prompt("wellness")` and `get_prompt("command")` can delegate to this API temporarily, but new product-AI code should use flow/category composition directly.
 
 ## 5. Refactoring Phases
 
@@ -177,16 +235,17 @@ Only add direct domain-service action executors when existing handlers cannot ex
   - Message APIs for categories and recent sent messages.
   - Notebook handlers/data helpers for note/list metadata and recent entries.
   - Existing health/context/analytics helpers for summaries.
-- Replace ad hoc context assembly in `user/context_manager.py`, `ai/context_builder.py`, and `ai/conversational_context/context_phraser.py` incrementally by reading from the envelope.
+- Replace ad hoc context assembly in `user/context_manager.py`, `ai/context/builder.py`, and `ai/context/phraser.py` incrementally by reading from the envelope.
 - Preserve current public entry points until all callers migrate, but do not add permanent shims.
 
-### Phase 2 - Prompt categories
+### Phase 2 - Prompt categories **COMPLETED (2026-07-02)**
 
-- Move prompt text into category files or structured constants under a product-AI prompt directory.
-- Make `PromptManager` compose chat, action-planning, action-result, command, and fallback prompts from categories.
-- Remove duplicated rules between `assistant_system_prompt.txt` and `CONVERSATIONAL_CONTEXT_INSTRUCTIONS`.
-- Replace broad capability claims with registry-driven capability text.
-- Keep `resources/prompts/command.txt` only as the command/action planning category source or migrate it into the new category structure.
+- [x] Add `resources/prompts/product_ai/` category files aligned to chat flow jobs.
+- [x] Add `PromptManager.compose_product_prompt()` and tests for stable category order.
+- [x] Remove duplicate `CONVERSATIONAL_CONTEXT_INSTRUCTIONS` and stop stacking `assistant_system_prompt.txt` on chat composition.
+- [x] Replace static capability claims with runtime `available_actions` injection from `AIActionCatalog`.
+- [ ] Wire `action_interpretation` and `action_result_response` flows into runtime composition beyond tests.
+- [x] Align `ai/fallback/*` copy with composed category contract (partial — paths migrated; wording review remains).
 
 ### Phase 3 - Action catalog
 
@@ -228,7 +287,7 @@ Only add direct domain-service action executors when existing handlers cannot ex
 - For answer-only requests, generate from `AIContextEnvelope` and selected prompt sections.
 - For executed actions, generate from action result metadata plus updated context.
 - For clarification, ask one specific question based on missing fields.
-- Remove or reduce `enhance_conversational_engagement()` so follow-up behavior is prompt-owned and result-aware.
+- [x] Remove `enhance_conversational_engagement()` so follow-up behavior is prompt-owned (`reply_rules.txt`).
 
 ### Phase 7 - Fallback alignment
 
@@ -239,9 +298,12 @@ Only add direct domain-service action executors when existing handlers cannot ex
   - If LM Studio is unavailable for chat, answer from deterministic summaries where possible.
   - If action execution fails, return the handler error/result instead of generic support copy.
 
-### Phase 8 - Retire old prompt/context paths
+### Phase 8 - Retire old prompt/context paths **PARTIAL (2026-07-02)**
 
-- Remove duplicated prompt text and obsolete context builders only after callers and tests are migrated.
+- [x] Migrated callers to `ai/client/`, `ai/context/`, `ai/prompts/`, `ai/chat/`, `ai/fallback/`; removed legacy flat modules and shim packages.
+- [x] Removed empty `ai/conversational_context/` and `ai/fallback_responses/` directories.
+- [ ] Retire `ai/context/builder.py` adapter when all callers consume `AIContextEnvelope` directly.
+- [ ] Remove duplicated prompt text and obsolete context builders only after callers and tests are migrated.
 - Use the legacy compatibility process for any retained bridge:
   - `--find` the old symbol/path first.
   - Add `# LEGACY COMPATIBILITY:` only if the bridge is truly needed.
@@ -327,17 +389,38 @@ The overhaul is complete when:
 - Legacy verification reports no active untracked bridge references.
 - Context/action behavior is covered by unit and behavior tests.
 
-## 9. First Implementation Slice
+## 9. Implementation Slices
 
-Start with the least risky useful slice:
+### 9.1 Completed foundation slice
 
 1. [x] Add `AIContextEnvelope` and a context service that reads account, preferences, context, schedules, tasks, check-ins, messages, conversation history, and health summaries.
 2. [x] Add tests proving the envelope sees all populated in-app data for a test user.
 3. [x] Add an action catalog generated from existing handlers and parser intents.
-4. [ ] Add tests proving task actions route through the communication/action-execution layer into `dispatch_structured_command`.
-5. [ ] Only after those tests pass, move full prompt composition to categories.
 
-This sequence gives the AI richer data access first, then action execution, then prompt cleanup. Item 4 and full `PromptManager` category composition in item 5 are still future work; `ai/prompt_flows.py` only names/categorizes flows.
+This slice gave the AI richer data access and capability metadata without adding action execution.
+
+### 9.2 Next slice - prompt-system cleanup
+
+Focus on making the prompting system easier to use, connect, and expand before adding planner/executor behavior.
+
+1. [ ] Add product-AI category files under `resources/prompts/product_ai/`.
+2. [ ] Add `PromptManager.compose_product_prompt()` for `chat_response`, using `ai/prompts/flows.py` category ownership.
+3. [ ] Move duplicated conversational behavior out of `assistant_system_prompt.txt` and `CONVERSATIONAL_CONTEXT_INSTRUCTIONS` into category-owned text.
+4. [ ] Generate product capability text from `AIActionCatalog` for chat prompts, while preserving feature-disabled constraints from `AIContextEnvelope`.
+5. [ ] Update `assemble_comprehensive_messages()` to consume the composed chat prompt plus envelope prompt sections.
+6. [ ] Add tests that verify category inclusion, no duplicated greeting/direct-answer rules, action-boundary wording, and feature-disabled wording.
+7. [ ] Keep existing `get_prompt("wellness")` behavior as a temporary API surface only if current callers still require it; document any bridge if it becomes a true legacy compatibility path.
+
+Do not add AI action planning in this slice. The goal is prompt ownership clarity and lower duplication.
+
+### 9.3 Following slice - action-routing proof
+
+After prompt cleanup is stable:
+
+1. [ ] Add tests proving task actions route through the communication/action-execution layer into `dispatch_structured_command`.
+2. [ ] Add narrow conversion from `AIActionRequest` to `ParsedCommand`.
+3. [ ] Capture structured execution metadata for final response generation.
+4. [ ] Only then add AI action planner/executor behavior.
 
 ## 10. Implementation Log
 
@@ -345,7 +428,7 @@ This sequence gives the AI richer data access first, then action execution, then
 
 Completed:
 
-- Added `ai/context_service.py` with `AIContextEnvelope`, `AIContextSection`, and `build_ai_context_envelope`.
+- Added `ai/context/service.py` with `AIContextEnvelope`, `AIContextSection`, and `build_ai_context_envelope`.
 - The initial envelope implementation built structured sections for account, preferences, personal context, schedules, tasks, check-ins, messages, notebooks, health, analytics, conversation, and a placeholder action catalog.
 - Added request-aware prompt section selection with `included_sections` metadata so tests can explain which context was included.
 - Exported the new context service API from `ai/__init__.py`.
@@ -360,14 +443,14 @@ Verified:
 Notes:
 
 - Superseded by the later action-catalog slice: the envelope's `action_catalog` section now contains live catalog data, not a placeholder.
-- Superseded by the later ContextBuilder slice: `ai/context_builder.py` now reads from the envelope. `user/context_manager.py` remains a separate context surface to review before final prompt cleanup.
+- Superseded by the later ContextBuilder slice: `ai/context/builder.py` now reads from the envelope. `user/context_manager.py` remains a separate context surface to review before final prompt cleanup.
 - No legacy compatibility bridge was added in this slice.
 
 ### 2026-07-01 - Handler-backed action catalog slice
 
 Completed:
 
-- Added `ai/action_catalog.py` with `AIActionCatalog`, `AIActionDefinition`, `AIActionField`, and `AIActionRequest`.
+- Added `ai/prompts/action_catalog.py` with `AIActionCatalog`, `AIActionDefinition`, `AIActionField`, and `AIActionRequest`.
 - The catalog reads live rule-based intent names through `ai.command_registry` and records action metadata without importing communication handlers or executing handlers directly.
 - Kept `AIActionRequest` as AI-layer planning data; dispatcher conversion belongs in the future communication/action-execution slice.
 - Replaced the context envelope's placeholder `action_catalog` section with live catalog data and prompt summary text.
@@ -390,7 +473,7 @@ Notes:
 
 Completed:
 
-- Updated `ContextBuilder.build_user_context` in `ai/context_builder.py` to build from `AIContextEnvelope` instead of separately calling `UserContextManager`, `get_recent_responses`, and direct `get_user_data` reads.
+- Updated `ContextBuilder.build_user_context` in `ai/context/builder.py` to build from `AIContextEnvelope` instead of separately calling `UserContextManager`, `get_recent_responses`, and direct `get_user_data` reads.
 - Added a narrow conversion from `AIContextEnvelope` to the existing `ContextData` shape so current callers keep working while the canonical data source is centralized.
 - Kept `ContextBuilder.analyze_context` in place as the shared check-in analytics implementation used by conversational phrasing and fallback tests.
 - Added `tests/unit/test_ai_context_builder_envelope.py` to prove `ContextBuilder` delegates to `build_ai_context_envelope`.
@@ -405,7 +488,7 @@ Verified:
 Notes:
 
 - No `LEGACY COMPATIBILITY` bridge was added. This is a direct internal migration that preserves the public `ContextData` return type temporarily.
-- Remaining context overlap is primarily in `user/context_manager.py` and `ai/conversational_context/context_phraser.py`; those should be migrated to consume envelope sections or prompt views before prompt-category cleanup begins.
+- Remaining context overlap is primarily in `user/context_manager.py` and `ai/context/phraser.py`; those should be migrated to consume envelope sections or prompt views before prompt-category cleanup begins.
 
 ### 2026-07-01 - Prompt-flow categorization and chat assembly cleanup
 
@@ -415,15 +498,15 @@ Course correction:
 
 Completed:
 
-- Added `ai/prompt_flows.py` with named product-AI prompt flows:
+- Added `ai/prompts/flows.py` with named product-AI prompt flows:
   - `chat_response`
   - `action_interpretation`
   - `action_result_response`
   - `fallback_response`
 - Each flow records its category ownership, context source, and prompt owner.
-- Updated `ai/conversational_context/assembly.py` so `assemble_comprehensive_messages()` uses the `chat_response` flow and builds one `AIContextEnvelope`.
+- Updated `ai/context/assembly.py` so `assemble_comprehensive_messages()` uses the `chat_response` flow and builds one `AIContextEnvelope`.
 - Updated `build_context_parts()` to phrase from the envelope's structured sections instead of calling `user_context_manager` and domain-loading helpers directly.
-- Kept `ai/conversational_context/context_phraser.py` as a wording/helper module for now; it no longer owns top-level chat context loading.
+- Kept `ai/context/phraser.py` as a wording/helper module for now; it no longer owns top-level chat context loading.
 - Exported prompt-flow APIs from `ai/__init__.py`.
 - Added tests for prompt-flow categorization and envelope-backed conversational assembly.
 
@@ -444,7 +527,7 @@ Notes:
 Completed:
 
 - Confirmed the context/action/prompt-flow work is a foundation slice, not a complete AI action system.
-- Kept action execution explicitly out of `ai/action_catalog.py`; the catalog remains metadata-only.
+- Kept action execution explicitly out of `ai/prompts/action_catalog.py`; the catalog remains metadata-only.
 - Removed stale documentation claims that action-catalog tests prove `dispatch_structured_command` routing.
 - Clarified that action planner, action executor, full prompt category composition, and prompt-rule de-duplication remain future work.
 - Refreshed development-tool audit artifacts after related cleanup.
@@ -462,3 +545,18 @@ Result:
 - Static analysis: clean.
 - Duplicate functions: 0.
 - Facade/shim candidates: 0.
+
+### 2026-07-02 - Prompt cleanup slice definition
+
+Completed:
+
+- Added a concrete prompt cleanup problem statement centered on the rule: product AI flows choose categories, categories own prompt text, and runtime services provide data/actions.
+- Added a current prompt-source inventory covering `assistant_system_prompt.txt`, `CONVERSATIONAL_CONTEXT_INSTRUCTIONS`, `command.txt`, inline `PromptManager` bodies, fallback responses, and response post-processing.
+- Defined the proposed `resources/prompts/product_ai/` category file layout and a `PromptManager.compose_product_prompt()` contract.
+- Expanded Phase 2 with specific migration steps for duplicated greeting, direct-answer, context visibility, feature availability, health-personalization, action-boundary, and capability rules.
+- Replaced the old first-slice checklist with completed foundation, next prompt-system cleanup, and following action-routing proof slices.
+
+Notes:
+
+- This is documentation/planning only. No prompt files or runtime code were changed in this slice.
+- The next implementation should start with `chat_response` composition and tests before changing command/action planning behavior.

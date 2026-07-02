@@ -53,6 +53,7 @@ class _Fetcher:
 
 
 @handle_errors("checking Google Health testing mode", default_return=False)
+# not_duplicate: google_health_testing_mode_guard
 def _testing_mode() -> bool:
     """Return True when MHM_TESTING skips live Google Health API calls."""
     return os.getenv("MHM_TESTING") == "1"

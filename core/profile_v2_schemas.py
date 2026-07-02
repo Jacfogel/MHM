@@ -114,6 +114,7 @@ class PeriodV2Model(BaseModel):
 
     @field_validator("days")
     @classmethod
+    # not_duplicate: schema_v1_v2_period_validators
     def _valid_days(cls, value: list[str]) -> list[str]:
         """Filter schedule days to the allowed set, defaulting to ALL."""
         if not value:
@@ -203,6 +204,7 @@ class AccountV2EnvelopeModel(BaseModel):
 
     @field_validator("discord_user_id")
     @classmethod
+    # not_duplicate: schema_v1_v2_discord_validators
     def _normalize_discord_id(cls, value: str) -> str:
         """Validate Discord snowflake IDs; invalid values become empty."""
         if not value:
@@ -224,6 +226,7 @@ class AccountV2EnvelopeModel(BaseModel):
 
     @field_validator("discord_username")
     @classmethod
+    # not_duplicate: schema_v1_v2_discord_validators
     def _normalize_discord_username(cls, value: str) -> str:
         """Trim and bound Discord username length for on-disk storage."""
         if not value:

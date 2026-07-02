@@ -2,15 +2,15 @@
 
 import pytest
 
-from ai.conversational_context.action_boundaries import (
+from ai.chat.action_boundaries import (
     FALSE_CRUD_SUCCESS_SUBSTRINGS,
     find_false_crud_claims,
     response_has_false_crud_claim,
 )
-from ai.conversational_context.assembly import assemble_comprehensive_messages
-from ai.conversational_context.instructions import CONVERSATIONAL_CONTEXT_INSTRUCTIONS
-from ai.fallback_responses import FallbackResponses
-from ai.response_generator import get_response_generator
+from ai.context.assembly import assemble_comprehensive_messages
+from ai.fallback import FallbackResponses
+from ai.prompts.manager import get_prompt_manager
+from ai.chat.response_generator import get_response_generator
 from core import get_user_data, get_user_id_by_identifier
 from core.config import get_user_file_path
 from core.file_operations import save_json_data
@@ -67,11 +67,16 @@ class TestActionBoundaryDetection:
 class TestConversationalPromptActionBoundaries:
     """Prompt contract: instructions and assembled context enforce action boundaries."""
 
-    def test_instructions_include_action_boundary_rules(self):
-        assert "ACTION BOUNDARIES" in CONVERSATIONAL_CONTEXT_INSTRUCTIONS
-        assert "no false CRUD claims" in CONVERSATIONAL_CONTEXT_INSTRUCTIONS
-        assert "I've created that task for you" in CONVERSATIONAL_CONTEXT_INSTRUCTIONS
-        assert "you can say" in CONVERSATIONAL_CONTEXT_INSTRUCTIONS.lower()
+    def test_persona_category_includes_action_boundary_rules(self):
+        persona = get_prompt_manager()._product_ai_categories.get("persona", "")
+        boundaries = get_prompt_manager()._product_ai_categories.get(
+            "action_boundaries", ""
+        )
+        assert "MHM's in-app assistant" in persona
+        assert "ACTION BOUNDARIES" in boundaries
+        assert "no false CRUD claims" in boundaries
+        assert "I've created that task for you" in boundaries
+        assert "you can say" in boundaries.lower()
 
     def setup_method(self):
         self.test_dir, self.test_data_dir, _ = setup_test_data_environment()
@@ -127,10 +132,9 @@ class TestConversationalPromptActionBoundaries:
         messages = assemble_comprehensive_messages(
             user_id,
             "create a task to buy milk",
-            "You are a supportive wellness assistant.",
         )
         system_content = messages[0]["content"]
-        assert "supportive wellness assistant" in system_content
+        assert "MHM's in-app assistant" in system_content
         assert "ACTION BOUNDARIES" in system_content
         assert messages[1]["content"] == "create a task to buy milk"
 
@@ -182,9 +186,9 @@ class TestFallbackResponsesActionBoundaries:
         from unittest.mock import patch
 
         with (
-            patch("ai.fallback_responses.data_access.get_user_data", return_value={}),
+            patch("ai.fallback.data_access.get_user_data", return_value={}),
             patch(
-                "ai.fallback_responses.data_access.get_recent_responses",
+                "ai.fallback.data_access.get_recent_responses",
                 return_value=[],
             ),
         ):

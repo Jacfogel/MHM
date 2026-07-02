@@ -702,7 +702,7 @@ def cleanup_conversation_history():
     _project_root, _tests_data_dir, test_logger, _test_log_file, _ = _get_conftest_attrs()
 
     try:
-        from ai.conversation_history import get_conversation_history
+        from ai.context.history import get_conversation_history
 
         history = get_conversation_history()
         if history is not None:
@@ -718,7 +718,7 @@ def cleanup_conversation_history():
     yield
 
     try:
-        from ai.conversation_history import get_conversation_history
+        from ai.context.history import get_conversation_history
 
         history = get_conversation_history()
         if history is not None:
@@ -739,14 +739,14 @@ def cleanup_singletons():
 
     try:
         try:
-            from ai.chatbot import AIChatBotSingleton
+            from ai.chat.chatbot import AIChatBotSingleton
 
             original_instances["ai_chatbot"] = AIChatBotSingleton._instance
         except (ImportError, AttributeError):
             pass
 
         try:
-            import ai.cache_manager as cache_module
+            import ai.client.cache_manager as cache_module
 
             original_instances["response_cache"] = getattr(
                 cache_module, "_response_cache", None
@@ -761,7 +761,7 @@ def cleanup_singletons():
 
     finally:
         try:
-            from ai.chatbot import AIChatBotSingleton
+            from ai.chat.chatbot import AIChatBotSingleton
 
             if "ai_chatbot" in original_instances:
                 AIChatBotSingleton._instance = original_instances["ai_chatbot"]
@@ -772,7 +772,7 @@ def cleanup_singletons():
             pass
 
         try:
-            import ai.cache_manager as cache_module
+            import ai.client.cache_manager as cache_module
 
             if (
                 hasattr(cache_module, "_response_cache")
@@ -843,7 +843,7 @@ def periodic_memory_cleanup(request):
             )
 
         try:
-            import ai.cache_manager as cache_module
+            import ai.client.cache_manager as cache_module
 
             if (
                 hasattr(cache_module, "_response_cache")
@@ -859,7 +859,7 @@ def periodic_memory_cleanup(request):
             pass
 
         try:
-            from ai.chatbot import AIChatBotSingleton
+            from ai.chat.chatbot import AIChatBotSingleton
 
             if AIChatBotSingleton._instance is not None:
                 if hasattr(AIChatBotSingleton._instance, "_locks_by_user"):

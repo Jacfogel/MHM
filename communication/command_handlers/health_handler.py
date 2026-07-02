@@ -98,6 +98,7 @@ class HealthHandler(InteractionHandler):
         "showing google health status",
         default_return=InteractionResponse("Could not load health status.", True),
     )
+    # not_duplicate: command_handler_status_by_domain
     def _handle_status(self, user_id: str) -> InteractionResponse:
         status = get_health_integration_status(user_id)
         if status is None:

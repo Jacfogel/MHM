@@ -67,7 +67,7 @@ def test_analyze_dependency_patterns_categorizes_and_flags_high_coupling():
             third_party_modules=["pydantic"],
         ),
         "communication/discord_bot.py": _build_imports_payload(
-            local_modules=["core.config", "core.service", "ai.chatbot", "communication.router", "communication.webhook", "communication.events"],
+            local_modules=["core.config", "core.service", "ai.chat.chatbot", "communication.router", "communication.webhook", "communication.events"],
             third_party_modules=["discord"],
         ),
         "ui/main_window.py": _build_imports_payload(
@@ -141,7 +141,7 @@ def test_format_module_dependencies_deduplicates_and_limits():
                 "communication.router",
                 "tasks.manager",
                 "ui.dialog",
-                "ai.chatbot",
+                "ai.chat.chatbot",
             ],
             third_party_modules=["pydantic", "pydantic"],
             stdlib_modules=["json", "json", "pathlib"],
@@ -200,7 +200,7 @@ def test_generate_dependency_patterns_section_renders_dynamic_sections():
         "communication_dependencies": [
             {
                 "file": "communication/message_processing/interaction_manager.py",
-                "modules": ["core.config", "communication.core.router", "ai.chatbot"],
+                "modules": ["core.config", "communication.core.router", "ai.chat.chatbot"],
             }
         ],
         "ui_dependencies": [
