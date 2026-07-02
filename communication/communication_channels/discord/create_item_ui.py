@@ -11,7 +11,10 @@ from typing import TYPE_CHECKING, Any
 
 import discord
 
-from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
+from communication.command_handlers.shared_types import InteractionResponse
+from communication.communication_channels.discord.discord_command_runner import (
+    run_discord_handler_intent,
+)
 from communication.communication_channels.discord.discord_response_delivery import (
     deliver_handler_response,
 )
@@ -36,21 +39,13 @@ CREATE_HUB_TIMEOUT_SECONDS = 600
 def _run_handler(
     user_id: str, intent: str, entities: dict[str, Any], original_message: str
 ) -> InteractionResponse:
-    from communication.command_handlers.interaction_handlers import get_interaction_handler
-
-    handler = get_interaction_handler(intent)
-    if not handler:
-        return InteractionResponse(
-            "I could not run that action right now. Try typing the command instead.",
-            True,
-        )
-    return handler.handle(
+    return run_discord_handler_intent(
         user_id,
-        ParsedCommand(
-            intent=intent,
-            entities=entities,
-            confidence=1.0,
-            original_message=original_message,
+        intent,
+        entities,
+        original_message,
+        missing_handler_message=(
+            "I could not run that action right now. Try typing the command instead."
         ),
     )
 

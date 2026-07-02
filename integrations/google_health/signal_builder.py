@@ -207,7 +207,11 @@ def rebuild_signals_for_summaries(
     dates: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     """Rebuild signals for given dates (or all summary dates)."""
-    target_dates = dates or sorted({s.get("date") for s in summaries if s.get("date")})
+    target_dates = dates or sorted(
+        str(summary["date"])
+        for summary in summaries
+        if summary.get("date")
+    )
     signals: list[dict[str, Any]] = []
     for day in target_dates:
         if not day:

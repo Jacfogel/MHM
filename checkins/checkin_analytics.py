@@ -1215,6 +1215,7 @@ class CheckinAnalytics:
 
         return recommendations
 
+    # not_duplicate: inverse_score_scale_conversion
     @staticmethod
     @handle_errors("converting score from 0-100 to 1-5 scale", default_return=0.0)
     def convert_score_100_to_5(score_100: float) -> float:
@@ -1231,6 +1232,7 @@ class CheckinAnalytics:
             return 0.0
         return round((score_100 / 25) + 1, 1)
 
+    # not_duplicate: inverse_score_scale_conversion
     @staticmethod
     @handle_errors("converting score from 1-5 to 0-100 scale", default_return=0.0)
     def convert_score_5_to_100(score_5: float) -> float:

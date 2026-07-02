@@ -82,13 +82,28 @@ def decrypt_token_value(ciphertext: str) -> str | None:
         return None
 
 
+@handle_errors("copying Google Health auth payload", default_return=None)
+def _copy_auth_payload(data: dict[str, Any]) -> dict[str, Any] | None:
+    """Return a defensive auth payload copy, or None for invalid input."""
+    return dict(data) if isinstance(data, dict) else None
+
+
+@handle_errors("clearing Google Health auth tokens", default_return={})
+def _clear_token_fields(data: dict[str, Any]) -> dict[str, Any]:
+    """Return a copy of auth data with sensitive token fields cleared."""
+    payload = dict(data)
+    for field in _TOKEN_FIELDS:
+        payload[field] = ""
+    return payload
+
+
 @handle_errors("preparing Google Health auth for storage", default_return=None)
+# not_duplicate: google_health_storage_vs_runtime_token_transform
 def prepare_auth_for_storage(data: dict[str, Any]) -> dict[str, Any] | None:
     """Encrypt sensitive token fields before persisting to disk."""
-    if not isinstance(data, dict):
+    payload = _copy_auth_payload(data)
+    if payload is None:
         return None
-
-    payload = dict(data)
     if not is_token_encryption_enabled():
         payload["tokens_encrypted"] = False
         return payload
@@ -102,25 +117,23 @@ def prepare_auth_for_storage(data: dict[str, Any]) -> dict[str, Any] | None:
 
 
 @handle_errors("preparing Google Health auth for use", default_return=None)
+# not_duplicate: google_health_storage_vs_runtime_token_transform
 def prepare_auth_for_use(data: dict[str, Any]) -> dict[str, Any] | None:
     """Decrypt token fields after loading from disk for runtime use."""
-    if not isinstance(data, dict):
+    payload = _copy_auth_payload(data)
+    if payload is None:
         return None
 
-    if not data.get("tokens_encrypted"):
-        return dict(data)
+    if not payload.get("tokens_encrypted"):
+        return payload
 
     if not is_token_encryption_enabled():
         logger.error(
             "Google Health auth tokens are encrypted on disk but "
             "GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY is not configured"
         )
-        cleared = dict(data)
-        cleared["access_token"] = ""
-        cleared["refresh_token"] = ""
-        return cleared
+        return _clear_token_fields(payload)
 
-    payload = dict(data)
     for field in _TOKEN_FIELDS:
         value = payload.get(field) or ""
         if not value:
@@ -131,8 +144,6 @@ def prepare_auth_for_use(data: dict[str, Any]) -> dict[str, Any] | None:
                 "Failed to decrypt Google Health auth tokens - "
                 "check GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY"
             )
-            payload["access_token"] = ""
-            payload["refresh_token"] = ""
-            return payload
+            return _clear_token_fields(payload)
         payload[field] = decrypted
     return payload

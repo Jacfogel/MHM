@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-30 13:13:45
+> **Last Generated**: 2026-07-01 18:25:23
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 000000F8 5EAC:07BC
+Volume serial number is 000000B8 5EAC:07BC
 C:.
 |   .ruff.toml
 |   ARCHITECTURE.md
@@ -25,6 +25,7 @@ C:.
 |   run_headless_service.py
 |   TODO.md
 |
++---.agents
 +---.cursor
 |   |   worktrees.json
 |   |
@@ -64,15 +65,19 @@ C:.
 |           ui-guidelines.mdc
 |
 +---ai
+|   |   action_catalog.py
 |   |   cache_manager.py
 |   |   chatbot.py
 |   |   command_interpreter.py
 |   |   command_registry.py
 |   |   context_builder.py
+|   |   context_service.py
 |   |   conversation_history.py
 |   |   interaction_types.py
 |   |   lm_studio_client.py
 |   |   lm_studio_manager.py
+|   |   PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md
+|   |   prompt_flows.py
 |   |   prompt_manager.py
 |   |   response_generator.py
 |   |   response_postprocess.py
@@ -159,6 +164,7 @@ C:.
 |   |   |   |   bot.py
 |   |   |   |   checkin_view.py
 |   |   |   |   create_item_ui.py
+|   |   |   |   discord_command_runner.py
 |   |   |   |   discord_connection_status.py
 |   |   |   |   DISCORD_GUIDE.md
 |   |   |   |   discord_guild_handlers.py
@@ -952,9 +958,12 @@ C:.
 |   |   |   debug_file_paths.py
 |   |   |   test_admin_account_provisioning.py
 |   |   |   test_admin_panel.py
+|   |   |   test_ai_action_catalog.py
 |   |   |   test_ai_chatbot_helpers.py
+|   |   |   test_ai_context_service.py
 |   |   |   test_ai_deterministic.py
 |   |   |   test_ai_import_boundaries.py
+|   |   |   test_ai_prompt_flows.py
 |   |   |   test_analytics_handler.py
 |   |   |   test_analytics_handler_helper_branches.py
 |   |   |   test_auto_cleanup_backup_retention.py

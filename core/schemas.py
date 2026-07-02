@@ -474,18 +474,34 @@ def validate_account_dict(data: dict[str, Any]) -> tuple[dict[str, Any], list[st
         return data, [str(e)]
 
 
+@handle_errors("validating dictionary model")
+def _validate_dict_model(
+    data: dict[str, Any],
+    model_cls: Any,
+    *,
+    dump_method: str = "model_dump",
+    exclude_none: bool = False,
+) -> tuple[dict[str, Any], list[str]]:
+    """Validate a dict with a Pydantic model, preserving original data on failure."""
+    errors: list[str] = []
+    try:
+        model = model_cls.model_validate(data)
+        if dump_method == "to_dict":
+            return model.to_dict(), errors
+        return model.model_dump(exclude_none=exclude_none), errors
+    except Exception as e:
+        errors.append(str(e))
+        return data, errors
+
+
 @handle_errors("validating preferences dictionary")
 def validate_preferences_dict(data: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
     try:
-        errors: list[str] = []
-        try:
-            model = PreferencesModel.model_validate(data)
-            # Exclude None so optional blocks like task_settings/checkin_settings vanish when absent
-            return model.model_dump(exclude_none=True), errors
-        except Exception as e:
-            errors.append(str(e))
-            # Return original data to avoid disruption
-            return data, errors
+        return _validate_dict_model(
+            data,
+            PreferencesModel,
+            exclude_none=True,
+        )
     except Exception as e:
         logger.error(f"Error validating preferences dictionary: {e}")
         return data, [str(e)]
@@ -494,13 +510,7 @@ def validate_preferences_dict(data: dict[str, Any]) -> tuple[dict[str, Any], lis
 @handle_errors("validating schedules dictionary")
 def validate_schedules_dict(data: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
     try:
-        errors: list[str] = []
-        try:
-            model = SchedulesModel.model_validate(data)
-            return model.to_dict(), errors
-        except Exception as e:
-            errors.append(str(e))
-            return data, errors
+        return _validate_dict_model(data, SchedulesModel, dump_method="to_dict")
     except Exception as e:
         logger.error(f"Error validating schedules dictionary: {e}")
         return data, [str(e)]

@@ -6,6 +6,7 @@ Tests scheduling logic, time management, and task execution.
 
 import pytest
 import os
+from uuid import uuid4
 from unittest.mock import patch, Mock
 from datetime import datetime, timedelta
 from core import get_user_data
@@ -302,7 +303,8 @@ class TestSchedulerFunctions:
     @pytest.mark.scheduler
     def test_get_user_task_preferences_no_user(self):
         """Test getting task preferences for non-existent user."""
-        prefs_result = get_user_data("nonexistent-user", "preferences")
+        user_id = f"nonexistent-user-{uuid4()}"
+        prefs_result = get_user_data(user_id, "preferences")
         prefs = prefs_result.get("preferences", {}).get("task_settings", {})
 
         assert isinstance(prefs, dict)
@@ -332,7 +334,8 @@ class TestSchedulerFunctions:
     @pytest.mark.scheduler
     def test_get_user_checkin_preferences_no_user(self):
         """Test getting check-in preferences for non-existent user."""
-        prefs_result = get_user_data("nonexistent-user", "preferences")
+        user_id = f"nonexistent-user-{uuid4()}"
+        prefs_result = get_user_data(user_id, "preferences")
         prefs = prefs_result.get("preferences", {}).get("checkin_settings", {})
 
         assert isinstance(prefs, dict)

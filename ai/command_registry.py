@@ -27,6 +27,7 @@ from core.error_handling import handle_errors
 
 
 @handle_errors("getting command intent names", default_return=[])
+# not_duplicate: command_registry_raw_vs_initialized_intents
 def get_command_intent_names() -> list[str]:
     """Return sorted intent names from the rule-based command parser patterns."""
     # Lazy import avoids circular load: command_parser imports ai.chatbot, which
@@ -34,6 +35,20 @@ def get_command_intent_names() -> list[str]:
     from communication.message_processing.command_parser import get_rule_based_intent_names
 
     return get_rule_based_intent_names()
+
+
+@handle_errors("getting initialized command intent names", default_return=[])
+# not_duplicate: command_registry_raw_vs_initialized_intents
+def get_initialized_command_intent_names() -> list[str]:
+    """Return live parser intent names, initializing the parser registry if needed."""
+    names = get_command_intent_names()
+    if names:
+        return names
+
+    from communication.message_processing.command_parser import EnhancedCommandParser
+
+    EnhancedCommandParser()
+    return get_command_intent_names()
 
 
 @handle_errors("formatting command actions for prompt", default_return="unknown")

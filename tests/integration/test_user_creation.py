@@ -25,6 +25,14 @@ from tests.test_helpers.test_utilities import TestUserFactory
 from storage.user_data_validation import is_valid_email
 
 
+def _schedule_categories_from_loaded(schedules: dict) -> dict:
+    """Return schedule categories from flat or v2-wrapper loaded schedule data."""
+    if not isinstance(schedules, dict):
+        return {}
+    categories = schedules.get("categories")
+    return categories if isinstance(categories, dict) else schedules
+
+
 def _resolve_created_user_id(internal_username: str, test_data_dir: str) -> str:
     """Resolve factory-created user to UUID; sync index for this user only."""
     from core import get_user_id_by_identifier
@@ -120,8 +128,7 @@ class TestUserCreationScenarios:
             assert success, "Test user should be created successfully"
             
             # Get the UUID for the user
-            from core import get_user_id_by_identifier
-            actual_user_id = get_user_id_by_identifier(user_id)
+            actual_user_id = _resolve_created_user_id(user_id, test_data_dir)
             assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
             
             # Update user context with additional data
@@ -140,8 +147,10 @@ class TestUserCreationScenarios:
             # Verify data can be loaded
             # Retry in case of race conditions with file writes in parallel execution
             import time
+            from core import clear_user_caches
             loaded_data = {}
             for attempt in range(5):
+                clear_user_caches(actual_user_id)
                 loaded_data = get_user_data(actual_user_id, 'all', auto_create=False)
                 if loaded_data and 'account' in loaded_data:
                     break
@@ -220,9 +229,10 @@ class TestUserCreationScenarios:
             if attempt < 4:
                 time.sleep(0.1)  # Brief delay before retry
         assert loaded_data and 'schedules' in loaded_data, f"Schedule data should be loaded for user {actual_user_id}. Got: {loaded_data}"
-        assert 'motivational' in loaded_data['schedules']
-        assert 'Default' in loaded_data['schedules']['motivational']['periods']
-        assert loaded_data['schedules']['motivational']['periods']['Default']['start_time'] == '18:00'
+        schedules = _schedule_categories_from_loaded(loaded_data['schedules'])
+        assert 'motivational' in schedules
+        assert 'Default' in schedules['motivational']['periods']
+        assert schedules['motivational']['periods']['Default']['start_time'] == '18:00'
 
 
 @pytest.mark.user

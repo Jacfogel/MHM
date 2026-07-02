@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-02 - Product AI context foundation **COMPLETED**
+- Added canonical product-AI context envelope, metadata-only action catalog, and explicit prompt-flow ownership (`ai/context_service.py`, `ai/action_catalog.py`, `ai/prompt_flows.py`).
+- Migrated `ContextBuilder` and conversational context assembly to read from `AIContextEnvelope`, reducing duplicate product-AI data loading without duplicating `command_registry` or `conversational_context` ownership.
+- Updated `PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md` to reflect current status: planner/executor, `AIActionRequest -> ParsedCommand` routing, and full prompt-category composition remain future work.
+- Audit hygiene completed across doc-sync/registries, docstrings/error handling, duplicate-function findings, Pyright, scheduler/user-creation Tier 3 flakes, Discord handler sharing, schema/token helpers, and intentional duplicate markers; latest `audit --full` is clean.
+
 ### 2026-06-30 - Tier 3 quick tests + nightly full suite **COMPLETED**
 - Tier 3 `audit --full` runs **quick** pytest profile (`not slow`) via `run_test_suite --profile quick`.
 - New `nightly-test-suite` command runs **full** profile (includes slow tests); GitHub Actions nightly workflow added.

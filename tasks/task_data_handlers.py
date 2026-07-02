@@ -228,6 +228,7 @@ def runtime_task_quick_reminder_values(task: dict[str, Any]) -> list[Any]:
 
 
 @handle_errors("converting runtime task to v2", default_return=None)
+# not_duplicate: runtime_v2_inverse_task_conversion
 def _runtime_task_to_v2(task: dict[str, Any], *, status: str) -> dict[str, Any] | None:
     """Convert a runtime task dictionary to a validated canonical v2 task record."""
     task_id = str(task.get("id") or "")
@@ -287,6 +288,7 @@ def _runtime_task_to_v2(task: dict[str, Any], *, status: str) -> dict[str, Any] 
 
 
 @handle_errors("converting v2 task to runtime shape", default_return={})
+# not_duplicate: runtime_v2_inverse_task_conversion
 def _task_v2_to_runtime(task: dict[str, Any]) -> dict[str, Any]:
     due = task.get("due") or {}
     completion = task.get("completion") or {}

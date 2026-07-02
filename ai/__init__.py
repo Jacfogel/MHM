@@ -13,6 +13,14 @@ from .cache_manager import (
     get_context_cache,
     get_response_cache,
 )
+from .action_catalog import (
+    AIActionCatalog,
+    AIActionDefinition,
+    AIActionField,
+    AIActionRequest,
+    build_action_catalog,
+    get_action_catalog,
+)
 from .command_interpreter import CommandInterpreter, get_command_interpreter
 from .command_registry import (
     format_command_actions_for_prompt,
@@ -24,6 +32,11 @@ from .context_builder import (
     ContextBuilder,
     ContextData,
     get_context_builder,
+)
+from .context_service import (
+    AIContextEnvelope,
+    AIContextSection,
+    build_ai_context_envelope,
 )
 from .conversation_history import (
     ConversationHistory,
@@ -46,6 +59,11 @@ from .lm_studio_manager import (
     is_lm_studio_ready,
 )
 from .prompt_manager import PromptManager, PromptTemplate, get_prompt_manager
+from .prompt_flows import (
+    PRODUCT_AI_PROMPT_FLOWS,
+    ProductAIPromptFlow,
+    get_product_ai_prompt_flow,
+)
 from .response_generator import ResponseGenerator, get_response_generator
 
 __all__ = [
@@ -58,6 +76,13 @@ __all__ = [
     "get_context_cache",
     "CacheEntry",
     "ContextCache",
+    # Action catalog
+    "AIActionCatalog",
+    "AIActionDefinition",
+    "AIActionField",
+    "AIActionRequest",
+    "build_action_catalog",
+    "get_action_catalog",
     # Command interpretation
     "CommandInterpreter",
     "get_command_interpreter",
@@ -69,6 +94,9 @@ __all__ = [
     "get_context_builder",
     "ContextData",
     "ContextAnalysis",
+    "AIContextEnvelope",
+    "AIContextSection",
+    "build_ai_context_envelope",
     # Conversational context assembly
     "assemble_comprehensive_messages",
     "build_context_parts",
@@ -89,6 +117,9 @@ __all__ = [
     "PromptManager",
     "get_prompt_manager",
     "PromptTemplate",
+    "PRODUCT_AI_PROMPT_FLOWS",
+    "ProductAIPromptFlow",
+    "get_product_ai_prompt_flow",
     # Response generation
     "ResponseGenerator",
     "get_response_generator",

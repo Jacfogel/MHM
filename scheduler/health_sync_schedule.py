@@ -67,6 +67,8 @@ def get_due_sync_slot_key(
 
     if now_local is None:
         now_local = localized_now_for_user(user_id)
+    if now_local is None:
+        return None
     if sync_times is None:
         sync_times = parse_google_health_sync_times()
 

@@ -246,6 +246,7 @@ class InteractionManager:
     def get_user_suggestions(self, user_id: str, context: str = "") -> list:
         return get_user_suggestions(user_id, context)
 
+    # not_duplicate: intent_validation_delegates
     @handle_errors("checking if intent is valid", default_return=False)
     def _is_valid_intent(self, intent: str) -> bool:
         return is_valid_intent(intent, self.interaction_handlers)

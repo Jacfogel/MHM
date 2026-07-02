@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-06-30 13:13:24
+> **Last Generated**: 2026-07-01 18:25:03
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.8% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 244
-- **Functions Found**: 2371
-- **Methods Found**: 1380
-- **Classes Found**: 244
-- **Total Items**: 3751
-- **Functions Documented**: 2100
-- **Methods Documented**: 1267
-- **Classes Documented**: 173
-- **Total Documented**: 3367
+### **Function Documentation Coverage: 89.9% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 248
+- **Functions Found**: 2423
+- **Methods Found**: 1389
+- **Classes Found**: 251
+- **Total Items**: 3812
+- **Functions Documented**: 2152
+- **Methods Documented**: 1276
+- **Classes Documented**: 180
+- **Total Documented**: 3428
 - **Template-Generated**: 44
-- **Last Updated**: 2026-06-30
+- **Last Updated**: 2026-07-01
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (483)
+### **Core System Functions** (484)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (627)
+### **Communication Functions** (628)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (517)
@@ -62,6 +62,30 @@ Test functions and testing utilities.
 ### `ai/` - Unknown Directory
 
 #### `ai/__init__.py`
+
+#### `ai/action_catalog.py`
+**Functions:**
+- [OK] `_fields_for_intent(intent)` - Return declared entity fields for an action intent.
+- [OK] `_get_live_intents()` - Return initialized parser intent names through the AI command registry.
+- [OK] `_handler_name_for_domain(domain)` - Return the existing communication handler class name for a domain.
+- [OK] `_infer_domain(intent)` - Infer product domain from canonical parser intent name.
+- [OK] `build_action_catalog()` - Build action metadata from live parser intents without importing handlers.
+- [OK] `get(self, action_name)` - Return a catalog action by canonical action name.
+- [OK] `get_action_catalog()` - Return a freshly built action catalog from live command infrastructure.
+- [OK] `required_fields(self)` - Return entity field names required before this action can execute.
+- [OK] `to_dict(self)` - Return a JSON-serializable representation for context envelopes.
+- [OK] `to_dict(self)` - Return a JSON-serializable catalog representation.
+- [OK] `to_prompt_summary(self)` - Return compact action metadata for model prompts.
+**Classes:**
+- [OK] `AIActionCatalog` - Collection of product-AI actions indexed by canonical action name.
+  - [OK] `AIActionCatalog.get(self, action_name)` - Return a catalog action by canonical action name.
+  - [OK] `AIActionCatalog.to_dict(self)` - Return a JSON-serializable catalog representation.
+  - [OK] `AIActionCatalog.to_prompt_summary(self)` - Return compact action metadata for model prompts.
+- [OK] `AIActionDefinition` - Catalog entry for one product action routed through existing command handlers.
+  - [OK] `AIActionDefinition.required_fields(self)` - Return entity field names required before this action can execute.
+  - [OK] `AIActionDefinition.to_dict(self)` - Return a JSON-serializable representation for context envelopes.
+- [OK] `AIActionField` - One action entity field expected by an existing handler.
+- [OK] `AIActionRequest` - Model-planned action request before communication-layer dispatch.
 
 #### `ai/cache_manager.py`
 **Functions:**
@@ -225,6 +249,7 @@ Handles JSON, key-value pairs (ACTION: ...), or natural language.
 **Functions:**
 - [OK] `format_command_actions_for_prompt()` - Format intent names for inclusion in the command system prompt.
 - [OK] `get_command_intent_names()` - Return sorted intent names from the rule-based command parser patterns.
+- [OK] `get_initialized_command_intent_names()` - Return live parser intent names, initializing the parser registry if needed.
 - [OK] `inject_command_actions_into_prompt(prompt_content)` - Replace the static 'Available actions:' list with the live registry.
 
 #### `ai/context_builder.py`
@@ -233,6 +258,7 @@ Handles JSON, key-value pairs (ACTION: ...), or natural language.
 - [OK] `__post_init__(self)` - Post-initialization setup
 - [OK] `__post_init__(self)` - Post-initialization setup
 - [OK] `_calculate_wellness_score(self, breakfast_rate, avg_mood, avg_energy, teeth_brushing_rate)` - Calculate overall wellness score (0-100)
+- [OK] `_context_data_from_ai_envelope(envelope)` - Adapt the canonical envelope to the existing ``ContextData`` return shape.
 - [OK] `_determine_trend(self, values)` - Determine trend from a list of values
 - [OK] `_generate_insights(self, breakfast_rate, avg_mood, avg_energy, teeth_brushing_rate, mood_trend, energy_trend)` - Generate insights from analyzed data
 - [OK] `analyze_context(self, context_data)` - Analyze context data to extract insights
@@ -282,6 +308,39 @@ Returns:
     ContextData object with all available context
 - [OK] `ContextData` - Structured context data for AI interactions
   - [OK] `ContextData.__post_init__(self)` - Post-initialization setup
+
+#### `ai/context_service.py`
+**Functions:**
+- [OK] `_build_action_catalog_context()` - Build action catalog context for prompt/action planning.
+- [OK] `_build_analytics_context(sections)` - Build compact analytics summaries from already-loaded context sections.
+- [OK] `_build_checkin_context(user_id)` - Build structured check-in context through check-in service APIs.
+- [OK] `_build_conversation_context(user_id, include_conversation_history)` - Build recent conversation context when enabled.
+- [OK] `_build_health_context(user_id)` - Build safe AI-facing health guidance context.
+- [OK] `_build_message_context(user_id, preferences)` - Build structured message context through message data APIs.
+- [OK] `_build_notebook_context(user_id)` - Build structured notebook context through notebook service APIs.
+- [OK] `_build_schedule_context(schedules)` - Build structured schedule context and active schedule summary.
+- [OK] `_build_task_context(user_id)` - Build structured task context through task service APIs.
+- [OK] `_default_prompt_text(name, data)` - Build compact prompt text for a context section.
+- [OK] `_entry_to_dict(entry)` - Convert notebook entries or dict-like values to plain dictionaries.
+- [OK] `_format_account(account)` - Format account fields into compact prompt text.
+- [OK] `_format_personal_context(personal_context)` - Format personal context fields into compact prompt text.
+- [OK] `_format_preferences(preferences)` - Format preference fields into compact prompt text.
+- [OK] `_replace_included(section, included)` - Return a copy of a context section with a new inclusion flag.
+- [OK] `_section(name, data, prompt_text)` - Create a normalized context section with optional prompt text.
+- [OK] `_select_prompt_sections(prompt_request, sections)` - Select prompt sections relevant to the current user request.
+- [OK] `_unwrap_section(user_data, section_name)` - Return a normalized section payload from get_user_data output.
+- [OK] `build_ai_context_envelope(user_id)` - Build the canonical structured context envelope for product AI.
+- [OK] `included_sections(self)` - Return included section names in insertion order.
+- [OK] `prompt_sections(self)` - Return compact prompt text for included sections.
+- [OK] `structured(self)` - Return structured data keyed by section name.
+- [OK] `to_prompt_text(self)` - Join included prompt sections into a compact context block.
+**Classes:**
+- [OK] `AIContextEnvelope` - Structured product-AI context for a single user request.
+  - [OK] `AIContextEnvelope.included_sections(self)` - Return included section names in insertion order.
+  - [OK] `AIContextEnvelope.prompt_sections(self)` - Return compact prompt text for included sections.
+  - [OK] `AIContextEnvelope.structured(self)` - Return structured data keyed by section name.
+  - [OK] `AIContextEnvelope.to_prompt_text(self)` - Join included prompt sections into a compact context block.
+- [OK] `AIContextSection` - One normalized context section and its AI-facing prompt text.
 
 #### `ai/conversation_history.py`
 **Functions:**
@@ -482,8 +541,19 @@ Returns:
 
 #### `ai/conversational_context/assembly.py`
 **Functions:**
+- [OK] `_append_activity_and_mood_trends_from_envelope(parts, structured)` - Append activity counts and mood trend summaries from envelope data.
+- [OK] `_append_checkin_summary_from_envelope(parts, structured)` - Append check-in summary text from envelope check-in data.
+- [OK] `_append_conversation_history_from_envelope(parts, structured)` - Append recent conversation history from envelope data.
+- [OK] `_append_feature_enablement_from_envelope(parts, structured)` - Append feature availability lines from envelope sections.
+- [OK] `_append_health_guidance_from_envelope(parts, structured)` - Append safe health guidance from envelope health data.
+- [OK] `_append_recent_sent_messages_from_envelope(parts, structured)` - Append recent automated message context from envelope message data.
+- [OK] `_append_schedule_details_from_envelope(parts, structured)` - Append active schedule details from envelope schedule data.
+- [OK] `_append_task_data_from_envelope(parts, structured)` - Append task summary context from envelope task data.
+- [OK] `_append_task_reminder_from_messages(parts, recent_sent_all)` - Append task-reminder context from recent sent messages.
+- [OK] `_append_today_checkin_status_from_envelope(parts, structured)` - Append today's check-in completion status from envelope data.
+- [OK] `_profile_context_from_envelope(envelope)` - Build the profile/context dict expected by existing phrasing helpers.
 - [OK] `assemble_comprehensive_messages(user_id, user_prompt, wellness_base_prompt)` - Build system + user messages for comprehensive conversational generation.
-- [OK] `build_context_parts(user_id)` - Assemble natural-language context lines for the system prompt.
+- [OK] `build_context_parts(user_id, envelope)` - Assemble natural-language context lines for the system prompt.
 
 #### `ai/conversational_context/context_phraser.py`
 **Functions:**
@@ -583,6 +653,12 @@ Check-in analytics are handled separately from generic keyword support.
   - [OK] `LMStudioManager.is_ready(self)` - Check if LM Studio is ready (server running and model loaded)
   - [OK] `LMStudioManager.is_server_responding(self)` - Check if LM Studio server is responding on the configured port
   - [OK] `LMStudioManager.load_model_automatically(self)` - Automatically load the configured model if server is running but no model is loaded
+
+#### `ai/prompt_flows.py`
+**Functions:**
+- [OK] `get_product_ai_prompt_flow(name)` - Return the prompt-flow contract for a named product-AI flow.
+**Classes:**
+- [OK] `ProductAIPromptFlow` - Declarative prompt-flow contract for product AI.
 
 #### `ai/prompt_manager.py`
 **Functions:**
@@ -1958,6 +2034,10 @@ Args:
 - [MISSING] `CustomTaskModal` - No description
 - [MISSING] `NewNoteModal` - No description
 - [MISSING] `QuickNoteModal` - No description
+
+#### `communication/communication_channels/discord/discord_command_runner.py`
+**Functions:**
+- [OK] `run_discord_handler_intent(user_id, intent, entities, original_message)` - Run a command handler for a Discord UI action.
 
 #### `communication/communication_channels/discord/discord_connection_status.py`
 **Classes:**
@@ -4443,6 +4523,7 @@ Returns:
 - [MISSING] `_valid_days(cls, v)` - No description
 - [OK] `_valid_time(cls, v)` - Validate HH:MM schedule times; empty or invalid values normalize to ``00:00``.
 - [OK] `_validate_categories(cls, v)` - Validate that all categories are in the allowed list.
+- [OK] `_validate_dict_model(data, model_cls)` - Validate a dict with a Pydantic model, preserving original data on failure.
 - [OK] `_validate_discord_id(cls, v)` - Validate and normalize Discord user ID.
 
 Discord user IDs are snowflakes (numeric IDs) that are 17-19 digits long.
@@ -4992,6 +5073,8 @@ Skips when globally disabled, testing mode, feature not enabled, or no auth.
 
 #### `integrations/google_health/token_crypto.py`
 **Functions:**
+- [OK] `_clear_token_fields(data)` - Return a copy of auth data with sensitive token fields cleared.
+- [OK] `_copy_auth_payload(data)` - Return a defensive auth payload copy, or None for invalid input.
 - [OK] `_encryption_key()` - Return configured Fernet key from environment (avoids importing core.config).
 - [MISSING] `_fernet()` - No description
 - [OK] `decrypt_token_value(ciphertext)` - Decrypt a stored token value; return None on failure.

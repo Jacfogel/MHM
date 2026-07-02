@@ -6,7 +6,10 @@ from typing import TYPE_CHECKING, Any
 
 import discord
 
-from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
+from communication.command_handlers.shared_types import InteractionResponse
+from communication.communication_channels.discord.discord_command_runner import (
+    run_discord_handler_intent,
+)
 from communication.communication_channels.discord.discord_user_resolution import (
     internal_user_id as _internal_user_id,
 )
@@ -84,22 +87,12 @@ def _task_flow_response(user_id: str, task_id: str, flow_kind: str) -> Interacti
 def _run_handler_intent(
     user_id: str, intent: str, entities: dict[str, Any], original_message: str
 ) -> InteractionResponse:
-    from communication.command_handlers.interaction_handlers import get_interaction_handler
-
-    handler = get_interaction_handler(intent)
-    if not handler:
-        return InteractionResponse(
-            "I could not run that action. Try typing the command instead.",
-            True,
-        )
-    return handler.handle(
+    return run_discord_handler_intent(
         user_id,
-        ParsedCommand(
-            intent=intent,
-            entities=entities,
-            confidence=1.0,
-            original_message=original_message,
-        ),
+        intent,
+        entities,
+        original_message,
+        missing_handler_message="I could not run that action. Try typing the command instead.",
     )
 
 

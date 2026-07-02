@@ -17,9 +17,7 @@ from datetime import datetime
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.time_utilities import now_datetime_full
-from core.response_tracking import get_recent_responses
-from core import get_user_data
-from user.context_manager import user_context_manager
+from ai.context_service import AIContextEnvelope, build_ai_context_envelope
 
 # Route context builder logs to AI component
 context_logger = get_component_logger("ai_context")
@@ -108,38 +106,27 @@ class ContextBuilder:
                 f"Building context for user {user_id}, include_conversation_history={include_conversation_history}"
             )
 
-            context = user_context_manager.get_ai_context(
-                user_id, include_conversation_history=include_conversation_history
+            envelope = build_ai_context_envelope(
+                user_id,
+                include_conversation_history=include_conversation_history,
+                requested_intent="context_builder_compat",
             )
+            if envelope is None:
+                return ContextData()
 
-            # Get recent check-ins
-            recent_checkins = get_recent_responses(user_id, limit=10)
-            logger.debug(
-                f"Retrieved {len(recent_checkins)} recent check-ins for user {user_id}"
-            )
-
-            profile_result = get_user_data(user_id, "profile")
-            context_result = get_user_data(user_id, "context")
-
-            user_profile = profile_result.get("profile", {}) if profile_result else {}
-            user_context = context_result.get("context", {}) if context_result else {}
-
-            conversation_history = (
-                context.get("conversation_history", []) if context else []
-            )
-
-            logger.debug(
-                f"Context built successfully for user {user_id}: profile_fields={len(user_profile)}, context_fields={len(user_context)}, conversation_entries={len(conversation_history)}"
-            )
-
-            return ContextData(
-                user_profile=user_profile,
-                user_context=user_context,
-                recent_checkins=recent_checkins,
-                conversation_history=conversation_history,
-                # Internal in-memory state: use canonical now + strict parse to get a local-naive datetime.
+            context_data = _context_data_from_ai_envelope(
+                envelope,
                 current_time=now_datetime_full(),
             )
+
+            logger.debug(
+                "Context built successfully for user "
+                f"{user_id}: profile_fields={len(context_data.user_profile or {})}, "
+                f"context_fields={len(context_data.user_context or {})}, "
+                f"conversation_entries={len(context_data.conversation_history or [])}"
+            )
+
+            return context_data
 
         except Exception as e:
             logger.error(f"Error building context for user {user_id}: {e}")
@@ -376,6 +363,41 @@ def analyze_recent_checkin_rows(
         return ContextAnalysis()
     return builder.analyze_context(
         ContextData(recent_checkins=list(recent_checkins or []))
+    )
+
+
+@handle_errors("adapting AI context envelope to context data", default_return=ContextData())
+def _context_data_from_ai_envelope(
+    envelope: AIContextEnvelope,
+    *,
+    current_time: datetime | None = None,
+) -> ContextData:
+    """Adapt the canonical envelope to the existing ``ContextData`` return shape."""
+    structured = envelope.structured
+    account = structured.get("account") or {}
+    preferences = structured.get("preferences") or {}
+    personal_context = structured.get("personal_context") or {}
+    schedules = structured.get("schedules") or {}
+    checkins = structured.get("checkins") or {}
+    conversation = structured.get("conversation") or {}
+
+    user_profile = {
+        "preferred_name": (
+            account.get("preferred_name")
+            or personal_context.get("preferred_name")
+            or ""
+        ),
+        "active_categories": preferences.get("categories") or [],
+        "messaging_service": (preferences.get("channel") or {}).get("type", ""),
+        "active_schedules": schedules.get("active_schedules") or [],
+    }
+
+    return ContextData(
+        user_profile=user_profile,
+        user_context=personal_context,
+        recent_checkins=list(checkins.get("recent") or []),
+        conversation_history=list(conversation.get("recent_chat_interactions") or []),
+        current_time=current_time or now_datetime_full(),
     )
 
 
