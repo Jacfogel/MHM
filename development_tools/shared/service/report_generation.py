@@ -2898,6 +2898,26 @@ class ReportGenerationMixin:
             lines.append("- **Potential Duplicate Groups**: 0")
 
         lines.append("")
+        lines.append("## Unused Functions")
+        unused_func_data = self._load_tool_data(
+            "analyze_unused_functions", "functions"
+        )
+        unused_func_summary = (
+            unused_func_data.get("summary", {})
+            if isinstance(unused_func_data, dict)
+            else {}
+        )
+        unused_func_count = to_int(unused_func_summary.get("total_issues")) or 0
+        unused_func_files = to_int(unused_func_summary.get("files_affected")) or 0
+        if unused_func_count > 0:
+            lines.append(
+                f"- **Unused/Uncalled Functions**: {unused_func_count} "
+                f"across {unused_func_files} files (advisory)"
+            )
+        else:
+            lines.append("- **Unused/Uncalled Functions**: 0")
+
+        lines.append("")
         lines.append("## Facade/Shim Candidates")
         facade_data = self._load_tool_data("analyze_facade_shims", "functions")
         facade_summary = (
@@ -3424,6 +3444,9 @@ class ReportGenerationMixin:
         duplicate_functions_data = self._load_tool_data(
             "analyze_duplicate_functions", "functions"
         )
+        unused_functions_data = self._load_tool_data(
+            "analyze_unused_functions", "functions"
+        )
         facade_shims_data = self._load_tool_data("analyze_facade_shims", "functions")
         module_refactor_candidates_data = self._load_tool_data(
             "analyze_module_refactor_candidates", "functions"
@@ -3925,6 +3948,7 @@ class ReportGenerationMixin:
                 "Review orphaned pytest worker processes (Windows)": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_TESTING_GUIDE.md",
                 "Remove obvious unused imports": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
                 "Investigate possible duplicate functions/methods": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Clean up unused/uncalled functions": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Consider refactoring large or high-complexity modules": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Refactor high-complexity functions": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Investigate and correct test failures/errors": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_TESTING_GUIDE.md",
@@ -3974,6 +3998,9 @@ class ReportGenerationMixin:
                 "Remove obvious unused imports": "development_docs/UNUSED_IMPORTS_REPORT.md",
                 "Investigate possible duplicate functions/methods": self._scoped_tool_result_path(
                     "functions", "analyze_duplicate_functions"
+                ),
+                "Clean up unused/uncalled functions": self._scoped_tool_result_path(
+                    "functions", "analyze_unused_functions"
                 ),
                 "Consider refactoring large or high-complexity modules": self._scoped_tool_result_path(
                     "functions", "analyze_module_refactor_candidates"
@@ -5311,6 +5338,57 @@ class ReportGenerationMixin:
                     validate=True,
                     data_source="analyze_duplicate_functions",
                     count=dup_groups,
+                    expected_min=None,
+                )
+
+        # Unused/uncalled functions priority
+        if unused_functions_data and isinstance(unused_functions_data, dict):
+            uf_summary = unused_functions_data.get("summary", {})
+            uf_details = unused_functions_data.get("details", {})
+            uf_count = to_int(uf_summary.get("total_issues")) or 0
+            uf_files = to_int(uf_summary.get("files_affected")) or 0
+            uf_list = (
+                uf_details.get("unused_functions", [])
+                if isinstance(uf_details, dict)
+                else []
+            )
+            if uf_count > 0 and isinstance(uf_list, list) and uf_list:
+                uf_bullets: list[str] = []
+                uf_bullets.append(
+                    "Review for guidance: [AI_DEVELOPMENT_WORKFLOW.md](../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)"
+                )
+                uf_bullets.append("Top unused functions (consider removing or verifying usage):")
+                for idx, func in enumerate(uf_list[:5], start=1):
+                    if not isinstance(func, dict):
+                        continue
+                    full_name = func.get("full_name") or func.get("name", "unknown")
+                    file_path = func.get("file", "?")
+                    line = func.get("line", "?")
+                    visibility = "private" if func.get("is_private") else "public"
+                    kind = "method" if func.get("is_method") else "function"
+                    uf_bullets.append(
+                        f"{idx}. {full_name} ({file_path}:{line}) [{visibility} {kind}]"
+                    )
+                uf_bullets.append(
+                    f"Review for details: {self._scoped_tool_result_path('functions', 'analyze_unused_functions')}"
+                )
+                capped = isinstance(uf_details, dict) and uf_details.get(
+                    "results_capped", False
+                )
+                count_label = (
+                    f"at least {uf_count}" if capped else str(uf_count)
+                )
+                add_priority(
+                    tier=3,
+                    title="Clean up unused/uncalled functions",
+                    reason=(
+                        f"{count_label} unused function(s) detected "
+                        f"across {uf_files} file(s)."
+                    ),
+                    bullets=uf_bullets,
+                    validate=True,
+                    data_source="analyze_unused_functions",
+                    count=uf_count,
                     expected_min=None,
                 )
 
@@ -8610,6 +8688,42 @@ class ReportGenerationMixin:
                 body_pairs = duplicate_details.get("body_candidate_pairs_considered", 0)
                 lines.append(
                     f"   - **Body/structural similarity**: enabled ({body_pairs} body candidate pairs considered)"
+                )
+
+        lines.append("")
+        # Unused/Uncalled Functions
+        unused_func_data_cr = self._load_tool_data(
+            "analyze_unused_functions", "functions"
+        )
+        unused_func_summary_cr = (
+            unused_func_data_cr.get("summary", {})
+            if isinstance(unused_func_data_cr, dict)
+            else {}
+        )
+        unused_func_details_cr = (
+            unused_func_data_cr.get("details", {})
+            if isinstance(unused_func_data_cr, dict)
+            else {}
+        )
+        uf_count_cr = to_int(unused_func_summary_cr.get("total_issues")) or 0
+        uf_files_cr = to_int(unused_func_summary_cr.get("files_affected")) or 0
+        uf_scanned_cr = to_int(unused_func_summary_cr.get("total_definitions_scanned")) or 0
+        lines.append(
+            f"- **Unused/Uncalled Functions**: {uf_count_cr} unused function(s) "
+            f"across {uf_files_cr} file(s) (of {uf_scanned_cr} definitions scanned)"
+        )
+        if uf_count_cr > 0 and isinstance(unused_func_details_cr, dict):
+            uf_list_cr = unused_func_details_cr.get("unused_functions", [])
+            if isinstance(uf_list_cr, list) and uf_list_cr:
+                top_unused = [
+                    f"{f.get('full_name', '?')} ({f.get('file', '?')}:{f.get('line', '?')})"
+                    for f in uf_list_cr[:5]
+                    if isinstance(f, dict)
+                ]
+                if top_unused:
+                    lines.append(f"   - **Top unused**: {', '.join(top_unused)}")
+                lines.append(
+                    f"   - **Full list**: {self._scoped_tool_result_path('functions', 'analyze_unused_functions')}"
                 )
 
         lines.append("")

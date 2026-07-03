@@ -129,6 +129,13 @@
       "invalidation": "Re-run when coverage JSON or marker config changes"
     },
     {
+      "tool": "analyze_unused_functions",
+      "strategy": "per_run_json_overwrite",
+      "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/functions/*.json",
+      "invalidation": "Full re-analysis each audit unless covered by a specialized cache above"
+    },
+    {
       "tool": "analyze_unused_imports",
       "strategy": "ruff_batch_and_optional_tool_json",
       "implementation": "imports analyzer + optional cache stats in JSON details",

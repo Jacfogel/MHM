@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-03 - Add unused functions detection tool **COMPLETED**
+- Added `analyze_unused_functions.py` dev tool that uses AST analysis to find functions/methods never referenced anywhere in the codebase.
+- CLI command: `python development_tools/run_development_tools.py unused-functions` (supports `--include-tests`, `--include-dev-tools`, `--private-only`, `--max-results`, `--json`).
+- Filters out dunder methods, test functions, framework-decorated functions, and `__init__.py` exports to reduce false positives.
+- Integrated into Tier 2 audit pipeline; results surface in `AI_STATUS.md`, `AI_PRIORITIES.md`, and `CONSOLIDATED_REPORT.md`.
+
 ### 2026-07-02 - Product AI context foundation **COMPLETED**
 - Added canonical product-AI context envelope, metadata-only action catalog, and explicit prompt-flow ownership (`ai/context/service.py`, `ai/prompts/action_catalog.py`, `ai/prompts/flows.py`).
 - Migrated `ContextBuilder` and conversational context assembly to read from `AIContextEnvelope` (`ai/context/builder.py`, `ai/context/assembly.py`).
@@ -175,11 +181,6 @@ Guidelines:
 - Dev-tools: high-coupling metric now uses **unique local module fan-out** (not raw duplicate import statements); bumped `aiohttp>=3.14.1` to clear pip-audit CVEs.
 - Pyright: flow domain mixins inherit `FlowStateMixin` for typed shared state API; moved `clear_stuck_flows` to `flow_state.py` (55 warnings -> 0). ASCII fix in `CHANGELOG_DETAIL.md`.
 - Duplicate-function triage: `# not_duplicate: task_due_date_natural_language_parsers` on `_parse_date_time_from_text` / `_parse_time_from_text` in `task_flow.py` (intentional date+time parser decomposition).
-
-### 2026-06-06 - UI admin action extraction (Stage 7) **COMPLETED**
-- Moved admin menu/system actions from `ui/ui_app_qt.py` into `ui/admin_actions.py`, including cache status/cleanup, config validation/help, all-users summary, log opening, verbose logging, process watcher opening, and system health reporting.
-- `MHMManagerUI` now keeps signal-compatible wrappers that delegate to `AdminActions`; `ui_app_qt.py` is down to ~888 lines.
-- Added `tests/ui/test_admin_actions.py`; targeted UI main/core/behavior suites pass after the extraction.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

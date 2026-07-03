@@ -37,6 +37,7 @@ TIER2_TOOL_NAMES = [
     "analyze_error_handling",
     "analyze_package_exports",
     "analyze_duplicate_functions",
+    "analyze_unused_functions",
     "analyze_facade_shims",
     "analyze_module_refactor_candidates",
     "analyze_module_imports",
@@ -192,6 +193,7 @@ def get_tier2_groups(service: Any) -> tuple[list[tuple[str, Any]], list[list[tup
         "analyze_error_handling",
         "analyze_package_exports",
         "analyze_duplicate_functions",
+        "analyze_unused_functions",
         "analyze_facade_shims",
         "analyze_module_refactor_candidates",
     ]

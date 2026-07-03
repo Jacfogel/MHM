@@ -523,6 +523,54 @@ def _facade_shims_command(service: "AIToolsService", argv: Sequence[str]) -> int
     return 0 if success else 1
 
 
+def _unused_functions_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Handle unused-functions command (analysis only)."""
+    parser = argparse.ArgumentParser(prog="unused-functions", add_help=False)
+    parser.add_argument(
+        "--include-tests", action="store_true", help="Include test files in analysis."
+    )
+    parser.add_argument(
+        "--include-dev-tools",
+        action="store_true",
+        help="Include development_tools in analysis.",
+    )
+    parser.add_argument(
+        "--include-all",
+        action="store_true",
+        help="Include tests and dev tools (equivalent to --include-tests --include-dev-tools).",
+    )
+    parser.add_argument(
+        "--private-only",
+        action="store_true",
+        help="Only report private (underscore-prefixed) functions.",
+    )
+    parser.add_argument(
+        "--max-results",
+        type=int,
+        default=100,
+        metavar="N",
+        help="Maximum number of unused functions to report (default: 100).",
+    )
+
+    if any(arg in ("-h", "--help") for arg in argv):
+        _print_command_help(parser)
+        return 0
+
+    ns = parser.parse_args(list(argv))
+
+    service.set_exclusion_config(
+        include_tests=ns.include_tests or ns.include_all,
+        include_dev_tools=ns.include_dev_tools or ns.include_all,
+    )
+
+    result = service.run_analyze_unused_functions(
+        private_only=ns.private_only,
+        max_results=ns.max_results,
+    )
+    success = result.get("success", False) if isinstance(result, dict) else bool(result)
+    return 0 if success else 1
+
+
 def _module_refactor_candidates_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     """Handle module-refactor-candidates command (analysis only)."""
     parser = argparse.ArgumentParser(
@@ -975,6 +1023,14 @@ COMMAND_REGISTRY = OrderedDict(
                 "module-refactor-candidates",
                 _module_refactor_candidates_command,
                 "Identify large or high-complexity modules as refactoring candidates.",
+            ),
+        ),
+        (
+            "unused-functions",
+            CommandRegistration(
+                "unused-functions",
+                _unused_functions_command,
+                "Detect unused/uncalled functions and methods (analysis only, advisory).",
             ),
         ),
         (

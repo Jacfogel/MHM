@@ -347,6 +347,13 @@ _TOOLS: dict[str, ToolInfo] = {
         trust="partial",
         description="Verifies generated dependency graphs for consistency.",
     ),
+    "analyze_unused_functions": ToolInfo(
+        name="analyze_unused_functions",
+        path="development_tools/functions/analyze_unused_functions.py",
+        tier="supporting",
+        trust="advisory",
+        description="AST-based detector for unused/uncalled functions and methods.",
+    ),
     "analyze_package_exports": ToolInfo(
         name="analyze_package_exports",
         path="development_tools/functions/analyze_package_exports.py",
@@ -521,6 +528,7 @@ COMMAND_GROUPS = OrderedDict(
                 "duplicate-functions",
                 "facade-shims",
                 "module-refactor-candidates",
+                "unused-functions",
                 "workflow",
                 "trees",
                 "cleanup",
