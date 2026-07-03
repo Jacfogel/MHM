@@ -339,7 +339,9 @@ to be filled: placeholder
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": "# Workflow\n" + "ai " * 80,
         }
 
-        recs = generate_consolidation_recommendations(docs)
+        _paired = {"DEVELOPMENT_WORKFLOW.md": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"}
+        with patch.object(docs_module, "PAIRED_DOCS", _paired):
+            recs = generate_consolidation_recommendations(docs)
 
         assert not any(r["category"] == "Development Workflow" for r in recs)
 
@@ -354,7 +356,9 @@ to be filled: placeholder
             "tests/ai/SYSTEM_AI_FUNCTIONALITY_TESTING_GUIDE.md": "body " * 80,
         }
 
-        recs = generate_consolidation_recommendations(docs)
+        _paired = {"tests/TESTING_GUIDE.md": "ai_development_docs/AI_TESTING_GUIDE.md"}
+        with patch.object(docs_module, "PAIRED_DOCS", _paired):
+            recs = generate_consolidation_recommendations(docs)
 
         assert not any(r["category"] == "Testing" for r in recs)
 

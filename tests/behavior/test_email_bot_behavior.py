@@ -147,9 +147,11 @@ class TestEmailBotBehavior:
         """Test successful email sending behavior."""
         # Arrange - Set bot to ready state
         self.email_bot._set_status(ChannelStatus.READY)
+        _fake_config = ("smtp.test.com", "imap.test.com", "user@test.com", "pass")
         
-        # Mock SMTP connection
-        with patch('smtplib.SMTP_SSL') as mock_smtp:
+        # Mock SMTP connection and email config (env vars may be unset on CI)
+        with patch('smtplib.SMTP_SSL') as mock_smtp, \
+             patch.object(self.email_bot, '_get_email_config', return_value=_fake_config):
             mock_smtp_instance = MagicMock()
             mock_smtp.return_value.__enter__.return_value = mock_smtp_instance
             
@@ -210,9 +212,11 @@ class TestEmailBotBehavior:
         """Test email sending with default subject."""
         # Arrange - Set bot to ready state
         self.email_bot._set_status(ChannelStatus.READY)
+        _fake_config = ("smtp.test.com", "imap.test.com", "user@test.com", "pass")
         
-        # Mock SMTP connection
-        with patch('smtplib.SMTP_SSL') as mock_smtp:
+        # Mock SMTP connection and email config (env vars may be unset on CI)
+        with patch('smtplib.SMTP_SSL') as mock_smtp, \
+             patch.object(self.email_bot, '_get_email_config', return_value=_fake_config):
             mock_smtp_instance = MagicMock()
             mock_smtp.return_value.__enter__.return_value = mock_smtp_instance
             
@@ -459,9 +463,11 @@ class TestEmailBotBehavior:
         """Test that email bot performs well under load."""
         # Arrange - Set bot to ready state
         self.email_bot._set_status(ChannelStatus.READY)
+        _fake_config = ("smtp.test.com", "imap.test.com", "user@test.com", "pass")
         
-        # Mock SMTP connection
-        with patch('smtplib.SMTP_SSL') as mock_smtp:
+        # Mock SMTP connection and email config (env vars may be unset on CI)
+        with patch('smtplib.SMTP_SSL') as mock_smtp, \
+             patch.object(self.email_bot, '_get_email_config', return_value=_fake_config):
             mock_smtp_instance = MagicMock()
             mock_smtp.return_value.__enter__.return_value = mock_smtp_instance
             
@@ -485,9 +491,11 @@ class TestEmailBotBehavior:
         """Test that email bot maintains data integrity."""
         # Arrange - Set bot to ready state
         self.email_bot._set_status(ChannelStatus.READY)
+        _fake_config = ("smtp.test.com", "imap.test.com", "user@test.com", "pass")
         
-        # Mock SMTP connection
-        with patch('smtplib.SMTP_SSL') as mock_smtp:
+        # Mock SMTP connection and email config (env vars may be unset on CI)
+        with patch('smtplib.SMTP_SSL') as mock_smtp, \
+             patch.object(self.email_bot, '_get_email_config', return_value=_fake_config):
             mock_smtp_instance = MagicMock()
             mock_smtp.return_value.__enter__.return_value = mock_smtp_instance
             

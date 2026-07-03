@@ -164,9 +164,9 @@ class TestDiscordBotBehavior:
         """Test that Discord bot initialization actually creates bot instance with valid token"""
         bot = DiscordBot()
         
-        with patch.object(core.config, 'DISCORD_BOT_TOKEN', 'valid_token'), patch.object(
-            bot, '_check_dns_resolution', return_value=True
-        ), patch.object(bot, '_check_network_connectivity', return_value=True):
+        with patch('communication.communication_channels.discord.bot.DISCORD_BOT_TOKEN', 'valid_token'), \
+             patch.object(bot, '_check_dns_resolution', return_value=True), \
+             patch.object(bot, '_check_network_connectivity', return_value=True):
             # Use asyncio.run for async testing
             result = asyncio.run(bot.initialize())
 
@@ -334,7 +334,8 @@ class TestDiscordBotBehavior:
         """Test that Discord bot initialize actually creates a thread"""
         bot = DiscordBot()
         
-        with patch('discord.ext.commands.Bot') as mock_bot_class:
+        with patch('communication.communication_channels.discord.bot.DISCORD_BOT_TOKEN', 'valid_token'), \
+             patch('discord.ext.commands.Bot') as mock_bot_class:
             mock_bot = MagicMock()
             mock_bot_class.return_value = mock_bot
             mock_bot.is_ready.return_value = True

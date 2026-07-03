@@ -30,10 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-07-03 - Fix nightly CI crash + test cleanup bug **COMPLETED**
-- **Pytest 9.1 compat**: Changed `-o durations=0` to `--durations=0` in `run_test_suite.py` and `run_tests.py`; `durations` is not a valid ini config option in pytest 9.1+ (CI installs latest, crashed with `Unknown config option: durations`).
-- **Cleanup fix**: Session cleanup was deleting `pytest-of-*` basetemp directories; added `keep_dir_prefixes=("pytest-of-",)` in `conftest_cleanup_impl.py`.
-- Documented ~10 pre-existing v1/v2 schema flakes in TODO.md.
+### 2026-07-03 - Fix nightly CI: 12 CI-only test failures **COMPLETED**
+- **Pytest 9.1 compat**: Changed `-o durations=0` to `--durations=0` in `run_test_suite.py`/`run_tests.py`.
+- **Cleanup fix**: Session cleanup was deleting `pytest-of-*` basetemp dirs; added `keep_dir_prefixes`.
+- **Mock target fixes (10 tests)**: Email bot tests needed `_get_email_config` mock; Discord bot tests patched token at wrong import site (`core.config` vs module-level); headless/ServiceManager tests forced `os.name='nt'` which breaks on Linux; UI schedule tests needed `get_schedule_time_periods` mock for v1/v2 normalization.
+- Root cause pattern: tests pass locally (env vars, config files, Windows) but fail on CI (Linux, no credentials). Documented ~10 v1/v2 schema flakes in TODO.md.
 
 ### 2026-07-03 - Add unused functions detection tool **COMPLETED**
 - Added `analyze_unused_functions.py` dev tool that uses AST analysis to find functions/methods never referenced anywhere in the codebase.

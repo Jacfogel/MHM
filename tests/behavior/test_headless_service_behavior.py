@@ -161,14 +161,16 @@ class TestHeadlessServiceManagerBehavior:
     @pytest.mark.file_io
     def test_start_headless_service_success(self, manager, test_data_dir):
         """Test starting headless service successfully."""
+        # Return (False, None) for the pre-start checks, then (True, pid)
+        # for the post-start verification.
+        status_sequence = iter([(False, None), (False, None), (True, 12345)])
         with patch('core.headless_service.get_service_processes', return_value=[]), \
              patch('core.headless_service.is_ui_service_running', return_value=False), \
              patch('core.headless_service.subprocess.Popen') as mock_popen, \
-             patch('core.headless_service.os.path.exists', return_value=True), \
-             patch('core.headless_service.os.environ.copy', return_value={}), \
-             patch('core.headless_service.os.name', 'nt'), \
+             patch('core.headless_service.resolve_python_interpreter', return_value='python'), \
+             patch('core.headless_service.prepare_launch_environment', return_value={}), \
              patch('core.headless_service.time.sleep', return_value=None), \
-             patch.object(manager, 'get_headless_service_status', return_value=(True, 12345)):
+             patch.object(manager, 'get_headless_service_status', side_effect=status_sequence):
             mock_process = Mock()
             mock_process.pid = 12345
             mock_process.poll.return_value = None  # Process is running

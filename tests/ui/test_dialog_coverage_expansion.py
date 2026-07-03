@@ -98,12 +98,28 @@ class TestScheduleEditorDialogBehavior:
     @pytest.fixture
     def dialog(self, qapp, test_user_data, test_data_dir):
         """Create schedule editor dialog for testing."""
-        # Create dialog (DO NOT show() - this would display UI during testing)
-        dialog = ScheduleEditorDialog(
-            parent=None, 
-            user_id=test_user_data, 
-            category="motivational"
-        )
+        _periods = {
+            "morning": {
+                "active": True,
+                "start_time": "08:00",
+                "end_time": "12:00",
+                "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            },
+            "afternoon": {
+                "active": False,
+                "start_time": "13:00",
+                "end_time": "17:00",
+                "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            },
+        }
+        # Mock the schedule data loader so the dialog gets deterministic
+        # period data regardless of file-layer normalization (v1/v2).
+        with patch("core.schedule_runtime.get_schedule_time_periods", return_value=_periods):
+            dialog = ScheduleEditorDialog(
+                parent=None,
+                user_id=test_user_data,
+                category="motivational",
+            )
         
         yield dialog
         
@@ -222,8 +238,11 @@ class TestScheduleEditorDialogBehavior:
         # Verify save functionality exists
         assert hasattr(dialog, 'handle_save')
         
-        # Save data
-        with patch('ui.dialogs.schedule_editor_dialog.set_schedule_periods') as mock_save:
+        # Save data - mock the persistence layer and rescheduling side-effects
+        with patch('ui.dialogs.schedule_editor_dialog.set_schedule_periods') as mock_save, \
+             patch('ui.dialogs.schedule_editor_dialog.clear_schedule_periods_cache'), \
+             patch.object(dialog, '_trigger_rescheduling'), \
+             patch.object(dialog, 'close_dialog'):
             dialog.handle_save()
             
             # Verify save was called

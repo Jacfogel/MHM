@@ -200,23 +200,24 @@ class TestServiceManagerCore:
     @pytest.mark.slow
     def test_start_service_success(self, service_manager):
         """Test starting service successfully."""
-        # Test the core logic by calling the method directly without decorator
-        with patch.object(service_manager, 'validate_configuration_before_start', return_value=True):
-            with patch.object(service_manager, 'is_service_running', return_value=(False, None)):
-                with patch('ui.service_manager.subprocess.Popen') as mock_popen:
-                    with patch('ui.service_manager.os.path.exists', return_value=True):
-                        with patch('ui.service_manager.os.environ.copy', return_value={}):
-                            with patch('ui.service_manager.os.name', 'nt'):  # Windows
-                                mock_process = Mock()
-                                mock_popen.return_value = mock_process
-                                
-                                # Call the method directly to test core logic
-                                service_manager.start_service()
-                                
-                                # The method should complete without raising exceptions
-                                # The actual return value depends on the error handling decorator
-                                assert service_manager.service_process == mock_process
-                                mock_popen.assert_called_once()
+        # Return (False, None) first (not already running), then (True, 123)
+        # to confirm the launched process is detected.
+        status_seq = iter([(False, None), (True, 123)])
+        with patch.object(service_manager, 'validate_configuration_before_start', return_value=True), \
+             patch.object(service_manager, 'is_service_running', side_effect=status_seq), \
+             patch('ui.service_manager.subprocess.Popen') as mock_popen, \
+             patch('ui.service_manager.resolve_python_interpreter', return_value='python'), \
+             patch('ui.service_manager.prepare_launch_environment', return_value={}), \
+             patch('ui.service_manager.time.sleep', return_value=None), \
+             patch('ui.service_manager.QMessageBox'):
+            mock_process = Mock()
+            mock_popen.return_value = mock_process
+            
+            result = service_manager.start_service()
+            
+            assert result is True, "Should return True on success"
+            assert service_manager.service_process == mock_process
+            mock_popen.assert_called_once()
     
     def test_start_service_config_validation_fails(self, service_manager):
         """Test starting service when config validation fails."""
