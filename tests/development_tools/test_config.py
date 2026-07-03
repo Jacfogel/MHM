@@ -283,11 +283,10 @@ class TestConfigHelperFunctions:
         import json
 
         root = Path(__file__).resolve().parent.parent.parent
-        live = json.loads(
-            (root / "development_tools" / "config" / "development_tools_config.json").read_text(
-                encoding="utf-8"
-            )
-        )
+        live_path = root / "development_tools" / "config" / "development_tools_config.json"
+        if not live_path.exists():
+            pytest.skip("development_tools_config.json is gitignored and not available on CI")
+        live = json.loads(live_path.read_text(encoding="utf-8"))
         ex = json.loads(
             (root / "development_tools" / "config" / "development_tools_config.json.example").read_text(
                 encoding="utf-8"

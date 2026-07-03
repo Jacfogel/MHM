@@ -84,6 +84,7 @@ def test_run_script_handles_keyboard_interrupt(temp_project_copy, monkeypatch):
 
 
 @pytest.mark.unit
+@pytest.mark.no_parallel
 @pytest.mark.parametrize(
     "script_name",
     ("run_test_coverage", "analyze_pyright", "analyze_ruff"),
@@ -118,6 +119,7 @@ def test_run_script_uses_windows_process_group_for_isolated_tools(
 
 
 @pytest.mark.unit
+@pytest.mark.no_parallel
 def test_run_script_no_windows_process_group_for_quick_tools(
     temp_project_copy, monkeypatch
 ):

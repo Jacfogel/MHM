@@ -46,9 +46,13 @@ class TestFileOperations:
     @pytest.mark.unit
     @pytest.mark.file_io
     @pytest.mark.regression
-    def test_load_json_data_file_not_found(self):
+    def test_load_json_data_file_not_found(self, tmp_path):
         """Test loading JSON data from non-existent file."""
-        data = load_json_data('/nonexistent/file.json')
+        # Use a writable parent so the recovery strategy can create the
+        # missing directory and default file on all platforms (Linux CI
+        # cannot create /nonexistent/).
+        missing = str(tmp_path / "missing_dir" / "file.json")
+        data = load_json_data(missing)
         # With improved error handling, we now get default data instead of None
         assert data is not None
         assert isinstance(data, dict)
