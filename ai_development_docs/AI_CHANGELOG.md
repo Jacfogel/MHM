@@ -37,6 +37,8 @@ Guidelines:
 - Reorganized `ai/` into pipeline subpackages (`client/`, `context/`, `prompts/`, `chat/`, `fallback/`) and migrated imports across communication, tests, and scripts; removed legacy flat-module shims.
 - Updated `PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md` to reflect current status: planner/executor, `AIActionRequest -> ParsedCommand` routing, and non-chat flow wiring remain future work.
 - Removed `enhance_conversational_engagement()` post-processing; follow-up behavior is prompt-owned via `reply_rules.txt`. Fixed import-boundary and function-registry tests for `ai/` subpackages; repaired doc path drift (`doc-fix`, `docs`, `doc-sync`). Marked nine intentional duplicate-function groups with `# not_duplicate:` markers (duplicate analyzer now reports 0 groups).
+- **Fix (nightly CI)**: Added Ubuntu Qt/X11 system packages to `.github/workflows/nightly-tests.yml` for headless PySide6 UI tests; nightly runs use `--no-domain-cache` on GitHub Actions and `run_test_suite` now keeps subprocess stdout small when writing `--output-file`.
+- **Fix (parallel flake)**: `test_user_with_all_features` now waits for preferences to flush, aligns schedule categories, and retries schedule saves (matching `TestUserFactory.create_user_with_schedules`); schedule day names use schema-valid capitalization.
 
 ### 2026-06-30 - Tier 3 quick tests + nightly full suite **COMPLETED**
 - Tier 3 `audit --full` runs **quick** pytest profile (`not slow`) via `run_test_suite --profile quick`.

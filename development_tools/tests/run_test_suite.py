@@ -934,12 +934,19 @@ def main(argv: list[str] | None = None) -> int:
         cfg["timeout_seconds"] = args.timeout
     payload = run_suite(cfg, use_domain_cache=not args.no_domain_cache)
     output = json.dumps(payload, indent=2)
+    state = payload["details"]["tier3_test_outcome"]["state"]
     if args.output_file:
         out = Path(args.output_file)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(output, encoding="utf-8")
-    print(output)
-    state = payload["details"]["tier3_test_outcome"]["state"]
+        # Keep stdout small when invoked via run_script(capture_output=True).
+        print(
+            f"run_test_suite profile={args.profile} state={state} "
+            f"issues={payload.get('summary', {}).get('total_issues', 0)} "
+            f"output={out.as_posix()}"
+        )
+    else:
+        print(output)
     return 0 if state == "clean" else 1
 
 

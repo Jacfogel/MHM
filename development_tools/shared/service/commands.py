@@ -1059,6 +1059,8 @@ class CommandsMixin:
             "--output-file",
             str(output_file),
         ]
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            args.append("--no-domain-cache")
         try:
             from ... import config as dt_config
 
