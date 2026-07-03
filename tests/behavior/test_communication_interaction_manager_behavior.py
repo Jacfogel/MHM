@@ -6,6 +6,8 @@ Tests focus on actual side effects and system changes rather than just return va
 
 import pytest
 import types
+
+import core.config as app_config
 from communication.message_processing.interaction_manager import InteractionManager
 from communication.message_processing.conversation_flow_manager import conversation_manager
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
@@ -15,6 +17,7 @@ from tests.test_helpers.test_utilities import TestUserFactory
 
 def _create_fast_interaction_manager():
     """Create an interaction manager with deterministic fast-path parsing/chat for tests."""
+    app_config.AI_ACTION_PLANNER_ENABLED = False
     interaction_manager = InteractionManager()
     parser = interaction_manager.command_parser
 

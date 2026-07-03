@@ -30,6 +30,7 @@ class TestCommandPromptInjectionLivePath:
         get_enhanced_command_parser()
         messages = get_command_interpreter().create_command_parsing_prompt("list tasks")
         system_content = messages[0]["content"]
+        assert "Product AI flow: action_interpretation" in system_content
         assert "create_task" in system_content
         for intent in get_command_intent_names()[:5]:
             assert intent in system_content

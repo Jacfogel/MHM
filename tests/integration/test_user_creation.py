@@ -728,7 +728,8 @@ class TestUserCreationIntegration:
         assert len(loaded_data['context']['health_conditions']) == 3
         assert len(loaded_data['context']['loved_ones']) == 3
         
-        # Verify schedules
-        assert 'motivational' in loaded_data['schedules']
-        assert 'health' in loaded_data['schedules']
-        assert 'fun_facts' in loaded_data['schedules'] 
+        # Verify schedules (v1 flat or v2 categories wrapper)
+        schedules = _schedule_categories_from_loaded(loaded_data['schedules'])
+        assert 'motivational' in schedules
+        assert 'health' in schedules
+        assert 'fun_facts' in schedules

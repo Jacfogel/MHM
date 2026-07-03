@@ -2,6 +2,7 @@
 
 """AI enhancement for structured command responses."""
 
+from ai.context.assembly import assemble_action_result_messages
 from core.config import AI_MAX_RESPONSE_LENGTH
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
@@ -113,14 +114,31 @@ def enhance_response_with_ai(
         if _should_skip_ai_enhancement(intent):
             return response
 
-        context_prompt = f"""
-User requested: {parsed_command.original_message}
-Current response: {response.message}
+        result_metadata = {
+            "action_name": intent,
+            "completed": response.completed,
+            "handler_message": response.message,
+            "rich_data": response.rich_data,
+            "suggestions": response.suggestions,
+            "error": response.error,
+            "source_message": parsed_command.original_message,
+        }
+        messages = assemble_action_result_messages(
+            user_id,
+            parsed_command.original_message,
+            result_metadata,
+        )
+        if not messages or len(messages) < 2:
+            return response
 
-Please enhance this response to be more personal and contextual for the user, 
-while keeping the core information intact. Make it warm and encouraging.
-Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
-"""
+        system_content = messages[0].get("content", "")
+        user_content = messages[1].get("content", parsed_command.original_message)
+        context_prompt = (
+            f"{system_content}\n\n"
+            f"User: {user_content}\n\n"
+            "Write one warm, concise user-visible reply that reflects the handler result. "
+            "Return ONLY the reply text."
+        )
 
         enhanced_text = ai_chatbot.generate_response(
             context_prompt,

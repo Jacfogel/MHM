@@ -140,6 +140,7 @@ _EXPLICIT_COMMAND_WORDS = ("add", "create", "new")
 class CommandInterpreter:
     """Detect command-oriented prompts and extract structured command candidates."""
 
+    # devtools: intentional[duplicate-functions]: thin_prompt_component_constructors
     @handle_errors("initializing command interpreter", default_return=None)
     def __init__(self) -> None:
         self._prompt_manager = get_prompt_manager()
@@ -275,10 +276,40 @@ class CommandInterpreter:
         ],
     )
     def create_command_parsing_prompt(
-        self, user_prompt: str, *, clarification: bool = False
+        self,
+        user_prompt: str,
+        *,
+        clarification: bool = False,
+        user_id: str | None = None,
     ) -> list:
         """Create a prompt instructing the model to return structured command output."""
-        system_content = self._prompt_manager.get_prompt("command")
+        from ai.context.service import build_ai_context_envelope
+        from ai.prompts.action_catalog import get_action_catalog
+
+        catalog = get_action_catalog()
+        context_view = None
+        if user_id:
+            context_view = build_ai_context_envelope(
+                user_id,
+                requested_intent="action_interpretation",
+                prompt_request=user_prompt,
+                include_conversation_history=False,
+            )
+
+        composed = self._prompt_manager.compose_product_prompt(
+            "action_interpretation",
+            context_view=context_view,
+            action_catalog=catalog,
+        )
+        format_instructions = self._prompt_manager.get_command_format_instructions()
+        system_sections = []
+        if composed and composed.content:
+            system_sections.append(composed.content)
+        if format_instructions:
+            system_sections.append(format_instructions)
+        system_content = "\n\n".join(system_sections)
+        if not system_content:
+            system_content = self._prompt_manager.get_prompt("command")
         if clarification:
             system_content = system_content + _CLARIFICATION_PROMPT_SUFFIX
 

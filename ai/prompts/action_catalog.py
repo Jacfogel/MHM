@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Literal
 
 from core.error_handling import handle_errors
 
@@ -71,6 +71,21 @@ class AIActionRequest:
     confidence: float
     source_message: str
     requires_confirmation: bool = False
+
+
+ResponseIntent = Literal["answer_only", "execute_action", "clarify"]
+
+
+@dataclass(frozen=True)
+class AIActionPlan:
+    """Product-AI planning output before execution or conversational reply."""
+
+    response_intent: ResponseIntent
+    actions: tuple[AIActionRequest, ...] = ()
+    clarification_question: str | None = None
+    response_notes: str | None = None
+    source_message: str = ""
+    planning_method: str = "unknown"
 
 
 @dataclass(frozen=True)

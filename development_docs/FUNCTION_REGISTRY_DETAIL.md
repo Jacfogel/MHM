@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-01 23:56:24
+> **Last Generated**: 2026-07-02 23:38:49
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.9% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 250
-- **Functions Found**: 2429
-- **Methods Found**: 1389
-- **Classes Found**: 251
-- **Total Items**: 3818
-- **Functions Documented**: 2158
-- **Methods Documented**: 1276
-- **Classes Documented**: 180
-- **Total Documented**: 3434
-- **Template-Generated**: 44
-- **Last Updated**: 2026-07-01
+### **Function Documentation Coverage: 90.0% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 253
+- **Functions Found**: 2457
+- **Methods Found**: 1398
+- **Classes Found**: 256
+- **Total Items**: 3855
+- **Functions Documented**: 2186
+- **Methods Documented**: 1285
+- **Classes Documented**: 185
+- **Total Documented**: 3471
+- **Template-Generated**: 46
+- **Last Updated**: 2026-07-02
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (484)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (628)
+### **Communication Functions** (638)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (517)
@@ -69,6 +69,29 @@ Test functions and testing utilities.
 **Functions:**
 - [OK] `find_false_crud_claims(text)` - Return human-readable labels for false completed-action claims in *text*.
 - [OK] `response_has_false_crud_claim(text)` - True when *text* appears to claim a CRUD action completed without evidence.
+
+#### `ai/chat/action_planner.py`
+**Functions:**
+- [OK] `__init__(self)` - Special Python method
+- [OK] `_build_execute_plan(fields)` - Build an execute_action plan or downgrade to clarify/answer_only.
+- [OK] `_extract_entities_from_fields(fields)` - Map planner entity keys to handler entity names.
+- [OK] `_normalize_action_name(raw_action)` - Normalize canonical action names from planner output.
+- [OK] `_normalize_intent(raw_intent)` - Normalize planner intent labels.
+- [OK] `_parse_confidence(raw_confidence)` - Parse a confidence score from planner output.
+- [OK] `_parse_key_value_fields(text)` - Parse INTENT/ACTION/entity key-value lines from planner output.
+- [OK] `answer_only_plan(source_message)` - Return a safe answer-only plan.
+- [OK] `build_planning_messages(self, user_id, user_message)` - Build LM Studio messages for action planning.
+- [OK] `clarify_plan(source_message, question)` - Return a clarification plan with one user-facing question.
+- [OK] `get_action_planner()` - Return the shared action planner.
+- [OK] `parse_action_plan_from_text(planner_output)` - Parse model planner output into a validated AIActionPlan.
+- [OK] `plan_from_message(self, user_message)` - Call the model (when available) and parse an action plan.
+- [OK] `plan_from_text(self, planner_output)` - Parse planner output text into an action plan (test and replay helper).
+**Classes:**
+- [OK] `ActionPlanner` - Plan product-AI responses and optional app actions from user messages.
+  - [OK] `ActionPlanner.__init__(self)` - Special Python method
+  - [OK] `ActionPlanner.build_planning_messages(self, user_id, user_message)` - Build LM Studio messages for action planning.
+  - [OK] `ActionPlanner.plan_from_message(self, user_message)` - Call the model (when available) and parse an action plan.
+  - [OK] `ActionPlanner.plan_from_text(self, planner_output)` - Parse planner output text into an action plan (test and replay helper).
 
 #### `ai/chat/chatbot.py`
 **Functions:**
@@ -272,7 +295,9 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `_append_task_data_from_envelope(parts, structured)` - Append task summary context from envelope task data.
 - [OK] `_append_task_reminder_from_messages(parts, recent_sent_all)` - Append task-reminder context from recent sent messages.
 - [OK] `_append_today_checkin_status_from_envelope(parts, structured)` - Append today's check-in completion status from envelope data.
+- [OK] `_assemble_product_flow_messages(flow_name, user_id, user_prompt)` - Shared builder for product-AI flow message arrays.
 - [OK] `_profile_context_from_envelope(envelope)` - Build the profile/context dict expected by existing phrasing helpers.
+- [OK] `assemble_action_result_messages(user_id, user_prompt, result_metadata)` - Build system + user messages for result-aware response generation.
 - [OK] `assemble_comprehensive_messages(user_id, user_prompt)` - Build system + user messages for comprehensive conversational generation.
 - [OK] `build_context_parts(user_id, envelope)` - Assemble natural-language context lines for the system prompt.
 
@@ -527,6 +552,7 @@ Returns:
 **Functions:**
 - [MISSING] `_checkin_completed_today(ts)` - No description
 - [MISSING] `_feature_status_lines(user_id)` - No description
+- [OK] `_phrase_recent_sent_messages(parts, recent_sent_all)` - Append recent automated-message lines; return full list for follow-up helpers.
 - [OK] `append_activity_and_mood_trends(parts, user_id, context)` - Recent activity counts and mood trend summary from get_ai_context.
 - [OK] `append_checkin_summary(parts, user_id)` - Recent check-in analytics phrased from ``ContextBuilder.analyze_context``.
 - [MISSING] `append_conversation_history(parts, context)` - No description
@@ -646,6 +672,7 @@ Check-in analytics are handled separately from generic keyword support.
   - [OK] `AIActionDefinition.required_fields(self)` - Return entity field names required before this action can execute.
   - [OK] `AIActionDefinition.to_dict(self)` - Return a JSON-serializable representation for context envelopes.
 - [OK] `AIActionField` - One action entity field expected by an existing handler.
+- [OK] `AIActionPlan` - Product-AI planning output before execution or conversational reply.
 - [OK] `AIActionRequest` - Model-planned action request before communication-layer dispatch.
 
 #### `ai/prompts/command_interpreter.py`
@@ -690,6 +717,7 @@ Handles JSON, key-value pairs (ACTION: ...), or natural language.
 - [OK] `_extract_action_summary(context_view, action_catalog)` - Return generated action capability text from a catalog or context view.
 - [OK] `_extract_context_prompt_text(context_view)` - Return prompt text from an AIContextEnvelope-like object or plain dict.
 - [OK] `_load_assistant_system_prompt_text()` - Load the main companion prompt from resources/prompts/assistant_system_prompt.txt.
+- [OK] `_load_command_format_instructions()` - Return ACTION-format instructions from command.txt without the action list.
 - [OK] `_load_command_prompt_text()` - Load the command-parser system prompt from resources/prompts/command.txt.
 - [OK] `_load_custom_prompt(self)` - Load the custom system prompt from file when AI_USE_CUSTOM_PROMPT is enabled.
 - [OK] `_load_product_ai_category_text(category)` - Load one product-AI prompt category file.
@@ -732,6 +760,7 @@ Returns:
 
 Returns:
     Dictionary mapping prompt types to descriptions
+- [OK] `get_command_format_instructions(self)` - Return ACTION-format parsing rules without the runtime action list.
 - [OK] `get_prompt(self, prompt_type)` - Get the appropriate prompt for the given type
 
 Args:
@@ -796,6 +825,7 @@ Returns:
 
 Returns:
     Dictionary mapping prompt types to descriptions
+  - [OK] `PromptManager.get_command_format_instructions(self)` - Return ACTION-format parsing rules without the runtime action list.
   - [OK] `PromptManager.get_prompt(self, prompt_type)` - Get the appropriate prompt for the given type
 
 Args:
@@ -2643,6 +2673,31 @@ Returns:
   - [OK] `RecipientResolver.get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve channel recipient for a user.
 
 #### `communication/message_processing/__init__.py`
+
+#### `communication/message_processing/action_plan_executor.py`
+**Functions:**
+- [OK] `_execute_planned_actions(self, plan, user_id, channel_type)` - Dispatch the first planned action and optionally summarize the result.
+- [OK] `_generate_result_aware_response(self, user_id, action, handler_response, metadata)` - Rewrite handler output using the action_result_response prompt flow.
+- [OK] `_load_action_request_helpers()` - Load action request conversion helpers for plan execution.
+- [OK] `execute_plan(self, plan, user_id, channel_type)` - Execute a plan and return the user-visible response plus metadata.
+- [OK] `get_action_plan_executor()` - Return the shared action plan executor.
+- [OK] `handle_message_with_action_planner(user_id, message, channel_type)` - Plan and execute one product-AI interaction.
+**Classes:**
+- [OK] `ActionExecutionResult` - Product-AI execution outcome for one planned interaction.
+- [OK] `ActionPlanExecutor` - Route AIActionPlan outcomes through chat or structured command dispatch.
+  - [OK] `ActionPlanExecutor._execute_planned_actions(self, plan, user_id, channel_type)` - Dispatch the first planned action and optionally summarize the result.
+  - [OK] `ActionPlanExecutor._generate_result_aware_response(self, user_id, action, handler_response, metadata)` - Rewrite handler output using the action_result_response prompt flow.
+  - [OK] `ActionPlanExecutor.execute_plan(self, plan, user_id, channel_type)` - Execute a plan and return the user-visible response plus metadata.
+
+#### `communication/message_processing/action_request_adapter.py`
+**Functions:**
+- [OK] `build_action_execution_metadata(request, response)` - Capture handler execution output for result-aware response generation.
+- [OK] `build_parsing_result_from_action_request(request)` - Build a ParsingResult suitable for dispatch_structured_command.
+- [OK] `convert_action_request_to_parsed_command(request)` - Convert an AI-planned action request into a communication-layer ParsedCommand.
+- [OK] `to_dict(self)` - Return a JSON-serializable metadata dict for prompt composition.
+**Classes:**
+- [OK] `AIActionExecutionMetadata` - Structured execution metadata for result-aware product-AI responses.
+  - [OK] `AIActionExecutionMetadata.to_dict(self)` - Return a JSON-serializable metadata dict for prompt composition.
 
 #### `communication/message_processing/command_parser.py`
 **Functions:**
@@ -5817,10 +5872,6 @@ Returns:
 
 Returns:
     List[Dict[str, Any]]: Search results, empty list if failed
-- [OK] `update_message_references(user_id)` - Update message references with validation.
-
-Returns:
-    bool: True if successful, False if failed
 - [OK] `update_message_references(self, user_id)` - Add/update message file references in user profile
 - [OK] `update_user_index(user_id)` - Update user index with validation.
 

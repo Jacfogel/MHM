@@ -1,5 +1,12 @@
 """Chat reply orchestration, post-processing, and interaction typing."""
 
+from ai.chat.action_planner import (
+    ActionPlanner,
+    answer_only_plan,
+    clarify_plan,
+    get_action_planner,
+    parse_action_plan_from_text,
+)
 from ai.chat.action_boundaries import (
     FALSE_CRUD_SUCCESS_SUBSTRINGS,
     find_false_crud_claims,
@@ -17,6 +24,11 @@ from ai.chat.response_postprocess import (
 )
 
 __all__ = [
+    "ActionPlanner",
+    "answer_only_plan",
+    "clarify_plan",
+    "get_action_planner",
+    "parse_action_plan_from_text",
     "FALSE_CRUD_SUCCESS_SUBSTRINGS",
     "find_false_crud_claims",
     "response_has_false_crud_claim",

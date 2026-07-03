@@ -123,6 +123,10 @@ desktop.ini
 # Ad-hoc directory tree output (e.g. generate_directory_tree --output custom.md)
 /custom.md
 
+# Ad-hoc terminal output captures (e.g. `command > wrapper_out.txt`)
+/wrapper_out.txt
+/svc_nightly.txt
+
 # data/ is primarily user-specific data (intentionally not committed)
 data/
 

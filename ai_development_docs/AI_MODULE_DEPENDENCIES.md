@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-01 23:56:49
+> **Last Generated**: 2026-07-02 23:39:09
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 248
-- **Total Imports**: 2108
-- **Standard Library**: 627 (29.7%)
-- **Third-Party**: 217 (10.3%)
-- **Local Imports**: 1264 (60.0%)
+- **Files Scanned**: 251
+- **Total Imports**: 2144
+- **Standard Library**: 637 (29.7%)
+- **Third-Party**: 217 (10.1%)
+- **Local Imports**: 1290 (60.2%)
 
 ## Dependency Decision Trees
 
@@ -33,7 +33,7 @@ Core System Dependencies:
 ### Need AI or Chatbot Support?
 AI System Dependencies:
 - AI Core
-  - ai/__init__.py <- chatbot, cache_manager, action_catalog, command_interpreter, command_registry (+10 more)
+  - ai/__init__.py <- chatbot, cache_manager, action_catalog, action_planner, command_interpreter (+11 more)
   - ai/chat/action_boundaries.py <- standard library (__future__, re), error_handling
 - Command Processing
   - communication/command_handlers/account_handler.py <- standard library (secrets, string, typing), logger, error_handling, core, user_data_operations, base_handler (+2 more)
@@ -75,7 +75,7 @@ UI Dependencies:
 ### Core -> Communication and AI (most common)
 Communication and AI modules depend on core system modules.
 - `ai/chat/action_boundaries.py` -> core.error_handling
-- `ai/chat/chatbot.py` -> core.logger, core.config, core.response_tracking
+- `ai/chat/action_planner.py` -> core.config, core.error_handling, core.logger
 
 ### UI -> Core
 UI modules rely on core configuration and data access.
@@ -84,7 +84,7 @@ UI modules rely on core configuration and data access.
 ### Communication -> Communication
 Communication modules compose other communication utilities for complete flows.
 - `ai/__init__.py` -> ai.chat.chatbot, ai.client.cache_manager, ai.prompts.action_catalog
-- `ai/chat/chatbot.py` -> ai.prompts.manager, ai.client.cache_manager, ai.prompts.command_interpreter
+- `ai/chat/action_planner.py` -> ai.context.service, ai.prompts.action_catalog, ai.prompts.command_interpreter
 
 ### Third-Party Integration
 External libraries provide channel and UI support.
@@ -115,9 +115,9 @@ External libraries provide channel and UI support.
 
 ### High Coupling
 - `communication/core/channel_orchestrator.py` -> 21 unique local dependencies (heavy coupling) (31 import statements; 10 duplicate)
+- `communication/message_processing/interaction_manager.py` -> 17 unique local dependencies (heavy coupling) (18 import statements; 1 duplicate)
+- `ai/__init__.py` -> 16 unique local dependencies (heavy coupling)
 - `ai/chat/chatbot.py` -> 16 unique local dependencies (heavy coupling) (17 import statements; 1 duplicate)
-- `ai/__init__.py` -> 15 unique local dependencies (heavy coupling)
-- `communication/message_processing/interaction_manager.py` -> 15 unique local dependencies (heavy coupling) (16 import statements; 1 duplicate)
 - `communication/communication_channels/discord/bot.py` -> 14 unique local dependencies (heavy coupling) (18 import statements; 4 duplicate)
 
 ### Third-Party Risks

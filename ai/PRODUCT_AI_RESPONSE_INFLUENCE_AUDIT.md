@@ -60,10 +60,8 @@ Completed:
 
 Still not implemented:
 
-- No AI action planner exists yet.
-- No AI action executor exists yet.
-- No conversion from `AIActionRequest` to `ParsedCommand` has been wired into the communication/action-execution path.
-- `action_interpretation` and `action_result_response` flows are declared but not yet wired into runtime composition beyond tests.
+- Planner output is not yet the primary routing path for high-confidence rule-based commands (planner runs on low-confidence messages when `AI_ACTION_PLANNER_ENABLED=true`).
+- Multi-action plan execution (more than one action per plan) remains future work.
 
 ### 3.0.1 Prompt cleanup problem statement
 
@@ -244,7 +242,7 @@ Existing `get_prompt("wellness")` and `get_prompt("command")` can delegate to th
 - [x] Add `PromptManager.compose_product_prompt()` and tests for stable category order.
 - [x] Remove duplicate `CONVERSATIONAL_CONTEXT_INSTRUCTIONS` and stop stacking `assistant_system_prompt.txt` on chat composition.
 - [x] Replace static capability claims with runtime `available_actions` injection from `AIActionCatalog`.
-- [ ] Wire `action_interpretation` and `action_result_response` flows into runtime composition beyond tests.
+- [x] Wire `action_interpretation` and `action_result_response` flows into runtime composition beyond tests.
 - [x] Align `ai/fallback/*` copy with composed category contract (partial — paths migrated; wording review remains).
 
 ### Phase 3 - Action catalog
@@ -403,13 +401,13 @@ This slice gave the AI richer data access and capability metadata without adding
 
 Focus on making the prompting system easier to use, connect, and expand before adding planner/executor behavior.
 
-1. [ ] Add product-AI category files under `resources/prompts/product_ai/`.
-2. [ ] Add `PromptManager.compose_product_prompt()` for `chat_response`, using `ai/prompts/flows.py` category ownership.
-3. [ ] Move duplicated conversational behavior out of `assistant_system_prompt.txt` and `CONVERSATIONAL_CONTEXT_INSTRUCTIONS` into category-owned text.
-4. [ ] Generate product capability text from `AIActionCatalog` for chat prompts, while preserving feature-disabled constraints from `AIContextEnvelope`.
-5. [ ] Update `assemble_comprehensive_messages()` to consume the composed chat prompt plus envelope prompt sections.
-6. [ ] Add tests that verify category inclusion, no duplicated greeting/direct-answer rules, action-boundary wording, and feature-disabled wording.
-7. [ ] Keep existing `get_prompt("wellness")` behavior as a temporary API surface only if current callers still require it; document any bridge if it becomes a true legacy compatibility path.
+1. [x] Add product-AI category files under `resources/prompts/product_ai/`.
+2. [x] Add `PromptManager.compose_product_prompt()` for `chat_response`, using `ai/prompts/flows.py` category ownership.
+3. [x] Move duplicated conversational behavior out of `assistant_system_prompt.txt` and `CONVERSATIONAL_CONTEXT_INSTRUCTIONS` into category-owned text.
+4. [x] Generate product capability text from `AIActionCatalog` for chat prompts, while preserving feature-disabled constraints from `AIContextEnvelope`.
+5. [x] Update `assemble_comprehensive_messages()` to consume the composed chat prompt plus envelope prompt sections.
+6. [x] Add tests that verify category inclusion, no duplicated greeting/direct-answer rules, action-boundary wording, and feature-disabled wording.
+7. [x] Keep existing `get_prompt("wellness")` behavior as a temporary API surface only if current callers still require it; document any bridge if it becomes a true legacy compatibility path.
 
 Do not add AI action planning in this slice. The goal is prompt ownership clarity and lower duplication.
 
@@ -417,10 +415,10 @@ Do not add AI action planning in this slice. The goal is prompt ownership clarit
 
 After prompt cleanup is stable:
 
-1. [ ] Add tests proving task actions route through the communication/action-execution layer into `dispatch_structured_command`.
-2. [ ] Add narrow conversion from `AIActionRequest` to `ParsedCommand`.
-3. [ ] Capture structured execution metadata for final response generation.
-4. [ ] Only then add AI action planner/executor behavior.
+1. [x] Add tests proving task actions route through the communication/action-execution layer into `dispatch_structured_command`.
+2. [x] Add narrow conversion from `AIActionRequest` to `ParsedCommand`.
+3. [x] Capture structured execution metadata for final response generation.
+4. [x] Only then add AI action planner/executor behavior (planner + executor modules; runtime wiring behind `AI_ACTION_PLANNER_ENABLED`, default off).
 
 ## 10. Implementation Log
 
@@ -560,3 +558,45 @@ Notes:
 
 - This is documentation/planning only. No prompt files or runtime code were changed in this slice.
 - The next implementation should start with `chat_response` composition and tests before changing command/action planning behavior.
+
+### 2026-07-02 - Action-routing proof and non-chat flow wiring
+
+Completed:
+
+- Wired `action_interpretation` into `CommandInterpreter.create_command_parsing_prompt()` via `compose_product_prompt()` plus `command.txt` ACTION-format instructions (`ai/prompts/command_interpreter.py`, `ai/prompts/manager.py`).
+- Wired `action_result_response` into `assemble_action_result_messages()` and `response_enhancer.enhance_response_with_ai()` (`ai/context/assembly.py`, `communication/message_processing/response_enhancer.py`).
+- Added `communication/message_processing/action_request_adapter.py` with `AIActionRequest` → `ParsedCommand` conversion, `ParsingResult` builder, and `AIActionExecutionMetadata`.
+- Added unit tests for flow wiring and dispatcher routing (`tests/unit/test_product_ai_flow_runtime_wiring.py`, `tests/unit/test_ai_action_request_adapter.py`).
+
+Verified:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_product_ai_flow_runtime_wiring.py tests/unit/test_ai_action_request_adapter.py tests/unit/test_command_prompt_injection_live_path.py tests/unit/test_product_ai_prompt_composition.py tests/unit/test_ai_prompt_flows.py -q
+```
+
+Notes:
+
+- The adapter proves `create_task` routes through `dispatch_structured_command` without adding an AI planner yet.
+- Next slice: AI action planner module producing `AIActionPlan` and calling the adapter at runtime.
+
+### 2026-07-02 - AI action planner and executor
+
+Completed:
+
+- Added `AIActionPlan` to [`prompts/action_catalog.py`](prompts/action_catalog.py) with `answer_only`, `clarify`, and `execute_action` intents.
+- Added [`chat/action_planner.py`](chat/action_planner.py) with planning prompt composition, model call, parse hardening, and required-field/confidence validation.
+- Added [`../communication/message_processing/action_plan_executor.py`](../communication/message_processing/action_plan_executor.py) to route plans through chat, clarification replies, or `dispatch_structured_command` plus result-aware response generation.
+- Wired low-confidence message handling in [`../communication/message_processing/interaction_manager.py`](../communication/message_processing/interaction_manager.py) behind `AI_ACTION_PLANNER_ENABLED` (default `false`).
+- Added config flags `AI_ACTION_PLANNER_ENABLED` and `AI_ACTION_PLAN_MIN_CONFIDENCE` in [`../core/config.py`](../core/config.py) and `.env.example`.
+- Added unit tests in [`../tests/unit/test_ai_action_planner.py`](../tests/unit/test_ai_action_planner.py) and [`../tests/unit/test_ai_action_executor.py`](../tests/unit/test_ai_action_executor.py).
+
+Verified:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_ai_action_planner.py tests/unit/test_ai_action_executor.py tests/unit/test_ai_action_request_adapter.py -q
+```
+
+Notes:
+
+- Enable with `AI_ACTION_PLANNER_ENABLED=true` to use the planner on messages that fall through to contextual chat.
+- Rule-based command parsing remains the primary path for confident structured commands.

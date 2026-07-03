@@ -367,6 +367,7 @@ class PeriodRowWidget(QWidget):
         self._set_read_only__visual_styling(read_only)
         self._set_read_only__force_style_updates()
 
+    # devtools: intentional[duplicate-functions]: period_row_read_only_decomposition
     @handle_errors("setting read only time inputs")
     def _set_read_only__time_inputs(self, read_only: bool):
         """Set time input widgets to read-only mode."""
@@ -380,6 +381,7 @@ class PeriodRowWidget(QWidget):
         self.ui.radioButton_end_time_am.setEnabled(not read_only)
         self.ui.radioButton_end_time_pm.setEnabled(not read_only)
 
+    # devtools: intentional[duplicate-functions]: period_row_read_only_decomposition
     @handle_errors("setting read only checkbox states")
     def _set_read_only__checkbox_states(self, read_only: bool):
         """Set checkbox states based on read-only mode and period type."""
@@ -388,6 +390,7 @@ class PeriodRowWidget(QWidget):
         else:
             self._set_read_only__normal_checkbox_states(read_only)
 
+    # devtools: intentional[duplicate-functions]: period_row_read_only_decomposition
     @handle_errors("setting all period read only")
     def _set_read_only__all_period_read_only(self):
         """Set ALL period to read-only with all days selected."""
@@ -403,6 +406,7 @@ class PeriodRowWidget(QWidget):
             checkbox.setChecked(True)
             checkbox.setEnabled(False)
 
+    # devtools: intentional[duplicate-functions]: period_row_read_only_decomposition
     @handle_errors("setting normal checkbox states")
     def _set_read_only__normal_checkbox_states(self, read_only: bool):
         """Set normal checkbox states for non-ALL periods."""
@@ -426,11 +430,13 @@ class PeriodRowWidget(QWidget):
             self.ui.checkBox_saturday,
         ]
 
+    # devtools: intentional[duplicate-functions]: period_row_read_only_decomposition
     @handle_errors("setting delete button visibility")
     def _set_read_only__delete_button_visibility(self, read_only: bool):
         """Set delete button visibility based on read-only state."""
         self.ui.pushButton_delete.setVisible(not read_only)
 
+    # devtools: intentional[duplicate-functions]: period_row_read_only_decomposition
     @handle_errors("setting visual styling")
     def _set_read_only__visual_styling(self, read_only: bool):
         """Apply visual styling for read-only state."""
@@ -439,6 +445,7 @@ class PeriodRowWidget(QWidget):
         else:
             self._set_read_only__clear_read_only_styling()
 
+    # devtools: intentional[duplicate-functions]: period_row_read_only_decomposition
     @handle_errors("applying read only styling")
     def _set_read_only__apply_read_only_styling(self):
         """Apply read-only visual styling."""
@@ -455,6 +462,7 @@ class PeriodRowWidget(QWidget):
         for checkbox in day_checkboxes:
             checkbox.setProperty("readonly", True)
 
+    # devtools: intentional[duplicate-functions]: period_row_read_only_decomposition
     @handle_errors("clearing read only styling")
     def _set_read_only__clear_read_only_styling(self):
         """Clear read-only visual styling."""
@@ -469,6 +477,7 @@ class PeriodRowWidget(QWidget):
         for checkbox in day_checkboxes:
             checkbox.setProperty("readonly", False)
 
+    # devtools: intentional[duplicate-functions]: period_row_read_only_decomposition
     @handle_errors("forcing style updates")
     def _set_read_only__force_style_updates(self):
         """Force style updates for all checkboxes."""

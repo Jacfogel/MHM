@@ -1279,6 +1279,7 @@ class EnhancedCommandParser:
 
         return (intent, entities)
 
+    # devtools: intentional[duplicate-functions]: rule_based_entity_extractors
     @handle_errors("extracting task entities from rule-based patterns", default_return=False)
     def _extract_task_entities_rule_based(
         self,
@@ -1354,6 +1355,7 @@ class EnhancedCommandParser:
 
         return False
 
+    # devtools: intentional[duplicate-functions]: rule_based_entity_extractors
     @handle_errors(
         "extracting phrase-settings entities from rule-based patterns",
         default_return=False,
@@ -1389,6 +1391,7 @@ class EnhancedCommandParser:
 
         return False
 
+    # devtools: intentional[duplicate-functions]: rule_based_entity_extractors
     @handle_errors("extracting schedule entities from rule-based patterns", default_return=False)
     def _extract_schedule_entities_rule_based(
         self,
@@ -1454,6 +1457,7 @@ class EnhancedCommandParser:
 
         return False
 
+    # devtools: intentional[duplicate-functions]: rule_based_entity_extractors
     @handle_errors("extracting history and analytics entities", default_return=False)
     def _extract_history_analytics_entities_rule_based(
         self,
@@ -1546,6 +1550,7 @@ class EnhancedCommandParser:
             tags.extend(remaining.split())
         return normalize_tags(tags)
 
+    # devtools: intentional[duplicate-functions]: rule_based_entity_extractors
     @handle_errors("extracting help entities from rule-based patterns", default_return=False)
     def _extract_help_entities_rule_based(
         self,
@@ -1569,6 +1574,7 @@ class EnhancedCommandParser:
 
         return False
 
+    # devtools: intentional[duplicate-functions]: rule_based_entity_extractors
     @handle_errors("extracting notebook entities from rule-based patterns", default_return=False)
     def _extract_notebook_entities_rule_based(
         self,

@@ -280,15 +280,11 @@ def append_today_checkin_status(parts: list[str], user_id: str) -> None:
         parts.append("They have not completed their check-in for today yet")
 
 
-@handle_errors("appending recent sent messages context", default_return=None)
-def append_recent_sent_messages(
-    parts: list[str], user_id: str
+@handle_errors("phrasing recent sent messages", default_return=None)
+def _phrase_recent_sent_messages(
+    parts: list[str], recent_sent_all: list[dict[str, Any]]
 ) -> list[dict[str, Any]] | None:
-    """Return full recent_sent list for task-reminder follow-up."""
-    if not is_automated_messages_enabled(user_id):
-        return None
-
-    recent_sent_all = get_recent_messages(user_id, category=None, limit=5)
+    """Append recent automated-message lines; return full list for follow-up helpers."""
     recent_sent = [m for m in recent_sent_all if m.get("category") != "checkin"][:3]
     if not recent_sent:
         return recent_sent_all
@@ -304,11 +300,23 @@ def append_recent_sent_messages(
             )
         else:
             words = text.split()
-            snippet = " ".join(words[:10]) + ("…" if len(words) > 10 else "")
+            snippet = " ".join(words[:10]) + ("..." if len(words) > 10 else "")
             parts.append(
                 f'  - Previously ({timestamp}): A {category} message: "{snippet}"'
             )
     return recent_sent_all
+
+
+@handle_errors("appending recent sent messages context", default_return=None)
+def append_recent_sent_messages(
+    parts: list[str], user_id: str
+) -> list[dict[str, Any]] | None:
+    """Return full recent_sent list for task-reminder follow-up."""
+    if not is_automated_messages_enabled(user_id):
+        return None
+
+    recent_sent_all = get_recent_messages(user_id, category=None, limit=5)
+    return _phrase_recent_sent_messages(parts, recent_sent_all)
 
 
 @handle_errors("appending task reminder context", default_return=None)

@@ -173,6 +173,7 @@ class EmailBot(BaseChannel):
             server.login(smtp_user, smtp_password)
             server.sendmail(smtp_user, recipient, msg.as_string())
 
+    # devtools: intentional[duplicate-functions]: channel_receive_messages_contract
     @handle_errors("receiving email messages", default_return=[])
     async def receive_messages(self) -> list[dict[str, Any]]:
         """Receive messages from email"""

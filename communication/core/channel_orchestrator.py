@@ -1007,6 +1007,7 @@ class CommunicationManager:
 
         logger.info("CommunicationManager shutdown complete")
 
+    # devtools: intentional[duplicate-functions]: channel_receive_messages_contract
     @handle_errors("receiving messages", default_return=[])
     async def receive_messages(self) -> list[dict[str, Any]]:
         """Receive messages from all communication channels"""

@@ -10,6 +10,7 @@ from ai.context.phraser import (
     append_profile_sections,
     phrase_checkin_summary,
     _checkin_completed_today,
+    _phrase_recent_sent_messages,
 )
 from ai.prompts.manager import get_prompt_manager
 from ai.prompts.flows import get_product_ai_prompt_flow
@@ -57,6 +58,62 @@ _MINIMAL_CHAT_SYSTEM_PROMPT = (
 
 
 @handle_errors(
+    "assembling product AI flow messages",
+    default_return=[
+        {
+            "role": "system",
+            "content": _MINIMAL_CHAT_SYSTEM_PROMPT,
+        },
+        {"role": "user", "content": "Hello"},
+    ],
+)
+def _assemble_product_flow_messages(
+    flow_name: str,
+    user_id: str,
+    user_prompt: str,
+    *,
+    result_metadata: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    """Shared builder for product-AI flow message arrays."""
+    flow = get_product_ai_prompt_flow(flow_name)
+    envelope = build_ai_context_envelope(
+        user_id,
+        requested_intent=flow.name,
+        prompt_request=user_prompt,
+        include_conversation_history=True,
+    )
+    context_parts = build_context_parts(user_id, envelope=envelope)
+    context_str = (
+        "\n".join(context_parts) if context_parts else "New user with no data"
+    )
+
+    prompt_manager = get_prompt_manager()
+    compose_kwargs: dict[str, Any] = {
+        "context_view": {
+            "prompt_text": "User Context:\n" + context_str,
+            "structured": envelope.structured if envelope else {},
+        },
+    }
+    if result_metadata is not None:
+        compose_kwargs["result_metadata"] = result_metadata
+
+    composed_prompt = (
+        prompt_manager.compose_product_prompt(flow.name, **compose_kwargs)
+        if prompt_manager
+        else None
+    )
+    instructions = (
+        composed_prompt.content
+        if composed_prompt
+        else f"{_MINIMAL_CHAT_SYSTEM_PROMPT}\n\nUser Context:\n{context_str}"
+    )
+    return [
+        {"role": "system", "content": instructions},
+        {"role": "user", "content": user_prompt},
+    ]
+
+
+@handle_errors(
     "assembling comprehensive conversational messages",
     default_return=[
         {
@@ -70,41 +127,31 @@ def assemble_comprehensive_messages(
     user_id: str, user_prompt: str
 ) -> list[dict[str, Any]]:
     """Build system + user messages for comprehensive conversational generation."""
-    flow = get_product_ai_prompt_flow("chat_response")
-    envelope = build_ai_context_envelope(
-        user_id,
-        requested_intent=flow.name,
-        prompt_request=user_prompt,
-        include_conversation_history=True,
-    )
-    context_parts = build_context_parts(user_id, envelope=envelope)
-    context_str = (
-        "\n".join(context_parts) if context_parts else "New user with no data"
-    )
+    return _assemble_product_flow_messages("chat_response", user_id, user_prompt)
 
-    prompt_manager = get_prompt_manager()
-    composed_prompt = (
-        prompt_manager.compose_product_prompt(
-            flow.name,
-            context_view={
-                "prompt_text": "User Context:\n" + context_str,
-                "structured": envelope.structured if envelope else {},
-            },
-        )
-        if prompt_manager
-        else None
+
+@handle_errors(
+    "assembling action result response messages",
+    default_return=[
+        {
+            "role": "system",
+            "content": _MINIMAL_CHAT_SYSTEM_PROMPT,
+        },
+        {"role": "user", "content": "Hello"},
+    ],
+)
+def assemble_action_result_messages(
+    user_id: str,
+    user_prompt: str,
+    result_metadata: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Build system + user messages for result-aware response generation."""
+    return _assemble_product_flow_messages(
+        "action_result_response",
+        user_id,
+        user_prompt,
+        result_metadata=result_metadata,
     )
-    instructions = (
-        composed_prompt.content
-        if composed_prompt
-        else f"{_MINIMAL_CHAT_SYSTEM_PROMPT}\n\nUser Context:\n{context_str}"
-    )
-    system_message = {
-        "role": "system",
-        "content": instructions,
-    }
-    user_message = {"role": "user", "content": user_prompt}
-    return [system_message, user_message]
 
 
 @handle_errors("building profile context from AI envelope", default_return={})
@@ -281,25 +328,7 @@ def _append_recent_sent_messages_from_envelope(
     if not messages.get("enabled"):
         return None
     recent_sent_all = list(messages.get("recent_sent") or [])
-    recent_sent = [m for m in recent_sent_all if m.get("category") != "checkin"][:3]
-    if not recent_sent:
-        return recent_sent_all
-    parts.append("Recent automated messages sent to them:")
-    for idx, msg in enumerate(recent_sent[:3]):
-        category = msg.get("category", "general")
-        text = str(msg.get("sent_text") or "").strip()
-        timestamp = str(msg.get("sent_at") or "").strip()
-        if idx == 0:
-            parts.append(
-                f'  - Most recently ({timestamp}): A {category} message: "{text}"'
-            )
-        else:
-            words = text.split()
-            snippet = " ".join(words[:10]) + ("..." if len(words) > 10 else "")
-            parts.append(
-                f'  - Previously ({timestamp}): A {category} message: "{snippet}"'
-            )
-    return recent_sent_all
+    return _phrase_recent_sent_messages(parts, recent_sent_all)
 
 
 @handle_errors("appending task reminder from recent messages", default_return=None)

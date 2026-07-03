@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-01 23:56:51
+> **Last Generated**: 2026-07-02 23:39:11
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 00000065 5EAC:07BC
+Volume serial number is 000000E1 5EAC:07BC
 C:.
 |   .ruff.toml
 |   ARCHITECTURE.md
@@ -71,6 +71,7 @@ C:.
 |   |
 |   +---chat
 |   |   |   action_boundaries.py
+|   |   |   action_planner.py
 |   |   |   chatbot.py
 |   |   |   interaction_types.py
 |   |   |   response_generator.py
@@ -209,6 +210,8 @@ C:.
 |   |   |   __init__.py
 |   |   |
 |   +---message_processing
+|   |   |   action_plan_executor.py
+|   |   |   action_request_adapter.py
 |   |   |   command_parser.py
 |   |   |   command_registry.py
 |   |   |   conversation_flow_manager.py
@@ -973,6 +976,9 @@ C:.
 |   |   |   test_admin_account_provisioning.py
 |   |   |   test_admin_panel.py
 |   |   |   test_ai_action_catalog.py
+|   |   |   test_ai_action_executor.py
+|   |   |   test_ai_action_planner.py
+|   |   |   test_ai_action_request_adapter.py
 |   |   |   test_ai_chatbot_helpers.py
 |   |   |   test_ai_context_service.py
 |   |   |   test_ai_deterministic.py
@@ -1056,6 +1062,7 @@ C:.
 |   |   |   test_notebook_validation_error_handling.py
 |   |   |   test_no_prints_policy.py
 |   |   |   test_pagination.py
+|   |   |   test_product_ai_flow_runtime_wiring.py
 |   |   |   test_product_ai_prompt_composition.py
 |   |   |   test_profile_handler.py
 |   |   |   test_profile_handler_gap_coverage.py

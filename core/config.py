@@ -159,6 +159,12 @@ AI_AI_PARSING_BASE_CONFIDENCE = float(
 )  # Base confidence for successful AI parsing
 AI_AI_PARSING_PARTIAL_CONFIDENCE = float(
     os.getenv("AI_AI_PARSING_PARTIAL_CONFIDENCE", "0.6")
+)
+AI_ACTION_PLANNER_ENABLED = (
+    os.getenv("AI_ACTION_PLANNER_ENABLED", "false").lower() == "true"
+)
+AI_ACTION_PLAN_MIN_CONFIDENCE = float(
+    os.getenv("AI_ACTION_PLAN_MIN_CONFIDENCE", "0.6")
 )  # Confidence for partial AI parsing results
 
 # AI Response Length Configuration - Centralized limits for AI chatbot responses only

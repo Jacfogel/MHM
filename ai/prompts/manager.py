@@ -60,6 +60,21 @@ def _load_command_prompt_text() -> str:
     return _read_prompt_file(_PROMPTS_DIR / _COMMAND_PROMPT_FILENAME)
 
 
+_COMMAND_ACTION_LIST_MARKER = "Available actions:"
+
+
+@handle_errors("loading command format instructions", default_return="")
+def _load_command_format_instructions() -> str:
+    """Return ACTION-format instructions from command.txt without the action list."""
+    body = _load_command_prompt_text()
+    if not body:
+        return ""
+    marker_index = body.find(_COMMAND_ACTION_LIST_MARKER)
+    if marker_index >= 0:
+        return body[:marker_index].strip()
+    return body.strip()
+
+
 @handle_errors("loading assistant system prompt file", default_return="")
 def _load_assistant_system_prompt_text() -> str:
     """Load the main companion prompt from resources/prompts/assistant_system_prompt.txt."""
@@ -343,6 +358,11 @@ class PromptManager:
             f"Prompt type '{prompt_type}' not found, using default wellness prompt"
         )
         return self._fallback_prompts["wellness"].content
+
+    @handle_errors("getting command format instructions", default_return="")
+    def get_command_format_instructions(self) -> str:
+        """Return ACTION-format parsing rules without the runtime action list."""
+        return _load_command_format_instructions()
 
     # not_duplicate: prompt_template_lookup_mutation
     @handle_errors("getting prompt template", default_return=None)

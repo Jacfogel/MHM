@@ -13,6 +13,7 @@ logger = get_component_logger("ai")
 class ResponseGenerator:
     """Build conversational prompts for LM Studio chat calls."""
 
+    # devtools: intentional[duplicate-functions]: thin_prompt_component_constructors
     @handle_errors("initializing response generator", default_return=None)
     def __init__(self) -> None:
         self._prompt_manager = get_prompt_manager()

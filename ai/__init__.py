@@ -20,9 +20,15 @@ from ai.prompts.action_catalog import (
     AIActionCatalog,
     AIActionDefinition,
     AIActionField,
+    AIActionPlan,
     AIActionRequest,
     build_action_catalog,
     get_action_catalog,
+)
+from ai.chat.action_planner import (
+    ActionPlanner,
+    get_action_planner,
+    parse_action_plan_from_text,
 )
 from ai.prompts.command_interpreter import CommandInterpreter, get_command_interpreter
 from ai.prompts.command_registry import (
@@ -47,7 +53,11 @@ from ai.context.history import (
     ConversationSession,
     get_conversation_history,
 )
-from ai.context.assembly import assemble_comprehensive_messages, build_context_parts
+from ai.context.assembly import (
+    assemble_action_result_messages,
+    assemble_comprehensive_messages,
+    build_context_parts,
+)
 from ai.fallback import (
     FallbackCategory,
     FallbackResponses,
@@ -81,8 +91,12 @@ __all__ = [
     "AIActionDefinition",
     "AIActionField",
     "AIActionRequest",
+    "AIActionPlan",
     "build_action_catalog",
     "get_action_catalog",
+    "ActionPlanner",
+    "get_action_planner",
+    "parse_action_plan_from_text",
     "CommandInterpreter",
     "get_command_interpreter",
     "get_command_intent_names",
@@ -96,6 +110,7 @@ __all__ = [
     "AIContextSection",
     "build_ai_context_envelope",
     "assemble_comprehensive_messages",
+    "assemble_action_result_messages",
     "build_context_parts",
     "ConversationHistory",
     "get_conversation_history",

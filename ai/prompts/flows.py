@@ -64,7 +64,7 @@ PRODUCT_AI_PROMPT_FLOWS: dict[PromptFlowName, ProductAIPromptFlow] = {
             "action_boundaries",
         ),
         context_source="handler result metadata + refreshed AIContextEnvelope",
-        prompt_owner="future ai.action_executor/response flow",
+        prompt_owner="communication.message_processing.action_plan_executor",
     ),
     "fallback_response": ProductAIPromptFlow(
         name="fallback_response",

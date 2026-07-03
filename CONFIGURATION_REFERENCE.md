@@ -160,6 +160,10 @@ Sampling controls:
 - `AI_COMMAND_TEMPERATURE`
 - `AI_CLARIFICATION_TEMPERATURE`
 
+Action planner (opt-in; default off):
+- `AI_ACTION_PLANNER_ENABLED` - when `true`, low-confidence messages use the product-AI action planner instead of plain contextual chat
+- `AI_ACTION_PLAN_MIN_CONFIDENCE` - minimum planner confidence before executing an action (otherwise asks for clarification)
+
 **Breaks if wrong:** long stalls / timeouts, truncated responses, inconsistent parsing behavior, or overly-random command interpretation.
 
 ---

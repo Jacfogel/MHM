@@ -154,6 +154,24 @@ class InteractionManager:
                 f"INTERACTION_MANAGER: Handling as contextual chat: confidence "
                 f"{parsing_result.confidence} < {self.min_command_confidence}"
             )
+            from core.config import AI_ACTION_PLANNER_ENABLED
+
+            if AI_ACTION_PLANNER_ENABLED:
+                from communication.message_processing.action_plan_executor import (
+                    handle_message_with_action_planner,
+                )
+
+                planned_response = handle_message_with_action_planner(
+                    user_id,
+                    message,
+                    channel_type,
+                    command_parser=self.command_parser,
+                    ai_chatbot=self.ai_chatbot,
+                    enable_ai_enhancement=self.enable_ai_enhancement,
+                    command_definitions=self._command_definitions,
+                )
+                if planned_response is not None:
+                    return planned_response
             return self._handle_contextual_chat(user_id, message, channel_type)
 
         logger.debug("No fallback to chat, returning help")
