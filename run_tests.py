@@ -3279,7 +3279,7 @@ def main():
     if args.verbose:
         cmd.append("-v")
     elif args.quick:
-        cmd.extend(["-q", "-o", "durations=0"])
+        cmd.extend(["-q", "--durations=0"])
     else:
         cmd.append("-q")
 

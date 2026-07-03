@@ -152,8 +152,7 @@ def _append_pytest_runtime_options(
             "--ignore=tests/data/tmp",
             "--ignore-glob=tests/data/tmp/**",
             "-q",
-            "-o",
-            "durations=0",
+            "--durations=0",
         ]
     )
     if not force_serial and worker_count and worker_count > 1:

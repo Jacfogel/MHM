@@ -33,10 +33,10 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
-### 2026-07-03 - Fix nightly CI: test cleanup deleting active pytest basetemp
-- **Fix**: `_cleanup_session_test_data_artifacts()` in `tests/test_helpers/test_support/conftest_cleanup_impl.py` was deleting `pytest-of-*` directories from `tests/data/tmp_pytest_runtime/` during session setup. These directories are the active basetemp roots that pytest uses for the `tmp_path` fixture. Added `keep_dir_prefixes=("pytest-of-",)` parameter to `_clear_directory_contents()` calls for both `tmp` and `tmp_pytest_runtime` cleanup paths.
-- **Root cause**: The session-scoped cleanup fixture preserved `pytest_runner` and `pytest_cache` subdirectories but not `pytest-of-<user>` (e.g. `pytest-of-runner` on CI, `pytest-of-Julie` locally). After cleanup removed these, any subsequent test using `tmp_path` failed with `FileNotFoundError`.
-- **Impact**: Fixes nightly CI failure (10 `FileNotFoundError` errors in `test_example_marker_validation.py`, `test_analyze_documentation.py`, `test_cache_dependency_paths.py`). Also documented ~10 pre-existing ordering-dependent schedule v1/v2 schema flakes in TODO.md under the existing schema retirement task.
+### 2026-07-03 - Fix nightly CI: test cleanup + pytest 9.1 compatibility
+- **Fix (cleanup)**: `_cleanup_session_test_data_artifacts()` in `conftest_cleanup_impl.py` was deleting `pytest-of-*` basetemp directories from `tmp_pytest_runtime/`. Added `keep_dir_prefixes=("pytest-of-",)` to `_clear_directory_contents()` calls for both `tmp` and `tmp_pytest_runtime` cleanup paths.
+- **Fix (pytest 9.1)**: `run_test_suite.py` and `run_tests.py` used `-o durations=0` to suppress durations output, but `durations` is not a valid ini config option in pytest 9.1+ (CI installs latest via `>=9.0.3`). Changed to `--durations=0` CLI flag which is correct and version-safe.
+- **Impact**: Fixes nightly CI crash (`ERROR: Unknown config option: durations` causing `state: crashed`, 0 tests ran) and the underlying fixture cleanup issue. Also documented ~10 pre-existing ordering-dependent schedule v1/v2 schema flakes in TODO.md.
 
 ### 2026-07-03 - Add unused/uncalled functions detection tool
 - **Feature**: Added `development_tools/functions/analyze_unused_functions.py` -- an AST-based tool that cross-references all function definitions against all name references across the codebase to surface functions that are never called. Filters out dunder methods, test functions, framework-decorated functions (Discord commands, Qt slots, pytest fixtures, etc.), `__init__.py` exports, and conventional prefixes (`on_`, `setup_`, etc.).

@@ -30,10 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-07-03 - Fix nightly CI test cleanup bug **COMPLETED**
-- Session cleanup was deleting `pytest-of-*` basetemp directories from `tmp_pytest_runtime/`, causing `FileNotFoundError` for all tests using `tmp_path`.
-- Added `keep_dir_prefixes=("pytest-of-",)` to `_clear_directory_contents()` calls in `conftest_cleanup_impl.py`.
-- Documented ~10 pre-existing ordering-dependent v1/v2 schema flakes in TODO.md (tied to existing schema retirement task).
+### 2026-07-03 - Fix nightly CI crash + test cleanup bug **COMPLETED**
+- **Pytest 9.1 compat**: Changed `-o durations=0` to `--durations=0` in `run_test_suite.py` and `run_tests.py`; `durations` is not a valid ini config option in pytest 9.1+ (CI installs latest, crashed with `Unknown config option: durations`).
+- **Cleanup fix**: Session cleanup was deleting `pytest-of-*` basetemp directories; added `keep_dir_prefixes=("pytest-of-",)` in `conftest_cleanup_impl.py`.
+- Documented ~10 pre-existing v1/v2 schema flakes in TODO.md.
 
 ### 2026-07-03 - Add unused functions detection tool **COMPLETED**
 - Added `analyze_unused_functions.py` dev tool that uses AST analysis to find functions/methods never referenced anywhere in the codebase.
