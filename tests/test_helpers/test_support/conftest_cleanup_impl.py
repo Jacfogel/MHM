@@ -37,14 +37,19 @@ def _remove_path_best_effort(path: Path) -> None:
 
 
 def _clear_directory_contents(
-    path: Path, keep_dir_names: set[str] | None = None
+    path: Path,
+    keep_dir_names: set[str] | None = None,
+    keep_dir_prefixes: tuple[str, ...] | None = None,
 ) -> None:
     """Remove directory contents while optionally preserving specific child directories."""
     if not path.exists() or not path.is_dir():
         return
     keep = keep_dir_names or set()
+    prefixes = keep_dir_prefixes or ()
     for child in path.iterdir():
-        if child.is_dir() and child.name in keep:
+        if child.is_dir() and (
+            child.name in keep or child.name.startswith(prefixes)
+        ):
             continue
         _remove_path_best_effort(child)
 
@@ -116,13 +121,19 @@ def _cleanup_session_test_data_artifacts(data_dir: Path) -> None:
     active_basetemp = _get_active_pytest_basetemp()
 
     tmp_dir = data_dir / "tmp"
-    _clear_directory_contents(tmp_dir, keep_dir_names={"pytest_runner"})
+    _clear_directory_contents(
+        tmp_dir,
+        keep_dir_names={"pytest_runner"},
+        keep_dir_prefixes=("pytest-of-",),
+    )
     tmp_runner_dir = tmp_dir / "pytest_runner"
     _clear_pytest_runner_directory_contents(tmp_runner_dir, active_basetemp)
 
     runtime_tmp_dir = data_dir / "tmp_pytest_runtime"
     _clear_directory_contents(
-        runtime_tmp_dir, keep_dir_names={"pytest_runner", "pytest_cache"}
+        runtime_tmp_dir,
+        keep_dir_names={"pytest_runner", "pytest_cache"},
+        keep_dir_prefixes=("pytest-of-",),
     )
     runtime_runner_dir = runtime_tmp_dir / "pytest_runner"
     _clear_pytest_runner_directory_contents(runtime_runner_dir, active_basetemp)

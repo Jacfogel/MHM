@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-03 - Fix nightly CI test cleanup bug **COMPLETED**
+- Session cleanup was deleting `pytest-of-*` basetemp directories from `tmp_pytest_runtime/`, causing `FileNotFoundError` for all tests using `tmp_path`.
+- Added `keep_dir_prefixes=("pytest-of-",)` to `_clear_directory_contents()` calls in `conftest_cleanup_impl.py`.
+- Documented ~10 pre-existing ordering-dependent v1/v2 schema flakes in TODO.md (tied to existing schema retirement task).
+
 ### 2026-07-03 - Add unused functions detection tool **COMPLETED**
 - Added `analyze_unused_functions.py` dev tool that uses AST analysis to find functions/methods never referenced anywhere in the codebase.
 - CLI command: `python development_tools/run_development_tools.py unused-functions` (supports `--include-tests`, `--include-dev-tools`, `--private-only`, `--max-results`, `--json`).
