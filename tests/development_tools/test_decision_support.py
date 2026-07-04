@@ -5,6 +5,7 @@ Tests decision support dashboard functionality including complexity analysis,
 undocumented handlers detection, and duplicate name detection.
 """
 
+import sys
 import pytest
 from unittest.mock import patch
 
@@ -19,14 +20,30 @@ find_duplicate_names = decision_support_module.find_duplicate_names
 print_dashboard = decision_support_module.print_dashboard
 main = decision_support_module.main
 
+_PROJECT_THRESHOLDS = {
+    "MODERATE_COMPLEXITY": 100,
+    "HIGH_COMPLEXITY": 200,
+    "CRITICAL_COMPLEXITY": 300,
+}
+
 
 @pytest.fixture
 def project_complexity_thresholds(monkeypatch):
-    """Use MHM project thresholds (100/200/300), not generic config defaults (50/100/200)."""
-    for mod in (analyze_functions_module, decision_support_module):
-        monkeypatch.setattr(mod, "MODERATE_COMPLEXITY", 100)
-        monkeypatch.setattr(mod, "HIGH_COMPLEXITY", 200)
-        monkeypatch.setattr(mod, "CRITICAL_COMPLEXITY", 300)
+    """Use MHM project thresholds (100/200/300), not generic config defaults (50/100/200).
+
+    Patch the module that ``categorize_functions`` is bound to (decision_support may
+    hold a reference from an earlier importlib load, not analyze_functions_module).
+    """
+    mod_names = {
+        decision_support_module.categorize_functions.__module__,
+        analyze_functions_module.__name__,
+    }
+    for mod_name in mod_names:
+        mod = sys.modules.get(mod_name)
+        if mod is None:
+            continue
+        for key, value in _PROJECT_THRESHOLDS.items():
+            monkeypatch.setattr(mod, key, value)
 
 
 class TestFindComplexityFunctions:
@@ -206,7 +223,7 @@ class TestPrintDashboard:
         assert "Codebase is in excellent shape!" in output
     
     @pytest.mark.unit
-    def test_print_dashboard_with_complexity(self, capsys):
+    def test_print_dashboard_with_complexity(self, capsys, project_complexity_thresholds):
         """Test dashboard with complexity functions."""
         functions = [
             {'name': 'critical_func', 'complexity': 350, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': '', 'file': 'test.py'},

@@ -596,7 +596,9 @@ class TestEmailBotIntegration:
         self.email_bot._set_status(ChannelStatus.READY)
         
         # Mock SMTP connection
-        with patch('smtplib.SMTP_SSL') as mock_smtp:
+        _fake_config = ("smtp.test.com", "imap.test.com", "user@test.com", "pass")
+        with patch('smtplib.SMTP_SSL') as mock_smtp, \
+             patch.object(self.email_bot, '_get_email_config', return_value=_fake_config):
             mock_smtp_instance = MagicMock()
             mock_smtp.return_value.__enter__.return_value = mock_smtp_instance
             

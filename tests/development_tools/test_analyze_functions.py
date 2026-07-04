@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest.mock import patch
 import shutil
 import uuid
+import sys
 
 from tests.development_tools.conftest import (
     load_development_tools_module,
@@ -33,13 +34,26 @@ print_summary = functions_module.print_summary
 validate_results = functions_module.validate_results
 main = functions_module.main
 
+_PROJECT_THRESHOLDS = {
+    "MODERATE_COMPLEXITY": 100,
+    "HIGH_COMPLEXITY": 200,
+    "CRITICAL_COMPLEXITY": 300,
+}
+
 
 @pytest.fixture
 def project_complexity_thresholds(monkeypatch):
     """Use MHM project thresholds (100/200/300), not generic config defaults (50/100/200)."""
-    monkeypatch.setattr(functions_module, "MODERATE_COMPLEXITY", 100)
-    monkeypatch.setattr(functions_module, "HIGH_COMPLEXITY", 200)
-    monkeypatch.setattr(functions_module, "CRITICAL_COMPLEXITY", 300)
+    mod = sys.modules.get(functions_module.__name__) or functions_module
+    for key, value in _PROJECT_THRESHOLDS.items():
+        monkeypatch.setattr(mod, key, value)
+    # categorize_functions may be imported elsewhere; patch its bound module too.
+    cat_mod_name = getattr(categorize_functions, "__module__", None)
+    if cat_mod_name and cat_mod_name != mod.__name__:
+        cat_mod = sys.modules.get(cat_mod_name)
+        if cat_mod is not None:
+            for key, value in _PROJECT_THRESHOLDS.items():
+                monkeypatch.setattr(cat_mod, key, value)
 
 
 @pytest.fixture

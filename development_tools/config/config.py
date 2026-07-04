@@ -48,10 +48,27 @@ def load_external_config(config_path: str | None = None) -> bool:
         )
 
     if not config_file.exists():
-        # Keep an already-loaded config when the default path is absent (e.g. CI
-        # without gitignored development_tools_config.json after an explicit load).
-        if config_path is None and _external_config is not None:
+        if config_path is not None:
+            _external_config = None
+            _config_file_path = None
+            return False
+        # Default path missing: keep an already-loaded config, else use committed example (CI).
+        if _external_config is not None:
             return True
+        example_file = (
+            _get_default_project_root()
+            / "development_tools"
+            / "config"
+            / "development_tools_config.json.example"
+        )
+        if example_file.exists():
+            config_file = example_file
+        else:
+            _external_config = None
+            _config_file_path = None
+            return False
+
+    if not config_file.exists():
         _external_config = None
         _config_file_path = None
         return False

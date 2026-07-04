@@ -67,7 +67,7 @@ def test_import_package_config_get_constants_config_has_local_module_prefixes():
     assert "communication" in cfg["local_module_prefixes"]
     assert isinstance(cfg.get("default_docs"), list)
     assert len(cfg["default_docs"]) >= 10
-    assert "README.md" in cfg["default_docs"]
+    assert "ARCHITECTURE.md" in cfg["default_docs"]
     assert "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md" in cfg["default_docs"]
 
 

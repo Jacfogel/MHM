@@ -1425,6 +1425,13 @@ class ToolWrappersMixin:
             return True
         if base_name in {"todo.md", "plans.md"}:
             return True
+        if base_name in {
+            "ai_priorities.md",
+            "ai_status.md",
+            "consolidated_report.md",
+            "dev_tools_consolidated_report.md",
+        }:
+            return True
 
         return bool(base_name.endswith("_plan.md") or base_name.startswith("plan_"))
 
