@@ -23,10 +23,12 @@ class TestDirectoryTreeGenerator:
     @pytest.mark.unit
     def test_init_with_project_root(self, tmp_path):
         """Test initialization with explicit project root."""
-        generator = DirectoryTreeGenerator(project_root=str(tmp_path))
-        
+        _paths = {"development_docs_dir": "development_docs"}
+        with patch.object(directory_tree_module.config, "get_paths_config", return_value=_paths):
+            generator = DirectoryTreeGenerator(project_root=str(tmp_path))
+
         assert generator.project_root == Path(tmp_path).resolve()
-        assert generator.docs_dir == "development_docs"  # Default
+        assert generator.docs_dir == "development_docs"
     
     @pytest.mark.unit
     def test_init_with_config_path(self, tmp_path):
@@ -45,24 +47,15 @@ class TestDirectoryTreeGenerator:
     @pytest.mark.unit
     def test_init_default_project_root(self, tmp_path):
         """Test initialization with default project root from config."""
-        # Use tmp_path instead of trying to mock config (which is complex due to module loading)
-        # This test verifies that when no project_root is provided, it uses config
-        # Since config.get_project_root() returns the actual project root, we'll test with explicit path
-        generator = DirectoryTreeGenerator(project_root=str(tmp_path))
-        
-        # Project root should be resolved path
-        assert generator.project_root == Path(tmp_path).resolve()
-        
-        # Test that it can also be initialized without project_root (uses config)
-        # This will use the real project root from config
-        generator2 = DirectoryTreeGenerator()
-        assert generator2.project_root.exists()
-        assert generator2.docs_dir == "development_docs"
-        # NOTE: If you call generator2.generate_directory_tree() here, it will be automatically
-        # blocked by the safeguard in generate_directory_tree() because:
-        # 1. It would write to the real project (not a test directory)
-        # 2. We're in a test environment (MHM_TESTING=1)
-        # Tests should use tmp_path or demo_project_root to actually test generation.
+        _paths = {"development_docs_dir": "development_docs"}
+        with patch.object(directory_tree_module.config, "get_paths_config", return_value=_paths):
+            generator = DirectoryTreeGenerator(project_root=str(tmp_path))
+
+            assert generator.project_root == Path(tmp_path).resolve()
+
+            generator2 = DirectoryTreeGenerator()
+            assert generator2.project_root.exists()
+            assert generator2.docs_dir == "development_docs"
     
     @pytest.mark.unit
     @patch('subprocess.run')

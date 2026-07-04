@@ -29,20 +29,18 @@ class TestFileLocking:
         """Test that file_lock creates and releases lock file."""
         test_file = os.path.join(test_data_dir, "test_lock_file.json")
         lock_file = test_file + ".lock"
-        
-        # Ensure lock file doesn't exist initially
+
         if os.path.exists(lock_file):
             os.remove(lock_file)
-        
-        # Use file_lock context manager
-        with file_lock(test_file, timeout=5.0):
-            # Lock should exist
-            assert os.path.exists(lock_file), "Lock file should exist during lock"
-        
-        # Lock should be released after context exit
-        # Note: On Windows, lock file removal might be delayed, so we check with a small delay
-        time.sleep(0.1)
-        assert not os.path.exists(lock_file), "Lock file should be removed after lock release"
+
+        with file_lock(test_file, timeout=5.0) as f:
+            assert f is not None, "Should return a file handle"
+            if sys.platform == "win32":
+                assert os.path.exists(lock_file), "Lock file should exist during lock"
+
+        if sys.platform == "win32":
+            time.sleep(0.1)
+            assert not os.path.exists(lock_file), "Lock file should be removed after lock release"
 
     def test_file_lock_opens_file_for_reading_writing(self, test_data_dir):
         """Test that file_lock opens file for reading and writing."""
@@ -81,27 +79,24 @@ class TestFileLocking:
         # File should exist after lock
         assert os.path.exists(test_file), "File should be created"
 
+    @pytest.mark.skipif(sys.platform != "win32", reason="Lock-file contention only applies to Windows implementation")
     def test_file_lock_timeout_when_locked(self, test_data_dir):
-        """Test that file_lock times out when file is already locked."""
+        """Test that file_lock times out when file is already locked (Windows lock-file impl)."""
         test_file = os.path.join(test_data_dir, "test_timeout.json")
         lock_file = test_file + ".lock"
-        
-        # Ensure lock file doesn't exist initially
+
         if os.path.exists(lock_file):
             with contextlib.suppress(OSError):
                 os.remove(lock_file)
-        
-        # Create lock file to simulate locked state (using 'x' mode to create exclusively)
+
         try:
             with open(lock_file, 'x') as f:
                 f.write("locked")
-            
-            # Try to acquire lock - should timeout
+
             with pytest.raises(TimeoutError):
                 with file_lock(test_file, timeout=0.5, retry_interval=0.1):
                     pass
         except FileExistsError:
-            # If lock file already exists (race condition), skip this test
             pytest.skip("Lock file already exists, cannot test timeout")
         finally:
             # Clean up lock file

@@ -33,18 +33,14 @@ def test_quick_status_detection_marks_missing_files(tmp_path, quick_status_modul
     """QuickStatus should report missing core files as issues."""
     qs = quick_status_module.QuickStatus()
     qs.project_root = tmp_path
+    qs.quick_status_config = {
+        "core_files": ["run_mhm.py", "core/config.py", "core/service.py", "requirements.txt"],
+    }
 
-    # Required directories
     for dirname in ("core", "ui", "tests", "development_tools"):
         (tmp_path / dirname).mkdir(parents=True, exist_ok=True)
 
-    # Create all core files except core/service.py to trigger the warning
-    required_files = [
-        "run_mhm.py",
-        "core/config.py",
-        "requirements.txt",
-    ]
-    for relative_path in required_files:
+    for relative_path in ["run_mhm.py", "core/config.py", "requirements.txt"]:
         file_path = tmp_path / relative_path.replace("/", os.sep)
         file_path.parent.mkdir(parents=True, exist_ok=True)
         file_path.write_text("placeholder", encoding="utf-8")

@@ -30,12 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-07-03 - Fix nightly CI: 15 CI-only test failures **COMPLETED**
-- **Pytest 9.1 compat**: Changed `-o durations=0` to `--durations=0` in `run_test_suite.py`/`run_tests.py`.
-- **Cleanup fix**: Session cleanup was deleting `pytest-of-*` basetemp dirs; added `keep_dir_prefixes`.
-- **Mock target fixes (10 tests)**: Email bot tests needed `_get_email_config` mock; Discord bot tests patched token at wrong import site; headless/ServiceManager tests forced `os.name='nt'` breaking Linux; UI schedule tests needed `get_schedule_time_periods` mock.
-- **xdist crash**: Process-group tests monkeypatched global `os.name` - added `no_parallel`. Config test skips when gitignored config absent. File-not-found test uses writable `tmp_path` instead of `/nonexistent/`.
-- Root cause pattern: tests pass locally (env vars, config files, Windows) but fail on CI (Linux, no credentials). Documented ~10 v1/v2 schema flakes in TODO.md.
+### 2026-07-03 - Fix nightly CI: 26 CI-only test failures across 4 rounds **COMPLETED**
+- **Rounds 1-3 (15 fixes)**: Pytest 9.1 `--durations` compat; basetemp cleanup; email/Discord/headless/ServiceManager/UI schedule mock fixes; gitignored config skips; writable `tmp_path` for Linux.
+- **Round 4 (11 fixes)**: Process-group tests now `skipif(os.name != "nt")` since spoofing `os.name='nt'` on Linux crashes `Path()`; eliminated `no_parallel` markers + fixed policy violation. `is_local_module`/directory-tree/quick-status tests skip or mock when gitignored config absent. File locking tests platform-aware (`fcntl` on Linux, lock-file on Windows). Google health fixture tests skip when gitignored fixtures absent. `validate_core_paths` uses writable `tmp_path`.
+- Root cause pattern: tests pass locally (env vars, config files, Windows paths) but fail on CI (Linux, no credentials, no gitignored config/fixtures). Underlying theme: `tests/test_helpers/fixtures/` and `development_tools_config.json` are gitignored.
 
 ### 2026-07-03 - Add unused functions detection tool **COMPLETED**
 - Added `analyze_unused_functions.py` dev tool that uses AST analysis to find functions/methods never referenced anywhere in the codebase.
@@ -178,16 +176,6 @@ Guidelines:
 - **CI**: Fixed `logging-enforcement` Tooling Policy Consistency job (pytest 9.1 + `--strict-config` rejected invalid `pytest.ini` keys `collect_ignore` and `env`); moved ignores/env to `tests/conftest.py`.
 - **Validation**: `validate_user_update` for schedules now unwraps/strips v2 envelope metadata before merge (fixes parallel flake when `test-user` cache had `schema_version`/`updated_at`); schedule tests use unique user IDs.
 - **Doc hygiene**: Replaced non-ASCII em dash in `CHANGELOG_DETAIL.md` (ASCII compliance).
-
-### 2026-06-10 - UI shell + communication coupling refactor **COMPLETED**
-- Finalized the UI-only coupling refactor: `ui_app_qt.py` is now a thin Qt shell delegating selection, status rendering, request actions, scheduler/admin/dialog actions, and service control to focused UI modules.
-- Split `conversation_flow_manager.py` into mixin modules under `communication/message_processing/flows/` (state, check-in, task, note flows); public API unchanged; preserved legacy persisted-state migration bridge.
-- Centralized handler lazy-loading in `handler_registry.py`; trimmed duplicate imports in `interaction_handlers.py`, `channel_orchestrator.py`, and `interaction_manager.py`.
-- Post-split cleanup: fixed missing `timedelta` import in `note_flow.py` (notebook flow test failures), removed 23 unused constant re-exports from `conversation_flow_manager.py` (constants now imported from `flow_constants`), and pointed tests/callers at `flow_constants` via search-and-close.
-- Follow-up fixes: resolved `ParsedCommand` UnboundLocalError in `interaction_manager.py` (shortcut paths for "complete task" / "confirm delete"); regenerated function registry; doc-sync/ASCII quick wins.
-- Dev-tools: high-coupling metric now uses **unique local module fan-out** (not raw duplicate import statements); bumped `aiohttp>=3.14.1` to clear pip-audit CVEs.
-- Pyright: flow domain mixins inherit `FlowStateMixin` for typed shared state API; moved `clear_stuck_flows` to `flow_state.py` (55 warnings -> 0). ASCII fix in `CHANGELOG_DETAIL.md`.
-- Duplicate-function triage: `# not_duplicate: task_due_date_natural_language_parsers` on `_parse_date_time_from_text` / `_parse_time_from_text` in `task_flow.py` (intentional date+time parser decomposition).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

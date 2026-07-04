@@ -18,6 +18,8 @@ from integrations.google_health.client import (
 
 FIXTURES = Path(__file__).resolve().parents[1] / "test_helpers" / "fixtures" / "google_health"
 
+_fixtures_available = FIXTURES.is_dir() and (FIXTURES / "sleep_response.json").exists()
+
 pytestmark = [pytest.mark.core]
 
 
@@ -121,6 +123,7 @@ def test_date_from_data_point_parses_steps_civil_start_time():
 
 
 @pytest.mark.unit
+@pytest.mark.skipif(not _fixtures_available, reason="google_health fixtures are gitignored; not available on CI")
 def test_fetch_daily_summaries_merges_steps_hr_hrv_and_active_minutes(monkeypatch):
     monkeypatch.delenv("MHM_TESTING", raising=False)
     fixtures = {
@@ -169,6 +172,7 @@ def test_fetch_daily_summaries_merges_steps_hr_hrv_and_active_minutes(monkeypatc
 
 
 @pytest.mark.unit
+@pytest.mark.skipif(not _fixtures_available, reason="google_health fixtures are gitignored; not available on CI")
 def test_fetch_daily_summaries_parses_sleep(monkeypatch):
     monkeypatch.delenv("MHM_TESTING", raising=False)
     sleep_payload = json.loads((FIXTURES / "sleep_response.json").read_text(encoding="utf-8"))

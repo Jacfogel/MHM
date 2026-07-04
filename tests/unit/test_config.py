@@ -74,15 +74,13 @@ class TestConfigValidation:
     
     @pytest.mark.unit
     @pytest.mark.regression
-    def test_validate_core_paths_missing_directory(self):
+    def test_validate_core_paths_missing_directory(self, tmp_path):
         """Test core path validation with missing directory."""
-        with patch('core.config.BASE_DATA_DIR', '/nonexistent/path'):
+        missing = str(tmp_path / "missing_data_dir")
+        with patch('core.config.BASE_DATA_DIR', missing):
             is_valid, errors, warnings = validate_core_paths()
-            
-            # Current implementation creates missing directories automatically
-            # So it should succeed, but may have warnings about creating directories
+
             assert is_valid is True
-            # assert len(errors) > 0  # Not expected with current implementation
     
     @pytest.mark.unit
     @pytest.mark.critical
