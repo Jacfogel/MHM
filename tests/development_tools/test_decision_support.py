@@ -12,11 +12,21 @@ from tests.development_tools.conftest import load_development_tools_module
 
 # Load the module
 decision_support_module = load_development_tools_module("reports.decision_support")
+analyze_functions_module = load_development_tools_module("functions.analyze_functions")
 find_complexity_functions = decision_support_module.find_complexity_functions
 find_undocumented_handlers = decision_support_module.find_undocumented_handlers
 find_duplicate_names = decision_support_module.find_duplicate_names
 print_dashboard = decision_support_module.print_dashboard
 main = decision_support_module.main
+
+
+@pytest.fixture
+def project_complexity_thresholds(monkeypatch):
+    """Use MHM project thresholds (100/200/300), not generic config defaults (50/100/200)."""
+    for mod in (analyze_functions_module, decision_support_module):
+        monkeypatch.setattr(mod, "MODERATE_COMPLEXITY", 100)
+        monkeypatch.setattr(mod, "HIGH_COMPLEXITY", 200)
+        monkeypatch.setattr(mod, "CRITICAL_COMPLEXITY", 300)
 
 
 class TestFindComplexityFunctions:
@@ -31,7 +41,7 @@ class TestFindComplexityFunctions:
         assert critical == []
     
     @pytest.mark.unit
-    def test_find_complexity_functions_moderate(self):
+    def test_find_complexity_functions_moderate(self, project_complexity_thresholds):
         """Test detection of moderate complexity functions."""
         functions = [
             {'name': 'func1', 'complexity': 100, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
@@ -45,7 +55,7 @@ class TestFindComplexityFunctions:
         assert all(f['name'] in ['func1', 'func2', 'func3'] for f in moderate)
     
     @pytest.mark.unit
-    def test_find_complexity_functions_high(self):
+    def test_find_complexity_functions_high(self, project_complexity_thresholds):
         """Test detection of high complexity functions."""
         functions = [
             {'name': 'func1', 'complexity': 200, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},
@@ -83,7 +93,7 @@ class TestFindComplexityFunctions:
         assert critical[0]['name'] == 'normal_func'
     
     @pytest.mark.unit
-    def test_find_complexity_functions_mixed_levels(self):
+    def test_find_complexity_functions_mixed_levels(self, project_complexity_thresholds):
         """Test detection with mixed complexity levels."""
         functions = [
             {'name': 'moderate1', 'complexity': 110, 'is_test': False, 'is_handler': False, 'is_special': False, 'docstring': 'Doc'},

@@ -182,9 +182,17 @@ def _setup_devtools_parent_logger() -> None:
     if _parent_initialized:
         return
     parent = logging.getLogger(_PARENT_NAME)
-    if parent.handlers:
+    existing_file_handlers = [
+        h for h in parent.handlers if isinstance(h, AuditDeferredRotatingFileHandler)
+    ]
+    if existing_file_handlers:
         _parent_initialized = True
         return
+    for handler in parent.handlers[:]:
+        if not isinstance(handler, AuditDeferredRotatingFileHandler):
+            with contextlib.suppress(Exception):
+                handler.close()
+            parent.removeHandler(handler)
     parent.setLevel(logging.DEBUG)
     parent.propagate = False
     log_path = _resolve_log_file_path()

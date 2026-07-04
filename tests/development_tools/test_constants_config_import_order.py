@@ -10,8 +10,33 @@ passed --cov core. See development_tools/config/config.py _get_default_audit_tie
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 
 import pytest
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_LIVE_CONFIG = _PROJECT_ROOT / "development_tools" / "config" / "development_tools_config.json"
+_EXAMPLE_CONFIG = (
+    _PROJECT_ROOT / "development_tools" / "config" / "development_tools_config.json.example"
+)
+
+
+def _config_path_for_import_test() -> Path:
+    """Use live config when present; otherwise the committed example (CI)."""
+    if _LIVE_CONFIG.exists():
+        return _LIVE_CONFIG
+    if _EXAMPLE_CONFIG.exists():
+        return _EXAMPLE_CONFIG
+    pytest.skip("No development_tools config or example file available")
+
+
+def _load_config_then_import_development_tools() -> None:
+    _clear_development_tools_modules()
+    config_path = _config_path_for_import_test()
+    import development_tools.config.config as cfg_mod
+
+    assert cfg_mod.load_external_config(str(config_path)) is True
+    import development_tools  # noqa: F401
 
 
 def _clear_development_tools_modules() -> None:
@@ -22,8 +47,7 @@ def _clear_development_tools_modules() -> None:
 
 @pytest.mark.unit
 def test_import_development_tools_loads_local_module_prefixes_from_json():
-    _clear_development_tools_modules()
-    import development_tools  # noqa: F401
+    _load_config_then_import_development_tools()
 
     from development_tools.shared import constants
 
@@ -34,8 +58,7 @@ def test_import_development_tools_loads_local_module_prefixes_from_json():
 
 @pytest.mark.unit
 def test_import_package_config_get_constants_config_has_local_module_prefixes():
-    _clear_development_tools_modules()
-    import development_tools  # noqa: F401
+    _load_config_then_import_development_tools()
 
     from development_tools.config import get_constants_config
 

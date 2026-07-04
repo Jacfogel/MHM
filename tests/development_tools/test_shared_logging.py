@@ -53,9 +53,13 @@ def test_dev_tools_logger_rotates_to_backups_dir(logging_mod, monkeypatch, tmp_p
     monkeypatch.setenv("DEV_TOOLS_LOG_MAX_BYTES", "120")
     monkeypatch.setenv("DEV_TOOLS_LOG_BACKUP_COUNT", "2")
 
+    _reset_devtools_logger(logging_mod)
     logger = logging_mod.get_dev_tools_logger("rotation_test")
     for _ in range(8):
         logger.info("rotation payload " + ("x" * 80))
+
+    for handler in logging.getLogger("devtools").handlers:
+        handler.flush()
 
     _reset_devtools_logger(logging_mod)
 
@@ -78,7 +82,11 @@ def test_dev_tools_logger_defaults_to_one_mb_rotation_threshold(
 
     logging_mod.get_dev_tools_logger("threshold_test")
     parent = logging.getLogger("devtools")
-    handlers = list(parent.handlers)
+    handlers = [
+        h
+        for h in parent.handlers
+        if isinstance(h, (RotatingFileHandler, logging_mod.AuditDeferredRotatingFileHandler))
+    ]
 
     assert len(handlers) == 1
     assert isinstance(handlers[0], RotatingFileHandler)
@@ -104,7 +112,13 @@ def test_log_rollover_deferred_while_audit_lock_active(
         project_root / ".audit_in_progress.lock",
         lock_type="audit",
     )
+    monkeypatch.setattr(
+        lock_state_module,
+        "active_audit_coverage_locks_present",
+        lambda _root: True,
+    )
 
+    _reset_devtools_logger(logging_mod)
     logger = logging_mod.get_dev_tools_logger("defer_rotation_test")
     for _ in range(12):
         logger.info("rotation payload " + ("x" * 80))

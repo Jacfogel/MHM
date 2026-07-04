@@ -9,6 +9,7 @@ This test verifies that path drift detection correctly identifies
 documentation references to files that don't exist.
 """
 
+import json
 import pytest
 
 # Import helper from conftest
@@ -102,14 +103,12 @@ This file references an existing file: `core/existing_module.py`
     
     def test_path_drift_with_reference_report(self, tmp_path):
         """Test that path drift detection skips compatibility reference docs."""
-        # Create a temporary project structure
         project_dir = tmp_path / "test_project"
         project_dir.mkdir()
-        
-        # Create compatibility reference report file
+
         dev_docs_dir = project_dir / "development_docs"
         dev_docs_dir.mkdir(parents=True)
-        
+
         legacy_file = dev_docs_dir / "LEGACY_REFERENCE_REPORT.md"
         legacy_file.write_text("""
 # Reference Report
@@ -118,24 +117,33 @@ This file intentionally references old paths:
 - `bot/old_module.py` (compatibility path)
 - `old_directory/file.py` (historical reference)
 """)
-        
-        # Create analyzer
-        analyzer = PathDriftAnalyzer(project_root=str(project_dir))
-        
-        # Run path drift check
+
+        config_file = project_dir / "dev_tools_config.json"
+        config_file.write_text(
+            json.dumps(
+                {
+                    "path_drift": {
+                        "legacy_documentation_files": [
+                            "development_docs/LEGACY_REFERENCE_REPORT.md"
+                        ]
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        analyzer = PathDriftAnalyzer(
+            project_root=str(project_dir),
+            config_path=str(config_file),
+            use_cache=False,
+        )
+
         results = analyzer.check_path_drift()
-        
-        # Verify that compatibility reference docs are skipped
+
         legacy_file_str = str(legacy_file.relative_to(project_dir))
-        # These files should be skipped, so they shouldn't appear in results
-        # (or if they do, it should be for non-compatibility reasons)
-        if legacy_file_str in results:
-            # If it appears, verify it's not for the compatibility paths
-            issues = results[legacy_file_str]
-            issue_text = ' '.join(issues)
-            # Compatibility paths should be filtered out
-            assert 'old_module.py' not in issue_text or 'old_directory' not in issue_text, \
-                f"Compatibility paths should be filtered: {issues}"
+        assert legacy_file_str not in results, (
+            f"Legacy reference doc should be skipped entirely: {results.get(legacy_file_str)}"
+        )
 
     def test_markdown_link_target_hints_repo_relative_link_in_nested_doc(self, tmp_path):
         """Repo-relative markdown links in nested docs should be flagged as not clickable."""

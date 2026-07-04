@@ -35,6 +35,14 @@ main = functions_module.main
 
 
 @pytest.fixture
+def project_complexity_thresholds(monkeypatch):
+    """Use MHM project thresholds (100/200/300), not generic config defaults (50/100/200)."""
+    monkeypatch.setattr(functions_module, "MODERATE_COMPLEXITY", 100)
+    monkeypatch.setattr(functions_module, "HIGH_COMPLEXITY", 200)
+    monkeypatch.setattr(functions_module, "CRITICAL_COMPLEXITY", 300)
+
+
+@pytest.fixture
 def temp_python_workspace():
     """Create an isolated writable workspace under tests/data for file-based tests."""
     base = (
@@ -555,7 +563,7 @@ class TestCategorizeFunctions:
         assert len(categories["tests"]) == 1, "Should categorize test functions"
 
     @pytest.mark.unit
-    def test_categorize_by_complexity(self):
+    def test_categorize_by_complexity(self, project_complexity_thresholds):
         """Test categorization by complexity."""
         # Test moderate complexity (100-199 with current thresholds)
         functions = [

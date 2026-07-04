@@ -33,6 +33,7 @@ Guidelines:
 ### 2026-07-03 - Fix nightly CI: 26 CI-only test failures across 4 rounds **COMPLETED**
 - **Rounds 1-3 (15 fixes)**: Pytest 9.1 `--durations` compat; basetemp cleanup; email/Discord/headless/ServiceManager/UI schedule mock fixes; gitignored config skips; writable `tmp_path` for Linux.
 - **Round 4 (11 fixes)**: Process-group tests now `skipif(os.name != "nt")` since spoofing `os.name='nt'` on Linux crashes `Path()`; eliminated `no_parallel` markers + fixed policy violation. `is_local_module`/directory-tree/quick-status tests skip or mock when gitignored config absent. File locking tests platform-aware (`fcntl` on Linux, lock-file on Windows). Google health fixture tests skip when gitignored fixtures absent. `validate_core_paths` uses writable `tmp_path`.
+- **Round 5 (10 fixes)**: Complexity categorization tests pin 100/200/300 thresholds. Config import tests use committed `.example` JSON on CI; `load_external_config()` preserves loaded config when default file missing. Path-drift legacy-doc test uses inline config. Logging tests tolerate pytest capture handlers and mock audit lock for defer rollover.
 - Root cause pattern: tests pass locally (env vars, config files, Windows paths) but fail on CI (Linux, no credentials, no gitignored config/fixtures). Underlying theme: `tests/test_helpers/fixtures/` and `development_tools_config.json` are gitignored.
 
 ### 2026-07-03 - Add unused functions detection tool **COMPLETED**
