@@ -14,9 +14,6 @@ def test_connect_google_health_returns_auth_url(test_data_dir, monkeypatch):
     monkeypatch.setenv("GOOGLE_HEALTH_ENABLED", "true")
     monkeypatch.setattr("core.config.GOOGLE_HEALTH_ENABLED", True)
     monkeypatch.setattr(
-        "communication.command_handlers.health_handler.GOOGLE_HEALTH_ENABLED", True
-    )
-    monkeypatch.setattr(
         "integrations.google_health.user_settings.GOOGLE_HEALTH_CLIENT_ID", "test-client"
     )
     monkeypatch.setattr(

@@ -6,6 +6,7 @@ import os
 import json
 import logging
 import copy
+import threading
 
 from typing import Any
 
@@ -16,6 +17,9 @@ logger = logging.getLogger(__name__)
 
 class TestUserFactory:
     """Factory for creating test users with different configurations"""
+
+    # Serialize in-process user_index read-modify-write (fcntl alone is unreliable across threads).
+    _user_index_update_lock = threading.Lock()
 
     # Cache for pre-created user data structures to avoid recreating identical data
     _user_data_cache: dict[str, dict[str, Any]] = {}
@@ -284,19 +288,14 @@ class TestUserFactory:
         Also adds mappings for Discord user ID and email if provided.
         Uses file locking to prevent race conditions in parallel test execution.
         """
-        from core.file_locking import file_lock
+        from core.file_locking import safe_json_read, safe_json_write
 
         user_index_file = os.path.join(test_data_dir, "user_index.json")
         os.makedirs(os.path.dirname(user_index_file), exist_ok=True)
 
-        with file_lock(user_index_file, timeout=10.0) as locked_file:
-            try:
-                locked_file.seek(0)
-                raw_content = locked_file.read().decode("utf-8")
-                user_index = json.loads(raw_content) if raw_content.strip() else {}
-                if not isinstance(user_index, dict):
-                    user_index = {}
-            except (json.JSONDecodeError, OSError, UnicodeDecodeError):
+        with TestUserFactory._user_index_update_lock:
+            user_index = safe_json_read(user_index_file, default={})
+            if not isinstance(user_index, dict):
                 user_index = {}
 
             user_index[user_id] = actual_user_id
@@ -307,13 +306,8 @@ class TestUserFactory:
             if email:
                 user_index[f"email:{email}"] = actual_user_id
 
-            locked_file.seek(0)
-            locked_file.truncate()
-            locked_file.write(
-                json.dumps(user_index, indent=2, ensure_ascii=False).encode("utf-8")
-            )
-            locked_file.flush()
-            os.fsync(locked_file.fileno())
+            if not safe_json_write(user_index_file, user_index):
+                raise RuntimeError(f"Failed to write user index: {user_index_file}")
 
     @staticmethod
     def _create_user_files_directly(

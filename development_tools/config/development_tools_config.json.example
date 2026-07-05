@@ -761,6 +761,7 @@
       "core",
       "data",
       "development_tools",
+      "integrations",
       "messages",
       "notebook",
       "scripts",

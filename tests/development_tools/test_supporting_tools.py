@@ -140,6 +140,7 @@ def test_system_signals_reports_missing_directories(
         file_path.write_text("placeholder", encoding="utf-8")
 
     (tmp_path / "core").mkdir(parents=True, exist_ok=True)
+    generator.system_signals_config = {"core_files": core_files}
     monkeypatch.setattr(
         system_signals_module,
         "PROJECT_DIRECTORIES",

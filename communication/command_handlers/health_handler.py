@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-from core.config import GOOGLE_HEALTH_ENABLED
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 from integrations.google_health.user_settings import (
@@ -70,6 +69,8 @@ class HealthHandler(InteractionHandler):
         ),
     )
     def _handle_connect(self, user_id: str) -> InteractionResponse:
+        from core.config import GOOGLE_HEALTH_ENABLED
+
         if not GOOGLE_HEALTH_ENABLED:
             return InteractionResponse(
                 "Google Health integration is not enabled on this server.", True
