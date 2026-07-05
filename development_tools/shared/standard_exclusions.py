@@ -275,6 +275,12 @@ def should_exclude_file(
     file_path_str = str(file_path)
     normalized_path = file_path_str.replace("\\", "/")
 
+    # Test fixtures are never documentation targets (even when test_config.json omits them).
+    if normalized_path == "tests/fixtures" or normalized_path.startswith(
+        "tests/fixtures/"
+    ):
+        return True
+
     # Explicitly check for pytest temp directories first (most common exclusion during scanning)
     # These are created during parallel test execution and should always be excluded
     if (

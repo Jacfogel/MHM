@@ -33,6 +33,7 @@
       "tests/.pytest_cache",
       "tests/logs/",
       "tests/data/",
+      "tests/fixtures/",
       "tests/temp/",
       "*/generated/*",
       "*/ui/generated/*",

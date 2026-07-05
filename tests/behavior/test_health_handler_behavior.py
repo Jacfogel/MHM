@@ -11,6 +11,8 @@ from communication.command_handlers.shared_types import ParsedCommand
 def test_connect_google_health_returns_auth_url(test_data_dir, monkeypatch):
     from tests.test_helpers.test_utilities.test_user_factory import TestUserFactory
 
+    monkeypatch.setenv("GOOGLE_HEALTH_ENABLED", "true")
+    monkeypatch.setattr("core.config.GOOGLE_HEALTH_ENABLED", True)
     monkeypatch.setattr(
         "communication.command_handlers.health_handler.GOOGLE_HEALTH_ENABLED", True
     )

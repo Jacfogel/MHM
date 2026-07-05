@@ -22,12 +22,16 @@ def test_no_direct_os_environ_mutations_in_tests():
     ignored_runtime_dirs = {
         'tmp_pytest_runtime',
         'pytest-of-Julie',
+        'pytest_runner',
         '.pytest_cache',
         '__pycache__',
     }
 
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = [name for name in dirnames if name not in ignored_runtime_dirs]
+        normalized_dir = dirpath.replace('\\', '/')
+        if '/tests/data/tmp/' in normalized_dir or normalized_dir.endswith('/tests/data/tmp'):
+            continue
         for name in filenames:
             if not name.endswith('.py'):
                 continue

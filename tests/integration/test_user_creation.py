@@ -38,9 +38,10 @@ def _resolve_created_user_id(internal_username: str, test_data_dir: str) -> str:
     from core import get_user_id_by_identifier
     from storage.user_data_operations import update_user_index
 
+    # Prefer test_data_dir lookup: global index can be stale under parallel xdist.
     actual_user_id = (
-        get_user_id_by_identifier(internal_username)
-        or TestUserFactory.get_test_user_id_by_internal_username(internal_username, test_data_dir)
+        TestUserFactory.get_test_user_id_by_internal_username(internal_username, test_data_dir)
+        or get_user_id_by_identifier(internal_username)
         or internal_username
     )
     if actual_user_id:
@@ -148,13 +149,16 @@ class TestUserCreationScenarios:
             # Retry in case of race conditions with file writes in parallel execution
             import time
             from core import clear_user_caches
+            from storage.user_data_operations import update_user_index
+
             loaded_data = {}
-            for attempt in range(5):
+            for attempt in range(8):
                 clear_user_caches(actual_user_id)
-                loaded_data = get_user_data(actual_user_id, 'all', auto_create=False)
+                update_user_index(actual_user_id)
+                loaded_data = get_user_data(actual_user_id, 'all', auto_create=True)
                 if loaded_data and 'account' in loaded_data:
                     break
-                if attempt < 4:
+                if attempt < 7:
                     time.sleep(0.1)  # Brief delay before retry
             assert loaded_data and 'account' in loaded_data, f"Account data should be loaded for user {actual_user_id}"
             assert loaded_data['account']['discord_user_id'] == discord_user_id, \

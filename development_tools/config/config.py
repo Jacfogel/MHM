@@ -52,9 +52,8 @@ def load_external_config(config_path: str | None = None) -> bool:
             _external_config = None
             _config_file_path = None
             return False
-        # Default path missing: keep an already-loaded config, else use committed example (CI).
-        if _external_config is not None:
-            return True
+        # Default path missing: prefer committed example over stale in-memory config
+        # (portability smoke tests load minimal JSON via explicit config_path).
         example_file = (
             _get_default_project_root()
             / "development_tools"
@@ -63,6 +62,8 @@ def load_external_config(config_path: str | None = None) -> bool:
         )
         if example_file.exists():
             config_file = example_file
+        elif _external_config is not None:
+            return True
         else:
             _external_config = None
             _config_file_path = None
