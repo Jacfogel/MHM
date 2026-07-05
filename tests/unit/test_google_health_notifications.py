@@ -113,6 +113,12 @@ def test_sync_sends_reconnect_notice_on_auth_pause(test_data_dir, monkeypatch):
     with patch.dict("os.environ", {"MHM_TESTING": "0"}, clear=False), patch(
         "integrations.google_health.sync_manager.GOOGLE_HEALTH_ENABLED", True
     ), patch(
+        "integrations.google_health.sync_manager._google_health_feature_enabled",
+        return_value=True,
+    ), patch(
+        "integrations.google_health.sync_manager.has_valid_auth",
+        return_value=True,
+    ), patch(
         "integrations.google_health.sync_manager.GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD",
         1,
     ), patch(

@@ -46,6 +46,7 @@ _LAST_INTERRUPT_TIME: float | None = None
 _STOP_REQUESTED = False
 _ACTIVE_PROCESS: subprocess.Popen[str] | None = None
 _SIGINT_CFG = DEFAULT_TEST_RUN.copy()
+_CURRENT_SUITE_RUN_ID: str | None = None
 
 try:
     from development_tools.shared.logging import get_dev_tools_logger
@@ -126,6 +127,14 @@ def _resolved_worker_count(workers_cfg: str | None) -> int:
     return min(6, max(2, cpu_count // 2))
 
 
+def _suite_run_id() -> str:
+    """Stable run id for one suite invocation (parallel + serial share the same root)."""
+    global _CURRENT_SUITE_RUN_ID
+    if _CURRENT_SUITE_RUN_ID is None:
+        _CURRENT_SUITE_RUN_ID = time.strftime("%Y%m%d_%H%M%S")
+    return _CURRENT_SUITE_RUN_ID
+
+
 def _append_pytest_runtime_options(
     command: list[str],
     *,
@@ -134,13 +143,14 @@ def _append_pytest_runtime_options(
 ) -> None:
     """Apply the same runtime isolation/verbosity defaults as run_tests.py."""
     command.extend(["-W", "ignore::DeprecationWarning"])
-    run_id = time.strftime("%Y%m%d_%H%M%S")
+    run_id = _suite_run_id()
     pytest_root = Path("tests/data/tmp/pytest_runner") / run_id
     parallel_basetemp = pytest_root / "parallel"
     serial_basetemp = pytest_root / "serial"
     pytest_cache_dir = Path("tests/data/tmp/pytest_cache")
+    parallel_basetemp.mkdir(parents=True, exist_ok=True)
+    serial_basetemp.mkdir(parents=True, exist_ok=True)
     basetemp = serial_basetemp if force_serial else parallel_basetemp
-    basetemp.mkdir(parents=True, exist_ok=True)
     pytest_cache_dir.mkdir(parents=True, exist_ok=True)
     command.extend(
         [
@@ -647,7 +657,8 @@ def _merge_phase_with_cache(
 
 
 def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str, Any]:
-    global _SIGINT_CFG
+    global _SIGINT_CFG, _CURRENT_SUITE_RUN_ID
+    _CURRENT_SUITE_RUN_ID = None
     _SIGINT_CFG = cfg
     previous_handler = signal.getsignal(signal.SIGINT) if hasattr(signal, "SIGINT") else None
     if hasattr(signal, "SIGINT"):

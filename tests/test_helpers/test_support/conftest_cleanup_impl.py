@@ -83,8 +83,13 @@ def _clear_pytest_runner_directory_contents(
     keep: set[str] = set()
     if active_basetemp is not None:
         try:
-            if active_basetemp.parent.resolve() == runner_dir.resolve():
-                keep.add(active_basetemp.name)
+            resolved = active_basetemp.resolve()
+            runner_resolved = runner_dir.resolve()
+            # Layout: pytest_runner/<run_id>/{parallel,serial}
+            if resolved.parent.parent == runner_resolved:
+                keep.add(resolved.parent.name)
+            elif resolved.parent == runner_resolved:
+                keep.add(resolved.name)
         except Exception:
             pass
 

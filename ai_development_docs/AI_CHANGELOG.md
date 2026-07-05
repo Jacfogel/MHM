@@ -40,6 +40,7 @@ Guidelines:
 - **Round 9 (xdist crash)**: `run_test_suite` serially retries parallel pytest when output contains `node down: Not properly terminated` (same recovery as teardown interrupt). Concurrent user-index test marked `no_parallel`.
 - **Round 10 (5 failures)**: `is_google_health_enabled()` reads env at call time (fixes health handler CI monkeypatch). User index updates retry with backoff and log instead of raising on lock timeout; verify_creation skips duplicate index write and falls back to account file on disk. `get_connect_readiness()` also uses runtime env check (module constant was False on CI while handler check passed).
 - **Round 11 (file lock)**: Linux `file_lock()` adds in-process mutex per path — `fcntl.flock` alone does not serialize threads that `open()` the same file separately.
+- **Round 12 (serial basetemp)**: `run_test_suite` shares one run id and pre-creates `parallel/` + `serial/` basetemp dirs (matches `run_tests.py`); cleanup keeps nested run-id folder during active pytest. Google Health reconnect test pins feature/auth guards to reach notice path on CI.
 - Root cause pattern: tests pass locally (env vars, config files, Windows paths) but fail on CI (Linux, no credentials, no gitignored config/fixtures). Underlying theme: `tests/test_helpers/fixtures/` and `development_tools_config.json` are gitignored.
 
 ### 2026-07-03 - Add unused functions detection tool **COMPLETED**
