@@ -8,6 +8,7 @@ in parallel test execution.
 
 import os
 import sys
+import threading
 import time
 from pathlib import Path
 from contextlib import contextmanager, suppress
@@ -15,6 +16,21 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 
 logger = get_component_logger(__name__)
+
+# In-process locks per target path (fcntl.flock does not sync threads that open separately).
+_path_thread_locks: dict[str, threading.Lock] = {}
+_path_thread_locks_guard = threading.Lock()
+
+
+def _thread_lock_for(path: str) -> threading.Lock:
+    """Return a process-local mutex for *path* (normalized absolute path)."""
+    normalized = str(Path(path).resolve())
+    with _path_thread_locks_guard:
+        lock = _path_thread_locks.get(normalized)
+        if lock is None:
+            lock = threading.Lock()
+            _path_thread_locks[normalized] = lock
+        return lock
 
 # Windows-specific file locking using lock files
 if sys.platform == "win32":
@@ -124,38 +140,49 @@ else:
         lock_file_path.parent.mkdir(parents=True, exist_ok=True)
         lock_file_path.touch(exist_ok=True)
 
+        thread_lock = _thread_lock_for(str(lock_file_path))
+        if not thread_lock.acquire(timeout=timeout):
+            raise TimeoutError(
+                f"Could not acquire in-process lock on {file_path} within {timeout} seconds"
+            )
+
         start_time = time.time()
 
-        while True:
-            try:
-                with open(lock_file_path, "r+b") as file_handle:
-                    while True:
-                        try:
-                            fcntl.flock(file_handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-                            break
-                        except OSError as e:
-                            elapsed = time.time() - start_time
-                            if elapsed >= timeout:
-                                raise TimeoutError(
-                                    f"Could not acquire lock on {file_path} within {timeout} seconds"
-                                ) from e
-                            time.sleep(retry_interval)
-                            continue
+        try:
+            while True:
+                try:
+                    with open(lock_file_path, "r+b") as file_handle:
+                        while True:
+                            try:
+                                fcntl.flock(
+                                    file_handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB
+                                )
+                                break
+                            except OSError as e:
+                                elapsed = time.time() - start_time
+                                if elapsed >= timeout:
+                                    raise TimeoutError(
+                                        f"Could not acquire lock on {file_path} within {timeout} seconds"
+                                    ) from e
+                                time.sleep(retry_interval)
+                                continue
 
-                    try:
-                        yield file_handle
-                    finally:
-                        with suppress(OSError):
-                            fcntl.flock(file_handle.fileno(), fcntl.LOCK_UN)
-                return
-            except OSError as e:
-                elapsed = time.time() - start_time
-                if elapsed >= timeout:
-                    raise TimeoutError(
-                        f"Could not acquire lock on {file_path} within {timeout} seconds: {e}"
-                    ) from e
-                time.sleep(retry_interval)
-                continue
+                        try:
+                            yield file_handle
+                        finally:
+                            with suppress(OSError):
+                                fcntl.flock(file_handle.fileno(), fcntl.LOCK_UN)
+                    return
+                except OSError as e:
+                    elapsed = time.time() - start_time
+                    if elapsed >= timeout:
+                        raise TimeoutError(
+                            f"Could not acquire lock on {file_path} within {timeout} seconds: {e}"
+                        ) from e
+                    time.sleep(retry_interval)
+                    continue
+        finally:
+            thread_lock.release()
 
 
 def safe_json_read(file_path: str, default: dict | None = None) -> dict:
