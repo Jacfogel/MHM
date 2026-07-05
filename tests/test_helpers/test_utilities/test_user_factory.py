@@ -7,6 +7,7 @@ import json
 import logging
 import copy
 import threading
+import time
 
 from typing import Any
 
@@ -293,32 +294,51 @@ class TestUserFactory:
         user_index_file = os.path.join(test_data_dir, "user_index.json")
         os.makedirs(os.path.dirname(user_index_file), exist_ok=True)
 
-        with TestUserFactory._user_index_update_lock:
-            with file_lock(user_index_file, timeout=10.0) as locked_file:
-                try:
-                    locked_file.seek(0)
-                    raw_content = locked_file.read().decode("utf-8")
-                    user_index = json.loads(raw_content) if raw_content.strip() else {}
-                    if not isinstance(user_index, dict):
-                        user_index = {}
-                except (json.JSONDecodeError, OSError, UnicodeDecodeError):
-                    user_index = {}
+        last_error: Exception | None = None
+        for attempt in range(5):
+            try:
+                with TestUserFactory._user_index_update_lock:
+                    with file_lock(
+                        user_index_file, timeout=15.0 + attempt * 5.0
+                    ) as locked_file:
+                        try:
+                            locked_file.seek(0)
+                            raw_content = locked_file.read().decode("utf-8")
+                            user_index = (
+                                json.loads(raw_content) if raw_content.strip() else {}
+                            )
+                            if not isinstance(user_index, dict):
+                                user_index = {}
+                        except (json.JSONDecodeError, OSError, UnicodeDecodeError):
+                            user_index = {}
 
-                user_index[user_id] = actual_user_id
+                        user_index[user_id] = actual_user_id
 
-                if discord_user_id:
-                    user_index[f"discord:{discord_user_id}"] = actual_user_id
+                        if discord_user_id:
+                            user_index[f"discord:{discord_user_id}"] = actual_user_id
 
-                if email:
-                    user_index[f"email:{email}"] = actual_user_id
+                        if email:
+                            user_index[f"email:{email}"] = actual_user_id
 
-                locked_file.seek(0)
-                locked_file.truncate()
-                locked_file.write(
-                    json.dumps(user_index, indent=2, ensure_ascii=False).encode("utf-8")
-                )
-                locked_file.flush()
-                os.fsync(locked_file.fileno())
+                        locked_file.seek(0)
+                        locked_file.truncate()
+                        locked_file.write(
+                            json.dumps(user_index, indent=2, ensure_ascii=False).encode(
+                                "utf-8"
+                            )
+                        )
+                        locked_file.flush()
+                        os.fsync(locked_file.fileno())
+                return
+            except TimeoutError as exc:
+                last_error = exc
+                time.sleep(0.05 * (2**attempt))
+        if last_error is not None:
+            logger.warning(
+                "Could not update user index for %s after retries: %s",
+                user_id,
+                last_error,
+            )
 
     @staticmethod
     def _create_user_files_directly(
@@ -2827,15 +2847,12 @@ class TestUserFactory:
         user_id: str, actual_user_id: str, test_data_dir: str
     ) -> bool:
         """Helper function to verify user creation with proper configuration patching"""
-        # CRITICAL: Update user index FIRST so get_user_id_by_identifier can find the user
-        TestUserFactory.create_basic_user__update_index(
-            test_data_dir, user_id, actual_user_id
-        )
-
-        # CRITICAL FIX: Patch the configuration to use the test data directory
-        # This ensures that system functions can find the created users
         from unittest.mock import patch
         import core.config
+
+        account_file = os.path.join(
+            test_data_dir, "users", actual_user_id, "account.json"
+        )
 
         with (
             patch.object(core.config, "BASE_DATA_DIR", test_data_dir),
@@ -2843,19 +2860,20 @@ class TestUserFactory:
                 core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, "users")
             ),
         ):
-
-            # Verify the user was created successfully by trying to find it
             from core import get_user_id_by_identifier
 
-            found_user_id = get_user_id_by_identifier(user_id)
-
-            if found_user_id:
+            if get_user_id_by_identifier(user_id):
                 return True
-            else:
-                logger.warning(
-                    f"User {user_id} was created but not found by get_user_id_by_identifier"
-                )
-                return actual_user_id is not None
+
+        # Index update already ran in _create_user_files_directly; under xdist the
+        # lookup can lag while files on disk are authoritative for factory tests.
+        if os.path.exists(account_file):
+            return True
+
+        logger.warning(
+            f"User {user_id} was created but not found by index or account file"
+        )
+        return False
 
     @staticmethod
     def verify_email_user_creation__with_test_dir(

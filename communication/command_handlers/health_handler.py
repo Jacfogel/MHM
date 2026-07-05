@@ -69,9 +69,9 @@ class HealthHandler(InteractionHandler):
         ),
     )
     def _handle_connect(self, user_id: str) -> InteractionResponse:
-        from core.config import GOOGLE_HEALTH_ENABLED
+        from core.config import is_google_health_enabled
 
-        if not GOOGLE_HEALTH_ENABLED:
+        if not is_google_health_enabled():
             return InteractionResponse(
                 "Google Health integration is not enabled on this server.", True
             )

@@ -378,11 +378,16 @@ def get_channel_class_mapping() -> dict[str, str]:
 SCHEDULER_INTERVAL = int(os.getenv("SCHEDULER_INTERVAL", "60"))
 
 # Google Health API (read-only wellness integration)
-GOOGLE_HEALTH_ENABLED = os.getenv("GOOGLE_HEALTH_ENABLED", "false").lower() in (
-    "true",
-    "1",
-    "yes",
-)
+def is_google_health_enabled() -> bool:
+    """Return whether Google Health integration is enabled (reads env at call time)."""
+    return os.getenv("GOOGLE_HEALTH_ENABLED", "false").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
+
+
+GOOGLE_HEALTH_ENABLED = is_google_health_enabled()
 GOOGLE_HEALTH_CLIENT_ID = os.getenv("GOOGLE_HEALTH_CLIENT_ID", "")
 GOOGLE_HEALTH_CLIENT_SECRET = os.getenv("GOOGLE_HEALTH_CLIENT_SECRET", "")
 GOOGLE_HEALTH_REDIRECT_URI = os.getenv(
