@@ -365,6 +365,31 @@ def _is_xdist_teardown_interrupt_output(output: str) -> bool:
     )
 
 
+def _is_xdist_worker_crash_output(output: str) -> bool:
+    """Detect xdist/execnet worker crash patterns in pytest output."""
+    if not output:
+        return False
+    lowered = output.lower()
+    crash_markers = (
+        "node down: not properly terminated",
+        "windows fatal exception",
+        "execnet.gateway_base",
+        "pluggyteardownraisedwarning",
+        "oserror: cannot send (already closed?)",
+    )
+    return any(marker in lowered for marker in crash_markers)
+
+
+def _should_retry_parallel_serially(phase: PhaseResult) -> bool:
+    """Retry parallel pytest serially after xdist worker instability."""
+    if phase.classification not in {"crashed", "failed"}:
+        return False
+    tail = phase.output_tail or ""
+    return _is_xdist_teardown_interrupt_output(tail) or _is_xdist_worker_crash_output(
+        tail
+    )
+
+
 def _run_phase(
     name: str,
     cfg: dict[str, Any],
@@ -723,11 +748,12 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
                 force_serial=force_serial,
                 test_paths=test_filter_paths,
             )
-            if (
-                not force_serial
-                and parallel_phase.classification in {"crashed", "failed"}
-                and _is_xdist_teardown_interrupt_output(parallel_phase.output_tail)
-            ):
+            if not force_serial and _should_retry_parallel_serially(parallel_phase):
+                retry_reason = (
+                    "xdist worker crash"
+                    if _is_xdist_worker_crash_output(parallel_phase.output_tail or "")
+                    else "xdist/execnet teardown interrupt"
+                )
                 retry_phase = _run_phase(
                     "parallel",
                     cfg,
@@ -736,7 +762,7 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
                     test_paths=test_filter_paths,
                 )
                 retry_phase.output_tail = (
-                    "[RETRY] Parallel pytest hit xdist/execnet teardown interrupt; "
+                    f"[RETRY] Parallel pytest hit {retry_reason}; "
                     "reran phase serially.\n"
                     f"[XDIST OUTPUT TAIL]\n{parallel_phase.output_tail}\n"
                     f"[SERIAL OUTPUT TAIL]\n{retry_phase.output_tail}"

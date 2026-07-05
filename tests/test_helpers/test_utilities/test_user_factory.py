@@ -286,28 +286,39 @@ class TestUserFactory:
         """Update user index to map internal_username to UUID.
 
         Also adds mappings for Discord user ID and email if provided.
-        Uses file locking to prevent race conditions in parallel test execution.
+        Uses in-process mutex plus file locking for parallel test execution.
         """
-        from core.file_locking import safe_json_read, safe_json_write
+        from core.file_locking import file_lock
 
         user_index_file = os.path.join(test_data_dir, "user_index.json")
         os.makedirs(os.path.dirname(user_index_file), exist_ok=True)
 
         with TestUserFactory._user_index_update_lock:
-            user_index = safe_json_read(user_index_file, default={})
-            if not isinstance(user_index, dict):
-                user_index = {}
+            with file_lock(user_index_file, timeout=10.0) as locked_file:
+                try:
+                    locked_file.seek(0)
+                    raw_content = locked_file.read().decode("utf-8")
+                    user_index = json.loads(raw_content) if raw_content.strip() else {}
+                    if not isinstance(user_index, dict):
+                        user_index = {}
+                except (json.JSONDecodeError, OSError, UnicodeDecodeError):
+                    user_index = {}
 
-            user_index[user_id] = actual_user_id
+                user_index[user_id] = actual_user_id
 
-            if discord_user_id:
-                user_index[f"discord:{discord_user_id}"] = actual_user_id
+                if discord_user_id:
+                    user_index[f"discord:{discord_user_id}"] = actual_user_id
 
-            if email:
-                user_index[f"email:{email}"] = actual_user_id
+                if email:
+                    user_index[f"email:{email}"] = actual_user_id
 
-            if not safe_json_write(user_index_file, user_index):
-                raise RuntimeError(f"Failed to write user index: {user_index_file}")
+                locked_file.seek(0)
+                locked_file.truncate()
+                locked_file.write(
+                    json.dumps(user_index, indent=2, ensure_ascii=False).encode("utf-8")
+                )
+                locked_file.flush()
+                os.fsync(locked_file.fileno())
 
     @staticmethod
     def _create_user_files_directly(

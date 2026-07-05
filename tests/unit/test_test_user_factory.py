@@ -12,6 +12,7 @@ from tests.test_helpers.test_utilities import TestUserFactory
 @pytest.mark.unit
 @pytest.mark.user
 @pytest.mark.file_io
+@pytest.mark.no_parallel  # in-process thread pool + user_index locking; isolate from xdist workers
 def test_user_index_updates_preserve_concurrent_entries(test_path_factory):
     """Parallel test-user creation should not drop user_index entries."""
     test_data_dir = test_path_factory
