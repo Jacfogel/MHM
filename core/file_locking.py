@@ -20,8 +20,10 @@ logger = get_component_logger(__name__)
 # In-process locks per target path (fcntl.flock does not sync threads that open separately).
 _path_thread_locks: dict[str, threading.Lock] = {}
 _path_thread_locks_guard = threading.Lock()
+_fallback_thread_lock = threading.Lock()
 
 
+@handle_errors("resolving thread lock for file path", user_friendly=False, default_return=_fallback_thread_lock)
 def _thread_lock_for(path: str) -> threading.Lock:
     """Return a process-local mutex for *path* (normalized absolute path)."""
     normalized = str(Path(path).resolve())

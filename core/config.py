@@ -378,6 +378,7 @@ def get_channel_class_mapping() -> dict[str, str]:
 SCHEDULER_INTERVAL = int(os.getenv("SCHEDULER_INTERVAL", "60"))
 
 # Google Health API (read-only wellness integration)
+@handle_errors("checking google health enabled flag", default_return=False)
 def is_google_health_enabled() -> bool:
     """Return whether Google Health integration is enabled (reads env at call time)."""
     return os.getenv("GOOGLE_HEALTH_ENABLED", "false").lower() in (

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-02 23:38:49
+> **Last Generated**: 2026-07-04 22:46:46
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 90.0% [!] GOOD**
-- **Total Functions**: 2457
+- **Total Functions**: 2459
 - **Total Methods**: 1398
-- **Documented**: 3471/3855
+- **Documented**: 3473/3857
 - **Files Scanned**: 253
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -57,7 +57,7 @@ UI Operations Decision Tree:
 ```
 Core System Decision Tree:
 +-- `core/service.py` - Main service (73 functions)
-+-- `core/config.py` - Configuration (22 functions)
++-- `core/config.py` - Configuration (23 functions)
 `-- `scheduler/manager.py` - Scheduling (71/72 functions)```
 
 ## [PATTERNS] **Key Function Patterns**
@@ -195,7 +195,7 @@ Core System Decision Tree:
 Most complex functions (may need refactoring):
 1. [OK] `run_tests.py::run_command()` - Complexity: 3215
 2. [OK] `run_tests.py::print_combined_summary()` - Complexity: 2960
-3. [OK] `run_tests.py::main()` - Complexity: 2790
+3. [OK] `run_tests.py::main()` - Complexity: 2789
 4. [OK] `storage/user_data_read.py::get_user_data()` - Complexity: 1622
 5. [OK] `communication/message_processing/command_parser.py::_extract_notebook_entities_rule_based()` - Complexity: 1103
 
@@ -210,7 +210,7 @@ Most complex functions (may need refactoring):
 - `ai/` - AI chatbot functionality (32 files, 357 functions)
 - `checkins/` -  (6 files, 135 functions)
 - `communication/` - Communication channels and message processing (86 files, 1136 functions)
-- `core/` - System utilities and data management (33 files, 657 functions)
+- `core/` - System utilities and data management (33 files, 659 functions)
 - `integrations/` -  (12 files, 104 functions)
 - `messages/` -  (5 files, 39 functions)
 - `scheduler/` -  (8 files, 100 functions)

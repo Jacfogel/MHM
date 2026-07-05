@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-02 23:38:49
+> **Last Generated**: 2026-07-04 22:46:46
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 90.0% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 253
-- **Functions Found**: 2457
+- **Functions Found**: 2459
 - **Methods Found**: 1398
 - **Classes Found**: 256
-- **Total Items**: 3855
-- **Functions Documented**: 2186
+- **Total Items**: 3857
+- **Functions Documented**: 2188
 - **Methods Documented**: 1285
 - **Classes Documented**: 185
-- **Total Documented**: 3471
+- **Total Documented**: 3473
 - **Template-Generated**: 46
-- **Last Updated**: 2026-07-02
+- **Last Updated**: 2026-07-04
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (484)
+### **Core System Functions** (486)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (638)
@@ -3506,6 +3506,7 @@ Returns:
 - [OK] `get_google_health_oauth_scopes()` - Return normalized full-scope URLs for OAuth.
 - [OK] `get_user_data_dir(user_id)` - Get the data directory for a specific user.
 - [OK] `get_user_file_path(user_id, file_type)` - Get the file path for a specific user file type.
+- [OK] `is_google_health_enabled()` - Return whether Google Health integration is enabled (reads env at call time).
 - [OK] `parse_google_health_sync_times()` - Parse comma-separated HH:MM sync schedule times.
 - [OK] `print_configuration_report()` - Print a detailed configuration report to the console.
 - [OK] `validate_ai_configuration()` - Validate AI-related configuration settings.
@@ -3861,6 +3862,7 @@ Safe to call even if auditor disabled. Includes optional stack if FILE_AUDIT_STA
 
 #### `core/file_locking.py`
 **Functions:**
+- [OK] `_thread_lock_for(path)` - Return a process-local mutex for *path* (normalized absolute path).
 - [OK] `file_lock(file_path, timeout, retry_interval)` - Context manager for file locking on Windows.
 
 Uses a separate lock file (file_path + '.lock') to coordinate access.

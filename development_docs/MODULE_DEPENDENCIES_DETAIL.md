@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-02 23:38:51
+> **Last Generated**: 2026-07-04 22:46:47
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 251
-- **Total Imports Found**: 2144
+- **Total Imports Found**: 2145
 - **Dependencies Documented**: 251 (100% coverage)
-- **Standard Library Imports**: 637 (29.7%)
+- **Standard Library Imports**: 638 (29.7%)
 - **Third-Party Imports**: 217 (10.1%)
-- **Local Imports**: 1290 (60.2%)
-- **Last Updated**: 2026-07-02
+- **Local Imports**: 1290 (60.1%)
+- **Last Updated**: 2026-07-04
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 637 imports (29.7%)
+- **Standard Library**: 638 imports (29.7%)
 - **Third-Party**: 217 imports (10.1%)
-- **Local**: 1290 imports (60.2%)
+- **Local**: 1290 imports (60.1%)
 
 ## Module Dependencies by Directory
 
@@ -1177,7 +1177,7 @@
   - **Local**:
     - `communication.command_handlers.base_handler (InteractionHandler)` (NEW)
     - `communication.command_handlers.shared_types (InteractionResponse, ParsedCommand)` (NEW)
-    - `core.config (GOOGLE_HEALTH_ENABLED)` (NEW)
+    - `core.config (is_google_health_enabled)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `integrations.google_health.user_settings (delete_health_integration, enable_health_integration, format_status_text, get_connect_authorization_url, get_connect_readiness, get_health_integration_status, pause_health_integration, run_connect_flow_async, sync_health_integration)`
@@ -3465,6 +3465,7 @@
     - `shutil`
     - `sys`
     - `tempfile`
+    - `threading`
     - `time`
 - **Used by**:
   - `core/backup_manager.py`
@@ -4637,7 +4638,7 @@
 - **Dependencies**:
   - **Local**:
     - `core (get_user_data, update_user_account)` (NEW)
-    - `core.config (GOOGLE_HEALTH_CLIENT_ID, GOOGLE_HEALTH_CLIENT_SECRET, GOOGLE_HEALTH_ENABLED)` (NEW)
+    - `core.config (GOOGLE_HEALTH_CLIENT_ID, GOOGLE_HEALTH_CLIENT_SECRET, is_google_health_enabled)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `integrations.google_health.auth (build_authorization_url, run_oauth_connect_flow)` (NEW)
