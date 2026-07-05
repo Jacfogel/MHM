@@ -12,7 +12,7 @@ from core import get_user_data, update_user_account
 from core.config import (
     GOOGLE_HEALTH_CLIENT_ID,
     GOOGLE_HEALTH_CLIENT_SECRET,
-    GOOGLE_HEALTH_ENABLED,
+    is_google_health_enabled,
 )
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
@@ -54,7 +54,7 @@ def get_health_integration_status(user_id: str) -> HealthIntegrationStatus | Non
 @handle_errors("checking Google Health connect readiness", default_return=(False, ""))
 def get_connect_readiness() -> tuple[bool, str]:
     """Return whether the server can start an OAuth connect flow."""
-    if not GOOGLE_HEALTH_ENABLED:
+    if not is_google_health_enabled():
         return False, "Google Health integration is not enabled on this server."
     if not GOOGLE_HEALTH_CLIENT_ID or not GOOGLE_HEALTH_CLIENT_SECRET:
         return (

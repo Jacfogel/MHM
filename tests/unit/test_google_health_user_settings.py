@@ -15,7 +15,8 @@ from integrations.google_health.user_settings import (
 @pytest.mark.core
 def test_get_connect_readiness_when_disabled(monkeypatch):
     monkeypatch.setattr(
-        "integrations.google_health.user_settings.GOOGLE_HEALTH_ENABLED", False
+        "integrations.google_health.user_settings.is_google_health_enabled",
+        lambda: False,
     )
     ready, message = get_connect_readiness()
     assert ready is False
