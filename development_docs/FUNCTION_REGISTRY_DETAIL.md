@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-04 22:46:46
+> **Last Generated**: 2026-07-06 23:40:28
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 90.0% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 253
-- **Functions Found**: 2459
+- **Functions Found**: 2466
 - **Methods Found**: 1398
 - **Classes Found**: 256
-- **Total Items**: 3857
-- **Functions Documented**: 2188
+- **Total Items**: 3864
+- **Functions Documented**: 2193
 - **Methods Documented**: 1285
 - **Classes Documented**: 185
-- **Total Documented**: 3473
+- **Total Documented**: 3478
 - **Template-Generated**: 46
-- **Last Updated**: 2026-07-04
+- **Last Updated**: 2026-07-06
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -201,12 +201,19 @@ Uses adaptive timeout to prevent blocking for too long with improved performance
 
 #### `ai/chat/response_postprocess.py`
 **Functions:**
+- [MISSING] `_first_nonempty_line_looks_like_user_prose(text)` - No description
+- [OK] `_response_is_mostly_instruction_leak(text)` - True when the remaining text looks like leaked prompt instructions, not chat.
+- [MISSING] `_response_starts_with_code_artifact(text)` - No description
+- [OK] `_truncate_at_first_leak(text, patterns)` - Return text truncated before the earliest leak pattern match.
 - [OK] `clean_system_prompt_leaks(response)` - Remove leaked system prompt metadata from AI responses.
 Prevents meta-text like "User Context:" from appearing in user-facing output.
+- [OK] `find_response_leak_markers(text)` - Return leak marker substrings still present in user-visible text.
 - [OK] `keep_first_personalized_block(text)` - When the model returns multiple draft messages, keep only the first greeting block.
 - [OK] `smart_truncate_response(text, max_chars, max_words)` - Truncate response to avoid mid-sentence cuts when possible.
 - [OK] `strip_instruction_tuning_markers(text)` - Remove fine-tuning delimiter leaks (e.g. '## INPUT ##OUTPUT') from model output.
 - [OK] `strip_letter_signoffs(text)` - Remove email-style closings and [Your Name] placeholders from short wellness messages.
+- [OK] `strip_markup_and_tutorial_leaks(response)` - Remove HTML, comments, context_override blocks, and tutorial/code continuations.
+- [OK] `strip_product_ai_category_leaks(response)` - Remove leaked product-AI category tags and prompt-section bodies from replies.
 
 #### `ai/client/__init__.py`
 

@@ -94,14 +94,17 @@ class TestAIErrors(AITestBase):
             context_info = self._build_context_info(None)
             context_info["note"] = "Non-contextual response with fallback (LM Studio unavailable)"
             
-            with patch('ai.chat.chatbot.requests.get') as mock_get:
+            with patch("ai.client.lm_studio_client.requests.get") as mock_get:
                 mock_get.side_effect = requests.ConnectionError("Connection refused")
                 
                 original_available = self.chatbot.lm_studio_available
                 self.chatbot.lm_studio_available = False
+                self.chatbot.response_cache.clear()
                 
                 prompt = "Test connection error"
-                response = self.chatbot.generate_response(prompt, user_id=test_user_id)
+                response = self.chatbot.generate_response(
+                    prompt, user_id=test_user_id, mode="chat"
+                )
                 
                 self.chatbot.lm_studio_available = original_available
                 
@@ -125,7 +128,7 @@ class TestAIErrors(AITestBase):
             context_info = self._build_context_info(None)
             context_info["note"] = "Non-contextual response with fallback (timeout scenario)"
             
-            with patch('ai.chat.chatbot.requests.post') as mock_post:
+            with patch("ai.client.lm_studio_client.requests.post") as mock_post:
                 mock_post.side_effect = requests.Timeout("Request timed out")
                 
                 prompt = "Test timeout"
@@ -153,7 +156,7 @@ class TestAIErrors(AITestBase):
             context_info = self._build_context_info(None)
             context_info["note"] = "Non-contextual response with fallback (invalid API response)"
             
-            with patch('ai.chat.chatbot.requests.post') as mock_post:
+            with patch("ai.client.lm_studio_client.requests.post") as mock_post:
                 mock_response = MagicMock()
                 mock_response.status_code = 200
                 mock_response.json.return_value = {"invalid": "structure"}
@@ -189,7 +192,7 @@ class TestAIErrors(AITestBase):
             context_info = self._build_context_info(None)
             context_info["note"] = "Non-contextual response with fallback (server error)"
             
-            with patch('ai.chat.chatbot.requests.post') as mock_post:
+            with patch("ai.client.lm_studio_client.requests.post") as mock_post:
                 mock_response = MagicMock()
                 mock_response.status_code = 500
                 mock_response.text = "Internal Server Error"

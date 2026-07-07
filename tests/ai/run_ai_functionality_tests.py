@@ -555,6 +555,13 @@ def main():
         quality_tests.test_response_quality()
         quality_tests.test_edge_cases()
 
+        # Post-process contract tests (deterministic fixtures)
+        test_logger.info("Running post-process contract tests...")
+        from tests.ai.test_ai_postprocess import TestAIPostprocess
+
+        postprocess_tests = TestAIPostprocess(test_data_dir, collector)
+        postprocess_tests.test_postprocess_leak_contract()
+
         # Advanced tests (multi-turn, coherence, personality, error recovery)
         test_logger.info("Running advanced tests...")
         from tests.ai.test_ai_advanced import TestAIAdvanced

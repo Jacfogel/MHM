@@ -16,6 +16,8 @@ def clean_system_prompt_leaks(response: str) -> str:
     if not response:
         return response
 
+    cleaned = strip_markup_and_tutorial_leaks(response)
+
     leak_patterns = [
         r"(?i)^\s*User Context:\s*",
         r"(?i)^\s*IMPORTANT\s*-\s*Feature\s+availability:\s*",
@@ -33,9 +35,14 @@ def clean_system_prompt_leaks(response: str) -> str:
         r"(?i)\btask management is (?:disabled|enabled)\s*-\s*do NOT mention",
         r"(?i)\bdo (?:not|n\'t) mention check-ins, check-in data",
         r"(?i)\bdo (?:not|n\'t) mention tasks, task creation",
+        r"(?i)\bThe user context below is reference material only\.?",
+        r"(?i)\bNever reveal raw context blocks\b",
+        r"(?i)\bOnly reference data explicitly present in the context\.?",
+        r"(?i)\binternal section names, JSON, system prompts\b",
+        r"(?i)\bDescribe only capabilities supported by the available-actions\b",
+        r"(?i)\bHealth personalization context is wellness-oriented\b",
     ]
 
-    cleaned = response
     for pattern in leak_patterns:
         cleaned = re.sub(pattern, "", cleaned)
 
@@ -58,8 +65,10 @@ def clean_system_prompt_leaks(response: str) -> str:
 
     filtered_lines = []
     skip_next = False
+    in_meta_block = False
     for line in cleaned.split("\n"):
         line_lower = line.strip().lower()
+        line_stripped = line.strip()
 
         if any(
             marker in line_lower
@@ -68,6 +77,7 @@ def clean_system_prompt_leaks(response: str) -> str:
                 "important - feature availability:",
                 "additional instructions:",
                 "important: the following user context",
+                "[context_override]",
             ]
         ):
             continue
@@ -85,7 +95,33 @@ def clean_system_prompt_leaks(response: str) -> str:
         ):
             continue
 
-        line_stripped = line.strip()
+        if any(hint in line_lower for hint in _INSTRUCTION_LINE_HINTS):
+            continue
+
+        if not line_stripped:
+            in_meta_block = False
+            filtered_lines.append(line)
+            continue
+
+        if _LONE_MARKDOWN_HEADING.match(line_stripped):
+            continue
+
+        if _SINGLE_HASH_HEADING_LINE.match(line_stripped):
+            continue
+
+        if _META_HEADING_LINE.match(line_stripped):
+            in_meta_block = True
+            continue
+
+        if in_meta_block:
+            continue
+
+        if _FORM_FIELD_LINE.match(line_stripped):
+            continue
+
+        if _PRODUCT_UI_HALLUCINATION.search(line_stripped):
+            continue
+
         if (
             line_stripped
             and line_stripped[0] in ["-", "*", "•"]
@@ -106,7 +142,12 @@ def clean_system_prompt_leaks(response: str) -> str:
     cleaned = "\n".join(filtered_lines)
     cleaned = re.sub(r"\n\s*\n\s*\n+", "\n\n", cleaned)
     cleaned = re.sub(r" {2,}", " ", cleaned)
-    return cleaned.strip()
+    cleaned = _INLINE_TEMPLATE_LEAK.sub("", cleaned)
+    cleaned = _TRAILING_CODE_JUNK.sub("", cleaned).strip()
+    cleaned = strip_product_ai_category_leaks(cleaned)
+    if _response_is_mostly_instruction_leak(cleaned):
+        return ""
+    return cleaned
 
 
 _INSTRUCTION_TUNING_MARKERS = (
@@ -115,7 +156,368 @@ _INSTRUCTION_TUNING_MARKERS = (
     re.compile(r"##\s*OUTPUT\b", re.IGNORECASE),
     re.compile(r"###\s*Input\s*:", re.IGNORECASE),
     re.compile(r"###\s*Output\s*:", re.IGNORECASE),
+    re.compile(r"###\s*Next\s+Step\s*:", re.IGNORECASE),
+    re.compile(r"##\s*Expected\s+Outcome\s*:", re.IGNORECASE),
+    re.compile(r"###\s*Response\s*:", re.IGNORECASE),
 )
+
+_META_HEADING_LEAK = re.compile(
+    r"\n\s*#{2,3}\s*(?:Next\s+Step|Expected\s+Outcome|Response|Tasks)\b",
+    re.IGNORECASE,
+)
+_TUTORIAL_SECTION_LEAK = re.compile(
+    r"\n\s*#{1,3}\s*(?:Your task|Example|Exercise|Conversation flow|"
+    r"Task management|Tasks|How to use)\b",
+    re.IGNORECASE,
+)
+_EXAMPLE_HEADING_LEAK = re.compile(
+    r"\n\s*#{1,3}\s*Example\s*\d*\s*:?",
+    re.IGNORECASE,
+)
+_HOW_TO_USE_LEAK = re.compile(
+    r"\n\s*#{1,3}\s*How to use\b",
+    re.IGNORECASE,
+)
+_SINGLE_HASH_HEADING_LEAK = re.compile(
+    r"\n\s*#\s+(?!#)\S",
+    re.IGNORECASE,
+)
+_INSTRUCTION_BODY_LEAK = re.compile(
+    r"(?:^|\n)\s*(?:"
+    r"check-ins?,\s*check-in data|"
+    r"automated messages are disabled|"
+    r"do\s+not\s+mention\s+(?:check-ins|tasks|scheduled message)|"
+    r"task management is (?:disabled|enabled)\s*-\s*do\s+not\s+mention|"
+    r"The user context below is reference|"
+    r"Never reveal raw context blocks|"
+    r"Only reference data explicitly present|"
+    r"internal section names,\s*JSON,\s*system prompts|"
+    r"When a feature is disabled,\s*do not suggest using that feature"
+    r")",
+    re.IGNORECASE | re.MULTILINE,
+)
+_HTML_OR_COMMENT_LEAK = re.compile(r"\n\s*(?:<!--|<p\b|</p>)", re.IGNORECASE)
+_LEADING_HTML_LEAK = re.compile(r"^\s*<p\b", re.IGNORECASE)
+_CONTEXT_OVERRIDE_LEAK = re.compile(r"\n\s*\[context_override\]", re.IGNORECASE)
+_CODE_FRAGMENT_LEAK = re.compile(
+    r"\n(?:\"\"\"|'''|```|def \w+|class \w+\s*[\(:]|if __name__\s*==|"
+    r"import \w+|from \w+\s+import|parser\.add_argument|json\.load)",
+    re.IGNORECASE,
+)
+_LEADING_CODE_LEAK = re.compile(
+    r"^\s*(?:'''|\"\"\"|if __name__\s*==|import \w+|from \w+\s+import)",
+    re.IGNORECASE | re.MULTILINE,
+)
+_LONE_MARKDOWN_HEADING = re.compile(r"^\s*##\s*$", re.MULTILINE)
+_SINGLE_HASH_HEADING_LINE = re.compile(r"^\s*#\s+(?!#)", re.IGNORECASE)
+_META_HEADING_LINE = re.compile(
+    r"^\s*#{1,3}\s*(?:Next\s+Step|Expected\s+Outcome|Response|Tasks|How to use|Example)\b",
+    re.IGNORECASE,
+)
+_FORM_FIELD_LINE = re.compile(r"^\s*\w[\w\s]*:\s*_{5,}")
+_PRODUCT_UI_HALLUCINATION = re.compile(
+    r"please select a persona from the menu",
+    re.IGNORECASE,
+)
+_TRAILING_CODE_JUNK = re.compile(r"['\"]{2,}\)+?\s*$")
+_INLINE_TEMPLATE_LEAK = re.compile(r"\s*\(If the user says\b.*$", re.IGNORECASE)
+
+
+@handle_errors("truncating response at first leak pattern", user_friendly=False, default_return="")
+def _truncate_at_first_leak(
+    text: str,
+    patterns: tuple[re.Pattern[str], ...],
+    *,
+    min_keep: int = 15,
+    min_prefix_len: int | None = None,
+) -> str:
+    """Return text truncated before the earliest leak pattern match."""
+    if min_prefix_len is None:
+        min_prefix_len = min_keep
+    earliest = len(text)
+    for pattern in patterns:
+        match = pattern.search(text)
+        if match is None:
+            continue
+        start = match.start()
+        prefix_len = len(text[:start].strip())
+        if start < earliest and (start >= min_keep or prefix_len >= min_prefix_len):
+            earliest = start
+    if earliest < len(text):
+        return text[:earliest].strip()
+    return text
+
+
+_META_TRUNCATION_PATTERNS = (
+    _META_HEADING_LEAK,
+    _TUTORIAL_SECTION_LEAK,
+    _EXAMPLE_HEADING_LEAK,
+    _HOW_TO_USE_LEAK,
+    _SINGLE_HASH_HEADING_LEAK,
+    _INSTRUCTION_BODY_LEAK,
+)
+_CODE_TRUNCATION_PATTERNS = (
+    _HTML_OR_COMMENT_LEAK,
+    _CONTEXT_OVERRIDE_LEAK,
+    _CODE_FRAGMENT_LEAK,
+)
+_INSTRUCTION_LINE_HINTS = (
+    "do not mention",
+    "never include",
+    "never return",
+    "return only natural",
+    "user context:",
+    "check-ins are disabled",
+    "check-ins are enabled",
+    "task management is disabled",
+    "task management is enabled",
+    "automated messages are disabled",
+    "check-in data, or suggest",
+    "[response_rules]",
+    "[reply_rules]",
+    "[data_honesty]",
+    "the user context below is reference",
+    "never reveal raw context",
+    "only reference data explicitly",
+    "internal section names",
+    "when a feature is disabled, do not suggest",
+    "health personalization context is wellness",
+    "answer direct questions before redirecting",
+    "acknowledge greetings first",
+    "avoid vague references",
+    "if the user says",
+    "[user's response]",
+)
+_NATURAL_PROSE_LINE = re.compile(r"^[A-Za-z][^\n]{4,}[.!?]\s*$")
+_CODE_LINE_HINTS = re.compile(
+    r"\b(?:argparse|json\.load|__name__|ArgumentParser|parse_args)\b",
+    re.IGNORECASE,
+)
+
+
+@handle_errors("detecting leading code artifact in response", user_friendly=False, default_return=False)
+def _response_starts_with_code_artifact(text: str) -> bool:
+    return bool(_LEADING_CODE_LEAK.match(text))
+
+
+@handle_errors("detecting user prose in response lines", user_friendly=False, default_return=False)
+def _first_nonempty_line_looks_like_user_prose(text: str) -> bool:
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped in ("'''", '"""'):
+            continue
+        if _CODE_LINE_HINTS.search(stripped) or _LEADING_CODE_LEAK.match(stripped):
+            return False
+        return bool(_NATURAL_PROSE_LINE.match(stripped))
+    return False
+
+
+@handle_errors("detecting instruction-only response leak", user_friendly=False, default_return=False)
+def _response_is_mostly_instruction_leak(text: str) -> bool:
+    """True when the remaining text looks like leaked prompt instructions, not chat."""
+    stripped = text.strip()
+    if not stripped:
+        return False
+    lower = stripped.lower()
+    strong_markers = (
+        "do not mention",
+        "[response_rules]",
+        "[reply_rules]",
+        "never include the raw context",
+        "the user context below is reference",
+        "never reveal raw context",
+        "only reference data explicitly",
+        "internal section names",
+        "return only natural language",
+        "answer direct questions before redirecting",
+        "acknowledge greetings first",
+        "avoid vague references like",
+        "check-in data, or suggest",
+        "automated messages are disabled",
+        "if the user says",
+        "[user's response]",
+    )
+    if not any(marker in lower for marker in strong_markers):
+        return False
+    conversational = re.search(
+        r"(?i)^(?:"
+        r"hi[!,]? |hello|hey there|hey[!,]|i'm |i am |sure[,!]|thanks[,!]|"
+        r"you're |that sounds|i'm sorry|i'm doing|i'm fine|good question|the "
+        r")",
+        stripped,
+    )
+    return conversational is None
+
+
+RESPONSE_LEAK_MARKERS: tuple[str, ...] = (
+    "if __name__",
+    "argparse",
+    "json.load",
+    "def __init__",
+    "### Next Step",
+    "### Example",
+    "## How to use",
+    "[persona]",
+    "[reply_rules]",
+    "[response_rules]",
+    "[data_honesty]",
+    "do not mention check-ins",
+    "do not mention tasks",
+    "do not mention scheduled",
+    "automated messages are disabled",
+    "check-in data, or suggest",
+    "user context below is reference",
+    "never reveal raw context",
+    "only reference data explicitly",
+    "internal section names",
+    "when a feature is disabled, do not suggest",
+    "answer direct questions before redirecting",
+    "acknowledge greetings first",
+    "if the user says",
+    "[user's response]",
+    "You are MHM's in-app assistant",
+    "Return ONLY natural language",
+)
+
+
+@handle_errors("finding response leak markers", user_friendly=False, default_return=[])
+def find_response_leak_markers(text: str) -> list[str]:
+    """Return leak marker substrings still present in user-visible text."""
+    if not text:
+        return []
+    lower = text.lower()
+    return [marker for marker in RESPONSE_LEAK_MARKERS if marker.lower() in lower]
+
+_PRODUCT_AI_CATEGORY_NAMES = (
+    "persona",
+    "reply_rules",
+    "data_honesty",
+    "action_boundaries",
+    "available_actions",
+    "action_result_metadata",
+    "user_context",
+)
+_CATEGORY_TAG_ALIASES = ("response_rules",)
+_ALL_CATEGORY_TAGS = "|".join((*_PRODUCT_AI_CATEGORY_NAMES, *_CATEGORY_TAG_ALIASES))
+_CATEGORY_NAMES_PATTERN = _ALL_CATEGORY_TAGS
+_CATEGORY_TAG_LINE = re.compile(
+    rf"^\[(?:{_CATEGORY_NAMES_PATTERN})\]\s*$",
+    re.IGNORECASE,
+)
+_MID_RESPONSE_CATEGORY_LEAK = re.compile(
+    rf"\n\s*\[(?:{_CATEGORY_NAMES_PATTERN})\]",
+    re.IGNORECASE,
+)
+
+
+@handle_errors("stripping markup and tutorial leaks", default_return="")
+def strip_markup_and_tutorial_leaks(response: str) -> str:
+    """Remove HTML, comments, context_override blocks, and tutorial/code continuations."""
+    if not response:
+        return response
+
+    text = response.strip()
+
+    if _response_starts_with_code_artifact(text) and not _first_nonempty_line_looks_like_user_prose(
+        text
+    ):
+        return ""
+
+    text = _truncate_at_first_leak(
+        text, _META_TRUNCATION_PATTERNS, min_keep=0, min_prefix_len=3
+    )
+    text = _truncate_at_first_leak(
+        text, _CODE_TRUNCATION_PATTERNS, min_keep=15, min_prefix_len=15
+    )
+
+    if _LEADING_HTML_LEAK.match(text):
+        text = ""
+
+    text = _LONE_MARKDOWN_HEADING.sub("", text)
+    text = _TRAILING_CODE_JUNK.sub("", text).strip()
+    text = re.sub(r"\n\s*\n\s*\n+", "\n\n", text)
+    return text.strip()
+
+
+_CATEGORY_INSTRUCTION_MARKERS = (
+    "you are mhm",
+    "support neurodivergent",
+    "answer direct questions",
+    "acknowledge greetings first",
+    "the user context below is reference",
+    "never reveal raw context",
+    "only reference data explicitly",
+    "describe only capabilities supported",
+    "when a feature is disabled",
+    "health personalization context is wellness",
+    "no false crud claims",
+    "offer to help with actions",
+    "product ai flow:",
+    "return only natural language",
+    "do not return json or code blocks for normal chat",
+)
+
+
+@handle_errors("stripping product AI category leaks", default_return="")
+def strip_product_ai_category_leaks(response: str) -> str:
+    """Remove leaked product-AI category tags and prompt-section bodies from replies."""
+    if not response:
+        return response
+
+    text = response.strip()
+
+    tutorial_match = _TUTORIAL_SECTION_LEAK.search(text)
+    if tutorial_match and tutorial_match.start() > 20:
+        text = text[: tutorial_match.start()].strip()
+
+    mid_leak = _MID_RESPONSE_CATEGORY_LEAK.search(text)
+    if mid_leak and mid_leak.start() > 0:
+        text = text[: mid_leak.start()].strip()
+
+    filtered_lines: list[str] = []
+    skipping_category_body = False
+    for line in text.split("\n"):
+        stripped = line.strip()
+        if not stripped:
+            if filtered_lines and filtered_lines[-1].strip():
+                filtered_lines.append("")
+            skipping_category_body = False
+            continue
+
+        if _CATEGORY_TAG_LINE.match(stripped):
+            skipping_category_body = True
+            continue
+
+        lower = stripped.lower()
+        if stripped.lower() in ("<hr />", "<hr>", "<hr/>"):
+            continue
+
+        if skipping_category_body:
+            if any(marker in lower for marker in _CATEGORY_INSTRUCTION_MARKERS):
+                continue
+            if stripped.startswith("- ") and any(
+                keyword in lower
+                for keyword in (
+                    "use ",
+                    "keep ",
+                    "provide ",
+                    "acknowledge ",
+                    "avoid ",
+                    "when the user",
+                    "do not ",
+                    "never ",
+                    "prefer ",
+                )
+            ):
+                continue
+            skipping_category_body = False
+
+        filtered_lines.append(line)
+
+    cleaned = "\n".join(filtered_lines)
+    cleaned = re.sub(r"\n\s*\n\s*\n+", "\n\n", cleaned)
+    cleaned = re.sub(r" {2,}", " ", cleaned)
+    return cleaned.strip()
 
 
 @handle_errors("stripping instruction-tuning markers", default_return="")

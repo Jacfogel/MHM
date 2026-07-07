@@ -600,3 +600,20 @@ Notes:
 
 - Enable with `AI_ACTION_PLANNER_ENABLED=true` to use the planner on messages that fall through to contextual chat.
 - Rule-based command parsing remains the primary path for confident structured commands.
+
+### 2026-07-05 - Planner routing behavior tests
+
+Completed:
+
+- Added [`tests/behavior/test_action_planner_routing.py`](../tests/behavior/test_action_planner_routing.py) with six behavior tests for `InteractionManager` when `AI_ACTION_PLANNER_ENABLED=true`: execute-action task creation, clarify, answer-only, planner-none fallback, high-confidence bypass, and planner-disabled contextual chat. Planner output is mocked so tests do not require LM Studio or Discord.
+- Fixed T-10.x AI functionality error tests to patch `ai.client.lm_studio_client.requests` instead of removed `ai.chat.chatbot.requests`.
+
+Verified:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/behavior/test_action_planner_routing.py -q
+```
+
+Notes:
+
+- Task-create assertions check persisted task titles, not `InteractionResponse.completed`, because create-task may enter the due-date follow-up flow (`completed=False`).

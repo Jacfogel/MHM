@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-04 22:46:47
+> **Last Generated**: 2026-07-06 23:40:29
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 251
-- **Total Imports Found**: 2145
+- **Total Imports Found**: 2144
 - **Dependencies Documented**: 251 (100% coverage)
-- **Standard Library Imports**: 638 (29.7%)
+- **Standard Library Imports**: 637 (29.7%)
 - **Third-Party Imports**: 217 (10.1%)
-- **Local Imports**: 1290 (60.1%)
-- **Last Updated**: 2026-07-04
+- **Local Imports**: 1290 (60.2%)
+- **Last Updated**: 2026-07-06
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 638 imports (29.7%)
+- **Standard Library**: 637 imports (29.7%)
 - **Third-Party**: 217 imports (10.1%)
-- **Local**: 1290 imports (60.1%)
+- **Local**: 1290 imports (60.2%)
 
 ## Module Dependencies by Directory
 
@@ -287,8 +287,6 @@
     - `core.config (AI_API_CALL_TIMEOUT, AI_CONNECTION_TEST_TIMEOUT, LM_STUDIO_API_KEY, LM_STUDIO_BASE_URL, LM_STUDIO_MODEL)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-  - **Standard Library**:
-    - `os`
   - **Third-party**:
     - `requests`
 - **Used by**:

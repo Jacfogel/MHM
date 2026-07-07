@@ -296,6 +296,13 @@ class AIChatBotSingleton:
 
             if result:
                 response = self._post_process_generated_response(mode, result)
+                if (
+                    mode in ("chat", "personalized")
+                    and len((response or "").strip()) < 3
+                ):
+                    response = get_fallback_responses().contextual(
+                        user_prompt, user_id
+                    )
                 self._cache_response_if_needed(
                     mode, prompt_for_key, uid_for_key, ptype, response
                 )
@@ -477,11 +484,8 @@ class AIChatBotSingleton:
             )
 
         template = prompt_manager.get_prompt_template("wellness")
-        max_tokens = (
-            template.max_tokens
-            if template and template.max_tokens
-            else AI_MAX_RESPONSE_TOKENS
-        )
+        template_max_tokens = template.max_tokens if template and template.max_tokens else 0
+        max_tokens = max(template_max_tokens, AI_MAX_RESPONSE_TOKENS)
         temperature = (
             template.temperature
             if template and template.temperature is not None

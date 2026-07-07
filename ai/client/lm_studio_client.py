@@ -2,8 +2,6 @@
 
 """HTTP client helpers for LM Studio (OpenAI-compatible API)."""
 
-import os
-
 import requests
 
 from core.config import (
@@ -22,10 +20,6 @@ logger = get_component_logger("ai")
 @handle_errors("testing LM Studio connection", default_return=False)
 def test_lm_studio_connection() -> bool:
     """Return True when the LM Studio /models endpoint responds successfully."""
-    if os.getenv("MHM_TESTING") == "1":
-        logger.info("Skipping LM Studio connection test in testing mode")
-        return True
-
     response = requests.get(
         f"{LM_STUDIO_BASE_URL}/models",
         headers={"Authorization": f"Bearer {LM_STUDIO_API_KEY}"},

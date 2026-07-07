@@ -151,6 +151,136 @@ class TestAIChatBotHelpers:
         result = chatbot_instance._clean_system_prompt_leaks(None)
         assert result is None or result == "", "Should handle None gracefully"
 
+    def test_clean_system_prompt_leaks_product_ai_category_tags(self, chatbot_instance):
+        """Test category tag leaks are stripped from user-visible replies."""
+        response = (
+            "TestUser, I'm fine. How can I help you?\n\n"
+            "[persona]\n"
+            "You are MHM's in-app assistant: calm, supportive, direct, and practical.\n"
+            "[reply_rules]\n"
+            "Answer direct questions before redirecting or asking follow-up questions."
+        )
+        result = chatbot_instance._clean_system_prompt_leaks(response)
+
+        assert "[persona]" not in result
+        assert "[reply_rules]" not in result
+        assert "You are MHM's in-app assistant" not in result
+        assert "TestUser, I'm fine" in result
+
+    def test_clean_system_prompt_leaks_leading_category_tag(self, chatbot_instance):
+        """Test replies that start with a category tag keep the user-facing greeting."""
+        response = (
+            "[persona]\n"
+            "Hi! I'm MHM's in-app assistant. Do you need help with anything?\n\n"
+            "<hr />"
+        )
+        result = chatbot_instance._clean_system_prompt_leaks(response)
+
+        assert "[persona]" not in result
+        assert "Do you need help" in result
+        assert "<hr" not in result
+
+    def test_clean_system_prompt_leaks_html_and_context_override(self, chatbot_instance):
+        """Test HTML comments and context_override template leaks are stripped."""
+        response = (
+            "I'm doing well.\n\n"
+            "## Your task: **Rewrite** the above paragraph into a textbook section.\n\n"
+            "- Create 5 exercises with answers."
+        )
+        result = chatbot_instance._clean_system_prompt_leaks(response)
+
+        assert "Your task" not in result
+        assert "I'm doing well" in result
+
+        html_response = (
+            "<p>This is a helpful example. It includes the context that you can see above.</p>\n\n"
+            "<!-- \n\n[context_override]\n\ncheck-ins are disabled - do NOT mention"
+        )
+        html_result = chatbot_instance._clean_system_prompt_leaks(html_response)
+        assert "<p>" not in html_result
+        assert "[context_override]" not in html_result
+        assert "do NOT mention" not in html_result
+
+    def test_clean_system_prompt_leaks_lone_markdown_headings(self, chatbot_instance):
+        """Test repeated lone ## lines are removed."""
+        response = "I'm here to help you.\n\n##\n\n##\n\n##\n"
+        result = chatbot_instance._clean_system_prompt_leaks(response)
+
+        assert result == "I'm here to help you."
+        assert "##" not in result
+
+    def test_clean_system_prompt_leaks_code_fragment(self, chatbot_instance):
+        """Test Python code continuations are truncated."""
+        response = (
+            "ConnectionError: No such file or directory.\n"
+            '"""\n\n'
+            " def __init__(self, *args, **kwargs):\n"
+            " super().__init__(*args, **kwargs)"
+        )
+        result = chatbot_instance._clean_system_prompt_leaks(response)
+
+        assert '"""' not in result
+        assert "def __init__" not in result
+
+    def test_clean_system_prompt_leaks_meta_headings(self, chatbot_instance):
+        """Test ### Next Step and ## Expected Outcome leaks are stripped."""
+        response = (
+            "I'm fine.\n\n### Next Step:\nAdd a task.\n\n"
+            "## Expected Outcome:\nYou will get a reply."
+        )
+        result = chatbot_instance._clean_system_prompt_leaks(response)
+        assert result == "I'm fine."
+        assert "Next Step" not in result
+        assert "Expected Outcome" not in result
+
+    def test_clean_system_prompt_leaks_special_chars_code_dump(self, chatbot_instance):
+        """Test leading argparse/json code dumps are removed entirely."""
+        response = (
+            "'''\n\nif __name__ == '__main__':\n"
+            "import json\n"
+            "parser = argparse.ArgumentParser()\n"
+            "json.load(file)"
+        )
+        result = chatbot_instance._clean_system_prompt_leaks(response)
+        assert "if __name__" not in result
+        assert "json.load" not in result
+        assert result == ""
+
+    def test_clean_system_prompt_leaks_trailing_junk(self, chatbot_instance):
+        result = chatbot_instance._clean_system_prompt_leaks(
+            "Your wellness score is 0.9.\n'''))"
+        )
+        assert result == "Your wellness score is 0.9."
+
+    def test_generate_response_fallback_when_lm_unavailable(
+        self, chatbot_instance, monkeypatch
+    ):
+        """Unavailable LM Studio should use deterministic fallback, not model output."""
+        from unittest.mock import patch
+
+        chatbot_instance.response_cache.clear()
+        monkeypatch.setattr(chatbot_instance, "lm_studio_available", False)
+        with patch(
+            "ai.client.lm_studio_client.test_lm_studio_connection",
+            return_value=False,
+        ):
+            response = chatbot_instance.generate_response(
+                "Test connection error",
+                user_id="fallback-unavailable-user",
+                mode="chat",
+            )
+
+        assert response
+        lowered = response.lower()
+        assert (
+            "technical" in lowered
+            or "trouble" in lowered
+            or "try again" in lowered
+            or "support" in lowered
+        )
+        assert '"""' not in response
+        assert "def __init__" not in response
+
     def test_smart_truncate_response_within_limit(self, chatbot_instance):
         """Test _smart_truncate_response when text is within limit."""
         text = "This is a short response."

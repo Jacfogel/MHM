@@ -42,6 +42,7 @@ The AI functionality test suite is organized into focused, maintainable modules:
 - `tests/ai/test_ai_cache.py`: Cache behavior and isolation tests
 - `tests/ai/test_ai_performance.py`: Performance metrics and response time validation
 - `tests/ai/test_ai_quality.py`: Response quality validation and edge cases
+- `tests/ai/test_ai_postprocess.py`: Deterministic post-process leak contract tests (category 17)
 - `tests/ai/test_ai_advanced.py`: Advanced tests (multi-turn conversations, personality consistency, error recovery)
 - `tests/ai/run_ai_functionality_tests.py`: Main runner that orchestrates all tests
 
@@ -106,6 +107,7 @@ The test suite covers categories such as:
 9. LM Studio connection handling
 10. Performance and resource management
 11. Advanced multi-turn and coherence checks
+12. Post-process leak contract (T-17.x fixture tests; deterministic, no LM Studio)
 
 ---
 

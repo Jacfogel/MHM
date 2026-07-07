@@ -7,6 +7,7 @@ Tests for response quality validation, formatting, and edge case handling.
 import os
 from unittest.mock import patch
 
+from ai.chat.response_postprocess import find_response_leak_markers
 from tests.ai.ai_test_base import AITestBase
 from tests.test_helpers.test_utilities import TestUserFactory
 from core import get_user_id_by_identifier
@@ -206,7 +207,7 @@ class TestAIQuality(AITestBase):
                 status = "PASS" if len(response) >= 10 else "PARTIAL"
                 self.log_test("T-13.1", "Very long prompt handling", status,
                             f"Response generated for long prompt ({len(long_prompt)} chars): {response[:100]}...",
-                            prompt=f"{long_prompt[:50]}... ({len(long_prompt)} chars)", response=response[:200], test_type="chat")
+                            prompt=f"{long_prompt[:50]}... ({len(long_prompt)} chars)", response=response, test_type="chat")
             else:
                 self.log_test("T-13.1", "Very long prompt handling", "FAIL",
                             "No response to long prompt", prompt=f"{long_prompt[:50]}...")
@@ -222,11 +223,20 @@ class TestAIQuality(AITestBase):
             context_info["note"] = "Non-contextual response (minimal context provided)"
             
             special_prompt = "What do you think about: !@#$%^&*()[]{}|\\/:;\"'<>?,."
-            response = self.chatbot.generate_response(special_prompt, user_id=test_user_id)
-            
-            if response and len(response) > 0:
+            self.chatbot.response_cache.clear()
+            response = self.chatbot.generate_response(
+                special_prompt, user_id=test_user_id, mode="chat"
+            )
+
+            leaked = find_response_leak_markers(response or "")
+
+            if response and len(response) > 0 and not leaked:
                 self.log_test("T-13.2", "Special characters handling", "PASS",
                             "Response generated with special characters",
+                            prompt=special_prompt, response=response, test_type="chat", context_info=context_info)
+            elif leaked:
+                self.log_test("T-13.2", "Special characters handling", "FAIL",
+                            f"Response contained leak markers: {', '.join(leaked)}",
                             prompt=special_prompt, response=response, test_type="chat", context_info=context_info)
             else:
                 self.log_test("T-13.2", "Special characters handling", "FAIL",
@@ -244,11 +254,20 @@ class TestAIQuality(AITestBase):
             
             # Use Unicode text instead of emoji to avoid Windows console encoding errors
             unicode_prompt = "How are you feeling? (with special characters: é, ñ, ü)"
-            response = self.chatbot.generate_response(unicode_prompt, user_id=test_user_id)
-            
-            if response and len(response) > 0:
+            self.chatbot.response_cache.clear()
+            response = self.chatbot.generate_response(
+                unicode_prompt, user_id=test_user_id, mode="chat"
+            )
+
+            leaked = find_response_leak_markers(response or "")
+
+            if response and len(response) > 0 and not leaked:
                 self.log_test("T-13.3", "Unicode character handling", "PASS",
                             "Response generated with unicode",
+                            prompt=unicode_prompt, response=response, test_type="chat", context_info=context_info)
+            elif leaked:
+                self.log_test("T-13.3", "Unicode character handling", "FAIL",
+                            f"Response contained leak markers: {', '.join(leaked)}",
                             prompt=unicode_prompt, response=response, test_type="chat", context_info=context_info)
             else:
                 self.log_test("T-13.3", "Unicode character handling", "FAIL",

@@ -66,7 +66,10 @@ class AITestBase:
         review_issues = []
         review_warnings = []
 
-        if response and isinstance(response, str) and test_type != "mode_detection":
+        if response and isinstance(response, str) and test_type not in (
+            "mode_detection",
+            "postprocess",
+        ):
             # Skip validation for mode detection tests (they return "Mode: X" which is expected)
             reviewed_status, review_issues, review_warnings = (
                 AIResponseValidator.review_response(

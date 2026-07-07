@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-04 22:47:02
+> **Last Generated**: 2026-07-06 23:40:47
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 00000010 5EAC:07BC
+Volume serial number is 0000004C 5EAC:07BC
 C:.
 |   .ruff.toml
 |   ARCHITECTURE.md
@@ -633,6 +633,7 @@ C:.
 |   |   |   test_ai_functionality_manual.py
 |   |   |   test_ai_integration.py
 |   |   |   test_ai_performance.py
+|   |   |   test_ai_postprocess.py
 |   |   |   test_ai_quality.py
 |   |   |   test_cache_manager.py
 |   |   |   test_context_includes_recent_messages.py
@@ -640,6 +641,7 @@ C:.
 |   +---behavior
 |   |   |   test_account_handler_behavior.py
 |   |   |   test_account_management_real_behavior.py
+|   |   |   test_action_planner_routing.py
 |   |   |   test_ai_chatbot_behavior.py
 |   |   |   test_ai_context_builder_behavior.py
 |   |   |   test_ai_context_builder_coverage_expansion.py
@@ -985,6 +987,7 @@ C:.
 |   |   |   test_ai_deterministic.py
 |   |   |   test_ai_import_boundaries.py
 |   |   |   test_ai_prompt_flows.py
+|   |   |   test_ai_response_postprocess.py
 |   |   |   test_analytics_handler.py
 |   |   |   test_analytics_handler_helper_branches.py
 |   |   |   test_auto_cleanup_backup_retention.py

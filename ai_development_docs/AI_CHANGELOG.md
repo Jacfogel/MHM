@@ -30,6 +30,21 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-05 - Planner routing behavior tests and AI error mock fix **COMPLETED**
+- Fixed T-10.x AI functionality error tests to patch `ai.client.lm_studio_client.requests` (HTTP calls moved out of `ai.chat.chatbot` during the `ai/` subpackage refactor).
+- Added `tests/behavior/test_action_planner_routing.py`: six behavior tests for `InteractionManager` with `AI_ACTION_PLANNER_ENABLED=true` using mocked planner output (create task via dispatcher, clarify, answer-only, planner-none fallback, high-confidence bypass, planner disabled).
+- Added `strip_product_ai_category_leaks()` in `ai/chat/response_postprocess.py` to remove leaked `[persona]`, `[reply_rules]`, `[data_honesty]`, and related category blocks from user-visible replies; wired through `clean_system_prompt_leaks()`.
+- Chat generation now uses `max(template.max_tokens, AI_MAX_RESPONSE_TOKENS)` so config token budget is not capped below `AI_MAX_RESPONSE_TOKENS` (default 300).
+- Fixed T-13.1 false truncation failure: the AI functionality test passed `response[:200]` into the validator, not the full model output.
+- **`test_lm_studio_connection`**: removed the `MHM_TESTING=1` early return that forced availability back on during `_ensure_lm_studio_available()` retry, so unavailable-LM paths use deterministic fallback (fixes T-10.1).
+- **`strip_markup_and_tutorial_leaks()`**: strips HTML (`<p>`), HTML comments, `[context_override]`, `## Your task` / tutorial headings, lone `##` lines, and Python code-fragment continuations.
+- **Post-process edge cases (T-17)**: meta-heading truncation at short prefixes; stricter leading-code detection (avoids `parser = argparse.` false prose match); form-field / persona-menu stripping; deterministic T-17.1-T-17.10 contract tests in `tests/ai/test_ai_postprocess.py` and unit fixtures in `tests/unit/test_ai_response_postprocess.py`. T-13.2 now flags code/meta leak markers in special-character responses.
+- **Post-process live-leak patterns (T-17.11-T-17.15)**: strip `[response_rules]` / `[reply_rules]` mid-body, `## How to use`, `### Example`, single-`#` tutorial headings, instruction-only feature-availability lines, and `(If the user says...)` template tails; shared `find_response_leak_markers()` for T-13.2/T-13.3 live tests.
+- Extended `clean_system_prompt_leaks()` / `strip_markup_and_tutorial_leaks()` to strip leaked `data_honesty` prompt body (`The user context below is reference...`, `Never reveal raw context blocks`, etc.) via truncation, regex removal, and line hints.
+- Added matching entries to `RESPONSE_LEAK_MARKERS` / `find_response_leak_markers()` so T-13.2 fails when live LM output still contains them.
+- Added T-17.16 fixture and unit coverage for full and mid-body `data_honesty` leaks.
+- Added `@handle_errors` to five `response_postprocess.py` helpers (`_truncate_at_first_leak`, `_response_starts_with_code_artifact`, `_first_nonempty_line_looks_like_user_prose`, `_response_is_mostly_instruction_leak`, `find_response_leak_markers`).
+
 ### 2026-07-03 - Fix nightly CI: 26 CI-only test failures across 4 rounds **COMPLETED**
 - **Rounds 1-3 (15 fixes)**: Pytest 9.1 `--durations` compat; basetemp cleanup; email/Discord/headless/ServiceManager/UI schedule mock fixes; gitignored config skips; writable `tmp_path` for Linux.
 - **Round 4 (11 fixes)**: Process-group tests now `skipif(os.name != "nt")` since spoofing `os.name='nt'` on Linux crashes `Path()`; eliminated `no_parallel` markers + fixed policy violation. `is_local_module`/directory-tree/quick-status tests skip or mock when gitignored config absent. File locking tests platform-aware (`fcntl` on Linux, lock-file on Windows). Google health fixture tests skip when gitignored fixtures absent. `validate_core_paths` uses writable `tmp_path`.
@@ -168,23 +183,6 @@ Guidelines:
 - Communication targets now at **100%** on `user_suggestions.py` and `flow_message_dispatcher.py` in focused runs; re-run `audit --full` to refresh domain totals in `TEST_COVERAGE_REPORT.md`.
 - Hygiene: fixed `datetime.now()` policy violation and unused `MagicMock` import in scheduler coverage tests (Ruff F401 + `test_no_datetime_now_in_tests`).
 - Dev tools: `MissingMarkerFinder` now honors module-level `pytestmark` (fixes false-positive "16 missing category markers" for UI action tests that already had `pytestmark = [pytest.mark.ui, pytest.mark.unit]`).
-
-### 2026-06-17 - Admin account provisioning extraction **COMPLETED**
-- Extracted account creation business logic from `ui/dialogs/account_creator_dialog.py` into `core/admin_account_provisioning.py` (`provision_admin_account`, preference building, task tags, index retry, scheduler hook).
-- Dialog calls `provision_admin_account` directly from `_validate_and_accept__create_account`; removed `create_account()` wrapper (not kept for tests).
-- Provisioning behavior tests moved to `tests/unit/test_admin_account_provisioning.py`; UI tests no longer depend on a dialog provisioning method.
-- Hygiene follow-up: added `@pytest.mark.user` and `no_parallel` reason comments on provisioning tests; removed unused `typing.Any` import; regenerated function registry (`docs`).
-
-### 2026-06-16 - Channel orchestrator cleanup + interaction_manager decomposition **COMPLETED**
-- Removed ~10 thin private `_` methods from `channel_orchestrator.py` that only forwarded to owned dispatchers; `handle_message_sending` now calls `checkin_dispatcher` and `predefined_dispatcher` directly.
-- Kept public delivery-port facades (`send_checkin_prompt`, `handle_task_reminder`, `get_recipient_for_service`) per `SchedulerDeliveryPort` / `ServiceRequestDeliveryPort`.
-- Fixed check-in round-trip: `CheckinPromptDispatcher.handle_scheduled_checkin` calls `self.send_checkin_prompt` instead of bouncing through `CommunicationManager`.
-- Decomposed `interaction_manager.py` (~1647 -> ~283 lines) into `command_registry`, `prefix_command_processor`, `flow_message_dispatcher`, `parsing_shortcuts`, `structured_command_dispatcher`, `response_enhancer`, `help_responses`, `user_suggestions`; public API unchanged.
-- Removed `message_router.py` shim; classification tests now use `message_route_classifier.py`; `message_router_shim` closed in deprecation inventory.
-- Fixed parallel flake in `test_mark_as_welcomed_delegates_to_manager` (isolated welcome tracking paths + unique user IDs).
-- **CI**: Fixed `logging-enforcement` Tooling Policy Consistency job (pytest 9.1 + `--strict-config` rejected invalid `pytest.ini` keys `collect_ignore` and `env`); moved ignores/env to `tests/conftest.py`.
-- **Validation**: `validate_user_update` for schedules now unwraps/strips v2 envelope metadata before merge (fixes parallel flake when `test-user` cache had `schema_version`/`updated_at`); schedule tests use unique user IDs.
-- **Doc hygiene**: Replaced non-ASCII em dash in `CHANGELOG_DETAIL.md` (ASCII compliance).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
