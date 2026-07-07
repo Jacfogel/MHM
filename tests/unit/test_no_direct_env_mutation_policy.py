@@ -4,6 +4,7 @@ import pytest
 
 
 @pytest.mark.unit
+@pytest.mark.user
 def test_no_direct_os_environ_mutations_in_tests():
     """Policy: tests must use monkeypatch.setenv; no direct os.environ mutations.
 

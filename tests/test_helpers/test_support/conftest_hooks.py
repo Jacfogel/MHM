@@ -14,10 +14,8 @@ from datetime import datetime
 
 import pytest
 
-from core.time_utilities import (
-    now_timestamp_full,
-    format_timestamp_milliseconds,
-)
+from core.time_format_constants import TIMESTAMP_WITH_MICROSECONDS
+from core.time_utilities import now_timestamp_full
 import contextlib
 
 # Strip ANSI escape sequences from pytest longrepr before writing to log files.
@@ -541,7 +539,7 @@ def pytest_runtest_setup(item):
     test_id = item.nodeid
     start_time = datetime.now()
     _test_start_times[test_id] = start_time
-    timestamp = format_timestamp_milliseconds(start_time)
+    timestamp = start_time.strftime(TIMESTAMP_WITH_MICROSECONDS)[:-3]
 
     worker_id = os.environ.get("PYTEST_XDIST_WORKER", "main")
     test_logger.info(f"[WORKER-TEST] [{worker_id}] START: {test_id}")
@@ -554,7 +552,7 @@ def pytest_runtest_teardown(item, nextitem):
 
     test_id = item.nodeid
     end_time = datetime.now()
-    timestamp = format_timestamp_milliseconds(end_time)
+    timestamp = end_time.strftime(TIMESTAMP_WITH_MICROSECONDS)[:-3]
 
     duration = None
     if test_id in _test_start_times:
@@ -574,7 +572,7 @@ def pytest_runtest_logreport(report):
     _project_root, _tests_data_dir, test_logger, _test_log_file, _ = _get_conftest_attrs()
 
     if report.when == "call":
-        timestamp = format_timestamp_milliseconds(datetime.now())
+        timestamp = datetime.now().strftime(TIMESTAMP_WITH_MICROSECONDS)[:-3]
         verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
         if report.passed:
             if verbose_logs == "2":

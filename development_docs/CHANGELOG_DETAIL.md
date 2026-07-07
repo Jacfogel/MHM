@@ -33,6 +33,13 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-07-07 - Dev-tools exclusion fix and remove test-only time helper
+- **Exclusion bug**: [`standard_exclusions.py`](../development_tools/shared/standard_exclusions.py) `_pattern_matches_path` matches bare names (`env`, `venv`, ...) as whole path segments instead of substrings, fixing false exclusions of `storage/user_data_v2_envelopes.py` and `tests/unit/test_user_data_v2_envelopes.py` that made v2 validators look unused.
+- **Tests**: `test_env_segment_does_not_match_envelopes_filename` in [`test_standard_exclusions.py`](../tests/development_tools/test_standard_exclusions.py).
+- **Cleanup**: Removed `format_timestamp_milliseconds` and `now_datetime_minute` from [`time_utilities.py`](../core/time_utilities.py); [`conftest_hooks.py`](../tests/test_helpers/test_support/conftest_hooks.py) inlines millisecond formatting for DEBUG pytest log lines; [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) minute-precision guidance uses `parse_timestamp_minute(now_timestamp_minute())`.
+- **Policy tests**: Added `@pytest.mark.user` to [`test_no_direct_env_mutation_policy.py`](../tests/unit/test_no_direct_env_mutation_policy.py) and [`test_scripts_exclusion_policy.py`](../tests/unit/test_scripts_exclusion_policy.py) (fixes `test_pytest_tests_have_required_domain_marker`).
+- **Unused-function markers**: `# devtools: ignore[unused-functions]` on Pydantic `@model_validator` hooks in [`task_schemas.py`](../tasks/task_schemas.py) and [`core/schemas.py`](../core/schemas.py).
+
 ### 2026-07-06 - data_honesty post-process leak fix (T-13.2)
 - **data_honesty leak stripping**: [`response_postprocess.py`](../ai/chat/response_postprocess.py) now removes leaked `data_honesty` category body text (e.g. `The user context below is reference material only`, `Never reveal raw context blocks`, `Only reference data explicitly present`) via `_INSTRUCTION_BODY_LEAK` truncation, regex subs, `_INSTRUCTION_LINE_HINTS`, and `_response_is_mostly_instruction_leak()`.
 - **Live test markers**: `RESPONSE_LEAK_MARKERS` / `find_response_leak_markers()` updated so T-13.2 in [`test_ai_quality.py`](../tests/ai/test_ai_quality.py) fails when these phrases survive post-process.

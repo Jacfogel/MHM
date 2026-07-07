@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-06 23:40:28
+> **Last Generated**: 2026-07-07 16:31:49
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 90.0% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 253
-- **Functions Found**: 2466
-- **Methods Found**: 1398
-- **Classes Found**: 256
-- **Total Items**: 3864
-- **Functions Documented**: 2193
-- **Methods Documented**: 1285
-- **Classes Documented**: 185
-- **Total Documented**: 3478
+### **Function Documentation Coverage: 89.9% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 254
+- **Functions Found**: 2436
+- **Methods Found**: 1373
+- **Classes Found**: 255
+- **Total Items**: 3809
+- **Functions Documented**: 2163
+- **Methods Documented**: 1260
+- **Classes Documented**: 184
+- **Total Documented**: 3423
 - **Template-Generated**: 46
-- **Last Updated**: 2026-07-06
+- **Last Updated**: 2026-07-07
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (486)
+### **Core System Functions** (455)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (638)
@@ -3373,125 +3373,6 @@ This is separate from production data cleanup.
 - [OK] `should_run_cleanup(interval_days)` - Check if cleanup should run based on last cleanup time.
 - [OK] `update_cleanup_timestamp()` - Update the cleanup tracker file with current timestamp.
 
-#### `core/backup_manager.py`
-**Functions:**
-- [OK] `__init__(self)` - Initialize the BackupManager with default settings.
-
-Sets up backup directory, maximum backup count, and ensures backup directory exists.
-- [OK] `_backup_config_files_to_directory(self, backup_root)` - Backup configuration files to a directory payload.
-- [OK] `_backup_log_files_to_directory(self, backup_root)` - Backup log files to a directory payload.
-- [OK] `_backup_project_code_to_directory(self, backup_root)` - Backup project code files to a directory payload.
-- [OK] `_backup_user_data_to_directory(self, backup_root)` - Backup all user data directories to a directory payload.
-- [OK] `_cleanup_old_backups(self)` - Remove old backups by count and age retention policy.
-- [OK] `_copy_directory_prefix_to_destination(self, backup_root, prefix, destination)` - Copy files from backup_root/<prefix> to destination/<prefix>.
-- [OK] `_create_backup__cleanup_old_backups(self)` - Clean up old backups by count and age.
-- [OK] `_create_backup__create_directory_payload(self, backup_dir_path, backup_name, include_users, include_config, include_logs, include_code)` - Create non-zipped directory backup payload.
-- [OK] `_create_backup__setup_backup(self, backup_name)` - Setup backup name and path parameters.
-- [OK] `_get_backup_artifact_size_bytes(self, backup_path)` - Return size in bytes for file or directory backup artifact.
-- [OK] `_get_backup_info(self, backup_path)` - Get information about a specific backup.
-- [OK] `_is_directory_backup_path(self, file_path)` - Return True when path is a backup directory with manifest.
-- [OK] `_is_weekly_backup_artifact(self, file_path)` - Return True when backup artifact name indicates weekly cadence.
-- [OK] `_restore_backup_subdirectory(self, backup_root, subdirectory, base_dir)` - Restore one top-level backup subdirectory into the data directory.
-- [OK] `_restore_config_files_from_directory(self, backup_root)` - Restore config files from directory backup.
-- [OK] `_restore_user_data_from_directory(self, backup_root)` - Restore user data from directory backup.
-- [OK] `_validate_backup__check_file_exists(self, backup_path, errors)` - Check if the backup file exists and add error if not.
-- [OK] `_validate_backup__validate_directory_backup(self, backup_path)` - Validate directory backup integrity and contents.
-- [OK] `_validate_system_state__ensure_user_data_directory()` - Ensure the user data directory exists, creating it if necessary.
-- [OK] `_validate_system_state__validate_user_index()` - Validate the user index file and corresponding user directories.
-- [OK] `cleanup_manifest_less_backup_directories(backup_dir)` - Remove backup directories under data/backups that lack manifest.json.
-
-Canonical BackupManager directory backups always include manifest.json.
-Legacy or failed partial directories are removed after grace_seconds (default 1 hour).
-- [OK] `create_automatic_backup(operation_name)` - Create an automatic backup before major operations.
-
-Args:
-    operation_name: Name of the operation being performed
-
-Returns:
-    Path to the backup file, or None if failed
-- [OK] `create_backup(self, backup_name, include_users, include_config, include_logs, include_code)` - Create a comprehensive backup with validation.
-
-Returns:
-    Optional[str]: Path to backup file, None if failed
-- [OK] `ensure_backup_directory(self)` - Ensure backup directory exists with validation.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `list_backups(self)` - List all available backups with metadata.
-- [OK] `perform_safe_operation(operation_func)` - Perform an operation with automatic backup and rollback capability.
-
-Args:
-    operation_func: Function to perform
-    *args: Arguments for the operation function
-    **kwargs: Keyword arguments for the operation function
-
-Returns:
-    True if operation succeeded, False if it failed and was rolled back
-- [OK] `restore_backup(self, backup_path, restore_users, restore_config)` - Restore backup with validation.
-
-Returns:
-    bool: True if successful, False if failed
-- [OK] `restore_backup_to_path(self, backup_path, destination, restore_users, restore_config)` - Restore backup contents into an isolated destination path.
-
-This API is non-destructive to active runtime data directories.
-- [OK] `validate_backup(self, backup_path)` - Validate a backup file for integrity and completeness.
-
-Args:
-    backup_path: Path to the backup file
-
-Returns:
-    Tuple of (is_valid, list_of_errors)
-- [OK] `validate_system_state()` - Validate the current system state for consistency.
-
-Returns:
-    True if system is in a valid state, False otherwise
-**Classes:**
-- [OK] `BackupManager` - Manages automatic backups and rollback operations.
-  - [OK] `BackupManager.__init__(self)` - Initialize the BackupManager with default settings.
-
-Sets up backup directory, maximum backup count, and ensures backup directory exists.
-  - [OK] `BackupManager._backup_config_files_to_directory(self, backup_root)` - Backup configuration files to a directory payload.
-  - [OK] `BackupManager._backup_log_files_to_directory(self, backup_root)` - Backup log files to a directory payload.
-  - [OK] `BackupManager._backup_project_code_to_directory(self, backup_root)` - Backup project code files to a directory payload.
-  - [OK] `BackupManager._backup_user_data_to_directory(self, backup_root)` - Backup all user data directories to a directory payload.
-  - [OK] `BackupManager._cleanup_old_backups(self)` - Remove old backups by count and age retention policy.
-  - [OK] `BackupManager._copy_directory_prefix_to_destination(self, backup_root, prefix, destination)` - Copy files from backup_root/<prefix> to destination/<prefix>.
-  - [OK] `BackupManager._create_backup__cleanup_old_backups(self)` - Clean up old backups by count and age.
-  - [OK] `BackupManager._create_backup__create_directory_payload(self, backup_dir_path, backup_name, include_users, include_config, include_logs, include_code)` - Create non-zipped directory backup payload.
-  - [OK] `BackupManager._create_backup__setup_backup(self, backup_name)` - Setup backup name and path parameters.
-  - [OK] `BackupManager._get_backup_artifact_size_bytes(self, backup_path)` - Return size in bytes for file or directory backup artifact.
-  - [OK] `BackupManager._get_backup_info(self, backup_path)` - Get information about a specific backup.
-  - [OK] `BackupManager._is_directory_backup_path(self, file_path)` - Return True when path is a backup directory with manifest.
-  - [OK] `BackupManager._is_weekly_backup_artifact(self, file_path)` - Return True when backup artifact name indicates weekly cadence.
-  - [OK] `BackupManager._restore_backup_subdirectory(self, backup_root, subdirectory, base_dir)` - Restore one top-level backup subdirectory into the data directory.
-  - [OK] `BackupManager._restore_config_files_from_directory(self, backup_root)` - Restore config files from directory backup.
-  - [OK] `BackupManager._restore_user_data_from_directory(self, backup_root)` - Restore user data from directory backup.
-  - [OK] `BackupManager._validate_backup__check_file_exists(self, backup_path, errors)` - Check if the backup file exists and add error if not.
-  - [OK] `BackupManager._validate_backup__validate_directory_backup(self, backup_path)` - Validate directory backup integrity and contents.
-  - [OK] `BackupManager.create_backup(self, backup_name, include_users, include_config, include_logs, include_code)` - Create a comprehensive backup with validation.
-
-Returns:
-    Optional[str]: Path to backup file, None if failed
-  - [OK] `BackupManager.ensure_backup_directory(self)` - Ensure backup directory exists with validation.
-
-Returns:
-    bool: True if successful, False if failed
-  - [OK] `BackupManager.list_backups(self)` - List all available backups with metadata.
-  - [OK] `BackupManager.restore_backup(self, backup_path, restore_users, restore_config)` - Restore backup with validation.
-
-Returns:
-    bool: True if successful, False if failed
-  - [OK] `BackupManager.restore_backup_to_path(self, backup_path, destination, restore_users, restore_config)` - Restore backup contents into an isolated destination path.
-
-This API is non-destructive to active runtime data directories.
-  - [OK] `BackupManager.validate_backup(self, backup_path)` - Validate a backup file for integrity and completeness.
-
-Args:
-    backup_path: Path to the backup file
-
-Returns:
-    Tuple of (is_valid, list_of_errors)
-
 #### `core/config.py`
 **Functions:**
 - [OK] `__init__(self, message, missing_configs, warnings)` - Initialize the object.
@@ -4038,6 +3919,15 @@ Never includes exact steps, HR, HRV, or device names.
 - [MISSING] `is_personalization_active(user_id)` - No description
 - [OK] `resolve_active_health_signal(user_id)` - Today's signal when synced; otherwise the latest usable recent signal.
 - [MISSING] `should_avoid_productivity_pressure(user_id)` - No description
+
+#### `core/launch_env.py`
+**Functions:**
+- [OK] `prepare_launch_environment(script_dir)` - Create an environment dict that prefers the project's virtualenv.
+
+Sets up PATH and PYTHONPATH so the venv is used and project imports work.
+- [OK] `resolve_python_interpreter(script_dir)` - Return the preferred Python executable for the given project directory.
+
+Checks for virtual environment Python first, then falls back to system Python.
 
 #### `core/logger.py`
 **Functions:**
@@ -4912,8 +4802,6 @@ Raises ValidationError if invalid.
 - [OK] `format_time_compact_hour_minute(dt)` - Format a datetime as HHMM for compact identifiers.
 - [OK] `format_time_tuple(time_tuple, fmt)` - Format a time tuple using a provided format string.
 - [OK] `format_timestamp(dt, fmt)` - Format a datetime using a provided format string. Returns "" for None.
-- [OK] `format_timestamp_milliseconds(dt)` - Debug-only: format to milliseconds (3 decimals).
-Example output: "2026-01-18 12:34:56.789"
 - [OK] `load_and_localize_datetime(datetime_str, timezone_str)` - Parse a canonical minute timestamp and localize it to a timezone.
 
 This helper is scheduler-facing: callers pass the persisted
@@ -4923,9 +4811,6 @@ when the timestamp/timezone is invalid.
 
 This is the canonical replacement for datetime.now() in places that need a
 datetime object (arithmetic/comparisons) rather than a formatted string.
-- [OK] `now_datetime_minute()` - Current local-naive datetime rounded to minute precision matching TIMESTAMP_MINUTE.
-
-Use for scheduler/UI state where minute precision is the canonical persisted shape.
 - [OK] `now_datetime_utc()` - Current timezone-aware UTC datetime with second precision.
 - [OK] `now_timestamp_filename()` - Current local timestamp formatted with TIMESTAMP_FILENAME.
 - [OK] `now_timestamp_full()` - Current local timestamp formatted with TIMESTAMP_FULL.
@@ -6028,6 +5913,10 @@ Returns:
   - [MISSING] `BaseItemModel.validate_optional_timestamp_fields(cls, value)` - No description
   - [MISSING] `BaseItemModel.validate_required_timestamp(cls, value)` - No description
 - [OK] `SourceModel` - Best-known origin of a persisted record.
+
+#### `storage/user_data_v2_envelopes.py`
+**Functions:**
+- [OK] `validate_v2_document(document_type, data)` - Validate a v2 document and return normalized data plus validation errors.
 
 #### `storage/user_data_validation.py`
 **Functions:**

@@ -254,6 +254,36 @@ def get_exclusions(tool_type: str | None = None, context: str = "development") -
     return exclusions
 
 
+def _pattern_matches_path(pattern: str, normalized_path: str) -> bool:
+    """Return True when *pattern* matches *normalized_path* (forward-slash paths).
+
+    Bare names such as ``env`` or ``venv`` match whole path segments only so
+    filenames like ``user_data_v2_envelopes.py`` are not excluded.
+    """
+    import fnmatch
+
+    if any(ch in pattern for ch in "*?[]"):
+        return (
+            fnmatch.fnmatch(normalized_path, pattern)
+            or fnmatch.fnmatch(normalized_path, f"*/{pattern}")
+        )
+
+    if "/" in pattern:
+        trimmed = pattern.rstrip("/")
+        return (
+            normalized_path == trimmed
+            or normalized_path.startswith(pattern)
+            or f"/{trimmed}/" in normalized_path
+            or normalized_path.endswith(f"/{trimmed}")
+        )
+
+    path_parts = normalized_path.split("/")
+    if pattern.startswith("."):
+        return pattern in path_parts
+
+    return pattern in path_parts
+
+
 def should_exclude_file(
     file_path, tool_type: str | None = None, context: str = "development"
 ) -> bool:
@@ -269,6 +299,7 @@ def should_exclude_file(
         True if file should be excluded
     """
     import fnmatch
+
     exclusions = get_exclusions(tool_type, context)
 
     # Convert Path object to string if needed
@@ -306,8 +337,7 @@ def should_exclude_file(
 
     # Check standard exclusions
     for pattern in exclusions:
-        # Handle wildcard patterns with fnmatch
-        if fnmatch.fnmatch(normalized_path, pattern) or pattern in normalized_path:
+        if _pattern_matches_path(pattern, normalized_path):
             return True
 
     return False

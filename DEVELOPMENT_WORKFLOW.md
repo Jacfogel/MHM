@@ -67,8 +67,9 @@ When in doubt: activate the virtual environment, make a backup, then follow the 
 - **Datetime handling (mandatory)**  
   All datetime acquisition, formatting, and parsing must go through `core/time_utilities.py`.
   Direct usage of `datetime.now()`, `strftime()`, or `strptime()` outside this module is not allowed.
-  Use `now_datetime_full()` / `now_datetime_minute()` for datetime objects and the corresponding
-  `now_timestamp_*()` helpers for persisted or serialized timestamps.
+  Use `now_datetime_full()` for second-precision datetime objects, or
+  `parse_timestamp_minute(now_timestamp_minute())` when minute precision is the canonical persisted shape.
+  Use the corresponding `now_timestamp_*()` helpers for persisted or serialized timestamps.
 
 1. **Work inside the virtual environment**  
    - Always ensure your prompt shows `(.venv)` before running Python or test commands.

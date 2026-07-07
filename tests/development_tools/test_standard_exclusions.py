@@ -5,25 +5,15 @@ Tests file exclusion patterns, tool-specific exclusions, and context-specific ex
 """
 
 import pytest
-import importlib.util
-import sys
 from pathlib import Path
 
-# Import using importlib to handle path issues
-project_root = Path(__file__).parent.parent.parent
-exclusions_path = project_root / "development_tools" / "shared" / "standard_exclusions.py"
-spec = importlib.util.spec_from_file_location("development_tools.shared.standard_exclusions", exclusions_path)
-if spec is None or spec.loader is None:
-    raise RuntimeError("Could not load development_tools.shared.standard_exclusions spec")
-exclusions_module = importlib.util.module_from_spec(spec)
-sys.modules["development_tools.shared.standard_exclusions"] = exclusions_module
-spec.loader.exec_module(exclusions_module)
-
-should_exclude_file = exclusions_module.should_exclude_file
-get_exclusions = exclusions_module.get_exclusions
-get_coverage_exclusions = exclusions_module.get_coverage_exclusions
-get_analysis_exclusions = exclusions_module.get_analysis_exclusions
-get_documentation_exclusions = exclusions_module.get_documentation_exclusions
+from development_tools.shared.standard_exclusions import (
+    should_exclude_file,
+    get_exclusions,
+    get_coverage_exclusions,
+    get_analysis_exclusions,
+    get_documentation_exclusions,
+)
 
 
 class TestUniversalExclusions:
@@ -73,6 +63,12 @@ class TestUniversalExclusions:
         """Test that scripts directory is excluded."""
         assert should_exclude_file('scripts/file.py') is True
         assert should_exclude_file('scripts/subdir/file.py') is True
+
+    @pytest.mark.unit
+    def test_env_segment_does_not_match_envelopes_filename(self):
+        """Bare 'env' exclusion must not hit filenames containing 'envelopes'."""
+        assert should_exclude_file('storage/user_data_v2_envelopes.py') is False
+        assert should_exclude_file('tests/unit/test_user_data_v2_envelopes.py', context='development') is False
 
 
 class TestIncludedPaths:

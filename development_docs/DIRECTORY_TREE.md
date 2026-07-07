@@ -2,15 +2,20 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-06 23:40:47
+> **Last Generated**: 2026-07-07 16:32:11
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 0000004C 5EAC:07BC
+Volume serial number is 0000007C 5EAC:07BC
 C:.
+|   .cursorignore
+|   .env
+|   .env.example
+|   .gitattributes
+|   .gitignore
 |   .ruff.toml
 |   ARCHITECTURE.md
 |   CONFIGURATION_REFERENCE.md
@@ -23,6 +28,8 @@ C:.
 |   README.md
 |   requirements.txt
 |   run_headless_service.py
+|   run_mhm.py
+|   run_tests.py
 |   TODO.md
 |
 +---.agents
@@ -63,6 +70,11 @@ C:.
 |           quality-standards.mdc
 |           testing-guidelines.mdc
 |           ui-guidelines.mdc
+|
++---.github
+|   \---workflows
+|           logging-enforcement.yml
+|           nightly-tests.yml
 |
 +---ai
 |   |   PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md
@@ -256,6 +268,7 @@ C:.
 |   |   headless_service.py
 |   |   health_context_builder.py
 |   |   health_signals.py
+|   |   launch_env.py
 |   |   logger.py
 |   |   natural_language_defaults.py
 |   |   network_probe.py
@@ -503,8 +516,6 @@ C:.
 |   |   |
 |   |   +---jsons
     (JSON files created by development tools)
-|   |   +---logs
-    (log files)
 +---integrations
 |   |   __init__.py
 |   |
@@ -594,6 +605,7 @@ C:.
 |   |   user_data_read.py
 |   |   user_data_registry.py
 |   |   user_data_v2_base.py
+|   |   user_data_v2_envelopes.py
 |   |   user_data_validation.py
 |   |   user_data_write.py
 |   |   user_item_storage.py
@@ -745,8 +757,6 @@ C:.
 |   |   |   test_storage_scenarios.py
 |   |   |   test_user_data_read_scenarios.py
 |   |   |
-|   +---data
-    (data files)
 |   +---development_tools
 |   |   |   conftest.py
 |   |   |   regenerate_fixture_status_files.py
@@ -829,6 +839,7 @@ C:.
 |   |   |   test_fix_function_docstrings.py
 |   |   |   test_fix_project_cleanup.py
 |   |   |   test_fix_test_markers.py
+|   |   |   test_fix_version_sync_changelog_archive_order.py
 |   |   |   test_fix_version_sync_file_discovery.py
 |   |   |   test_fix_version_sync_todo_sync.py
 |   |   |   test_flaky_detector.py
@@ -865,6 +876,7 @@ C:.
 |   |   |   test_sharded_static_analysis.py
 |   |   |   test_sharded_static_scan_wiring.py
 |   |   |   test_shared_logging.py
+|   |   |   test_shared_maintenance_scripts.py
 |   |   |   test_standard_exclusions.py
 |   |   |   test_static_analysis_tools.py
 |   |   |   test_status_file_timing.py
@@ -885,7 +897,6 @@ C:.
 |   |   |   test_verify_tool_storage.py
 |   |   |   __init__.py
 |   |   |
-|   +---fixtures
 |   +---integration
 |   |   |   test_account_lifecycle.py
 |   |   |   test_account_management.py
@@ -901,8 +912,6 @@ C:.
 |   |   |
 |   |   +---data
     (data files)
-|   +---logs
-    (log files)
 |   +---notebook
 |   |       __init__.py
 |   |
@@ -923,6 +932,7 @@ C:.
 |   |   +---test_support
 |   |   |   |   conftest_cleanup.py
 |   |   |   |   conftest_cleanup_impl.py
+|   |   |   |   conftest_env.py
 |   |   |   |   conftest_hooks.py
 |   |   |   |   conftest_logging.py
 |   |   |   |   conftest_logging_impl.py
@@ -935,6 +945,7 @@ C:.
 |   |   +---test_utilities
 |   |   |   |   test_data_factory.py
 |   |   |   |   test_data_manager.py
+|   |   |   |   test_environment.py
 |   |   |   |   test_log_path_mocks.py
 |   |   |   |   test_user_data_factory.py
 |   |   |   |   test_user_factory.py
@@ -983,6 +994,7 @@ C:.
 |   |   |   test_ai_action_planner.py
 |   |   |   test_ai_action_request_adapter.py
 |   |   |   test_ai_chatbot_helpers.py
+|   |   |   test_ai_context_builder_envelope.py
 |   |   |   test_ai_context_service.py
 |   |   |   test_ai_deterministic.py
 |   |   |   test_ai_import_boundaries.py
@@ -1021,6 +1033,7 @@ C:.
 |   |   |   test_context_analytics_shared_source.py
 |   |   |   test_context_phraser.py
 |   |   |   test_conversational_context_actionability.py
+|   |   |   test_conversational_context_envelope.py
 |   |   |   test_conversation_flow_reminder_helpers.py
 |   |   |   test_dialog_helpers.py
 |   |   |   test_discord_api_client.py
@@ -1064,6 +1077,7 @@ C:.
 |   |   |   test_notebook_service.py
 |   |   |   test_notebook_validation.py
 |   |   |   test_notebook_validation_error_handling.py
+|   |   |   test_no_direct_env_mutation_policy.py
 |   |   |   test_no_prints_policy.py
 |   |   |   test_pagination.py
 |   |   |   test_product_ai_flow_runtime_wiring.py
@@ -1088,6 +1102,7 @@ C:.
 |   |   |   test_schedule_task_reminder_at_time.py
 |   |   |   test_schemas_validation.py
 |   |   |   test_schema_validation_helpers.py
+|   |   |   test_scripts_exclusion_policy.py
 |   |   |   test_service_utilities_network.py
 |   |   |   test_tags.py
 |   |   |   test_tags_expansion.py
@@ -1108,6 +1123,7 @@ C:.
 |   |   |   test_user_data_manager.py
 |   |   |   test_user_data_presets.py
 |   |   |   test_user_data_read_fields.py
+|   |   |   test_user_data_v2_envelopes.py
 |   |   |   test_user_data_v2_runtime.py
 |   |   |   test_user_data_validation_user_id.py
 |   |   |   test_user_item_storage.py

@@ -120,20 +120,6 @@ def now_datetime_full() -> datetime:
     return dt
 
 
-@_guard("building canonical minute datetime", datetime.min)
-def now_datetime_minute() -> datetime:
-    """
-    Current local-naive datetime rounded to minute precision matching TIMESTAMP_MINUTE.
-
-    Use for scheduler/UI state where minute precision is the canonical persisted shape.
-    """
-    value = now_timestamp_minute()
-    dt = parse_timestamp_minute(value)
-    if dt is None:
-        return datetime.min
-    return dt
-
-
 @_guard("building canonical UTC datetime", datetime.min.replace(tzinfo=timezone.utc))
 def now_datetime_utc() -> datetime:
     """Current timezone-aware UTC datetime with second precision."""
@@ -157,17 +143,6 @@ def format_timestamp(dt: datetime | None, fmt: str) -> str:
     if dt is None:
         return ""
     return dt.strftime(fmt)
-
-
-@_guard("formatting timestamp with milliseconds", "")
-def format_timestamp_milliseconds(dt: datetime | None) -> str:
-    """
-    Debug-only: format to milliseconds (3 decimals).
-    Example output: "2026-01-18 12:34:56.789"
-    """
-    if dt is None:
-        return ""
-    return dt.strftime(TIMESTAMP_WITH_MICROSECONDS)[:-3]
 
 
 @_guard("formatting compact hour-minute timestamp", "")

@@ -13,6 +13,7 @@ import pytest
 
 
 @pytest.mark.unit
+@pytest.mark.user
 def test_scripts_directory_excluded_from_test_discovery():
     """Verify that pytest does not discover any tests in scripts/ directory."""
     project_root = Path(__file__).parent.parent.parent
@@ -70,6 +71,7 @@ def test_scripts_directory_excluded_from_test_discovery():
 
 
 @pytest.mark.unit
+@pytest.mark.user
 def test_scripts_directory_has_no_test_files():
     """Verify that scripts/ directory does not contain test files."""
     project_root = Path(__file__).parent.parent.parent

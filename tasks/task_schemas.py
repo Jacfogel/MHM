@@ -131,6 +131,7 @@ class TaskV2Model(BaseItemModel):
             return sanitize_task_tags([str(value)] if value else [])
         return sanitize_task_tags(value)
 
+    # devtools: ignore[unused-functions]: pydantic model_validator invoked at model construction
     @model_validator(mode="after")
     def validate_completion_status(self) -> TaskV2Model:
         if self.status == "completed" and not self.completion.completed:

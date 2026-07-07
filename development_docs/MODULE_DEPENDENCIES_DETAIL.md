@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-06 23:40:29
+> **Last Generated**: 2026-07-07 16:31:51
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 251
-- **Total Imports Found**: 2144
-- **Dependencies Documented**: 251 (100% coverage)
-- **Standard Library Imports**: 637 (29.7%)
+- **Files Scanned**: 252
+- **Total Imports Found**: 2142
+- **Dependencies Documented**: 252 (100% coverage)
+- **Standard Library Imports**: 634 (29.6%)
 - **Third-Party Imports**: 217 (10.1%)
-- **Local Imports**: 1290 (60.2%)
-- **Last Updated**: 2026-07-06
+- **Local Imports**: 1291 (60.3%)
+- **Last Updated**: 2026-07-07
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 637 imports (29.7%)
+- **Standard Library**: 634 imports (29.6%)
 - **Third-Party**: 217 imports (10.1%)
-- **Local**: 1290 imports (60.2%)
+- **Local**: 1291 imports (60.3%)
 
 ## Module Dependencies by Directory
 
@@ -905,7 +905,8 @@
     - `typing (Any, Literal)`
   - **Third-party**:
     - `pydantic (BaseModel, ConfigDict, Field, field_validator)`
-- **Used by**: None (not imported by other modules)
+- **Used by**:
+  - `storage/user_data_v2_envelopes.py`
 
 **Dependency Changes**:
 - Added: core.time_utilities, storage.user_data_v2_base
@@ -3083,37 +3084,6 @@
 **Enhanced Purpose**: Automatic cache cleanup and maintenance
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `core/backup_manager.py`
-- **Purpose**: Manages automatic backups and rollback operations
-- **Dependencies**:
-  - **Local**:
-    - `core (get_all_user_ids, get_user_data)` (NEW)
-    - `core.config (LOG_AI_FILE, LOG_DISCORD_FILE, LOG_ERRORS_FILE, LOG_MAIN_FILE, LOG_USER_ACTIVITY_FILE, core.config)` (NEW)
-    - `core.error_handling (handle_errors)` (NEW)
-    - `core.file_locking (file_lock)` (NEW)
-    - `core.logger (get_component_logger, get_logger)` (NEW)
-    - `core.time_utilities (TIMESTAMP_FULL, format_timestamp, now_timestamp_filename, now_timestamp_full)` (NEW)
-  - **Standard Library**:
-    - `datetime`
-    - `json`
-    - `os`
-    - `pathlib (Path)`
-    - `shutil`
-    - `time`
-    - `traceback`
-    - `typing (Dict, List, Optional, Tuple)`
-- **Used by**:
-  - `core/auto_cleanup.py`
-  - `scheduler/maintenance.py`
-
-**Dependency Changes**:
-- Added: core, core.config, core.error_handling, core.file_locking, core.logger, core.time_utilities
-- Removed: core/auto_cleanup.py, scheduler/maintenance.py
-
-<!-- MANUAL_ENHANCEMENT_START -->
-**Enhanced Purpose**: Manages automatic backups and rollback operations
-<!-- MANUAL_ENHANCEMENT_END -->
-
 #### `core/config.py`
 - **Purpose**: Configuration management and validation
 - **Dependencies**:
@@ -3148,7 +3118,6 @@
   - `communication/message_processing/response_enhancer.py`
   - `core/admin_account_provisioning.py`
   - `core/auto_cleanup.py`
-  - `core/backup_manager.py`
   - `core/file_operations.py`
   - `core/logger.py`
   - `core/service.py`
@@ -3319,7 +3288,6 @@
   - `communication/reminders/reminder_dispatcher.py`
   - `core/admin_account_provisioning.py`
   - `core/auto_cleanup.py`
-  - `core/backup_manager.py`
   - `core/config.py`
   - `core/file_auditor.py`
   - `core/file_locking.py`
@@ -3327,6 +3295,7 @@
   - `core/headless_service.py`
   - `core/health_context_builder.py`
   - `core/health_signals.py`
+  - `core/launch_env.py`
   - `core/logger.py`
   - `core/natural_language_defaults.py`
   - `core/pagination.py`
@@ -3466,7 +3435,6 @@
     - `threading`
     - `time`
 - **Used by**:
-  - `core/backup_manager.py`
   - `core/user_lookup.py`
   - `storage/user_data_operations.py`
 
@@ -3599,6 +3567,25 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `core/launch_env.py`
+- **Purpose**: Core system module for launch_env
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `os`
+    - `pathlib (Path)`
+    - `sys`
+- **Used by**:
+  - `core/headless_service.py`
+
+**Dependency Changes**:
+- Added: core.error_handling
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `core/logger.py`
 - **Purpose**: Logging system configuration and management
 - **Dependencies**:
@@ -3690,7 +3677,6 @@
   - `communication/reminders/reminder_dispatcher.py`
   - `core/admin_account_provisioning.py`
   - `core/auto_cleanup.py`
-  - `core/backup_manager.py`
   - `core/file_auditor.py`
   - `core/file_locking.py`
   - `core/file_operations.py`
@@ -3899,6 +3885,7 @@
     - `pytz`
 - **Used by**:
   - `core/profile_v2_io.py`
+  - `storage/user_data_v2_envelopes.py`
 
 **Dependency Changes**:
 - Added: core.error_handling, core.time_utilities, storage.user_data_v2_base
@@ -4239,7 +4226,6 @@
   - `communication/message_processing/flows/task_flow.py`
   - `communication/message_processing/user_suggestions.py`
   - `core/auto_cleanup.py`
-  - `core/backup_manager.py`
   - `core/error_handling.py`
   - `core/file_operations.py`
   - `core/health_signals.py`
@@ -4751,6 +4737,7 @@
     - `pydantic (BaseModel, ConfigDict, Field, field_validator)`
 - **Used by**:
   - `messages/message_data_manager.py`
+  - `storage/user_data_v2_envelopes.py`
 
 **Dependency Changes**:
 - Added: core.time_utilities, storage.user_data_v2_base
@@ -5209,6 +5196,7 @@
   - `messages/message_data_manager.py`
   - `messages/message_schemas.py`
   - `storage/user_data_operations.py`
+  - `storage/user_data_v2_envelopes.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_data_manager.py`
   - `tasks/task_schemas.py`
@@ -5216,6 +5204,31 @@
 **Dependency Changes**:
 - Added: core.error_handling, core.time_utilities
 - Removed: checkins/checkin_data_manager.py, checkins/checkin_schemas.py, communication/message_processing/flows/note_flow.py, core/file_operations.py, core/profile_v2_io.py, core/profile_v2_schemas.py, integrations/google_health/schemas.py, messages/message_data_manager.py, messages/message_schemas.py, storage/user_data_operations.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_schemas.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `storage/user_data_v2_envelopes.py`
+- **Purpose**: Module for storage/user_data_v2_envelopes.py
+- **Dependencies**:
+  - **Local**:
+    - `checkins.checkin_schemas (CheckinCollectionV2Model, CheckinV2Model, validate_checkins_v2_document)` (NEW)
+    - `core.profile_v2_schemas (validate_account_v2_document, validate_chat_interactions_v2_document, validate_context_v2_document, validate_preferences_v2_document, validate_schedules_v2_document, validate_tags_v2_document)` (NEW)
+    - `messages.message_schemas (MessageDeliveryCollectionV2Model, MessageDeliveryV2Model, MessageTemplateCollectionV2Model, MessageTemplateV2Model, ScheduleModel, validate_deliveries_v2_document, validate_messages_v2_document)` (NEW)
+    - `notebook.notebook_schemas (NotebookCollectionV2Model, NotebookV2Model)` (NEW)
+    - `notebook.notebook_validation (validate_notebook_v2_document)` (NEW)
+    - `storage.user_data_v2_base (ItemKind, SCHEMA_VERSION, SourceModel, generate_short_id)` (NEW)
+    - `tasks.task_schemas (TaskCollectionV2Model, TaskV2Model)` (NEW)
+    - `tasks.task_validation (validate_tasks_v2_document)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `typing (Any)`
+- **Used by**:
+  - `storage/user_data_operations.py`
+
+**Dependency Changes**:
+- Added: checkins.checkin_schemas, core.profile_v2_schemas, messages.message_schemas, notebook.notebook_schemas, notebook.notebook_validation, storage.user_data_v2_base, tasks.task_schemas, tasks.task_validation
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5407,6 +5420,7 @@
 - **Used by**:
   - `communication/message_processing/flows/task_flow.py`
   - `core/file_operations.py`
+  - `storage/user_data_v2_envelopes.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_service.py`
   - `tasks/task_validation.py`
@@ -5525,6 +5539,7 @@
   - **Standard Library**:
     - `typing (Any)`
 - **Used by**:
+  - `storage/user_data_v2_envelopes.py`
   - `tasks/task_data_manager.py`
 
 **Dependency Changes**:

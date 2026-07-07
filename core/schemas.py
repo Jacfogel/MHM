@@ -233,6 +233,7 @@ class ChannelModel(BaseModel):
     type: Literal["email", "discord"]
     contact: str | None = None
 
+    # devtools: ignore[unused-functions]: pydantic model_validator invoked at model construction
     @model_validator(mode="after")
     def _normalize_contact(self):
         # If contact is missing, leave as None. If present, lightly normalize.
