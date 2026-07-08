@@ -12,13 +12,13 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core import get_user_data
 from core.time_utilities import (
-    now_datetime_full,
-    now_timestamp_full,
     DATE_ONLY,
-    parse_date_only,
     format_timestamp,
+    now_timestamp_full,
+    parse_date_only,
     parse_timestamp_full,
 )
+from scheduler.user_timezone import user_local_now_naive
 
 from tasks.task_data_handlers import (
     load_active_tasks,
@@ -402,7 +402,7 @@ def get_tasks_due_soon(user_id: str, days_ahead: int = 7) -> list[dict[str, Any]
         logger.error("User ID is required for getting tasks due soon")
         return []
     active_tasks = load_active_tasks(user_id)
-    cutoff_date = now_datetime_full() + timedelta(days=days_ahead)
+    cutoff_date = user_local_now_naive(user_id) + timedelta(days=days_ahead)
     due_soon = []
     for task in active_tasks:
         due_date_value = _task_due_date(task)

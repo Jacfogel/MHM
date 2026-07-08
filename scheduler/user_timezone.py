@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 
 import pytz
 
@@ -19,6 +19,7 @@ DEFAULT_SCHEDULER_TIMEZONE = "America/Regina"
 _FALLBACK_LOCALIZED_NOW = pytz.timezone(DEFAULT_SCHEDULER_TIMEZONE).localize(
     datetime(1970, 1, 1, 12, 0, 0)
 )
+_FALLBACK_LOCAL_DATE = date(1970, 1, 1)
 
 
 @handle_errors("resolving user timezone", default_return=DEFAULT_SCHEDULER_TIMEZONE)
@@ -51,3 +52,15 @@ def localized_now_for_user(user_id: str) -> datetime:
     """Timezone-aware 'now' in the user's account timezone."""
     tz = pytz.timezone(resolve_user_timezone_str(user_id))
     return tz.localize(now_datetime_full())
+
+
+@handle_errors("getting user local date", default_return=_FALLBACK_LOCAL_DATE)
+def user_local_date(user_id: str) -> date:
+    """Calendar date 'today' in the user's account timezone."""
+    return localized_now_for_user(user_id).date()
+
+
+@handle_errors("getting user local naive now", default_return=datetime.min)
+def user_local_now_naive(user_id: str) -> datetime:
+    """Naive wall-clock 'now' in the user's account timezone."""
+    return localized_now_for_user(user_id).replace(tzinfo=None)

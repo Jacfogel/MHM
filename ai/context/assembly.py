@@ -7,6 +7,7 @@ from typing import Any
 from ai.context.builder import ContextData, get_context_builder
 from ai.context.service import AIContextEnvelope, build_ai_context_envelope
 from ai.context.phraser import (
+    append_current_datetime_context,
     append_profile_sections,
     phrase_checkin_summary,
     _checkin_completed_today,
@@ -35,13 +36,14 @@ def build_context_parts(
     structured = envelope.structured
     parts: list[str] = []
 
+    append_current_datetime_context(parts, user_id)
     append_profile_sections(parts, context)
     _append_feature_enablement_from_envelope(parts, structured)
     _append_checkin_summary_from_envelope(parts, structured)
     _append_health_guidance_from_envelope(parts, structured)
     _append_activity_and_mood_trends_from_envelope(parts, structured)
     _append_conversation_history_from_envelope(parts, structured)
-    _append_today_checkin_status_from_envelope(parts, structured)
+    _append_today_checkin_status_from_envelope(parts, structured, user_id)
 
     recent_sent_all = _append_recent_sent_messages_from_envelope(parts, structured)
     _append_task_reminder_from_messages(parts, recent_sent_all)
@@ -290,18 +292,19 @@ def _append_conversation_history_from_envelope(
 # not_duplicate: checkin_prompt_sections_share_guard_shape
 @handle_errors("appending today's check-in status from AI envelope", default_return=None)
 def _append_today_checkin_status_from_envelope(
-    parts: list[str], structured: dict[str, Any]
+    parts: list[str], structured: dict[str, Any], user_id: str
 ) -> None:
     """Append today's check-in completion status from envelope data."""
     checkins = structured.get("checkins") or {}
     if not checkins.get("enabled"):
         return
     latest = checkins.get("latest") or {}
-    ts = (checkins.get("daily_status") or {}).get("last_checkin_timestamp") or ""
+    daily_status = checkins.get("daily_status") or {}
+    ts = daily_status.get("last_checkin_timestamp") or ""
     completed_today = False
     completed_at = ""
     if ts:
-        completed_today, completed_at = _checkin_completed_today(ts)
+        completed_today, completed_at = _checkin_completed_today(ts, user_id)
     if completed_today:
         details = []
         if latest.get("mood") is not None:

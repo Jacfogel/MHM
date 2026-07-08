@@ -30,10 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-07-07 - Dev-tools exclusion fix and remove test-only time helper **COMPLETED**
+### 2026-07-07 - Dev-tools exclusion fix and AI datetime context **COMPLETED**
 - Fixed `should_exclude_file` bare-pattern matching (`env`, `venv`, etc.) to use path segments so `user_data_v2_envelopes.py` is no longer wrongly excluded from audits.
 - Removed unused `format_timestamp_milliseconds` and `now_datetime_minute` from `core/time_utilities.py`; pytest hooks inline millisecond formatting; workflow doc points to `parse_timestamp_minute(now_timestamp_minute())` for minute precision.
 - Added `@pytest.mark.user` to three policy guard tests missing domain markers; Pydantic `@model_validator` methods tagged with `unused_functions_exclude`.
+- Product AI now receives an explicit current date/time line in chat and action-planning context, using the user's account timezone via `scheduler.user_timezone`.
+- Check-in "today" detection and task due-soon windows now use `user_local_date()` / `user_local_now_naive()` instead of server-local `date.today()` / `now_datetime_full()`.
 
 ### 2026-07-05 - Planner routing behavior tests and AI error mock fix **COMPLETED**
 - Fixed T-10.x AI functionality error tests to patch `ai.client.lm_studio_client.requests` (HTTP calls moved out of `ai.chat.chatbot` during the `ai/` subpackage refactor).

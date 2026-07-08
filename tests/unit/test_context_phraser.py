@@ -115,6 +115,43 @@ class TestContextPhraser:
         append_profile_sections(parts, {})
         assert parts == []
 
+    @patch("ai.context.phraser.resolve_user_timezone_str", return_value="America/Regina")
+    @patch("ai.context.phraser.localized_now_for_user")
+    def test_phrase_current_datetime_context(self, mock_now, _mock_tz):
+        from datetime import datetime
+
+        import pytz
+
+        mock_now.return_value = pytz.timezone("America/Regina").localize(
+            datetime(2026, 7, 7, 22, 54, 0)
+        )
+        from ai.context.phraser import phrase_current_datetime_context
+
+        text = phrase_current_datetime_context("user-1")
+        assert "Tuesday, 2026-07-07 at 22:54" in text
+        assert "America/Regina" in text
+        assert "authoritative 'now'" in text
+
+    @patch("ai.context.phraser.user_local_date")
+    @patch("ai.context.phraser.parse_timestamp_full")
+    def test_checkin_completed_today_uses_user_local_date(
+        self, mock_parse, mock_user_local_date
+    ):
+        from datetime import date, datetime
+
+        from ai.context.phraser import _checkin_completed_today
+
+        mock_user_local_date.return_value = date(2026, 7, 7)
+        mock_parse.return_value = datetime(2026, 7, 7, 9, 15, 0)
+
+        completed, completed_at = _checkin_completed_today(
+            "2026-07-07 09:15:00", "user-1"
+        )
+
+        assert completed is True
+        assert completed_at == "09:15"
+        mock_user_local_date.assert_called_once_with("user-1")
+
     def test_phrase_checkin_summary_empty_checkins(self):
         builder = ContextBuilder()
         analysis = builder.analyze_context(ContextData(recent_checkins=[]))

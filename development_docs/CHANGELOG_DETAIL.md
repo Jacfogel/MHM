@@ -33,11 +33,14 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
-### 2026-07-07 - Dev-tools exclusion fix and remove test-only time helper
+### 2026-07-07 - Dev-tools exclusion fix and AI datetime context
 - **Exclusion bug**: [`standard_exclusions.py`](../development_tools/shared/standard_exclusions.py) `_pattern_matches_path` matches bare names (`env`, `venv`, ...) as whole path segments instead of substrings, fixing false exclusions of `storage/user_data_v2_envelopes.py` and `tests/unit/test_user_data_v2_envelopes.py` that made v2 validators look unused.
 - **Tests**: `test_env_segment_does_not_match_envelopes_filename` in [`test_standard_exclusions.py`](../tests/development_tools/test_standard_exclusions.py).
 - **Cleanup**: Removed `format_timestamp_milliseconds` and `now_datetime_minute` from [`time_utilities.py`](../core/time_utilities.py); [`conftest_hooks.py`](../tests/test_helpers/test_support/conftest_hooks.py) inlines millisecond formatting for DEBUG pytest log lines; [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) minute-precision guidance uses `parse_timestamp_minute(now_timestamp_minute())`.
 - **Policy tests**: Added `@pytest.mark.user` to [`test_no_direct_env_mutation_policy.py`](../tests/unit/test_no_direct_env_mutation_policy.py) and [`test_scripts_exclusion_policy.py`](../tests/unit/test_scripts_exclusion_policy.py) (fixes `test_pytest_tests_have_required_domain_marker`).
+- **AI datetime context**: Added `format_datetime_for_ai_prompt()` and `DATETIME_DISPLAY_FOR_AI` format; new `phrase_current_datetime_context()` / `append_current_datetime_context()` in [`phraser.py`](../ai/context/phraser.py); `temporal` envelope section in [`service.py`](../ai/context/service.py) (always included in prompt selection); first line in [`assembly.py`](../ai/context/assembly.py) `build_context_parts()`. Uses `localized_now_for_user()` and account timezone so chat and action-planning flows see an authoritative "now" for relative dates.
+- **Impact**: The model can answer "what day is it?", interpret "tomorrow", and ground task/check-in relative language without guessing. Metadata `current_timestamp`/`timezone` were already collected but never shown to the model.
+- **User-local today**: Added `user_local_date()` and `user_local_now_naive()` in [`user_timezone.py`](../scheduler/user_timezone.py); [`checkin_service.py`](../checkins/checkin_service.py) `get_checkin_start_status()`, [`phraser.py`](../ai/context/phraser.py) `_checkin_completed_today()`, and [`task_data_manager.py`](../tasks/task_data_manager.py) `get_tasks_due_soon()` now use account timezone for "today" and due-soon cutoff instead of server-local clock.
 - **Unused-function markers**: `# devtools: ignore[unused-functions]` on Pydantic `@model_validator` hooks in [`task_schemas.py`](../tasks/task_schemas.py) and [`core/schemas.py`](../core/schemas.py).
 
 ### 2026-07-06 - data_honesty post-process leak fix (T-13.2)

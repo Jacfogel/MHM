@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-07 16:31:49
+> **Last Generated**: 2026-07-08 00:04:31
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.9% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 254
-- **Functions Found**: 2436
+- **Functions Found**: 2442
 - **Methods Found**: 1373
 - **Classes Found**: 255
-- **Total Items**: 3809
-- **Functions Documented**: 2163
+- **Total Items**: 3815
+- **Functions Documented**: 2169
 - **Methods Documented**: 1260
 - **Classes Documented**: 184
-- **Total Documented**: 3423
+- **Total Documented**: 3429
 - **Template-Generated**: 46
-- **Last Updated**: 2026-07-07
+- **Last Updated**: 2026-07-08
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (455)
+### **Core System Functions** (456)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (638)
@@ -301,7 +301,7 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `_append_schedule_details_from_envelope(parts, structured)` - Append active schedule details from envelope schedule data.
 - [OK] `_append_task_data_from_envelope(parts, structured)` - Append task summary context from envelope task data.
 - [OK] `_append_task_reminder_from_messages(parts, recent_sent_all)` - Append task-reminder context from recent sent messages.
-- [OK] `_append_today_checkin_status_from_envelope(parts, structured)` - Append today's check-in completion status from envelope data.
+- [OK] `_append_today_checkin_status_from_envelope(parts, structured, user_id)` - Append today's check-in completion status from envelope data.
 - [OK] `_assemble_product_flow_messages(flow_name, user_id, user_prompt)` - Shared builder for product-AI flow message arrays.
 - [OK] `_profile_context_from_envelope(envelope)` - Build the profile/context dict expected by existing phrasing helpers.
 - [OK] `assemble_action_result_messages(user_id, user_prompt, result_metadata)` - Build system + user messages for result-aware response generation.
@@ -557,12 +557,13 @@ Returns:
 
 #### `ai/context/phraser.py`
 **Functions:**
-- [MISSING] `_checkin_completed_today(ts)` - No description
+- [MISSING] `_checkin_completed_today(ts, user_id)` - No description
 - [MISSING] `_feature_status_lines(user_id)` - No description
 - [OK] `_phrase_recent_sent_messages(parts, recent_sent_all)` - Append recent automated-message lines; return full list for follow-up helpers.
 - [OK] `append_activity_and_mood_trends(parts, user_id, context)` - Recent activity counts and mood trend summary from get_ai_context.
 - [OK] `append_checkin_summary(parts, user_id)` - Recent check-in analytics phrased from ``ContextBuilder.analyze_context``.
 - [MISSING] `append_conversation_history(parts, context)` - No description
+- [OK] `append_current_datetime_context(parts, user_id)` - Prepend current date/time awareness for the user's account timezone.
 - [OK] `append_feature_enablement(parts, user_id)` - Tell the model which product features are enabled for this user.
 - [OK] `append_health_guidance(parts, user_id)` - Append safe wellness guidance (no raw wearable metrics).
 - [OK] `append_profile_sections(parts, context)` - Profile, neurodivergent context, and goals from get_ai_context.
@@ -572,6 +573,7 @@ Returns:
 - [MISSING] `append_task_reminder(parts, recent_sent_all)` - No description
 - [MISSING] `append_today_checkin_status(parts, user_id)` - No description
 - [OK] `phrase_checkin_summary(analysis, recent_checkins)` - Turn ``ContextAnalysis`` check-in metrics into natural-language summary text.
+- [OK] `phrase_current_datetime_context(user_id)` - Return an authoritative 'now' line for product-AI prompts.
 
 #### `ai/context/service.py`
 **Functions:**
@@ -584,6 +586,7 @@ Returns:
 - [OK] `_build_notebook_context(user_id)` - Build structured notebook context through notebook service APIs.
 - [OK] `_build_schedule_context(schedules)` - Build structured schedule context and active schedule summary.
 - [OK] `_build_task_context(user_id)` - Build structured task context through task service APIs.
+- [OK] `_build_temporal_context(user_id)` - Build structured current date/time context for the user's timezone.
 - [OK] `_default_prompt_text(name, data)` - Build compact prompt text for a context section.
 - [OK] `_entry_to_dict(entry)` - Convert notebook entries or dict-like values to plain dictionaries.
 - [OK] `_format_account(account)` - Format account fields into compact prompt text.
@@ -4799,6 +4802,7 @@ Raises ValidationError if invalid.
 **Functions:**
 - [OK] `_guard(operation, default_return)` - Log failures and return default_return (mirrors handle_errors defaults for time ops).
 - [OK] `decorator(func)` - Wrap ``func`` so failures are logged and ``default_return`` is used.
+- [OK] `format_datetime_for_ai_prompt(dt)` - Format a datetime for product-AI context (weekday, date, and time).
 - [OK] `format_time_compact_hour_minute(dt)` - Format a datetime as HHMM for compact identifiers.
 - [OK] `format_time_tuple(time_tuple, fmt)` - Format a time tuple using a provided format string.
 - [OK] `format_timestamp(dt, fmt)` - Format a datetime using a provided format string. Returns "" for None.
@@ -5646,6 +5650,8 @@ priority/due-date logic and scheduled at a random time within that period.
 **Functions:**
 - [OK] `localized_now_for_user(user_id)` - Timezone-aware 'now' in the user's account timezone.
 - [OK] `resolve_user_timezone_str(user_id)` - Return a valid pytz timezone name for ``user_id`` (account ``timezone`` field).
+- [OK] `user_local_date(user_id)` - Calendar date 'today' in the user's account timezone.
+- [OK] `user_local_now_naive(user_id)` - Naive wall-clock 'now' in the user's account timezone.
 
 ### `storage/` - Unknown Directory
 

@@ -68,6 +68,9 @@ def test_ai_context_envelope_includes_populated_product_data(test_data_dir):
     assert envelope is not None
     structured = envelope.structured
     assert envelope.metadata["user_id"] == actual_user_id
+    assert "now_display" in structured["temporal"]
+    assert "timezone" in structured["temporal"]
+    assert "Current date and time for the user:" in envelope.sections["temporal"].prompt_text
     assert envelope.metadata["active_channel"] == "discord"
     assert envelope.metadata["context_version"] == 1
     assert "features" in structured["account"]
@@ -99,6 +102,7 @@ def test_ai_context_prompt_selection_records_included_sections(test_data_dir):
     )
 
     assert envelope is not None
+    assert "temporal" in envelope.included_sections
     assert "account" in envelope.included_sections
     assert "preferences" in envelope.included_sections
     assert "personal_context" in envelope.included_sections

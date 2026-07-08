@@ -10,7 +10,15 @@ from core.error_handling import handle_errors
 from core.health_context_builder import build_safe_health_guidance_summary
 from core.response_tracking import get_recent_chat_interactions
 from core.schedule_utilities import get_active_schedules
-from core.time_utilities import now_timestamp_full
+from core.time_format_constants import DATE_DISPLAY_WEEKDAY
+from core.time_utilities import (
+    DATE_ONLY,
+    TIME_ONLY_MINUTE,
+    format_datetime_for_ai_prompt,
+    format_timestamp,
+    now_timestamp_full,
+)
+from scheduler.user_timezone import localized_now_for_user, resolve_user_timezone_str
 
 
 @dataclass(frozen=True)
@@ -82,6 +90,14 @@ def build_ai_context_envelope(
     schedules = _unwrap_section(user_data, "schedules")
 
     sections: dict[str, AIContextSection] = {}
+    from ai.context.phraser import phrase_current_datetime_context
+
+    sections["temporal"] = _section(
+        "temporal",
+        _build_temporal_context(user_id),
+        prompt_text=phrase_current_datetime_context(user_id),
+        source="scheduler.user_timezone + core.time_utilities",
+    )
     sections["account"] = _section(
         "account",
         account,
@@ -200,6 +216,20 @@ def _unwrap_section(user_data: dict[str, Any], section_name: str) -> dict[str, A
     if isinstance(section, dict) and isinstance(section.get(section_name), dict):
         return section[section_name]
     return section if isinstance(section, dict) else {}
+
+
+@handle_errors("building temporal context", default_return={})
+def _build_temporal_context(user_id: str) -> dict[str, Any]:
+    """Build structured current date/time context for the user's timezone."""
+    now = localized_now_for_user(user_id)
+    tz_name = resolve_user_timezone_str(user_id)
+    return {
+        "now_display": format_datetime_for_ai_prompt(now),
+        "timezone": tz_name,
+        "date": format_timestamp(now, DATE_ONLY),
+        "time": format_timestamp(now, TIME_ONLY_MINUTE),
+        "weekday": format_timestamp(now, DATE_DISPLAY_WEEKDAY),
+    }
 
 
 @handle_errors("formatting account context", default_return="")
@@ -421,6 +451,7 @@ def _select_prompt_sections(
 
     request = prompt_request.lower()
     selected = {
+        "temporal",
         "account",
         "preferences",
         "personal_context",

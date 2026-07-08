@@ -23,11 +23,45 @@ from checkins.checkin_data_manager import (
 from messages.message_data_manager import (
     is_automated_messages_enabled,
 )
-from core.time_utilities import TIME_ONLY_MINUTE, format_timestamp, parse_timestamp_full
+from core.time_utilities import (
+    TIME_ONLY_MINUTE,
+    format_datetime_for_ai_prompt,
+    format_timestamp,
+    parse_timestamp_full,
+)
+from scheduler.user_timezone import (
+    localized_now_for_user,
+    resolve_user_timezone_str,
+    user_local_date,
+)
 from tasks import are_tasks_enabled, get_tasks_due_soon, get_user_task_stats, load_active_tasks
 from tasks.task_data_handlers import runtime_task_due_date
 
 logger = get_component_logger("ai")
+
+
+@handle_errors("phrasing current datetime context", default_return="")
+def phrase_current_datetime_context(user_id: str) -> str:
+    """Return an authoritative 'now' line for product-AI prompts."""
+    now = localized_now_for_user(user_id)
+    tz_name = resolve_user_timezone_str(user_id)
+    formatted = format_datetime_for_ai_prompt(now)
+    if not formatted:
+        return ""
+    return (
+        f"Current date and time for the user: {formatted} ({tz_name}). "
+        "Treat this as the authoritative 'now' when interpreting today, tomorrow, "
+        "this week, or other relative dates and times."
+    )
+
+
+@handle_errors("appending current datetime context", default_return=None)
+def append_current_datetime_context(parts: list[str], user_id: str) -> None:
+    """Prepend current date/time awareness for the user's account timezone."""
+    line = phrase_current_datetime_context(user_id)
+    if line:
+        parts.append(line)
+
 
 _FEATURE_STATUS_UNKNOWN = (
     "IMPORTANT - Feature availability: check-ins status unknown, "
@@ -238,9 +272,12 @@ def append_conversation_history(parts: list[str], context: dict[str, Any]) -> No
 
 
 @handle_errors("parsing today's check-in timestamp", default_return=(False, ""))
-def _checkin_completed_today(ts: str) -> tuple[bool, str]:
+def _checkin_completed_today(ts: str, user_id: str | None = None) -> tuple[bool, str]:
     dt = parse_timestamp_full(ts)
-    if dt is not None and dt.date() == date.today():
+    if dt is None:
+        return False, ""
+    today = user_local_date(user_id) if user_id else date.today()
+    if dt.date() == today:
         return True, format_timestamp(dt, TIME_ONLY_MINUTE)
     return False, ""
 
@@ -261,7 +298,7 @@ def append_today_checkin_status(parts: list[str], user_id: str) -> None:
         mood_val = recent_checkins[0].get("mood")
         energy_val = recent_checkins[0].get("energy")
         if ts:
-            completed_today, completed_at = _checkin_completed_today(ts)
+            completed_today, completed_at = _checkin_completed_today(ts, user_id)
 
     if completed_today:
         details = []

@@ -27,6 +27,7 @@ TIMESTAMP_FILENAME = "%Y-%m-%d_%H-%M-%S"
 # Display-only formats (never for parsing critical state)
 DATE_DISPLAY_MONTH_DAY = "%b %d"
 DATE_DISPLAY_WEEKDAY = "%A"
+DATETIME_DISPLAY_FOR_AI = "%A, %Y-%m-%d at %H:%M"
 
 # Full timestamp with sub-second precision (debug only)
 TIMESTAMP_WITH_MICROSECONDS = "%Y-%m-%d %H:%M:%S.%f"

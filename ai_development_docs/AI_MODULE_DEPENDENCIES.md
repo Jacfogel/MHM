@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-07 16:32:09
+> **Last Generated**: 2026-07-08 00:04:55
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 252
-- **Total Imports**: 2142
-- **Standard Library**: 634 (29.6%)
+- **Total Imports**: 2147
+- **Standard Library**: 633 (29.5%)
 - **Third-Party**: 217 (10.1%)
-- **Local Imports**: 1291 (60.3%)
+- **Local Imports**: 1297 (60.4%)
 
 ## Dependency Decision Trees
 
@@ -118,7 +118,7 @@ External libraries provide channel and UI support.
 - `communication/message_processing/interaction_manager.py` -> 17 unique local dependencies (heavy coupling) (18 import statements; 1 duplicate)
 - `ai/__init__.py` -> 16 unique local dependencies (heavy coupling)
 - `ai/chat/chatbot.py` -> 16 unique local dependencies (heavy coupling) (17 import statements; 1 duplicate)
-- `communication/communication_channels/discord/bot.py` -> 14 unique local dependencies (heavy coupling) (18 import statements; 4 duplicate)
+- `ai/context/service.py` -> 14 unique local dependencies (heavy coupling) (15 import statements; 1 duplicate)
 
 ### Third-Party Risks
 - `ui/admin_actions.py` -> PySide6.QtWidgets (38 modules use this)

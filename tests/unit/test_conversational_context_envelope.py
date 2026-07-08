@@ -67,10 +67,19 @@ def _envelope() -> AIContextEnvelope:
     )
 
 
-def test_build_context_parts_phrases_from_supplied_envelope():
+def test_build_context_parts_phrases_from_supplied_envelope(monkeypatch):
+    monkeypatch.setattr(
+        "ai.context.assembly.append_current_datetime_context",
+        lambda parts, user_id: parts.append(
+            "Current date and time for the user: Tuesday, 2026-07-07 at 22:54 (America/Regina). "
+            "Treat this as the authoritative 'now' when interpreting today, tomorrow, "
+            "this week, or other relative dates and times."
+        ),
+    )
     parts = build_context_parts("ignored-user", envelope=_envelope())
     joined = "\n".join(parts)
 
+    assert "Current date and time for the user:" in joined
     assert "Julie's" not in joined
     assert "The user's preferred name is Julie" in joined
     assert "task management is enabled" in joined

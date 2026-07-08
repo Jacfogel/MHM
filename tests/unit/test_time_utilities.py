@@ -59,6 +59,17 @@ def test_format_time_compact_hour_minute():
 
 @pytest.mark.unit
 @pytest.mark.core
+def test_format_datetime_for_ai_prompt():
+    value = datetime(2026, 7, 7, 22, 54, 0)
+
+    assert (
+        time_utilities.format_datetime_for_ai_prompt(value)
+        == "Tuesday, 2026-07-07 at 22:54"
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.core
 def test_format_time_tuple():
     value = time.struct_time((2026, 5, 12, 0, 0, 0, 1, 132, -1))
 

@@ -30,6 +30,9 @@ def test_get_checkin_start_status_detects_today_checkin():
     ), patch(
         "checkins.checkin_service.parse_timestamp_full",
         return_value=datetime.combine(date.today(), time(8, 0)),
+    ), patch(
+        "checkins.checkin_service.user_local_date",
+        return_value=date.today(),
     ):
         status = checkin_service.get_checkin_start_status("u1")
 

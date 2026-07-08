@@ -10,6 +10,7 @@ from scheduler.user_timezone import (
     DEFAULT_SCHEDULER_TIMEZONE,
     localized_now_for_user,
     resolve_user_timezone_str,
+    user_local_date,
 )
 
 
@@ -36,6 +37,26 @@ class TestResolveUserTimezoneStr:
 
     def test_falls_back_for_empty_user_id(self):
         assert resolve_user_timezone_str("") == DEFAULT_SCHEDULER_TIMEZONE
+
+
+@pytest.mark.unit
+@pytest.mark.scheduler
+class TestUserLocalDate:
+    def test_returns_localized_now_date(self, monkeypatch):
+        from datetime import datetime
+
+        fixed_naive = datetime(2026, 1, 20, 23, 30, 0)
+
+        with patch(
+            "scheduler.user_timezone.resolve_user_timezone_str",
+            return_value="America/Regina",
+        ):
+            monkeypatch.setattr(
+                "scheduler.user_timezone.now_datetime_full",
+                lambda: fixed_naive,
+            )
+
+            assert user_local_date("user-1") == fixed_naive.date()
 
 
 @pytest.mark.unit

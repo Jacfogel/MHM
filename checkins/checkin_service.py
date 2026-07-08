@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
 from typing import Any
 
 from core.error_handling import handle_errors
@@ -13,6 +12,7 @@ from checkins.checkin_data_manager import (
     is_user_checkins_enabled,
 )
 from core.time_utilities import parse_timestamp_full
+from scheduler.user_timezone import user_local_date
 
 
 @dataclass(frozen=True)
@@ -52,7 +52,9 @@ def get_checkin_start_status(
         last_checkin = recent_checkins[0]
         last_checkin_timestamp = runtime_timestamp(last_checkin)
         last_checkin_dt = parse_timestamp_full(last_checkin_timestamp)
-        if last_checkin_dt is not None and last_checkin_dt.date() == date.today():
+        if last_checkin_dt is not None and last_checkin_dt.date() == user_local_date(
+            user_id
+        ):
             return CheckinStartStatus(
                 enabled=True,
                 already_completed_today=True,

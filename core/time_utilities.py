@@ -39,6 +39,7 @@ from collections.abc import Callable, Iterable
 
 from core.time_format_constants import (
     DATE_ONLY,
+    DATETIME_DISPLAY_FOR_AI,
     EXTERNAL_TIMESTAMP_VARIANTS,
     TIME_COMPACT_HOUR_MINUTE,
     TIME_ONLY_MINUTE,
@@ -143,6 +144,12 @@ def format_timestamp(dt: datetime | None, fmt: str) -> str:
     if dt is None:
         return ""
     return dt.strftime(fmt)
+
+
+@_guard("formatting datetime for AI prompt", "")
+def format_datetime_for_ai_prompt(dt: datetime | None) -> str:
+    """Format a datetime for product-AI context (weekday, date, and time)."""
+    return format_timestamp(dt, DATETIME_DISPLAY_FOR_AI)
 
 
 @_guard("formatting compact hour-minute timestamp", "")
