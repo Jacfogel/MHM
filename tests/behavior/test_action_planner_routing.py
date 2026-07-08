@@ -6,6 +6,7 @@ Uses mocked planner output so tests do not require LM Studio or Discord.
 
 from __future__ import annotations
 
+import types
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -23,6 +24,16 @@ from tests.test_helpers.test_utilities import TestUserFactory
 pytestmark = [pytest.mark.behavior, pytest.mark.ai, pytest.mark.communication]
 
 
+def _stub_command_parser(interaction_manager: InteractionManager, parse_fn) -> None:
+    """Replace parser on this manager only; do not mutate the shared singleton."""
+    real_parser = interaction_manager.command_parser
+    interaction_manager.command_parser = types.SimpleNamespace(
+        parse=parse_fn,
+        _rule_based_parse=real_parser._rule_based_parse,
+        get_suggestions=real_parser.get_suggestions,
+    )
+
+
 def _force_low_confidence_parse(interaction_manager: InteractionManager) -> None:
     """Force messages onto the contextual-chat / planner path."""
 
@@ -34,7 +45,7 @@ def _force_low_confidence_parse(interaction_manager: InteractionManager) -> None
             "ai_fallback",
         )
 
-    interaction_manager.command_parser.parse = _parse
+    _stub_command_parser(interaction_manager, _parse)
 
 
 def _force_high_confidence_create_task(interaction_manager: InteractionManager) -> None:
@@ -48,7 +59,7 @@ def _force_high_confidence_create_task(interaction_manager: InteractionManager) 
             "rule_based",
         )
 
-    interaction_manager.command_parser.parse = _parse
+    _stub_command_parser(interaction_manager, _parse)
 
 
 def _mock_planner_plan(plan):

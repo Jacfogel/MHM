@@ -19,7 +19,7 @@ def _create_fast_interaction_manager():
     """Create an interaction manager with deterministic fast-path parsing/chat for tests."""
     app_config.AI_ACTION_PLANNER_ENABLED = False
     interaction_manager = InteractionManager()
-    parser = interaction_manager.command_parser
+    real_parser = interaction_manager.command_parser
 
     def _fast_parse(message, user_id=None):
         text = "" if message is None else str(message)
@@ -29,9 +29,13 @@ def _create_fast_interaction_manager():
                 0.0,
                 "fallback",
             )
-        return parser._rule_based_parse(text)
+        return real_parser._rule_based_parse(text, user_id=user_id)
 
-    interaction_manager.command_parser.parse = _fast_parse
+    interaction_manager.command_parser = types.SimpleNamespace(
+        parse=_fast_parse,
+        _rule_based_parse=real_parser._rule_based_parse,
+        get_suggestions=real_parser.get_suggestions,
+    )
     interaction_manager.enable_ai_enhancement = False
     interaction_manager._handle_contextual_chat = (
         lambda user_id, message, channel_type: InteractionResponse(
