@@ -36,12 +36,7 @@ from ai.prompts.command_registry import (
     get_command_intent_names,
     inject_command_actions_into_prompt,
 )
-from ai.context.builder import (
-    ContextAnalysis,
-    ContextBuilder,
-    ContextData,
-    get_context_builder,
-)
+from ai.context.analytics import ContextAnalysis, analyze_checkin_entries
 from ai.context.service import (
     AIContextEnvelope,
     AIContextSection,
@@ -102,10 +97,8 @@ __all__ = [
     "get_command_intent_names",
     "format_command_actions_for_prompt",
     "inject_command_actions_into_prompt",
-    "ContextBuilder",
-    "get_context_builder",
-    "ContextData",
     "ContextAnalysis",
+    "analyze_checkin_entries",
     "AIContextEnvelope",
     "AIContextSection",
     "build_ai_context_envelope",

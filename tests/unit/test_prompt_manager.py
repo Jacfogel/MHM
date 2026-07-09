@@ -478,66 +478,18 @@ class TestPromptManager:
             result = prompt_manager.create_contextual_prompt("base", "context", "input")
             # Should return empty string on error due to @handle_errors decorator
             assert result == ""
-    
-    def test_create_task_prompt_real_behavior(self, prompt_manager):
-        """Test creating task prompt."""
-        task_description = "Complete project"
-        user_context = "User has ADHD"
-        
-        result = prompt_manager.create_task_prompt(task_description, user_context)
-        
-        assert isinstance(result, str)
-        assert task_description in result
-        assert user_context in result
-        assert "Task:" in result
-    
-    def test_create_task_prompt_no_context_real_behavior(self, prompt_manager):
-        """Test creating task prompt without user context."""
-        task_description = "Complete project"
-        
-        result = prompt_manager.create_task_prompt(task_description)
-        
-        assert isinstance(result, str)
-        assert task_description in result
-        assert "Task:" in result
-    
-    def test_create_task_prompt_error_handling_real_behavior(self, prompt_manager):
-        """Test create_task_prompt error handling."""
-        # Simulate error in get_prompt
-        with patch.object(prompt_manager, 'get_prompt', side_effect=Exception("Error")):
-            result = prompt_manager.create_task_prompt("task")
-            # Should return empty string on error due to @handle_errors decorator
-            assert result == ""
-    
-    def test_create_checkin_prompt_real_behavior(self, prompt_manager):
-        """Test creating checkin prompt."""
-        checkin_type = "daily"
-        user_context = "User mood tracking"
-        
-        result = prompt_manager.create_checkin_prompt(checkin_type, user_context)
-        
-        assert isinstance(result, str)
-        assert checkin_type in result
-        assert user_context in result
-        assert "Check-in Type:" in result
-    
-    def test_create_checkin_prompt_no_context_real_behavior(self, prompt_manager):
-        """Test creating checkin prompt without user context."""
-        checkin_type = "weekly"
-        
-        result = prompt_manager.create_checkin_prompt(checkin_type)
-        
-        assert isinstance(result, str)
-        assert checkin_type in result
-        assert "Check-in Type:" in result
-    
-    def test_create_checkin_prompt_error_handling_real_behavior(self, prompt_manager):
-        """Test create_checkin_prompt error handling."""
-        # Simulate error in get_prompt
-        with patch.object(prompt_manager, 'get_prompt', side_effect=Exception("Error")):
-            result = prompt_manager.create_checkin_prompt("daily")
-            # Should return empty string on error due to @handle_errors decorator
-            assert result == ""
+
+    def test_compose_product_prompt_chat_response_real_behavior(self, prompt_manager):
+        """Test compose_product_prompt for chat_response flow."""
+        template = prompt_manager.compose_product_prompt(
+            "chat_response",
+            context_view={"prompt_text": "User Context:\ntasks enabled"},
+        )
+
+        assert template is not None
+        assert template.name == "product_ai_chat_response"
+        assert "[persona]" in template.content
+        assert "tasks enabled" in template.content
     
     def test_get_prompt_manager_singleton_real_behavior(self):
         """Test that get_prompt_manager returns singleton instance."""

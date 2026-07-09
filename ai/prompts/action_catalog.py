@@ -122,7 +122,7 @@ class AIActionCatalog:
         }
 
 
-_TASK_FIELDS: dict[str, list[AIActionField]] = {
+_TASK_ACTION_FIELDS: dict[str, list[AIActionField]] = {
     "create_task": [
         AIActionField("title", True, "Task title or reminder text."),
         AIActionField("description", False, "Optional task notes."),
@@ -162,21 +162,305 @@ _TASK_FIELDS: dict[str, list[AIActionField]] = {
     ],
     "append_note_to_task": [
         AIActionField("task_identifier", True, "Task number, id, short id, or title."),
-        AIActionField("note", True, "Text to append to task notes."),
+        AIActionField("note_text", True, "Text to append to task notes."),
     ],
-    "task_stats": [],
+    "task_stats": [
+        AIActionField("days", False, "Lookback window in days."),
+        AIActionField("period_name", False, "Named period such as this week."),
+    ],
+    "task_analytics": [
+        AIActionField("days", False, "Lookback window in days."),
+    ],
+    "show_create_hub": [],
+}
+
+_CHECKIN_ACTION_FIELDS: dict[str, list[AIActionField]] = {
+    "start_checkin": [],
+    "checkin_status": [],
+    "checkin_history": [
+        AIActionField("limit", False, "Maximum number of recent check-ins to show."),
+        AIActionField("days", False, "Lookback window in days."),
+    ],
+    "checkin_analysis": [
+        AIActionField("days", False, "Lookback window in days."),
+    ],
+    "completion_rate": [
+        AIActionField("days", False, "Lookback window in days."),
+    ],
+    "quant_summary": [
+        AIActionField("days", False, "Lookback window in days."),
+    ],
+}
+
+_PROFILE_ACTION_FIELDS: dict[str, list[AIActionField]] = {
+    "show_profile": [],
+    "update_profile": [
+        AIActionField("name", False, "Preferred name."),
+        AIActionField("gender_identity", False, "Gender identity value."),
+        AIActionField("email", False, "Account email address."),
+    ],
+    "profile_stats": [],
+}
+
+_SCHEDULE_ACTION_FIELDS: dict[str, list[AIActionField]] = {
+    "show_schedule": [
+        AIActionField("category", False, "tasks, checkins, messages, or all."),
+    ],
+    "update_schedule": [
+        AIActionField("action", True, "enable or disable."),
+        AIActionField("category", True, "tasks, checkins, or messages."),
+    ],
+    "schedule_status": [],
+    "add_schedule_period": [
+        AIActionField("period_name", True, "Name for the new schedule period."),
+        AIActionField("category", True, "tasks, checkins, or messages."),
+        AIActionField("start_time", True, "Period start time."),
+        AIActionField("end_time", True, "Period end time."),
+        AIActionField("days", False, "Optional weekday list."),
+        AIActionField("active", False, "Whether the period starts active."),
+    ],
+    "edit_schedule_period": [
+        AIActionField("period_name", True, "Existing period name."),
+        AIActionField("category", True, "tasks, checkins, or messages."),
+        AIActionField("new_start_time", False, "Updated start time."),
+        AIActionField("new_end_time", False, "Updated end time."),
+    ],
+}
+
+_ANALYTICS_ACTION_FIELDS: dict[str, list[AIActionField]] = {
+    "show_analytics": [
+        AIActionField("days", False, "Lookback window in days."),
+    ],
+    "mood_trends": [
+        AIActionField("days", False, "Lookback window in days."),
+    ],
+    "energy_trends": [
+        AIActionField("days", False, "Lookback window in days."),
+    ],
+    "habit_analysis": [
+        AIActionField("days", False, "Lookback window in days."),
+    ],
+    "sleep_analysis": [
+        AIActionField("days", False, "Lookback window in days."),
+    ],
+    "wellness_score": [
+        AIActionField("days", False, "Lookback window in days."),
+    ],
+}
+
+_NOTEBOOK_ACTION_FIELDS: dict[str, list[AIActionField]] = {
+    "create_note": [
+        AIActionField("title", False, "Note title."),
+        AIActionField("description", False, "Note body text."),
+        AIActionField("tags", False, "Optional tags."),
+        AIActionField("group", False, "Optional notebook group."),
+    ],
+    "create_quick_note": [
+        AIActionField("title", False, "Quick note title."),
+        AIActionField("tags", False, "Optional tags."),
+        AIActionField("group", False, "Optional notebook group."),
+    ],
+    "create_journal": [
+        AIActionField("title", False, "Journal entry title."),
+        AIActionField("description", False, "Journal entry body."),
+        AIActionField("tags", False, "Optional tags."),
+        AIActionField("group", False, "Optional notebook group."),
+    ],
+    "create_list": [
+        AIActionField("title", True, "List title."),
+        AIActionField("items", False, "Initial list items."),
+        AIActionField("tags", False, "Optional tags."),
+    ],
+    "list_recent_entries": [
+        AIActionField("limit", False, "Maximum entries to return."),
+        AIActionField("offset", False, "Pagination offset."),
+    ],
+    "list_recent_notes": [
+        AIActionField("limit", False, "Maximum notes to return."),
+        AIActionField("offset", False, "Pagination offset."),
+    ],
+    "show_entry": [
+        AIActionField("entry_ref", True, "Entry id, short id, title, or list name."),
+    ],
+    "append_to_entry": [
+        AIActionField("entry_ref", True, "Entry id, short id, title, or list name."),
+        AIActionField("text", True, "Text to append."),
+    ],
+    "set_entry_body": [
+        AIActionField("entry_ref", True, "Entry id, short id, title, or list name."),
+        AIActionField("text", True, "Replacement body text."),
+    ],
+    "add_tags_to_entry": [
+        AIActionField("entry_ref", True, "Entry id, short id, title, or list name."),
+        AIActionField("tags", True, "Tags to add."),
+    ],
+    "remove_tags_from_entry": [
+        AIActionField("entry_ref", True, "Entry id, short id, title, or list name."),
+        AIActionField("tags", True, "Tags to remove."),
+    ],
+    "search_entries": [
+        AIActionField("query", True, "Search text."),
+    ],
+    "pin_entry": [
+        AIActionField("entry_ref", True, "Entry id, short id, title, or list name."),
+    ],
+    "unpin_entry": [
+        AIActionField("entry_ref", True, "Entry id, short id, title, or list name."),
+    ],
+    "archive_entry": [
+        AIActionField("entry_ref", True, "Entry id, short id, title, or list name."),
+    ],
+    "unarchive_entry": [
+        AIActionField("entry_ref", True, "Entry id, short id, title, or list name."),
+    ],
+    "add_list_item": [
+        AIActionField("entry_ref", True, "List id, short id, title, or name."),
+        AIActionField("item_text", True, "List item text."),
+    ],
+    "toggle_list_item_done": [
+        AIActionField("entry_ref", True, "List id, short id, title, or name."),
+        AIActionField("item_index", True, "One-based list item index."),
+    ],
+    "toggle_list_item_undone": [
+        AIActionField("entry_ref", True, "List id, short id, title, or name."),
+        AIActionField("item_index", True, "One-based list item index."),
+    ],
+    "remove_list_item": [
+        AIActionField("entry_ref", True, "List id, short id, title, or name."),
+        AIActionField("item_index", True, "One-based list item index."),
+    ],
+    "set_entry_group": [
+        AIActionField("entry_ref", True, "Entry id, short id, title, or list name."),
+        AIActionField("group", True, "Target notebook group."),
+    ],
+    "list_entries_by_group": [
+        AIActionField("group", True, "Notebook group name."),
+    ],
+    "list_entries_by_tag": [
+        AIActionField("tag", True, "Tag name."),
+    ],
+    "list_pinned_entries": [],
+    "list_inbox_entries": [],
+    "list_archived_entries": [],
+}
+
+_HELP_ACTION_FIELDS: dict[str, list[AIActionField]] = {
+    "help": [
+        AIActionField("topic", False, "Optional help topic such as tasks or checkin."),
+    ],
+    "commands": [],
+    "examples": [
+        AIActionField("category", False, "Optional examples category."),
+    ],
+    "status": [],
+    "messages": [],
+}
+
+_HEALTH_ACTION_FIELDS: dict[str, list[AIActionField]] = {
+    "connect_google_health": [],
+    "google_health_status": [],
+    "pause_google_health": [],
+    "enable_google_health": [],
+    "delete_google_health_data": [],
+    "sync_google_health": [],
+}
+
+_PREFERENCES_ACTION_FIELDS: dict[str, list[AIActionField]] = {
+    "show_natural_language_defaults": [],
+    "update_natural_language_defaults": [
+        AIActionField("nl_field", True, "Phrase field such as tonight or after_work."),
+        AIActionField("nl_value", True, "Replacement time or value."),
+    ],
+}
+
+_ACTION_FIELDS: dict[str, list[AIActionField]] = {
+    **_TASK_ACTION_FIELDS,
+    **_CHECKIN_ACTION_FIELDS,
+    **_PROFILE_ACTION_FIELDS,
+    **_SCHEDULE_ACTION_FIELDS,
+    **_ANALYTICS_ACTION_FIELDS,
+    **_NOTEBOOK_ACTION_FIELDS,
+    **_HELP_ACTION_FIELDS,
+    **_HEALTH_ACTION_FIELDS,
+    **_PREFERENCES_ACTION_FIELDS,
+}
+
+_INTENT_DOMAIN: dict[str, str] = {
+    intent: domain
+    for domain, fields in (
+        ("tasks", _TASK_ACTION_FIELDS),
+        ("checkins", _CHECKIN_ACTION_FIELDS),
+        ("profile", _PROFILE_ACTION_FIELDS),
+        ("schedules", _SCHEDULE_ACTION_FIELDS),
+        ("analytics", _ANALYTICS_ACTION_FIELDS),
+        ("notebooks", _NOTEBOOK_ACTION_FIELDS),
+        ("help", _HELP_ACTION_FIELDS),
+        ("health", _HEALTH_ACTION_FIELDS),
+        ("preferences", _PREFERENCES_ACTION_FIELDS),
+    )
+    for intent in fields
+}
+
+_INTENT_HANDLER: dict[str, str] = {
+    "show_create_hub": "CreateMenuHandler",
+    "task_stats": "AnalyticsHandler",
+    "task_analytics": "AnalyticsHandler",
+    "checkin_history": "AnalyticsHandler",
+    "checkin_analysis": "AnalyticsHandler",
+    "completion_rate": "AnalyticsHandler",
+    "quant_summary": "AnalyticsHandler",
+    "show_analytics": "AnalyticsHandler",
+    "mood_trends": "AnalyticsHandler",
+    "energy_trends": "AnalyticsHandler",
+    "habit_analysis": "AnalyticsHandler",
+    "sleep_analysis": "AnalyticsHandler",
+    "wellness_score": "AnalyticsHandler",
+    "show_natural_language_defaults": "NaturalLanguageHandler",
+    "update_natural_language_defaults": "NaturalLanguageHandler",
+}
+
+_INTENT_FEATURES: dict[str, list[str]] = {
+    "messages": ["automated_messages"],
+    "show_schedule": ["automated_messages"],
+    "update_schedule": ["automated_messages"],
+    "schedule_status": ["automated_messages"],
+    "add_schedule_period": ["automated_messages"],
+    "edit_schedule_period": ["automated_messages"],
+    "start_checkin": ["checkins"],
+    "checkin_status": ["checkins"],
+    "checkin_history": ["checkins"],
+    "checkin_analysis": ["checkins"],
+    "completion_rate": ["checkins"],
+    "quant_summary": ["checkins"],
+    "show_analytics": ["checkins"],
+    "mood_trends": ["checkins"],
+    "energy_trends": ["checkins"],
+    "habit_analysis": ["checkins"],
+    "sleep_analysis": ["checkins"],
+    "wellness_score": ["checkins"],
+    "task_analytics": ["task_management"],
+    "task_stats": ["task_management"],
+    "connect_google_health": ["google_health"],
+    "google_health_status": ["google_health"],
+    "pause_google_health": ["google_health"],
+    "enable_google_health": ["google_health"],
+    "delete_google_health_data": ["google_health"],
+    "sync_google_health": ["google_health"],
 }
 
 _DOMAIN_FEATURES = {
     "tasks": ["task_management"],
     "checkins": ["checkins"],
-    "messages": ["automated_messages"],
     "schedules": ["automated_messages"],
     "notebooks": ["notebook"],
     "health": ["google_health"],
 }
 
-_DELETE_ACTIONS = {"delete_task", "remove_list_item", "delete_message"}
+_DELETE_ACTIONS = {
+    "delete_task",
+    "remove_list_item",
+    "delete_google_health_data",
+}
 
 
 @handle_errors("building AI action catalog", default_return=AIActionCatalog({}))
@@ -190,9 +474,9 @@ def build_action_catalog() -> AIActionCatalog:
             action_name=intent,
             intent=intent,
             domain=domain,
-            handler_name=_handler_name_for_domain(domain),
+            handler_name=_handler_name_for_intent(intent, domain),
             fields=_fields_for_intent(intent),
-            feature_requirements=_DOMAIN_FEATURES.get(domain, []),
+            feature_requirements=_feature_requirements_for_intent(intent, domain),
             requires_confirmation=intent in _DELETE_ACTIONS,
             result_shape={
                 "message": "user-visible handler response",
@@ -222,14 +506,14 @@ def _get_live_intents() -> list[str]:
 @handle_errors("getting fields for action intent", default_return=[])
 def _fields_for_intent(intent: str) -> list[AIActionField]:
     """Return declared entity fields for an action intent."""
-    return list(_TASK_FIELDS.get(intent, []))
+    return list(_ACTION_FIELDS.get(intent, []))
 
 
 @handle_errors("inferring action domain", default_return="general")
 def _infer_domain(intent: str) -> str:
     """Infer product domain from canonical parser intent name."""
-    if intent in _TASK_FIELDS:
-        return "tasks"
+    if intent in _INTENT_DOMAIN:
+        return _INTENT_DOMAIN[intent]
     if "checkin" in intent:
         return "checkins"
     if "profile" in intent:
@@ -254,9 +538,25 @@ def _infer_domain(intent: str) -> str:
     return "general"
 
 
+@handle_errors("getting feature requirements for action intent", default_return=[])
+def _feature_requirements_for_intent(intent: str, domain: str) -> list[str]:
+    """Return feature gates for an action intent."""
+    if intent in _INTENT_FEATURES:
+        return list(_INTENT_FEATURES[intent])
+    return list(_DOMAIN_FEATURES.get(domain, []))
+
+
+@handle_errors("mapping action intent to handler name", default_return=None)
+def _handler_name_for_intent(intent: str, domain: str) -> str | None:
+    """Return the communication handler class name for an action intent."""
+    if intent in _INTENT_HANDLER:
+        return _INTENT_HANDLER[intent]
+    return _handler_name_for_domain(domain)
+
+
 @handle_errors("mapping action domain to handler name", default_return=None)
 def _handler_name_for_domain(domain: str) -> str | None:
-    """Return the existing communication handler class name for a domain."""
+    """Return the default communication handler class name for a domain."""
     return {
         "tasks": "TaskManagementHandler",
         "checkins": "CheckinHandler",
@@ -267,4 +567,5 @@ def _handler_name_for_domain(domain: str) -> str | None:
         "account": "AccountManagementHandler",
         "help": "HelpHandler",
         "health": "HealthHandler",
+        "preferences": "NaturalLanguageHandler",
     }.get(domain)

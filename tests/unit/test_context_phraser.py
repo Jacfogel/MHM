@@ -1,14 +1,14 @@
 """
 Unit tests for ai/conversational_context/context_phraser.py.
 
-Phrasing helpers use ContextBuilder.analyze_context for check-in metrics.
+Phrasing helpers use analyze_checkin_entries for check-in metrics.
 """
 
 from unittest.mock import patch
 
 import pytest
 
-from ai.context.builder import ContextAnalysis, ContextBuilder, ContextData
+from ai.context.analytics import ContextAnalysis, analyze_checkin_entries
 from ai.context.phraser import (
     append_checkin_summary,
     append_profile_sections,
@@ -153,8 +153,7 @@ class TestContextPhraser:
         mock_user_local_date.assert_called_once_with("user-1")
 
     def test_phrase_checkin_summary_empty_checkins(self):
-        builder = ContextBuilder()
-        analysis = builder.analyze_context(ContextData(recent_checkins=[]))
+        analysis = analyze_checkin_entries([])
         assert phrase_checkin_summary(analysis, []) == (
             "They have not completed any check-ins yet."
         )

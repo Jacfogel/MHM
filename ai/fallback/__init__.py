@@ -14,6 +14,7 @@ from core.logger import get_component_logger
 from ai.fallback.data_access import get_recent_responses, get_user_data
 from ai.fallback.categories import FallbackCategory
 from ai.fallback.coordinator import build_contextual_fallback
+from ai.fallback.context import FallbackContext, build_fallback_context
 from ai.fallback.personalized import build_personalized_message
 from ai.fallback.profile_helpers import personalize_with_profile_name
 
@@ -21,8 +22,10 @@ logger = get_component_logger("ai")
 
 __all__ = [
     "FallbackCategory",
+    "FallbackContext",
     "FallbackResponses",
     "build_contextual_fallback",
+    "build_fallback_context",
     "get_fallback_responses",
     "get_recent_responses",
     "get_user_data",

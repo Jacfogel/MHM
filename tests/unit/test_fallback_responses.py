@@ -29,7 +29,7 @@ FALSE_CAPABILITY_PHRASES = (
     "done! i've",
 )
 
-FALLBACK_PACKAGE_DIR = Path(__file__).resolve().parent.parent.parent / "ai" / "fallback_responses"
+FALLBACK_PACKAGE_DIR = Path(__file__).resolve().parent.parent.parent / "ai" / "fallback"
 FORBIDDEN_IMPORT_PREFIXES = (
     "communication.",
     "communication/",

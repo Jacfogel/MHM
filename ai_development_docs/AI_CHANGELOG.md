@@ -30,6 +30,35 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-09 - Retire PromptManager domain prompt builders **COMPLETED**
+
+Completed:
+
+- Removed `create_task_prompt` / `create_checkin_prompt` from [`ai/prompts/manager.py`](../ai/prompts/manager.py); product-AI flows use `compose_product_prompt` only.
+- Migrated [`tests/unit/test_prompt_manager.py`](../tests/unit/test_prompt_manager.py) to `compose_product_prompt` coverage; dropped inline `checkin` / `task_assistant` fallback templates.
+- Moved `prompt_manager_domain_prompt_builders` to `removed_inventory` in `DEPRECATION_INVENTORY.json`.
+
+Verified:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_prompt_manager.py tests/unit/test_product_ai_prompt_composition.py tests/unit/test_product_ai_phase0_contracts.py -q
+.\.venv\Scripts\python.exe development_tools/run_development_tools.py legacy --clean --dry-run
+```
+
+### 2026-07-08 - Action catalog expansion, fallback alignment, Phase 8 context slice, Phase 0 contracts **PARTIAL**
+- Expanded [`action_catalog.py`](../ai/prompts/action_catalog.py) with entity field metadata for check-ins, profile, schedules, analytics, notebooks, help/messages, health, and preferences; per-intent handler/feature overrides; `note_text` alignment for `append_note_to_task`.
+- Added `FallbackContext` / `build_fallback_context()` in [`context.py`](../ai/fallback/context.py) using `AIContextEnvelope` with `requested_intent="fallback_response"`.
+- Envelope-backed deterministic summaries in [`envelope_summaries.py`](../ai/fallback/envelope_summaries.py) and action-boundary-safe offline hints in [`action_hints.py`](../ai/fallback/action_hints.py).
+- Coordinator routes envelope summaries before keyword fallbacks; new categories `ENVELOPE_SUMMARY` and `ACTION_UNAVAILABLE`.
+- Partial structured-command retry when planner returns `None` but parse confidence is usable (`InteractionManager._try_partial_structured_command`).
+- Action plan executor prefers handler error metadata when execution message is empty.
+- Extracted check-in analytics to [`analytics.py`](../ai/context/analytics.py); envelope-backed [`chatbot_context.py`](../ai/context/chatbot_context.py) for contextual summary dict; legacy bridges logged and registered in `DEPRECATION_INVENTORY.json`.
+- Phase 0 contract tests in [`test_product_ai_phase0_contracts.py`](../tests/unit/test_product_ai_phase0_contracts.py): no direct `ai/` storage writes, dispatcher routing, envelope coverage, post-action task visibility.
+- Retired `analyze_recent_checkin_rows` alias; fallback and tests use `analyze_checkin_entries` directly.
+- Fixed parallel flake in `test_generate_response_fallback_when_lm_unavailable` by stubbing `_ensure_lm_studio_available`.
+- Updated `SYSTEM_AI_GUIDE.md` and `PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md` for removed `ai/context/builder.py`.
+- Tests: [`test_ai_action_catalog.py`](../tests/unit/test_ai_action_catalog.py), [`test_fallback_envelope_alignment.py`](../tests/unit/test_fallback_envelope_alignment.py), planner partial-parse behavior; fixed fallback import-boundary test path.
+
 ### 2026-07-07 - Dev-tools exclusion fix and AI datetime context **COMPLETED**
 - Fixed `should_exclude_file` bare-pattern matching (`env`, `venv`, etc.) to use path segments so `user_data_v2_envelopes.py` is no longer wrongly excluded from audits.
 - Removed unused `format_timestamp_milliseconds` and `now_datetime_minute` from `core/time_utilities.py`; pytest hooks inline millisecond formatting; workflow doc points to `parse_timestamp_minute(now_timestamp_minute())` for minute precision.
@@ -174,22 +203,6 @@ Guidelines:
 - **Feature**: Discord task picker select + detail view (due date / priority / reminders / complete / more flows).
 - **Fix**: Due-date flow accepts `YYYY MM DD` and `YYYY/MM/DD` in addition to `YYYY-MM-DD` (`parse_flexible_date_only` in `core/time_utilities.py`).
 - **Audit hygiene**: Restored `DISCORD_BOT_TOKEN` import; Ruff/Pyright clean; fixed parallel test failures; `@handle_errors` on `_attach_flow_suggestions`; function registry regenerated; ASCII changelog fix applied. Flow audit: docstrings on task/note flow helpers; `# error_handling_exclude` on pure keyword predicates; removed thin-wrapper `is_task_flow_skip_*` facades. Security/docs: pinned `msgpack>=1.2.1` (GHSA-6v7p-g79w-8964); report generator uses plain paths for gitignored audit JSON links.
-
-### 2026-06-21 - Communication coverage expansion and test hygiene **COMPLETED**
-- Added [`test_communication_coverage_expansion.py`](../tests/communication/test_communication_coverage_expansion.py) (39 tests) targeting AI priority #1 gaps: `discord_interaction_router.py`, `create_item_ui.py`, `checkin_flow.py`, and `task_flow.py` reminder/flow edge paths.
-- Extended [`test_message_processing_scenarios.py`](../tests/communication/test_message_processing_scenarios.py) with `discord_response_delivery` embed-only, view-only, and ephemeral branches; extended [`test_status_provider.py`](../tests/ui/test_status_provider.py) with Discord/email/ngrok status and `tail_file_lines` paths.
-- Focused coverage on targeted modules: `discord_interaction_router` ~77%, `create_item_ui` ~61% (up from ~17% / ~25%); all **167** tests under `tests/communication/` pass.
-- Hygiene: removed unused `ParsedCommand` import (Ruff F401); `_discord_interaction()` uses `MagicMock(spec=discord.Interaction)`; guarded `await_args` before `.args[0]` (Pyright 0 warnings on the file).
-
-### 2026-06-18 - Scheduler, storage, and communication domain coverage **COMPLETED**
-- Added `tests/unit/test_scheduler_manager_coverage.py` with scenario tests for `reset_and_reschedule_daily_messages`, `schedule_message_at_random_time`, deferred/skipped send paths, standalone helpers, and `task_reminders` module branches.
-- Extended `tests/unit/test_scheduler_jobs.py` (cleanup import failure) and `tests/core/test_scheduler_maintenance.py` (nonzero delete stderr path).
-- Scheduler package coverage on scheduler-focused tests: **83%** (was ~76%); `manager.py` **81%**, `task_reminders.py` **82%**.
-- Added `tests/core/test_storage_scenarios.py` (17 tests) for `user_data_read` normalization/ID repair, `user_data_write` merge/cross-file invariants/transactions, and `user_data_operations` module wrappers, analytics, and index helpers.
-- Added `tests/communication/test_message_processing_scenarios.py` (74 tests) for `user_suggestions`, `response_enhancer`, `parsing_shortcuts`, `flow_message_dispatcher`, communication `command_registry`, `discord_response_delivery`, `discord_guild_handlers`, and `email/inbound_processor` scenario paths.
-- Communication targets now at **100%** on `user_suggestions.py` and `flow_message_dispatcher.py` in focused runs; re-run `audit --full` to refresh domain totals in `TEST_COVERAGE_REPORT.md`.
-- Hygiene: fixed `datetime.now()` policy violation and unused `MagicMock` import in scheduler coverage tests (Ruff F401 + `test_no_datetime_now_in_tests`).
-- Dev tools: `MissingMarkerFinder` now honors module-level `pytestmark` (fixes false-positive "16 missing category markers" for UI action tests that already had `pytestmark = [pytest.mark.ui, pytest.mark.unit]`).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

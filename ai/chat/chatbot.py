@@ -33,6 +33,7 @@ from core.config import (
 )
 from core.response_tracking import store_chat_interaction
 from user.context_manager import user_context_manager
+from ai.context.chatbot_context import build_chatbot_context_dict
 from ai.prompts.manager import get_prompt_manager
 from ai.client.cache_manager import get_response_cache
 from ai.prompts.command_interpreter import get_command_interpreter
@@ -724,10 +725,15 @@ class AIChatBotSingleton:
         if timeout is None:
             timeout = AI_CONTEXTUAL_RESPONSE_TIMEOUT
 
-        # Get comprehensive context
-        context = user_context_manager.get_ai_context(
+        # Envelope-backed context dict; overlay in-memory session exchanges.
+        context = build_chatbot_context_dict(
             user_id, include_conversation_history=True
         )
+        session_history = user_context_manager.conversation_history.get(user_id, [])[
+            -5:
+        ]
+        if session_history:
+            context["conversation_history"] = session_history
         profile, context_summary, context_str = self._build_contextual_summary(context)
 
         if not self.lm_studio_available:

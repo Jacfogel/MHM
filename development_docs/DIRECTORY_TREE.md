@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-08 00:04:57
+> **Last Generated**: 2026-07-09 11:56:28
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
 > **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
-Volume serial number is 00000023 5EAC:07BC
+Volume serial number is 00000089 5EAC:07BC
 C:.
 |   .cursorignore
 |   .env
@@ -97,19 +97,23 @@ C:.
 |   |   |   __init__.py
 |   |   |
 |   +---context
+|   |   |   analytics.py
 |   |   |   assembly.py
-|   |   |   builder.py
+|   |   |   chatbot_context.py
 |   |   |   history.py
 |   |   |   phraser.py
 |   |   |   service.py
 |   |   |   __init__.py
 |   |   |
 |   +---fallback
+|   |   |   action_hints.py
 |   |   |   categories.py
 |   |   |   checkin_summary.py
+|   |   |   context.py
 |   |   |   conversational.py
 |   |   |   coordinator.py
 |   |   |   data_access.py
+|   |   |   envelope_summaries.py
 |   |   |   personalized.py
 |   |   |   profile_helpers.py
 |   |   |   __init__.py
@@ -655,8 +659,8 @@ C:.
 |   |   |   test_account_management_real_behavior.py
 |   |   |   test_action_planner_routing.py
 |   |   |   test_ai_chatbot_behavior.py
-|   |   |   test_ai_context_builder_behavior.py
-|   |   |   test_ai_context_builder_coverage_expansion.py
+|   |   |   test_ai_context_analytics_coverage_expansion.py
+|   |   |   test_ai_context_envelope_behavior.py
 |   |   |   test_ai_conversation_history_behavior.py
 |   |   |   test_analytics_handler_behavior.py
 |   |   |   test_auto_cleanup_behavior.py
@@ -1044,6 +1048,7 @@ C:.
 |   |   |   test_enhanced_checkin_responses.py
 |   |   |   test_error_categorization.py
 |   |   |   test_error_handling.py
+|   |   |   test_fallback_envelope_alignment.py
 |   |   |   test_fallback_responses.py
 |   |   |   test_file_locking.py
 |   |   |   test_file_locking_platform_branches.py
@@ -1081,6 +1086,7 @@ C:.
 |   |   |   test_no_prints_policy.py
 |   |   |   test_pagination.py
 |   |   |   test_product_ai_flow_runtime_wiring.py
+|   |   |   test_product_ai_phase0_contracts.py
 |   |   |   test_product_ai_prompt_composition.py
 |   |   |   test_profile_handler.py
 |   |   |   test_profile_handler_gap_coverage.py

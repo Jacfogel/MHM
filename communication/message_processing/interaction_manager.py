@@ -61,6 +61,7 @@ class InteractionManager:
             self.ai_chatbot = get_ai_chatbot()
             self.interaction_handlers = get_all_handlers()
             self.min_command_confidence = 0.3
+            self.partial_command_confidence = 0.15
             self.enable_ai_enhancement = True
             self.fallback_to_chat = True
             self._command_definitions = build_command_definitions()
@@ -172,6 +173,11 @@ class InteractionManager:
                 )
                 if planned_response is not None:
                     return planned_response
+                partial_response = self._try_partial_structured_command(
+                    user_id, parsing_result, channel_type
+                )
+                if partial_response is not None:
+                    return partial_response
             return self._handle_contextual_chat(user_id, message, channel_type)
 
         logger.debug("No fallback to chat, returning help")
@@ -268,6 +274,32 @@ class InteractionManager:
     @handle_errors("checking if intent is valid", default_return=False)
     def _is_valid_intent(self, intent: str) -> bool:
         return is_valid_intent(intent, self.interaction_handlers)
+
+    @handle_errors("retrying partial structured command after planner failure", default_return=None)
+    def _try_partial_structured_command(
+        self,
+        user_id: str,
+        parsing_result,
+        channel_type: str,
+    ) -> InteractionResponse | None:
+        """Run rule-based command dispatch when planner failed but parse had usable intent."""
+        intent = parsing_result.parsed_command.intent
+        confidence = parsing_result.confidence
+        if not intent or intent == "unknown":
+            return None
+        if confidence >= self.min_command_confidence:
+            return None
+        if confidence < self.partial_command_confidence:
+            return None
+        if not self._is_valid_intent(intent):
+            return None
+
+        logger.info(
+            "INTERACTION_MANAGER: Planner unavailable; retrying partial structured command "
+            f"for intent {intent} at confidence {confidence:.2f}"
+        )
+        response = self._handle_structured_command(user_id, parsing_result, channel_type)
+        return augment_suggestions(parsing_result.parsed_command, response)
 
     @handle_errors("augmenting suggestions")
     def _augment_suggestions(self, parsed_command, response):

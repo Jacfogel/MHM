@@ -1,10 +1,10 @@
 """
-Confirm conversational phrasing uses the same check-in analytics as ContextBuilder.
+Confirm conversational phrasing uses the same check-in analytics as ai.context.analytics.
 """
 
 import pytest
 
-from ai.context.builder import ContextBuilder, ContextData, analyze_recent_checkin_rows
+from ai.context.analytics import ContextAnalysis, analyze_checkin_entries
 from ai.context.phraser import phrase_checkin_summary
 from ai.fallback.checkin_summary import try_checkin_summary_response
 
@@ -12,7 +12,7 @@ from ai.fallback.checkin_summary import try_checkin_summary_response
 @pytest.mark.unit
 @pytest.mark.ai
 class TestContextAnalyticsSharedSource:
-    """context_builder calculates; context_phraser phrases from ContextAnalysis."""
+    """analytics calculates; context_phraser phrases from ContextAnalysis."""
 
     @pytest.fixture
     def sample_checkins(self):
@@ -25,10 +25,7 @@ class TestContextAnalyticsSharedSource:
     def test_phrase_checkin_summary_uses_analysis_counts_not_recomputed(
         self, sample_checkins
     ):
-        builder = ContextBuilder()
-        analysis = builder.analyze_context(
-            ContextData(recent_checkins=sample_checkins)
-        )
+        analysis = analyze_checkin_entries(sample_checkins)
 
         assert analysis.total_entries == 3
         assert analysis.breakfast_count == 2
@@ -43,43 +40,30 @@ class TestContextAnalyticsSharedSource:
         assert "Most recent check-ins:" in text
 
     def test_empty_checkins_phrased_consistently(self):
-        builder = ContextBuilder()
-        analysis = builder.analyze_context(ContextData(recent_checkins=[]))
-
+        analysis = analyze_checkin_entries([])
         assert analysis.total_entries == 0
         assert phrase_checkin_summary(analysis, []) == (
             "They have not completed any check-ins yet."
         )
 
-    def test_analyze_recent_checkin_rows_matches_analyze_context(self, sample_checkins):
-        builder = ContextBuilder()
-        via_context_data = builder.analyze_context(
-            ContextData(recent_checkins=sample_checkins)
-        )
-        via_helper = analyze_recent_checkin_rows(sample_checkins)
-        assert via_context_data.total_entries == via_helper.total_entries
-        assert via_context_data.breakfast_count == via_helper.breakfast_count
-        assert via_context_data.breakfast_rate == pytest.approx(via_helper.breakfast_rate)
-        assert via_context_data.avg_mood == via_helper.avg_mood
-        assert via_context_data.avg_energy == via_helper.avg_energy
+    def test_analyze_checkin_entries_is_canonical_entry_point(self, sample_checkins):
+        direct = analyze_checkin_entries(sample_checkins)
+        assert direct.total_entries == 3
+        assert direct.breakfast_count == 2
 
     def test_try_checkin_summary_uses_canonical_breakfast_rate(self, sample_checkins):
-        analysis = analyze_recent_checkin_rows(sample_checkins)
+        analysis = analyze_checkin_entries(sample_checkins)
         text, _category = try_checkin_summary_response("did i eat breakfast", analysis, "")
         assert "66" in text or "67" in text
         assert analysis.breakfast_count == 2
         assert analysis.total_entries == 3
 
     def test_try_checkin_summary_does_not_match_breakfast_inside_other_words(self):
-        from ai.context.builder import ContextAnalysis
-
-        # "lately" contains "ate"; must not trigger breakfast handling.
         analysis = ContextAnalysis(total_entries=3, breakfast_rate=80.0)
         result = try_checkin_summary_response("tell me lately", analysis, "")
         assert result is None
 
     def test_try_checkin_summary_mood_branches(self):
-        from ai.context.builder import ContextAnalysis
         from ai.fallback.categories import FallbackCategory
 
         positive = ContextAnalysis(
@@ -96,7 +80,6 @@ class TestContextAnalyticsSharedSource:
         assert "challenging" in text.lower() or "1.5" in text
 
     def test_try_checkin_summary_progress_and_frequency(self):
-        from ai.context.builder import ContextAnalysis
         from ai.fallback.categories import FallbackCategory
 
         analysis = ContextAnalysis(

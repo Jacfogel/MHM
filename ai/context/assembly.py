@@ -4,7 +4,7 @@
 
 from typing import Any
 
-from ai.context.builder import ContextData, get_context_builder
+from ai.context.analytics import analyze_checkin_entries
 from ai.context.service import AIContextEnvelope, build_ai_context_envelope
 from ai.context.phraser import (
     append_current_datetime_context,
@@ -228,9 +228,7 @@ def _append_checkin_summary_from_envelope(
     if not recent:
         parts.append("They have not completed any check-ins yet.")
         return
-    analysis = get_context_builder().analyze_context(
-        ContextData(recent_checkins=recent)
-    )
+    analysis = analyze_checkin_entries(recent)
     parts.append(phrase_checkin_summary(analysis, recent))
 
 
@@ -258,9 +256,7 @@ def _append_activity_and_mood_trends_from_envelope(
         parts.append(
             f"They have completed {count} check-in{'s' if count != 1 else ''} recently"
         )
-    analysis = get_context_builder().analyze_context(
-        ContextData(recent_checkins=recent)
-    )
+    analysis = analyze_checkin_entries(recent)
     if analysis.avg_mood is not None:
         trend_desc = {
             "improving": "improving",

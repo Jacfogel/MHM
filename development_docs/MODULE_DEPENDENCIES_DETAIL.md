@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-08 00:04:33
+> **Last Generated**: 2026-07-09 11:56:12
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 252
-- **Total Imports Found**: 2147
-- **Dependencies Documented**: 252 (100% coverage)
-- **Standard Library Imports**: 633 (29.5%)
-- **Third-Party Imports**: 217 (10.1%)
-- **Local Imports**: 1297 (60.4%)
-- **Last Updated**: 2026-07-08
+- **Files Scanned**: 256
+- **Total Imports Found**: 2175
+- **Dependencies Documented**: 256 (100% coverage)
+- **Standard Library Imports**: 641 (29.5%)
+- **Third-Party Imports**: 217 (10.0%)
+- **Local Imports**: 1317 (60.6%)
+- **Last Updated**: 2026-07-09
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 633 imports (29.5%)
-- **Third-Party**: 217 imports (10.1%)
-- **Local**: 1297 imports (60.4%)
+- **Standard Library**: 641 imports (29.5%)
+- **Third-Party**: 217 imports (10.0%)
+- **Local**: 1317 imports (60.6%)
 
 ## Module Dependencies by Directory
 
@@ -47,8 +47,8 @@
     - `ai.chat.response_generator (ResponseGenerator, get_response_generator)` (NEW)
     - `ai.client.cache_manager (CacheEntry, ContextCache, ResponseCache, get_context_cache, get_response_cache)` (NEW)
     - `ai.client.lm_studio_manager (LMStudioManager, ensure_lm_studio_ready, get_lm_studio_manager, is_lm_studio_ready)` (NEW)
+    - `ai.context.analytics (ContextAnalysis, analyze_checkin_entries)` (NEW)
     - `ai.context.assembly (assemble_action_result_messages, assemble_comprehensive_messages, build_context_parts)` (NEW)
-    - `ai.context.builder (ContextAnalysis, ContextBuilder, ContextData, get_context_builder)` (NEW)
     - `ai.context.history (ConversationHistory, ConversationMessage, ConversationSession, get_conversation_history)` (NEW)
     - `ai.context.service (AIContextEnvelope, AIContextSection, build_ai_context_envelope)` (NEW)
     - `ai.fallback (FallbackCategory, FallbackResponses, build_contextual_fallback, get_fallback_responses)` (NEW)
@@ -60,7 +60,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: ai.chat.action_planner, ai.chat.chatbot, ai.chat.interaction_types, ai.chat.response_generator, ai.client.cache_manager, ai.client.lm_studio_manager, ai.context.assembly, ai.context.builder, ai.context.history, ai.context.service, ai.fallback, ai.prompts.action_catalog, ai.prompts.command_interpreter, ai.prompts.command_registry, ai.prompts.flows, ai.prompts.manager
+- Added: ai.chat.action_planner, ai.chat.chatbot, ai.chat.interaction_types, ai.chat.response_generator, ai.client.cache_manager, ai.client.lm_studio_manager, ai.context.analytics, ai.context.assembly, ai.context.history, ai.context.service, ai.fallback, ai.prompts.action_catalog, ai.prompts.command_interpreter, ai.prompts.command_registry, ai.prompts.flows, ai.prompts.manager
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -143,6 +143,7 @@
     - `ai.client.cache_manager (get_response_cache)` (NEW)
     - `ai.client.lm_studio_client (call_lm_studio_api, test_lm_studio_connection)` (NEW)
     - `ai.client.lm_studio_manager (is_lm_studio_ready)` (NEW)
+    - `ai.context.chatbot_context (build_chatbot_context_dict)` (NEW)
     - `ai.fallback (data_access, get_fallback_responses)` (NEW)
     - `ai.fallback.profile_helpers (name_prefix_from_context)` (NEW)
     - `ai.prompts.command_interpreter (get_command_interpreter)` (NEW)
@@ -171,7 +172,7 @@
   - `communication/message_processing/interaction_manager.py`
 
 **Dependency Changes**:
-- Added: ai.chat.interaction_types, ai.chat.response_generator, ai.chat.response_postprocess, ai.client.cache_manager, ai.client.lm_studio_client, ai.client.lm_studio_manager, ai.fallback, ai.fallback.profile_helpers, ai.prompts.command_interpreter, ai.prompts.manager, core.config, core.error_handling, core.health_context_builder, core.logger, core.response_tracking, user.context_manager
+- Added: ai.chat.interaction_types, ai.chat.response_generator, ai.chat.response_postprocess, ai.client.cache_manager, ai.client.lm_studio_client, ai.client.lm_studio_manager, ai.context.chatbot_context, ai.fallback, ai.fallback.profile_helpers, ai.prompts.command_interpreter, ai.prompts.manager, core.config, core.error_handling, core.health_context_builder, core.logger, core.response_tracking, user.context_manager
 - Removed: ai/__init__.py, ai/chat/__init__.py, ai/chat/action_planner.py, communication/core/channel_orchestrator.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -329,14 +330,42 @@
 - **Purpose**: Communication channel implementation for __init__
 - **Dependencies**:
   - **Local**:
+    - `ai.context.analytics (ContextAnalysis, analyze_checkin_entries)` (NEW)
     - `ai.context.assembly (assemble_comprehensive_messages, build_context_parts)` (NEW)
-    - `ai.context.builder (ContextAnalysis, ContextBuilder, ContextData, analyze_recent_checkin_rows, get_context_builder)` (NEW)
     - `ai.context.history (ConversationHistory, ConversationMessage, ConversationSession, get_conversation_history)` (NEW)
     - `ai.context.service (AIContextEnvelope, AIContextSection, build_ai_context_envelope)` (NEW)
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: ai.context.assembly, ai.context.builder, ai.context.history, ai.context.service
+- Added: ai.context.analytics, ai.context.assembly, ai.context.history, ai.context.service
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `ai/context/analytics.py`
+- **Purpose**: Communication channel implementation for analytics
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `dataclasses (dataclass)`
+    - `typing (Any)`
+- **Used by**:
+  - `ai/__init__.py`
+  - `ai/context/__init__.py`
+  - `ai/context/assembly.py`
+  - `ai/context/chatbot_context.py`
+  - `ai/context/phraser.py`
+  - `ai/fallback/checkin_summary.py`
+  - `ai/fallback/context.py`
+  - `ai/fallback/coordinator.py`
+
+**Dependency Changes**:
+- Added: core.error_handling, core.logger
+- Removed: ai/__init__.py, ai/context/__init__.py, ai/context/assembly.py, ai/context/chatbot_context.py, ai/context/phraser.py, ai/fallback/checkin_summary.py, ai/fallback/context.py, ai/fallback/coordinator.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -346,7 +375,7 @@
 - **Purpose**: Communication channel implementation for assembly
 - **Dependencies**:
   - **Local**:
-    - `ai.context.builder (ContextData, get_context_builder)` (NEW)
+    - `ai.context.analytics (analyze_checkin_entries)` (NEW)
     - `ai.context.phraser (_checkin_completed_today, _phrase_recent_sent_messages, append_current_datetime_context, append_profile_sections, phrase_checkin_summary)` (NEW)
     - `ai.context.service (AIContextEnvelope, build_ai_context_envelope)` (NEW)
     - `ai.prompts.flows (get_product_ai_prompt_flow)` (NEW)
@@ -363,36 +392,30 @@
   - `communication/message_processing/response_enhancer.py`
 
 **Dependency Changes**:
-- Added: ai.context.builder, ai.context.phraser, ai.context.service, ai.prompts.flows, ai.prompts.manager, core.error_handling, tasks.task_data_handlers
+- Added: ai.context.analytics, ai.context.phraser, ai.context.service, ai.prompts.flows, ai.prompts.manager, core.error_handling, tasks.task_data_handlers
 - Removed: ai/__init__.py, ai/chat/response_generator.py, ai/context/__init__.py, communication/message_processing/action_plan_executor.py, communication/message_processing/response_enhancer.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
-#### `ai/context/builder.py`
-- **Purpose**: Communication channel implementation for builder
+#### `ai/context/chatbot_context.py`
+- **Purpose**: Communication channel implementation for chatbot_context
 - **Dependencies**:
   - **Local**:
-    - `ai.context.service (AIContextEnvelope, build_ai_context_envelope)` (NEW)
+    - `ai.context.analytics (analyze_checkin_entries)` (NEW)
+    - `ai.context.service (build_ai_context_envelope)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.time_utilities (now_datetime_full)` (NEW)
   - **Standard Library**:
-    - `dataclasses (dataclass)`
-    - `datetime`
+    - `__future__ (annotations)`
     - `typing (Any)`
 - **Used by**:
-  - `ai/__init__.py`
-  - `ai/context/__init__.py`
-  - `ai/context/assembly.py`
-  - `ai/context/phraser.py`
-  - `ai/fallback/checkin_summary.py`
-  - `ai/fallback/coordinator.py`
+  - `ai/chat/chatbot.py`
 
 **Dependency Changes**:
-- Added: ai.context.service, core.error_handling, core.logger, core.time_utilities
-- Removed: ai/__init__.py, ai/context/__init__.py, ai/context/assembly.py, ai/context/phraser.py, ai/fallback/checkin_summary.py, ai/fallback/coordinator.py
+- Added: ai.context.analytics, ai.context.service, core.error_handling, core.logger
+- Removed: ai/chat/chatbot.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -425,7 +448,7 @@
 - **Purpose**: Communication channel implementation for phraser
 - **Dependencies**:
   - **Local**:
-    - `ai.context.builder (ContextAnalysis, ContextData, get_context_builder)` (NEW)
+    - `ai.context.analytics (ContextAnalysis, analyze_checkin_entries)` (NEW)
     - `checkins.checkin_data_manager (checkin_runtime_timestamp, get_recent_checkins, is_user_checkins_enabled)` (NEW)
     - `core (get_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
@@ -444,8 +467,8 @@
   - `ai/context/service.py`
 
 **Dependency Changes**:
-- Added: ai.context.builder, checkins.checkin_data_manager, core, core.error_handling, core.health_context_builder, core.logger, core.time_utilities, messages.message_data_manager, scheduler.user_timezone, tasks, tasks.task_data_handlers
-- Removed: ai/context/assembly.py
+- Added: ai.context.analytics, checkins.checkin_data_manager, core, core.error_handling, core.health_context_builder, core.logger, core.time_utilities, messages.message_data_manager, scheduler.user_timezone, tasks, tasks.task_data_handlers
+- Removed: ai/context/assembly.py, ai/context/service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -478,12 +501,14 @@
   - `ai/chat/action_planner.py`
   - `ai/context/__init__.py`
   - `ai/context/assembly.py`
-  - `ai/context/builder.py`
+  - `ai/context/chatbot_context.py`
+  - `ai/fallback/context.py`
+  - `ai/fallback/coordinator.py`
   - `ai/prompts/command_interpreter.py`
 
 **Dependency Changes**:
 - Added: ai.context.phraser, ai.prompts.action_catalog, checkins.checkin_service, core, core.error_handling, core.health_context_builder, core.response_tracking, core.schedule_utilities, core.time_format_constants, core.time_utilities, messages.message_data_manager, notebook, scheduler.user_timezone, tasks
-- Removed: ai/__init__.py, ai/chat/action_planner.py, ai/context/__init__.py, ai/context/assembly.py, ai/context/builder.py, ai/prompts/command_interpreter.py
+- Removed: ai/__init__.py, ai/chat/action_planner.py, ai/context/__init__.py, ai/context/assembly.py, ai/context/chatbot_context.py, ai/fallback/context.py, ai/fallback/coordinator.py, ai/prompts/command_interpreter.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -494,6 +519,7 @@
 - **Dependencies**:
   - **Local**:
     - `ai.fallback.categories (FallbackCategory)` (NEW)
+    - `ai.fallback.context (FallbackContext, build_fallback_context)` (NEW)
     - `ai.fallback.coordinator (build_contextual_fallback)` (NEW)
     - `ai.fallback.data_access (get_recent_responses, get_user_data)` (NEW)
     - `ai.fallback.personalized (build_personalized_message)` (NEW)
@@ -503,7 +529,28 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: ai.fallback.categories, ai.fallback.coordinator, ai.fallback.data_access, ai.fallback.personalized, ai.fallback.profile_helpers, core.error_handling, core.logger
+- Added: ai.fallback.categories, ai.fallback.context, ai.fallback.coordinator, ai.fallback.data_access, ai.fallback.personalized, ai.fallback.profile_helpers, core.error_handling, core.logger
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `ai/fallback/action_hints.py`
+- **Purpose**: Communication channel implementation for action_hints
+- **Dependencies**:
+  - **Local**:
+    - `ai.fallback.categories (FallbackCategory)` (NEW)
+    - `ai.fallback.context (FallbackContext)` (NEW)
+    - `ai.prompts.action_catalog (get_action_catalog)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+- **Used by**:
+  - `ai/fallback/coordinator.py`
+
+**Dependency Changes**:
+- Added: ai.fallback.categories, ai.fallback.context, ai.prompts.action_catalog, core.error_handling
+- Removed: ai/fallback/coordinator.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -516,13 +563,15 @@
     - `enum (Enum)`
 - **Used by**:
   - `ai/fallback/__init__.py`
+  - `ai/fallback/action_hints.py`
   - `ai/fallback/checkin_summary.py`
   - `ai/fallback/conversational.py`
   - `ai/fallback/coordinator.py`
+  - `ai/fallback/envelope_summaries.py`
   - `ai/fallback/personalized.py`
 
 **Dependency Changes**:
-- Removed: ai/fallback/__init__.py, ai/fallback/checkin_summary.py, ai/fallback/conversational.py, ai/fallback/coordinator.py, ai/fallback/personalized.py
+- Removed: ai/fallback/__init__.py, ai/fallback/action_hints.py, ai/fallback/checkin_summary.py, ai/fallback/conversational.py, ai/fallback/coordinator.py, ai/fallback/envelope_summaries.py, ai/fallback/personalized.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -532,17 +581,44 @@
 - **Purpose**: Communication channel implementation for checkin_summary
 - **Dependencies**:
   - **Local**:
-    - `ai.context.builder (ContextAnalysis)` (NEW)
+    - `ai.context.analytics (ContextAnalysis)` (NEW)
     - `ai.fallback.categories (FallbackCategory)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
   - **Standard Library**:
     - `re`
 - **Used by**:
   - `ai/fallback/coordinator.py`
+  - `ai/fallback/envelope_summaries.py`
 
 **Dependency Changes**:
-- Added: ai.context.builder, ai.fallback.categories, core.error_handling
-- Removed: ai/fallback/coordinator.py
+- Added: ai.context.analytics, ai.fallback.categories, core.error_handling
+- Removed: ai/fallback/coordinator.py, ai/fallback/envelope_summaries.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `ai/fallback/context.py`
+- **Purpose**: Communication channel implementation for context
+- **Dependencies**:
+  - **Local**:
+    - `ai.context.analytics (analyze_checkin_entries)` (NEW)
+    - `ai.context.service (AIContextEnvelope, build_ai_context_envelope)` (NEW)
+    - `ai.fallback.profile_helpers (name_prefix_from_context, preferred_name_from_context)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `dataclasses (dataclass)`
+    - `typing (Any)`
+- **Used by**:
+  - `ai/fallback/__init__.py`
+  - `ai/fallback/action_hints.py`
+  - `ai/fallback/coordinator.py`
+  - `ai/fallback/envelope_summaries.py`
+
+**Dependency Changes**:
+- Added: ai.context.analytics, ai.context.service, ai.fallback.profile_helpers, core.error_handling
+- Removed: ai/fallback/__init__.py, ai/fallback/action_hints.py, ai/fallback/coordinator.py, ai/fallback/envelope_summaries.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -569,18 +645,24 @@
 - **Purpose**: Communication channel implementation for coordinator
 - **Dependencies**:
   - **Local**:
-    - `ai.context.builder (analyze_recent_checkin_rows)` (NEW)
+    - `ai.context.analytics (analyze_checkin_entries)` (NEW)
+    - `ai.context.service (AIContextEnvelope)` (NEW)
+    - `ai.fallback.action_hints (try_action_unavailable_response)` (NEW)
     - `ai.fallback.categories (FallbackCategory)` (NEW)
     - `ai.fallback.checkin_summary (try_checkin_summary_response)` (NEW)
+    - `ai.fallback.context (FallbackContext, build_fallback_context)` (NEW)
     - `ai.fallback.conversational (default_contextual_response, try_conversational_support, try_new_user_no_context, try_technical_unavailable)` (NEW)
     - `ai.fallback.data_access` (NEW)
+    - `ai.fallback.envelope_summaries (try_envelope_summary_response)` (NEW)
     - `ai.fallback.profile_helpers (load_user_context, name_prefix_from_context, preferred_name_from_context)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
 - **Used by**:
   - `ai/fallback/__init__.py`
 
 **Dependency Changes**:
-- Added: ai.context.builder, ai.fallback.categories, ai.fallback.checkin_summary, ai.fallback.conversational, ai.fallback.data_access, ai.fallback.profile_helpers, core.error_handling
+- Added: ai.context.analytics, ai.context.service, ai.fallback.action_hints, ai.fallback.categories, ai.fallback.checkin_summary, ai.fallback.context, ai.fallback.conversational, ai.fallback.data_access, ai.fallback.envelope_summaries, ai.fallback.profile_helpers, core.error_handling
 - Removed: ai/fallback/__init__.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -602,6 +684,27 @@
 **Dependency Changes**:
 - Added: core, core.response_tracking
 - Removed: ai/fallback/__init__.py, ai/fallback/coordinator.py, ai/fallback/personalized.py, ai/fallback/profile_helpers.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `ai/fallback/envelope_summaries.py`
+- **Purpose**: Communication channel implementation for envelope_summaries
+- **Dependencies**:
+  - **Local**:
+    - `ai.fallback.categories (FallbackCategory)` (NEW)
+    - `ai.fallback.checkin_summary (try_checkin_summary_response)` (NEW)
+    - `ai.fallback.context (FallbackContext, analyze_fallback_checkins)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+- **Used by**:
+  - `ai/fallback/coordinator.py`
+
+**Dependency Changes**:
+- Added: ai.fallback.categories, ai.fallback.checkin_summary, ai.fallback.context, core.error_handling
+- Removed: ai/fallback/coordinator.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -635,12 +738,13 @@
 - **Used by**:
   - `ai/chat/chatbot.py`
   - `ai/fallback/__init__.py`
+  - `ai/fallback/context.py`
   - `ai/fallback/coordinator.py`
   - `ai/fallback/personalized.py`
 
 **Dependency Changes**:
 - Added: ai.fallback.data_access, core.error_handling
-- Removed: ai/chat/chatbot.py, ai/fallback/__init__.py, ai/fallback/coordinator.py, ai/fallback/personalized.py
+- Removed: ai/chat/chatbot.py, ai/fallback/__init__.py, ai/fallback/context.py, ai/fallback/coordinator.py, ai/fallback/personalized.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -678,6 +782,7 @@
   - `ai/__init__.py`
   - `ai/chat/action_planner.py`
   - `ai/context/service.py`
+  - `ai/fallback/action_hints.py`
   - `ai/prompts/__init__.py`
   - `ai/prompts/command_interpreter.py`
   - `communication/message_processing/action_plan_executor.py`
@@ -685,7 +790,7 @@
 
 **Dependency Changes**:
 - Added: ai.prompts.command_registry, core.error_handling
-- Removed: ai/__init__.py, ai/chat/action_planner.py, ai/context/service.py, ai/prompts/__init__.py, ai/prompts/command_interpreter.py, communication/message_processing/action_plan_executor.py, communication/message_processing/action_request_adapter.py
+- Removed: ai/__init__.py, ai/chat/action_planner.py, ai/context/service.py, ai/fallback/action_hints.py, ai/prompts/__init__.py, ai/prompts/command_interpreter.py, communication/message_processing/action_plan_executor.py, communication/message_processing/action_request_adapter.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -3203,15 +3308,19 @@
   - `ai/client/cache_manager.py`
   - `ai/client/lm_studio_client.py`
   - `ai/client/lm_studio_manager.py`
+  - `ai/context/analytics.py`
   - `ai/context/assembly.py`
-  - `ai/context/builder.py`
+  - `ai/context/chatbot_context.py`
   - `ai/context/history.py`
   - `ai/context/phraser.py`
   - `ai/context/service.py`
   - `ai/fallback/__init__.py`
+  - `ai/fallback/action_hints.py`
   - `ai/fallback/checkin_summary.py`
+  - `ai/fallback/context.py`
   - `ai/fallback/conversational.py`
   - `ai/fallback/coordinator.py`
+  - `ai/fallback/envelope_summaries.py`
   - `ai/fallback/personalized.py`
   - `ai/fallback/profile_helpers.py`
   - `ai/prompts/action_catalog.py`
@@ -3393,7 +3502,7 @@
 
 **Dependency Changes**:
 - Added: core.network_probe, core.time_utilities
-- Removed: ai/chat/action_boundaries.py, ai/chat/action_planner.py, ai/chat/chatbot.py, ai/chat/interaction_types.py, ai/chat/response_generator.py, ai/chat/response_postprocess.py, ai/client/cache_manager.py, ai/client/lm_studio_client.py, ai/client/lm_studio_manager.py, ai/context/assembly.py, ai/context/builder.py, ai/context/history.py, ai/context/phraser.py, ai/context/service.py, ai/fallback/__init__.py, ai/fallback/checkin_summary.py, ai/fallback/conversational.py, ai/fallback/coordinator.py, ai/fallback/personalized.py, ai/fallback/profile_helpers.py, ai/prompts/action_catalog.py, ai/prompts/command_interpreter.py, ai/prompts/command_registry.py, ai/prompts/flows.py, ai/prompts/manager.py, checkins/checkin_analytics.py, checkins/checkin_data_manager.py, checkins/checkin_dynamic_manager.py, checkins/checkin_service.py, collections.abc, communication/command_handlers/account_handler.py, communication/command_handlers/analytics_formatting.py, communication/command_handlers/analytics_handler.py, communication/command_handlers/base_handler.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/create_menu_handler.py, communication/command_handlers/handler_registry.py, communication/command_handlers/health_handler.py, communication/command_handlers/interaction_handlers.py, communication/command_handlers/natural_language_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/profile_handler.py, communication/command_handlers/schedule_handler.py, communication/command_handlers/task_handler.py, communication/communication_channels/base/base_channel.py, communication/communication_channels/base/command_registry.py, communication/communication_channels/base/message_formatter.py, communication/communication_channels/base/rich_formatter.py, communication/communication_channels/discord/account_flow_handler.py, communication/communication_channels/discord/api_client.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/checkin_view.py, communication/communication_channels/discord/create_item_ui.py, communication/communication_channels/discord/discord_command_runner.py, communication/communication_channels/discord/discord_guild_handlers.py, communication/communication_channels/discord/discord_interaction_router.py, communication/communication_channels/discord/discord_message_handler.py, communication/communication_channels/discord/discord_ready_handlers.py, communication/communication_channels/discord/discord_response_delivery.py, communication/communication_channels/discord/discord_user_resolution.py, communication/communication_channels/discord/interaction_views.py, communication/communication_channels/discord/item_form_shared.py, communication/communication_channels/discord/task_list_ui.py, communication/communication_channels/discord/task_reminder_view.py, communication/communication_channels/discord/webhook_handler.py, communication/communication_channels/discord/webhook_server.py, communication/communication_channels/discord/welcome_handler.py, communication/communication_channels/email/bot.py, communication/communication_channels/email/inbound_processor.py, communication/communication_channels/interaction_view_factory.py, communication/core/channel_monitor.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/message_send_result.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/delivery/message_dispatcher.py, communication/delivery/recipient_resolver.py, communication/message_processing/action_plan_executor.py, communication/message_processing/action_request_adapter.py, communication/message_processing/command_parser.py, communication/message_processing/command_registry.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/flow_message_dispatcher.py, communication/message_processing/flows/checkin_flow.py, communication/message_processing/flows/flow_state.py, communication/message_processing/flows/note_flow.py, communication/message_processing/flows/task_flow.py, communication/message_processing/help_responses.py, communication/message_processing/intent_validation.py, communication/message_processing/interaction_manager.py, communication/message_processing/message_route_classifier.py, communication/message_processing/parsing_shortcuts.py, communication/message_processing/prefix_command_processor.py, communication/message_processing/response_enhancer.py, communication/message_processing/structured_command_dispatcher.py, communication/message_processing/user_suggestions.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py, core/admin_account_provisioning.py, core/auto_cleanup.py, core/config.py, core/file_auditor.py, core/file_locking.py, core/file_operations.py, core/headless_service.py, core/health_context_builder.py, core/health_signals.py, core/launch_env.py, core/logger.py, core/natural_language_defaults.py, core/pagination.py, core/profile_v2_io.py, core/profile_v2_schemas.py, core/response_tracking.py, core/schedule_document_defaults.py, core/schedule_runtime.py, core/schedule_utilities.py, core/schemas.py, core/service.py, core/service_requests.py, core/service_utilities.py, core/tags.py, core/ui_management.py, core/user_lookup.py, core/user_management.py, integrations/google_health/auth.py, integrations/google_health/client.py, integrations/google_health/data_handlers.py, integrations/google_health/notifications.py, integrations/google_health/personalization_rules.py, integrations/google_health/schemas.py, integrations/google_health/signal_builder.py, integrations/google_health/sync_manager.py, integrations/google_health/token_crypto.py, integrations/google_health/user_settings.py, messages/message_analytics.py, messages/message_data_manager.py, messages/message_service.py, run_headless_service.py, scheduler/health_sync_jobs.py, scheduler/health_sync_schedule.py, scheduler/jobs.py, scheduler/maintenance.py, scheduler/manager.py, scheduler/task_reminders.py, scheduler/user_timezone.py, storage/runtime_state_storage.py, storage/service_flag_storage.py, storage/user_data_operations.py, storage/user_data_presets.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_v2_base.py, storage/user_data_validation.py, storage/user_data_write.py, storage/user_item_storage.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_service.py, tasks/task_tag_helpers.py, tasks/task_templates.py, tasks/task_time_parsing.py, tasks/task_validation.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/admin_panel.py, ui/dialogs/category_management_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/dialog_helpers.py, ui/dialogs/google_health_settings_dialog.py, ui/dialogs/message_editor_dialog.py, ui/dialogs/natural_language_settings_dialog.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_completion_dialog.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_analytics_dialog.py, ui/dialogs/user_profile_dialog.py, ui/generate_ui_files.py, ui/period_row_management.py, ui/widgets/category_selection_widget.py, ui/widgets/channel_selection_widget.py, ui/widgets/checkin_settings_widget.py, ui/widgets/dynamic_list_container.py, ui/widgets/dynamic_list_field.py, ui/widgets/natural_language_settings_widget.py, ui/widgets/period_row_widget.py, ui/widgets/tag_widget.py, ui/widgets/task_settings_widget.py, ui/widgets/user_profile_settings_widget.py, user/context_manager.py, user/profile_service.py, user/user_context.py, user/user_preferences.py
+- Removed: ai/chat/action_boundaries.py, ai/chat/action_planner.py, ai/chat/chatbot.py, ai/chat/interaction_types.py, ai/chat/response_generator.py, ai/chat/response_postprocess.py, ai/client/cache_manager.py, ai/client/lm_studio_client.py, ai/client/lm_studio_manager.py, ai/context/analytics.py, ai/context/assembly.py, ai/context/chatbot_context.py, ai/context/history.py, ai/context/phraser.py, ai/context/service.py, ai/fallback/__init__.py, ai/fallback/action_hints.py, ai/fallback/checkin_summary.py, ai/fallback/context.py, ai/fallback/conversational.py, ai/fallback/coordinator.py, ai/fallback/envelope_summaries.py, ai/fallback/personalized.py, ai/fallback/profile_helpers.py, ai/prompts/action_catalog.py, ai/prompts/command_interpreter.py, ai/prompts/command_registry.py, ai/prompts/flows.py, ai/prompts/manager.py, checkins/checkin_analytics.py, checkins/checkin_data_manager.py, checkins/checkin_dynamic_manager.py, checkins/checkin_service.py, collections.abc, communication/command_handlers/account_handler.py, communication/command_handlers/analytics_formatting.py, communication/command_handlers/analytics_handler.py, communication/command_handlers/base_handler.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/create_menu_handler.py, communication/command_handlers/handler_registry.py, communication/command_handlers/health_handler.py, communication/command_handlers/interaction_handlers.py, communication/command_handlers/natural_language_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/profile_handler.py, communication/command_handlers/schedule_handler.py, communication/command_handlers/task_handler.py, communication/communication_channels/base/base_channel.py, communication/communication_channels/base/command_registry.py, communication/communication_channels/base/message_formatter.py, communication/communication_channels/base/rich_formatter.py, communication/communication_channels/discord/account_flow_handler.py, communication/communication_channels/discord/api_client.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/checkin_view.py, communication/communication_channels/discord/create_item_ui.py, communication/communication_channels/discord/discord_command_runner.py, communication/communication_channels/discord/discord_guild_handlers.py, communication/communication_channels/discord/discord_interaction_router.py, communication/communication_channels/discord/discord_message_handler.py, communication/communication_channels/discord/discord_ready_handlers.py, communication/communication_channels/discord/discord_response_delivery.py, communication/communication_channels/discord/discord_user_resolution.py, communication/communication_channels/discord/interaction_views.py, communication/communication_channels/discord/item_form_shared.py, communication/communication_channels/discord/task_list_ui.py, communication/communication_channels/discord/task_reminder_view.py, communication/communication_channels/discord/webhook_handler.py, communication/communication_channels/discord/webhook_server.py, communication/communication_channels/discord/welcome_handler.py, communication/communication_channels/email/bot.py, communication/communication_channels/email/inbound_processor.py, communication/communication_channels/interaction_view_factory.py, communication/core/channel_monitor.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/message_send_result.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/delivery/message_dispatcher.py, communication/delivery/recipient_resolver.py, communication/message_processing/action_plan_executor.py, communication/message_processing/action_request_adapter.py, communication/message_processing/command_parser.py, communication/message_processing/command_registry.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/flow_message_dispatcher.py, communication/message_processing/flows/checkin_flow.py, communication/message_processing/flows/flow_state.py, communication/message_processing/flows/note_flow.py, communication/message_processing/flows/task_flow.py, communication/message_processing/help_responses.py, communication/message_processing/intent_validation.py, communication/message_processing/interaction_manager.py, communication/message_processing/message_route_classifier.py, communication/message_processing/parsing_shortcuts.py, communication/message_processing/prefix_command_processor.py, communication/message_processing/response_enhancer.py, communication/message_processing/structured_command_dispatcher.py, communication/message_processing/user_suggestions.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py, core/admin_account_provisioning.py, core/auto_cleanup.py, core/config.py, core/file_auditor.py, core/file_locking.py, core/file_operations.py, core/headless_service.py, core/health_context_builder.py, core/health_signals.py, core/launch_env.py, core/logger.py, core/natural_language_defaults.py, core/pagination.py, core/profile_v2_io.py, core/profile_v2_schemas.py, core/response_tracking.py, core/schedule_document_defaults.py, core/schedule_runtime.py, core/schedule_utilities.py, core/schemas.py, core/service.py, core/service_requests.py, core/service_utilities.py, core/tags.py, core/ui_management.py, core/user_lookup.py, core/user_management.py, integrations/google_health/auth.py, integrations/google_health/client.py, integrations/google_health/data_handlers.py, integrations/google_health/notifications.py, integrations/google_health/personalization_rules.py, integrations/google_health/schemas.py, integrations/google_health/signal_builder.py, integrations/google_health/sync_manager.py, integrations/google_health/token_crypto.py, integrations/google_health/user_settings.py, messages/message_analytics.py, messages/message_data_manager.py, messages/message_service.py, run_headless_service.py, scheduler/health_sync_jobs.py, scheduler/health_sync_schedule.py, scheduler/jobs.py, scheduler/maintenance.py, scheduler/manager.py, scheduler/task_reminders.py, scheduler/user_timezone.py, storage/runtime_state_storage.py, storage/service_flag_storage.py, storage/user_data_operations.py, storage/user_data_presets.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_v2_base.py, storage/user_data_validation.py, storage/user_data_write.py, storage/user_item_storage.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_service.py, tasks/task_tag_helpers.py, tasks/task_templates.py, tasks/task_time_parsing.py, tasks/task_validation.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/admin_panel.py, ui/dialogs/category_management_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/dialog_helpers.py, ui/dialogs/google_health_settings_dialog.py, ui/dialogs/message_editor_dialog.py, ui/dialogs/natural_language_settings_dialog.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_completion_dialog.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_analytics_dialog.py, ui/dialogs/user_profile_dialog.py, ui/generate_ui_files.py, ui/period_row_management.py, ui/widgets/category_selection_widget.py, ui/widgets/channel_selection_widget.py, ui/widgets/checkin_settings_widget.py, ui/widgets/dynamic_list_container.py, ui/widgets/dynamic_list_field.py, ui/widgets/natural_language_settings_widget.py, ui/widgets/period_row_widget.py, ui/widgets/tag_widget.py, ui/widgets/task_settings_widget.py, ui/widgets/user_profile_settings_widget.py, user/context_manager.py, user/profile_service.py, user/user_context.py, user/user_preferences.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Centralized error handling and recovery
@@ -3620,7 +3729,8 @@
   - `ai/client/cache_manager.py`
   - `ai/client/lm_studio_client.py`
   - `ai/client/lm_studio_manager.py`
-  - `ai/context/builder.py`
+  - `ai/context/analytics.py`
+  - `ai/context/chatbot_context.py`
   - `ai/context/history.py`
   - `ai/context/phraser.py`
   - `ai/fallback/__init__.py`
@@ -3767,7 +3877,7 @@
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.time_utilities
-- Removed: ai/chat/action_planner.py, ai/chat/chatbot.py, ai/chat/response_generator.py, ai/client/cache_manager.py, ai/client/lm_studio_client.py, ai/client/lm_studio_manager.py, ai/context/builder.py, ai/context/history.py, ai/context/phraser.py, ai/fallback/__init__.py, ai/prompts/manager.py, checkins/checkin_analytics.py, checkins/checkin_data_manager.py, checkins/checkin_dynamic_manager.py, communication/command_handlers/account_handler.py, communication/command_handlers/base_handler.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/handler_registry.py, communication/command_handlers/health_handler.py, communication/command_handlers/interaction_handlers.py, communication/command_handlers/natural_language_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/profile_handler.py, communication/command_handlers/schedule_handler.py, communication/command_handlers/task_handler.py, communication/communication_channels/base/base_channel.py, communication/communication_channels/base/command_registry.py, communication/communication_channels/base/message_formatter.py, communication/communication_channels/base/rich_formatter.py, communication/communication_channels/discord/account_flow_handler.py, communication/communication_channels/discord/api_client.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/checkin_view.py, communication/communication_channels/discord/create_item_ui.py, communication/communication_channels/discord/discord_guild_handlers.py, communication/communication_channels/discord/discord_interaction_router.py, communication/communication_channels/discord/discord_message_handler.py, communication/communication_channels/discord/discord_ready_handlers.py, communication/communication_channels/discord/task_list_ui.py, communication/communication_channels/discord/task_reminder_view.py, communication/communication_channels/discord/webhook_handler.py, communication/communication_channels/discord/webhook_server.py, communication/communication_channels/discord/welcome_handler.py, communication/communication_channels/email/bot.py, communication/communication_channels/email/inbound_processor.py, communication/core/channel_monitor.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/delivery/message_dispatcher.py, communication/delivery/recipient_resolver.py, communication/message_processing/action_plan_executor.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/flow_message_dispatcher.py, communication/message_processing/flows/checkin_flow.py, communication/message_processing/flows/flow_control_mixin.py, communication/message_processing/flows/flow_state.py, communication/message_processing/flows/note_flow.py, communication/message_processing/flows/task_flow.py, communication/message_processing/interaction_manager.py, communication/message_processing/message_route_classifier.py, communication/message_processing/prefix_command_processor.py, communication/message_processing/response_enhancer.py, communication/message_processing/structured_command_dispatcher.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py, core/admin_account_provisioning.py, core/auto_cleanup.py, core/file_auditor.py, core/file_locking.py, core/file_operations.py, core/headless_service.py, core/health_signals.py, core/natural_language_defaults.py, core/profile_v2_io.py, core/response_tracking.py, core/schedule_document_defaults.py, core/schedule_runtime.py, core/schedule_utilities.py, core/schemas.py, core/service.py, core/service_requests.py, core/service_utilities.py, core/tags.py, core/user_lookup.py, core/user_management.py, integrations/google_health/auth.py, integrations/google_health/client.py, integrations/google_health/data_handlers.py, integrations/google_health/notifications.py, integrations/google_health/signal_builder.py, integrations/google_health/sync_manager.py, integrations/google_health/token_crypto.py, integrations/google_health/user_settings.py, logging.handlers, messages/message_analytics.py, messages/message_data_manager.py, run_headless_service.py, scheduler/health_sync_jobs.py, scheduler/health_sync_schedule.py, scheduler/jobs.py, scheduler/maintenance.py, scheduler/manager.py, scheduler/task_reminders.py, scheduler/user_timezone.py, storage/runtime_state_storage.py, storage/service_flag_storage.py, storage/user_data_operations.py, storage/user_data_presets.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_validation.py, storage/user_data_write.py, storage/user_item_storage.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_schemas.py, tasks/task_tag_helpers.py, tasks/task_validation.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/admin_panel.py, ui/dialogs/category_management_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/google_health_settings_dialog.py, ui/dialogs/message_editor_dialog.py, ui/dialogs/natural_language_settings_dialog.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_completion_dialog.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_analytics_dialog.py, ui/dialogs/user_profile_dialog.py, ui/period_row_management.py, ui/widgets/category_selection_widget.py, ui/widgets/channel_selection_widget.py, ui/widgets/checkin_settings_widget.py, ui/widgets/dynamic_list_container.py, ui/widgets/dynamic_list_field.py, ui/widgets/natural_language_settings_widget.py, ui/widgets/period_row_widget.py, ui/widgets/tag_widget.py, ui/widgets/task_settings_widget.py, ui/widgets/user_profile_settings_widget.py, user/context_manager.py, user/user_context.py, user/user_preferences.py
+- Removed: ai/chat/action_planner.py, ai/chat/chatbot.py, ai/chat/response_generator.py, ai/client/cache_manager.py, ai/client/lm_studio_client.py, ai/client/lm_studio_manager.py, ai/context/analytics.py, ai/context/chatbot_context.py, ai/context/history.py, ai/context/phraser.py, ai/fallback/__init__.py, ai/prompts/manager.py, checkins/checkin_analytics.py, checkins/checkin_data_manager.py, checkins/checkin_dynamic_manager.py, communication/command_handlers/account_handler.py, communication/command_handlers/base_handler.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/handler_registry.py, communication/command_handlers/health_handler.py, communication/command_handlers/interaction_handlers.py, communication/command_handlers/natural_language_handler.py, communication/command_handlers/notebook_handler.py, communication/command_handlers/profile_handler.py, communication/command_handlers/schedule_handler.py, communication/command_handlers/task_handler.py, communication/communication_channels/base/base_channel.py, communication/communication_channels/base/command_registry.py, communication/communication_channels/base/message_formatter.py, communication/communication_channels/base/rich_formatter.py, communication/communication_channels/discord/account_flow_handler.py, communication/communication_channels/discord/api_client.py, communication/communication_channels/discord/bot.py, communication/communication_channels/discord/checkin_view.py, communication/communication_channels/discord/create_item_ui.py, communication/communication_channels/discord/discord_guild_handlers.py, communication/communication_channels/discord/discord_interaction_router.py, communication/communication_channels/discord/discord_message_handler.py, communication/communication_channels/discord/discord_ready_handlers.py, communication/communication_channels/discord/task_list_ui.py, communication/communication_channels/discord/task_reminder_view.py, communication/communication_channels/discord/webhook_handler.py, communication/communication_channels/discord/webhook_server.py, communication/communication_channels/discord/welcome_handler.py, communication/communication_channels/email/bot.py, communication/communication_channels/email/inbound_processor.py, communication/core/channel_monitor.py, communication/core/channel_orchestrator.py, communication/core/factory.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/delivery/message_dispatcher.py, communication/delivery/recipient_resolver.py, communication/message_processing/action_plan_executor.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/flow_message_dispatcher.py, communication/message_processing/flows/checkin_flow.py, communication/message_processing/flows/flow_control_mixin.py, communication/message_processing/flows/flow_state.py, communication/message_processing/flows/note_flow.py, communication/message_processing/flows/task_flow.py, communication/message_processing/interaction_manager.py, communication/message_processing/message_route_classifier.py, communication/message_processing/prefix_command_processor.py, communication/message_processing/response_enhancer.py, communication/message_processing/structured_command_dispatcher.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py, core/admin_account_provisioning.py, core/auto_cleanup.py, core/file_auditor.py, core/file_locking.py, core/file_operations.py, core/headless_service.py, core/health_signals.py, core/natural_language_defaults.py, core/profile_v2_io.py, core/response_tracking.py, core/schedule_document_defaults.py, core/schedule_runtime.py, core/schedule_utilities.py, core/schemas.py, core/service.py, core/service_requests.py, core/service_utilities.py, core/tags.py, core/user_lookup.py, core/user_management.py, integrations/google_health/auth.py, integrations/google_health/client.py, integrations/google_health/data_handlers.py, integrations/google_health/notifications.py, integrations/google_health/signal_builder.py, integrations/google_health/sync_manager.py, integrations/google_health/token_crypto.py, integrations/google_health/user_settings.py, logging.handlers, messages/message_analytics.py, messages/message_data_manager.py, run_headless_service.py, scheduler/health_sync_jobs.py, scheduler/health_sync_schedule.py, scheduler/jobs.py, scheduler/maintenance.py, scheduler/manager.py, scheduler/task_reminders.py, scheduler/user_timezone.py, storage/runtime_state_storage.py, storage/service_flag_storage.py, storage/user_data_operations.py, storage/user_data_presets.py, storage/user_data_read.py, storage/user_data_registry.py, storage/user_data_validation.py, storage/user_data_write.py, storage/user_item_storage.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_schemas.py, tasks/task_tag_helpers.py, tasks/task_validation.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/admin_panel.py, ui/dialogs/category_management_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/google_health_settings_dialog.py, ui/dialogs/message_editor_dialog.py, ui/dialogs/natural_language_settings_dialog.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_completion_dialog.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_analytics_dialog.py, ui/dialogs/user_profile_dialog.py, ui/period_row_management.py, ui/widgets/category_selection_widget.py, ui/widgets/channel_selection_widget.py, ui/widgets/checkin_settings_widget.py, ui/widgets/dynamic_list_container.py, ui/widgets/dynamic_list_field.py, ui/widgets/natural_language_settings_widget.py, ui/widgets/period_row_widget.py, ui/widgets/tag_widget.py, ui/widgets/task_settings_widget.py, ui/widgets/user_profile_settings_widget.py, user/context_manager.py, user/user_context.py, user/user_preferences.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Logging system configuration and management
@@ -4192,7 +4302,7 @@
   - `core/time_utilities.py`
 
 **Dependency Changes**:
-- Removed: communication/command_handlers/notebook_handler.py, communication/message_processing/user_suggestions.py, core/profile_v2_io.py, core/schedule_utilities.py, core/time_utilities.py
+- Removed: ai/context/service.py, communication/command_handlers/notebook_handler.py, communication/message_processing/user_suggestions.py, core/profile_v2_io.py, core/schedule_utilities.py, core/time_utilities.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -4215,7 +4325,6 @@
   - **Third-party**:
     - `pytz`
 - **Used by**:
-  - `ai/context/builder.py`
   - `ai/context/history.py`
   - `ai/context/phraser.py`
   - `ai/context/service.py`
@@ -4277,7 +4386,7 @@
 
 **Dependency Changes**:
 - Added: core.time_format_constants
-- Removed: ai/context/builder.py, ai/context/history.py, ai/context/phraser.py, ai/context/service.py, checkins/checkin_analytics.py, checkins/checkin_data_manager.py, checkins/checkin_schemas.py, checkins/checkin_service.py, collections.abc, communication/command_handlers/notebook_handler.py, communication/command_handlers/task_handler.py, communication/core/channel_monitor.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/message_processing/flows/checkin_flow.py, communication/message_processing/flows/flow_command_helpers.py, communication/message_processing/flows/flow_state.py, communication/message_processing/flows/task_flow.py, communication/message_processing/user_suggestions.py, core/auto_cleanup.py, core/error_handling.py, core/file_operations.py, core/health_signals.py, core/logger.py, core/profile_v2_io.py, core/profile_v2_schemas.py, core/response_tracking.py, core/schedule_runtime.py, core/schedule_utilities.py, core/service.py, core/service_requests.py, core/tags.py, core/user_management.py, integrations/google_health/auth.py, integrations/google_health/client.py, integrations/google_health/data_handlers.py, integrations/google_health/signal_builder.py, integrations/google_health/sync_manager.py, messages/message_data_manager.py, messages/message_schemas.py, scheduler/health_sync_schedule.py, scheduler/maintenance.py, scheduler/manager.py, scheduler/task_reminders.py, scheduler/user_timezone.py, storage/user_data_operations.py, storage/user_data_registry.py, storage/user_data_v2_base.py, storage/user_data_validation.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_schemas.py, tasks/task_service.py, tasks/task_validation.py, ui/dialogs/message_editor_dialog.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/user_profile_dialog.py, ui/generate_ui_files.py, user/context_manager.py
+- Removed: ai/context/history.py, ai/context/phraser.py, ai/context/service.py, checkins/checkin_analytics.py, checkins/checkin_data_manager.py, checkins/checkin_schemas.py, checkins/checkin_service.py, collections.abc, communication/command_handlers/notebook_handler.py, communication/command_handlers/task_handler.py, communication/core/channel_monitor.py, communication/core/retry_manager.py, communication/core/welcome_manager.py, communication/message_processing/flows/checkin_flow.py, communication/message_processing/flows/flow_command_helpers.py, communication/message_processing/flows/flow_state.py, communication/message_processing/flows/task_flow.py, communication/message_processing/user_suggestions.py, core/auto_cleanup.py, core/error_handling.py, core/file_operations.py, core/health_signals.py, core/logger.py, core/profile_v2_io.py, core/profile_v2_schemas.py, core/response_tracking.py, core/schedule_runtime.py, core/schedule_utilities.py, core/service.py, core/service_requests.py, core/tags.py, core/user_management.py, integrations/google_health/auth.py, integrations/google_health/client.py, integrations/google_health/data_handlers.py, integrations/google_health/signal_builder.py, integrations/google_health/sync_manager.py, messages/message_data_manager.py, messages/message_schemas.py, scheduler/health_sync_schedule.py, scheduler/maintenance.py, scheduler/manager.py, scheduler/task_reminders.py, scheduler/user_timezone.py, storage/user_data_operations.py, storage/user_data_registry.py, storage/user_data_v2_base.py, storage/user_data_validation.py, tasks/task_data_handlers.py, tasks/task_data_manager.py, tasks/task_schemas.py, tasks/task_service.py, tasks/task_validation.py, ui/dialogs/message_editor_dialog.py, ui/dialogs/process_watcher_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/user_profile_dialog.py, ui/generate_ui_files.py, user/context_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -4992,7 +5101,7 @@
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.logger, core.time_utilities
-- Removed: scheduler/health_sync_schedule.py, scheduler/manager.py, scheduler/task_reminders.py
+- Removed: ai/context/phraser.py, ai/context/service.py, checkins/checkin_service.py, scheduler/health_sync_schedule.py, scheduler/manager.py, scheduler/task_reminders.py, tasks/task_data_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

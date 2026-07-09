@@ -25,20 +25,6 @@ _PRODUCT_AI_CATEGORY_FILENAMES: dict[str, str] = {
     "action_boundaries": "action_boundaries.txt",
 }
 
-# Short templates for legacy prompt_manager helpers (create_task_prompt / create_checkin_prompt).
-_INLINE_PROMPT_BODIES: dict[str, str] = {
-    "checkin": (
-        "You are a supportive check-in assistant. Help users reflect on their day "
-        "and track their wellness. Be encouraging and non-judgmental. "
-        "Keep responses concise and supportive."
-    ),
-    "task_assistant": (
-        "You are a helpful task management assistant. Help users organize, "
-        "prioritize, and complete their tasks. Be practical and encouraging. "
-        "Keep responses focused and actionable."
-    ),
-}
-
 _MINIMAL_WELLNESS_FALLBACK = (
     "You are a supportive wellness assistant. Keep responses helpful, "
     "encouraging, and conversational."
@@ -226,20 +212,6 @@ class PromptManager:
                 description="Command parsing prompt (resources/prompts/command.txt)",
                 max_tokens=120,
                 temperature=0.1,
-            ),
-            "checkin": PromptTemplate(
-                name="checkin",
-                content=_INLINE_PROMPT_BODIES["checkin"],
-                description="Check-in assistant prompt (inline)",
-                max_tokens=150,
-                temperature=0.6,
-            ),
-            "task_assistant": PromptTemplate(
-                name="task_assistant",
-                content=_INLINE_PROMPT_BODIES["task_assistant"],
-                description="Task management prompt (inline)",
-                max_tokens=150,
-                temperature=0.5,
             ),
         }
 
@@ -484,60 +456,6 @@ class PromptManager:
             f"Created contextual prompt: base_length={len(base_prompt)}, context_length={len(context)}, input_length={len(user_input)}, total_length={len(contextual_prompt)}"
         )
         return contextual_prompt
-
-    # not_duplicate: domain_prompt_builders
-    @handle_errors("creating task prompt", default_return="")
-    def create_task_prompt(self, task_description: str, user_context: str = "") -> str:
-        """
-        Create a task-specific prompt
-
-        Args:
-            task_description: Description of the task
-            user_context: User context information
-
-        Returns:
-            Task-specific prompt
-        """
-        logger.debug(f"Creating task prompt for: {task_description[:50]}...")
-        base_prompt = self.get_prompt("task_assistant")
-        context = f"Task: {task_description}"
-        if user_context:
-            context += f"\nUser Context: {user_context}"
-            logger.debug(
-                f"Added user context to task prompt: {len(user_context)} characters"
-            )
-
-        return self.create_contextual_prompt(
-            base_prompt, context, "Help me with this task"
-        )
-
-    # not_duplicate: domain_prompt_builders
-    @handle_errors("creating checkin prompt", default_return="")
-    def create_checkin_prompt(
-        self, checkin_type: str = "daily", user_context: str = ""
-    ) -> str:
-        """
-        Create a check-in specific prompt
-
-        Args:
-            checkin_type: Type of check-in (daily, weekly, etc.)
-            user_context: User context information
-
-        Returns:
-            Check-in specific prompt
-        """
-        logger.debug(f"Creating checkin prompt for type: {checkin_type}")
-        base_prompt = self.get_prompt("checkin")
-        context = f"Check-in Type: {checkin_type}"
-        if user_context:
-            context += f"\nUser Context: {user_context}"
-            logger.debug(
-                f"Added user context to checkin prompt: {len(user_context)} characters"
-            )
-
-        return self.create_contextual_prompt(
-            base_prompt, context, "Let's do a check-in"
-        )
 
 
 # Global prompt manager instance

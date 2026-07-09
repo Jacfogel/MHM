@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-08 00:04:31
+> **Last Generated**: 2026-07-09 11:56:11
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.9% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 254
-- **Functions Found**: 2442
-- **Methods Found**: 1373
-- **Classes Found**: 255
-- **Total Items**: 3815
-- **Functions Documented**: 2169
-- **Methods Documented**: 1260
-- **Classes Documented**: 184
-- **Total Documented**: 3429
-- **Template-Generated**: 46
-- **Last Updated**: 2026-07-08
+### **Function Documentation Coverage: 89.6% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 258
+- **Functions Found**: 2451
+- **Methods Found**: 1366
+- **Classes Found**: 254
+- **Total Items**: 3817
+- **Functions Documented**: 2168
+- **Methods Documented**: 1253
+- **Classes Documented**: 183
+- **Total Documented**: 3421
+- **Template-Generated**: 48
+- **Last Updated**: 2026-07-09
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (456)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (638)
+### **Communication Functions** (639)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (517)
@@ -290,6 +290,17 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 
 #### `ai/context/__init__.py`
 
+#### `ai/context/analytics.py`
+**Functions:**
+- [OK] `__post_init__(self)` - Special Python method
+- [MISSING] `_calculate_wellness_score(breakfast_rate, avg_mood, avg_energy, teeth_brushing_rate)` - No description
+- [MISSING] `_determine_trend(values)` - No description
+- [MISSING] `_generate_insights(breakfast_rate, avg_mood, avg_energy, teeth_brushing_rate, mood_trend, energy_trend)` - No description
+- [OK] `analyze_checkin_entries(recent_checkins)` - Compute check-in metrics from raw recent-response rows.
+**Classes:**
+- [OK] `ContextAnalysis` - Canonical check-in analytics from recent response rows.
+  - [OK] `ContextAnalysis.__post_init__(self)` - Special Python method
+
 #### `ai/context/assembly.py`
 **Functions:**
 - [OK] `_append_activity_and_mood_trends_from_envelope(parts, structured)` - Append activity counts and mood trend summaries from envelope data.
@@ -308,62 +319,12 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `assemble_comprehensive_messages(user_id, user_prompt)` - Build system + user messages for comprehensive conversational generation.
 - [OK] `build_context_parts(user_id, envelope)` - Assemble natural-language context lines for the system prompt.
 
-#### `ai/context/builder.py`
+#### `ai/context/chatbot_context.py`
 **Functions:**
-- [OK] `__init__(self)` - Initialize the context builder
-- [OK] `__post_init__(self)` - Post-initialization setup
-- [OK] `__post_init__(self)` - Post-initialization setup
-- [OK] `_calculate_wellness_score(self, breakfast_rate, avg_mood, avg_energy, teeth_brushing_rate)` - Calculate overall wellness score (0-100)
-- [OK] `_context_data_from_ai_envelope(envelope)` - Adapt the canonical envelope to the existing ``ContextData`` return shape.
-- [OK] `_determine_trend(self, values)` - Determine trend from a list of values
-- [OK] `_generate_insights(self, breakfast_rate, avg_mood, avg_energy, teeth_brushing_rate, mood_trend, energy_trend)` - Generate insights from analyzed data
-- [OK] `analyze_context(self, context_data)` - Analyze context data to extract insights
+- [OK] `_conversation_insights_from_chats(recent_chats)` - Derive lightweight topic tags from recent chat interaction rows.
+- [OK] `build_chatbot_context_dict(user_id)` - Build the chatbot summary dict used by ``generate_contextual_response``.
 
-Args:
-    context_data: Context data to analyze
-
-Returns:
-    ContextAnalysis with insights and trends
-- [OK] `analyze_recent_checkin_rows(recent_checkins)` - Canonical check-in metrics from raw recent-response rows.
-
-Same aggregates as ``ContextBuilder.analyze_context`` for the check-in slice
-of ``ContextData``, without loading profile or conversation history. Used by
-fallback routing and tests that need analytically consistent numbers with
-conversational context.
-- [OK] `build_user_context(self, user_id, include_conversation_history)` - Build comprehensive context for a user
-
-Args:
-    user_id: User ID to build context for
-    include_conversation_history: Whether to include conversation history
-
-Returns:
-    ContextData object with all available context
-- [OK] `get_context_builder()` - Get the global context builder instance
-**Classes:**
-- [OK] `ContextAnalysis` - Canonical check-in analytics from ``ContextBuilder.analyze_context``.
-  - [OK] `ContextAnalysis.__post_init__(self)` - Post-initialization setup
-- [OK] `ContextBuilder` - Builds comprehensive context for AI interactions
-  - [OK] `ContextBuilder.__init__(self)` - Initialize the context builder
-  - [OK] `ContextBuilder._calculate_wellness_score(self, breakfast_rate, avg_mood, avg_energy, teeth_brushing_rate)` - Calculate overall wellness score (0-100)
-  - [OK] `ContextBuilder._determine_trend(self, values)` - Determine trend from a list of values
-  - [OK] `ContextBuilder._generate_insights(self, breakfast_rate, avg_mood, avg_energy, teeth_brushing_rate, mood_trend, energy_trend)` - Generate insights from analyzed data
-  - [OK] `ContextBuilder.analyze_context(self, context_data)` - Analyze context data to extract insights
-
-Args:
-    context_data: Context data to analyze
-
-Returns:
-    ContextAnalysis with insights and trends
-  - [OK] `ContextBuilder.build_user_context(self, user_id, include_conversation_history)` - Build comprehensive context for a user
-
-Args:
-    user_id: User ID to build context for
-    include_conversation_history: Whether to include conversation history
-
-Returns:
-    ContextData object with all available context
-- [OK] `ContextData` - Structured context data for AI interactions
-  - [OK] `ContextData.__post_init__(self)` - Post-initialization setup
+New product-AI code should use ``AIContextEnvelope`` directly.
 
 #### `ai/context/history.py`
 **Functions:**
@@ -561,7 +522,7 @@ Returns:
 - [MISSING] `_feature_status_lines(user_id)` - No description
 - [OK] `_phrase_recent_sent_messages(parts, recent_sent_all)` - Append recent automated-message lines; return full list for follow-up helpers.
 - [OK] `append_activity_and_mood_trends(parts, user_id, context)` - Recent activity counts and mood trend summary from get_ai_context.
-- [OK] `append_checkin_summary(parts, user_id)` - Recent check-in analytics phrased from ``ContextBuilder.analyze_context``.
+- [OK] `append_checkin_summary(parts, user_id)` - Recent check-in analytics phrased from ``analyze_checkin_entries``.
 - [MISSING] `append_conversation_history(parts, context)` - No description
 - [OK] `append_current_datetime_context(parts, user_id)` - Prepend current date/time awareness for the user's account timezone.
 - [OK] `append_feature_enablement(parts, user_id)` - Tell the model which product features are enabled for this user.
@@ -621,6 +582,12 @@ Returns:
   - [MISSING] `FallbackResponses.personalize_with_profile_name(self, fallback_response, context_summary, profile)` - No description
   - [MISSING] `FallbackResponses.personalized(self, user_id)` - No description
 
+#### `ai/fallback/action_hints.py`
+**Functions:**
+- [MISSING] `_feature_disabled(feature, context)` - No description
+- [MISSING] `_match_catalog_action(prompt_lower, actions)` - No description
+- [OK] `try_action_unavailable_response(prompt_lower, context)` - Suggest command-style retries without claiming an action succeeded.
+
 #### `ai/fallback/categories.py`
 **Classes:**
 - [OK] `FallbackCategory` - Explicit fallback kinds; avoids one undifferentiated keyword cascade.
@@ -630,8 +597,16 @@ Returns:
 - [OK] `_prompt_mentions_breakfast(prompt_lower)` - Return True when the prompt asks about breakfast/eating, not substring noise.
 - [OK] `try_checkin_summary_response(prompt_lower, analysis, name_prefix)` - Return a check-in summary fallback when prompt and data align.
 
-``analysis`` must come from ``ContextBuilder.analyze_context`` or
-``analyze_recent_checkin_rows`` so metrics match conversational context.
+``analysis`` must come from ``analyze_checkin_entries`` so metrics match conversational context.
+
+#### `ai/fallback/context.py`
+**Functions:**
+- [OK] `analyze_fallback_checkins(context)` - Return check-in analytics from envelope rows when available.
+- [OK] `build_fallback_context(user_id, user_prompt)` - Build compact fallback context from the canonical AI context envelope.
+- [OK] `recent_checkin_rows(self)` - Return recent check-in rows in the shape used by check-in analytics.
+**Classes:**
+- [OK] `FallbackContext` - Envelope-backed context for deterministic fallback routing.
+  - [OK] `FallbackContext.recent_checkin_rows(self)` - Return recent check-in rows in the shape used by check-in analytics.
 
 #### `ai/fallback/conversational.py`
 **Functions:**
@@ -642,10 +617,19 @@ Returns:
 
 #### `ai/fallback/coordinator.py`
 **Functions:**
-- [OK] `build_contextual_fallback(user_prompt, user_id)` - Provide contextually aware fallback responses based on user data and prompt analysis.
-Check-in analytics are handled separately from generic keyword support.
+- [OK] `build_contextual_fallback(user_prompt, user_id)` - Provide contextually aware fallback responses based on envelope data and prompt analysis.
+Check-in analytics and envelope summaries are handled before generic keyword support.
 
 #### `ai/fallback/data_access.py`
+
+#### `ai/fallback/envelope_summaries.py`
+**Functions:**
+- [MISSING] `_try_capability_summary(prompt_lower, context)` - No description
+- [MISSING] `_try_messages_summary(prompt_lower, context)` - No description
+- [MISSING] `_try_profile_summary(prompt_lower, context)` - No description
+- [MISSING] `_try_schedule_summary(prompt_lower, context)` - No description
+- [MISSING] `_try_task_summary(prompt_lower, context)` - No description
+- [OK] `try_envelope_summary_response(prompt_lower, context)` - Return a data-backed fallback when envelope sections answer the prompt.
 
 #### `ai/fallback/personalized.py`
 **Functions:**
@@ -662,9 +646,11 @@ Check-in analytics are handled separately from generic keyword support.
 
 #### `ai/prompts/action_catalog.py`
 **Functions:**
+- [OK] `_feature_requirements_for_intent(intent, domain)` - Return feature gates for an action intent.
 - [OK] `_fields_for_intent(intent)` - Return declared entity fields for an action intent.
 - [OK] `_get_live_intents()` - Return initialized parser intent names through the AI command registry.
-- [OK] `_handler_name_for_domain(domain)` - Return the existing communication handler class name for a domain.
+- [OK] `_handler_name_for_domain(domain)` - Return the default communication handler class name for a domain.
+- [OK] `_handler_name_for_intent(intent, domain)` - Return the communication handler class name for an action intent.
 - [OK] `_infer_domain(intent)` - Infer product domain from canonical parser intent name.
 - [OK] `build_action_catalog()` - Build action metadata from live parser intents without importing handlers.
 - [OK] `get(self, action_name)` - Return a catalog action by canonical action name.
@@ -739,14 +725,6 @@ Handles JSON, key-value pairs (ACTION: ...), or natural language.
 Args:
     template: PromptTemplate to add
 - [OK] `compose_product_prompt(self, flow_name)` - Compose a product-AI prompt from flow categories and supplied data.
-- [OK] `create_checkin_prompt(self, checkin_type, user_context)` - Create a check-in specific prompt
-
-Args:
-    checkin_type: Type of check-in (daily, weekly, etc.)
-    user_context: User context information
-
-Returns:
-    Check-in specific prompt
 - [OK] `create_contextual_prompt(self, base_prompt, context, user_input)` - Create a contextual prompt by combining base prompt, context, and user input
 
 Args:
@@ -756,14 +734,6 @@ Args:
 
 Returns:
     Combined contextual prompt
-- [OK] `create_task_prompt(self, task_description, user_context)` - Create a task-specific prompt
-
-Args:
-    task_description: Description of the task
-    user_context: User context information
-
-Returns:
-    Task-specific prompt
 - [OK] `custom_prompt_length(self)` - Get the length of the custom prompt.
 - [OK] `fallback_prompt_keys(self)` - Get the keys of available fallback prompts.
 - [OK] `get_available_prompts(self)` - Get all available prompt types and their descriptions
@@ -804,14 +774,6 @@ Returns:
 Args:
     template: PromptTemplate to add
   - [OK] `PromptManager.compose_product_prompt(self, flow_name)` - Compose a product-AI prompt from flow categories and supplied data.
-  - [OK] `PromptManager.create_checkin_prompt(self, checkin_type, user_context)` - Create a check-in specific prompt
-
-Args:
-    checkin_type: Type of check-in (daily, weekly, etc.)
-    user_context: User context information
-
-Returns:
-    Check-in specific prompt
   - [OK] `PromptManager.create_contextual_prompt(self, base_prompt, context, user_input)` - Create a contextual prompt by combining base prompt, context, and user input
 
 Args:
@@ -821,14 +783,6 @@ Args:
 
 Returns:
     Combined contextual prompt
-  - [OK] `PromptManager.create_task_prompt(self, task_description, user_context)` - Create a task-specific prompt
-
-Args:
-    task_description: Description of the task
-    user_context: User context information
-
-Returns:
-    Task-specific prompt
   - [OK] `PromptManager.custom_prompt_length(self)` - Get the length of the custom prompt.
   - [OK] `PromptManager.fallback_prompt_keys(self)` - Get the keys of available fallback prompts.
   - [OK] `PromptManager.get_available_prompts(self)` - Get all available prompt types and their descriptions
@@ -3199,6 +3153,7 @@ Returns:
 - [MISSING] `_handle_contextual_chat(self, user_id, message, channel_type)` - No description
 - [OK] `_handle_structured_command(self, user_id, parsing_result, channel_type)` - Delegate structured command handling to the shared dispatcher.
 - [MISSING] `_is_valid_intent(self, intent)` - No description
+- [OK] `_try_partial_structured_command(self, user_id, parsing_result, channel_type)` - Run rule-based command dispatch when planner failed but parse had usable intent.
 - [MISSING] `get_available_commands(self, user_id)` - No description
 - [MISSING] `get_command_definitions(self)` - No description
 - [MISSING] `get_interaction_manager()` - No description
@@ -3216,6 +3171,7 @@ Returns:
   - [MISSING] `InteractionManager._handle_contextual_chat(self, user_id, message, channel_type)` - No description
   - [OK] `InteractionManager._handle_structured_command(self, user_id, parsing_result, channel_type)` - Delegate structured command handling to the shared dispatcher.
   - [MISSING] `InteractionManager._is_valid_intent(self, intent)` - No description
+  - [OK] `InteractionManager._try_partial_structured_command(self, user_id, parsing_result, channel_type)` - Run rule-based command dispatch when planner failed but parse had usable intent.
   - [MISSING] `InteractionManager.get_available_commands(self, user_id)` - No description
   - [MISSING] `InteractionManager.get_command_definitions(self)` - No description
   - [MISSING] `InteractionManager.get_slash_command_map(self)` - No description

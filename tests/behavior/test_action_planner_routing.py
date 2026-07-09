@@ -190,6 +190,43 @@ def test_planner_none_falls_back_to_contextual_chat(test_data_dir, planner_enabl
 
 
 @pytest.mark.tasks
+def test_planner_none_retries_partial_structured_command(test_data_dir, planner_enabled):
+    """When planner returns None but parse had usable intent, dispatch structured command."""
+    user_id = "planner-routing-partial"
+    TestUserFactory.create_basic_user(
+        user_id,
+        enable_tasks=True,
+        test_data_dir=test_data_dir,
+    )
+    message = "maybe add task partial parse test"
+
+    interaction_manager = InteractionManager()
+    interaction_manager.enable_ai_enhancement = False
+
+    def _parse(message, user_id=None):
+        text = "" if message is None else str(message)
+        return ParsingResult(
+            ParsedCommand(
+                "create_task",
+                {"title": "Partial parse test"},
+                0.2,
+                text,
+            ),
+            0.2,
+            "rule_based",
+        )
+
+    _stub_command_parser(interaction_manager, _parse)
+
+    with _mock_planner_plan(None):
+        response = interaction_manager.handle_message(user_id, message, "discord")
+
+    assert response is not None
+    titles = [task.get("title") for task in load_active_tasks(user_id)]
+    assert "Partial parse test" in titles
+
+
+@pytest.mark.tasks
 def test_high_confidence_parse_skips_planner(test_data_dir, planner_enabled):
     """Confident structured commands bypass the planner even when it is enabled."""
     user_id = "planner-routing-skip"

@@ -4,7 +4,7 @@
 
 import re
 
-from ai.context.builder import ContextAnalysis
+from ai.context.analytics import ContextAnalysis
 from ai.fallback.categories import FallbackCategory
 from core.error_handling import handle_errors
 
@@ -27,8 +27,7 @@ def try_checkin_summary_response(
 ) -> tuple[str, FallbackCategory] | None:
     """Return a check-in summary fallback when prompt and data align.
 
-    ``analysis`` must come from ``ContextBuilder.analyze_context`` or
-    ``analyze_recent_checkin_rows`` so metrics match conversational context.
+    ``analysis`` must come from ``analyze_checkin_entries`` so metrics match conversational context.
     """
     if _prompt_mentions_breakfast(prompt_lower):
         if analysis.breakfast_rate >= 80:

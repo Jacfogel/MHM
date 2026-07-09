@@ -12,5 +12,7 @@ class FallbackCategory(str, Enum):
     NEW_USER_NO_CONTEXT = "new_user_no_context"
     DATA_UNAVAILABLE = "data_unavailable"
     CHECKIN_SUMMARY = "checkin_summary"
+    ENVELOPE_SUMMARY = "envelope_summary"
+    ACTION_UNAVAILABLE = "action_unavailable"
     GENERAL_SUPPORT = "general_support"
     PERSONALIZED_MESSAGE = "personalized_message"

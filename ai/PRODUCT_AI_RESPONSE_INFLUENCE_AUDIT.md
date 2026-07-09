@@ -30,9 +30,9 @@ Product AI response behavior is currently influenced by:
 | --- | --- | --- |
 | `resources/prompts/assistant_system_prompt.txt` | Legacy custom-prompt override path when `AI_USE_CUSTOM_PROMPT` is enabled. | Now mirrors `persona.txt`; chat composition no longer stacks this on top of category files. |
 | `resources/prompts/command.txt` | Structured command parsing prompt with live action injection. | Useful for command extraction, but separate from conversational context and result-aware responses. |
-| `ai/prompts/manager.py` | Loads prompts, templates, custom prompt file, and composes product-AI category prompts. | Category composition is in place; inline bodies for `create_task_prompt()` / `create_checkin_prompt()` remain temporary. |
+| `ai/prompts/manager.py` | Loads prompts, templates, custom prompt file, and composes product-AI category prompts. | `compose_product_prompt()` is the canonical product-AI composition path. |
 | `ai/context/assembly.py` and `ai/context/phraser.py` | Builds natural-language context sections for chat prompts from `AIContextEnvelope`. | `ai/context/phraser.py` helper ownership can still be reduced over time. |
-| `user/context_manager.py` and `ai/context/builder.py` | Gather profile, preferences, recent activity, mood trends, health guidance, and conversation history. | `ai/context/builder.py` adapts from `AIContextEnvelope`; `user/context_manager.py` remains a separate context surface to review before final cleanup. |
+| `user/context_manager.py` | Legacy `get_ai_context` dict for integration tests; in-memory session history. | Migrate remaining callers to `build_ai_context_envelope` or `build_chatbot_context_dict`. |
 | `ai/prompts/command_interpreter.py` and `ai/prompts/command_registry.py` | Mode detection, command prompts, clarification, command output cleanup, live action list injection. | Should evolve into action interpretation, not just command parsing. |
 | `communication/message_processing/interaction_manager.py` | Routes incoming messages through flows, command parsing, structured dispatch, and contextual chat. | Best existing integration point for AI-driven actions. |
 | `communication/message_processing/structured_command_dispatcher.py` | Dispatches parsed commands to registered handlers and optionally enhances responses. | Best initial action execution backend. |
@@ -52,7 +52,8 @@ The first cleanup pass established the context and catalog foundation, but it di
 Completed:
 
 - `ai/context/service.py` owns the canonical `AIContextEnvelope` and builds structured context sections for account, preferences, personal context, schedules, tasks, check-ins, messages, notebooks, health, analytics, conversation, and action catalog data.
-- `ai/context/builder.py` reads from `AIContextEnvelope` and converts to the existing `ContextData` shape for current callers.
+- `ai/context/analytics.py` owns shared check-in analytics (`analyze_checkin_entries`).
+- `ai/context/chatbot_context.py` provides `build_chatbot_context_dict()` for contextual chat summary shape.
 - `ai/context/assembly.py` builds chat context from one envelope instead of loading domains directly through `user_context_manager`.
 - `ai/prompts/action_catalog.py` provides metadata for live parser intents without importing communication handlers or executing actions.
 - `ai/prompts/flows.py` names the major product-AI flows and records category ownership for chat, action interpretation, action-result response, and fallback response.
@@ -180,7 +181,7 @@ Only add direct domain-service action executors when existing handlers cannot ex
 | `resources/prompts/assistant_system_prompt.txt` | Slim persona mirror; optional custom override when `AI_USE_CUSTOM_PROMPT` is enabled. Not stacked on chat composition. |
 | `resources/prompts/command.txt` | Command parse prompt with live action injection. Unchanged. |
 | Legacy instructions module (removed) | Rules moved into category files. |
-| `ai/prompts/manager.py` inline bodies | Temporary support for `create_task_prompt()` and `create_checkin_prompt()`. |
+| ~~`ai/prompts/manager.py` inline bodies~~ | Retired with `create_task_prompt` / `create_checkin_prompt` removal (2026-07-09). |
 | `ai/fallback/*` | Deterministic fallback logic; should align with category wording over time. |
 | `ai/chat/response_postprocess.py` | Leak cleanup, sign-off stripping, truncation only. |
 
@@ -216,12 +217,15 @@ Existing `get_prompt("wellness")` and `get_prompt("command")` can delegate to th
 
 ## 5. Refactoring Phases
 
-### Phase 0 - Lock current behavior with tests
+### Phase 0 - Lock current behavior with tests **PARTIAL (2026-07-08)**
 
-- Add tests that document the current prompt assembly, command dispatch path, fallback behavior, and context sections.
-- Prefer behavior assertions over exact prompt-string assertions.
-- Add a "no direct AI writes" test that ensures product AI action execution goes through handlers/domain APIs, not JSON file writes.
-- Add context coverage tests that prove the AI context includes account, preferences, personal context, tasks, check-ins, messages, schedules, notebooks where data exists.
+- [x] Add a "no direct AI writes" test (`tests/unit/test_product_ai_phase0_contracts.py`) ensuring product AI modules do not call storage write APIs directly.
+- [x] Add action-plan executor routing test proving planned actions go through `dispatch_structured_command`.
+- [x] Add context coverage test proving envelope sections include account, preferences, personal context, tasks, check-ins, messages, schedules, notebooks.
+- [x] Add post-action envelope refresh test (task created via dispatcher appears in envelope).
+- [x] Add legacy bridge inventory verification for Phase 8 bridges.
+- [ ] Broader behavior tests for envelope-based Q&A responses (prefer behavior over exact prompt strings).
+- [ ] Live LM Studio validation (`tests/ai/run_ai_functionality_tests.py`).
 
 ### Phase 1 - Canonical context envelope
 
@@ -233,7 +237,7 @@ Existing `get_prompt("wellness")` and `get_prompt("command")` can delegate to th
   - Message APIs for categories and recent sent messages.
   - Notebook handlers/data helpers for note/list metadata and recent entries.
   - Existing health/context/analytics helpers for summaries.
-- Replace ad hoc context assembly in `user/context_manager.py`, `ai/context/builder.py`, and `ai/context/phraser.py` incrementally by reading from the envelope.
+- Replace ad hoc context assembly in `user/context_manager.py` and `ai/context/phraser.py` incrementally by reading from the envelope.
 - Preserve current public entry points until all callers migrate, but do not add permanent shims.
 
 ### Phase 2 - Prompt categories **COMPLETED (2026-07-02)**
@@ -245,17 +249,11 @@ Existing `get_prompt("wellness")` and `get_prompt("command")` can delegate to th
 - [x] Wire `action_interpretation` and `action_result_response` flows into runtime composition beyond tests.
 - [x] Align `ai/fallback/*` copy with composed category contract (partial — paths migrated; wording review remains).
 
-### Phase 3 - Action catalog
+### Phase 3 - Action catalog **COMPLETED (2026-07-08 for live parser intents)**
 
-- Build an action catalog from existing command handlers and parser intents.
-- For each action, record:
-  - canonical action name
-  - handler or domain API target
-  - required/optional fields
-  - feature requirements
-  - confirmation policy
-  - result shape
-- Initial catalog should cover tasks, check-ins, profiles, schedules, analytics, notebooks, messages/help, account linking, and health-related reads.
+- [x] Build an action catalog from existing command handlers and parser intents.
+- [x] For each action, record canonical action name, handler target, required/optional fields, feature requirements, confirmation policy, and result shape for all live parser intents (tasks, check-ins, profile, schedules, analytics, notebooks, help/messages, health, preferences).
+- [ ] Account-linking intents remain out of scope until they appear in the rule-based parser registry.
 - Keep the command parser's live intent list as a source until the catalog fully replaces it.
 
 ### Phase 4 - AI action planning
@@ -287,21 +285,24 @@ Existing `get_prompt("wellness")` and `get_prompt("command")` can delegate to th
 - For clarification, ask one specific question based on missing fields.
 - [x] Remove `enhance_conversational_engagement()` so follow-up behavior is prompt-owned (`reply_rules.txt`).
 
-### Phase 7 - Fallback alignment
+### Phase 7 - Fallback alignment **COMPLETED (2026-07-08)**
 
-- Update fallbacks to accept `AIContextEnvelope` or a compact fallback context.
-- Keep deterministic fallback categories, but align copy with product capabilities and action availability.
-- Add action-aware fallback behavior:
-  - If AI planning fails but rule-based parsing is confident, execute through the existing structured command path.
-  - If LM Studio is unavailable for chat, answer from deterministic summaries where possible.
-  - If action execution fails, return the handler error/result instead of generic support copy.
+- [x] Update fallbacks to accept `AIContextEnvelope` or a compact fallback context (`FallbackContext` via `build_fallback_context()`).
+- [x] Keep deterministic fallback categories; align capability copy with `AIActionCatalog` summaries and action-boundary-safe hints.
+- [x] Add action-aware fallback behavior:
+  - [x] If AI planning fails but rule-based parsing has partial confidence, execute through structured command dispatch (`InteractionManager._try_partial_structured_command`).
+  - [x] If LM Studio is unavailable for chat, answer from deterministic envelope summaries (tasks, profile, schedules, messages, check-ins).
+  - [x] If action execution fails, prefer handler error metadata over generic support copy in `ActionPlanExecutor`.
 
-### Phase 8 - Retire old prompt/context paths **PARTIAL (2026-07-02)**
+### Phase 8 - Retire old prompt/context paths **PARTIAL (2026-07-08)**
 
 - [x] Migrated callers to `ai/client/`, `ai/context/`, `ai/prompts/`, `ai/chat/`, `ai/fallback/`; removed legacy flat modules and shim packages.
 - [x] Removed empty `ai/conversational_context/` and `ai/fallback_responses/` directories.
-- [ ] Retire `ai/context/builder.py` adapter when all callers consume `AIContextEnvelope` directly.
+- [x] Extracted check-in analytics to `ai/context/analytics.py`; assembly and phraser import analytics directly.
+- [x] Added envelope-backed `build_chatbot_context_dict()` in `ai/context/chatbot_context.py`; `chatbot.generate_contextual_response` uses it.
+- [x] Retired the removed context builder adapter; tests migrated to `build_ai_context_envelope` and `ai/context/analytics.py`.
 - [ ] Remove duplicated prompt text and obsolete context builders only after callers and tests are migrated.
+- [ ] Migrate or retire `user/context_manager.py` overlap (`get_ai_context` still used by tests and integration paths).
 - Use the legacy compatibility process for any retained bridge:
   - `--find` the old symbol/path first.
   - Add `# LEGACY COMPATIBILITY:` only if the bridge is truly needed.
@@ -441,7 +442,7 @@ Verified:
 Notes:
 
 - Superseded by the later action-catalog slice: the envelope's `action_catalog` section now contains live catalog data, not a placeholder.
-- Superseded by the later ContextBuilder slice: `ai/context/builder.py` now reads from the envelope. `user/context_manager.py` remains a separate context surface to review before final prompt cleanup.
+- Superseded by the later envelope slice: context assembly now reads from `AIContextEnvelope`. `user/context_manager.py` remains a separate context surface to review before final prompt cleanup.
 - No legacy compatibility bridge was added in this slice.
 
 ### 2026-07-01 - Handler-backed action catalog slice
@@ -463,24 +464,24 @@ Verified:
 
 Notes:
 
-- The first catalog pass focuses on live intent/handler discovery and task action field metadata. Future slices should expand field metadata for check-ins, profile, schedule, analytics, notebooks, messages/help, account, and health reads.
+- The first catalog pass focuses on live intent/handler discovery and task action field metadata. **Updated 2026-07-08:** field metadata now covers check-ins, profile, schedules, analytics, notebooks, help/messages, health, and preferences for all live parser intents; account intents remain parser-absent.
 - The catalog still does not write data or call handlers. Future execution must delegate writes to existing handlers via `dispatch_structured_command`; no direct domain-write executor was added.
 - A separate action-execution test is still required before introducing planner/executor code.
 
-### 2026-07-01 - ContextBuilder overlap reduction
+### [ARCHIVED] 2026-07-01 - ContextBuilder overlap reduction
 
 Completed:
 
-- Updated `ContextBuilder.build_user_context` in `ai/context/builder.py` to build from `AIContextEnvelope` instead of separately calling `UserContextManager`, `get_recent_responses`, and direct `get_user_data` reads.
-- Added a narrow conversion from `AIContextEnvelope` to the existing `ContextData` shape so current callers keep working while the canonical data source is centralized.
-- Kept `ContextBuilder.analyze_context` in place as the shared check-in analytics implementation used by conversational phrasing and fallback tests.
-- Added `tests/unit/test_ai_context_builder_envelope.py` to prove `ContextBuilder` delegates to `build_ai_context_envelope`.
+- Updated the removed context builder adapter to build from `AIContextEnvelope` instead of separately calling `UserContextManager`, `get_recent_responses`, and direct `get_user_data` reads.
+- Added a narrow conversion from `AIContextEnvelope` to the existing context dict shape so current callers kept working while the canonical data source was centralized.
+- Kept shared check-in analytics in place as the source used by conversational phrasing and fallback tests (now `ai/context/analytics.py`).
+- Added envelope delegation tests (superseded by envelope-native tests).
 
 Verified:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/unit/test_ai_context_builder_envelope.py tests/unit/test_ai_context_service.py tests/unit/test_context_phraser.py tests/unit/test_context_analytics_shared_source.py -q
-.\.venv\Scripts\python.exe -m pytest tests/behavior/test_ai_context_builder_behavior.py tests/behavior/test_ai_context_builder_coverage_expansion.py -q
+.\.venv\Scripts\python.exe -m pytest tests/behavior/test_ai_context_envelope_behavior.py tests/behavior/test_ai_context_analytics_coverage_expansion.py tests/unit/test_product_ai_phase0_contracts.py -q
 ```
 
 Notes:
@@ -600,6 +601,81 @@ Notes:
 
 - Enable with `AI_ACTION_PLANNER_ENABLED=true` to use the planner on messages that fall through to contextual chat.
 - Rule-based command parsing remains the primary path for confident structured commands.
+
+### 2026-07-08 - Fallback alignment (Phase 7) **COMPLETED**
+
+Completed:
+
+- Added [`ai/fallback/context.py`](../ai/fallback/context.py) with `FallbackContext` and `build_fallback_context()` backed by `AIContextEnvelope` (`requested_intent="fallback_response"`).
+- Added [`ai/fallback/envelope_summaries.py`](../ai/fallback/envelope_summaries.py) for deterministic task, profile, schedule, message, capability, and check-in summaries when LM Studio is unavailable.
+- Added [`ai/fallback/action_hints.py`](../ai/fallback/action_hints.py) for action-shaped prompts that suggest command retries without false CRUD claims.
+- Updated [`ai/fallback/coordinator.py`](../ai/fallback/coordinator.py) routing order: envelope summaries → action hints → check-in analytics → keyword support.
+- Added `ENVELOPE_SUMMARY` and `ACTION_UNAVAILABLE` to [`ai/fallback/categories.py`](../ai/fallback/categories.py).
+- Added partial structured-command retry in [`../communication/message_processing/interaction_manager.py`](../communication/message_processing/interaction_manager.py) when the planner returns `None` but parse confidence is usable.
+- Prefer handler error metadata in [`../communication/message_processing/action_plan_executor.py`](../communication/message_processing/action_plan_executor.py) when execution returns an empty message.
+- Added unit tests in [`tests/unit/test_fallback_envelope_alignment.py`](../tests/unit/test_fallback_envelope_alignment.py) and partial-parse behavior coverage in [`tests/behavior/test_action_planner_routing.py`](../tests/behavior/test_action_planner_routing.py).
+- Fixed fallback import-boundary test path to `ai/fallback/`.
+
+Verified:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_fallback_envelope_alignment.py tests/unit/test_fallback_responses.py tests/behavior/test_action_planner_routing.py -q
+```
+
+### 2026-07-08 - Action catalog metadata expansion **COMPLETED**
+
+Completed:
+
+- Expanded `ai/prompts/action_catalog.py` field metadata for check-ins, profile, schedules, analytics, notebooks, help/messages, health, and natural-language preferences (not just tasks).
+- Added per-intent handler and feature-gate overrides (`AnalyticsHandler` for analytics intents, `NaturalLanguageHandler`, `CreateMenuHandler`, etc.).
+- Aligned `append_note_to_task` required field with parser/handler entity name (`note_text`).
+- Extended `tests/unit/test_ai_action_catalog.py` with parametrized non-task domain coverage and delete-confirmation checks.
+
+Verified:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_ai_action_catalog.py tests/unit/test_ai_context_service.py -q
+```
+
+Notes:
+
+- Account intents remain out of the live rule-based parser registry; catalog entries appear only when parser intents exist.
+- Phase 3 catalog slice is substantially complete for live parser intents; planner hardening can now use richer required-field metadata across domains.
+
+### 2026-07-08 - Phase 8 context retirement slice and Phase 0 contract tests **PARTIAL**
+
+Completed:
+
+- Extracted check-in analytics to [`ai/context/analytics.py`](../ai/context/analytics.py); [`ai/context/assembly.py`](../ai/context/assembly.py) and [`ai/context/phraser.py`](../ai/context/phraser.py) import analytics directly.
+- Added envelope-backed [`chatbot context`](../ai/context/chatbot_context.py) (`build_chatbot_context_dict`); [`chatbot`](../ai/chat/chatbot.py) `generate_contextual_response` uses it with in-memory session overlay.
+- Retired `PromptManager.create_task_prompt` / `create_checkin_prompt`; tests use `compose_product_prompt`.
+- Added Phase 0 contract tests in [`tests/unit/test_product_ai_phase0_contracts.py`](../tests/unit/test_product_ai_phase0_contracts.py): no direct `ai/` storage writes, executor dispatch routing, envelope context coverage, post-action task visibility, bridge inventory checks.
+
+Verified:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_product_ai_phase0_contracts.py tests/unit/test_ai_context_builder_envelope.py tests/unit/test_context_analytics_shared_source.py tests/unit/test_conversational_context_envelope.py -q
+```
+
+Remaining:
+
+- Migrate `user/context_manager.get_ai_context` callers; broader envelope Q&A behavior tests.
+
+### 2026-07-08 - Retire context builder adapter **COMPLETED**
+
+Completed:
+
+- Removed the context builder adapter after migrating all test callers to `build_ai_context_envelope` and `ai/context/analytics.py`.
+- Replaced behavior tests: [envelope behavior tests](../tests/behavior/test_ai_context_envelope_behavior.py), [analytics coverage tests](../tests/behavior/test_ai_context_analytics_coverage_expansion.py).
+- Updated fallback modules in `ai/fallback/` to import analytics directly.
+- Moved `context_builder_build_user_context_bridge` to `removed_inventory` in `DEPRECATION_INVENTORY.json`.
+- Added docstrings and `@handle_errors` to [chatbot context helpers](../ai/context/chatbot_context.py).
+
+Verified:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/behavior/test_ai_context_envelope_behavior.py tests/behavior/test_ai_context_analytics_coverage_expansion.py tests/unit/test_product_ai_phase0_contracts.py -q
+```
 
 ### 2026-07-05 - Planner routing behavior tests
 

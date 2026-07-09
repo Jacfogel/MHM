@@ -3,14 +3,14 @@
 """
 Format computed context facts into natural-language prompt sections.
 
-Analytics and aggregation live in ``ai.context.builder`` (``analyze_context``).
+Analytics and aggregation live in ``ai.context.analytics`` (``analyze_checkin_entries``).
 This module only phrases those facts for comprehensive conversational prompts.
 """
 
 from datetime import date
 from typing import Any
 
-from ai.context.builder import ContextAnalysis, ContextData, get_context_builder
+from ai.context.analytics import ContextAnalysis, analyze_checkin_entries
 from core import get_user_data
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
@@ -202,7 +202,7 @@ def append_feature_enablement(parts: list[str], user_id: str) -> None:
 
 @handle_errors("appending check-in summary context", default_return=None)
 def append_checkin_summary(parts: list[str], user_id: str) -> None:
-    """Recent check-in analytics phrased from ``ContextBuilder.analyze_context``."""
+    """Recent check-in analytics phrased from ``analyze_checkin_entries``."""
     if not is_user_checkins_enabled(user_id):
         return
 
@@ -211,9 +211,7 @@ def append_checkin_summary(parts: list[str], user_id: str) -> None:
         parts.append("They have not completed any check-ins yet.")
         return
 
-    analysis = get_context_builder().analyze_context(
-        ContextData(recent_checkins=recent_checkins)
-    )
+    analysis = analyze_checkin_entries(recent_checkins)
     parts.append(phrase_checkin_summary(analysis, recent_checkins))
 
 

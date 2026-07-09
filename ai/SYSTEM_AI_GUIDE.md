@@ -4,7 +4,7 @@
 > **Audience**: Developers and AI collaborators working on MHM's AI system
 > **Purpose**: Explain how the AI subsystem is structured, how it behaves at runtime, and how to extend it safely
 > **Style**: Technical, concise, system-level (hybrid of conceptual and concrete details)
-> **Last Updated**: 2026-07-02
+> **Last Updated**: 2026-07-08
 
 ## 1. Overview
 
@@ -34,7 +34,8 @@ The AI subsystem lives primarily under `ai/` (pipeline subpackages) and collabor
 | `ai/prompts/manager.py` | Loads prompts and composes product-AI category prompts. |
 | `ai/client/cache_manager.py` | Response and context caching with TTL and LRU cleanup. |
 | `ai/context/service.py` | Canonical `AIContextEnvelope` for structured product-AI context. |
-| `ai/context/builder.py` | Adapts envelope data into `ContextData` for legacy callers. |
+| `ai/context/analytics.py` | Check-in metrics (`ContextAnalysis`, `analyze_checkin_entries`). |
+| `ai/context/chatbot_context.py` | Envelope-backed chatbot summary dict for contextual fallback personalization. |
 | `ai/context/history.py` | Persists and retrieves per-user conversational history. |
 | `ai/client/lm_studio_manager.py` | Detects LM Studio status and model readiness. |
 | `ai/chat/interaction_types.py` | Named interaction types mapped from `generate_response` modes. |
@@ -65,7 +66,7 @@ At a high level:
 3. When a free-form AI reply is needed, code calls into `AIChatBotSingleton.generate_response` or `generate_contextual_response`.
 4. The chatbot:
    - Detects mode (chat vs command).
-   - Optionally builds context via `ContextBuilder` and `UserContextManager`.
+   - Builds context via `build_ai_context_envelope()` (`ai/context/service.py`) and, for contextual chat summaries, `build_chatbot_context_dict()` (`ai/context/chatbot_context.py`).
    - Builds a prompt via `PromptManager`.
    - Calls LM Studio (if available) with timeouts and error handling.
    - Applies safety and cleaning rules.
@@ -174,10 +175,16 @@ The command system prompt must list the same intents as the rule-based parser. D
 
 ## 4. Context and Conversation State
 
-### 4.1. Context builder and user context manager
+### 4.1. Context envelope and user context manager
 
-Two layers collaborate to assemble context:
+Product-AI context is envelope-first; `UserContextManager` remains for integration paths and in-memory session history.
 
+- `ai/context/service.py` (`build_ai_context_envelope`, `AIContextEnvelope`)  
+  - Canonical structured context: account, preferences, tasks, check-ins, messages, schedules, notebooks, health, conversation, and action catalog sections.
+- `ai/context/analytics.py`  
+  - Shared check-in analytics (`analyze_checkin_entries`) for phrasing, assembly, and fallback routing.
+- `ai/context/chatbot_context.py` (`build_chatbot_context_dict`)  
+  - Envelope-backed legacy summary dict for contextual chat fallback personalization.
 - `user/context_manager.py` (`UserContextManager`)  
   - Manages user profile, preferences, schedules, check-ins, and derived insights.
   - Uses `get_user_data`, `get_recent_checkins`, and schedule utilities to build a structured `ai_context` dictionary.
@@ -187,14 +194,8 @@ Two layers collaborate to assemble context:
     - `messaging_service`
     - `active_schedules`
     - Recent activity and mood trends
-- `ai/context/builder.py` (`ContextBuilder`)  
-  - Wraps the above plus response tracking and conversation history.
-  - Decorated with `@handle_errors("building user context", default_return=ContextData())`.
-  - Produces a `ContextData` object with:
-    - Structured data (for internal use) and
-    - A concise, human-readable summary string used in prompts.
 
-If context cannot be built (for example, missing data, file corruption), the builder falls back to a safe default (for example, treating the user as "New user") rather than failing the entire AI request.
+If context cannot be built (for example, missing data, file corruption), envelope builders fall back to safe empty sections rather than failing the entire AI request.
 
 ### 4.2. Conversation history and recent activity
 
@@ -208,7 +209,7 @@ Conversation history lives through:
   - Stores user interactions in JSON files under user-specific directories.
   - Decorated with `@handle_errors` to avoid crashes when log files are missing or corrupted.
 
-`ContextBuilder` uses these sources to include:
+`analyze_checkin_entries` uses recent check-in rows to include:
 
 - A short summary of recent check-ins (for example, average mood over recent days).
 - A compact representation of recent conversation topics when available.
@@ -216,7 +217,7 @@ Conversation history lives through:
 When you add new forms of tracked data, prefer:
 
 1. Extending `core/response_tracking.py` (or related tracking utilities).
-2. Updating `UserContextManager` and `ContextBuilder` to integrate the new signals.
+2. Updating `build_ai_context_envelope` section builders and `UserContextManager` where still needed.
 3. Keeping the context summary short and stable to avoid prompt bloat.
 
 ### 4.3. Conversational context and actionability
@@ -455,8 +456,10 @@ For quick navigation when working on the AI subsystem:
 
 - `ai/chat/chatbot.py`  
   - Main AI entry points, modes, LM Studio calls, caching, and concurrency.
-- `ai/context/builder.py`  
-  - Assembles AI context from user data, recent activity, and conversation history.
+- `ai/context/service.py`  
+  - Canonical envelope construction and section metadata.
+- `ai/context/analytics.py`  
+  - Check-in analytics shared by phrasing and fallback.
 - `user/context_manager.py`  
   - Manages user profile, preferences, schedules, and insights; produces a structured AI context object.
 - `core/response_tracking.py`  

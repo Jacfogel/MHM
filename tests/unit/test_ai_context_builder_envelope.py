@@ -1,13 +1,11 @@
-"""Tests for ContextBuilder delegation to the canonical AI context envelope."""
+"""Tests for canonical AI context envelope construction."""
 
 from __future__ import annotations
 
-from datetime import datetime
-
 import pytest
 
-from ai.context.builder import ContextBuilder, _context_data_from_ai_envelope
-from ai.context.service import AIContextEnvelope, AIContextSection
+from ai.context.service import AIContextEnvelope, AIContextSection, build_ai_context_envelope
+from tests.test_helpers.test_utilities import TestUserFactory
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.ai]
@@ -17,9 +15,9 @@ def _section(name: str, data):
     return AIContextSection(name=name, data=data)
 
 
-def test_context_data_adapter_preserves_legacy_shape_from_envelope():
+def test_envelope_structured_sections_expose_context_fields():
     envelope = AIContextEnvelope(
-        metadata={"user_id": "user-1"},
+        metadata={"user_id": "user-1", "current_timestamp": "2026-07-01 09:30:00"},
         sections={
             "account": _section("account", {"preferred_name": "Julie"}),
             "preferences": _section(
@@ -41,59 +39,28 @@ def test_context_data_adapter_preserves_legacy_shape_from_envelope():
             ),
         },
     )
+    structured = envelope.structured
 
-    context = _context_data_from_ai_envelope(
-        envelope, current_time=datetime(2026, 7, 1, 9, 30, 0)
-    )
-
-    assert context.user_profile == {
-        "preferred_name": "Julie",
-        "active_categories": ["motivational"],
-        "messaging_service": "discord",
-        "active_schedules": ["Morning Check-in"],
-    }
-    assert context.user_context == {
-        "notes_for_ai": ["Keep it direct"],
-        "goals": ["Finish project"],
-    }
-    assert context.recent_checkins == [{"mood": 4}]
-    assert context.conversation_history == [{"user_message": "hello"}]
-    assert context.current_time == datetime(2026, 7, 1, 9, 30, 0)
-
-
-def test_context_builder_build_user_context_uses_canonical_envelope(monkeypatch):
-    envelope = AIContextEnvelope(
-        metadata={"user_id": "user-1"},
-        sections={
-            "account": _section("account", {"preferred_name": "Julie"}),
-            "preferences": _section("preferences", {}),
-            "personal_context": _section("personal_context", {}),
-            "schedules": _section("schedules", {}),
-            "checkins": _section("checkins", {"recent": []}),
-            "conversation": _section("conversation", {"recent_chat_interactions": []}),
-        },
-    )
-    calls = []
-
-    def _fake_build_envelope(user_id, **kwargs):
-        calls.append((user_id, kwargs))
-        return envelope
-
-    monkeypatch.setattr(
-        "ai.context.builder.build_ai_context_envelope", _fake_build_envelope
-    )
-
-    context = ContextBuilder().build_user_context(
-        "user-1", include_conversation_history=False
-    )
-
-    assert context.user_profile["preferred_name"] == "Julie"
-    assert calls == [
-        (
-            "user-1",
-            {
-                "include_conversation_history": False,
-                "requested_intent": "context_builder_compat",
-            },
-        )
+    assert structured["account"]["preferred_name"] == "Julie"
+    assert structured["preferences"]["categories"] == ["motivational"]
+    assert structured["personal_context"]["goals"] == ["Finish project"]
+    assert structured["schedules"]["active_schedules"] == ["Morning Check-in"]
+    assert structured["checkins"]["recent"] == [{"mood": 4}]
+    assert structured["conversation"]["recent_chat_interactions"] == [
+        {"user_message": "hello"}
     ]
+
+
+def test_build_ai_context_envelope_records_requested_intent(test_data_dir):
+    user_id = "envelope-intent-user"
+    TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+
+    envelope = build_ai_context_envelope(
+        user_id,
+        include_conversation_history=False,
+        requested_intent="unit_test_intent",
+    )
+
+    assert envelope is not None
+    assert envelope.metadata["requested_intent"] == "unit_test_intent"
+    assert envelope.metadata["user_id"] == user_id

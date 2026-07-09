@@ -151,14 +151,19 @@ class ActionPlanExecutor:
         )
         metadata = adapter.build_action_execution_metadata(action, handler_response)
 
-        if enable_ai_enhancement and ai_chatbot.is_ai_available() and metadata is not None:
-            handler_response = self._generate_result_aware_response(
-                user_id,
-                action,
-                handler_response,
-                metadata,
-                ai_chatbot=ai_chatbot,
-            )
+        if handler_response.message and handler_response.message.strip():
+            if enable_ai_enhancement and ai_chatbot.is_ai_available() and metadata is not None:
+                enhanced = self._generate_result_aware_response(
+                    user_id,
+                    action,
+                    handler_response,
+                    metadata,
+                    ai_chatbot=ai_chatbot,
+                )
+                if enhanced is not None:
+                    handler_response = enhanced
+        elif metadata is not None and metadata.error:
+            handler_response = InteractionResponse(metadata.error, handler_response.completed)
 
         return ActionExecutionResult(
             plan=plan,

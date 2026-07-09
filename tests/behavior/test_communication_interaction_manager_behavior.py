@@ -21,6 +21,10 @@ def _create_fast_interaction_manager():
     interaction_manager = InteractionManager()
     real_parser = interaction_manager.command_parser
 
+    parser_wrapper = types.SimpleNamespace()
+    parser_wrapper._rule_based_parse = real_parser._rule_based_parse
+    parser_wrapper.get_suggestions = real_parser.get_suggestions
+
     def _fast_parse(message, user_id=None):
         text = "" if message is None else str(message)
         if not text.strip():
@@ -29,13 +33,10 @@ def _create_fast_interaction_manager():
                 0.0,
                 "fallback",
             )
-        return real_parser._rule_based_parse(text, user_id=user_id)
+        return parser_wrapper._rule_based_parse(text, user_id=user_id)
 
-    interaction_manager.command_parser = types.SimpleNamespace(
-        parse=_fast_parse,
-        _rule_based_parse=real_parser._rule_based_parse,
-        get_suggestions=real_parser.get_suggestions,
-    )
+    parser_wrapper.parse = _fast_parse
+    interaction_manager.command_parser = parser_wrapper
     interaction_manager.enable_ai_enhancement = False
     interaction_manager._handle_contextual_chat = (
         lambda user_id, message, channel_type: InteractionResponse(
@@ -709,9 +710,9 @@ class TestInteractionManagerRealBehavior:
         original_rule_parse = parser._rule_based_parse
         observed_messages: list[str] = []
 
-        def _tracking_rule_parse(message):
+        def _tracking_rule_parse(message, user_id=None):
             observed_messages.append(message)
-            return original_rule_parse(message)
+            return original_rule_parse(message, user_id=user_id)
 
         monkeypatch.setattr(parser, "_rule_based_parse", _tracking_rule_parse)
 
@@ -739,9 +740,9 @@ class TestInteractionManagerRealBehavior:
         original_rule_parse = parser._rule_based_parse
         observed_messages: list[str] = []
 
-        def _tracking_rule_parse(message):
+        def _tracking_rule_parse(message, user_id=None):
             observed_messages.append(message)
-            return original_rule_parse(message)
+            return original_rule_parse(message, user_id=user_id)
 
         monkeypatch.setattr(parser, "_rule_based_parse", _tracking_rule_parse)
 
@@ -857,9 +858,9 @@ class TestInteractionManagerRealBehavior:
         original_rule_parse = parser._rule_based_parse
         observed_messages: list[str] = []
 
-        def _tracking_rule_parse(message):
+        def _tracking_rule_parse(message, user_id=None):
             observed_messages.append(message)
-            return original_rule_parse(message)
+            return original_rule_parse(message, user_id=user_id)
 
         monkeypatch.setattr(parser, "_rule_based_parse", _tracking_rule_parse)
 

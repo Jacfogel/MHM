@@ -260,6 +260,7 @@ class TestAIChatBotHelpers:
 
         chatbot_instance.response_cache.clear()
         monkeypatch.setattr(chatbot_instance, "lm_studio_available", False)
+        monkeypatch.setattr(chatbot_instance, "_ensure_lm_studio_available", lambda: False)
         with patch(
             "ai.client.lm_studio_client.test_lm_studio_connection",
             return_value=False,

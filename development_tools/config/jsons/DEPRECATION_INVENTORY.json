@@ -82,6 +82,32 @@
   ],
   "removed_inventory": [
     {
+      "id": "prompt_manager_domain_prompt_builders",
+      "removed_at": "2026-07-09",
+      "search_terms": [
+        "PromptManager.create_task_prompt",
+        "PromptManager.create_checkin_prompt",
+        "LEGACY COMPATIBILITY: PromptManager.create_task_prompt",
+        "LEGACY COMPATIBILITY: PromptManager.create_checkin_prompt"
+      ],
+      "replacement": "ai.prompts.manager.PromptManager.compose_product_prompt",
+      "notes": "Removed create_task_prompt/create_checkin_prompt after migrating tests to compose_product_prompt; dropped inline checkin/task_assistant fallback templates."
+    },
+    {
+      "id": "context_builder_build_user_context_bridge",
+      "removed_at": "2026-07-08",
+      "search_terms": [
+        "ContextBuilder.build_user_context",
+        "ai/context/builder.py",
+        "from ai.context.builder import",
+        "get_context_builder",
+        "ContextData",
+        "LEGACY COMPATIBILITY: ContextBuilder.build_user_context"
+      ],
+      "replacement": "ai.context.service.build_ai_context_envelope",
+      "notes": "Removed ai/context/builder.py after migrating tests to envelope APIs and analytics.py. Check-in analytics live in ai/context/analytics.py; chatbot summary dict in ai/context/chatbot_context.py."
+    },
+    {
       "id": "update_message_references_module_facade",
       "removed_at": "2026-07-02",
       "search_terms": [
