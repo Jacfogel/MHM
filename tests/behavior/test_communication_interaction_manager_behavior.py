@@ -6,20 +6,26 @@ Tests focus on actual side effects and system changes rather than just return va
 
 import pytest
 import types
+from collections.abc import Callable
 
 import core.config as app_config
 from communication.message_processing.interaction_manager import InteractionManager
 from communication.message_processing.conversation_flow_manager import conversation_manager
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
-from communication.message_processing.command_parser import ParsingResult
+from communication.message_processing.command_parser import EnhancedCommandParser, ParsingResult
 from tests.test_helpers.test_utilities import TestUserFactory
 
 
-def _create_fast_interaction_manager():
+def _create_fast_interaction_manager(monkeypatch: pytest.MonkeyPatch | None = None):
     """Create an interaction manager with deterministic fast-path parsing/chat for tests."""
-    app_config.AI_ACTION_PLANNER_ENABLED = False
+    if monkeypatch is not None:
+        monkeypatch.setattr(app_config, "AI_ACTION_PLANNER_ENABLED", False)
+    else:
+        app_config.AI_ACTION_PLANNER_ENABLED = False
+
     interaction_manager = InteractionManager()
-    real_parser = interaction_manager.command_parser
+    # Use a fresh parser so singleton mutations from other tests cannot leak in.
+    real_parser = EnhancedCommandParser()
 
     parser_wrapper = types.SimpleNamespace()
     parser_wrapper._rule_based_parse = real_parser._rule_based_parse
@@ -45,6 +51,22 @@ def _create_fast_interaction_manager():
         )
     )
     return interaction_manager
+
+
+def _track_parser_inputs(
+    monkeypatch: pytest.MonkeyPatch,
+    parser,
+    observed_messages: list[str],
+) -> Callable:
+    """Wrap parser.parse so tests can assert the exact text routed to parsing."""
+    original_parse = parser.parse
+
+    def _tracking_parse(message, user_id=None):
+        observed_messages.append(message)
+        return original_parse(message, user_id=user_id)
+
+    monkeypatch.setattr(parser, "parse", _tracking_parse)
+    return _tracking_parse
 
 
 @pytest.mark.behavior
@@ -542,6 +564,14 @@ class TestInteractionManagerBehavior:
 
 class TestInteractionManagerRealBehavior:
     """Test interaction manager with real behavior verification."""
+
+    @pytest.fixture(autouse=True)
+    def _reset_interaction_manager_state(self, monkeypatch):
+        """Keep flow state and planner routing isolated across behavior tests."""
+        monkeypatch.setattr(app_config, "AI_ACTION_PLANNER_ENABLED", False)
+        conversation_manager.user_states.clear()
+        yield
+        conversation_manager.user_states.clear()
     
     @pytest.mark.behavior
     def test_handle_message_creates_conversation_record(self, test_data_dir):
@@ -704,17 +734,10 @@ class TestInteractionManagerRealBehavior:
         # Arrange
         user_id = "test-interaction-user-arg-parity"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = _create_fast_interaction_manager()
+        interaction_manager = _create_fast_interaction_manager(monkeypatch)
         parser = interaction_manager.command_parser
-
-        original_rule_parse = parser._rule_based_parse
         observed_messages: list[str] = []
-
-        def _tracking_rule_parse(message, user_id=None):
-            observed_messages.append(message)
-            return original_rule_parse(message, user_id=user_id)
-
-        monkeypatch.setattr(parser, "_rule_based_parse", _tracking_rule_parse)
+        _track_parser_inputs(monkeypatch, parser, observed_messages)
 
         # Act
         slash_response = interaction_manager.handle_message(user_id, "/tasks overdue", "discord")
@@ -734,17 +757,10 @@ class TestInteractionManagerRealBehavior:
         # Arrange
         user_id = "test-interaction-user-discoverability"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = _create_fast_interaction_manager()
+        interaction_manager = _create_fast_interaction_manager(monkeypatch)
         parser = interaction_manager.command_parser
-
-        original_rule_parse = parser._rule_based_parse
         observed_messages: list[str] = []
-
-        def _tracking_rule_parse(message, user_id=None):
-            observed_messages.append(message)
-            return original_rule_parse(message, user_id=user_id)
-
-        monkeypatch.setattr(parser, "_rule_based_parse", _tracking_rule_parse)
+        _track_parser_inputs(monkeypatch, parser, observed_messages)
 
         # Act
         interaction_manager.handle_message(user_id, "/n quick note", "discord")
@@ -852,17 +868,10 @@ class TestInteractionManagerRealBehavior:
         # Arrange
         user_id = "test-interaction-user-unknown-prefix-parity"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        interaction_manager = _create_fast_interaction_manager()
+        interaction_manager = _create_fast_interaction_manager(monkeypatch)
         parser = interaction_manager.command_parser
-
-        original_rule_parse = parser._rule_based_parse
         observed_messages: list[str] = []
-
-        def _tracking_rule_parse(message, user_id=None):
-            observed_messages.append(message)
-            return original_rule_parse(message, user_id=user_id)
-
-        monkeypatch.setattr(parser, "_rule_based_parse", _tracking_rule_parse)
+        _track_parser_inputs(monkeypatch, parser, observed_messages)
 
         # Act
         slash_response = interaction_manager.handle_message(user_id, "/not_a_real_cmd 42", "discord")

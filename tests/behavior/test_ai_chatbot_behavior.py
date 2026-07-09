@@ -271,6 +271,10 @@ class TestAIChatBotBehavior:
                     return_value=mock_interpreter,
                 )
             )
+            stack.enter_context(
+                patch.object(chatbot, '_ensure_lm_studio_available', return_value=True)
+            )
+            chatbot.lm_studio_available = True
             mock_api = stack.enter_context(
                 patch.object(
                     chatbot,
@@ -324,6 +328,10 @@ class TestAIChatBotBehavior:
                     return_value=mock_interpreter,
                 )
             )
+            stack.enter_context(
+                patch.object(chatbot, '_ensure_lm_studio_available', return_value=True)
+            )
+            chatbot.lm_studio_available = True
             mock_api = stack.enter_context(
                 patch.object(
                     chatbot,

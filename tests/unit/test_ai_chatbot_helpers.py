@@ -19,8 +19,10 @@ def chatbot_instance():
          patch('ai.client.lm_studio_manager.is_lm_studio_ready', return_value=False):
         # Get or create singleton instance
         chatbot = get_ai_chatbot()
+        original_available = chatbot.lm_studio_available
         chatbot.lm_studio_available = False  # Set to False to avoid actual API calls
-        return chatbot
+        yield chatbot
+        chatbot.lm_studio_available = original_available
 
 
 @pytest.mark.unit
