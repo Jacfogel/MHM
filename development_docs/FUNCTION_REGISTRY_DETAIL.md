@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-09 11:56:11
+> **Last Generated**: 2026-07-09 22:15:08
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,16 +14,16 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.6% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 89.7% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 258
-- **Functions Found**: 2451
-- **Methods Found**: 1366
+- **Functions Found**: 2448
+- **Methods Found**: 1360
 - **Classes Found**: 254
-- **Total Items**: 3817
-- **Functions Documented**: 2168
-- **Methods Documented**: 1253
+- **Total Items**: 3808
+- **Functions Documented**: 2166
+- **Methods Documented**: 1248
 - **Classes Documented**: 183
-- **Total Documented**: 3421
+- **Total Documented**: 3414
 - **Template-Generated**: 48
 - **Last Updated**: 2026-07-09
 
@@ -48,7 +48,7 @@ Bot implementations, channel management, and communication utilities.
 ### **User Interface Functions** (517)
 UI dialogs, widgets, and user interaction functions.
 
-### **User Management Functions** (36)
+### **User Management Functions** (30)
 User context, preferences, and data management functions.
 
 ### **Task Management Functions** (98)
@@ -116,7 +116,7 @@ Returns:
     tuple: (user_prompt, user_id, mode)
 - [OK] `_normalize_response_mode(self, mode, user_prompt)` - Normalize generation mode to supported values.
 - [OK] `_optimize_prompt(self, user_prompt, context)` - Create optimized messages array for LM Studio API.
-- [OK] `_post_process_generated_response(self, mode, result)` - Post-process model output into final user-visible response.
+- [OK] `_post_process_generated_response(self, mode, result, user_prompt)` - Post-process model output into final user-visible response.
 - [OK] `_record_contextual_interaction(self, user_id, user_prompt, response)` - Persist contextual response and conversation history.
 - [OK] `_refresh_lm_studio_availability(self)` - Update lm_studio_available from a live connection test.
 - [OK] `_smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response (delegates to ai.chat.response_postprocess).
@@ -161,7 +161,7 @@ Returns:
     tuple: (user_prompt, user_id, mode)
   - [OK] `AIChatBotSingleton._normalize_response_mode(self, mode, user_prompt)` - Normalize generation mode to supported values.
   - [OK] `AIChatBotSingleton._optimize_prompt(self, user_prompt, context)` - Create optimized messages array for LM Studio API.
-  - [OK] `AIChatBotSingleton._post_process_generated_response(self, mode, result)` - Post-process model output into final user-visible response.
+  - [OK] `AIChatBotSingleton._post_process_generated_response(self, mode, result, user_prompt)` - Post-process model output into final user-visible response.
   - [OK] `AIChatBotSingleton._record_contextual_interaction(self, user_id, user_prompt, response)` - Persist contextual response and conversation history.
   - [OK] `AIChatBotSingleton._refresh_lm_studio_availability(self)` - Update lm_studio_available from a live connection test.
   - [OK] `AIChatBotSingleton._smart_truncate_response(self, text, max_chars, max_words)` - Smartly truncate response (delegates to ai.chat.response_postprocess).
@@ -209,6 +209,8 @@ Uses adaptive timeout to prevent blocking for too long with improved performance
 Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `find_response_leak_markers(text)` - Return leak marker substrings still present in user-visible text.
 - [OK] `keep_first_personalized_block(text)` - When the model returns multiple draft messages, keep only the first greeting block.
+- [OK] `polish_greeting_response(response, user_prompt)` - Drop immediate help offers when the reply already answers a greeting/feeling question.
+- [OK] `repair_truncated_response_tail(response)` - Remove fake multi-turn continuations and dangling markdown tails.
 - [OK] `smart_truncate_response(text, max_chars, max_words)` - Truncate response to avoid mid-sentence cuts when possible.
 - [OK] `strip_instruction_tuning_markers(text)` - Remove fine-tuning delimiter leaks (e.g. '## INPUT ##OUTPUT') from model output.
 - [OK] `strip_letter_signoffs(text)` - Remove email-style closings and [Your Name] placeholders from short wellness messages.
@@ -521,13 +523,13 @@ Returns:
 - [MISSING] `_checkin_completed_today(ts, user_id)` - No description
 - [MISSING] `_feature_status_lines(user_id)` - No description
 - [OK] `_phrase_recent_sent_messages(parts, recent_sent_all)` - Append recent automated-message lines; return full list for follow-up helpers.
-- [OK] `append_activity_and_mood_trends(parts, user_id, context)` - Recent activity counts and mood trend summary from get_ai_context.
+- [OK] `append_activity_and_mood_trends(parts, user_id, context)` - Recent activity counts and mood trend summary from chatbot context dict.
 - [OK] `append_checkin_summary(parts, user_id)` - Recent check-in analytics phrased from ``analyze_checkin_entries``.
 - [MISSING] `append_conversation_history(parts, context)` - No description
 - [OK] `append_current_datetime_context(parts, user_id)` - Prepend current date/time awareness for the user's account timezone.
 - [OK] `append_feature_enablement(parts, user_id)` - Tell the model which product features are enabled for this user.
 - [OK] `append_health_guidance(parts, user_id)` - Append safe wellness guidance (no raw wearable metrics).
-- [OK] `append_profile_sections(parts, context)` - Profile, neurodivergent context, and goals from get_ai_context.
+- [OK] `append_profile_sections(parts, context)` - Profile, neurodivergent context, and goals from chatbot context dict.
 - [OK] `append_recent_sent_messages(parts, user_id)` - Return full recent_sent list for task-reminder follow-up.
 - [MISSING] `append_schedule_details(parts, user_id, context)` - No description
 - [MISSING] `append_task_data(parts, user_id)` - No description
@@ -712,7 +714,7 @@ Handles JSON, key-value pairs (ACTION: ...), or natural language.
 - [OK] `_action_summary_from_dict(catalog)` - Return compact action capability text from serialized catalog data.
 - [OK] `_extract_action_summary(context_view, action_catalog)` - Return generated action capability text from a catalog or context view.
 - [OK] `_extract_context_prompt_text(context_view)` - Return prompt text from an AIContextEnvelope-like object or plain dict.
-- [OK] `_load_assistant_system_prompt_text()` - Load the main companion prompt from resources/prompts/assistant_system_prompt.txt.
+- [OK] `_load_assistant_system_prompt_text()` - Load optional custom override prompt or defer to product_ai/persona.txt.
 - [OK] `_load_command_format_instructions()` - Return ACTION-format instructions from command.txt without the action list.
 - [OK] `_load_command_prompt_text()` - Load the command-parser system prompt from resources/prompts/command.txt.
 - [OK] `_load_custom_prompt(self)` - Load the custom system prompt from file when AI_USE_CUSTOM_PROMPT is enabled.
@@ -741,13 +743,8 @@ Returns:
 Returns:
     Dictionary mapping prompt types to descriptions
 - [OK] `get_command_format_instructions(self)` - Return ACTION-format parsing rules without the runtime action list.
-- [OK] `get_prompt(self, prompt_type)` - Get the appropriate prompt for the given type
-
-Args:
-    prompt_type: Type of prompt ('wellness', 'command', 'neurodivergent_support', etc.)
-
-Returns:
-    The prompt string
+- [OK] `get_persona_prompt_text()` - Return canonical persona category text for simple (non-composed) prompts.
+- [OK] `get_prompt(self, prompt_type)` - Return the command-parser prompt. Persona/chat prompts use other APIs.
 - [OK] `get_prompt_manager()` - Get the global prompt manager instance
 - [OK] `get_prompt_template(self, prompt_type)` - Get the full prompt template for the given type
 
@@ -790,13 +787,7 @@ Returns:
 Returns:
     Dictionary mapping prompt types to descriptions
   - [OK] `PromptManager.get_command_format_instructions(self)` - Return ACTION-format parsing rules without the runtime action list.
-  - [OK] `PromptManager.get_prompt(self, prompt_type)` - Get the appropriate prompt for the given type
-
-Args:
-    prompt_type: Type of prompt ('wellness', 'command', 'neurodivergent_support', etc.)
-
-Returns:
-    The prompt string
+  - [OK] `PromptManager.get_prompt(self, prompt_type)` - Return the command-parser prompt. Persona/chat prompts use other APIs.
   - [OK] `PromptManager.get_prompt_template(self, prompt_type)` - Get the full prompt template for the given type
 
 Args:
@@ -7581,98 +7572,26 @@ Args:
 
 #### `user/context_manager.py`
 **Functions:**
-- [OK] `__init__(self)` - Initialize the UserContextManager.
+- [OK] `__init__(self)` - Initialize conversation history storage for in-memory session exchanges.
+- [OK] `_get_conversation_history(self, user_id)` - Return recent in-memory session exchanges for this user.
+- [OK] `_get_minimal_context(self, user_id)` - Fallback minimal context if envelope-backed context generation fails.
+- [OK] `add_conversation_exchange(self, user_id, user_message, ai_response)` - Add a conversation exchange to in-memory session history.
+- [OK] `build_context_with_session_overlay(self, user_id)` - Build envelope-backed chatbot context with in-memory session exchanges overlaid.
 
-Sets up conversation history storage for tracking user interactions.
-- [OK] `_get_conversation_history(self, user_id)` - Get recent conversation history with this user.
-- [OK] `_get_conversation_insights(self, user_id)` - Get insights from recent chat interactions.
-- [MISSING] `_get_health_guidance_summary(self, user_id)` - No description
-- [OK] `_get_minimal_context(self, user_id)` - Fallback minimal context if full context generation fails.
-
-Args:
-    user_id: The user's ID (can be None for anonymous context)
-
-Returns:
-    dict: Minimal context with basic information
-- [OK] `_get_mood_trends(self, user_id)` - Analyze recent mood and energy trends.
-- [OK] `_get_recent_activity(self, user_id)` - Get recent user activity and responses.
-- [OK] `_get_user_preferences(self, user_id)` - Get user preferences using new structure.
-- [OK] `_get_user_profile(self, user_id)` - Get basic user profile information using existing user infrastructure.
-- [OK] `add_conversation_exchange(self, user_id, user_message, ai_response)` - Add a conversation exchange to history.
-
-Args:
-    user_id: The user's ID
-    user_message: The user's message
-    ai_response: The AI's response
+Prefer ``build_chatbot_context_dict`` when session overlay is not needed.
 - [OK] `format_context_for_ai(self, context)` - Format user context into a concise string for AI prompt.
-
-Args:
-    context: User context dictionary
-
-Returns:
-    str: Formatted context string for AI consumption
-- [OK] `get_ai_context(self, user_id, include_conversation_history)` - Get comprehensive user context for AI conversation.
-
-Args:
-    user_id: The user's ID
-    include_conversation_history: Whether to include recent conversation history
-
-Returns:
-    Dict containing all relevant user context for AI processing
-- [OK] `get_current_user_context(self, include_conversation_history)` - Get context for the currently logged-in user using the existing UserContext singleton.
-
-Args:
-    include_conversation_history: Whether to include recent conversation history
-
-Returns:
-    Dict containing all relevant user context for current user
+- [OK] `get_session_conversation_history(self, user_id)` - Return recent in-memory session exchanges for this user.
 **Classes:**
-- [OK] `UserContextManager` - Manages rich user context for AI conversations.
-  - [OK] `UserContextManager.__init__(self)` - Initialize the UserContextManager.
+- [OK] `UserContextManager` - Tracks per-session chat exchanges and overlays them on envelope-backed context.
+  - [OK] `UserContextManager.__init__(self)` - Initialize conversation history storage for in-memory session exchanges.
+  - [OK] `UserContextManager._get_conversation_history(self, user_id)` - Return recent in-memory session exchanges for this user.
+  - [OK] `UserContextManager._get_minimal_context(self, user_id)` - Fallback minimal context if envelope-backed context generation fails.
+  - [OK] `UserContextManager.add_conversation_exchange(self, user_id, user_message, ai_response)` - Add a conversation exchange to in-memory session history.
+  - [OK] `UserContextManager.build_context_with_session_overlay(self, user_id)` - Build envelope-backed chatbot context with in-memory session exchanges overlaid.
 
-Sets up conversation history storage for tracking user interactions.
-  - [OK] `UserContextManager._get_conversation_history(self, user_id)` - Get recent conversation history with this user.
-  - [OK] `UserContextManager._get_conversation_insights(self, user_id)` - Get insights from recent chat interactions.
-  - [MISSING] `UserContextManager._get_health_guidance_summary(self, user_id)` - No description
-  - [OK] `UserContextManager._get_minimal_context(self, user_id)` - Fallback minimal context if full context generation fails.
-
-Args:
-    user_id: The user's ID (can be None for anonymous context)
-
-Returns:
-    dict: Minimal context with basic information
-  - [OK] `UserContextManager._get_mood_trends(self, user_id)` - Analyze recent mood and energy trends.
-  - [OK] `UserContextManager._get_recent_activity(self, user_id)` - Get recent user activity and responses.
-  - [OK] `UserContextManager._get_user_preferences(self, user_id)` - Get user preferences using new structure.
-  - [OK] `UserContextManager._get_user_profile(self, user_id)` - Get basic user profile information using existing user infrastructure.
-  - [OK] `UserContextManager.add_conversation_exchange(self, user_id, user_message, ai_response)` - Add a conversation exchange to history.
-
-Args:
-    user_id: The user's ID
-    user_message: The user's message
-    ai_response: The AI's response
+Prefer ``build_chatbot_context_dict`` when session overlay is not needed.
   - [OK] `UserContextManager.format_context_for_ai(self, context)` - Format user context into a concise string for AI prompt.
-
-Args:
-    context: User context dictionary
-
-Returns:
-    str: Formatted context string for AI consumption
-  - [OK] `UserContextManager.get_ai_context(self, user_id, include_conversation_history)` - Get comprehensive user context for AI conversation.
-
-Args:
-    user_id: The user's ID
-    include_conversation_history: Whether to include recent conversation history
-
-Returns:
-    Dict containing all relevant user context for AI processing
-  - [OK] `UserContextManager.get_current_user_context(self, include_conversation_history)` - Get context for the currently logged-in user using the existing UserContext singleton.
-
-Args:
-    include_conversation_history: Whether to include recent conversation history
-
-Returns:
-    Dict containing all relevant user context for current user
+  - [OK] `UserContextManager.get_session_conversation_history(self, user_id)` - Return recent in-memory session exchanges for this user.
 
 #### `user/profile_service.py`
 **Functions:**

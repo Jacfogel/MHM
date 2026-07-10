@@ -30,13 +30,20 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-07-09 - Retire PromptManager domain prompt builders **COMPLETED**
+### 2026-07-09 - Retire PromptManager domain prompt builders; envelope Q&A tests and get_ai_context delegation **COMPLETED**
 
 Completed:
 
 - Removed `create_task_prompt` / `create_checkin_prompt` from [`ai/prompts/manager.py`](../ai/prompts/manager.py); product-AI flows use `compose_product_prompt` only.
 - Migrated [`tests/unit/test_prompt_manager.py`](../tests/unit/test_prompt_manager.py) to `compose_product_prompt` coverage; dropped inline `checkin` / `task_assistant` fallback templates.
 - Moved `prompt_manager_domain_prompt_builders` to `removed_inventory` in `DEPRECATION_INVENTORY.json`.
+- [`user/context_manager.py`](../user/context_manager.py) `get_ai_context` delegates to `build_chatbot_context_dict` with session overlay; removed duplicate domain loaders.
+- Added [`tests/behavior/test_product_ai_envelope_qa_behavior.py`](../tests/behavior/test_product_ai_envelope_qa_behavior.py) for envelope-backed Q&A behavior (tasks, profile, schedules).
+- Migrated AI integration tests to `build_chatbot_context_dict` where session overlay is not required.
+- Contextual chat now uses `chat_response` token budget (not 80) and full post-process pipeline; strips fake multi-turn leaks and premature help redirects (T-12.3/T-13.3).
+- [`assistant_system_prompt.txt`](../resources/prompts/assistant_system_prompt.txt) is comment-only; canonical persona lives in [`product_ai/persona.txt`](../resources/prompts/product_ai/persona.txt).
+- **Phase 8 complete**: `MINIMAL_CHAT_SYSTEM_PROMPT` centralized; chat uses `compose_product_prompt("chat_response")` for budgets; `get_persona_prompt_text()` for simple paths; `get_session_conversation_history()` for session-only reads; `product_ai_wellness_prompt_api_bridge` and `product_ai_user_context_bridge` in deprecation inventory.
+- **Bridge removal**: Dropped `get_ai_context` / `get_current_user_context`; `build_context_with_session_overlay()` is canonical for session overlay; `get_prompt` command-only.
 
 Verified:
 

@@ -32,7 +32,7 @@ Product AI response behavior is currently influenced by:
 | `resources/prompts/command.txt` | Structured command parsing prompt with live action injection. | Useful for command extraction, but separate from conversational context and result-aware responses. |
 | `ai/prompts/manager.py` | Loads prompts, templates, custom prompt file, and composes product-AI category prompts. | `compose_product_prompt()` is the canonical product-AI composition path. |
 | `ai/context/assembly.py` and `ai/context/phraser.py` | Builds natural-language context sections for chat prompts from `AIContextEnvelope`. | `ai/context/phraser.py` helper ownership can still be reduced over time. |
-| `user/context_manager.py` | Legacy `get_ai_context` dict for integration tests; in-memory session history. | Migrate remaining callers to `build_ai_context_envelope` or `build_chatbot_context_dict`. |
+| `user/context_manager.py` | In-memory session history; `build_context_with_session_overlay()` for envelope + session reads. | Prefer `build_ai_context_envelope` / `build_chatbot_context_dict` for envelope-only reads; `get_session_conversation_history()` for session exchanges only. |
 | `ai/prompts/command_interpreter.py` and `ai/prompts/command_registry.py` | Mode detection, command prompts, clarification, command output cleanup, live action list injection. | Should evolve into action interpretation, not just command parsing. |
 | `communication/message_processing/interaction_manager.py` | Routes incoming messages through flows, command parsing, structured dispatch, and contextual chat. | Best existing integration point for AI-driven actions. |
 | `communication/message_processing/structured_command_dispatcher.py` | Dispatches parsed commands to registered handlers and optionally enhances responses. | Best initial action execution backend. |
@@ -178,7 +178,7 @@ Only add direct domain-service action executors when existing handlers cannot ex
 | Source | Status |
 | --- | --- |
 | `resources/prompts/product_ai/*.txt` | Four flow-aligned category files (`persona`, `reply_rules`, `data_honesty`, `action_boundaries`). |
-| `resources/prompts/assistant_system_prompt.txt` | Slim persona mirror; optional custom override when `AI_USE_CUSTOM_PROMPT` is enabled. Not stacked on chat composition. |
+| `resources/prompts/assistant_system_prompt.txt` | Comment-only override stub; canonical persona in `product_ai/persona.txt`. Loaded when `AI_USE_CUSTOM_PROMPT` is enabled with custom body. |
 | `resources/prompts/command.txt` | Command parse prompt with live action injection. Unchanged. |
 | Legacy instructions module (removed) | Rules moved into category files. |
 | ~~`ai/prompts/manager.py` inline bodies~~ | Retired with `create_task_prompt` / `create_checkin_prompt` removal (2026-07-09). |
@@ -217,15 +217,15 @@ Existing `get_prompt("wellness")` and `get_prompt("command")` can delegate to th
 
 ## 5. Refactoring Phases
 
-### Phase 0 - Lock current behavior with tests **PARTIAL (2026-07-08)**
+### Phase 0 - Lock current behavior with tests **PARTIAL (2026-07-09)**
 
 - [x] Add a "no direct AI writes" test (`tests/unit/test_product_ai_phase0_contracts.py`) ensuring product AI modules do not call storage write APIs directly.
 - [x] Add action-plan executor routing test proving planned actions go through `dispatch_structured_command`.
 - [x] Add context coverage test proving envelope sections include account, preferences, personal context, tasks, check-ins, messages, schedules, notebooks.
 - [x] Add post-action envelope refresh test (task created via dispatcher appears in envelope).
 - [x] Add legacy bridge inventory verification for Phase 8 bridges.
-- [ ] Broader behavior tests for envelope-based Q&A responses (prefer behavior over exact prompt strings).
-- [ ] Live LM Studio validation (`tests/ai/run_ai_functionality_tests.py`).
+- [x] Broader behavior tests for envelope-based Q&A responses (`tests/behavior/test_product_ai_envelope_qa_behavior.py`).
+- [x] Live LM Studio validation run (`tests/ai/run_ai_functionality_tests.py` — 57/66 pass; T-12.3/T-13.3 addressed via post-process and token budget).
 
 ### Phase 1 - Canonical context envelope
 
@@ -294,23 +294,19 @@ Existing `get_prompt("wellness")` and `get_prompt("command")` can delegate to th
   - [x] If LM Studio is unavailable for chat, answer from deterministic envelope summaries (tasks, profile, schedules, messages, check-ins).
   - [x] If action execution fails, prefer handler error metadata over generic support copy in `ActionPlanExecutor`.
 
-### Phase 8 - Retire old prompt/context paths **PARTIAL (2026-07-08)**
+### Phase 8 - Retire old prompt/context paths **COMPLETE (2026-07-09)**
 
 - [x] Migrated callers to `ai/client/`, `ai/context/`, `ai/prompts/`, `ai/chat/`, `ai/fallback/`; removed legacy flat modules and shim packages.
 - [x] Removed empty `ai/conversational_context/` and `ai/fallback_responses/` directories.
 - [x] Extracted check-in analytics to `ai/context/analytics.py`; assembly and phraser import analytics directly.
 - [x] Added envelope-backed `build_chatbot_context_dict()` in `ai/context/chatbot_context.py`; `chatbot.generate_contextual_response` uses it.
 - [x] Retired the removed context builder adapter; tests migrated to `build_ai_context_envelope` and `ai/context/analytics.py`.
-- [ ] Remove duplicated prompt text and obsolete context builders only after callers and tests are migrated.
-- [ ] Migrate or retire `user/context_manager.py` overlap (`get_ai_context` still used by tests and integration paths).
-- Use the legacy compatibility process for any retained bridge:
-  - `--find` the old symbol/path first.
-  - Add `# LEGACY COMPATIBILITY:` only if the bridge is truly needed.
-  - Log bridge usage.
-  - Add narrow `legacy_scan_patterns` and an inventory entry in `development_tools/config/jsons/DEPRECATION_INVENTORY.json`.
-  - Add removal criteria and tests.
-  - Run `--verify` before deletion.
-- Prefer direct migration over compatibility shims.
+- [x] `UserContextManager.get_ai_context` delegates to `build_chatbot_context_dict` with in-memory session overlay; duplicate domain loaders removed from `user/context_manager.py`.
+- [x] Migrated AI integration tests and chatbot behavior tests to `build_chatbot_context_dict` where session overlay is not required.
+- [x] `assistant_system_prompt.txt` is comment-only; canonical persona text lives in `product_ai/persona.txt` (loader falls back when override file has no body).
+- [x] Removed duplicated behavioral rules outside category files: centralized `MINIMAL_CHAT_SYSTEM_PROMPT`, chat paths use `get_persona_prompt_text()` / `compose_product_prompt("chat_response")` instead of `get_prompt("wellness")`; `command.txt` ACTION format remains separate.
+- [x] `get_ai_context` / `get_current_user_context` removed; `build_context_with_session_overlay()` and `get_session_conversation_history()` are canonical.
+- [x] Legacy compatibility process applied for retained bridges (`product_ai_wellness_prompt_api_bridge`, `product_ai_user_context_bridge`) in `DEPRECATION_INVENTORY.json` with narrow scan patterns and usage logging.
 
 ## 6. Legacy Compatibility Requirements
 
@@ -676,6 +672,24 @@ Verified:
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/behavior/test_ai_context_envelope_behavior.py tests/behavior/test_ai_context_analytics_coverage_expansion.py tests/unit/test_product_ai_phase0_contracts.py -q
 ```
+
+### 2026-07-09 - Retire `get_ai_context` domain overlap and envelope Q&A behavior tests **PARTIAL**
+
+Completed:
+
+- [`user/context_manager.py`](../user/context_manager.py) `get_ai_context` now delegates to [`build_chatbot_context_dict`](../ai/context/chatbot_context.py) with in-memory session overlay; removed duplicate domain loaders.
+- Added [`tests/behavior/test_product_ai_envelope_qa_behavior.py`](../tests/behavior/test_product_ai_envelope_qa_behavior.py) for task, profile, schedule, and prompt-view Q&A from envelope data (no exact prompt-string assertions).
+- Migrated AI integration tests and chatbot behavior test to `build_chatbot_context_dict`; trimmed obsolete `UserContextManager` private-method behavior tests.
+
+Verified:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/behavior/test_product_ai_envelope_qa_behavior.py tests/behavior/test_user_context_behavior.py tests/unit/test_product_ai_phase0_contracts.py -q
+```
+
+Remaining:
+
+- Live LM Studio validation (Phase 0).
 
 ### 2026-07-05 - Planner routing behavior tests
 

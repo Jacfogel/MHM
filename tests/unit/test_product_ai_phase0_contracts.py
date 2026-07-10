@@ -160,6 +160,21 @@ def test_product_ai_legacy_bridges_removed_from_active_inventory():
     assert "prompt_manager_domain_prompt_builders" in removed_ids
 
 
+def test_product_ai_phase8_bridges_removed_from_active_inventory():
+    """Retired Phase 8 bridges should live in removed_inventory only."""
+    inventory = json.loads(DEPRECATION_INVENTORY.read_text(encoding="utf-8"))
+    active_ids = {
+        entry.get("id") for entry in inventory.get("active_or_candidate_inventory") or []
+    }
+    removed_ids = {entry.get("id") for entry in inventory.get("removed_inventory") or []}
+    for bridge_id in (
+        "product_ai_wellness_prompt_api_bridge",
+        "product_ai_user_context_bridge",
+    ):
+        assert bridge_id not in active_ids
+        assert bridge_id in removed_ids
+
+
 def test_envelope_includes_optional_domains_when_data_exists(test_data_dir, monkeypatch):
     """Phase 0 context coverage: populated users expose core envelope sections."""
     user_id = "phase0-context-coverage-user"

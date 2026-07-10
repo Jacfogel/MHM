@@ -29,6 +29,8 @@ _MINIMAL_WELLNESS_FALLBACK = (
     "You are a supportive wellness assistant. Keep responses helpful, "
     "encouraging, and conversational."
 )
+MINIMAL_CHAT_SYSTEM_PROMPT = _MINIMAL_WELLNESS_FALLBACK
+_PERSONA_PROMPT_ALIASES = frozenset({"wellness", "neurodivergent_support", "chat_response"})
 
 
 @handle_errors("loading prompt text file", default_return="")
@@ -63,15 +65,29 @@ def _load_command_format_instructions() -> str:
 
 @handle_errors("loading assistant system prompt file", default_return="")
 def _load_assistant_system_prompt_text() -> str:
-    """Load the main companion prompt from resources/prompts/assistant_system_prompt.txt."""
+    """Load optional custom override prompt or defer to product_ai/persona.txt."""
     path = Path(AI_SYSTEM_PROMPT_PATH)
     if not path.is_absolute():
         path = Path(__file__).resolve().parent.parent.parent / AI_SYSTEM_PROMPT_PATH
-    if not path.is_file():
-        logger.warning(f"Assistant system prompt file not found: {path}")
-        return ""
-    with open(path, encoding="utf-8") as f:
-        return f.read().strip()
+    raw = _read_prompt_file(path)
+    non_comment = "\n".join(
+        line
+        for line in raw.splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    ).strip()
+    if non_comment:
+        return non_comment
+    return _load_product_ai_category_text("persona")
+
+
+@handle_errors("getting persona prompt text", default_return="")
+def get_persona_prompt_text() -> str:
+    """Return canonical persona category text for simple (non-composed) prompts."""
+    assistant = _load_assistant_system_prompt_text()
+    if assistant:
+        return assistant
+    body = _load_product_ai_category_text("persona").strip()
+    return body or MINIMAL_CHAT_SYSTEM_PROMPT
 
 
 @handle_errors("loading product AI prompt category", default_return="")
@@ -184,7 +200,7 @@ class PromptManager:
         }
         self._assistant_prompt = _load_assistant_system_prompt_text()
         persona_body = self._product_ai_categories.get("persona", "").strip()
-        wellness_body = persona_body or self._assistant_prompt or _MINIMAL_WELLNESS_FALLBACK
+        persona_text = persona_body or self._assistant_prompt or _MINIMAL_WELLNESS_FALLBACK
         command_body = _load_command_prompt_text()
         if not command_body:
             logger.error(
@@ -192,26 +208,19 @@ class PromptManager:
             )
 
         self._fallback_prompts = {
-            "wellness": PromptTemplate(
-                name="wellness",
-                content=wellness_body,
-                description="Companion persona prompt (resources/prompts/product_ai/persona.txt)",
-                max_tokens=250,
-                temperature=0.7,
-            ),
-            "neurodivergent_support": PromptTemplate(
-                name="neurodivergent_support",
-                content=wellness_body,
-                description="Same companion prompt as wellness",
-                max_tokens=200,
-                temperature=0.7,
-            ),
             "command": PromptTemplate(
                 name="command",
                 content=command_body,
                 description="Command parsing prompt (resources/prompts/command.txt)",
                 max_tokens=120,
                 temperature=0.1,
+            ),
+            "chat_response": PromptTemplate(
+                name="chat_response",
+                content=persona_text,
+                description="Product-AI chat_response flow metadata (use compose_product_prompt)",
+                max_tokens=_max_tokens_for_product_flow("chat_response"),
+                temperature=_temperature_for_product_flow("chat_response"),
             ),
         }
 
@@ -295,26 +304,14 @@ class PromptManager:
 
     @handle_errors(
         "getting prompt",
-        default_return="You are a supportive wellness assistant. Keep responses helpful, encouraging, and conversational.",
+        default_return=MINIMAL_CHAT_SYSTEM_PROMPT,
     )
-    def get_prompt(self, prompt_type: str = "wellness") -> str:
-        """
-        Get the appropriate prompt for the given type
-
-        Args:
-            prompt_type: Type of prompt ('wellness', 'command', 'neurodivergent_support', etc.)
-
-        Returns:
-            The prompt string
-        """
+    def get_prompt(self, prompt_type: str = "command") -> str:
+        """Return the command-parser prompt. Persona/chat prompts use other APIs."""
         logger.debug(f"Getting prompt for type: {prompt_type}")
 
-        if self._custom_prompt and prompt_type in [
-            "wellness",
-            "neurodivergent_support",
-        ]:
-            logger.debug(f"Using custom prompt for type: {prompt_type}")
-            return self._custom_prompt
+        if prompt_type in _PERSONA_PROMPT_ALIASES:
+            return get_persona_prompt_text()
 
         template = self._fallback_prompts.get(prompt_type)
         if template:
@@ -327,9 +324,9 @@ class PromptManager:
             return content
 
         logger.debug(
-            f"Prompt type '{prompt_type}' not found, using default wellness prompt"
+            f"Prompt type '{prompt_type}' not found, using persona prompt text"
         )
-        return self._fallback_prompts["wellness"].content
+        return get_persona_prompt_text()
 
     @handle_errors("getting command format instructions", default_return="")
     def get_command_format_instructions(self) -> str:
@@ -350,6 +347,9 @@ class PromptManager:
         """
         if prompt_type in self._prompt_templates:
             return self._prompt_templates[prompt_type]
+
+        if prompt_type in _PERSONA_PROMPT_ALIASES:
+            prompt_type = "chat_response"
 
         return self._fallback_prompts.get(prompt_type)
 
@@ -389,9 +389,8 @@ class PromptManager:
         """Reload the custom prompt from file (useful for development)"""
         self._assistant_prompt = _load_assistant_system_prompt_text()
         persona_body = self._product_ai_categories.get("persona", "").strip()
-        wellness_body = persona_body or self._assistant_prompt or _MINIMAL_WELLNESS_FALLBACK
-        self._fallback_prompts["wellness"].content = wellness_body
-        self._fallback_prompts["neurodivergent_support"].content = wellness_body
+        persona_text = persona_body or self._assistant_prompt or _MINIMAL_WELLNESS_FALLBACK
+        self._fallback_prompts["chat_response"].content = persona_text
         self._load_custom_prompt()
         logger.info("Custom system prompt reloaded")
 

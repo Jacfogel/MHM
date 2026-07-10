@@ -12,7 +12,7 @@ from tests.ai.ai_test_base import AITestBase
 from tests.test_helpers.test_utilities import TestUserFactory
 from core import get_user_id_by_identifier
 from core import save_user_data
-from user.context_manager import user_context_manager
+from ai.context.chatbot_context import build_chatbot_context_dict
 
 
 class TestAICore(AITestBase):
@@ -150,7 +150,7 @@ class TestAICore(AITestBase):
             
             # Test 2.2: Context building
             try:
-                context = user_context_manager.get_ai_context(actual_user_id, include_conversation_history=True)
+                context = build_chatbot_context_dict(actual_user_id, include_conversation_history=True)
                 if context and isinstance(context, dict):
                     context_keys = list(context.keys())
                     self.log_test("T-2.2", "Context building", "PASS",
@@ -168,7 +168,7 @@ class TestAICore(AITestBase):
                 save_user_data(actual_user_id, context_data)
                 
                 # Get context for reporting
-                context = user_context_manager.get_ai_context(actual_user_id, include_conversation_history=False)
+                context = build_chatbot_context_dict(actual_user_id, include_conversation_history=False)
                 
                 prompt = "Hello!"
                 response = self.chatbot.generate_contextual_response(actual_user_id, prompt)

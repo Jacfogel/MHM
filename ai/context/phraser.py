@@ -121,7 +121,7 @@ def phrase_checkin_summary(
 
 @handle_errors("appending profile context sections", default_return=None)
 def append_profile_sections(parts: list[str], context: dict[str, Any]) -> None:
-    """Profile, neurodivergent context, and goals from get_ai_context."""
+    """Profile, neurodivergent context, and goals from chatbot context dict."""
     profile = context.get("user_profile", {})
     if profile.get("preferred_name"):
         parts.append(f"The user's preferred name is {profile['preferred_name']}")
@@ -229,7 +229,7 @@ def append_health_guidance(parts: list[str], user_id: str) -> None:
 def append_activity_and_mood_trends(
     parts: list[str], user_id: str, context: dict[str, Any]
 ) -> None:
-    """Recent activity counts and mood trend summary from get_ai_context."""
+    """Recent activity counts and mood trend summary from chatbot context dict."""
     if not is_user_checkins_enabled(user_id):
         return
 

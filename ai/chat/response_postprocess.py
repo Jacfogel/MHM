@@ -145,9 +145,70 @@ def clean_system_prompt_leaks(response: str) -> str:
     cleaned = _INLINE_TEMPLATE_LEAK.sub("", cleaned)
     cleaned = _TRAILING_CODE_JUNK.sub("", cleaned).strip()
     cleaned = strip_product_ai_category_leaks(cleaned)
+    cleaned = repair_truncated_response_tail(cleaned)
     if _response_is_mostly_instruction_leak(cleaned):
         return ""
     return cleaned
+
+
+@handle_errors("repairing truncated response tail", default_return="")
+def repair_truncated_response_tail(response: str) -> str:
+    """Remove fake multi-turn continuations and dangling markdown tails."""
+    if not response:
+        return response
+
+    text = response.strip()
+    if not text:
+        return text
+
+    turn_match = _FAKE_CONVERSATION_TURN_LEAK.search(text)
+    if turn_match and turn_match.start() > 10:
+        text = text[: turn_match.start()].strip()
+
+    dangling = _DANGLING_AI_HEADING_TAIL.search(text)
+    if dangling and dangling.start() > 10:
+        text = text[: dangling.start()].strip()
+
+    if text and not text.endswith((".", "!", "?", "…", "...")):
+        if turn_match or dangling:
+            text = text.rstrip(",;:-") + "."
+
+    return text
+
+
+@handle_errors("polishing greeting response", default_return="")
+def polish_greeting_response(response: str, user_prompt: str) -> str:
+    """Drop immediate help offers when the reply already answers a greeting/feeling question."""
+    if not response or not user_prompt:
+        return response
+
+    prompt_lower = user_prompt.lower()
+    if not re.search(r"\bhow are you(?:\s+feeling)?\??", prompt_lower):
+        return response
+
+    response_lower = response.lower()
+    feeling_markers = (
+        "doing well",
+        "doing great",
+        "i'm well",
+        "i am well",
+        "i'm good",
+        "i am good",
+        "feeling good",
+        "feeling well",
+        "i'm fine",
+        "i am fine",
+    )
+    if not any(marker in response_lower for marker in feeling_markers):
+        return response
+
+    polished = re.sub(
+        r"[.!?\s]+(?:how can i help(?: you)?(?: today)?\??)\s*$",
+        ".",
+        response.strip(),
+        flags=re.IGNORECASE,
+    ).strip()
+    return polished or response
 
 
 _INSTRUCTION_TUNING_MARKERS = (
@@ -165,6 +226,11 @@ _META_HEADING_LEAK = re.compile(
     r"\n\s*#{2,3}\s*(?:Next\s+Step|Expected\s+Outcome|Response|Tasks)\b",
     re.IGNORECASE,
 )
+_FAKE_CONVERSATION_TURN_LEAK = re.compile(
+    r"\n\s*#{1,3}\s*(?:User(?:'s)?|AI(?:'s)?)\s*(?:response|message)\b",
+    re.IGNORECASE,
+)
+_DANGLING_AI_HEADING_TAIL = re.compile(r"\n\s*#{1,3}\s*AI\s*$", re.IGNORECASE)
 _TUTORIAL_SECTION_LEAK = re.compile(
     r"\n\s*#{1,3}\s*(?:Your task|Example|Exercise|Conversation flow|"
     r"Task management|Tasks|How to use)\b",
@@ -250,6 +316,7 @@ def _truncate_at_first_leak(
 
 _META_TRUNCATION_PATTERNS = (
     _META_HEADING_LEAK,
+    _FAKE_CONVERSATION_TURN_LEAK,
     _TUTORIAL_SECTION_LEAK,
     _EXAMPLE_HEADING_LEAK,
     _HOW_TO_USE_LEAK,

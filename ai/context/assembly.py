@@ -13,7 +13,7 @@ from ai.context.phraser import (
     _checkin_completed_today,
     _phrase_recent_sent_messages,
 )
-from ai.prompts.manager import get_prompt_manager
+from ai.prompts.manager import MINIMAL_CHAT_SYSTEM_PROMPT, get_prompt_manager
 from ai.prompts.flows import get_product_ai_prompt_flow
 from core.error_handling import handle_errors
 from tasks.task_data_handlers import runtime_task_due_date
@@ -53,18 +53,12 @@ def build_context_parts(
     return parts
 
 
-_MINIMAL_CHAT_SYSTEM_PROMPT = (
-    "You are a supportive wellness assistant. Keep responses helpful, "
-    "encouraging, and conversational."
-)
-
-
 @handle_errors(
     "assembling product AI flow messages",
     default_return=[
         {
             "role": "system",
-            "content": _MINIMAL_CHAT_SYSTEM_PROMPT,
+            "content": MINIMAL_CHAT_SYSTEM_PROMPT,
         },
         {"role": "user", "content": "Hello"},
     ],
@@ -107,7 +101,7 @@ def _assemble_product_flow_messages(
     instructions = (
         composed_prompt.content
         if composed_prompt
-        else f"{_MINIMAL_CHAT_SYSTEM_PROMPT}\n\nUser Context:\n{context_str}"
+        else f"{MINIMAL_CHAT_SYSTEM_PROMPT}\n\nUser Context:\n{context_str}"
     )
     return [
         {"role": "system", "content": instructions},
@@ -120,7 +114,7 @@ def _assemble_product_flow_messages(
     default_return=[
         {
             "role": "system",
-            "content": _MINIMAL_CHAT_SYSTEM_PROMPT,
+            "content": MINIMAL_CHAT_SYSTEM_PROMPT,
         },
         {"role": "user", "content": "Hello"},
     ],
@@ -137,7 +131,7 @@ def assemble_comprehensive_messages(
     default_return=[
         {
             "role": "system",
-            "content": _MINIMAL_CHAT_SYSTEM_PROMPT,
+            "content": MINIMAL_CHAT_SYSTEM_PROMPT,
         },
         {"role": "user", "content": "Hello"},
     ],

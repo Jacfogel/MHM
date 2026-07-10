@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-09 11:56:12
+> **Last Generated**: 2026-07-09 22:15:09
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 256
-- **Total Imports Found**: 2175
+- **Total Imports Found**: 2168
 - **Dependencies Documented**: 256 (100% coverage)
-- **Standard Library Imports**: 641 (29.5%)
+- **Standard Library Imports**: 641 (29.6%)
 - **Third-Party Imports**: 217 (10.0%)
-- **Local Imports**: 1317 (60.6%)
+- **Local Imports**: 1310 (60.4%)
 - **Last Updated**: 2026-07-09
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 641 imports (29.5%)
+- **Standard Library**: 641 imports (29.6%)
 - **Third-Party**: 217 imports (10.0%)
-- **Local**: 1317 imports (60.6%)
+- **Local**: 1310 imports (60.4%)
 
 ## Module Dependencies by Directory
 
@@ -139,15 +139,14 @@
   - **Local**:
     - `ai.chat.interaction_types (AIInteractionType, interaction_type_for_mode)` (NEW)
     - `ai.chat.response_generator (get_response_generator)` (NEW)
-    - `ai.chat.response_postprocess (clean_system_prompt_leaks, keep_first_personalized_block, smart_truncate_response, strip_instruction_tuning_markers, strip_letter_signoffs)` (NEW)
+    - `ai.chat.response_postprocess (clean_system_prompt_leaks, keep_first_personalized_block, polish_greeting_response, smart_truncate_response, strip_instruction_tuning_markers, strip_letter_signoffs)` (NEW)
     - `ai.client.cache_manager (get_response_cache)` (NEW)
     - `ai.client.lm_studio_client (call_lm_studio_api, test_lm_studio_connection)` (NEW)
     - `ai.client.lm_studio_manager (is_lm_studio_ready)` (NEW)
-    - `ai.context.chatbot_context (build_chatbot_context_dict)` (NEW)
     - `ai.fallback (data_access, get_fallback_responses)` (NEW)
     - `ai.fallback.profile_helpers (name_prefix_from_context)` (NEW)
     - `ai.prompts.command_interpreter (get_command_interpreter)` (NEW)
-    - `ai.prompts.manager (get_prompt_manager)` (NEW)
+    - `ai.prompts.manager (MINIMAL_CHAT_SYSTEM_PROMPT, get_persona_prompt_text, get_prompt_manager)` (NEW)
     - `core.config (AI_CACHE_RESPONSES, AI_CHAT_TEMPERATURE, AI_CLARIFICATION_TEMPERATURE, AI_COMMAND_TEMPERATURE, AI_CONTEXTUAL_RESPONSE_TIMEOUT, AI_MAX_RESPONSE_LENGTH, AI_MAX_RESPONSE_TOKENS, AI_MAX_RESPONSE_WORDS, AI_PERSONALIZED_MESSAGE_TIMEOUT, AI_QUICK_RESPONSE_TIMEOUT, AI_SYSTEM_PROMPT_PATH, AI_TIMEOUT_SECONDS, AI_USE_CUSTOM_PROMPT, LM_STUDIO_BASE_URL, LM_STUDIO_MODEL)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.health_context_builder (build_personalized_wellness_context)` (NEW)
@@ -172,7 +171,7 @@
   - `communication/message_processing/interaction_manager.py`
 
 **Dependency Changes**:
-- Added: ai.chat.interaction_types, ai.chat.response_generator, ai.chat.response_postprocess, ai.client.cache_manager, ai.client.lm_studio_client, ai.client.lm_studio_manager, ai.context.chatbot_context, ai.fallback, ai.fallback.profile_helpers, ai.prompts.command_interpreter, ai.prompts.manager, core.config, core.error_handling, core.health_context_builder, core.logger, core.response_tracking, user.context_manager
+- Added: ai.chat.interaction_types, ai.chat.response_generator, ai.chat.response_postprocess, ai.client.cache_manager, ai.client.lm_studio_client, ai.client.lm_studio_manager, ai.fallback, ai.fallback.profile_helpers, ai.prompts.command_interpreter, ai.prompts.manager, core.config, core.error_handling, core.health_context_builder, core.logger, core.response_tracking, user.context_manager
 - Removed: ai/__init__.py, ai/chat/__init__.py, ai/chat/action_planner.py, communication/core/channel_orchestrator.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -204,7 +203,7 @@
 - **Dependencies**:
   - **Local**:
     - `ai.context.assembly (assemble_comprehensive_messages)` (NEW)
-    - `ai.prompts.manager (get_prompt_manager)` (NEW)
+    - `ai.prompts.manager (MINIMAL_CHAT_SYSTEM_PROMPT, get_prompt_manager)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
 - **Used by**:
@@ -379,7 +378,7 @@
     - `ai.context.phraser (_checkin_completed_today, _phrase_recent_sent_messages, append_current_datetime_context, append_profile_sections, phrase_checkin_summary)` (NEW)
     - `ai.context.service (AIContextEnvelope, build_ai_context_envelope)` (NEW)
     - `ai.prompts.flows (get_product_ai_prompt_flow)` (NEW)
-    - `ai.prompts.manager (get_prompt_manager)` (NEW)
+    - `ai.prompts.manager (MINIMAL_CHAT_SYSTEM_PROMPT, get_prompt_manager)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date)` (NEW)
   - **Standard Library**:
@@ -411,11 +410,11 @@
     - `__future__ (annotations)`
     - `typing (Any)`
 - **Used by**:
-  - `ai/chat/chatbot.py`
+  - `user/context_manager.py`
 
 **Dependency Changes**:
 - Added: ai.context.analytics, ai.context.service, core.error_handling, core.logger
-- Removed: ai/chat/chatbot.py
+- Removed: ai/chat/chatbot.py, user/context_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -968,11 +967,10 @@
   - `core/response_tracking.py`
   - `storage/user_data_operations.py`
   - `ui/dialogs/user_analytics_dialog.py`
-  - `user/context_manager.py`
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.file_operations, core.logger, core.time_utilities, storage.user_data_v2_base
-- Removed: ai/context/phraser.py, checkins/checkin_analytics.py, checkins/checkin_service.py, communication/command_handlers/analytics_formatting.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/interaction_handlers.py, communication/command_handlers/profile_handler.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/flows/checkin_flow.py, communication/message_processing/user_suggestions.py, core/health_context_builder.py, core/response_tracking.py, storage/user_data_operations.py, ui/dialogs/user_analytics_dialog.py, user/context_manager.py
+- Removed: ai/context/phraser.py, checkins/checkin_analytics.py, checkins/checkin_service.py, communication/command_handlers/analytics_formatting.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/interaction_handlers.py, communication/command_handlers/profile_handler.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/flows/checkin_flow.py, communication/message_processing/user_suggestions.py, core/health_context_builder.py, core/response_tracking.py, storage/user_data_operations.py, ui/dialogs/user_analytics_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -3647,11 +3645,10 @@
   - `ai/chat/chatbot.py`
   - `ai/context/phraser.py`
   - `ai/context/service.py`
-  - `user/context_manager.py`
 
 **Dependency Changes**:
 - Added: checkins.checkin_data_manager, core.error_handling, core.health_signals
-- Removed: ai/chat/chatbot.py, ai/context/phraser.py, ai/context/service.py, user/context_manager.py
+- Removed: ai/chat/chatbot.py, ai/context/phraser.py, ai/context/service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -4032,11 +4029,10 @@
   - `ai/context/service.py`
   - `ai/fallback/data_access.py`
   - `storage/user_data_operations.py`
-  - `user/context_manager.py`
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.file_operations, core.logger, core.profile_v2_io, core.time_utilities
-- Removed: ai/chat/chatbot.py, ai/context/service.py, ai/fallback/data_access.py, storage/user_data_operations.py, user/context_manager.py
+- Removed: ai/chat/chatbot.py, ai/context/service.py, ai/fallback/data_access.py, storage/user_data_operations.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Tracks user responses and interactions
@@ -4117,12 +4113,11 @@
     - `datetime`
 - **Used by**:
   - `ai/context/service.py`
-  - `user/context_manager.py`
   - `user/user_context.py`
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger, core.time_format_constants, core.time_utilities
-- Removed: ai/context/service.py, user/context_manager.py, user/user_context.py
+- Removed: ai/context/service.py, user/user_context.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -4831,11 +4826,10 @@
   - `ui/dialogs/message_editor_dialog.py`
   - `ui/request_actions.py`
   - `ui/widgets/category_selection_widget.py`
-  - `user/context_manager.py`
 
 **Dependency Changes**:
 - Added: core, core.config, core.error_handling, core.file_operations, core.logger, core.time_utilities, messages.message_schemas, storage.user_data_v2_base
-- Removed: ai/context/phraser.py, ai/context/service.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, core/auto_cleanup.py, core/response_tracking.py, messages/message_analytics.py, messages/message_service.py, storage/user_data_operations.py, storage/user_data_validation.py, storage/user_data_write.py, ui/dialogs/message_editor_dialog.py, ui/request_actions.py, ui/widgets/category_selection_widget.py, user/context_manager.py
+- Removed: ai/context/phraser.py, ai/context/service.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, core/auto_cleanup.py, core/response_tracking.py, messages/message_analytics.py, messages/message_service.py, storage/user_data_operations.py, storage/user_data_validation.py, storage/user_data_write.py, ui/dialogs/message_editor_dialog.py, ui/request_actions.py, ui/widgets/category_selection_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6662,24 +6656,18 @@
 - **Purpose**: User data module for context_manager
 - **Dependencies**:
   - **Local**:
-    - `checkins.checkin_data_manager (get_recent_checkins)`
-    - `core (get_user_data)` (NEW)
+    - `ai.context.chatbot_context (build_chatbot_context_dict)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
-    - `core.health_context_builder (build_safe_health_guidance_summary)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.response_tracking (get_recent_chat_interactions)` (NEW)
-    - `core.schedule_utilities (get_active_schedules)` (NEW)
     - `core.time_utilities (now_timestamp_full)` (NEW)
-    - `messages.message_data_manager (get_recent_messages)`
-    - `user.user_context (UserContext)`
   - **Standard Library**:
     - `typing (Any)`
 - **Used by**:
   - `ai/chat/chatbot.py`
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.health_context_builder, core.logger, core.response_tracking, core.schedule_utilities, core.time_utilities
-- Removed: ai/chat/chatbot.py
+- Added: ai.context.chatbot_context, core.error_handling, core.logger, core.time_utilities
+- Removed: ai/chat/chatbot.py, user.user_context
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6719,7 +6707,6 @@
 - **Used by**:
   - `core/schedule_runtime.py`
   - `scheduler/manager.py`
-  - `user/context_manager.py`
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.logger, core.schedule_utilities

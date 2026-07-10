@@ -82,6 +82,41 @@
   ],
   "removed_inventory": [
     {
+      "id": "user_context_manager_duplicate_domain_loaders",
+      "removed_at": "2026-07-09",
+      "search_terms": [
+        "UserContextManager._get_user_profile",
+        "UserContextManager._get_recent_activity",
+        "UserContextManager._get_conversation_insights",
+        "UserContextManager._get_mood_trends"
+      ],
+      "replacement": "ai.context.chatbot_context.build_chatbot_context_dict",
+      "notes": "get_ai_context delegates to envelope-backed build_chatbot_context_dict; UserContextManager keeps in-memory session history only."
+    },
+    {
+      "id": "product_ai_wellness_prompt_api_bridge",
+      "removed_at": "2026-07-09",
+      "search_terms": [
+        "get_prompt(\"wellness\")",
+        "LEGACY COMPATIBILITY: PromptManager.get_prompt",
+        "PromptManager.get_prompt(\"wellness\")",
+        "neurodivergent_support"
+      ],
+      "replacement": "ai.prompts.manager.get_persona_prompt_text and PromptManager.compose_product_prompt",
+      "notes": "get_prompt is command-only; persona aliases route to get_persona_prompt_text; chat_response flow metadata in _fallback_prompts."
+    },
+    {
+      "id": "product_ai_user_context_bridge",
+      "removed_at": "2026-07-09",
+      "search_terms": [
+        "UserContextManager.get_ai_context",
+        "get_current_user_context",
+        "LEGACY COMPATIBILITY: UserContextManager.get_ai_context"
+      ],
+      "replacement": "ai.context.chatbot_context.build_chatbot_context_dict and UserContextManager.build_context_with_session_overlay",
+      "notes": "Removed get_ai_context/get_current_user_context; session overlay via build_context_with_session_overlay."
+    },
+    {
       "id": "prompt_manager_domain_prompt_builders",
       "removed_at": "2026-07-09",
       "search_terms": [

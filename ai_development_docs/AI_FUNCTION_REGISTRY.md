@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-09 11:56:11
+> **Last Generated**: 2026-07-09 22:15:08
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 89.6% [!] GOOD**
-- **Total Functions**: 2451
-- **Total Methods**: 1366
-- **Documented**: 3421/3817
+### **Documentation Coverage: 89.7% [!] GOOD**
+- **Total Functions**: 2448
+- **Total Methods**: 1360
+- **Documented**: 3414/3808
 - **Files Scanned**: 258
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -32,7 +32,7 @@ User Data Operations Decision Tree:
 ```
 AI Operations Decision Tree:
 +-- `ai/chat/chatbot.py` - Main AI implementation (65 functions)
-+-- `user/context_manager.py` - Context for AI (24/26 functions)
++-- `user/context_manager.py` - Context for AI (14 functions)
 +-- `communication/message_processing/command_parser.py` - Natural language parsing (62 functions)
 +-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
 `-- `communication/message_processing/interaction_manager.py` - Main interaction flow (16/30 functions)```
@@ -208,7 +208,7 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `ai/` - AI chatbot functionality (36 files, 367 functions)
+- `ai/` - AI chatbot functionality (36 files, 370 functions)
 - `checkins/` -  (6 files, 135 functions)
 - `communication/` - Communication channels and message processing (86 files, 1138 functions)
 - `core/` - System utilities and data management (33 files, 604 functions)
@@ -218,6 +218,6 @@ Most complex functions (may need refactoring):
 - `storage/` -  (12 files, 151 functions)
 - `tasks/` - Task management system (9 files, 105 functions)
 - `ui/` - User interface components (43 files, 954 functions)
-- `user/` - User context and preferences (5 files, 68 functions)
+- `user/` - User context and preferences (5 files, 56 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**

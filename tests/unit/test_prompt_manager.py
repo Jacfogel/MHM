@@ -16,7 +16,13 @@ Coverage Areas:
 import pytest
 from unittest.mock import patch, mock_open
 
-from ai.prompts.manager import PromptManager, PromptTemplate, get_prompt_manager
+from ai.prompts.manager import (
+    PromptManager,
+    PromptTemplate,
+    get_persona_prompt_text,
+    get_prompt_manager,
+    MINIMAL_CHAT_SYSTEM_PROMPT,
+)
 
 
 pytestmark = [pytest.mark.ai]
@@ -47,7 +53,7 @@ class TestPromptManager:
             assert manager._custom_prompt is None
             assert isinstance(manager._prompt_templates, dict)
             assert len(manager._fallback_prompts) > 0
-            assert 'wellness' in manager._fallback_prompts
+            assert 'chat_response' in manager._fallback_prompts
             assert 'command' in manager._fallback_prompts
     
     def test_prompt_manager_initialization_with_custom_prompt_disabled_real_behavior(self, temp_prompt_file):
@@ -90,13 +96,19 @@ class TestPromptManager:
             # Should handle error gracefully
             assert manager._custom_prompt is None
     
-    def test_get_prompt_wellness_type_real_behavior(self, prompt_manager):
-        """Test getting wellness prompt."""
+    def test_get_prompt_persona_alias_real_behavior(self, prompt_manager):
+        """Wellness alias routes to persona prompt text."""
         prompt = prompt_manager.get_prompt('wellness')
-        
-        assert isinstance(prompt, str)
-        assert len(prompt) > 0
-        assert 'wellness assistant' in prompt.lower() or 'supportive' in prompt.lower()
+        assert prompt == get_persona_prompt_text()
+
+    def test_get_persona_prompt_text_loads_canonical_persona(self):
+        """Persona helper returns category file text, not composed chat prompt."""
+        persona = get_persona_prompt_text()
+        assert isinstance(persona, str)
+        assert len(persona) > 0
+        assert "MHM" in persona or "supportive" in persona.lower()
+        assert MINIMAL_CHAT_SYSTEM_PROMPT
+        assert "supportive" in MINIMAL_CHAT_SYSTEM_PROMPT.lower()
     
     def test_get_prompt_command_type_real_behavior(self, prompt_manager):
         """Test getting command prompt."""
@@ -106,29 +118,25 @@ class TestPromptManager:
         assert len(prompt) > 0
         assert 'command parser' in prompt.lower() or 'extract' in prompt.lower()
     
-    def test_get_prompt_custom_prompt_wellness_real_behavior(self, temp_prompt_file):
-        """Test getting prompt uses custom prompt for wellness type."""
+    def test_get_prompt_custom_persona_override_real_behavior(self, temp_prompt_file):
+        """Custom override file is reflected in get_persona_prompt_text."""
+        from pathlib import Path
+
         custom_content = "Custom wellness prompt"
-        
+        Path(temp_prompt_file).write_text(custom_content, encoding="utf-8")
+
         with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', True), \
-             patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
-             patch('builtins.open', mock_open(read_data=custom_content)):
-            manager = PromptManager()
-            prompt = manager.get_prompt('wellness')
-            
+             patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file):
+            prompt = get_persona_prompt_text()
+
             assert prompt == custom_content
     
-    def test_get_prompt_custom_prompt_neurodivergent_support_real_behavior(self, temp_prompt_file):
-        """Test getting prompt uses custom prompt for neurodivergent_support type."""
-        custom_content = "Custom neurodivergent prompt"
-        
-        with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', True), \
-             patch('ai.prompts.manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_file), \
-             patch('builtins.open', mock_open(read_data=custom_content)):
+    def test_get_prompt_neurodivergent_alias_real_behavior(self, temp_prompt_file):
+        """Neurodivergent alias routes to persona prompt text."""
+        with patch('ai.prompts.manager.AI_USE_CUSTOM_PROMPT', False):
             manager = PromptManager()
             prompt = manager.get_prompt('neurodivergent_support')
-            
-            assert prompt == custom_content
+            assert prompt == get_persona_prompt_text()
     
     def test_get_prompt_custom_prompt_not_used_for_command_real_behavior(self, temp_prompt_file):
         """Test that custom prompt is not used for command type."""
@@ -148,9 +156,9 @@ class TestPromptManager:
         """Test getting prompt for unknown type defaults to wellness."""
         prompt = prompt_manager.get_prompt('unknown_type')
         
-        # Should default to wellness prompt
+        # Should default to persona prompt text
         assert isinstance(prompt, str)
-        assert len(prompt) > 0
+        assert prompt == get_persona_prompt_text()
     
     def test_get_prompt_error_handling_real_behavior(self):
         """Test get_prompt error handling."""
@@ -170,11 +178,11 @@ class TestPromptManager:
     
     def test_get_prompt_template_existing_fallback_real_behavior(self, prompt_manager):
         """Test getting existing fallback template."""
-        template = prompt_manager.get_prompt_template('wellness')
+        template = prompt_manager.get_prompt_template('chat_response')
         
         assert template is not None
         assert isinstance(template, PromptTemplate)
-        assert template.name == 'wellness'
+        assert template.name == 'chat_response'
         assert len(template.content) > 0
     
     def test_get_prompt_template_custom_template_real_behavior(self, prompt_manager):
@@ -194,17 +202,17 @@ class TestPromptManager:
     def test_get_prompt_template_custom_overrides_fallback_real_behavior(self, prompt_manager):
         """Test that custom template overrides fallback."""
         custom_template = PromptTemplate(
-            name='wellness',
-            content='Custom wellness content',
+            name='chat_response',
+            content='Custom chat response content',
             description='Custom description'
         )
         prompt_manager.add_prompt_template(custom_template)
         
-        template = prompt_manager.get_prompt_template('wellness')
+        template = prompt_manager.get_prompt_template('chat_response')
         
         # Should return custom template, not fallback
         assert template == custom_template
-        assert template.content == 'Custom wellness content'
+        assert template.content == 'Custom chat response content'
     
     def test_get_prompt_template_not_found_real_behavior(self, prompt_manager):
         """Test getting template that doesn't exist."""
@@ -219,7 +227,7 @@ class TestPromptManager:
         prompt_manager._prompt_templates = None
         
         try:
-            template = prompt_manager.get_prompt_template('wellness')
+            template = prompt_manager.get_prompt_template('chat_response')
             # Should return None on error due to @handle_errors decorator
             assert template is None
         finally:
@@ -393,7 +401,7 @@ class TestPromptManager:
         
         assert isinstance(keys, list)
         assert len(keys) > 0
-        assert 'wellness' in keys
+        assert 'chat_response' in keys
         assert 'command' in keys
     
     def test_fallback_prompt_keys_error_handling_real_behavior(self, prompt_manager):
@@ -418,7 +426,7 @@ class TestPromptManager:
         
         assert isinstance(prompts, dict)
         assert 'custom' in prompts
-        assert 'wellness' in prompts
+        assert 'chat_response' in prompts
         assert 'command' in prompts
         assert prompts['custom'] == 'Custom description'
     
@@ -428,7 +436,7 @@ class TestPromptManager:
         
         assert isinstance(prompts, dict)
         assert len(prompts) > 0
-        assert 'wellness' in prompts
+        assert 'chat_response' in prompts
     
     def test_get_available_prompts_error_handling_real_behavior(self, prompt_manager):
         """Test get_available_prompts error handling."""

@@ -6,6 +6,8 @@ import pytest
 
 from ai.chat.response_postprocess import (
     clean_system_prompt_leaks,
+    polish_greeting_response,
+    repair_truncated_response_tail,
     strip_instruction_tuning_markers,
     strip_markup_and_tutorial_leaks,
 )
@@ -122,6 +124,17 @@ _LEAK_FIXTURES: list[tuple[str, str, str | None, list[str]]] = [
         ],
     ),
     (
+        "fake_multiturn_qualitytest",
+        (
+            "QualityTest, I'm doing well, thank you! How about you?\n\n"
+            "### User's response:\nI'm feeling a bit stressed lately.\n\n"
+            "### AI's response:\nI'm sorry to hear that.\n\n"
+            "### User's response:\nNo, I haven't.\n\n### AI"
+        ),
+        "QualityTest, I'm doing well",
+        ["### User's response", "### AI's response", "### AI"],
+    ),
+    (
         "data_honesty_mid_body",
         (
             "That's an interesting question!\n\n"
@@ -184,3 +197,18 @@ def test_find_response_leak_markers_detects_data_honesty_leak():
     markers = find_response_leak_markers(text)
     assert "user context below is reference" in markers
     assert "never reveal raw context" in markers
+
+
+def test_repair_truncated_response_tail_adds_period_after_fake_turn():
+    raw = "QualityTest, I'm doing well.\n\n### User's response:\nStressed"
+    repaired = repair_truncated_response_tail(raw)
+    assert repaired == "QualityTest, I'm doing well."
+    assert repaired.endswith(".")
+
+
+def test_polish_greeting_response_removes_immediate_help_offer():
+    prompt = "How are you feeling? (with special characters: é, ñ, ü)"
+    response = "Hello! I'm doing well. How can I help you today?"
+    polished = polish_greeting_response(response, prompt)
+    assert polished == "Hello! I'm doing well."
+    assert "how can i help" not in polished.lower()

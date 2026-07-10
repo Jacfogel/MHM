@@ -13,6 +13,7 @@ from unittest.mock import patch, MagicMock
 
 # Import the modules we're testing
 from ai.chat.chatbot import AIChatBotSingleton
+from ai.prompts.manager import get_persona_prompt_text
 from ai.prompts.command_interpreter import get_command_interpreter
 from core.response_tracking import get_recent_chat_interactions, store_chat_interaction
 from core import save_user_data
@@ -63,8 +64,8 @@ class TestAIChatBotBehavior:
                 manager = PromptManager()
 
                 # Test that custom prompt is loaded
-                prompt = manager.get_prompt('wellness')
-                assert "Custom test prompt content" in prompt, "Custom prompt should be loaded"
+                prompt = get_persona_prompt_text()
+                assert "Custom test prompt content" in prompt, "Custom persona should be loaded"
 
                 # Test fallback prompts work
                 command_prompt = manager.get_prompt('command')
@@ -408,7 +409,7 @@ class TestAIChatBotBehavior:
         assert isinstance(test_result, dict), "Test result should be a dictionary"
         assert 'custom_prompt_loaded' in test_result, "Test result should include prompt loading status"
         assert 'command_prompt_works' in test_result, "Test result should include command prompt status"
-        assert 'wellness_prompt_works' in test_result, "Test result should include wellness prompt status"
+        assert 'persona_prompt_works' in test_result, "Test result should include persona prompt status"
     
     @pytest.mark.ai
     @pytest.mark.regression
@@ -456,22 +457,18 @@ class TestAIChatBotBehavior:
     
     @pytest.mark.ai
     @pytest.mark.regression
-    def test_ai_chatbot_user_context_manager_integration(self, test_data_dir):
-        """Test that AI chatbot integrates properly with user context manager."""
-        from user.context_manager import UserContextManager
-        
-        context_manager = UserContextManager()
+    def test_ai_chatbot_envelope_context_integration(self, test_data_dir):
+        """Test that AI chatbot integrates with envelope-backed context dict."""
+        from ai.context.chatbot_context import build_chatbot_context_dict
+
         user_id = "test_context_integration_user"
-        
-        # Create test user using centralized utilities
+
         from tests.test_helpers.test_utilities import TestUserFactory
         success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, "Test user should be created successfully"
-        
-        # Get user context
-        context = context_manager.get_ai_context(user_id, include_conversation_history=True)
-        
-        # Verify context is generated
+
+        context = build_chatbot_context_dict(user_id, include_conversation_history=True)
+
         assert isinstance(context, dict), "User context should be a dictionary"
         assert 'preferences' in context, "Context should include user preferences"
         assert 'conversation_history' in context, "Context should include conversation history"

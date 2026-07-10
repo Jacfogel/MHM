@@ -9,9 +9,10 @@ Tests verify actual system changes, not just return values.
 
 import os
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from user.context_manager import UserContextManager
+from ai.context.chatbot_context import build_chatbot_context_dict
 
 
 @pytest.mark.behavior
@@ -39,109 +40,48 @@ class TestUserContextManagerBehavior:
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
-    def test_get_current_user_context_uses_usercontext_singleton(self, test_data_dir):
-        """Test that get_current_user_context actually uses UserContext singleton."""
-        # Arrange
-        manager = UserContextManager()
-        test_user_id = "test-user-123"
-        
-        # Mock UserContext to return our test user
-        with patch('user.context_manager.UserContext') as mock_user_context_class:
-            mock_user_context = MagicMock()
-            mock_user_context.get_user_id.return_value = test_user_id
-            mock_user_context_class.return_value = mock_user_context
-            
-            # Act
-            result = manager.get_current_user_context()
-            
-            # Assert - Verify UserContext was actually used
-            mock_user_context.get_user_id.assert_called_once()
-            assert result is not None, "Should return context even with mocked user"
-    
-    @pytest.mark.user
-    @pytest.mark.file_io
-    @pytest.mark.critical
-    @pytest.mark.regression
-    def test_get_current_user_context_handles_no_user_gracefully(self, test_data_dir):
-        """Test that get_current_user_context handles no logged-in user gracefully."""
-        # Arrange
-        manager = UserContextManager()
-        
-        # Mock UserContext to return no user
-        with patch('user.context_manager.UserContext') as mock_user_context_class:
-            mock_user_context = MagicMock()
-            mock_user_context.get_user_id.return_value = None
-            mock_user_context_class.return_value = mock_user_context
-            
-            # Act
-            result = manager.get_current_user_context()
-            
-            # Assert - Verify graceful handling
-            assert result is not None, "Should return minimal context even with no user"
-            assert 'user_profile' in result, "Should have user_profile in minimal context"
-    
-    @pytest.mark.user
-    @pytest.mark.file_io
-    @pytest.mark.critical
-    @pytest.mark.regression
-    def test_get_user_context_creates_complete_structure(self, test_data_dir):
-        """Test that get_user_context creates complete context structure."""
-        # Arrange
+    def test_build_context_with_session_overlay_uses_envelope_shape(self, test_data_dir):
+        """Envelope-backed context dict includes expected top-level keys."""
         manager = UserContextManager()
         test_user_id = "test-user-456"
-        
-        # Mock all the data retrieval functions
-        with patch('user.context_manager.get_user_data') as mock_get_user_data, \
-             patch('user.context_manager.get_recent_checkins') as mock_get_checkins, \
-             patch('user.context_manager.get_recent_chat_interactions') as mock_get_interactions, \
-             patch('user.context_manager.get_recent_messages') as mock_get_messages:
-            
-            # Setup mock returns
-            mock_get_user_data.side_effect = lambda user_id, data_type: {
-                'preferences': {'preferences': {'theme': 'dark'}},
-                'account': {'account': {'username': 'testuser'}},
-                'context': {'context': {'timezone': 'UTC'}}
-            }.get(data_type, {})
-            
-            mock_get_checkins.return_value = [{'date': '2025-01-01', 'mood': 'good'}]
-            mock_get_interactions.return_value = [{'timestamp': '2025-01-01T10:00:00', 'message': 'hello'}]
-            mock_get_messages.return_value = [{'id': 'msg1', 'content': 'test message'}]
-            
-            # Act
-            result = manager.get_ai_context(test_user_id)
-            
-            # Assert - Verify complete structure creation
-            assert 'user_profile' in result, "Should have user_profile"
-            assert 'recent_activity' in result, "Should have recent_activity"
-            assert 'conversation_insights' in result, "Should have conversation_insights"
-            assert 'preferences' in result, "Should have preferences"
-            assert 'mood_trends' in result, "Should have mood_trends"
-            assert 'conversation_history' in result, "Should have conversation_history"
+
+        from tests.test_helpers.test_utilities import TestUserFactory
+
+        assert TestUserFactory.create_basic_user(
+            test_user_id, test_data_dir=test_data_dir
+        )
+
+        result = manager.build_context_with_session_overlay(test_user_id)
+
+        assert "user_profile" in result
+        assert "recent_activity" in result
+        assert "conversation_insights" in result
+        assert "preferences" in result
+        assert "mood_trends" in result
+        assert "conversation_history" in result
     
     @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
-    def test_get_user_context_without_conversation_history(self, test_data_dir):
-        """Test that get_user_context excludes conversation history when requested."""
-        # Arrange
+    def test_build_context_without_session_overlay(self, test_data_dir):
+        """Session overlay can be skipped while envelope context still loads."""
         manager = UserContextManager()
         test_user_id = "test-user-789"
-        
-        # Mock data retrieval
-        with patch('user.context_manager.get_user_data') as mock_get_user_data:
-            mock_get_user_data.side_effect = lambda user_id, data_type: {
-                'preferences': {'preferences': {}},
-                'account': {'account': {}},
-                'context': {'context': {}}
-            }.get(data_type, {})
-            
-            # Act
-            result = manager.get_ai_context(test_user_id, include_conversation_history=False)
-            
-            # Assert - Verify conversation history is excluded
-            assert 'conversation_history' in result, "Should have conversation_history key"
-            assert result['conversation_history'] == [], "conversation_history should be empty list"
+
+        from tests.test_helpers.test_utilities import TestUserFactory
+
+        assert TestUserFactory.create_basic_user(
+            test_user_id, test_data_dir=test_data_dir
+        )
+        manager.add_conversation_exchange(test_user_id, "Hello", "Hi")
+
+        result = build_chatbot_context_dict(
+            test_user_id, include_conversation_history=False
+        )
+
+        assert "conversation_history" in result
+        assert result["conversation_history"] == []
     
     @pytest.mark.user
     @pytest.mark.file_io
@@ -166,6 +106,22 @@ class TestUserContextManagerBehavior:
         assert exchange['user_message'] == user_message, "User message should be stored correctly"
         assert exchange['ai_response'] == ai_response, "AI response should be stored correctly"
         assert 'timestamp' in exchange, "Should have timestamp"
+
+    @pytest.mark.user
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
+    def test_get_session_conversation_history_returns_recent_exchanges(self, test_data_dir):
+        """Session history API returns in-memory exchanges without full context load."""
+        manager = UserContextManager()
+        test_user_id = "test-user-session-api"
+        manager.add_conversation_exchange(test_user_id, "Hello", "Hi there")
+
+        history = manager.get_session_conversation_history(test_user_id)
+
+        assert len(history) == 1
+        assert history[0]["user_message"] == "Hello"
+        assert history[0]["ai_response"] == "Hi there"
     
     @pytest.mark.user
     @pytest.mark.file_io
@@ -177,16 +133,15 @@ class TestUserContextManagerBehavior:
         manager = UserContextManager()
         test_user_id = "test-user-limit"
         
-        # Add more than the limit (assuming limit is 50)
-        for i in range(60):
+        # Add more than the in-memory limit (20 exchanges)
+        for i in range(25):
             manager.add_conversation_exchange(test_user_id, f"Message {i}", f"Response {i}")
-        
+
         # Act - Add one more exchange
         manager.add_conversation_exchange(test_user_id, "Final message", "Final response")
-        
+
         # Assert - Verify history limit is maintained
-        assert len(manager.conversation_history[test_user_id]) <= 50, "History should not exceed limit"
-        assert len(manager.conversation_history[test_user_id]) > 0, "Should still have some history"
+        assert len(manager.conversation_history[test_user_id]) <= 20
     
     @pytest.mark.user
     @pytest.mark.file_io
@@ -225,140 +180,6 @@ class TestUserContextManagerBehavior:
         
         # Assert - Verify empty history handling
         assert history == [], "Should return empty list for new user"
-    
-    @pytest.mark.user
-    @pytest.mark.file_io
-    @pytest.mark.critical
-    @pytest.mark.regression
-    def test_get_user_profile_uses_existing_infrastructure(self, test_data_dir):
-        """Test that _get_user_profile actually uses existing user infrastructure."""
-        # Arrange
-        manager = UserContextManager()
-        test_user_id = "test-user-profile"
-        
-        # Mock UserContext and data retrieval
-        with patch('user.context_manager.UserContext') as mock_user_context_class, \
-             patch('user.context_manager.get_user_data') as mock_get_user_data, \
-             patch('user.context_manager.get_active_schedules') as mock_get_active_schedules:
-            
-            mock_user_context = MagicMock()
-            mock_user_context.get_preferred_name.return_value = "TestUser"
-            mock_user_context_class.return_value = mock_user_context
-            
-            mock_get_user_data.side_effect = lambda user_id, data_type, **kwargs: {
-                'preferences': {'preferences': {'categories': ['motivational', 'health'], 'channel': {'type': 'discord'}}},
-                'account': {'account': {'username': 'testuser', 'email': 'test@example.com'}},
-                'context': {'context': {'preferred_name': 'TestUser', 'timezone': 'UTC'}},
-                'schedules': {'schedules': {}}
-            }.get(data_type, {})
-            
-            mock_get_active_schedules.return_value = []
-            
-            # Act
-            profile = manager._get_user_profile(test_user_id)
-            
-            # Assert - Verify infrastructure usage
-            mock_user_context.load_user_data.assert_called_once_with(test_user_id)
-            assert mock_get_user_data.call_count == 4, "Should call get_user_data for all data types (preferences, account, context, schedules)"
-            assert 'preferred_name' in profile, "Should include preferred_name"
-            assert 'active_categories' in profile, "Should include active_categories"
-            assert 'messaging_service' in profile, "Should include messaging_service"
-            assert 'active_schedules' in profile, "Should include active_schedules"
-            assert profile['preferred_name'] == "TestUser", "Should have correct preferred_name"
-            assert 'motivational' in profile['active_categories'], "Should include categories from preferences"
-            assert profile['messaging_service'] == "discord", "Should include channel type from preferences"
-    
-    @pytest.mark.user
-    @pytest.mark.file_io
-    @pytest.mark.critical
-    @pytest.mark.regression
-    def test_get_recent_activity_integrates_multiple_sources(self, test_data_dir):
-        """Test that _get_recent_activity integrates data from multiple sources."""
-        # Arrange
-        manager = UserContextManager()
-        test_user_id = "test-user-activity"
-        
-        # Mock data retrieval functions
-        with patch('user.context_manager.get_recent_checkins') as mock_get_checkins, \
-             patch('user.context_manager.get_user_data') as mock_get_user_data:
-            
-            # Setup mock returns
-            mock_get_checkins.return_value = [
-                {'submitted_at': '2025-01-02 10:00:00', 'mood': 'okay', 'energy': 'medium'},
-                {'submitted_at': '2025-01-01 10:00:00', 'mood': 'good', 'energy': 'high'}
-            ]
-            mock_get_user_data.return_value = {
-                'preferences': {
-                    'categories': ['motivational', 'health']
-                }
-            }
-            
-            # Act
-            activity = manager._get_recent_activity(test_user_id)
-            
-            # Assert - Verify integration of multiple sources
-            assert 'recent_responses_count' in activity, "Should include recent responses count"
-            assert 'last_response_date' in activity, "Should include last response date"
-            assert 'recent_messages_count' in activity, "Should include recent messages count"
-            assert 'last_message_date' in activity, "Should include last message date"
-            assert activity['recent_responses_count'] == 2, "Should have correct number of responses"
-            assert activity['last_response_date'] == '2025-01-02', "Should have correct last response date"
-    
-    @pytest.mark.user
-    @pytest.mark.file_io
-    @pytest.mark.critical
-    @pytest.mark.regression
-    def test_get_conversation_insights_analyzes_actual_data(self, test_data_dir):
-        """Test that _get_conversation_insights analyzes actual conversation data."""
-        # Arrange
-        manager = UserContextManager()
-        test_user_id = "test-user-insights"
-        
-        # Mock chat interactions data
-        with patch('user.context_manager.get_recent_chat_interactions') as mock_get_interactions:
-            mock_get_interactions.return_value = [
-                {'user_message': 'I\'m feeling sad', 'ai_response': 'I\'m sorry to hear that'},
-                {'user_message': 'I need motivation', 'ai_response': 'You can do this!'},
-                {'user_message': 'I\'m feeling better', 'ai_response': 'That\'s great to hear!'}
-            ]
-            
-            # Act
-            insights = manager._get_conversation_insights(test_user_id)
-            
-            # Assert - Verify actual analysis
-            assert 'recent_topics' in insights, "Should include recent topics"
-            assert 'interaction_count' in insights, "Should include interaction count"
-            assert insights['interaction_count'] == 3, "Should count all interactions"
-            assert len(insights['recent_topics']) > 0, "Should have some topics"
-    
-    @pytest.mark.user
-    @pytest.mark.file_io
-    @pytest.mark.critical
-    @pytest.mark.regression
-    def test_get_mood_trends_analyzes_checkin_data(self, test_data_dir):
-        """Test that _get_mood_trends analyzes actual checkin data."""
-        # Arrange
-        manager = UserContextManager()
-        test_user_id = "test-user-mood"
-        
-        # Mock checkin data with numeric mood values
-        with patch('user.context_manager.get_recent_checkins') as mock_get_checkins:
-            mock_get_checkins.return_value = [
-                {'date': '2025-01-01', 'mood': 8, 'energy': 7},
-                {'date': '2025-01-02', 'mood': 6, 'energy': 5},
-                {'date': '2025-01-03', 'mood': 7, 'energy': 6},
-                {'date': '2025-01-04', 'mood': 4, 'energy': 3}
-            ]
-            
-            # Act
-            trends = manager._get_mood_trends(test_user_id)
-            
-            # Assert - Verify actual trend analysis
-            assert 'average_mood' in trends, "Should include average mood"
-            assert 'average_energy' in trends, "Should include average energy"
-            assert 'trend' in trends, "Should include trend"
-            assert trends['average_mood'] is not None, "Should calculate average mood"
-            assert trends['average_energy'] is not None, "Should calculate average energy"
     
     @pytest.mark.user
     @pytest.mark.file_io
@@ -474,57 +295,40 @@ class TestUserContextManagerBehavior:
     @pytest.mark.regression
     def test_user_context_manager_error_handling_preserves_system_stability(self, test_data_dir):
         """Test that UserContextManager error handling preserves system stability."""
-        # Arrange
         manager = UserContextManager()
         test_user_id = "test-user-error"
-        
-        # Mock get_user_data to raise an exception
-        with patch('user.context_manager.get_user_data') as mock_get_user_data:
-            mock_get_user_data.side_effect = Exception("Test error")
-            
-            # Act - Should not raise exception due to error handling
-            result = manager.get_ai_context(test_user_id)
-            
-            # Assert - Verify graceful error handling
-            assert result is not None, "Should return result even with errors"
-            assert 'user_profile' in result, "Should have user_profile even with errors"
+
+        with patch(
+            "ai.context.chatbot_context.build_chatbot_context_dict", return_value=None
+        ):
+            result = manager.build_context_with_session_overlay(test_user_id)
+
+        assert result is not None
+        assert "user_profile" in result
     
     @pytest.mark.user
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
     def test_user_context_manager_integration_with_ai_chatbot(self, test_data_dir):
-        """Test that UserContextManager integrates properly with AI chatbot."""
-        # Arrange
+        """Test session conversation overlay on envelope-backed context."""
         manager = UserContextManager()
         test_user_id = "test-user-ai-integration"
-        
-        # Add conversation exchange
+
+        from tests.test_helpers.test_utilities import TestUserFactory
+
+        assert TestUserFactory.create_basic_user(
+            test_user_id, test_data_dir=test_data_dir
+        )
         manager.add_conversation_exchange(test_user_id, "Hello", "Hi there!")
-        
-        # Mock data retrieval for context generation
-        with patch('user.context_manager.get_user_data') as mock_get_user_data, \
-             patch('user.context_manager.get_recent_checkins') as mock_get_checkins, \
-             patch('user.context_manager.get_recent_chat_interactions') as mock_get_interactions:
-            
-            mock_get_user_data.side_effect = lambda user_id, data_type: {
-                'preferences': {'preferences': {'categories': ['motivational'], 'channel': {'type': 'discord'}}},
-                'account': {'account': {'username': 'testuser'}},
-                'context': {'context': {'preferred_name': 'testuser'}}
-            }.get(data_type, {})
-            
-            mock_get_checkins.return_value = [{'timestamp': '2025-01-01 10:00:00', 'mood': 8}]
-            mock_get_interactions.return_value = [{'user_message': 'Hello', 'ai_response': 'Hi there!'}]
-            
-            # Act
-            context = manager.get_ai_context(test_user_id)
-            manager.format_context_for_ai(context)
-            
-            # Assert - Verify AI integration
-            assert 'conversation_history' in context, "Should include conversation history"
-            assert len(context['conversation_history']) == 1, "Should have one conversation exchange"
-            assert context['conversation_history'][0]['user_message'] == "Hello", "Should have correct user message"
-            assert context['conversation_history'][0]['ai_response'] == "Hi there!", "Should have correct AI response"
+
+        context = manager.build_context_with_session_overlay(test_user_id)
+        manager.format_context_for_ai(context)
+
+        assert "conversation_history" in context
+        assert len(context["conversation_history"]) == 1
+        assert context["conversation_history"][0]["user_message"] == "Hello"
+        assert context["conversation_history"][0]["ai_response"] == "Hi there!"
     
     @pytest.mark.user
     @pytest.mark.file_io
@@ -532,36 +336,23 @@ class TestUserContextManagerBehavior:
     @pytest.mark.regression
     def test_user_context_manager_performance_under_load(self, test_data_dir):
         """Test that UserContextManager performs well under load."""
-        # Arrange
         manager = UserContextManager()
         test_user_id = "test-user-performance"
-        
-        # Add many conversation exchanges
-        for i in range(100):
+
+        from tests.test_helpers.test_utilities import TestUserFactory
+
+        assert TestUserFactory.create_basic_user(
+            test_user_id, test_data_dir=test_data_dir
+        )
+
+        for i in range(25):
             manager.add_conversation_exchange(test_user_id, f"Message {i}", f"Response {i}")
-        
-        # Mock data retrieval for performance testing
-        with patch('user.context_manager.get_user_data') as mock_get_user_data, \
-             patch('user.context_manager.get_recent_checkins') as mock_get_checkins, \
-             patch('user.context_manager.get_recent_chat_interactions') as mock_get_interactions, \
-             patch('user.context_manager.get_recent_messages') as mock_get_messages:
-            
-            mock_get_user_data.side_effect = lambda user_id, data_type: {
-                'preferences': {'preferences': {}},
-                'account': {'account': {}},
-                'context': {'context': {}}
-            }.get(data_type, {})
-            
-            mock_get_checkins.return_value = []
-            mock_get_interactions.return_value = []
-            mock_get_messages.return_value = []
-            
-            # Act
-            context = manager.get_ai_context(test_user_id)
-            
-            # Assert - Verify performance under load
-            assert context is not None, "Should return context under load"
-            assert len(context['conversation_history']) <= 50, "Should maintain history limit under load"
+
+        context = manager.build_context_with_session_overlay(test_user_id)
+
+        assert context is not None
+        assert len(context["conversation_history"]) <= 5
+        assert len(manager.conversation_history[test_user_id]) <= 20
     
     @pytest.mark.user
     @pytest.mark.file_io
@@ -593,55 +384,26 @@ class TestUserContextManagerIntegration:
     
     def test_user_context_manager_with_real_user_data(self, test_data_dir):
         """Test UserContextManager with real user data files."""
-        # Arrange
-        manager = UserContextManager()
         test_user_id = "real-user-test"
-        
-        # Create test user using centralized utilities (minimal user since we use mocks for all data)
+
         from tests.test_helpers.test_utilities import TestUserFactory
-        success = TestUserFactory.create_minimal_user(test_user_id, test_data_dir=test_data_dir)
-        assert success, "Test user should be created successfully"
-        
-        # Get the UUID for the user
-        from core import get_user_id_by_identifier
+        from core import get_user_id_by_identifier, update_user_context
+
+        assert TestUserFactory.create_basic_user(
+            test_user_id, test_data_dir=test_data_dir
+        )
         actual_user_id = get_user_id_by_identifier(test_user_id)
-        assert actual_user_id is not None, f"Should be able to get UUID for user {test_user_id}"
-        
-        # Update user context with specific data for testing
-        from core import update_user_context
-        update_success = update_user_context(actual_user_id, {
-            'preferred_name': 'realuser',
-            'gender_identity': ['they/them']
-        })
-        assert update_success, "User context should be updated successfully"
-        
-        # Mock UserContext and data retrieval to return the correct data
-        with patch('user.context_manager.UserContext') as mock_user_context_class, \
-             patch('user.context_manager.get_user_data') as mock_get_user_data, \
-             patch('user.context_manager.get_active_schedules') as mock_get_active_schedules:
-            
-            mock_user_context = MagicMock()
-            mock_user_context.get_preferred_name.return_value = "realuser"
-            mock_user_context_class.return_value = mock_user_context
-            
-            # Mock get_user_data to return the correct structure
-            mock_get_user_data.side_effect = lambda user_id, data_type, **kwargs: {
-                'preferences': {'preferences': {'categories': ['motivational', 'health'], 'channel': {'type': 'discord'}}},
-                'account': {'account': {'username': 'realuser', 'email': f'{test_user_id}@example.com'}},
-                'context': {'context': {'preferred_name': 'realuser', 'timezone': 'UTC'}},
-                'schedules': {'schedules': {}}
-            }.get(data_type, {})
-            
-            mock_get_active_schedules.return_value = []
-            
-            # Act
-            context = manager.get_ai_context(test_user_id)
-            
-            # Assert - Verify real data integration
-            assert context is not None, "Should return context with real data"
-            assert context['user_profile']['preferred_name'] == "realuser", "Should read real preferred name"
-            assert 'motivational' in context['user_profile']['active_categories'], "Should read real categories"
-            assert context['user_profile']['messaging_service'] == "discord", "Should read real messaging service"
+        assert actual_user_id is not None
+
+        assert update_user_context(
+            actual_user_id,
+            {"preferred_name": "realuser", "gender_identity": ["they/them"]},
+        )
+
+        context = build_chatbot_context_dict(actual_user_id)
+
+        assert context is not None
+        assert context["user_profile"]["preferred_name"] == "realuser"
     
     def test_user_context_manager_error_recovery_with_real_files(self, test_data_dir):
         """Test UserContextManager error recovery with corrupted real files."""
@@ -658,7 +420,7 @@ class TestUserContextManagerIntegration:
             f.write("invalid json content")
         
         # Act - Should handle corrupted files gracefully
-        context = manager.get_ai_context(test_user_id)
+        context = manager.build_context_with_session_overlay(test_user_id)
         
         # Assert - Verify error recovery
         assert context is not None, "Should return context even with corrupted files"
@@ -677,9 +439,9 @@ class TestUserContextManagerIntegration:
         # For now, we'll test that the manager can handle rapid successive calls
         for i in range(10):
             manager.add_conversation_exchange(test_user_id, f"Concurrent message {i}", f"Concurrent response {i}")
-            manager.get_ai_context(test_user_id)
+            manager.build_context_with_session_overlay(test_user_id)
         
         # Assert - Verify concurrent access safety
         assert test_user_id in manager.conversation_history, "User should still be in conversation history"
-        assert len(manager.conversation_history[test_user_id]) <= 50, "Should maintain history limit"
+        assert len(manager.conversation_history[test_user_id]) <= 20
         assert len(manager.conversation_history[test_user_id]) > 0, "Should have some conversation history" 

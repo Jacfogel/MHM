@@ -33,8 +33,11 @@ from core.config import (
 )
 from core.response_tracking import store_chat_interaction
 from user.context_manager import user_context_manager
-from ai.context.chatbot_context import build_chatbot_context_dict
-from ai.prompts.manager import get_prompt_manager
+from ai.prompts.manager import (
+    MINIMAL_CHAT_SYSTEM_PROMPT,
+    get_persona_prompt_text,
+    get_prompt_manager,
+)
 from ai.client.cache_manager import get_response_cache
 from ai.prompts.command_interpreter import get_command_interpreter
 from ai.fallback import get_fallback_responses
@@ -43,6 +46,7 @@ from ai.chat.response_generator import get_response_generator
 from ai.client.lm_studio_client import call_lm_studio_api, test_lm_studio_connection
 from ai.chat.response_postprocess import (
     clean_system_prompt_leaks,
+    polish_greeting_response,
     smart_truncate_response,
     strip_instruction_tuning_markers,
     strip_letter_signoffs,
@@ -184,7 +188,7 @@ class AIChatBotSingleton:
         default_return=[
             {
                 "role": "system",
-                "content": "You are a supportive wellness assistant. Keep responses helpful, encouraging, and conversational.",
+                "content": MINIMAL_CHAT_SYSTEM_PROMPT,
             },
             {"role": "user", "content": "Hello"},
         ],
@@ -193,7 +197,7 @@ class AIChatBotSingleton:
         """Create optimized messages array for LM Studio API."""
         system_message = {
             "role": "system",
-            "content": prompt_manager.get_prompt("wellness"),
+            "content": get_persona_prompt_text(),
         }
 
         if (
@@ -296,7 +300,9 @@ class AIChatBotSingleton:
             )
 
             if result:
-                response = self._post_process_generated_response(mode, result)
+                response = self._post_process_generated_response(
+                    "chat", result, user_prompt
+                )
                 if (
                     mode in ("chat", "personalized")
                     and len((response or "").strip()) < 3
@@ -484,12 +490,12 @@ class AIChatBotSingleton:
                 0.7,
             )
 
-        template = prompt_manager.get_prompt_template("wellness")
-        template_max_tokens = template.max_tokens if template and template.max_tokens else 0
+        composed = prompt_manager.compose_product_prompt("chat_response")
+        template_max_tokens = composed.max_tokens if composed and composed.max_tokens else 0
         max_tokens = max(template_max_tokens, AI_MAX_RESPONSE_TOKENS)
         temperature = (
-            template.temperature
-            if template and template.temperature is not None
+            composed.temperature
+            if composed and composed.temperature is not None
             else AI_CHAT_TEMPERATURE
         )
         messages = get_response_generator().create_comprehensive_context_prompt(
@@ -498,11 +504,14 @@ class AIChatBotSingleton:
         return messages, max_tokens, temperature
 
     @handle_errors("post-processing generated response", default_return="")
-    def _post_process_generated_response(self, mode: str, result: str) -> str:
+    def _post_process_generated_response(
+        self, mode: str, result: str, user_prompt: str = ""
+    ) -> str:
         """Post-process model output into final user-visible response."""
         response = result.strip()
         response = strip_instruction_tuning_markers(response)
         response = clean_system_prompt_leaks(response)
+        response = polish_greeting_response(response, user_prompt)
         if mode == "command":
             response = get_command_interpreter().extract_command_from_response(response)
         if mode == "personalized":
@@ -591,15 +600,22 @@ class AIChatBotSingleton:
             > 0,
         }
 
-        # Test each prompt type
-        for prompt_type in ["wellness", "command", "neurodivergent_support"]:
-            try:
-                prompt = prompt_manager.get_prompt(prompt_type)
-                test_results[f"{prompt_type}_prompt_works"] = True
-                test_results[f"{prompt_type}_prompt_length"] = len(prompt)
-            except Exception as e:
-                test_results[f"{prompt_type}_prompt_works"] = False
-                test_results[f"{prompt_type}_prompt_error"] = str(e)
+        persona = get_persona_prompt_text()
+        test_results["persona_prompt_works"] = bool(persona)
+        test_results["persona_prompt_length"] = len(persona)
+
+        composed = prompt_manager.compose_product_prompt("chat_response")
+        test_results["chat_response_compose_works"] = composed is not None
+        if composed:
+            test_results["chat_response_compose_length"] = len(composed.content)
+
+        try:
+            command_prompt = prompt_manager.get_prompt("command")
+            test_results["command_prompt_works"] = True
+            test_results["command_prompt_length"] = len(command_prompt)
+        except Exception as e:
+            test_results["command_prompt_works"] = False
+            test_results["command_prompt_error"] = str(e)
 
         return test_results
 
@@ -725,15 +741,10 @@ class AIChatBotSingleton:
         if timeout is None:
             timeout = AI_CONTEXTUAL_RESPONSE_TIMEOUT
 
-        # Envelope-backed context dict; overlay in-memory session exchanges.
-        context = build_chatbot_context_dict(
-            user_id, include_conversation_history=True
-        )
-        session_history = user_context_manager.conversation_history.get(user_id, [])[
-            -5:
-        ]
-        if session_history:
-            context["conversation_history"] = session_history
+        # Envelope-backed context dict with in-memory session overlay.
+        context = user_context_manager.build_context_with_session_overlay(user_id)
+        if not context:
+            context = {}
         profile, context_summary, context_str = self._build_contextual_summary(context)
 
         if not self.lm_studio_available:
@@ -780,23 +791,31 @@ class AIChatBotSingleton:
             f"Generating contextual response for user {user_id} with context: {context_str[:60]}..."
         )
 
+        chat_template = prompt_manager.compose_product_prompt("chat_response")
+        template_max_tokens = (
+            chat_template.max_tokens if chat_template and chat_template.max_tokens else 250
+        )
+        contextual_max_tokens = max(template_max_tokens, AI_MAX_RESPONSE_TOKENS)
+        contextual_temperature = (
+            chat_template.temperature
+            if chat_template and chat_template.temperature is not None
+            else AI_CHAT_TEMPERATURE
+        )
+
         try:
-            # Call LM Studio API with context
             result = self._call_lm_studio_api(
                 messages=messages,
-                max_tokens=80,  # Shorter responses for faster generation
-                temperature=0.2,  # Lower temperature for focused responses
+                max_tokens=contextual_max_tokens,
+                temperature=contextual_temperature,
                 timeout=timeout,
             )
 
             if result:
-                response = result.strip()
-                # Clean any leaked system prompt metadata
-                response = clean_system_prompt_leaks(response)
-                # Ensure response acknowledges the user by name if available
+                response = self._post_process_generated_response(
+                    "chat", result, user_prompt
+                )
                 user_name = profile.get("preferred_name", "")
                 if user_name and user_name.lower() not in response.lower():
-                    # Prepend name if not already included
                     response = f"{user_name}, {response}"
             else:
                 response = get_fallback_responses().contextual(user_prompt, user_id)

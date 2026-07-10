@@ -33,12 +33,19 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
-### 2026-07-09 - Retire PromptManager domain prompt builders
+### 2026-07-09 - Retire PromptManager domain prompt builders; envelope Q&A tests and get_ai_context delegation
 - **Legacy removal**: Removed `PromptManager.create_task_prompt` and `create_checkin_prompt` from [`ai/prompts/manager.py`](../ai/prompts/manager.py); product-AI flows use `compose_product_prompt()` exclusively.
 - **Cleanup**: Dropped inline `checkin` / `task_assistant` fallback templates that only supported the retired builders.
 - **Tests**: Migrated [`tests/unit/test_prompt_manager.py`](../tests/unit/test_prompt_manager.py) to `compose_product_prompt` coverage; updated Phase 0 contract test to assert `prompt_manager_domain_prompt_builders` is in `removed_inventory`.
 - **Inventory**: Moved `prompt_manager_domain_prompt_builders` from active to `removed_inventory` in [`DEPRECATION_INVENTORY.json`](../development_tools/config/jsons/DEPRECATION_INVENTORY.json).
-- **Impact**: Clears the last product-AI `LEGACY COMPATIBILITY` markers flagged by legacy reference scans.
+- **Context overlap**: `UserContextManager.get_ai_context` delegates to [`build_chatbot_context_dict`](../ai/context/chatbot_context.py) with in-memory session overlay; removed duplicate domain loaders from [`user/context_manager.py`](../user/context_manager.py).
+- **Phase 0 behavior**: Added [`tests/behavior/test_product_ai_envelope_qa_behavior.py`](../tests/behavior/test_product_ai_envelope_qa_behavior.py) asserting task, profile, schedule, and prompt-view answers from envelope data without exact prompt-string checks.
+- **Test migration**: AI integration and chatbot behavior tests use `build_chatbot_context_dict` where session overlay is not required; trimmed obsolete `UserContextManager` private-method behavior tests.
+- **Response quality**: Contextual chat uses `chat_response` max-token budget and full post-process (`repair_truncated_response_tail`, `polish_greeting_response`) to address T-12.3 fake multi-turn leaks and T-13.3 premature help redirects.
+- **Prompt dedup**: [`assistant_system_prompt.txt`](../resources/prompts/assistant_system_prompt.txt) is comment-only; [`PromptManager`](../ai/prompts/manager.py) loads persona from [`product_ai/persona.txt`](../resources/prompts/product_ai/persona.txt) when the override file has no body.
+- **Phase 8 complete**: Centralized `MINIMAL_CHAT_SYSTEM_PROMPT`; chat assembly uses `compose_product_prompt("chat_response")` for generation budgets; `_optimize_prompt` uses `get_persona_prompt_text()`; added `get_session_conversation_history()`; documented `product_ai_wellness_prompt_api_bridge` and `product_ai_user_context_bridge` in deprecation inventory with `LEGACY COMPATIBILITY` logging.
+- **Bridge removal**: Removed `get_ai_context` / `get_current_user_context`; added `build_context_with_session_overlay()`; `get_prompt` is command-only (persona aliases delegate to `get_persona_prompt_text()`); moved Phase 8 bridges to `removed_inventory`.
+- **Impact**: Phase 8 prompt/context retirement complete; retained bridges are inventoried for future removal.
 
 ### 2026-07-08 - Action catalog expansion, fallback alignment, Phase 8 context slice, Phase 0 contracts
 - **Catalog fields**: [`action_catalog.py`](../ai/prompts/action_catalog.py) now declares entity fields, handler targets, and feature gates for all live rule-based parser intents across check-ins, profile, schedules, analytics, notebooks, help/messages, health, and phrase-settings; `append_note_to_task` uses `note_text`.

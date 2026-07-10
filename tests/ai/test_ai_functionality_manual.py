@@ -26,6 +26,7 @@ from tests.test_helpers.test_utilities import TestUserFactory
 from core.time_utilities import now_datetime_full, now_timestamp_filename
 from core.response_tracking import get_recent_chat_interactions
 from core import get_user_id_by_identifier
+from ai.context.chatbot_context import build_chatbot_context_dict
 from user.context_manager import user_context_manager
 
 
@@ -395,7 +396,7 @@ class AITestRunner:
 
             # Test 2.2: Context building
             try:
-                context = user_context_manager.get_ai_context(
+                context = build_chatbot_context_dict(
                     actual_user_id, include_conversation_history=True
                 )
                 if context and isinstance(context, dict):
@@ -619,7 +620,7 @@ class AITestRunner:
 
             # Test 4.1: Context includes check-in data
             try:
-                context = user_context_manager.get_ai_context(
+                context = build_chatbot_context_dict(
                     actual_user_id, include_conversation_history=False
                 )
                 has_checkins = (
@@ -961,7 +962,7 @@ class AITestRunner:
 
             # Test 7.2: Conversation history included in context
             try:
-                context = user_context_manager.get_ai_context(
+                context = build_chatbot_context_dict(
                     actual_user_id, include_conversation_history=True
                 )
 
@@ -1069,9 +1070,9 @@ class AITestRunner:
                 )
 
                 # Check conversation history
-                history = user_context_manager.get_ai_context(
-                    actual_user_id, include_conversation_history=True
-                ).get("conversation_history", [])
+                history = user_context_manager.get_session_conversation_history(
+                    actual_user_id
+                )
 
                 # Format prompts and responses for logging
                 exchange_details = f"Exchange 1: '{prompt1}' -> {response1[:80]}... | Exchange 2: '{prompt2}' -> {response2[:80]}..."

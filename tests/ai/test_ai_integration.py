@@ -15,6 +15,7 @@ from tests.ai.ai_test_base import AITestBase
 from tests.test_helpers.test_utilities import TestUserFactory
 from core import get_user_id_by_identifier
 from core.response_tracking import get_recent_chat_interactions
+from ai.context.chatbot_context import build_chatbot_context_dict
 from user.context_manager import user_context_manager
 from core.time_utilities import DATE_ONLY, now_datetime_full
 
@@ -70,7 +71,7 @@ class TestAIIntegration(AITestBase):
 
             # Test 4.1: Context includes check-in data
             try:
-                context = user_context_manager.get_ai_context(
+                context = build_chatbot_context_dict(
                     actual_user_id, include_conversation_history=False
                 )
                 has_checkins = (
@@ -271,7 +272,7 @@ class TestAIIntegration(AITestBase):
             # NOTE: This is a deterministic test that verifies context structure includes conversation_history.
             # It could potentially be moved to unit tests, but remains here to verify integration with context manager.
             try:
-                context = user_context_manager.get_ai_context(
+                context = build_chatbot_context_dict(
                     actual_user_id, include_conversation_history=True
                 )
 
@@ -385,9 +386,9 @@ class TestAIIntegration(AITestBase):
                     actual_user_id, prompt2
                 )
 
-                history = user_context_manager.get_ai_context(
-                    actual_user_id, include_conversation_history=True
-                ).get("conversation_history", [])
+                history = user_context_manager.get_session_conversation_history(
+                    actual_user_id
+                )
 
                 # Check if AI inappropriately references check-in data that doesn't exist
                 checkin_issues = []

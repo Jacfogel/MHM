@@ -248,7 +248,7 @@ class AITestBase:
             return context_info
 
         try:
-            from user.context_manager import user_context_manager
+            from ai.context.chatbot_context import build_chatbot_context_dict
             from checkins.checkin_data_manager import (
                 get_recent_checkins,
                 is_user_checkins_enabled,
@@ -296,7 +296,7 @@ class AITestBase:
 
             # Get context structure and extract relevant details
             try:
-                context = user_context_manager.get_ai_context(
+                context = build_chatbot_context_dict(
                     user_id, include_conversation_history=include_history
                 )
                 if context and isinstance(context, dict):

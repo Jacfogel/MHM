@@ -360,7 +360,7 @@ class TestAIChatBotHelpers:
 
     def test_optimize_prompt_basic(self, chatbot_instance):
         """Test _optimize_prompt creates basic prompt structure."""
-        with patch('ai.chat.chatbot.prompt_manager.get_prompt', return_value="System prompt"):
+        with patch('ai.chat.chatbot.get_persona_prompt_text', return_value="System prompt"):
             result = chatbot_instance._optimize_prompt("Hello")
             
             assert isinstance(result, list), "Should return list"
@@ -370,7 +370,7 @@ class TestAIChatBotHelpers:
 
     def test_optimize_prompt_with_context(self, chatbot_instance):
         """Test _optimize_prompt includes context when provided."""
-        with patch('ai.chat.chatbot.prompt_manager.get_prompt', return_value="System prompt"):
+        with patch('ai.chat.chatbot.get_persona_prompt_text', return_value="System prompt"):
             result = chatbot_instance._optimize_prompt("Hello", context="User context")
             
             assert "Context:" in result[1]["content"], "Should include context in user message"
@@ -379,7 +379,7 @@ class TestAIChatBotHelpers:
     def test_optimize_prompt_context_too_large(self, chatbot_instance):
         """Test _optimize_prompt skips context if too large."""
         large_context = "x" * 300  # Larger than 200 char limit
-        with patch('ai.chat.chatbot.prompt_manager.get_prompt', return_value="System prompt"):
+        with patch('ai.chat.chatbot.get_persona_prompt_text', return_value="System prompt"):
             result = chatbot_instance._optimize_prompt("Hello", context=large_context)
             
             assert "Context:" not in result[1]["content"], "Should skip context if too large"

@@ -3,7 +3,7 @@
 """Conversational response generation: context prompt assembly for chat."""
 
 from ai.context.assembly import assemble_comprehensive_messages
-from ai.prompts.manager import get_prompt_manager
+from ai.prompts.manager import MINIMAL_CHAT_SYSTEM_PROMPT, get_prompt_manager
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 
@@ -23,7 +23,7 @@ class ResponseGenerator:
         default_return=[
             {
                 "role": "system",
-                "content": "You are a supportive wellness assistant. Keep responses helpful, encouraging, and conversational.",
+                "content": MINIMAL_CHAT_SYSTEM_PROMPT,
             },
             {"role": "user", "content": "Hello"},
         ],
