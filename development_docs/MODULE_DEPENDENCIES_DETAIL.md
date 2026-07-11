@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-09 22:15:09
+> **Last Generated**: 2026-07-10 16:33:14
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -21,7 +21,7 @@
 - **Standard Library Imports**: 641 (29.6%)
 - **Third-Party Imports**: 217 (10.0%)
 - **Local Imports**: 1310 (60.4%)
-- **Last Updated**: 2026-07-09
+- **Last Updated**: 2026-07-10
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -414,7 +414,7 @@
 
 **Dependency Changes**:
 - Added: ai.context.analytics, ai.context.service, core.error_handling, core.logger
-- Removed: ai/chat/chatbot.py, user/context_manager.py
+- Removed: user/context_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -1390,7 +1390,7 @@
     - `checkins.checkin_data_manager (get_recent_checkins)`
     - `communication.command_handlers.base_handler (InteractionHandler)`
     - `communication.command_handlers.shared_types (InteractionResponse, ParsedCommand)`
-    - `core (get_user_data, save_user_data)` (NEW)
+    - `core (get_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `tasks` (NEW)
@@ -6667,7 +6667,7 @@
 
 **Dependency Changes**:
 - Added: ai.context.chatbot_context, core.error_handling, core.logger, core.time_utilities
-- Removed: ai/chat/chatbot.py, user.user_context
+- Removed: ai/chat/chatbot.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6677,7 +6677,7 @@
 - **Purpose**: User data module for profile_service
 - **Dependencies**:
   - **Local**:
-    - `core (get_user_data, save_user_data)` (NEW)
+    - `core (get_user_data, get_user_id_by_identifier, update_user_account, update_user_context)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
@@ -6710,7 +6710,7 @@
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.logger, core.schedule_utilities
-- Removed: core/schedule_runtime.py, scheduler/manager.py, user/context_manager.py
+- Removed: core/schedule_runtime.py, scheduler/manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

@@ -9,6 +9,14 @@ from re import Pattern
 
 from core.error_handling import handle_errors
 
+# Reply when the user message has no interpretable intent (e.g. digits only).
+UNCLEAR_USER_INPUT_REPLY = (
+    "I'm not sure what you mean by that. "
+    "Could you rephrase, or tell me what you'd like help with?"
+)
+
+_UNINTERPRETABLE_PROMPT_PATTERN = re.compile(r"^\d+$")
+
 # Regex patterns for completed-action claims (conversational / fallback review).
 # Offering help ("I can help you create...") must not match these.
 _FALSE_CRUD_CLAIM_PATTERNS: tuple[tuple[str, Pattern[str]], ...] = (
@@ -68,6 +76,19 @@ FALSE_CRUD_SUCCESS_SUBSTRINGS: tuple[str, ...] = (
     "based on your recent data",
     "i noticed a pattern",
 )
+
+
+@handle_errors("checking for uninterpretable user prompt", default_return=False)
+def is_uninterpretable_user_prompt(text: str) -> bool:
+    """True when the message has no letters and is not a usable command or question."""
+    stripped = (text or "").strip()
+    if not stripped:
+        return True
+    if _UNINTERPRETABLE_PROMPT_PATTERN.fullmatch(stripped):
+        return True
+    if not re.search(r"[a-zA-Z]", stripped):
+        return True
+    return False
 
 
 @handle_errors("detecting false CRUD claims in text", default_return=[])

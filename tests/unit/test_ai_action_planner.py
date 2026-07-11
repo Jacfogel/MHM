@@ -156,3 +156,138 @@ def test_plan_from_message_defaults_when_ai_unavailable():
     assert plan == answer_only_plan(
         "list my tasks", planning_method="ai_unavailable"
     )
+
+
+def test_parse_multi_action_plan_builds_ordered_requests():
+    catalog = build_action_catalog()
+    output = (
+        "INTENT: execute_action\n"
+        "ACTION: update_task\n"
+        "TASK_IDENTIFIER: 1\n"
+        "PRIORITY: high\n"
+        "CONFIDENCE: 0.95\n"
+        "ACTION: list_tasks\n"
+        "CONFIDENCE: 0.92\n"
+    )
+
+    plan = parse_action_plan_from_text(
+        output,
+        source_message="update task 1 priority high and show tasks",
+        catalog=catalog,
+        planning_method="test",
+    )
+
+    assert plan is not None
+    assert plan.response_intent == "execute_action"
+    assert len(plan.actions) == 2
+    assert plan.actions[0].action_name == "update_task"
+    assert plan.actions[0].entities["priority"] == "high"
+    assert plan.actions[1].action_name == "list_tasks"
+
+
+def test_parse_multi_action_plan_uses_shared_default_confidence():
+    catalog = build_action_catalog()
+    output = (
+        "INTENT: execute_action\n"
+        "CONFIDENCE: 0.93\n"
+        "ACTION: update_task\n"
+        "TASK_IDENTIFIER: 1\n"
+        "PRIORITY: high\n"
+        "ACTION: list_tasks\n"
+    )
+
+    plan = parse_action_plan_from_text(
+        output,
+        source_message="update and list",
+        catalog=catalog,
+        planning_method="test",
+    )
+
+    assert plan is not None
+    assert len(plan.actions) == 2
+    assert plan.actions[0].confidence == 0.93
+    assert plan.actions[1].confidence == 0.93
+
+
+def test_parse_multi_action_missing_fields_downgrades_to_clarify():
+    catalog = build_action_catalog()
+    output = (
+        "INTENT: execute_action\n"
+        "ACTION: update_task\n"
+        "TASK_IDENTIFIER: 1\n"
+        "PRIORITY: high\n"
+        "CONFIDENCE: 0.95\n"
+        "ACTION: create_task\n"
+        "CONFIDENCE: 0.95\n"
+    )
+
+    plan = parse_action_plan_from_text(
+        output,
+        source_message="update then create",
+        catalog=catalog,
+        planning_method="test",
+    )
+
+    assert plan is not None
+    assert plan.response_intent == "clarify"
+    assert plan.planning_method.endswith("_missing_fields")
+
+
+@pytest.mark.tasks
+def test_multi_action_plan_text_routes_through_executor(test_data_dir):
+    """Parsed multi-action planner output executes through the executor."""
+    from communication.message_processing.action_plan_executor import (
+        get_action_plan_executor,
+    )
+    from tasks import create_task, load_active_tasks
+    from tests.test_helpers.test_utilities import TestUserFactory
+
+    user_id = "planner-parse-multi-user"
+    task_title = "Fold laundry"
+    TestUserFactory.create_basic_user(
+        user_id,
+        enable_tasks=True,
+        test_data_dir=test_data_dir,
+    )
+    create_task(user_id, task_title, due_date="2026-07-15", priority="low")
+
+    output = (
+        "INTENT: execute_action\n"
+        "ACTION: update_task\n"
+        "TASK_IDENTIFIER: 1\n"
+        "PRIORITY: high\n"
+        "CONFIDENCE: 0.95\n"
+        "ACTION: list_tasks\n"
+        "CONFIDENCE: 0.95\n"
+    )
+    plan = parse_action_plan_from_text(
+        output,
+        source_message="raise priority and list tasks",
+        planning_method="test",
+    )
+    assert plan is not None
+    assert len(plan.actions) == 2
+
+    command_parser = MagicMock()
+    command_parser.get_suggestions.return_value = []
+    ai_chatbot = MagicMock()
+    ai_chatbot.is_ai_available.return_value = False
+
+    result = get_action_plan_executor().execute_plan(
+        plan,
+        user_id,
+        "discord",
+        command_parser=command_parser,
+        ai_chatbot=ai_chatbot,
+        enable_ai_enhancement=False,
+        command_definitions={},
+    )
+
+    assert result is not None
+    assert task_title in result.response.message
+    task = next(
+        (item for item in load_active_tasks(user_id) if item.get("title") == task_title),
+        None,
+    )
+    assert task is not None
+    assert task.get("priority") == "high"

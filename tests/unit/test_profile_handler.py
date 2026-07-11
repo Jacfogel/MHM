@@ -59,8 +59,8 @@ def test_handle_update_profile_returns_success(monkeypatch):
         fake_get_user_data,
     )
     monkeypatch.setattr(
-        "communication.command_handlers.profile_handler.save_user_data",
-        lambda user_id, key, data: True,
+        "user.profile_service.update_user_context",
+        lambda user_id, data: True,
     )
 
     response = handler._handle_update_profile(

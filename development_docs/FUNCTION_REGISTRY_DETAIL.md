@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-09 22:15:08
+> **Last Generated**: 2026-07-10 16:33:12
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.7% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 258
-- **Functions Found**: 2448
-- **Methods Found**: 1360
+- **Functions Found**: 2453
+- **Methods Found**: 1361
 - **Classes Found**: 254
-- **Total Items**: 3808
-- **Functions Documented**: 2166
-- **Methods Documented**: 1248
+- **Total Items**: 3814
+- **Functions Documented**: 2171
+- **Methods Documented**: 1249
 - **Classes Documented**: 183
-- **Total Documented**: 3414
+- **Total Documented**: 3420
 - **Template-Generated**: 48
-- **Last Updated**: 2026-07-09
+- **Last Updated**: 2026-07-10
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (456)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (639)
+### **Communication Functions** (642)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (517)
@@ -73,12 +73,14 @@ Test functions and testing utilities.
 #### `ai/chat/action_planner.py`
 **Functions:**
 - [OK] `__init__(self)` - Special Python method
-- [OK] `_build_execute_plan(fields)` - Build an execute_action plan or downgrade to clarify/answer_only.
+- [OK] `_build_action_request_from_fields(fields)` - Validate one action block and return a request or downgrade plan.
+- [OK] `_build_execute_plan(planner_output)` - Build an execute_action plan or downgrade to clarify/answer_only.
 - [OK] `_extract_entities_from_fields(fields)` - Map planner entity keys to handler entity names.
 - [OK] `_normalize_action_name(raw_action)` - Normalize canonical action names from planner output.
 - [OK] `_normalize_intent(raw_intent)` - Normalize planner intent labels.
 - [OK] `_parse_confidence(raw_confidence)` - Parse a confidence score from planner output.
 - [OK] `_parse_key_value_fields(text)` - Parse INTENT/ACTION/entity key-value lines from planner output.
+- [OK] `_parse_plan_structure(text)` - Parse shared planner fields and ordered per-action blocks.
 - [OK] `answer_only_plan(source_message)` - Return a safe answer-only plan.
 - [OK] `build_planning_messages(self, user_id, user_message)` - Build LM Studio messages for action planning.
 - [OK] `clarify_plan(source_message, question)` - Return a clarification plan with one user-facing question.
@@ -2631,16 +2633,26 @@ Returns:
 
 #### `communication/message_processing/action_plan_executor.py`
 **Functions:**
-- [OK] `_execute_planned_actions(self, plan, user_id, channel_type)` - Dispatch the first planned action and optionally summarize the result.
+- [OK] `_apply_result_aware_responses(self, user_id, completed_steps)` - Rewrite each completed handler output using the action_result_response flow.
+- [OK] `_combine_handler_responses(responses)` - Merge sequential handler replies into one user-visible response.
+- [OK] `_execute_planned_actions(self, plan, user_id, channel_type)` - Dispatch planned actions in order and combine completed handler results.
+
+Result-aware rewriting runs for every completed action when AI is available,
+independent of the rule-parser ``enable_ai_enhancement`` flag.
 - [OK] `_generate_result_aware_response(self, user_id, action, handler_response, metadata)` - Rewrite handler output using the action_result_response prompt flow.
 - [OK] `_load_action_request_helpers()` - Load action request conversion helpers for plan execution.
+- [OK] `_normalize_execution_metadata(metadata_list)` - Return single metadata for one-action plans, or a list for multi-action plans.
 - [OK] `execute_plan(self, plan, user_id, channel_type)` - Execute a plan and return the user-visible response plus metadata.
 - [OK] `get_action_plan_executor()` - Return the shared action plan executor.
 - [OK] `handle_message_with_action_planner(user_id, message, channel_type)` - Plan and execute one product-AI interaction.
 **Classes:**
 - [OK] `ActionExecutionResult` - Product-AI execution outcome for one planned interaction.
 - [OK] `ActionPlanExecutor` - Route AIActionPlan outcomes through chat or structured command dispatch.
-  - [OK] `ActionPlanExecutor._execute_planned_actions(self, plan, user_id, channel_type)` - Dispatch the first planned action and optionally summarize the result.
+  - [OK] `ActionPlanExecutor._apply_result_aware_responses(self, user_id, completed_steps)` - Rewrite each completed handler output using the action_result_response flow.
+  - [OK] `ActionPlanExecutor._execute_planned_actions(self, plan, user_id, channel_type)` - Dispatch planned actions in order and combine completed handler results.
+
+Result-aware rewriting runs for every completed action when AI is available,
+independent of the rule-parser ``enable_ai_enhancement`` flag.
   - [OK] `ActionPlanExecutor._generate_result_aware_response(self, user_id, action, handler_response, metadata)` - Rewrite handler output using the action_result_response prompt flow.
   - [OK] `ActionPlanExecutor.execute_plan(self, plan, user_id, channel_type)` - Execute a plan and return the user-visible response plus metadata.
 

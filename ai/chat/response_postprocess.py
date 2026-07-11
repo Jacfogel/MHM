@@ -4,6 +4,7 @@
 
 import re
 
+from ai.chat.action_boundaries import find_false_crud_claims
 from core.error_handling import handle_errors
 
 
@@ -673,3 +674,85 @@ def smart_truncate_response(
             return cut[: idx + 1]
 
     return cut.rstrip() + "…"
+
+
+_IDENTITY_QUESTION_PATTERN = re.compile(
+    r"(?i)\b(?:tell me about yourself|who are you|what are you)\b"
+)
+_CAPABILITIES_QUESTION_PATTERN = re.compile(
+    r"(?i)\b(?:what can you do|your capabilities|tell me about your capabilities)\b"
+)
+_PERSONA_DEFINITION_MARKERS = (
+    "mhm's in-app assistant",
+    "support neurodivergent users",
+    "warm but not overbearing",
+    "usually 50 to 300 words",
+    "usually 50-300 words",
+)
+_PERSONA_DEFINITION_REPLY = (
+    "I'm MHM's assistant - here to help with tasks, routines, check-ins, and "
+    "day-to-day support. What would you like to focus on?"
+)
+
+
+@handle_errors("sanitizing false CRUD claims", default_return="")
+def sanitize_false_crud_claims(response: str) -> str:
+    """Drop lines/sentences that falsely claim completed actions without evidence."""
+    if not response or not find_false_crud_claims(response):
+        return response
+
+    safe_chunks: list[str] = []
+    for line in response.splitlines():
+        chunk = line.strip()
+        if not chunk:
+            if safe_chunks and safe_chunks[-1]:
+                safe_chunks.append("")
+            continue
+        if find_false_crud_claims(chunk):
+            continue
+        safe_chunks.append(line.rstrip())
+
+    cleaned = "\n".join(safe_chunks).strip()
+    if cleaned and not find_false_crud_claims(cleaned):
+        return cleaned
+
+    sentence_parts = re.split(r"(?<=[.!?])\s+", response)
+    safe_sentences = [
+        part.strip()
+        for part in sentence_parts
+        if part.strip() and not find_false_crud_claims(part)
+    ]
+    return " ".join(safe_sentences).strip()
+
+
+@handle_errors("collapsing persona definition echo", default_return="")
+def collapse_persona_definition_echo(user_prompt: str, response: str) -> str:
+    """Replace verbatim persona-instruction dumps with a short user-facing intro."""
+    if not response or not user_prompt:
+        return response
+    if not _IDENTITY_QUESTION_PATTERN.search(user_prompt):
+        return response
+
+    lower = response.lower()
+    echo_hits = sum(1 for marker in _PERSONA_DEFINITION_MARKERS if marker in lower)
+    if echo_hits < 2 and "you are mhm's in-app assistant" not in lower:
+        return response
+    return _PERSONA_DEFINITION_REPLY
+
+
+@handle_errors("trimming verbose replies for simple prompts", default_return="")
+def trim_verbose_reply_for_simple_prompt(
+    user_prompt: str,
+    response: str,
+    *,
+    max_chars: int = 280,
+) -> str:
+    """Keep capability/identity answers concise when the user asked a short question."""
+    if not response or len(user_prompt) >= 50 or len(response) <= max_chars:
+        return response
+    if not (
+        _CAPABILITIES_QUESTION_PATTERN.search(user_prompt)
+        or _IDENTITY_QUESTION_PATTERN.search(user_prompt)
+    ):
+        return response
+    return smart_truncate_response(response, max_chars, max_words=48)

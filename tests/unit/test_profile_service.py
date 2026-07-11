@@ -29,14 +29,14 @@ def test_load_profile_sections_reads_expected_data_types():
 def test_apply_profile_updates_normalizes_lists_and_saves_context():
     saved = {}
 
-    def fake_save(_user_id, kind, data):
-        saved[kind] = data
+    def fake_save(_user_id, data):
+        saved["context"] = data
         return True
 
     with patch(
         "user.profile_service.get_user_data",
         return_value={"context": {"custom_fields": {}}},
-    ), patch("user.profile_service.save_user_data", side_effect=fake_save):
+    ), patch("user.profile_service.update_user_context", side_effect=fake_save):
         result = profile_service.apply_profile_updates(
             "u1",
             {

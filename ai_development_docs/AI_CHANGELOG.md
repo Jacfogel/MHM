@@ -30,6 +30,20 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-10 - Phase 0 reconciliation and planner routing parity **COMPLETE (slice 9.4 LM Studio gate)**
+- Reconciled [`PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md`](../ai/PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md): Phase 0 COMPLETE; slice 9.4 items 1-7 COMPLETE (LM Studio gate met).
+- Documented hybrid routing policy: rule-parser-first for high-confidence structured commands; planner on low-confidence when `AI_ACTION_PLANNER_ENABLED=true` (default remains off).
+- Added full core task-intent parity behavior tests (8 intents) and non-task parity (check-ins, profile, schedules; 8 intents) in [`test_action_planner_routing.py`](../tests/behavior/test_action_planner_routing.py); 23 tests pass via `_run_intent_parity` / `_run_task_intent_parity`.
+- Fixed profile update persistence in [`profile_service.py`](../user/profile_service.py): `update_user_context`/`update_user_account` plus UUID resolution for internal usernames (was silently failing via legacy `save_user_data` 3-arg call).
+- Multi-action execution in [`action_plan_executor.py`](../communication/message_processing/action_plan_executor.py): runs `plan.actions` sequentially, combines completed handler messages, stops on follow-up (`completed=False`); 29 routing/executor tests pass.
+- Planner multi-action parsing in [`action_planner.py`](../ai/chat/action_planner.py): repeating `ACTION:` blocks, shared defaults, per-action validation; tests in [`test_ai_action_planner.py`](../tests/unit/test_ai_action_planner.py); 18 planner/executor unit tests pass.
+- Result-aware responses for all planner-path actions in [`action_plan_executor.py`](../communication/message_processing/action_plan_executor.py): `_apply_result_aware_responses` rewrites each completed action when AI is available (including multi-action plans), independent of `enable_ai_enhancement`.
+- Audit hygiene: fixed path drift in product AI audit doc; `@handle_errors` on executor helpers; profile handler behavior tests mock `update_user_context`; ASCII cleanup; function registry regen; doc-sync PASS.
+- Fixed remaining profile handler gap-coverage tests to mock `update_user_context` / `update_user_account` after `apply_profile_updates` migration.
+- LM Studio quality: T-13.5 false CRUD, T-15.2 persona echo, T-1.2 trim, T-14.2 coherence, T-16.2 wellness honesty. Live run 2026-07-10T20:43: **65 pass / 3 partial / 0 fail** ([`ai_functionality_test_results_latest.md`](../tests/ai/results/ai_functionality_test_results_latest.md)). Remaining partials: T-7.1, T-9.3, T-11.2 (non-blocking).
+- Phase 6: `wellness_status.py`, `conversation_coherence.py`, `_finalize_contextual_response`; unit tests in `test_wellness_status.py` and `test_conversation_coherence.py`.
+- `AI_ACTION_PLANNER_ENABLED` stays default off until slice 9.4 item 8 review (explicit sign-off).
+
 ### 2026-07-09 - Retire PromptManager domain prompt builders; envelope Q&A tests and get_ai_context delegation **COMPLETED**
 
 Completed:
@@ -195,21 +209,6 @@ Verified:
 - **Task NL defaults**: Per-user `task_settings.natural_language_defaults` (`tonight`, `after work/school`, time-of-day, weekend `this week`); loaded via [`core/natural_language_defaults.py`](../core/natural_language_defaults.py) (originally `tasks/task_natural_language_defaults.py`).
 - **Audit hygiene**: Broke task module cycles (`task_time_parsing.py`, `task_tag_helpers.py`); docstrings + error handling on new helpers; function registry regenerated; Phase 1 decorator migration on NL defaults; removed unused re-exports from `task_validation.py`.
 - **Audit hygiene**: Fixed Ruff/Pyright on task list UI tests; ASCII compliance in changelogs + manual guide; hardened parallel flakes in `test_storage_scenarios`, `test_schedule_period_lifecycle`, and `test_get_user_data_fields_scalar_list_and_dict` (core `get_user_data` import + index refresh; v2 envelope fallback in test shim).
-
-### 2026-06-22 - Notebook help + task follow-up button fix **COMPLETED**
-- Added `NOTEBOOK_HELP_TEXT` in [`notebook_handler.py`](../communication/command_handlers/notebook_handler.py) - capture/retrieve/modify/lists sections, inbox semantics, groups vs tags, and Show More paging note.
-- Wired `help notebook` / `examples notebook` through [`interaction_handlers.py`](../communication/command_handlers/interaction_handlers.py) and parser patterns in [`command_parser.py`](../communication/message_processing/command_parser.py); general help and commands list now mention notebook.
-- **Fix**: Task priority step after due-date Skip lacked Discord buttons - [`flow_message_dispatcher.py`](../communication/message_processing/flow_message_dispatcher.py) now attaches `TASK_DUE_DATE_SUGGESTIONS` / `TASK_PRIORITY_SUGGESTIONS` for active flows; [`bot.py`](../communication/communication_channels/discord/bot.py) stores suggestion label as button payload.
-- **UX**: Due-date buttons are **Skip Question**, **Skip All**, **Undo Task Creation**; **cancel**/**delete task** delete the in-progress task; **undo**/**back** go one step back; timeout (10 min) + unrelated message acts like **Skip All** across task/notebook flows.
-- **Architecture**: Shared flow control in `flow_command_helpers.py`, `flow_control_mixin.py` - universal keywords, timeout, unrelated detection, and `try_flow_control_command()` for tasks, notes, lists; ready for journal/events/checkins.
-- **Flows**: Step-aware unrelated detection; cancel synonyms; explicit outcome messages; journal multi-step body flow; priority buttons aligned with due-date set. Live-test fixes: no reminder prompt without due date; Discord control buttons grey (skip) / red (undo) vs blue suggestions; note/journal last step without Skip All; list End List + Undo List Creation every step.
-- **Fix (live validation)**: Day-based reminders (`1 to 2 days before`) pick **one** day in range with a **09:00-17:00** window (not two reminders); minute/hour single-value phrases get at least a 1-hour window.
-- **Audit cleanup**: Shared `discord_user_resolution.internal_user_id`; error handling on task list UI inits; fixed stale list-format test; removed redundant due-date legacy regex; registry + ASCII doc-fix.
-- **Fix (live validation)**: `tomorrow at 2pm` now sets task `due_time`; reminder math uses parsed time instead of 09:00 default.
-- **Fix**: `show tasks` no longer duplicates the list; **Show More** pagination; due times in list; removed broken filter shortcut buttons.
-- **Feature**: Discord task picker select + detail view (due date / priority / reminders / complete / more flows).
-- **Fix**: Due-date flow accepts `YYYY MM DD` and `YYYY/MM/DD` in addition to `YYYY-MM-DD` (`parse_flexible_date_only` in `core/time_utilities.py`).
-- **Audit hygiene**: Restored `DISCORD_BOT_TOKEN` import; Ruff/Pyright clean; fixed parallel test failures; `@handle_errors` on `_attach_flow_suggestions`; function registry regenerated; ASCII changelog fix applied. Flow audit: docstrings on task/note flow helpers; `# error_handling_exclude` on pure keyword predicates; removed thin-wrapper `is_task_flow_skip_*` facades. Security/docs: pinned `msgpack>=1.2.1` (GHSA-6v7p-g79w-8964); report generator uses plain paths for gitignored audit JSON links.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

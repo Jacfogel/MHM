@@ -15,6 +15,12 @@ from communication.command_handlers.shared_types import InteractionResponse, Par
 from tests.test_helpers.test_utilities import TestUserFactory
 
 
+def _saved_context_from_update_call(mock_update_context):
+    """Return context dict passed to update_user_context from a mock call."""
+    call_args = mock_update_context.call_args
+    return call_args[0][1] if call_args[0] else call_args[1].get("context_data")
+
+
 class TestProfileHandlerBehavior:
     """Test profile handler real behavior and side effects."""
     
@@ -145,16 +151,16 @@ class TestProfileHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.user
     @pytest.mark.file_io
-    @patch('communication.command_handlers.profile_handler.save_user_data')
+    @patch('user.profile_service.update_user_context', return_value=True)
     @patch('communication.command_handlers.profile_handler.get_user_data')
-    def test_profile_handler_update_profile_name(self, mock_get_user_data, mock_save_user_data, test_data_dir):
+    def test_profile_handler_update_profile_name(self, mock_get_user_data, mock_update_context, test_data_dir):
         """Test that ProfileHandler updates name successfully."""
         handler = ProfileHandler()
         user_id = "test_user_profile_update_name"
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         mock_get_user_data.return_value = {'context': {'preferred_name': 'Old Name'}}
-        mock_save_user_data.return_value = True
+        mock_update_context.return_value = True
         
         parsed_command = ParsedCommand(
             intent="update_profile",
@@ -169,15 +175,9 @@ class TestProfileHandlerBehavior:
         assert "updated" in response.message.lower(), "Should indicate profile was updated"
         assert "name" in response.message.lower(), "Should mention name update"
         
-        # Verify actual system changes: Check that save_user_data was called with correct data
-        mock_save_user_data.assert_called_once()
-        call_args = mock_save_user_data.call_args
-        saved_user_id = call_args[0][0] if call_args[0] else call_args[1].get('user_id')
-        saved_data_type = call_args[0][1] if len(call_args[0]) > 1 else call_args[1].get('data_type')
-        saved_data = call_args[0][2] if len(call_args[0]) > 2 else call_args[1].get('data')
-        
-        assert saved_user_id == user_id, "Should save data for correct user"
-        assert saved_data_type == 'context', "Should save context data"
+        # Verify actual system changes: Check that update_user_context was called with correct data
+        mock_update_context.assert_called_once()
+        saved_data = _saved_context_from_update_call(mock_update_context)
         assert saved_data is not None, "Should have data to save"
         assert saved_data.get('preferred_name') == 'New Name', "Should update preferred_name to 'New Name'"
     
@@ -185,16 +185,16 @@ class TestProfileHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.user
     @pytest.mark.file_io
-    @patch('communication.command_handlers.profile_handler.save_user_data')
+    @patch('user.profile_service.update_user_context', return_value=True)
     @patch('communication.command_handlers.profile_handler.get_user_data')
-    def test_profile_handler_update_profile_gender_identity(self, mock_get_user_data, mock_save_user_data, test_data_dir):
+    def test_profile_handler_update_profile_gender_identity(self, mock_get_user_data, mock_update_context, test_data_dir):
         """Test that ProfileHandler updates gender identity successfully."""
         handler = ProfileHandler()
         user_id = "test_user_profile_update_gender"
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         mock_get_user_data.return_value = {'context': {}}
-        mock_save_user_data.return_value = True
+        mock_update_context.return_value = True
         
         parsed_command = ParsedCommand(
             intent="update_profile",
@@ -210,9 +210,8 @@ class TestProfileHandlerBehavior:
         assert "gender" in response.message.lower() or "identity" in response.message.lower(), "Should mention gender identity update"
         
         # Verify actual system changes: Check that gender_identity is correctly parsed and saved
-        mock_save_user_data.assert_called_once()
-        call_args = mock_save_user_data.call_args
-        saved_data = call_args[0][2] if len(call_args[0]) > 2 else call_args[1].get('data')
+        mock_update_context.assert_called_once()
+        saved_data = _saved_context_from_update_call(mock_update_context)
         assert saved_data is not None, "Should have data to save"
         assert 'gender_identity' in saved_data, "Should include gender_identity in saved data"
         assert isinstance(saved_data['gender_identity'], list), "Should convert gender_identity to list"
@@ -223,16 +222,16 @@ class TestProfileHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.user
     @pytest.mark.file_io
-    @patch('communication.command_handlers.profile_handler.save_user_data')
+    @patch('user.profile_service.update_user_context', return_value=True)
     @patch('communication.command_handlers.profile_handler.get_user_data')
-    def test_profile_handler_update_profile_health_conditions(self, mock_get_user_data, mock_save_user_data, test_data_dir):
+    def test_profile_handler_update_profile_health_conditions(self, mock_get_user_data, mock_update_context, test_data_dir):
         """Test that ProfileHandler updates health conditions successfully."""
         handler = ProfileHandler()
         user_id = "test_user_profile_update_health"
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         mock_get_user_data.return_value = {'context': {'custom_fields': {}}}
-        mock_save_user_data.return_value = True
+        mock_update_context.return_value = True
         
         parsed_command = ParsedCommand(
             intent="update_profile",
@@ -248,9 +247,8 @@ class TestProfileHandlerBehavior:
         assert "health" in response.message.lower() or "condition" in response.message.lower(), "Should mention health conditions update"
         
         # Verify actual system changes: Check that health_conditions are correctly parsed and saved
-        mock_save_user_data.assert_called_once()
-        call_args = mock_save_user_data.call_args
-        saved_data = call_args[0][2] if len(call_args[0]) > 2 else call_args[1].get('data')
+        mock_update_context.assert_called_once()
+        saved_data = _saved_context_from_update_call(mock_update_context)
         assert saved_data is not None, "Should have data to save"
         assert 'custom_fields' in saved_data, "Should include custom_fields in saved data"
         assert 'health_conditions' in saved_data['custom_fields'], "Should include health_conditions in custom_fields"
@@ -262,16 +260,16 @@ class TestProfileHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.user
     @pytest.mark.file_io
-    @patch('communication.command_handlers.profile_handler.save_user_data')
+    @patch('user.profile_service.update_user_context', return_value=True)
     @patch('communication.command_handlers.profile_handler.get_user_data')
-    def test_profile_handler_update_profile_medications(self, mock_get_user_data, mock_save_user_data, test_data_dir):
+    def test_profile_handler_update_profile_medications(self, mock_get_user_data, mock_update_context, test_data_dir):
         """Test that ProfileHandler updates medications successfully."""
         handler = ProfileHandler()
         user_id = "test_user_profile_update_meds"
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         mock_get_user_data.return_value = {'context': {'custom_fields': {}}}
-        mock_save_user_data.return_value = True
+        mock_update_context.return_value = True
         
         parsed_command = ParsedCommand(
             intent="update_profile",
@@ -287,9 +285,8 @@ class TestProfileHandlerBehavior:
         assert "medication" in response.message.lower(), "Should mention medications update"
         
         # Verify actual system changes: Check that medications are correctly parsed and saved
-        mock_save_user_data.assert_called_once()
-        call_args = mock_save_user_data.call_args
-        saved_data = call_args[0][2] if len(call_args[0]) > 2 else call_args[1].get('data')
+        mock_update_context.assert_called_once()
+        saved_data = _saved_context_from_update_call(mock_update_context)
         assert saved_data is not None, "Should have data to save"
         assert 'custom_fields' in saved_data, "Should include custom_fields in saved data"
         assert 'medications_treatments' in saved_data['custom_fields'], "Should include medications_treatments in custom_fields"
@@ -301,16 +298,16 @@ class TestProfileHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.user
     @pytest.mark.file_io
-    @patch('communication.command_handlers.profile_handler.save_user_data')
+    @patch('user.profile_service.update_user_context', return_value=True)
     @patch('communication.command_handlers.profile_handler.get_user_data')
-    def test_profile_handler_update_profile_allergies(self, mock_get_user_data, mock_save_user_data, test_data_dir):
+    def test_profile_handler_update_profile_allergies(self, mock_get_user_data, mock_update_context, test_data_dir):
         """Test that ProfileHandler updates allergies successfully."""
         handler = ProfileHandler()
         user_id = "test_user_profile_update_allergies"
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         mock_get_user_data.return_value = {'context': {'custom_fields': {}}}
-        mock_save_user_data.return_value = True
+        mock_update_context.return_value = True
         
         parsed_command = ParsedCommand(
             intent="update_profile",
@@ -326,9 +323,8 @@ class TestProfileHandlerBehavior:
         assert "allerg" in response.message.lower(), "Should mention allergies update"
         
         # Verify actual system changes: Check that allergies are correctly parsed and saved
-        mock_save_user_data.assert_called_once()
-        call_args = mock_save_user_data.call_args
-        saved_data = call_args[0][2] if len(call_args[0]) > 2 else call_args[1].get('data')
+        mock_update_context.assert_called_once()
+        saved_data = _saved_context_from_update_call(mock_update_context)
         assert saved_data is not None, "Should have data to save"
         assert 'custom_fields' in saved_data, "Should include custom_fields in saved data"
         assert 'allergies_sensitivities' in saved_data['custom_fields'], "Should include allergies_sensitivities in custom_fields"
@@ -340,16 +336,16 @@ class TestProfileHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.user
     @pytest.mark.file_io
-    @patch('communication.command_handlers.profile_handler.save_user_data')
+    @patch('user.profile_service.update_user_context', return_value=True)
     @patch('communication.command_handlers.profile_handler.get_user_data')
-    def test_profile_handler_update_profile_interests(self, mock_get_user_data, mock_save_user_data, test_data_dir):
+    def test_profile_handler_update_profile_interests(self, mock_get_user_data, mock_update_context, test_data_dir):
         """Test that ProfileHandler updates interests successfully."""
         handler = ProfileHandler()
         user_id = "test_user_profile_update_interests"
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         mock_get_user_data.return_value = {'context': {}}
-        mock_save_user_data.return_value = True
+        mock_update_context.return_value = True
         
         parsed_command = ParsedCommand(
             intent="update_profile",
@@ -365,9 +361,8 @@ class TestProfileHandlerBehavior:
         assert "interest" in response.message.lower(), "Should mention interests update"
         
         # Verify actual system changes: Check that interests are correctly parsed and saved
-        mock_save_user_data.assert_called_once()
-        call_args = mock_save_user_data.call_args
-        saved_data = call_args[0][2] if len(call_args[0]) > 2 else call_args[1].get('data')
+        mock_update_context.assert_called_once()
+        saved_data = _saved_context_from_update_call(mock_update_context)
         assert saved_data is not None, "Should have data to save"
         assert 'interests' in saved_data, "Should include interests in saved data"
         assert isinstance(saved_data['interests'], list), "Should convert interests to list"
@@ -379,16 +374,16 @@ class TestProfileHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.user
     @pytest.mark.file_io
-    @patch('communication.command_handlers.profile_handler.save_user_data')
+    @patch('user.profile_service.update_user_context', return_value=True)
     @patch('communication.command_handlers.profile_handler.get_user_data')
-    def test_profile_handler_update_profile_goals(self, mock_get_user_data, mock_save_user_data, test_data_dir):
+    def test_profile_handler_update_profile_goals(self, mock_get_user_data, mock_update_context, test_data_dir):
         """Test that ProfileHandler updates goals successfully."""
         handler = ProfileHandler()
         user_id = "test_user_profile_update_goals"
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         mock_get_user_data.return_value = {'context': {}}
-        mock_save_user_data.return_value = True
+        mock_update_context.return_value = True
         
         parsed_command = ParsedCommand(
             intent="update_profile",
@@ -404,9 +399,8 @@ class TestProfileHandlerBehavior:
         assert "goal" in response.message.lower(), "Should mention goals update"
         
         # Verify actual system changes: Check that goals are correctly parsed and saved
-        mock_save_user_data.assert_called_once()
-        call_args = mock_save_user_data.call_args
-        saved_data = call_args[0][2] if len(call_args[0]) > 2 else call_args[1].get('data')
+        mock_update_context.assert_called_once()
+        saved_data = _saved_context_from_update_call(mock_update_context)
         assert saved_data is not None, "Should have data to save"
         assert 'goals' in saved_data, "Should include goals in saved data"
         assert isinstance(saved_data['goals'], list), "Should convert goals to list"
@@ -417,16 +411,16 @@ class TestProfileHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.user
     @pytest.mark.file_io
-    @patch('communication.command_handlers.profile_handler.save_user_data')
+    @patch('user.profile_service.update_user_context', return_value=True)
     @patch('communication.command_handlers.profile_handler.get_user_data')
-    def test_profile_handler_update_profile_notes_for_ai(self, mock_get_user_data, mock_save_user_data, test_data_dir):
+    def test_profile_handler_update_profile_notes_for_ai(self, mock_get_user_data, mock_update_context, test_data_dir):
         """Test that ProfileHandler updates notes for AI successfully."""
         handler = ProfileHandler()
         user_id = "test_user_profile_update_notes"
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         mock_get_user_data.return_value = {'context': {}}
-        mock_save_user_data.return_value = True
+        mock_update_context.return_value = True
         
         parsed_command = ParsedCommand(
             intent="update_profile",
@@ -442,9 +436,8 @@ class TestProfileHandlerBehavior:
         assert "note" in response.message.lower() or "ai" in response.message.lower(), "Should mention notes for AI update"
         
         # Verify actual system changes: Check that notes_for_ai are correctly saved
-        mock_save_user_data.assert_called_once()
-        call_args = mock_save_user_data.call_args
-        saved_data = call_args[0][2] if len(call_args[0]) > 2 else call_args[1].get('data')
+        mock_update_context.assert_called_once()
+        saved_data = _saved_context_from_update_call(mock_update_context)
         assert saved_data is not None, "Should have data to save"
         assert 'notes_for_ai' in saved_data, "Should include notes_for_ai in saved data"
         assert isinstance(saved_data['notes_for_ai'], list), "Should convert notes_for_ai to list"
@@ -473,9 +466,9 @@ class TestProfileHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.user
     @pytest.mark.file_io
-    @patch('communication.command_handlers.profile_handler.save_user_data')
+    @patch('user.profile_service.update_user_context', return_value=True)
     @patch('communication.command_handlers.profile_handler.get_user_data')
-    def test_profile_handler_update_profile_no_updates(self, mock_get_user_data, mock_save_user_data, test_data_dir):
+    def test_profile_handler_update_profile_no_updates(self, mock_get_user_data, mock_update_context, test_data_dir):
         """Test that ProfileHandler handles no valid updates."""
         handler = ProfileHandler()
         user_id = "test_user_profile_no_updates"
@@ -569,16 +562,16 @@ class TestProfileHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.user
     @pytest.mark.file_io
-    @patch('communication.command_handlers.profile_handler.save_user_data')
+    @patch('user.profile_service.update_user_context', return_value=True)
     @patch('communication.command_handlers.profile_handler.get_user_data')
-    def test_profile_handler_update_profile_save_failure(self, mock_get_user_data, mock_save_user_data, test_data_dir):
+    def test_profile_handler_update_profile_save_failure(self, mock_get_user_data, mock_update_context, test_data_dir):
         """Test that ProfileHandler handles save failure gracefully."""
         handler = ProfileHandler()
         user_id = "test_user_profile_save_fail"
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         mock_get_user_data.return_value = {'context': {}}
-        mock_save_user_data.return_value = False
+        mock_update_context.return_value = False
         
         parsed_command = ParsedCommand(
             intent="update_profile",
@@ -591,7 +584,7 @@ class TestProfileHandlerBehavior:
         assert isinstance(response, InteractionResponse), "Should return InteractionResponse"
         assert response.completed, "Response should be completed"
         assert "fail" in response.message.lower() or "error" in response.message.lower(), "Should indicate failure"
-        mock_save_user_data.assert_called_once()
+        mock_update_context.assert_called_once()
     
     @pytest.mark.behavior
     @pytest.mark.communication

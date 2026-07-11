@@ -4,7 +4,9 @@ import pytest
 
 from ai.chat.action_boundaries import (
     FALSE_CRUD_SUCCESS_SUBSTRINGS,
+    UNCLEAR_USER_INPUT_REPLY,
     find_false_crud_claims,
+    is_uninterpretable_user_prompt,
     response_has_false_crud_claim,
 )
 from ai.context.assembly import assemble_comprehensive_messages
@@ -60,6 +62,13 @@ class TestActionBoundaryDetection:
         assert not response_has_false_crud_claim(
             "I haven't created a task yet, but I can help if you'd like."
         )
+
+    def test_numeric_only_prompt_is_uninterpretable(self):
+        assert is_uninterpretable_user_prompt("123456789")
+        assert not is_uninterpretable_user_prompt("remind me at 9")
+
+    def test_unclear_input_reply_is_safe(self):
+        assert find_false_crud_claims(UNCLEAR_USER_INPUT_REPLY) == []
 
 
 @pytest.mark.behavior

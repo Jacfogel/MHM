@@ -119,17 +119,19 @@ def test_update_profile_date_of_birth_loved_ones_and_email_failure(monkeypatch):
             return {"account": {"email": "old@example.com"}}
         return {}
 
-    def fake_save_user_data(user_id, key, data):
-        saved_calls.append((key, data))
-        return key != "account"
+    def fake_update_context(user_id, data):
+        saved_calls.append(("context", data))
+        return True
+
+    def fake_update_account(user_id, data):
+        saved_calls.append(("account", data))
+        return False
 
     monkeypatch.setattr(
         "communication.command_handlers.profile_handler.get_user_data", fake_get_user_data
     )
-    monkeypatch.setattr(
-        "communication.command_handlers.profile_handler.save_user_data",
-        fake_save_user_data,
-    )
+    monkeypatch.setattr("user.profile_service.update_user_context", fake_update_context)
+    monkeypatch.setattr("user.profile_service.update_user_account", fake_update_account)
 
     response = handler._handle_update_profile(
         "user-1",
@@ -158,17 +160,19 @@ def test_update_profile_loved_ones_non_string_and_email_success(monkeypatch):
             return {"account": {"email": "old@example.com"}}
         return {}
 
-    def fake_save_user_data(user_id, key, data):
-        saved_calls.append((key, data))
+    def fake_update_context(user_id, data):
+        saved_calls.append(("context", data))
+        return True
+
+    def fake_update_account(user_id, data):
+        saved_calls.append(("account", data))
         return True
 
     monkeypatch.setattr(
         "communication.command_handlers.profile_handler.get_user_data", fake_get_user_data
     )
-    monkeypatch.setattr(
-        "communication.command_handlers.profile_handler.save_user_data",
-        fake_save_user_data,
-    )
+    monkeypatch.setattr("user.profile_service.update_user_context", fake_update_context)
+    monkeypatch.setattr("user.profile_service.update_user_account", fake_update_account)
 
     response = handler._handle_update_profile(
         "user-1",

@@ -44,13 +44,27 @@ from ai.fallback import get_fallback_responses
 from ai.chat.interaction_types import AIInteractionType, interaction_type_for_mode
 from ai.chat.response_generator import get_response_generator
 from ai.client.lm_studio_client import call_lm_studio_api, test_lm_studio_connection
+from ai.chat.action_boundaries import (
+    UNCLEAR_USER_INPUT_REPLY,
+    is_uninterpretable_user_prompt,
+)
+from ai.chat.conversation_coherence import align_response_to_conversation_topic
+from ai.chat.wellness_status import (
+    build_honest_wellness_status_reply,
+    context_has_wellness_data,
+    is_wellness_status_question,
+    reinforce_wellness_honesty_if_needed,
+)
 from ai.chat.response_postprocess import (
     clean_system_prompt_leaks,
+    collapse_persona_definition_echo,
     polish_greeting_response,
+    sanitize_false_crud_claims,
     smart_truncate_response,
     strip_instruction_tuning_markers,
     strip_letter_signoffs,
     keep_first_personalized_block,
+    trim_verbose_reply_for_simple_prompt,
 )
 from core.error_handling import handle_errors
 
@@ -237,6 +251,11 @@ class AIChatBotSingleton:
             else self._get_adaptive_timeout(AI_TIMEOUT_SECONDS)
         )
         mode = self._normalize_response_mode(mode, user_prompt)
+
+        if mode in ("chat", "personalized") and is_uninterpretable_user_prompt(
+            user_prompt
+        ):
+            return UNCLEAR_USER_INPUT_REPLY
 
         prompt_for_key, uid_for_key, ptype = self._make_cache_key_inputs(
             mode, user_prompt, user_id
@@ -512,6 +531,12 @@ class AIChatBotSingleton:
         response = strip_instruction_tuning_markers(response)
         response = clean_system_prompt_leaks(response)
         response = polish_greeting_response(response, user_prompt)
+        if mode in ("chat", "personalized"):
+            response = sanitize_false_crud_claims(response)
+            if not response.strip():
+                response = UNCLEAR_USER_INPUT_REPLY
+            response = collapse_persona_definition_echo(user_prompt, response)
+            response = trim_verbose_reply_for_simple_prompt(user_prompt, response)
         if mode == "command":
             response = get_command_interpreter().extract_command_from_response(response)
         if mode == "personalized":
@@ -523,6 +548,26 @@ class AIChatBotSingleton:
         return smart_truncate_response(
             response, AI_MAX_RESPONSE_LENGTH, AI_MAX_RESPONSE_WORDS
         )
+
+    def _finalize_contextual_response(
+        self,
+        user_prompt: str,
+        response: str,
+        context: dict,
+        profile: dict,
+    ) -> str:
+        """Apply chat post-processing plus Phase 6 coherence and wellness honesty."""
+        response = self._post_process_generated_response("chat", response, user_prompt)
+        response = align_response_to_conversation_topic(
+            user_prompt,
+            response,
+            context.get("conversation_history") or [],
+        )
+        response = reinforce_wellness_honesty_if_needed(user_prompt, response, context)
+        user_name = profile.get("preferred_name", "")
+        if user_name and user_name.lower() not in response.lower():
+            response = f"{user_name}, {response}"
+        return response
 
     @handle_errors("caching response when needed", default_return=None)
     def _cache_response_if_needed(
@@ -747,18 +792,27 @@ class AIChatBotSingleton:
             context = {}
         profile, context_summary, context_str = self._build_contextual_summary(context)
 
-        if not self.lm_studio_available:
-            # Use enhanced contextual fallback with user information and data analysis
-            fallback_response = get_fallback_responses().contextual(user_prompt, user_id)
+        if is_wellness_status_question(user_prompt) and not context_has_wellness_data(
+            context
+        ):
+            response = build_honest_wellness_status_reply(context)
+            self._record_contextual_interaction(
+                user_id, user_prompt, response, context_used=True
+            )
+            return response
 
-            # Enhance fallback with context if available
+        if not self.lm_studio_available:
+            fallback_response = get_fallback_responses().contextual(user_prompt, user_id)
             fallback_response = get_fallback_responses().personalize_with_profile_name(
                 fallback_response, context_summary, profile
             )
-            self._record_contextual_interaction(
-                user_id, user_prompt, fallback_response, context_used=True
+            response = self._finalize_contextual_response(
+                user_prompt, fallback_response, context, profile
             )
-            return fallback_response
+            self._record_contextual_interaction(
+                user_id, user_prompt, response, context_used=True
+            )
+            return response
 
         # Create comprehensive context-aware messages for LM Studio with all user data
         messages = get_response_generator().create_comprehensive_context_prompt(
@@ -770,10 +824,13 @@ class AIChatBotSingleton:
                 user_prompt, user_id, prompt_type="contextual"
             )
             if cached_response:
-                self._record_contextual_interaction(
-                    user_id, user_prompt, cached_response, context_used=True
+                response = self._finalize_contextual_response(
+                    user_prompt, cached_response, context, profile
                 )
-                return cached_response
+                self._record_contextual_interaction(
+                    user_id, user_prompt, response, context_used=True
+                )
+                return response
 
         # Generate AI response with context
         # Use per-user locks for better concurrency
@@ -782,10 +839,13 @@ class AIChatBotSingleton:
         if not lock_acquired:
             logger.warning("API is busy, using enhanced contextual fallback")
             fallback_response = get_fallback_responses().contextual(user_prompt, user_id)
-            self._record_contextual_interaction(
-                user_id, user_prompt, fallback_response, context_used=False
+            response = self._finalize_contextual_response(
+                user_prompt, fallback_response, context, profile
             )
-            return fallback_response
+            self._record_contextual_interaction(
+                user_id, user_prompt, response, context_used=False
+            )
+            return response
 
         logger.debug(
             f"Generating contextual response for user {user_id} with context: {context_str[:60]}..."
@@ -811,15 +871,17 @@ class AIChatBotSingleton:
             )
 
             if result:
-                response = self._post_process_generated_response(
-                    "chat", result, user_prompt
+                response = self._finalize_contextual_response(
+                    user_prompt, result, context, profile
                 )
-                user_name = profile.get("preferred_name", "")
-                if user_name and user_name.lower() not in response.lower():
-                    response = f"{user_name}, {response}"
             else:
-                response = get_fallback_responses().contextual(user_prompt, user_id)
+                fallback_response = get_fallback_responses().contextual(
+                    user_prompt, user_id
+                )
                 logger.info("Using contextual fallback response")
+                response = self._finalize_contextual_response(
+                    user_prompt, fallback_response, context, profile
+                )
 
             # Cache the final response for contextual prompts
             self.response_cache.set(

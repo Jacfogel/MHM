@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from core import get_user_data, save_user_data
+from core import get_user_data, get_user_id_by_identifier, update_user_account, update_user_context
 from core.error_handling import handle_errors
 
 
@@ -57,12 +57,15 @@ def apply_profile_updates(
     entities: dict[str, Any],
     *,
     get_data=None,
-    save_data=None,
+    save_context=None,
+    save_account=None,
 ) -> ProfileUpdateResult:
     """Apply ParsedCommand profile updates to account/context storage."""
     get_data = get_data or get_user_data
-    save_data = save_data or save_user_data
-    context_result = get_data(user_id, "context")
+    save_context = save_context or update_user_context
+    save_account = save_account or update_user_account
+    resolved_user_id = get_user_id_by_identifier(user_id) or user_id
+    context_result = get_data(resolved_user_id, "context")
     context_data = context_result.get("context", {}) if context_result else {}
     context_data.setdefault("custom_fields", {})
 
@@ -132,15 +135,15 @@ def apply_profile_updates(
         updates.append("notes for AI")
 
     if "email" in entities:
-        account_result = get_data(user_id, "account")
+        account_result = get_data(resolved_user_id, "account")
         account_data = account_result.get("account", {}) if account_result else {}
         account_data["email"] = entities["email"]
-        if not save_data(user_id, "account", account_data):
+        if not save_account(resolved_user_id, account_data):
             return ProfileUpdateResult(updates, False, failed_field="email")
         updates.append("email")
 
     if not updates:
         return ProfileUpdateResult([], True)
-    if not save_data(user_id, "context", context_data):
+    if not save_context(resolved_user_id, context_data):
         return ProfileUpdateResult(updates, False, failed_field="profile")
     return ProfileUpdateResult(updates, True)

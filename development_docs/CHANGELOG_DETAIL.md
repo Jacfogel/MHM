@@ -33,6 +33,20 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-07-10 - Phase 0 reconciliation and planner routing parity **COMPLETE (slice 9.4 LM Studio gate)**
+- **Audit hygiene**: Updated [`PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md`](../ai/PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md) - slice 9.4 items 1-7 COMPLETE; LM Studio live run 2026-07-10T20:43 **65 pass / 3 partial / 0 fail**.
+- **Routing policy**: Documented hybrid rule-parser-first with planner fallback on low-confidence messages; rejected planner-first and pure rule-parser-only alternatives.
+- **Tests**: Added task-intent parity behavior tests in [`tests/behavior/test_action_planner_routing.py`](../tests/behavior/test_action_planner_routing.py) - full core task coverage (8 intents) plus non-task check-in/profile/schedule parity (8 intents); 23 tests pass via `_run_intent_parity` / `_run_task_intent_parity`.
+- **Bug fix**: [`user/profile_service.py`](../user/profile_service.py) now uses `update_user_context` / `update_user_account` and resolves internal usernames to UUID before save (profile updates were reporting success without persisting).
+- **Multi-action execution**: [`ActionPlanExecutor`](../communication/message_processing/action_plan_executor.py) now dispatches all `plan.actions` in order, merges completed replies, and stops when an action enters a follow-up flow; metadata returns a list for multi-action plans. Tests in [`test_ai_action_executor.py`](../tests/unit/test_ai_action_executor.py) and [`test_action_planner_routing.py`](../tests/behavior/test_action_planner_routing.py).
+- **Planner multi-action parsing**: [`action_planner.py`](../ai/chat/action_planner.py) parses repeating `ACTION:` blocks into ordered requests with shared `INTENT`/`CONFIDENCE` defaults and clarify downgrade when any action lacks required fields. Tests in [`test_ai_action_planner.py`](../tests/unit/test_ai_action_planner.py) (18 planner/executor unit tests pass).
+- **Result-aware planner responses**: [`action_plan_executor.py`](../communication/message_processing/action_plan_executor.py) applies `action_result_response` rewriting to every completed action when AI is available (multi-action included), not gated on rule-parser `enable_ai_enhancement`. Tests in [`test_ai_action_executor.py`](../tests/unit/test_ai_action_executor.py).
+- **Profile handler tests**: Updated behavior and gap-coverage tests to mock `update_user_context` / `update_user_account` after `apply_profile_updates` migration.
+- **LM Studio quality**: Phase 6 fixes (T-1.2 trim, T-14.2 coherence, T-16.2 wellness honesty; plus T-13.5 false CRUD, T-15.2 persona echo). Live run 2026-07-10T20:43: **65 pass / 3 partial / 0 fail** ([`ai_functionality_test_results_latest.md`](../tests/ai/results/ai_functionality_test_results_latest.md)). Remaining partials: T-7.1, T-9.3, T-11.2.
+- **Phase 6**: `wellness_status.py`, `conversation_coherence.py`, `_finalize_contextual_response`; unit tests added.
+- **Audit**: Slice 9.4 items 1-7 marked COMPLETE; item 8 (flip `AI_ACTION_PLANNER_ENABLED` default) pending review.
+- **Impact**: Slice 9.4 LM Studio gate complete (65/3/0); planner default flip deferred to item 8 review.
+
 ### 2026-07-09 - Retire PromptManager domain prompt builders; envelope Q&A tests and get_ai_context delegation
 - **Legacy removal**: Removed `PromptManager.create_task_prompt` and `create_checkin_prompt` from [`ai/prompts/manager.py`](../ai/prompts/manager.py); product-AI flows use `compose_product_prompt()` exclusively.
 - **Cleanup**: Dropped inline `checkin` / `task_assistant` fallback templates that only supported the retired builders.

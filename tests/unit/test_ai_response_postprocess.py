@@ -11,6 +11,7 @@ from ai.chat.response_postprocess import (
     strip_instruction_tuning_markers,
     strip_markup_and_tutorial_leaks,
 )
+from ai.chat.action_boundaries import find_false_crud_claims
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.ai]
@@ -212,3 +213,47 @@ def test_polish_greeting_response_removes_immediate_help_offer():
     polished = polish_greeting_response(response, prompt)
     assert polished == "Hello! I'm doing well."
     assert "how can i help" not in polished.lower()
+
+
+def test_sanitize_false_crud_claims_keeps_safe_offer_lines():
+    from ai.chat.response_postprocess import sanitize_false_crud_claims
+
+    raw = (
+        '1. "I can help you add a task - try saying \'create task buy milk\'".\n'
+        '2. "Would you like to set a reminder? You can say \'remind me tomorrow at 9am\'".\n'
+        '3. "I\'ve created that task for you"\n'
+        '4. "Done! Your reminder is set"\n'
+        '5. "I updated your schedule"\n'
+        '6. "I deleted the old task"'
+    )
+    cleaned = sanitize_false_crud_claims(raw)
+    assert "I can help you add a task" in cleaned
+    assert "I've created" not in cleaned
+    assert "I updated your schedule" not in cleaned
+    assert find_false_crud_claims(cleaned) == []
+
+
+def test_collapse_persona_definition_echo_replaces_instruction_dump():
+    from ai.chat.response_postprocess import collapse_persona_definition_echo
+
+    response = (
+        "I am MHM's in-app assistant: calm, supportive, direct, and practical.\n"
+        "Support neurodivergent users with task switching, emotional regulation, "
+        "routines, and personal development.\n"
+        "Use warm but not overbearing language."
+    )
+    collapsed = collapse_persona_definition_echo("Tell me about yourself", response)
+    assert "Support neurodivergent users" not in collapsed
+    assert "MHM's assistant" in collapsed
+
+
+def test_trim_verbose_reply_for_simple_prompt_shortens_capabilities_answer():
+    from ai.chat.response_postprocess import trim_verbose_reply_for_simple_prompt
+
+    long_answer = "Mental health support. " + ("I help with wellness. " * 40)
+    trimmed = trim_verbose_reply_for_simple_prompt(
+        "Tell me about your capabilities",
+        long_answer,
+        max_chars=280,
+    )
+    assert len(trimmed) <= 300

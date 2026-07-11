@@ -35,6 +35,45 @@ class ActionExecutionResult:
     metadata: Any | None = None
 
 
+@handle_errors("combining handler responses", default_return=InteractionResponse("Done.", True))
+def _combine_handler_responses(responses: list[InteractionResponse]) -> InteractionResponse:
+    """Merge sequential handler replies into one user-visible response."""
+    if not responses:
+        return InteractionResponse("Done.", True)
+    if len(responses) == 1:
+        return responses[0]
+
+    messages = [
+        response.message.strip()
+        for response in responses
+        if response.message and response.message.strip()
+    ]
+    combined_message = "\n\n".join(messages) if messages else "Done."
+    completed = all(response.completed for response in responses)
+    last = responses[-1]
+    return InteractionResponse(
+        combined_message,
+        completed,
+        rich_data=last.rich_data,
+        suggestions=last.suggestions,
+        error=last.error,
+    )
+
+
+@handle_errors("normalizing execution metadata", default_return=None)
+def _normalize_execution_metadata(
+    metadata_list: list[Any],
+    *,
+    total_planned: int,
+) -> Any | None:
+    """Return single metadata for one-action plans, or a list for multi-action plans."""
+    if not metadata_list:
+        return None
+    if total_planned > 1 or len(metadata_list) > 1:
+        return metadata_list
+    return metadata_list[0]
+
+
 class ActionPlanExecutor:
     """Route AIActionPlan outcomes through chat or structured command dispatch."""
 
@@ -82,7 +121,6 @@ class ActionPlanExecutor:
                 channel_type,
                 command_parser=command_parser,
                 ai_chatbot=ai_chatbot,
-                enable_ai_enhancement=enable_ai_enhancement,
                 command_definitions=command_definitions,
             )
 
@@ -106,10 +144,13 @@ class ActionPlanExecutor:
         *,
         command_parser,
         ai_chatbot,
-        enable_ai_enhancement: bool,
         command_definitions,
     ) -> ActionExecutionResult | None:
-        """Dispatch the first planned action and optionally summarize the result."""
+        """Dispatch planned actions in order and combine completed handler results.
+
+        Result-aware rewriting runs for every completed action when AI is available,
+        independent of the rule-parser ``enable_ai_enhancement`` flag.
+        """
         if not plan.actions:
             return ActionExecutionResult(
                 plan=plan,
@@ -120,7 +161,6 @@ class ActionPlanExecutor:
                 ),
             )
 
-        action = plan.actions[0]
         adapter = _load_action_request_helpers()
         if adapter is None:
             return ActionExecutionResult(
@@ -130,46 +170,108 @@ class ActionPlanExecutor:
                     True,
                 ),
             )
-        parsing_result = adapter.build_parsing_result_from_action_request(action)
-        if parsing_result is None:
-            return ActionExecutionResult(
-                plan=plan,
-                response=InteractionResponse(
-                    "I had trouble preparing that action. Please try again.",
-                    True,
-                ),
-            )
 
-        handler_response = dispatch_structured_command(
-            user_id,
-            parsing_result,
-            channel_type,
-            command_parser=command_parser,
-            ai_chatbot=ai_chatbot,
-            enable_ai_enhancement=False,
-            command_definitions=command_definitions,
-        )
-        metadata = adapter.build_action_execution_metadata(action, handler_response)
+        completed_steps: list[tuple[AIActionRequest, InteractionResponse, Any]] = []
+        metadata_list: list[Any] = []
 
-        if handler_response.message and handler_response.message.strip():
-            if enable_ai_enhancement and ai_chatbot.is_ai_available() and metadata is not None:
-                enhanced = self._generate_result_aware_response(
-                    user_id,
-                    action,
-                    handler_response,
-                    metadata,
-                    ai_chatbot=ai_chatbot,
+        for index, action in enumerate(plan.actions):
+            parsing_result = adapter.build_parsing_result_from_action_request(action)
+            if parsing_result is None:
+                return ActionExecutionResult(
+                    plan=plan,
+                    response=InteractionResponse(
+                        "I had trouble preparing that action. Please try again.",
+                        True,
+                    ),
+                    metadata=_normalize_execution_metadata(
+                        metadata_list, total_planned=len(plan.actions)
+                    ),
                 )
-                if enhanced is not None:
-                    handler_response = enhanced
-        elif metadata is not None and metadata.error:
-            handler_response = InteractionResponse(metadata.error, handler_response.completed)
+
+            handler_response = dispatch_structured_command(
+                user_id,
+                parsing_result,
+                channel_type,
+                command_parser=command_parser,
+                ai_chatbot=ai_chatbot,
+                enable_ai_enhancement=False,
+                command_definitions=command_definitions,
+            )
+            metadata = adapter.build_action_execution_metadata(action, handler_response)
+            if metadata is not None:
+                metadata_list.append(metadata)
+
+            if metadata is not None and metadata.error:
+                handler_response = InteractionResponse(
+                    metadata.error,
+                    handler_response.completed,
+                )
+                return ActionExecutionResult(
+                    plan=plan,
+                    response=handler_response,
+                    metadata=_normalize_execution_metadata(
+                        metadata_list, total_planned=len(plan.actions)
+                    ),
+                )
+
+            if not handler_response.completed:
+                logger.info(
+                    f"Stopping multi-action plan after action {index + 1} "
+                    f"({action.action_name}): follow-up required"
+                )
+                return ActionExecutionResult(
+                    plan=plan,
+                    response=handler_response,
+                    metadata=_normalize_execution_metadata(
+                        metadata_list, total_planned=len(plan.actions)
+                    ),
+                )
+
+            if handler_response.message and handler_response.message.strip():
+                completed_steps.append((action, handler_response, metadata))
+
+        enhanced_responses = self._apply_result_aware_responses(
+            user_id,
+            completed_steps,
+            ai_chatbot=ai_chatbot,
+        )
+        handler_response = _combine_handler_responses(enhanced_responses)
+        metadata = _normalize_execution_metadata(
+            metadata_list, total_planned=len(plan.actions)
+        )
 
         return ActionExecutionResult(
             plan=plan,
             response=handler_response,
             metadata=metadata,
         )
+
+    @handle_errors("applying result-aware responses", default_return=[])
+    def _apply_result_aware_responses(
+        self,
+        user_id: str,
+        completed_steps: list[tuple[AIActionRequest, InteractionResponse, Any]],
+        *,
+        ai_chatbot,
+    ) -> list[InteractionResponse]:
+        """Rewrite each completed handler output using the action_result_response flow."""
+        if not completed_steps or not ai_chatbot.is_ai_available():
+            return [response for _, response, _ in completed_steps]
+
+        enhanced_responses: list[InteractionResponse] = []
+        for action, handler_response, step_metadata in completed_steps:
+            if step_metadata is None:
+                enhanced_responses.append(handler_response)
+                continue
+            enhanced = self._generate_result_aware_response(
+                user_id,
+                action,
+                handler_response,
+                step_metadata,
+                ai_chatbot=ai_chatbot,
+            )
+            enhanced_responses.append(enhanced or handler_response)
+        return enhanced_responses
 
     @handle_errors("generating result-aware response", default_return=None)
     def _generate_result_aware_response(

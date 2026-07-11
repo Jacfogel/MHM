@@ -131,6 +131,8 @@ def _conversation_insights_from_chats(
             lowered = user_msg.lower()
             if any(word in lowered for word in ["mood", "feeling", "sad", "happy", "stress"]):
                 topics.append("emotional_wellbeing")
+            elif any(word in lowered for word in ["book", "books", "reading", "read", "novel"]):
+                topics.append("reading")
             elif any(word in lowered for word in ["help", "advice", "how to", "what should"]):
                 topics.append("seeking_guidance")
             elif any(word in lowered for word in ["energy", "tired", "sleep", "rest"]):
