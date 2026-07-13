@@ -30,6 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-13 - Register `integrations` pytest domain marker **COMPLETED**
+- Registered `@pytest.mark.integrations` in `pytest.ini` and conftest hooks so `--strict-markers` collection no longer crashes on health context builder tests.
+- Domain marker docs now list `integrations` alongside other product packages.
+
 ### 2026-07-12 - Use coarse Google Health signals in wellness fallbacks **COMPLETED**
 - When `message_guidance` is empty or confidence is `low`, wellness replies now use coarse signal fields via `build_user_facing_signal_wellness_snippet()` in [`health_context_builder.py`](../core/health_context_builder.py).
 - Check-in fallback cites partial metrics and can combine check-in + health reads.

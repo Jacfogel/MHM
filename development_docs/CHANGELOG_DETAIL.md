@@ -33,6 +33,11 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-07-13 - Register `integrations` pytest domain marker
+- **Fix**: Suite collection crashed under `--strict-markers` because `@pytest.mark.integrations` (used by [`test_health_context_builder.py`](../tests/unit/test_health_context_builder.py)) was in `domain_mapper` but not registered in [`pytest.ini`](../pytest.ini) / [`conftest_hooks.py`](../tests/test_helpers/test_support/conftest_hooks.py).
+- **Docs**: Domain marker lists in [`TESTING_GUIDE.md`](../tests/TESTING_GUIDE.md) and [`AI_TESTING_GUIDE.md`](../ai_development_docs/AI_TESTING_GUIDE.md) now include `integrations`.
+- **Impact**: Parallel and no_parallel tracks no longer fail collecting health context builder tests.
+
 ### 2026-07-12 - Use coarse Google Health signals in wellness fallbacks
 - **Coarse health reads**: Added `build_user_facing_signal_wellness_snippet()` in [`health_context_builder.py`](../core/health_context_builder.py) for wellness Q&A when sync data exists but `message_guidance` is empty or confidence is `low` (common after successful sync with sparse activity data).
 - **Partial check-in metrics**: [`checkin_summary.py`](../ai/fallback/checkin_summary.py) cites available mood/energy/breakfast numbers before the generic template; can combine check-in and health snippets.

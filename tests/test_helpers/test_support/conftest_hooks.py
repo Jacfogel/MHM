@@ -192,6 +192,10 @@ def pytest_configure(config):
         "markers", "user: mark test as user-domain functionality"
     )
     config.addinivalue_line(
+        "markers",
+        "integrations: mark test as integrations-domain functionality (e.g. Google Health)",
+    )
+    config.addinivalue_line(
         "markers", "scheduler: mark test as scheduler functionality"
     )
     config.addinivalue_line(
