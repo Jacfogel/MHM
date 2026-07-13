@@ -30,9 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-07-13 - Register `integrations` pytest domain marker **COMPLETED**
+### 2026-07-13 - Register `integrations` pytest domain marker; strip two-line wellness sign-offs **COMPLETED**
 - Registered `@pytest.mark.integrations` in `pytest.ini` and conftest hooks so `--strict-markers` collection no longer crashes on health context builder tests.
 - Domain marker docs now list `integrations` alongside other product packages.
+- **Fix (personalized sign-offs)**: `strip_letter_signoffs()` now removes split closings (`Best wishes,` + bare `Assistant` / `MHM Bot` on the next line), not only single-line `Take care, [Your Name]`.
 
 ### 2026-07-12 - Use coarse Google Health signals in wellness fallbacks **COMPLETED**
 - When `message_guidance` is empty or confidence is `low`, wellness replies now use coarse signal fields via `build_user_facing_signal_wellness_snippet()` in [`health_context_builder.py`](../core/health_context_builder.py).
@@ -200,15 +201,6 @@ Verified:
 - **Audit hygiene**: Docstrings + `@handle_errors` on health handler help methods and `response_enhancer._should_skip_ai_enhancement`; f-string logging fixes; test isolation for `GOOGLE_HEALTH_ENABLED`; schema/feature test updates for `google_health`; `google_health_file` in test log path mocks; function registry regenerated (`docs`).
 - **Audit follow-up**: `@handle_errors` on OAuth `_notify`; domain markers on Google Health tests; unused import cleanup; Ruff UP035/SIM105; doc-fix (ASCII, headings, links).
 - **Audit follow-up (2)**: `# devtools: ignore[facade-shims]` on Pydantic feature validators; fixed [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md) Google Health guide link; stabilized `test_validate_and_raise_if_invalid_failure` (mock + `GOOGLE_HEALTH_ENABLED` isolation).
-
-### 2026-06-27 - Phrase settings generalization + admin UI **COMPLETED**
-- Moved natural-language defaults to `preferences.natural_language_defaults` (not task-only); logic in [`core/natural_language_defaults.py`](../core/natural_language_defaults.py); shipped defaults in [`resources/default_natural_language_defaults.json`](../resources/default_natural_language_defaults.json).
-- **Migration complete**: legacy `task_settings.natural_language_defaults` read bridge and one-time migration helpers removed (fleet verified clean). Old phrases (`show task language settings`, `set task tonight to 8pm`) still parse to canonical intents.
-- Discord: dedicated [`natural_language_handler.py`](../communication/command_handlers/natural_language_handler.py) - `show phrase settings`, `set tonight to 8pm`.
-- Admin UI: **Phrase Settings** button + [`natural_language_settings_dialog.py`](../ui/dialogs/natural_language_settings_dialog.py) / [`natural_language_settings_widget.py`](../ui/widgets/natural_language_settings_widget.py) - separate from Task Management widget.
-- Tests: [`test_natural_language_defaults.py`](../tests/unit/test_natural_language_defaults.py), [`test_natural_language_handler_behavior.py`](../tests/behavior/test_natural_language_handler_behavior.py).
-- **Audit hygiene**: Regenerated function registry (`docs`); Ruff UP035/UP037 fix in [`core/natural_language_defaults.py`](../core/natural_language_defaults.py).
-- **Audit follow-up**: `@handle_errors` on `_get_cached_builtin_defaults`; f-string logging (static check); removed unused `tasks/task_natural_language_defaults.py` shim; fixed TASKS_PLAN and changelog link drift; doc-fix ASCII/links + doc-sync.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

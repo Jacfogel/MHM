@@ -606,20 +606,29 @@ def strip_instruction_tuning_markers(text: str) -> str:
     return text.strip()
 
 
+# Closings and signatures may be one line ("Best wishes, Assistant") or two
+# ("Best wishes," then "Assistant"). Pop from the end until neither matches.
+_SIGNOFF_CLOSING = (
+    r"(?:take care|best wishes|warm regards|kind regards|sincerely|cheers|"
+    r"all the best|with care)"
+)
+_SIGNOFF_SIGNATURE = (
+    r"(?:\[?\s*(?:your\s*name|name)\s*\]?|mh[m]?(?:\s+bot)?|assistant|"
+    r"wellness assistant)"
+)
+
 _SIGNOFF_TAIL_LINE = re.compile(
-    r"^\s*(?:"
-    r"(?:take care|best wishes|warm regards|kind regards|sincerely|cheers|all the best|with care)"
-    r"[,\s]+"
-    r"(?:\[?\s*(?:your\s*name|name)\s*\]?|mh[m]?(?:\s+bot)?|assistant|wellness assistant)?"
-    r"|"
-    r"\[?\s*(?:your\s*name|name)\s*\]?"
-    r")\s*\.?\s*$",
+    rf"^\s*(?:"
+    rf"{_SIGNOFF_CLOSING}"
+    rf"(?:[,\s]+{_SIGNOFF_SIGNATURE}?)?"
+    rf"|{_SIGNOFF_SIGNATURE}"
+    rf")\s*[!.]?\s*$",
     re.IGNORECASE,
 )
 
 _INLINE_SIGNOFF = re.compile(
-    r"[,\s]+(?:take care|best wishes|warm regards|kind regards|sincerely|all the best|with care)"
-    r"[,\s]+\[?\s*(?:your\s*name|name)\s*\]?\s*\.?\s*$",
+    rf"[,\s]+{_SIGNOFF_CLOSING}"
+    rf"(?:[,\s]+{_SIGNOFF_SIGNATURE})?\s*[!.]?\s*$",
     re.IGNORECASE,
 )
 

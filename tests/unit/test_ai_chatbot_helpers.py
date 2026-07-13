@@ -519,6 +519,20 @@ class TestAIChatBotHelpers:
         assert result == "Hi Julie, great job resting."
         assert "Best wishes" not in result
 
+    def test_post_process_strips_two_line_letter_signoff(self, chatbot_instance):
+        """Models often put the closing and 'Assistant' on separate lines."""
+        raw = (
+            "Hi Julie,\n\n"
+            "Based on your recent rest patterns, keep today gentler than usual. "
+            "I'm here if you need anything.\n\n"
+            "Best wishes,\n"
+            "Assistant"
+        )
+        result = chatbot_instance._post_process_generated_response("personalized", raw)
+        assert "Best wishes" not in result
+        assert "Assistant" not in result
+        assert "keep today gentler" in result
+
     def test_post_process_strips_instruction_tuning_markers(self, chatbot_instance):
         """Fine-tuned models may leak INPUT/OUTPUT delimiters — keep only the user message."""
         raw = (
