@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-10 16:33:14
+> **Last Generated**: 2026-07-12 21:27:49
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 256
-- **Total Imports Found**: 2168
-- **Dependencies Documented**: 256 (100% coverage)
-- **Standard Library Imports**: 641 (29.6%)
-- **Third-Party Imports**: 217 (10.0%)
-- **Local Imports**: 1310 (60.4%)
-- **Last Updated**: 2026-07-10
+- **Files Scanned**: 258
+- **Total Imports Found**: 2187
+- **Dependencies Documented**: 258 (100% coverage)
+- **Standard Library Imports**: 648 (29.6%)
+- **Third-Party Imports**: 217 (9.9%)
+- **Local Imports**: 1322 (60.4%)
+- **Last Updated**: 2026-07-12
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 641 imports (29.6%)
-- **Third-Party**: 217 imports (10.0%)
-- **Local**: 1310 imports (60.4%)
+- **Standard Library**: 648 imports (29.6%)
+- **Third-Party**: 217 imports (9.9%)
+- **Local**: 1322 imports (60.4%)
 
 ## Module Dependencies by Directory
 
@@ -95,6 +95,8 @@
     - `re (Pattern, re)`
 - **Used by**:
   - `ai/chat/__init__.py`
+  - `ai/chat/chatbot.py`
+  - `ai/chat/response_postprocess.py`
 
 **Dependency Changes**:
 - Added: core.error_handling
@@ -137,9 +139,12 @@
 - **Purpose**: Communication channel implementation for chatbot
 - **Dependencies**:
   - **Local**:
+    - `ai.chat.action_boundaries (UNCLEAR_USER_INPUT_REPLY, is_uninterpretable_user_prompt)` (NEW)
+    - `ai.chat.conversation_coherence (align_response_to_conversation_topic)` (NEW)
     - `ai.chat.interaction_types (AIInteractionType, interaction_type_for_mode)` (NEW)
     - `ai.chat.response_generator (get_response_generator)` (NEW)
-    - `ai.chat.response_postprocess (clean_system_prompt_leaks, keep_first_personalized_block, polish_greeting_response, smart_truncate_response, strip_instruction_tuning_markers, strip_letter_signoffs)` (NEW)
+    - `ai.chat.response_postprocess (clean_system_prompt_leaks, collapse_persona_definition_echo, keep_first_personalized_block, polish_greeting_response, sanitize_false_crud_claims, smart_truncate_response, strip_instruction_tuning_markers, strip_letter_signoffs, trim_verbose_reply_for_simple_prompt)` (NEW)
+    - `ai.chat.wellness_status (build_honest_wellness_status_reply, context_has_wellness_data, is_wellness_status_question, reinforce_wellness_honesty_if_needed)` (NEW)
     - `ai.client.cache_manager (get_response_cache)` (NEW)
     - `ai.client.lm_studio_client (call_lm_studio_api, test_lm_studio_connection)` (NEW)
     - `ai.client.lm_studio_manager (is_lm_studio_ready)` (NEW)
@@ -171,8 +176,27 @@
   - `communication/message_processing/interaction_manager.py`
 
 **Dependency Changes**:
-- Added: ai.chat.interaction_types, ai.chat.response_generator, ai.chat.response_postprocess, ai.client.cache_manager, ai.client.lm_studio_client, ai.client.lm_studio_manager, ai.fallback, ai.fallback.profile_helpers, ai.prompts.command_interpreter, ai.prompts.manager, core.config, core.error_handling, core.health_context_builder, core.logger, core.response_tracking, user.context_manager
+- Added: ai.chat.action_boundaries, ai.chat.conversation_coherence, ai.chat.interaction_types, ai.chat.response_generator, ai.chat.response_postprocess, ai.chat.wellness_status, ai.client.cache_manager, ai.client.lm_studio_client, ai.client.lm_studio_manager, ai.fallback, ai.fallback.profile_helpers, ai.prompts.command_interpreter, ai.prompts.manager, core.config, core.error_handling, core.health_context_builder, core.logger, core.response_tracking, user.context_manager
 - Removed: ai/__init__.py, ai/chat/__init__.py, ai/chat/action_planner.py, communication/core/channel_orchestrator.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `ai/chat/conversation_coherence.py`
+- **Purpose**: Communication channel implementation for conversation_coherence
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `re`
+    - `typing (Any)`
+- **Used by**:
+  - `ai/chat/chatbot.py`
+
+**Dependency Changes**:
+- Added: core.error_handling
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -223,6 +247,7 @@
 - **Purpose**: Communication channel implementation for response_postprocess
 - **Dependencies**:
   - **Local**:
+    - `ai.chat.action_boundaries (find_false_crud_claims)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
   - **Standard Library**:
     - `re`
@@ -231,8 +256,28 @@
   - `ai/chat/chatbot.py`
 
 **Dependency Changes**:
-- Added: core.error_handling
+- Added: ai.chat.action_boundaries, core.error_handling
 - Removed: ai/chat/__init__.py, ai/chat/chatbot.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `ai/chat/wellness_status.py`
+- **Purpose**: Communication channel implementation for wellness_status
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.health_context_builder (context_has_usable_health_wellness, health_wellness_snippet_from_context)` (NEW)
+  - **Standard Library**:
+    - `__future__ (annotations)`
+    - `re`
+    - `typing (Any)`
+- **Used by**:
+  - `ai/chat/chatbot.py`
+
+**Dependency Changes**:
+- Added: core.error_handling, core.health_context_builder
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -405,6 +450,7 @@
     - `ai.context.analytics (analyze_checkin_entries)` (NEW)
     - `ai.context.service (build_ai_context_envelope)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.health_context_builder (health_wellness_snippet_from_context)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
@@ -413,7 +459,7 @@
   - `user/context_manager.py`
 
 **Dependency Changes**:
-- Added: ai.context.analytics, ai.context.service, core.error_handling, core.logger
+- Added: ai.context.analytics, ai.context.service, core.error_handling, core.health_context_builder, core.logger
 - Removed: user/context_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -583,6 +629,7 @@
     - `ai.context.analytics (ContextAnalysis)` (NEW)
     - `ai.fallback.categories (FallbackCategory)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.health_context_builder (format_health_guidance_for_user_reply)` (NEW)
   - **Standard Library**:
     - `re`
 - **Used by**:
@@ -590,7 +637,7 @@
   - `ai/fallback/envelope_summaries.py`
 
 **Dependency Changes**:
-- Added: ai.context.analytics, ai.fallback.categories, core.error_handling
+- Added: ai.context.analytics, ai.fallback.categories, core.error_handling, core.health_context_builder
 - Removed: ai/fallback/coordinator.py, ai/fallback/envelope_summaries.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -648,20 +695,21 @@
     - `ai.context.service (AIContextEnvelope)` (NEW)
     - `ai.fallback.action_hints (try_action_unavailable_response)` (NEW)
     - `ai.fallback.categories (FallbackCategory)` (NEW)
-    - `ai.fallback.checkin_summary (try_checkin_summary_response)` (NEW)
+    - `ai.fallback.checkin_summary (try_checkin_summary_response, try_health_guidance_wellness_response)` (NEW)
     - `ai.fallback.context (FallbackContext, build_fallback_context)` (NEW)
     - `ai.fallback.conversational (default_contextual_response, try_conversational_support, try_new_user_no_context, try_technical_unavailable)` (NEW)
     - `ai.fallback.data_access` (NEW)
     - `ai.fallback.envelope_summaries (try_envelope_summary_response)` (NEW)
     - `ai.fallback.profile_helpers (load_user_context, name_prefix_from_context, preferred_name_from_context)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.health_context_builder (health_wellness_snippet_from_context)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
 - **Used by**:
   - `ai/fallback/__init__.py`
 
 **Dependency Changes**:
-- Added: ai.context.analytics, ai.context.service, ai.fallback.action_hints, ai.fallback.categories, ai.fallback.checkin_summary, ai.fallback.context, ai.fallback.conversational, ai.fallback.data_access, ai.fallback.envelope_summaries, ai.fallback.profile_helpers, core.error_handling
+- Added: ai.context.analytics, ai.context.service, ai.fallback.action_hints, ai.fallback.categories, ai.fallback.checkin_summary, ai.fallback.context, ai.fallback.conversational, ai.fallback.data_access, ai.fallback.envelope_summaries, ai.fallback.profile_helpers, core.error_handling, core.health_context_builder
 - Removed: ai/fallback/__init__.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -696,13 +744,14 @@
     - `ai.fallback.checkin_summary (try_checkin_summary_response)` (NEW)
     - `ai.fallback.context (FallbackContext, analyze_fallback_checkins)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
+    - `core.health_context_builder (health_wellness_snippet_from_context)` (NEW)
   - **Standard Library**:
     - `__future__ (annotations)`
 - **Used by**:
   - `ai/fallback/coordinator.py`
 
 **Dependency Changes**:
-- Added: ai.fallback.categories, ai.fallback.checkin_summary, ai.fallback.context, core.error_handling
+- Added: ai.fallback.categories, ai.fallback.checkin_summary, ai.fallback.context, core.error_handling, core.health_context_builder
 - Removed: ai/fallback/coordinator.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3300,9 +3349,11 @@
   - `ai/chat/action_boundaries.py`
   - `ai/chat/action_planner.py`
   - `ai/chat/chatbot.py`
+  - `ai/chat/conversation_coherence.py`
   - `ai/chat/interaction_types.py`
   - `ai/chat/response_generator.py`
   - `ai/chat/response_postprocess.py`
+  - `ai/chat/wellness_status.py`
   - `ai/client/cache_manager.py`
   - `ai/client/lm_studio_client.py`
   - `ai/client/lm_studio_manager.py`
@@ -3641,10 +3692,16 @@
     - `integrations.google_health.personalization_rules (GUIDANCE_AVOID_NAG, GUIDANCE_AVOID_PRESSURE, GUIDANCE_GENTLE, GUIDANCE_LIGHT_MOVEMENT, GUIDANCE_LOW_EFFORT, GUIDANCE_REINFORCE, GUIDANCE_SHORT_WALK, GUIDANCE_SMALL_EXPECTATIONS)`
   - **Standard Library**:
     - `__future__ (annotations)`
+    - `typing (Any)`
 - **Used by**:
   - `ai/chat/chatbot.py`
+  - `ai/chat/wellness_status.py`
+  - `ai/context/chatbot_context.py`
   - `ai/context/phraser.py`
   - `ai/context/service.py`
+  - `ai/fallback/checkin_summary.py`
+  - `ai/fallback/coordinator.py`
+  - `ai/fallback/envelope_summaries.py`
 
 **Dependency Changes**:
 - Added: checkins.checkin_data_manager, core.error_handling, core.health_signals

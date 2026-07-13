@@ -5,8 +5,68 @@ from unittest.mock import patch
 
 import pytest
 
-from core.health_context_builder import build_safe_health_guidance_summary
+from core.health_context_builder import (
+    build_safe_health_guidance_summary,
+    format_health_guidance_for_user_reply,
+)
 from integrations.google_health.data_handlers import ensure_health_directory, save_health_signals
+
+
+@pytest.mark.unit
+@pytest.mark.integrations
+def test_format_health_guidance_for_user_reply_strips_prompt_framing():
+    summary = (
+        "Health personalization (wellness-oriented, not medical): "
+        "Recent rest and recovery patterns suggest a gentler day. "
+        "Never diagnose, cite wearables, or suggest medical treatment."
+    )
+    text = format_health_guidance_for_user_reply(summary)
+    assert "Health personalization" not in text
+    assert "Never diagnose" not in text
+    assert "gentler day" in text.lower()
+
+
+@pytest.mark.unit
+@pytest.mark.integrations
+@pytest.mark.user
+def test_build_user_facing_signal_wellness_snippet_uses_coarse_fields(test_data_dir):
+    from core import update_user_account
+    from core.health_context_builder import build_user_facing_signal_wellness_snippet
+    from integrations.google_health.data_handlers import ensure_health_directory, save_health_signals
+    from tests.test_helpers.test_utilities.test_user_factory import TestUserFactory
+
+    user_id = "health-coarse-snippet-user"
+    TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+    update_user_account(user_id, {"features": {"google_health": "enabled"}})
+    ensure_health_directory(user_id)
+    save_health_signals(
+        user_id,
+        {
+            "schema_version": 2,
+            "updated_at": "2026-07-12 20:58:03",
+            "signals": [
+                {
+                    "date": "2026-07-12",
+                    "sleep_recovery": "high",
+                    "sleep_vs_baseline": "normal",
+                    "activity_level": "unknown",
+                    "resting_hr_signal": "normal",
+                    "hrv_signal": "normal",
+                    "confidence": "low",
+                    "message_guidance": [],
+                    "baseline_days_used": 28,
+                    "computed_at": "2026-07-12 20:58:03",
+                }
+            ],
+        },
+    )
+
+    fixed_now = datetime.strptime("2026-07-12 20:58:00", "%Y-%m-%d %H:%M:%S")
+    with patch("core.health_signals.now_datetime_full", return_value=fixed_now):
+        snippet = build_user_facing_signal_wellness_snippet(user_id)
+
+    assert "rest and recovery" in snippet.lower()
+    assert "baseline" in snippet.lower()
 
 
 @pytest.mark.unit

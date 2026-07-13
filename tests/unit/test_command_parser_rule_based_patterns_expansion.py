@@ -444,6 +444,12 @@ class TestCommandParserHelpPatterns:
 
         assert result.parsed_command.intent == expected_intent
 
+    def test_bare_how_am_i_doing_is_not_status_intent(self, command_parser):
+        """Wellness phrasing should reach contextual chat, not the system status dashboard."""
+        result = _rule_parse(command_parser, "how am i doing")
+
+        assert result.parsed_command.intent != "status"
+
 
 @pytest.mark.unit
 @pytest.mark.communication

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-10 16:33:33
+> **Last Generated**: 2026-07-12 21:28:04
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 256
-- **Total Imports**: 2168
-- **Standard Library**: 641 (29.6%)
-- **Third-Party**: 217 (10.0%)
-- **Local Imports**: 1310 (60.4%)
+- **Files Scanned**: 258
+- **Total Imports**: 2187
+- **Standard Library**: 648 (29.6%)
+- **Third-Party**: 217 (9.9%)
+- **Local Imports**: 1322 (60.4%)
 
 ## Dependency Decision Trees
 
@@ -115,9 +115,9 @@ External libraries provide channel and UI support.
 
 ### High Coupling
 - `communication/core/channel_orchestrator.py` -> 21 unique local dependencies (heavy coupling) (31 import statements; 10 duplicate)
+- `ai/chat/chatbot.py` -> 19 unique local dependencies (heavy coupling) (20 import statements; 1 duplicate)
 - `communication/message_processing/interaction_manager.py` -> 17 unique local dependencies (heavy coupling) (18 import statements; 1 duplicate)
 - `ai/__init__.py` -> 16 unique local dependencies (heavy coupling)
-- `ai/chat/chatbot.py` -> 16 unique local dependencies (heavy coupling) (17 import statements; 1 duplicate)
 - `ai/context/service.py` -> 14 unique local dependencies (heavy coupling) (15 import statements; 1 duplicate)
 
 ### Third-Party Risks

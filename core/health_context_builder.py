@@ -4,6 +4,8 @@ Safe AI-facing health guidance (no raw wearable metrics).
 
 from __future__ import annotations
 
+from typing import Any
+
 from core.error_handling import handle_errors
 from core.health_signals import (
     get_google_health_feature_state,
@@ -73,6 +75,124 @@ def build_safe_health_guidance_summary(user_id: str) -> str:
         "Health personalization (wellness-oriented, not medical): "
         + " ".join(phrases)
         + " Never diagnose, cite wearables, or suggest medical treatment."
+    )
+
+
+_HEALTH_GUIDANCE_PREFIX = "Health personalization (wellness-oriented, not medical): "
+_HEALTH_GUIDANCE_SUFFIX = (
+    " Never diagnose, cite wearables, or suggest medical treatment."
+)
+_PAUSED_HEALTH_GUIDANCE = (
+    "Health personalization is paused; use normal supportive messaging."
+)
+
+
+@handle_errors("formatting health guidance for user reply", default_return="")
+def format_health_guidance_for_user_reply(guidance_summary: str) -> str:
+    """Strip AI-prompt framing and return user-facing wellness text."""
+    text = (guidance_summary or "").strip()
+    if not text or text == _PAUSED_HEALTH_GUIDANCE:
+        return ""
+    if text.startswith(_HEALTH_GUIDANCE_PREFIX):
+        text = text[len(_HEALTH_GUIDANCE_PREFIX) :]
+    if text.endswith(_HEALTH_GUIDANCE_SUFFIX):
+        text = text[: -len(_HEALTH_GUIDANCE_SUFFIX)]
+    return text.strip()
+
+
+@handle_errors("reading health wellness snippet from context", default_return="")
+def health_wellness_snippet_from_context(
+    context: dict[str, Any] | None = None,
+    *,
+    user_id: str | None = None,
+    guidance_summary: str | None = None,
+) -> str:
+    """Return user-facing wellness text from envelope context or live health signals."""
+    summary = (guidance_summary or "").strip()
+    if not summary and context:
+        summary = str(context.get("health_guidance_summary") or "").strip()
+        if not summary:
+            summary = str(context.get("health_wellness_snippet") or "").strip()
+    formatted = format_health_guidance_for_user_reply(summary)
+    if formatted:
+        return formatted
+    if user_id:
+        return build_user_facing_signal_wellness_snippet(user_id)
+    return ""
+
+
+@handle_errors("building user-facing wellness snippet from health signal", default_return="")
+def build_user_facing_signal_wellness_snippet(user_id: str) -> str:
+    """
+    Return a coarse, user-facing wellness read from the active health signal.
+
+    Used when message_guidance is empty or confidence is low but recent wearable
+    data still supports an honest wellness reply.
+    """
+    if not is_personalization_active(user_id):
+        return ""
+
+    signal = resolve_active_health_signal(user_id)
+    if not signal:
+        return ""
+
+    phrases: list[str] = []
+    sleep_recovery = str(signal.get("sleep_recovery") or "unknown").strip().lower()
+    if sleep_recovery == "high":
+        phrases.append("your recent rest and recovery look stronger than usual")
+    elif sleep_recovery == "low":
+        phrases.append("your recent rest and recovery look lower than usual")
+
+    sleep_vs = str(signal.get("sleep_vs_baseline") or "unknown").strip().lower()
+    if sleep_vs == "below":
+        phrases.append("sleep has been below your usual baseline")
+    elif sleep_vs == "above":
+        phrases.append("sleep has been above your usual baseline")
+    elif sleep_vs == "normal":
+        phrases.append("sleep has been close to your usual baseline")
+
+    activity = str(signal.get("activity_level") or "unknown").strip().lower()
+    if activity == "low":
+        phrases.append("activity has been on the lighter side")
+    elif activity == "high":
+        phrases.append("you have been more active than usual")
+    elif activity == "normal":
+        phrases.append("activity has been around your usual level")
+
+    resting_hr = str(signal.get("resting_hr_signal") or "unknown").strip().lower()
+    if resting_hr == "elevated":
+        phrases.append("resting heart rate looks a bit elevated versus your baseline")
+    elif resting_hr == "low":
+        phrases.append("resting heart rate looks lower than your baseline")
+
+    hrv = str(signal.get("hrv_signal") or "unknown").strip().lower()
+    if hrv == "low":
+        phrases.append("recovery signals look lower than your baseline")
+    elif hrv == "high":
+        phrases.append("recovery signals look stronger than your baseline")
+
+    if not phrases:
+        return ""
+
+    if len(phrases) == 1:
+        return f"{phrases[0].capitalize()}."
+    return f"{phrases[0].capitalize()}, and {phrases[1]}."
+
+
+@handle_errors("checking usable health wellness context", default_return=False)
+def context_has_usable_health_wellness(
+    context: dict[str, Any] | None = None,
+    *,
+    user_id: str | None = None,
+    guidance_summary: str | None = None,
+) -> bool:
+    """True when recent Google Health guidance can ground a wellness reply."""
+    return bool(
+        health_wellness_snippet_from_context(
+            context,
+            user_id=user_id,
+            guidance_summary=guidance_summary,
+        )
     )
 
 

@@ -7,6 +7,14 @@ import re
 from ai.context.analytics import ContextAnalysis
 from ai.fallback.categories import FallbackCategory
 from core.error_handling import handle_errors
+from core.health_context_builder import format_health_guidance_for_user_reply
+
+_WELLNESS_PROGRESS_PROMPT_WORDS = (
+    "how am i",
+    "how have i been",
+    "doing lately",
+    "progress",
+)
 
 _BREAKFAST_WORD_PATTERNS = (
     re.compile(r"\bbreakfast\b"),
@@ -21,9 +29,71 @@ def _prompt_mentions_breakfast(prompt_lower: str) -> bool:
     return any(pattern.search(prompt_lower) for pattern in _BREAKFAST_WORD_PATTERNS)
 
 
+@handle_errors("building health-guidance wellness fallback", default_return=None)
+def try_health_guidance_wellness_response(
+    prompt_lower: str,
+    name_prefix: str,
+    health_guidance_summary: str,
+) -> tuple[str, FallbackCategory] | None:
+    """Return a wellness reply from recent Google Health guidance when check-ins are absent."""
+    if not any(word in prompt_lower for word in _WELLNESS_PROGRESS_PROMPT_WORDS):
+        return None
+    health_text = format_health_guidance_for_user_reply(health_guidance_summary)
+    if not health_text:
+        return None
+    return (
+        f"{name_prefix}From your recent wellness data: {health_text}",
+        FallbackCategory.CHECKIN_SUMMARY,
+    )
+
+
+@handle_errors("building health guidance fallback reply", default_return=None)
+def _health_guidance_fallback(
+    name_prefix: str,
+    health_guidance_summary: str | None,
+) -> tuple[str, FallbackCategory] | None:
+    """Return a wellness fallback from Google Health guidance text when available."""
+    health_text = format_health_guidance_for_user_reply(health_guidance_summary or "")
+    if not health_text:
+        return None
+    return (
+        f"{name_prefix}From your recent wellness data: {health_text}",
+        FallbackCategory.CHECKIN_SUMMARY,
+    )
+
+
+@handle_errors("building partial check-in wellness fallback", default_return=None)
+def _partial_checkin_wellness_reply(
+    name_prefix: str,
+    analysis: ContextAnalysis,
+) -> tuple[str, FallbackCategory] | None:
+    """Cite available check-in metrics when they are below strong-insight thresholds."""
+    parts: list[str] = []
+    if analysis.avg_mood is not None:
+        parts.append(f"your average mood is around {analysis.avg_mood:.1f}/5")
+    if analysis.avg_energy is not None:
+        parts.append(f"your average energy is around {analysis.avg_energy:.1f}/5")
+    if analysis.total_entries and analysis.breakfast_rate is not None:
+        parts.append(
+            f"you've had breakfast about {analysis.breakfast_rate:.0f}% of the time "
+            f"in your recent check-ins"
+        )
+    if not parts:
+        return None
+    joined = ", and ".join(parts) if len(parts) == 2 else ", ".join(parts)
+    return (
+        f"{name_prefix}From your recent check-ins: {joined}.",
+        FallbackCategory.CHECKIN_SUMMARY,
+    )
+
+
 @handle_errors("building check-in summary fallback", default_return=None)
 def try_checkin_summary_response(
-    prompt_lower: str, analysis: ContextAnalysis, name_prefix: str
+    prompt_lower: str,
+    analysis: ContextAnalysis,
+    name_prefix: str,
+    *,
+    health_guidance_summary: str | None = None,
 ) -> tuple[str, FallbackCategory] | None:
     """Return a check-in summary fallback when prompt and data align.
 
@@ -77,15 +147,7 @@ def try_checkin_summary_response(
             FallbackCategory.CHECKIN_SUMMARY,
         )
 
-    if any(
-        word in prompt_lower
-        for word in [
-            "how am i",
-            "how have i been",
-            "doing lately",
-            "progress",
-        ]
-    ):
+    if any(word in prompt_lower for word in _WELLNESS_PROGRESS_PROMPT_WORDS):
         insights = []
         if analysis.breakfast_rate >= 70:
             insights.append("great breakfast habits")
@@ -99,6 +161,19 @@ def try_checkin_summary_response(
                 f"{name_prefix}You're doing well in several areas: {', '.join(insights)}. Keep up the good work!",
                 FallbackCategory.CHECKIN_SUMMARY,
             )
+        partial = _partial_checkin_wellness_reply(name_prefix, analysis)
+        health_fallback = _health_guidance_fallback(name_prefix, health_guidance_summary)
+        if partial and health_fallback:
+            checkin_part = partial[0][len(name_prefix) :].strip()
+            health_part = health_fallback[0][len(name_prefix) :].strip()
+            return (
+                f"{name_prefix}{checkin_part} {health_part}",
+                FallbackCategory.CHECKIN_SUMMARY,
+            )
+        if partial:
+            return partial
+        if health_fallback:
+            return health_fallback
         return (
             f"{name_prefix}There's room for improvement, but that's normal! Every small step counts.",
             FallbackCategory.CHECKIN_SUMMARY,

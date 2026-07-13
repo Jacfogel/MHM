@@ -305,7 +305,6 @@ class EnhancedCommandParser:
             "status": [
                 r"status",
                 r"system\s+status",
-                r"how\s+am\s+i\s+doing",
                 r"what\s+is\s+my\s+status",
                 r"check\s+status",
                 r"my\s+status",

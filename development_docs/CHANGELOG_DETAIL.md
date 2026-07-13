@@ -33,6 +33,21 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-07-12 - Use coarse Google Health signals in wellness fallbacks
+- **Coarse health reads**: Added `build_user_facing_signal_wellness_snippet()` in [`health_context_builder.py`](../core/health_context_builder.py) for wellness Q&A when sync data exists but `message_guidance` is empty or confidence is `low` (common after successful sync with sparse activity data).
+- **Partial check-in metrics**: [`checkin_summary.py`](../ai/fallback/checkin_summary.py) cites available mood/energy/breakfast numbers before the generic template; can combine check-in and health snippets.
+- **Context**: [`chatbot_context.py`](../ai/context/chatbot_context.py) and fallback coordinator pass resolved `health_wellness_snippet` using `user_id`.
+- **Tests**: `test_health_context_builder.py`, `test_context_analytics_shared_source.py`.
+- **Impact**: "How am I doing?" after `sync health` now returns grounded copy instead of the canned encouragement line when wearable or check-in data exists.
+
+### 2026-07-11 - Wellness replies use Google Health when check-ins are weak
+- **Routing fix**: Removed `how\s+am\s+i\s+doing` from the `status` intent in [`command_parser.py`](../communication/message_processing/command_parser.py) so wellness questions reach contextual chat instead of the system-status dashboard.
+- **Health grounding**: Added shared helpers in [`health_context_builder.py`](../core/health_context_builder.py) to format recent Google Health guidance for user-facing replies. [`wellness_status.py`](../ai/chat/wellness_status.py) now treats `health_guidance_summary` as wellness data and combines it with check-in mood when available.
+- **Fallback**: [`checkin_summary.py`](../ai/fallback/checkin_summary.py) uses health guidance instead of the generic "room for improvement" template when check-in insights are weak; [`coordinator.py`](../ai/fallback/coordinator.py) routes health-only wellness prompts when no check-ins exist.
+- **Tests**: `test_wellness_status.py`, `test_context_analytics_shared_source.py`, `test_health_context_builder.py`, `test_command_parser_rule_based_patterns_expansion.py`.
+- **Audit hygiene**: Doc path drift fixes in [`PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md`](../ai/PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md); docstrings and `@handle_errors` on wellness/fallback helpers; pytest markers; integration test aligned with unclear-input replies.
+- **Impact**: "How am I doing?" can now cite recent wearable wellness signals when check-ins are absent or inconclusive, matching scheduled-message priority.
+
 ### 2026-07-10 - Phase 0 reconciliation and planner routing parity **COMPLETE (slice 9.4 LM Studio gate)**
 - **Audit hygiene**: Updated [`PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md`](../ai/PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md) - slice 9.4 items 1-7 COMPLETE; LM Studio live run 2026-07-10T20:43 **65 pass / 3 partial / 0 fail**.
 - **Routing policy**: Documented hybrid rule-parser-first with planner fallback on low-confidence messages; rejected planner-first and pure rule-parser-only alternatives.

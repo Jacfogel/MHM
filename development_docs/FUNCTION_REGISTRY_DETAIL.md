@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-10 16:33:12
+> **Last Generated**: 2026-07-12 21:27:48
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 89.7% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 258
-- **Functions Found**: 2453
-- **Methods Found**: 1361
+- **Files Scanned**: 260
+- **Functions Found**: 2473
+- **Methods Found**: 1362
 - **Classes Found**: 254
-- **Total Items**: 3814
-- **Functions Documented**: 2171
-- **Methods Documented**: 1249
+- **Total Items**: 3835
+- **Functions Documented**: 2191
+- **Methods Documented**: 1250
 - **Classes Documented**: 183
-- **Total Documented**: 3420
+- **Total Documented**: 3441
 - **Template-Generated**: 48
-- **Last Updated**: 2026-07-10
+- **Last Updated**: 2026-07-12
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (456)
+### **Core System Functions** (460)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (642)
@@ -68,6 +68,7 @@ Test functions and testing utilities.
 #### `ai/chat/action_boundaries.py`
 **Functions:**
 - [OK] `find_false_crud_claims(text)` - Return human-readable labels for false completed-action claims in *text*.
+- [OK] `is_uninterpretable_user_prompt(text)` - True when the message has no letters and is not a usable command or question.
 - [OK] `response_has_false_crud_claim(text)` - True when *text* appears to claim a CRUD action completed without evidence.
 
 #### `ai/chat/action_planner.py`
@@ -107,6 +108,7 @@ Test functions and testing utilities.
 - [OK] `_detect_resource_constraints(self)` - Detect if system is resource-constrained.
 - [OK] `_ensure_lm_studio_available(self)` - Ensure LM Studio availability by retrying connection if needed.
 - [OK] `_fallback_response_for_unavailable_lm(self, user_prompt, user_id, mode)` - Return contextual fallback when LM Studio is unavailable.
+- [OK] `_finalize_contextual_response(self, user_prompt, response, context, profile)` - Apply chat post-processing plus Phase 6 coherence and wellness honesty.
 - [OK] `_get_adaptive_timeout(self, base_timeout)` - Get adaptive timeout based on system resources.
 - [OK] `_get_cached_non_chat_response(self, mode, prompt_for_key, uid_for_key, ptype, user_prompt, user_id)` - Return cached response for non-chat modes when eligible.
 - [OK] `_interaction_type_for_mode(self, mode)` - Map response mode to interaction type for structured logging.
@@ -152,6 +154,7 @@ Uses adaptive timeout to prevent blocking for too long with improved performance
   - [OK] `AIChatBotSingleton._detect_resource_constraints(self)` - Detect if system is resource-constrained.
   - [OK] `AIChatBotSingleton._ensure_lm_studio_available(self)` - Ensure LM Studio availability by retrying connection if needed.
   - [OK] `AIChatBotSingleton._fallback_response_for_unavailable_lm(self, user_prompt, user_id, mode)` - Return contextual fallback when LM Studio is unavailable.
+  - [OK] `AIChatBotSingleton._finalize_contextual_response(self, user_prompt, response, context, profile)` - Apply chat post-processing plus Phase 6 coherence and wellness honesty.
   - [OK] `AIChatBotSingleton._get_adaptive_timeout(self, base_timeout)` - Get adaptive timeout based on system resources.
   - [OK] `AIChatBotSingleton._get_cached_non_chat_response(self, mode, prompt_for_key, uid_for_key, ptype, user_prompt, user_id)` - Return cached response for non-chat modes when eligible.
   - [OK] `AIChatBotSingleton._interaction_type_for_mode(self, mode)` - Map response mode to interaction type for structured logging.
@@ -185,6 +188,11 @@ Uses adaptive timeout to prevent blocking for too long with improved performance
   - [OK] `AIChatBotSingleton.reload_system_prompt(self)` - Reload the system prompt from file (useful for development and testing).
   - [OK] `AIChatBotSingleton.test_system_prompt_integration(self)` - Test the system prompt integration and return status information.
 
+#### `ai/chat/conversation_coherence.py`
+**Functions:**
+- [OK] `align_response_to_conversation_topic(user_prompt, response, conversation_history)` - Tie follow-up answers back to a topic the user raised in recent turns.
+- [OK] `extract_recent_user_topics(conversation_history)` - Infer coarse topics from recent user messages.
+
 #### `ai/chat/interaction_types.py`
 **Functions:**
 - [OK] `interaction_type_for_mode(mode)` - Map generate_response mode strings to interaction types.
@@ -209,15 +217,27 @@ Uses adaptive timeout to prevent blocking for too long with improved performance
 - [OK] `_truncate_at_first_leak(text, patterns)` - Return text truncated before the earliest leak pattern match.
 - [OK] `clean_system_prompt_leaks(response)` - Remove leaked system prompt metadata from AI responses.
 Prevents meta-text like "User Context:" from appearing in user-facing output.
+- [OK] `collapse_persona_definition_echo(user_prompt, response)` - Replace verbatim persona-instruction dumps with a short user-facing intro.
 - [OK] `find_response_leak_markers(text)` - Return leak marker substrings still present in user-visible text.
 - [OK] `keep_first_personalized_block(text)` - When the model returns multiple draft messages, keep only the first greeting block.
 - [OK] `polish_greeting_response(response, user_prompt)` - Drop immediate help offers when the reply already answers a greeting/feeling question.
 - [OK] `repair_truncated_response_tail(response)` - Remove fake multi-turn continuations and dangling markdown tails.
+- [OK] `sanitize_false_crud_claims(response)` - Drop lines/sentences that falsely claim completed actions without evidence.
 - [OK] `smart_truncate_response(text, max_chars, max_words)` - Truncate response to avoid mid-sentence cuts when possible.
 - [OK] `strip_instruction_tuning_markers(text)` - Remove fine-tuning delimiter leaks (e.g. '## INPUT ##OUTPUT') from model output.
 - [OK] `strip_letter_signoffs(text)` - Remove email-style closings and [Your Name] placeholders from short wellness messages.
 - [OK] `strip_markup_and_tutorial_leaks(response)` - Remove HTML, comments, context_override blocks, and tutorial/code continuations.
 - [OK] `strip_product_ai_category_leaks(response)` - Remove leaked product-AI category tags and prompt-section bodies from replies.
+- [OK] `trim_verbose_reply_for_simple_prompt(user_prompt, response)` - Keep capability/identity answers concise when the user asked a short question.
+
+#### `ai/chat/wellness_status.py`
+**Functions:**
+- [OK] `_preferred_name_prefix(context)` - Return a preferred-name salutation prefix when profile data includes one.
+- [OK] `_reply_from_health_only(prefix, health_text)` - Build a wellness reply grounded in health data when check-ins are weak or absent.
+- [OK] `build_honest_wellness_status_reply(context)` - Return a supportive reply that does not invent wellness metrics.
+- [OK] `context_has_wellness_data(context)` - True when context includes check-in, mood trend, or recent health guidance.
+- [OK] `is_wellness_status_question(prompt)` - True when the user asks for a personal wellness or progress read.
+- [OK] `reinforce_wellness_honesty_if_needed(user_prompt, response, context)` - Replace generic deflections when a wellness question lacks supporting data.
 
 #### `ai/client/__init__.py`
 
@@ -598,10 +618,13 @@ Returns:
 
 #### `ai/fallback/checkin_summary.py`
 **Functions:**
+- [OK] `_health_guidance_fallback(name_prefix, health_guidance_summary)` - Return a wellness fallback from Google Health guidance text when available.
+- [OK] `_partial_checkin_wellness_reply(name_prefix, analysis)` - Cite available check-in metrics when they are below strong-insight thresholds.
 - [OK] `_prompt_mentions_breakfast(prompt_lower)` - Return True when the prompt asks about breakfast/eating, not substring noise.
 - [OK] `try_checkin_summary_response(prompt_lower, analysis, name_prefix)` - Return a check-in summary fallback when prompt and data align.
 
 ``analysis`` must come from ``analyze_checkin_entries`` so metrics match conversational context.
+- [OK] `try_health_guidance_wellness_response(prompt_lower, name_prefix, health_guidance_summary)` - Return a wellness reply from recent Google Health guidance when check-ins are absent.
 
 #### `ai/fallback/context.py`
 **Functions:**
@@ -3870,6 +3893,13 @@ Google Health signals take priority; stale check-ins are excluded.
 - [OK] `build_safe_health_guidance_summary(user_id)` - Return coarse wellness guidance for AI context.
 
 Never includes exact steps, HR, HRV, or device names.
+- [OK] `build_user_facing_signal_wellness_snippet(user_id)` - Return a coarse, user-facing wellness read from the active health signal.
+
+Used when message_guidance is empty or confidence is low but recent wearable
+data still supports an honest wellness reply.
+- [OK] `context_has_usable_health_wellness(context)` - True when recent Google Health guidance can ground a wellness reply.
+- [OK] `format_health_guidance_for_user_reply(guidance_summary)` - Strip AI-prompt framing and return user-facing wellness text.
+- [OK] `health_wellness_snippet_from_context(context)` - Return user-facing wellness text from envelope context or live health signals.
 
 #### `core/health_signals.py`
 **Functions:**

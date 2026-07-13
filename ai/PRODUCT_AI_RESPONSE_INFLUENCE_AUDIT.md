@@ -442,7 +442,7 @@ After prompt cleanup was stable:
 4. [x] Multi-action plan execution in `ActionPlanExecutor`.
 5. [x] Planner multi-action output parsing (`ai/chat/action_planner.py` repeating `ACTION:` blocks).
 6. [x] Result-aware responses for all executed actions on the planner path (per-action; not gated on `enable_ai_enhancement`).
-7. [x] Fix remaining LM Studio quality gaps before enabling planner by default: live run 2026-07-10 **65 pass / 3 partial / 0 fail** (`tests/ai/results/ai_functionality_test_results_latest.md`). Fixed T-1.2 (capability trim), T-14.2 (`conversation_coherence.py` + `_finalize_contextual_response`), T-16.2 (`wellness_status.py`), T-13.5 (false CRUD), T-15.2 (persona echo). Remaining partials T-7.1, T-9.3, T-11.2 documented as non-blocking.
+7. [x] Fix remaining LM Studio quality gaps before enabling planner by default: live run 2026-07-10 **65 pass / 3 partial / 0 fail** (`tests/ai/results/ai_functionality_test_results_latest.md`). Fixed T-1.2 (capability trim), T-14.2 ([`ai/chat/conversation_coherence.py`](chat/conversation_coherence.py) + `_finalize_contextual_response`), T-16.2 ([`ai/chat/wellness_status.py`](chat/wellness_status.py)), T-13.5 (false CRUD), T-15.2 (persona echo). Remaining partials T-7.1, T-9.3, T-11.2 documented as non-blocking.
 8. [ ] Flip `AI_ACTION_PLANNER_ENABLED` default to `true` after explicit sign-off (LM Studio gate complete; items 1-7 done).
 
 ## 10. Implementation Log

@@ -86,9 +86,7 @@ def is_uninterpretable_user_prompt(text: str) -> bool:
         return True
     if _UNINTERPRETABLE_PROMPT_PATTERN.fullmatch(stripped):
         return True
-    if not re.search(r"[a-zA-Z]", stripped):
-        return True
-    return False
+    return bool(not re.search(r"[a-zA-Z]", stripped))
 
 
 @handle_errors("detecting false CRUD claims in text", default_return=[])

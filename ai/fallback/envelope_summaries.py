@@ -54,10 +54,22 @@ def try_envelope_summary_response(
         return None
 
     name_prefix = context.name_prefix
+    raw_health_summary = str(
+        (context.structured.get("health") or {}).get("guidance_summary") or ""
+    )
+    from core.health_context_builder import health_wellness_snippet_from_context
+
+    health_wellness_text = health_wellness_snippet_from_context(
+        {"health_guidance_summary": raw_health_summary},
+        user_id=context.user_id,
+    )
     analysis = analyze_fallback_checkins(context)
     if analysis is not None:
         checkin_result = try_checkin_summary_response(
-            prompt_lower, analysis, name_prefix
+            prompt_lower,
+            analysis,
+            name_prefix,
+            health_guidance_summary=health_wellness_text or raw_health_summary,
         )
         if checkin_result:
             return checkin_result

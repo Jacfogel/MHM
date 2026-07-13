@@ -549,6 +549,11 @@ class AIChatBotSingleton:
             response, AI_MAX_RESPONSE_LENGTH, AI_MAX_RESPONSE_WORDS
         )
 
+    # not_duplicate: finalize_contextual_response_pair
+    @handle_errors(
+        "finalizing contextual response",
+        default_return="I'm having trouble generating a contextual response right now. Please try again in a moment.",
+    )
     def _finalize_contextual_response(
         self,
         user_prompt: str,

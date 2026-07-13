@@ -96,6 +96,13 @@ def build_chatbot_context_dict(
     recent_chats = list(conversation.get("recent_chat_interactions") or [])
     conversation_insights = _conversation_insights_from_chats(recent_chats)
 
+    from core.health_context_builder import health_wellness_snippet_from_context
+
+    health_wellness_snippet = health_wellness_snippet_from_context(
+        {"health_guidance_summary": health.get("guidance_summary") or ""},
+        user_id=user_id,
+    )
+
     context = {
         "user_profile": user_profile,
         "recent_activity": recent_activity,
@@ -103,6 +110,7 @@ def build_chatbot_context_dict(
         "preferences": preferences,
         "mood_trends": mood_trends,
         "health_guidance_summary": health.get("guidance_summary") or "",
+        "health_wellness_snippet": health_wellness_snippet,
         "conversation_history": (
             list(conversation.get("recent_chat_interactions") or [])
             if include_conversation_history

@@ -10,7 +10,10 @@ from ai.context.analytics import analyze_checkin_entries
 from ai.context.service import AIContextEnvelope
 from ai.fallback.action_hints import try_action_unavailable_response
 from ai.fallback.categories import FallbackCategory
-from ai.fallback.checkin_summary import try_checkin_summary_response
+from ai.fallback.checkin_summary import (
+    try_checkin_summary_response,
+    try_health_guidance_wellness_response,
+)
 from ai.fallback.context import FallbackContext, build_fallback_context
 from ai.fallback.conversational import (
     default_contextual_response,
@@ -50,6 +53,7 @@ def build_contextual_fallback(
         user_id, user_prompt, envelope=envelope
     )
 
+    health_guidance_summary = ""
     if context is not None:
         envelope_result = try_envelope_summary_response(prompt_lower, context)
         if envelope_result:
@@ -63,6 +67,15 @@ def build_contextual_fallback(
         user_name = context.preferred_name
         name_prefix = context.name_prefix
         recent_data = context.recent_checkin_rows or None
+        health_guidance_summary = str(
+            (context.structured.get("health") or {}).get("guidance_summary") or ""
+        )
+        from core.health_context_builder import health_wellness_snippet_from_context
+
+        health_wellness_text = health_wellness_snippet_from_context(
+            {"health_guidance_summary": health_guidance_summary},
+            user_id=context.user_id,
+        )
     else:
         user_context = load_user_context(user_id)
         user_name = preferred_name_from_context(user_context)
@@ -77,10 +90,30 @@ def build_contextual_fallback(
     if recent_data:
         analysis = analyze_checkin_entries(recent_data)
         checkin_result = try_checkin_summary_response(
-            prompt_lower, analysis, name_prefix
+            prompt_lower,
+            analysis,
+            name_prefix,
+            health_guidance_summary=health_wellness_text or health_guidance_summary,
         )
         if checkin_result:
             return checkin_result
+    elif context is not None:
+        from core.health_context_builder import health_wellness_snippet_from_context
+
+        health_wellness_text = health_wellness_snippet_from_context(
+            {
+                "health_guidance_summary": str(
+                    (context.structured.get("health") or {}).get("guidance_summary") or ""
+                )
+            },
+            user_id=context.user_id,
+        )
+        if health_wellness_text:
+            health_result = try_health_guidance_wellness_response(
+                prompt_lower, name_prefix, health_wellness_text
+            )
+            if health_result:
+                return health_result
 
     technical = try_technical_unavailable(prompt_lower, name_prefix)
     if technical:

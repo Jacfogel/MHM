@@ -101,3 +101,60 @@ class TestContextAnalyticsSharedSource:
         missing_mood = ContextAnalysis(total_entries=3, avg_mood=None)
         text, category = try_checkin_summary_response("how many times mood", missing_mood, "")
         assert category == FallbackCategory.DATA_UNAVAILABLE
+
+    def test_try_checkin_summary_weak_progress_uses_health_guidance(self):
+        from ai.fallback.categories import FallbackCategory
+
+        analysis = ContextAnalysis(
+            total_entries=5,
+            breakfast_rate=40.0,
+            avg_mood=2.5,
+            avg_energy=2.0,
+        )
+        health_summary = (
+            "Health personalization (wellness-oriented, not medical): "
+            "Recent rest and recovery patterns suggest a gentler day; "
+            "keep expectations smaller. "
+            "Never diagnose, cite wearables, or suggest medical treatment."
+        )
+        text, category = try_checkin_summary_response(
+            "how am i doing",
+            analysis,
+            "Julie, ",
+            health_guidance_summary=health_summary,
+        )
+        assert category == FallbackCategory.CHECKIN_SUMMARY
+        assert "gentler day" in text.lower()
+        assert "2.5/5" in text
+        assert "room for improvement" not in text.lower()
+
+    def test_try_health_guidance_wellness_response_without_checkins(self):
+        from ai.fallback.categories import FallbackCategory
+        from ai.fallback.checkin_summary import try_health_guidance_wellness_response
+
+        health_summary = (
+            "Health personalization (wellness-oriented, not medical): "
+            "Light movement like a short walk or stretch may feel good if they choose. "
+            "Never diagnose, cite wearables, or suggest medical treatment."
+        )
+        text, category = try_health_guidance_wellness_response(
+            "how am i doing",
+            "Julie, ",
+            health_summary,
+        )
+        assert category == FallbackCategory.CHECKIN_SUMMARY
+        assert "short walk" in text.lower()
+
+    def test_try_checkin_summary_weak_progress_uses_partial_checkin_metrics(self):
+        from ai.fallback.categories import FallbackCategory
+
+        analysis = ContextAnalysis(
+            total_entries=5,
+            breakfast_rate=30.0,
+            avg_mood=None,
+            avg_energy=2.5,
+        )
+        text, category = try_checkin_summary_response("how am i doing", analysis, "Julie, ")
+        assert category == FallbackCategory.CHECKIN_SUMMARY
+        assert "2.5/5" in text
+        assert "room for improvement" not in text.lower()

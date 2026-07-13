@@ -362,19 +362,21 @@ class TestErrorHandlingImprovements:
         result = chatbot._make_cache_key_inputs("mode", "prompt", 123)
         assert result == ("", "", "")
         
+        from ai.chat.action_boundaries import UNCLEAR_USER_INPUT_REPLY
+
         # Test generate_response with invalid inputs
         result = chatbot.generate_response(None)
-        assert "I'm having trouble generating a response" in result
-        
+        assert result == UNCLEAR_USER_INPUT_REPLY
+
         result = chatbot.generate_response("")
-        assert "I'm having trouble generating a response" in result
-        
+        assert result == UNCLEAR_USER_INPUT_REPLY
+
         result = chatbot.generate_response(123)
         assert "I'm having trouble generating a response" in result
-        
+
         result = chatbot.generate_response("prompt", user_id=123)
         assert "I'm having trouble generating a response" in result
-        
+
         result = chatbot.generate_response("prompt", timeout="invalid")
         assert "I'm having trouble generating a response" in result
         

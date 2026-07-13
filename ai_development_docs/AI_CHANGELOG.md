@@ -30,6 +30,17 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-12 - Use coarse Google Health signals in wellness fallbacks **COMPLETED**
+- When `message_guidance` is empty or confidence is `low`, wellness replies now use coarse signal fields via `build_user_facing_signal_wellness_snippet()` in [`health_context_builder.py`](../core/health_context_builder.py).
+- Check-in fallback cites partial metrics and can combine check-in + health reads.
+- Audit hygiene: doc path drift fixed; docstrings/`@handle_errors` on wellness helpers; pytest markers; Ruff SIM103; `doc-sync` PASS.
+
+### 2026-07-11 - Wellness replies use Google Health when check-ins are weak **COMPLETED**
+- Removed `how am i doing` from the rule-parser `status` intent so wellness questions reach contextual chat.
+- Added shared health-wellness helpers in [`health_context_builder.py`](../core/health_context_builder.py): `format_health_guidance_for_user_reply`, `health_wellness_snippet_from_context`, `context_has_usable_health_wellness`.
+- Extended [`wellness_status.py`](../ai/chat/wellness_status.py) and [`checkin_summary.py`](../ai/fallback/checkin_summary.py) to use `health_guidance_summary` / recent signals when check-in data is weak or missing; coordinator and envelope fallback pass health context through.
+- Unit tests in `test_wellness_status.py`, `test_context_analytics_shared_source.py`, and `test_health_context_builder.py`.
+
 ### 2026-07-10 - Phase 0 reconciliation and planner routing parity **COMPLETE (slice 9.4 LM Studio gate)**
 - Reconciled [`PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md`](../ai/PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md): Phase 0 COMPLETE; slice 9.4 items 1-7 COMPLETE (LM Studio gate met).
 - Documented hybrid routing policy: rule-parser-first for high-confidence structured commands; planner on low-confidence when `AI_ACTION_PLANNER_ENABLED=true` (default remains off).
@@ -193,22 +204,6 @@ Verified:
 - Tests: [`test_natural_language_defaults.py`](../tests/unit/test_natural_language_defaults.py), [`test_natural_language_handler_behavior.py`](../tests/behavior/test_natural_language_handler_behavior.py).
 - **Audit hygiene**: Regenerated function registry (`docs`); Ruff UP035/UP037 fix in [`core/natural_language_defaults.py`](../core/natural_language_defaults.py).
 - **Audit follow-up**: `@handle_errors` on `_get_cached_builtin_defaults`; f-string logging (static check); removed unused `tasks/task_natural_language_defaults.py` shim; fixed TASKS_PLAN and changelog link drift; doc-fix ASCII/links + doc-sync.
-
-### 2026-06-26 - Journal entry visual distinction + NLP mode detection **COMPLETED**
-- Journal list lines and detail view in [`notebook_handler.py`](../communication/command_handlers/notebook_handler.py) now show **Journal** label plus `submitted_at` date (`Jun 15` or `Mar 04, 2025` when not current year).
-- Centralized `_format_entry_list_line()` across inbox, search, group/tag, pinned, recent, and archived lists so journal entries use the journal icon consistently.
-- **NLP mode detection**: [`command_interpreter.py`](../ai/prompts/command_interpreter.py) expanded keywords (`append`, `inbox`, `group`, `template`, `search`, etc.) and `_COMMAND_PHRASE_HINTS` for `show inbox`, `search for`, `append note to task`, `tasks in group`, `help notebook` without misclassifying emotional chat.
-- Tests in [`test_notebook_handler_pagination_formatting.py`](../tests/unit/test_notebook_handler_pagination_formatting.py), [`test_command_interpreter.py`](../tests/unit/test_command_interpreter.py), [`test_natural_language_command_detection.py`](../tests/behavior/test_natural_language_command_detection.py); [NOTES_PLAN.md](../development_docs/NOTES_PLAN.md) section 4.5 marked complete.
-
-### 2026-06-24 - Task list UI tests + task notes + group filter **COMPLETED**
-- Added [`test_task_list_ui.py`](../tests/communication/test_task_list_ui.py) (17 tests) for Discord task picker/detail: flow starters (due date, priority, reminders), handler delegation, view factory, select callback, and detail button paths.
-- Added **section 6.1.D** to [`MANUAL_DISCORD_TEST_GUIDE.md`](../tests/MANUAL_DISCORD_TEST_GUIDE.md) for live validation of `show my tasks` dropdown, detail buttons, and Show More pagination.
-- **Task notes**: `append note to task` / `add note to task` commands (`append_note_to_task` intent), `update task ... note ...` replaces description; help text and examples updated in [`task_handler.py`](../communication/command_handlers/task_handler.py).
-- **Task groups**: `show tasks in group work` / `list tasks group:medical` filter lists; group shown in list lines and detail view; Show More pagination preserves group filter.
-- **Task tags**: Task create/update/filter paths now use `core/tags.py` normalization (`sanitize_task_tags`, case-insensitive tag filter); `TaskV2Model` validates tags on load.
-- **Task NL defaults**: Per-user `task_settings.natural_language_defaults` (`tonight`, `after work/school`, time-of-day, weekend `this week`); loaded via [`core/natural_language_defaults.py`](../core/natural_language_defaults.py) (originally `tasks/task_natural_language_defaults.py`).
-- **Audit hygiene**: Broke task module cycles (`task_time_parsing.py`, `task_tag_helpers.py`); docstrings + error handling on new helpers; function registry regenerated; Phase 1 decorator migration on NL defaults; removed unused re-exports from `task_validation.py`.
-- **Audit hygiene**: Fixed Ruff/Pyright on task list UI tests; ASCII compliance in changelogs + manual guide; hardened parallel flakes in `test_storage_scenarios`, `test_schedule_period_lifecycle`, and `test_get_user_data_fields_scalar_list_and_dict` (core `get_user_data` import + index refresh; v2 envelope fallback in test shim).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
