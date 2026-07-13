@@ -37,7 +37,8 @@ When adding new changes, follow this format:
 - **Coarse health reads**: Added `build_user_facing_signal_wellness_snippet()` in [`health_context_builder.py`](../core/health_context_builder.py) for wellness Q&A when sync data exists but `message_guidance` is empty or confidence is `low` (common after successful sync with sparse activity data).
 - **Partial check-in metrics**: [`checkin_summary.py`](../ai/fallback/checkin_summary.py) cites available mood/energy/breakfast numbers before the generic template; can combine check-in and health snippets.
 - **Context**: [`chatbot_context.py`](../ai/context/chatbot_context.py) and fallback coordinator pass resolved `health_wellness_snippet` using `user_id`.
-- **Tests**: `test_health_context_builder.py`, `test_context_analytics_shared_source.py`.
+- **Nightly CI**: [`commands.py`](../development_tools/shared/service/commands.py) `_test_suite_orchestration_timeout_seconds()` uses `2 * phase_timeout + 120` for the `full` profile (was `phase_timeout + 120`, killing nightly runs at ~22 min before `run_test_suite` could finish). Writes fallback JSON to `development_tools/tests/jsons/run_test_suite_nightly_results.json` when the subprocess times out or crashes. [`.github/workflows/nightly-tests.yml`](../.github/workflows/nightly-tests.yml) uploads dev-tools log as a backup artifact and uses `if-no-files-found: warn`.
+- **Tests**: `test_health_context_builder.py`, `test_context_analytics_shared_source.py`, `test_commands_coverage_helpers.py` (orchestration timeout + fallback write).
 - **Impact**: "How am I doing?" after `sync health` now returns grounded copy instead of the canned encouragement line when wearable or check-in data exists.
 
 ### 2026-07-11 - Wellness replies use Google Health when check-ins are weak

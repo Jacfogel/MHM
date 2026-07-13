@@ -83,6 +83,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nightly-test-suite-results
+          if-no-files-found: warn
           path: |
             development_tools/tests/jsons/run_test_suite_nightly_results.json
             development_tools/tests/jsons/test_suite_junit/
+            development_tools/reports/logs/ai_dev_tools.log

@@ -1042,6 +1042,23 @@ class CommandsMixin:
             result["strict_failure"] = True
         return result
 
+    @staticmethod
+    def _test_suite_orchestration_timeout_seconds(cfg: dict, profile: str) -> int:
+        """Outer subprocess budget for run_test_suite (parallel + no_parallel for full)."""
+        phase_timeout = int(cfg.get("timeout_seconds", 1200) or 1200)
+        buffer_seconds = 120
+        if str(profile).strip().lower() == "full":
+            return (2 * phase_timeout) + buffer_seconds
+        return phase_timeout + buffer_seconds
+
+    @staticmethod
+    def _write_test_suite_output_file(output_file: Path, payload: dict) -> None:
+        try:
+            output_file.parent.mkdir(parents=True, exist_ok=True)
+            output_file.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        except Exception as exc:
+            logger.warning("Failed to write fallback run_test_suite output: %s", exc)
+
     def _run_test_suite_profile(
         self,
         *,
@@ -1067,7 +1084,7 @@ class CommandsMixin:
             cfg = dt_config.get_test_run_config(profile)
         except Exception:
             cfg = {}
-        timeout = int(cfg.get("timeout_seconds", 1200) or 1200) + 120
+        timeout = self._test_suite_orchestration_timeout_seconds(cfg, profile)
         workers = cfg.get("workers")
         if workers:
             args.extend(["--workers", str(workers)])
@@ -1108,6 +1125,9 @@ class CommandsMixin:
             interrupted = self._is_interrupt_signature(
                 output_text, result.get("returncode")
             )
+            is_timeout = result.get("returncode") is None and "timed out" in (
+                str(result.get("error") or "").lower()
+            )
             outcome = {
                 "state": "crashed",
                 "suite_profile": profile,
@@ -1117,9 +1137,17 @@ class CommandsMixin:
                     "classification_reason": (
                         "subprocess_keyboard_interrupt"
                         if interrupted
+                        else "subprocess_timeout"
+                        if is_timeout
                         else "missing_structured_test_outcome"
                     ),
-                    "actionable_context": "Inspect run_test_suite subprocess output.",
+                    "actionable_context": (
+                        f"run_test_suite orchestration timed out after "
+                        f"{timeout // 60} minutes; inspect partial junit output or "
+                        f"increase test_run.timeout_seconds."
+                        if is_timeout
+                        else "Inspect run_test_suite subprocess output."
+                    ),
                     "log_file": None,
                     "return_code_hex": (
                         hex(result.get("returncode"))
@@ -1147,6 +1175,9 @@ class CommandsMixin:
                 "summary": {"total_issues": 1, "files_affected": 0, "status": "FAIL"},
                 "details": {"tier3_test_outcome": outcome},
             }
+
+        if not output_is_current and isinstance(payload, dict):
+            self._write_test_suite_output_file(output_file, payload)
 
         if persist_tier3_outcome:
             self.tier3_test_outcome = outcome

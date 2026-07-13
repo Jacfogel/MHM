@@ -483,6 +483,56 @@ def test_run_test_suite_ignores_stale_structured_output(tmp_path, monkeypatch):
 
 
 @pytest.mark.unit
+def test_test_suite_orchestration_timeout_full_profile_allows_two_phases():
+    timeout = CommandsMixin._test_suite_orchestration_timeout_seconds(
+        {"timeout_seconds": 1200},
+        "full",
+    )
+    assert timeout == 2520
+
+
+@pytest.mark.unit
+def test_test_suite_orchestration_timeout_quick_profile_single_phase_buffer():
+    timeout = CommandsMixin._test_suite_orchestration_timeout_seconds(
+        {"timeout_seconds": 900},
+        "quick",
+    )
+    assert timeout == 1020
+
+
+@pytest.mark.unit
+def test_run_nightly_test_suite_writes_fallback_results_on_timeout(tmp_path, monkeypatch):
+    service = _DummyService(tmp_path)
+    service._internal_interrupt_detected = False
+    output_file = (
+        tmp_path
+        / "development_tools"
+        / "tests"
+        / "jsons"
+        / "run_test_suite_nightly_results.json"
+    )
+
+    def run_script(*_args, **_kwargs):
+        return {
+            "success": False,
+            "output": "",
+            "error": "Script 'run_test_suite' timed out after 42 minutes",
+            "returncode": None,
+        }
+
+    monkeypatch.setattr(service, "run_script", run_script, raising=False)
+    monkeypatch.setattr(commands_module, "save_tool_result", lambda *_a, **_k: None)
+
+    result = service.run_nightly_test_suite()
+
+    assert result["state"] == "crashed"
+    assert output_file.exists()
+    payload = json.loads(output_file.read_text(encoding="utf-8"))
+    outcome = payload["details"]["tier3_test_outcome"]
+    assert outcome["parallel"]["classification_reason"] == "subprocess_timeout"
+
+
+@pytest.mark.unit
 def test_is_coverage_file_fresh_false_when_coverage_stat_fails(tmp_path):
     service = _DummyService(tmp_path)
     coverage_file = MagicMock()

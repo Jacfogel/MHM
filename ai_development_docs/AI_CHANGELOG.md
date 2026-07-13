@@ -33,6 +33,7 @@ Guidelines:
 ### 2026-07-12 - Use coarse Google Health signals in wellness fallbacks **COMPLETED**
 - When `message_guidance` is empty or confidence is `low`, wellness replies now use coarse signal fields via `build_user_facing_signal_wellness_snippet()` in [`health_context_builder.py`](../core/health_context_builder.py).
 - Check-in fallback cites partial metrics and can combine check-in + health reads.
+- **Nightly CI fix**: full-suite orchestration timeout now allows parallel + no_parallel phases (~42 min); writes fallback `run_test_suite_nightly_results.json` when the subprocess is killed so GitHub Actions artifacts include failure context.
 - Audit hygiene: doc path drift fixed; docstrings/`@handle_errors` on wellness helpers; pytest markers; Ruff SIM103; `doc-sync` PASS.
 
 ### 2026-07-11 - Wellness replies use Google Health when check-ins are weak **COMPLETED**
