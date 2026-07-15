@@ -21,8 +21,10 @@ SYNC_STATE_FILENAME = "sync_state.json"
 
 GoogleHealthFeatureState = Literal["enabled", "disabled", "paused"]
 SleepRecovery = Literal["low", "normal", "high", "unknown"]
+SleepQuality = Literal["low", "normal", "high", "unknown"]
 BaselineComparison = Literal["below", "normal", "above", "unknown"]
 ActivityLevel = Literal["low", "normal", "high", "unknown"]
+ActiveIntensity = Literal["low", "normal", "high", "unknown"]
 RestingHrSignal = Literal["elevated", "normal", "unknown"]
 HrvSignal = Literal["low", "normal", "unknown"]
 SignalConfidence = Literal["low", "medium", "high"]
@@ -73,7 +75,9 @@ class HealthSignalModel(BaseModel):
     sleep_recovery: SleepRecovery = "unknown"
     sleep_hours: float | None = None
     sleep_vs_baseline: BaselineComparison = "unknown"
+    sleep_quality: SleepQuality = "unknown"
     activity_level: ActivityLevel = "unknown"
+    active_intensity: ActiveIntensity = "unknown"
     resting_hr_signal: RestingHrSignal = "unknown"
     hrv_signal: HrvSignal = "unknown"
     confidence: SignalConfidence = "low"

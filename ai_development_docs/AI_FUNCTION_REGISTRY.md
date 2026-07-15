@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-12 21:27:48
+> **Last Generated**: 2026-07-15 06:13:12
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 89.7% [!] GOOD**
-- **Total Functions**: 2473
+### **Documentation Coverage: 89.8% [!] GOOD**
+- **Total Functions**: 2481
 - **Total Methods**: 1362
-- **Documented**: 3441/3835
+- **Documented**: 3450/3843
 - **Files Scanned**: 260
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -176,7 +176,6 @@ Core System Decision Tree:
 - `storage/user_data_validation.py` - 3/12 functions undocumented (75% coverage)
 - `ai/fallback/conversational.py` - 2/4 functions undocumented (50% coverage)
 - `communication/command_handlers/handler_registry.py` - 2/5 functions undocumented (60% coverage)
-- `core/health_context_builder.py` - 2/8 functions undocumented (75% coverage)
 - `core/user_lookup.py` - 1/3 functions undocumented (67% coverage)
 
 
@@ -212,7 +211,7 @@ Most complex functions (may need refactoring):
 - `checkins/` -  (6 files, 135 functions)
 - `communication/` - Communication channels and message processing (86 files, 1142 functions)
 - `core/` - System utilities and data management (33 files, 608 functions)
-- `integrations/` -  (12 files, 104 functions)
+- `integrations/` -  (12 files, 112 functions)
 - `messages/` -  (5 files, 39 functions)
 - `scheduler/` -  (8 files, 102 functions)
 - `storage/` -  (12 files, 151 functions)

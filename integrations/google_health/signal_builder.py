@@ -16,6 +16,7 @@ from integrations.google_health.personalization_rules import apply_personalizati
 from integrations.google_health.schemas import (
     DailySummaryModel,
     HealthSignalModel,
+    SleepStagesSummaryModel,
 )
 
 logger = get_component_logger("google_health")
@@ -33,6 +34,15 @@ STEPS_HIGH_RATIO = 1.4
 HR_ELEVATED_DELTA_BPM = 5.0
 HRV_LOW_RATIO = 0.85
 
+EFFICIENCY_LOW_PCT = 75.0
+EFFICIENCY_HIGH_PCT = 90.0
+RESTORATIVE_SHARE_LOW = 0.25
+RESTORATIVE_SHARE_HIGH = 0.40
+ACTIVE_MINUTES_LOW = 20
+ACTIVE_MINUTES_HIGH = 60
+
+_BAND_RANK = {"low": 0, "normal": 1, "high": 2}
+
 
 @handle_errors("computing median", default_return=None)
 def _median(values: list[float]) -> float | None:
@@ -40,6 +50,63 @@ def _median(values: list[float]) -> float | None:
     if not values:
         return None
     return float(statistics.median(values))
+
+
+@handle_errors("computing restorative sleep minutes", default_return=None)
+def _restorative_minutes(stages: SleepStagesSummaryModel | None) -> float | None:
+    """Sum deep + REM minutes when at least one stage value is present."""
+    if stages is None:
+        return None
+    if stages.deep_minutes is None and stages.rem_minutes is None:
+        return None
+    return float((stages.deep_minutes or 0) + (stages.rem_minutes or 0))
+
+
+@handle_errors("computing restorative sleep share", default_return=None)
+def _restorative_share(
+    sleep_duration_minutes: int | None,
+    stages: SleepStagesSummaryModel | None,
+) -> float | None:
+    """Fraction of sleep that is deep + REM."""
+    restorative = _restorative_minutes(stages)
+    if restorative is None or sleep_duration_minutes is None or sleep_duration_minutes <= 0:
+        return None
+    return restorative / float(sleep_duration_minutes)
+
+
+@handle_errors("picking more cautious sleep quality band", default_return="unknown")
+def _more_cautious_band(left: str, right: str) -> str:
+    """Return the lower of two low/normal/high bands; unknown yields to the other."""
+    if left == "unknown":
+        return right
+    if right == "unknown":
+        return left
+    left_rank = _BAND_RANK.get(left)
+    right_rank = _BAND_RANK.get(right)
+    if left_rank is None:
+        return right
+    if right_rank is None:
+        return left
+    return left if left_rank <= right_rank else right
+
+
+@handle_errors("banding value vs median ratio", default_return="unknown")
+def _band_vs_median_ratio(
+    value: float,
+    median: float,
+    *,
+    low_ratio: float,
+    high_ratio: float,
+) -> str:
+    """Map a value to low/normal/high by ratio against a median baseline."""
+    if median <= 0:
+        return "unknown"
+    ratio = value / median
+    if ratio < low_ratio:
+        return "low"
+    if ratio > high_ratio:
+        return "high"
+    return "normal"
 
 
 @handle_errors("computing baseline stats", default_return={})
@@ -53,6 +120,9 @@ def compute_baseline_stats(
     steps: list[float] = []
     resting_hr: list[float] = []
     hrv: list[float] = []
+    efficiency: list[float] = []
+    restorative_shares: list[float] = []
+    active_minutes: list[float] = []
 
     for item in summaries:
         day = item.get("date")
@@ -70,6 +140,13 @@ def compute_baseline_stats(
             resting_hr.append(float(model.resting_hr_bpm))
         if model.hrv_rmssd_ms is not None:
             hrv.append(float(model.hrv_rmssd_ms))
+        if model.sleep_efficiency_pct is not None:
+            efficiency.append(float(model.sleep_efficiency_pct))
+        share = _restorative_share(model.sleep_duration_minutes, model.sleep_stages)
+        if share is not None:
+            restorative_shares.append(share)
+        if model.active_minutes is not None:
+            active_minutes.append(float(model.active_minutes))
 
     days_used = len({s.get("date") for s in summaries if s.get("date") != exclude_date})
     return {
@@ -78,6 +155,9 @@ def compute_baseline_stats(
         "steps_median": _median(steps),
         "resting_hr_median": _median(resting_hr),
         "hrv_median": _median(hrv),
+        "sleep_efficiency_median": _median(efficiency),
+        "restorative_share_median": _median(restorative_shares),
+        "active_minutes_median": _median(active_minutes),
     }
 
 
@@ -89,6 +169,96 @@ def _confidence_from_baseline_days(days_used: int) -> str:
     if days_used >= MIN_BASELINE_DAYS_MEDIUM:
         return "medium"
     return "low"
+
+
+@handle_errors("deriving sleep efficiency band", default_return="unknown")
+def _derive_efficiency_band(
+    efficiency_pct: float | None,
+    baselines: dict[str, Any],
+    days_used: int,
+) -> str:
+    """Band sleep efficiency as low/normal/high via baseline or absolute thresholds."""
+    if efficiency_pct is None:
+        return "unknown"
+    efficiency_median = baselines.get("sleep_efficiency_median")
+    if efficiency_median and days_used >= MIN_BASELINE_DAYS_MEDIUM:
+        return _band_vs_median_ratio(
+            float(efficiency_pct),
+            float(efficiency_median),
+            low_ratio=SLEEP_BELOW_BASELINE_RATIO,
+            high_ratio=SLEEP_ABOVE_BASELINE_RATIO,
+        )
+    if efficiency_pct < EFFICIENCY_LOW_PCT:
+        return "low"
+    if efficiency_pct >= EFFICIENCY_HIGH_PCT:
+        return "high"
+    return "normal"
+
+
+@handle_errors("deriving restorative sleep band", default_return="unknown")
+def _derive_restorative_band(
+    sleep_duration_minutes: int | None,
+    stages: SleepStagesSummaryModel | None,
+    baselines: dict[str, Any],
+    days_used: int,
+) -> str:
+    """Band deep+REM sleep share as low/normal/high via baseline or absolute thresholds."""
+    share = _restorative_share(sleep_duration_minutes, stages)
+    if share is None:
+        return "unknown"
+    share_median = baselines.get("restorative_share_median")
+    if share_median and days_used >= MIN_BASELINE_DAYS_MEDIUM:
+        return _band_vs_median_ratio(
+            share,
+            float(share_median),
+            low_ratio=SLEEP_BELOW_BASELINE_RATIO,
+            high_ratio=SLEEP_ABOVE_BASELINE_RATIO,
+        )
+    if share < RESTORATIVE_SHARE_LOW:
+        return "low"
+    if share >= RESTORATIVE_SHARE_HIGH:
+        return "high"
+    return "normal"
+
+
+@handle_errors("deriving sleep quality band", default_return="unknown")
+def _derive_sleep_quality(
+    today: DailySummaryModel,
+    baselines: dict[str, Any],
+    days_used: int,
+) -> str:
+    """Combine efficiency and restorative-stage share; take the more cautious band."""
+    efficiency_band = _derive_efficiency_band(
+        today.sleep_efficiency_pct, baselines, days_used
+    )
+    restorative_band = _derive_restorative_band(
+        today.sleep_duration_minutes, today.sleep_stages, baselines, days_used
+    )
+    return _more_cautious_band(efficiency_band, restorative_band)
+
+
+@handle_errors("deriving active intensity band", default_return="unknown")
+def _derive_active_intensity(
+    active_minutes: int | None,
+    baselines: dict[str, Any],
+    days_used: int,
+) -> str:
+    """Band active zone minutes as low/normal/high via baseline or absolute thresholds."""
+    if active_minutes is None:
+        return "unknown"
+    active_median = baselines.get("active_minutes_median")
+    if active_median and days_used >= MIN_BASELINE_DAYS_MEDIUM:
+        return _band_vs_median_ratio(
+            float(active_minutes),
+            float(active_median),
+            low_ratio=STEPS_LOW_RATIO,
+            high_ratio=STEPS_HIGH_RATIO,
+        )
+    if active_minutes < ACTIVE_MINUTES_LOW:
+        return "low"
+    if active_minutes > ACTIVE_MINUTES_HIGH:
+        return "high"
+    return "normal"
 
 
 @handle_errors("building signal for date", default_return=None)
@@ -179,12 +349,19 @@ def build_signal_for_date(
         else:
             hrv_signal = "normal"
 
+    sleep_quality = _derive_sleep_quality(today, baselines, days_used)
+    active_intensity = _derive_active_intensity(
+        today.active_minutes, baselines, days_used
+    )
+
     partial = {
         "date": target_date,
         "sleep_recovery": sleep_recovery,
         "sleep_hours": sleep_hours,
         "sleep_vs_baseline": sleep_vs_baseline,
+        "sleep_quality": sleep_quality,
         "activity_level": activity_level,
+        "active_intensity": active_intensity,
         "resting_hr_signal": resting_hr_signal,
         "hrv_signal": hrv_signal,
         "confidence": confidence,

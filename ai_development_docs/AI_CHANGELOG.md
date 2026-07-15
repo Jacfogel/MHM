@@ -30,10 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-07-14 - Plain-language personalized wellness messaging **COMPLETED**
-- Personalized prompts no longer feed `sleep_recovery=high` / "wearable wellness" labels; they use plain sleep/activity phrases.
-- `generate_personalized_message()` instructs the model not to echo recovery jargon.
-- User-facing effect: messages like "solid sleep" instead of "high recovery".
+### 2026-07-14 - Plain-language wellness messaging; richer sleep quality + active minutes **COMPLETED**
+- Personalized prompts use plain sleep/activity phrases (no `sleep_recovery=high` / "wearable wellness" parroting).
+- New derived fields: `sleep_quality` (efficiency + deep/REM) and `active_intensity` (active minutes) feed personalization rules + message/chat context.
+- User-facing effect: messages can mention solid/lighter sleep quality and higher/lighter active effort without raw metrics.
 
 ### 2026-07-13 - Register `integrations` pytest domain marker; strip two-line wellness sign-offs **COMPLETED**
 - Registered `@pytest.mark.integrations` in `pytest.ini` and conftest hooks so `--strict-markers` collection no longer crashes on health context builder tests.

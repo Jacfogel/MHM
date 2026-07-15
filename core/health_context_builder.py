@@ -153,6 +153,14 @@ def build_user_facing_signal_wellness_snippet(user_id: str) -> str:
     elif sleep_vs == "normal":
         phrases.append("sleep has been close to your usual amount")
 
+    sleep_quality = str(signal.get("sleep_quality") or "unknown").strip().lower()
+    if sleep_quality == "high":
+        phrases.append("sleep quality looked solid")
+    elif sleep_quality == "low":
+        phrases.append("sleep quality looked lighter than usual")
+    elif sleep_quality == "normal":
+        phrases.append("sleep quality looked about typical")
+
     activity = str(signal.get("activity_level") or "unknown").strip().lower()
     if activity == "low":
         phrases.append("activity has been on the lighter side")
@@ -160,6 +168,14 @@ def build_user_facing_signal_wellness_snippet(user_id: str) -> str:
         phrases.append("you have been more active than usual")
     elif activity == "normal":
         phrases.append("activity has been around your usual level")
+
+    active_intensity = str(signal.get("active_intensity") or "unknown").strip().lower()
+    if active_intensity == "high":
+        phrases.append("active effort was higher than usual")
+    elif active_intensity == "low":
+        phrases.append("active effort was lighter than usual")
+    elif active_intensity == "normal":
+        phrases.append("active effort was around your usual level")
 
     resting_hr = str(signal.get("resting_hr_signal") or "unknown").strip().lower()
     if resting_hr == "elevated":
@@ -178,7 +194,11 @@ def build_user_facing_signal_wellness_snippet(user_id: str) -> str:
 
     if len(phrases) == 1:
         return f"{phrases[0].capitalize()}."
-    return f"{phrases[0].capitalize()}, and {phrases[1]}."
+    if len(phrases) == 2:
+        return f"{phrases[0].capitalize()}, and {phrases[1]}."
+    # Keep replies short while still surfacing sleep quality / active effort.
+    selected = phrases[:3]
+    return f"{selected[0].capitalize()}, {selected[1]}, and {selected[2]}."
 
 
 @handle_errors("checking usable health wellness context", default_return=False)
@@ -270,6 +290,14 @@ def _format_health_signal_coarse(signal: dict) -> str:
     elif sleep_vs == "normal":
         parts.append("sleep was close to their usual amount")
 
+    sleep_quality = str(signal.get("sleep_quality") or "unknown").strip().lower()
+    if sleep_quality == "high":
+        parts.append("sleep quality looked solid")
+    elif sleep_quality == "low":
+        parts.append("sleep quality looked lighter than usual")
+    elif sleep_quality == "normal":
+        parts.append("sleep quality looked about typical")
+
     activity = str(signal.get("activity_level") or "unknown").strip().lower()
     if activity == "low":
         parts.append("activity was lighter than usual")
@@ -277,6 +305,14 @@ def _format_health_signal_coarse(signal: dict) -> str:
         parts.append("activity was higher than usual")
     elif activity == "normal":
         parts.append("activity was around their usual level")
+
+    active_intensity = str(signal.get("active_intensity") or "unknown").strip().lower()
+    if active_intensity == "high":
+        parts.append("active effort was higher than usual")
+    elif active_intensity == "low":
+        parts.append("active effort was lighter than usual")
+    elif active_intensity == "normal":
+        parts.append("active effort was around their usual level")
 
     resting_hr = str(signal.get("resting_hr_signal") or "unknown").strip().lower()
     if resting_hr == "elevated":

@@ -49,7 +49,9 @@ def test_build_user_facing_signal_wellness_snippet_uses_coarse_fields(test_data_
                     "date": "2026-07-12",
                     "sleep_recovery": "high",
                     "sleep_vs_baseline": "normal",
+                    "sleep_quality": "high",
                     "activity_level": "unknown",
+                    "active_intensity": "normal",
                     "resting_hr_signal": "normal",
                     "hrv_signal": "normal",
                     "confidence": "low",
@@ -66,6 +68,7 @@ def test_build_user_facing_signal_wellness_snippet_uses_coarse_fields(test_data_
         snippet = build_user_facing_signal_wellness_snippet(user_id)
 
     assert "solid night" in snippet.lower() or "sleep" in snippet.lower()
+    assert "sleep quality" in snippet.lower()
     assert "usual amount" in snippet.lower() or "typical" in snippet.lower()
 
 
@@ -177,7 +180,9 @@ def test_personalized_wellness_context_prefers_coarse_health(test_data_dir):
                     "sleep_recovery": "high",
                     "sleep_hours": 9.93,
                     "sleep_vs_baseline": "normal",
+                    "sleep_quality": "high",
                     "activity_level": "low",
+                    "active_intensity": "high",
                     "resting_hr_signal": "normal",
                     "hrv_signal": "low",
                     "confidence": "high",
@@ -194,9 +199,13 @@ def test_personalized_wellness_context_prefers_coarse_health(test_data_dir):
         context = build_personalized_wellness_context(user_id)
 
     assert "sleep looked solid" in context
+    assert "sleep quality looked solid" in context
+    assert "active effort was higher than usual" in context
     assert "sleep_recovery=high" not in context
     assert "9.93" not in context
     assert "Recent wellness patterns" in context
     assert "wearable wellness" not in context.lower()
     assert "Primary source" not in context
     assert "Recent check-ins" not in context
+    assert "%" not in context
+    assert "90" not in context

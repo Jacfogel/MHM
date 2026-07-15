@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-12 21:27:48
+> **Last Generated**: 2026-07-15 06:13:12
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.7% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 89.8% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 260
-- **Functions Found**: 2473
+- **Functions Found**: 2481
 - **Methods Found**: 1362
 - **Classes Found**: 254
-- **Total Items**: 3835
-- **Functions Documented**: 2191
+- **Total Items**: 3843
+- **Functions Documented**: 2200
 - **Methods Documented**: 1250
 - **Classes Documented**: 183
-- **Total Documented**: 3441
+- **Total Documented**: 3450
 - **Template-Generated**: 48
-- **Last Updated**: 2026-07-12
+- **Last Updated**: 2026-07-15
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -3886,7 +3886,10 @@ Raises:
 #### `core/health_context_builder.py`
 **Functions:**
 - [MISSING] `_format_checkin_entry_for_prompt(entry)` - No description
-- [MISSING] `_format_health_signal_coarse(signal)` - No description
+- [OK] `_format_health_signal_coarse(signal)` - Plain-language wellness notes for AI prompts.
+
+Avoids internal field labels (e.g. sleep_recovery=high) that models tend to
+echo back as jargon like "high recovery" or "wearable wellness signal".
 - [OK] `build_personalized_wellness_context(user_id)` - Compact wellness context for scheduled personalized messages.
 
 Google Health signals take priority; stale check-ins are excluded.
@@ -5000,8 +5003,16 @@ Returns empty list when confidence is low or data insufficient.
 
 #### `integrations/google_health/signal_builder.py`
 **Functions:**
+- [OK] `_band_vs_median_ratio(value, median)` - Map a value to low/normal/high by ratio against a median baseline.
 - [OK] `_confidence_from_baseline_days(days_used)` - Map baseline history length to signal confidence tier.
+- [OK] `_derive_active_intensity(active_minutes, baselines, days_used)` - Band active zone minutes as low/normal/high via baseline or absolute thresholds.
+- [OK] `_derive_efficiency_band(efficiency_pct, baselines, days_used)` - Band sleep efficiency as low/normal/high via baseline or absolute thresholds.
+- [OK] `_derive_restorative_band(sleep_duration_minutes, stages, baselines, days_used)` - Band deep+REM sleep share as low/normal/high via baseline or absolute thresholds.
+- [OK] `_derive_sleep_quality(today, baselines, days_used)` - Combine efficiency and restorative-stage share; take the more cautious band.
 - [OK] `_median(values)` - Return the statistical median or None when values is empty.
+- [OK] `_more_cautious_band(left, right)` - Return the lower of two low/normal/high bands; unknown yields to the other.
+- [OK] `_restorative_minutes(stages)` - Sum deep + REM minutes when at least one stage value is present.
+- [OK] `_restorative_share(sleep_duration_minutes, stages)` - Fraction of sleep that is deep + REM.
 - [OK] `build_signal_for_date(target_date, summaries)` - Build derived health signal for one calendar date.
 - [OK] `compute_baseline_stats(summaries)` - Rolling median baselines from prior daily summaries.
 - [OK] `rebuild_signals_for_summaries(summaries)` - Rebuild signals for given dates (or all summary dates).

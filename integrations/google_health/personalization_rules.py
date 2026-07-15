@@ -43,16 +43,36 @@ def apply_personalization_rules(signal: dict[str, Any]) -> list[str]:
 
     sleep_recovery = signal.get("sleep_recovery") or "unknown"
     sleep_vs_baseline = signal.get("sleep_vs_baseline") or "unknown"
+    sleep_quality = signal.get("sleep_quality") or "unknown"
     activity_level = signal.get("activity_level") or "unknown"
+    active_intensity = signal.get("active_intensity") or "unknown"
     resting_hr = signal.get("resting_hr_signal") or "unknown"
     hrv_signal = signal.get("hrv_signal") or "unknown"
 
-    poor_sleep = sleep_recovery == "low" or sleep_vs_baseline == "below"
-    good_sleep = sleep_recovery in ("normal", "high") and sleep_vs_baseline != "below"
-    low_activity = activity_level == "low"
-    high_activity = activity_level == "high"
+    poor_sleep = (
+        sleep_recovery == "low"
+        or sleep_vs_baseline == "below"
+        or sleep_quality == "low"
+    )
+    good_sleep = (
+        sleep_recovery in ("normal", "high")
+        and sleep_vs_baseline != "below"
+        and sleep_quality != "low"
+    )
+    # Intensity can be high on low-step workout days; do not treat those as low activity.
+    low_activity = (
+        (activity_level == "low" and active_intensity != "high")
+        or (activity_level == "unknown" and active_intensity == "low")
+    )
+    high_activity = activity_level == "high" or active_intensity == "high"
 
-    if poor_sleep and low_activity:
+    if high_activity:
+        _add_guidance(
+            guidance,
+            GUIDANCE_REINFORCE,
+            GUIDANCE_AVOID_NAG,
+        )
+    elif poor_sleep and low_activity:
         _add_guidance(
             guidance,
             GUIDANCE_GENTLE,
@@ -64,12 +84,6 @@ def apply_personalization_rules(signal: dict[str, Any]) -> list[str]:
             guidance,
             GUIDANCE_LIGHT_MOVEMENT,
             GUIDANCE_SHORT_WALK,
-        )
-    elif high_activity:
-        _add_guidance(
-            guidance,
-            GUIDANCE_REINFORCE,
-            GUIDANCE_AVOID_NAG,
         )
 
     if confidence in ("medium", "high") and (

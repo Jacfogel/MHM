@@ -67,6 +67,23 @@ See `.env.example` and `CONFIGURATION_REFERENCE.md`. Minimum:
 - After repeated auth failures, feature auto-pauses (`GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD`).
 - When auto-pause is triggered by token refresh failure, MHM sends **one** low-key reconnect message on the user's primary channel (`sync_state.reconnect_notice_sent` prevents repeats until the next successful sync).
 
+## Derived signals (used for personalization)
+
+Built by `signal_builder.py` from daily summaries — categorical only; raw minutes/% never go to the AI.
+
+| Field | Source metrics | Purpose |
+|-------|----------------|---------|
+| `sleep_recovery` | sleep duration | Short / typical / fuller night |
+| `sleep_vs_baseline` | sleep duration vs median | Below / near / above usual amount |
+| `sleep_quality` | sleep efficiency + deep/REM share | Sleep quality band (more cautious of the two inputs) |
+| `activity_level` | steps | Step-based activity band |
+| `active_intensity` | active zone minutes | Workout / effort intensity (can reinforce even when steps are low) |
+| `resting_hr_signal` | resting HR vs median | Elevated readiness caution |
+| `hrv_signal` | HRV vs median | Lower readiness caution |
+| `message_guidance` | personalization rules | Tone tokens for scheduled messages and chat |
+
+Synced but not yet used for signals: calories (not fetched).
+
 ## Token encryption (optional)
 
 Set `GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY` to a [Fernet](https://cryptography.io/en/latest/fernet/) key to encrypt `access_token` and `refresh_token` in `google_health_auth.json`:
