@@ -33,6 +33,12 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-07-14 - Plain-language personalized wellness messaging
+- **Fix**: Personalized health messages were parroting internal labels (`sleep_recovery=high`, "wearable wellness signal", "high recovery"). [`_format_health_signal_coarse()`](../core/health_context_builder.py) now emits plain phrases (e.g. "sleep looked solid"), and [`build_user_facing_signal_wellness_snippet()`](../core/health_context_builder.py) uses everyday sleep wording.
+- **Fix**: [`generate_personalized_message()`](../ai/chat/chatbot.py) instructions ban jargon parroting and ask for plain sleep/activity language.
+- **Tests**: Updated [`test_health_context_builder.py`](../tests/unit/test_health_context_builder.py) and [`test_ai_chatbot_helpers.py`](../tests/unit/test_ai_chatbot_helpers.py).
+- **Impact**: Scheduled Discord/email wellness messages should read like "you got solid sleep" instead of opaque recovery jargon.
+
 ### 2026-07-13 - Register `integrations` pytest domain marker; strip two-line wellness sign-offs
 - **Fix**: Suite collection crashed under `--strict-markers` because `@pytest.mark.integrations` (used by [`test_health_context_builder.py`](../tests/unit/test_health_context_builder.py)) was in `domain_mapper` but not registered in [`pytest.ini`](../pytest.ini) / [`conftest_hooks.py`](../tests/test_helpers/test_support/conftest_hooks.py).
 - **Docs**: Domain marker lists in [`TESTING_GUIDE.md`](../tests/TESTING_GUIDE.md) and [`AI_TESTING_GUIDE.md`](../ai_development_docs/AI_TESTING_GUIDE.md) now include `integrations`.

@@ -65,8 +65,8 @@ def test_build_user_facing_signal_wellness_snippet_uses_coarse_fields(test_data_
     with patch("core.health_signals.now_datetime_full", return_value=fixed_now):
         snippet = build_user_facing_signal_wellness_snippet(user_id)
 
-    assert "rest and recovery" in snippet.lower()
-    assert "baseline" in snippet.lower()
+    assert "solid night" in snippet.lower() or "sleep" in snippet.lower()
+    assert "usual amount" in snippet.lower() or "typical" in snippet.lower()
 
 
 @pytest.mark.unit
@@ -193,7 +193,10 @@ def test_personalized_wellness_context_prefers_coarse_health(test_data_dir):
     with patch("core.health_signals.now_datetime_full", return_value=fixed_now):
         context = build_personalized_wellness_context(user_id)
 
-    assert "sleep_recovery=high" in context
+    assert "sleep looked solid" in context
+    assert "sleep_recovery=high" not in context
     assert "9.93" not in context
-    assert "Primary source" in context
+    assert "Recent wellness patterns" in context
+    assert "wearable wellness" not in context.lower()
+    assert "Primary source" not in context
     assert "Recent check-ins" not in context

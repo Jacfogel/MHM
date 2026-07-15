@@ -139,17 +139,19 @@ def build_user_facing_signal_wellness_snippet(user_id: str) -> str:
     phrases: list[str] = []
     sleep_recovery = str(signal.get("sleep_recovery") or "unknown").strip().lower()
     if sleep_recovery == "high":
-        phrases.append("your recent rest and recovery look stronger than usual")
+        phrases.append("you got a solid night's sleep recently")
     elif sleep_recovery == "low":
-        phrases.append("your recent rest and recovery look lower than usual")
+        phrases.append("your recent sleep looked lighter than usual")
+    elif sleep_recovery == "normal":
+        phrases.append("your recent sleep looked about typical")
 
     sleep_vs = str(signal.get("sleep_vs_baseline") or "unknown").strip().lower()
     if sleep_vs == "below":
-        phrases.append("sleep has been below your usual baseline")
+        phrases.append("sleep has been below your usual amount")
     elif sleep_vs == "above":
-        phrases.append("sleep has been above your usual baseline")
+        phrases.append("sleep has been above your usual amount")
     elif sleep_vs == "normal":
-        phrases.append("sleep has been close to your usual baseline")
+        phrases.append("sleep has been close to your usual amount")
 
     activity = str(signal.get("activity_level") or "unknown").strip().lower()
     if activity == "low":
@@ -161,15 +163,15 @@ def build_user_facing_signal_wellness_snippet(user_id: str) -> str:
 
     resting_hr = str(signal.get("resting_hr_signal") or "unknown").strip().lower()
     if resting_hr == "elevated":
-        phrases.append("resting heart rate looks a bit elevated versus your baseline")
+        phrases.append("resting heart rate looks a bit higher than usual")
     elif resting_hr == "low":
-        phrases.append("resting heart rate looks lower than your baseline")
+        phrases.append("resting heart rate looks a bit lower than usual")
 
     hrv = str(signal.get("hrv_signal") or "unknown").strip().lower()
     if hrv == "low":
-        phrases.append("recovery signals look lower than your baseline")
+        phrases.append("your body may need a gentler pace than usual")
     elif hrv == "high":
-        phrases.append("recovery signals look stronger than your baseline")
+        phrases.append("your body readiness looks stronger than usual")
 
     if not phrases:
         return ""
@@ -240,22 +242,55 @@ def _format_checkin_entry_for_prompt(entry: dict) -> str:
 
 @handle_errors("formatting coarse health signal for prompt", default_return="")
 def _format_health_signal_coarse(signal: dict) -> str:
+    """
+    Plain-language wellness notes for AI prompts.
+
+    Avoids internal field labels (e.g. sleep_recovery=high) that models tend to
+    echo back as jargon like "high recovery" or "wearable wellness signal".
+    """
     if not signal:
         return ""
     parts: list[str] = []
     if signal.get("date"):
-        parts.append(f"signal_date={signal['date']}")
-    for field in (
-        "sleep_recovery",
-        "sleep_vs_baseline",
-        "activity_level",
-        "resting_hr_signal",
-        "hrv_signal",
-    ):
-        value = signal.get(field) or "unknown"
-        if value != "unknown":
-            parts.append(f"{field}={value}")
-    return ", ".join(parts)
+        parts.append(f"for {signal['date']}")
+
+    sleep_recovery = str(signal.get("sleep_recovery") or "unknown").strip().lower()
+    if sleep_recovery == "high":
+        parts.append("sleep looked solid (a fuller night)")
+    elif sleep_recovery == "low":
+        parts.append("sleep looked light (a shorter night)")
+    elif sleep_recovery == "normal":
+        parts.append("sleep looked about typical")
+
+    sleep_vs = str(signal.get("sleep_vs_baseline") or "unknown").strip().lower()
+    if sleep_vs == "below":
+        parts.append("sleep was below their usual amount")
+    elif sleep_vs == "above":
+        parts.append("sleep was above their usual amount")
+    elif sleep_vs == "normal":
+        parts.append("sleep was close to their usual amount")
+
+    activity = str(signal.get("activity_level") or "unknown").strip().lower()
+    if activity == "low":
+        parts.append("activity was lighter than usual")
+    elif activity == "high":
+        parts.append("activity was higher than usual")
+    elif activity == "normal":
+        parts.append("activity was around their usual level")
+
+    resting_hr = str(signal.get("resting_hr_signal") or "unknown").strip().lower()
+    if resting_hr == "elevated":
+        parts.append("resting heart rate looks a bit higher than usual")
+    elif resting_hr == "low":
+        parts.append("resting heart rate looks a bit lower than usual")
+
+    hrv = str(signal.get("hrv_signal") or "unknown").strip().lower()
+    if hrv == "low":
+        parts.append("body readiness looks a bit lower than usual")
+    elif hrv == "high":
+        parts.append("body readiness looks stronger than usual")
+
+    return "; ".join(parts)
 
 
 PERSONALIZED_CHECKIN_LOOKBACK_DAYS = 7
@@ -276,7 +311,7 @@ def build_personalized_wellness_context(user_id: str) -> str:
         health_signal = resolve_active_health_signal(user_id)
         coarse = _format_health_signal_coarse(health_signal or {})
         if coarse:
-            sections.append(f"Primary source — wearable wellness (coarse): {coarse}")
+            sections.append(f"Recent wellness patterns: {coarse}.")
 
     health_summary = build_safe_health_guidance_summary(user_id)
     if health_summary:

@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-14 - Plain-language personalized wellness messaging **COMPLETED**
+- Personalized prompts no longer feed `sleep_recovery=high` / "wearable wellness" labels; they use plain sleep/activity phrases.
+- `generate_personalized_message()` instructs the model not to echo recovery jargon.
+- User-facing effect: messages like "solid sleep" instead of "high recovery".
+
 ### 2026-07-13 - Register `integrations` pytest domain marker; strip two-line wellness sign-offs **COMPLETED**
 - Registered `@pytest.mark.integrations` in `pytest.ini` and conftest hooks so `--strict-markers` collection no longer crashes on health context builder tests.
 - Domain marker docs now list `integrations` alongside other product packages.
@@ -188,19 +193,6 @@ Verified:
 - **Google Health hygiene**: Full docstring + `@handle_errors` pass on `integrations/google_health/`; broke config/token_crypto import cycle; data_handlers Phase 1 migration.
 - **Google Health hygiene (2)**: Remaining docstrings (`_add_guidance`, async connect `_run`) and `@handle_errors` on schemas empty factories, notifications, token_crypto, data_handlers `_now`.
 - **Doc hygiene**: Fixed stale markdown link in `DEV_TOOLS_CONSOLIDATED_REPORT.md` (ephemeral audit JSON); `report_generation.py` always uses backtick paths for `jsons/` targets so doc-sync stays clean.
-
-### 2026-06-27 - Google Health read-only integration **COMPLETED**
-- Added `integrations/google_health/` package: OAuth connect, automated 1-2x daily sync, daily summaries, derived wellness signals, and deterministic message guidance (no raw metrics to AI).
-- Per-user storage under `data/users/{user_id}/health/`; feature flag `account.features.google_health` (`enabled` | `disabled` | `paused`).
-- Discord commands via [`health_handler.py`](../communication/command_handlers/health_handler.py); scheduler jobs in [`health_sync_jobs.py`](../scheduler/health_sync_jobs.py).
-- AI context: [`core/health_context_builder.py`](../core/health_context_builder.py) + `append_health_guidance` in conversational context assembly.
-- Tests: unit/behavior/integration under `tests/unit/test_google_health_*`, `tests/behavior/test_health_handler_behavior.py`, `tests/integration/test_health_scheduler_job.py`.
-- **Fix (same session):** Google Health API client now uses kebab-case endpoints and type-specific list filters (`sleep.interval.end_time`, `steps.interval.start_time`, `daily_*.date`); added pagination and richer response parsing so sync populates `daily_summaries.json`. Steps/HR/HRV/active-minutes parsing fixed for Google field names (`civilStartTime`, `beatsPerMinute`, `averageHeartRateVariabilityMilliseconds`, `activeZoneMinutes`). Long lookback: steps/active minutes use chunked `dailyRollUp` (14-day Google limit, correct civil range format); upsert merges fields; API errors re-raise so chunked list fallback runs.
-- **Discord fix**: Health commands excluded from AI response enhancement (deterministic status/connect text was being rewritten with wrong facts).
-- Docs: [GOOGLE_HEALTH_GUIDE.md](../integrations/google_health/GOOGLE_HEALTH_GUIDE.md), [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md) Section 2.3.5, [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md), [HEALTH_INTEGRATION_PLAN.md](../development_docs/HEALTH_INTEGRATION_PLAN.md) (V0 complete + V1/deferred backlog).
-- **Audit hygiene**: Docstrings + `@handle_errors` on health handler help methods and `response_enhancer._should_skip_ai_enhancement`; f-string logging fixes; test isolation for `GOOGLE_HEALTH_ENABLED`; schema/feature test updates for `google_health`; `google_health_file` in test log path mocks; function registry regenerated (`docs`).
-- **Audit follow-up**: `@handle_errors` on OAuth `_notify`; domain markers on Google Health tests; unused import cleanup; Ruff UP035/SIM105; doc-fix (ASCII, headings, links).
-- **Audit follow-up (2)**: `# devtools: ignore[facade-shims]` on Pydantic feature validators; fixed [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md) Google Health guide link; stabilized `test_validate_and_raise_if_invalid_failure` (mock + `GOOGLE_HEALTH_ENABLED` isolation).
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

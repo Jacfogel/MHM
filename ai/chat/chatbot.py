@@ -722,9 +722,13 @@ class AIChatBotSingleton:
 
         instruction = (
             "Create a brief, encouraging message based on the wellness data below. "
-            "When 'Primary source — wearable wellness' is present, base the message on "
-            "recovery and activity patterns only; do not mention check-ins or hopelessness. "
-            "Use coarse recovery language only (no exact hours, step counts, heart rate, or device names). "
+            "When 'Recent wellness patterns' is present, base the message on sleep and "
+            "activity only; do not mention check-ins or hopelessness. "
+            "Speak in plain everyday language (for example 'you got solid sleep' or "
+            "'activity was lighter than usual'). "
+            "Never say 'wearable', 'wellness signal', 'high recovery', 'low recovery', "
+            "'sleep_recovery', or other internal labels. "
+            "Do not mention exact hours, step counts, heart-rate numbers, or device names. "
             f"Data: {user_summary}. "
             "Keep it supportive, personal, and under 100 words. "
             "Do not end with a sign-off or signature (no 'Best wishes', 'Take care', or [Your Name])."

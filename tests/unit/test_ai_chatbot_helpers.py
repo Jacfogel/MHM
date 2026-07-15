@@ -475,7 +475,7 @@ class TestAIChatBotHelpers:
             patch.object(chatbot_instance.response_cache, "set") as mock_set,
             patch(
                 "core.health_context_builder.build_personalized_wellness_context",
-                return_value="sleep_recovery=high",
+                return_value="Recent wellness patterns: sleep looked solid (a fuller night).",
             ),
             patch.object(
                 chatbot_instance, "generate_response", return_value="Fresh test message."
