@@ -161,7 +161,7 @@ AI_AI_PARSING_PARTIAL_CONFIDENCE = float(
     os.getenv("AI_AI_PARSING_PARTIAL_CONFIDENCE", "0.6")
 )
 AI_ACTION_PLANNER_ENABLED = (
-    os.getenv("AI_ACTION_PLANNER_ENABLED", "false").lower() == "true"
+    os.getenv("AI_ACTION_PLANNER_ENABLED", "true").lower() == "true"
 )
 AI_ACTION_PLAN_MIN_CONFIDENCE = float(
     os.getenv("AI_ACTION_PLAN_MIN_CONFIDENCE", "0.6")

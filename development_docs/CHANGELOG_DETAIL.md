@@ -33,6 +33,14 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2026-07-15 - Compact AI action-planning prompt; planner default on; template/hub parity
+- **Fix**: Live action planning overflowed 2048-token LM Studio contexts because [`ActionPlanner.build_planning_messages`](../ai/chat/action_planner.py) stacked category files, `command.txt`, and a full `AIContextEnvelope`, then routed through `generate_response(mode="command")` (which rebuilt a different prompt). Planning now uses a short ACTION-first system template plus [`AIActionCatalog.to_planning_prompt_summary()`](../ai/prompts/action_catalog.py) (common actions first) and calls `call_lm_studio_api` directly.
+- **Fix**: Free-text planner entities (title/note/query/etc.) must be grounded in the user message, so few-shot example titles cannot leak into plans.
+- **Feature**: `AI_ACTION_PLANNER_ENABLED` now defaults to `true` in [`core/config.py`](../core/config.py), [`.env.example`](../.env.example), and [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md).
+- **Tests**: Template/hub planner parity for `create_task_from_template`, `list_task_templates`, and `show_create_hub` in [`tests/behavior/test_action_planner_routing.py`](../tests/behavior/test_action_planner_routing.py); planner unit/catalog coverage in [`tests/unit/test_ai_action_planner.py`](../tests/unit/test_ai_action_planner.py) and [`tests/unit/test_ai_action_catalog.py`](../tests/unit/test_ai_action_catalog.py).
+- **Docs**: Updated [`PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md`](../ai/PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md) (Phases 4-6 / slice 9.4 complete); regenerated function registry; cleared a false facade/shim hit on `build_planning_messages`.
+- **Impact**: Low-confidence messages use the action planner by default; template/hub intents share the same rule-parser vs planner parity coverage as core task intents.
+
 ### 2026-07-14 - Plain-language wellness messaging; richer sleep quality + active minutes signals
 - **Fix**: Personalized health messages were parroting internal labels (`sleep_recovery=high`, "wearable wellness signal", "high recovery"). [`_format_health_signal_coarse()`](../core/health_context_builder.py) now emits plain phrases (e.g. "sleep looked solid"), and [`build_user_facing_signal_wellness_snippet()`](../core/health_context_builder.py) uses everyday sleep wording.
 - **Fix**: [`generate_personalized_message()`](../ai/chat/chatbot.py) instructions ban jargon parroting and ask for plain sleep/activity language.

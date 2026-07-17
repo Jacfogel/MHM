@@ -123,12 +123,34 @@ def test_parse_low_confidence_downgrades_to_clarify():
     assert plan.response_intent == "clarify"
 
 
-def test_plan_from_message_uses_ai_when_available():
+def test_build_planning_messages_are_compact_and_omit_chat_categories():
+    planner = ActionPlanner()
+    messages = planner.build_planning_messages("user-1", "add task laundry")
+
+    assert len(messages) == 2
+    assert messages[0]["role"] == "system"
+    assert messages[1] == {"role": "user", "content": "add task laundry"}
+    system = messages[0]["content"]
+    assert "ACTION: create_task" in system
+    assert "ACTION: unknown" in system
+    assert "pack hiking bag" in system
+    assert "Product AI flow:" not in system
+    assert "[data_honesty]" not in system
+    assert "[action_boundaries]" not in system
+    assert "You are a command parser" not in system
+    assert len(system) < 2200
+
+
+def test_plan_from_message_uses_ai_when_available(monkeypatch):
     planner = ActionPlanner()
     ai_chatbot = MagicMock()
     ai_chatbot.is_ai_available.return_value = True
-    ai_chatbot.generate_response.return_value = (
-        "INTENT: answer_only\n"
+    mock_call = MagicMock(
+        return_value="INTENT: answer_only\n",
+    )
+    monkeypatch.setattr(
+        "ai.chat.action_planner.call_lm_studio_api",
+        mock_call,
     )
 
     plan = planner.plan_from_message(
@@ -139,7 +161,12 @@ def test_plan_from_message_uses_ai_when_available():
 
     assert isinstance(plan, AIActionPlan)
     assert plan.response_intent == "answer_only"
-    ai_chatbot.generate_response.assert_called_once()
+    mock_call.assert_called_once()
+    kwargs = mock_call.call_args.kwargs
+    assert kwargs["messages"][0]["role"] == "system"
+    assert kwargs["messages"][1]["content"] == "how are you?"
+    assert "ACTION: create_task" in kwargs["messages"][0]["content"]
+    assert kwargs.get("stop")
 
 
 def test_plan_from_message_defaults_when_ai_unavailable():
@@ -207,6 +234,47 @@ def test_parse_multi_action_plan_uses_shared_default_confidence():
     assert len(plan.actions) == 2
     assert plan.actions[0].confidence == 0.93
     assert plan.actions[1].confidence == 0.93
+
+
+def test_parse_keeps_first_valid_action_when_trailing_block_is_junk():
+    catalog = build_action_catalog()
+    output = (
+        "ACTION: create_task\n"
+        "TITLE: buy milk\n"
+        "CONFIDENCE: 0.9\n"
+        "\nStart with INTENT:\n"
+        "ACTION: add_list_item\n"
+        "TITLE: entry_ref\n"
+        "ITEM_TEXT: item_text\n"
+    )
+    from ai.chat.action_planner import _trim_planner_output
+
+    plan = parse_action_plan_from_text(
+        _trim_planner_output(output),
+        source_message="add task buy milk",
+        catalog=catalog,
+        planning_method="test",
+    )
+
+    assert plan is not None
+    assert plan.response_intent == "execute_action"
+    assert len(plan.actions) == 1
+    assert plan.actions[0].action_name == "create_task"
+    assert plan.actions[0].entities["title"] == "buy milk"
+
+
+def test_parse_rejects_ungrounded_example_title_and_clarifies():
+    catalog = build_action_catalog()
+    plan = parse_action_plan_from_text(
+        "ACTION: create_task\nTITLE: pack hiking bag\nCONFIDENCE: 0.9\n",
+        source_message="add a task",
+        catalog=catalog,
+        planning_method="test",
+    )
+
+    assert plan is not None
+    assert plan.response_intent == "clarify"
+    assert "title" in (plan.clarification_question or "").lower()
 
 
 def test_parse_multi_action_missing_fields_downgrades_to_clarify():

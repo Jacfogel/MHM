@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-15 06:13:13
+> **Last Generated**: 2026-07-15 19:46:31
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 258
-- **Total Imports Found**: 2187
+- **Total Imports Found**: 2186
 - **Dependencies Documented**: 258 (100% coverage)
 - **Standard Library Imports**: 648 (29.6%)
 - **Third-Party Imports**: 217 (9.9%)
-- **Local Imports**: 1322 (60.4%)
+- **Local Imports**: 1321 (60.4%)
 - **Last Updated**: 2026-07-15
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -31,7 +31,7 @@
 
 - **Standard Library**: 648 imports (29.6%)
 - **Third-Party**: 217 imports (9.9%)
-- **Local**: 1322 imports (60.4%)
+- **Local**: 1321 imports (60.4%)
 
 ## Module Dependencies by Directory
 
@@ -111,11 +111,10 @@
 - **Dependencies**:
   - **Local**:
     - `ai.chat.chatbot (get_ai_chatbot)` (NEW)
-    - `ai.context.service (build_ai_context_envelope)` (NEW)
+    - `ai.client.lm_studio_client (call_lm_studio_api)` (NEW)
     - `ai.prompts.action_catalog (AIActionCatalog, AIActionPlan, AIActionRequest, ResponseIntent, get_action_catalog)` (NEW)
     - `ai.prompts.command_interpreter (get_command_interpreter)` (NEW)
-    - `ai.prompts.manager (get_prompt_manager)` (NEW)
-    - `core.config (AI_ACTION_PLAN_MIN_CONFIDENCE, AI_COMMAND_PARSING_TIMEOUT)` (NEW)
+    - `core.config (AI_ACTION_PLAN_MIN_CONFIDENCE, AI_COMMAND_PARSING_TIMEOUT, AI_COMMAND_TEMPERATURE)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
@@ -128,7 +127,7 @@
   - `communication/message_processing/action_plan_executor.py`
 
 **Dependency Changes**:
-- Added: ai.chat.chatbot, ai.context.service, ai.prompts.action_catalog, ai.prompts.command_interpreter, ai.prompts.manager, core.config, core.error_handling, core.logger
+- Added: ai.chat.chatbot, ai.client.lm_studio_client, ai.prompts.action_catalog, ai.prompts.command_interpreter, core.config, core.error_handling, core.logger
 - Removed: ai/__init__.py, ai/chat/__init__.py, communication/message_processing/action_plan_executor.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -337,6 +336,7 @@
   - **Third-party**:
     - `requests`
 - **Used by**:
+  - `ai/chat/action_planner.py`
   - `ai/chat/chatbot.py`
   - `ai/client/__init__.py`
 
@@ -545,7 +545,6 @@
     - `typing (Any)`
 - **Used by**:
   - `ai/__init__.py`
-  - `ai/chat/action_planner.py`
   - `ai/context/__init__.py`
   - `ai/context/assembly.py`
   - `ai/context/chatbot_context.py`
@@ -932,7 +931,6 @@
     - `typing (Any)`
 - **Used by**:
   - `ai/__init__.py`
-  - `ai/chat/action_planner.py`
   - `ai/chat/chatbot.py`
   - `ai/chat/response_generator.py`
   - `ai/context/assembly.py`

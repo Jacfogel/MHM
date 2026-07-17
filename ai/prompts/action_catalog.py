@@ -110,6 +110,27 @@ class AIActionCatalog:
             parts.append(f"{action.action_name} ({action.domain}; required: {required})")
         return "Actions: " + "; ".join(parts)
 
+    @handle_errors(
+        "building AI action planning prompt summary",
+        default_return="none",
+    )
+    def to_planning_prompt_summary(self) -> str:
+        """Return a short action-name list for local-model planning prompts.
+
+        Names only (comma-separated). Common task/check-in/profile actions are
+        listed first so small models are less biased by alphabetical order.
+        Required-field checks happen in the planner parser.
+        """
+        if not self.actions:
+            return "none"
+        priority = [
+            name for name in _PRIORITY_PLANNING_ACTIONS if name in self.actions
+        ]
+        rest = sorted(
+            name for name in self.actions if name not in _PRIORITY_PLANNING_ACTIONS
+        )
+        return ", ".join(priority + rest)
+
     # not_duplicate: action_catalog_serialization
     @handle_errors("serializing AI action catalog", default_return={})
     def to_dict(self) -> dict[str, Any]:
@@ -461,6 +482,29 @@ _DELETE_ACTIONS = {
     "remove_list_item",
     "delete_google_health_data",
 }
+
+# Shown first in planning prompts so small models bias toward common intents.
+_PRIORITY_PLANNING_ACTIONS = (
+    "create_task",
+    "list_tasks",
+    "complete_task",
+    "update_task",
+    "delete_task",
+    "append_note_to_task",
+    "uncomplete_task",
+    "task_stats",
+    "start_checkin",
+    "checkin_status",
+    "checkin_history",
+    "show_profile",
+    "update_profile",
+    "profile_stats",
+    "show_schedule",
+    "schedule_status",
+    "help",
+    "status",
+    "messages",
+)
 
 
 @handle_errors("building AI action catalog", default_return=AIActionCatalog({}))

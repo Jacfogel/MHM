@@ -154,3 +154,17 @@ def test_action_request_is_ai_layer_planning_data_only():
     assert request.entities["title"] == "Call pharmacy"
     assert request.confidence == 0.92
     assert request.requires_confirmation is False
+
+
+def test_action_catalog_planning_prompt_summary_is_compact():
+    catalog = build_action_catalog()
+    summary = catalog.to_planning_prompt_summary()
+    verbose = catalog.to_prompt_summary()
+
+    assert "create_task" in summary
+    assert "list_tasks" in summary
+    assert "(tasks; required:" not in summary
+    assert "create_task:title" not in summary
+    assert summary.index("create_task") < summary.index("add_list_item")
+    assert len(summary) < len(verbose)
+    assert len(summary) < 2000

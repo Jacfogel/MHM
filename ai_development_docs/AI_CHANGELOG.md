@@ -30,6 +30,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-15 - Compact planner prompt; planner default on; template/hub parity **COMPLETED**
+- Planner prompt is a short ACTION-first template + compact action list; calls LM Studio directly; free-text entities must appear in the user message.
+- `AI_ACTION_PLANNER_ENABLED` defaults to `true`; template/hub parity added for `create_task_from_template`, `list_task_templates`, `show_create_hub`.
+- Product AI audit Phases 4-6 / slice 9.4 marked complete.
+
 ### 2026-07-14 - Plain-language wellness messaging; richer sleep quality + active minutes **COMPLETED**
 - Personalized prompts use plain sleep/activity phrases (no `sleep_recovery=high` / "wearable wellness" parroting).
 - New derived fields: `sleep_quality` (efficiency + deep/REM) and `active_intensity` (active minutes) feed personalization rules + message/chat context.
@@ -181,18 +186,6 @@ Verified:
 - Parallel isolation: ~35 tests refactored off `no_parallel` (account handler, user management, user creation, utilities demo) via UUID users and locked index helpers. **Batch 2** (~29): `test_account_lifecycle.py` (9), `test_account_management_real_behavior.py` (6), `test_user_data_manager.py` (14) - scoped rebuild patches, `test_path_factory` backup dirs, `_resolve_test_user_id` helper. **Batch 3**: `test_user_creation.py` integration tests drop full index rebuilds; parser behavior tests mock `AIChatBotSingleton.generate_response` except `@pytest.mark.ai`. Follow-up: `test_user_creation.py` parallel flake fixes (`_read_channel_type`, schedules via `update_user_schedules`).
 - Tier 3 audit: `run_test_suite.py` aligned with runner settings; 4-worker cap during audit to reduce contention with parallel static analysis.
 - Docs: paired testing guides updated with `--quick`, loadscope, and Tier 3 scope notes.
-
-### 2026-06-28 - Google Health V1 complete **COMPLETED**
-- Reconnect notice on auth auto-pause; per-user timezone sync (30-min poll); optional Fernet token encryption.
-- Admin UI **Google Health** connect panel ([`google_health_settings_dialog.py`](../ui/dialogs/google_health_settings_dialog.py)); shared [`user_settings.py`](../integrations/google_health/user_settings.py).
-- Tests: notifications, sync schedule, token crypto, user settings, dialog actions; health handler refactored.
-- **Audit hygiene**: GOOGLE_HEALTH_GUIDE path drift; error handling + docstrings; function registry regen; Ruff clean; stabilized `test_validate_and_raise_if_invalid` (mock); fixed `test_validate_and_raise_if_invalid_failure` reload/class mismatch flake; removed unused `ConfigValidationError` import in `test_config.py`.
-- **`personalized` category**: Added to `CATEGORIES`; consolidated `ai_personalized` alias (removed - same code path, never used). AI-generated at send time via `is_ai_generated_message_category()`; no message library file required.
-- **Category UI**: [`category_selection_widget.py`](../ui/widgets/category_selection_widget.py) now builds checkboxes from `get_message_categories()` instead of a hardcoded list.
-- **Audit hygiene**: Error handling on new helpers; test/domain-mapper/registry/ASCII fixes from dev-tools priorities.
-- **Google Health hygiene**: Full docstring + `@handle_errors` pass on `integrations/google_health/`; broke config/token_crypto import cycle; data_handlers Phase 1 migration.
-- **Google Health hygiene (2)**: Remaining docstrings (`_add_guidance`, async connect `_run`) and `@handle_errors` on schemas empty factories, notifications, token_crypto, data_handlers `_now`.
-- **Doc hygiene**: Fixed stale markdown link in `DEV_TOOLS_CONSOLIDATED_REPORT.md` (ephemeral audit JSON); `report_generation.py` always uses backtick paths for `jsons/` targets so doc-sync stays clean.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

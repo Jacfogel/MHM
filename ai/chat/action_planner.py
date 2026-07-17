@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from ai.context.service import build_ai_context_envelope
 from ai.prompts.action_catalog import (
     AIActionCatalog,
     AIActionPlan,
@@ -13,29 +12,51 @@ from ai.prompts.action_catalog import (
     ResponseIntent,
     get_action_catalog,
 )
+from ai.client.lm_studio_client import call_lm_studio_api
 from ai.prompts.command_interpreter import get_command_interpreter
-from ai.prompts.manager import get_prompt_manager
-from core.config import AI_ACTION_PLAN_MIN_CONFIDENCE, AI_COMMAND_PARSING_TIMEOUT
+from core.config import (
+    AI_ACTION_PLAN_MIN_CONFIDENCE,
+    AI_COMMAND_PARSING_TIMEOUT,
+    AI_COMMAND_TEMPERATURE,
+)
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
 
 logger = get_component_logger("ai")
 
-_PLANNING_FORMAT_SUFFIX = (
-    "\n\nPLANNING MODE: Decide how to handle the user's message.\n"
-    "Return ONLY these key-value lines (no other text):\n"
-    "INTENT: answer_only | execute_action | clarify\n"
-    "For execute_action include one or more actions:\n"
-    "ACTION: <canonical action from available actions>\n"
-    "<FIELD>: <value> (repeat for each entity field, e.g. TITLE, TASK_ID)\n"
-    "CONFIDENCE: 0.0-1.0 (per action, or once before the first ACTION as a default)\n"
-    "For multiple actions, repeat ACTION plus its fields in order.\n"
-    "For clarify also include:\n"
-    "QUESTION: <one short clarification question>\n"
-    "For answer_only, only INTENT is required.\n"
-    "If the message is emotional venting or general conversation, use answer_only.\n"
-    "If the user wants an app action but required details are missing, use clarify.\n"
-)
+# Keep this short: local models often have 2k context. Do not stack chat
+# category files, command.txt, or full AIContextEnvelope into planning.
+# ACTION-first matches the existing command parser format that local models
+# already follow more reliably than INTENT-first prose.
+_PLANNING_SYSTEM_TEMPLATE = """Extract one MHM action as key-value lines only. No prose, JSON, or code.
+
+Example:
+ACTION: create_task
+TITLE: pack hiking bag
+CONFIDENCE: 0.9
+
+Chat/venting/no action:
+ACTION: unknown
+
+Missing required detail:
+INTENT: clarify
+QUESTION: What should the task be called?
+
+Rules: ACTION must be unknown or one of: {actions}
+Copy field values from the user message only. Do not invent dates, locations, or titles.
+"""
+
+_PLANNING_MAX_TOKENS = 60
+_PLANNING_STOP_SEQUENCES = [
+    '"""',
+    "```",
+    "\ndef ",
+    "\nUser:",
+    "\n###",
+    "\nStart with",
+    "\nExamples:",
+    "\n[",
+]
 
 _SHARED_PLAN_KEYS = frozenset(
     {"INTENT", "QUESTION", "CLARIFICATION_QUESTION", "NOTES"}
@@ -73,53 +94,51 @@ _ENTITY_KEY_ALIASES = {
     "DETAILS": "description",
     "DESCRIPTION": "description",
     "NOTE": "note",
+    "NOTE_TEXT": "note_text",
     "TAGS": "tags",
     "GROUP": "group",
     "TEMPLATE_REF": "template_ref",
     "FILTER": "filter",
     "TAG": "tag",
+    "QUERY": "query",
+    "ITEM_TEXT": "item_text",
+    "TEXT": "text",
 }
+
+# Free-text fields that must be grounded in the user message (blocks example leakage).
+_GROUNDED_ENTITY_KEYS = frozenset(
+    {
+        "title",
+        "description",
+        "note",
+        "note_text",
+        "query",
+        "item_text",
+        "text",
+    }
+)
 
 
 class ActionPlanner:
     """Plan product-AI responses and optional app actions from user messages."""
 
-    # devtools: intentional[duplicate-functions]: thin_prompt_component_constructors
-    @handle_errors("initializing action planner", default_return=None)
-    def __init__(self) -> None:
-        self._prompt_manager = get_prompt_manager()
-        self._command_interpreter = get_command_interpreter()
-
     @handle_errors("building action planning prompt", default_return=[])
     def build_planning_messages(
         self, user_id: str | None, user_message: str
     ) -> list[dict[str, str]]:
-        """Build LM Studio messages for action planning."""
-        catalog = get_action_catalog()
-        context_view = None
-        if user_id:
-            context_view = build_ai_context_envelope(
-                user_id,
-                requested_intent="action_interpretation",
-                prompt_request=user_message,
-                include_conversation_history=True,
-            )
+        """Build compact LM Studio messages for action planning.
 
-        composed = self._prompt_manager.compose_product_prompt(
-            "action_interpretation",
-            context_view=context_view,
-            action_catalog=catalog,
-        )
-        format_instructions = self._prompt_manager.get_command_format_instructions()
-        system_sections: list[str] = []
-        if composed and composed.content:
-            system_sections.append(composed.content)
-        if format_instructions:
-            system_sections.append(format_instructions)
-        system_sections.append(_PLANNING_FORMAT_SUFFIX.strip())
+        ``user_id`` is accepted by callers but unused today. Full context envelopes
+        are intentionally omitted so local models with ~2k context can run planning.
+        """
+        _ = user_id
+        catalog = get_action_catalog()
+        system_content = _PLANNING_SYSTEM_TEMPLATE.format(
+            actions=catalog.to_planning_prompt_summary()
+        ).strip()
         return [
-            {"role": "system", "content": "\n\n".join(system_sections)},
-            {"role": "user", "content": user_message},
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": (user_message or "").strip()},
         ]
 
     @handle_errors("planning action from message", default_return=None)
@@ -144,19 +163,26 @@ class ActionPlanner:
             return answer_only_plan(user_message, planning_method="ai_unavailable")
 
         messages = self.build_planning_messages(user_id, user_message)
-        system_content = messages[0]["content"] if messages else ""
-        planning_prompt = (
-            f"{system_content}\n\nUser message:\n{user_message}\n\n"
-            "Return the planning key-value lines only."
-        )
-        raw_response = ai_chatbot.generate_response(
-            planning_prompt,
-            user_id=user_id,
-            mode="command",
+        if not messages:
+            return answer_only_plan(user_message, planning_method="prompt_build_failed")
+
+        # Call LM Studio with the compact planning messages directly. Do not route
+        # through generate_response(mode="command"), which rebuilds a different prompt.
+        raw_response = call_lm_studio_api(
+            messages=messages,
+            max_tokens=_PLANNING_MAX_TOKENS,
+            temperature=AI_COMMAND_TEMPERATURE,
             timeout=AI_COMMAND_PARSING_TIMEOUT,
+            stop=_PLANNING_STOP_SEQUENCES,
         )
+        if not raw_response or not str(raw_response).strip():
+            logger.warning(
+                "Action planner received empty LM Studio response; using answer_only"
+            )
+            return answer_only_plan(user_message, planning_method="ai_empty_response")
+
         return parse_action_plan_from_text(
-            raw_response,
+            _trim_planner_output(raw_response),
             source_message=user_message,
             catalog=get_action_catalog(),
             planning_method="ai_planner",
@@ -279,6 +305,29 @@ def parse_action_plan_from_text(
     )
 
 
+@handle_errors("trimming planner model output", default_return="")
+def _trim_planner_output(planner_output: str) -> str:
+    """Drop common local-model trailing junk after the first plan block."""
+    text = (planner_output or "").strip()
+    if not text:
+        return ""
+    cut_markers = (
+        "\nStart with",
+        "\n###",
+        "\nUser:",
+        "\nExamples:",
+        '"""',
+        "```",
+        "\ndef ",
+    )
+    cut_at = len(text)
+    for marker in cut_markers:
+        idx = text.find(marker)
+        if idx >= 0:
+            cut_at = min(cut_at, idx)
+    return text[:cut_at].strip()
+
+
 @handle_errors("building execute-action plan", default_return=None)
 def _build_execute_plan(
     planner_output: str,
@@ -350,7 +399,9 @@ def _build_action_request_from_fields(
         )
 
     confidence = _parse_confidence(fields.get("CONFIDENCE"))
-    entities = _extract_entities_from_fields(fields)
+    entities = _extract_entities_from_fields(
+        fields, source_message=source_message
+    )
     missing_required = [
         field_name
         for field_name in action_def.required_fields
@@ -487,8 +538,27 @@ def _parse_confidence(raw_confidence: str | None) -> float:
     return max(0.0, min(1.0, value))
 
 
+@handle_errors("checking grounded planner entity value", default_return=False)
+def _entity_value_grounded_in_message(value: str, source_message: str) -> bool:
+    """Return True when a free-text entity value is supported by the user message."""
+    src = (source_message or "").casefold()
+    val = (value or "").casefold().strip()
+    if not val or not src:
+        return False
+    if val in src:
+        return True
+    words = [word for word in re.findall(r"[a-z0-9]+", val) if len(word) > 2]
+    if not words:
+        return False
+    return all(word in src for word in words)
+
+
 @handle_errors("extracting planner entity fields", default_return={})
-def _extract_entities_from_fields(fields: dict[str, str]) -> dict[str, Any]:
+def _extract_entities_from_fields(
+    fields: dict[str, str],
+    *,
+    source_message: str = "",
+) -> dict[str, Any]:
     """Map planner entity keys to handler entity names."""
     reserved = {
         "INTENT",
@@ -503,6 +573,10 @@ def _extract_entities_from_fields(fields: dict[str, str]) -> dict[str, Any]:
         if key in reserved or not value:
             continue
         entity_key = _ENTITY_KEY_ALIASES.get(key, key.lower())
+        if entity_key in _GROUNDED_ENTITY_KEYS and not _entity_value_grounded_in_message(
+            value, source_message
+        ):
+            continue
         entities[entity_key] = value
     return entities
 

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-15 06:13:31
+> **Last Generated**: 2026-07-15 19:46:46
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 258
-- **Total Imports**: 2187
+- **Total Imports**: 2186
 - **Standard Library**: 648 (29.6%)
 - **Third-Party**: 217 (9.9%)
-- **Local Imports**: 1322 (60.4%)
+- **Local Imports**: 1321 (60.4%)
 
 ## Dependency Decision Trees
 
@@ -84,7 +84,7 @@ UI modules rely on core configuration and data access.
 ### Communication -> Communication
 Communication modules compose other communication utilities for complete flows.
 - `ai/__init__.py` -> ai.chat.chatbot, ai.client.cache_manager, ai.prompts.action_catalog
-- `ai/chat/action_planner.py` -> ai.context.service, ai.prompts.action_catalog, ai.prompts.command_interpreter
+- `ai/chat/action_planner.py` -> ai.prompts.action_catalog, ai.client.lm_studio_client, ai.prompts.command_interpreter
 
 ### Third-Party Integration
 External libraries provide channel and UI support.

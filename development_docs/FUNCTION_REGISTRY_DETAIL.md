@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-15 06:13:12
+> **Last Generated**: 2026-07-15 19:46:30
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,15 +16,15 @@
 
 ### **Function Documentation Coverage: 89.8% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 260
-- **Functions Found**: 2481
+- **Functions Found**: 2483
 - **Methods Found**: 1362
 - **Classes Found**: 254
-- **Total Items**: 3843
-- **Functions Documented**: 2200
+- **Total Items**: 3845
+- **Functions Documented**: 2202
 - **Methods Documented**: 1250
 - **Classes Documented**: 183
-- **Total Documented**: 3450
-- **Template-Generated**: 48
+- **Total Documented**: 3452
+- **Template-Generated**: 46
 - **Last Updated**: 2026-07-15
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
@@ -73,17 +73,21 @@ Test functions and testing utilities.
 
 #### `ai/chat/action_planner.py`
 **Functions:**
-- [OK] `__init__(self)` - Special Python method
 - [OK] `_build_action_request_from_fields(fields)` - Validate one action block and return a request or downgrade plan.
 - [OK] `_build_execute_plan(planner_output)` - Build an execute_action plan or downgrade to clarify/answer_only.
+- [OK] `_entity_value_grounded_in_message(value, source_message)` - Return True when a free-text entity value is supported by the user message.
 - [OK] `_extract_entities_from_fields(fields)` - Map planner entity keys to handler entity names.
 - [OK] `_normalize_action_name(raw_action)` - Normalize canonical action names from planner output.
 - [OK] `_normalize_intent(raw_intent)` - Normalize planner intent labels.
 - [OK] `_parse_confidence(raw_confidence)` - Parse a confidence score from planner output.
 - [OK] `_parse_key_value_fields(text)` - Parse INTENT/ACTION/entity key-value lines from planner output.
 - [OK] `_parse_plan_structure(text)` - Parse shared planner fields and ordered per-action blocks.
+- [OK] `_trim_planner_output(planner_output)` - Drop common local-model trailing junk after the first plan block.
 - [OK] `answer_only_plan(source_message)` - Return a safe answer-only plan.
-- [OK] `build_planning_messages(self, user_id, user_message)` - Build LM Studio messages for action planning.
+- [OK] `build_planning_messages(self, user_id, user_message)` - Build compact LM Studio messages for action planning.
+
+``user_id`` is accepted by callers but unused today. Full context envelopes
+are intentionally omitted so local models with ~2k context can run planning.
 - [OK] `clarify_plan(source_message, question)` - Return a clarification plan with one user-facing question.
 - [OK] `get_action_planner()` - Return the shared action planner.
 - [OK] `parse_action_plan_from_text(planner_output)` - Parse model planner output into a validated AIActionPlan.
@@ -91,8 +95,10 @@ Test functions and testing utilities.
 - [OK] `plan_from_text(self, planner_output)` - Parse planner output text into an action plan (test and replay helper).
 **Classes:**
 - [OK] `ActionPlanner` - Plan product-AI responses and optional app actions from user messages.
-  - [OK] `ActionPlanner.__init__(self)` - Special Python method
-  - [OK] `ActionPlanner.build_planning_messages(self, user_id, user_message)` - Build LM Studio messages for action planning.
+  - [OK] `ActionPlanner.build_planning_messages(self, user_id, user_message)` - Build compact LM Studio messages for action planning.
+
+``user_id`` is accepted by callers but unused today. Full context envelopes
+are intentionally omitted so local models with ~2k context can run planning.
   - [OK] `ActionPlanner.plan_from_message(self, user_message)` - Call the model (when available) and parse an action plan.
   - [OK] `ActionPlanner.plan_from_text(self, planner_output)` - Parse planner output text into an action plan (test and replay helper).
 
@@ -685,11 +691,21 @@ Check-in analytics and envelope summaries are handled before generic keyword sup
 - [OK] `required_fields(self)` - Return entity field names required before this action can execute.
 - [OK] `to_dict(self)` - Return a JSON-serializable representation for context envelopes.
 - [OK] `to_dict(self)` - Return a JSON-serializable catalog representation.
+- [OK] `to_planning_prompt_summary(self)` - Return a short action-name list for local-model planning prompts.
+
+Names only (comma-separated). Common task/check-in/profile actions are
+listed first so small models are less biased by alphabetical order.
+Required-field checks happen in the planner parser.
 - [OK] `to_prompt_summary(self)` - Return compact action metadata for model prompts.
 **Classes:**
 - [OK] `AIActionCatalog` - Collection of product-AI actions indexed by canonical action name.
   - [OK] `AIActionCatalog.get(self, action_name)` - Return a catalog action by canonical action name.
   - [OK] `AIActionCatalog.to_dict(self)` - Return a JSON-serializable catalog representation.
+  - [OK] `AIActionCatalog.to_planning_prompt_summary(self)` - Return a short action-name list for local-model planning prompts.
+
+Names only (comma-separated). Common task/check-in/profile actions are
+listed first so small models are less biased by alphabetical order.
+Required-field checks happen in the planner parser.
   - [OK] `AIActionCatalog.to_prompt_summary(self)` - Return compact action metadata for model prompts.
 - [OK] `AIActionDefinition` - Catalog entry for one product action routed through existing command handlers.
   - [OK] `AIActionDefinition.required_fields(self)` - Return entity field names required before this action can execute.

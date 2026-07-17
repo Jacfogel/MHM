@@ -4,7 +4,7 @@
 > **Audience**: Developers and AI collaborators working on MHM's product AI behavior
 > **Purpose**: Refactor product AI around rich user context, prompt categories, and AI-driven action execution
 > **Scope**: Product AI only. Excludes Codex/development-agent instructions and generated development-tool priority docs.
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-15
 
 ## 1. Direction
 
@@ -47,7 +47,7 @@ Product AI response behavior is currently influenced by:
 
 ### 3.0 Current implementation status
 
-Foundation slices (9.1–9.3) are complete. Planner and executor modules exist behind `AI_ACTION_PLANNER_ENABLED` (default off). Slice 9.4 LM Studio quality gate is complete (65 pass / 3 partial / 0 fail, 2026-07-10); remaining slice 9.4 work is optional template parity and flipping the planner default after review.
+Foundation slices (9.1–9.3) and active slice 9.4 are complete. Planner and executor modules are wired with hybrid rule-parser-first routing; `AI_ACTION_PLANNER_ENABLED` defaults to on (2026-07-15). Slice 9.4 LM Studio quality gate remains 65 pass / 3 partial / 0 fail (2026-07-10); remaining partials are non-blocking.
 
 Completed:
 
@@ -58,17 +58,19 @@ Completed:
 - `ai/prompts/action_catalog.py` provides metadata for live parser intents without importing communication handlers or executing actions.
 - `ai/prompts/flows.py` names the major product-AI flows and records category ownership for chat, action interpretation, action-result response, and fallback response.
 - Product-AI prompt categories consolidated to four files under `resources/prompts/product_ai/` (`persona`, `reply_rules`, `data_honesty`, `action_boundaries`) plus runtime `available_actions` injection. Removed `CONVERSATIONAL_CONTEXT_INSTRUCTIONS` and duplicate stacking of `assistant_system_prompt.txt` in chat assembly.
+- Action-planner prompts are compact (short format template + `AIActionCatalog.to_planning_prompt_summary()`) and call LM Studio directly; they no longer stack chat categories, `command.txt`, or a full context envelope (2026-07-15).
 
-Still not implemented:
+Still open (non-blocking polish):
 
-- `AI_ACTION_PLANNER_ENABLED` remains default off until slice 9.4 item 8 review (`true` only after explicit sign-off). Slice 9.4 LM Studio gate is met: live run 2026-07-10 65 pass / 3 partial / 0 fail (`tests/ai/run_ai_functionality_tests.py`). Targeted fixes landed for T-1.2 (trim), T-14.2 (follow-up coherence), T-16.2 (honest wellness no-data). Remaining partials (non-blocking for planner default): T-7.1 session fact recall, T-9.3 creative prompt matching, T-11.2 cache isolation by mode.
+- LM Studio partials from the 2026-07-10 gate: T-7.1 session fact recall, T-9.3 creative prompt matching, T-11.2 cache isolation by mode.
+- Account-linking intents remain out of the live rule-based parser registry (Phase 3 deferred).
 
 **Routing policy (decided 2026-07-10): hybrid rule-parser-first with planner fallback**
 
 1. **High-confidence structured parse** (`confidence >= min_command_confidence`, default 0.3): route directly to `dispatch_structured_command`; planner is not invoked even when enabled.
 2. **Low-confidence message** with planner enabled: invoke `ActionPlanner` → `ActionPlanExecutor` (answer-only, clarify, or execute-action).
 3. **Planner returns None** on low-confidence path: retry partial structured parse when intent is usable (`_try_partial_structured_command`), then contextual chat.
-4. **Planner disabled** (default): low-confidence messages go straight to contextual chat.
+4. **Planner disabled** (`AI_ACTION_PLANNER_ENABLED=false`): low-confidence messages go straight to contextual chat.
 
 Rationale: rule-based parsing is fast, deterministic, and does not require LM Studio for clear commands; the planner adds value on ambiguous messages without replacing the authoritative parser for high-confidence intents. Planner-first is rejected (unnecessary LM Studio load on every message). Pure rule-parser-only is rejected (misses ambiguous action requests).
 
@@ -264,7 +266,7 @@ Existing `get_prompt("wellness")` and `get_prompt("command")` can delegate to th
 - [ ] Account-linking intents remain out of scope until they appear in the rule-based parser registry.
 - Keep the command parser's live intent list as a source until the catalog fully replaces it.
 
-### Phase 4 - AI action planning **IN PROGRESS (2026-07-10)**
+### Phase 4 - AI action planning **COMPLETED (2026-07-15)**
 
 - [x] Add action-planner module (`ai/chat/action_planner.py`) producing `AIActionPlan`.
 - [x] Support three outputs: answer only, clarify, execute action.
@@ -275,10 +277,10 @@ Existing `get_prompt("wellness")` and `get_prompt("command")` can delegate to th
 - [x] Parity behavior tests: rule-parser vs planner paths produce equivalent outcomes for shared intents (`tests/behavior/test_action_planner_routing.py`).
 - [x] Full task-intent parity for live parser mutations/reads: `create_task`, `list_tasks`, `complete_task`, `update_task`, `delete_task`, `append_note_to_task`, `task_stats`, `uncomplete_task`.
 - [x] Non-task parity for check-ins, profile, and schedules: `checkin_status`, `start_checkin`, `checkin_history`, `show_profile`, `update_profile`, `profile_stats`, `show_schedule`, `schedule_status`.
-- [ ] Optional task parity for template/hub intents (`create_task_from_template`, `list_task_templates`, `show_create_hub`).
-- [ ] Enable `AI_ACTION_PLANNER_ENABLED` by default after slice 9.4 item 8 review (LM Studio gate met 2026-07-10: 65/3/0; default remains off until explicit sign-off).
+- [x] Template/hub task-intent parity: `create_task_from_template`, `list_task_templates`, `show_create_hub`.
+- [x] Enable `AI_ACTION_PLANNER_ENABLED` by default (`true` in `core/config.py` / `.env.example`, 2026-07-15).
 
-### Phase 5 - Action execution and result-aware response **PARTIAL**
+### Phase 5 - Action execution and result-aware response **COMPLETED**
 
 - [x] Add action-executor module (`communication/message_processing/action_plan_executor.py`).
 - [x] Convert action requests to `ParsedCommand` in the communication/action-execution layer and call `dispatch_structured_command`.
@@ -289,12 +291,12 @@ Existing `get_prompt("wellness")` and `get_prompt("command")` can delegate to th
 - [x] Planner emits multiple actions per plan (repeating `ACTION:` blocks; shared defaults; per-action field validation with clarify downgrade).
 - [x] Result-aware response for all executed actions on the planner path (per-action rewrite for multi-action plans; independent of rule-parser `enable_ai_enhancement`).
 
-### Phase 6 - Context-aware final response
+### Phase 6 - Context-aware final response **COMPLETED**
 
-- Split final response generation from action planning.
-- For answer-only requests, generate from `AIContextEnvelope` and selected prompt sections.
-- For executed actions, generate from action result metadata plus updated context.
-- For clarification, ask one specific question based on missing fields.
+- [x] Split final response generation from action planning.
+- [x] For answer-only requests, generate from `AIContextEnvelope` and selected prompt sections.
+- [x] For executed actions, generate from action result metadata plus updated context.
+- [x] For clarification, ask one specific question based on missing fields.
 - [x] Remove `enhance_conversational_engagement()` so follow-up behavior is prompt-owned (`reply_rules.txt`).
 - [x] Honest wellness-status replies when check-in/mood data is absent (`ai/chat/wellness_status.py`): pre-route in `generate_contextual_response`, post-process `reinforce_wellness_honesty_if_needed`; prompt guidance in `data_honesty.txt`.
 - [x] Follow-up conversation alignment for topic continuity (`ai/chat/conversation_coherence.py`): `align_response_to_conversation_topic` via `_finalize_contextual_response` on every contextual path (LM, cache, and fallback).
@@ -430,22 +432,38 @@ After prompt cleanup was stable:
 1. [x] Add tests proving task actions route through the communication/action-execution layer into `dispatch_structured_command`.
 2. [x] Add narrow conversion from `AIActionRequest` to `ParsedCommand`.
 3. [x] Capture structured execution metadata for final response generation.
-4. [x] Only then add AI action planner/executor behavior (planner + executor modules; runtime wiring behind `AI_ACTION_PLANNER_ENABLED`, default off).
+4. [x] Only then add AI action planner/executor behavior (planner + executor modules; runtime wiring behind `AI_ACTION_PLANNER_ENABLED`, now default on).
 
-### 9.4 Active slice - Phases 4–6 (planner routing, execution, result-aware response)
-
-**Current focus** after foundation (9.1), prompt cleanup (9.2), and action-routing proof (9.3). Items 1-7 complete; item 8 (planner default) pending sign-off.
+### 9.4 Completed slice - Phases 4–6 (planner routing, execution, result-aware response) **COMPLETE (2026-07-15)**
 
 1. [x] Document hybrid routing policy (rule-parser-first; planner on low-confidence when enabled).
-2. [x] Add parity behavior tests for all core task intents across rule-parser and planner paths (8 intents; 23 tests total in file).
+2. [x] Add parity behavior tests for all core task intents across rule-parser and planner paths (8 intents).
 3. [x] Extend parity tests to non-task domains (check-ins, profile, schedules; 8 intents).
 4. [x] Multi-action plan execution in `ActionPlanExecutor`.
 5. [x] Planner multi-action output parsing (`ai/chat/action_planner.py` repeating `ACTION:` blocks).
 6. [x] Result-aware responses for all executed actions on the planner path (per-action; not gated on `enable_ai_enhancement`).
 7. [x] Fix remaining LM Studio quality gaps before enabling planner by default: live run 2026-07-10 **65 pass / 3 partial / 0 fail** (`tests/ai/results/ai_functionality_test_results_latest.md`). Fixed T-1.2 (capability trim), T-14.2 ([`ai/chat/conversation_coherence.py`](chat/conversation_coherence.py) + `_finalize_contextual_response`), T-16.2 ([`ai/chat/wellness_status.py`](chat/wellness_status.py)), T-13.5 (false CRUD), T-15.2 (persona echo). Remaining partials T-7.1, T-9.3, T-11.2 documented as non-blocking.
-8. [ ] Flip `AI_ACTION_PLANNER_ENABLED` default to `true` after explicit sign-off (LM Studio gate complete; items 1-7 done).
+8. [x] Flip `AI_ACTION_PLANNER_ENABLED` default to `true` (2026-07-15) and add template/hub parity (`create_task_from_template`, `list_task_templates`, `show_create_hub`).
 
 ## 10. Implementation Log
+
+### 2026-07-15 - Enable planner by default + template/hub parity
+
+Completed:
+
+- Flipped `AI_ACTION_PLANNER_ENABLED` default to `true` in [`core/config.py`](../core/config.py), `.env.example`, and [`CONFIGURATION_REFERENCE.md`](../CONFIGURATION_REFERENCE.md).
+- Added rule-parser vs planner parity tests for `create_task_from_template`, `list_task_templates`, and `show_create_hub` in [`tests/behavior/test_action_planner_routing.py`](../tests/behavior/test_action_planner_routing.py).
+- Marked Phase 4 / Phase 5 / Phase 6 / slice 9.4 COMPLETE.
+
+### 2026-07-15 - Compact action-planning prompt for local models
+
+Completed:
+
+- Replaced the planner's stacked `compose_product_prompt("action_interpretation")` + `command.txt` + full envelope assembly with a short ACTION-first `_PLANNING_SYSTEM_TEMPLATE` in [`ai/chat/action_planner.py`](chat/action_planner.py).
+- Added [`AIActionCatalog.to_planning_prompt_summary()`](prompts/action_catalog.py) (comma-separated names; common task/check-in/profile actions first).
+- `plan_from_message` calls `call_lm_studio_api` with those messages (no `generate_response(mode="command")` rebuild / 2048-token overflow).
+- Free-text entities must be grounded in the user message (blocks few-shot title leakage).
+- Unit coverage in [`tests/unit/test_ai_action_planner.py`](../tests/unit/test_ai_action_planner.py) and [`tests/unit/test_ai_action_catalog.py`](../tests/unit/test_ai_action_catalog.py).
 
 ### 2026-07-01 - Canonical context envelope slice
 

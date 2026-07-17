@@ -1022,3 +1022,89 @@ def test_schedule_status_parity_rule_parser_vs_planner(test_data_dir, planner_en
         enable_tasks=False,
         enable_checkins=False,
     )
+
+
+@pytest.mark.tasks
+def test_create_task_from_template_parity_rule_parser_vs_planner(
+    test_data_dir, planner_enabled
+):
+    """create_task_from_template creates the same titled task on both paths."""
+    task_title = "Call dentist"
+    message = "task template phone_call Call dentist"
+    entities = {"template_ref": "phone_call", "title": task_title}
+
+    def assert_parity(rule_user, planner_user, rule_response, planner_response):
+        assert rule_response is not None
+        assert planner_response is not None
+        rule_titles = [task.get("title") for task in load_active_tasks(rule_user)]
+        planner_titles = [task.get("title") for task in load_active_tasks(planner_user)]
+        assert task_title in rule_titles
+        assert task_title in planner_titles
+
+    _run_task_intent_parity(
+        test_data_dir,
+        planner_enabled,
+        rule_user="parity-tpl-create-rule",
+        planner_user="parity-tpl-create-planner",
+        message=message,
+        intent="create_task_from_template",
+        entities=entities,
+        seed_user=lambda _user_id: None,
+        assert_parity=assert_parity,
+    )
+
+
+@pytest.mark.tasks
+def test_list_task_templates_parity_rule_parser_vs_planner(
+    test_data_dir, planner_enabled
+):
+    """list_task_templates returns the same built-in template names on both paths."""
+    message = "list task templates"
+    entities: dict = {}
+
+    def assert_parity(rule_user, planner_user, rule_response, planner_response):
+        del rule_user, planner_user
+        for response in (rule_response, planner_response):
+            lowered = response.message.lower()
+            assert "medication" in lowered
+            assert "paperwork" in lowered
+            assert "phone_call" in lowered or "phone call" in lowered
+
+    _run_task_intent_parity(
+        test_data_dir,
+        planner_enabled,
+        rule_user="parity-tpl-list-rule",
+        planner_user="parity-tpl-list-planner",
+        message=message,
+        intent="list_task_templates",
+        entities=entities,
+        seed_user=lambda _user_id: None,
+        assert_parity=assert_parity,
+    )
+
+
+@pytest.mark.tasks
+def test_show_create_hub_parity_rule_parser_vs_planner(test_data_dir, planner_enabled):
+    """show_create_hub returns the create-hub view markers on both paths."""
+    message = "create"
+    entities: dict = {}
+
+    def assert_parity(rule_user, planner_user, rule_response, planner_response):
+        del rule_user, planner_user
+        for response in (rule_response, planner_response):
+            assert response.completed
+            assert response.rich_data
+            assert response.rich_data.get("interaction_view") == "create_hub"
+            assert "template" in response.message.lower()
+
+    _run_task_intent_parity(
+        test_data_dir,
+        planner_enabled,
+        rule_user="parity-create-hub-rule",
+        planner_user="parity-create-hub-planner",
+        message=message,
+        intent="show_create_hub",
+        entities=entities,
+        seed_user=lambda _user_id: None,
+        assert_parity=assert_parity,
+    )
