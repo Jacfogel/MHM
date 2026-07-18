@@ -222,10 +222,16 @@ def _validate_unique_script_basenames() -> None:
     """
     Guard: if two tools ever share the same script basename (e.g. two different
     `foo.py` paths), filename-based lookups become ambiguous.
+
+    Tools in ``_SCRIPT_REGISTRY_EXCLUDE`` are skipped (logical/service tools that
+    intentionally share an implementation path, e.g. generate_dev_tools_coverage).
     """
+    from development_tools.shared.tool_metadata import _SCRIPT_REGISTRY_EXCLUDE
 
     basenames: dict[str, list[str]] = {}
     for info in iter_tools():
+        if info.name in _SCRIPT_REGISTRY_EXCLUDE:
+            continue
         if not info.path.endswith(".py"):
             continue
         basename = Path(info.path).name

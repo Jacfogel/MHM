@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-15 19:46:31
+> **Last Generated**: 2026-07-18 01:40:42
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 258
-- **Total Imports Found**: 2186
+- **Total Imports Found**: 2187
 - **Dependencies Documented**: 258 (100% coverage)
 - **Standard Library Imports**: 648 (29.6%)
 - **Third-Party Imports**: 217 (9.9%)
-- **Local Imports**: 1321 (60.4%)
-- **Last Updated**: 2026-07-15
+- **Local Imports**: 1322 (60.4%)
+- **Last Updated**: 2026-07-18
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -31,7 +31,7 @@
 
 - **Standard Library**: 648 imports (29.6%)
 - **Third-Party**: 217 imports (9.9%)
-- **Local**: 1321 imports (60.4%)
+- **Local**: 1322 imports (60.4%)
 
 ## Module Dependencies by Directory
 
@@ -342,7 +342,7 @@
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.logger
-- Removed: ai/chat/chatbot.py, ai/client/__init__.py
+- Removed: ai/chat/action_planner.py, ai/chat/chatbot.py, ai/client/__init__.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -428,6 +428,7 @@
     - `ai.prompts.manager (MINIMAL_CHAT_SYSTEM_PROMPT, get_prompt_manager)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `tasks.task_data_handlers (runtime_task_due_date)` (NEW)
+    - `user.context_manager (user_context_manager)` (NEW)
   - **Standard Library**:
     - `typing (Any)`
 - **Used by**:
@@ -438,7 +439,7 @@
   - `communication/message_processing/response_enhancer.py`
 
 **Dependency Changes**:
-- Added: ai.context.analytics, ai.context.phraser, ai.context.service, ai.prompts.flows, ai.prompts.manager, core.error_handling, tasks.task_data_handlers
+- Added: ai.context.analytics, ai.context.phraser, ai.context.service, ai.prompts.flows, ai.prompts.manager, core.error_handling, tasks.task_data_handlers, user.context_manager
 - Removed: ai/__init__.py, ai/chat/response_generator.py, ai/context/__init__.py, communication/message_processing/action_plan_executor.py, communication/message_processing/response_enhancer.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -554,7 +555,7 @@
 
 **Dependency Changes**:
 - Added: ai.context.phraser, ai.prompts.action_catalog, checkins.checkin_service, core, core.error_handling, core.health_context_builder, core.response_tracking, core.schedule_utilities, core.time_format_constants, core.time_utilities, messages.message_data_manager, notebook, scheduler.user_timezone, tasks
-- Removed: ai/__init__.py, ai/chat/action_planner.py, ai/context/__init__.py, ai/context/assembly.py, ai/context/chatbot_context.py, ai/fallback/context.py, ai/fallback/coordinator.py, ai/prompts/command_interpreter.py
+- Removed: ai/__init__.py, ai/context/__init__.py, ai/context/assembly.py, ai/context/chatbot_context.py, ai/fallback/context.py, ai/fallback/coordinator.py, ai/prompts/command_interpreter.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -939,7 +940,7 @@
 
 **Dependency Changes**:
 - Added: ai.prompts.command_registry, ai.prompts.flows, core.config, core.error_handling, core.logger
-- Removed: ai/__init__.py, ai/chat/action_planner.py, ai/chat/chatbot.py, ai/chat/response_generator.py, ai/context/assembly.py, ai/prompts/__init__.py, ai/prompts/command_interpreter.py
+- Removed: ai/__init__.py, ai/chat/chatbot.py, ai/chat/response_generator.py, ai/context/assembly.py, ai/prompts/__init__.py, ai/prompts/command_interpreter.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6721,10 +6722,11 @@
     - `typing (Any)`
 - **Used by**:
   - `ai/chat/chatbot.py`
+  - `ai/context/assembly.py`
 
 **Dependency Changes**:
 - Added: ai.context.chatbot_context, core.error_handling, core.logger, core.time_utilities
-- Removed: ai/chat/chatbot.py
+- Removed: ai/chat/chatbot.py, ai/context/assembly.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

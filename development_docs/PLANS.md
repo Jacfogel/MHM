@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for active, delegated, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-07-17  
+> **Last Updated**: 2026-07-18  
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) and prior changelog entries remain the historical record.
 
@@ -34,6 +34,8 @@ Do **not** use this file as a dumping ground for long implementation checklists.
 | Task-system roadmap | [TASKS_PLAN.md](TASKS_PLAN.md) |
 | Notebook roadmap | [NOTES_PLAN.md](NOTES_PLAN.md) |
 | AI/dev-tools roadmap | [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) |
+| Dev-tools list/config canonical sources | [LIST_OF_LISTS.md](LIST_OF_LISTS.md) (arrays, mappings, enumerated sets - not planning ownership) |
+| Product/runtime list canonical sources | [PRODUCT_LIST_OF_LISTS.md](PRODUCT_LIST_OF_LISTS.md) (commands, prompts, categories, channels) |
 | Current audit status | [AI_STATUS.md](../development_tools/AI_STATUS.md) |
 | Generated priority queue | [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) |
 | Detailed session history | [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) and [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) |

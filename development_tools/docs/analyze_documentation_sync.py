@@ -45,6 +45,54 @@ else:
 
 logger = get_dev_tools_logger("development_tools")
 
+# Human-readable paired-doc summary lives in DOCUMENTATION_GUIDE §4.1; config is canonical.
+_DOCUMENTATION_GUIDE_REL = "DOCUMENTATION_GUIDE.md"
+_PAIRED_SUMMARY_START = re.compile(
+    r"^#{2,3}\s+4\.1\.\s+Paired documentation files",
+    re.MULTILINE | re.IGNORECASE,
+)
+_PAIRED_SUMMARY_END = re.compile(r"^#{2,3}\s+4\.2\.", re.MULTILINE)
+_PAIRED_BULLET_AND = re.compile(
+    r"^\s*-\s+(.+?)\s+and\s+(.+?)\s*$",
+    re.IGNORECASE,
+)
+
+
+def parse_documentation_guide_paired_summary(content: str) -> list[tuple[str, str]]:
+    """Parse DOCUMENTATION_GUIDE §4.1 human-readable paired-doc bullets.
+
+    Accepts single-line ``- human and ai`` bullets and two-line continuations
+    where the AI path is on the following indented line.
+    """
+    start = _PAIRED_SUMMARY_START.search(content)
+    if not start:
+        return []
+    end = _PAIRED_SUMMARY_END.search(content, start.end())
+    section = content[start.end() : end.start() if end else len(content)]
+    lines = section.splitlines()
+    pairs: list[tuple[str, str]] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i].rstrip()
+        match = _PAIRED_BULLET_AND.match(line)
+        if match:
+            human = match.group(1).strip().strip("`")
+            ai = match.group(2).strip().strip("`")
+            if human and ai:
+                pairs.append((human, ai))
+            i += 1
+            continue
+        bullet = re.match(r"^\s*-\s+(.+?)\s+and\s*$", line, re.IGNORECASE)
+        if bullet and i + 1 < len(lines):
+            human = bullet.group(1).strip().strip("`")
+            nxt = lines[i + 1].strip().strip("`")
+            if human and nxt and not nxt.startswith("-"):
+                pairs.append((human, nxt))
+                i += 2
+                continue
+        i += 1
+    return pairs
+
 
 def _resolve_example_marker_scan_paths(paired_docs: dict[str, str]) -> list[str]:
     """Paths to scan for example markers: config-derived DEFAULT_DOCS, else paired-doc keys."""
@@ -133,13 +181,62 @@ class DocumentationSyncChecker:
 
         return issues
 
+    def check_paired_docs_list_drift(self) -> dict[str, list[str]]:
+        """Compare DOCUMENTATION_GUIDE §4.1 prose list to config ``PAIRED_DOCS``.
+
+        Config is canonical. Prose drift is reported so the human-readable summary
+        cannot silently diverge (first slice of generic list-sync).
+        """
+        issues: dict[str, list[str]] = defaultdict(list)
+        guide_path = self.project_root / _DOCUMENTATION_GUIDE_REL
+        if not guide_path.is_file():
+            issues["paired_doc_list_drift"].append(
+                f"Missing {_DOCUMENTATION_GUIDE_REL}; cannot validate Section 4.1 summary"
+            )
+            return issues
+
+        try:
+            content = guide_path.read_text(encoding="utf-8")
+        except OSError as exc:
+            issues["paired_doc_list_drift"].append(
+                f"Unable to read {_DOCUMENTATION_GUIDE_REL}: {exc}"
+            )
+            return issues
+
+        prose_pairs = parse_documentation_guide_paired_summary(content)
+        if not prose_pairs:
+            issues["paired_doc_list_drift"].append(
+                "Section 4.1 paired-doc summary bullets not found or empty"
+            )
+            return issues
+
+        config_pairs = {
+            (str(human).replace("\\", "/"), str(ai).replace("\\", "/"))
+            for human, ai in self.paired_docs.items()
+        }
+        prose_set = {
+            (human.replace("\\", "/"), ai.replace("\\", "/")) for human, ai in prose_pairs
+        }
+
+        missing_in_prose = sorted(config_pairs - prose_set)
+        stale_in_prose = sorted(prose_set - config_pairs)
+        for human, ai in missing_in_prose:
+            issues["paired_doc_list_drift"].append(
+                f"In config but missing from DOCUMENTATION_GUIDE Section 4.1: {human} -> {ai}"
+            )
+        for human, ai in stale_in_prose:
+            issues["paired_doc_list_drift"].append(
+                f"In DOCUMENTATION_GUIDE Section 4.1 but not in config: {human} -> {ai}"
+            )
+        return issues
+
     def run_checks(self) -> dict[str, Any]:
         """
         Run paired documentation synchronization checks and return results in standard format.
 
         Note: Other documentation checks (path drift, ASCII compliance, etc.)
-        have been decomposed into separate tools. This method only checks
-        paired documentation consistency.
+        have been decomposed into separate tools. This method checks paired
+        documentation consistency and DOCUMENTATION_GUIDE Section 4.1 list drift.
 
         Returns:
             Dictionary with standard format: 'summary', and 'details' keys
@@ -148,6 +245,10 @@ class DocumentationSyncChecker:
             logger.debug("Analyzing documentation synchronization...")
 
         paired_docs = self.check_paired_documentation()
+        list_drift = self.check_paired_docs_list_drift()
+        for key, values in list_drift.items():
+            if values:
+                paired_docs[key].extend(values)
 
         total_issues = sum(len(issues) for issues in paired_docs.values())
         status = "PASS" if total_issues == 0 else "FAIL"

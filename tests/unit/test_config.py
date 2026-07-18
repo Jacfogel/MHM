@@ -258,33 +258,33 @@ class TestConfigConstants:
         """Test BASE_DATA_DIR default value.
 
         In xdist/full-suite runs, environment state may differ from the moment
-        `core.config` was imported. Accept both canonical defaults:
+        `core.config` was imported. Accept:
         - normal runtime: `data`
         - test runtime: absolute `tests/data`
+        - xdist workers: absolute `tests/data/xdist_<worker>`
         """
         normalized = BASE_DATA_DIR.replace("\\", "/")
-        acceptable = {
-            "data",
-            os.path.abspath("tests/data").replace("\\", "/"),
-        }
-        assert normalized in acceptable
+        tests_data_abs = os.path.abspath("tests/data").replace("\\", "/")
+        assert normalized == "data" or normalized == tests_data_abs or (
+            normalized.startswith(tests_data_abs + "/xdist_")
+        )
     
     @pytest.mark.unit
     @pytest.mark.smoke
     def test_user_info_dir_path_default(self):
         """Test USER_INFO_DIR_PATH default value."""
-        # Handle both relative and absolute paths
-        if os.getenv('MHM_TESTING') == '1':
-            base_dir = os.path.abspath('tests/data')
-        else:
-            base_dir = 'data'
-        expected_relative = os.path.join(base_dir, 'users')
-        normalized_path = USER_INFO_DIR_PATH.replace('\\', '/')
-        # Accept default relative ('data/users') or absolute tests path under MHM_TESTING
-        acceptable_suffix = 'data/users'
+        normalized_path = USER_INFO_DIR_PATH.replace("\\", "/")
+        tests_users_abs = os.path.abspath(
+            os.path.join("tests", "data", "users")
+        ).replace("\\", "/")
+        tests_data_abs = os.path.abspath("tests/data").replace("\\", "/")
         assert (
-            normalized_path == acceptable_suffix
-            or normalized_path.endswith(expected_relative.replace('\\', '/'))
+            normalized_path == "data/users"
+            or normalized_path == tests_users_abs
+            or (
+                normalized_path.startswith(tests_data_abs + "/xdist_")
+                and normalized_path.endswith("/users")
+            )
         )
     
     @pytest.mark.unit

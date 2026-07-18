@@ -224,6 +224,15 @@ _TOOLS: dict[str, ToolInfo] = {
         trust="stable",
         description="Runs pytest coverage and manages coverage artifacts.",
     ),
+    # Logical tool (service method run_dev_tools_coverage); implementation lives in run_test_coverage.py.
+    # Not a standalone CLI script — excluded from get_script_registry().
+    "generate_dev_tools_coverage": ToolInfo(
+        name="generate_dev_tools_coverage",
+        path="development_tools/tests/run_test_coverage.py",
+        tier="core",
+        trust="stable",
+        description="Runs pytest coverage scoped to development_tools (dev-tools coverage slice).",
+    ),
     "run_test_suite": ToolInfo(
         name="run_test_suite",
         path="development_tools/tests/run_test_suite.py",
@@ -591,6 +600,13 @@ CACHE_AWARE_TOOLS: frozenset[str] = frozenset({
 })
 
 
+# Tool names that are catalogued in _TOOLS but are not standalone scripts for run_script().
+_SCRIPT_REGISTRY_EXCLUDE: frozenset[str] = frozenset({
+    "run_development_tools",
+    "generate_dev_tools_coverage",  # service method; shares path with run_test_coverage
+})
+
+
 def get_script_registry() -> dict[str, str]:
     """
     Build script name -> path (relative to development_tools/) for run_script().
@@ -599,7 +615,7 @@ def get_script_registry() -> dict[str, str]:
     prefix = "development_tools/"
     result: dict[str, str] = {}
     for name, info in _TOOLS.items():
-        if name == "run_development_tools":
+        if name in _SCRIPT_REGISTRY_EXCLUDE:
             continue
         path = info.path
         if path.startswith(prefix) and path.endswith(".py"):

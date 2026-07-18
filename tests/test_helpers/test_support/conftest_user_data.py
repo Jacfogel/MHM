@@ -40,7 +40,7 @@ def _write_profile_v2_envelope(path: str, document_type: str, inner: dict | list
 
 @pytest.fixture(scope="session")
 def test_data_dir():
-    """Provide the repository-scoped test data directory for all tests."""
+    """Provide the process-scoped test data directory (worker-isolated under xdist)."""
     test_logger.info(f"Using test data directory: {tests_data_dir}")
     return str(tests_data_dir)
 

@@ -619,7 +619,10 @@ class CommandsMixin:
             return False
     
     def run_dev_tools_coverage(self) -> dict:
-        """Run coverage analysis specifically for development_tools directory."""
+        """Run coverage analysis specifically for development_tools directory.
+
+        Storage / cache tool name is ``generate_dev_tools_coverage`` (see tool_metadata._TOOLS).
+        """
         logger.debug("Generating dev tools coverage (development_tools/tests)...")
         dev_tools_coverage_file = self.project_root / "development_tools" / "tests" / "jsons" / "coverage_dev_tools.json"
         dev_tools_patterns = [

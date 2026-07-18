@@ -111,6 +111,64 @@ Different name.
         assert 'missing_ai_doc.md' in issues['missing_ai_docs']
 
 
+class TestPairedDocsListDrift:
+    """DOCUMENTATION_GUIDE Section 4.1 prose vs config PAIRED_DOCS."""
+
+    @pytest.mark.unit
+    def test_parse_documentation_guide_paired_summary_single_and_wrapped(self):
+        parse = checker_module.parse_documentation_guide_paired_summary
+        content = """## 4.1. Paired documentation files (canonical list)
+
+**Paired documentation (human-readable summary):**
+
+-   ARCHITECTURE.md and ai_development_docs/AI_ARCHITECTURE.md
+-   DEVELOPMENT_WORKFLOW.md and
+    ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md
+
+## 4.2. Synchronization workflow (practical)
+"""
+        assert parse(content) == [
+            ("ARCHITECTURE.md", "ai_development_docs/AI_ARCHITECTURE.md"),
+            ("DEVELOPMENT_WORKFLOW.md", "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"),
+        ]
+
+    @pytest.mark.unit
+    def test_check_paired_docs_list_drift_matches_config(self, temp_docs_dir):
+        guide = temp_docs_dir / "DOCUMENTATION_GUIDE.md"
+        guide.write_text(
+            """## 4.1. Paired documentation files (canonical list)
+
+-   human_doc.md and ai_doc.md
+
+## 4.2. Next
+""",
+            encoding="utf-8",
+        )
+        checker = DocumentationSyncChecker(str(temp_docs_dir))
+        checker.paired_docs = {"human_doc.md": "ai_doc.md"}
+        issues = checker.check_paired_docs_list_drift()
+        assert not issues.get("paired_doc_list_drift")
+
+    @pytest.mark.unit
+    def test_check_paired_docs_list_drift_detects_mismatch(self, temp_docs_dir):
+        guide = temp_docs_dir / "DOCUMENTATION_GUIDE.md"
+        guide.write_text(
+            """## 4.1. Paired documentation files (canonical list)
+
+-   human_doc.md and stale_ai.md
+
+## 4.2. Next
+""",
+            encoding="utf-8",
+        )
+        checker = DocumentationSyncChecker(str(temp_docs_dir))
+        checker.paired_docs = {"human_doc.md": "ai_doc.md"}
+        issues = checker.check_paired_docs_list_drift()
+        drift = issues.get("paired_doc_list_drift", [])
+        assert any("missing from DOCUMENTATION_GUIDE" in item for item in drift)
+        assert any("not in config" in item for item in drift)
+
+
 class TestPathDrift:
     """Test path drift detection."""
     

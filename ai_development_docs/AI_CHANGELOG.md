@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-18 - LIST_OF_LISTS currency and SSOT path alignment **COMPLETED**
+- LIST_OF_LISTS verified against live code; fixed duplicate `legacy_cleanup` JSON key; PLANS Section 2 + cursor rules inventory path aligned to `config/jsons/`.
+- Catalog drift fixed: `EXPECTED_TOOLS` uses `analyze_system_signals`; `generate_dev_tools_coverage` catalogued in `_TOOLS`; subset policy test added; tool_guide basename guard skips script-registry excludes.
+- Cleared AI_PRIORITIES doc-sync items: path drift, ASCII, registry regen; `doc-sync` PASS.
+- LIST_OF_LISTS Section 7c documents cache/suite/static-analysis/backup policy lists.
+- Deferred SSOT closed: audit_tiers group maps, paired-docs prose sync in doc-sync, COMMAND_GROUPS guide parity test, PRODUCT_LIST_OF_LISTS.md.
+- Parallel-track flake fix: xdist worker-isolated `tests/data/xdist_*`; force-overwrite inherited `TEST_DATA_DIR`; actionability tests bind runtime data dir; `is_automated_messages_enabled` resolves usernames; audit_tiers TypedDict clears Pyright warnings.
+
 ### 2026-07-17 - Session fact recall; archive completed product-AI plan **COMPLETED**
 - Contextual prompts merge session + disk conversation history and label prior user turns clearly; cache skipped when prior turns exist.
 - `conversation_coherence` reinforces stated facts (favorite color/name/food) when follow-ups omit them; `reply_rules.txt` updated.
@@ -168,22 +176,6 @@ Verified:
 - **Fix (nightly CI)**: Added Ubuntu Qt/X11 system packages to `.github/workflows/nightly-tests.yml` for headless PySide6 UI tests; nightly runs use `--no-domain-cache` on GitHub Actions and `run_test_suite` now keeps subprocess stdout small when writing `--output-file`.
 - **Fix (parallel flake)**: `test_user_with_all_features` now waits for preferences to flush, aligns schedule categories, and retries schedule saves (matching `TestUserFactory.create_user_with_schedules`); schedule day names use schema-valid capitalization. Schedule assertions normalize v2 `categories` wrappers via `_schedule_categories_from_loaded()`.
 - **Context DRY**: Extracted `_assemble_product_flow_messages()` and `_phrase_recent_sent_messages()` to deduplicate assembly/phraser helpers flagged by duplicate-function analysis.
-
-### 2026-06-30 - Tier 3 quick tests + nightly full suite **COMPLETED**
-- Tier 3 `audit --full` runs **quick** pytest profile (`not slow`) via `run_test_suite --profile quick`.
-- New `nightly-test-suite` command runs **full** profile (includes slow tests); GitHub Actions nightly workflow added.
-- Suite cache is profile-aware (`last_suite_profile`); config adds `test_run.profiles` quick/full.
-- **Fix**: `NameError` on `strict` in `_run_test_suite_profile` crashed audits after pytest; command doc/group parity for `nightly-test-suite`.
-- **Fix (`personalized` category)**: [`channel_orchestrator.py`](../communication/core/channel_orchestrator.py) now calls `generate_personalized_message()` instead of `generate_contextual_response()` - avoids generic chat fallback when LM Studio context overflows.
-- **Fix (personalized truncation + duplicate test sends)**: Explicit `mode="personalized"` in [`chatbot.py`](../ai/chat/chatbot.py) - prompt word "message" no longer triggers command mode (60-token cutoff). Admin test button disables while sending.
-- **Fix (model format leaks + UI guard)**: Strip `## INPUT` / `## OUTPUT` training markers from AI output; stop sequences on personalized calls. Initialize `_test_message_in_flight` in UI `__init__` (was broken by `__getattr__` delegation).
-- **Fix (duplicate test sends + Google Health context)**: UI now polls up to ~60s for AI test messages. Personalized messages include coarse Google Health signals via `build_personalized_wellness_context()` with fallback to the latest synced signal when today's sync is missing.
-- **Fix (UI freeze + health priority)**: Test-message wait runs on a background `QThread` (no main-window freeze). When Google Health confidence is medium/high, stale check-ins are omitted from the personalized prompt.
-- **Fix (identical test personalized messages)**: Admin test sends pass `skip_ai_cache=True` so `generate_personalized_message()` bypasses the 5-minute response cache and requests fresh wording each time.
-- **Fix (placeholder sign-offs)**: Personalized prompts forbid letter-style closings; `strip_letter_signoffs()` removes trailing `Take care, [Your Name]` and similar leaks.
-- **Fix (multi-draft model output)**: `keep_first_personalized_block()` keeps only the first greeting block when LM Studio returns several complete messages in one reply.
-- **Audit hygiene**: Pyright warning on `_StubService.nightly_result`; ASCII doc-fix + doc-sync; function registry regen (`docs`); removed unused `get_recent_responses` import; `@handle_errors` + docstrings on `_TestMessageRequestWorker`; `test_add/remove_schedule_period` marked `no_parallel` (xdist schedules cache flake).
-- Docs updated across paired testing and dev-tools guides.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

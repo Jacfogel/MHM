@@ -40,9 +40,10 @@ def is_ai_generated_message_category(category: str) -> bool:
 @handle_errors("checking if automated messages enabled", default_return=False)
 def is_automated_messages_enabled(user_id: str) -> bool:
     """Check if automated outbound messages are enabled for a user."""
-    from core import get_user_data
+    from core import get_user_data, get_user_id_by_identifier
 
-    user_data_result = get_user_data(user_id, "account")
+    resolved_id = get_user_id_by_identifier(user_id) or user_id
+    user_data_result = get_user_data(resolved_id, "account")
     user_account = user_data_result.get("account")
     if not user_account:
         return False

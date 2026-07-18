@@ -34,7 +34,7 @@ EXPECTED_TOOLS = {
     # Tier 1
     "analyze_functions": "functions",
     "analyze_documentation_sync": "docs",
-    "system_signals": "reports",
+    "analyze_system_signals": "reports",
     "quick_status": "reports",
     # Tier 2
     "analyze_documentation": "docs",

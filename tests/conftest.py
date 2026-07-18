@@ -340,8 +340,17 @@ os.environ["LOG_SCHEDULER_FILE"] = consolidated_log_placeholder
 # accidental writes to system directories like /tmp or the real data
 # directory. The environment variable must be set before importing
 # core.config so that BASE_DATA_DIR resolves correctly.
-tests_data_dir = (Path(__file__).parent / "data").resolve()
-tests_data_dir.mkdir(exist_ok=True)
+#
+# pytest-xdist workers share one machine but must not share one on-disk
+# user store: fixed usernames and user_index.json collide across workers.
+# PYTEST_XDIST_WORKER is set in each worker process before conftest loads.
+_tests_data_root = (Path(__file__).parent / "data").resolve()
+_xdist_worker = os.environ.get("PYTEST_XDIST_WORKER")
+if _xdist_worker:
+    tests_data_dir = (_tests_data_root / f"xdist_{_xdist_worker}").resolve()
+else:
+    tests_data_dir = _tests_data_root
+tests_data_dir.mkdir(parents=True, exist_ok=True)
 (tests_data_dir / "users").mkdir(parents=True, exist_ok=True)
 tests_data_tmp_dir = tests_data_dir / "tmp"
 tests_data_tmp_dir.mkdir(parents=True, exist_ok=True)
@@ -352,15 +361,16 @@ pytest_plugins = ["tests.test_helpers.test_support.conftest_env", "tests.test_he
 # Keep pytest runtime temp/cache under a dedicated root that cleanup fixtures do not purge.
 tests_pytest_runtime_tmp_dir = tests_data_dir / "tmp_pytest_runtime"
 tests_pytest_runtime_tmp_dir.mkdir(parents=True, exist_ok=True)
-os.environ["TEST_DATA_DIR"] = os.environ.get("TEST_DATA_DIR", str(tests_data_dir))
-# Also set BASE_DATA_DIR for any code that reads it directly
+# Always overwrite: the xdist controller may already have TEST_DATA_DIR=tests/data
+# in the inherited environment; workers must use their isolated store.
+os.environ["TEST_DATA_DIR"] = str(tests_data_dir)
 os.environ["BASE_DATA_DIR"] = str(tests_data_dir)
 # Keep pytest temp/cache helper artifacts under tests/data/tmp when possible.
 os.environ.setdefault("PYTEST_DEBUG_TEMPROOT", str(tests_pytest_runtime_tmp_dir))
 os.environ.setdefault(
     "PYTEST_CACHE_DIR", str(tests_pytest_runtime_tmp_dir / "pytest_cache")
 )
-# Route service flags to tests/data/flags in test mode
+# Route service flags under the process-scoped test data dir
 flags_dir = tests_data_dir / "flags"
 flags_dir.mkdir(parents=True, exist_ok=True)
 os.environ["MHM_FLAGS_DIR"] = str(flags_dir)

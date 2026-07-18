@@ -124,10 +124,14 @@ def test_show_tool_guide_default_lists_overview(monkeypatch, capsys):
 
 @pytest.mark.unit
 def test_tool_metadata_script_basenames_are_unique():
+    """Script-registry tools must have unique .py basenames (logical tools may share a path)."""
     metadata_module = load_development_tools_module("shared.tool_metadata")
+    exclude = getattr(metadata_module, "_SCRIPT_REGISTRY_EXCLUDE", frozenset())
     basenames: dict[str, set[str]] = {}
 
     for info in metadata_module.iter_tools():
+        if info.name in exclude:
+            continue
         if not info.path.endswith(".py"):
             continue
         basename = Path(info.path).name

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-07-15 19:46:30
+> **Last Generated**: 2026-07-18 01:40:41
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.8% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 260
-- **Functions Found**: 2483
+- **Functions Found**: 2488
 - **Methods Found**: 1362
 - **Classes Found**: 254
-- **Total Items**: 3845
-- **Functions Documented**: 2202
+- **Total Items**: 3850
+- **Functions Documented**: 2207
 - **Methods Documented**: 1250
 - **Classes Documented**: 183
-- **Total Documented**: 3452
+- **Total Documented**: 3457
 - **Template-Generated**: 46
-- **Last Updated**: 2026-07-15
+- **Last Updated**: 2026-07-18
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -196,8 +196,12 @@ Uses adaptive timeout to prevent blocking for too long with improved performance
 
 #### `ai/chat/conversation_coherence.py`
 **Functions:**
-- [OK] `align_response_to_conversation_topic(user_prompt, response, conversation_history)` - Tie follow-up answers back to a topic the user raised in recent turns.
+- [OK] `align_response_to_conversation_topic(user_prompt, response, conversation_history)` - Tie follow-up answers back to a topic or fact the user raised recently.
+- [OK] `detect_fact_follow_up_keys(user_prompt)` - Return fact keys the current user prompt is asking about.
 - [OK] `extract_recent_user_topics(conversation_history)` - Infer coarse topics from recent user messages.
+- [OK] `extract_stated_conversation_facts(conversation_history)` - Extract explicit personal facts the user stated in recent turns.
+- [OK] `reinforce_stated_facts_if_needed(user_prompt, response, conversation_history)` - If the user asks about a fact they already stated and the reply omits it,
+answer with the stated fact instead of a vague or forgetful reply.
 
 #### `ai/chat/interaction_types.py`
 **Functions:**
@@ -335,7 +339,7 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 **Functions:**
 - [OK] `_append_activity_and_mood_trends_from_envelope(parts, structured)` - Append activity counts and mood trend summaries from envelope data.
 - [OK] `_append_checkin_summary_from_envelope(parts, structured)` - Append check-in summary text from envelope check-in data.
-- [OK] `_append_conversation_history_from_envelope(parts, structured)` - Append recent conversation history from envelope data.
+- [OK] `_append_conversation_history_from_envelope(parts, structured)` - Append recent conversation history, including in-memory session turns.
 - [OK] `_append_feature_enablement_from_envelope(parts, structured)` - Append feature availability lines from envelope sections.
 - [OK] `_append_health_guidance_from_envelope(parts, structured)` - Append safe health guidance from envelope health data.
 - [OK] `_append_recent_sent_messages_from_envelope(parts, structured)` - Append recent automated message context from envelope message data.
@@ -344,7 +348,9 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `_append_task_reminder_from_messages(parts, recent_sent_all)` - Append task-reminder context from recent sent messages.
 - [OK] `_append_today_checkin_status_from_envelope(parts, structured, user_id)` - Append today's check-in completion status from envelope data.
 - [OK] `_assemble_product_flow_messages(flow_name, user_id, user_prompt)` - Shared builder for product-AI flow message arrays.
+- [OK] `_merge_conversation_history_for_prompt(structured, user_id)` - Merge disk-backed envelope history with in-memory session exchanges.
 - [OK] `_profile_context_from_envelope(envelope)` - Build the profile/context dict expected by existing phrasing helpers.
+- [OK] `_session_conversation_history(user_id)` - Load in-memory session exchanges for prompt merging.
 - [OK] `assemble_action_result_messages(user_id, user_prompt, result_metadata)` - Build system + user messages for result-aware response generation.
 - [OK] `assemble_comprehensive_messages(user_id, user_prompt)` - Build system + user messages for comprehensive conversational generation.
 - [OK] `build_context_parts(user_id, envelope)` - Assemble natural-language context lines for the system prompt.

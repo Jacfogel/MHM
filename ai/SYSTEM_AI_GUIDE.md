@@ -68,7 +68,7 @@ At a high level:
 1. A message arrives from a channel (e.g., Discord, Email) and enters `InteractionManager.handle_message`.
 2. **Hybrid routing (rule-parser-first):**
    - High-confidence structured parse (`confidence >= min_command_confidence`, default 0.3): dispatch via `dispatch_structured_command` (planner is not invoked).
-   - Low-confidence message with `AI_ACTION_PLANNER_ENABLED=true` (default on): `ActionPlanner` → `ActionPlanExecutor` (answer-only, clarify, or execute-action through existing handlers).
+   - Low-confidence message with `AI_ACTION_PLANNER_ENABLED=true` (default on): `ActionPlanner` -> `ActionPlanExecutor` (answer-only, clarify, or execute-action through existing handlers).
    - Planner returns `None`: retry partial structured parse when usable, then contextual chat.
    - Planner disabled: low-confidence messages go straight to contextual chat.
 3. When a free-form AI reply is needed, code calls into `AIChatBotSingleton.generate_response` or `generate_contextual_response`.
@@ -298,7 +298,7 @@ Command parsing remains separate in `resources/prompts/command.txt` (ACTION form
 
 `resources/prompts/assistant_system_prompt.txt` is a comment-only override stub when `AI_USE_CUSTOM_PROMPT` is enabled; canonical persona text is `product_ai/persona.txt`.
 
-When you adjust conversational behavior, edit the category file for that concern. Do not reintroduce duplicated rules in `chatbot.py`, fallback copy, or post-processing (post-processing cleans leaks/format only, plus narrow coherence/fact reinforcement).
+When you adjust conversational behavior, edit the category file for that concern. Do not reintroduce duplicated rules in `ai/chat/chatbot.py`, fallback copy, or post-processing (post-processing cleans leaks/format only, plus narrow coherence/fact reinforcement).
 
 ### 5.2. LM Studio integration
 

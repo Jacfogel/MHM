@@ -243,6 +243,43 @@ def test_command_doc_parity_policy():
     )
 
 
+def _extract_guide_commands_by_group(doc_path: Path) -> dict[str, set[str]]:
+    """Parse DEVELOPMENT_TOOLS_GUIDE Core/Supporting/Experimental command bullets."""
+    command_name_pattern = re.compile(r"^[a-z][a-z0-9-]*$")
+    group_header = re.compile(
+        r"^\*\*(Core Commands|Supporting Commands|Experimental Commands)\*\*"
+    )
+    # Match "- `cmd`" and "[EXAMPLE] - `cmd`"
+    bullet = re.compile(r"^(?:\[EXAMPLE\]\s*)?-\s*`([^`]+)`")
+    current: str | None = None
+    found: dict[str, set[str]] = {
+        "Core Commands": set(),
+        "Supporting Commands": set(),
+        "Experimental Commands": set(),
+    }
+    for line in doc_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        stripped = line.strip()
+        header = group_header.match(stripped)
+        if header:
+            current = header.group(1)
+            continue
+        if current is None:
+            continue
+        if stripped.startswith("**") and "Commands" not in stripped:
+            current = None
+            continue
+        if stripped.startswith("### "):
+            current = None
+            continue
+        match = bullet.match(stripped)
+        if not match:
+            continue
+        token = match.group(1).split()[0]
+        if command_name_pattern.match(token):
+            found[current].add(token)
+    return found
+
+
 @pytest.mark.unit
 def test_command_group_parity_policy():
     cli_module = load_development_tools_module("shared.cli_interface")
@@ -265,6 +302,63 @@ def test_command_group_parity_policy():
         "Active non-alias commands missing from command groups: "
         + ", ".join(missing_from_groups)
     )
+
+
+@pytest.mark.unit
+def test_command_groups_match_development_tools_guide_sections():
+    """Human guide Core/Supporting/Experimental sections track COMMAND_GROUPS."""
+    project_root = Path(__file__).resolve().parents[2]
+    cli_module = load_development_tools_module("shared.cli_interface")
+    metadata_module = load_development_tools_module("shared.tool_metadata")
+    guide_groups = _extract_guide_commands_by_group(
+        project_root / "development_tools" / "DEVELOPMENT_TOOLS_GUIDE.md"
+    )
+    # Aliases may appear in guide prose without living in COMMAND_GROUPS.
+    guide_aliases_ok = {"full-audit", "clean-up"}
+    registry = set(cli_module.COMMAND_REGISTRY.keys())
+
+    for group_name, meta in metadata_module.get_command_groups().items():
+        expected = set(meta.get("commands", []))
+        section_tokens = guide_groups.get(group_name, set())
+        # Require every COMMAND_GROUPS entry to appear in that guide section.
+        missing = sorted(expected - section_tokens)
+        assert not missing, (
+            f"{group_name}: COMMAND_GROUPS commands missing from guide section: "
+            + ", ".join(missing)
+        )
+        # Flag registry commands that appear in the wrong group section.
+        wrong_group = sorted(
+            (section_tokens & registry) - expected - guide_aliases_ok
+        )
+        assert not wrong_group, (
+            f"{group_name}: guide section lists commands from another group: "
+            + ", ".join(wrong_group)
+        )
+
+
+@pytest.mark.unit
+def test_storage_and_cache_tool_names_subset_of_catalog():
+    """EXPECTED_TOOLS and CACHE_AWARE_TOOLS keys must be catalogued in _TOOLS."""
+    metadata_module = load_development_tools_module("shared.tool_metadata")
+    storage_module = load_development_tools_module("shared.verify_tool_storage")
+
+    catalog = set(metadata_module._TOOLS.keys())
+    expected = set(storage_module.EXPECTED_TOOLS.keys())
+    cache_aware = set(metadata_module.CACHE_AWARE_TOOLS)
+
+    missing_expected = sorted(expected - catalog)
+    missing_cache = sorted(cache_aware - catalog)
+    assert not missing_expected, (
+        "EXPECTED_TOOLS keys missing from tool_metadata._TOOLS: "
+        + ", ".join(missing_expected)
+    )
+    assert not missing_cache, (
+        "CACHE_AWARE_TOOLS names missing from tool_metadata._TOOLS: "
+        + ", ".join(missing_cache)
+    )
+    # Logical tools may share a script path but must not enter SCRIPT_REGISTRY.
+    script_registry = metadata_module.get_script_registry()
+    assert "generate_dev_tools_coverage" not in script_registry
 
 
 @pytest.mark.unit

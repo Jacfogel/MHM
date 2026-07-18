@@ -331,7 +331,11 @@ def test_finalize_tier3_audit_scope_full_repo_replaces_cache_only_precheck_dev_t
 @pytest.mark.unit
 def test_get_tier3_groups_runs_test_suite_and_keeps_coverage_out():
     """Tier 3 schedules pytest without coverage for both audit scopes."""
-    from development_tools.shared.audit_tiers import get_tier3_groups
+    from development_tools.shared.audit_tiers import (
+        TIER3_ORCHESTRATION_OMIT,
+        TIER3_TOOL_NAMES,
+        get_tier3_groups,
+    )
 
     svc = MagicMock()
     svc.dev_tools_only_mode = False
@@ -342,6 +346,9 @@ def test_get_tier3_groups_runs_test_suite_and_keeps_coverage_out():
     static_names = [n for n, _ in static]
     assert "verify_process_cleanup" not in static_names
     assert [n for n, _ in post_test] == ["verify_process_cleanup"]
+    scheduled = {n for n, _ in tests + legacy + static + post_test}
+    assert scheduled | set(TIER3_ORCHESTRATION_OMIT) == set(TIER3_TOOL_NAMES)
+    assert "analyze_test_markers" in TIER3_ORCHESTRATION_OMIT
 
     svc.dev_tools_only_mode = True
     tests_dt, legacy, static, post_test_dt = get_tier3_groups(svc)
