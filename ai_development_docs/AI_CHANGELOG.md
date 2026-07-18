@@ -30,6 +30,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-17 - Session fact recall; archive completed product-AI plan **COMPLETED**
+- Contextual prompts merge session + disk conversation history and label prior user turns clearly; cache skipped when prior turns exist.
+- `conversation_coherence` reinforces stated facts (favorite color/name/food) when follow-ups omit them; `reply_rules.txt` updated.
+- Durable routing/prompt contracts recorded in `ai/SYSTEM_AI_GUIDE.md`; completed plan moved to `archive/PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md`.
+- Live AI suite: 66 pass / 2 partial / 0 fail (T-7.1 PASS).
+
 ### 2026-07-15 - Compact planner prompt; planner default on; template/hub parity **COMPLETED**
 - Planner prompt is a short ACTION-first template + compact action list; calls LM Studio directly; free-text entities must appear in the user message.
 - `AI_ACTION_PLANNER_ENABLED` defaults to `true`; template/hub parity added for `create_task_from_template`, `list_task_templates`, `show_create_hub`.
@@ -58,7 +64,7 @@ Guidelines:
 - Unit tests in `test_wellness_status.py`, `test_context_analytics_shared_source.py`, and `test_health_context_builder.py`.
 
 ### 2026-07-10 - Phase 0 reconciliation and planner routing parity **COMPLETE (slice 9.4 LM Studio gate)**
-- Reconciled [`PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md`](../ai/PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md): Phase 0 COMPLETE; slice 9.4 items 1-7 COMPLETE (LM Studio gate met).
+- Reconciled [`PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md`](../archive/PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md): Phase 0 COMPLETE; slice 9.4 items 1-7 COMPLETE (LM Studio gate met).
 - Documented hybrid routing policy: rule-parser-first for high-confidence structured commands; planner on low-confidence when `AI_ACTION_PLANNER_ENABLED=true` (default remains off).
 - Added full core task-intent parity behavior tests (8 intents) and non-task parity (check-ins, profile, schedules; 8 intents) in [`test_action_planner_routing.py`](../tests/behavior/test_action_planner_routing.py); 23 tests pass via `_run_intent_parity` / `_run_task_intent_parity`.
 - Fixed profile update persistence in [`profile_service.py`](../user/profile_service.py): `update_user_context`/`update_user_account` plus UUID resolution for internal usernames (was silently failing via legacy `save_user_data` 3-arg call).
@@ -178,14 +184,6 @@ Verified:
 - **Fix (multi-draft model output)**: `keep_first_personalized_block()` keeps only the first greeting block when LM Studio returns several complete messages in one reply.
 - **Audit hygiene**: Pyright warning on `_StubService.nightly_result`; ASCII doc-fix + doc-sync; function registry regen (`docs`); removed unused `get_recent_responses` import; `@handle_errors` + docstrings on `_TestMessageRequestWorker`; `test_add/remove_schedule_period` marked `no_parallel` (xdist schedules cache flake).
 - Docs updated across paired testing and dev-tools guides.
-
-### 2026-06-29 - Faster default test runs **COMPLETED**
-- `pytest.ini`: quiet defaults (removed always-on `--verbose`, disabled `log_cli`; consolidated file logs unchanged).
-- `run_tests.py`: `--quick` iteration profile; parallel runs use `--dist=loadscope` and up to 6 auto workers; default `-q` unless `--verbose`.
-- Slow tests: scope `build_user_index` / `get_all_user_summaries` to fixture users (fixes ~150s+ scan of shared `tests/data/users`).
-- Parallel isolation: ~35 tests refactored off `no_parallel` (account handler, user management, user creation, utilities demo) via UUID users and locked index helpers. **Batch 2** (~29): `test_account_lifecycle.py` (9), `test_account_management_real_behavior.py` (6), `test_user_data_manager.py` (14) - scoped rebuild patches, `test_path_factory` backup dirs, `_resolve_test_user_id` helper. **Batch 3**: `test_user_creation.py` integration tests drop full index rebuilds; parser behavior tests mock `AIChatBotSingleton.generate_response` except `@pytest.mark.ai`. Follow-up: `test_user_creation.py` parallel flake fixes (`_read_channel_type`, schedules via `update_user_schedules`).
-- Tier 3 audit: `run_test_suite.py` aligned with runner settings; 4-worker cap during audit to reduce contention with parallel static analysis.
-- Docs: paired testing guides updated with `--quick`, loadscope, and Tier 3 scope notes.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

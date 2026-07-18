@@ -828,7 +828,10 @@ class AIChatBotSingleton:
             user_id, user_prompt
         )
 
-        if not self._is_data_analysis_question(user_prompt):
+        # Skip contextual cache when prior turns exist so follow-ups can use
+        # session facts instead of a stale single-turn reply.
+        has_prior_turns = bool(context.get("conversation_history"))
+        if not has_prior_turns and not self._is_data_analysis_question(user_prompt):
             cached_response = self.response_cache.get(
                 user_prompt, user_id, prompt_type="contextual"
             )

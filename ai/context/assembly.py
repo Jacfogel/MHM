@@ -42,7 +42,7 @@ def build_context_parts(
     _append_checkin_summary_from_envelope(parts, structured)
     _append_health_guidance_from_envelope(parts, structured)
     _append_activity_and_mood_trends_from_envelope(parts, structured)
-    _append_conversation_history_from_envelope(parts, structured)
+    _append_conversation_history_from_envelope(parts, structured, user_id=user_id)
     _append_today_checkin_status_from_envelope(parts, structured, user_id)
 
     recent_sent_all = _append_recent_sent_messages_from_envelope(parts, structured)
@@ -262,21 +262,59 @@ def _append_activity_and_mood_trends_from_envelope(
         )
 
 
+@handle_errors("loading session conversation history for prompts", default_return=[])
+def _session_conversation_history(user_id: str) -> list[dict[str, Any]]:
+    """Load in-memory session exchanges for prompt merging."""
+    from user.context_manager import user_context_manager
+
+    return list(user_context_manager.get_session_conversation_history(user_id) or [])
+
+
+@handle_errors("merging conversation history for prompts", default_return=[])
+def _merge_conversation_history_for_prompt(
+    structured: dict[str, Any], user_id: str
+) -> list[dict[str, Any]]:
+    """Merge disk-backed envelope history with in-memory session exchanges."""
+    history = list(
+        (structured.get("conversation") or {}).get("recent_chat_interactions") or []
+    )
+    session_history = _session_conversation_history(user_id)
+    if not session_history:
+        return history
+
+    seen: set[tuple[str, str]] = set()
+    merged: list[dict[str, Any]] = []
+    for exchange in list(history) + list(session_history):
+        user_msg = str(exchange.get("user_message") or "").strip()
+        ai_msg = str(
+            exchange.get("ai_response") or exchange.get("assistant_message") or ""
+        ).strip()
+        key = (user_msg.lower(), ai_msg.lower())
+        if not user_msg or key in seen:
+            continue
+        seen.add(key)
+        merged.append(exchange)
+    return merged
+
+
 @handle_errors("appending conversation history from AI envelope", default_return=None)
 def _append_conversation_history_from_envelope(
-    parts: list[str], structured: dict[str, Any]
+    parts: list[str], structured: dict[str, Any], *, user_id: str
 ) -> None:
-    """Append recent conversation history from envelope data."""
-    history = (structured.get("conversation") or {}).get("recent_chat_interactions") or []
+    """Append recent conversation history, including in-memory session turns."""
+    history = _merge_conversation_history_for_prompt(structured, user_id)
     if not history:
         return
-    parts.append("In recent conversations, they've talked about:")
-    for exchange in history[-3:]:
-        user_msg = str(exchange.get("user_message") or "")[:80]
-        if user_msg:
-            full_msg = str(exchange.get("user_message") or "")
-            suffix = "..." if len(full_msg) > 80 else ""
-            parts.append(f"  - {user_msg}{suffix}")
+    parts.append(
+        "Recent conversation (use facts the user already stated when they ask):"
+    )
+    for exchange in history[-5:]:
+        full_msg = str(exchange.get("user_message") or "").strip()
+        if not full_msg:
+            continue
+        clipped = full_msg[:120]
+        suffix = "..." if len(full_msg) > 120 else ""
+        parts.append(f'  - User said: "{clipped}{suffix}"')
 
 
 # not_duplicate: checkin_prompt_sections_share_guard_shape

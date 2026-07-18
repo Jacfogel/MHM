@@ -77,7 +77,6 @@ C:.
 |           nightly-tests.yml
 |
 +---ai
-|   |   PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md
 |   |   SYSTEM_AI_GUIDE.md
 |   |   __init__.py
 |   |

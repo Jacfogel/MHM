@@ -4,7 +4,7 @@
 > **Audience**: Developers and AI collaborators working on MHM's AI system
 > **Purpose**: Explain how the AI subsystem is structured, how it behaves at runtime, and how to extend it safely
 > **Style**: Technical, concise, system-level (hybrid of conceptual and concrete details)
-> **Last Updated**: 2026-07-08
+> **Last Updated**: 2026-07-17
 
 ## 1. Overview
 
@@ -31,7 +31,10 @@ The AI subsystem lives primarily under `ai/` (pipeline subpackages) and collabor
 | Path | Role |
 |---|---|
 | `ai/chat/chatbot.py` | Main AI chatbot logic (modes, LM Studio calls, caching, fallbacks). |
-| `ai/prompts/manager.py` | Loads prompts and composes product-AI category prompts. |
+| `ai/chat/action_planner.py` | Low-confidence action planning (`AIActionPlan`: answer-only, clarify, execute-action). |
+| `ai/prompts/manager.py` | Loads prompts and composes product-AI category prompts via `compose_product_prompt()`. |
+| `ai/prompts/action_catalog.py` | Metadata-only action catalog for prompts/planner (no handler imports or writes). |
+| `ai/prompts/flows.py` | Named product-AI flows and category ownership (`chat_response`, `action_interpretation`, `action_result_response`, `fallback_response`). |
 | `ai/client/cache_manager.py` | Response and context caching with TTL and LRU cleanup. |
 | `ai/context/service.py` | Canonical `AIContextEnvelope` for structured product-AI context. |
 | `ai/context/analytics.py` | Check-in metrics (`ContextAnalysis`, `analyze_checkin_entries`). |
@@ -44,6 +47,7 @@ The AI subsystem lives primarily under `ai/` (pipeline subpackages) and collabor
 | `ai/chat/response_generator.py` | Builds comprehensive conversational context prompts via `assemble_comprehensive_messages()`. |
 | `ai/prompts/command_registry.py` | Dynamic command intent list for the command system prompt (from rule-based parser patterns). |
 | `communication/message_processing/command_parser.py` | Enhanced command parser combining rule-based and AI parsing. |
+| `communication/message_processing/action_plan_executor.py` | Executes `AIActionPlan` through `dispatch_structured_command` and result-aware replies. |
 
 **Module ownership:** `ai/chat/chatbot.py` orchestrates LM Studio, locks, cache, and mode routing and calls `get_fallback_responses()`, `get_command_interpreter()`, and `get_response_generator()` directly. Channels import only `get_ai_chatbot()`; behavior tests that target module logic should use the canonical getters, not private chatbot delegates. See [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md) Section 8.1.
 Supporting modules:
@@ -61,17 +65,23 @@ Supporting modules:
 
 At a high level:
 
-1. A message arrives from a channel (e.g., Discord, Email).
-2. The communication layer may call the enhanced command parser (`EnhancedCommandParser.parse`) to interpret commands.
+1. A message arrives from a channel (e.g., Discord, Email) and enters `InteractionManager.handle_message`.
+2. **Hybrid routing (rule-parser-first):**
+   - High-confidence structured parse (`confidence >= min_command_confidence`, default 0.3): dispatch via `dispatch_structured_command` (planner is not invoked).
+   - Low-confidence message with `AI_ACTION_PLANNER_ENABLED=true` (default on): `ActionPlanner` → `ActionPlanExecutor` (answer-only, clarify, or execute-action through existing handlers).
+   - Planner returns `None`: retry partial structured parse when usable, then contextual chat.
+   - Planner disabled: low-confidence messages go straight to contextual chat.
 3. When a free-form AI reply is needed, code calls into `AIChatBotSingleton.generate_response` or `generate_contextual_response`.
 4. The chatbot:
    - Detects mode (chat vs command).
-   - Builds context via `build_ai_context_envelope()` (`ai/context/service.py`) and, for contextual chat summaries, `build_chatbot_context_dict()` (`ai/context/chatbot_context.py`).
-   - Builds a prompt via `PromptManager`.
+   - Builds context via `build_ai_context_envelope()` (`ai/context/service.py`) and, for contextual chat summaries, `build_chatbot_context_dict()` / session overlay (`user/context_manager.py`).
+   - Builds prompts via `PromptManager.compose_product_prompt()` plus envelope prompt sections (not duplicated behavioral rules in code).
    - Calls LM Studio (if available) with timeouts and error handling.
-   - Applies safety and cleaning rules.
-   - Caches appropriate responses via `ResponseCache`.
+   - Applies cleaning and coherence rules (including stated-fact recall on follow-ups).
+   - Caches appropriate responses via `ResponseCache` (skip contextual cache when prior session turns exist).
 5. The final response goes back through the communication layer to the user.
+
+Completed context/action overhaul history: [PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md](../archive/PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md).
 
 ---
 
@@ -270,22 +280,25 @@ Import paths use the subpackages above (`ai.chat.chatbot`, `ai.context.assembly`
 
 ## 5. Prompting and Model Interaction
 
-### 5.1. Prompt manager
+### 5.1. Prompt manager and product-AI categories
 
-The prompt layer in `ai/prompts/manager.py` is responsible for:
+**Rule:** Product AI flows choose categories; categories own prompt text; runtime services provide data and actions.
 
-- Loading the **system prompt** from `AI_SYSTEM_PROMPT_PATH` (by default `resources/prompts/assistant_system_prompt.txt`).
-- Respecting `AI_USE_CUSTOM_PROMPT` from `core/config.py` to enable/disable custom system prompts.
-- Providing `PromptTemplate` structures for different prompt types (for example, chat, command parsing).
+Canonical product-AI composition is `PromptManager.compose_product_prompt(flow_name)` using ownership from `ai/prompts/flows.py`. Category files live under `resources/prompts/product_ai/`:
 
-The system prompt encodes:
+| Category | File | Owns |
+|---|---|---|
+| `persona` | `persona.txt` | Personality, style, length defaults |
+| `reply_rules` | `reply_rules.txt` | Greetings, direct answers, follow-ups, stated-fact reuse |
+| `data_honesty` | `data_honesty.txt` | Context visibility, missing-data honesty |
+| `action_boundaries` | `action_boundaries.txt` | No false CRUD claims; safe offer language |
+| `available_actions` | (runtime) | Injected from `AIActionCatalog`, not a prompt file |
 
-- Safety rules (no self-harm assistance, no medical or legal advice beyond permitted scope, etc.).
-- Tone and style (supportive, concise, non-judgmental).
-- Rules about using context and avoiding vague references.
-- How to respond when context is missing or incomplete.
+Command parsing remains separate in `resources/prompts/command.txt` (ACTION format + live intent injection).
 
-When you adjust behavior, prefer editing the system prompt file and `PromptTemplate` definitions rather than hardcoding new rules in multiple places.
+`resources/prompts/assistant_system_prompt.txt` is a comment-only override stub when `AI_USE_CUSTOM_PROMPT` is enabled; canonical persona text is `product_ai/persona.txt`.
+
+When you adjust conversational behavior, edit the category file for that concern. Do not reintroduce duplicated rules in `chatbot.py`, fallback copy, or post-processing (post-processing cleans leaks/format only, plus narrow coherence/fact reinforcement).
 
 ### 5.2. LM Studio integration
 

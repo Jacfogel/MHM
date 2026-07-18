@@ -120,3 +120,30 @@ def test_assemble_comprehensive_messages_uses_chat_response_flow(monkeypatch):
             },
         )
     ]
+
+
+def test_build_context_parts_includes_session_stated_facts(monkeypatch):
+    monkeypatch.setattr(
+        "ai.context.assembly.append_current_datetime_context",
+        lambda parts, user_id: None,
+    )
+    monkeypatch.setattr(
+        "ai.context.assembly._session_conversation_history",
+        lambda user_id: [
+            {
+                "user_message": "My favorite color is blue",
+                "ai_response": "Nice choice!",
+            }
+        ],
+    )
+
+    envelope = _envelope()
+    envelope.sections["conversation"] = _section(
+        "conversation", {"recent_chat_interactions": []}
+    )
+    parts = build_context_parts("user-1", envelope=envelope)
+    joined = "\n".join(parts)
+
+    assert "Recent conversation" in joined
+    assert "My favorite color is blue" in joined
+    assert 'User said: "My favorite color is blue"' in joined

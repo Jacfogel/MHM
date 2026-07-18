@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for active, delegated, deferred, and completed MHM planning work  
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-05-21  
+> **Last Updated**: 2026-07-17  
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md), and [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) and prior changelog entries remain the historical record.
 
@@ -360,6 +360,7 @@ Keep details in changelogs, not here.
 | Email integration | **COMPLETED** | Cross-channel sync remains deferred. |
 | Testing strategy consolidation | **COMPLETED AS CONSOLIDATION** | Current testing roadmap lives in TEST_PLAN.md. |
 | System AI overhaul (interaction-type separation) | **COMPLETED** | Completed 2026-05-19; spec [SYSTEM_AI_OVERHAUL_PLAN.md](../archive/SYSTEM_AI_OVERHAUL_PLAN.md); follow-ups in Section 5.0.1. |
+| Product AI context/action refactor | **COMPLETED** | Completed 2026-07-17; archived [PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md](../archive/PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md); runtime contracts in [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md). |
 
 ---
 
