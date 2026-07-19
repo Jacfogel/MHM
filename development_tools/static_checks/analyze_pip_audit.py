@@ -42,8 +42,8 @@ def _build_unavailable_result(message: str) -> dict[str, Any]:
 
 
 def _pip_audit_skip_env_enabled() -> bool:
-    """CI/offline: skip network fetch when MHM_PIP_AUDIT_SKIP is truthy."""
-    val = os.environ.get("MHM_PIP_AUDIT_SKIP", "").strip().lower()
+    """CI/offline: skip network fetch when DEV_TOOLS_PIP_AUDIT_SKIP is truthy."""
+    val = os.environ.get("DEV_TOOLS_PIP_AUDIT_SKIP", "").strip().lower()
     return val in ("1", "true", "yes", "on")
 
 
@@ -59,7 +59,7 @@ def _build_skipped_by_env_result() -> dict[str, Any]:
             "pip_audit_execution_state": "skipped_env",
             "pip_audit_subprocess_seconds": 0.0,
             "message": (
-                "pip-audit skipped: MHM_PIP_AUDIT_SKIP is set (CI/offline policy; "
+                "pip-audit skipped: DEV_TOOLS_PIP_AUDIT_SKIP is set (CI/offline policy; "
                 "no vulnerability index fetch)."
             ),
             "vulnerable_packages": [],
@@ -180,7 +180,7 @@ def run_pip_audit(project_root: Path) -> dict[str, Any]:
     timeout_seconds = int(static_cfg.get("pip_audit_timeout_seconds", 600) or 600)
     extra_args = list(static_cfg.get("pip_audit_args", []))
     if "--cache-dir" not in extra_args:
-        cache_dir = Path(tempfile.gettempdir()) / "mhm-pip-audit-http-cache"
+        cache_dir = Path(tempfile.gettempdir()) / "dev-tools-pip-audit-http-cache"
         extra_args.extend(["--cache-dir", str(cache_dir)])
     if "--progress-spinner" not in extra_args:
         extra_args.extend(["--progress-spinner", "off"])

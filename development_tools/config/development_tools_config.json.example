@@ -1307,6 +1307,24 @@
       ["tests"]
     ],
     "bandit_shard_scan": true,
+    "bandit_scan_roots": [
+      "core",
+      "communication",
+      "ui",
+      "ai",
+      "user",
+      "tasks",
+      "notebook",
+      "scheduler",
+      "checkins",
+      "messages",
+      "storage",
+      "development_tools"
+    ],
+    "bandit_root_python": [
+      "run_tests.py",
+      "run_mhm.py"
+    ],
     "timeout_seconds": 600
   },
   "quick_status": {

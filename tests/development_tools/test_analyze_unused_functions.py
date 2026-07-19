@@ -100,10 +100,13 @@ def test_normalize_path_and_init_export(tmp_path: Path):
 
 @pytest.mark.unit
 @pytest.mark.development_tools
-def test_analyze_unused_functions_finds_uncalled_helper(tmp_path: Path, monkeypatch):
-    """Mini project: one called helper and one unused private helper."""
-    import development_tools.functions.analyze_unused_functions as unused_mod
+def test_analyze_unused_functions_finds_uncalled_helper(tmp_path: Path):
+    """Mini project: one called helper and one unused private helper.
 
+    Uses explicit project_root/scan_directories overrides so the assertion does not
+    depend on global config (empty ``paths.scan_directories`` from other tests
+    previously yielded zero files and an empty unused list under xdist).
+    """
     (tmp_path / "core").mkdir()
     (tmp_path / "core" / "__init__.py").write_text("", encoding="utf-8")
     (tmp_path / "core" / "mod.py").write_text(
@@ -123,18 +126,17 @@ def test_analyze_unused_functions_finds_uncalled_helper(tmp_path: Path, monkeypa
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(unused_mod.config, "get_project_root", lambda: str(tmp_path))
-    monkeypatch.setattr(unused_mod.config, "get_scan_directories", lambda: ["core"])
-    # Temp paths are often excluded by standard_exclusions; force-include for this unit test.
-    monkeypatch.setattr(unused_mod, "should_exclude_file", lambda *_a, **_k: False)
-
     result = analyze_unused_functions(
         include_tests=False,
         include_dev_tools=False,
         include_private_only=True,
         max_results=50,
+        project_root=tmp_path,
+        scan_directories=["core"],
+        apply_exclusions=False,
     )
     assert isinstance(result, dict)
+    assert result["details"]["total_files_scanned"] >= 1
     names = [u["name"] for u in result["details"]["unused_functions"]]
     assert "_never_called_unique_zzz" in names
     assert "used_helper" not in names

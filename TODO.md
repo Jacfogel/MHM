@@ -41,7 +41,7 @@ When adding new tasks, follow this format:
 
 **Development tools backlog (active follow-ups only, reviewed 2026-07-18)**
 - **Active**: B-002 next after slices #1-#3 - refresh metrics via `python development_tools/run_development_tools.py coverage` (audit does not regenerate coverage), then remaining brittle service branches (e.g. `_load_mtime_cached_tool_results`). B-001 residual module-scope done; legacy cleanup stays function-scoped.
-- **Residual / medium**: leftover portability assumptions (B-003); Pyright packaging parity B-004 (structural tests exist; diagnostic-count parity optional via `PYRIGHT_*_COUNT_MAX_DELTA`).
+- **Residual / medium**: B-003/B-004 done (external-repo smokes; nested owned `pyrightconfig.json` removed - Pyright SSOT is `pyproject.toml` `[tool.pyright]`).
 - **Maintenance / deferred**: domain markers shipped (B-005); Bandit/pip-audit integrated and clean (B-018 closed); optional external-tool expansion and gap tools remain deferred in V6.
 - **Opportunistic**: adopt `tests/development_tools/test_config.json` when touching analyzer tests.
 Detail: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).

@@ -24,6 +24,23 @@ GENERIC_MHM_DEFAULT_STRINGS = {
     "run_mhm.py",
     "core/config.py",
     "core/service.py",
+    "core/logger.py",
+    "core/error_handling.py",
+    "core/network_probe.py",
+    "core/time_utilities.py",
+}
+MHM_PACKAGE_ROOT_NAMES = {
+    "core",
+    "communication",
+    "ui",
+    "ai",
+    "user",
+    "tasks",
+    "notebook",
+    "scheduler",
+    "checkins",
+    "messages",
+    "storage",
 }
 
 
@@ -212,6 +229,28 @@ def test_generic_config_defaults_do_not_embed_mhm_project_files():
     flattened = {str(item) for values in generic_lists for item in values}
 
     assert not (flattened & GENERIC_MHM_DEFAULT_STRINGS)
+
+    static_defaults = getattr(config_module, "STATIC_ANALYSIS", {})
+    assert static_defaults.get("ruff_path_shards") == []
+    assert static_defaults.get("pyright_path_shards") == []
+    assert static_defaults.get("bandit_scan_roots") == []
+    assert static_defaults.get("bandit_root_python") == []
+
+    channel_defaults = getattr(
+        config_module, "STATIC_CHECK_CHANNEL_LOGGERS_DEFAULT", {}
+    )
+    allowlist = {
+        str(p) for p in channel_defaults.get("allowed_logging_import_paths", [])
+    }
+    assert not (allowlist & GENERIC_MHM_DEFAULT_STRINGS)
+
+    # Code defaults must not hardcode MHM first-party package roots as shards/roots.
+    shard_names = {
+        str(path)
+        for shard in static_defaults.get("ruff_path_shards", [])
+        for path in shard
+    }
+    assert not (shard_names & MHM_PACKAGE_ROOT_NAMES)
 
 
 @pytest.mark.unit

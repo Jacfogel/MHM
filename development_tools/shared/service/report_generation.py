@@ -385,7 +385,7 @@ class ReportGenerationMixin:
         if state == "requirements_lock_cache_hit":
             return " — reused cached pip-audit JSON (requirements unchanged)"
         if state == "skipped_env":
-            return " — pip-audit subprocess skipped (MHM_PIP_AUDIT_SKIP)"
+            return " — pip-audit subprocess skipped (DEV_TOOLS_PIP_AUDIT_SKIP)"
         return ""
 
     def _extract_file_issue_counts(self, tool_data: Any) -> dict[str, int]:

@@ -486,7 +486,7 @@ class CoverageMetricsRegenerator:
         candidates = [
             tests_data_root / "tmp_pytest_runtime" / "pytest_runner",
             tests_data_root / "tmp" / "pytest_runner",
-            Path(tempfile.gettempdir()) / "mhm_pytest_tmp",
+            Path(tempfile.gettempdir()) / "devtools_pytest_tmp",
         ]
         unique_id = f"{run_label}_{uuid.uuid4().hex[:8]}"
         last_error: Exception | None = None
@@ -494,7 +494,7 @@ class CoverageMetricsRegenerator:
         for root in candidates:
             try:
                 root.mkdir(parents=True, exist_ok=True)
-                pytest_temp_base = root / f"mhm_pytest_tmp_{unique_id}"
+                pytest_temp_base = root / f"devtools_pytest_tmp_{unique_id}"
                 pytest_temp_base.mkdir(parents=True, exist_ok=True)
                 pytest_cache_dir = pytest_temp_base / ".pytest_cache"
                 pytest_cache_dir.mkdir(parents=True, exist_ok=True)

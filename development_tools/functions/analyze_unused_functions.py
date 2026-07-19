@@ -368,9 +368,16 @@ def _collect_python_files(
     project_root: Path,
     include_tests: bool,
     include_dev_tools: bool,
+    *,
+    scan_directories: list[str] | None = None,
+    apply_exclusions: bool = True,
 ) -> list[Path]:
     """Collect all Python files to scan, respecting exclusions."""
-    scan_dirs = list(config.get_scan_directories())
+    scan_dirs = (
+        list(scan_directories)
+        if scan_directories is not None
+        else list(config.get_scan_directories())
+    )
     if include_tests and "tests" not in scan_dirs:
         scan_dirs.append("tests")
     if include_dev_tools and "development_tools" not in scan_dirs:
@@ -384,12 +391,14 @@ def _collect_python_files(
         if not dir_path.exists():
             continue
         for py_file in dir_path.rglob("*.py"):
-            if should_exclude_file(str(py_file), "analysis", context):
+            if apply_exclusions and should_exclude_file(
+                str(py_file), "analysis", context
+            ):
                 continue
             files.append(py_file)
 
     for py_file in project_root.glob("*.py"):
-        if should_exclude_file(str(py_file), "analysis", context):
+        if apply_exclusions and should_exclude_file(str(py_file), "analysis", context):
             continue
         files.append(py_file)
 
@@ -410,6 +419,10 @@ def analyze_unused_functions(
     include_dev_tools: bool = False,
     include_private_only: bool = False,
     max_results: int = 100,
+    *,
+    project_root: Path | str | None = None,
+    scan_directories: list[str] | None = None,
+    apply_exclusions: bool = True,
 ) -> dict[str, Any]:
     """
     Scan the codebase and return functions that are never referenced.
@@ -419,17 +432,30 @@ def analyze_unused_functions(
         include_dev_tools: Include development_tools in the scan.
         include_private_only: Only report private (underscore-prefixed) functions.
         max_results: Cap the number of unused functions reported.
+        project_root: Optional root override (tests / external projects).
+        scan_directories: Optional scan-dir override; bypasses config when set.
+        apply_exclusions: When False, skip ``should_exclude_file`` filtering.
 
     Returns:
         Dict with summary and details keys matching the standard tool result shape.
     """
-    project_root = Path(config.get_project_root()).resolve()
-    files = _collect_python_files(project_root, include_tests, include_dev_tools)
+    root = (
+        Path(project_root).resolve()
+        if project_root is not None
+        else Path(config.get_project_root()).resolve()
+    )
+    files = _collect_python_files(
+        root,
+        include_tests,
+        include_dev_tools,
+        scan_directories=scan_directories,
+        apply_exclusions=apply_exclusions,
+    )
 
     # Phase 1: collect all definitions
     all_defs: list[FunctionDef] = []
     for f in files:
-        all_defs.extend(_scan_file_definitions(f, project_root))
+        all_defs.extend(_scan_file_definitions(f, root))
 
     # Phase 2: collect all references across the entire codebase
     global_name_refs: set[str] = set()

@@ -439,7 +439,7 @@ def _load_base_exclusion_shortlist() -> tuple[str, ...]:
         "htmlcov/",
         "archive/",
         "ui/generated/",
-        "mhm.egg-info/",
+        "*.egg-info/",
         "*.log",
         ".coverage",
         "coverage.xml",

@@ -28,7 +28,7 @@ def test_static_check_config_relative_paths_include_core_configs() -> None:
         "development_tools/config/development_tools_config.json"
         in STATIC_CHECK_CONFIG_RELATIVE_PATHS
     )
-    assert "development_tools/config/pyrightconfig.json" in STATIC_CHECK_CONFIG_RELATIVE_PATHS
+    assert "development_tools/config/pyrightconfig.json" not in STATIC_CHECK_CONFIG_RELATIVE_PATHS
     assert "development_tools/config/ruff.toml" in STATIC_CHECK_CONFIG_RELATIVE_PATHS
     assert ".ruff.toml" in STATIC_CHECK_CONFIG_RELATIVE_PATHS
 

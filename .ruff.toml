@@ -6,6 +6,7 @@ line-length = 88
 target-version = "py310"
 
 exclude = [
+  "*.egg-info",
   "*.html",
   "*.log",
   "*.pyc",

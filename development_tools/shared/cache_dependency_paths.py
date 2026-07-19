@@ -22,15 +22,13 @@ import hashlib
 from collections.abc import Sequence
 from pathlib import Path
 
-# pyproject.toml: root Pyright/Bandit and merged tool settings.
+# pyproject.toml: root Pyright/Bandit and merged tool settings (Pyright SSOT: [tool.pyright]).
 # development_tools/config/development_tools_config.json: exclusions, domains, analyzer toggles.
-# development_tools/config/pyrightconfig.json: audit Pyright --project baseline.
 # development_tools/config/ruff.toml: primary Ruff config passed via --config.
 # .ruff.toml: optional root compatibility mirror (e.g. sync_ruff_toml); include when present.
 STATIC_CHECK_CONFIG_RELATIVE_PATHS: tuple[str, ...] = (
     "pyproject.toml",
     "development_tools/config/development_tools_config.json",
-    "development_tools/config/pyrightconfig.json",
     "development_tools/config/ruff.toml",
     ".ruff.toml",
 )

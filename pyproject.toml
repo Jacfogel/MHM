@@ -22,8 +22,8 @@ exclude = ["logs*", "resources*", "archive*", "development_docs*", "ai_developme
 [tool.setuptools.package-data]
 "ui.generated" = ["*.py"]
 
-# Pyright: whole-repo / IDE baseline (`pyright --project pyproject.toml`). Pylance discovers [tool.pyright] automatically.
-# Former root `pyrightconfig.json` (JSONC) was merged here to reduce root dotfiles.
+# Pyright SSOT: whole-repo / IDE baseline (`pyright --project pyproject.toml`). Pylance discovers [tool.pyright] automatically.
+# Former root and nested `development_tools/config/pyrightconfig.json` were removed; keep settings here only.
 [tool.pyright]
 typeCheckingMode = "basic"
 venvPath = "."

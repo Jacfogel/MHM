@@ -31,6 +31,10 @@ Guidelines:
 ## Recent Changes (Most Recent First)
 
 ### 2026-07-18 - LIST_OF_LISTS currency; V6 plan status refresh **COMPLETED**
+- B-003/B-004 portability: emptied MHM package roots from portable code defaults (Ruff/Pyright shards, Bandit roots, channel-logger allowlist); MHM trees live in project JSON + `.example`. Renamed pip-audit skip env to `DEV_TOOLS_PIP_AUDIT_SKIP` only (`MHM_PIP_AUDIT_SKIP` removed), renamed pip-audit/pytest temp cache prefixes, and external-repo smokes (Bandit `.` fallback, Ruff monolithic fallback, subprocess `audit --quick`).
+- Fix Tier 3 flake: `test_analyze_unused_functions_finds_uncalled_helper` now passes explicit `project_root` / `scan_directories` / `apply_exclusions=False` so empty global `paths.scan_directories` from other tests cannot yield zero files.
+- B-004: removed nested `development_tools/config/pyrightconfig.json`; Pyright SSOT is `pyproject.toml` `[tool.pyright]` only (cache deps, policy tests, guides, deprecation inventory updated).
+- Cleared AI_PRIORITIES: `click>=8.3.3` for CVE-2026-7246; TODO.md ASCII; historical changelog hrefs to removed nested Pyright path demoted to plain backticks.
 - LIST_OF_LISTS verified against live code; fixed duplicate `legacy_cleanup` JSON key; PLANS Section 2 + cursor rules inventory path aligned to `config/jsons/`.
 - Catalog drift fixed: `EXPECTED_TOOLS` uses `analyze_system_signals`; `generate_dev_tools_coverage` catalogued in `_TOOLS`; subset policy test added; tool_guide basename guard skips script-registry excludes.
 - Cleared AI_PRIORITIES doc-sync items: path drift, ASCII, registry regen; `doc-sync` PASS.

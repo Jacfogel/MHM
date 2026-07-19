@@ -89,7 +89,7 @@ def test_pip_audit_elapsed_suffix_branches(temp_project_copy: Path) -> None:
     assert "reused cached pip-audit" in service._pip_audit_elapsed_suffix(
         {"pip_audit_execution_state": "requirements_lock_cache_hit"}
     )
-    assert "MHM_PIP_AUDIT_SKIP" in service._pip_audit_elapsed_suffix(
+    assert "DEV_TOOLS_PIP_AUDIT_SKIP" in service._pip_audit_elapsed_suffix(
         {"pip_audit_execution_state": "skipped_env"}
     )
 

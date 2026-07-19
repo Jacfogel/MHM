@@ -186,24 +186,10 @@ def run_bandit(project_root: Path) -> dict[str, Any]:
     timeout_seconds = int(static_cfg.get("bandit_timeout_seconds", 900) or 900)
     extra_args = list(static_cfg.get("bandit_args", []))
 
-    default_roots = [
-        "core",
-        "communication",
-        "ui",
-        "ai",
-        "user",
-        "tasks",
-        "notebook",
-        "scheduler",
-        "checkins",
-        "messages",
-        "storage",
-        "development_tools",
-    ]
-    scan_roots = list(static_cfg.get("bandit_scan_roots", default_roots))
-    root_py = list(
-        static_cfg.get("bandit_root_python", ["run_tests.py", "run_mhm.py"])
-    )
+    # Portable defaults are empty in STATIC_ANALYSIS; projects set roots in config JSON.
+    # When nothing resolves, fall back to ``.`` below (still respects bandit excludes).
+    scan_roots = list(static_cfg.get("bandit_scan_roots") or [])
+    root_py = list(static_cfg.get("bandit_root_python") or [])
     path_args: list[str] = []
     for name in scan_roots:
         p = project_root / name

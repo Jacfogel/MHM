@@ -16,11 +16,27 @@ from development_tools.static_checks import analyze_ruff as ar_mod
 
 @pytest.mark.unit
 def test_static_analysis_defaults_enable_sharding() -> None:
+    """Shard *flags* default on; path lists are empty in portable code (project JSON fills them)."""
     assert dt_config.STATIC_ANALYSIS["ruff_shard_scan"] is True
     assert dt_config.STATIC_ANALYSIS["bandit_shard_scan"] is True
     assert dt_config.STATIC_ANALYSIS["pyright_shard_scan"] is True
-    assert len(dt_config.STATIC_ANALYSIS["ruff_path_shards"]) >= 1
-    assert len(dt_config.STATIC_ANALYSIS["pyright_path_shards"]) >= 1
+    assert dt_config.STATIC_ANALYSIS["ruff_path_shards"] == []
+    assert dt_config.STATIC_ANALYSIS["pyright_path_shards"] == []
+    assert dt_config.STATIC_ANALYSIS.get("bandit_scan_roots") == []
+    assert dt_config.STATIC_ANALYSIS.get("bandit_root_python") == []
+
+    # Reload host project config (other tests may have loaded minimal external JSON).
+    repo_root = Path(__file__).resolve().parents[2]
+    host_cfg = (
+        repo_root / "development_tools" / "config" / "development_tools_config.json"
+    )
+    if not host_cfg.exists():
+        host_cfg = host_cfg.with_name("development_tools_config.json.example")
+    assert dt_config.load_external_config(str(host_cfg)) is True
+    project_cfg = dt_config.get_static_analysis_config()
+    assert len(project_cfg.get("ruff_path_shards") or []) >= 1
+    assert len(project_cfg.get("pyright_path_shards") or []) >= 1
+    assert len(project_cfg.get("bandit_scan_roots") or []) >= 1
 
 
 @pytest.mark.unit
@@ -416,9 +432,6 @@ def test_run_pyright_mono_cache_invalidates_when_cli_args_change(
 ) -> None:
     (tmp_path / "demo_module.py").write_text("x = 1\n", encoding="utf-8")
     (tmp_path / "pyproject.toml").write_text("[tool.pyright]\n", encoding="utf-8")
-    cfg_dir = tmp_path / "development_tools" / "config"
-    cfg_dir.mkdir(parents=True, exist_ok=True)
-    (cfg_dir / "pyrightconfig.json").write_text("{}", encoding="utf-8")
 
     calls: list[list[str]] = []
 

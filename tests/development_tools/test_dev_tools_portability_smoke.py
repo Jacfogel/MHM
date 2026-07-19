@@ -13,7 +13,62 @@ from tests.development_tools.conftest import load_development_tools_module
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
-def _copy_development_tools_tree(target_root: Path) -> Path:
+def _minimal_external_config(*, with_host_package: bool = False) -> dict:
+    """Project config with no MHM package roots / allowlists (portable)."""
+    local_prefixes = ["extapp"] if with_host_package else []
+    return {
+        "project": {
+            "name": "ExternalProject",
+            "key_files": ["README.md", "requirements.txt"],
+        },
+        "paths": {
+            "project_root": ".",
+            "scan_directories": [],
+            "docs_dir": "docs",
+            "logs_dir": "logs",
+            "data_dir": "data",
+            "tests_dir": "tests",
+        },
+        "constants": {
+            "default_docs": ["README.md"],
+            "local_module_prefixes": local_prefixes,
+            "project_directories": ["."],
+            "core_modules": [],
+            "derived_prefix_excludes": {
+                "scan": [],
+                "core": [],
+                "project": [],
+            },
+        },
+        "quick_status": {
+            "core_files": ["README.md", "requirements.txt"],
+            "key_directories": [],
+        },
+        "audit_tiers": {
+            "quick": {"tools": ["quick_status"]},
+            "standard": {"tools": ["quick_status"]},
+            "full": {"tools": ["quick_status"]},
+        },
+        # Empty static roots: tools must fall back to full-project scan, not MHM trees.
+        "static_analysis": {
+            "ruff_shard_scan": True,
+            "ruff_path_shards": [],
+            "pyright_shard_scan": True,
+            "pyright_path_shards": [],
+            "bandit_shard_scan": False,
+            "bandit_scan_roots": [],
+            "bandit_root_python": [],
+        },
+        "static_checks": {
+            "channel_loggers": {
+                "excluded_dirs": ["tests", "scripts", "development_tools"],
+                "allowed_logging_import_paths": [],
+            }
+        },
+    }
+
+
+def _copy_development_tools_tree(target_root: Path, *, with_host_package: bool = False) -> Path:
     """Copy the dev-tools package into a minimal external project."""
     source = _REPO_ROOT / "development_tools"
     destination = target_root / "development_tools"
@@ -26,47 +81,18 @@ def _copy_development_tools_tree(target_root: Path) -> Path:
     shutil.copytree(source, destination, ignore=ignored)
     config_path = destination / "config" / "development_tools_config.json"
     config_path.write_text(
-        json.dumps(
-            {
-                "project": {
-                    "name": "ExternalProject",
-                    "key_files": ["README.md", "requirements.txt"],
-                },
-                "paths": {
-                    "project_root": ".",
-                    "scan_directories": [],
-                    "docs_dir": "docs",
-                    "logs_dir": "logs",
-                    "data_dir": "data",
-                    "tests_dir": "tests",
-                },
-                "constants": {
-                    "default_docs": ["README.md"],
-                    "local_module_prefixes": [],
-                    "project_directories": ["."],
-                    "core_modules": [],
-                    "derived_prefix_excludes": {
-                        "scan": [],
-                        "core": [],
-                        "project": [],
-                    },
-                },
-                "quick_status": {
-                    "core_files": ["README.md", "requirements.txt"],
-                    "key_directories": [],
-                },
-                "audit_tiers": {
-                    "quick": {"tools": ["quick_status"]},
-                    "standard": {"tools": ["quick_status"]},
-                    "full": {"tools": ["quick_status"]},
-                },
-            },
-            indent=2,
-        ),
+        json.dumps(_minimal_external_config(with_host_package=with_host_package), indent=2),
         encoding="utf-8",
     )
     (target_root / "README.md").write_text("# External Project\n", encoding="utf-8")
     (target_root / "requirements.txt").write_text("", encoding="utf-8")
+    if with_host_package:
+        host = target_root / "extapp"
+        host.mkdir()
+        (host / "__init__.py").write_text(
+            '"""Minimal host package for external-repo validation."""\n\ndef ok() -> int:\n    return 1\n',
+            encoding="utf-8",
+        )
     return destination
 
 
@@ -169,3 +195,89 @@ def test_minimal_project_runs_read_only_config_status_and_report_paths(tmp_path)
     priorities_doc = service._generate_ai_priorities_document()
     assert "run_mhm.py" not in status_doc
     assert "run_mhm.py" not in priorities_doc
+
+
+@pytest.mark.unit
+def test_bandit_empty_roots_fallback_scans_external_project_root(tmp_path, monkeypatch):
+    """B-004: empty bandit roots must scan ``.``, not hardcoded MHM package names."""
+    _copy_development_tools_tree(tmp_path, with_host_package=True)
+    cfg_path = tmp_path / "development_tools" / "config" / "development_tools_config.json"
+    on_disk = json.loads(cfg_path.read_text(encoding="utf-8"))
+    assert on_disk["static_analysis"]["bandit_scan_roots"] == []
+    assert on_disk["static_analysis"]["bandit_root_python"] == []
+
+    bandit_module = load_development_tools_module("static_checks.analyze_bandit")
+    config_module = load_development_tools_module("config.config")
+    base = dict(config_module.STATIC_ANALYSIS)
+    base["bandit_scan_roots"] = []
+    base["bandit_root_python"] = []
+    base["bandit_shard_scan"] = False
+    monkeypatch.setattr(
+        bandit_module.config, "get_static_analysis_config", lambda: base.copy()
+    )
+
+    captured: list[list[str]] = []
+
+    def _capture(project_root, command, args, timeout_seconds):
+        captured.append(list(args))
+        return 0, {"results": []}, ""
+
+    monkeypatch.setattr(bandit_module, "_run_bandit_subprocess_for_json", _capture)
+    out = bandit_module.run_bandit(tmp_path)
+    assert out["summary"]["status"] in {"PASS", "WARN"}
+    assert captured, "expected bandit subprocess invocation"
+    # Fallback path when no roots resolve is a single ``.`` scan.
+    assert "." in captured[0]
+    assert "core" not in captured[0]
+    assert "run_mhm.py" not in captured[0]
+
+
+@pytest.mark.unit
+def test_ruff_empty_shards_uses_monolithic_scan_on_external_project(tmp_path, monkeypatch):
+    """B-004: empty ruff shards must take monolithic fallback (full project), not MHM trees."""
+    _copy_development_tools_tree(tmp_path, with_host_package=True)
+    cfg_path = tmp_path / "development_tools" / "config" / "development_tools_config.json"
+    on_disk = json.loads(cfg_path.read_text(encoding="utf-8"))
+    assert on_disk["static_analysis"]["ruff_path_shards"] == []
+
+    ruff_module = load_development_tools_module("static_checks.analyze_ruff")
+    config_module = load_development_tools_module("config.config")
+    base = dict(config_module.STATIC_ANALYSIS)
+    base["ruff_path_shards"] = []
+    base["ruff_shard_scan"] = True
+    monkeypatch.setattr(
+        ruff_module.config, "get_static_analysis_config", lambda: base.copy()
+    )
+
+    def _capture(project_root, command, args, timeout_seconds):
+        return 0, [], ""
+
+    monkeypatch.setattr(ruff_module, "_run_ruff_subprocess_for_json_list", _capture)
+    out = ruff_module.run_ruff(tmp_path)
+    details = out.get("details") or {}
+    shard_run = details.get("shard_run") or {}
+    assert shard_run.get("mode") in {"single", "single_fallback"}
+    assert "core" not in json.dumps(out)
+
+
+@pytest.mark.unit
+def test_copied_devtools_cli_audit_quick_succeeds_on_external_project(tmp_path):
+    """B-004: subprocess ``audit --quick`` against a copied tree with a host package."""
+    _copy_development_tools_tree(tmp_path, with_host_package=True)
+    runner = tmp_path / "development_tools" / "run_development_tools.py"
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(runner),
+            "--project-root",
+            str(tmp_path),
+            "audit",
+            "--quick",
+        ],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert "run_mhm.py" not in (proc.stdout + proc.stderr)

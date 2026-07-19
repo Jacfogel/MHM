@@ -137,7 +137,7 @@ Pick the **smallest** command that answers your question; full Tier 3 can exceed
 | Refresh coverage metrics / TEST_COVERAGE_REPORT | `python development_tools/run_development_tools.py coverage` |
 | Nightly full test suite (includes slow tests) | `python development_tools/run_development_tools.py nightly-test-suite` |
 | Tier 3 but only dev-tools tests + scoped DEV_TOOLS_* reports (no coverage) | `python development_tools/run_development_tools.py audit --full --dev-tools-only` |
-| Skip pip-audit subprocess (offline / CI) | Set environment variable `MHM_PIP_AUDIT_SKIP` (see [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)) |
+| Skip pip-audit subprocess (offline / CI) | Set `DEV_TOOLS_PIP_AUDIT_SKIP` (see [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)) |
 
 **Deferred (not default)**: Moving Bandit or pip-audit into Tier 1 (`audit --quick`) would make quick audits slower without addressing the main cost (pytest / coverage when run); see [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 5.4 - 4.1.
 
@@ -162,7 +162,7 @@ The first command is a **cold** run (no domain/test-file cache). The second omit
 
 #### 5.1.5. Static checks (Ruff, Pyright, Bandit) and cache
 
-Ruff, Pyright, and Bandit use **per-shard fragment caches** on disk (see [`development_tools/shared/static_analysis_shard_cache.py`](development_tools/shared/static_analysis_shard_cache.py)): each configured path shard has a Python-only source signature; a **static-check config digest** over `STATIC_CHECK_CONFIG_RELATIVE_PATHS` in [`development_tools/shared/cache_dependency_paths.py`](development_tools/shared/cache_dependency_paths.py) busts all shards when any listed config changes. The analyzer subprocess still runs only for **missed** shards; merged JSON is written as the tool result. Sharded Pyright may omit some cross-package diagnostics versus a single full-project run; use periodic full Pyright (e.g. `pyright_shard_scan: false` in config, or CI) for strict parity. Pip-audit uses a requirements-hash cache and optional `MHM_PIP_AUDIT_SKIP`. See [development_tools/config/tool_cache_inventory.json](development_tools/config/tool_cache_inventory.json) for the full matrix.
+Ruff, Pyright, and Bandit use **per-shard fragment caches** on disk (see [`development_tools/shared/static_analysis_shard_cache.py`](development_tools/shared/static_analysis_shard_cache.py)): each configured path shard has a Python-only source signature; a **static-check config digest** over `STATIC_CHECK_CONFIG_RELATIVE_PATHS` in [`development_tools/shared/cache_dependency_paths.py`](development_tools/shared/cache_dependency_paths.py) busts all shards when any listed config changes. The analyzer subprocess still runs only for **missed** shards; merged JSON is written as the tool result. Sharded Pyright may omit some cross-package diagnostics versus a single full-project run; use periodic full Pyright (e.g. `pyright_shard_scan: false` in config, or CI) for strict parity. Pip-audit uses a requirements-hash cache and optional `DEV_TOOLS_PIP_AUDIT_SKIP`. See [development_tools/config/tool_cache_inventory.json](development_tools/config/tool_cache_inventory.json) for the full matrix.
 
 #### 5.1.6. Completion log lines (`issues=`)
 

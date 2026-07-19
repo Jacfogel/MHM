@@ -377,7 +377,7 @@
     {
       "id": "root_pyrightconfig_json",
       "removed_at": "2026-04-10",
-      "note": "Root pyrightconfig.json (JSONC) removed; Pyright baseline is [tool.pyright] in pyproject.toml; static_analysis.pyright_project_path default is pyproject.toml; development_tools/config/pyrightconfig.json retained for owned --project audits."
+      "note": "Root pyrightconfig.json (JSONC) removed; Pyright baseline is [tool.pyright] in pyproject.toml; static_analysis.pyright_project_path default is pyproject.toml. Nested development_tools/config/pyrightconfig.json later removed (see owned_nested_pyrightconfig_json)."
     },
     {
       "id": "user_data_v1_runtime_adapters",
@@ -448,6 +448,25 @@
         "CategoryScheduleV2Model"
       ],
       "note": "Removed redundant CategoryScheduleV2Model._normalize_periods_input validator from core/profile_v2_schemas.py. Flat period migration consolidated to migrate_legacy_schedules_structure in schedule_document_defaults.py (load path) and profile_v2_io._build_v2_envelope (save path). CategoryScheduleV2Model is the permanent v2 schema, not legacy code."
+    },
+    {
+      "id": "mhm_pip_audit_skip_env",
+      "removed_at": "2026-07-18",
+      "search_terms": [
+        "MHM_PIP_AUDIT_SKIP"
+      ],
+      "replacement": "DEV_TOOLS_PIP_AUDIT_SKIP",
+      "note": "Portable pip-audit CI/offline skip env renamed; alias removed from analyze_pip_audit.py. Set DEV_TOOLS_PIP_AUDIT_SKIP=1|true|yes|on instead."
+    },
+    {
+      "id": "owned_nested_pyrightconfig_json",
+      "removed_at": "2026-07-19",
+      "search_terms": [
+        "development_tools/config/pyrightconfig.json",
+        "config/pyrightconfig.json"
+      ],
+      "replacement": "pyproject.toml [tool.pyright]",
+      "note": "Removed nested owned Pyright JSON formerly kept for alternate --project / settings-parity. Single SSOT is pyproject.toml [tool.pyright]; analyze_pyright default pyright_project_path remains pyproject.toml. STATIC_CHECK_CONFIG_RELATIVE_PATHS no longer hashes the nested file."
     }
   ],
   "global_sweep_keywords": [

@@ -1432,19 +1432,10 @@ def get_unused_imports_config():
     return result
 
 
-# Default Ruff shards: one subprocess per top-level tree (merged JSON; §3.19.1).
-# Aligns with first-party roots; empty/missing dirs are skipped at runtime.
-_DEFAULT_RUFF_PATH_SHARDS: list[list[str]] = [
-    ["core"],
-    ["communication"],
-    ["ui"],
-    ["ai"],
-    ["user"],
-    ["tasks"],
-    ["notebook"],
-    ["development_tools"],
-    ["tests"],
-]
+# Portable default: empty shards force monolithic Ruff/Pyright (``check .`` / full project).
+# Project-specific package trees belong in ``development_tools_config.json``
+# (``static_analysis.ruff_path_shards`` / ``pyright_path_shards``); see example config.
+_DEFAULT_RUFF_PATH_SHARDS: list[list[str]] = []
 
 # Static analysis configuration (ruff + pyright)
 STATIC_ANALYSIS = {
@@ -1456,26 +1447,29 @@ STATIC_ANALYSIS = {
     "ruff_config_path": "development_tools/config/ruff.toml",
     "ruff_sync_root_compat": True,
     # When True and ``ruff_path_shards`` is non-empty, run one subprocess per shard
-    # and merge JSON (see sharded_static_analysis.merge_ruff_check_json_lists). Default: on.
+    # and merge JSON (see sharded_static_analysis.merge_ruff_check_json_lists).
     "ruff_shard_scan": True,
-    # List of shards: each shard is a list of repo-relative path strings (forward slashes).
+    # Empty by default (portable). Projects set first-party shards in config JSON.
     "ruff_path_shards": [list(s) for s in _DEFAULT_RUFF_PATH_SHARDS],
-    # Pyright: mirror Ruff shards by default (merge_pyright_json_payloads). Subset runs may
-    # miss cross-package diagnostics; periodic full-project run restores parity (§3.19.1).
+    # Pyright: mirror Ruff shards when configured. Subset runs may miss cross-package
+    # diagnostics; periodic full-project run restores parity (§3.19.1).
     "pyright_shard_scan": True,
     "pyright_path_shards": [list(s) for s in _DEFAULT_RUFF_PATH_SHARDS],
     "timeout_seconds": 600,
     # Bandit / pip-audit (Tier 3 security signals; see DEVELOPMENT_TOOLS_GUIDE §10)
     "bandit_command": ["python", "-m", "bandit"],
     "bandit_args": [],
-    # First-party scan roots avoid `.venv` entirely (see analyze_bandit bandit_scan_roots).
+    # Empty by default: analyze_bandit falls back to ``.`` when no roots resolve.
+    # Projects should set ``bandit_scan_roots`` / ``bandit_root_python`` in config JSON.
+    "bandit_scan_roots": [],
+    "bandit_root_python": [],
     "bandit_exclude": "__pycache__,.git",
     # When True, run bandit once per scan root / root_py entry and merge results (§3.19.1).
     "bandit_shard_scan": True,
     "bandit_timeout_seconds": 900,
     "pip_audit_command": ["python", "-m", "pip_audit"],
     "pip_audit_args": [],
-    # Offline/CI: analyze_pip_audit.run_pip_audit skips the subprocess when MHM_PIP_AUDIT_SKIP is truthy.
+    # Offline/CI: analyze_pip_audit.run_pip_audit skips when DEV_TOOLS_PIP_AUDIT_SKIP is truthy.
     "pip_audit_timeout_seconds": 600,
 }
 
@@ -1495,18 +1489,11 @@ def get_static_analysis_config():
 
 
 # Static check: channel_loggers (logging style enforcement)
-# Directory exclusion uses shared should_exclude_file; excluded_dirs and allowed_logging_import_paths are project-specific.
+# Directory exclusion uses shared should_exclude_file; allowed_logging_import_paths are
+# project-specific (set in development_tools_config.json). Portable default: empty allowlist.
 STATIC_CHECK_CHANNEL_LOGGERS_DEFAULT = {
     "excluded_dirs": ["tests", "scripts", "ai_tools", "development_tools"],
-    "allowed_logging_import_paths": [
-        "core/logger.py",
-        "core/error_handling.py",
-        "core/service.py",
-        "core/config.py",
-        "core/network_probe.py",
-        "core/time_utilities.py",
-        "run_tests.py",
-    ],
+    "allowed_logging_import_paths": [],
 }
 
 

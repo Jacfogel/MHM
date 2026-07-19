@@ -116,7 +116,8 @@ def _cleanup_transient_runtime_artifacts(project_root: Path) -> None:
 
     dir_prefixes = (
         "logs_",
-        "mhm_pytest_tmp_main_",
+        "devtools_pytest_tmp_main_",
+        "mhm_pytest_tmp_main_",  # legacy prefix (pre-portable rename)
         "pytest-of-",
         "tmp_",
     )

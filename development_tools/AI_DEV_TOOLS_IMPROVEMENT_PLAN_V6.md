@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Forward-looking backlog for `development_tools/` after V5  
 > **Style**: Direct, concise, action-oriented  
-> **Last Updated**: 2026-07-18 (status refresh vs live Tier 3 audit + codebase)  
+> **Last Updated**: 2026-07-19 (removed nested owned pyrightconfig.json)  
 > **Supersedes**: `archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md` for active planning. Keep V4 and prior V5 snapshots for detailed checkbox history.
 
 ## Authoritative sources
@@ -55,8 +55,8 @@ prefer the generated outputs over any numeric examples in this plan.
    - Further candidates only if profiling still shows high function-scoped copy cost.
 
 3. **Keep portability as residual cleanup, not a greenfield slice.**
-   - `core.logger` removal and major external-`project_root` / config portability work are done (§2.3).
-   - Remaining: opportunistic hardening of leftover MHM assumptions and optional external-repo validation (B-004).
+   - `core.logger` removal, external-`project_root` / config portability, MHM-string default cleanup, and minimal external-repo validation (B-003/B-004, 2026-07-18) are done (§2.3).
+   - Remaining: only reopen on concrete external/smoke regressions. Pyright SSOT is `pyproject.toml` `[tool.pyright]` only (nested owned JSON removed).
 
 4. **Do not reopen pip-audit `CVE-2026-3219`.**
    - Remediated with `pip>=26.1` floor; live audit shows **0** pip-audit findings. Reopen only on a new advisory.
@@ -66,7 +66,7 @@ prefer the generated outputs over any numeric examples in this plan.
 | Tier | Work |
 |---|---|
 | **Active** | Targeted dev-tools coverage (service chokepoints); residual test-performance fixture review |
-| **Residual / medium** | Portability leftover assumptions; static-tool packaging parity (B-004); validation-warning cleanup if noisy |
+| **Residual / medium** | Portability/static packaging (B-003/B-004) maintenance only; validation-warning cleanup if noisy |
 | **Maintenance** | Domain-marker policy (taxonomy + enforcement shipped; tune only on false positives) |
 | **Deferred** | Coverage-cache numeric benchmarks; external-tool expansion; TODO-sync workflow polish; gap-analysis expansion; memory profiler; arbitrary audit scopes |
 | **Monitoring only** | Low-coverage warning recurrence; example-marker/doc-overlap regressions; legacy-reference regressions |
@@ -194,7 +194,7 @@ prefer the generated outputs over any numeric examples in this plan.
 
 #### 2.3.2 Eliminate remaining implicit MHM assumptions
 
-**Status**: Residual / maintenance.
+**Status**: Substantively complete (2026-07-18 cleanup); maintenance only.
 
 **Already done** (portability-first slice ~2026-05-20 and follow-ups):
 
@@ -204,24 +204,29 @@ prefer the generated outputs over any numeric examples in this plan.
 - MHM-only quick-status checks moved out of generic defaults into project config.
 - Expanded `test_dev_tools_portability_smoke.py` and policy tests blocking `core.*` imports / MHM-only defaults.
 - Live import-boundary status: CLEAN (full-repo Tier 3, 2026-07-18).
+- **2026-07-18**: Portable code defaults no longer embed MHM package roots (`ruff`/`pyright` shards, `bandit_scan_roots` / `bandit_root_python`, channel-logger allowlist). MHM trees live in project JSON + `.example`. Cache/temp names and `DEV_TOOLS_PIP_AUDIT_SKIP` genericized (`MHM_PIP_AUDIT_SKIP` removed).
 
 **Open work** (opportunistic only):
 
-- Sweep leftover hardcoded package names or MHM-specific strings in generic output.
-- Keep external-project assumptions explicit and tested when touching root/config resolution.
-- Do not treat this as a greenfield rewrite; reopen only when a concrete assumption breaks an external or smoke run.
+- Reopen only when a concrete assumption breaks an external or smoke run.
+- Do not treat this as a greenfield rewrite.
 
 #### 2.3.3 Static tooling and packaging parity
 
-**Status**: Medium priority (B-004).
+**Status**: Complete for intended B-004 scope (single Pyright SSOT + external-repo).
 
-**Open work**:
+**Already done**:
 
-- Keep Pyright/Ruff structural parity tests.
-- Treat diagnostic-count parity as optional and tolerance-gated (`PYRIGHT_ERROR_COUNT_MAX_DELTA` / `PYRIGHT_WARNING_COUNT_MAX_DELTA`).
-- Validate behavior in a minimal external repo when convenient.
-- Ensure static-check config dependencies invalidate the right caches.
-- Keep periodic full-project Pyright runs because sharded Pyright can miss cross-package diagnostics.
+- Pyright/Ruff structural policy tests (`test_pyright_config_paths.py`).
+- **2026-07-18 B-004**: minimal external-repo validation in `test_dev_tools_portability_smoke.py` (Bandit `.` fallback, Ruff monolithic fallback, subprocess `audit --quick` on copied tree + host package).
+- MHM project config carries first-party shards/roots so host audits stay sharded after portable defaults emptied.
+- **2026-07-19 B-004**: removed nested `development_tools/config/pyrightconfig.json`; Pyright SSOT is
+  `pyproject.toml` `[tool.pyright]` only. Cache deps, guides, LIST_OF_LISTS, and policy tests updated;
+  deprecation inventory `owned_nested_pyrightconfig_json`.
+
+**Open work** (monitoring / optional):
+
+- Keep periodic full-project Pyright runs (`pyproject.toml`) because sharded Pyright can miss cross-package diagnostics.
 
 ---
 
@@ -551,6 +556,8 @@ Completed themes:
 - External `project_root` + project-local config preference for copied-out execution.
 - MHM-only quick-status checks moved into project config (not generic defaults).
 - Several project-root and hardcoded-path issues were cleaned up.
+- MHM first-party Ruff/Pyright/Bandit roots and channel-logger allowlist live in project JSON; portable code defaults are empty.
+- External-repo validation: Bandit/Ruff fallbacks + subprocess `audit --quick` on a copied tree.
 
 ---
 
@@ -582,8 +589,8 @@ Completed themes:
 |---|---|---|---|
 | B-001 | Dev-tools test performance | Active residual | 2026-07-18: module-scoped static-analysis wrappers + unused-imports report; legacy cleanup stays function-scoped. Next: re-profile only if suite time still hurts. |
 | B-002 | Targeted dev-tools coverage | Active | 2026-07-18 slices #1–#3 landed (chokepoints + unused-functions + `commands`/`data_loading`); next: refresh metrics via `coverage` command (not audit), then remaining brittle service branches. |
-| B-003 | Portability: implicit MHM assumptions | Residual | Opportunistic leftover-assumption cleanup only; major external-root/config slice done. |
-| B-004 | Static-tool packaging parity | Medium | Validate minimal external repo and periodic full Pyright parity (tolerance-gated counts optional). |
+| B-003 | Portability: implicit MHM assumptions | Maintenance | 2026-07-18: MHM roots/allowlists moved to project JSON; portable defaults emptied. Reopen only on regression. |
+| B-004 | Static-tool packaging parity | Maintenance | 2026-07-18 external-repo smokes; 2026-07-19 removed nested owned `pyrightconfig.json` (SSOT = `pyproject.toml` `[tool.pyright]`). |
 | B-005 | Domain-marker analysis | Maintenance | Do not rebuild; tune false positives / keep `domain_mapper` aligned when packages change. |
 | B-006 | Validation warnings | Low/medium | Tune only if warnings become noisy. |
 | B-007 | Example-marker checker | Deferred/advisory | Improve heuristics before default gating. |

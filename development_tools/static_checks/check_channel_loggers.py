@@ -1,5 +1,5 @@
 """
-Static logging style enforcement for MHM.
+Static logging style enforcement for application code.
 
 Rules enforced (fail on violation):
 - Application code must not import `logging` directly or call `logging.getLogger(...)`.
@@ -39,7 +39,6 @@ IGNORED_DIR_NAMES = {
     ".tmp_pytest",
     ".tmp_devtools_pyfiles",
     "htmlcov",
-    "mhm.egg-info",
 }
 
 
@@ -59,7 +58,7 @@ def _get_channel_loggers_config():
     module_path = REPO_ROOT / "development_tools" / "config" / "config.py"
     try:
         spec = importlib.util.spec_from_file_location(
-            "_mhm_static_check_dt_config", module_path
+            "_devtools_static_check_dt_config", module_path
         )
         if spec is None or spec.loader is None:
             raise RuntimeError(f"Unable to load config module from {module_path}")
@@ -71,15 +70,7 @@ def _get_channel_loggers_config():
         # Align with STATIC_CHECK_CHANNEL_LOGGERS_DEFAULT in development_tools/config/config.py
         return {
             "excluded_dirs": ["tests", "scripts", "ai_tools", "development_tools"],
-            "allowed_logging_import_paths": [
-                "core/logger.py",
-                "core/error_handling.py",
-                "core/service.py",
-                "core/config.py",
-                "core/network_probe.py",
-                "core/time_utilities.py",
-                "run_tests.py",
-            ],
+            "allowed_logging_import_paths": [],
         }
 
 
@@ -105,7 +96,7 @@ def _load_should_exclude_file():
     module_path = REPO_ROOT / "development_tools" / "shared" / "standard_exclusions.py"
     try:
         spec = importlib.util.spec_from_file_location(
-            "_mhm_standard_exclusions", module_path
+            "_devtools_standard_exclusions", module_path
         )
         if spec is None or spec.loader is None:
             raise RuntimeError(f"Unable to load exclusions helper from {module_path}")
@@ -129,7 +120,7 @@ def _load_should_exclude_file():
                 ".tmp_pytest",
                 ".tmp_devtools_pyfiles",
                 "htmlcov/",
-                "mhm.egg-info/",
+                ".egg-info/",
             )
             return any(fragment in normalized for fragment in fallback_fragments)
 

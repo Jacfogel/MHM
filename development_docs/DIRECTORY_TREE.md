@@ -349,7 +349,6 @@ C:.
 |   |   |   config.py
 |   |   |   development_tools_config.json
 |   |   |   development_tools_config.json.example
-|   |   |   pyrightconfig.json
 |   |   |   ruff.toml
 |   |   |   sync_ruff_toml.py
 |   |   |   tool_cache_inventory.json

@@ -113,9 +113,6 @@ def test_compute_source_signature_changes_when_root_ruff_toml_changes(tmp_path: 
     (tmp_path / "development_tools" / "config" / "development_tools_config.json").write_text(
         "{}\n", encoding="utf-8"
     )
-    (tmp_path / "development_tools" / "config" / "pyrightconfig.json").write_text(
-        "{}\n", encoding="utf-8"
-    )
     (tmp_path / "development_tools" / "config" / "ruff.toml").write_text(
         "[lint]\n", encoding="utf-8"
     )

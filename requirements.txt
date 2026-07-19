@@ -38,6 +38,7 @@ py-spy>=0.4.1  # For timeout stack diagnostics in flaky_detector
 
 # Optional but recommended for development
 black>=26.3.1  # For code formatting (pip-audit; CVE fixes in formatter)
+click>=8.3.3  # Transitive (black); floor for CVE-2026-7246 / PYSEC-2026-2132 (click.edit command injection)
 pygments>=2.20.0  # Pulled by several tools; explicit floor for pip-audit
 ruff>=0.1.0  # Linting and unused-imports (development_tools audit; preferred over pylint)
 pylint>=2.17.0  # For code linting (fallback when ruff unavailable)

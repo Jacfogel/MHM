@@ -147,7 +147,7 @@ python -m pyright
 
 Ensure `pyright` is installed in the venv (`pip install pyright` or `requirements.txt`). Exit code 1 means errors or warnings were reported; the summary line at the end shows error/warning counts. This is the same checker used by the basedpyright/Pyright extension, so results match what the language server would report for the full codebase.
 
-[EXAMPLE] Note: this direct command uses the host/root `pyproject.toml` (`[tool.pyright]`) workflow. Development-tools audit wrappers (`analyze_pyright`) pass `--project` to that file by default; they can instead use the owned path `development_tools/config/pyrightconfig.json` when overridden in `development_tools_config.json`.
+[EXAMPLE] Note: this direct command uses the host/root `pyproject.toml` (`[tool.pyright]`) workflow. Development-tools audit wrappers (`analyze_pyright`) pass `--project` to that file by default (`static_analysis.pyright_project_path`).
 
 ### 2.5. Entry Point Expectations
 
@@ -619,7 +619,7 @@ Markers may sit immediately above decorators or inside the function/class body. 
 | `development_tools/config/development_tools_config.json` | Project overrides (not always in git) |
 | `development_tools/config/development_tools_config.json.example` | Template for overrides |
 | `development_tools/config/sync_ruff_toml.py` | Generates owned `ruff.toml` |
-| `development_tools/config/ruff.toml` / `development_tools/config/pyrightconfig.json` | Owned static-analysis configs for portable audits (Pyright audit may also target root `pyproject.toml`) |
+| `development_tools/config/ruff.toml` | Owned Ruff config for portable audits (Pyright SSOT is root `pyproject.toml` `[tool.pyright]`) |
 
 **Runtime / implementation** (shared plumbing, not the "policy" surface):
 
@@ -630,13 +630,12 @@ Markers may sit immediately above decorators or inside the function/class body. 
 
 **Phase 2 (evaluation, not yet executed)**: Gate is recorded in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 7.7. Before moving files out of `development_tools/config/`, decide which items are true "policy surface" vs runtime/plumbing. Candidate home for runtime-only helpers: a dedicated package (for example `development_tools/shared/runtime_config/`) with **temporary** re-export shims only when required-each shim must follow [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) (inventory, removal plan, no silent long-term duplication). Acceptance: contributors can find config entrypoints within minutes; existing imports keep working until an explicit deprecation window ends.
 
-**Pyright configs**: Root **`[tool.pyright]`** in `pyproject.toml` is the whole-repo / IDE baseline (Pylance discovers it); `development_tools/config/pyrightconfig.json` remains dev-tools-owned JSON for alternate `--project` / parity work. Default `analyze_pyright` uses **`pyproject.toml`**. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` remains a compatibility mirror. Policy tests: `tests/development_tools/test_pyright_config_paths.py` (Pyright TOML section + owned JSON + Ruff TOML).
+**Pyright config**: Single SSOT is **`[tool.pyright]`** in `pyproject.toml` (IDE / Pylance / default `analyze_pyright`). Nested `development_tools/config/pyrightconfig.json` was removed. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` remains a compatibility mirror. Policy tests: `tests/development_tools/test_pyright_config_paths.py`.
 
-**Portability acceptance criteria (V5 Section 7.6)** - incremental; full numeric parity is not required in CI until tolerance rules exist:
+**Portability acceptance criteria (V5 Section 7.6 / V6 B-004)**:
 
-- **Structural**: Owned Pyright JSON loads; root `pyproject.toml` contains `[tool.pyright]`; both exclude `tests/data` (and related temp/fixture paths). Policy tests enforce this.
-- **Runtime**: `python -m pyright --outputjson --project <config>` succeeds for both configs when Pyright is installed (optional `pytest -m e2e` smoke in [`tests/development_tools/test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py), excluded from default runs).
-- **Diagnostic counts**: Root vs owned `errorCount`/`warningCount` may differ because include/exclude scopes differ. Optional: set `PYRIGHT_ERROR_COUNT_MAX_DELTA` and/or `PYRIGHT_WARNING_COUNT_MAX_DELTA` when running the e2e Pyright test in `tests/development_tools/test_pyright_config_paths.py` to enforce maximum diagnostic-count deltas between runs (unset keeps comparison advisory only).
+- **Structural**: Root `pyproject.toml` contains `[tool.pyright]` and excludes `tests/data` (and related temp/fixture paths). Nested/root `pyrightconfig.json` files must stay absent. Policy tests enforce this.
+- **Runtime**: `python -m pyright --outputjson --project pyproject.toml` succeeds when Pyright is installed (optional `pytest -m e2e` smoke in [`tests/development_tools/test_pyright_config_paths.py`](../tests/development_tools/test_pyright_config_paths.py), excluded from default runs).
 
 **AI_PRIORITIES default guidance (tool-suite themes)**
 
@@ -645,7 +644,7 @@ When `AI_PRIORITIES.md` is generated, items that lack explicit "Review for guida
 | Theme | Primary procedural docs | Typical JSON / report |
 |--------|-------------------------|------------------------|
 | Documentation drift / doc-sync | This guide sections 3-5; AI_DOCUMENTATION_GUIDE | `docs/jsons/analyze_documentation_sync_results.json` |
-| Static analysis (Ruff/Pyright/Bandit/pip-audit) | Section 10; `config/pyrightconfig.json` | `**/jsons/scopes/*/static_checks/*.json`, `AI_STATUS` |
+| Static analysis (Ruff/Pyright/Bandit/pip-audit) | Section 10; `pyproject.toml` `[tool.pyright]` | `**/jsons/scopes/*/static_checks/*.json`, `AI_STATUS` |
 | Test markers (category + optional domain) | This section; `tests/analyze_test_markers.py` | `tests/jsons/analyze_test_markers_results.json` |
 | Import boundaries | Section 8.5 | `imports/jsons/analyze_dev_tools_import_boundaries_results.json` |
 | Coverage / Tier 3 | Section 3; HOW_TO_RUN Tier 3 freshness | `tests/jsons/coverage.json`, `development_docs/TEST_COVERAGE_REPORT.md` |
@@ -657,7 +656,7 @@ When `AI_PRIORITIES.md` is generated, items that lack explicit "Review for guida
 
 **Status (2026-04-10)**: **Bandit** and **pip-audit** are integrated into **Tier 3** (`audit --full`): wrappers [`development_tools/static_checks/analyze_bandit.py`](static_checks/analyze_bandit.py) and [`development_tools/static_checks/analyze_pip_audit.py`](static_checks/analyze_pip_audit.py), JSON under scoped `development_tools/**/jsons/static_checks/`, summaries in `AI_STATUS.md` / `CONSOLIDATED_REPORT.md` / `AI_PRIORITIES.md`. Both are listed in root `requirements.txt` (`bandit[toml]` for `[tool.bandit]`). **Bandit** scans **first-party package roots** (see `bandit_scan_roots` in [`config.py`](config/config.py)) plus `run_tests.py` / `run_mhm.py`, not a blind `-r .` (avoids `.venv` / site-packages noise); [`pyproject.toml`](../pyproject.toml) **`[tool.bandit]`** lists `exclude_dirs` (e.g. `tests`, `archive`). **Strict mode** still keys off Tier 3 **pytest** outcome, not these tools. **pip-audit** needs network access to the vulnerability index on fresh runs (cache keyed off `requirements.txt` / `pyproject.toml`); upgrade **`pip`** in the venv if pip-audit reports CVEs on pip itself.
 
-- **CI / offline (2026-04-11)**: Set environment variable **`MHM_PIP_AUDIT_SKIP`** to `1`, `true`, `yes`, or `on` to skip the pip-audit subprocess and emit a **PASS** with zero findings and `details.pip_audit_skipped` (no vulnerability index fetch). Use in restricted networks or when delegating supply-chain checks elsewhere; local full audits should omit this flag so pip-audit runs normally.
+- **CI / offline (2026-04-11)**: Set environment variable **`DEV_TOOLS_PIP_AUDIT_SKIP`** to `1`, `true`, `yes`, or `on` to skip the pip-audit subprocess and emit a **PASS** with zero findings and `details.pip_audit_skipped` (no vulnerability index fetch). Use in restricted networks or when delegating supply-chain checks elsewhere; local full audits should omit this flag so pip-audit runs normally.
 
 - **Timing semantics (2026-04-15, V5 Section 4.3)**: JSON `details` include `pip_audit_execution_state` (`executed_subprocess`, `requirements_lock_cache_hit`, `skipped_env`, `error`) and `pip_audit_subprocess_seconds` when the subprocess ran. Audit logs and consolidated static-analysis lines clarify cache hits vs real subprocess time so `elapsed=0.00s` is not misread as a broken timer.
 

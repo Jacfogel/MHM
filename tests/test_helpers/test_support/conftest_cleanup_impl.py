@@ -100,7 +100,8 @@ def _clear_pytest_runner_directory_contents(
             continue
         name = child.name
         if not (
-            name.startswith("mhm_pytest_tmp_")
+            name.startswith("devtools_pytest_tmp_")
+            or name.startswith("mhm_pytest_tmp_")  # legacy prefix
             or name.startswith("repro_")
             or name.startswith("pytest-")
         ):
