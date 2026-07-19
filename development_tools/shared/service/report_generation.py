@@ -1649,8 +1649,9 @@ class ReportGenerationMixin:
             else:
                 lines.append(
                     "- **Development Tools Package Coverage (this pass)**: "
-                    "No `coverage_dev_tools.json` loaded - run `audit --full --dev-tools-only` "
-                    "with Tier 3 dev-tools coverage enabled."
+                    "No `coverage_dev_tools.json` loaded - run "
+                    "`python development_tools/run_development_tools.py coverage` "
+                    "(or `python development_tools/tests/run_test_coverage.py --dev-tools-only`)."
                 )
         elif coverage_summary and isinstance(coverage_summary, dict):
             overall = coverage_summary.get("overall") or {}
@@ -3252,11 +3253,15 @@ class ReportGenerationMixin:
         if self._is_dev_tools_scoped_report():
             lines.append(
                 "- `python development_tools/run_development_tools.py audit --full` - "
-                "Regenerate full-repo `AI_STATUS.md` and refresh `coverage.json` / product metrics"
+                "Regenerate full-repo `AI_STATUS.md` / product hygiene metrics (does not refresh coverage)"
             )
             lines.append(
                 "- `python development_tools/run_development_tools.py audit --full --dev-tools-only` - "
-                "Regenerate this file (`DEV_TOOLS_*`) and dev-tools coverage only"
+                "Regenerate this file (`DEV_TOOLS_*`) only (does not refresh coverage)"
+            )
+            lines.append(
+                "- `python development_tools/run_development_tools.py coverage` - "
+                "Refresh `coverage.json` / `development_docs/TEST_COVERAGE_REPORT.md` / marker analysis"
             )
             lines.append(
                 "- `python development_tools/run_development_tools.py status` - Read-only; "
@@ -6284,7 +6289,10 @@ class ReportGenerationMixin:
 
         lines.append("## Follow-up Commands")
         lines.append(
-            "- `python development_tools/run_development_tools.py audit --full`  -  rebuild coverage and hygiene data after fixes."
+            "- `python development_tools/run_development_tools.py audit --full`  -  rebuild hygiene/status data after fixes (does not refresh coverage)."
+        )
+        lines.append(
+            "- `python development_tools/run_development_tools.py coverage`  -  refresh coverage metrics, markers, and `development_docs/TEST_COVERAGE_REPORT.md`."
         )
 
         return "\n".join(lines)
@@ -7560,10 +7568,9 @@ class ReportGenerationMixin:
 
         if skip_main_tracks_cr:
             lines.append(
-                "- **Overall Coverage**: **Skipped** - `audit --full --dev-tools-only` does not re-run "
-                "full-repo coverage. Run `python development_tools/run_development_tools.py audit --full` "
-                "(no `--dev-tools-only`) for updated product coverage and "
-                "`development_docs/TEST_COVERAGE_REPORT.md`."
+                "- **Overall Coverage**: **Skipped** - this scoped audit does not refresh coverage. "
+                "Run `python development_tools/run_development_tools.py coverage` for updated "
+                "product coverage and `development_docs/TEST_COVERAGE_REPORT.md`."
             )
         elif coverage_summary and isinstance(coverage_summary, dict):
             overall = coverage_summary.get("overall") or {}
@@ -7725,7 +7732,10 @@ class ReportGenerationMixin:
                 "- Coverage regeneration completed with issues; inspect coverage.json for gap details"
             )
         else:
-            lines.append("- Run `audit --full` to regenerate coverage metrics")
+            lines.append(
+                "- Run `python development_tools/run_development_tools.py coverage` "
+                "to regenerate coverage metrics"
+            )
 
         lines.append("")
 

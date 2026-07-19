@@ -17,7 +17,7 @@
 - **Error Handling Coverage**: 100.0% (0 functions without handlers)
 - **Doc Sync**: FAIL (2 tracked issues)
 - **Example markers (advisory)**: no hints (paired-doc Example scan)
-- **Development Tools Package Coverage (this pass)**: No `coverage_dev_tools.json` loaded - run `audit --full --dev-tools-only` with Tier 3 dev-tools coverage enabled.
+- **Development Tools Package Coverage (this pass)**: No `coverage_dev_tools.json` loaded - run `python development_tools/run_development_tools.py coverage` (or `python development_tools/tests/run_test_coverage.py --dev-tools-only`).
 - **Backup Health**: PASS (7/7 checks)
 - **Static Analysis (ruff/pyright/bandit/pip-audit)**: CLEAN
 - **Pytest process cleanup**: PASS (no candidate orphan workers)
@@ -107,7 +107,8 @@
 - **Development Tools Classification**: passed (reason=pytest_passed) | return_hex=0x00000000
 
 ## Quick Commands
-- `python development_tools/run_development_tools.py audit --full` - Regenerate full-repo `AI_STATUS.md` and refresh `coverage.json` / product metrics
-- `python development_tools/run_development_tools.py audit --full --dev-tools-only` - Regenerate this file (`DEV_TOOLS_*`) and dev-tools coverage only
+- `python development_tools/run_development_tools.py audit --full` - Regenerate full-repo `AI_STATUS.md` / product hygiene metrics (does not refresh coverage)
+- `python development_tools/run_development_tools.py audit --full --dev-tools-only` - Regenerate this file (`DEV_TOOLS_*`) only (does not refresh coverage)
+- `python development_tools/run_development_tools.py coverage` - Refresh `coverage.json` / `development_docs/TEST_COVERAGE_REPORT.md` / marker analysis
 - `python development_tools/run_development_tools.py status` - Read-only; uses cached aggregate results (full-repo oriented; prefer the commands above for scoped refresh)
 - `python development_tools/run_development_tools.py doc-sync` - Update documentation pairing data

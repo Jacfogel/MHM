@@ -1,5 +1,6 @@
 """Unit tests for Google Health reconnect notifications."""
 
+import uuid
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -92,11 +93,16 @@ def test_send_reconnect_notice_uses_user_channel():
 @pytest.mark.user
 def test_sync_sends_reconnect_notice_on_auth_pause(test_data_dir, monkeypatch):
     from core import get_user_data, update_user_account
-    from integrations.google_health.data_handlers import ensure_health_directory, save_auth
+    from integrations.google_health.data_handlers import (
+        ensure_health_directory,
+        save_auth,
+        save_sync_state,
+    )
     from integrations.google_health.sync_manager import sync_user_health_data
     from tests.test_helpers.test_utilities.test_user_factory import TestUserFactory
 
-    user_id = "health-notice-user-sync"
+    # Unique per run: leftover xdist user dirs keep paused feature / reconnect_notice_sent.
+    user_id = f"health-notice-user-sync-{uuid.uuid4().hex[:10]}"
     TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
     update_user_account(user_id, {"features": {"google_health": "enabled"}})
     ensure_health_directory(user_id)
@@ -108,6 +114,15 @@ def test_sync_sends_reconnect_notice_on_auth_pause(test_data_dir, monkeypatch):
             "access_token": "token",
             "refresh_token": "refresh",
             "expires_at": "2000-01-01 00:00:00",
+        },
+    )
+    save_sync_state(
+        user_id,
+        {
+            "schema_version": 2,
+            "consecutive_failures": 0,
+            "reconnect_notice_sent": False,
+            "last_error": "",
         },
     )
     with patch.dict("os.environ", {"MHM_TESTING": "0"}, clear=False), patch(

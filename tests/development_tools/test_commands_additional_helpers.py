@@ -869,3 +869,134 @@ def test_run_test_markers_normalizes_missing_items_and_handles_no_output(
     failed = service.run_test_markers(action="unknown")
     assert failed["success"] is False
     assert "No output received" in failed["error"]
+
+
+@pytest.mark.unit
+def test_execute_task_routes_known_and_unknown_types(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    calls: list[str] = []
+
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda name, *_a, **_k: calls.append(name) or {"success": True},
+    )
+    monkeypatch.setattr(
+        service,
+        "run_nightly_test_suite",
+        lambda *, strict=False: {"state": "clean"},
+    )
+
+    assert service.execute_task("documentation") is True
+    assert service.execute_task("function_registry") is True
+    assert service.execute_task("module_dependencies") is True
+    assert service.execute_task("nightly-test-suite") is True
+    assert service.execute_task("nightly-audit") is True
+    assert service.execute_task("unknown-task") is False
+    assert calls == [
+        "generate_documentation",
+        "generate_function_registry",
+        "generate_module_dependencies",
+    ]
+
+    monkeypatch.setattr(
+        service,
+        "run_nightly_test_suite",
+        lambda *, strict=False: {"state": "failed"},
+    )
+    assert service.execute_task("nightly-audit") is False
+
+
+@pytest.mark.unit
+def test_generate_directory_trees_success_fail_and_safeguard(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    monkeypatch.setattr(
+        service, "run_script", lambda *_a, **_k: {"success": True, "error": ""}
+    )
+    assert service.generate_directory_trees() is True
+
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_a, **_k: {"success": False, "error": "boom"},
+    )
+    assert service.generate_directory_trees() is False
+
+    def _blocked(*_a, **_k):
+        raise RuntimeError("Cannot write DIRECTORY_TREE.md during audit")
+
+    monkeypatch.setattr(service, "run_script", _blocked)
+    assert service.generate_directory_trees() is False
+
+    def _other(*_a, **_k):
+        raise RuntimeError("unrelated failure")
+
+    monkeypatch.setattr(service, "run_script", _other)
+    with pytest.raises(RuntimeError, match="unrelated"):
+        service.generate_directory_trees()
+
+
+@pytest.mark.unit
+def test_run_cleanup_full_flag_and_exception(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    captured_kwargs: dict[str, object] = {}
+
+    class _FakeCleanup:
+        def __init__(self, project_root):
+            self.project_root = project_root
+
+        def cleanup_all(self, **kwargs):
+            captured_kwargs.update(kwargs)
+            return {"removed": 3}
+
+    import development_tools.shared.fix_project_cleanup as cleanup_mod
+
+    monkeypatch.setattr(cleanup_mod, "ProjectCleanup", _FakeCleanup)
+
+    result = service.run_cleanup(full=True, dry_run=True)
+    assert result["success"] is True
+    assert result["data"]["removed"] == 3
+    assert captured_kwargs["cache"] is True
+    assert captured_kwargs["test_data"] is True
+    assert captured_kwargs["coverage"] is True
+    assert captured_kwargs["include_tool_caches"] is True
+    assert captured_kwargs["dry_run"] is True
+
+    class _BoomCleanup:
+        def __init__(self, *_a, **_k):
+            raise RuntimeError("cleanup exploded")
+
+    monkeypatch.setattr(cleanup_mod, "ProjectCleanup", _BoomCleanup)
+    failed = service.run_cleanup()
+    assert failed["success"] is False
+    assert "cleanup exploded" in failed["error"]
+
+
+@pytest.mark.unit
+def test_run_status_skip_status_files_avoids_generators(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    monkeypatch.setattr(
+        service,
+        "_generate_ai_status_document",
+        lambda: (_ for _ in ()).throw(AssertionError("should not run")),
+    )
+    monkeypatch.setattr(
+        service,
+        "_generate_ai_priorities_document",
+        lambda: (_ for _ in ()).throw(AssertionError("should not run")),
+    )
+    monkeypatch.setattr(
+        service,
+        "_generate_consolidated_report",
+        lambda: (_ for _ in ()).throw(AssertionError("should not run")),
+    )
+    service.run_status(skip_status_files=True)

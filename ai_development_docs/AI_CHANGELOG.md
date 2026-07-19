@@ -30,13 +30,22 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-07-18 - LIST_OF_LISTS currency and SSOT path alignment **COMPLETED**
+### 2026-07-18 - LIST_OF_LISTS currency; V6 plan status refresh **COMPLETED**
 - LIST_OF_LISTS verified against live code; fixed duplicate `legacy_cleanup` JSON key; PLANS Section 2 + cursor rules inventory path aligned to `config/jsons/`.
 - Catalog drift fixed: `EXPECTED_TOOLS` uses `analyze_system_signals`; `generate_dev_tools_coverage` catalogued in `_TOOLS`; subset policy test added; tool_guide basename guard skips script-registry excludes.
 - Cleared AI_PRIORITIES doc-sync items: path drift, ASCII, registry regen; `doc-sync` PASS.
 - LIST_OF_LISTS Section 7c documents cache/suite/static-analysis/backup policy lists.
 - Deferred SSOT closed: audit_tiers group maps, paired-docs prose sync in doc-sync, COMMAND_GROUPS guide parity test, PRODUCT_LIST_OF_LISTS.md.
 - Parallel-track flake fix: xdist worker-isolated `tests/data/xdist_*`; force-overwrite inherited `TEST_DATA_DIR`; actionability tests bind runtime data dir; `is_automated_messages_enabled` resolves usernames; audit_tiers TypedDict clears Pyright warnings.
+- Refreshed [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 1.1 / B-001-B-005 / B-018 against 2026-07-18 audit + codebase (coverage-first next slice; perf residual; portability residual; domain markers maintenance; pip CVE closed).
+- B-002 coverage slice #1: branch tests for `report_generation` / `audit_orchestration` / `tool_wrappers` helpers (113 passed in the three extended test modules).
+- Fixed Tier 3 parallel flakes: unique user IDs for task-stats parity, admin provisioning, and Google Health reconnect-notice sync; ran `doc-fix --fix-ascii` on changelogs.
+- B-001 residual: module-scoped `temp_project_copy` in static-analysis wrapper + unused-imports report tests; legacy cleanup left function-scoped (mutates demo tree).
+- Full `development_tools` durations profile: 1564 passed in ~3:15 wall; setup still dominated by function-scoped mutators (`fix_project_cleanup`, `output_storage_archiving`, `legacy_reference_cleanup`).
+- B-002 coverage slice #2: deeper chokepoint edges plus new `test_analyze_unused_functions.py` (closes the 0% analyzer gap from wrapper-only mocks); 129 passed across four modules. V6 B-002 notes retargeted to ~65.6% live snapshot.
+- B-002 coverage slice #3: `commands` / `data_loading` helpers (coverage summary/insights, canonical metrics, doc-subcheck freshness/cache-hit, execute_task/cleanup/status skip); 121 passed across three extended modules.
+- Doc correction: coverage is refreshed only by `python development_tools/run_development_tools.py coverage` (not `audit --full`). Updated HOW_TO_RUN, DEVELOPMENT_WORKFLOW (paired with AI_*), DEVELOPMENT_TOOLS_GUIDE, V6/TODO, and generated-status follow-up strings in `report_generation.py`.
+- Cleared AI_PRIORITIES quick wins: path-drift bare `TEST_COVERAGE_REPORT.md` refs -> `development_docs/...`; Pyright on new helper tests (0/0); TODO.md ASCII via `doc-fix --fix-ascii`; `doc-sync` PASS.
 
 ### 2026-07-17 - Session fact recall; archive completed product-AI plan **COMPLETED**
 - Contextual prompts merge session + disk conversation history and label prior user turns clearly; cache skipped when prior turns exist.

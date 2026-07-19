@@ -57,7 +57,7 @@
 - **@handle_errors Usage**: 1656 functions already use the decorator
 
 ## Test Coverage
-- **Overall Coverage**: **Skipped** - `audit --full --dev-tools-only` does not re-run full-repo coverage. Run `python development_tools/run_development_tools.py audit --full` (no `--dev-tools-only`) for updated product coverage and `development_docs/TEST_COVERAGE_REPORT.md`.
+- **Overall Coverage**: **Skipped** - this scoped audit does not refresh coverage. Run `python development_tools/run_development_tools.py coverage` for updated product coverage and `development_docs/TEST_COVERAGE_REPORT.md`.
 ## Test Markers
 - **Status**: CLEAN (category and domain marker policy satisfied)
 

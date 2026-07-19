@@ -659,3 +659,246 @@ def test_verify_process_cleanup_lines_cover_platform_and_candidates(
     assert "candidate count=1" in joined
     assert "PID 123" in joined
     assert "verify_process_cleanup_results.json" in joined
+
+
+@pytest.mark.unit
+def test_scoped_tool_result_path_full_vs_dev_tools(temp_project_copy: Path) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    assert service._scoped_tool_result_path("functions", "analyze_functions") == (
+        "development_tools/functions/jsons/scopes/full/analyze_functions_results.json"
+    )
+    service.dev_tools_only_mode = True
+    assert service._scoped_tool_result_path("docs", "analyze_path_drift") == (
+        "development_tools/docs/jsons/scopes/dev_tools/analyze_path_drift_results.json"
+    )
+
+
+@pytest.mark.unit
+def test_filter_circular_and_high_coupling_dev_tools(temp_project_copy: Path) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    chains = [
+        ["ui/a.py", "ui/b.py"],
+        ["development_tools/shared/x.py", "ui/y.py"],
+        "not-a-list",
+        [],
+    ]
+    kept = service._filter_circular_dependencies_dev_tools(chains)
+    assert kept == [["development_tools/shared/x.py", "ui/y.py"]]
+
+    items = [
+        {"file": "development_tools/shared/service/core.py", "fan_in": 9},
+        {"file": "communication/bot.py", "fan_in": 12},
+        {"file": ""},
+        "skip",
+    ]
+    coupled = service._filter_high_coupling_dev_tools(items)
+    assert len(coupled) == 1
+    assert coupled[0]["file"].endswith("core.py")
+
+
+@pytest.mark.unit
+def test_track_classification_label_and_summary_branches(
+    temp_project_copy: Path,
+) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    assert service._track_classification_label("bad") == "unknown"
+    assert service._track_classification_label({}) == "unknown"
+    assert service._track_classification_label({"classification": "  failed  "}) == "failed"
+
+    passed = service._format_track_classification_summary(
+        "Parallel",
+        {
+            "classification": "passed",
+            "classification_reason": "unknown",
+            "return_code_hex": "0x0",
+            "log_file": "logs/p.log",
+            "actionable_context": "ignore-me",
+        },
+    )
+    assert "Parallel" in passed
+    assert "passed" in passed
+    assert "return_hex=0x0" in passed
+    assert "log=" not in passed
+    assert "hint=" not in passed
+
+    failed = service._format_track_classification_summary(
+        "Serial",
+        {
+            "classification": "failed",
+            "classification_reason": "test_failures",
+            "log_file": "  logs/fail.log  ",
+            "actionable_context": "  re-run track  ",
+        },
+    )
+    assert "reason=test_failures" in failed
+    assert "log=logs/fail.log" in failed
+    assert "hint=re-run track" in failed
+
+
+@pytest.mark.unit
+def test_normalize_tier3_log_file_ref_branches(temp_project_copy: Path) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    assert service._normalize_tier3_log_file_ref(None) is None
+    assert service._normalize_tier3_log_file_ref("  ") is None
+    assert (
+        service._normalize_tier3_log_file_ref("development_tools/tests/logs/x.log")
+        == "development_tools/tests/logs/x.log"
+    )
+
+    abs_inside = temp_project_copy / "development_tools" / "tests" / "logs" / "y.log"
+    abs_inside.parent.mkdir(parents=True, exist_ok=True)
+    abs_inside.write_text("y", encoding="utf-8")
+    assert service._normalize_tier3_log_file_ref(str(abs_inside)) == (
+        "development_tools/tests/logs/y.log"
+    )
+
+    outside = Path("C:/Windows/Temp/outside.log") if (temp_project_copy.drive) else Path("/tmp/outside.log")
+    normalized = service._normalize_tier3_log_file_ref(str(outside))
+    assert normalized is not None
+    assert "outside.log" in normalized.replace("\\", "/")
+
+
+@pytest.mark.unit
+def test_load_results_file_safe_skips_test_directory(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+    assert service._is_test_directory(temp_project_copy) is True
+    assert service._load_results_file_safe() is None
+
+    results_path = service._get_results_file_path()
+    results_path.parent.mkdir(parents=True, exist_ok=True)
+    results_path.write_text('{"ok": true}', encoding="utf-8")
+    monkeypatch.setattr(service, "_is_test_directory", lambda _p: False)
+    assert service._load_results_file_safe() == {"ok": True}
+
+    results_path.write_text("{not-json", encoding="utf-8")
+    assert service._load_results_file_safe() is None
+
+
+@pytest.mark.unit
+def test_identify_critical_issues_and_generate_action_items(
+    temp_project_copy: Path,
+) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.results_cache = {
+        "analyze_functions": {"coverage": "80%"},
+        "decision_support": ["High complexity in foo", "other insight"],
+    }
+    service._last_failed_audits = ["analyze_ruff"]
+
+    issues = service._identify_critical_issues()
+    assert any("Low documentation coverage: 80.0%" in i for i in issues)
+    assert "Failed audit: analyze_ruff" in issues
+
+    service.results_cache["analyze_functions"] = {"coverage": "not-a-number"}
+    assert service._identify_critical_issues() == ["Failed audit: analyze_ruff"]
+
+    actions = service._generate_action_items()
+    assert any("Improve documentation coverage" in a for a in actions) is False
+    service.results_cache["analyze_functions"] = {"coverage": "90%"}
+    actions = service._generate_action_items()
+    assert any("Improve documentation coverage (currently 90.0%)" in a for a in actions)
+    assert any("Refactor high complexity" in a for a in actions)
+    assert "Review TODO.md for next development priorities" in actions
+
+
+@pytest.mark.unit
+def test_tier3_outcome_has_run_evidence_matrix(temp_project_copy: Path) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    assert service._tier3_outcome_has_run_evidence({}) is False
+    assert service._tier3_outcome_has_run_evidence("bad") is False
+    assert service._tier3_outcome_has_run_evidence({"state": "unknown"}) is False
+    assert service._tier3_outcome_has_run_evidence({"state": "test_failures"}) is True
+    assert (
+        service._tier3_outcome_has_run_evidence(
+            {"parallel": {"classification_reason": "not_run_this_audit_scope"}}
+        )
+        is True
+    )
+    assert (
+        service._tier3_outcome_has_run_evidence(
+            {"no_parallel": {"classification": "passed"}}
+        )
+        is True
+    )
+    assert (
+        service._tier3_outcome_has_run_evidence(
+            {"development_tools": {"return_code": 1}}
+        )
+        is True
+    )
+    assert (
+        service._tier3_outcome_has_run_evidence(
+            {"parallel": {"classification": "unknown", "return_code": 0}}
+        )
+        is False
+    )
+
+
+@pytest.mark.unit
+def test_get_code_docstring_metrics_edge_cases(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    empty = service._get_code_docstring_metrics(
+        {"details": {"total_functions": 0, "undocumented": 0}}
+    )
+    assert empty["total"] == 0
+    assert empty["coverage"] is None
+
+    monkeypatch.setattr(service, "_load_tool_data", lambda *_a, **_k: None, raising=True)
+    assert service._get_code_docstring_metrics(None) == {
+        "total": 0,
+        "undocumented": 0,
+        "documented": 0,
+        "coverage": None,
+    }
+
+    loaded = {"details": {"total_functions": -5, "undocumented": 99}}
+    monkeypatch.setattr(
+        service, "_load_tool_data", lambda *_a, **_k: loaded, raising=True
+    )
+    clamped = service._get_code_docstring_metrics("not-a-dict")
+    # Negative total clamps to 0; undocumented clamp only applies when total > 0.
+    assert clamped["total"] == 0
+    assert clamped["undocumented"] == 99
+    assert clamped["coverage"] is None
+
+
+@pytest.mark.unit
+def test_top_test_marker_files_bullet_empty_and_junk(
+    temp_project_copy: Path,
+) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+
+    assert service._top_test_marker_files_bullet([]) is None
+    assert service._top_test_marker_files_bullet(["skip", 1, {"name": "x"}]) is None
+    bullet = service._top_test_marker_files_bullet(
+        [
+            {"file": "tests/a.py", "name": "t1"},
+            {"file": "tests/a.py", "name": "t2"},
+            {"file": "tests/b.py", "name": "t3"},
+        ]
+    )
+    assert bullet is not None
+    assert "Top files:" in bullet
+    assert "a.py" in bullet
+
+
+@pytest.mark.unit
+def test_get_results_file_path_dev_tools_scope(temp_project_copy: Path) -> None:
+    service = AIToolsService(project_root=str(temp_project_copy))
+    full_path = service._get_results_file_path()
+    assert "scopes" in str(full_path).replace("\\", "/")
+    assert "full" in str(full_path).replace("\\", "/")
+
+    service.dev_tools_only_mode = True
+    scoped = service._get_results_file_path()
+    assert "dev_tools" in str(scoped).replace("\\", "/")

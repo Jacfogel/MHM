@@ -121,32 +121,33 @@ If you run the development tools full audit on this or another PC:
 
 - **Dependencies**: `pip install -r requirements.txt` installs everything needed, including `pytest-cov` for coverage. No extra steps are required.
 - **First run**: The backup health check reports "no backups" (skipped) until you create backups via the app; that is normal on a fresh install and does not fail the audit.
-- **Commands**: `python development_tools/run_development_tools.py audit --full` runs the full Tier 3 audit (tests + coverage + reports). See [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) for details.
+- **Commands**: `python development_tools/run_development_tools.py audit --full` runs the full Tier 3 audit (pytest suite without coverage + reports). Coverage is separate: `python development_tools/run_development_tools.py coverage`. See [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) for details.
 
-- **Tier 3 freshness (coverage / pytest rows in AI_STATUS)**: A default `audit --full` refreshes full-repo coverage and Tier 3 test outcomes. If **AI_STATUS** still shows `cache_only_precheck` or stale numbers, run again with `--clear-cache` to bypass Tier 3 caches (see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) nuance index). To refresh **development_tools-only** coverage and DEV_TOOLS_* reports without re-running the full product test track, use `python development_tools/run_development_tools.py audit --full --dev-tools-only`.
+- **Coverage freshness**: Run `python development_tools/run_development_tools.py coverage` when you need updated `coverage.json`, marker analysis, and `development_docs/TEST_COVERAGE_REPORT.md`. `audit --full` does **not** regenerate coverage. For scoped status files only, use `audit --full --dev-tools-only` (still does not refresh coverage).
 
 #### 5.1.1. Choosing an audit tier (time vs coverage)
 
-Pick the **smallest** command that answers your question; full Tier 3 can exceed wall-clock ten minutes when pytest + coverage dominate.
+Pick the **smallest** command that answers your question; full Tier 3 can exceed wall-clock ten minutes when the pytest suite dominates. Coverage is a separate, less-frequent command.
 
 | Goal | Command |
 |------|---------|
 | Fast health signal (Tier 1) | `python development_tools/run_development_tools.py audit --quick` |
 | Standard checks, no pytest/coverage (Tier 1 + 2) | `python development_tools/run_development_tools.py audit` |
-| Full evidence including quick tests (Tier 3; excludes slow) | `python development_tools/run_development_tools.py audit --full` |
+| Full evidence including quick tests (Tier 3; excludes slow; no coverage) | `python development_tools/run_development_tools.py audit --full` |
+| Refresh coverage metrics / TEST_COVERAGE_REPORT | `python development_tools/run_development_tools.py coverage` |
 | Nightly full test suite (includes slow tests) | `python development_tools/run_development_tools.py nightly-test-suite` |
-| Tier 3 but only dev-tools tests/coverage + scoped DEV_TOOLS_* reports | `python development_tools/run_development_tools.py audit --full --dev-tools-only` |
+| Tier 3 but only dev-tools tests + scoped DEV_TOOLS_* reports (no coverage) | `python development_tools/run_development_tools.py audit --full --dev-tools-only` |
 | Skip pip-audit subprocess (offline / CI) | Set environment variable `MHM_PIP_AUDIT_SKIP` (see [development_tools/DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)) |
 
-**Deferred (not default)**: Moving Bandit or pip-audit into Tier 1 (`audit --quick`) would make quick audits slower without addressing the main cost (pytest + coverage); see [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 5.4 - 4.1.
+**Deferred (not default)**: Moving Bandit or pip-audit into Tier 1 (`audit --quick`) would make quick audits slower without addressing the main cost (pytest / coverage when run); see [development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 5.4 - 4.1.
 
 #### 5.1.2. Where full-audit time goes (baseline snapshot)
 
-After a full Tier 3 run, see `development_tools/reports/scopes/full/jsons/tool_timings.json` for per-tool seconds. A representative snapshot (2026-04-17): **`run_test_coverage` ~473s** (~76% of summed tool durations); next largest single tools **`analyze_pyright` ~47s**, **`analyze_bandit` ~20s**, **`analyze_documentation_sync` ~12s**, **`analyze_pip_audit` ~8.6s**, **`analyze_legacy_references` ~7.6s**. Re-run `audit --full` to refresh; numbers are machine-specific.
+After a full Tier 3 run, see `development_tools/reports/scopes/full/jsons/tool_timings.json` for per-tool seconds. Coverage time belongs to the separate `coverage` command (historical snapshot when coverage was still in Tier 3, 2026-04-17: **`run_test_coverage` ~473s**). Typical Tier 3 tools today include **`analyze_pyright`**, **`analyze_bandit`**, **`run_test_suite`**, **`analyze_documentation_sync`**, **`analyze_pip_audit`**, **`analyze_legacy_references`**. Re-run `audit --full` (or `coverage`) to refresh the relevant timings; numbers are machine-specific.
 
 #### 5.1.3. Coverage domain cache (warm vs cold)
 
-Domain and test-file caching for coverage is **on** by default (`run_test_coverage` / unified audit). To measure cache benefit on your machine, compare wall time with and without `--no-domain-cache` after a warm cache (PowerShell):
+Domain and test-file caching for coverage is **on** by default (`run_test_coverage` / the `coverage` command). To measure cache benefit on your machine, compare wall time with and without `--no-domain-cache` after a warm cache (PowerShell):
 
 ```powershell
 Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache }

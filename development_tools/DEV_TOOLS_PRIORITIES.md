@@ -21,4 +21,5 @@ All signals are green. Re-run `python development_tools/run_development_tools.py
 
 
 ## Follow-up Commands
-- `python development_tools/run_development_tools.py audit --full`  -  rebuild coverage and hygiene data after fixes.
+- `python development_tools/run_development_tools.py audit --full`  -  rebuild hygiene/status data after fixes (does not refresh coverage).
+- `python development_tools/run_development_tools.py coverage`  -  refresh coverage metrics, markers, and `development_docs/TEST_COVERAGE_REPORT.md`.

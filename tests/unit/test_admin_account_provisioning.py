@@ -116,8 +116,10 @@ class TestAdminAccountProvisioningHelpers:
 @pytest.mark.user
 class TestProvisionAdminAccount:
     def test_provision_admin_account_creates_user(self, test_data_dir):
+        # Unique username: fixed "provision_test_user" collides under xdist worker data dirs.
+        unique_username = f"provision-test-user-{uuid.uuid4().hex[:8]}"
         account_data = {
-            "username": "provision_test_user",
+            "username": unique_username,
             "timezone": "America/Regina",
             "channel": {"type": "discord"},
             "contact_info": {"email": "", "phone": "", "discord": "111222333"},
@@ -136,11 +138,14 @@ class TestProvisionAdminAccount:
 
         assert user_id is not None
 
-        from core import get_user_data, get_user_id_by_identifier
+        from core import get_user_data
 
         account = get_user_data(user_id, "account")
-        assert account["account"]["internal_username"] == "provision_test_user"
-        assert get_user_id_by_identifier("provision_test_user") == user_id
+        assert account["account"]["internal_username"] == unique_username
+        resolved = _resolve_user_id_with_retry(
+            unique_username, test_data_dir=test_data_dir
+        )
+        assert resolved == user_id
 
 
 @pytest.mark.integration

@@ -89,7 +89,7 @@ python development_tools/run_development_tools.py config
 **Core Commands** (daily-safe, audit-first workflow):
 - `audit` - Standard audit (Tier 2, default); regenerates quality checks and cached signals.
 - `audit --quick` - Quick audit (Tier 1); core metrics only (~30-60s).
-- `audit --full` - Full audit (Tier 3); comprehensive analysis including coverage (~10-30min, alias: full-audit).
+- `audit --full` - Full audit (Tier 3); comprehensive analysis with pytest suite **without** coverage (~10-30min, alias: full-audit).
 - `full-audit` - alias command for `audit --full`.
 - `audit --full --strict` - Full audit with fail-fast exit semantics for Tier 3 test failures/crashes.
 - `docs` - regenerates registries, dependency maps, and doc-signals.
@@ -119,7 +119,7 @@ Coverage worker config (`coverage` section):
 - `decision-support` - generates decision support insights.
 - `unused-imports` - runs the AST-based unused import detection tool (analysis only).
 - `unused-imports-report` - generates unused imports report from analysis results.
-- `flaky-detector` - runs repeated parallel pytest passes to identify intermittent failures/flaky tests. **Not** part of `audit --full` (nested pytest would fight the coverage run); invoke manually when investigating flakes.
+- `flaky-detector` - runs repeated parallel pytest passes to identify intermittent failures/flaky tests. **Not** part of `audit --full` (nested pytest would fight the Tier 3 suite); invoke manually when investigating flakes.
 - `verify-process-cleanup` - checks for potential orphaned pytest/python worker processes (included in Tier 3 full audit).
 - `duplicate-functions` - detects possible duplicate or similar functions (analysis only).
 - `unused-functions` - detects unused/uncalled functions and methods via AST cross-referencing (analysis only, advisory).

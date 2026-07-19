@@ -7,6 +7,7 @@ Uses mocked planner output so tests do not require LM Studio or Discord.
 from __future__ import annotations
 
 import types
+import uuid
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -635,6 +636,8 @@ def test_task_stats_parity_rule_parser_vs_planner(test_data_dir, planner_enabled
     task_title = "High priority chore"
     message = "show task stats"
     entities = {"days": 7, "period_name": "this week"}
+    # Unique users: fixed parity-stats-* names reuse xdist dirs and accumulate tasks.
+    suffix = uuid.uuid4().hex[:8]
 
     def seed(user_id: str) -> None:
         create_task(
@@ -654,8 +657,8 @@ def test_task_stats_parity_rule_parser_vs_planner(test_data_dir, planner_enabled
     _run_task_intent_parity(
         test_data_dir,
         planner_enabled,
-        rule_user="parity-stats-rule",
-        planner_user="parity-stats-planner",
+        rule_user=f"parity-stats-rule-{suffix}",
+        planner_user=f"parity-stats-planner-{suffix}",
         message=message,
         intent="task_stats",
         entities=entities,

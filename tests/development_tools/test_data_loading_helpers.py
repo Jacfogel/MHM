@@ -462,3 +462,415 @@ def test_get_system_status_lists_key_files_and_audit_timestamp(
     assert "[OK]" in status and "present.txt" in status
     assert "[MISSING]" in status and "absent.txt" in status
     assert "2026-04-22T12:00:00" in status
+
+
+@pytest.mark.unit
+def test_load_coverage_summary_primary_overall_and_worst_files(tmp_path: Path):
+    service = AIToolsService(project_root=str(tmp_path))
+    coverage_path = tmp_path / "development_tools" / "tests" / "jsons" / "coverage.json"
+    coverage_path.parent.mkdir(parents=True, exist_ok=True)
+    coverage_path.write_text(
+        json.dumps(
+            {
+                "meta": {"timestamp": "2026-07-18T12:00:00"},
+                "files": {
+                    "core/config.py": {
+                        "summary": {
+                            "num_statements": 100,
+                            "covered_lines": 80,
+                            "missing_lines": 20,
+                        }
+                    },
+                    "ui/dialog.py": {
+                        "summary": {
+                            "num_statements": 50,
+                            "covered_lines": 10,
+                            "missing_lines": 40,
+                        }
+                    },
+                    "empty/mod.py": {
+                        "summary": {
+                            "num_statements": 0,
+                            "covered_lines": 0,
+                            "missing_lines": None,
+                        }
+                    },
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    summary = service._load_coverage_summary()
+    assert summary is not None
+    assert summary["overall"]["coverage"] == 60.0  # 90/150
+    assert summary["overall"]["generated"] == "2026-07-18T12:00:00"
+    assert summary["primary_overall"]["coverage"] == 80.0  # core only
+    assert summary["primary_overall"]["domains"] == ["ai", "communication", "core", "user"]
+    assert summary["modules"][0]["module"] == "empty"
+    assert summary["worst_files"][0]["path"] == "empty/mod.py"
+    assert summary["worst_files"][1]["path"] == "ui/dialog.py"
+
+
+@pytest.mark.unit
+def test_load_coverage_summary_archive_fallback_and_missing(tmp_path: Path):
+    service = AIToolsService(project_root=str(tmp_path))
+    assert service._load_coverage_summary() is None
+
+    archive = tmp_path / "development_tools" / "tests" / "jsons" / "archive"
+    archive.mkdir(parents=True, exist_ok=True)
+    archived = archive / "coverage_20260718.json"
+    archived.write_text(
+        json.dumps(
+            {
+                "files": {
+                    "ai/chat.py": {
+                        "summary": {
+                            "num_statements": 10,
+                            "covered_lines": 5,
+                            "missing_lines": 5,
+                        }
+                    }
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    summary = service._load_coverage_summary()
+    assert summary is not None
+    assert summary["overall"]["coverage"] == 50.0
+    assert summary["primary_overall"]["coverage"] == 50.0
+
+
+@pytest.mark.unit
+def test_load_coverage_summary_rejects_bad_payload(tmp_path: Path):
+    service = AIToolsService(project_root=str(tmp_path))
+    coverage_path = tmp_path / "development_tools" / "tests" / "jsons" / "coverage.json"
+    coverage_path.parent.mkdir(parents=True, exist_ok=True)
+    coverage_path.write_text("{not-json", encoding="utf-8")
+    assert service._load_coverage_summary() is None
+
+    coverage_path.write_text(json.dumps({"files": {}}), encoding="utf-8")
+    assert service._load_coverage_summary() is None
+
+
+@pytest.mark.unit
+def test_load_coverage_json_handles_percent_types_and_errors(tmp_path: Path):
+    service = AIToolsService(project_root=str(tmp_path))
+    good = tmp_path / "good.json"
+    good.write_text(
+        json.dumps(
+            {
+                "files": {
+                    "a.py": {
+                        "summary": {
+                            "num_statements": 10,
+                            "covered_lines": 7,
+                            "missing_lines": 3,
+                            "percent_covered": 70.4,
+                        },
+                        "missing_lines": [1, 2, 3],
+                    },
+                    "b.py": {
+                        "summary": {
+                            "num_statements": 4,
+                            "covered_lines": 2,
+                            "missing_lines": 2,
+                            "percent_covered": "bad",
+                        },
+                        "missing_lines": [],
+                    },
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    loaded = service._load_coverage_json(good)
+    assert loaded["a.py"]["coverage"] == 70
+    assert loaded["a.py"]["missing_lines"] == ["1", "2", "3"]
+    assert loaded["b.py"]["coverage"] == 0
+
+    assert service._load_coverage_json(tmp_path / "missing.json") == {}
+    bad = tmp_path / "bad.json"
+    bad.write_text("{", encoding="utf-8")
+    assert service._load_coverage_json(bad) == {}
+
+
+@pytest.mark.unit
+def test_get_dev_tools_coverage_insights_standard_shape_and_reload(
+    tmp_path: Path,
+):
+    service = AIToolsService(project_root=str(tmp_path))
+    assert service._get_dev_tools_coverage_insights() is None
+
+    service.dev_tools_coverage_results = {
+        "summary": {"total_issues": 9},
+        "details": {"overall": {}, "modules": {}},
+    }
+    assert service._get_dev_tools_coverage_insights() is None
+
+    coverage_file = tmp_path / "coverage_dev_tools.json"
+    coverage_file.write_text(
+        json.dumps(
+            {
+                "files": {
+                    "development_tools/a.py": {
+                        "summary": {
+                            "num_statements": 20,
+                            "covered_lines": 10,
+                            "missing_lines": 10,
+                            "percent_covered": 50,
+                        },
+                        "missing_lines": [1],
+                    },
+                    "development_tools/b.py": {
+                        "summary": {
+                            "num_statements": 10,
+                            "covered_lines": 2,
+                            "missing_lines": 8,
+                            "percent_covered": 20,
+                        },
+                        "missing_lines": [2, 3],
+                    },
+                    "development_tools/c.py": {
+                        "summary": {
+                            "num_statements": 10,
+                            "covered_lines": 9,
+                            "missing_lines": 1,
+                            "percent_covered": 90,
+                        },
+                        "missing_lines": [4],
+                    },
+                    "development_tools/d.py": {
+                        "summary": {
+                            "num_statements": 10,
+                            "covered_lines": 8,
+                            "missing_lines": 2,
+                            "percent_covered": 80,
+                        },
+                        "missing_lines": [5],
+                    },
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    service.dev_tools_coverage_results = {
+        "summary": {"total_issues": 21},
+        "details": {
+            "overall": {},
+            "modules": {},
+            "output_file": str(coverage_file),
+            "html_dir": "htmlcov",
+        },
+    }
+    insights = service._get_dev_tools_coverage_insights()
+    assert insights is not None
+    assert insights["statements"] == 50
+    assert insights["covered"] == 29
+    assert insights["html"] == "htmlcov"
+    assert len(insights["low_modules"]) == 3
+    assert insights["low_modules"][0]["path"].endswith("b.py")
+
+    service.dev_tools_coverage_results = {
+        "summary": {"total_issues": 0},
+        "details": {
+            "overall": {
+                "overall_coverage": 88.0,
+                "total_statements": 100,
+                "total_missed": 12,
+            },
+            "modules": {
+                "development_tools/z.py": {
+                    "statements": 10,
+                    "missed": 5,
+                    "coverage": 50,
+                }
+            },
+        },
+    }
+    std = service._get_dev_tools_coverage_insights()
+    assert std is not None
+    assert std["overall_pct"] == 88.0
+    assert std["covered"] == 88
+
+
+@pytest.mark.unit
+def test_get_canonical_metrics_from_cache_and_sanitizes_doc_coverage(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    monkeypatch.setattr(service, "_is_test_directory", lambda _p: True)
+    service.results_cache = {
+        "analyze_functions": {
+            "summary": {},
+            "details": {
+                "total_functions": 200,
+                "moderate_complexity": 10,
+                "high_complexity": 4,
+                "critical_complexity": 2,
+                "undocumented": 20,
+            },
+        },
+        "analyze_function_registry": {
+            "summary": {},
+            "details": {"doc_coverage": "12690%"},
+        },
+    }
+    metrics = service._get_canonical_metrics()
+    assert metrics["total_functions"] == 200
+    assert metrics["moderate"] == 10
+    assert metrics["high"] == 4
+    assert metrics["critical"] == 2
+    assert metrics["doc_coverage"] == "90.00%"
+
+    service.results_cache = {
+        "analyze_functions": {"summary": {"total_issues": 0, "files_affected": 0}, "details": {}},
+        "decision_support": {
+            "summary": {"total_issues": 0, "files_affected": 0},
+            "details": {
+                "total_functions": 150,
+                "moderate_complexity": 8,
+                "high_complexity": 3,
+                "critical_complexity": 1,
+            },
+        },
+        "analyze_function_registry": {
+            "summary": {"total_issues": 0, "files_affected": 0},
+            "details": {"totals": {"functions_found": 50}, "doc_coverage": "150%"},
+        },
+    }
+    fallback = service._get_canonical_metrics()
+    assert fallback["total_functions"] == 150
+    assert fallback["moderate"] == 8
+    assert fallback["doc_coverage"] == "Unknown"
+
+
+@pytest.mark.unit
+def test_load_tool_data_normalizes_nonstandard_and_skips_stale_cache(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.current_audit_tier = 2
+    service._tools_run_in_current_tier = set()
+    # Stale cache must be ignored when tool was not run in current tier.
+    service.results_cache["analyze_functions"] = {
+        "summary": {"total_issues": 99, "files_affected": 1},
+        "details": {"stale": True},
+    }
+
+    # Valid summary but missing details => non-standard; validator accepts and returns it.
+    def _load(*_a, **_k):
+        return {"summary": {"total_issues": 0, "files_affected": 0}, "from": "storage"}
+
+    monkeypatch.setattr(output_storage_module, "load_tool_result", _load)
+    live_output_storage = sys.modules.get("development_tools.shared.output_storage")
+    if live_output_storage is not None and live_output_storage is not output_storage_module:
+        monkeypatch.setattr(live_output_storage, "load_tool_result", _load)
+
+    data = service._load_tool_data("analyze_functions")
+    assert data["summary"]["total_issues"] == 0
+    assert data.get("details", {}).get("stale") is not True
+    assert data.get("from") == "storage"
+
+    # Invalid payload => ValueError in normalize => empty dict
+    monkeypatch.setattr(
+        output_storage_module,
+        "load_tool_result",
+        lambda *_a, **_k: {"no_summary": True},
+    )
+    if live_output_storage is not None and live_output_storage is not output_storage_module:
+        monkeypatch.setattr(
+            live_output_storage,
+            "load_tool_result",
+            lambda *_a, **_k: {"no_summary": True},
+        )
+    assert service._load_tool_data("analyze_functions") == {}
+
+    def _boom(*_a, **_k):
+        raise RuntimeError("storage down")
+
+    monkeypatch.setattr(output_storage_module, "load_tool_result", _boom)
+    if live_output_storage is not None and live_output_storage is not output_storage_module:
+        monkeypatch.setattr(live_output_storage, "load_tool_result", _boom)
+    assert service._load_tool_data("analyze_functions") == {}
+
+
+@pytest.mark.unit
+def test_load_config_validation_summary_from_standardized_storage(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tools_run_in_current_tier = set()
+    payload = {
+        "summary": {"total_issues": 2, "files_affected": 1},
+        "details": {
+            "summary": {"config_valid": True, "config_complete": False},
+            "recommendations": [],
+            "tools_analysis": {},
+        },
+    }
+
+    monkeypatch.setattr(
+        output_storage_module,
+        "load_tool_result",
+        lambda *args, **kwargs: payload,
+    )
+    live_output_storage = sys.modules.get("development_tools.shared.output_storage")
+    if live_output_storage is not None and live_output_storage is not output_storage_module:
+        monkeypatch.setattr(
+            live_output_storage,
+            "load_tool_result",
+            lambda *args, **kwargs: payload,
+        )
+
+    got = service._load_config_validation_summary()
+    assert got is not None
+    assert got["total_issues"] == 2
+    assert got["config_valid"] is True
+
+
+@pytest.mark.unit
+def test_parse_doc_sync_output_section_reset_and_aggregate_markdown_links(
+    temp_project_copy: Path,
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    assert service._parse_doc_sync_output("")["status"] is None
+    assert service._parse_doc_sync_output(None)["total_issues"] is None  # type: ignore[arg-type]
+
+    output = """
+Status: FAIL
+Total Issues: 3
+Top files with most issues:
+- docs/keep.md: 2
+- docs/drop.md: 1
+
+PAIRED DOCUMENTATION
+- docs/after_reset.md: 9
+Path Drift Issues: 1
+"""
+    parsed = service._parse_doc_sync_output(output)
+    assert parsed["path_drift_files"] == ["docs/keep.md", "docs/drop.md"]
+    assert "docs/after_reset.md" not in parsed["path_drift_files"]
+
+    summary = service._aggregate_doc_sync_results(
+        {
+            "paired_docs": {},
+            "path_drift": {
+                "summary": {"total_issues": 1},
+                "files": {"x.py": {}},
+                "details": {
+                    "markdown_link_target_issues": 2,
+                    "markdown_link_target_files": {"a.md": ["bad"]},
+                },
+            },
+            "ascii_compliance": {"summary": {"total_issues": 0}},
+            "heading_numbering": {"summary": {"total_issues": 0}},
+            "missing_addresses": {"summary": {"total_issues": 0}},
+            "unconverted_links": {"summary": {"total_issues": 0}},
+        }
+    )
+    assert summary["markdown_link_target_issues"] == 2
+    assert summary["markdown_link_target_files"] == {"a.md": ["bad"]}
+    assert summary["status"] == "FAIL"

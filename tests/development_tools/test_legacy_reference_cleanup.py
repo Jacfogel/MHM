@@ -5,6 +5,10 @@
 Tests for fix_legacy_references.py.
 
 Tests scanning, verification, and safe cleanup operations.
+
+Keep ``temp_project_copy`` function-scoped: actual cleanup mutates ``legacy_code.py``,
+and inventory tests overwrite ``DEPRECATION_INVENTORY.json`` / source files. Module
+scope would make dry-run vs cleanup order-dependent.
 """
 
 import contextlib

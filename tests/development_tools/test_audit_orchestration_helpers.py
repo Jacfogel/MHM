@@ -1151,3 +1151,228 @@ def test_log_tool_completion_pip_audit_fragments(
         service._log_tool_completion("analyze_pip_audit", result, 0.01)
     msg = log.info.call_args[0][0]
     assert needle in msg
+
+
+@pytest.mark.unit
+def test_log_tool_start_with_and_without_cache_state(temp_project_copy: Path):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tool_cache_metadata = {}
+    ctx, log = _patch_audit_logger(service)
+    with ctx:
+        service._log_tool_start("analyze_ruff")
+    assert log.info.call_args[0][0] == "Starting analyze_ruff"
+
+    ctx2, log2 = _patch_audit_logger(service)
+    with ctx2:
+        with patch.object(service, "_tool_cache_state_for_log", return_value="cache_hit"):
+            service._log_tool_start("analyze_bandit")
+    assert "Starting analyze_bandit (cache=cache_hit)" in log2.info.call_args[0][0]
+
+
+@pytest.mark.unit
+def test_reload_all_cache_data_skips_test_directory(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.results_cache = {"keep_me": {"summary": {"total_issues": 0}}}
+    called = {"get_all": 0}
+
+    def _boom(**_kwargs):
+        called["get_all"] += 1
+        raise AssertionError("should not load tool results in test dirs")
+
+    monkeypatch.setattr(audit_module, "get_all_tool_results", _boom, raising=True)
+    service._reload_all_cache_data()
+    assert called["get_all"] == 0
+    assert service.results_cache == {"keep_me": {"summary": {"total_issues": 0}}}
+
+
+@pytest.mark.unit
+def test_save_audit_results_aggregated_test_dir_tier_sources(temp_project_copy: Path):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.results_cache = {
+        "analyze_functions": {"summary": {"total_issues": 0}, "details": {}}
+    }
+
+    service._save_audit_results_aggregated(1)
+    path = service._get_results_file_path()
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert payload["audit_tier"] == 1
+    assert "--quick" in payload["source"]
+    assert "analyze_functions" in payload["successful"]
+    assert payload["results"]["analyze_functions"]["success"] is True
+
+    service._save_audit_results_aggregated(3)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert payload["audit_tier"] == 3
+    assert "--full" in payload["source"]
+
+
+@pytest.mark.unit
+def test_save_additional_tool_results_merges_optional_attrs(temp_project_copy: Path):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.legacy_cleanup_summary = {"summary": {"total_issues": 1}}
+    service.validation_results = {"summary": {"total_issues": 0}}
+    service.system_signals = {"summary": {"total_issues": 2}}
+    service.docs_sync_summary = {"summary": {"total_issues": 0, "status": "PASS"}}
+    service.results_cache = {
+        "analyze_documentation": {"duplicates": ["a.md"], "placeholders": []}
+    }
+
+    service._save_additional_tool_results()
+    path = service._get_results_file_path()
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    results = payload["results"]
+    assert results["fix_legacy_references"]["data"]["summary"]["total_issues"] == 1
+    assert results["analyze_ai_work"]["success"] is True
+    assert results["analyze_system_signals"]["data"]["summary"]["total_issues"] == 2
+    assert results["analyze_documentation_sync"]["data"]["summary"]["status"] == "PASS"
+    assert results["analyze_documentation"]["data"]["duplicates"] == ["a.md"]
+
+
+@pytest.mark.unit
+def test_check_documentation_quality_uses_cache_without_rerun(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.results_cache = {
+        "analyze_documentation": {
+            "duplicates": ["dup.md"],
+            "placeholders": ["ph.md"],
+        }
+    }
+    monkeypatch.setattr(
+        service,
+        "run_analyze_documentation",
+        lambda: (_ for _ in ()).throw(AssertionError("should use cache")),
+        raising=True,
+    )
+    ctx, log = _patch_audit_logger(service)
+    with ctx:
+        service._check_documentation_quality()
+    warning_text = " ".join(str(c.args[0]) for c in log.warning.call_args_list)
+    assert "verbatim duplicates" in warning_text
+    assert "placeholders" in warning_text
+
+
+@pytest.mark.unit
+def test_run_tool_with_timing_success_records_and_returns(
+    temp_project_copy: Path,
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service._tool_cache_metadata = {}
+
+    def _ok_tool():
+        return {
+            "success": True,
+            "data": {"summary": {"total_issues": 0}},
+            "cache_metadata": {"cache_mode": "cold_scan"},
+        }
+
+    ctx, log = _patch_audit_logger(service)
+    with ctx:
+        result, elapsed = service._run_tool_with_timing("analyze_ruff", _ok_tool)
+    assert result["success"] is True
+    assert elapsed >= 0
+    assert "analyze_ruff" in service._tool_cache_metadata
+    assert log.info.call_count >= 2
+
+
+@pytest.mark.unit
+def test_reload_all_cache_data_merges_when_not_test_dir(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.results_cache = {"keep_me": {"summary": {"total_issues": 0}}}
+    service.docs_sync_summary = {}
+
+    # Avoid loading a leftover analysis_detailed_results.json from the shared demo copy.
+    for stale in temp_project_copy.rglob("analysis_detailed_results.json"):
+        stale.unlink(missing_ok=True)
+
+    monkeypatch.setattr(service, "_is_test_directory", lambda _p: False, raising=True)
+    # Patch the mixin method globals (load_development_tools_module may register duplicates).
+    monkeypatch.setitem(
+        service._reload_all_cache_data.__func__.__globals__,
+        "get_all_tool_results",
+        lambda **_k: {
+            "analyze_documentation_sync": {
+                "data": {"summary": {"status": "PASS", "total_issues": 0}}
+            },
+            "analyze_functions": {"data": {"summary": {"total_issues": 1}}},
+        },
+    )
+
+    service._reload_all_cache_data()
+    assert service.results_cache["keep_me"]["summary"]["total_issues"] == 0
+    assert service.results_cache["analyze_functions"]["summary"]["total_issues"] == 1
+    assert service.docs_sync_summary["summary"]["status"] == "PASS"
+
+
+@pytest.mark.unit
+def test_check_documentation_quality_cache_miss_runs_analyzer(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.results_cache = {}
+    called = {"n": 0}
+
+    def _run_docs():
+        called["n"] += 1
+        return {
+            "success": True,
+            "data": {"duplicates": ["x.md"], "placeholders": []},
+        }
+
+    monkeypatch.setattr(service, "run_analyze_documentation", _run_docs, raising=True)
+    ctx, log = _patch_audit_logger(service)
+    with ctx:
+        service._check_documentation_quality()
+    assert called["n"] == 1
+    assert "analyze_documentation" in service.results_cache
+    assert any(
+        "verbatim duplicates" in str(c.args[0]) for c in log.warning.call_args_list
+    )
+
+
+@pytest.mark.unit
+def test_check_ascii_compliance_updates_docs_sync_summary(
+    temp_project_copy: Path, monkeypatch: pytest.MonkeyPatch
+):
+    service = AIToolsService(project_root=str(temp_project_copy))
+    service.results_cache = {}
+    service.docs_sync_summary = {
+        "summary": {"total_issues": 1, "status": "FAIL", "files_affected": 1},
+        "details": {
+            "paired_doc_issues": 1,
+            "path_drift_issues": 0,
+            "heading_numbering_issues": 0,
+            "missing_address_issues": 0,
+            "unconverted_link_issues": 0,
+        },
+    }
+    parsed = {
+        "summary": {"total_issues": 2, "files_affected": 2, "status": "FAIL"},
+        "details": {"files": {"a.md": 1, "b.md": 1}},
+    }
+    monkeypatch.setattr(
+        service,
+        "run_script",
+        lambda *_a, **_k: {"success": True, "output": "{}"},
+        raising=True,
+    )
+    monkeypatch.setattr(
+        service, "_parse_ascii_compliance_output", lambda _out: parsed, raising=True
+    )
+    monkeypatch.setitem(
+        service._check_ascii_compliance.__func__.__globals__,
+        "save_tool_result",
+        lambda *_a, **_k: None,
+    )
+
+    service._check_ascii_compliance()
+
+    assert service.results_cache["analyze_ascii_compliance"] == parsed
+    assert service.docs_sync_summary["details"]["ascii_issues"] == 2
+    assert service.docs_sync_summary["summary"]["total_issues"] == 3
+    assert service.docs_sync_summary["summary"]["status"] == "FAIL"

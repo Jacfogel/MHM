@@ -4,9 +4,11 @@ Tests for generate_unused_imports_report.py.
 Tests report generation from analysis results, file creation, and rotation.
 """
 
+from pathlib import Path
+
 import pytest
 
-from tests.development_tools.conftest import load_development_tools_module
+from tests.development_tools.conftest import load_development_tools_module, temp_project_copy_paths
 
 # Load modules
 report_module = load_development_tools_module("imports.generate_unused_imports_report")
@@ -18,6 +20,13 @@ load_tool_result = output_storage_module.load_tool_result
 
 file_rotation_module = load_development_tools_module("shared.file_rotation")
 create_output_file = file_rotation_module.create_output_file
+
+
+@pytest.fixture(scope="module")
+def temp_project_copy():
+    """One demo-tree copy per module (avoids ~5s copytree setup per test)."""
+    fixture_path = Path(__file__).parent.parent / "fixtures" / "development_tools_demo"
+    yield from temp_project_copy_paths(fixture_path.resolve())
 
 
 class TestUnusedImportsReportGenerator:
