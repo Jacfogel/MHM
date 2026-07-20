@@ -136,3 +136,30 @@ def test_main_returns_success_when_no_violations(tmp_path: Path):
     assert result == 0
     printed = [str(c.args[0]) for c in mock_print.call_args_list if c.args]
     assert any("Static check passed" in line for line in printed)
+
+
+@pytest.mark.unit
+def test_example_allowlist_covers_core_logging_infrastructure():
+    """Committed example must allow MHM core files that legitimately import logging."""
+    import json
+
+    example = (
+        Path(__file__).resolve().parents[2]
+        / "development_tools"
+        / "config"
+        / "development_tools_config.json.example"
+    )
+    data = json.loads(example.read_text(encoding="utf-8"))
+    allowlist = set(
+        data["static_checks"]["channel_loggers"]["allowed_logging_import_paths"]
+    )
+    required = {
+        "core/logger.py",
+        "core/error_handling.py",
+        "core/service.py",
+        "core/config.py",
+        "core/network_probe.py",
+        "core/time_utilities.py",
+        "run_tests.py",
+    }
+    assert required.issubset(allowlist)

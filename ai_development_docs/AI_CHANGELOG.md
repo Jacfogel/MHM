@@ -30,6 +30,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-20 - Nightly CI logging check + marker **COMPLETED**
+- Static logging check falls back to committed `.example` when live config is missing; example allowlist restored for core logger/config files.
+- Registered `development_tools` pytest domain marker for `--strict-markers` collection.
+
 ### 2026-07-19 - V6 residual slice (perf + noise) **COMPLETED**
 - B-001: `test_fix_project_cleanup` uses `tmp_path` (no demo copytree); module-scoped demo fixtures for docs-workflow / scoped-status / static-analysis report / cache-helpers; path-drift leftovers -> `tmp_path`; archive module + legacy mutators marked `slow` for Tier 3 quick profile.
 - B-001 re-profile: `run_tests.py --mode development_tools --durations-all` -> **1591 passed / 83.94s** wall (was ~195s on 2026-07-18); cleanup copytree gone from top setups.
@@ -177,12 +181,6 @@ Verified:
 - **Round 12 (serial basetemp)**: `run_test_suite` shares one run id and pre-creates `parallel/` + `serial/` basetemp dirs (matches `run_tests.py`); cleanup keeps nested run-id folder during active pytest. Google Health reconnect test pins feature/auth guards to reach notice path on CI.
 - **Audit hygiene**: `@handle_errors` on `is_google_health_enabled()` and `_thread_lock_for()`; function registry regenerated; changelog ASCII/link doc-fix pass.
 - Root cause pattern: tests pass locally (env vars, config files, Windows paths) but fail on CI (Linux, no credentials, no gitignored config/fixtures). Underlying theme: `tests/test_helpers/fixtures/` and `development_tools_config.json` are gitignored.
-
-### 2026-07-03 - Add unused functions detection tool **COMPLETED**
-- Added `analyze_unused_functions.py` dev tool that uses AST analysis to find functions/methods never referenced anywhere in the codebase.
-- CLI command: `python development_tools/run_development_tools.py unused-functions` (supports `--include-tests`, `--include-dev-tools`, `--private-only`, `--max-results`, `--json`).
-- Filters out dunder methods, test functions, framework-decorated functions, and `__init__.py` exports to reduce false positives.
-- Integrated into Tier 2 audit pipeline; results surface in `AI_STATUS.md`, `AI_PRIORITIES.md`, and `CONSOLIDATED_REPORT.md`.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

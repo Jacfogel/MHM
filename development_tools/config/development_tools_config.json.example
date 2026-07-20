@@ -879,6 +879,9 @@
         "core/logger.py",
         "core/error_handling.py",
         "core/service.py",
+        "core/config.py",
+        "core/network_probe.py",
+        "core/time_utilities.py",
         "run_tests.py"
       ]
     }

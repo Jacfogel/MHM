@@ -535,6 +535,7 @@ Every test function must have exactly one category marker (on the function, on t
 Describe the **product area** under test. Domain markers correspond to **top-level product packages** (directories with product code at the repo root):
 
 - `ai`, `checkins`, `communication`, `core`, `integrations`, `messages`, `notebook`, `scheduler`, `storage`, `tasks`, `ui`, `user`
+- Dev-tools tests under `tests/development_tools/` use domain marker `development_tools` (registered in `pytest.ini`)
 
 **Canonical source of truth:** `domain_mapper.source_to_test_mapping` in `development_tools_config.json`. The analyzer derives the enforced marker list from that config (`test_markers.domain_markers`).
 

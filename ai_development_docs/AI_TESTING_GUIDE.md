@@ -257,7 +257,7 @@ Keep markers aligned with section 6.2 in [TESTING_GUIDE.md](../tests/TESTING_GUI
 
 **Category (required - exactly one):** `unit`, `integration`, `behavior`, `ui` - suite layer.
 
-**Domain (required - at least one on non-exempt tests):** top-level product packages - `ai`, `checkins`, `communication`, `core`, `integrations`, `messages`, `notebook`, `scheduler`, `storage`, `tasks`, `ui`, `user`.
+**Domain (required - at least one on non-exempt tests):** top-level product packages - `ai`, `checkins`, `communication`, `core`, `integrations`, `messages`, `notebook`, `scheduler`, `storage`, `tasks`, `ui`, `user`. Dev-tools tests under `tests/development_tools/` use domain marker `development_tools` (registered in `pytest.ini`).
 
 - **Source of truth:** `domain_mapper.source_to_test_mapping` in `development_tools_config.json` (derived into `test_markers.domain_markers`).
 - **Exempt:** `tests/development_tools/` (no domain mark); `tests/ai/` (excluded from scans).
