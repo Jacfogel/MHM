@@ -145,6 +145,7 @@ class TestCleanupOperations:
     """Test cleanup operations (safe, using copies)."""
     
     @pytest.mark.unit
+    @pytest.mark.slow
     def test_cleanup_legacy_references_dry_run(self, temp_project_copy):
         """Test that dry-run reports planned changes without modifying files."""
         analyzer = LegacyReferenceAnalyzer(str(temp_project_copy))
@@ -188,6 +189,7 @@ class TestCleanupOperations:
             assert 'LEGACY COMPATIBILITY' in original_content
     
     @pytest.mark.unit
+    @pytest.mark.slow
     def test_cleanup_legacy_references_actual_cleanup(self, temp_project_copy):
         """Test that actual cleanup modifies files correctly."""
         analyzer = LegacyReferenceAnalyzer(str(temp_project_copy))
@@ -255,6 +257,7 @@ class TestDeprecationInventoryIntegration:
     """Test DEPRECATION_INVENTORY.json integration with legacy tooling."""
 
     @pytest.mark.unit
+    @pytest.mark.slow
     def test_analyzer_uses_inventory_terms(self, temp_project_copy):
         """Analyzer should inject active/candidate inventory search terms."""
         inventory_path = (

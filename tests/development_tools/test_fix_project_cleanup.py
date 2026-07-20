@@ -1,8 +1,11 @@
-"""
+﻿"""
 Tests for fix_project_cleanup.py.
 
 Tests project cleanup functionality including cache directory removal,
 coverage file cleanup, and test data cleanup.
+
+Uses pytest tmp_path (not the demo-tree temp_project_copy) because these tests
+build their own minimal trees; demo copytree was the largest B-001 setup sink.
 """
 
 import shutil
@@ -25,20 +28,20 @@ class TestProjectCleanup:
     """Test ProjectCleanup class functionality."""
     
     @pytest.mark.unit
-    def test_init_default_project_root(self, temp_project_copy):
+    def test_init_default_project_root(self, tmp_path):
         """Test initialization with default project root."""
         with patch.object(cleanup_module, "config") as mock_config:
-            mock_config.get_project_root.return_value = str(temp_project_copy)
+            mock_config.get_project_root.return_value = str(tmp_path)
             
             cleanup = ProjectCleanup()
             
-            assert cleanup.project_root == Path(temp_project_copy).resolve(), \
+            assert cleanup.project_root == Path(tmp_path).resolve(), \
                 "Project root should be resolved path"
     
     @pytest.mark.unit
-    def test_init_custom_project_root(self, temp_project_copy):
+    def test_init_custom_project_root(self, tmp_path):
         """Test initialization with custom project root."""
-        custom_root = temp_project_copy / "custom"
+        custom_root = tmp_path / "custom"
         custom_root.mkdir()
         
         cleanup = ProjectCleanup(project_root=custom_root)
@@ -47,14 +50,14 @@ class TestProjectCleanup:
             "Project root should be custom path"
     
     @pytest.mark.unit
-    def test_find_directories(self, temp_project_copy):
+    def test_find_directories(self, tmp_path):
         """Test finding directories by pattern."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
         # Create test directories
-        (temp_project_copy / "module1" / "__pycache__").mkdir(parents=True)
-        (temp_project_copy / "module2" / "__pycache__").mkdir(parents=True)
-        (temp_project_copy / "other_dir").mkdir()
+        (tmp_path / "module1" / "__pycache__").mkdir(parents=True)
+        (tmp_path / "module2" / "__pycache__").mkdir(parents=True)
+        (tmp_path / "other_dir").mkdir()
         
         directories = cleanup.find_directories("__pycache__")
         
@@ -63,14 +66,14 @@ class TestProjectCleanup:
             "All found directories should contain pattern"
     
     @pytest.mark.unit
-    def test_find_directories_excludes_git_venv(self, temp_project_copy):
+    def test_find_directories_excludes_git_venv(self, tmp_path):
         """Test that find_directories excludes .git and venv directories."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
         # Create directories that should be excluded
-        (temp_project_copy / ".git" / "hooks").mkdir(parents=True)
-        (temp_project_copy / "venv" / "lib").mkdir(parents=True)
-        (temp_project_copy / ".venv" / "lib").mkdir(parents=True)
+        (tmp_path / ".git" / "hooks").mkdir(parents=True)
+        (tmp_path / "venv" / "lib").mkdir(parents=True)
+        (tmp_path / ".venv" / "lib").mkdir(parents=True)
         
         # These should not be found even if they match pattern
         directories = cleanup.find_directories("hooks")
@@ -80,15 +83,15 @@ class TestProjectCleanup:
             "Should not find directories in .git"
     
     @pytest.mark.unit
-    def test_find_files(self, temp_project_copy):
+    def test_find_files(self, tmp_path):
         """Test finding files by pattern."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
         # Create test files
-        (temp_project_copy / "file1.coverage").write_text("test")
+        (tmp_path / "file1.coverage").write_text("test")
         # Create directory first, then file inside it
-        (temp_project_copy / "subdir").mkdir(parents=True)
-        (temp_project_copy / "subdir" / "file2.coverage").write_text("test")
+        (tmp_path / "subdir").mkdir(parents=True)
+        (tmp_path / "subdir" / "file2.coverage").write_text("test")
         
         files = cleanup.find_files(".coverage")
         
@@ -97,11 +100,11 @@ class TestProjectCleanup:
             "All found files should contain pattern"
     
     @pytest.mark.unit
-    def test_get_size_file(self, temp_project_copy):
+    def test_get_size_file(self, tmp_path):
         """Test getting size of a file."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
-        test_file = temp_project_copy / "test.txt"
+        test_file = tmp_path / "test.txt"
         test_file.write_text("test content")
         
         size = cleanup.get_size(test_file)
@@ -110,11 +113,11 @@ class TestProjectCleanup:
         assert "B" in size or "KB" in size, "Size should have unit"
     
     @pytest.mark.unit
-    def test_get_size_directory(self, temp_project_copy):
+    def test_get_size_directory(self, tmp_path):
         """Test getting size of a directory."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
-        test_dir = temp_project_copy / "test_dir"
+        test_dir = tmp_path / "test_dir"
         test_dir.mkdir()
         (test_dir / "file1.txt").write_text("content1")
         (test_dir / "file2.txt").write_text("content2")
@@ -125,21 +128,21 @@ class TestProjectCleanup:
         assert "B" in size or "KB" in size, "Size should have unit"
     
     @pytest.mark.unit
-    def test_get_size_nonexistent(self, temp_project_copy):
+    def test_get_size_nonexistent(self, tmp_path):
         """Test getting size of nonexistent path."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
-        nonexistent = temp_project_copy / "nonexistent"
+        nonexistent = tmp_path / "nonexistent"
         size = cleanup.get_size(nonexistent)
         
         assert size == "0 B", "Nonexistent path should return 0 B"
     
     @pytest.mark.unit
-    def test_remove_path_file_dry_run(self, temp_project_copy):
+    def test_remove_path_file_dry_run(self, tmp_path):
         """Test removing a file in dry run mode."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
-        test_file = temp_project_copy / "test.txt"
+        test_file = tmp_path / "test.txt"
         test_file.write_text("test")
         
         success, message = cleanup.remove_path(test_file, dry_run=True)
@@ -149,11 +152,11 @@ class TestProjectCleanup:
         assert test_file.exists(), "File should still exist in dry run"
     
     @pytest.mark.unit
-    def test_remove_path_file_actual(self, temp_project_copy):
+    def test_remove_path_file_actual(self, tmp_path):
         """Test actually removing a file."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
-        test_file = temp_project_copy / "test.txt"
+        test_file = tmp_path / "test.txt"
         test_file.write_text("test")
         
         success, message = cleanup.remove_path(test_file, dry_run=False)
@@ -163,11 +166,11 @@ class TestProjectCleanup:
         assert not test_file.exists(), "File should be removed"
     
     @pytest.mark.unit
-    def test_remove_path_directory_actual(self, temp_project_copy):
+    def test_remove_path_directory_actual(self, tmp_path):
         """Test actually removing a directory."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
-        test_dir = temp_project_copy / "test_dir"
+        test_dir = tmp_path / "test_dir"
         test_dir.mkdir()
         (test_dir / "file.txt").write_text("test")
         
@@ -178,24 +181,24 @@ class TestProjectCleanup:
         assert not test_dir.exists(), "Directory should be removed"
     
     @pytest.mark.unit
-    def test_remove_path_nonexistent(self, temp_project_copy):
+    def test_remove_path_nonexistent(self, tmp_path):
         """Test removing a nonexistent path."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
-        nonexistent = temp_project_copy / "nonexistent"
+        nonexistent = tmp_path / "nonexistent"
         success, message = cleanup.remove_path(nonexistent, dry_run=False)
         
         assert success is False, "Should fail for nonexistent path"
         assert "Does not exist" in message, "Message should indicate missing path"
     
     @pytest.mark.unit
-    def test_cleanup_cache_directories(self, temp_project_copy):
+    def test_cleanup_cache_directories(self, tmp_path):
         """Test cleaning up __pycache__ directories."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
         # Create cache directories
-        (temp_project_copy / "module1" / "__pycache__").mkdir(parents=True)
-        (temp_project_copy / "module2" / "__pycache__").mkdir(parents=True)
+        (tmp_path / "module1" / "__pycache__").mkdir(parents=True)
+        (tmp_path / "module2" / "__pycache__").mkdir(parents=True)
         
         removed, failed = cleanup.cleanup_cache_directories(dry_run=False)
         
@@ -203,27 +206,27 @@ class TestProjectCleanup:
         assert failed == 0, "Should not have failures"
     
     @pytest.mark.unit
-    def test_cleanup_cache_directories_dry_run(self, temp_project_copy):
+    def test_cleanup_cache_directories_dry_run(self, tmp_path):
         """Test cleaning up cache directories in dry run mode."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
         # Create cache directories
-        (temp_project_copy / "module1" / "__pycache__").mkdir(parents=True)
+        (tmp_path / "module1" / "__pycache__").mkdir(parents=True)
         
         removed, failed = cleanup.cleanup_cache_directories(dry_run=True)
         
         assert removed >= 1, "Should report removal in dry run"
         # Directories should still exist
-        assert (temp_project_copy / "module1" / "__pycache__").exists(), \
+        assert (tmp_path / "module1" / "__pycache__").exists(), \
             "Directory should still exist in dry run"
 
     @pytest.mark.unit
     def test_cleanup_tool_cache_includes_full_scope_and_reports_archive(
-        self, temp_project_copy
+        self, tmp_path
     ):
         """--clear-cache must remove scoped full-repo JSON and rotated report archives."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
-        dt = temp_project_copy / "development_tools"
+        cleanup = ProjectCleanup(project_root=tmp_path)
+        dt = tmp_path / "development_tools"
         scoped_tool = (
             dt / "functions" / "jsons" / "scopes" / "full" / "sample_tool_results.json"
         )
@@ -256,11 +259,11 @@ class TestProjectCleanup:
 
     @pytest.mark.unit
     def test_cleanup_tool_cache_dev_tools_scope_leaves_full_scope_artifacts(
-        self, temp_project_copy
+        self, tmp_path
     ):
         """``cache_scope='dev_tools'`` clears only dev_tools tree caches, not ``scopes/full``."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
-        dt = temp_project_copy / "development_tools"
+        cleanup = ProjectCleanup(project_root=tmp_path)
+        dt = tmp_path / "development_tools"
         full_tool = (
             dt / "functions" / "jsons" / "scopes" / "full" / "keep_full.json"
         )
@@ -283,11 +286,11 @@ class TestProjectCleanup:
 
     @pytest.mark.unit
     def test_cleanup_tool_cache_full_scope_leaves_dev_tools_scope_artifacts(
-        self, temp_project_copy
+        self, tmp_path
     ):
         """``cache_scope='full'`` clears full-repo audit caches but not ``scopes/dev_tools``."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
-        dt = temp_project_copy / "development_tools"
+        cleanup = ProjectCleanup(project_root=tmp_path)
+        dt = tmp_path / "development_tools"
         full_tool = (
             dt / "docs" / "jsons" / "scopes" / "full" / "clear_full.json"
         )
@@ -309,12 +312,12 @@ class TestProjectCleanup:
         assert dev_tool.exists()
 
     @pytest.mark.unit
-    def test_cleanup_cache_directories_include_tool_caches(self, temp_project_copy):
+    def test_cleanup_cache_directories_include_tool_caches(self, tmp_path):
         """Tool cache cleanup should remove both standardized cache forms and derived cache artifacts."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
 
-        docs_jsons = temp_project_copy / "development_tools" / "docs" / "jsons"
-        tests_jsons = temp_project_copy / "development_tools" / "tests" / "jsons"
+        docs_jsons = tmp_path / "development_tools" / "docs" / "jsons"
+        tests_jsons = tmp_path / "development_tools" / "tests" / "jsons"
         docs_jsons.mkdir(parents=True, exist_ok=True)
         tests_jsons.mkdir(parents=True, exist_ok=True)
 
@@ -346,13 +349,13 @@ class TestProjectCleanup:
         assert not docs_result.exists(), "Docs result cache artifact should be removed"
     
     @pytest.mark.unit
-    def test_cleanup_pytest_cache(self, temp_project_copy):
+    def test_cleanup_pytest_cache(self, tmp_path):
         """Test cleaning up .pytest_cache directories."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
         # Create pytest cache
-        (temp_project_copy / ".pytest_cache").mkdir()
-        (temp_project_copy / ".pytest_cache" / "v").mkdir()
+        (tmp_path / ".pytest_cache").mkdir()
+        (tmp_path / ".pytest_cache" / "v").mkdir()
         
         removed, failed = cleanup.cleanup_pytest_cache(dry_run=False)
         
@@ -360,15 +363,15 @@ class TestProjectCleanup:
         assert failed == 0, "Should not have failures"
     
     @pytest.mark.unit
-    def test_cleanup_coverage_files(self, temp_project_copy):
+    def test_cleanup_coverage_files(self, tmp_path):
         """Test cleaning up .coverage files."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
         # Create coverage files
-        (temp_project_copy / ".coverage").write_text("test")
+        (tmp_path / ".coverage").write_text("test")
         # Create directory first, then file inside it
-        (temp_project_copy / "subdir").mkdir(parents=True)
-        (temp_project_copy / "subdir" / ".coverage").write_text("test")
+        (tmp_path / "subdir").mkdir(parents=True)
+        (tmp_path / "subdir" / ".coverage").write_text("test")
         
         removed, failed = cleanup.cleanup_coverage_files(dry_run=False)
         
@@ -376,9 +379,9 @@ class TestProjectCleanup:
         assert failed == 0, "Should not have failures"
     
     @pytest.mark.unit
-    def test_cleanup_coverage_logs_no_directory(self, temp_project_copy):
+    def test_cleanup_coverage_logs_no_directory(self, tmp_path):
         """Test cleaning up coverage logs when directory doesn't exist."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
         removed, failed = cleanup.cleanup_coverage_logs(dry_run=False)
         
@@ -386,12 +389,12 @@ class TestProjectCleanup:
         assert failed == 0, "Should not have failures"
     
     @pytest.mark.unit
-    def test_cleanup_coverage_logs_keeps_recent(self, temp_project_copy):
+    def test_cleanup_coverage_logs_keeps_recent(self, tmp_path):
         """Test that coverage log cleanup keeps 2 most recent files."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
         # Create coverage logs directory
-        logs_dir = temp_project_copy / "development_tools" / "logs" / "coverage_regeneration"
+        logs_dir = tmp_path / "development_tools" / "logs" / "coverage_regeneration"
         logs_dir.mkdir(parents=True)
         
         # Create multiple log files (simulating different timestamps)
@@ -414,13 +417,13 @@ class TestProjectCleanup:
         assert len(remaining_logs) <= 2, "Should keep only 2 most recent files"
     
     @pytest.mark.unit
-    def test_cleanup_test_temp_dirs_no_directory(self, temp_project_copy):
+    def test_cleanup_test_temp_dirs_no_directory(self, tmp_path):
         """Test cleaning up test temp dirs when directory doesn't exist."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
 
         # Ensure the directory doesn't exist (ignore FileNotFoundError on Windows
         # when the tree contains broken symlinks or already-removed targets e.g. .pytest_cache)
-        test_data_dir = temp_project_copy / "tests" / "data"
+        test_data_dir = tmp_path / "tests" / "data"
         if test_data_dir.exists():
             with contextlib.suppress(FileNotFoundError):
                 shutil.rmtree(test_data_dir)
@@ -431,12 +434,12 @@ class TestProjectCleanup:
         assert failed == 0, "Should not have failures"
     
     @pytest.mark.unit
-    def test_cleanup_test_temp_dirs_pytest_dirs(self, temp_project_copy):
+    def test_cleanup_test_temp_dirs_pytest_dirs(self, tmp_path):
         """Test cleaning up pytest temporary directories."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
         # Create test data directory with pytest temp dirs
-        test_data = temp_project_copy / "tests" / "data"
+        test_data = tmp_path / "tests" / "data"
         test_data.mkdir(parents=True, exist_ok=True)
         (test_data / "pytest-of-user").mkdir(exist_ok=True)
         (test_data / "pytest-of-user-1").mkdir(exist_ok=True)
@@ -447,9 +450,9 @@ class TestProjectCleanup:
         assert failed == 0, "Should not have failures"
     
     @pytest.mark.unit
-    def test_cleanup_test_user_data_no_directory(self, temp_project_copy):
+    def test_cleanup_test_user_data_no_directory(self, tmp_path):
         """Test cleaning up test user data when directory doesn't exist."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
         removed, failed = cleanup.cleanup_test_user_data(dry_run=False)
         
@@ -457,12 +460,12 @@ class TestProjectCleanup:
         assert failed == 0, "Should not have failures"
     
     @pytest.mark.unit
-    def test_cleanup_test_user_data_removes_test_users(self, temp_project_copy):
+    def test_cleanup_test_user_data_removes_test_users(self, tmp_path):
         """Test cleaning up test user data directories."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
         # Create users directory with test users
-        users_dir = temp_project_copy / "data" / "users"
+        users_dir = tmp_path / "data" / "users"
         users_dir.mkdir(parents=True)
         (users_dir / "test_user1").mkdir()
         (users_dir / "test_user2").mkdir()
@@ -475,13 +478,13 @@ class TestProjectCleanup:
         assert (users_dir / "real_user").exists(), "Real user should not be removed"
     
     @pytest.mark.unit
-    def test_cleanup_all_default(self, temp_project_copy):
+    def test_cleanup_all_default(self, tmp_path):
         """Test cleanup_all with default parameters."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
         # Create some test files
-        (temp_project_copy / "module" / "__pycache__").mkdir(parents=True)
-        (temp_project_copy / ".coverage").write_text("test")
+        (tmp_path / "module" / "__pycache__").mkdir(parents=True)
+        (tmp_path / ".coverage").write_text("test")
         
         results = cleanup.cleanup_all(dry_run=False)
         
@@ -491,13 +494,13 @@ class TestProjectCleanup:
         assert results['total_removed'] >= 0, "Should have non-negative removed count"
     
     @pytest.mark.unit
-    def test_cleanup_all_selective_categories(self, temp_project_copy):
+    def test_cleanup_all_selective_categories(self, tmp_path):
         """Test cleanup_all with selective categories."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
         # Create test files
-        (temp_project_copy / "module" / "__pycache__").mkdir(parents=True)
-        (temp_project_copy / ".coverage").write_text("test")
+        (tmp_path / "module" / "__pycache__").mkdir(parents=True)
+        (tmp_path / ".coverage").write_text("test")
         
         # Only clean cache, not coverage
         results = cleanup.cleanup_all(
@@ -514,12 +517,12 @@ class TestProjectCleanup:
         assert results['coverage']['removed'] == 0, "Coverage should not be cleaned"
     
     @pytest.mark.unit
-    def test_cleanup_all_dry_run(self, temp_project_copy):
+    def test_cleanup_all_dry_run(self, tmp_path):
         """Test cleanup_all in dry run mode."""
-        cleanup = ProjectCleanup(project_root=temp_project_copy)
+        cleanup = ProjectCleanup(project_root=tmp_path)
         
         # Create test files
-        test_file = temp_project_copy / ".coverage"
+        test_file = tmp_path / ".coverage"
         test_file.write_text("test")
         
         results = cleanup.cleanup_all(dry_run=True)
@@ -533,7 +536,7 @@ class TestProjectCleanupMain:
     """Test main() function for CLI interface."""
     
     @pytest.mark.unit
-    def test_main_dry_run(self, temp_project_copy):
+    def test_main_dry_run(self):
         """Test main function with --dry-run flag."""
         with patch.object(cleanup_module, "ProjectCleanup") as mock_cleanup_class:
             mock_cleanup = MagicMock()
@@ -552,7 +555,7 @@ class TestProjectCleanupMain:
             assert call_kwargs['dry_run'] is True, "Should use dry run mode"
     
     @pytest.mark.unit
-    def test_main_all_flag(self, temp_project_copy):
+    def test_main_all_flag(self):
         """Test main function with --all flag."""
         with patch.object(cleanup_module, "ProjectCleanup") as mock_cleanup_class:
             mock_cleanup = MagicMock()
@@ -572,7 +575,7 @@ class TestProjectCleanupMain:
             assert call_kwargs['coverage'] is True, "Should clean coverage"
     
     @pytest.mark.unit
-    def test_main_json_output(self, temp_project_copy):
+    def test_main_json_output(self):
         """Test main function with --json flag."""
         with patch.object(cleanup_module, "ProjectCleanup") as mock_cleanup_class:
             mock_cleanup = MagicMock()
@@ -594,7 +597,7 @@ class TestProjectCleanupMain:
             assert 'total_removed' in call_args, "Should print JSON with total_removed"
     
     @pytest.mark.unit
-    def test_main_exit_code_on_failure(self, temp_project_copy):
+    def test_main_exit_code_on_failure(self):
         """Test main function exit code when cleanup fails."""
         with patch.object(cleanup_module, "ProjectCleanup") as mock_cleanup_class:
             mock_cleanup = MagicMock()

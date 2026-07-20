@@ -30,6 +30,12 @@ _EXAMPLE_HEADING = re.compile(
     r"^##+\s+.*\b(examples?|example usage|example code)\b", re.IGNORECASE
 )
 
+# Prose/bold openers that are not ATX headings (V6 §2.6).
+_EXAMPLE_PROSE_OPENER = re.compile(
+    r"^\s*(?:\*\*|__)?(?:examples?|example usage|example code)\s*:\s*(?:\*\*|__)?\s*$",
+    re.IGNORECASE,
+)
+
 # Paths in backticks: repo-style (contains /) with a known extension — skips bare `foo.md`
 # noise from short citations per §3.7 "full paths from project root".
 _PATH_IN_BACKTICKS = re.compile(
@@ -43,6 +49,7 @@ _CITATION_LINE = re.compile(
 )
 
 _MARKER_WINDOW = 2
+_FENCE_LINE = re.compile(r"^\s*```")
 
 
 def _is_example_heading(line: str) -> bool:
@@ -51,6 +58,13 @@ def _is_example_heading(line: str) -> bool:
         return False
     # Changelog bullets like "(example markers)" are not runnable examples.
     return "example markers" not in line.lower()
+
+
+def _is_example_region_opener(line: str) -> bool:
+    """True for ATX headings or standalone prose/bold ``Examples:`` openers."""
+    if _is_example_heading(line):
+        return True
+    return bool(_EXAMPLE_PROSE_OPENER.match(line))
 
 
 def _line_has_example_marker(line: str) -> bool:
@@ -92,18 +106,43 @@ def _is_excluded_example_marker_doc(relative_path: str) -> bool:
     return False
 
 
+def _is_atx_heading(line: str) -> bool:
+    """True for Markdown ATX headings (# … ######)."""
+    return bool(re.match(r"^\s*#{1,6}\s+\S", line))
+
+
 def find_unmarked_example_path_lines(content: str) -> list[tuple[int, str]]:
     """Return (1-based line number, line text) for advisory review only."""
     lines = content.splitlines()
     out: list[tuple[int, str]] = []
     i = 0
+    in_fence = False
     while i < len(lines):
         line = lines[i]
-        if _is_example_heading(line):
+        if _FENCE_LINE.match(line):
+            in_fence = not in_fence
             i += 1
-            while i < len(lines) and not lines[i].startswith("## "):
+            continue
+        if in_fence:
+            i += 1
+            continue
+        is_heading_opener = _is_example_heading(line)
+        is_prose_opener = (not is_heading_opener) and _is_example_region_opener(line)
+        if is_heading_opener or is_prose_opener:
+            i += 1
+            while i < len(lines):
                 body = lines[i]
-                if (
+                # Heading openers end at the next H2; prose openers end at any ATX
+                # heading so subsection lists are not treated as example bodies.
+                if is_heading_opener and body.startswith("## "):
+                    break
+                if is_prose_opener and _is_atx_heading(body):
+                    break
+                if _FENCE_LINE.match(body):
+                    in_fence = not in_fence
+                    i += 1
+                    continue
+                if not in_fence and (
                     _PATH_IN_BACKTICKS.search(body)
                     and not _CITATION_LINE.match(body)
                     and not _marker_within_window(lines, i)

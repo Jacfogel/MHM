@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Forward-looking backlog for `development_tools/` after V5  
 > **Style**: Direct, concise, action-oriented  
-> **Last Updated**: 2026-07-19 (removed nested owned pyrightconfig.json)  
+> **Last Updated**: 2026-07-19 (B-001/B-006/B-007/B-008 residual slice; coverage stays elsewhere)  
 > **Supersedes**: `archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md` for active planning. Keep V4 and prior V5 snapshots for detailed checkbox history.
 
 ## Authoritative sources
@@ -35,24 +35,13 @@ prefer the generated outputs over any numeric examples in this plan.
 
 ### 1.1 Next execution slice
 
-1. **Prefer targeted dev-tools coverage where it buys down real risk (highest leverage).**
-   - Live full-repo Tier 3 (2026-07-18 refresh): `development_tools` package **~65.6%** (still above the V4 60% floor).
-   - Prefer central service chokepoints over percentage-only tests. Hotspots after slices #1–#3:
-     - `shared/service/report_generation.py` (~47%)
-     - `shared/service/audit_orchestration.py` (~56%)
-     - `shared/service/tool_wrappers.py` (~59%)
-     - `commands.py` / `data_loading.py` (~61–63%; slice #3 added branch coverage — refresh % via `coverage` command)
-     - next: remaining brittle branches in the five service modules, or product `AI_PRIORITIES` domains
-   - Keep opportunistic `tests/development_tools/test_config.json` migration when touching analyzer-style tests.
-   - Product-wide `AI_PRIORITIES.md` is a **parallel** track (domains below 80%, large modules, coupling); do not confuse it with this V6 slice.
+1. **Coverage work is tracked outside this plan** (product/domain coverage via `AI_PRIORITIES.md` / `TEST_COVERAGE_REPORT.md`; remaining B-002 chokepoint notes stay in §2.2 for history only).
+   - Do not treat percentage-only `development_tools` coverage growth as the active V6 execution driver.
 
-2. **Continue residual dev-tools test performance work only.**
-   - Root cause remains function-scoped `temp_project_copy` (demo-tree copy per test).
-   - Module-scoped overrides cover the original hot modules, `test_report_generation_quick_wins.py`, and the 2026-07-18 residual pair:
-     `test_tool_wrappers_static_analysis.py`, `test_generate_unused_imports_report.py`.
-   - Leave intentionally function-scoped: `test_fix_project_cleanup.py`, `test_output_storage_archiving.py`,
-     `test_legacy_reference_cleanup.py` (cleanup mutates demo files / inventory).
-   - Further candidates only if profiling still shows high function-scoped copy cost.
+2. **Dev-tools test performance (B-001) is residual / maintenance.**
+   - 2026-07-19: `test_fix_project_cleanup.py` moved to `tmp_path` (largest former demo-copy sink); module-scoped overrides added for docs-workflow / scoped-status / static-analysis report / cache-helpers; path-drift leftover demos → `tmp_path`.
+   - Intentionally function-scoped + marked `slow` (Tier 3 quick profile skips): `test_output_storage_archiving.py` (module), legacy cleanup mutators that still need `temp_project_copy`.
+   - Re-profile only if suite wall time regresses; do not force module scope on archive/legacy mutators.
 
 3. **Keep portability as residual cleanup, not a greenfield slice.**
    - `core.logger` removal, external-`project_root` / config portability, MHM-string default cleanup, and minimal external-repo validation (B-003/B-004, 2026-07-18) are done (§2.3).
@@ -65,8 +54,8 @@ prefer the generated outputs over any numeric examples in this plan.
 
 | Tier | Work |
 |---|---|
-| **Active** | Targeted dev-tools coverage (service chokepoints); residual test-performance fixture review |
-| **Residual / medium** | Portability/static packaging (B-003/B-004) maintenance only; validation-warning cleanup if noisy |
+| **Active (outside V6)** | Product/domain coverage and refactor priorities from generated `AI_PRIORITIES.md` |
+| **Residual / medium** | B-001 re-profile if suite time hurts; portability/static packaging maintenance; B-006/B-007/B-008 only on new noise |
 | **Maintenance** | Domain-marker policy (taxonomy + enforcement shipped; tune only on false positives) |
 | **Deferred** | Coverage-cache numeric benchmarks; external-tool expansion; TODO-sync workflow polish; gap-analysis expansion; memory profiler; arbitrary audit scopes |
 | **Monitoring only** | Low-coverage warning recurrence; example-marker/doc-overlap regressions; legacy-reference regressions |
@@ -77,9 +66,9 @@ prefer the generated outputs over any numeric examples in this plan.
 
 ### 2.1 Dev-tools test performance
 
-**Status**: Active residual (major hot-module work done).
+**Status**: Residual / maintenance (2026-07-19 slice landed).
 
-**Problem**: `tests/development_tools/` is slow mainly because setup is expensive, especially function-scoped `temp_project_copy`.
+**Problem**: `tests/development_tools/` was slow mainly because setup is expensive, especially function-scoped `temp_project_copy`.
 
 **Current evidence**:
 
@@ -94,37 +83,40 @@ prefer the generated outputs over any numeric examples in this plan.
   - `test_audit_orchestration_helpers.py`
   - `test_audit_strict_mode.py`
   - `test_commands_additional_helpers.py`
+  - `test_commands_docs_workflow.py` (**2026-07-19**)
   - `test_data_loading_helpers.py`
+  - `test_dev_tools_scoped_status_report.py` (**2026-07-19**)
   - `test_fix_documentation_headings.py`
   - `test_fix_documentation_links.py`
   - `test_fix_version_sync_changelog_archive_order.py`
   - `test_generate_consolidated_report.py`
   - `test_report_generation_dev_tools_scope.py`
   - `test_report_generation_helpers_pure.py`
-  - `test_report_generation_quick_wins.py` (**was the previous next target; done**)
+  - `test_report_generation_quick_wins.py`
+  - `test_report_generation_static_analysis.py` (**2026-07-19**)
   - `test_static_analysis_tools.py`
   - `test_tool_wrappers_additional.py`
   - `test_tool_wrappers_branch_paths.py`
-  - `test_tool_wrappers_static_analysis.py` (**2026-07-18 residual**)
-  - `test_generate_unused_imports_report.py` (**2026-07-18 residual**)
-- Intentionally left function-scoped (mutation / shared state):
-  - `test_fix_project_cleanup.py`
-  - `test_output_storage_archiving.py`
-  - `test_legacy_reference_cleanup.py` (actual cleanup + inventory overwrites)
+  - `test_tool_wrappers_cache_helpers.py` (**2026-07-19**)
+  - `test_tool_wrappers_static_analysis.py`
+  - `test_generate_unused_imports_report.py`
+- **2026-07-19**: `test_fix_project_cleanup.py` uses `tmp_path` (no demo copytree); unused Main fixture args dropped; path-drift leftover demos → `tmp_path`.
+- Intentionally function-scoped mutators (still need demo tree):
+  - `test_output_storage_archiving.py` — module `pytestmark = slow` (Tier 3 quick skips)
+  - `test_legacy_reference_cleanup.py` — `temp_project_copy` mutators marked `slow`
 
 **Next actions**:
 
-- **Profiled 2026-07-18**: `python run_tests.py --mode development_tools --durations-all` → **1564 passed in 182.48s** wall (6 workers, loadscope). Cost is still mostly `temp_project_copy` **setup**, not call time.
-- Largest remaining setup sinks (intentionally function-scoped / mutators): `test_fix_project_cleanup.py` (~142s summed listed setups), `test_output_storage_archiving.py` (~49s), `test_legacy_reference_cleanup.py` (~16s setups + ~28s calls).
-- Note: under `--dist loadscope`, **class-based** modules pay module-scoped fixture once **per class worker**, so module scope helps within a class but not across classes in the same file.
-- Optional follow-ups only if suite time still hurts: slim demo tree, mark heavy cleanup/archiving as `slow`, or avoid `temp_project_copy` in pure helpers.
-- Do not force module scope on `test_legacy_reference_cleanup.py` / cleanup / archiving mutators.
+- **Re-profiled 2026-07-19**: `python run_tests.py --mode development_tools --durations-all` → **1591 passed**, **0 failed**, wall **83.94s** (parallel phase **77.27s** / pytest **72.20s**, 6 workers loadscope). Prior baseline (2026-07-18): **1564 passed** / parallel **182.48s** / wall **~195s**.
+- Largest remaining costs are one-time module-scoped demo setups (~4–5.7s each) plus `test_dev_tools_portability_smoke` call (~5.9s). Former cleanup copytree sink is gone from the top list.
+- Function-scoped archive/legacy mutators still pay ~4s setup each when the full (non-quick) profile runs; Tier 3 quick continues to skip them via `slow`.
+- Optional later only if wall time regresses: slim demo tree. Do not force module scope on archive / legacy mutators.
 
 ---
 
 ### 2.2 Targeted dev-tools coverage
 
-**Status**: Active, but do not chase percentage-only tests.
+**Status**: Tracked outside V6 active execution (product/`AI_PRIORITIES` + `coverage` command). History below kept for context.
 
 **Current state** (prefer live `TEST_COVERAGE_REPORT.md`):
 
@@ -255,19 +247,23 @@ prefer the generated outputs over any numeric examples in this plan.
 
 ### 2.5 Validation warning cleanup
 
-**Status**: Low / medium, only if noisy.
+**Status**: Residual complete for current noise (2026-07-19); reopen if logs flood again.
+
+**Already done**:
+
+- `needs_enhancement` placeholder modules are summarized at INFO (not per-file WARNING).
+- Priority WARNING list is limited to `new_module` / `dependencies_changed` / `missing_enhancement`.
+- Test files were already outside the scan set.
 
 **Open work**:
 
-- Review `needs_enhancement` and `new_module` triggers.
-- Decide whether test files should be excluded.
-- Tighten recommendations so warnings are actionable rather than generic.
+- Reopen only if dependency-doc generation warnings become noisy again.
 
 ---
 
 ### 2.6 Example-marker checker
 
-**Status**: Partial; advisory only.
+**Status**: Advisory hardened (2026-07-19); still not a default gate.
 
 **Already done**:
 
@@ -276,13 +272,13 @@ prefer the generated outputs over any numeric examples in this plan.
 - Expanded scan paths to approved documentation sets.
 - Suppressed changelog-style false-positive heading noise.
 - Added JSON true-positive coverage.
+- **2026-07-19**: skip fenced code blocks; open regions on prose/bold `Examples:` / `Example Usage:` / `Example Code:` labels.
 
 **Open work**:
 
-- Tighten heuristics before making it a default gate.
-- Validate headings such as `Examples:`, `Example Usage:`, and `Example Code:` beyond Markdown `##` patterns.
-- Report file/line details in consolidated output if promoted from advisory.
+- Report file/line details in consolidated output only if promoted from advisory.
 - Reopen only if future audits show missed true examples or renewed noise.
+- Do not make this a failing default gate yet.
 
 ---
 
@@ -295,6 +291,7 @@ prefer the generated outputs over any numeric examples in this plan.
 - Generic numbered headings are filtered.
 - Expected boilerplate headings are excluded.
 - Configured paired-doc groups and specialized testing guides are skipped in consolidation recommendations.
+- **2026-07-19**: `EXPECTED_OVERLAPS` adds Discord-spec boilerplate (`out of scope`, `manual test checklist`, `related documentation`).
 
 **Open work**:
 
@@ -587,14 +584,14 @@ Completed themes:
 
 | ID | Area | Status | Next action |
 |---|---|---|---|
-| B-001 | Dev-tools test performance | Active residual | 2026-07-18: module-scoped static-analysis wrappers + unused-imports report; legacy cleanup stays function-scoped. Next: re-profile only if suite time still hurts. |
-| B-002 | Targeted dev-tools coverage | Active | 2026-07-18 slices #1–#3 landed (chokepoints + unused-functions + `commands`/`data_loading`); next: refresh metrics via `coverage` command (not audit), then remaining brittle service branches. |
+| B-001 | Dev-tools test performance | Maintenance | 2026-07-19 re-profile: **1591 passed / 83.94s** wall (was ~195s). Reopen only on regression. |
+| B-002 | Targeted dev-tools coverage | Tracked elsewhere | Slices #1–#3 landed; further coverage via `AI_PRIORITIES` / `coverage` command, not as V6 active driver. |
 | B-003 | Portability: implicit MHM assumptions | Maintenance | 2026-07-18: MHM roots/allowlists moved to project JSON; portable defaults emptied. Reopen only on regression. |
 | B-004 | Static-tool packaging parity | Maintenance | 2026-07-18 external-repo smokes; 2026-07-19 removed nested owned `pyrightconfig.json` (SSOT = `pyproject.toml` `[tool.pyright]`). |
 | B-005 | Domain-marker analysis | Maintenance | Do not rebuild; tune false positives / keep `domain_mapper` aligned when packages change. |
-| B-006 | Validation warnings | Low/medium | Tune only if warnings become noisy. |
-| B-007 | Example-marker checker | Deferred/advisory | Improve heuristics before default gating. |
-| B-008 | Documentation overlap | Monitoring | Reopen only on real duplicated content. |
+| B-006 | Validation warnings | Monitoring | 2026-07-19: placeholder flood demoted; escalate only new/missing/changed. |
+| B-007 | Example-marker checker | Advisory | 2026-07-19: fence skip + prose `Examples:` openers; keep advisory (no default gate). |
+| B-008 | Documentation overlap | Monitoring | 2026-07-19: Discord-spec boilerplate in `EXPECTED_OVERLAPS`. |
 | B-009 | System signals overlap | Deferred | Reopen only if duplicate metrics confuse generated output. |
 | B-010 | TODO sync workflow polish | Low | Add docs/checks only if the workflow becomes active again. |
 | B-011 | Coverage-cache benchmark | Deferred | Capture local numeric before/after timings. |

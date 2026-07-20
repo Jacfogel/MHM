@@ -6,6 +6,9 @@ Verifies that file rotation and archiving work correctly for tool result JSON fi
 Uses function-scoped ``temp_project_copy`` (default from conftest): tests share one
 ``docs/jsons/scopes/full/`` archive tree, delete archives, and run concurrent writes.
 Module-scoped copy caused order-dependent failures in prior perf work (see V6 B-001).
+
+Marked ``slow`` so Tier 3 quick profile (``not slow``) skips the demo-copy sink;
+nightly / full profile still runs these.
 """
 
 import pytest
@@ -13,6 +16,8 @@ import json
 import time
 
 from tests.development_tools.conftest import load_development_tools_module
+
+pytestmark = pytest.mark.slow
 
 # Load modules
 output_storage_module = load_development_tools_module("shared.output_storage")

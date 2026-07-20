@@ -66,11 +66,12 @@ class TestPathDriftIntegration:
             f"Expected missing files to be mentioned in issues: {issues}"
     
     @pytest.mark.unit
-    def test_path_validation_identifies_missing_paths(self, temp_project_copy, monkeypatch):
+    def test_path_validation_identifies_missing_paths(self, tmp_path, monkeypatch):
         """Test _validate_referenced_paths() method directly with known broken references."""
-        # Create a documentation file with broken paths
-        docs_dir = temp_project_copy / "development_docs"
-        docs_dir.mkdir(exist_ok=True)
+        project_root = tmp_path / "test_project"
+        project_root.mkdir()
+        docs_dir = project_root / "development_docs"
+        docs_dir.mkdir()
         
         test_doc = docs_dir / "test_paths.md"
         test_doc.write_text(
@@ -79,8 +80,7 @@ class TestPathDriftIntegration:
             "This references another missing file: `core/missing_module.py`\n"
         )
         
-        # Create service instance
-        service = AIToolsService(project_root=str(temp_project_copy))
+        service = AIToolsService(project_root=str(project_root))
         
         # Run path validation
         service._validate_referenced_paths()

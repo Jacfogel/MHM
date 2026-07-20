@@ -449,7 +449,7 @@ When debugging parallel issues:
 
 Use `@pytest.mark.no_parallel` **sparingly** and only when necessary.
 
-Example:
+Usage:
 
 ```python
 import pytest

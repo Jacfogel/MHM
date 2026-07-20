@@ -173,11 +173,12 @@ class TestPathDriftVerification:
         assert summary['files_affected'] > 0, "Should have at least one affected file"
     
     @pytest.mark.integration
-    def test_path_drift_integration_with_status_reports(self, temp_project_copy):
+    def test_path_drift_integration_with_status_reports(self, tmp_path):
         """Verify path drift issues appear in status reports when running audit."""
-        # Create documentation with broken path
-        docs_dir = temp_project_copy / "development_docs"
-        docs_dir.mkdir(exist_ok=True)
+        project_root = tmp_path / "test_project"
+        project_root.mkdir()
+        docs_dir = project_root / "development_docs"
+        docs_dir.mkdir()
         
         test_doc = docs_dir / "test_path_drift.md"
         test_doc.write_text(
@@ -185,8 +186,7 @@ class TestPathDriftVerification:
             "This references a missing file: `core/missing_test_module.py`\n"
         )
         
-        # Run path drift analysis directly
-        analyzer = PathDriftAnalyzer(project_root=str(temp_project_copy), use_cache=False)
+        analyzer = PathDriftAnalyzer(project_root=str(project_root), use_cache=False)
         direct_results = analyzer.run_analysis()
         
         # Verify direct analysis found the issue
@@ -195,8 +195,8 @@ class TestPathDriftVerification:
         
         # Verify the file is in the results
         files = direct_results.get('files', {})
-        test_doc_str = str(test_doc.relative_to(temp_project_copy)).replace('\\', '/')
-        test_doc_win = str(test_doc.relative_to(temp_project_copy))
+        test_doc_str = str(test_doc.relative_to(project_root)).replace('\\', '/')
+        test_doc_win = str(test_doc.relative_to(project_root))
         
         found = test_doc_str in files or test_doc_win in files
         assert found, \

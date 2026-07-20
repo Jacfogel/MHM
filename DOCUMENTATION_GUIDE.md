@@ -95,7 +95,7 @@ should be used.
 Human-facing documents are the detailed, explanatory sources of truth.
 They prioritize context, rationale, examples, and troubleshooting.
 
-Examples:
+Key documents:
 
 -   [README.md](README.md): High-level introduction, philosophy, and
     navigation.

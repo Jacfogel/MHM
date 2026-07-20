@@ -1,12 +1,24 @@
 """Static analysis report integration tests for AI status/priorities/consolidated docs."""
 
+from pathlib import Path
+
 import pytest
 
-from tests.development_tools.conftest import load_development_tools_module
+from tests.development_tools.conftest import (
+    load_development_tools_module,
+    temp_project_copy_paths,
+)
 
 
 service_module = load_development_tools_module("shared.service")
 AIToolsService = service_module.AIToolsService
+
+
+@pytest.fixture(scope="module")
+def temp_project_copy():
+    """One demo-tree copy per module (in-memory payloads; no tree mutation)."""
+    fixture_path = Path(__file__).parent.parent / "fixtures" / "development_tools_demo"
+    yield from temp_project_copy_paths(fixture_path.resolve())
 
 
 @pytest.mark.unit

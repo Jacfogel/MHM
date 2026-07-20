@@ -39,10 +39,10 @@ When adding new tasks, follow this format:
 
 **Parallel product work (from audits)**: After `audit --full` (and `coverage` when metrics need refresh), use [`development_tools/AI_PRIORITIES.md`](development_tools/AI_PRIORITIES.md) for coverage, duplicates, coupling, and complexity; this is separate from dev-tools suite implementation in [`AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md`](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
 
-**Development tools backlog (active follow-ups only, reviewed 2026-07-18)**
-- **Active**: B-002 next after slices #1-#3 - refresh metrics via `python development_tools/run_development_tools.py coverage` (audit does not regenerate coverage), then remaining brittle service branches (e.g. `_load_mtime_cached_tool_results`). B-001 residual module-scope done; legacy cleanup stays function-scoped.
-- **Residual / medium**: B-003/B-004 done (external-repo smokes; nested owned `pyrightconfig.json` removed - Pyright SSOT is `pyproject.toml` `[tool.pyright]`).
-- **Maintenance / deferred**: domain markers shipped (B-005); Bandit/pip-audit integrated and clean (B-018 closed); optional external-tool expansion and gap tools remain deferred in V6.
+**Development tools backlog (active follow-ups only, reviewed 2026-07-19)**
+- **Coverage (tracked outside V6)**: use generated [`AI_PRIORITIES.md`](development_tools/AI_PRIORITIES.md) + `python development_tools/run_development_tools.py coverage` for domain/product coverage; B-002 chokepoint history remains in V6 Section 2.2.
+- **Residual / maintenance**: B-001 re-profiled 2026-07-19 (**1591 passed / 83.94s**, was ~195s); B-003/B-004 portability; B-006/B-007/B-008 noise hardenings landed - reopen only on regression.
+- **Deferred**: optional external-tool expansion and gap tools remain deferred in V6.
 - **Opportunistic**: adopt `tests/development_tools/test_config.json` when touching analyzer tests.
 Detail: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
 

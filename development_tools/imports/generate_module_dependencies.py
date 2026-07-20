@@ -810,11 +810,21 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
             }.get(status, status)
             logger.info(ensure_ascii(f"   {status_display}: {count}"))
 
-        # Show specific modules needing attention
+        # Placeholder content (needs_enhancement) is optional boilerplate, not a
+        # priority flood. Escalate only new/missing/changed modules; summarize the rest.
+        placeholder_count = status_counts.get("needs_enhancement", 0)
+        if placeholder_count:
+            logger.info(
+                ensure_ascii(
+                    f"[ENHANCEMENT] {placeholder_count} module(s) still use default "
+                    "placeholder blocks (optional; not listed individually)"
+                )
+            )
+
         priority_modules = {
             k: v
             for k, v in enhancement_status.items()
-            if v in ["new_module", "needs_enhancement", "dependencies_changed"]
+            if v in ["new_module", "dependencies_changed", "missing_enhancement"]
         }
 
         if priority_modules:
@@ -824,8 +834,8 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
             for file_path, status in sorted(priority_modules.items()):
                 status_icon = {
                     "new_module": "[NEW]",
-                    "needs_enhancement": "[ENH]",
                     "dependencies_changed": "[CHG]",
+                    "missing_enhancement": "[MISS]",
                 }.get(status, "[?]")
                 logger.warning(ensure_ascii(f"   {status_icon} {file_path} ({status})"))
 

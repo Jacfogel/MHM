@@ -122,15 +122,45 @@ Run `core/bar.py` for real.
 
 
 @pytest.mark.unit
-def test_find_unmarked_flags_path_inside_fenced_block() -> None:
+def test_find_unmarked_skips_path_inside_fenced_block() -> None:
     md = """## Examples
 
 ```
 Use `core/hidden.py` in legacy mode.
 ```
+
+After the fence: `core/visible.py` still counts.
 """
     hits = find_unmarked_example_path_lines(md)
     assert len(hits) == 1
+    assert "visible.py" in hits[0][1]
+
+
+@pytest.mark.unit
+def test_find_unmarked_opens_on_prose_examples_label() -> None:
+    md = """Examples:
+
+Use `core/foo.py` for the hook.
+"""
+    hits = find_unmarked_example_path_lines(md)
+    assert len(hits) == 1
+    assert hits[0][0] == 3
+
+
+@pytest.mark.unit
+def test_find_unmarked_prose_opener_ends_at_subsection_heading() -> None:
+    """Prose Examples: must not bleed into later ### subsections."""
+    md = """### 2.1. Docs
+
+Examples:
+
+- See the catalog below.
+
+### 2.2. Later
+
+Neutral citation: `core/foo.py` here is not an example body.
+"""
+    assert find_unmarked_example_path_lines(md) == []
 
 
 @pytest.mark.unit

@@ -290,6 +290,27 @@ to be filled: placeholder
         assert "2. Related Docs" not in overlaps
 
     @pytest.mark.unit
+    def test_detect_section_overlaps_ignores_discord_spec_boilerplate(self):
+        """Spec templates share Out of scope / checklist / related-doc headings."""
+        body = "x" * 60
+        docs = {
+            "specs/discord-a.md": (
+                f"## Out of scope\n{body}\n"
+                f"## Manual test checklist\n{body}\n"
+                f"## Related documentation\n{body}\n"
+            ),
+            "specs/discord-b.md": (
+                f"## Out of scope\n{body}\n"
+                f"## Manual test checklist\n{body}\n"
+                f"## Related documentation\n{body}\n"
+            ),
+        }
+        overlaps = detect_section_overlaps(docs)
+        assert "Out of scope" not in overlaps
+        assert "Manual test checklist" not in overlaps
+        assert "Related documentation" not in overlaps
+
+    @pytest.mark.unit
     def test_detect_section_overlaps_ignores_numbered_troubleshooting(self):
         body = "z" * 60
         docs = {

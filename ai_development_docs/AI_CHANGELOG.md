@@ -30,6 +30,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-07-19 - V6 residual slice (perf + noise) **COMPLETED**
+- B-001: `test_fix_project_cleanup` uses `tmp_path` (no demo copytree); module-scoped demo fixtures for docs-workflow / scoped-status / static-analysis report / cache-helpers; path-drift leftovers -> `tmp_path`; archive module + legacy mutators marked `slow` for Tier 3 quick profile.
+- B-001 re-profile: `run_tests.py --mode development_tools --durations-all` -> **1591 passed / 83.94s** wall (was ~195s on 2026-07-18); cleanup copytree gone from top setups.
+- B-006: dependency-doc placeholder modules summarized at INFO; WARNING list limited to new/missing/changed.
+- B-007: example-marker advisory skips fenced blocks and opens on prose `Examples:` labels.
+- B-008: Discord-spec boilerplate headings added to `EXPECTED_OVERLAPS`. V6/TODO retargeted; coverage stays outside V6 active driver.
+- Cleared AI_PRIORITIES example-marker hints: renamed neutral `Examples:`/`Example:` labels in DOCUMENTATION_GUIDE, AI_DEVELOPMENT_TOOLS_GUIDE, TESTING_GUIDE; prose openers now end at any ATX heading. ASCII compliance already CLEAN.
+
 ### 2026-07-18 - LIST_OF_LISTS currency; V6 plan status refresh **COMPLETED**
 - B-003/B-004 portability: emptied MHM package roots from portable code defaults (Ruff/Pyright shards, Bandit roots, channel-logger allowlist); MHM trees live in project JSON + `.example`. Renamed pip-audit skip env to `DEV_TOOLS_PIP_AUDIT_SKIP` only (`MHM_PIP_AUDIT_SKIP` removed), renamed pip-audit/pytest temp cache prefixes, and external-repo smokes (Bandit `.` fallback, Ruff monolithic fallback, subprocess `audit --quick`).
 - Fix Tier 3 flake: `test_analyze_unused_functions_finds_uncalled_helper` now passes explicit `project_root` / `scan_directories` / `apply_exclusions=False` so empty global `paths.scan_directories` from other tests cannot yield zero files.
@@ -175,20 +183,6 @@ Verified:
 - CLI command: `python development_tools/run_development_tools.py unused-functions` (supports `--include-tests`, `--include-dev-tools`, `--private-only`, `--max-results`, `--json`).
 - Filters out dunder methods, test functions, framework-decorated functions, and `__init__.py` exports to reduce false positives.
 - Integrated into Tier 2 audit pipeline; results surface in `AI_STATUS.md`, `AI_PRIORITIES.md`, and `CONSOLIDATED_REPORT.md`.
-
-### 2026-07-02 - Product AI context foundation **COMPLETED**
-- Added canonical product-AI context envelope, metadata-only action catalog, and explicit prompt-flow ownership (`ai/context/service.py`, `ai/prompts/action_catalog.py`, `ai/prompts/flows.py`).
-- Migrated `ContextBuilder` and conversational context assembly to read from `AIContextEnvelope` (`ai/context/builder.py`, `ai/context/assembly.py`).
-- Consolidated product-AI prompts to four flow-aligned categories (`persona`, `reply_rules`, `data_honesty`, `action_boundaries`) plus runtime `available_actions` injection; removed duplicate `CONVERSATIONAL_CONTEXT_INSTRUCTIONS` and stopped stacking the 54-line assistant prompt on chat composition.
-- Wired `action_interpretation` and `action_result_response` flows into runtime composition (`command_interpreter`, `assemble_action_result_messages`, `response_enhancer`).
-- Added `AIActionPlan`, action planner, and action plan executor (`ai/chat/action_planner.py`, `communication/message_processing/action_plan_executor.py`); low-confidence routing behind `AI_ACTION_PLANNER_ENABLED` (default off).
-- Added `AIActionRequest` -> `ParsedCommand` adapter and execution metadata (`communication/message_processing/action_request_adapter.py`) with tests proving `create_task` routes through `dispatch_structured_command`.
-- Reorganized `ai/` into pipeline subpackages (`client/`, `context/`, `prompts/`, `chat/`, `fallback/`) and migrated imports across communication, tests, and scripts; removed legacy flat-module shims.
-- Updated `PRODUCT_AI_RESPONSE_INFLUENCE_AUDIT.md` to reflect current status: enable `AI_ACTION_PLANNER_ENABLED` to use planner on low-confidence messages; multi-action plans and primary-path planner routing remain future work.
-- Removed `enhance_conversational_engagement()` post-processing; follow-up behavior is prompt-owned via `reply_rules.txt`. Fixed import-boundary and function-registry tests for `ai/` subpackages; repaired doc path drift (`doc-fix`, `docs`, `doc-sync`). Marked intentional duplicate-function groups with `# devtools: intentional[duplicate-functions]:` (`period_row_read_only_decomposition` on nine `PeriodRowWidget._set_read_only__*` helpers; `rule_based_entity_extractors` on six `command_parser` rule-based entity extractors); duplicate analyzer now reports 0 groups.
-- **Fix (nightly CI)**: Added Ubuntu Qt/X11 system packages to `.github/workflows/nightly-tests.yml` for headless PySide6 UI tests; nightly runs use `--no-domain-cache` on GitHub Actions and `run_test_suite` now keeps subprocess stdout small when writing `--output-file`.
-- **Fix (parallel flake)**: `test_user_with_all_features` now waits for preferences to flush, aligns schedule categories, and retries schedule saves (matching `TestUserFactory.create_user_with_schedules`); schedule day names use schema-valid capitalization. Schedule assertions normalize v2 `categories` wrappers via `_schedule_categories_from_loaded()`.
-- **Context DRY**: Extracted `_assemble_product_flow_messages()` and `_phrase_recent_sent_messages()` to deduplicate assembly/phraser helpers flagged by duplicate-function analysis.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
